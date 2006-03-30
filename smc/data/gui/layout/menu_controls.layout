@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<GUILayout>
+	<Window Type="DefaultWindow" Name="root">
+		<Window Type="TaharezLook/Combobox" Name="combo_joystick">
+			<Property Name="Position" Value="x:0.5 y:0.825" />
+			<Property Name="Size" Value="w:0.10 h:0.145" />
+			<Property Name="Text" Value="Joystick" />
+			<Property Name="ClippedByParent" Value="false" />
+			<Property Name="ReadOnly" Value="true" />
+		</Window>
+	</Window>
+</GUILayout>

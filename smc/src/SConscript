@@ -1,0 +1,41 @@
+import glob
+import string
+Import('env')
+
+def SGlob(pattern):
+	path = string.replace(GetBuildPath('SConscript'), 'SConscript', '')
+	
+	result = []
+	for i in glob.glob(path + pattern):
+		result.append(string.replace(i, path, ''))
+	
+	return result
+
+definitions = [
+('SAVE_DIR', "\\\"savegames\\\""),
+('OVERWORLD_DIR', "\\\"data/world\\\""),
+('PIXMAPS_DIR', "\\\"data/pixmaps\\\""),
+('SOUNDS_DIR', "\\\"data/sounds\\\""),
+('MUSIC_DIR', "\\\"data/music\\\""),
+('FONT_DIR', "\\\"data/font\\\"")
+]
+
+includes = Split("""
+.
+enemies
+gui
+input
+level
+objects
+overworld
+user
+video
+""")
+
+cfiles = glob.glob("*.cpp")
+cppsub = glob.glob("*/*.cpp")
+cfiles.extend(cppsub)
+
+env.Append(CPPPATH=includes)
+env.Append(CPPDEFINES=definitions)
+env.Program(target='smc', source=cfiles)

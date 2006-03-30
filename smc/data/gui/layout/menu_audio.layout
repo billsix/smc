@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GUILayout>
+<Window Type="DefaultWindow" Name="root" >
+<Property Name="UnifiedAreaRect" Value="{{0.000000,0.000000},{0.000000,0.000000},{1.000000,0.000000},{1.000000,0.000000}}" />
+<Property Name="UnifiedMaxSize" Value="{{1.000000,0.000000},{1.000000,0.000000}}" />
+<Window Type="TaharezLook/Combobox" Name="combo_music" >
+<Property Name="ActiveEditSelectionColour" Value="FF6060FF" />
+<Property Name="ClippedByParent" Value="False" />
+<Property Name="InactiveEditSelectionColour" Value="FF808080" />
+<Property Name="MaxEditTextLength" Value="1073741823" />
+<Property Name="NormalEditTextColour" Value="FFFFFFFF" />
+<Property Name="ReadOnly" Value="True" />
+<Property Name="SelectedEditTextColour" Value="FF000000" />
+<Property Name="Text" Value="Music" />
+<Property Name="UnifiedAreaRect" Value="{{0.500000,0.000000},{0.550000,0.000000},{0.600000,0.000000},{0.695000,0.000000}}" />
+<Property Name="UnifiedMaxSize" Value="{{1.000000,0.000000},{1.000000,0.000000}}" />
+</Window>
+<Window Type="TaharezLook/Combobox" Name="combo_sounds" >
+<Property Name="ActiveEditSelectionColour" Value="FF6060FF" />
+<Property Name="ClippedByParent" Value="False" />
+<Property Name="InactiveEditSelectionColour" Value="FF808080" />
+<Property Name="MaxEditTextLength" Value="1073741823" />
+<Property Name="NormalEditTextColour" Value="FFFFFFFF" />
+<Property Name="ReadOnly" Value="True" />
+<Property Name="SelectedEditTextColour" Value="FF000000" />
+<Property Name="Text" Value="Sounds" />
+<Property Name="UnifiedAreaRect" Value="{{0.500000,0.000000},{0.675000,0.000000},{0.600000,0.000000},{0.820000,0.000000}}" />
+<Property Name="UnifiedMaxSize" Value="{{1.000000,0.000000},{1.000000,0.000000}}" />
+</Window>
+<Window Type="TaharezLook/Slider" Name="slider_music_volume" >
+<Property Name="ClickStepSize" Value="5.000000" />
+<Property Name="MaximumValue" Value="128.000000" />
+<Property Name="UnifiedAreaRect" Value="{{0.616251,0.000000},{0.536666,0.000000},{0.637501,0.000000},{0.618333,0.000000}}" />
+<Property Name="UnifiedMaxSize" Value="{{1.000000,0.000000},{1.000000,0.000000}}" />
+</Window>
+<Window Type="TaharezLook/Slider" Name="slider_sound_volume" >
+<Property Name="ClickStepSize" Value="5.000000" />
+<Property Name="MaximumValue" Value="128.000000" />
+<Property Name="UnifiedAreaRect" Value="{{0.615001,0.000000},{0.655000,0.000000},{0.636251,0.000000},{0.738333,0.000000}}" />
+<Property Name="UnifiedMaxSize" Value="{{1.000000,0.000000},{1.000000,0.000000}}" />
+</Window>
+</Window>
+</GUILayout>

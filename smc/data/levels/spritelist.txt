@@ -1,0 +1,226 @@
+clouds/
+ cloudy_1/
+   middle.png                   0000
+ default_1/
+   1_middle.png                 0001
+   2_small.png                  0002
+   1_right.png                  0003
+   2_big.png                    0004
+hills/
+ green_1/
+   head.png                     0005
+   middle.png                   0006
+ blue_1/
+   1_big.png                    0007
+   1_medium.png                 0008
+ light_blue_1/
+   head.png                     0009
+   middle.png                   0010
+pipes/
+ blue/
+   ver.png                      0011
+   right.png                    0012
+   up.png                       0013
+   left.png                     0014
+   hor.png                      0015
+   down.png                     0016
+ right/
+   green_medium_1.png           0017
+   green_small_1.png            0018
+ updown/
+   green_medium_1.png           0019
+   green_small_1.png            0020
+   yellow_medium_1.png          0021
+ leftright/
+   green_medium_1.png           0022
+   green_small_1.png            0023
+   yellow_medium_1.png          0024
+ grey/
+   ver.png                      0025
+   right.png                    0026
+   up.png                       0027
+   left.png                     0028
+   hor.png                      0029
+   down.png                     0030
+ yellow/
+   ver.png                      0031
+   right.png                    0032
+   up.png                       0033
+   left.png                     0034
+   hor.png                      0035
+   down.png                     0036
+ up/
+   blue_medium_1.png            0037
+   grey_small_1.png             0038
+   blue_small_1.png             0039
+   yellow_big_1.png             0040
+   grey_big_1.png               0041
+   green_medium_1.png           0042
+   green_large_1.png            0043
+   green_small_1.png            0044
+   yellow_medium_1.png          0045
+ down/
+   green_small_1.png            0046
+   grey_small_1.png             0047
+   blue_small_1.png             0048
+   yellow_big_1.png             0049
+   grey_big_1.png               0050
+ green/
+   ver.png                      0051
+   right.png                    0052
+   up.png                       0053
+   left.png                     0054
+   hor.png                      0055
+   down.png                     0056
+ left/
+   green_medium_1.png           0057
+   grey_small_1.png             0058
+   green_small_1.png            0059
+slider/
+ grey_1/
+   slider_left.png              0060
+   slider_right.png             0061
+   slider_middle.png            0062
+game/
+ box/
+   stone8.png                   0063
+   brown1_1.png                 0064
+   white1_1.png                 0065
+ logo/
+   ty.png                       0066
+   lmario1.png                  0067
+ level/
+   door_yellow_1.png            0068
+animation/
+ light_1/
+   3.png                        0069
+   1.png                        0070
+signs/
+ yoshi/
+   post.png                     0071
+ default_1/
+   1_ending_big.png             0072
+   1_ending.png                 0073
+blocks/
+ stone/
+   1.png                        0074
+ wood/
+   1.png                        0075
+ ice/
+   1.png                        0076
+old_pixmaps/
+  ground2_r.png                 0077
+  unvisible.png                 0078
+  ground2_sl.png                0079
+  ground2_l2.png                0080
+  ground2_dl.png                0081
+  ground2_r2.png                0082
+  ground2_d.png                 0083
+  ground2_l.png                 0084
+ground/
+ sand_1/
+  ground/
+    left_up.png                 0085
+    right_down.png              0086
+    left_down.png               0087
+    right_up.png                0088
+    up.png                      0089
+    right.png                   0090
+    left.png                    0091
+    middle.png                  0092
+    down.png                    0093
+ yoshi_1/
+   extra_1_green.png            0094
+   extra_1_blue.png             0095
+   rope_1_leftright.png         0096
+   extra_1_yellow.png           0097
+   hill_up_1.png                0098
+   extra_1_red.png              0099
+ ghost_1/
+   window_1.png                 0100
+   way_1_right.png              0101
+   lamp_1.png                   0102
+   way_1_middle.png             0103
+   way_1_left.png               0104
+ jungle_1/
+   berry_1.png                  0105
+   beanstalk.png                0106
+   kplant.png                   0107
+ plastic_1/
+  screw_block_red/
+    left_up.png                 0108
+    right.png                   0109
+    left_down.png               0110
+    right_up.png                0111
+    up.png                      0112
+    right_down.png              0113
+    left.png                    0114
+    middle.png                  0115
+    down.png                    0116
+  screw_block_grey/
+    left_up.png                 0117
+    right.png                   0118
+    left_down.png               0119
+    right_up.png                0120
+    up.png                      0121
+    right_down.png              0122
+    left.png                    0123
+    middle.png                  0124
+    down.png                    0125
+  screw_block_blue/
+    left_up.png                 0126
+    right.png                   0127
+    left_down.png               0128
+    right_up.png                0129
+    up.png                      0130
+    right_down.png              0131
+    left.png                    0132
+    middle.png                  0133
+    down.png                    0134
+  screw_block_green/
+    left_up.png                 0135
+    right_down.png              0136
+    left_down.png               0137
+    right_up.png                0138
+    up.png                      0139
+    right.png                   0140
+    left.png                    0141
+    middle.png                  0142
+    down.png                    0143
+ green_3/
+  hedges/
+    small.png                   0144
+  plants/
+    weird_medium.png            0145
+   fence.png                    0146
+  trees/
+    big_1.png                   0147
+  ground/
+    middle.png                  0148
+ green_1/
+   plant_r.png                  0149
+  hedges/
+    small_1.png                 0150
+    wild_medium.png             0151
+    medium_2.png                0152
+    medium_1.png                0153
+    small_2.png                 0154
+    big_1.png                   0155
+  ground/
+    left_up.png                 0156
+    hill_left_up.png            0157
+    right.png                   0158
+    left_down.png               0159
+    hill_left.png               0160
+    up.png                      0161
+    right_up.png                0162
+    right_down.png              0163
+    hill_right.png              0164
+    left.png                    0165
+    hill_right_up.png           0166
+    middle.png                  0167
+    down.png                    0168
+   kplant.png                   0169
+   kplant_head.png              0170
+   plant_l.png                  0171
+   plant_m.png                  0172

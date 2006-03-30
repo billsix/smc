@@ -1,0 +1,36 @@
+env = Environment()
+
+env.ParseConfig('sdl-config --cflags')
+env.ParseConfig('sdl-config --libs')
+env.ParseConfig('pkg-config CEGUI-OPENGL --cflags')
+env.ParseConfig('pkg-config CEGUI-OPENGL --libs')
+env.Append(LIBS = ['GL','GLU'])
+
+if not env.GetOption('clean'):
+	print ":: Checking for libs"
+	conf = Configure(env)
+	if not conf.CheckCHeader('GL/gl.h'):
+		print 'Did not find gl.h, exiting!'
+		Exit(1)
+	if not conf.CheckCHeader('GL/glu.h'):
+		print 'Did not find glu.h, exiting!'
+		Exit(1)
+	if not conf.CheckLibWithHeader('SDL', 'SDL.h', 'c', 'SDL_Init(SDL_INIT_VIDEO);'):
+		print 'Did not find libSDL, exiting!'
+		Exit(1)
+	if not conf.CheckLibWithHeader('SDL_image', 'SDL_image.h', 'c', 'IMG_GetError();'):
+		print 'Did not find libSDL_image, exiting!'
+		Exit(1)
+	if not conf.CheckLibWithHeader('SDL_ttf', 'SDL_ttf.h', 'c', 'TTF_Init();'):
+		print 'Did not find libSDL_ttf, exiting!'
+		Exit(1)
+	if not conf.CheckLibWithHeader('SDL_mixer', 'SDL_mixer.h', 'c'):
+		print 'Did not find libSDL_mixer, exiting!'
+		Exit(1)
+	if not conf.CheckLibWithHeader('CEGUIOpenGLRenderer', 'CEGUIXMLHandler.h', 'cxx'):
+		print 'Where is CEGUI and OpenGLRenderer?'
+		Exit(1)
+	env = conf.Finish()
+
+Export('env')
+SConscript('src/SConscript')

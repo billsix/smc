@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<GUILayout>
+	<Window Type="DefaultWindow" Name="root">
+		<Window Type="TaharezLook/StaticText" Name="text_loading">
+			<Property Name="Position" Value="x:0.4 y:0.45" />
+			<Property Name="Size" Value="w:0.2 h:0.1" />
+			<Property Name="Text" Value="Loading..." />
+			<Property Name="Font" Value="bluebold_big" />
+			<Property Name="BackgroundEnabled" Value="false" />
+			<Property Name="FrameEnabled" Value="false" />
+			<Property Name="TextColours" Value="tl:FF2299FF tr:FF0000AA bl:FF2299FF br:FF0000AA" />
+		</Window>
+	</Window>
+</GUILayout>

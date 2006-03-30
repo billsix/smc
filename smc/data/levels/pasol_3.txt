@@ -1,0 +1,2025 @@
+### Level Saved with Secret Maryo Chronicles V.0.98 ###
+### Level Saved on the Wed Jan 11 10:14:23 2006
+
+Levelengine_version 1
+
+Background_color_1 40 110 180
+Background_color_2 40 110 180
+
+Player 40 332
+
+### Massive Objects ###
+Sprite ground/green_1/ground/up.png 0 138 MASSIVE
+Sprite ground/green_1/ground/up.png 59 138 MASSIVE
+Sprite ground/green_1/ground/up.png 118 138 MASSIVE
+Sprite ground/green_1/ground/up.png 177 138 MASSIVE
+Sprite ground/green_1/ground/up.png 236 138 MASSIVE
+Sprite ground/green_1/ground/up.png 295 138 MASSIVE
+Sprite ground/green_1/ground/up.png 354 138 MASSIVE
+Sprite ground/green_1/ground/up.png 413 138 MASSIVE
+Sprite ground/green_1/ground/up.png 472 138 MASSIVE
+Sprite ground/green_1/ground/up.png 531 138 MASSIVE
+Sprite ground/green_1/ground/up.png 590 138 MASSIVE
+Sprite ground/green_1/ground/up.png 649 138 MASSIVE
+Sprite ground/green_1/ground/up.png 708 138 MASSIVE
+Sprite ground/green_1/ground/up.png 767 138 MASSIVE
+Sprite ground/green_1/ground/up.png 826 138 MASSIVE
+Sprite ground/green_1/ground/up.png 885 138 MASSIVE
+Sprite ground/green_1/ground/up.png 944 138 MASSIVE
+Sprite ground/green_1/ground/up.png 1003 138 MASSIVE
+Sprite ground/green_1/ground/up.png 1062 138 MASSIVE
+Sprite ground/green_1/ground/up.png 1121 138 MASSIVE
+Sprite ground/green_1/ground/up.png 1180 138 MASSIVE
+Sprite ground/green_1/ground/up.png 1239 138 MASSIVE
+Sprite ground/green_1/ground/up.png 1298 138 MASSIVE
+Sprite ground/green_1/ground/up.png 1357 138 MASSIVE
+Sprite ground/green_1/ground/up.png 1416 138 MASSIVE
+Sprite ground/green_1/ground/up.png 1475 138 MASSIVE
+Sprite ground/green_1/ground/up.png 1534 138 MASSIVE
+Sprite ground/green_1/ground/up.png 1593 138 MASSIVE
+Sprite ground/green_1/ground/up.png 1652 138 MASSIVE
+Sprite ground/green_1/ground/up.png 1711 138 MASSIVE
+Sprite ground/green_1/ground/up.png 1770 138 MASSIVE
+Sprite ground/green_1/ground/up.png 1829 138 MASSIVE
+Sprite ground/green_1/ground/left.png 2522 45 MASSIVE
+Sprite ground/green_1/ground/left_up.png 2522 92 MASSIVE
+Sprite ground/green_1/ground/up.png 2636 92 MASSIVE
+Sprite ground/green_1/ground/up.png 2695 92 MASSIVE
+Sprite ground/green_1/ground/up.png 2754 92 MASSIVE
+Sprite ground/green_1/ground/up.png 2813 92 MASSIVE
+Sprite ground/green_1/ground/up.png 2872 92 MASSIVE
+Sprite ground/green_1/ground/up.png 2931 92 MASSIVE
+Sprite ground/green_1/ground/up.png 2990 92 MASSIVE
+Sprite ground/green_1/ground/up.png 3049 92 MASSIVE
+Sprite ground/green_1/ground/up.png 3108 92 MASSIVE
+Sprite ground/green_1/ground/up.png 3167 92 MASSIVE
+Sprite ground/green_1/ground/up.png 3226 92 MASSIVE
+Sprite ground/green_1/ground/up.png 3285 92 MASSIVE
+Sprite ground/green_1/ground/up.png 3344 92 MASSIVE
+Sprite ground/green_1/ground/up.png 3403 92 MASSIVE
+Sprite ground/green_1/ground/up.png 3462 92 MASSIVE
+Sprite ground/green_1/ground/up.png 3521 92 MASSIVE
+Sprite ground/green_1/ground/up.png 3580 92 MASSIVE
+Sprite ground/green_1/ground/up.png 3639 92 MASSIVE
+Sprite ground/green_1/ground/up.png 3698 92 MASSIVE
+Sprite ground/green_1/ground/up.png 3816 92 MASSIVE
+Sprite ground/green_1/ground/up.png 3875 92 MASSIVE
+Sprite ground/green_1/ground/up.png 3934 92 MASSIVE
+Sprite ground/green_1/ground/up.png 3993 92 MASSIVE
+Sprite ground/green_1/ground/up.png 4052 92 MASSIVE
+Sprite ground/green_1/ground/up.png 4111 92 MASSIVE
+Sprite ground/green_1/ground/up.png 4170 92 MASSIVE
+Sprite ground/green_1/ground/up.png 4229 92 MASSIVE
+Sprite ground/green_1/ground/up.png 4288 92 MASSIVE
+Sprite ground/green_1/ground/up.png 4347 92 MASSIVE
+Sprite ground/green_1/ground/up.png 4406 92 MASSIVE
+Sprite ground/green_1/ground/up.png 4465 92 MASSIVE
+Sprite ground/green_1/ground/up.png 4524 92 MASSIVE
+Sprite ground/green_1/ground/up.png 4583 92 MASSIVE
+Sprite ground/green_1/ground/up.png 4642 92 MASSIVE
+Sprite ground/green_1/ground/up.png 4701 92 MASSIVE
+Sprite ground/green_1/ground/up.png 4760 92 MASSIVE
+Sprite ground/green_1/ground/up.png 4819 92 MASSIVE
+Sprite ground/green_1/ground/up.png 4878 92 MASSIVE
+Sprite ground/green_1/ground/up.png 3757 92 MASSIVE
+Sprite ground/green_1/ground/right.png 5055 45 MASSIVE
+Sprite ground/green_1/ground/left_up.png 8971 874 MASSIVE
+Sprite ground/green_1/ground/up.png 9026 874 MASSIVE
+Sprite ground/green_1/ground/up.png 9085 874 MASSIVE
+Sprite ground/green_1/ground/up.png 9144 874 MASSIVE
+Sprite ground/green_1/ground/up.png 9203 874 MASSIVE
+Sprite ground/green_1/ground/up.png 9262 874 MASSIVE
+Sprite ground/green_1/ground/up.png 9439 874 MASSIVE
+Sprite ground/green_1/ground/up.png 9557 874 MASSIVE
+Sprite ground/green_1/ground/up.png 9616 874 MASSIVE
+Sprite ground/green_1/ground/up.png 9675 874 MASSIVE
+Sprite pipes/up/blue_small_1.png 9250 956 MASSIVE
+Sprite pipes/up/blue_medium_1.png 9413 1007 MASSIVE
+Sprite ground/green_1/ground/up.png 9901 45 MASSIVE
+Sprite ground/green_1/ground/up.png 9960 45 MASSIVE
+Sprite ground/green_1/ground/up.png 10491 45 MASSIVE
+Sprite ground/green_1/ground/up.png 10432 45 MASSIVE
+Sprite ground/green_1/ground/up.png 10373 45 MASSIVE
+Sprite ground/green_1/ground/up.png 10314 45 MASSIVE
+Sprite ground/green_1/ground/up.png 10255 45 MASSIVE
+Sprite ground/green_1/ground/up.png 10196 45 MASSIVE
+Sprite ground/green_1/ground/up.png 10137 45 MASSIVE
+Sprite ground/green_1/ground/up.png 10078 45 MASSIVE
+Sprite ground/green_1/ground/up.png 10019 45 MASSIVE
+Sprite ground/green_1/ground/up.png 10550 45 MASSIVE
+Sprite ground/green_1/ground/up.png 10609 45 MASSIVE
+Sprite ground/green_1/ground/up.png 10668 45 MASSIVE
+Sprite ground/green_1/ground/up.png 10727 45 MASSIVE
+Sprite ground/green_1/ground/up.png 10786 45 MASSIVE
+Sprite ground/green_1/ground/right_up.png 10845 45 MASSIVE
+Sprite ground/green_1/ground/left_up.png 9493 45 MASSIVE
+Sprite ground/green_1/ground/up.png 9607 45 MASSIVE
+Sprite ground/green_1/ground/up.png 9666 45 MASSIVE
+Sprite ground/green_1/ground/up.png 9724 45 MASSIVE
+Sprite ground/green_1/ground/up.png 9783 45 MASSIVE
+Sprite ground/green_1/ground/up.png 9842 45 MASSIVE
+Sprite ground/green_1/ground/left_up.png 11110 45 MASSIVE
+Sprite ground/green_1/ground/up.png 11283 45 MASSIVE
+Sprite ground/green_1/ground/up.png 11224 45 MASSIVE
+Sprite ground/green_1/ground/up.png 11165 45 MASSIVE
+Sprite ground/green_1/ground/up.png 11342 45 MASSIVE
+Sprite ground/green_1/ground/up.png 11401 45 MASSIVE
+Sprite ground/green_1/ground/right_up.png 11460 45 MASSIVE
+Sprite ground/green_1/ground/left_up.png 12035 45 MASSIVE
+Sprite ground/green_1/ground/up.png 12090 45 MASSIVE
+Sprite ground/green_1/ground/up.png 12149 45 MASSIVE
+Sprite ground/green_1/ground/up.png 12208 45 MASSIVE
+Sprite ground/green_1/ground/up.png 12267 45 MASSIVE
+Sprite ground/green_1/ground/up.png 12326 45 MASSIVE
+Sprite ground/green_1/ground/up.png 12385 45 MASSIVE
+Sprite ground/green_1/ground/right_up.png 12444 45 MASSIVE
+Sprite ground/green_1/ground/left_up.png 12710 45 MASSIVE
+Sprite ground/green_1/ground/right_up.png 12765 45 MASSIVE
+Sprite ground/green_1/ground/left_up.png 13031 45 MASSIVE
+Sprite ground/green_1/ground/up.png 13086 45 MASSIVE
+Sprite ground/green_1/ground/up.png 13145 45 MASSIVE
+Sprite ground/green_1/ground/up.png 13204 45 MASSIVE
+Sprite ground/green_1/ground/up.png 13263 45 MASSIVE
+Sprite ground/green_1/ground/up.png 13322 45 MASSIVE
+Sprite ground/green_1/ground/up.png 13381 45 MASSIVE
+Sprite ground/green_1/ground/up.png 13440 45 MASSIVE
+Sprite ground/green_1/ground/up.png 13499 45 MASSIVE
+Sprite ground/green_1/ground/up.png 13558 45 MASSIVE
+Sprite ground/green_1/ground/up.png 13617 45 MASSIVE
+Sprite ground/green_1/ground/up.png 13676 45 MASSIVE
+Sprite ground/green_1/ground/up.png 13735 45 MASSIVE
+Sprite ground/green_1/ground/up.png 13794 45 MASSIVE
+Sprite ground/green_1/ground/right_up.png 13853 45 MASSIVE
+Sprite pipes/up/blue_small_1.png 21 220 MASSIVE
+Sprite ground/green_1/ground/up.png 1888 138 MASSIVE
+Sprite ground/green_1/ground/right_up.png 1947 138 MASSIVE
+Sprite ground/green_1/ground/right.png 1947 91 MASSIVE
+Sprite ground/green_1/ground/right.png 1947 45 MASSIVE
+Sprite ground/green_1/ground/up.png 2577 92 MASSIVE
+Sprite ground/green_1/ground/up.png 4937 92 MASSIVE
+Sprite ground/green_1/ground/up.png 4996 92 MASSIVE
+Sprite ground/green_1/ground/right_up.png 5055 92 MASSIVE
+Sprite ground/green_1/ground/up.png 9498 874 MASSIVE
+Sprite ground/green_1/ground/right_up.png 9734 874 MASSIVE
+Sprite ground/green_1/ground/up.png 9548 45 MASSIVE
+Sprite ground/green_1/ground/left_up.png 7608 690 MASSIVE
+Sprite ground/green_1/ground/right_up.png 7663 690 MASSIVE
+Sprite ground/green_1/ground/left.png 7608 643 MASSIVE
+Sprite ground/green_1/ground/left.png 7608 597 MASSIVE
+Sprite ground/green_1/ground/left.png 7608 551 MASSIVE
+Sprite ground/green_1/ground/left.png 7608 505 MASSIVE
+Sprite ground/green_1/ground/left.png 7608 459 MASSIVE
+Sprite ground/green_1/ground/left.png 7608 413 MASSIVE
+Sprite ground/green_1/ground/left.png 7608 367 MASSIVE
+Sprite ground/green_1/ground/left.png 7608 321 MASSIVE
+Sprite ground/green_1/ground/left.png 7608 275 MASSIVE
+Sprite ground/green_1/ground/left.png 7608 229 MASSIVE
+Sprite ground/green_1/ground/right.png 7663 275 MASSIVE
+Sprite ground/green_1/ground/right.png 7663 321 MASSIVE
+Sprite ground/green_1/ground/right.png 7663 367 MASSIVE
+Sprite ground/green_1/ground/right.png 7663 413 MASSIVE
+Sprite ground/green_1/ground/right.png 7663 459 MASSIVE
+Sprite ground/green_1/ground/right.png 7663 505 MASSIVE
+Sprite ground/green_1/ground/right.png 7663 551 MASSIVE
+Sprite ground/green_1/ground/right.png 7663 597 MASSIVE
+Sprite ground/green_1/ground/right.png 7663 643 MASSIVE
+Sprite ground/green_1/ground/left.png 7608 183 MASSIVE
+Sprite ground/green_1/ground/left.png 7608 45 MASSIVE
+Sprite ground/green_1/ground/right.png 7663 46 MASSIVE
+Sprite ground/green_1/ground/right.png 7663 91 MASSIVE
+Sprite ground/green_1/ground/right.png 7663 137 MASSIVE
+Sprite ground/green_1/ground/right.png 7663 183 MASSIVE
+Sprite ground/green_1/ground/right.png 7663 229 MASSIVE
+Sprite ground/green_1/ground/left.png 7608 137 MASSIVE
+Sprite ground/green_1/ground/left.png 7608 91 MASSIVE
+Sprite ground/green_1/ground/left_up.png 7980 828 MASSIVE
+Sprite ground/green_1/ground/up.png 8035 828 MASSIVE
+Sprite ground/green_1/ground/up.png 8094 828 MASSIVE
+Sprite ground/green_1/ground/right_up.png 8153 828 MASSIVE
+Sprite ground/green_1/ground/left.png 7980 781 MASSIVE
+Sprite ground/green_1/ground/left.png 7980 735 MASSIVE
+Sprite ground/green_1/ground/left.png 7980 689 MASSIVE
+Sprite ground/green_1/ground/left.png 7980 643 MASSIVE
+Sprite ground/green_1/ground/left.png 7980 597 MASSIVE
+Sprite ground/green_1/ground/left.png 7980 551 MASSIVE
+Sprite ground/green_1/ground/left.png 7980 505 MASSIVE
+Sprite ground/green_1/ground/left.png 7980 459 MASSIVE
+Sprite ground/green_1/ground/left.png 7980 413 MASSIVE
+Sprite ground/green_1/ground/left.png 7980 367 MASSIVE
+Sprite ground/green_1/ground/left.png 7980 321 MASSIVE
+Sprite ground/green_1/ground/right.png 8153 781 MASSIVE
+Sprite ground/green_1/ground/right.png 8153 735 MASSIVE
+Sprite ground/green_1/ground/right.png 8153 689 MASSIVE
+Sprite ground/green_1/ground/right.png 8153 643 MASSIVE
+Sprite ground/green_1/ground/right.png 8153 597 MASSIVE
+Sprite ground/green_1/ground/right.png 8153 551 MASSIVE
+Sprite ground/green_1/ground/right.png 8153 505 MASSIVE
+Sprite ground/green_1/ground/right.png 8153 459 MASSIVE
+Sprite ground/green_1/ground/right.png 8153 413 MASSIVE
+Sprite ground/green_1/ground/right.png 8153 367 MASSIVE
+Sprite ground/green_1/ground/left.png 7980 275 MASSIVE
+Sprite ground/green_1/ground/left.png 7980 229 MASSIVE
+Sprite ground/green_1/ground/left.png 7980 183 MASSIVE
+Sprite ground/green_1/ground/left.png 7980 137 MASSIVE
+Sprite ground/green_1/ground/left.png 7980 91 MASSIVE
+Sprite ground/green_1/ground/left.png 7980 45 MASSIVE
+Sprite ground/green_1/ground/right.png 8153 45 MASSIVE
+Sprite ground/green_1/ground/right.png 8153 91 MASSIVE
+Sprite ground/green_1/ground/right.png 8153 137 MASSIVE
+Sprite ground/green_1/ground/right.png 8153 183 MASSIVE
+Sprite ground/green_1/ground/right.png 8153 229 MASSIVE
+Sprite ground/green_1/ground/right.png 8153 275 MASSIVE
+Sprite ground/green_1/ground/right.png 8153 321 MASSIVE
+Sprite ground/green_1/ground/left_up.png 8348 920 MASSIVE
+Sprite ground/green_1/ground/up.png 8403 920 MASSIVE
+Sprite ground/green_1/ground/right_up.png 8462 920 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 873 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 827 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 781 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 735 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 689 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 643 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 597 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 551 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 505 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 873 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 827 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 781 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 735 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 689 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 643 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 597 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 551 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 505 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 459 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 413 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 367 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 321 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 275 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 229 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 183 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 459 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 413 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 367 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 321 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 275 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 229 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 183 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 137 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 45 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 91 MASSIVE
+Sprite ground/green_1/ground/left.png 8348 137 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 91 MASSIVE
+Sprite ground/green_1/ground/right.png 8462 45 MASSIVE
+Sprite ground/green_1/ground/left.png 8971 827 MASSIVE
+Sprite ground/green_1/ground/left.png 8971 781 MASSIVE
+Sprite ground/green_1/ground/left.png 8971 735 MASSIVE
+Sprite ground/green_1/ground/left.png 8971 689 MASSIVE
+Sprite ground/green_1/ground/left.png 8971 643 MASSIVE
+Sprite ground/green_1/ground/left.png 8971 597 MASSIVE
+Sprite ground/green_1/ground/left.png 8971 551 MASSIVE
+Sprite pipes/up/blue_small_1.png 6766 590 MASSIVE
+Sprite pipes/up/blue_medium_1.png 6845 641 MASSIVE
+Sprite pipes/up/blue_small_1.png 5134 313 MASSIVE
+Sprite pipes/up/blue_small_1.png 5428 313 MASSIVE
+Sprite pipes/up/blue_small_1.png 2697 174 MASSIVE
+Sprite pipes/up/blue_medium_1.png 2614 225 MASSIVE
+Sprite pipes/up/blue_small_1.png 10221 127 MASSIVE
+Sprite pipes/up/blue_medium_1.png 10138 178 MASSIVE
+Sprite pipes/up/blue_small_1.png 13382 127 MASSIVE
+Sprite pipes/up/blue_small_1.png 10059 127 MASSIVE
+Sprite ground/green_1/ground/left_up.png 5012 231 MASSIVE
+Sprite ground/green_1/ground/up.png 5067 231 MASSIVE
+Sprite ground/green_1/ground/up.png 5126 231 MASSIVE
+Sprite ground/green_1/ground/up.png 5185 231 MASSIVE
+Sprite ground/green_1/ground/up.png 5244 231 MASSIVE
+Sprite ground/green_1/ground/up.png 5303 231 MASSIVE
+Sprite ground/green_1/ground/up.png 5362 231 MASSIVE
+Sprite ground/green_1/ground/up.png 5421 231 MASSIVE
+Sprite ground/green_1/ground/up.png 5480 231 MASSIVE
+Sprite ground/green_1/ground/up.png 5539 231 MASSIVE
+Sprite ground/green_1/ground/up.png 5598 231 MASSIVE
+Sprite ground/green_1/ground/up.png 5657 231 MASSIVE
+Sprite ground/green_1/ground/up.png 5716 231 MASSIVE
+Sprite ground/green_1/ground/up.png 5775 231 MASSIVE
+Sprite ground/green_1/ground/up.png 5834 231 MASSIVE
+Sprite ground/green_1/ground/up.png 5893 231 MASSIVE
+Sprite ground/green_1/ground/up.png 5952 231 MASSIVE
+Sprite ground/green_1/ground/right_up.png 6011 231 MASSIVE
+Sprite ground/green_1/ground/up.png 6326 461 MASSIVE
+Sprite ground/green_1/ground/right_up.png 6385 461 MASSIVE
+Sprite ground/green_1/ground/right_up.png 6243 322 MASSIVE
+Sprite ground/green_1/ground/up.png 6184 322 MASSIVE
+Sprite ground/green_1/ground/up.png 6125 322 MASSIVE
+Sprite ground/green_1/ground/up.png 6066 322 MASSIVE
+Sprite ground/green_1/ground/up.png 6470 508 MASSIVE
+Sprite ground/green_1/ground/up.png 6529 508 MASSIVE
+Sprite ground/green_1/ground/up.png 6588 508 MASSIVE
+Sprite ground/green_1/ground/up.png 6647 508 MASSIVE
+Sprite ground/green_1/ground/up.png 6706 508 MASSIVE
+Sprite ground/green_1/ground/up.png 6765 508 MASSIVE
+Sprite ground/green_1/ground/up.png 6824 508 MASSIVE
+Sprite ground/green_1/ground/up.png 6883 508 MASSIVE
+Sprite ground/green_1/ground/up.png 6942 508 MASSIVE
+Sprite ground/green_1/ground/up.png 7001 508 MASSIVE
+Sprite ground/green_1/ground/up.png 7060 508 MASSIVE
+Sprite ground/green_1/ground/up.png 7119 508 MASSIVE
+Sprite ground/green_1/ground/up.png 7178 508 MASSIVE
+Sprite ground/green_1/ground/up.png 7237 508 MASSIVE
+Sprite ground/green_1/ground/up.png 7296 508 MASSIVE
+Sprite ground/green_1/ground/right_up.png 7355 508 MASSIVE
+Sprite ground/green_1/ground/right_up.png 7424 601 MASSIVE
+Sprite ground/green_1/ground/up.png 8656 966 MASSIVE
+Sprite ground/green_1/ground/up.png 8715 966 MASSIVE
+Sprite ground/green_1/ground/up.png 8774 966 MASSIVE
+Sprite ground/green_1/ground/up.png 8833 966 MASSIVE
+Sprite ground/green_1/ground/up.png 8892 966 MASSIVE
+Sprite ground/green_1/ground/left_up.png 8601 966 MASSIVE
+Sprite ground/green_1/ground/left_up.png 9207 368 MASSIVE
+Sprite ground/green_1/ground/up.png 9262 368 MASSIVE
+Sprite ground/green_1/ground/up.png 9321 368 MASSIVE
+Sprite ground/green_1/ground/up.png 9380 368 MASSIVE
+Sprite ground/green_1/ground/up.png 9439 368 MASSIVE
+Sprite ground/green_1/ground/right_up.png 11575 138 MASSIVE
+Sprite ground/green_1/ground/up.png 11516 138 MASSIVE
+Sprite ground/green_1/ground/left_up.png 11841 138 MASSIVE
+Sprite ground/green_1/ground/up.png 11896 138 MASSIVE
+Sprite ground/green_1/ground/up.png 11955 138 MASSIVE
+
+### Passive Objects ###
+Sprite ground/green_1/ground/middle.png 0 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 59 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 118 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 0 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 59 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 118 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 177 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 236 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 177 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 236 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 295 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 354 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 413 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 472 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 531 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 295 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 354 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 413 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 472 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 531 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 590 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 649 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 708 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 767 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 826 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 590 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 649 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 708 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 767 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 826 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 885 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 885 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 944 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 1003 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 1062 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 1185 286 PASSIVE
+Sprite ground/green_1/ground/middle.png 1180 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 944 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 1003 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 1062 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 1121 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 1180 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 763 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 763 230 PASSIVE
+Sprite ground/green_1/ground/middle.png 822 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 881 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 940 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 999 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 1058 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 822 230 PASSIVE
+Sprite ground/green_1/ground/middle.png 881 230 PASSIVE
+Sprite ground/green_1/ground/middle.png 940 230 PASSIVE
+Sprite ground/green_1/ground/middle.png 999 230 PASSIVE
+Sprite ground/green_1/ground/middle.png 1058 230 PASSIVE
+Sprite ground/green_1/ground/left.png 708 230 PASSIVE
+Sprite ground/green_1/ground/left.png 708 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 1117 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 1117 230 PASSIVE
+Sprite ground/green_1/ground/middle.png 1117 276 PASSIVE
+Sprite ground/green_1/ground/right.png 1117 230 PASSIVE
+Sprite ground/green_1/ground/right.png 1117 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 1176 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 1176 230 PASSIVE
+Sprite ground/green_1/ground/middle.png 1176 276 PASSIVE
+Sprite ground/green_1/ground/middle.png 1176 322 PASSIVE
+Sprite ground/green_1/ground/middle.png 1176 368 PASSIVE
+Sprite ground/green_1/ground/middle.png 1176 414 PASSIVE
+Sprite ground/green_1/ground/middle.png 1239 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 1239 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 1298 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 1357 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 1416 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 1475 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 1534 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 1593 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 1652 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 1711 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 1770 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 1298 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 1357 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 1416 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 1475 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 1534 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 1593 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 1652 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 1711 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 1770 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 1829 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 1829 91 PASSIVE
+Sprite ground/green_1/ground/left.png 1121 322 PASSIVE
+Sprite ground/green_1/ground/left.png 1121 368 PASSIVE
+Sprite ground/green_1/ground/left.png 1121 414 PASSIVE
+Sprite ground/green_1/ground/middle.png 1235 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 1235 230 PASSIVE
+Sprite ground/green_1/ground/middle.png 1235 276 PASSIVE
+Sprite ground/green_1/ground/middle.png 1235 322 PASSIVE
+Sprite ground/green_1/ground/middle.png 1235 368 PASSIVE
+Sprite ground/green_1/ground/middle.png 1235 414 PASSIVE
+Sprite ground/green_1/ground/middle.png 1294 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 1996 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 1996 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 1996 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 1996 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 2055 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 1353 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 1412 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 1471 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 1530 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 1589 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 1294 230 PASSIVE
+Sprite ground/green_1/ground/middle.png 1294 276 PASSIVE
+Sprite ground/green_1/ground/middle.png 1353 230 PASSIVE
+Sprite ground/green_1/ground/middle.png 1353 276 PASSIVE
+Sprite ground/green_1/ground/middle.png 1294 322 PASSIVE
+Sprite ground/green_1/ground/middle.png 1294 368 PASSIVE
+Sprite ground/green_1/ground/middle.png 1294 414 PASSIVE
+Sprite ground/green_1/ground/middle.png 1353 322 PASSIVE
+Sprite ground/green_1/ground/middle.png 1412 230 PASSIVE
+Sprite ground/green_1/ground/middle.png 1412 276 PASSIVE
+Sprite ground/green_1/ground/middle.png 1412 322 PASSIVE
+Sprite ground/green_1/ground/middle.png 1353 368 PASSIVE
+Sprite ground/green_1/ground/middle.png 1471 230 PASSIVE
+Sprite ground/green_1/ground/middle.png 1471 276 PASSIVE
+Sprite ground/green_1/ground/middle.png 1530 230 PASSIVE
+Sprite ground/green_1/ground/middle.png 1353 414 PASSIVE
+Sprite ground/green_1/ground/middle.png 1412 368 PASSIVE
+Sprite ground/green_1/ground/middle.png 1471 322 PASSIVE
+Sprite ground/green_1/ground/middle.png 1530 276 PASSIVE
+Sprite ground/green_1/ground/middle.png 1412 414 PASSIVE
+Sprite ground/green_1/ground/middle.png 1471 368 PASSIVE
+Sprite ground/green_1/ground/middle.png 1530 322 PASSIVE
+Sprite ground/green_1/ground/middle.png 1471 414 PASSIVE
+Sprite ground/green_1/ground/middle.png 1530 368 PASSIVE
+Sprite ground/green_1/ground/middle.png 1530 414 PASSIVE
+Sprite ground/green_1/ground/middle.png 1589 230 PASSIVE
+Sprite ground/green_1/ground/middle.png 1589 276 PASSIVE
+Sprite ground/green_1/ground/middle.png 1589 322 PASSIVE
+Sprite ground/green_1/ground/middle.png 1589 368 PASSIVE
+Sprite ground/green_1/ground/middle.png 1589 414 PASSIVE
+Sprite ground/green_1/ground/middle.png 2055 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 2055 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 2055 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 1996 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 2055 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 1996 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 1996 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 1996 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 1996 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 2055 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 2055 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 2055 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 2055 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 1996 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 1996 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 1996 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 1996 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 2055 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 2055 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 2055 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 2055 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 1703 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 1703 230 PASSIVE
+Sprite ground/green_1/ground/middle.png 1703 276 PASSIVE
+Sprite ground/green_1/ground/middle.png 1703 322 PASSIVE
+Sprite ground/green_1/ground/middle.png 1703 368 PASSIVE
+Sprite ground/green_1/ground/middle.png 1703 414 PASSIVE
+Sprite ground/green_1/ground/middle.png 1703 460 PASSIVE
+Sprite ground/green_1/ground/middle.png 1644 460 PASSIVE
+Sprite ground/green_1/ground/middle.png 1703 506 PASSIVE
+Sprite ground/green_1/ground/left.png 1648 506 PASSIVE
+Sprite ground/green_1/ground/right.png 1762 506 PASSIVE
+Sprite ground/green_1/ground/right.png 1762 460 PASSIVE
+Sprite ground/green_1/ground/right.png 1762 414 PASSIVE
+Sprite ground/green_1/ground/right.png 1762 368 PASSIVE
+Sprite ground/green_1/ground/right.png 1762 322 PASSIVE
+Sprite ground/green_1/ground/right.png 1762 276 PASSIVE
+Sprite ground/green_1/ground/right.png 1762 230 PASSIVE
+Sprite ground/green_1/ground/right.png 1762 184 PASSIVE
+Sprite ground/green_1/ground/right.png 1648 184 PASSIVE
+Sprite ground/green_1/ground/right.png 1648 230 PASSIVE
+Sprite ground/green_1/ground/right.png 1648 276 PASSIVE
+Sprite ground/green_1/ground/right.png 1648 322 PASSIVE
+Sprite ground/green_1/ground/right.png 1648 368 PASSIVE
+Sprite ground/green_1/ground/right.png 1648 414 PASSIVE
+Sprite ground/green_1/ground/middle.png 1996 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 2055 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 1996 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 2055 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 2355 782 PASSIVE
+Sprite ground/green_1/ground/middle.png 2296 782 PASSIVE
+Sprite ground/green_1/ground/left.png 2241 782 PASSIVE
+Sprite ground/green_1/ground/right.png 2414 782 PASSIVE
+Sprite ground/green_1/ground/middle.png 3978 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 3919 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 3801 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 3860 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 3742 231 PASSIVE
+Sprite ground/green_1/ground/right.png 4050 232 PASSIVE
+Sprite ground/green_1/ground/middle.png 3455 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 3514 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 3573 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 3632 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 3691 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 3750 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 3809 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 3868 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 3927 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 3986 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 4045 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 4104 138 PASSIVE
+Sprite ground/green_1/ground/right.png 4163 138 PASSIVE
+Sprite ground/green_1/ground/left.png 3400 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 3991 324 PASSIVE
+Sprite ground/green_1/ground/left.png 3936 324 PASSIVE
+Sprite ground/green_1/ground/right.png 4050 324 PASSIVE
+Sprite ground/green_1/ground/left.png 3687 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 5067 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 5067 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 5067 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 5948 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 6007 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 6066 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 6066 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 6066 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 6066 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 6066 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 6066 183 PASSIVE
+Sprite ground/green_1/ground/left.png 5893 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 5952 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 6007 229 PASSIVE
+Sprite ground/green_1/ground/left.png 5012 138 PASSIVE
+Sprite ground/green_1/ground/left.png 5012 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 6267 368 PASSIVE
+Sprite ground/green_1/ground/middle.png 6267 322 PASSIVE
+Sprite ground/green_1/ground/middle.png 6267 276 PASSIVE
+Sprite ground/green_1/ground/middle.png 6267 230 PASSIVE
+Sprite ground/green_1/ground/middle.png 6267 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 6267 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 6267 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 6267 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 6267 414 PASSIVE
+Sprite ground/green_1/ground/left.png 6212 414 PASSIVE
+Sprite ground/green_1/ground/left.png 6212 368 PASSIVE
+Sprite ground/green_1/ground/right.png 6011 184 PASSIVE
+Sprite ground/green_1/ground/right.png 6011 138 PASSIVE
+Sprite ground/green_1/ground/right.png 6011 92 PASSIVE
+Sprite ground/green_1/ground/right.png 6011 46 PASSIVE
+Sprite ground/green_1/ground/right.png 6243 275 PASSIVE
+Sprite ground/green_1/ground/right.png 6243 229 PASSIVE
+Sprite ground/green_1/ground/right.png 6243 183 PASSIVE
+Sprite ground/green_1/ground/right.png 6243 137 PASSIVE
+Sprite ground/green_1/ground/right.png 6243 91 PASSIVE
+Sprite ground/green_1/ground/right.png 6243 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 6411 47 PASSIVE
+Sprite ground/green_1/ground/middle.png 6411 93 PASSIVE
+Sprite ground/green_1/ground/middle.png 6411 139 PASSIVE
+Sprite ground/green_1/ground/middle.png 6411 185 PASSIVE
+Sprite ground/green_1/ground/middle.png 6411 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 6411 277 PASSIVE
+Sprite ground/green_1/ground/middle.png 6411 323 PASSIVE
+Sprite ground/green_1/ground/middle.png 6411 369 PASSIVE
+Sprite ground/green_1/ground/middle.png 6411 415 PASSIVE
+Sprite ground/green_1/ground/middle.png 6411 461 PASSIVE
+Sprite ground/green_1/ground/middle.png 7306 554 PASSIVE
+Sprite ground/green_1/ground/middle.png 7365 554 PASSIVE
+Sprite ground/green_1/ground/middle.png 7365 508 PASSIVE
+Sprite ground/green_1/ground/middle.png 7365 462 PASSIVE
+Sprite ground/green_1/ground/middle.png 7365 416 PASSIVE
+Sprite ground/green_1/ground/middle.png 7365 370 PASSIVE
+Sprite ground/green_1/ground/middle.png 7365 324 PASSIVE
+Sprite ground/green_1/ground/middle.png 7365 278 PASSIVE
+Sprite ground/green_1/ground/middle.png 7365 232 PASSIVE
+Sprite ground/green_1/ground/middle.png 7365 186 PASSIVE
+Sprite ground/green_1/ground/middle.png 7365 140 PASSIVE
+Sprite ground/green_1/ground/middle.png 7365 94 PASSIVE
+Sprite ground/green_1/ground/middle.png 7365 48 PASSIVE
+Sprite ground/green_1/ground/right.png 4050 186 PASSIVE
+Sprite ground/green_1/ground/right.png 4050 278 PASSIVE
+Sprite ground/green_1/ground/right.png 4037 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 873 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 8951 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 9321 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 9321 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 9321 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 9321 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 9380 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 9380 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 9380 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 9380 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 9321 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 9321 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 9321 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 9321 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 9321 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 9321 275 PASSIVE
+Sprite ground/green_1/ground/up.png 9321 874 PASSIVE
+Sprite ground/green_1/ground/up.png 9380 874 PASSIVE
+Sprite ground/green_1/ground/middle.png 9321 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 9380 643 PASSIVE
+Sprite ground/green_1/ground/right.png 9734 597 PASSIVE
+Sprite ground/green_1/ground/right.png 9734 551 PASSIVE
+Sprite ground/green_1/ground/right.png 9734 505 PASSIVE
+Sprite ground/green_1/ground/right.png 9734 459 PASSIVE
+Sprite ground/green_1/ground/right.png 9734 413 PASSIVE
+Sprite ground/green_1/ground/right.png 9734 367 PASSIVE
+Sprite ground/green_1/ground/right.png 9734 321 PASSIVE
+Sprite ground/green_1/ground/right.png 9734 275 PASSIVE
+Sprite ground/green_1/ground/right.png 9734 229 PASSIVE
+Sprite ground/green_1/ground/right.png 9734 183 PASSIVE
+Sprite ground/green_1/ground/right.png 9734 137 PASSIVE
+Sprite ground/green_1/ground/right.png 9734 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 9262 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 9262 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 9262 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 9262 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 9262 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 9439 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 9439 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 9439 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 9439 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 9439 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 9262 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 11516 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 11457 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 11516 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 11457 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 11896 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 11896 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 11955 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 11955 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 12014 45 PASSIVE
+Sprite ground/green_1/ground/left.png 11402 91 PASSIVE
+Sprite ground/green_1/ground/right.png 11575 91 PASSIVE
+Sprite ground/green_1/ground/right.png 11575 45 PASSIVE
+Sprite ground/green_1/ground/left.png 11841 91 PASSIVE
+Sprite ground/green_1/ground/left.png 11841 45 PASSIVE
+Sprite ground/green_1/ground/right.png 12014 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 2114 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 2173 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 2232 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 2291 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 2350 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 2409 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 2468 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 2114 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 2173 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 2232 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 2291 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 2350 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 2409 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 2468 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 2114 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 2173 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 2232 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 2114 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 2173 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 2232 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 2291 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 2291 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 2350 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 2409 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 2468 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 2350 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 2409 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 2468 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 2114 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 2173 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 2114 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 2114 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 2173 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 2232 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 2291 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 2232 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 2173 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 2114 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 2114 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 2173 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 2232 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 2291 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 2350 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 2409 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 2350 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 2291 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 2232 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 2173 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 2114 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 2114 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 2173 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 2232 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 2291 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 2350 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 2409 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 2468 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 2114 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 2173 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 2232 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 2291 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 2350 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 2409 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 2468 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 2468 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 2409 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 2350 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 2291 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 2232 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 2114 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 2114 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 2114 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 2173 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 2173 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 2173 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 2173 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 2232 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 2291 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 2350 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 2409 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 2232 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 2291 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 2291 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 2350 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 2409 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 2468 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 2468 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 2409 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 2350 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 2232 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 2232 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 2291 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 2291 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 2350 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 2350 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 2350 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 2409 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 2468 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 2468 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 2409 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 2468 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 2409 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 2468 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 2409 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 2468 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 2636 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 2695 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 2754 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 2813 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 2872 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 2931 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 2990 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 3049 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 3108 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 3167 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 3226 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 3285 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 3344 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 3403 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 3462 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 3521 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 3580 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 3639 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 3698 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 3757 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 3816 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 3875 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 3934 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 3993 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 4052 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 4111 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 4170 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 4229 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 4288 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 4347 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 4406 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 4465 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 4524 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 4583 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 4642 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 4701 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 4760 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 4819 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 4878 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 4937 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 4996 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 5067 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 5952 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 5952 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 5952 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 6125 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 6125 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 6125 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 6125 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 6125 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 6125 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 6184 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 6184 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 6184 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 6184 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 6184 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 6184 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 6326 414 PASSIVE
+Sprite ground/green_1/ground/middle.png 6326 368 PASSIVE
+Sprite ground/green_1/ground/middle.png 6326 322 PASSIVE
+Sprite ground/green_1/ground/middle.png 6326 276 PASSIVE
+Sprite ground/green_1/ground/middle.png 6326 230 PASSIVE
+Sprite ground/green_1/ground/middle.png 6326 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 6326 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 6326 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 6326 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 9262 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 9262 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 9262 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 9262 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 9262 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 9380 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 9380 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 9380 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 9380 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 9380 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 9380 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 9439 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 9439 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 9439 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 9439 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 9439 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 9439 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 1888 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 1888 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 1937 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 2577 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 2527 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 9498 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 873 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 8403 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 8035 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 8035 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 8094 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 8035 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 8035 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 8035 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 8035 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 8035 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 8035 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 8035 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 8035 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 8035 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 8035 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 8035 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 8035 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 8035 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 8035 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 8035 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 8094 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 8094 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 8094 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 8094 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 8094 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 8094 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 8094 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 8094 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 8094 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 8094 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 8094 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 8094 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 8094 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 8094 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 8094 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 8094 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 5126 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 5126 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 5126 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 5126 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 5185 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 5185 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 5185 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 5244 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 5244 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 5303 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 5362 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 5303 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 5244 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 5303 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 5362 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 5362 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 5185 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 5244 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 5303 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 5362 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 5421 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 5421 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 5421 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 5421 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 5480 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 5480 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 5539 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 5598 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 5539 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 5480 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 5480 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 5539 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 5598 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 5657 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 5539 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 5598 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 5598 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 5657 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 5657 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 5657 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 5716 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 5716 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 5716 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 5716 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 5775 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 5775 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 5775 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 5775 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 5834 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 5893 184 PASSIVE
+Sprite ground/green_1/ground/middle.png 5834 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 5893 138 PASSIVE
+Sprite ground/green_1/ground/middle.png 5834 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 5834 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 5893 92 PASSIVE
+Sprite ground/green_1/ground/middle.png 5893 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 9026 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 9026 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 9026 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 9085 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 9144 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 9203 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 9085 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 9085 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 9144 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 9203 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 9144 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 9203 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 9026 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 9026 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 9085 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 9085 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 9144 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 9144 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 9203 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 9203 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 9498 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 9498 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 9557 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 9616 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 9675 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 9557 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 9498 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 9498 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 9557 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 9616 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 9675 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 9616 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 9675 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 9557 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 9498 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 9557 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 9616 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 9675 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 9616 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 9675 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 9262 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 9321 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 9380 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 9439 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 9026 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 9026 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 9026 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 9026 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 9026 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 9026 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 9026 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 9026 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 9026 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 9026 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 9026 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 9026 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 9026 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 9085 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 9085 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 9085 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 9085 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 9085 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 9085 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 9085 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 9144 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 9144 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 9144 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 9144 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 9144 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 9203 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 9203 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 9203 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 9203 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 9203 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 9144 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 9203 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 9085 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 9085 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 9085 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 9085 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 9085 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 9085 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 9144 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 9144 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 9144 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 9144 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 9144 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 9203 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 9203 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 9203 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 9203 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 9144 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 9144 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 9203 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 9203 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 9203 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 9262 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 9262 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 9262 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 9262 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 9321 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 9380 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 9321 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 9262 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 9321 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 9321 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 9321 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 9380 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 9380 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 9380 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 9380 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 9439 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 9439 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 9439 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 9439 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 9439 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 9498 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 9498 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 9498 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 9498 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 9498 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 9557 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 9557 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 9557 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 9557 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 9557 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 9616 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 9616 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 9616 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 9616 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 9616 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 9675 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 9675 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 9675 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 9675 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 9675 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 9675 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 9675 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 9616 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 9557 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 9498 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 9616 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 9675 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 9675 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 9675 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 9675 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 9675 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 9616 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 9616 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 9616 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 9616 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 9616 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 9557 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 9557 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 9557 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 9557 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 9557 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 9557 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 9498 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 9498 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 9498 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 9498 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 9498 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 9498 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 919 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 873 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 919 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 873 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 919 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 873 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 919 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 919 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 873 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 873 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 827 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 781 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 735 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 689 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 643 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 597 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 551 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 505 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 459 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 413 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 321 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 275 PASSIVE
+Sprite ground/green_1/ground/middle.png 8656 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 229 PASSIVE
+Sprite ground/green_1/ground/middle.png 8715 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 8774 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 183 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 137 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 91 PASSIVE
+Sprite ground/green_1/ground/middle.png 8833 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 8892 46 PASSIVE
+Sprite ground/green_1/ground/middle.png 6470 461 PASSIVE
+Sprite ground/green_1/ground/middle.png 6470 415 PASSIVE
+Sprite ground/green_1/ground/middle.png 6470 369 PASSIVE
+Sprite ground/green_1/ground/middle.png 6529 461 PASSIVE
+Sprite ground/green_1/ground/middle.png 6529 415 PASSIVE
+Sprite ground/green_1/ground/middle.png 6529 369 PASSIVE
+Sprite ground/green_1/ground/middle.png 6470 323 PASSIVE
+Sprite ground/green_1/ground/middle.png 6529 323 PASSIVE
+Sprite ground/green_1/ground/middle.png 6588 461 PASSIVE
+Sprite ground/green_1/ground/middle.png 6588 415 PASSIVE
+Sprite ground/green_1/ground/middle.png 6588 369 PASSIVE
+Sprite ground/green_1/ground/middle.png 6588 323 PASSIVE
+Sprite ground/green_1/ground/middle.png 6470 277 PASSIVE
+Sprite ground/green_1/ground/middle.png 6529 277 PASSIVE
+Sprite ground/green_1/ground/middle.png 6470 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 6529 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 6470 185 PASSIVE
+Sprite ground/green_1/ground/middle.png 6470 139 PASSIVE
+Sprite ground/green_1/ground/middle.png 6529 185 PASSIVE
+Sprite ground/green_1/ground/middle.png 6588 277 PASSIVE
+Sprite ground/green_1/ground/middle.png 6588 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 6588 185 PASSIVE
+Sprite ground/green_1/ground/middle.png 6529 139 PASSIVE
+Sprite ground/green_1/ground/middle.png 6470 93 PASSIVE
+Sprite ground/green_1/ground/middle.png 6529 93 PASSIVE
+Sprite ground/green_1/ground/middle.png 6588 139 PASSIVE
+Sprite ground/green_1/ground/middle.png 6588 93 PASSIVE
+Sprite ground/green_1/ground/middle.png 6470 47 PASSIVE
+Sprite ground/green_1/ground/middle.png 6529 47 PASSIVE
+Sprite ground/green_1/ground/middle.png 6588 47 PASSIVE
+Sprite ground/green_1/ground/middle.png 6647 461 PASSIVE
+Sprite ground/green_1/ground/middle.png 6647 415 PASSIVE
+Sprite ground/green_1/ground/middle.png 6647 369 PASSIVE
+Sprite ground/green_1/ground/middle.png 6647 323 PASSIVE
+Sprite ground/green_1/ground/middle.png 6706 461 PASSIVE
+Sprite ground/green_1/ground/middle.png 6706 415 PASSIVE
+Sprite ground/green_1/ground/middle.png 6747 319 PASSIVE
+Sprite ground/green_1/ground/middle.png 6706 369 PASSIVE
+Sprite ground/green_1/ground/middle.png 6765 415 PASSIVE
+Sprite ground/green_1/ground/middle.png 6647 277 PASSIVE
+Sprite ground/green_1/ground/middle.png 6706 323 PASSIVE
+Sprite ground/green_1/ground/middle.png 6765 369 PASSIVE
+Sprite ground/green_1/ground/middle.png 6647 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 6706 277 PASSIVE
+Sprite ground/green_1/ground/middle.png 6647 185 PASSIVE
+Sprite ground/green_1/ground/middle.png 6647 139 PASSIVE
+Sprite ground/green_1/ground/middle.png 6647 93 PASSIVE
+Sprite ground/green_1/ground/middle.png 6647 47 PASSIVE
+Sprite ground/green_1/ground/middle.png 6706 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 6706 185 PASSIVE
+Sprite ground/green_1/ground/middle.png 6706 139 PASSIVE
+Sprite ground/green_1/ground/middle.png 6706 93 PASSIVE
+Sprite ground/green_1/ground/middle.png 6765 323 PASSIVE
+Sprite ground/green_1/ground/middle.png 6765 277 PASSIVE
+Sprite ground/green_1/ground/middle.png 6765 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 6765 185 PASSIVE
+Sprite ground/green_1/ground/middle.png 6765 139 PASSIVE
+Sprite ground/green_1/ground/middle.png 6765 93 PASSIVE
+Sprite ground/green_1/ground/middle.png 6706 47 PASSIVE
+Sprite ground/green_1/ground/middle.png 6765 47 PASSIVE
+Sprite ground/green_1/ground/middle.png 6824 461 PASSIVE
+Sprite ground/green_1/ground/middle.png 6824 415 PASSIVE
+Sprite ground/green_1/ground/middle.png 6824 369 PASSIVE
+Sprite ground/green_1/ground/middle.png 6883 461 PASSIVE
+Sprite ground/green_1/ground/middle.png 6883 415 PASSIVE
+Sprite ground/green_1/ground/middle.png 6942 461 PASSIVE
+Sprite ground/green_1/ground/middle.png 6824 323 PASSIVE
+Sprite ground/green_1/ground/middle.png 6883 369 PASSIVE
+Sprite ground/green_1/ground/middle.png 6942 415 PASSIVE
+Sprite ground/green_1/ground/middle.png 7001 461 PASSIVE
+Sprite ground/green_1/ground/middle.png 6824 277 PASSIVE
+Sprite ground/green_1/ground/middle.png 6883 323 PASSIVE
+Sprite ground/green_1/ground/middle.png 6942 369 PASSIVE
+Sprite ground/green_1/ground/middle.png 7001 415 PASSIVE
+Sprite ground/green_1/ground/middle.png 7060 461 PASSIVE
+Sprite ground/green_1/ground/middle.png 6824 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 6824 185 PASSIVE
+Sprite ground/green_1/ground/middle.png 6883 277 PASSIVE
+Sprite ground/green_1/ground/middle.png 6883 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 6883 185 PASSIVE
+Sprite ground/green_1/ground/middle.png 6942 323 PASSIVE
+Sprite ground/green_1/ground/middle.png 6942 277 PASSIVE
+Sprite ground/green_1/ground/middle.png 6942 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 6942 185 PASSIVE
+Sprite ground/green_1/ground/middle.png 6824 139 PASSIVE
+Sprite ground/green_1/ground/middle.png 6824 93 PASSIVE
+Sprite ground/green_1/ground/middle.png 6824 47 PASSIVE
+Sprite ground/green_1/ground/middle.png 6883 139 PASSIVE
+Sprite ground/green_1/ground/middle.png 6883 93 PASSIVE
+Sprite ground/green_1/ground/middle.png 6883 47 PASSIVE
+Sprite ground/green_1/ground/middle.png 6942 139 PASSIVE
+Sprite ground/green_1/ground/middle.png 6942 93 PASSIVE
+Sprite ground/green_1/ground/middle.png 6942 47 PASSIVE
+Sprite ground/green_1/ground/middle.png 7001 369 PASSIVE
+Sprite ground/green_1/ground/middle.png 7001 323 PASSIVE
+Sprite ground/green_1/ground/middle.png 7001 277 PASSIVE
+Sprite ground/green_1/ground/middle.png 7060 415 PASSIVE
+Sprite ground/green_1/ground/middle.png 7060 369 PASSIVE
+Sprite ground/green_1/ground/middle.png 7119 461 PASSIVE
+Sprite ground/green_1/ground/middle.png 7119 415 PASSIVE
+Sprite ground/green_1/ground/middle.png 7119 369 PASSIVE
+Sprite ground/green_1/ground/middle.png 7060 323 PASSIVE
+Sprite ground/green_1/ground/middle.png 7060 277 PASSIVE
+Sprite ground/green_1/ground/middle.png 7119 323 PASSIVE
+Sprite ground/green_1/ground/middle.png 7119 277 PASSIVE
+Sprite ground/green_1/ground/middle.png 7001 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 7001 185 PASSIVE
+Sprite ground/green_1/ground/middle.png 7060 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 7001 139 PASSIVE
+Sprite ground/green_1/ground/middle.png 7060 185 PASSIVE
+Sprite ground/green_1/ground/middle.png 7119 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 7001 93 PASSIVE
+Sprite ground/green_1/ground/middle.png 7001 47 PASSIVE
+Sprite ground/green_1/ground/middle.png 7060 139 PASSIVE
+Sprite ground/green_1/ground/middle.png 7060 93 PASSIVE
+Sprite ground/green_1/ground/middle.png 7060 47 PASSIVE
+Sprite ground/green_1/ground/middle.png 7119 185 PASSIVE
+Sprite ground/green_1/ground/middle.png 7119 139 PASSIVE
+Sprite ground/green_1/ground/middle.png 7119 93 PASSIVE
+Sprite ground/green_1/ground/middle.png 7119 47 PASSIVE
+Sprite ground/green_1/ground/middle.png 7178 461 PASSIVE
+Sprite ground/green_1/ground/middle.png 7178 415 PASSIVE
+Sprite ground/green_1/ground/middle.png 7178 369 PASSIVE
+Sprite ground/green_1/ground/middle.png 7237 461 PASSIVE
+Sprite ground/green_1/ground/middle.png 7237 415 PASSIVE
+Sprite ground/green_1/ground/middle.png 7296 461 PASSIVE
+Sprite ground/green_1/ground/middle.png 7178 323 PASSIVE
+Sprite ground/green_1/ground/middle.png 7178 277 PASSIVE
+Sprite ground/green_1/ground/middle.png 7237 369 PASSIVE
+Sprite ground/green_1/ground/middle.png 7296 415 PASSIVE
+Sprite ground/green_1/ground/middle.png 7296 369 PASSIVE
+Sprite ground/green_1/ground/middle.png 7237 323 PASSIVE
+Sprite ground/green_1/ground/middle.png 7178 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 7237 277 PASSIVE
+Sprite ground/green_1/ground/middle.png 7296 323 PASSIVE
+Sprite ground/green_1/ground/middle.png 7178 185 PASSIVE
+Sprite ground/green_1/ground/middle.png 7237 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 7178 139 PASSIVE
+Sprite ground/green_1/ground/middle.png 7237 185 PASSIVE
+Sprite ground/green_1/ground/middle.png 7296 277 PASSIVE
+Sprite ground/green_1/ground/middle.png 7296 231 PASSIVE
+Sprite ground/green_1/ground/middle.png 7296 185 PASSIVE
+Sprite ground/green_1/ground/middle.png 7178 93 PASSIVE
+Sprite ground/green_1/ground/middle.png 7237 139 PASSIVE
+Sprite ground/green_1/ground/middle.png 7178 47 PASSIVE
+Sprite ground/green_1/ground/middle.png 7237 93 PASSIVE
+Sprite ground/green_1/ground/middle.png 7237 47 PASSIVE
+Sprite ground/green_1/ground/middle.png 7296 139 PASSIVE
+Sprite ground/green_1/ground/middle.png 7296 93 PASSIVE
+Sprite ground/green_1/ground/middle.png 7296 47 PASSIVE
+Sprite ground/green_1/ground/left.png 1941 689 PASSIVE
+Sprite ground/green_1/ground/left.png 1941 643 PASSIVE
+Sprite ground/green_1/ground/left.png 1941 597 PASSIVE
+Sprite ground/green_1/ground/left.png 1941 551 PASSIVE
+Sprite ground/green_1/ground/left.png 1941 505 PASSIVE
+Sprite ground/green_1/ground/left.png 1941 459 PASSIVE
+Sprite ground/green_1/ground/left.png 1941 413 PASSIVE
+Sprite ground/green_1/ground/left.png 1941 367 PASSIVE
+Sprite ground/green_1/ground/left.png 1941 321 PASSIVE
+Sprite ground/green_1/ground/left.png 1941 275 PASSIVE
+Sprite ground/green_1/ground/left.png 1941 229 PASSIVE
+Sprite ground/green_1/ground/left.png 1941 184 PASSIVE
+Sprite ground/green_1/ground/right.png 2527 689 PASSIVE
+Sprite ground/green_1/ground/right.png 2527 643 PASSIVE
+Sprite ground/green_1/ground/right.png 2527 597 PASSIVE
+Sprite ground/green_1/ground/right.png 2527 551 PASSIVE
+Sprite ground/green_1/ground/right.png 2527 505 PASSIVE
+Sprite ground/green_1/ground/right.png 2527 459 PASSIVE
+Sprite ground/green_1/ground/right.png 2527 413 PASSIVE
+Sprite ground/green_1/ground/right.png 2527 321 PASSIVE
+Sprite ground/green_1/ground/right.png 2527 275 PASSIVE
+Sprite ground/green_1/ground/right.png 2527 229 PASSIVE
+Sprite ground/green_1/ground/right.png 2527 183 PASSIVE
+Sprite ground/green_1/ground/right.png 2527 138 PASSIVE
+Sprite ground/green_1/ground/right.png 6385 414 PASSIVE
+Sprite ground/green_1/ground/right.png 6385 368 PASSIVE
+Sprite ground/green_1/ground/right.png 6385 322 PASSIVE
+Sprite ground/green_1/ground/right.png 6385 276 PASSIVE
+Sprite ground/green_1/ground/right.png 6385 230 PASSIVE
+Sprite ground/green_1/ground/right.png 6385 184 PASSIVE
+Sprite ground/green_1/ground/right.png 6385 138 PASSIVE
+Sprite ground/green_1/ground/right.png 6385 92 PASSIVE
+Sprite ground/green_1/ground/right.png 6385 46 PASSIVE
+Sprite ground/green_1/ground/right.png 7355 461 PASSIVE
+Sprite ground/green_1/ground/right.png 7355 415 PASSIVE
+Sprite ground/green_1/ground/right.png 7355 369 PASSIVE
+Sprite ground/green_1/ground/right.png 7355 323 PASSIVE
+Sprite ground/green_1/ground/right.png 7355 277 PASSIVE
+Sprite ground/green_1/ground/right.png 7355 231 PASSIVE
+Sprite ground/green_1/ground/right.png 7355 185 PASSIVE
+Sprite ground/green_1/ground/right.png 7355 139 PASSIVE
+Sprite ground/green_1/ground/right.png 7355 93 PASSIVE
+Sprite ground/green_1/ground/right.png 7355 47 PASSIVE
+Sprite ground/green_1/ground/left.png 7251 554 PASSIVE
+Sprite ground/green_1/ground/right.png 7424 554 PASSIVE
+Sprite ground/green_1/ground/right.png 7424 508 PASSIVE
+Sprite ground/green_1/ground/right.png 7424 462 PASSIVE
+Sprite ground/green_1/ground/right.png 7424 416 PASSIVE
+Sprite ground/green_1/ground/right.png 7424 370 PASSIVE
+Sprite ground/green_1/ground/right.png 7424 324 PASSIVE
+Sprite ground/green_1/ground/right.png 7424 278 PASSIVE
+Sprite ground/green_1/ground/right.png 7424 232 PASSIVE
+Sprite ground/green_1/ground/right.png 7424 186 PASSIVE
+Sprite ground/green_1/ground/right.png 7424 140 PASSIVE
+Sprite ground/green_1/ground/right.png 7424 94 PASSIVE
+Sprite ground/green_1/ground/right.png 7424 48 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 919 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 873 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 827 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 781 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 735 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 689 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 643 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 597 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 551 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 505 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 459 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 413 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 367 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 321 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 275 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 229 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 137 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 183 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 91 PASSIVE
+Sprite ground/green_1/ground/left.png 8601 45 PASSIVE
+Sprite ground/green_1/ground/right.png 8951 919 PASSIVE
+Sprite ground/green_1/ground/left.png 8971 505 PASSIVE
+Sprite ground/green_1/ground/left.png 8971 459 PASSIVE
+Sprite ground/green_1/ground/left.png 8971 413 PASSIVE
+Sprite ground/green_1/ground/left.png 8971 367 PASSIVE
+Sprite ground/green_1/ground/left.png 8971 321 PASSIVE
+Sprite ground/green_1/ground/left.png 8971 275 PASSIVE
+Sprite ground/green_1/ground/left.png 8971 229 PASSIVE
+Sprite ground/green_1/ground/left.png 8971 183 PASSIVE
+Sprite ground/green_1/ground/left.png 8971 137 PASSIVE
+Sprite ground/green_1/ground/left.png 8971 91 PASSIVE
+Sprite ground/green_1/ground/left.png 8971 45 PASSIVE
+Sprite ground/green_1/ground/left.png 9207 321 PASSIVE
+Sprite ground/green_1/ground/left.png 9207 275 PASSIVE
+Sprite ground/green_1/ground/left.png 9207 229 PASSIVE
+Sprite ground/green_1/ground/left.png 9207 183 PASSIVE
+Sprite ground/green_1/ground/left.png 9207 137 PASSIVE
+Sprite ground/green_1/ground/left.png 9207 91 PASSIVE
+Sprite ground/green_1/ground/left.png 9207 45 PASSIVE
+Sprite ground/green_1/ground/right.png 9734 827 PASSIVE
+Sprite ground/green_1/ground/right.png 9734 781 PASSIVE
+Sprite ground/green_1/ground/right.png 9734 735 PASSIVE
+Sprite ground/green_1/ground/right.png 9734 643 PASSIVE
+Sprite ground/green_1/ground/right.png 9734 689 PASSIVE
+Sprite ground/green_1/ground/right.png 9498 321 PASSIVE
+Sprite ground/green_1/ground/right.png 9498 275 PASSIVE
+Sprite ground/green_1/ground/right.png 9498 229 PASSIVE
+Sprite ground/green_1/ground/right.png 9498 183 PASSIVE
+Sprite ground/green_1/ground/right.png 9498 137 PASSIVE
+Sprite ground/green_1/ground/right.png 9498 91 PASSIVE
+Sprite ground/green_1/ground/right.png 2527 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 2468 367 PASSIVE
+Sprite ground/green_1/ground/middle.png 1121 45 PASSIVE
+Sprite ground/green_1/ground/middle.png 6765 461 PASSIVE
+Sprite clouds/default_1/2_big.png 83 605 PASSIVE
+Sprite clouds/default_1/2_small.png 359 524 PASSIVE
+Sprite clouds/default_1/2_small.png 447 616 PASSIVE
+Sprite clouds/default_1/2_small.png 416 662 PASSIVE
+Sprite clouds/default_1/2_small.png 494 566 PASSIVE
+Sprite clouds/default_1/2_big.png 779 669 PASSIVE
+Sprite clouds/default_1/2_small.png 752 576 PASSIVE
+Sprite clouds/default_1/2_small.png 666 629 PASSIVE
+Sprite clouds/default_1/2_small.png 1059 729 PASSIVE
+Sprite clouds/default_1/2_big.png 1385 919 PASSIVE
+Sprite clouds/default_1/2_small.png 1376 808 PASSIVE
+Sprite clouds/default_1/2_small.png 1451 838 PASSIVE
+Sprite clouds/default_1/2_small.png 1502 774 PASSIVE
+Sprite clouds/default_1/2_big.png 1868 998 PASSIVE
+Sprite clouds/default_1/2_small.png 1655 984 PASSIVE
+Sprite clouds/default_1/2_small.png 1723 937 PASSIVE
+Sprite clouds/default_1/2_small.png 1783 885 PASSIVE
+Sprite clouds/default_1/2_small.png 1701 802 PASSIVE
+Sprite clouds/default_1/2_big.png 2569 1534 PASSIVE
+Sprite clouds/default_1/2_small.png 2306 1408 PASSIVE
+Sprite clouds/default_1/2_small.png 2238 1362 PASSIVE
+Sprite clouds/default_1/2_small.png 2154 1405 PASSIVE
+Sprite clouds/default_1/2_small.png 2052 1330 PASSIVE
+Sprite clouds/default_1/2_small.png 2115 1276 PASSIVE
+Sprite clouds/default_1/2_small.png 2199 1319 PASSIVE
+Sprite clouds/default_1/2_small.png 2352 1258 PASSIVE
+Sprite clouds/default_1/2_big.png 3176 670 PASSIVE
+Sprite clouds/default_1/2_big.png 3919 866 PASSIVE
+Sprite clouds/default_1/2_small.png 3057 737 PASSIVE
+Sprite clouds/default_1/2_small.png 3001 668 PASSIVE
+Sprite clouds/default_1/2_small.png 3068 631 PASSIVE
+Sprite clouds/default_1/2_small.png 3144 584 PASSIVE
+Sprite clouds/default_1/2_small.png 3873 912 PASSIVE
+Sprite clouds/default_1/2_small.png 3820 872 PASSIVE
+Sprite clouds/default_1/2_small.png 3920 784 PASSIVE
+Sprite clouds/default_1/2_small.png 3993 727 PASSIVE
+Sprite clouds/default_1/2_small.png 4031 794 PASSIVE
+Sprite clouds/default_1/2_small.png 3760 699 PASSIVE
+Sprite clouds/default_1/2_small.png 3812 665 PASSIVE
+Sprite clouds/default_1/2_small.png 4468 507 PASSIVE
+Sprite clouds/default_1/2_big.png 4615 587 PASSIVE
+Sprite clouds/default_1/2_small.png 4591 515 PASSIVE
+Sprite clouds/default_1/2_small.png 4572 435 PASSIVE
+Sprite clouds/default_1/2_small.png 4676 651 PASSIVE
+Sprite clouds/default_1/2_small.png 4548 641 PASSIVE
+Sprite clouds/default_1/2_big.png 5145 1632 PASSIVE
+Sprite clouds/default_1/2_small.png 5333 1490 PASSIVE
+Sprite clouds/default_1/2_small.png 5496 1571 PASSIVE
+Sprite clouds/default_1/2_small.png 5579 1618 PASSIVE
+Sprite clouds/default_1/2_small.png 5619 1521 PASSIVE
+Sprite clouds/default_1/2_small.png 5096 1208 PASSIVE
+Sprite clouds/default_1/2_small.png 5032 1159 PASSIVE
+Sprite clouds/default_1/2_small.png 5079 1127 PASSIVE
+Sprite clouds/default_1/2_small.png 4922 1041 PASSIVE
+Sprite clouds/default_1/2_small.png 4811 1158 PASSIVE
+Sprite clouds/default_1/2_small.png 4827 931 PASSIVE
+Sprite clouds/default_1/2_big.png 5591 1052 PASSIVE
+Sprite clouds/default_1/2_small.png 5534 932 PASSIVE
+Sprite clouds/default_1/2_small.png 5522 1092 PASSIVE
+Sprite clouds/default_1/2_small.png 5471 1019 PASSIVE
+Sprite clouds/default_1/2_small.png 5746 1143 PASSIVE
+Sprite clouds/default_1/2_big.png 6098 871 PASSIVE
+Sprite clouds/default_1/2_small.png 5997 768 PASSIVE
+Sprite clouds/default_1/2_small.png 5952 819 PASSIVE
+Sprite clouds/default_1/2_small.png 6010 931 PASSIVE
+Sprite clouds/default_1/2_small.png 6099 794 PASSIVE
+Sprite clouds/default_1/2_small.png 6138 904 PASSIVE
+Sprite clouds/default_1/2_small.png 6668 890 PASSIVE
+Sprite clouds/default_1/2_small.png 6728 836 PASSIVE
+Sprite clouds/default_1/2_small.png 6748 935 PASSIVE
+Sprite clouds/default_1/2_small.png 6788 895 PASSIVE
+Sprite clouds/default_1/2_small.png 6894 944 PASSIVE
+Sprite clouds/default_1/2_small.png 6965 834 PASSIVE
+Sprite clouds/default_1/2_small.png 7046 784 PASSIVE
+Sprite clouds/default_1/2_big.png 7494 1094 PASSIVE
+Sprite clouds/default_1/2_small.png 7382 1018 PASSIVE
+Sprite clouds/default_1/2_small.png 7341 1080 PASSIVE
+Sprite clouds/default_1/2_small.png 7501 969 PASSIVE
+Sprite clouds/default_1/2_small.png 7521 1019 PASSIVE
+Sprite clouds/default_1/2_big.png 8052 1208 PASSIVE
+Sprite clouds/default_1/2_small.png 8017 1115 PASSIVE
+Sprite clouds/default_1/2_small.png 8111 1137 PASSIVE
+Sprite clouds/default_1/2_small.png 7959 1170 PASSIVE
+Sprite clouds/default_1/2_small.png 8328 1263 PASSIVE
+Sprite clouds/default_1/2_big.png 9006 1386 PASSIVE
+Sprite clouds/default_1/2_big.png 9642 1767 PASSIVE
+Sprite clouds/default_1/2_small.png 8903 1444 PASSIVE
+Sprite clouds/default_1/2_small.png 9006 1486 PASSIVE
+Sprite clouds/default_1/2_small.png 8949 1414 PASSIVE
+Sprite clouds/default_1/2_small.png 9955 1669 PASSIVE
+Sprite clouds/default_1/2_small.png 9997 1729 PASSIVE
+Sprite clouds/default_1/2_small.png 10086 1683 PASSIVE
+Sprite clouds/default_1/2_small.png 10187 1606 PASSIVE
+Sprite clouds/default_1/2_small.png 10230 1720 PASSIVE
+Sprite clouds/default_1/2_small.png 10804 1093 PASSIVE
+Sprite clouds/default_1/2_small.png 10773 1138 PASSIVE
+Sprite clouds/default_1/2_small.png 10837 1182 PASSIVE
+Sprite clouds/default_1/2_small.png 10679 1174 PASSIVE
+Sprite clouds/default_1/2_small.png 10921 1034 PASSIVE
+Sprite clouds/default_1/2_big.png 9953 601 PASSIVE
+Sprite clouds/default_1/2_small.png 10035 649 PASSIVE
+Sprite clouds/default_1/2_small.png 10308 512 PASSIVE
+Sprite clouds/default_1/2_small.png 10086 468 PASSIVE
+Sprite clouds/default_1/2_small.png 10069 511 PASSIVE
+Sprite clouds/default_1/2_small.png 9948 514 PASSIVE
+Sprite clouds/default_1/2_big.png 10684 436 PASSIVE
+Sprite clouds/default_1/2_small.png 10797 551 PASSIVE
+Sprite clouds/default_1/2_small.png 10725 594 PASSIVE
+Sprite clouds/default_1/2_small.png 10816 639 PASSIVE
+Sprite clouds/default_1/2_small.png 10853 589 PASSIVE
+Sprite clouds/default_1/2_small.png 10884 697 PASSIVE
+Sprite clouds/default_1/2_big.png 11898 522 PASSIVE
+Sprite clouds/default_1/2_small.png 11682 488 PASSIVE
+Sprite clouds/default_1/2_small.png 11780 457 PASSIVE
+Sprite clouds/default_1/2_small.png 11889 390 PASSIVE
+Sprite clouds/default_1/2_small.png 11799 520 PASSIVE
+Sprite clouds/default_1/2_small.png 12021 410 PASSIVE
+Sprite clouds/default_1/2_small.png 11928 444 PASSIVE
+Sprite clouds/default_1/2_small.png 12041 557 PASSIVE
+Sprite clouds/default_1/2_small.png 10791 339 PASSIVE
+Sprite clouds/default_1/2_small.png 10681 361 PASSIVE
+Sprite clouds/default_1/2_small.png 11211 449 PASSIVE
+Sprite clouds/default_1/2_big.png 12514 364 PASSIVE
+Sprite clouds/default_1/2_small.png 12470 407 PASSIVE
+Sprite clouds/default_1/2_small.png 12843 268 PASSIVE
+Sprite clouds/default_1/2_small.png 12950 400 PASSIVE
+Sprite clouds/default_1/2_small.png 13030 486 PASSIVE
+Sprite clouds/default_1/2_small.png 13069 437 PASSIVE
+Sprite clouds/default_1/2_small.png 13530 392 PASSIVE
+Sprite clouds/default_1/2_big.png 14064 462 PASSIVE
+Sprite clouds/default_1/2_small.png 13963 457 PASSIVE
+Sprite clouds/default_1/2_small.png 14092 514 PASSIVE
+Sprite clouds/default_1/2_small.png 13945 512 PASSIVE
+Sprite clouds/default_1/2_small.png 13892 352 PASSIVE
+Sprite clouds/default_1/2_small.png 13911 415 PASSIVE
+Sprite clouds/default_1/2_small.png 14024 383 PASSIVE
+Sprite clouds/default_1/2_small.png 13454 430 PASSIVE
+Sprite clouds/default_1/2_small.png 10004 1208 PASSIVE
+Sprite clouds/default_1/2_small.png 10025 1239 PASSIVE
+Sprite clouds/default_1/2_small.png 10110 1159 PASSIVE
+Sprite clouds/default_1/2_small.png 9885 1225 PASSIVE
+Sprite clouds/default_1/2_small.png 10171 1221 PASSIVE
+Sprite clouds/default_1/2_small.png 9982 1298 PASSIVE
+Sprite clouds/default_1/2_small.png 10338 1411 PASSIVE
+Sprite clouds/default_1/2_small.png 10396 1452 PASSIVE
+Sprite clouds/default_1/2_small.png 9390 1439 PASSIVE
+Sprite clouds/default_1/2_small.png 9361 1398 PASSIVE
+Sprite clouds/default_1/2_big.png 10715 1562 PASSIVE
+Sprite clouds/default_1/2_small.png 10667 1620 PASSIVE
+Sprite clouds/default_1/2_small.png 10622 1575 PASSIVE
+Sprite clouds/default_1/2_small.png 10862 1657 PASSIVE
+Sprite clouds/default_1/2_small.png 10713 1456 PASSIVE
+Sprite game/level/door_yellow_1.png 13757 144 PASSIVE
+
+### Enemy Objects ###
+Enemy JPIRANHA 10935 -2 2 200
+Enemy JPIRANHA 11029 -2 2 200
+Enemy JPIRANHA 11665 -3 2 200
+Enemy JPIRANHA 11764 -3 2 200
+Enemy JPIRANHA 12539 -3 2 200
+Enemy JPIRANHA 12634 -3 2 200
+Enemy JPIRANHA 12854 -3 2 200
+Enemy JPIRANHA 12954 -2 2 200
+Enemy GOOMBA 8771 1249 1
+Enemy GOOMBA 8819 1250 1
+Enemy TURTLE 9316 1039
+Enemy TURTLE 443 223
+Enemy TURTLE 864 215
+Enemy REX 1598 232
+Enemy GOOMBA 889 325 0
+Enemy GOOMBA 1338 514 1
+Enemy GOOMBA 1390 515 1
+Enemy TURTLE 2087 825
+Enemy REX 3104 179
+Enemy REX 3178 178
+Enemy REX 3254 177
+Enemy TURTLE 5352 323
+Enemy GOOMBA 5695 293 0
+Enemy GOOMBA 6248 524 0
+Enemy GOOMBA 6304 524 0
+Enemy TURTLE 7354 684
+Enemy GOOMBA 8108 884 1
+Enemy GOOMBA 9436 425 0
+Enemy TURTLE 9804 126
+Enemy TURTLE 11483 219
+Enemy GOOMBA 10508 94 0
+Enemy JPIRANHA 10162 171 2 200
+Enemy JPIRANHA 9437 1001 2 200
+Enemy JPIRANHA 6868 637 2 200
+Enemy REX 13567 132
+Enemy GOOMBA 12744 97 1
+Enemy TURTLE 13157 131
+Enemy REX 3029 181
+Enemy REX 2955 184
+
+### Active Objects ###
+Sprite ground/green_1/ground/left_up.png 708 277 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 822 277 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 881 277 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 940 277 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 999 277 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 1058 277 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 763 277 HALFMASSIVE
+Sprite ground/green_1/ground/right_up.png 1117 277 HALFMASSIVE
+Sprite ground/green_1/ground/left_up.png 1121 461 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 1176 461 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 1235 461 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 1294 461 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 1353 461 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 1412 461 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 1471 461 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 1530 461 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 1589 461 HALFMASSIVE
+Sprite ground/green_1/ground/right_up.png 1648 461 HALFMASSIVE
+Sprite ground/green_1/ground/left_up.png 1648 553 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 1703 553 HALFMASSIVE
+Sprite ground/green_1/ground/right_up.png 1762 553 HALFMASSIVE
+Sprite ground/green_1/ground/left_up.png 2241 829 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 2296 829 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 2355 829 HALFMASSIVE
+Sprite ground/green_1/ground/right_up.png 2414 829 HALFMASSIVE
+Sprite ground/green_1/ground/left_up.png 3400 185 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 3455 185 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 3514 185 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 3573 185 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 3632 185 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 3691 185 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 3750 185 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 3809 185 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 3868 185 HALFMASSIVE
+Sprite ground/green_1/ground/left_up.png 3687 278 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 3978 278 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 3927 185 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 3986 185 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 4045 185 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 4104 185 HALFMASSIVE
+Sprite ground/green_1/ground/right_up.png 4163 185 HALFMASSIVE
+Sprite ground/green_1/ground/right_up.png 4037 278 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 3919 278 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 3742 278 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 3801 278 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 3860 278 HALFMASSIVE
+Sprite ground/green_1/ground/left_up.png 3936 371 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 3991 371 HALFMASSIVE
+Sprite ground/green_1/ground/right_up.png 4050 371 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 5948 322 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 6007 322 HALFMASSIVE
+Sprite ground/green_1/ground/left_up.png 6212 461 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 6267 461 HALFMASSIVE
+Sprite ground/green_1/ground/left_up.png 5893 322 HALFMASSIVE
+Sprite ground/green_1/ground/left_up.png 6415 508 HALFMASSIVE
+Sprite ground/green_1/ground/left_up.png 7251 601 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 7306 601 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 7365 601 HALFMASSIVE
+Sprite pipes/up/blue_small_1.png 9334 956 HALFMASSIVE
+Sprite ground/green_1/ground/left_up.png 11402 138 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 11457 138 HALFMASSIVE
+Sprite ground/green_1/ground/right_up.png 12014 138 HALFMASSIVE
+Sprite ground/ghost_1/way_1_left.png 10900 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 10921 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 10941 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 10962 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 10983 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 11004 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 11025 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 11046 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 11067 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_right.png 11089 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_left.png 11630 138 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 11651 138 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 11672 138 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 11693 138 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 11714 138 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 11735 138 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 11756 138 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 11777 138 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 11798 138 HALFMASSIVE
+Sprite ground/ghost_1/way_1_right.png 11820 138 HALFMASSIVE
+Sprite ground/ghost_1/way_1_left.png 12499 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 12520 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 12541 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 12562 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 12583 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 12604 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 12625 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 12646 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 12667 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_right.png 12689 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_left.png 12820 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 12841 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 12862 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 12883 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 12904 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 12925 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 12946 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 12967 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 12988 45 HALFMASSIVE
+Sprite ground/ghost_1/way_1_right.png 13010 45 HALFMASSIVE
+Levelexit 13770 84 0 
+Sprite ground/green_1/ground/left_up.png 1941 736 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 1996 736 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 2055 736 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 2114 736 HALFMASSIVE
+Sprite ground/green_1/ground/right_up.png 2527 736 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 2468 736 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 2409 736 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 2350 736 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 2291 736 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 2232 736 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 2173 736 HALFMASSIVE
+Goldpiece 10925 105 4
+Goldpiece 10966 105 4
+Goldpiece 11009 105 4
+Goldpiece 11050 105 4
+Goldpiece 12525 105 4
+Goldpiece 12566 105 4
+Goldpiece 12608 105 4
+Goldpiece 12650 105 4
+Goldpiece 12845 105 4
+Goldpiece 12887 105 4
+Goldpiece 12929 105 4
+Goldpiece 12971 105 4
+Goldpiece 11655 200 4
+Goldpiece 11697 200 4
+Goldpiece 11740 200 4
+Goldpiece 11781 200 4
+Goldpiece 2640 295 4
+Goldpiece 2640 350 4
+Goldpiece 2640 405 4
+Goldpiece 2640 460 4
+Goldpiece 2640 515 4
+Goldpiece 2640 570 4
+Goldpiece 2640 625 4
+Goldpiece 2640 680 4
+Goldpiece 2640 735 4
+Goldpiece 2640 790 4
+Goldpiece 2640 845 4
+Goldpiece 2640 900 4
+Goldpiece 2640 955 4
+Goldpiece 2640 1010 4
+Goldpiece 2640 1065 4
+Goldpiece 7620 750 4
+Goldpiece 7670 750 4
+Goldpiece 5250 295 4
+Goldpiece 5305 295 4
+Goldpiece 5355 295 4
+GoldBox 5305 500 4 1
+GoldBox 5305 700 4 1
+GoldBox 5305 900 4 1
+GoldBox 5305 1100 4 1
+GoldBox 5500 1300 4 1
+GoldBox 5543 1300 4 1
+GoldBox 5586 1300 4 1
+BonusBox 5543 1500 LIFE
+Goldpiece 8363 982 4
+Goldpiece 8418 982 4
+Goldpiece 8473 982 4
+Goldpiece 9636 1265 4
+Goldpiece 9679 1265 4
+Goldpiece 9886 1465 4
+Goldpiece 9930 1465 4
+Goldpiece 10204 1365 4
+Goldpiece 10249 1365 4
+Goldpiece 10353 1165 4
+Goldpiece 10398 1165 4
+Goldpiece 10544 965 4
+Goldpiece 10591 965 4
+Goldpiece 10196 765 4
+Goldpiece 10242 765 4
+Goldpiece 10424 665 4
+Goldpiece 10472 665 4
+Goldpiece 10299 455 4
+Goldpiece 10348 455 4
+Goldpiece 3950 430 4
+Goldpiece 4005 430 4
+Goldpiece 4060 430 4
+GoldBox 305 370 4 1
+GoldBox 348 370 4 1
+GoldBox 391 370 4 1
+Goldpiece 3705 338 4
+Goldpiece 3760 338 4
+Goldpiece 3815 338 4
+Goldpiece 3870 338 4
+Goldpiece 4115 245 4
+Goldpiece 4170 245 4
+Goldpiece 3415 245 4
+Goldpiece 3470 245 4
+Goldpiece 3525 245 4
+Goldpiece 3580 245 4
+Goldpiece 3635 245 4
+GoldBox 13176 293 4 1
+GoldBox 13219 293 4 1
+SpinBox 8697 1194
+SpinBox 8740 1194
+SpinBox 8783 1194
+SpinBox 8826 1194
+SpinBox 8869 1194
+GoldBox 4550 320 4 1
+GoldBox 4593 320 4 1
+GoldBox 4636 320 4 1
+GoldBox 2957 320 4 1
+GoldBox 3000 320 4 1
+GoldBox 2311 1020 4 1
+GoldBox 2354 1020 4 1
+GoldBox 2448 1180 4 1
+GoldBox 2542 1340 4 1
+Goldpiece 2640 1120 4
+Goldpiece 2640 1175 4
+Goldpiece 2640 1230 4
+Goldpiece 2640 1285 4
+Goldpiece 2640 1340 4
+Goldpiece 6870 780 4
+Goldpiece 6870 835 4
+Goldpiece 6870 890 4
+Goldpiece 6870 945 4
+Goldpiece 6870 945 4
+Goldpiece 1660 615 4
+Goldpiece 1715 615 4
+Goldpiece 1770 615 4
+BonusBox 1860 300 AUTO
+EnemyStopper 8679 1209
+EnemyStopper 8912 1209
+EnemyStopper 697 293
+EnemyStopper 1170 292
+EnemyStopper 1111 476
+EnemyStopper 1699 475
+EnemyStopper 1997 159
+EnemyStopper 1639 567
+EnemyStopper 1812 568
+EnemyStopper 1927 753
+EnemyStopper 2577 751
+EnemyStopper 2231 845
+EnemyStopper 2466 843
+EnemyStopper 3390 209
+EnemyStopper 3677 298
+EnemyStopper 4090 294
+EnemyStopper 3924 390
+EnemyStopper 4104 386
+EnemyStopper 4215 208
+EnemyStopper 5107 111
+EnemyStopper 5001 251
+EnemyStopper 6063 247
+EnemyStopper 5885 342
+EnemyStopper 6295 338
+EnemyStopper 6203 478
+EnemyStopper 6431 474
+EnemyStopper 6409 530
+EnemyStopper 7406 523
+EnemyStopper 7240 616
+EnemyStopper 7473 619
+EnemyStopper 7598 706
+EnemyStopper 7711 705
+EnemyStopper 7968 843
+EnemyStopper 8202 843
+EnemyStopper 8336 934
+EnemyStopper 8513 938
+EnemyStopper 8590 981
+EnemyStopper 9002 984
+EnemyStopper 8962 887
+EnemyStopper 9786 891
+EnemyStopper 9485 62
+EnemyStopper 9551 388
+EnemyStopper 9194 389
+EnemyStopper 10889 64
+EnemyStopper 11107 67
+EnemyStopper 11512 61
+EnemyStopper 11390 157
+EnemyStopper 11621 157
+EnemyStopper 11836 158
+EnemyStopper 12066 155
+EnemyStopper 12029 61
+EnemyStopper 12486 65
+EnemyStopper 12704 63
+EnemyStopper 12819 63
+EnemyStopper 13024 63
+EnemyStopper 13904 64
+EnemyStopper 9233 971
+EnemyStopper 1173 153
+SpinBox 9630 1207
+SpinBox 9673 1207
+SpinBox 9880 1407
+SpinBox 9923 1407
+SpinBox 10200 1307
+SpinBox 10243 1307
+SpinBox 10350 1107
+SpinBox 10393 1107
+SpinBox 10540 907
+SpinBox 10583 907
+SpinBox 10192 707
+SpinBox 10235 707
+SpinBox 10420 607
+SpinBox 10463 607
+SpinBox 10297 393
+BonusBox 9250 540 AUTO
+Sprite ground/green_1/ground/right_up.png 8951 966 HALFMASSIVE
+Sprite ground/green_1/ground/right_up.png 9498 368 HALFMASSIVE

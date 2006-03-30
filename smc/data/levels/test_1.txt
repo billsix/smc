@@ -1,0 +1,164 @@
+### Level Saved with Secret Maryo Chronicles V.0.98 Beta 1 ###
+### Level Saved on the Thu Mar 30 01:44:28 2006
+
+Levelengine_version 1
+
+Music land_1.ogg
+Background_color_1 20 200 5
+Background_color_2 20 150 5
+
+Player 252 252
+
+### Massive Objects ###
+Sprite game/box/brown1_1.png 886 280 MASSIVE
+Sprite game/box/brown1_1.png 929 280 MASSIVE
+Sprite game/box/brown1_1.png 972 280 MASSIVE
+Sprite game/box/brown1_1.png 1015 280 MASSIVE
+Sprite pipes/up/grey_small_1.png 363 333 MASSIVE
+Sprite blocks/stone/1.png 385 517 MASSIVE
+Sprite ground/green_1/ground/hill_right_up.png 3477 47 MASSIVE
+Sprite ground/green_1/ground/hill_left_up.png 1 47 MASSIVE
+Sprite ground/green_1/ground/up.png 55 47 MASSIVE
+Sprite ground/green_1/ground/up.png 114 47 MASSIVE
+Sprite ground/green_1/ground/up.png 173 47 MASSIVE
+Sprite ground/green_1/ground/up.png 232 47 MASSIVE
+Sprite ground/green_1/ground/up.png 291 47 MASSIVE
+Sprite ground/green_1/ground/up.png 350 47 MASSIVE
+Sprite ground/green_1/ground/up.png 409 47 MASSIVE
+Sprite ground/green_1/ground/up.png 468 47 MASSIVE
+Sprite ground/green_1/ground/up.png 527 47 MASSIVE
+Sprite ground/green_1/ground/up.png 586 47 MASSIVE
+Sprite ground/green_1/ground/up.png 645 47 MASSIVE
+Sprite ground/green_1/ground/up.png 704 47 MASSIVE
+Sprite ground/green_1/ground/up.png 763 47 MASSIVE
+Sprite ground/green_1/ground/up.png 822 47 MASSIVE
+Sprite ground/green_1/ground/up.png 881 47 MASSIVE
+Sprite ground/green_1/ground/up.png 940 47 MASSIVE
+Sprite ground/green_1/ground/up.png 999 47 MASSIVE
+Sprite game/box/brown1_1.png 1058 280 MASSIVE
+Sprite game/box/brown1_1.png 1101 280 MASSIVE
+Sprite game/box/brown1_1.png 1144 280 MASSIVE
+Sprite game/box/brown1_1.png 1187 280 MASSIVE
+Sprite game/box/brown1_1.png 1230 280 MASSIVE
+Sprite ground/green_1/ground/up.png 1058 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1117 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1176 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1235 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1294 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1353 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1412 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1471 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1530 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1589 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1648 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1707 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1766 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1825 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1884 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1943 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2002 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2061 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2120 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2179 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2238 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2297 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2356 47 MASSIVE
+Sprite game/box/brown1_1.png 2025 132 MASSIVE
+Sprite game/box/brown1_1.png 2262 132 MASSIVE
+Sprite game/box/brown1_1.png 2305 90 MASSIVE
+Sprite game/box/brown1_1.png 1984 90 MASSIVE
+Sprite ground/green_1/ground/up.png 2415 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2474 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2533 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2592 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2651 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2710 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2769 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2828 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2887 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2946 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3005 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3064 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3123 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3182 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3241 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3300 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3359 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3418 47 MASSIVE
+Sprite pipes/up/green_small_1.png 2602 129 MASSIVE
+Sprite pipes/up/green_small_1.png 2519 129 MASSIVE
+Sprite pipes/up/green_small_1.png 2685 129 MASSIVE
+Sprite pipes/up/green_small_1.png 2436 129 MASSIVE
+Sprite pipes/up/green_small_1.png 2353 129 MASSIVE
+Sprite pipes/up/blue_small_1.png 2988 129 MASSIVE
+Sprite pipes/grey/left.png 2507 300 MASSIVE
+Sprite pipes/grey/hor.png 2557 300 MASSIVE
+Sprite pipes/grey/hor.png 2607 300 MASSIVE
+Sprite pipes/grey/hor.png 2657 300 MASSIVE
+Sprite pipes/grey/right.png 2707 300 MASSIVE
+Sprite game/box/brown1_1.png 472 277 MASSIVE
+
+### Passive Objects ###
+Sprite ground/green_1/ground/left_down.png 350 204 PASSIVE
+Sprite ground/green_1/ground/right_down.png 409 204 PASSIVE
+Sprite hills/blue_1/1_medium.png 1192 128 PASSIVE
+Sprite signs/default_1/1_ending_big.png 933 110 PASSIVE
+Sprite game/level/door_yellow_1.png 2895 146 PASSIVE
+
+### Enemy Objects ###
+Enemy TURTLE 920 359
+Enemy GOOMBA 1025 329 7 1
+Enemy GOOMBA 1210 333 2 1
+Enemy JPIRANHA 382 325 2 200
+Enemy TURTLE 1640 119
+Enemy REX 1107 366
+Enemy GOOMBA 2150 100 7 1
+Enemy BANZAI_BILL 3652 286 0
+Enemy TURTLE 710 310
+Enemy TURTLE 2619 207
+Enemy JPIRANHA 2621 120 2 200
+Enemy GOOMBA 2553 349 7 1
+Enemy GOOMBA 2631 353 2 1
+Enemy JPIRANHA 2706 118 2 200
+Enemy JPIRANHA 2537 119 2 200
+
+### Active Objects ###
+Levelexit 2908 91 0 
+EnemyStopper 1271 297
+EnemyStopper 870 295
+EnemyStopper 398 370
+Sprite ground/yoshi_1/hill_up_1.png 342 405 HALFMASSIVE
+BonusBox 570 232 LIFE
+BonusBox 519 232 AUTO
+BonusBox 72 209 AUTO
+GoldBox 373 90 4 1
+SpinBox 1446 90
+SpinBox 1879 90
+SpinBox 1375 89
+SpinBox 1558 325
+SpinBox 1819 90
+SpinBox 1541 276
+GoldBox 639 232 4 1
+GoldBox 686 232 4 1
+GoldBox 734 232 4 1
+GoldBox 782 232 4 1
+Goldpiece 389 460 4
+Sprite ground/green_1/ground/hill_left_up.png 350 251 HALFMASSIVE
+Sprite ground/green_1/ground/hill_right_up.png 413 251 HALFMASSIVE
+EnemyStopper 822 249
+EnemyStopper 633 251
+EnemyStopper 2338 147
+EnemyStopper 2769 143
+EnemyStopper 2763 318
+EnemyStopper 2488 317
+GoldBox 202 90 4 1
+GoldBox 108 90 4 1
+GoldBox 202 133 4 1
+BonusBox 143 281 AUTO
+GoldBox 260 252 4 2
+Levelexit 3017 131 1 test_1.txt
+BonusBox 1506 90 AUTO
+GoldBox 1711 91 4 100
+GoldBox 1587 90 4 100
+BonusBox 1910 336 STAR
+GoldBox 782 275 2 100

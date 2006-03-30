@@ -1,0 +1,315 @@
+# depslib dependency file v1.0
+1141156109 c:\documents and settings\administrator\desktop\smc\smc\src\audio.cpp
+	"audio.h"
+
+1139864614 c:\documents and settings\administrator\desktop\smc\smc\src\audio.h
+	"globals.h"
+
+1139947233 c:\documents and settings\administrator\desktop\smc\smc\src\globals.h
+	"config.h"
+	<iostream>
+	<fstream>
+	<sstream>
+	<string>
+	<vector>
+	<time.h>
+	<math.h>
+	"SDL.h"
+	"SDL_opengl.h"
+	"SDL_ttf.h"
+	"SDL_image.h"
+	"SDL_mixer.h"
+	"CEGUI.h"
+	"renderers/OpenGLGUIRenderer/openglrenderer.h"
+	"CEGUIXMLParser.h"
+	"CEGUIXMLHandler.h"
+	"CEGUIXMLAttributes.h"
+	"video/img_manager.h"
+	"obj_manager.h"
+	"framerate.h"
+	"collision.h"
+	"file_parser.h"
+	"video/img_settings.h"
+	"video/video.h"
+	"user/savegame.h"
+	"audio.h"
+	"video/animation.h"
+	"input/joystick.h"
+	"gui/menu.h"
+	"objects/sprite.h"
+	"objects/active.h"
+	"input/mouse.h"
+	"level/level_settings.h"
+	"level/leveleditor.h"
+	"level/level.h"
+	"objects/goldpiece.h"
+	"objects/moving_platform.h"
+	"objects/cloud.h"
+	"objects/levelexit.h"
+	"objects/powerup.h"
+	"objects/fireball.h"
+	"objects/box.h"
+	"player.h"
+	"enemies/enemy.h"
+	"enemies/turtle.h"
+	"enemies/goomba.h"
+	"enemies/jpiranha.h"
+	"enemies/banzai_bill.h"
+	"enemies/rex.h"
+	"user/preferences.h"
+	"overworld/waypoint.h"
+	"overworld/layer.h"
+	"overworld/player.h"
+	"overworld/overworld.h"
+	"gui/dialog.h"
+	"gui/hud.h"
+
+1139864613 c:\documents and settings\administrator\desktop\smc\smc\src\video\img_manager.h
+	"../globals.h"
+	"video.h"
+
+1141019950 c:\documents and settings\administrator\desktop\smc\smc\src\video\video.h
+	"../globals.h"
+
+1139864614 c:\documents and settings\administrator\desktop\smc\smc\src\obj_manager.h
+	"globals.h"
+	"objects/sprite.h"
+
+1139864610 c:\documents and settings\administrator\desktop\smc\smc\src\objects\sprite.h
+	"../globals.h"
+	"../collision.h"
+
+1139864614 c:\documents and settings\administrator\desktop\smc\smc\src\collision.h
+	"globals.h"
+
+1141254399 c:\documents and settings\administrator\desktop\smc\smc\src\framerate.h
+
+1139864614 c:\documents and settings\administrator\desktop\smc\smc\src\file_parser.h
+	"globals.h"
+
+1139864612 c:\documents and settings\administrator\desktop\smc\smc\src\video\img_settings.h
+	"../globals.h"
+
+1139864614 c:\documents and settings\administrator\desktop\smc\smc\src\user\savegame.h
+	"../globals.h"
+
+1139864613 c:\documents and settings\administrator\desktop\smc\smc\src\video\animation.h
+	"../globals.h"
+	"../objects/sprite.h"
+
+1139864612 c:\documents and settings\administrator\desktop\smc\smc\src\input\joystick.h
+	"../globals.h"
+
+1141156107 c:\documents and settings\administrator\desktop\smc\smc\src\gui\menu.h
+	"../globals.h"
+	"../level/level.h"
+
+1141156108 c:\documents and settings\administrator\desktop\smc\smc\src\level\level.h
+	"../globals.h"
+
+1139864610 c:\documents and settings\administrator\desktop\smc\smc\src\objects\active.h
+	"../globals.h"
+
+1139864612 c:\documents and settings\administrator\desktop\smc\smc\src\input\mouse.h
+	"../globals.h"
+
+1141156108 c:\documents and settings\administrator\desktop\smc\smc\src\level\level_settings.h
+	"../globals.h"
+	"../gui/dialog.h"
+
+1139864608 c:\documents and settings\administrator\desktop\smc\smc\src\gui\dialog.h
+	"../globals.h"
+
+1141019952 c:\documents and settings\administrator\desktop\smc\smc\src\level\leveleditor.h
+	"../globals.h"
+
+1139864610 c:\documents and settings\administrator\desktop\smc\smc\src\objects\goldpiece.h
+	"../globals.h"
+
+1139864610 c:\documents and settings\administrator\desktop\smc\smc\src\objects\moving_platform.h
+	"../globals.h"
+
+1139864610 c:\documents and settings\administrator\desktop\smc\smc\src\objects\cloud.h
+	"../globals.h"
+
+1139864610 c:\documents and settings\administrator\desktop\smc\smc\src\objects\levelexit.h
+	"../globals.h"
+
+1139864610 c:\documents and settings\administrator\desktop\smc\smc\src\objects\powerup.h
+	"../globals.h"
+
+1141156108 c:\documents and settings\administrator\desktop\smc\smc\src\objects\fireball.h
+	"../globals.h"
+
+1139864611 c:\documents and settings\administrator\desktop\smc\smc\src\objects\box.h
+	"../globals.h"
+
+1139864614 c:\documents and settings\administrator\desktop\smc\smc\src\player.h
+	"globals.h"
+
+1139864609 c:\documents and settings\administrator\desktop\smc\smc\src\enemies\enemy.h
+	"../globals.h"
+
+1139864609 c:\documents and settings\administrator\desktop\smc\smc\src\enemies\turtle.h
+	"../globals.h"
+
+1139864609 c:\documents and settings\administrator\desktop\smc\smc\src\enemies\goomba.h
+	"../globals.h"
+
+1139864609 c:\documents and settings\administrator\desktop\smc\smc\src\enemies\jpiranha.h
+	"../globals.h"
+
+1139864609 c:\documents and settings\administrator\desktop\smc\smc\src\enemies\banzai_bill.h
+	"../globals.h"
+
+1139864609 c:\documents and settings\administrator\desktop\smc\smc\src\enemies\rex.h
+	"../globals.h"
+
+1141156109 c:\documents and settings\administrator\desktop\smc\smc\src\user\preferences.h
+
+1141156107 c:\documents and settings\administrator\desktop\smc\smc\src\overworld\waypoint.h
+	"../globals.h"
+
+1139947227 c:\documents and settings\administrator\desktop\smc\smc\src\overworld\layer.h
+	"../globals.h"
+
+1139947227 c:\documents and settings\administrator\desktop\smc\smc\src\overworld\player.h
+	"../globals.h"
+
+1141019948 c:\documents and settings\administrator\desktop\smc\smc\src\overworld\overworld.h
+	"../globals.h"
+
+1139864608 c:\documents and settings\administrator\desktop\smc\smc\src\gui\hud.h
+	"../globals.h"
+
+1139864614 c:\documents and settings\administrator\desktop\smc\smc\src\collision.cpp
+	"globals.h"
+
+1139864614 c:\documents and settings\administrator\desktop\smc\smc\src\file_parser.cpp
+	"globals.h"
+
+1141156109 c:\documents and settings\administrator\desktop\smc\smc\src\globals.cpp
+	"globals.h"
+	"main.h"
+	<algorithm>
+
+1139864614 c:\documents and settings\administrator\desktop\smc\smc\src\main.h
+	"globals.h"
+
+1141251789 c:\documents and settings\administrator\desktop\smc\smc\src\main.cpp
+	"globals.h"
+	"main.h"
+
+1139864614 c:\documents and settings\administrator\desktop\smc\smc\src\obj_manager.cpp
+	"globals.h"
+
+1141156109 c:\documents and settings\administrator\desktop\smc\smc\src\player.cpp
+	"globals.h"
+	"main.h"
+
+1139864609 c:\documents and settings\administrator\desktop\smc\smc\src\enemies\banzai_bill.cpp
+	"../globals.h"
+
+1139864609 c:\documents and settings\administrator\desktop\smc\smc\src\enemies\enemy.cpp
+	"../globals.h"
+
+1139864609 c:\documents and settings\administrator\desktop\smc\smc\src\enemies\goomba.cpp
+	"../globals.h"
+
+1139864609 c:\documents and settings\administrator\desktop\smc\smc\src\enemies\jpiranha.cpp
+	"../globals.h"
+
+1141019949 c:\documents and settings\administrator\desktop\smc\smc\src\enemies\rex.cpp
+	"../globals.h"
+
+1139864609 c:\documents and settings\administrator\desktop\smc\smc\src\enemies\turtle.cpp
+	"../globals.h"
+
+1139947228 c:\documents and settings\administrator\desktop\smc\smc\src\gui\dialog.cpp
+	"../globals.h"
+
+1139864608 c:\documents and settings\administrator\desktop\smc\smc\src\gui\hud.cpp
+	"../globals.h"
+
+1141254399 c:\documents and settings\administrator\desktop\smc\smc\src\gui\menu.cpp
+	"../globals.h"
+	"../main.h"
+
+1141019950 c:\documents and settings\administrator\desktop\smc\smc\src\input\joystick.cpp
+	"../globals.h"
+	"../main.h"
+
+1139947228 c:\documents and settings\administrator\desktop\smc\smc\src\input\mouse.cpp
+	"../globals.h"
+	"../main.h"
+
+1141156108 c:\documents and settings\administrator\desktop\smc\smc\src\level\level.cpp
+	"../globals.h"
+
+1141156108 c:\documents and settings\administrator\desktop\smc\smc\src\level\level_settings.cpp
+	"../globals.h"
+	"../main.h"
+
+1141156108 c:\documents and settings\administrator\desktop\smc\smc\src\level\leveleditor.cpp
+	"../globals.h"
+	"../main.h"
+
+1139864610 c:\documents and settings\administrator\desktop\smc\smc\src\objects\active.cpp
+	"../globals.h"
+
+1139864610 c:\documents and settings\administrator\desktop\smc\smc\src\objects\box.cpp
+	"../globals.h"
+
+1139864610 c:\documents and settings\administrator\desktop\smc\smc\src\objects\cloud.cpp
+	"../globals.h"
+
+1139864610 c:\documents and settings\administrator\desktop\smc\smc\src\objects\fireball.cpp
+	"../globals.h"
+
+1139864610 c:\documents and settings\administrator\desktop\smc\smc\src\objects\goldpiece.cpp
+	"../globals.h"
+
+1139864610 c:\documents and settings\administrator\desktop\smc\smc\src\objects\levelexit.cpp
+	"../globals.h"
+
+1139864610 c:\documents and settings\administrator\desktop\smc\smc\src\objects\moving_platform.cpp
+	"../globals.h"
+
+1141019949 c:\documents and settings\administrator\desktop\smc\smc\src\objects\powerup.cpp
+	"../globals.h"
+
+1141156108 c:\documents and settings\administrator\desktop\smc\smc\src\objects\sprite.cpp
+	"../globals.h"
+	"../main.h"
+
+1139947227 c:\documents and settings\administrator\desktop\smc\smc\src\overworld\layer.cpp
+	"../globals.h"
+
+1141254399 c:\documents and settings\administrator\desktop\smc\smc\src\overworld\overworld.cpp
+	"../globals.h"
+	"../main.h"
+
+1139947227 c:\documents and settings\administrator\desktop\smc\smc\src\overworld\player.cpp
+	"../globals.h"
+
+1139947227 c:\documents and settings\administrator\desktop\smc\smc\src\overworld\waypoint.cpp
+	"../globals.h"
+
+1141156109 c:\documents and settings\administrator\desktop\smc\smc\src\user\preferences.cpp
+	"../globals.h"
+
+1139864614 c:\documents and settings\administrator\desktop\smc\smc\src\user\savegame.cpp
+	"../globals.h"
+
+1139864612 c:\documents and settings\administrator\desktop\smc\smc\src\video\animation.cpp
+	"../globals.h"
+
+1139864613 c:\documents and settings\administrator\desktop\smc\smc\src\video\img_manager.cpp
+	"../globals.h"
+
+1139864613 c:\documents and settings\administrator\desktop\smc\smc\src\video\img_settings.cpp
+	"../globals.h"
+
+1141254399 c:\documents and settings\administrator\desktop\smc\smc\src\video\video.cpp
+	"../globals.h"
+

@@ -1,0 +1,73 @@
+/***************************************************************************
+     level_settings.h  -  header for the corresponding cpp file
+                             -------------------
+    copyright            : (C) 2006 by FluXy
+ ***************************************************************************/
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/ 
+
+#ifndef __LEVEL_SETTINGS_H__
+#define __LEVEL_SETTINGS_H__
+
+#include "../globals.h"
+#include "../gui/dialog.h"
+
+/* *** *** *** *** *** *** *** Level Settings *** *** *** *** *** *** *** *** *** *** */
+class cLevel_Settings
+{
+public:
+	cLevel_Settings( void );
+	~cLevel_Settings( void );
+
+	// Initializes Text Sprites and Graphics
+	void Init( void );
+	// Enter the Level Settings
+	void Enter( void );
+
+	// Adds a Background image
+	bool Add_Background_image( const EventArgs &event );
+	// Delete the currently selected Background image
+	bool Delete_Background_image( const EventArgs &event );
+	// Set the current Background image
+	bool Set_Background_image( const EventArgs &event );
+
+	// Saves the Settings and exits
+	bool Button_Save( const EventArgs &event );
+
+	// Updates the Colors
+	bool Update_BG_Colors( const EventArgs &event );
+	// Loads the Background image List
+	void Load_BG_imageList( void );
+
+	// Set the Background image Preview
+	void Set_Background_image_Preview( string filename );
+	// Updates the Backgound image
+	bool Update_BG_image( const EventArgs &event );
+	// Clears the background Layer fields
+	void Clear_Layer_field( void );
+
+	// true if menu is active
+	bool active;
+
+	// text sprites
+	cSprite *text_caption;
+
+	// Background colors
+	Color bg_color_1, bg_color_2;
+
+	// Gui
+	Window *guiwindow;
+
+	// backgound image preview
+	cSprite *background_preview;
+	// backgound image type sprite
+	cSprite *background_type;
+};
+
+#endif

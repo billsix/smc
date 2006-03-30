@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+	<xsd:element name="Lines" type="LinesType" />
+	
+	<xsd:complexType name="LinesType">
+		<xsd:sequence>
+			<xsd:element name="Line" type="LineType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="LineType">
+		<xsd:attribute name="Start_X" type="xsd:integer" />
+		<xsd:attribute name="Start_Y" type="xsd:integer" />
+		<xsd:attribute name="End_X" type="xsd:integer" />
+		<xsd:attribute name="End_Y" type="xsd:integer" />
+	</xsd:complexType>
+</xsd:schema>

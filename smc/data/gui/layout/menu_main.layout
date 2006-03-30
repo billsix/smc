@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GUILayout>
+<Window Type="DefaultWindow" Name="root" >
+<Property Name="UnifiedAreaRect" Value="{{0.000000,0.000000},{0.000000,0.000000},{1.000000,0.000000},{1.000000,0.000000}}" />
+<Property Name="UnifiedMaxSize" Value="{{1.000000,0.000000},{1.000000,0.000000}}" />
+<Window Type="TaharezLook/StaticText" Name="text_version" >
+<Property Name="BackgroundEnabled" Value="False" />
+<Property Name="BackgroundImage" Value="set:TaharezLook image:StaticBackdrop" />
+<Property Name="BottomFrameImage" Value="set:TaharezLook image:StaticBottom" />
+<Property Name="BottomLeftFrameImage" Value="set:TaharezLook image:StaticBottomLeft" />
+<Property Name="BottomRightFrameImage" Value="set:TaharezLook image:StaticBottomRight" />
+<Property Name="FrameEnabled" Value="False" />
+<Property Name="LeftFrameImage" Value="set:TaharezLook image:StaticLeft" />
+<Property Name="RightFrameImage" Value="set:TaharezLook image:StaticRight" />
+<Property Name="Text" Value="Version" />
+<Property Name="TextColours" Value="tl:FF00AA00 tr:FF000000 bl:FF00AA00 br:FF000000" />
+<Property Name="TopFrameImage" Value="set:TaharezLook image:StaticTop" />
+<Property Name="TopLeftFrameImage" Value="set:TaharezLook image:StaticTopLeft" />
+<Property Name="TopRightFrameImage" Value="set:TaharezLook image:StaticTopRight" />
+<Property Name="UnifiedAreaRect" Value="{{0.788750,0.000000},{0.935000,0.000000},{0.981250,0.000000},{0.985000,0.000000}}" />
+<Property Name="UnifiedMaxSize" Value="{{1.000000,0.000000},{1.000000,0.000000}}" />
+</Window>
+</Window>
+</GUILayout>

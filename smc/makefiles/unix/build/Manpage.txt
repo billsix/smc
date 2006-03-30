@@ -1,0 +1,13 @@
+I have made the man page to know how to do it,
+because I think it's important to provide an rpm 
+with a man page. 
+So it was just a test for the 0.94.1 (which doesn't exist anymore).
+
+If you want to see it :
+copy smc.6 in usr/share/man/man6
+Hit 'man smc' in a xterm to test it.
+(whatis and apropos work too.)
+
+I have follow this page to create the man
+page (pod2man method) : 
+http://www.linuxfocus.org/English/November2003/article309.shtml

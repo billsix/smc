@@ -1,0 +1,2 @@
+from the Nuvola Icon Pack by David Vignoni
+LGPL 2

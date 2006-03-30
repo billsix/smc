@@ -1,0 +1,250 @@
+### Level Saved with Secret Maryo Chronicles V.0.98 ###
+### Level Saved on the Sat Mar 04 04:38:57 2006
+
+Levelengine_version 1
+
+Background_color_1 0 177 0
+Background_color_2 0 177 0
+
+Player 42 0
+
+### Massive Objects ###
+Sprite ground/green_1/ground/up.png 178 47 MASSIVE
+Sprite ground/green_1/ground/up.png 119 47 MASSIVE
+Sprite ground/green_1/ground/up.png 60 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1 47 MASSIVE
+Sprite ground/green_1/ground/up.png 237 47 MASSIVE
+Sprite ground/green_1/ground/up.png 296 47 MASSIVE
+Sprite ground/green_1/ground/up.png 355 47 MASSIVE
+Sprite ground/green_1/ground/up.png 414 47 MASSIVE
+Sprite ground/green_1/ground/up.png 473 47 MASSIVE
+Sprite ground/green_1/ground/up.png 532 47 MASSIVE
+Sprite ground/green_1/ground/up.png 591 47 MASSIVE
+Sprite ground/green_1/ground/up.png 650 47 MASSIVE
+Sprite ground/green_1/ground/up.png 709 47 MASSIVE
+Sprite ground/green_1/ground/up.png 768 47 MASSIVE
+Sprite ground/green_1/ground/up.png 827 47 MASSIVE
+Sprite ground/green_1/ground/up.png 886 47 MASSIVE
+Sprite ground/green_1/ground/up.png 945 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1004 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1063 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1122 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1181 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1240 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1299 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1358 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1417 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1476 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1535 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1594 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1653 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1712 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1771 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1830 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1889 47 MASSIVE
+Sprite ground/green_1/ground/up.png 1948 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2007 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2066 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2125 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2184 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2243 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2302 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2361 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2420 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2479 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2538 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2597 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2656 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2715 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2774 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2833 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2892 47 MASSIVE
+Sprite ground/green_1/ground/up.png 2951 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3010 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3069 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3128 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3187 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3246 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3305 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3364 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3423 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3482 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3541 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3600 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3659 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3718 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3777 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3836 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3895 47 MASSIVE
+Sprite ground/green_1/ground/up.png 3954 47 MASSIVE
+Sprite ground/green_1/ground/up.png 4013 47 MASSIVE
+Sprite ground/green_1/ground/up.png 4072 47 MASSIVE
+Sprite ground/green_1/ground/up.png 4131 47 MASSIVE
+Sprite ground/green_1/ground/up.png 4190 47 MASSIVE
+Sprite ground/green_1/ground/up.png 4249 47 MASSIVE
+Sprite ground/green_1/ground/up.png 4308 47 MASSIVE
+Sprite ground/green_1/ground/up.png 4367 47 MASSIVE
+Sprite ground/green_1/ground/up.png 4426 47 MASSIVE
+Sprite pipes/green/up.png 728 245 MASSIVE
+Sprite pipes/green/ver.png 728 190 MASSIVE
+Sprite pipes/green/down.png 728 135 MASSIVE
+Sprite pipes/green/hor.png 1074 257 MASSIVE
+Sprite pipes/green/right.png 1129 257 MASSIVE
+Sprite pipes/green/left.png 1019 257 MASSIVE
+Sprite pipes/blue/up.png 631 245 MASSIVE
+Sprite pipes/blue/ver.png 631 190 MASSIVE
+Sprite pipes/blue/down.png 631 135 MASSIVE
+Sprite pipes/yellow/up.png 825 245 MASSIVE
+Sprite pipes/yellow/ver.png 825 190 MASSIVE
+Sprite pipes/yellow/down.png 825 135 MASSIVE
+Sprite pipes/grey/up.png 922 245 MASSIVE
+Sprite pipes/grey/ver.png 922 190 MASSIVE
+Sprite pipes/grey/down.png 922 135 MASSIVE
+Sprite pipes/blue/left.png 1019 167 MASSIVE
+Sprite pipes/blue/hor.png 1074 167 MASSIVE
+Sprite pipes/blue/right.png 1129 167 MASSIVE
+Sprite pipes/yellow/left.png 1019 349 MASSIVE
+Sprite pipes/yellow/hor.png 1074 349 MASSIVE
+Sprite pipes/yellow/right.png 1129 349 MASSIVE
+Sprite pipes/grey/left.png 1019 443 MASSIVE
+Sprite pipes/grey/hor.png 1074 443 MASSIVE
+Sprite pipes/grey/right.png 1129 443 MASSIVE
+
+### Passive Objects ###
+Sprite signs/default_1/1_ending.png 270 364 PASSIVE
+Sprite signs/default_1/1_ending_big.png 349 369 PASSIVE
+Sprite signs/yoshi/post.png 216 367 PASSIVE
+Sprite hills/blue_1/1_big.png 208 238 PASSIVE
+Sprite hills/blue_1/1_medium.png 303 180 PASSIVE
+Sprite hills/light_blue_1/middle.png 486 172 PASSIVE
+Sprite hills/light_blue_1/head.png 486 198 PASSIVE
+Sprite hills/green_1/middle.png 95 172 PASSIVE
+Sprite hills/green_1/head.png 95 198 PASSIVE
+Sprite ground/green_1/hedges/medium_1.png 1403 188 PASSIVE
+Sprite ground/green_1/hedges/medium_2.png 1399 132 PASSIVE
+Sprite ground/green_1/hedges/small_1.png 1550 247 PASSIVE
+Sprite ground/green_1/hedges/small_2.png 1652 196 PASSIVE
+Sprite ground/green_1/hedges/big_1.png 1507 435 PASSIVE
+Sprite ground/green_1/hedges/wild_medium.png 1659 150 PASSIVE
+Sprite ground/ghost_1/lamp_1.png 1776 253 PASSIVE
+Sprite ground/ghost_1/window_1.png 1808 257 PASSIVE
+Sprite ground/yoshi_1/extra_1_red.png 1945 350 PASSIVE
+Sprite ground/yoshi_1/extra_1_yellow.png 1828 357 PASSIVE
+Sprite ground/yoshi_1/extra_1_blue.png 1943 404 PASSIVE
+Sprite ground/yoshi_1/extra_1_green.png 1828 409 PASSIVE
+Sprite ground/green_1/plant_l.png 2076 81 PASSIVE
+Sprite ground/green_1/plant_m.png 2132 76 PASSIVE
+Sprite ground/green_1/plant_r.png 2104 80 PASSIVE
+Sprite ground/green_1/ground/hill_right.png 2128 251 PASSIVE
+Sprite ground/green_1/ground/hill_left.png 2074 251 PASSIVE
+Sprite ground/green_1/ground/middle.png 2109 364 PASSIVE
+Sprite ground/green_1/ground/right.png 2168 364 PASSIVE
+Sprite ground/green_1/ground/right_down.png 2124 205 PASSIVE
+Sprite ground/green_1/ground/left_down.png 2074 205 PASSIVE
+Sprite ground/green_1/ground/left.png 2054 364 PASSIVE
+Sprite clouds/cloudy_1/middle.png 143 537 PASSIVE
+Sprite clouds/default_1/1_middle.png 303 540 PASSIVE
+Sprite ground/green_1/kplant_head.png 2167 138 PASSIVE
+Sprite ground/plastic_1/screw_block_blue/middle.png 2623 224 PASSIVE
+Sprite ground/plastic_1/screw_block_green/middle.png 2828 224 PASSIVE
+Sprite ground/plastic_1/screw_block_green/down.png 2828 169 PASSIVE
+Sprite ground/plastic_1/screw_block_green/right_down.png 2883 169 PASSIVE
+Sprite ground/plastic_1/screw_block_green/left_down.png 2773 169 PASSIVE
+Sprite ground/plastic_1/screw_block_green/left.png 2773 224 PASSIVE
+Sprite ground/plastic_1/screw_block_green/right.png 2883 224 PASSIVE
+Sprite ground/plastic_1/screw_block_blue/right.png 2678 224 PASSIVE
+Sprite ground/plastic_1/screw_block_blue/right_down.png 2678 169 PASSIVE
+Sprite ground/plastic_1/screw_block_blue/down.png 2623 169 PASSIVE
+Sprite ground/plastic_1/screw_block_blue/left_down.png 2568 169 PASSIVE
+Sprite ground/plastic_1/screw_block_blue/left.png 2568 224 PASSIVE
+Sprite ground/plastic_1/screw_block_grey/down.png 3033 169 PASSIVE
+Sprite ground/plastic_1/screw_block_grey/right.png 3088 224 PASSIVE
+Sprite ground/plastic_1/screw_block_grey/left.png 2978 224 PASSIVE
+Sprite ground/plastic_1/screw_block_grey/middle.png 3033 224 PASSIVE
+Sprite ground/plastic_1/screw_block_grey/left_down.png 2978 169 PASSIVE
+Sprite ground/plastic_1/screw_block_grey/right_down.png 3088 169 PASSIVE
+Sprite ground/plastic_1/screw_block_red/middle.png 3220 224 PASSIVE
+Sprite ground/plastic_1/screw_block_red/left.png 3165 224 PASSIVE
+Sprite ground/plastic_1/screw_block_red/right.png 3275 224 PASSIVE
+Sprite ground/plastic_1/screw_block_red/left_down.png 3165 169 PASSIVE
+Sprite ground/plastic_1/screw_block_red/right_down.png 3275 169 PASSIVE
+Sprite ground/plastic_1/screw_block_red/down.png 3220 169 PASSIVE
+Sprite ground/jungle_1/beanstalk.png 2486 295 PASSIVE
+Sprite ground/jungle_1/berry_1.png 2111 159 PASSIVE
+Sprite game/level/door_yellow_1.png 4426 146 PASSIVE
+Sprite ground/sand_1/ground/middle.png 2687 494 PASSIVE
+Sprite ground/sand_1/ground/left_down.png 2632 439 PASSIVE
+Sprite ground/sand_1/ground/right_down.png 2742 439 PASSIVE
+Sprite ground/sand_1/ground/down.png 2687 439 PASSIVE
+Sprite ground/sand_1/ground/left.png 2632 494 PASSIVE
+Sprite ground/sand_1/ground/right.png 2742 494 PASSIVE
+
+### Enemy Objects ###
+
+### Active Objects ###
+Levelexit 4439 86 0 
+SpinBox 2273 227
+GoldBox 2316 227 4 1
+BonusBox 2359 227 AUTO
+BonusBox 2402 227 LIFE
+Cloud 1905 389
+Goldpiece 2272 161 4
+Goldpiece 2307 161 4
+Goldpiece 2342 161 4
+Goldpiece 2377 161 4
+Goldpiece 2412 161 4
+Moon 2471 163
+Sprite slider/grey_1/slider_left.png 279 255 HALFMASSIVE
+Sprite slider/grey_1/slider_middle.png 315 255 HALFMASSIVE
+Sprite slider/grey_1/slider_right.png 395 255 HALFMASSIVE
+Sprite slider/grey_1/slider_middle.png 331 255 HALFMASSIVE
+Sprite slider/grey_1/slider_middle.png 347 255 HALFMASSIVE
+Sprite slider/grey_1/slider_middle.png 363 255 HALFMASSIVE
+Sprite slider/grey_1/slider_middle.png 379 255 HALFMASSIVE
+Sprite slider/grey_1/slider_middle.png 379 255 HALFMASSIVE
+Sprite slider/grey_1/slider_middle.png 379 255 HALFMASSIVE
+Sprite pipes/updown/green_small_1.png 1446 304 HALFMASSIVE
+Sprite pipes/updown/green_medium_1.png 1399 318 HALFMASSIVE
+Sprite pipes/updown/yellow_medium_1.png 1494 421 HALFMASSIVE
+Sprite pipes/leftright/yellow_medium_1.png 1400 395 HALFMASSIVE
+Sprite pipes/leftright/green_small_1.png 1398 482 HALFMASSIVE
+Sprite pipes/leftright/green_medium_1.png 1389 526 HALFMASSIVE
+Sprite ground/green_1/ground/right_up.png 2168 411 HALFMASSIVE
+Sprite ground/green_1/ground/up.png 2109 411 HALFMASSIVE
+Sprite ground/green_1/ground/left_up.png 2054 411 HALFMASSIVE
+Sprite ground/green_1/ground/hill_right_up.png 2128 298 HALFMASSIVE
+Sprite ground/green_1/ground/hill_left_up.png 2074 298 HALFMASSIVE
+Sprite game/box/white1_1.png 34 505 HALFMASSIVE
+Sprite blocks/wood/1.png 32 307 HALFMASSIVE
+Sprite game/box/brown1_1.png 33 375 HALFMASSIVE
+Sprite blocks/stone/1.png 34 442 HALFMASSIVE
+Sprite blocks/ice/1.png 34 565 HALFMASSIVE
+Sprite clouds/default_1/2_big.png 120 450 HALFMASSIVE
+Sprite clouds/default_1/2_small.png 112 352 HALFMASSIVE
+Sprite ground/yoshi_1/rope_1_leftright.png 1897 225 HALFMASSIVE
+Sprite ground/yoshi_1/rope_1_leftright.png 1921 225 HALFMASSIVE
+Sprite ground/yoshi_1/rope_1_leftright.png 1945 225 HALFMASSIVE
+Sprite ground/yoshi_1/rope_1_leftright.png 1969 225 HALFMASSIVE
+Sprite ground/yoshi_1/rope_1_leftright.png 1993 225 HALFMASSIVE
+Sprite ground/yoshi_1/hill_up_1.png 1893 179 HALFMASSIVE
+Sprite ground/ghost_1/way_1_left.png 1786 308 HALFMASSIVE
+Sprite ground/ghost_1/way_1_middle.png 1814 308 HALFMASSIVE
+Sprite ground/ghost_1/way_1_right.png 1842 308 HALFMASSIVE
+Sprite ground/green_1/kplant.png 2167 96 HALFMASSIVE
+Sprite ground/plastic_1/screw_block_blue/left_up.png 2568 279 HALFMASSIVE
+Sprite ground/plastic_1/screw_block_blue/right_up.png 2678 279 HALFMASSIVE
+Sprite ground/plastic_1/screw_block_blue/up.png 2623 279 HALFMASSIVE
+Sprite ground/plastic_1/screw_block_green/left_up.png 2773 279 HALFMASSIVE
+Sprite ground/plastic_1/screw_block_green/up.png 2828 279 HALFMASSIVE
+Sprite ground/plastic_1/screw_block_green/right_up.png 2883 279 HALFMASSIVE
+Sprite ground/plastic_1/screw_block_grey/up.png 3033 279 HALFMASSIVE
+Sprite ground/plastic_1/screw_block_grey/left_up.png 2978 279 HALFMASSIVE
+Sprite ground/plastic_1/screw_block_grey/right_up.png 3088 279 HALFMASSIVE
+Sprite ground/plastic_1/screw_block_red/up.png 3220 279 HALFMASSIVE
+Sprite ground/plastic_1/screw_block_red/left_up.png 3165 279 HALFMASSIVE
+Sprite ground/plastic_1/screw_block_red/right_up.png 3275 279 HALFMASSIVE
+Sprite ground/jungle_1/kplant.png 2015 88 HALFMASSIVE
+Sprite ground/sand_1/ground/up.png 2687 549 HALFMASSIVE
+Sprite ground/sand_1/ground/left_up.png 2632 549 HALFMASSIVE
+Sprite ground/sand_1/ground/right_up.png 2742 549 HALFMASSIVE
+Sprite blocks/sand/1.png 34 629 HALFMASSIVE

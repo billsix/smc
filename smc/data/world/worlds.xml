@@ -1,0 +1,5 @@
+<?xml version="1.0" ?>
+<Worlds>
+	<World Name="default" Path="default" />
+	<World Name="test" Path="test" />
+</Worlds>

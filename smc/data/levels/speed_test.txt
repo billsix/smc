@@ -1,0 +1,458 @@
+### Level Saved with Secret Maryo Chronicles V.0.98 ###
+### Level Saved on the Thu Mar 09 17:29:36 2006
+
+Levelengine_version 1
+
+Music land_1.ogg
+Background_color_1 200 0 0
+Background_color_2 60 0 0
+
+Player 76 161
+
+### Massive Objects ###
+Sprite game/box/brown1_1.png 308 213 MASSIVE
+Sprite game/box/brown1_1.png 351 213 MASSIVE
+Sprite game/box/brown1_1.png 394 213 MASSIVE
+Sprite game/box/brown1_1.png 437 213 MASSIVE
+Sprite game/box/brown1_1.png 480 213 MASSIVE
+Sprite game/box/brown1_1.png 523 213 MASSIVE
+Sprite game/box/brown1_1.png 566 213 MASSIVE
+Sprite game/box/brown1_1.png 609 213 MASSIVE
+Sprite game/box/brown1_1.png 652 213 MASSIVE
+Sprite game/box/brown1_1.png 695 213 MASSIVE
+Sprite game/box/brown1_1.png 738 213 MASSIVE
+Sprite game/box/brown1_1.png 781 213 MASSIVE
+Sprite game/box/brown1_1.png 824 213 MASSIVE
+Sprite game/box/brown1_1.png 867 213 MASSIVE
+Sprite game/box/brown1_1.png 910 213 MASSIVE
+Sprite game/box/brown1_1.png 304 379 MASSIVE
+Sprite game/box/brown1_1.png 347 379 MASSIVE
+Sprite game/box/brown1_1.png 390 379 MASSIVE
+Sprite game/box/brown1_1.png 433 379 MASSIVE
+Sprite game/box/brown1_1.png 476 379 MASSIVE
+Sprite game/box/brown1_1.png 519 379 MASSIVE
+Sprite game/box/brown1_1.png 562 379 MASSIVE
+Sprite game/box/brown1_1.png 605 379 MASSIVE
+Sprite game/box/brown1_1.png 648 379 MASSIVE
+Sprite game/box/brown1_1.png 691 379 MASSIVE
+Sprite game/box/brown1_1.png 734 379 MASSIVE
+Sprite game/box/brown1_1.png 777 379 MASSIVE
+Sprite game/box/brown1_1.png 820 379 MASSIVE
+Sprite game/box/brown1_1.png 863 379 MASSIVE
+Sprite game/box/brown1_1.png 906 379 MASSIVE
+Sprite game/box/brown1_1.png 949 379 MASSIVE
+Sprite game/box/brown1_1.png 992 379 MASSIVE
+Sprite game/box/brown1_1.png 295 535 MASSIVE
+Sprite game/box/brown1_1.png 338 535 MASSIVE
+Sprite game/box/brown1_1.png 381 535 MASSIVE
+Sprite game/box/brown1_1.png 424 535 MASSIVE
+Sprite game/box/brown1_1.png 467 535 MASSIVE
+Sprite game/box/brown1_1.png 510 535 MASSIVE
+Sprite game/box/brown1_1.png 553 535 MASSIVE
+Sprite game/box/brown1_1.png 596 535 MASSIVE
+Sprite game/box/brown1_1.png 639 535 MASSIVE
+Sprite game/box/brown1_1.png 682 535 MASSIVE
+Sprite game/box/brown1_1.png 725 535 MASSIVE
+Sprite game/box/brown1_1.png 768 535 MASSIVE
+Sprite game/box/brown1_1.png 811 535 MASSIVE
+Sprite game/box/brown1_1.png 854 535 MASSIVE
+Sprite game/box/brown1_1.png 897 535 MASSIVE
+Sprite game/box/brown1_1.png 940 535 MASSIVE
+Sprite game/box/brown1_1.png 983 535 MASSIVE
+Sprite game/box/brown1_1.png 1026 535 MASSIVE
+Sprite game/box/brown1_1.png 282 676 MASSIVE
+Sprite game/box/brown1_1.png 325 676 MASSIVE
+Sprite game/box/brown1_1.png 368 676 MASSIVE
+Sprite game/box/brown1_1.png 411 676 MASSIVE
+Sprite game/box/brown1_1.png 454 676 MASSIVE
+Sprite game/box/brown1_1.png 497 676 MASSIVE
+Sprite game/box/brown1_1.png 540 676 MASSIVE
+Sprite game/box/brown1_1.png 583 676 MASSIVE
+Sprite game/box/brown1_1.png 626 676 MASSIVE
+Sprite game/box/brown1_1.png 669 676 MASSIVE
+Sprite game/box/brown1_1.png 712 676 MASSIVE
+Sprite game/box/brown1_1.png 755 676 MASSIVE
+Sprite game/box/brown1_1.png 798 676 MASSIVE
+Sprite game/box/brown1_1.png 841 676 MASSIVE
+Sprite game/box/brown1_1.png 884 676 MASSIVE
+Sprite game/box/brown1_1.png 927 676 MASSIVE
+Sprite game/box/brown1_1.png 970 676 MASSIVE
+Sprite game/box/brown1_1.png 1013 676 MASSIVE
+Sprite game/box/brown1_1.png 1056 676 MASSIVE
+Sprite game/box/brown1_1.png 261 379 MASSIVE
+Sprite game/box/brown1_1.png 218 379 MASSIVE
+Sprite game/box/brown1_1.png 175 379 MASSIVE
+Sprite game/box/brown1_1.png 132 379 MASSIVE
+Sprite game/box/brown1_1.png 89 379 MASSIVE
+Sprite game/box/brown1_1.png 46 379 MASSIVE
+Sprite game/box/brown1_1.png 252 535 MASSIVE
+Sprite game/box/brown1_1.png 209 535 MASSIVE
+Sprite game/box/brown1_1.png 166 535 MASSIVE
+Sprite game/box/brown1_1.png 123 535 MASSIVE
+Sprite game/box/brown1_1.png 80 535 MASSIVE
+Sprite game/box/brown1_1.png 37 535 MASSIVE
+Sprite game/box/brown1_1.png -6 535 MASSIVE
+Sprite game/box/brown1_1.png 239 676 MASSIVE
+Sprite game/box/brown1_1.png 196 676 MASSIVE
+Sprite game/box/brown1_1.png 153 676 MASSIVE
+Sprite game/box/brown1_1.png 110 676 MASSIVE
+Sprite game/box/brown1_1.png 67 676 MASSIVE
+Sprite game/box/brown1_1.png 24 676 MASSIVE
+Sprite game/box/brown1_1.png -19 676 MASSIVE
+Sprite game/box/brown1_1.png 953 213 MASSIVE
+Sprite game/box/brown1_1.png 996 213 MASSIVE
+Sprite game/box/brown1_1.png 1039 213 MASSIVE
+Sprite game/box/brown1_1.png 1082 213 MASSIVE
+Sprite game/box/brown1_1.png 1125 213 MASSIVE
+Sprite game/box/brown1_1.png 1168 213 MASSIVE
+Sprite game/box/brown1_1.png 1211 213 MASSIVE
+Sprite game/box/brown1_1.png 1254 213 MASSIVE
+Sprite game/box/brown1_1.png -12 818 MASSIVE
+Sprite game/box/brown1_1.png 31 818 MASSIVE
+Sprite game/box/brown1_1.png 74 818 MASSIVE
+Sprite game/box/brown1_1.png 117 818 MASSIVE
+Sprite game/box/brown1_1.png 160 818 MASSIVE
+Sprite game/box/brown1_1.png 203 818 MASSIVE
+Sprite game/box/brown1_1.png 246 818 MASSIVE
+Sprite game/box/brown1_1.png 289 818 MASSIVE
+Sprite game/box/brown1_1.png 332 818 MASSIVE
+Sprite game/box/brown1_1.png 375 818 MASSIVE
+Sprite game/box/brown1_1.png 418 818 MASSIVE
+Sprite game/box/brown1_1.png 461 818 MASSIVE
+Sprite game/box/brown1_1.png 504 818 MASSIVE
+Sprite game/box/brown1_1.png 547 818 MASSIVE
+Sprite game/box/brown1_1.png 590 818 MASSIVE
+Sprite game/box/brown1_1.png 633 818 MASSIVE
+Sprite game/box/brown1_1.png 676 818 MASSIVE
+Sprite game/box/brown1_1.png 719 818 MASSIVE
+Sprite game/box/brown1_1.png 762 818 MASSIVE
+Sprite game/box/brown1_1.png 805 818 MASSIVE
+Sprite game/box/brown1_1.png 805 818 MASSIVE
+Sprite game/box/brown1_1.png 848 818 MASSIVE
+Sprite game/box/brown1_1.png 891 818 MASSIVE
+Sprite game/box/brown1_1.png 934 818 MASSIVE
+Sprite game/box/brown1_1.png 977 818 MASSIVE
+Sprite game/box/brown1_1.png 1020 818 MASSIVE
+Sprite game/box/brown1_1.png 1063 818 MASSIVE
+Sprite game/box/brown1_1.png 1106 818 MASSIVE
+Sprite game/box/brown1_1.png 1119 964 MASSIVE
+Sprite game/box/brown1_1.png 1076 964 MASSIVE
+Sprite game/box/brown1_1.png 1033 964 MASSIVE
+Sprite game/box/brown1_1.png 990 964 MASSIVE
+Sprite game/box/brown1_1.png 947 964 MASSIVE
+Sprite game/box/brown1_1.png 904 964 MASSIVE
+Sprite game/box/brown1_1.png 861 964 MASSIVE
+Sprite game/box/brown1_1.png 818 964 MASSIVE
+Sprite game/box/brown1_1.png 775 964 MASSIVE
+Sprite game/box/brown1_1.png 732 964 MASSIVE
+Sprite game/box/brown1_1.png 689 964 MASSIVE
+Sprite game/box/brown1_1.png 646 964 MASSIVE
+Sprite game/box/brown1_1.png 603 964 MASSIVE
+Sprite game/box/brown1_1.png 560 964 MASSIVE
+Sprite game/box/brown1_1.png 517 964 MASSIVE
+Sprite game/box/brown1_1.png 474 964 MASSIVE
+Sprite game/box/brown1_1.png 431 964 MASSIVE
+Sprite game/box/brown1_1.png 388 964 MASSIVE
+Sprite game/box/brown1_1.png 345 964 MASSIVE
+Sprite game/box/brown1_1.png 302 964 MASSIVE
+Sprite game/box/brown1_1.png 259 964 MASSIVE
+Sprite game/box/brown1_1.png 216 964 MASSIVE
+Sprite game/box/brown1_1.png 173 964 MASSIVE
+Sprite game/box/brown1_1.png 130 964 MASSIVE
+Sprite game/box/brown1_1.png 87 964 MASSIVE
+Sprite game/box/brown1_1.png 44 964 MASSIVE
+Sprite game/box/brown1_1.png 1 964 MASSIVE
+Sprite game/box/brown1_1.png 1035 379 MASSIVE
+Sprite game/box/brown1_1.png 1078 379 MASSIVE
+Sprite game/box/brown1_1.png 1121 379 MASSIVE
+Sprite game/box/brown1_1.png 1164 379 MASSIVE
+Sprite game/box/brown1_1.png 1207 379 MASSIVE
+Sprite game/box/brown1_1.png 1250 379 MASSIVE
+Sprite game/box/brown1_1.png 1293 379 MASSIVE
+Sprite game/box/brown1_1.png 1069 535 MASSIVE
+Sprite game/box/brown1_1.png 1112 535 MASSIVE
+Sprite game/box/brown1_1.png 1155 535 MASSIVE
+Sprite game/box/brown1_1.png 1198 535 MASSIVE
+Sprite game/box/brown1_1.png 1241 535 MASSIVE
+Sprite game/box/brown1_1.png 1284 535 MASSIVE
+Sprite game/box/brown1_1.png 1099 676 MASSIVE
+Sprite game/box/brown1_1.png 1142 676 MASSIVE
+Sprite game/box/brown1_1.png 1185 676 MASSIVE
+Sprite game/box/brown1_1.png 1228 676 MASSIVE
+Sprite game/box/brown1_1.png 1271 676 MASSIVE
+Sprite game/box/brown1_1.png 1149 818 MASSIVE
+Sprite game/box/brown1_1.png 1192 818 MASSIVE
+Sprite game/box/brown1_1.png 1235 818 MASSIVE
+Sprite game/box/brown1_1.png 1278 818 MASSIVE
+Sprite game/box/brown1_1.png 1162 964 MASSIVE
+Sprite game/box/brown1_1.png 1205 964 MASSIVE
+Sprite game/box/brown1_1.png 1248 964 MASSIVE
+Sprite game/box/brown1_1.png 1291 964 MASSIVE
+Sprite ground/green_1/ground/up.png 5843 46 MASSIVE
+Sprite ground/green_1/ground/up.png 5784 46 MASSIVE
+Sprite ground/green_1/ground/up.png 5725 46 MASSIVE
+Sprite ground/green_1/ground/up.png 5666 46 MASSIVE
+Sprite ground/green_1/ground/up.png 5607 46 MASSIVE
+Sprite ground/green_1/ground/up.png 5548 46 MASSIVE
+Sprite ground/green_1/ground/up.png 5489 46 MASSIVE
+Sprite ground/green_1/ground/up.png 5430 46 MASSIVE
+Sprite ground/green_1/ground/up.png 5371 46 MASSIVE
+Sprite ground/green_1/ground/up.png 5312 46 MASSIVE
+Sprite ground/green_1/ground/up.png 5253 46 MASSIVE
+Sprite ground/green_1/ground/up.png 5194 46 MASSIVE
+Sprite ground/green_1/ground/up.png 5135 46 MASSIVE
+Sprite ground/green_1/ground/up.png 5076 46 MASSIVE
+Sprite ground/green_1/ground/up.png 5017 46 MASSIVE
+Sprite ground/green_1/ground/up.png 4958 46 MASSIVE
+Sprite ground/green_1/ground/up.png 4899 46 MASSIVE
+Sprite ground/green_1/ground/up.png 4840 46 MASSIVE
+Sprite ground/green_1/ground/up.png 4781 46 MASSIVE
+Sprite ground/green_1/ground/up.png 4722 46 MASSIVE
+Sprite ground/green_1/ground/up.png 4663 46 MASSIVE
+Sprite ground/green_1/ground/up.png 4604 46 MASSIVE
+Sprite ground/green_1/ground/up.png 4545 46 MASSIVE
+Sprite ground/green_1/ground/up.png 4486 46 MASSIVE
+Sprite ground/green_1/ground/up.png 4427 46 MASSIVE
+Sprite ground/green_1/ground/up.png 4368 46 MASSIVE
+Sprite ground/green_1/ground/up.png 4309 46 MASSIVE
+Sprite ground/green_1/ground/up.png 4250 46 MASSIVE
+Sprite ground/green_1/ground/up.png 4191 46 MASSIVE
+Sprite ground/green_1/ground/up.png 4132 46 MASSIVE
+Sprite ground/green_1/ground/up.png 4073 46 MASSIVE
+Sprite ground/green_1/ground/up.png 4014 46 MASSIVE
+Sprite ground/green_1/ground/up.png 3955 46 MASSIVE
+Sprite ground/green_1/ground/up.png 3896 46 MASSIVE
+Sprite ground/green_1/ground/up.png 3837 46 MASSIVE
+Sprite ground/green_1/ground/up.png 3778 46 MASSIVE
+Sprite ground/green_1/ground/up.png 3719 46 MASSIVE
+Sprite ground/green_1/ground/up.png 3660 46 MASSIVE
+Sprite ground/green_1/ground/up.png 3601 46 MASSIVE
+Sprite ground/green_1/ground/up.png 3542 46 MASSIVE
+Sprite ground/green_1/ground/up.png 3483 46 MASSIVE
+Sprite ground/green_1/ground/up.png 3424 46 MASSIVE
+Sprite ground/green_1/ground/up.png 3365 46 MASSIVE
+Sprite ground/green_1/ground/up.png 3306 46 MASSIVE
+Sprite ground/green_1/ground/up.png 3247 46 MASSIVE
+Sprite ground/green_1/ground/up.png 3188 46 MASSIVE
+Sprite ground/green_1/ground/up.png 3129 46 MASSIVE
+Sprite ground/green_1/ground/up.png 3070 46 MASSIVE
+Sprite ground/green_1/ground/up.png 3011 46 MASSIVE
+Sprite ground/green_1/ground/up.png 2952 46 MASSIVE
+Sprite ground/green_1/ground/up.png 2893 46 MASSIVE
+Sprite ground/green_1/ground/up.png 2834 46 MASSIVE
+Sprite ground/green_1/ground/up.png 2775 46 MASSIVE
+Sprite ground/green_1/ground/up.png 2716 46 MASSIVE
+Sprite ground/green_1/ground/up.png 2657 46 MASSIVE
+Sprite ground/green_1/ground/up.png 2598 46 MASSIVE
+Sprite ground/green_1/ground/up.png 2539 46 MASSIVE
+Sprite ground/green_1/ground/up.png 2480 46 MASSIVE
+Sprite ground/green_1/ground/up.png 2421 46 MASSIVE
+Sprite ground/green_1/ground/up.png 2362 46 MASSIVE
+Sprite ground/green_1/ground/up.png 2303 46 MASSIVE
+Sprite ground/green_1/ground/up.png 2244 46 MASSIVE
+Sprite ground/green_1/ground/up.png 2185 46 MASSIVE
+Sprite ground/green_1/ground/up.png 2126 46 MASSIVE
+Sprite ground/green_1/ground/up.png 2067 46 MASSIVE
+Sprite ground/green_1/ground/up.png 2008 46 MASSIVE
+Sprite ground/green_1/ground/up.png 1949 46 MASSIVE
+Sprite ground/green_1/ground/up.png 1890 46 MASSIVE
+Sprite ground/green_1/ground/up.png 1831 46 MASSIVE
+Sprite ground/green_1/ground/up.png 1772 46 MASSIVE
+Sprite ground/green_1/ground/up.png 1713 46 MASSIVE
+Sprite ground/green_1/ground/up.png 1654 46 MASSIVE
+Sprite ground/green_1/ground/up.png 1595 46 MASSIVE
+Sprite ground/green_1/ground/up.png 1536 46 MASSIVE
+Sprite ground/green_1/ground/up.png 1477 46 MASSIVE
+Sprite ground/green_1/ground/up.png 1418 46 MASSIVE
+Sprite ground/green_1/ground/up.png 1359 46 MASSIVE
+Sprite ground/green_1/ground/up.png 1300 46 MASSIVE
+Sprite ground/green_1/ground/up.png 1241 46 MASSIVE
+Sprite ground/green_1/ground/up.png 1182 46 MASSIVE
+Sprite ground/green_1/ground/up.png 1123 46 MASSIVE
+Sprite ground/green_1/ground/up.png 1064 46 MASSIVE
+Sprite ground/green_1/ground/up.png 1005 46 MASSIVE
+Sprite ground/green_1/ground/up.png 946 46 MASSIVE
+Sprite ground/green_1/ground/up.png 887 46 MASSIVE
+Sprite ground/green_1/ground/up.png 828 46 MASSIVE
+Sprite ground/green_1/ground/up.png 769 46 MASSIVE
+Sprite ground/green_1/ground/up.png 710 46 MASSIVE
+Sprite ground/green_1/ground/up.png 651 46 MASSIVE
+Sprite ground/green_1/ground/up.png 592 46 MASSIVE
+Sprite ground/green_1/ground/up.png 533 46 MASSIVE
+Sprite ground/green_1/ground/up.png 474 46 MASSIVE
+Sprite ground/green_1/ground/up.png 415 46 MASSIVE
+Sprite ground/green_1/ground/up.png 356 46 MASSIVE
+Sprite ground/green_1/ground/up.png 297 46 MASSIVE
+Sprite ground/green_1/ground/up.png 238 46 MASSIVE
+Sprite ground/green_1/ground/up.png 179 46 MASSIVE
+Sprite ground/green_1/ground/up.png 120 46 MASSIVE
+Sprite ground/green_1/ground/up.png 61 46 MASSIVE
+Sprite ground/green_1/ground/up.png 2 46 MASSIVE
+
+### Passive Objects ###
+
+### Enemy Objects ###
+Enemy TURTLE 321 124
+Enemy TURTLE 318 458
+Enemy TURTLE 367 458
+Enemy TURTLE 416 458
+Enemy TURTLE 465 458
+Enemy TURTLE 514 458
+Enemy TURTLE 563 458
+Enemy TURTLE 612 458
+Enemy TURTLE 661 458
+Enemy TURTLE 710 458
+Enemy TURTLE 759 458
+Enemy TURTLE 808 458
+Enemy TURTLE 857 458
+Enemy TURTLE 906 458
+Enemy TURTLE 955 458
+Enemy TURTLE 370 124
+Enemy TURTLE 419 124
+Enemy TURTLE 468 124
+Enemy TURTLE 517 124
+Enemy TURTLE 566 124
+Enemy TURTLE 615 124
+Enemy TURTLE 664 124
+Enemy TURTLE 713 124
+Enemy TURTLE 762 124
+Enemy TURTLE 811 124
+Enemy TURTLE 860 124
+Enemy TURTLE 909 124
+Enemy TURTLE 304 616
+Enemy TURTLE 353 616
+Enemy TURTLE 402 616
+Enemy TURTLE 451 616
+Enemy TURTLE 500 616
+Enemy TURTLE 549 616
+Enemy TURTLE 598 616
+Enemy TURTLE 647 616
+Enemy TURTLE 696 616
+Enemy TURTLE 745 616
+Enemy TURTLE 794 616
+Enemy TURTLE 843 616
+Enemy TURTLE 892 616
+Enemy TURTLE 941 616
+Enemy TURTLE 990 616
+Enemy TURTLE 288 757
+Enemy TURTLE 337 757
+Enemy TURTLE 386 757
+Enemy TURTLE 435 757
+Enemy TURTLE 484 757
+Enemy TURTLE 533 757
+Enemy TURTLE 582 757
+Enemy TURTLE 631 757
+Enemy TURTLE 680 757
+Enemy TURTLE 729 757
+Enemy TURTLE 778 757
+Enemy TURTLE 827 757
+Enemy TURTLE 876 757
+Enemy TURTLE 925 757
+Enemy TURTLE 974 757
+Enemy TURTLE 1023 757
+Enemy TURTLE 255 616
+Enemy TURTLE 206 616
+Enemy TURTLE 157 616
+Enemy TURTLE 108 616
+Enemy TURTLE 59 616
+Enemy TURTLE 239 757
+Enemy TURTLE 190 757
+Enemy TURTLE 141 757
+Enemy TURTLE 92 757
+Enemy TURTLE 43 757
+Enemy TURTLE 269 458
+Enemy TURTLE 220 458
+Enemy TURTLE 171 458
+Enemy TURTLE 122 458
+Enemy TURTLE 73 458
+Enemy TURTLE 958 124
+Enemy TURTLE 1007 124
+Enemy TURTLE 1056 124
+Enemy TURTLE 1105 124
+Enemy TURTLE 1154 124
+Enemy TURTLE 1203 124
+Enemy TURTLE 1252 124
+Enemy TURTLE 1094 901
+Enemy TURTLE 1045 901
+Enemy TURTLE 996 901
+Enemy TURTLE 947 901
+Enemy TURTLE 898 901
+Enemy TURTLE 849 901
+Enemy TURTLE 800 901
+Enemy TURTLE 751 901
+Enemy TURTLE 702 901
+Enemy TURTLE 653 901
+Enemy TURTLE 604 901
+Enemy TURTLE 555 901
+Enemy TURTLE 506 901
+Enemy TURTLE 457 901
+Enemy TURTLE 408 901
+Enemy TURTLE 359 901
+Enemy TURTLE 310 901
+Enemy TURTLE 261 901
+Enemy TURTLE 212 901
+Enemy TURTLE 163 901
+Enemy TURTLE 114 901
+Enemy TURTLE 65 901
+Enemy TURTLE 16 901
+Enemy TURTLE 1111 1050
+Enemy TURTLE 1062 1050
+Enemy TURTLE 1013 1050
+Enemy TURTLE 964 1050
+Enemy TURTLE 915 1050
+Enemy TURTLE 866 1050
+Enemy TURTLE 817 1050
+Enemy TURTLE 768 1050
+Enemy TURTLE 719 1050
+Enemy TURTLE 670 1050
+Enemy TURTLE 621 1050
+Enemy TURTLE 572 1050
+Enemy TURTLE 523 1050
+Enemy TURTLE 474 1050
+Enemy TURTLE 425 1050
+Enemy TURTLE 376 1050
+Enemy TURTLE 327 1050
+Enemy TURTLE 278 1050
+Enemy TURTLE 229 1050
+Enemy TURTLE 180 1050
+Enemy TURTLE 131 1050
+Enemy TURTLE 82 1050
+Enemy TURTLE 33 1050
+Enemy TURTLE 1004 458
+Enemy TURTLE 1053 458
+Enemy TURTLE 1102 458
+Enemy TURTLE 1151 458
+Enemy TURTLE 1200 458
+Enemy TURTLE 1249 458
+Enemy TURTLE 1039 616
+Enemy TURTLE 1088 616
+Enemy TURTLE 1137 616
+Enemy TURTLE 1186 616
+Enemy TURTLE 1235 616
+Enemy TURTLE 1072 757
+Enemy TURTLE 1121 757
+Enemy TURTLE 1170 757
+Enemy TURTLE 1219 757
+Enemy TURTLE 1268 757
+Enemy TURTLE 1143 901
+Enemy TURTLE 1192 901
+Enemy TURTLE 1241 901
+Enemy TURTLE 1160 1050
+Enemy TURTLE 1209 1050
+Enemy TURTLE 1258 1050
+
+### Active Objects ###
+EnemyStopper 286 64
+EnemyStopper 1299 66
+EnemyStopper 31 400
+EnemyStopper 1353 398
+EnemyStopper 1334 548
+EnemyStopper 1321 686
+EnemyStopper 1328 837
+EnemyStopper 1338 980
+Sprite blocks/wood/1.png 1521 258 HALFMASSIVE
+Sprite blocks/wood/1.png 1521 425 HALFMASSIVE
+Sprite blocks/wood/1.png 1521 577 HALFMASSIVE
+Sprite blocks/wood/1.png 1521 745 HALFMASSIVE
+Sprite blocks/wood/1.png 1521 921 HALFMASSIVE
+Sprite blocks/wood/1.png 1521 1094 HALFMASSIVE

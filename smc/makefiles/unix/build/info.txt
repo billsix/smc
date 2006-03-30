@@ -1,0 +1,2 @@
+This build directory is not in the official releases 
+and should contiain things for building rpms etc..
