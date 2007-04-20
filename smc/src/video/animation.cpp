@@ -1,7 +1,7 @@
 /***************************************************************************
            animation.cpp  -  Animation and Particle classes
                              -------------------
-    copyright            : (C) 2003 - 2006 by FluXy
+    copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -12,21 +12,29 @@
  *                                                                         *
  ***************************************************************************/ 
 
-#include "../globals.h"
+#include "../video/animation.h"
+#include "../core/framerate.h"
+#include "../core/camera.h"
+#include "../video/gl_surface.h"
+#include "../video/renderer.h"
 
 /* *** *** *** *** *** *** *** Base Animation class *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation :: cAnimation( double posx, double posy, double nfading_speed, Color col /* = (Uint8)255 */ ) : cObjectSprite( posx, posy )
+cAnimation :: cAnimation( float posx, float posy )
+: cImageObjectSprite( posx, posy )
 {
-	array = ARRAY_ANIM;
+	sprite_array = ARRAY_ANIM;
 	type = TYPE_ACTIVESPRITE;
 	massivetype = MASS_PASSIVE;
 	spawned = 1;
 
-	counter = 0;
+	posz = 0.07000f;
+	posz_rand = 0;
+	time_to_live = 0;
+	time_to_live_rand = 0;
 
-	fading_speed = nfading_speed;
-	color = col;
+	fading_speed = 1;
+	animtype = ANIM_UNDEFINED;
 }
 
 cAnimation :: ~cAnimation( void )
@@ -37,7 +45,6 @@ cAnimation :: ~cAnimation( void )
 void cAnimation :: Init( void )
 {
 	// virtual
-
 }
 
 void cAnimation :: Update( void )
@@ -45,137 +52,143 @@ void cAnimation :: Update( void )
 	// virtual
 }
 
-void cAnimation :: Draw( void )
+void cAnimation :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
 	// virtual
 }
 
-void cAnimation :: SetFadingSpeed( double speed )
+
+void cAnimation :: Set_Time_to_Live( float time, float time_rand /* = 0 */ )
+{
+	time_to_live = time;
+	time_to_live_rand = time_rand;
+}
+
+void cAnimation :: Set_FadingSpeed( float speed )
 {
 	fading_speed = speed;
+
+	if( fading_speed <= 0 )
+	{
+		fading_speed = 0.1f;
+	}
 }
 
-void cAnimation :: SetColor( Color col )
+void cAnimation :: Set_ZPos( float pos, float pos_rand /* = 0 */ )
 {
-	color = col;
+	posz = pos;
+	posz_rand = pos_rand;
 }
 
-/* *** *** *** *** *** *** *** Fire Explosion *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** cBlinkAnimation *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation_1 :: cAnimation_1( double posx, double posy, unsigned int height /* = 40 */, unsigned int width /* = 20 */ ) : cAnimation( posx, posy )
+cBlinkAnimation :: cBlinkAnimation( float posx, float posy, unsigned int height /* = 40 */, unsigned int width /* = 20 */ )
+: cAnimation( posx, posy )
 {
 	animtype = BLINKING_POINTS;
 
-	images.push_back( GetImage( "animation/light_1/1.png" ) );
-	images.push_back( GetImage( "animation/light_1/2.png" ) );
-	images.push_back( GetImage( "animation/light_1/3.png" ) );
+	images.push_back( pVideo->Get_Surface( "animation/light_1/1.png" ) );
+	images.push_back( pVideo->Get_Surface( "animation/light_1/2.png" ) );
+	images.push_back( pVideo->Get_Surface( "animation/light_1/3.png" ) );
 
 	for( unsigned int i = 0; i < 4; i++ )
 	{
-		cSprite object( NULL, (double)( rand() % ( width ) ), (double)( rand() % ( height ) ) );
+		cSprite object( NULL, (float)( rand() % ( width ) ), (float)( rand() % ( height ) ) );
 		objects.push_back( object );
 	}
 }
 
-cAnimation_1 :: ~cAnimation_1( void )
+cBlinkAnimation :: ~cBlinkAnimation( void )
 {
 	objects.clear();
 }
 
-void cAnimation_1 :: Update( void )
+void cBlinkAnimation :: Update( void )
 {
-	counter += Framerate.speedfactor * fading_speed;
-}
+	time_to_live += pFramerate->speedfactor * fading_speed;
 
-void cAnimation_1 :: Draw( void )
-{
-	if( !visible )
-	{
-		return;
-	}
-
-	// draw the fixed points
+	// update the fixed points
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
 		switch( i ) 
 		{
 		case 0:
 		{
-			if( counter < 3 )
+			if( time_to_live < 3 )
 			{
-				SetImage( 0 );
+				Set_Image( 0 );
 			}
-			else if( counter < 6 )
+			else if( time_to_live < 6 )
 			{
-				SetImage( 0 );
+				Set_Image( 0 );
 			}
-			else if( counter < 9 )
+			else if( time_to_live < 9 )
 			{
-				SetImage( 1 );
+				Set_Image( 1 );
 			}
-			else if( counter < 12 )
+			else if( time_to_live < 12 )
 			{
-				SetImage( 0 );
+				Set_Image( 0 );
 			}
 			break;
 		}
 		case 1:
 		{
-			if( counter < 3 )
+			if( time_to_live < 3 )
 			{
-				SetImage( 0 );
+				Set_Image( 0 );
 			}
-			else if( counter < 6 )
+			else if( time_to_live < 6 )
 			{
-				SetImage( 1 );
+				Set_Image( 1 );
 			}
-			else if( counter < 9 )
+			else if( time_to_live < 9 )
 			{
-				SetImage( 2 );
+				Set_Image( 2 );
 			}
-			else if( counter < 12 )
+			else if( time_to_live < 12 )
 			{
-				SetImage( 1 );
+				Set_Image( 1 );
 			}
 			break;
 		}
 		case 2:
 		{
-			if( counter < 3 )
+			if( time_to_live < 3 )
 			{
-				SetImage( 1 );
+				Set_Image( 1 );
 			}
-			else if( counter < 6 )
+			else if( time_to_live < 6 )
 			{
-				SetImage( 2 );
+				Set_Image( 2 );
 			}
-			else if( counter < 9 )
+			else if( time_to_live < 9 )
 			{
-				SetImage( 0 );
+				Set_Image( 0 );
 			}
-			else if( counter < 12 )
+			else if( time_to_live < 12 )
 			{
-				SetImage( -1 );
+				Set_Image( -1 );
 			}
 			break;			
 		}
 		case 3:
 		{
-			if( counter < 3 )
+			if( time_to_live < 3 )
 			{
-				SetImage( 0 );
+				Set_Image( 0 );
 			}
-			else if( counter < 6 )
+			else if( time_to_live < 6 )
 			{
-				SetImage( 1 );
+				Set_Image( 1 );
 			}
-			else if( counter < 9 )
+			else if( time_to_live < 9 )
 			{
-				SetImage( 0 );
+				Set_Image( 0 );
 			}
-			else if( counter < 12 )
+			else if( time_to_live < 12 )
 			{
-				SetImage( 0 );
+				Set_Image( 0 );
 			}
 			break;
 		}
@@ -185,370 +198,573 @@ void cAnimation_1 :: Draw( void )
 		}
 		}
 
-		objects[i].scale = 1.1 - ( counter / 12 );
+		objects[i].Set_Scale( 1.1f - ( time_to_live / 12 ) );
+	}
+}
 
+void cBlinkAnimation :: Draw( cSurfaceRequest *request /* = NULL */ )
+{
+	if( !visible )
+	{
+		return;
+	}
+
+	// draw the fixed points
+	for( unsigned int i = 0; i < objects.size(); i++ )
+	{
 		if( image )
 		{
-			glColor4ub( color.red, color.green, color.blue, color.alpha );
-			image->Blit( objects[i].posx - ( cameraposx - posx ), objects[i].posy - ( cameraposy - posy ), NULL, 0, 0, 0, objects[i].scale );
-			glColor4f( 1, 1, 1, 1 );
+			// create request
+			cSurfaceRequest *request = new cSurfaceRequest();
+			image->Blit( objects[i].posx - ( pCamera->x - posx ), objects[i].posy - ( pCamera->y - posy ), posz, request );
+
+			// scale
+			request->scale_x = objects[i].scalex;
+			request->scale_y = objects[i].scaley;
+
+			// color
+			request->color = color;
+
+			// add request
+			pRenderer->Add( request );
 		}
 
-		if( counter > 11 || counter < 0 )
+		if( time_to_live > 11 || time_to_live < 0 )
 		{
 			visible = 0;
 		}
 	}
 }
 
-/* *** *** *** *** *** *** *** Fire Explosion *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** cFireAnimation *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation_2 :: cAnimation_2( double posx, double posy, unsigned int power /* = 5 */ ) : cAnimation( posx, posy )
+cFireAnimation :: cFireAnimation( float posx, float posy, unsigned int power /* = 5 */ )
+: cAnimation( posx, posy )
 {
 	animtype = FIRE_EXPLOSION;
 
-	images.push_back( GetImage( "animation/fire_1/4.png" ) );
-	images.push_back( GetImage( "animation/fire_1/3.png" ) );
-	images.push_back( GetImage( "animation/fire_1/2.png" ) );
-	images.push_back( GetImage( "animation/fire_1/1.png" ) );
+	images.push_back( pVideo->Get_Surface( "animation/fire_1/4.png" ) );
+	images.push_back( pVideo->Get_Surface( "animation/fire_1/3.png" ) );
+	images.push_back( pVideo->Get_Surface( "animation/fire_1/2.png" ) );
+	images.push_back( pVideo->Get_Surface( "animation/fire_1/1.png" ) );
 
+	// fill the objects list
 	for( unsigned int i = 0; i < power; i++ )
 	{
-		Animation2item temp;
-
-		temp.velx = ( (double)( rand() % ( 50 ) - 25 ) ) / 10;
-		temp.vely = ( (double)( rand() % ( 50 ) - 25 ) ) / 10;
-
-		temp.counter = 8 + rand() % ( 5 );
-
+		FireAnimation_item temp;
 		objects.push_back( temp );
 	}
 }
 
-cAnimation_2 :: ~cAnimation_2( void )
+cFireAnimation :: ~cFireAnimation( void )
 {
 	objects.clear();
 }
 
-void cAnimation_2 :: Update( void )
+void cFireAnimation :: Init( void )
 {
-	if( !visible )
-	{
-		return;
-	}
-
-	counter += Framerate.speedfactor * fading_speed;
-
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
-		objects[i].posx += objects[i].velx;
-		objects[i].posy += objects[i].vely;
-	}
+		// position
+		objects[i].velx = ( (float)( rand() % ( 50 ) - 25 ) ) / 10;
+		objects[i].vely = ( (float)( rand() % ( 50 ) - 25 ) ) / 10;
 
-	if( counter > 12 || counter < 0 )
-	{
-		visible = 0;
+		// Z position
+		objects[i].posz = posz;
+		if( posz_rand > 0.001f )
+		{
+			objects[i].posz += (float)( rand() % (int)( posz_rand * 1000 ) ) / 1000;
+		}
+
+		// lifetime
+		objects[i].counter = (float)( 8 + rand() % ( 5 ) );
 	}
 }
 
-void cAnimation_2 :: Draw( void )
+void cFireAnimation :: Update( void )
 {
 	if( !visible )
 	{
 		return;
 	}
 
+	time_to_live += pFramerate->speedfactor * fading_speed;
+
+	// update objects
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
 		if( objects[i].counter > 8 )
 		{
-			SetImage( 0 );
+			Set_Image( 0 );
 		}
 		else if( objects[i].counter > 5 )
 		{
-			SetImage( 1 );
+			Set_Image( 1 );
 		}
 		else if( objects[i].counter > 3 )
 		{
-			SetImage( 2 );
+			Set_Image( 2 );
 		}
 		else if( objects[i].counter > 0 )
 		{
-			SetImage( 3 );
+			Set_Image( 3 );
 		}
 
-		objects[i].scale = objects[i].counter / 10;
+		objects[i].counter -= pFramerate->speedfactor * fading_speed;
 
-		if( image )
-		{
-			glColor4ub( color.red, color.green, color.blue, color.alpha );
-			image->Blit( objects[i].posx - ( cameraposx - posx ), objects[i].posy - ( cameraposy - posy ), NULL, 0, 0, 0, objects[i].scale );
-			glColor4f( 1, 1, 1, 1 );
-		}
-		
-		objects[i].counter -= Framerate.speedfactor * fading_speed;
-	}
-}
-
-/* *** *** *** *** *** *** *** Particle Explosion *** *** *** *** *** *** *** *** *** *** */
-
-cAnimation_3 :: cAnimation_3( double posx, double posy, unsigned int power /* = 5 */, GL_Surface *img /* = NULL */ ) : cAnimation( posx, posy, -1 )
-{
-	animtype = PARTICLE_EXPLOSION;
-
-	image = img;
-
-	vel = 2;
-	vel_rand = 2;
-	scale = 1;
-	angle_start = 0;
-	angle_range = 360;
-	size_scale = 1;
-	lifetime = 1;
-	fadetype = FADE_SIZE;
-	fade = 1;
-	blending = BLEND_NONE;
-
-	if( !image )
-	{
-		image = GetImage( "animation/particles/smoke.png" );
+		objects[i].Set_Scale( objects[i].counter / 10 );
+		objects[i].Move( objects[i].velx, objects[i].vely );
 	}
 
-	for( unsigned int i = 0; i < power; i++ )
-	{
-		Animation3item temp;
-		objects.push_back( temp );
-	}
-}
-
-cAnimation_3 :: ~cAnimation_3( void )
-{
-	objects.clear();
-}
-
-void cAnimation_3 :: Init( void )
-{
-	for( unsigned int i = 0; i < objects.size(); i++ )
-	{
-		// angle
-		double dir_angle = (double)( rand() % (int)( angle_range * 100 ) ) / 100;
-
-		if( angle_start > 0 ) // with start angle
-		{
-			dir_angle += angle_start;
-		}
-		// velocity
-		double speed = vel;
-		if( vel_rand > 0.001 )
-		{
-			speed += (double)( rand() % (int)( vel_rand * 1000 ) ) / 1000;
-		}
-		objects[i].velx = (double)cos( dir_angle * 0.017453292519943295 ) * speed;
-		objects[i].vely = (double)sin( dir_angle * 0.017453292519943295 ) * speed;
-		// basic rotation
-		objects[i].rotx = rotx;
-		objects[i].roty = roty;
-		objects[i].rotz = rotz;
-		// constant rotation
-		objects[i].const_rotx = const_rotx;
-		objects[i].const_roty = const_roty;
-		objects[i].const_rotz = const_rotz;
-		if( const_rotx_rand > 0.001 )
-		{
-			objects[i].const_rotx += (double)( rand() % (int)( const_rotx_rand * 100 ) ) / 100;
-		}
-		if( const_roty_rand > 0.001 )
-		{
-			objects[i].const_roty += (double)( rand() % (int)( const_roty_rand * 100 ) ) / 100;
-		}
-		if( const_rotz_rand > 0.001 )
-		{
-			objects[i].const_rotz += (double)( rand() % (int)( const_rotz_rand * 100 ) ) / 100;
-		}
-		// scale
-		objects[i].scale = scale * size_scale;
-		// lifetime
-		objects[i].counter = lifetime;
-	}
-
-	if( fading_speed < 0 )
-	{
-		fading_speed = 1;
-	}
-
-	if( fadetype == FADE_ALPHA )
-	{
-		fade = color.alpha;
-	}
-	else if( fadetype == FADE_COLOR )
-	{
-		fade = ( color.red + color.green + color.blue ) / 3;
-	}
-}
-
-void cAnimation_3 :: Update( void )
-{
-	if( !visible )
-	{
-		return;
-	}
-
-	if( fadetype == FADE_SIZE )
-	{
-		fade -= ( ( 0.1 * Framerate.speedfactor ) * fading_speed ) / lifetime;
-	}
-	else if( fadetype == FADE_ALPHA )
-	{
-		fade -= ( ( 20 * Framerate.speedfactor ) * fading_speed ) / lifetime;
-		
-		if( fade < 0 )
-		{
-			visible = 0;
-			return;
-		}
-		
-		color.alpha = (Uint8)fade;
-	}
-	else if( fadetype == FADE_COLOR )
-	{
-		fade -= ( ( 20 * Framerate.speedfactor ) * fading_speed ) / lifetime;
-		
-		if( fade < 0 )
-		{
-			visible = 0;
-			return;
-		}
-		
-		color.red = (Uint8)fade;
-		color.green = (Uint8)fade;
-		color.blue = (Uint8)fade;
-	}
-
-	for( unsigned int i = 0; i < objects.size(); i++ )
-	{
-		if( objects[i].counter > 0 )
-		{
-			// position
-			objects[i].posx += objects[i].velx * Framerate.speedfactor;
-			objects[i].posy += objects[i].vely * Framerate.speedfactor;
-			
-			// constant rotation
-			if( objects[i].const_rotx > 0 )
-			{
-				objects[i].SetRotationX( objects[i].rotx + ( objects[i].const_rotx * Framerate.speedfactor ) );
-			}
-			if( objects[i].const_roty > 0 )
-			{
-				objects[i].SetRotationY( objects[i].roty + ( objects[i].const_roty * Framerate.speedfactor ) );
-			}
-			if( objects[i].const_rotz > 0 )
-			{
-				objects[i].SetRotationZ( objects[i].rotz + ( objects[i].const_rotz * Framerate.speedfactor ) );
-			}
-
-			if( fadetype == FADE_SIZE )
-			{
-				objects[i].scale = fade * size_scale;
-			}
-
-			if( objects[i].scale < 0 )
-			{
-				objects[i].counter = 0;
-				continue;
-			}
-		}
-		else
-		{
-			objects.erase( objects.begin() + i );
-		}
-	}
-
-	if( objects.size() == 0 )
+	if( time_to_live > 12 || time_to_live < 0 )
 	{
 		visible = 0;
 	}
 }
 
-void cAnimation_3 :: Draw( void )
+void cFireAnimation :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
 	if( !visible )
 	{
 		return;
 	}
 
+	// draw objects
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
-		if( blending == BLEND_ADD )
+		if( image )
 		{
-			glBlendFunc( GL_SRC_ALPHA, GL_ONE );
-		}
-		else if( blending == BLEND_DRIVE )
-		{
-			glBlendFunc( GL_SRC_COLOR, GL_DST_ALPHA );
-		}
+			// create request
+			cSurfaceRequest *request = new cSurfaceRequest();
+			image->Blit( objects[i].posx - ( pCamera->x - posx ), objects[i].posy - ( pCamera->y - posy ), objects[i].posz, request );
 
-		glColor4ub( color.red, color.green, color.blue, color.alpha );
-		image->Blit( objects[i].posx - ( cameraposx - posx ), objects[i].posy - ( cameraposy - posy ), NULL, objects[i].rotx, objects[i].roty, objects[i].rotz, objects[i].scale );
-		glColor4f( 1, 1, 1, 1 );
-		
-		if( blending != BLEND_NONE )
-		{
-			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+			// scale
+			request->scale_x = objects[i].scalex;
+			request->scale_y = objects[i].scaley;
+
+			// color
+			request->color = color;
+
+			// add request
+			pRenderer->Add( request );
 		}
 	}
 }
 
-void cAnimation_3 :: SetSpeed( double vel_base, double vel_random /* = 1 */ )
+/* *** *** *** *** *** *** *** cParticle *** *** *** *** *** *** *** *** *** *** */
+
+cParticle :: cParticle( void )
+: cMovingSprite()
+{
+	time_to_live = 0;
+	const_rotx = 0;
+	const_roty = 0;
+	const_rotz = 0;
+
+	fade_pos = 1;
+}
+
+cParticle :: ~cParticle( void )
+{
+
+}
+
+void cParticle :: Update( void )
+{
+	// update fade modifier
+	fade_pos -= ( pFramerate->speedfactor * ( (float)DESIRED_FPS * 0.001f ) ) / time_to_live;
+
+	// finished fading
+	if( fade_pos <= 0 )
+	{
+		fade_pos = 0;
+		visible = 0;
+		return;
+	}
+
+	// position
+	posx += velx * pFramerate->speedfactor;
+	posy += vely * pFramerate->speedfactor;
+	
+	// constant rotation
+	if( const_rotx > 0.0001f )
+	{
+		Set_RotationX( rotx + ( const_rotx * pFramerate->speedfactor ) );
+	}
+	if( const_roty > 0.0001f )
+	{
+		Set_RotationY( roty + ( const_roty * pFramerate->speedfactor ) );
+	}
+	if( const_rotz > 0.0001f )
+	{
+		Set_RotationZ( rotz + ( const_rotz * pFramerate->speedfactor ) );
+	}
+}
+
+void cParticle :: Draw( cParticleAnimation *origin )
+{
+	// create request
+	cSurfaceRequest *request = new cSurfaceRequest();
+
+	image->Blit( posx - pCamera->x, posy - pCamera->y, posz, request );
+
+	// blending
+	if( origin->blending == BLEND_ADD )
+	{
+		request->blend_sfactor = GL_SRC_ALPHA;
+		request->blend_dfactor = GL_ONE;
+	}
+	else if( origin->blending == BLEND_DRIVE )
+	{
+		request->blend_sfactor = GL_SRC_COLOR;
+		request->blend_dfactor = GL_DST_ALPHA;
+	}
+
+	// rotation
+	request->rotx += rotx;
+	request->roty += roty;
+	request->rotz += rotz;
+
+	// scale
+	request->scale_x = scalex;
+	request->scale_y = scaley;
+
+	// size fading
+	if( origin->fade_size )
+	{
+		request->scale_x *= fade_pos;
+		request->scale_y *= fade_pos;
+	}
+
+	// color
+	request->color = color;
+
+	// color fading
+	if( origin->fade_color )
+	{
+		request->color.red *= fade_pos;
+		request->color.green *= fade_pos;
+		request->color.blue *= fade_pos;
+	}
+	// alpha fading
+	if( origin->fade_alpha )
+	{
+		request->color.alpha *= fade_pos;
+	}
+
+	// add request
+	pRenderer->Add( request );
+}
+
+/* *** *** *** *** *** *** *** cParticleAnimation *** *** *** *** *** *** *** *** *** *** */
+
+cParticleAnimation :: cParticleAnimation( float posx, float posy )
+: cAnimation( posx, posy )
+{
+	animtype = PARTICLE_EXPLOSION;
+
+	// 0 = 1 emit
+	emitter_time_to_live = 0;
+	emitter_iteration_interval = 0.2f;
+	emitter_quota = 1;
+
+	// velocity
+	vel = 2;
+	vel_rand = 2;
+	// rotation
+	const_rotx = 0;
+	const_roty = 0;
+	const_rotz = 0;
+	const_rotx_rand = 0;
+	const_roty_rand = 0;
+	const_rotz_rand = 0;
+	angle_start = 0;
+	angle_range = 360;
+	size_scale = 1;
+	size_scale_rand = 0;
+	color_rand = Color( (Uint8)0, 0, 0, 0 );
+	// default 1 second
+	time_to_live = 1;
+	// default fading is alpha
+	fade_size = 0;
+	fade_alpha = 1;
+	fade_color = 0;
+
+	blending = BLEND_NONE;
+
+	// default image
+	image = pVideo->Get_Surface( "animation/particles/smoke.png" );
+
+	// animation data
+	emit_counter = 0;
+	emitter_living_time = 0;
+}
+
+cParticleAnimation :: ~cParticleAnimation( void )
+{
+	Clear();
+}
+
+void cParticleAnimation :: Init( void )
+{
+	Emit();
+}
+
+void cParticleAnimation :: Emit( void )
+{
+	for( unsigned int i = 0; i < emitter_quota; i++ )
+	{
+		cParticle *particle = new cParticle();
+
+		// Position
+		particle->Set_Pos( posx, posy, 1 );
+
+		// Image
+		particle->Set_Image( image, 1, 0 );
+
+		// Z position
+		particle->posz = posz;
+		if( posz_rand > 0.001f )
+		{
+			particle->posz += (float)( rand() % (int)( posz_rand * 1000 ) ) / 1000;
+		}
+
+		// angle range
+		float dir_angle = 0;
+		// start angle
+		if( angle_start > 0.001f )
+		{
+			dir_angle += angle_start;
+		}
+		if( angle_range > 0.001f )
+		{
+			dir_angle += (float)( rand() % (int)( angle_range * 100 ) ) / 100;
+		}
+
+		// Velocity
+		float speed = vel;
+		if( vel_rand > 0.001f )
+		{
+			speed += (float)( rand() % (int)( vel_rand * 1000 ) ) / 1000;
+		}
+		// set Velocity
+		particle->Set_Direction( dir_angle, speed, 1 );
+
+		// Basic rotation
+		particle->rotx = rotx;
+		particle->roty = roty;
+		particle->rotz = rotz;
+
+		// Constant rotation
+		particle->const_rotx = const_rotx;
+		particle->const_roty = const_roty;
+		particle->const_rotz = const_rotz;
+		if( const_rotx_rand > 0.001f )
+		{
+			particle->const_rotx += (float)( rand() % (int)( const_rotx_rand * 100 ) ) / 100;
+		}
+		if( const_roty_rand > 0.001f )
+		{
+			particle->const_roty += (float)( rand() % (int)( const_roty_rand * 100 ) ) / 100;
+		}
+		if( const_rotz_rand > 0.001f )
+		{
+			particle->const_rotz += (float)( rand() % (int)( const_rotz_rand * 100 ) ) / 100;
+		}
+
+		// Scale
+		particle->Set_Scale( size_scale );
+		if( size_scale_rand > 0.001f )
+		{
+			particle->Add_Scale( (float)( rand() % (int)( size_scale_rand * 100 ) ) / 100 );
+		}
+
+		// Color
+		particle->Set_Color( color );
+		if( color_rand.red > 0 )
+		{
+			particle->color.red += rand() % color_rand.red;
+		}
+		if( color_rand.green > 0 )
+		{
+			particle->color.green += rand() % color_rand.green;
+		}
+		if( color_rand.blue > 0 )
+		{
+			particle->color.blue += rand() % color_rand.blue;
+		}
+		if( color_rand.alpha > 0 )
+		{
+			particle->color.alpha += rand() % color_rand.alpha;
+		}
+
+		// Time to life
+		particle->time_to_live = time_to_live;
+		if( time_to_live_rand > 0.001f )
+		{
+			particle->time_to_live += (float)( rand() % (int)( time_to_live_rand * 1000 ) ) / 1000;
+		}
+
+		objects.push_back( particle );
+	}
+}
+
+void cParticleAnimation :: Clear( void )
+{
+	// clear particles
+	for( ParticleList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	{
+		delete *itr;
+	}
+
+	objects.clear();
+
+	// clear animation data
+	emit_counter = 0;
+	emitter_living_time = 0;
+}
+
+void cParticleAnimation :: Update( void )
+{
+	if( !visible )
+	{
+		return;
+	}
+	
+	emitter_living_time += pFramerate->speedfactor * ( (float)DESIRED_FPS * 0.001f );
+
+	// update objects
+	for( ParticleList::iterator itr = objects.begin(); itr != objects.end(); )
+	{
+		// get object pointer
+		cParticle *obj = (*itr);
+
+		// update
+		obj->Update();
+
+		// if finished
+		if( obj->fade_pos <= 0 )
+		{
+			itr = objects.erase( itr );
+			delete obj;
+		}
+		// increment
+		else
+		{
+			++itr;
+		}
+	}
+
+	// if able to emit
+	if( emitter_living_time < emitter_time_to_live )
+	{
+		// emit
+		while( emit_counter > emitter_iteration_interval )
+		{
+			Emit();
+			emit_counter -= emitter_iteration_interval;
+		}
+
+		emit_counter += pFramerate->speedfactor * ( (float)DESIRED_FPS * 0.001f );
+	}
+	// no particles are active
+	else if( !objects.size() )
+	{
+		visible = 0;
+	}
+}
+
+void cParticleAnimation :: Draw( cSurfaceRequest *request /* = NULL */ )
+{
+	if( !visible )
+	{
+		return;
+	}
+
+	for( ParticleList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	{
+		(*itr)->Draw( this );
+	}
+}
+
+void cParticleAnimation :: Set_Emitter_Time_to_Live( float time )
+{
+	emitter_time_to_live = time;
+}
+
+void cParticleAnimation :: Set_Emitter_Iteration_Interval( float time )
+{
+	emitter_iteration_interval = time;
+}
+
+void cParticleAnimation :: Set_Quota( unsigned int size )
+{
+	emitter_quota = size;
+}
+
+void cParticleAnimation :: Set_Speed( float vel_base, float vel_random /* = 1 */ )
 {
 	vel = vel_base;
 	vel_rand = vel_random;
 }
 
-void cAnimation_3 :: Set_ConstRotationX( double rot, double rot_random /* = 0 */ )
+void cParticleAnimation :: Set_ConstRotationX( float rot, float rot_random /* = 0 */ )
 {
 	const_rotx = rot;
 	const_rotx_rand = rot_random;
 }
 
-void cAnimation_3 :: Set_ConstRotationY( double rot, double rot_random /* = 0 */ )
+void cParticleAnimation :: Set_ConstRotationY( float rot, float rot_random /* = 0 */ )
 {
 	const_roty = rot;
 	const_roty_rand = rot_random;
 }
 
-void cAnimation_3 :: Set_ConstRotationZ( double rot, double rot_random /* = 0 */ )
+void cParticleAnimation :: Set_ConstRotationZ( float rot, float rot_random /* = 0 */ )
 {
 	const_rotz = rot;
 	const_rotz_rand = rot_random;
 }
 
-void cAnimation_3 :: SetDirectionRange( double start, double range /* = 20 */ )
+void cParticleAnimation :: Set_DirectionRange( float start, float range /* = 20 */ )
 {
 	angle_start = start;
 	angle_range = range;
 }
 
-void cAnimation_3 :: SetScale( double size )
+void cParticleAnimation :: Set_Scale( float nscale, float scale_random /* = 0 */ )
 {
-	size_scale = size;
+	size_scale = nscale;
+	size_scale_rand = scale_random;
 }
 
-void cAnimation_3 :: SetLifetimeMod( double time )
+void cParticleAnimation :: Set_Color( Color col, Color col_rand )
 {
-	lifetime = time;
+	color = col;
+	color_rand = col_rand;
 }
 
-void cAnimation_3 :: SetFading( FadingType type )
+void cParticleAnimation :: Set_Fading_Size( bool enable )
 {
-	fadetype = type;
+	fade_size = enable;
 }
 
-void cAnimation_3 :: SetBlending( BlendingMode mode )
+void cParticleAnimation :: Set_Fading_Alpha( bool enable )
+{
+	fade_alpha = enable;
+}
+
+void cParticleAnimation :: Set_Fading_Color( bool enable )
+{
+	fade_color = enable;
+}
+
+void cParticleAnimation :: Set_Blending( BlendingMode mode )
 {
 	blending = mode;
 }
 
-void cAnimation_3 :: SetImage( GL_Surface *img )
+void cParticleAnimation :: Set_Image( GL_Surface *img )
 {
 	if( !img )
 	{
@@ -557,37 +773,48 @@ void cAnimation_3 :: SetImage( GL_Surface *img )
 
 	image = img;
 }
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+/* *** *** *** *** *** cAnimationManager *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cAnimationManager :: cAnimationManager( void )
 {
-	objects.clear();
+	
 }
 
 cAnimationManager :: ~cAnimationManager( void )
 {
-	DeleteAll();
+	Delete_All();
 }
 
 void cAnimationManager :: Update( void )
 {
-	for( unsigned int i = 0; i < Get_Size(); i++ )
+	for( AnimationList::iterator itr = objects.begin(); itr != objects.end(); )
 	{
-		objects[i]->Update();
+		// get object pointer
+		cAnimation *obj = (*itr);
 
-		// if animation has ended delete the animation sprite
-		if( !objects[i]->visible )
+		// update
+		obj->Update();
+
+		// delete if finished
+		if( !obj->visible )
 		{
-			Delete( i );
+			itr = objects.erase( itr );
+			delete obj;
+		}
+		// increment
+		else
+		{
+			++itr;
 		}
 	}
 }
 
 void cAnimationManager :: Draw( void )
 {
-	for( unsigned int i = 0; i < Get_Size(); i++ )
+	for( AnimationList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
-		objects[i]->Draw();
+		(*itr)->Draw();
 	}
 }
 
@@ -598,14 +825,17 @@ void cAnimationManager :: Add( cAnimation *animation )
 		return;
 	}
 
+	// Initialize
 	animation->Init();
 
+	// Add
 	objects.push_back( animation );
 }
 
 void cAnimationManager :: Delete( unsigned int num )
 {
-	if( num > Get_Size() )
+	// out of array
+	if( num > objects.size() )
 	{
 		return;
 	}
@@ -614,25 +844,26 @@ void cAnimationManager :: Delete( unsigned int num )
 	objects.erase( objects.begin() + num );
 }
 
-void cAnimationManager :: DeleteAll( void )
+void cAnimationManager :: Delete_All( void )
 {
-	if( !Get_Size() )
+	if( !objects.size() )
 	{
 		return;
 	}
 
-	for( unsigned int i = 0; i < Get_Size(); i++ )
+	for( AnimationList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
-		if( objects[i] ) 
-		{
-			delete objects[i];
-		}
+		delete *itr;
 	}
 
 	objects.clear();
 }
 
-unsigned int cAnimationManager :: Get_Size( void )
+unsigned int cAnimationManager :: size( void )
 {
-	return (unsigned int)objects.size();
+	return objects.size();
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+cAnimationManager *pAnimationManager = NULL;

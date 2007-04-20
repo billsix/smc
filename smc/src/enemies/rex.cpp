@@ -1,7 +1,7 @@
 /***************************************************************************
-           rex.cpp  -  the little dinosaur
+           rex.cpp  -  The little dinosaur
                              -------------------
-    copyright            : (C) 2004 - 2006 by FluXy
+    copyright            : (C) 2004 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -10,36 +10,28 @@
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
- ***************************************************************************/ 
+ ***************************************************************************/
 
-#include "../globals.h"
+#include "../enemies/rex.h"
+#include "../core/game_core.h"
+#include "../video/animation.h"
+#include "../gui/hud.h"
+#include "../player/player.h"
+#include "../video/gl_surface.h"
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cRex *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cRex :: cRex( double x, double y ) : cEnemy( x, y )
+cRex :: cRex( float x, float y )
+: cEnemy( x, y )
 {
-	type = TYPE_REX;
+	Init();
+}
 
-	velx = 2.5;
-	direction = DIR_RIGHT;
-
-	state = WALK;
-	rex_state = REX_WALK;
-
-	speed = 6;
-
-	images.push_back( GetImage( "enemy/rex/l1.png" ) );		// Walking left 1
-	images.push_back( GetImage( "enemy/rex/l2.png" ) );		// Walking left 2
-	images.push_back( GetImage( "enemy/rex/l3.png" ) );		// small Walking left 1
-	images.push_back( GetImage( "enemy/rex/l4.png" ) );		// small Walking left 2
-	images.push_back( GetImage( "enemy/rex/ld.png" ) );		// dead left
-	images.push_back( GetImage( "enemy/rex/r1.png" ) );		// Walking right 1
-	images.push_back( GetImage( "enemy/rex/r2.png" ) );		// Walking right 2
-	images.push_back( GetImage( "enemy/rex/r3.png" ) );		// small Walking right 1
-	images.push_back( GetImage( "enemy/rex/r4.png" ) );		// small Walking right 2
-	images.push_back( GetImage( "enemy/rex/rd.png" ) );		// dead right
-	
-	SetImage( 5 ); // walking right 1
+cRex :: cRex( XMLAttributes &attributes )
+: cEnemy()
+{
+	Init();
+	Create_from_Stream( attributes );
 }
 
 cRex :: ~cRex( void )
@@ -47,246 +39,310 @@ cRex :: ~cRex( void )
 	//
 }
 
+void cRex :: Init( void  )
+{
+	type = TYPE_REX;
+	posz = 0.093f;
+
+	state = STA_WALK;
+	rex_state = REX_WALK;
+
+	speed = 6;
+
+	images.push_back( pVideo->Get_Surface( "enemy/rex/big_1.png" ) );
+	images.push_back( pVideo->Get_Surface( "enemy/rex/big_2.png" ) );
+	images.push_back( pVideo->Get_Surface( "enemy/rex/small_1.png" ) );
+	images.push_back( pVideo->Get_Surface( "enemy/rex/small_2.png" ) );
+	images.push_back( pVideo->Get_Surface( "enemy/rex/dead.png" ) );
+
+	Set_Direction( DIR_RIGHT );
+
+	Set_Image( 0, 1 );
+
+	kill_sound = "enemy/rex/die.ogg";
+	kill_points = 20;
+}
+
+cRex *cRex :: Copy( void )
+{
+	cRex *rex = new cRex( startposx, startposy );
+	rex->Set_Direction( start_direction );
+
+	return rex;
+}
+
+void cRex :: Create_from_Stream( XMLAttributes &attributes )
+{
+	// position
+	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	// direction
+	Set_Direction( Get_Direction_id( attributes.getValueAsString( "direction", Get_Direction_name( start_direction ) ).c_str() ) );
+}
+
+void cRex :: Save_to_Stream( ofstream &file )
+{
+	// begin enemy
+	file << "\t<enemy>" << std::endl;
+
+	// name
+	file << "\t\t<Property name=\"type\" value=\"rex\" />" << std::endl;
+	// position
+	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	// direction
+	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_name( start_direction ) << "\" />" << std::endl;
+
+	// end enemy
+	file << "\t</enemy>" << std::endl;
+}
+
+void cRex :: Set_Direction( ObjectDirection dir )
+{
+	// already set
+	if( direction == dir )
+	{
+		return;
+	}
+
+	cEnemy::Set_Direction( dir, 1 );
+
+	if( direction == DIR_RIGHT )
+	{
+		velx = 2.5f;
+		name = "Rex Right";
+	}
+	else
+	{
+		velx = -2.5f;
+	    name = "Rex Left";
+	}
+
+	Update_Rotation_velx( 1 );
+}
+
 void cRex :: DownGrade( bool force /* = 0 */ )
 {
-	massivetype = MASS_PASSIVE;
-	dead = 1;
-	state = STAY;
-	counter = 0;
-
-	if( !force ) // default stomp death
+	// default stomp downgrade
+	if( !force )
 	{
-		if( rex_state == REX_WALK ) 
+		// to small walking
+		if( rex_state == REX_WALK )
 		{
-			Move( 0, images[1]->h - images[4]->h, 1, 1 );
+			rex_state = REX_MINI;
+			state = STA_RUN;
+			velx = ( direction == DIR_RIGHT ) ? (speed) : (-speed);
+			counter = 2;
+			kill_points = 40;
+
+			Set_Image( (int)counter );
+			Col_Move( 0, images[1]->col_h - images[2]->col_h, 1, 1 );
+			Update_Direction();
+
+			// animation
+			cParticleAnimation *anim = new cParticleAnimation( posx + ( col_rect.w / 2 ), posy + ( col_rect.h / 4 ) );
+			Generate_Hit_Animation( anim );
+
+			anim->Set_Speed( 3.5f, 0.6f );
+			anim->Set_Fading_Alpha( 1 );
+			// add animation
+			pAnimationManager->Add( anim );
 		}
 		else if( rex_state == REX_MINI )
 		{
-			Move( 0, images[3]->h - images[4]->h, 1, 1 );
-		}
+			Col_Move( 0, images[3]->col_h - images[4]->col_h, 1, 1, 0 );
+			Set_Image( 4, 0, 0 );
+			dead = 1;
 
-		if( velx > 0 )
-		{
-			SetImage( 9 );
-		}
-		else
-		{
-			SetImage( 4 );
+			// animation
+			cParticleAnimation *anim = new cParticleAnimation( posx + ( col_rect.w / 2 ), posy + ( col_rect.h / 2 ) );
+			Generate_Hit_Animation( anim );
+
+			anim->Set_Speed( 4.5f, 1.6f );
+			anim->Set_Scale( 0.6f );
+			// add animation
+			pAnimationManager->Add( anim );
 		}
 	}
-	else // falling death
+	// falling death
+	else
 	{
-		SetRotationZ( 180 );
+		dead = 1;
+		Set_RotationZ( 180 );
 	}
-	
-	rex_state = REX_DEAD;
+
+	if( dead )
+	{
+		massivetype = MASS_PASSIVE;
+		state = STA_STAY;
+		counter = 0;
+		rex_state = REX_DEAD;
+	}
 }
 
 void cRex :: DieStep( void )
 {
-	counter += Framerate.speedfactor;
+	counter += pFramerate->speedfactor;
 
-	if( rotz != 180 ) // stomp death
+	// stomp death
+	if( rotz != 180 )
 	{
-		if( counter > DESIRED_FPS * 2 )
+		float speed = pFramerate->speedfactor * 0.05f;
+
+		Add_Scale( -speed );
+		Move( ( image->w / 2 ) * speed, ( image->h ) * speed, 1 );
+
+		if( scalex < 0.1f )
 		{
 			visible = 0;
+			Set_Scale( 1 );
 		}
 	}
-	else // falling death
+	// falling death
+	else
 	{
-		if( counter < 5 ) // a little bit upwards first
+		// a little bit upwards first
+		if( counter < 5 )
 		{
-			Move( 0, -5, 0, 1 );
+			Move( 0, -5 );
 		}
-		else if( posy < GAME_RES_H + col_rect.h ) // if not below the screen fall
+		// if not below the screen fall
+		else if( posy < GAME_RES_H + col_rect.h )
 		{
-			Move( 0, 20, 0, 1 );
+			Move( 0, 20 );
 		}
-		else // if below disable
+		// if below disable
+		else
 		{
 			rotz = 0;
 			visible = 0;
 		}
 	}
-
-	Draw();
 }
 
 void cRex :: Update( void )
 {
-	if( dead )
-	{
-		if( visible )
-		{
-			DieStep();
-		}
+	cEnemy::Update();
 
-		return;
-	}
-
-	if( !isPlayer_range() )
+	if( dead || freeze_counter || !is_Player_range() )
 	{
 		return;
 	}
 
-	counter += Framerate.speedfactor;
-	
 	if( rex_state == REX_WALK )
 	{
-		if( counter > (double)( DESIRED_FPS / 7 * 2 ) )
+		counter += pFramerate->speedfactor * 0.2f;
+
+		if( counter > 1.99f )
 		{
 			counter = 0;
 		}
 	}
 	else
 	{
-		if( counter > (double)( DESIRED_FPS / 10 * 2 ) )
+		counter += pFramerate->speedfactor * 0.4f;
+
+		if( counter > 3.99f )
 		{
-			counter = 0;
+			counter = 2;
 		}
 	}
 
+	Set_Image( (int)counter );
 
-	if( velx < 0 )
-	{
-		if( rex_state == REX_WALK )
-		{
-			if( counter < (double)( DESIRED_FPS / 7 ) )
-			{
-				SetImage( 0 ); // walking left 1
-			}
-			else
-			{
-				SetImage( 1 ); // walking left 2
-			}
-		}
-		else
-		{
-			if( counter < (double)( DESIRED_FPS / 10 ) )
-			{
-				SetImage( 2 ); // small walking left 1
-			}
-			else
-			{
-				SetImage( 3 ); // small walking left 2
-			}
-		}
-	}
-	else
-	{
-		if( rex_state == REX_WALK )
-		{
-			if( counter < (double)( DESIRED_FPS / 7 ) )
-			{
-				SetImage( 5 ); // walking right 1
-			}
-			else 
-			{
-				SetImage( 6 ); // walking right 2
-			}
-		}
-		else
-		{
-			if( counter < (double)( DESIRED_FPS / 10 ) )
-			{
-				SetImage( 7 ); // small walking right 1
-			}
-			else
-			{
-				SetImage( 8 ); // small walking right 2
-			}
-		}
-	}
+	// gravity
+	Update_Gravity();
 
-	if( !groundObject && vely < 25 )
-	{
-		AddVel( 0, 1.5 + vely * 0.1 );
-	}
-	else if( groundObject && vely != 0 )
-	{
-		vely = 0;
-	}
-	
 	CollideMove();
 
-	Draw();
+	Update_Rotation_velx();
 }
 
-void cRex :: HandleCollision( cObjectCollision *collision )
+unsigned int cRex :: Validate_Collision( cSprite *obj )
 {
-	if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
+	// basic validation checking
+	int basic_valid = Validate_Collision_Ghost( obj );
+
+	// found valid collision
+	if( basic_valid > -1 )
 	{
-		Turn_Around();
+		return basic_valid;
 	}
-	
-	if( collision->type == CO_PLAYER )
+
+	if( obj->massivetype == MASS_MASSIVE )
 	{
-		PlayerCollision( collision->direction );
+		if( obj->type == TYPE_JPIRANHA )
+		{
+			return 0;
+		}
+		if( obj->type == TYPE_ROKKO )
+		{
+			return 0;
+		}
+		if( obj->type == TYPE_GEE )
+		{
+			return 0;
+		}
+
+		return 2;
 	}
+	if( obj->type == TYPE_ENEMYSTOPPER )
+	{
+		return 2;
+	}
+	if( obj->massivetype == MASS_HALFMASSIVE )
+	{
+		// if moving downwards and object is on top
+		if( vely >= 0 && is_onTop( obj ) )
+		{
+			return 2;
+		}
+	}
+
+	return 0;
 }
 
-void cRex :: PlayerCollision( ObjectDirection cdirection )
+void cRex :: Handle_Collision_Player( ObjectDirection cdirection )
 {
-	if( dead )
+	// invalid
+	if( cdirection == DIR_UNDEFINED )
 	{
 		return;
 	}
 
-	if( cdirection == DIR_DOWN )
+	if( cdirection == DIR_TOP && pPlayer->state != STA_FLY )
 	{
+		pointsdisplay->Add_Points( kill_points, pPlayer->posx, pPlayer->posy, "", (Uint8)255, 1 );
+		pAudio->PlaySound( kill_sound );
+
+
+		// big walking
 		if( rex_state == REX_WALK )
 		{
-			pointsdisplay->AddPoints( 20, pPlayer->posx, pPlayer->posy );
-			pAudio->PlaySound( SOUNDS_DIR "/stomp_5.ogg" );
+			DownGrade();
 		}
-		else if( rex_state == REX_MINI )
-		{
-			pointsdisplay->AddPoints( 40, pPlayer->posx, pPlayer->posy );
-			pAudio->PlaySound( SOUNDS_DIR "/stomp_1.ogg" );
-		}
-		
-		cAnimation_3 *anim = new cAnimation_3( posx + ( col_rect.w / 2 ), posy + ( col_rect.h / 2 ), 4, GetImage( "animation/particles/light.png" ) );
-		anim->SetSpeed( 3, 0.8 );
-		anim->SetScale( 0.4 );
-		anim->SetDirectionRange( 180, 180 );
-		anim->SetFading( FADE_ALPHA );
-		pAnimationManager->Add( anim );
-
-		if( rex_state == REX_WALK )
-		{
-			counter = 0;
-			rex_state = REX_MINI; // small walking
-			state = RUN;
-
-			if( velx < 0 ) 
-			{
-				velx = -speed;
-				Move( 0, images[1]->h - images[2]->h - 1, 1, 1 );
-			}
-			else
-			{
-				velx = speed;
-				Move( 0, images[6]->h - images[7]->h - 1, 1, 1 );
-			}
-		}
+		// small walking
 		else if( rex_state == REX_MINI )
 		{
 			DownGrade();
+			pPlayer->Add_Kill_Multiplier();
 		}
 
 		pPlayer->start_enemyjump = 1;
 	}
-	else if( cdirection == DIR_LEFT || cdirection == DIR_RIGHT || cdirection == DIR_DOWN )
+	else
 	{
 		pPlayer->DownGrade();
+		Turn_Around( cdirection );
 	}
 }
 
-void cRex :: EnemyCollision( ObjectDirection cdirection )
+void cRex :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
-	if( ( cdirection == DIR_LEFT && velx > 0 ) || ( cdirection == DIR_RIGHT && velx < 0 ) ) 
-	{
-		Turn_Around();
-	}
+	Turn_Around( collision->direction );
+	Send_Collision( collision );
+}
+
+void cRex :: Handle_Collision_Massive( cObjectCollision *collision )
+{
+	Turn_Around( collision->direction );
 }

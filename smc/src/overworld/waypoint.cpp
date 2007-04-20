@@ -1,7 +1,7 @@
 /***************************************************************************
-    waypoint.cpp  -  waypoint class for the Overworld
+				waypoint.cpp  -  waypoint class for the Overworld
                              -------------------
-    copyright            : (C) 2003 - 2006 by FluXy
+    copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -12,13 +12,48 @@
  *                                                                         *
  ***************************************************************************/ 
  
-#include "../globals.h"
+#include "../overworld/waypoint.h"
+#include "../overworld/overworld.h"
+#include "../core/game_core.h"
+#include "../core/framerate.h"
+#include "../core/camera.h"
+#include "../user/preferences.h"
+#include "../video/renderer.h"
+#include "../video/gl_surface.h"
 
-/* *** *** *** *** *** *** *** *** Waypoint *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** *** cWaypoint *** *** *** *** *** *** *** *** *** */
 
 cWaypoint :: cWaypoint( void )
+: cSprite()
 {
-	gcolor = rand() % 100;
+	Init();
+}
+
+cWaypoint :: cWaypoint( XMLAttributes &attributes )
+: cSprite()
+{
+	Init();
+	Create_from_Stream( attributes );
+}
+
+
+cWaypoint :: ~cWaypoint( void )
+{
+	//
+}
+
+void cWaypoint :: Init( void )
+{
+	sprite_array = ARRAY_PASSIVE;
+	type = TYPE_OW_WAYPOINT;
+	massivetype = MASS_PASSIVE;
+	posz = 0.08f;
+	player_range = 0;
+	
+	waypoint_type = WAYPOINT_NORMAL;
+	name = "Waypoint";
+
+	gcolor = (float)( rand() % 100 );
 	glim = 1;
 	
 	access = 0;
@@ -26,51 +61,119 @@ cWaypoint :: cWaypoint( void )
 	
 	ID = 0;
 
-	rect.x = 0;
-	rect.y = 0;
-	// default dimension
-	rect.w = 20;
-	rect.h = 20;
+	direction_backward = DIR_UNDEFINED;
+	direction_forward = DIR_UNDEFINED;
 
-	direction_back = DIR_NOTHING;
-	direction_forward = DIR_NOTHING;
+	Set_Image( pVideo->Get_Surface( "world/Waypoints/default_1.png" ) );
 
-	type = WAYPOINT_NORMAL;
+	arrow_blue_l = pVideo->Get_Surface( "world/arrows/blue_left_small.png" );
+	arrow_blue_r = pVideo->Get_Surface( "world/arrows/blue_right_small.png" );
+	arrow_blue_u = pVideo->Get_Surface( "world/arrows/blue_up_small.png" );
+	arrow_blue_d = pVideo->Get_Surface( "world/arrows/blue_down_small.png" );
 
-	levelname = "";
-
-	arrow_blue_l = GetImage( "world/arrows/blue_left_small.png" );
-	arrow_blue_r = GetImage( "world/arrows/blue_right_small.png" );
-	arrow_blue_u = GetImage( "world/arrows/blue_up_small.png" );
-	arrow_blue_d = GetImage( "world/arrows/blue_down_small.png" );
-
-	arrow_white_l = GetImage( "world/arrows/left_small.png" );
-	arrow_white_r = GetImage( "world/arrows/right_small.png" );
-	arrow_white_u = GetImage( "world/arrows/up_small.png" );
-	arrow_white_d = GetImage( "world/arrows/down_small.png" );
-
-	image = GetImage( "world/Waypoints/default_1.png" );
+	arrow_white_l = pVideo->Get_Surface( "world/arrows/left_small.png" );
+	arrow_white_r = pVideo->Get_Surface( "world/arrows/right_small.png" );
+	arrow_white_u = pVideo->Get_Surface( "world/arrows/up_small.png" );
+	arrow_white_d = pVideo->Get_Surface( "world/arrows/down_small.png" );
 }
 
-cWaypoint :: ~cWaypoint( void )
+cWaypoint *cWaypoint :: Copy( void )
 {
-	//
+	cWaypoint *waypoint = new cWaypoint();
+
+	waypoint->Set_Pos( startposx, startposy, 1 );
+	waypoint->Set_Image( start_image, 1 );
+	waypoint->waypoint_type = waypoint_type;
+	waypoint->Set_Destination( destination );
+	waypoint->direction_backward = direction_backward;
+	waypoint->direction_forward = direction_forward;
+	waypoint->Set_Access( access_default, 1 );
+
+	return waypoint;
 }
 
-void cWaypoint :: Draw( void )
+void cWaypoint :: Create_from_Stream( XMLAttributes &attributes )
 {
-	if( !image || ( !access && !pOverWorld->debugmode ) )
+	// position
+	Set_Pos( (float)attributes.getValueAsInteger( "x" ), (float)attributes.getValueAsInteger( "y" ), 1 );
+	// image
+	/*if( attributes.exists( "image" ) )
 	{
-		return;
+		Set_Image( pVideo->Get_Surface( attributes.getValueAsString( "image" ).c_str() ), 1 ) ;
+	}*/
+	// type
+	waypoint_type = (Waypoint_type)attributes.getValueAsInteger( "type", WAYPOINT_NORMAL );
+	// destination
+	// pre 0.99.6 : world
+	if( attributes.exists( "world" ) )
+	{
+		Set_Destination( attributes.getValueAsString( "world" ).c_str() );
 	}
-	
+	// pre 0.99.6 : level
+	else if( attributes.exists( "level" ) )
+	{
+		Set_Destination( attributes.getValueAsString( "level" ).c_str() );
+	}
+	// default : destination
+	else
+	{
+		Set_Destination( attributes.getValueAsString( "destination" ).c_str() );
+	}
+	// backward direction
+	direction_backward = Get_Direction_id( attributes.getValueAsString( "direction_backward", "left" ).c_str() );
+	// forward direction
+	direction_forward = Get_Direction_id( attributes.getValueAsString( "direction_forward", "right" ).c_str() );
+	// access
+	Set_Access( attributes.getValueAsBool( "access", 1 ), 1 );
+}
+
+void cWaypoint :: Save_to_Stream( ofstream &file )
+{
+	// begin waypoint
+	file << "\t<waypoint>" << std::endl;
+
+	// position
+	file << "\t\t<Property name=\"x\" value=\"" << (int)startposx << "\" />" << std::endl;
+	file << "\t\t<Property name=\"y\" value=\"" << (int)startposy << "\" />" << std::endl;
+	// image
+	/*if( start_image )
+	{
+		string img_filename = start_image->filename;
+
+		// remove pixmaps directory from string
+		if( img_filename.find( PIXMAPS_DIR ) == 0 )
+		{
+			img_filename.erase( 0, strlen( PIXMAPS_DIR ) + 1 );
+		}
+
+		file << "\t\t<Property name=\"image\" value=\"" << img_filename << "\" />" << std::endl;
+	}*/
+	// type
+	file << "\t\t<Property name=\"type\" value=\"" << (int)waypoint_type << "\" />" << std::endl;
+	// destination
+	file << "\t\t<Property name=\"destination\" value=\"" << destination << "\" />" << std::endl;
+	// direction backward
+	file << "\t\t<Property name=\"direction_backward\" value=\"" << Get_Direction_name( direction_backward ) << "\" />" << std::endl;
+	// direction forward
+	file << "\t\t<Property name=\"direction_forward\" value=\"" << Get_Direction_name( direction_forward ) << "\" />" << std::endl;
+	// access
+	file << "\t\t<Property name=\"access\" value=\"" << access_default << "\" />" << std::endl;
+
+	// end waypoint
+	file << "\t</waypoint>" << std::endl;
+}
+
+void cWaypoint :: Update( void )
+{
+	cSprite::Update();
+
 	if( glim )
 	{
-		gcolor += Framerate.speedfactor * 3;
+		gcolor += pFramerate->speedfactor * 3;
 	}
 	else
 	{
-		gcolor -= Framerate.speedfactor * 3;
+		gcolor -= pFramerate->speedfactor * 3;
 	}
 
 	if( gcolor > 120 )
@@ -81,110 +184,330 @@ void cWaypoint :: Draw( void )
 	{
 		glim = 1;
 	}
+}
 
-	if( pOverWorld->debugmode )
+void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
+{	
+	if( pOverworld_manager->debugmode || editor_world_enabled )
 	{
-		double x = rect.x - cameraposx;
-		double y = rect.y - cameraposy;
+		float x = rect.x - pCamera->x;
+		float y = rect.y - pCamera->y;
 		
 		// direction back
-		if( direction_back == DIR_RIGHT )
+		if( direction_backward == DIR_RIGHT )
 		{
 			x += image->w;
 			y -= 2;
-			arrow_blue_r->Blit( x, y, &lightgreyalpha );
+
+			// create request
+			cSurfaceRequest *surface_request = new cSurfaceRequest();
+			arrow_blue_r->Blit( x, y, 0.079f, surface_request );
+			surface_request->shadow_pos = 2;
+			surface_request->shadow_color = lightgreyalpha64;
+			// add request
+			pRenderer->Add( surface_request );
 		}
-		else if( direction_back == DIR_LEFT )
+		else if( direction_backward == DIR_LEFT )
 		{
 			x -= arrow_blue_l->w;
 			y -= 2;
-			arrow_blue_l->Blit( x, y, &lightgreyalpha );
+
+			// create request
+			cSurfaceRequest *surface_request = new cSurfaceRequest();
+			arrow_blue_l->Blit( x, y, 0.079f, surface_request );
+			surface_request->shadow_pos = 2;
+			surface_request->shadow_color = lightgreyalpha64;
+			// add request
+			pRenderer->Add( surface_request );
 		}
-		else if( direction_back == DIR_UP )
+		else if( direction_backward == DIR_UP )
 		{
 			y -= arrow_blue_u->h;
 			x += 4;
-			arrow_blue_u->Blit( x, y, &lightgreyalpha );
+
+			// create request
+			cSurfaceRequest *surface_request = new cSurfaceRequest();
+			arrow_blue_u->Blit( x, y, 0.079f, surface_request );
+			surface_request->shadow_pos = 2;
+			surface_request->shadow_color = lightgreyalpha64;
+			// add request
+			pRenderer->Add( surface_request );
 		}
-		else if( direction_back == DIR_DOWN )
+		else if( direction_backward == DIR_DOWN )
 		{
 			y += image->h;
 			x += 4;
-			arrow_blue_d->Blit( x, y, &lightgreyalpha );
+
+			// create request
+			cSurfaceRequest *surface_request = new cSurfaceRequest();
+			arrow_blue_d->Blit( x, y, 0.079f, surface_request );
+			surface_request->shadow_pos = 2;
+			surface_request->shadow_color = lightgreyalpha64;
+			// add request
+			pRenderer->Add( surface_request );
 		}
 
-		x = rect.x - cameraposx;
-		y = rect.y - cameraposy;
+		x = rect.x - pCamera->x;
+		y = rect.y - pCamera->y;
 
 		// direction forward
 		if( direction_forward == DIR_RIGHT )
 		{
 			x += image->w;
 			y -= 2;
-			arrow_white_r->Blit( x, y, &lightgreyalpha );
+
+			// create request
+			cSurfaceRequest *surface_request = new cSurfaceRequest();
+			arrow_white_r->Blit( x, y, 0.79f, surface_request );
+			surface_request->shadow_pos = 2;
+			surface_request->shadow_color = lightgreyalpha64;
+			// add request
+			pRenderer->Add( surface_request );
 		}
 		else if( direction_forward == DIR_LEFT )
 		{
 			x -= arrow_white_l->w;
 			y -= 2;
-			arrow_white_l->Blit( x, y, &lightgreyalpha );
+
+			// create request
+			cSurfaceRequest *surface_request = new cSurfaceRequest();
+			arrow_white_l->Blit( x, y, 0.079f, surface_request );
+			surface_request->shadow_pos = 2;
+			surface_request->shadow_color = lightgreyalpha64;
+			// add request
+			pRenderer->Add( surface_request );
 		}
 		else if( direction_forward == DIR_UP )
 		{
 			y -= arrow_white_u->h;
 			x += 4;
-			arrow_white_u->Blit( x, y, &lightgreyalpha );
+
+			// create request
+			cSurfaceRequest *surface_request = new cSurfaceRequest();
+			arrow_white_u->Blit( x, y, 0.079f, surface_request );
+			surface_request->shadow_pos = 2;
+			surface_request->shadow_color = lightgreyalpha64;
+			// add request
+			pRenderer->Add( surface_request );
 		}
 		else if( direction_forward == DIR_DOWN )
 		{
 			y += image->h;
 			x += 4;
-			arrow_white_d->Blit( x, y, &lightgreyalpha );
+
+			// create request
+			cSurfaceRequest *surface_request = new cSurfaceRequest();
+			arrow_white_d->Blit( x, y, 0.079f, surface_request );
+			surface_request->shadow_pos = 2;
+			surface_request->shadow_color = lightgreyalpha64;
+			// add request
+			pRenderer->Add( surface_request );
 		}
 	}
 
-	if( type == 1 || type == 2 || pOverWorld->debugmode )
+	// draw waypoint
+	if( ( access && ( waypoint_type == 1 || waypoint_type == 2 ) ) || pOverworld_manager->debugmode || editor_world_enabled )
 	{
-		if( !pOverWorld->debugmode )
+		bool create_request = 0;
+
+		if( !request )
 		{
-			glColor3ub( 255, 100 + (Uint8)gcolor, 10 );
+			create_request = 1;
+			// create request
+			request = new cSurfaceRequest();
 		}
+
+		// draw
+		cSprite::Draw( request );
+
+		// default color
+		if( !pOverworld_manager->debugmode )
+		{
+			request->color = Color( (Uint8)255, 100 + (Uint8)gcolor, 10 );
+		}
+		// change to debug color
 		else
 		{
 			if( access )
 			{
-				glColor3ub( 255, 100 + (Uint8)gcolor, 200 );
+				request->color = Color( (Uint8)255, 100 + (Uint8)gcolor, 200 );
 			}
 			else
 			{
-				glColor3ub( 20, 100 + (Uint8)gcolor, 10 );
+				request->color =  Color( (Uint8)20, 100 + (Uint8)gcolor, 10 );
 			}
 		}
 
-		image->Blit( rect.x - cameraposx, rect.y - cameraposy );
-
-		glColor3ub( 255, 255, 255 );
+		if( create_request )
+		{
+			// add request
+			pRenderer->Add( request );
+		}
 	}
 }
 
-string cWaypoint :: Get_Levelfile( bool with_dir /* = 1 */, bool with_end /* = 1 */ )
+void cWaypoint :: Set_Access( bool enabled, bool new_start_access /* = 0 */ )
 {
-	string name = levelname;
-
-	if( with_dir && name.find( pPreferences->level_dir ) == string::npos ) 
+	access = enabled;
+	
+	if( new_start_access )
 	{
-		name.insert( 0, "/" );
-		name.insert( 0, pPreferences->level_dir );
+		access_default = access;
+	}
+}
+
+void cWaypoint :: Set_Destination( string str )
+{
+	// erase file type if set
+	if( str.rfind( ".txt" ) != string::npos || str.rfind( ".smclvl" ) != string::npos )
+	{
+		str.erase( str.rfind( "." ) );
 	}
 
-	if( with_end && name.find( ".txt" ) == string::npos ) 
+	// erase directory
+	if( waypoint_type == WAYPOINT_NORMAL && str.find( pPreferences->level_dir ) != string::npos )
 	{
-		name.insert( name.length(), ".txt" );
+		str.erase( 0, pPreferences->level_dir.length() + 1 );
 	}
-	else if( !with_end && name.find( ".txt" ) != string::npos ) 
+	else if( waypoint_type == WAYPOINT_WORLD_LINK && str.find( OVERWORLD_DIR ) != string::npos )
 	{
-		name.erase( name.find( ".txt" ), 4 );
+		str.erase( 0, strlen( OVERWORLD_DIR ) + 1 );
+	}
+
+	destination = str;
+}
+
+string cWaypoint :: Get_Destination( bool with_dir /* = 0 */, bool with_end /* = 0 */ )
+{
+	string name = destination;
+
+	if( with_dir ) 
+	{
+		if( waypoint_type == WAYPOINT_NORMAL && name.find( pPreferences->level_dir ) == string::npos )
+		{
+			name.insert( 0, pPreferences->level_dir + "/" );
+		}
+		else if( waypoint_type == WAYPOINT_WORLD_LINK && name.find( OVERWORLD_DIR ) == string::npos )
+		{
+			name.insert( 0, OVERWORLD_DIR "/" );
+		}
+	}
+
+	if( with_end ) 
+	{
+		if( waypoint_type == WAYPOINT_NORMAL )
+		{
+			name.insert( name.length(), ".smclvl" );
+		}
 	}
 
 	return name;
+}
+
+void cWaypoint :: Editor_Activate( void )
+{
+	WindowManager &wmgr = WindowManager::getSingleton();
+
+	// destination
+	Editbox *editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "waypoint_destination" ));
+	editbox->setTooltipText( "Destination" );
+	Editor_Add( editbox, 150 );
+
+	editbox->setText( Get_Destination() );
+	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cWaypoint::Editor_Destination_Key, this ) );
+
+	// backward direction
+	Combobox *combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "waypoint_backward_direction" ));
+	combobox->getEditbox()->setTooltipText( "Backward Direction" );
+	Editor_Add( combobox, 100, 105 );
+
+	combobox->addItem( new ListboxTextItem( "up" ) );
+	combobox->addItem( new ListboxTextItem( "down" ) );
+	combobox->addItem( new ListboxTextItem( "right" ) );
+	combobox->addItem( new ListboxTextItem( "left" ) );
+	combobox->setText( Get_Direction_name( direction_backward ) );
+
+	combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cWaypoint::Editor_Backward_Direction_Select, this ) );
+
+	// forward direction
+	combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "waypoint_forward_direction" ));
+	combobox->getEditbox()->setTooltipText( "Forward Direction" );
+	Editor_Add( combobox, 100, 105 );
+
+	combobox->addItem( new ListboxTextItem( "up" ) );
+	combobox->addItem( new ListboxTextItem( "down" ) );
+	combobox->addItem( new ListboxTextItem( "right" ) );
+	combobox->addItem( new ListboxTextItem( "left" ) );
+	combobox->setText( Get_Direction_name( direction_forward ) );
+
+	combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cWaypoint::Editor_Forward_Direction_Select, this ) );
+
+	// Access
+	combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "waypoint_access" ));
+	combobox->getEditbox()->setTooltipText( "Default Access" );
+	Editor_Add( combobox, 120, 80 );
+
+	combobox->addItem( new ListboxTextItem( "Enabled" ) );
+	combobox->addItem( new ListboxTextItem( "Disabled" ) );
+
+	if( access_default == 1 )
+	{
+		combobox->setText( "Enabled" );
+	}
+	else
+	{
+		combobox->setText( "Disabled" );
+	}
+
+	combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cWaypoint::Editor_Access_Select, this ) );
+
+	// set position
+	Editor_pos_update();
+}
+
+bool cWaypoint :: Editor_Destination_Key( const EventArgs &event )
+{
+	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
+	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
+
+	Set_Destination( str_text );
+
+	return 1;
+}
+
+bool cWaypoint :: Editor_Backward_Direction_Select( const EventArgs &event )
+{
+	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
+	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+
+	direction_backward = Get_Direction_id( item->getText().c_str() );
+
+	return 1;
+}
+
+bool cWaypoint :: Editor_Forward_Direction_Select( const EventArgs &event )
+{
+	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
+	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+
+	direction_forward = Get_Direction_id( item->getText().c_str() );
+
+	return 1;
+}
+
+bool cWaypoint :: Editor_Access_Select( const EventArgs &event )
+{
+	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
+	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+
+	if( item->getText().compare( "Enabled" ) == 0 )
+	{
+		Set_Access( 1 );
+	}
+	else
+	{
+		Set_Access( 0 );
+	}
+
+	return 1;
 }

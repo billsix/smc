@@ -1,2 +1,5 @@
 width 43
 height 43
+editor_tags level;sand;block
+name Sand
+type massive

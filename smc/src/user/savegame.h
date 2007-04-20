@@ -1,7 +1,7 @@
 /***************************************************************************
            savegame.h  -  Savegame Engine Header
                              -------------------
-    copyright            : (C) 2003 - 2006 by FluXy
+    copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -15,72 +15,203 @@
 #ifndef __SAVEGAME_H__
 #define __SAVEGAME_H__
 
-#include "../globals.h"
+#include "../core/globals.h"
+#include "../objects/sprite.h"
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-#define SAVEGAME_VERSION "2.1"
+#define SAVEGAME_VERSION 7
+#define SAVEGAME_VERSION_UNSUPPORTED 5
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
-
-class cSavegame_data
+/* *** *** *** *** *** *** *** cSave_Overworld_Waypoint *** *** *** *** *** *** *** *** *** *** */
+/* Overworld Waypoint save data
+ *
+*/
+class cSave_Overworld_Waypoint
 {
 public:
-	cSavegame_data( void );
-	~cSavegame_data( void );
+	cSave_Overworld_Waypoint( void );
+	~cSave_Overworld_Waypoint( void );
 
-	void Init( void );
-
-	string description;			// Level Description
-	int version;				// Level Savegame Version
-	string levelname;			// Level Name
-	string timestamp;			// Time
-
-	// Player Information
-	unsigned int lives;
-	unsigned int points;
-	unsigned int goldpieces;
-	unsigned int state;			// 1 = small, 2 = big, 3 = Fire ...
-	unsigned int itembox_item;	// The Item in the Itembox
-	int posx, posy;				// Position
-
-	// OverWorld information
-	unsigned int Overworld_save;			// is this an Overworld save
-	unsigned int Overworld_nlevel;			// accessed Overworld normal levels
-	unsigned int Overworld_slevel;			// accessed Overworld secret levels
-	unsigned int Overworld_curr_waypoint;	// Current Waypoint
-	unsigned int Overworld_world;			// Current Overworld
+	string destination;
+	bool access;
 };
 
+typedef vector<cSave_Overworld_Waypoint *> Save_Overworld_WaypointList;
 
-class cSavegame : public cFile_parser
+
+/* *** *** *** *** *** *** *** cSave_Overworld *** *** *** *** *** *** *** *** *** *** */
+/* Overworld save data
+ *
+*/
+class cSave_Overworld
+{
+public:
+	cSave_Overworld( void );
+	~cSave_Overworld( void );
+
+	string name;
+
+	// waypoint data
+	Save_Overworld_WaypointList Waypoints;
+};
+
+typedef vector<cSave_Overworld *> Save_OverworldList;
+
+/* *** *** *** *** *** *** *** cSave_Level_Object_Property *** *** *** *** *** *** *** *** *** *** */
+/* Level object string property
+*/
+class cSave_Level_Object_Property
+{
+public:
+	cSave_Level_Object_Property( string nName = "", string nValue = "" );
+
+	string Name;
+	string Value;
+};
+
+typedef vector<cSave_Level_Object_Property> Save_Level_Object_ProprtyList;
+
+/* *** *** *** *** *** *** *** cSave_Level_Object *** *** *** *** *** *** *** *** *** *** */
+/* Level object save data
+ *
+*/
+class cSave_Level_Object
+{
+public:
+	cSave_Level_Object( void );
+	~cSave_Level_Object( void );
+
+	// Returns the Value
+	string Get_Value( string val_name );
+
+	SpriteType type;
+
+	// object properties
+	Save_Level_Object_ProprtyList properties;
+};
+
+typedef vector<cSave_Level_Object *> Save_Level_ObjectList;
+
+/* *** *** *** *** *** *** *** cSave *** *** *** *** *** *** *** *** *** *** */
+/* Save data
+ *
+*/
+class cSave
+{
+public:
+	cSave( void );
+	~cSave( void );
+
+	// Set data to default/empty values
+	void Clear( void );
+
+	// ## Save Information
+	// description
+	string description;
+	// savegame version
+	int version;
+	// time  ( seconds since 1970 )
+	time_t save_time;
+
+	// ## Player Information
+	// lives
+	unsigned int lives;
+	// points
+	unsigned int points;
+	// goldpieces
+	unsigned int goldpieces;
+	// player state
+	unsigned int player_state;
+	// item in the itembox
+	unsigned int itembox_item;
+
+	// ## Level Information
+	/* level name
+	 * only saved if Player is in a Level
+	*/
+	string level_name;
+	// level position
+	float level_posx, level_posy;
+	// objects data
+	Save_Level_ObjectList level_objects;
+
+	// ## Overworld Information
+	// active Overworld
+	string overworld_active;
+	// current Waypoint
+	unsigned int overworld_current_waypoint;
+
+	// overworld data
+	Save_OverworldList Overworlds;
+};
+
+/* *** *** *** *** *** *** *** cSavegame *** *** *** *** *** *** *** *** *** *** */
+
+class cSavegame : public XMLHandler
 {
 public:
 	cSavegame( void );
 	~cSavegame( void );
 
-	// Loads the Savegame
-	cSavegame_data Load( unsigned int save_slot );
-	// Saves the Savegame
-	int Save( unsigned int save_slot, cSavegame_data Save_info );
+	/* Load a Save
+	 * Returns 0 if failed 
+	 * 1 if ingame save
+	 * 2 if Overworld save
+	*/
+	int Load_Game( unsigned int save_slot );
+	// Save the game with the given description
+	bool Save_Game( unsigned int save_slot, string description );
+
+	// Load a Save
+	cSave *Load( unsigned int save_slot );
+	// Save a Save
+	int Save( unsigned int save_slot, cSave *Save_info );
 
 	// Returns only the Savegame Description
 	string Get_Description( unsigned int save_slot, bool only_description = 0 );
 
-	// Print Savegame Debug information
-	void Debug_Print( cSavegame_data savegame );
-
 	// Returns true if the Savegame is valid
 	bool is_valid( unsigned int save_slot );
 
-	// savegame debug messages
+	// debug messages enabled
 	bool debug;
 
-private:
-	// Handles the command
-	virtual bool HandleMessage( string *parts, unsigned int count, unsigned int line );
+	// current error count
+	unsigned int error_count;
 
-	// for Savegame loading
-	cSavegame_data savegame_temp;
+	// savegame directory
+	string savegame_dir;
+private:
+	// XML element start
+    virtual void elementStart( const String &element, const XMLAttributes &attributes );
+	// XML element end
+    virtual void elementEnd( const String &element );
+
+	void Handle_Level( const XMLAttributes &attributes );
+	void Handle_Level_Object( const XMLAttributes &attributes );
+	void Handle_Player( const XMLAttributes &attributes );
+	void Handle_Overworld_Data( const XMLAttributes &attributes );
+	void Handle_Overworld( const XMLAttributes &attributes );
+	void Handle_Overworld_Level( const XMLAttributes &attributes );
+
+	// XML element Item Tag list
+	XMLAttributes xml_attributes;
+
+	// current savegame overworld waypoints for overworld parsing
+	Save_Overworld_WaypointList active_waypoints;
+	// current savegame level objects for level parsing
+	Save_Level_ObjectList level_objects;
+
+	// temp Save used for loading
+	cSave *save_temp;
 };
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+// The Savegame Handler
+extern cSavegame *pSavegame;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
 #endif

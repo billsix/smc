@@ -1,7 +1,7 @@
 /***************************************************************************
 			mouse.h  -  header for the corresponding cpp file
                          -------------------
-    copyright            : (C) 2003 - 2006 by FluXy
+    copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -12,83 +12,206 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "../globals.h"
-
 #ifndef __MOUSE_H__
 #define __MOUSE_H__
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+#include "../core/globals.h"
+#include "../objects/movingsprite.h"
+#include "../core/math/rect.h"
+#include "../core/math/vector.h"
 
-class cMouseCursor : public cSprite
+/* *** *** *** *** *** *** cSelectedObject *** *** *** *** *** *** *** *** *** *** *** */
+
+class cSelectedObject
+{
+public:
+	cSelectedObject( void );
+	~cSelectedObject( void );
+	
+	// base object
+	cSprite *obj;
+	// additional selection mouse position
+	int mouse_w, mouse_h;
+
+	// if user controlled
+	bool user;
+};
+
+typedef vector<cSelectedObject *> SelectedObjectList;
+
+/* *** *** *** *** *** *** cCopyObject *** *** *** *** *** *** *** *** *** *** *** */
+
+class cCopyObject
+{
+public:
+	cCopyObject( void );
+	~cCopyObject( void );
+	
+	// base object
+	cSprite *obj;
+};
+
+typedef vector<cCopyObject *> CopyObjectList;
+
+/* *** *** *** *** *** *** cMouseCursor *** *** *** *** *** *** *** *** *** *** *** */
+
+class cMouseCursor : public cMovingSprite
 {
 public:
 	cMouseCursor( void );
 	virtual ~cMouseCursor( void );
 
 	// resets leveleditor features
-	void Reset( void );
+	void Reset( bool clear_copy_buffer = 1 );
+	// only reset buttons
+	void Reset_keys( void );
 
 	// Handles the Mouse events
-	void Handle_Events( void );
+	bool Handle_Event( SDL_Event *ev );
+	/* Function: Gui_handle_Mouse_down
+	 * GUI handle mouse down function
+	 * Returns true if GUI handled the event
+	*/
+	bool Handle_Mouse_down( Uint8 button );
+	/* Function: Gui_handle_Mouse_up
+	 * GUI handle mouse up function
+	 * Returns true if GUI handled the event
+	*/
+	bool Handle_Mouse_up( Uint8 button );
 
-	// Checks if the Mousecursor is in the Rect
-	bool CollsionCheck ( GL_rect *rect );
+	// Checks if the Mousecursor is in the given rect
+	bool Collsion_Check ( GL_rect *crect );
 
-	// Checks for a collision for the leveleditor
-	bool Editor_CollsionCheck ( double x, double y );
+	// Checks for a collision for the editor
+	bool Editor_Collsion_Check( float px = 0, float py = 0 );
+	/* Get the Level/World Object Collision if available
+	 * returns 1 if collision found else 0
+	*/
+	bool Get_Collision_Level( GL_rect *mouse_rect );
+	bool Get_Collision_World( GL_rect *mouse_rect );
 
-	// Updates the Mousecursor
+	// Update
 	virtual void Update( void );
-	// Updates the Mouse Position
+	// Draw
+	virtual void Draw( void );
+	// Render
+	void Render( void );
+
+	// Update the Mouse Position
 	void Update_Position( void );
-	// Updates the Double Click event
+	// Update the Double Click event
 	void Update_Doubleclick( void );
-	// Updates the Mouseobject position
-	void MouseObject_Update( void );
+
 
 	// Editor default click
 	void Click( void );
-	// Editor default double click
+	// Editor default float click
 	void Double_Click( bool activate = 1 );
 
-	// Sets the MouseObject
-	void Set_MouseObject( cSprite *sprite );
-	// Copies the Object
-	void Copy( cSprite *nCopyObject, double x, double y );
-	// Deletes the current colliding Object
-	void Delete( void );
+	// ## Mouse Object
+	// Set new mouse object
+	void Set_mouse_object( cSprite *sprite );
+	// update the mouse object position
+	void Update_mouse_object( void );
+	// clear mouse object
+	void Clear_mouse_object( void );
 
-	// Draws lines around the currently hoverd Object
-	void Draw_HoveredObject( void );
+	// ## Copy Objects
+	// Add new copy object
+	void Add_copy_object( cSprite *sprite );
+	void Add_copy_objects( SpriteList spritelist );
+	/* Remove a copy_object
+	 * returns true if removed
+	*/
+	bool Remove_copy_object( cSprite *sprite );
+	// clear copy object list
+	void Clear_copy_objects( void );
+	/* returns the position of the first top left copy object
+	 * if no copy_objects returns 0, 0
+	*/
+	GL_Vector Get_copy_object_base( float px, float py );
+	// paste copy object list
+	void Paste_copy_objects( float px, float py );
 
+	// ## Selected Objects
+	/* Add new selected_object
+	 * Returns true if object got added or changed to user object
+	*/
+	bool Add_selected_object( cSprite *sprite, bool from_user = 0 );
+	void Add_selected_objects( SpriteList spritelist, bool from_user = 0 );
+	/* Remove a selected_object
+	 * returns true if found and removed
+	*/
+	bool Remove_selected_object( cSprite *sprite, bool no_user = 0 );
+	// Returns all selected objects
+	SpriteList Get_selected_objects( void );
+	// clear selected object list
+	void Clear_selected_objects( void );
+	// updates the selected objects positions
+	void Update_selected_objects( void );
+	/* returns true if the given object is a selected_object
+	 * if only_user is given only check user objects
+	*/
+	bool is_selected_object( cSprite *sprite, bool only_user = 0 );
+	// deletes the selected objects
+	void Delete_selected_objects( void );
+	// returns the selected objects size
+	unsigned int Get_selected_object_size( void );
+
+	// ## Active Object
+	// Set new active object
+	void Set_active_object( cSprite *sprite );
+	// clear active object
+	void Clear_active_object( void );
+
+	/* Copies the given object to the given position
+	 * object is automatically added to the object manager
+	 * returns the new object
+	*/
+	cSprite *Copy( cSprite *ncopy_object, float px, float py );
+	// Deletes the given Object
+	void Delete( cSprite *sprite );
+
+	// Draws a rect around the mouse_object and selected objects
+	void Draw_object_rects( void );
+
+	// Start selection mode
+	void Start_selection( void );
+	// End selection mode
+	void End_selection( void );
+	// update selection mode
+	void Update_selection( void );
+
+	// Toggle Mover mode
+	void Toggle_Mover_mode( void );
 	// Updates the Mover Mode
 	void Mover_Update( Sint16 move_x, Sint16 move_y );
 	// Updates the Leveleditor Mouse
 	void Editor_Update( void );
 	
-	// current internal mouseposition
+	// current internal mouse position
 	int x, y;
+	
+	// selection mode
+	bool mode_selection;
+	// Selection rect
+	GL_rect selection_rect;
 
-	// image if in mover mode
-	GL_Surface *Mover_mouse;
-	
-	// Hovered object Rect
-	GL_rect HoveredObject;
-	
-	// if activated the mouscursor movement moves the screen	
+	// if activated the mouse cursor movement moves the screen	
 	bool mover_mode;
 	// fastcopy mode
-	bool fastCopyMode;
+	bool mode_fastcopy;
 
-	// current colliding Object
-	cSprite *MouseObject;
-	// Object selected for copying
-	cSprite *CopyObject;
+	/* selected objects
+	 * the mouse object is also always a selected object
+	*/
+	SelectedObjectList selected_objects;
+	// currently colliding object with the mouse
+	cSelectedObject *mouse_object;
+	// objects selected for copying
+	CopyObjectList copy_objects;
 	// settings activated object
-	cSprite *ActiveObject;
-
-	// additional MouseObject position
-	int mouse_w, mouse_h;
+	cSprite *active_object;
 
 	// pressed Buttons
 	bool left, right, middle;
@@ -96,8 +219,15 @@ public:
 	// last clicked object
 	cSprite *click_temp;
 
-	// counter for catching double-clicks
-	double clickcounter;
+	// counter for catching float-clicks
+	float clickcounter;
 };
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+// The Mouse
+extern cMouseCursor *pMouseCursor;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 #endif

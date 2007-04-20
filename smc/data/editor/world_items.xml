@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Items>
+	<Item>
+		<Property Name="object_name" Value="waypoint" />
+		<Property Name="object_tags" Value="world;generic" />
+		<Property Name="level" Value="lvl_1" />
+		<Property Name="access" Value="0" />
+	</Item>
+</Items>

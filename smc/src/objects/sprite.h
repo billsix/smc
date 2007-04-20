@@ -1,7 +1,7 @@
 /***************************************************************************
                 sprite.h  -  header for the corresponding cpp file
                              -------------------
-    copyright            :	(C) 2003 - 2006 by FluXy
+    copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -10,66 +10,70 @@
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
- ***************************************************************************/ 
+ ***************************************************************************/
 
 #ifndef __SPRITE_H__
 #define __SPRITE_H__
 
-#include "../globals.h"
-#include "../collision.h"
+#include "../core/globals.h"
+#include "../core/math/rect.h"
+#include "../video/video.h"
+#include "../core/collision.h"
 
-/* *** *** *** *** *** *** *** ## Movement states ## *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** Sprite Types *** *** *** *** *** *** *** *** *** *** */
 
-typedef enum
-{
-	STAY	= 0,
-	WALK	= 1,
-	RUN		= 2,
-	FALL	= 3,
-	FLY		= 4,
-	JUMP	= 5,
-	CLIMB	= 6
-} Moving_state;
-
-/* *** *** *** *** *** *** *** ## Sprite Types ## *** *** *** *** *** *** *** *** *** *** */
-
-typedef enum
+enum SpriteType
 {
 	TYPE_UNDEFINED = 0,
 	// global
 	TYPE_SPRITE = 1,
+	TYPE_PASSIVE = 44,
+	TYPE_FRONT_PASSIVE = 45,
+	TYPE_MASSIVE = 46,
+	TYPE_HALFMASSIVE = 5,
+	TYPE_CLIMBABLE = 47,
 	TYPE_ENEMY = 2,
 	TYPE_PLAYER = 3,
 	TYPE_ACTIVESPRITE = 4,
-	TYPE_HALFMASSIVE = 5,
+	// game
+	TYPE_MOUSECURSOR = 100,
+	// overworld
+	TYPE_OW_WAYPOINT = 55,
+	TYPE_OW_LINE_START = 57,
+	TYPE_OW_LINE_END = 58,
 	// level
 	TYPE_LEVELEXIT = 18,
 	TYPE_ENEMYSTOPPER = 20,
-	TYPE_BONUSBOX_MUSHROOM_FIRE = 26,
-	TYPE_BONUSBOX_LIVE = 31,
-	TYPE_BONUSBOX_JSTAR = 40,
-	TYPE_GOLDBOX = 21,
+	TYPE_BONUSBOX = 26,
 	TYPE_SPINBOX = 27,
-	// special
-	TYPE_FIREBALL = 28,
-	TYPE_CLOUD = 7,
 	TYPE_MOVING_PLATFORM = 38,
-	TYPE_MOUSECURSOR = 100,
 	// enemy
-	TYPE_GOOMBA = 10,
+	TYPE_GUMBA = 10,
 	TYPE_TURTLE = 19,
+	TYPE_TURTLE_BOSS = 56,
 	TYPE_JPIRANHA = 29,
-	TYPE_BANZAI_BILL = 30,
+	TYPE_ROKKO = 30,
 	TYPE_REX = 36,
+	TYPE_THROMP = 41,
+	TYPE_EATO = 42,
+	TYPE_GEE = 43,
+	TYPE_SPIKA = 31,
+	TYPE_STATIC_ENEMY = 50,
 	// items
 	TYPE_POWERUP = 23,
 	TYPE_MUSHROOM_DEFAULT = 25,
 	TYPE_MUSHROOM_LIVE_1 = 35,
+	TYPE_MUSHROOM_POISON = 49,
+	TYPE_MUSHROOM_BLUE = 51,
+	TYPE_MUSHROOM_GHOST = 52,
 	TYPE_FIREPLANT = 24,
-	TYPE_BOUNCINGGOLDPIECE = 22,
+	TYPE_JGOLDPIECE = 22, // Jumping Goldpiece
+	TYPE_FGOLDPIECE = 48, // Falling Goldpiece
 	TYPE_GOLDPIECE = 8,
 	TYPE_MOON = 37,
-	TYPE_JSTAR = 39,
+	TYPE_JSTAR = 39, // Jumping Star
+	// special
+	TYPE_BALL = 28,
 	// HUD
 	TYPE_STATUSTEXT = 9,
 	TYPE_POINTDISPLAY = 12,
@@ -78,258 +82,305 @@ typedef enum
 	TYPE_LIFEDISPLAY = 15,
 	TYPE_GOLDDISPLAY = 16,
 	TYPE_MENUBG = 17,
-	TYPE_ITEMBOXDISPLAY = 32,
-	// dialog
-	TYPE_DIALOG_ALL = 200,
-	TYPE_DIALOG_ONLY_LETTERS = 201,
-	TYPE_DIALOG_ONLY_NUMBERS = 202
-} SpriteType;
-
-/* *** *** *** *** *** *** *** ## Array Types ## *** *** *** *** *** *** *** *** *** *** */
-
-typedef enum
-{
-	ARRAY_UNDEFINED = 0,
-	// level default
-	ARRAY_MASSIVE = 1,
-	ARRAY_PASSIVE = 2,
-	ARRAY_ENEMY = 3,
-	ARRAY_ACTIVE = 4,
-	// hud
-	ARRAY_HUD = 5,
-	// animation
-	ARRAY_ANIM = 6,
-	// dialog
-	ARRAY_DIALOG = 7
-} ArrayType;
+	TYPE_ITEMBOXDISPLAY = 32
+};
 
 /* *** *** *** *** *** *** *** Massive Types *** *** *** *** *** *** *** *** *** *** */
 
-typedef enum
+enum MassiveType
 {
 	MASS_PASSIVE = 0,
 	MASS_MASSIVE = 1,
 	MASS_HALFMASSIVE = 2,
 	MASS_CLIMBABLE = 3
-} MassiveType;
+};
 
+/* *** *** *** *** *** *** *** cCollidingSprite *** *** *** *** *** *** *** *** *** *** */
 
-/* *** *** *** *** *** *** *** Sprite *** *** *** *** *** *** *** *** *** *** */
-
-class cSprite
+class cCollidingSprite
 {
 public:
-	// if del_img is set the given image will be deleted
-	cSprite( GL_Surface *new_image = NULL, double x = 0, double y = 0, bool del_img = 0, Color *shadow = NULL, bool no_cam = 0 );
-	virtual ~cSprite( void );
+	cCollidingSprite( void );
+	virtual ~cCollidingSprite( void );
 
-	/* Sets the image for drawing
-	 * if new_Startimage is set the default Startimage will be set to the given image
-	 * if del_img is set the given image will be deleted
+	// Parses the collision data
+	void Parse_Collisions( void );
+	// Handle collision data
+	void Handle_Collisions( void );
+	/* Add a collision to the collision list
+	 * returns true if successful
+	 *
+	 * base : base/origin object
+	 * col : colliding object ( only needed if the collision direction is needed )
+	 * col_id : colliding object identifier
+	 * col_type : collision object type
+	 * add_if_new : add the collision only if the object doesn't already collide
 	*/
-	void SetImage( GL_Surface *new_image, bool new_start_image = 0, bool del_img = 0 );
-	// Sets the Position
-	void SetPos( double x, double y, bool new_startpos = 0 );
-	// Set the shadow
-	void SetShadow( Color *shadow );
-	// Set camera
-	void SetCamera( bool enabled );
-	// Sets the X rotation
-	void SetRotationX( double rot );
-	// Sets the Y rotation
-	void SetRotationY( double rot );
-	// Sets the Z rotation
-	void SetRotationZ( double rot );
-	// Sets the rotation
-	void SetRotation( double x, double y, double z );
-	// Set the direction
-	void Set_Direction( ObjectDirection dir, bool new_start_direction = 0 );
-	// Sets this sprite on top of the given one
-	void Set_onTop( cSprite *sprite, bool optimize_hor_pos = 1 );
-
-	// Adds X rotation
-	void AddRotationX( double rot );
-	// Adds Y rotation
-	void AddRotationY( double rot );
-	// Adds Z rotation
-	void AddRotationZ( double rot );
-	// Adds rotation
-	void AddRotation( double x, double y, double z );
-
-	// automatically slows down until not moving anymore
-	void Auto_SlowDown( double x_speed, double y_speed = 0 );
-
-	// Returns the Collision direction if not forced
-	ObjectDirection Move( double move_x, double move_y, bool real = 0, bool force = 0, bool check_onground = 1 );
-	// Adds Velocity
-	void AddVel( double move_x, double move_y, bool real = 0 );
-	// Walk into the opposite X Direction
-	void Turn_Around( void );
-
-	// Draw the Sprite
-	virtual void Draw( void );
-
-	// Checks if the Sprite is visible on the screen
-	bool isVisible_onScreen( void ); 
-	// Checks if this sprite is on top of the given object
-	bool is_onTop( cSprite *obj );
-	// Checks if the Object is in player range
-	bool isPlayer_range( void );
-
-	/* checks if the given Position is valid
-	 * uses the image collision rect
-	*/
-	ObjectCollisionType ColCheckAuto( double x, double y, double w = 0, double h = 0, bool only_check = 0 );
-	/* checks if the given Position is valid
-	 * automatically creates a collision rect for the given width and height
-	*/
-	ObjectCollisionType ColCheck( double x, double y, double w = 0, double h = 0, bool only_check = 0 );
-	/* checks if the given Position is valid
-	 * uses the given rect as the source collision rect
-	*/
-	ObjectCollisionType ColCheck( GL_rect *rect1, bool only_check = 0 );
-	// Sets the ground object
-	void Set_onGround( cObjectCollision *collision );
-	// Checks if the Object is onground and sets the state to onground
-	void Check_onGround( void );
-	// object looses onground state
-	void Reset_onGround( void );
-	// Corrects the position if the object got stuck
-	void Update_antistuck( void );
-
-	// default collision and movement handling
-	void CollideMove( void );
-	/* Adds a new collision to the collision list
-	 * base and col pointers are only needed if the collision direction is needed
-	*/
-	void Add_Collision( cSprite *base, cSprite *col, unsigned int col_num = 0, ObjectCollisionType col_type = CO_NOTHING );
-	// Deletes the last collision
-	void Delete_lastCollision( void );
-	/* checks if a collision is in the given direction 
-	 * and returns the collisionobject number else -1
+	bool Collision_Add( cSprite *base, cSprite *col, unsigned int col_id = 0, ObjectCollisionType col_type = CO_NOTHING, bool add_if_new = 0 );
+	/* Add a collision object to the collision list
+	 * returns true if successful
+	 * add_if_new : add the collision only if the collision object doesn't already collide
 	 */
-	int Check_CollisionDir( ObjectDirection dir );
-	// returns the first found collision
-	cObjectCollision *Get_firstCollision( void );
-	// returns the last found collision
-	cObjectCollision *Get_lastCollision( void );
-	// Clears the Collision informations
-	void ClearCollisions( void );
-
-	// deletes this sprite on the next frame start
-	void Destroy( void );
-
-	/* usually is a death or a state downgrade
-	 * force : if given no downgrade if available will be handled
-	 * the object will be completely downgraded
+	bool Collision_Add( cObjectCollision *collision, bool add_if_new = 0 );
+	// Delete the given collision from the list
+	void Collision_Delete( cObjectCollision *collision );
+	// Delete the last collision
+	void Collision_Delete_last( void );
+	/* Check if a collision is in the given direction 
+	 * and returns the collision object number else -1
+	 */
+	int Collision_Check_Direction( ObjectDirection dir );
+	// Returns the first added collision
+	cObjectCollision *Collision_Get_first( void );
+	/* Returns the last added collision
+	 * if only_blocking is set only movement blocking collisions are returned
 	*/
-	virtual void DownGrade( bool force = 0 );
-
-	// default update
-	virtual void Update( void );
-
-	// updates the direction on the current velocity
-	void Update_Direction( void );
-	// sets the sprite rotation if walking
-	void Update_Rotation_velx( void );
+	cObjectCollision *Collision_Get_last( bool only_blocking = 0 );
+	// Clear the Collision list
+	void Collisions_Clear( void );
 
 	// default collision handler
-	virtual void HandleCollision( cObjectCollision *collision );
+	virtual void Handle_Collision( cObjectCollision *collision );
 	// collision from player
-	virtual void PlayerCollision( ObjectDirection cdirection );
+	virtual void Handle_Collision_Player( ObjectDirection cdirection );
 	// collision from an enemy
-	virtual void EnemyCollision( ObjectDirection cdirection );
+	virtual void Handle_Collision_Enemy( cObjectCollision *collision );
+	// collision with massive
+	virtual void Handle_Collision_Massive( cObjectCollision *collision );
 	// collision from a box
-	virtual void BoxCollision( ObjectDirection cdirection, GL_rect *r2 );
-
-	// leveleditor activation
-	virtual void Editor_Activate( void );
-	// leveleditor deactivation
-	virtual void Editor_Deactivate( void );
-	// leveleditor position update
-	virtual void Editor_pos_update( void );
-	// leveleditor value update
-	virtual void Editor_val_update( void );
-
-	GL_Surface *image; // current image
-	GL_Surface *start_image; // editor / first image
-
-	GL_rect rect; // complete image rect
-	GL_rect start_rect; // editor / first image rect
-	GL_rect col_rect; // collision rect
-	GL_point col_pos; // collision start point
-
-	// current position
-	double posx, posy;
-	// start position
-	double startposx, startposy;
-	// velocity
-	double velx, vely;
-	// rotation
-	double rotz, rotx, roty;
-	// scale
-	double scale;
-
-	// sprite type
-	SpriteType type;
-	// sprite Array type
-	ArrayType array;
-
-	// current direction
-	ObjectDirection direction;
-	// start direction
-	ObjectDirection start_direction;
-
-	// colliding ground object
-	cSprite *groundObject;
-
-	// massive collision type
-	MassiveType massivetype;
+	virtual void Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 );
 
 	// object collision list
 	ObjectCollisionList collisions;
+};
 
+/* *** *** *** *** *** *** *** cSprite *** *** *** *** *** *** *** *** *** *** */
+
+class cSprite : public cCollidingSprite
+{
+public:
+	// if del_img is set the given image will be deleted on change or class deletion
+	cSprite( GL_Surface *new_image = NULL, float x = 0, float y = 0, bool del_img = 0 );
+	// create from stream
+	cSprite( XMLAttributes &attributes );
+	// destructor
+	virtual ~cSprite( void );
+
+	// Init defaults
+	void Init( void );
+	// copy this sprite
+	virtual cSprite *Copy( void );
+
+	// create from stream
+	virtual void Create_from_Stream( XMLAttributes &attributes );
+	// save to stream
+	virtual void Save_to_Stream( ofstream &file );
+
+	/* Sets the image for drawing
+	 * if new_start_image is set the default start_image will be set to the given image
+	 * if del_img is set the given image will be deleted
+	*/
+	virtual void Set_Image( GL_Surface *new_image, bool new_start_image = 0, bool del_img = 0 );
+
+	// Set the sprite type
+	void Set_Sprite_Type( SpriteType ntype );
+	// Returns the sprite type as string
+	string Get_Sprite_Type_String( void );
+
+	// Set if the camera should be ignored
+	void Set_Ignore_Camera( bool enable = 0 );
+
+	// Sets the Position
+	void Set_Pos( float x, float y, bool new_startpos = 0 );
+	void Set_PosX( float x, bool new_startpos = 0 );
+	void Set_PosY( float y, bool new_startpos = 0 );
+	// Set if visible
+	void Set_Visible( bool enabled );
+	/* Set the shadow
+	 * if position is set to 0 the shadow is disabled
+	*/
+	void Set_Shadow( Color shadow, float pos );
+	/* Set the shadow position
+	 * if set to 0 the shadow is disabled
+	*/
+	void Set_Shadow_Pos( float pos );
+	// Set the shadow color
+	void Set_Shadow_Color( Color shadow );
+	// Set image color
+	void Set_Color( Uint8 red, Uint8 green, Uint8 blue, Uint8 alpha = 255 );
+	void Set_Color( Color col );
+	/* Set a Color Combination ( GL_ADD, GL_MODULATE or GL_REPLACE )
+	 * Addition ( adds white to color )
+	 * 1.0 is the maximum and the given color will be white
+	 * 0.0 is the minimum and the color will have the default color
+	 * Modulation ( adds black to color )
+	 * 1.0 is the maximum and the color will have the default color
+	 * 0.0 is the minimum and the given color will be black
+	 * Replace ( replaces color value )
+	 * 1.0 is the maximum and the given color has maximum value
+	 * 0.0 is the minimum and the given color has minimum value
+	*/
+	void Set_Color_Combine( float red, float green, float blue, GLint com_type );
+	// Set the X rotation
+	void Set_RotationX( float rot, bool new_start_rot = 0 );
+	// Set the Y rotation
+	void Set_RotationY( float rot, bool new_start_rot = 0 );
+	// Set the Z rotation
+	void Set_RotationZ( float rot, bool new_start_rot = 0 );
+	// Set the rotation
+	void Set_Rotation( float x, float y, float z, bool new_start_rot = 0 );
+
+	// Add X rotation
+	void Add_RotationX( float rot );
+	// Add Y rotation
+	void Add_RotationY( float rot );
+	// Add Z rotation
+	void Add_RotationZ( float rot );
+	// Add rotation
+	void Add_Rotation( float x, float y, float z );
+
+	// Set the scale
+	void Set_ScaleX( float scale );
+	void Set_ScaleY( float scale );
+	void Set_Scale( float scale );
+
+	// Add scale
+	void Add_ScaleX( float val );
+	void Add_ScaleY( float val );
+	void Add_Scale( float val );
+
+	// Set this sprite on top of the given one
+	void Set_onTop( cSprite *sprite, bool optimize_hor_pos = 1 );
+
+	/* Move this object
+	 * real : if set the speedfactor is not used
+	*/
+	virtual void Move( float move_x, float move_y, bool real = 0 );
+
+	// Update the position rect values
+	void Update_Position_Rect( void );
+	// default update
+	virtual void Update( void );
+	// update drawing validation
+	virtual void Update_valid_draw( void );
+
+	/* Draw
+	* if request is NULL automatically creates the request
+	*/
+	virtual void Draw( cSurfaceRequest *request = NULL );
+	/* only draws the image
+	 * no position nor debug updates
+	*/
+	void Draw_Image( cSurfaceRequest *request = NULL );
+
+	/* Set the massive type
+	 * should be called after setting the new array
+	*/
+	virtual void Set_Massivetype( MassiveType mtype );
+
+	// Check if this sprite is on top of the given object
+	bool is_onTop( cSprite *obj );
+
+	// if the sprite is visible on the screen
+	bool is_Visible_onScreen( void );
+	// if the Object is in player range
+	bool is_Player_range( void );
+	// if draw is valid for the current state and position
+	virtual bool is_Draw_valid( void );
+
+	// deletes this sprite on the next frame start
+	virtual void Destroy( void );
+
+	// editor add window object
+	void Editor_Add( Window *obj, float obj_width, float obj_height = 25 );
+	// editor activation
+	virtual void Editor_Activate( void );
+	// editor deactivation
+	virtual void Editor_Deactivate( void );
+	// editor position update
+	virtual void Editor_pos_update( void );
+	// editor mouse hover
+	bool Editor_Mouse_Enter( const EventArgs &event );
+	bool Editor_Mouse_Leave( const EventArgs &event );
+
+	// current image used for drawing
+	GL_Surface *image;
+	// editor/first image
+	GL_Surface *start_image;
+
+	// complete image rect
+	GL_rect rect;
+	// editor/first image rect
+	GL_rect start_rect;
+	// collision rect
+	GL_rect col_rect;
+	// collision start point
+	GL_point col_pos;
+
+	// current position
+	float posx, posy, posz;
+	// start position
+	float startposx, startposy;
+	/* editor z position
+	 * will be only used if not 0
+	*/
+	float editor_posz;
+	// editor/start rotation
+	float start_rotx, start_roty, start_rotz;
+	// rotation
+	float rotx, roty, rotz;
+	// editor/start scale
+	float start_scalex, start_scaley;
+	// scale
+	float scalex, scaley;
+
+	// color
+	Color color;
+	// combine type
+	GLint combine_type;
+	// combine color
+	float combine_col[3];
+
+	// sprite type
+	SpriteType type;
+	// sprite array type
+	ArrayType sprite_array;
+	// massive collision type
+	MassiveType massivetype;
+	// sprite visible name
+	string name;
+	// sprite editor tags
+	string editor_tags;
+
+	// disable the camera
+	bool no_camera;
 	// is it visible
 	bool visible;
-	// if this Object got spawned it shouldn't be saved
+	// if spawned it shouldn't be saved
 	bool spawned;
 	// range to the player to get updates
 	unsigned int player_range;
 
-	/* the different states
-	 * look at the definitions
-	 */
-	Moving_state state;
-
-	// the unique random ID
-	unsigned int ID;
-
+	// delete the given image when it gets unloaded
+	bool delete_image;
 	// if true delete this sprite on the next frame
 	bool destroy;
-	// delete the given image
-	bool delete_image;
-	// disable the camera
-	bool no_camera;
+	// shadow position
+	float shadow_pos;
 	// shadow color
-	Color *shadow_color;
+	Color shadow_color;
+
+	// if drawing is valid
+	bool valid_draw;
+
+	// editor active window list
+	typedef vector<Window *> WindowList;
+	WindowList editor_windows;
 };
 
-/* *** *** *** *** *** *** *** Objects Sprite *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cObjectSprite : public cSprite
-{
-public:
-	cObjectSprite( double x, double y );
-	virtual ~cObjectSprite( void );
-	
-	void SetImage( int num, bool new_Startimage = 0 );
-
-	// Current image array number for drawing
-	int curr_img;
-	// Image list
-	typedef vector<GL_Surface *> ObjectImageList;
-	ObjectImageList images;
-};
+typedef vector<cSprite *> SpriteList;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

@@ -1,5 +1,15 @@
-<?xml version="1.0" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <Worlds>
-	<World Name="default" Path="default" />
-	<World Name="test" Path="test" />
+	<World>
+		<Property Name="Name" Value="world_1" />
+		<Property Name="Comment" Value="Default Overworld" />
+	</World>
+	<World>
+		<Property Name="Name" Value="world_2" />
+		<Property Name="Comment" Value="Second Overworld" />
+	</World>
+	<World>
+		<Property Name="Name" Value="world_3" />
+		<Property Name="Comment" Value="Third Overworld" />
+	</World>
 </Worlds>

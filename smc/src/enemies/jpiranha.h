@@ -1,9 +1,8 @@
 /***************************************************************************
               jpiranha.h  -  headers for the corresponding cpp file
                              -------------------
-    copyright            : (C) 2003-2006 by FluXy
+    copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -16,9 +15,9 @@
 #ifndef __JPIRANHA_H__
 #define __JPIRANHA_H__
 
-#include "../globals.h"
+#include "../enemies/enemy.h"
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cjPiranha *** *** *** *** *** *** *** *** *** *** *** *** */
 
 /* Jumping Piranha
  * No Description.
@@ -26,23 +25,68 @@
 class cjPiranha : public cEnemy 
 {
 public:
-	cjPiranha( double x, double y, ObjectDirection dir = DIR_UP, unsigned int nmax_distance = 200 );
-	virtual ~cjPiranha();
+	// constructor
+	cjPiranha( float x, float y );
+	// create from stream
+	cjPiranha( XMLAttributes &attributes );
+	// destructor
+	virtual ~cjPiranha( void );
 
+	// init defaults
+	void Init( void );
+	// copy
+	virtual cjPiranha *Copy( void );
+
+	// create from stream
+	virtual void Create_from_Stream( XMLAttributes &attributes );
+	// save to stream
+	virtual void Save_to_Stream( ofstream &file );
+
+	// Set Direction
+	void Set_Direction( ObjectDirection dir );
+	// Set Max Distance
+	void Set_Max_Distance( float nmax_distance );
+	// Set the Speed
+	void Set_Speed( float val );
+
+	// die
 	virtual void DownGrade( bool force = 0 );
 	virtual void DieStep( void );
-	virtual void Update( void );
-	// handles the collision
-	virtual void HandleCollision( cObjectCollision *collision );
 
-	virtual void PlayerCollision( ObjectDirection cdirection );
+	// update
+	virtual void Update( void );
+	// draw
+	virtual void Draw( cSurfaceRequest *request = NULL );
+
+	// update destination velocity from the speed
+	void Update_dest_vel( void );
+
+	// ignore onground check
+	virtual void Check_onGround( void ) {};
+	/* Validate the given collision object
+	 * returns 1 if the given object collides with this object
+	*/
+	virtual unsigned int Validate_Collision( cSprite *obj );
+	// collision from player
+	virtual void Handle_Collision_Player( ObjectDirection cdirection );
 	
-	// internal position calculation for independant direction handling
-	double startpos, pos, vel;
-	// maximum distance from the startpos
-	unsigned int max_distance;
+	// leveleditor activation
+	virtual void Editor_Activate( void );
+	// leveleditor events
+	bool Editor_Max_Distance_Key( const EventArgs &event );  // editor max distance key up
+	bool Editor_Speed_Key( const EventArgs &event );  // editor speed key up
+
+	// moving speed
+	float speed;
+	// destination direction velocity
+	float dest_velx, dest_vely;
+	// maximum distance from the startposition
+	float max_distance;
+
 	// time to wait until next approach
-	double wait_time;
+	float wait_time;
+	// moving back to the original position
+	bool move_back;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

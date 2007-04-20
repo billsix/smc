@@ -1,8 +1,7 @@
 /***************************************************************************
-           box.cpp  -  classes for some boxes used in the game
+           box.cpp  -  class for the basic box handler
                              -------------------
-    copyright            :	(C) 2003-2004 by Artur Hallmann
-							(C) 2003-2006 by FluXy
+    copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -13,42 +12,39 @@
  *                                                                         *
  ***************************************************************************/ 
  
-#include "../globals.h"
+#include "../objects/box.h"
+#include "../audio/audio.h"
+#include "../core/camera.h"
+#include "../core/framerate.h"
+#include "../core/obj_manager.h"
+#include "../core/game_core.h"
+#include "../video/animation.h"
+#include "../player/player.h"
+#include "../video/gl_surface.h"
 
 /* *** *** *** *** *** *** *** *** cBaseBox *** *** *** *** *** *** *** *** *** */
 
-cBaseBox :: cBaseBox( double x, double y, SpriteType boxtype ) : cActiveSprite( x, y )
+cBaseBox :: cBaseBox( float x /* = 0 */, float y /* = 0 */ )
+: cImageObjectSprite( x, y )
 {
-	type = boxtype;
-	move_col_dir = DIR_NOTHING;
+	type = TYPE_ACTIVESPRITE;
+	sprite_array = ARRAY_ACTIVE;
+	massivetype = MASS_MASSIVE;
+
+	counter = 0;
+	box_type = TYPE_UNDEFINED;
+	item_image = NULL;
+	posz = 0.055f;
+
+	move_col_dir = DIR_UNDEFINED;
+	move_counter = 0;
 	move_back = 0;
 	useable_count = 1; // default = 1 time usable
 	start_useable_count = 1;
 
-	if( type == TYPE_BONUSBOX_MUSHROOM_FIRE )
-	{
-		item_image = GetImage( "game/items/mushroom_red.png" );
-	}
-	else if( type == TYPE_BONUSBOX_LIVE )
-	{
-		item_image = GetImage( "game/items/mushroom_green.png" );
-	}
-	else if( type == TYPE_BONUSBOX_JSTAR )
-	{
-		item_image = GetImage( "game/items/star.png" );
-	}
-	else if( type == TYPE_GOLDBOX )
-	{
-		item_image = GetImage( "animation/goldpiece/yellow/4.png" );
-	}
-	else if( type == TYPE_SPINBOX )
-	{
-		item_image = GetImage( "world/arrows/up_small.png" );
-	}
-	else
-	{
-		item_image = NULL;
-	}
+	box_invisible = 0;
+
+	particle_counter_active = 0;
 }
 
 cBaseBox :: ~cBaseBox( void )
@@ -56,15 +52,121 @@ cBaseBox :: ~cBaseBox( void )
 	//
 }
 
+void cBaseBox :: Create_from_Stream( XMLAttributes &attributes )
+{
+	// position
+	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	if( box_type != TYPE_SPINBOX )
+	{
+		// animation
+		Set_Animation( attributes.getValueAsString( "animation", anim_type ).c_str() );
+	}
+	// invisible
+	Set_Invisible( attributes.getValueAsInteger( "invisible" ) );
+	// useable count
+	Set_UseableCount( attributes.getValueAsInteger( "useable_count", start_useable_count ), 1 );
+}
+
+void cBaseBox :: Save_to_Stream( ofstream &file )
+{
+	// position
+	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	if( box_type == TYPE_SPINBOX )
+	{
+		// type
+		file << "\t\t<Property name=\"type\" value=\"spin\" />" << std::endl;
+	}
+	else
+	{
+		// type
+		file << "\t\t<Property name=\"type\" value=\"bonus\" />" << std::endl;
+		// animation type
+		file << "\t\t<Property name=\"animation\" value=\"" << anim_type << "\" />" << std::endl;
+		// best possible item
+		file << "\t\t<Property name=\"item\" value=\"" << box_type << "\" />" << std::endl;
+	}
+	// invisible
+	file << "\t\t<Property name=\"invisible\" value=\"" << box_invisible << "\" />" << std::endl;
+	// useable count
+	file << "\t\t<Property name=\"useable_count\" value=\"" << start_useable_count << "\" />" << std::endl;
+}
+
+void cBaseBox :: Set_Animation( string new_anim_type )
+{
+	// already set
+	if( anim_type.compare( new_anim_type ) == 0 )
+	{
+		return;
+	}
+
+	Clear_Images();
+	anim_type = new_anim_type;
+
+	if( anim_type.compare( "Bonus" ) == 0 )
+	{
+		// disabled image
+		images.push_back( pVideo->Get_Surface( "game/box/brown1_1.png" ) );
+		// animation images
+		images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/1.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/2.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/3.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/4.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/5.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/6.png" ) );
+
+		anim_counter_min = 1;
+		anim_counter_max = 6;
+	}
+	else if( anim_type.compare( "Default" ) == 0 )
+	{
+		// disabled image
+		images.push_back( pVideo->Get_Surface( "game/box/brown1_1.png" ) );
+		// default
+		images.push_back( pVideo->Get_Surface( "game/box/yellow/default.png" ) );
+
+		anim_counter_min = 1;
+		anim_counter_max = 1;
+	}
+	else if( anim_type.compare( "Power" ) == 0 )
+	{
+		// disabled image
+		images.push_back( pVideo->Get_Surface( "game/box/brown1_1.png" ) );
+		// default
+		images.push_back( pVideo->Get_Surface( "game/box/yellow/power_1.png" ) );
+
+		anim_counter_min = 1;
+		anim_counter_max = 1;
+	}
+	else if( anim_type.compare( "Spin" ) == 0 )
+	{
+		images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/disabled.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/box/yellow/default.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/1.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/2.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/3.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/4.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/5.png" ) );
+
+		anim_counter_min = 1;
+		anim_counter_max = 6;
+	}
+	else
+	{
+		printf( "Warning : Unknown Box Animation Type %s\n", anim_type.c_str() );
+		Set_Animation( "Bonus" );
+	}
+
+	counter = (float)anim_counter_min;
+	Set_Image( (int)counter, 1, 0 );
+}
+
 void cBaseBox :: Set_UseableCount( int count, bool new_startcount /* = 0 */ )
 {
+	// unlimited
 	if( count < -1 )
 	{
 		count = -1;
-	}
-	else if( count == 0 )
-	{
-		count = 1;
 	}
 
 	useable_count = count;
@@ -75,651 +177,622 @@ void cBaseBox :: Set_UseableCount( int count, bool new_startcount /* = 0 */ )
 	}
 }
 
-void cBaseBox :: Activate_collision( ObjectDirection cdirection )
+void cBaseBox :: Set_Invisible( unsigned int type )
 {
-	// if already active ignore event
-	if( move_col_dir != DIR_NOTHING )
+	// already set
+	if( box_invisible == type )
 	{
 		return;
 	}
 
+	// was invisible
+	if( box_invisible == 1 )
+	{
+		Set_Image( (int)counter, 1, 0 );
+	}
+	// was ghost
+	else if( box_invisible == 2 )
+	{
+		Set_Color( 255, 255, 255, 255 );
+		Set_Color_Combine( 0, 0, 0, 0 );
+	}
+
+	// got invisible
+	if( type == 1 )
+	{
+		Set_Image( -1, 1, 0 );
+
+		col_pos = images[0]->col_pos;
+		col_rect.w = images[0]->col_w;
+		col_rect.h = images[0]->col_h;
+		rect.w = images[0]->col_w;
+		rect.h = images[0]->col_h;
+		start_rect.w = images[0]->col_w;
+		start_rect.h = images[0]->col_h;
+	}
+	// got ghost
+	else if( type == 2 )
+	{
+		Set_Color( 192, 192, 255, 128 );
+		Set_Color_Combine( 0.2f, 0.2f, 0.55f, GL_ADD );
+	}
+
+	box_invisible = type;
+
+	// create name again
+	Create_Name();
+}
+
+void cBaseBox :: Activate_collision( ObjectDirection cdirection )
+{
+	// if already active ignore event
+	if( move_col_dir != DIR_UNDEFINED )
+	{
+		return;
+	}
+
+	// not useable
+	if( useable_count == 0 )
+	{
+		return;
+	}
+
+	// if invisible go visible
+	if( box_invisible )
+	{
+		Set_Image( (int)counter, 0, 0 );
+	}
+
+	// set collision direction
 	move_col_dir = cdirection;
 
+	Check_Collision( Get_OppositeDirection( move_col_dir ) );
+	Activate();
+
+	// set useable count
 	if( useable_count > 0 )
 	{
-		useable_count--;
+		Set_UseableCount( useable_count - 1 );
 	}
 }
 
 void cBaseBox :: Update_collision( void )
 {
-	if( move_col_dir == DIR_NOTHING )
+	if( move_col_dir == DIR_UNDEFINED )
 	{
 		return;
 	}
 
-	double xcheck = 0, ycheck = 0;
+	// moving value
+	float xcheck = 0, ycheck = 0;
+	/* scale value 
+	 * image scale using the width/height
+	 * todo : implement this for left/right to allow smaller y_scale
+	*/
+	float x_scale = 0.5f, y_scale = 0.5f;
 
 	if( move_col_dir == DIR_UP )
 	{
-		ycheck = -2.5;
+		ycheck = -2.5f;
 	}
 	else if( move_col_dir == DIR_RIGHT )
 	{
-		xcheck = 2.5;
+		ycheck = -1;
+		xcheck = 2.5f;
+		//y_scale = 0.25f;
 	}
 	else if( move_col_dir == DIR_LEFT )
 	{
-		xcheck = -2.5;
+		ycheck = -1;
+		xcheck = -2.5f;
+		//y_scale = 0.25f;
 	}
 	else
 	{
 		printf( "Warning : wrong box collision direction %d\n", move_col_dir );
-		move_col_dir = DIR_NOTHING;
+		move_col_dir = DIR_UNDEFINED;
 		return;
 	}
 
-	if( xcheck != 0 || ycheck != 0 ) // move into the given direction
+	// move into the given direction
+	if( !move_back )
 	{
-		// move into the given direction
-		if( !move_back )
+		// speed mod
+		float mod = pFramerate->speedfactor * 0.05f;
+		// final move value
+		float move_x = ( xcheck * pFramerate->speedfactor ) - ( ( rect.w * x_scale ) * mod );
+		float move_y = ( ycheck * pFramerate->speedfactor ) - ( ( rect.h * y_scale ) * mod );
+
+		// retain collision pos
+		col_pos.x -= move_x;
+		col_pos.y -= move_y;
+		// move
+		Move( move_x, move_y, 1 );
+		// scale
+		Add_Scale( mod );
+		// counter
+		move_counter += pFramerate->speedfactor * 0.2f;
+		// Particles
+		Generate_active_Particles();
+
+		// check if reached final position
+		if( move_counter > 1 )
 		{
-			Move( xcheck, ycheck, 0, 1, 0 );
-
-			// retain collision pos
-			col_pos.x -= xcheck * Framerate.speedfactor;
-			col_pos.y -= ycheck * Framerate.speedfactor;
-
-			// check if reached final position
-			if( ( xcheck > 0 && posx - ( xcheck * 4 ) > startposx ) || // right
-				( xcheck < 0 && posx - ( xcheck * 4 ) < startposx ) || // left
-				( ycheck > 0 && posy - ( ycheck * 4 ) > startposy ) || // down
-				( ycheck < 0 && posy - ( ycheck * 4 ) < startposy ) )  // up
-			{
-				move_back = 1;
-			}
-		}
-		// move back to the original position
-		else if( posy != startposy || posy != startposx )
-		{
-			Move( -xcheck, -ycheck, 0, 1, 0 );
-
-			// retain collision pos
-			col_pos.x += xcheck * Framerate.speedfactor;
-			col_pos.y += ycheck * Framerate.speedfactor;
-
-			// check if reached original position
-			if(	( xcheck > 0 && posx < startposx ) || // right
-				( xcheck < 0 && posx > startposx ) || // left
-				( ycheck > 0 && posy < startposy ) || // down
-				( ycheck < 0 && posy > startposy ) ) // up
-			{
-				// reset position
-				posy = startposy;
-				posx = startposx;
-
-				// reset rect
-				col_pos = image->col_pos;
-				move_col_dir = DIR_NOTHING;
-				move_back = 0;
-			}
+			move_back = 1;
+			move_counter = 0;
 		}
 	}
+	// move back to the original position
+	else
+	{
+		// speed mod
+		float mod = pFramerate->speedfactor * 0.05f;
+		// final move value
+		float move_x = ( -xcheck * pFramerate->speedfactor ) + ( ( rect.w * x_scale ) * mod );
+		float move_y = ( -ycheck * pFramerate->speedfactor ) + ( ( rect.h * y_scale ) * mod );
+
+		// retain collision pos
+		col_pos.x -= move_x;
+		col_pos.y -= move_y;
+		// move
+		Move( move_x, move_y, 1 );
+		// scale
+		Add_Scale( -mod );
+		// counter
+		move_counter += pFramerate->speedfactor * 0.2f;
+
+		// check if reached original position
+		if(	move_counter > 1 )
+		{
+			move_col_dir = DIR_UNDEFINED;
+			move_back = 0;
+			move_counter = 0;
+
+			// reset rect
+			col_pos = image->col_pos;
+			// reset scale
+			Set_Scale( 1 );
+			// reset position
+			Set_Pos( startposx, startposy );
+		}
+	}
+}
+
+void cBaseBox :: Check_Collision( ObjectDirection cdirection )
+{
+	// additional direction based check position
+	float check_x = posx;
+	float check_y = posy;
+	// check rect size
+	float check_width = col_rect.w;
+	float check_height = col_rect.h;
+
+
+	// set the collision rect based on the collision direction
+	if( cdirection == DIR_BOTTOM )
+	{
+		check_y -= 10;
+		check_width *= 0.9f;
+	}
+	else if( cdirection == DIR_TOP )
+	{
+		check_y += 10;
+		check_width *= 0.9f;
+	}
+	else if( cdirection == DIR_LEFT ) 
+	{
+		check_x += 10;
+		check_height *= 0.8f;
+	}
+	else if( cdirection == DIR_RIGHT )
+	{
+		check_x -= 10;
+		check_height *= 0.8f;
+	}
+
+	// collision count
+	unsigned int col_count = ColCheck( check_x, check_y, check_width, check_height ).size();
+
+	// handle collisions
+	for( unsigned int i = 0; i < col_count; i++ )
+	{
+		cObjectCollision *col = Collision_Get_last();
+		cSprite *col_obj = pObjManager->Get_Pointer( col->number );
+
+		 // Enemy collision
+		if( col->type == CO_ENEMY )
+		{
+			Col_Enemy( col_obj );
+		}
+		// Active
+		else if( col->type == CO_ACTIVE ) 
+		{
+			Col_Active( col_obj, cdirection );
+		}
+
+		Collision_Delete( col );
+	}
+}
+
+void cBaseBox :: Col_Enemy( cSprite *obj )
+{
+	// only valid enemies
+	if( obj->type == TYPE_GUMBA || obj->type == TYPE_TURTLE || obj->type == TYPE_REX )
+	{
+		pAudio->PlaySound( "death_box.ogg" );
+		static_cast<cMovingSprite *>(obj)->DownGrade( 1 );
+	}
+}
+
+void cBaseBox :: Col_Active( cSprite *obj, ObjectDirection dir )
+{
+	// Mushroom collision
+	if( obj->type == TYPE_MUSHROOM_DEFAULT || obj->type == TYPE_MUSHROOM_LIVE_1 || obj->type == TYPE_MUSHROOM_POISON
+		|| obj->type == TYPE_MUSHROOM_BLUE || obj->type == TYPE_MUSHROOM_GHOST || obj->type == TYPE_FGOLDPIECE )
+	{
+		static_cast<cMovingSprite *>(obj)->Handle_Collision_Box( dir, &col_rect );
+	}
+}
+
+void cBaseBox :: Activate( void )
+{
+	// virtual
 }
 
 void cBaseBox :: Update( void )
 {
+	// animate visible box only or an activated invisible box
+	if( !box_invisible || image )
+	{
+		// Spinbox uses anim_counter for animation handling
+		if( ( type == TYPE_SPINBOX || useable_count != 0 ) && anim_counter_min != anim_counter_max )
+		{
+			counter += pFramerate->speedfactor * 0.4f;
+
+			if( counter >= anim_counter_max )
+			{
+				counter = (float)anim_counter_min;
+			}
+
+			// Set_Image overwrites col_pos
+			GL_point col_pos_temp = col_pos;
+
+			Set_Image( (int)counter, 0, 0 );
+
+			// save col_pos
+			col_pos = col_pos_temp;
+		}
+	}
+
 	Update_collision();
 }
 
-void cBaseBox :: Draw( void )
+void cBaseBox :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
-	if( !visible && !Leveleditor_Mode )
+	if( !valid_draw )
 	{
 		return;
 	}
 
-	if( !isVisible_onScreen() ) 
+	// editor disabled
+	if( !editor_level_enabled )
 	{
-		return;
+		// visible box or activated invisible box
+		cImageObjectSprite::Draw( request );
 	}
-
-	cActiveSprite::Draw();
-
-	if( Leveleditor_Mode && item_image )
+	// editor enabled
+	else
 	{
-		// correct item position if needed
-		if( type == TYPE_BONUSBOX_LIVE )
+		// draw invisible box only in editor mode
+		if( box_invisible )
 		{
-			item_image->Blit( startposx - 4 - cameraposx, startposy - 8 - cameraposy );
+			Color color;
+
+			// default invisible
+			if( box_invisible == 1 )
+			{
+				color = Color( (Uint8)240, 0, 30, 128 );
+			}
+			// ghost
+			else if( box_invisible == 2 )
+			{
+				color = Color( (Uint8)20, 20, 150, 128 );
+			}
+
+			pVideo->Draw_Rect( startposx - pCamera->x, startposy - pCamera->y, col_rect.w, col_rect.h, posz, &color );
 		}
-		else if( type == TYPE_GOLDBOX )
-		{
-			item_image->Blit( startposx + 4 - cameraposx, startposy - cameraposy );
-		}
+		// visible box
 		else
 		{
-			item_image->Blit( startposx - cameraposx, startposy - cameraposy );
+			cImageObjectSprite::Draw( request );
+		}
+
+		// draw item image
+		if( item_image )
+		{
+			// auto position
+			item_image->Blit( startposx - ( ( item_image->w - rect.w ) / 2 ) - pCamera->x, startposy - ( ( item_image->h - rect.h ) / 2 ) - pCamera->y, posz + 0.000001f );
 		}
 	}
 }
 
-void cBaseBox :: PlayerCollision( ObjectDirection cdirection )
+void cBaseBox :: Generate_active_Particles( void )
 {
-	if( cdirection == DIR_UP ) // if player jumps from below
+	// no default/unimportant boxes
+	if( type == TYPE_SPINBOX || box_type == TYPE_GOLDPIECE )
+	{
+		return;
+	}
+
+	particle_counter_active += pFramerate->speedfactor;
+
+	while( particle_counter_active > 0 )
+	{
+		cParticleAnimation *anim = new cParticleAnimation( posx + ( rand() % (int)rect.w ), posy );
+		anim->Set_DirectionRange( 180, 180 );
+		anim->Set_Speed( 3.1f, 0.5f );
+		anim->Set_Scale( 0.7f, 0.1f );
+
+		Color color = white;
+
+		if( box_type == TYPE_MUSHROOM_DEFAULT )
+		{
+			color = Color( (Uint8)( 100 + ( rand() % 100 ) ), 20 + ( rand() % 50 ), 10 + ( rand() % 30 ) );
+		}
+		else if( box_type == TYPE_FIREPLANT )
+		{
+			color = Color( (Uint8)( 110 + ( rand() % 150 ) ), rand() % 50, rand() % 30 );
+		}
+		else if( box_type == TYPE_MUSHROOM_BLUE )
+		{
+			color = Color( (Uint8)( rand() % 30 ), ( rand() % 30 ), 150 + ( rand() % 50 ) );
+		}
+		else if( box_type == TYPE_MUSHROOM_GHOST )
+		{
+			color = Color( (Uint8)( 100 + ( rand() % 50 ) ), 100 + ( rand() % 50 ), 100 + ( rand() % 50 ) );
+		}
+		else if( box_type == TYPE_MUSHROOM_LIVE_1 )
+		{
+			color = Color( (Uint8)( rand() % 30 ), 100 + ( rand() % 150 ), rand() % 30 );
+		}
+		else if( box_type == TYPE_JSTAR )
+		{
+			color = Color( (Uint8)( 110 + ( rand() % 150 ) ), 80 + ( rand() % 50 ), rand() % 20 );
+		}
+		else if( box_type == TYPE_MUSHROOM_POISON )
+		{
+			color = Color( (Uint8)( 50 + rand() % 50 ), 100 + ( rand() % 150 ), rand() % 10 );
+		}
+
+		anim->Set_Time_to_Live( 0.3f );
+		anim->Set_Color( color );
+		anim->Set_Blending( BLEND_ADD );
+		anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
+		pAnimationManager->Add( anim );
+
+		particle_counter_active--;
+	}
+}
+
+bool cBaseBox :: is_Draw_valid( void )
+{
+	// if editor not enabled
+	if( !editor_enabled )
+	{
+		// not visible
+		if( !visible || !image )
+		{
+			return 0;
+		}
+
+		// ghost
+		if( box_invisible == 2 )
+		{
+			// maryo is not ghost
+			if( pPlayer->maryo_type != MARYO_GHOST )
+			{
+				return 0;
+			}
+		}
+	}
+	// editor enabled
+	else
+	{
+		// no image
+		if( !start_image && !box_invisible )
+		{
+			return 0;
+		}
+	}
+
+	// not visible on the screen
+	if( !is_Visible_onScreen() )
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+unsigned int cBaseBox :: Validate_Collision( cSprite *obj )
+{
+	if( obj->massivetype == MASS_MASSIVE )
+	{
+		return 2;
+	}
+	// items
+	if( obj->type == TYPE_MUSHROOM_LIVE_1 || obj->type == TYPE_MUSHROOM_DEFAULT || obj->type == TYPE_MUSHROOM_POISON 
+		|| obj->type == TYPE_MUSHROOM_BLUE || obj->type == TYPE_MUSHROOM_GHOST || obj->type == TYPE_FGOLDPIECE )
+	{
+		return 2;
+	}
+	if( obj->massivetype == MASS_HALFMASSIVE )
+	{
+		// if moving downwards and object is on top
+		if( vely >= 0 && is_onTop( obj ) )
+		{
+			return 2;
+		}
+	}
+
+	return 0;
+}
+
+void cBaseBox :: Handle_Collision_Player( ObjectDirection cdirection )
+{
+	// if player jumps from below or fly's against it
+	if( cdirection == DIR_BOTTOM && pPlayer->state != STA_FLY )
 	{
 		if( useable_count != 0 )
 		{
-			Activate_collision( cdirection );
-
-			if( ColCheck( posx, posy - col_rect.h, col_rect.w * 0.9, 7 ) != CO_NOTHING )
-			{
-				cObjectCollision *col = Get_lastCollision();
-
-				 // Enemy collision
-				if( col->type == CO_ENEMY && pObjManager->items[col->number]->type != TYPE_JPIRANHA )
-				{
-					pAudio->PlaySound( SOUNDS_DIR "/death_box.ogg" );
-					pObjManager->items[col->number]->DownGrade();
-				}
-				// Mushroom collision
-				else if( col->type == CO_ACTIVE && ( pObjManager->items[col->number]->type == TYPE_MUSHROOM_DEFAULT || pObjManager->items[col->number]->type == TYPE_MUSHROOM_LIVE_1 ) ) 
-				{
-					pObjManager->items[col->number]->BoxCollision( DIR_DOWN, &col_rect );
-				}
-
-				Delete_lastCollision();
-			}
+			Activate_collision( Get_OppositeDirection( cdirection ) );
 		}
 		else
 		{
-			if( isVisible_onScreen() )
+			if( is_Visible_onScreen() )
 			{
-				pAudio->PlaySound( SOUNDS_DIR "/tock.ogg" );
+				pAudio->PlaySound( "tock.ogg" );
 			}
 		}
 	}
 }
 
-void cBaseBox :: EnemyCollision( ObjectDirection cdirection )
+void cBaseBox :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
-	if( cdirection == DIR_RIGHT || cdirection == DIR_LEFT )
+	if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT || collision->direction == DIR_BOTTOM )
 	{
 		if( useable_count != 0 )
 		{
-			Activate_collision( cdirection );
-
-			if( cdirection == DIR_RIGHT ) 
-			{
-				if( ColCheck( posx + 7, posy, col_rect.w * 0.8 ) != CO_NOTHING )
-				{
-					cObjectCollision *col = Get_lastCollision();
-
-					if( col->type == CO_ENEMY ) // Enemy
-					{
-						pAudio->PlaySound( SOUNDS_DIR "/death_box.ogg" );
-						pObjManager->items[col->number]->DownGrade();
-					}
-
-					Delete_lastCollision();
-				}
-			}
-			else if( cdirection == DIR_LEFT )
-			{
-				if( ColCheck( posx - 7, posy, col_rect.w * 0.8 ) != CO_NOTHING )
-				{
-					cObjectCollision *col = Get_lastCollision();
-
-					if( col->type == CO_ENEMY ) // Enemy
-					{
-						pAudio->PlaySound( SOUNDS_DIR "/death_box.ogg" );
-						pObjManager->items[col->number]->DownGrade();
-					}
-
-					Delete_lastCollision();
-				}
-			}
+			Activate_collision( Get_OppositeDirection( collision->direction ) );
 		}
 		else
 		{
-			if( isVisible_onScreen() )
+			if( is_Visible_onScreen() )
 			{
-				pAudio->PlaySound( SOUNDS_DIR "/tock.ogg" );
+				pAudio->PlaySound( "tock.ogg" );
 			}
 		}
 	}
 }
 
-/* *** *** *** *** *** *** *** *** cGoldBox *** *** *** *** *** *** *** *** *** */
 
-cGoldBox :: cGoldBox( double x, double y, DefaultColor goldcolor /* = COL_YELLOW */ ) : cBaseBox( x, y, TYPE_GOLDBOX )
+void cBaseBox :: Editor_Activate( void )
 {
-	player_range = 10000;
-
-	images.push_back( GetImage( "game/box/yellow1_1.png" ) );
-	images.push_back( GetImage( "game/box/brown1_1.png" ) );
-	SetImage( 0 );
-
-	color = goldcolor;
-}
-
-cGoldBox :: ~cGoldBox( void )
-{
-	for( unsigned int i = 0; i < goldpieces.size(); i++ )
-	{
-		delete goldpieces[i];
-	}
-
-	goldpieces.clear();
-}
-
-void cGoldBox :: Activate( void )
-{
-	pAudio->PlaySound( SOUNDS_DIR "/goldpiece_1.ogg" );
-	goldpieces.push_back( new cBouncingGoldPiece( posx, posy, color ) );
-}
-
-void cGoldBox :: Update( void )
-{
-	if( !isVisible_onScreen() )
-	{
-		return;
-	}
-
-	for( unsigned int i = 0; i < goldpieces.size(); i++ )
-	{
-		if( goldpieces[i]->visible )
-		{
-			if( goldpieces[i]->vely < 8 ) // add velocity downwards
-			{
-				goldpieces[i]->AddVel( 0, 1.62 );
-			}
-			else // finished
-			{
-				goldpieces[i]->Activate();
-				goldpieces[i]->SetPos( goldpieces[i]->posx, posy );
-			}
-
-			goldpieces[i]->Update();
-		}
-	}
-
-	for( unsigned int i = 0; i < goldpieces.size(); i++ )
-	{
-		if( !goldpieces[i]->visible )
-		{
-			delete goldpieces[i];
-			goldpieces.erase( goldpieces.begin() + i );
-		}
-	}
-
-	cBaseBox::Update();
-	Draw();
-}
-
-void cGoldBox :: PlayerCollision( ObjectDirection cdirection )
-{
-	cBaseBox::PlayerCollision( cdirection );
-
-	if( cdirection == DIR_UP ) // if player jumps from below
-	{
-		if( move_col_dir != DIR_NOTHING )
-		{
-			Activate();
-
-			if( !useable_count )
-			{
-				SetImage( 1 );
-			}
-		}
-	}
-}
-
-void cGoldBox :: EnemyCollision( ObjectDirection cdirection )
-{
-	cBaseBox::EnemyCollision( cdirection );
-
-	if( cdirection == DIR_RIGHT || cdirection == DIR_LEFT )
-	{
-		if( move_col_dir != DIR_NOTHING )
-		{
-			Activate();
-
-			if( !useable_count )
-			{
-				SetImage( 1 );
-			}
-		}
-	}
-}
-
-void cGoldBox :: Editor_Activate( void )
-{
-	pDialogManager->Add( 0, 0, "gold_color", int_to_string( color ), TYPE_DIALOG_ONLY_NUMBERS, 4, 30 );
-	pDialogManager->Add( 0, 0, "useable_count", int_to_string( start_useable_count ), TYPE_DIALOG_ONLY_NUMBERS, 100, 30 );
-
-	// set position
-	Editor_pos_update();
-}
-
-void cGoldBox :: Editor_Deactivate( void )
-{
-	// remove controls
-	pDialogManager->Delete( "gold_color" );
-	pDialogManager->Delete( "useable_count" );
-}
-
-void cGoldBox :: Editor_pos_update( void )
-{
-	// gold color
-	cDialog *dialog = pDialogManager->Get( "gold_color" );
-
-	if( dialog )
-	{
-		dialog->SetPos( posx + col_rect.w + 5, posy + 5 );
-	}
+	WindowManager &wmgr = WindowManager::getSingleton();
 
 	// useable count
-	dialog = pDialogManager->Get( "useable_count" );
+	Editbox *editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_basebox_useable_count" ));
+	editbox->setTooltipText( "Useable Count" );
+	Editor_Add( editbox, 80 );
 
-	if( dialog )
+	editbox->setText( int_to_string( start_useable_count ) );
+	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cBaseBox::Editor_Useable_Count_Key, this ) );
+
+	// Invisible
+	Combobox *combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_basebox_invisible" ));
+	combobox->getEditbox()->setTooltipText( "Invisible" );
+	Editor_Add( combobox, 120, 80 );
+
+	combobox->addItem( new ListboxTextItem( "Enabled" ) );
+	combobox->addItem( new ListboxTextItem( "Disabled" ) );
+	combobox->addItem( new ListboxTextItem( "Ghost" ) );
+
+	if( box_invisible == 1 )
 	{
-		dialog->SetPos( posx + col_rect.w + 5, posy + 40 + 5 );
+		combobox->setText( "Enabled" );
 	}
-}
-
-void cGoldBox :: Editor_val_update( void )
-{
-	// gold color
-	cDialog *dialog = pDialogManager->Get( "gold_color" );
-
-	if( dialog )
+	else if( box_invisible == 2 )
 	{
-		// update
-		if( dialog->gotChanged() )
-		{
-			color = (DefaultColor)dialog->Get_Value_int();
-
-			if( color != COL_YELLOW && color != COL_RED )
-			{
-				color = COL_YELLOW;
-			}
-
-			dialog->Set_Text( int_to_string( color ) );
-		}
-	}
-
-	// useable count
-	dialog = pDialogManager->Get( "useable_count" );
-
-	if( dialog )
-	{
-		// update
-		if( dialog->gotChanged() )
-		{
-			Set_UseableCount( dialog->Get_Value_int(), 1 );
-
-			dialog->Set_Text( int_to_string( start_useable_count ) );
-		}
-	}
-}
-
-/* *** *** *** *** *** *** *** *** cBonusBox *** *** *** *** *** *** *** *** *** */
-
-cBonusBox :: cBonusBox( double x, double y, SpriteType stype ) : cBaseBox( x, y, stype )
-{
-	counter = 0;
-	powerup = NULL;
-	player_range = 10000;
-
-	if( type == TYPE_BONUSBOX_MUSHROOM_FIRE || type == TYPE_BONUSBOX_LIVE || type == TYPE_BONUSBOX_JSTAR )
-	{
-		images.push_back( GetImage( "game/box/yellow3_1.png" ) );
-		images.push_back( GetImage( "game/box/yellow3_anim_1.png" ) );
-		images.push_back( GetImage( "game/box/yellow3_anim_2.png" ) );
-		images.push_back( GetImage( "game/box/yellow3_anim_3.png" ) );
-		images.push_back( GetImage( "game/box/brown1_1.png" ) );
+		combobox->setText( "Ghost" );
 	}
 	else
 	{
-		printf( "Unknown BonusBox type : %d\n", type );
-		return;
+		combobox->setText( "Disabled" );
 	}
 
-	SetImage( 0 );
+	combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cBaseBox::Editor_Invisible_Select, this ) );
 }
 
-cBonusBox :: ~cBonusBox( void )
+bool cBaseBox :: Editor_Useable_Count_Key( const EventArgs &event )
 {
-	if( powerup )
-	{
-		delete powerup;
-	}
+	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
+	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
+
+	Set_UseableCount( string_to_int( str_text ), 1 );
+
+	return 1;
 }
 
-void cBonusBox :: Activate( void )
+bool cBaseBox :: Editor_Invisible_Select( const EventArgs &event )
 {
-	pAudio->PlaySound( SOUNDS_DIR "/sprout_1.ogg" );
+	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
+	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
 
-	if( type == TYPE_BONUSBOX_MUSHROOM_FIRE )
+	if( item->getText().compare( "Enabled" ) == 0 )
 	{
-		if( pPlayer->maryo_type == MARYO_SMALL || ( pPlayer->maryo_type == MARYO_FIRE && !Itembox->item_id ) )
-		{
-			powerup = (cPowerUp *)new cMushroom( startposx, startposy, TYPE_MUSHROOM_DEFAULT );
-		}
-		else
-		{
-			powerup = (cPowerUp *)new cFirePlant( startposx, startposy );
-		}
+		Set_Invisible( 1 );
 	}
-	else if( type == TYPE_BONUSBOX_LIVE )
+	else if( item->getText().compare( "Ghost" ) == 0 )
 	{
-		powerup = (cPowerUp *)new cMushroom( startposx - 4, startposy - 8, TYPE_MUSHROOM_LIVE_1 );
+		Set_Invisible( 2 );
 	}
-	else if( type == TYPE_BONUSBOX_JSTAR )
+	else
 	{
-		powerup = (cPowerUp *)new cjStar( startposx, startposy );
+		Set_Invisible( 0 );
 	}
+
+	return 1;
 }
 
-void cBonusBox :: PlayerCollision( ObjectDirection cdirection )
+void cBaseBox :: Create_Name( void )
 {
-	cBaseBox::PlayerCollision( cdirection );
-
-	if( cdirection == DIR_UP ) // if player jumps from below
+	if( box_type == TYPE_UNDEFINED )
 	{
-		if( move_col_dir != DIR_NOTHING && !powerup )
-		{
-			Activate();
-
-			if( !useable_count )
-			{
-				SetImage( 4 );
-			}
-		}
+		name = "Box Empty";
 	}
-}
-
-void cBonusBox :: EnemyCollision( ObjectDirection cdirection )
-{
-	cBaseBox::EnemyCollision( cdirection );
-
-	if( cdirection == DIR_RIGHT || cdirection == DIR_LEFT )
+	else if( box_type == TYPE_SPINBOX )
 	{
-		if( move_col_dir != DIR_NOTHING && !powerup )
-		{
-			Activate();
-
-			if( !useable_count )
-			{
-				SetImage( 4 );
-			}
-		}
+		name = "Spinbox";
 	}
-}
-
-void cBonusBox :: Update( void )
-{
-	if( !isVisible_onScreen() )
+	else if( box_type == TYPE_MUSHROOM_DEFAULT )
 	{
-		return;
+		name = "Box Mushroom";
 	}
-
-	if( powerup )
+	else if( box_type == TYPE_FIREPLANT )
 	{
-		if( powerup->posy < posy - powerup->col_rect.h - powerup->col_pos.y )
-		{
-			powerup->counter = 0;
-			powerup->spawned = 1;
-
-			// set the object on top
-			powerup->Set_onTop( this, 0 );
-			// add the powerup to the level objects
-			pObjManager->Add( powerup );
-			powerup = NULL;
-		}
-		else // animation
-		{
-			powerup->counter += Framerate.speedfactor;
-			powerup->Move( 0, -3.1, 0, 1, 0 );
-
- 			powerup->Draw();
-		}
+		name = "Box Mushroom - Fireplant";
+	}
+	else if( box_type == TYPE_MUSHROOM_BLUE )
+	{
+		name = "Box Mushroom - Blue Mushroom";
+	}
+	else if( box_type == TYPE_MUSHROOM_GHOST )
+	{
+		name = "Box Mushroom - Ghost Mushroom";
+	}
+	else if( box_type == TYPE_MUSHROOM_LIVE_1 )
+	{
+		name = "Box 1-UP";
+	}
+	else if( box_type == TYPE_JSTAR )
+	{
+		name = "Box Star";
+	}
+	else if( box_type == TYPE_GOLDPIECE )
+	{
+		name = "Box Goldpiece";
+	}
+	else if( box_type == TYPE_MUSHROOM_POISON )
+	{
+		name = "Box Mushroom Poison";
+	}
+	else
+	{
+		name = "Box Unknown Item Type";
 	}
 
-	if( useable_count > 0 )
+	if( box_invisible )
 	{
-		counter += Framerate.speedfactor;
-
-		if( counter < 4 )
-		{
-			SetImage( 0 );
-		}
-		else if( counter < 8 )
-		{
-			SetImage( 1 );
-		}
-		else if( counter < 12 )
-		{
-			SetImage( 2 );
-		}
-		else if( counter < 16 )
-		{
-			SetImage( 3 );
-		}
-		else
-		{
-			counter = 0;
-		}
+		name.insert( 0, "Invisible " );
 	}
-
-	cBaseBox::Update();
-	Draw();
-}
-
-/* *** *** *** *** *** *** *** *** ccSpinBox *** *** *** *** *** *** *** *** *** */
-
-cSpinBox :: cSpinBox( double x, double y ) : cBaseBox( x, y, TYPE_SPINBOX )
-{
-	player_range = 10000;
-
-	counter = 0;
-	spin_counter = 0;
-	spin = 0;
-	useable_count = -1; // infinite times activate-able
-	
-	images.push_back( GetImage( "game/box/yellow1_1.png" ) );
-	images.push_back( GetImage( "game/box/yellow1_spin_1.png" ) );
-	images.push_back( GetImage( "game/box/yellow1_spin_2.png" ) );
-	images.push_back( GetImage( "game/box/yellow1_spin_3.png" ) );
-
-	SetImage( 0 );
-}
-
-cSpinBox :: ~cSpinBox( void )
-{
-	//
-}
-
-void cSpinBox :: PlayerCollision( ObjectDirection cdirection )
-{
-	cBaseBox::PlayerCollision( cdirection );
-
-	if( cdirection == DIR_UP )	// if player jumps from below
-	{
-		if( move_col_dir != DIR_NOTHING && !spin )
-		{
-			spin = 1;
-			massivetype = MASS_PASSIVE;
-		}
-	}
-}
-
-void cSpinBox :: EnemyCollision( ObjectDirection cdirection )
-{
-	cBaseBox::EnemyCollision( cdirection );
-
-	if( cdirection == DIR_RIGHT || cdirection == DIR_LEFT )
-	{
-		if( move_col_dir != DIR_NOTHING && !spin )
-		{
-			spin = 1;
-			massivetype = MASS_PASSIVE;
-		}
-	}
-}
-
-void cSpinBox :: Update( void )
-{
-	if( !isVisible_onScreen() )
-	{
-		return;
-	}
-
-	if( spin )
-	{
-		counter += 10 * Framerate.speedfactor;
-		spin_counter += Framerate.speedfactor;
-
-		if( counter < DESIRED_FPS )
-		{
-			//
-		}
-		else if( counter < DESIRED_FPS * 2 )
-		{
-			SetImage( 1 );
-		}
-		else if( counter < DESIRED_FPS * 3 )
-		{
-			SetImage( 2 );
-		}
-		else if( counter < DESIRED_FPS * 4 )
-		{
-			SetImage( 3 );
-		}
-		else
-		{
-			SetImage( 0 );
-			counter = 0;
-
-			if( spin_counter > DESIRED_FPS * 5 )
-			{
-				spin_counter = 0;
-				massivetype = MASS_MASSIVE; // needed for collision check
-				ObjectCollisionType collision = ColCheck( posx, posy, 0, 0, 1 );
-
-				if( collision == CO_PLAYER || collision == CO_ENEMY || collision == CO_ACTIVE )
-				{
-					massivetype = MASS_PASSIVE;
-				}
-				else
-				{
-					spin = 0;
-				}
-			}
-		}
-	}
-	
-	cBaseBox::Update();
-	Draw();
 }

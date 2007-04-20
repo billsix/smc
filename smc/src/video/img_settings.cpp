@@ -1,7 +1,7 @@
 /***************************************************************************
 			img_settings.cpp  -  Image Settings Handler
                               -------------------
-    copyright            :	(C) 2005 - 2006 by FluXy
+    copyright            :	(C) 2005 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -12,11 +12,259 @@
  *                                                                         *
  ***************************************************************************/ 
 
-#include "../globals.h"
+#include "../video/img_settings.h"
+#include "../core/game_core.h"
+#include "../video/gl_surface.h"
 
-cImage_settings :: cImage_settings( void ) : cFile_parser()
+/* *** *** *** *** *** *** cImage_settings_data *** *** *** *** *** *** *** *** *** *** *** */
+
+cImage_settings_data :: cImage_settings_data( void )
 {
-	surface = NULL;
+	base_settings = 0;
+
+	int_x = 0;
+	int_y = 0;
+	col_rect.clear();
+	width = 0;
+	height = 0;
+	rotation_x = 0;
+	rotation_y = 0;
+	rotation_z = 0;
+	mipmap = 0;
+
+
+	type = -1;
+	obsolete = 0;
+}
+
+cImage_settings_data :: ~cImage_settings_data( void )
+{
+
+}
+
+void cImage_settings_data :: Apply( GL_Surface *image )
+{
+	// empty image
+	if( !image )
+	{
+		printf( "Error : surface for base %s does not exist\n", base.c_str() );
+		return;
+	}
+
+
+	if( !base.empty() )
+	{
+		// load the base image
+		string filename = Get_filename( base, 0, 1 );
+		filename.insert( 0, PIXMAPS_DIR "/" );
+
+		GL_Surface *surface_base = pVideo->Get_Surface( filename, 0 );
+
+		// if not a valid file
+		if( !valid_file( filename ) )
+		{
+			// try origin directory
+			if( !surface_base )
+			{
+				filename = base;
+				surface_base = pVideo->Get_Surface( filename, 0 );
+
+				// if not valid or no image settings base
+				if( !valid_file( filename ) )
+				{
+					// nothing found
+					if( !surface_base )
+					{
+						printf( "Error : %s is not a valid base image file\n", filename.c_str() );
+						return;
+					}
+				}
+			}
+		}
+
+		// Couldn't load the image
+		if( !surface_base )
+		{
+			printf( "Error : Couldn't load base image file : %s\n", base.c_str() );
+			return;
+		}
+		// based on image settings
+		else if( !valid_file( filename ) )
+		{
+			// todo : search for "."
+			surface_base->filename.replace( surface_base->filename.length() - 4, 4, ".settings" );
+		}
+
+		// creates a new surface
+		GL_Surface *surface_final = surface_base->Copy();
+
+		if( !surface_final )
+		{
+			printf( "Couldn't create image copy from : %s\n", surface_base->filename.c_str() );
+			return;
+		}
+
+		image->image = surface_final->image;
+		image->tex_w = surface_final->tex_w;
+		image->tex_h = surface_final->tex_h;
+
+		if( base_settings )
+		{
+			image->int_x = surface_final->int_x;
+			image->int_y = surface_final->int_y;
+			image->w = surface_final->w;
+			image->h = surface_final->h;
+			image->base_rotx = surface_final->base_rotx;
+			image->base_roty = surface_final->base_roty;
+			image->base_rotz = surface_final->base_rotz;
+			image->col_pos = surface_final->col_pos;
+			image->col_w = surface_final->col_w;
+			image->col_h = surface_final->col_h;
+
+			// settings
+			image->editor_tags = surface_final->editor_tags;
+			image->name = surface_final->name;
+			image->type = surface_final->type;
+		}
+		else
+		{
+			image->int_x = 0;
+			image->int_y = 0;
+			image->w = (float)surface_final->tex_w;
+			image->h = (float)surface_final->tex_h;
+			image->base_rotx = 0;
+			image->base_roty = 0;
+			image->base_rotz = 0;
+			image->col_pos.x = 0;
+			image->col_pos.y = 0;
+			image->col_w = image->w;
+			image->col_h = image->h;
+		}
+
+		surface_final->auto_del_img = 0;
+		delete surface_final;
+		surface_final = NULL;
+	}
+
+	if( image )
+	{
+		// ## int_x/int_y
+		image->int_x = (float)int_x;
+		image->int_y = (float)int_y;
+
+		// ## width
+		if( width > 0 )
+		{
+			image->w = (float)width;
+			image->col_w = image->w;
+		}
+		// ## height
+		if( height > 0 )
+		{
+			image->h = (float)height;
+			image->col_h = image->h;
+		}
+
+		// ## col_rect
+		if( col_rect.w > 0 && col_rect.h > 0 )
+		{
+			// position
+			image->col_pos.x = col_rect.x;
+			image->col_pos.y = col_rect.y;
+			// dimension
+			image->col_w = col_rect.w;
+			image->col_h = col_rect.h;
+		}
+
+		// ## rotation x
+		if( rotation_x != 0 )
+		{
+			image->base_rotx = (float)rotation_x;
+		}
+		// ## rotation y
+		if( rotation_y != 0 )
+		{
+			image->base_roty = (float)rotation_y;
+
+			// mirror
+			if( image->base_roty == 180 )
+			{
+				image->col_pos.x = image->w - ( image->col_w + image->col_pos.x );
+			}
+		}
+		// ## rotation z
+		if( rotation_z != 0 )
+		{
+			image->base_rotz = (float)rotation_z;
+
+			if( image->base_rotz == 90 )
+			{
+				float col_w = image->col_w;
+				image->col_w = image->col_h;
+				image->col_h = col_w;
+
+
+				image->col_pos = image->col_pos.rotate( GL_point( image->w * 0.5f, image->h * 0.5f ), image->base_rotz );
+				image->col_pos.x -= image->col_w;
+			}
+			// mirror
+			else if( image->base_rotz == 180 )
+			{
+				image->col_pos.y = image->h - ( image->col_h + image->col_pos.y );
+			}
+			else if( image->base_rotz == 270 )
+			{
+				float col_w = image->col_w;
+				image->col_w = image->col_h;
+				image->col_h = col_w;
+
+				image->col_pos = image->col_pos.rotate( GL_point( image->w * 0.5f, image->h * 0.5f ), image->base_rotz );
+				image->col_pos.y -= image->col_h;
+			}
+		}
+
+		// ## editor_tags
+		if( !editor_tags.empty() )
+		{
+			image->editor_tags = editor_tags;
+		}
+
+		// ## name
+		if( !name.empty() )
+		{
+			image->name = name;
+
+			// finds all "_" and replaces them with " "
+			for( string::iterator itr = image->name.begin(); itr != image->name.end(); ++itr )
+			{
+				// change
+				if( *itr == '_' )
+				{
+					*itr = ' ';
+				}
+			}
+		}
+
+		// ## type
+		if( type != 0 )
+		{
+			image->type = type;
+		}
+
+		// ## obsolete
+		if( obsolete )
+		{
+			image->obsolete = 1;
+		}
+	}
+}
+
+/* *** *** *** *** *** *** cImage_settings *** *** *** *** *** *** *** *** *** *** *** */
+
+cImage_settings :: cImage_settings( void )
+: cFile_parser()
+{
+	settings = NULL;
 }
 
 cImage_settings :: ~cImage_settings( void )
@@ -24,11 +272,12 @@ cImage_settings :: ~cImage_settings( void )
 	//
 }
 
-void cImage_settings :: ApplyTextureSettings( GL_Surface *image, string filename )
+cImage_settings_data *cImage_settings :: Get( string &filename )
 {
-	surface = image;
+	settings = new cImage_settings_data();
 
 	Parse( filename );
+	return settings;
 }
 
 bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsigned int line )
@@ -37,160 +286,67 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 	{
 		if( count < 2 || count > 3 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2-3 parameters" );
 			return 0; // error
 		}
 
 		if( !is_valid_number( parts[2] ) )
 		{
-			printf( "%s : line %d Error : ", Get_filename( 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 
-		if( !surface )
+		settings->base = data_file.substr( 0, data_file.rfind( "/" ) + 1 ) + parts[1];
+
+		// with settings option
+		if( count == 3 && string_to_int( parts[2] ) )
 		{
-			printf( "%s : line %d Error : ", Get_filename( 0, 0 ).c_str(), line );
-			printf( "%s surface does not exist\n", parts[0].c_str() );
-			return 0; // error
+			settings->base_settings = 1;
 		}
-
-		bool orig_settings = 0;
-
-		if( count == 3 && ( string_to_int( parts[2] ) == 1 ) ) // with settings option
-		{
-			orig_settings = 1;
-		}
-
-		// load the base image
-		string filename = parts[1];
-		filename.insert( 0, "/" );
-		filename.insert( 0, PIXMAPS_DIR );
-
-		if( !valid_file( filename ) )
-		{
-			string origin_dir = Get_filename( 1, 0 );
-			origin_dir.erase( origin_dir.rfind( "/" ) + 1, origin_dir.length() - origin_dir.rfind( "/" ) + 1 );
-			origin_dir.insert( origin_dir.length(), parts[1] );
-
-			if( !valid_file( origin_dir ) )
-			{
-				printf( "%s : line %d Error : ", Get_filename( 0, 0 ).c_str(), line );
-				printf( "%s is not a valid image file\n", parts[1].c_str() );
-				return 0; // error
-			}
-
-			filename = origin_dir;
-		}
-		else
-		{
-			filename.insert( 0, "/" );
-			filename.insert( 0, PIXMAPS_DIR );
-		}
-
-		GL_Surface *surface_base = GetImage( filename );
-
-		if( !surface_base )
-		{
-			printf( "%s : line %d Error : ", Get_filename( 0, 0 ).c_str(), line );
-			printf( "base image file : %s\n", parts[1].c_str() );
-			return 0; // error
-		}
-
-		// creates a new surface
-		GL_Surface *surface_final = surface_base->Copy();
-
-		if( !surface_final )
-		{
-			printf( "%s : line %d Error : ", Get_filename( 0, 0 ).c_str(), line );
-			printf( "Couldn't create image copy from : %s\n", surface_base->filename.c_str() );
-			return 0; // error
-		}
-
-		surface->image = surface_final->image;
-		surface->tex_w = surface_final->tex_w;
-		surface->tex_h = surface_final->tex_h;
-
-		if( orig_settings )
-		{
-			surface->int_x = surface_final->int_x;
-			surface->int_y = surface_final->int_y;
-			surface->w = surface_final->w;
-			surface->h = surface_final->h;
-			surface->base_rotx = surface_final->base_rotx;
-			surface->base_roty = surface_final->base_roty;
-			surface->base_rotz = surface_final->base_rotz;
-			surface->col_pos = surface_final->col_pos;
-			surface->col_w = surface_final->col_w;
-			surface->col_h = surface_final->col_h;
-		}
-		else
-		{
-			surface->int_x = 0;
-			surface->int_y = 0;
-			surface->w = (double)surface_final->tex_w;
-			surface->h = (double)surface_final->tex_h;
-			surface->base_rotx = 0;
-			surface->base_roty = 0;
-			surface->base_rotz = 0;
-			surface->col_pos.x = 0;
-			surface->col_pos.y = 0;
-			surface->col_w = surface->w;
-			surface->col_h = surface->h;
-		}
-
-		surface_final->auto_del_img = 0;
-		delete surface_final;
-		surface_final = NULL;
 	}
 	else if( parts[0].compare( "int_x" ) == 0 )
 	{
 		if( count != 2 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
 			return 0; // error
 		}
 
 		if( !is_valid_number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_filename( 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 
-		if( surface )
-		{
-			surface->int_x = string_to_int( parts[1] );
-		}
+		settings->int_x = string_to_int( parts[1] );
 	}
 	else if( parts[0].compare( "int_y" ) == 0 )
 	{
 		if( count != 2 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
 			return 0; // error
 		}
 
 		if( !is_valid_number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_filename( 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 
-		if( surface )
-		{
-			surface->int_y = string_to_int( parts[1] );
-		}
+		settings->int_y = string_to_int( parts[1] );
 	}
 	else if( parts[0].compare( "col_rect" ) == 0 )
 	{
 		if( count != 5 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 5 parameters" );
 			return 0; // error
 		}
@@ -199,118 +355,182 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 		{
 			if( !is_valid_number( parts[i] ) )
 			{
-				printf( "%s : line %d Error : ", Get_filename( 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[1].c_str() );
 				return 0; // error
 			}
 		}
 
-
-		if( surface )
-		{
-			// collision start
-			surface->col_pos.x = string_to_int( parts[1] );
-			surface->col_pos.y = string_to_int( parts[2] );
-			// collision width
-			surface->col_w = string_to_int( parts[3] );
-			surface->col_h = string_to_int( parts[4] );
-		}
+		// position and dimension
+		settings->col_rect = GL_rect( (float)string_to_int( parts[1] ), (float)string_to_int( parts[2] ), (float)string_to_int( parts[3] ), (float)string_to_int( parts[4] ) );
 	}
 	else if( parts[0].compare( "width" ) == 0 )
 	{
 		if( count != 2 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
 			return 0; // error
 		}
 
 		if( !is_valid_number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_filename( 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 
-		if( surface )
-		{
-			surface->w = string_to_int( parts[1] );
-			surface->col_w = surface->w;
-		}
-		
+		settings->width = string_to_int( parts[1] );
 	}
 	else if( parts[0].compare( "height" ) == 0 )
 	{
 		if( count != 2 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
 			return 0; // error
 		}
 
 		if( !is_valid_number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_filename( 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 
-		if( surface )
-		{
-			surface->h = string_to_int( parts[2] );
-			surface->col_h = surface->h;
-		}
+		settings->height = string_to_int( parts[1] );
 	}
 	else if( parts[0].compare( "rotation" ) == 0 )
 	{
 		if( count < 2 || count > 5 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2-5 parameters" );
 			return 0; // error
 		}
 
 		if( !is_valid_number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_filename( 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 
-		if( surface )
+		// x
+		settings->rotation_x = string_to_int( parts[1] );
+
+		// y
+		if( count > 2 )
 		{
-			surface->base_rotx = string_to_int( parts[1] );
-
-			if( count > 2 ) // y
+			if( !is_valid_number( parts[2] ) )
 			{
-				if( !is_valid_number( parts[2] ) )
-				{
-					printf( "%s : line %d Error : ", Get_filename( 0, 0 ).c_str(), line );
-					printf( "%s is not a valid integer value\n", parts[2].c_str() );
-					return 0; // error
-				}
-
-				surface->base_roty = string_to_int( parts[2] );
+				printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s is not a valid integer value\n", parts[2].c_str() );
+				return 0; // error
 			}
-			if( count > 3 ) // z
+
+			settings->rotation_y = string_to_int( parts[2] );
+		}
+		// z
+		if( count > 3 )
+		{
+			if( !is_valid_number( parts[3] ) )
 			{
-				if( !is_valid_number( parts[3] ) )
-				{
-					printf( "%s : line %d Error : ", Get_filename( 0, 0 ).c_str(), line );
-					printf( "%s is not a valid integer value\n", parts[3].c_str() );
-					return 0; // error
-				}
-
-				surface->base_rotz = string_to_int( parts[3] );
+				printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s is not a valid integer value\n", parts[3].c_str() );
+				return 0; // error
 			}
+
+			settings->rotation_z = string_to_int( parts[3] );
+		}
+	}
+	else if( parts[0].compare( "mipmap" ) == 0 )
+	{
+		if( count != 2 )
+		{
+			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
+			return 0; // error
+		}
+
+		if( !is_valid_number( parts[1] ) )
+		{
+			printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s is not a valid integer value\n", parts[1].c_str() );
+			return 0; // error
+		}
+
+		// if mipmaps enabled
+		if( string_to_int( parts[1] ) )
+		{
+			settings->mipmap = 1;
+		}
+	}
+	else if( parts[0].compare( "editor_tags" ) == 0 )
+	{
+		if( count != 2 )
+		{
+			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
+			return 0; // error
+		}
+
+		settings->editor_tags = parts[1];
+	}
+	else if( parts[0].compare( "name" ) == 0 )
+	{
+		if( count != 2 )
+		{
+			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
+			return 0; // error
+		}
+
+		settings->name = parts[1];
+	}
+	else if( parts[0].compare( "type" ) == 0 )
+	{
+		if( count != 2 )
+		{
+			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
+			return 0; // error
+		}
+
+		settings->type = Get_Sprite_Type_id( parts[1] );
+	}
+	else if( parts[0].compare( "obsolete" ) == 0 )
+	{
+		if( count != 2 )
+		{
+			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
+			return 0; // error
+		}
+
+		if( !is_valid_number( parts[1] ) )
+		{
+			printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s is not a valid integer value\n", parts[1].c_str() );
+			return 0; // error
+		}
+
+		// if tagged obsolete
+		if( string_to_int( parts[1] ) )
+		{
+			settings->obsolete = 1;
 		}
 	}
 	else
 	{
-		printf( "%s : line %d Error : ", Get_filename( 0, 0 ).c_str(), line );
+		printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
 		printf( "Unknown Command : %s\n", parts[0].c_str() );
 		return 0; // error
 	}
 
 	return 1;
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+cImage_settings *pSettingsParser = NULL;

@@ -1,7 +1,7 @@
 /***************************************************************************
            savegame.cpp  -  Savegame Engine
                              -------------------
-    copyright            : (C) 2003 - 2006 by FluXy
+    copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -12,44 +12,138 @@
  *                                                                         *
  ***************************************************************************/ 
 
-#include "../globals.h"
+#include "../core/globals.h"
+#include "../user/savegame.h"
+#include "../user/preferences.h"
+#include "../core/game_core.h"
+#include "../core/camera.h"
+#include "../core/obj_manager.h"
+#include "../level/level.h"
+#include "../overworld/worlds.h"
+#include "../objects/bonusbox.h"
+#include "../objects/goldpiece.h"
 
-cSavegame_data :: cSavegame_data( void )
+/* *** *** *** *** *** *** *** cSave_Overworld_Waypoint *** *** *** *** *** *** *** *** *** *** */
+
+cSave_Overworld_Waypoint :: cSave_Overworld_Waypoint( void )
 {
-	Init();
+	access = 0;
 }
 
-cSavegame_data :: ~cSavegame_data( void )
+cSave_Overworld_Waypoint :: ~cSave_Overworld_Waypoint( void )
 {
-
+	
 }
 
-void cSavegame_data :: Init( void )
+/* *** *** *** *** *** *** *** cSave_Overworld *** *** *** *** *** *** *** *** *** *** */
+
+cSave_Overworld :: cSave_Overworld( void )
 {
-	levelname = "yuki_1.txt";
+	
+}
+
+cSave_Overworld :: ~cSave_Overworld( void )
+{
+	for( unsigned int i = 0; i < Waypoints.size(); i++ )
+	{
+		delete Waypoints[i];
+	}
+
+	Waypoints.clear();
+}
+
+/* *** *** *** *** *** *** *** cSave_Level_Object *** *** *** *** *** *** *** *** *** *** */
+
+cSave_Level_Object_Property :: cSave_Level_Object_Property( string nName /* = "" */, string nValue /* = "" */ )
+{
+	Name = nName;
+	Value = nValue;
+}
+
+/* *** *** *** *** *** *** *** cSave_Level_Object *** *** *** *** *** *** *** *** *** *** */
+
+cSave_Level_Object :: cSave_Level_Object( void )
+{
+	
+}
+
+cSave_Level_Object :: ~cSave_Level_Object( void )
+{
+	properties.clear();
+}
+
+string cSave_Level_Object :: Get_Value( string val_name )
+{
+	for( unsigned int i = 0; i < properties.size(); i++ )
+	{
+		if( properties[i].Name.compare( val_name ) == 0 )
+		{
+			// found
+			return properties[i].Value;
+		}
+	}
+
+	// not found
+	return "";
+}
+
+/* *** *** *** *** *** *** *** cSave *** *** *** *** *** *** *** *** *** *** */
+
+cSave :: cSave( void )
+{
+	Clear();
+}
+
+cSave :: ~cSave( void )
+{
+	Clear();
+}
+
+void cSave :: Clear( void )
+{
+	// save
 	description.clear();
-	timestamp.clear();
+	save_time = 0;
 	version = 0;
+
+	// player
 	lives = 0;
 	points = 0;
 	goldpieces = 0;
-	posx = 0;
-	posy = 0;
-	state = 0;
+	player_state = 0;
 	itembox_item = 0;
+	
+	// level
+	level_name.clear();
+	level_posx = 0;
+	level_posy = 0;
 
-	Overworld_save = 0;
-	Overworld_nlevel = 0;
-	Overworld_slevel = 0;
-	Overworld_curr_waypoint = 0;
-	Overworld_world = 0;
+	for( unsigned int i = 0; i < level_objects.size(); i++ )
+	{
+		delete level_objects[i];
+	}
+
+	level_objects.clear();
+
+	// overworld
+	overworld_active.clear();
+	overworld_current_waypoint = 0;
+
+	for( unsigned int i = 0; i < Overworlds.size(); i++ )
+	{
+		delete Overworlds[i];
+	}
+
+	Overworlds.clear();
 }
 
-cSavegame :: cSavegame( void ) : cFile_parser()
+cSavegame :: cSavegame( void )
 {
 	error_count = 0;
-	savegame_temp.Init();
+	save_temp = NULL;
 	debug = 0;
+
+	savegame_dir = user_data_dir + SAVE_DIR;
 }
 
 cSavegame :: ~cSavegame( void )
@@ -57,72 +151,433 @@ cSavegame :: ~cSavegame( void )
 	//
 }
 
-cSavegame_data cSavegame :: Load( unsigned int save_slot )
+int cSavegame :: Load_Game( unsigned int save_slot )
 {
-	savegame_temp.Init();
-	string save_file = SAVE_DIR "/" + int_to_string( save_slot ) + ".sav";
-
-	ifstream ifs( save_file.c_str(), ios::in );
-
-	if( !valid_file( save_file ) )
-	{
-		printf( "Savegame_Load : No Savegame found at Slot : %s\n", save_file.c_str() );
-		return savegame_temp;
-	}
-
-	Parse( save_file );
+	cSave *savegame = Load( save_slot );
 	
-	if( debug )
+	// check if unsupported save
+	if( savegame->version <= SAVEGAME_VERSION_UNSUPPORTED )
 	{
-		Debug_Print( savegame_temp );
+		printf( "Warning : Savegame %d : Versions %d and below are unsupported\n", save_slot, SAVEGAME_VERSION_UNSUPPORTED );
 	}
 
-	if( error_count )
+	// invalid lives value
+	if( savegame->lives < 0 )
 	{
-		printf( "Savegame Loading Error found at Slot : %d\n", save_slot );
-		savegame_temp.description.insert( 0, "Unsupported : " );
+		printf( "Warning : Savegame %d : Lives was below 0\n", save_slot );
+		savegame->lives = 0;
 	}
 
-	if( !savegame_temp.description.length() )
+	// level available
+	if( savegame->level_name.length() )
 	{
-		savegame_temp.description = "No Description";
-	}
+		string level_name = pPreferences->level_dir + "/" + savegame->level_name;
 
-	return savegame_temp;
-}
-
-int cSavegame :: Save( unsigned int save_slot, cSavegame_data savegame )
-{
-	string save_file = SAVE_DIR "/" + int_to_string( save_slot ) + ".sav";
-
-	ifstream ifs( save_file.c_str(), ios::in );
-
-	if( ifs )
-	{
-		ifs.close();
-		ifs.open( save_file.c_str(), ios::trunc ); // Delete existing
-	}
-	
-	ifs.close();
-	
-	// Finds all the " " in savegame.description and replaces them with "_"
-	int pos = -1;
-	
-	while( savegame.description.find( " " ) >= 0 )
-	{
-		pos = (int)savegame.description.find( " " );
-		
-		if( pos >= 0 )
+		// level not found
+		if( !valid_file( level_name + ".txt" ) && !valid_file( level_name + ".smclvl" ) )
 		{
-			savegame.description.replace( pos, 1, "_" );
+			printf( "Warning : Savegame %d : Level not found : %s\n", save_slot, level_name.c_str() );
+		}
+	}
+
+	// unload level
+	pLevel->Unload();
+	// clear deleted objects
+	pObjManager->Update();
+	// reset player
+	pPlayer->ResetSave();
+
+	// #### Overworld ####
+
+	// if no overworld is set
+	if( savegame->Overworlds.size() == 0 )
+	{
+		// Use first Overworld
+		cSave_Overworld *save_overworld = new cSave_Overworld();
+		save_overworld->name = pOverworld_manager->Get( 0 )->description->path;
+
+		savegame->Overworlds.push_back( save_overworld );
+	}
+	// set overworld progress
+	else
+	{
+		for( unsigned int i = 0; i < savegame->Overworlds.size(); i++ )
+		{
+			cOverworld *overworld = pOverworld_manager->Get_from_Name( savegame->Overworlds[i]->name );
+
+			if( !overworld )
+			{
+				printf( "Warning : Savegame %d : Overworld %s not found\n", save_slot, savegame->Overworlds[i]->name.c_str() );
+				continue;
+			}
+
+			for( unsigned int w = 0; w < savegame->Overworlds[i]->Waypoints.size() ; w++ )
+			{
+				// Get Savegame Waypoint
+				cSave_Overworld_Waypoint *save_waypoint = savegame->Overworlds[i]->Waypoints[w];
+
+				// Get Overworld Waypoint
+				cWaypoint *waypoint = overworld->Get_Waypoint( overworld->Get_Waypoint_num( save_waypoint->destination ) );
+
+				// not found
+				if( !waypoint )
+				{
+					printf( "Warning : Savegame %d : Overworld %s Waypoint %s not found\n", save_slot, savegame->Overworlds[i]->name.c_str(), save_waypoint->destination.c_str() );
+					continue;
+				}
+
+				// set access
+				waypoint->Set_Access( save_waypoint->access );
+			}
+		}
+	}
+
+	// Set Active Overworld
+	if( !pOverworld_manager->Set_Active( pOverworld_manager->Get_from_Name( savegame->overworld_active ) ) )
+	{
+		printf( "Warning : Savegame %d : Couldn't set Overworld active %s\n", save_slot, savegame->overworld_active.c_str() );
+	}
+
+	// Current Waypoint
+	if( !pOverworld_Player->Set_Waypoint( savegame->overworld_current_waypoint ) )
+	{
+		printf( "Warning : Savegame %d : Overworld Current Waypoint %d is invalid\n", save_slot, savegame->overworld_current_waypoint );
+	}
+
+
+	// #### Player ####
+
+	pPlayer->Set_Type( (Maryo_type)savegame->player_state, 0, 0 );
+
+	// in a level
+	if( !savegame->level_name.empty() )
+	{
+		// load level
+		if( pLevel->Load( savegame->level_name ) )
+		{
+			// position
+			pPlayer->Set_Pos( savegame->level_posx, savegame->level_posy - (float)GAME_RES_H );
+
+			// Level Objects
+			for( unsigned int i = 0; i < savegame->level_objects.size(); i++ )
+			{
+				// get object pointer
+				cSave_Level_Object *save_object = savegame->level_objects[i];
+
+				// get position
+				int posx = string_to_int( save_object->Get_Value( "posx" ) );
+				int posy = string_to_int( save_object->Get_Value( "posy" ) );
+
+				// get level object
+				cSprite *level_object = pObjManager->Get_from_Position( posx, posy, save_object->type );
+
+				// if not anymore available
+				if( !level_object )
+				{
+					printf( "Warning : Savegame object type %d on pos x %d, y %d not available\n", save_object->type, posx, posy );
+					continue;
+				}
+
+				if( level_object->type == TYPE_BONUSBOX )
+				{
+					cBonusBox *bonusbox = (cBonusBox *)level_object;
+
+					// useable count
+					int useable_count = string_to_int( save_object->Get_Value( "useable_count" ) );
+					bonusbox->Set_UseableCount( useable_count );
+				}
+				else if( level_object->type == TYPE_GOLDPIECE )
+				{
+					cGoldpiece *goldpiece = (cGoldpiece *)level_object;
+
+					// visible
+					bool visible = string_to_int( save_object->Get_Value( "visible" ) ) > 0;
+					goldpiece->visible = visible;
+				}
+				else if( level_object->type == TYPE_MOON )
+				{
+					cMoon *moon = (cMoon *)level_object;
+
+					// visible
+					bool visible = string_to_int( save_object->Get_Value( "visible" ) ) > 0;
+					moon->visible = visible;
+				}
+			}
+
+			// invincible for a second
+			pPlayer->invincible = DESIRED_FPS;
 		}
 		else
 		{
-			break;
+			printf( "Error : Couldn't load Savegame Level %s\n", savegame->level_name.c_str() );
+		}
+	}
+	
+	pointsdisplay->Set_Points( savegame->points );
+	golddisplay->SetGold( savegame->goldpieces );
+	livedisplay->SetLives( savegame->lives );
+	Itembox->Set_Item( (SpriteType)savegame->itembox_item );
+
+	pCamera->Set_Pos( 0, 0 );
+
+	pPlayer->Ball_clear();
+
+	debugdisplay->Update();
+	pointsdisplay->Update();
+	pPlayer->Update();
+	golddisplay->Update();
+
+	debugdisplay->Set_Text( "Savegame " + int_to_string( save_slot ) + " loaded" );
+
+	// default is level save
+	int retval = 1;
+
+	// if Overworld Save
+	if( savegame->level_name.empty() )
+	{
+		retval = 2;
+	}
+
+	delete savegame;
+	return retval;
+}
+
+bool cSavegame :: Save_Game( unsigned int save_slot, string description )
+{
+	if( pPlayer->maryo_type == MARYO_DEAD || pPlayer->lives < 0 )
+	{
+		printf( "Couldn't save Savegame %s\n", description.c_str() );
+		return 0;
+	}
+
+	cSave *savegame = new cSave();
+
+	// Description
+	savegame->description = description;
+	// Goldpieces
+	savegame->goldpieces = pPlayer->goldpieces;
+
+	// Level
+	if( pLevel->is_Loaded() )
+	{
+		// name
+		savegame->level_name = Get_filename( pLevel->data_file, 0, 0 );
+
+		// position
+		savegame->level_posx = pPlayer->posx;
+		savegame->level_posy = pPlayer->posy + GAME_RES_H - 5;
+
+		// Level Objects
+		for( ObjectList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+		{
+			// get object pointer
+			cSprite *object = (*itr);
+			// savegame object;
+			cSave_Level_Object *save_object = NULL;
+
+			// Bonusbox
+			if( object->type == TYPE_BONUSBOX )
+			{
+				cBonusBox *bonusbox = (cBonusBox *)object;
+
+				// only save if needed
+				if( bonusbox->useable_count == bonusbox->start_useable_count )
+				{
+					continue;
+				}
+
+				save_object = new cSave_Level_Object();
+
+				// Bonusbox Useable Count
+				save_object->properties.push_back( cSave_Level_Object_Property( "useable_count", int_to_string( bonusbox->useable_count ) ) );
+			}
+			// Goldpiece
+			else if( object->type == TYPE_GOLDPIECE )
+			{
+				cGoldpiece *goldpiece = (cGoldpiece *)object;
+
+				// only save if needed
+				if( goldpiece->visible == 1 )
+				{
+					continue;
+				}
+
+				save_object = new cSave_Level_Object();
+
+				// Goldpiece visible
+				save_object->properties.push_back( cSave_Level_Object_Property( "visible", int_to_string( goldpiece->visible ) ) );
+			}
+			// Moon
+			else if( object->type == TYPE_MOON )
+			{
+				cMoon *moon = (cMoon *)object;
+
+				// only save if needed
+				if( moon->visible == 1 )
+				{
+					continue;
+				}
+
+				save_object = new cSave_Level_Object();
+
+				// Moon visible
+				save_object->properties.push_back( cSave_Level_Object_Property( "visible", int_to_string( moon->visible ) ) );
+			}
+			// other object
+			else
+			{
+				continue;
+			}
+
+			// save default values
+			save_object->type = object->type;
+			save_object->properties.push_back( cSave_Level_Object_Property( "posx", int_to_string( (int)object->startposx ) ) );
+			save_object->properties.push_back( cSave_Level_Object_Property( "posy", int_to_string( (int)object->startposy ) ) );
+
+			// add
+			savegame->level_objects.push_back( save_object );
 		}
 	}
 
-	ofstream file( save_file.c_str(), ios::out );
+	// Lives
+	savegame->lives = pPlayer->lives;
+	// Points
+	savegame->points = pPlayer->points;
+
+	// Player State
+	savegame->player_state = pPlayer->maryo_type;
+	// Itembox Item
+	savegame->itembox_item = Itembox->item_id;
+
+	// save overworld progress
+	for( unsigned int i = 0; i < pOverworld_manager->worlds.size(); i++ )
+	{
+		// Get Overworld
+		cOverworld *overworld = pOverworld_manager->worlds[i];
+
+		// create Overworld
+		cSave_Overworld *save_overworld = new cSave_Overworld();
+		// name
+		save_overworld->name = overworld->description->name;
+		
+		// Waypoints
+		for( ObjectList::iterator itr = overworld->object_manager->items.begin(), itr_end = overworld->object_manager->items.end(); itr != itr_end; ++itr )
+		{
+			// get waypoint
+			cWaypoint *waypoint = static_cast<cWaypoint *>(*itr);
+
+			if( waypoint->type != TYPE_OW_WAYPOINT )
+			{
+				continue;
+			}
+
+			// create savegame waypoint
+			cSave_Overworld_Waypoint *save_waypoint = new cSave_Overworld_Waypoint();
+			
+			// destination
+			save_waypoint->destination = waypoint->Get_Destination();
+			// set access
+			save_waypoint->access = waypoint->access;
+			// save
+			save_overworld->Waypoints.push_back( save_waypoint );
+		}
+
+		// save
+		savegame->Overworlds.push_back( save_overworld );
+	}
+
+	// if an overworld active
+	if( pActive_Overworld )
+	{
+		// which OverWorld
+		savegame->overworld_active = pActive_Overworld->description->name;
+
+		// if valid waypoint
+		if( pOverworld_Player->current_waypoint >= 0 )
+		{
+			// Overworld current Waypoint
+			savegame->overworld_current_waypoint = pOverworld_Player->current_waypoint;
+		}
+	}
+
+	// Time ( seconds since 1970 )
+	savegame->save_time = time( NULL );
+	// Version
+	savegame->version = SAVEGAME_VERSION;
+
+	// Save it
+	Save( save_slot, savegame );
+
+	// Print
+	if( debugdisplay )
+	{
+		debugdisplay->Set_Text( "Saved to Slot " + int_to_string( save_slot ) );
+	}
+
+	// Clear
+	delete savegame;
+
+	return 1;
+}
+
+cSave *cSavegame :: Load( unsigned int save_slot )
+{
+	save_temp = new cSave();
+
+	string filename = savegame_dir + "/" + int_to_string( save_slot ) + ".save";
+
+	if( !valid_file( filename ) )
+	{
+		printf( "Error : Savegame Loading : No Savegame found at Slot : %s\n", filename.c_str() );
+		return save_temp;
+	}
+
+	try
+	{
+		System::getSingleton().getXMLParser()->parseXMLFile( *this, filename.c_str(), SCHEMA_DIR "/Savegame.xsd", "" );
+	}
+	// catch CEGUI Exceptions
+	catch( Exception &ex )
+	{
+		printf( "Savegame Loading CEGUI Exception %s\n", ex.getMessage().c_str() );
+		debugdisplay->Set_Text( "Savegame Loading failed : " + (string)ex.getMessage().c_str() );
+	}
+
+	// unknown savegame data found
+	if( error_count )
+	{
+		printf( "Warning : Savegame Loading : Errors found at Slot : %d\n", save_slot );
+		save_temp->description.insert( 0, "Unsupported : " );
+	}
+
+	// if no description is available
+	if( !save_temp->description.length() )
+	{
+		save_temp->description = "No Description";
+	}
+
+	cSave *savegame =  save_temp;
+	save_temp = NULL;
+	return savegame;
+}
+
+int cSavegame :: Save( unsigned int save_slot, cSave *savegame )
+{
+	string filename = savegame_dir + "/" + int_to_string( save_slot ) + ".save";
+
+	if( valid_file( filename ) )
+	{
+		ifstream ifs( filename.c_str(), ios::trunc ); // Delete existing
+		ifs.close();
+	}
+
+	// empty overworld active
+	if( savegame->overworld_active.empty() )
+	{
+		printf( "Warning : Savegame %s saving : Empty Overworld Active\n", savegame->description.c_str() );
+	}
+
+	ofstream file( filename.c_str(), ios::out );
 	
 	if( !file.is_open() )
 	{
@@ -130,47 +585,128 @@ int cSavegame :: Save( unsigned int save_slot, cSavegame_data savegame )
 		return 0;
 	}
 
-	// savegame info
-	file << "## Savegame File at Slot " << save_slot << " with Savegame V." << SAVEGAME_VERSION << ", Game V." << VERSION << "##\n\n";
-	// Time
-	file << "Save_Time_Stamp " << savegame.timestamp; // in .Time_Stamp is already a \n
-	// Description
-	file << "Save_Description " << savegame.description << "\n";
-	// Version
-	file << "Save_Version " << int_to_string( savegame.version ) << "\n";
-	// Level name
-	file << "Level_name " << savegame.levelname << "\n";
-	// Lives
-	file << "Lives " << int_to_string( savegame.lives ) << "\n";
-	// Points
-	file << "Points " << int_to_string( savegame.points ) << "\n";
-	// Goldpieces
-	file << "Goldpieces " << int_to_string( savegame.goldpieces ) << "\n";
-	// Player position
-	file << "Position " << int_to_string( savegame.posx ) << " " << int_to_string( savegame.posy ) << "\n";
-	// Player State
-	file << "State " << int_to_string( savegame.state ) << "\n";
+	// xml info
+	file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;
+	// begin Savegame
+	file << "<Savegame>" << std::endl;
 
-	file << "Itembox_Item " << int_to_string( savegame.itembox_item ) << "\n";
+	// begin Information
+	file << "\t<Information>" << std::endl;
+		// Description
+		file << "\t\t<Property Name=\"description\" Value=\"" << savegame->description << "\" />" << std::endl;
+		// Version
+		file << "\t\t<Property Name=\"version\" Value=\"" << savegame->version << "\" />" << std::endl;
+		// Time
+		file << "\t\t<Property Name=\"save_time\" Value=\"" << savegame->save_time << "\" />" << std::endl;
+	// end Information
+	file << "\t</Information>" << std::endl;
 
-	// Overworld info
-	file << "\n## OverWorld Data ##\n";
-	// Overworld save or not
-	file << "OWsave " << int_to_string( savegame.Overworld_save ) << "\n";
-	// normal levels accessed
-	file << "OWNlevel " << int_to_string( savegame.Overworld_nlevel ) << "\n";
-	// secret levels accessed
-	file << "OWSlevel " << int_to_string( savegame.Overworld_slevel ) << "\n";
-	// Current Waypoint
-	file << "OWCurr_WP " << int_to_string( savegame.Overworld_curr_waypoint ) << "\n";
-	// Current Overworld
-	file << "OverWorld " << int_to_string( savegame.Overworld_world ) << "\n";
+	if( !savegame->level_name.empty() )
+	{
+		// begin Level
+		file << "\t<Level>" << std::endl;
+
+		// Level name
+		file << "\t\t<Property Name=\"level_name\" Value=\"" << savegame->level_name << "\" />" << std::endl;
+		// Level position
+		file << "\t\t<Property Name=\"player_posx\" Value=\"" << savegame->level_posx << "\" />" << std::endl;
+		file << "\t\t<Property Name=\"player_posy\" Value=\"" << savegame->level_posy << "\" />" << std::endl;
+
+		// Level Objects
+		for( unsigned int i = 0; i < savegame->level_objects.size(); i++ )
+		{
+			// get object pointer
+			cSave_Level_Object *object = savegame->level_objects[i];
+
+			// begin Level Object
+			file << "\t\t<Level_Object>" << std::endl;
+
+			// Object type
+			file << "\t\t\t<Property Name=\"type\" Value=\"" << object->type << "\" />" << std::endl;
+
+			// Properties
+			for( unsigned int i = 0; i < object->properties.size(); i++ )
+			{
+				// get properties pointer
+				cSave_Level_Object_Property Property = object->properties[i];
+
+				// property
+				file << "\t\t\t<Property Name=\"" << Property.Name <<"\" Value=\"" << Property.Value << "\" />" << std::endl;
+			}
+
+			// end Level Object
+			file << "\t\t</Level_Object>" << std::endl;
+		}
+		// end Level
+		file << "\t</Level>" << std::endl;
+	}
+
+	// begin Player
+	file << "\t<Player>" << std::endl;
+		// Lives
+		file << "\t\t<Property Name=\"lives\" Value=\"" << savegame->lives << "\" />" << std::endl;
+		// Points
+		file << "\t\t<Property Name=\"points\" Value=\"" << savegame->points << "\" />" << std::endl;
+		// Goldpieces
+		file << "\t\t<Property Name=\"goldpieces\" Value=\"" << savegame->goldpieces << "\" />" << std::endl;
+		// state
+		file << "\t\t<Property Name=\"state\" Value=\"" << savegame->player_state << "\" />" << std::endl;
+		// Itembox item
+		file << "\t\t<Property Name=\"itembox_item\" Value=\"" << savegame->itembox_item << "\" />" << std::endl;
+	// end Player
+	file << "\t</Player>" << std::endl;
+
+	// begin Overworld_Data
+	file << "\t<Overworld_Data>" << std::endl;
+		// active Overworld
+		file << "\t\t<Property Name=\"active\" Value=\"" << savegame->overworld_active << "\" />" << std::endl;
+		// current Overworld Waypoint
+		file << "\t\t<Property Name=\"current_waypoint\" Value=\"" << savegame->overworld_current_waypoint << "\" />" << std::endl;
+	// end Overworld_Data
+	file << "\t</Overworld_Data>" << std::endl;
+
+	for( unsigned int i = 0; i < savegame->Overworlds.size(); i++ )
+	{
+		// begin Overworld
+		file << "\t<Overworld>" << std::endl;
+
+		// current Overworld
+		file << "\t\t<Property Name=\"name\" Value=\"" << savegame->Overworlds[i]->name << "\" />" << std::endl;
+
+		for( unsigned int w = 0; w < savegame->Overworlds[i]->Waypoints.size(); w++ )
+		{
+			cSave_Overworld_Waypoint *overworld_waypoint = savegame->Overworlds[i]->Waypoints[w];
+
+			// skip empty waypoints
+			if( overworld_waypoint->destination.empty() )
+			{
+				continue;
+			}
+
+			// begin Overworld Level
+			file << "\t\t<Overworld_Level>" << std::endl;
+
+			// destination
+			file << "\t\t\t<Property Name=\"destination\" Value=\"" << overworld_waypoint->destination << "\" />" << std::endl;
+			// access
+			file << "\t\t\t<Property Name=\"access\" Value=\"" << overworld_waypoint->access << "\" />" << std::endl;
+
+			// end Overworld Level
+			file << "\t\t</Overworld_Level>" << std::endl;
+		}
+
+		// end Overworld
+		file << "\t</Overworld>" << std::endl;
+	}
+
+	// end Savegame
+	file << "</Savegame>" << std::endl;
 
 	file.close();
 	
 	if( debug )
 	{
-		printf( "Saved Savegame into Slot %s\n", save_file.c_str() );
+		printf( "Saved Savegame %s to slot %d\n", filename.c_str(), save_slot );
 	}
 	
 	return 1;
@@ -178,352 +714,242 @@ int cSavegame :: Save( unsigned int save_slot, cSavegame_data savegame )
 
 string cSavegame :: Get_Description( unsigned int save_slot, bool only_description /* = 0 */ )
 {
-	string full_savefile, str_description;
+	string savefile, str_description;
 
-	full_savefile = SAVE_DIR "/.sav";
-	full_savefile.insert( strlen( SAVE_DIR ) + 1, int_to_string( save_slot ) );
+	savefile = savegame_dir + "/" + int_to_string( save_slot ) + ".save";
 
-	if( !valid_file( full_savefile ) )
+	if( !valid_file( savefile ) )
 	{
 		str_description = int_to_string( save_slot ) + ". Free Save";
 		return str_description;
 	}
 	
-	cSavegame_data Temp_Savegame = Load( save_slot );
+	cSave *temp_savegame = Load( save_slot );
 
-	if( Temp_Savegame.lives < 0 )
+	if( temp_savegame->lives < 0 )
 	{
 		str_description = int_to_string( save_slot ) + ". Broken Save";
 		return str_description;
 	}
 
-	// Finds all the "_" in Temp_Savegame.Description and replaces them with " "
-	int pos = -1;
-	
-	while( Temp_Savegame.description.find( "_" ) >= 0 )
+	// complete description
+	if( !only_description )
 	{
-		pos = (int)Temp_Savegame.description.find( "_" );
+		str_description = int_to_string( save_slot ) + ". " + temp_savegame->description;
 
-		if( pos >= 0 )
+		if( temp_savegame->level_name.empty() )
 		{
-			Temp_Savegame.description.replace( pos, 1, " " );
+			str_description += " -  Map " + temp_savegame->overworld_active;
 		}
 		else
 		{
-			break;
+			str_description += " -  Level " + temp_savegame->level_name;
 		}
-	}
 
-	if( !only_description ) // Full Description
+		str_description += " - Date " + Time_to_String( temp_savegame->save_time, "%Y-%m-%d  %H:%M:%S" );
+	}
+	// only the user description
+	else
 	{
-		str_description = int_to_string( save_slot ) + ". " + Temp_Savegame.description;
-
-		if( Temp_Savegame.Overworld_save )
-		{
-			str_description += " -  Map " + int_to_string( Temp_Savegame.Overworld_nlevel );
-		}
-		else
-		{
-			str_description += " -  Level " + Temp_Savegame.levelname;
-		}
-
-		str_description += " - Date " + Temp_Savegame.timestamp;
-	}
-	else // Only the User Description
-	{
-		return Temp_Savegame.description;
+		return temp_savegame->description;
 	}
 
+	delete temp_savegame;
 	return str_description;
 }
 
 bool cSavegame :: is_valid( unsigned int save_slot )
 {
-	string save_file = SAVE_DIR "/" + int_to_string( save_slot ) + ".sav";
-	return valid_file( save_file );
+	return valid_file( savegame_dir + "/" + int_to_string( save_slot ) + ".save" );
 }
 
-bool cSavegame :: HandleMessage( string *parts, unsigned int count, unsigned int line )
+// XML element start
+void cSavegame :: elementStart( const String &element, const XMLAttributes &attributes )
 {
-	if( parts[0].compare( "Level_name" ) == 0 )
+	// Property/Item/Tag of an Element
+    if( element == "Property" )
+    {
+		xml_attributes.add( attributes.getValueAsString( "Name" ), attributes.getValueAsString( "Value" ) );
+    }
+}
+
+// XML element end
+void cSavegame :: elementEnd( const String &element )
+{
+	if( element != "Property" )
 	{
-		if( count != 2 )
+		if( element == "Information" )
 		{
-			printf( "%s : ", Get_filename( 0 ).c_str() );
-			printf( "Savegame Error : line %d, %s needs 2 parameters\n", line, parts[0].c_str() );
-			return 0;
+			save_temp->description = xml_attributes.getValueAsString( "description" ).c_str();
+			save_temp->version = xml_attributes.getValueAsInteger( "version" );
+			save_temp->save_time = xml_attributes.getValueAsInteger( "save_time" );
 		}
-		
-		string filename = pPreferences->level_dir + "/" + parts[1];
-
-		if( !valid_file( filename ) )
+		else if( element == "Level" )
 		{
-			printf( "Savegame Error : line %d, Level not found : %s\n", line, filename.c_str() );
-			return 0;
+			Handle_Level( xml_attributes );
+		}
+		else if( element == "Level_Object" )
+		{
+			Handle_Level_Object( xml_attributes );
+			// don't clear attributes
+			return;
+		}
+		else if( element == "Player" )
+		{
+			Handle_Player( xml_attributes );
+		}
+		else if( element == "Overworld_Data" )
+		{
+			Handle_Overworld_Data( xml_attributes );
+		}
+		else if( element == "Overworld" )
+		{
+			Handle_Overworld( xml_attributes );
+		}
+		else if( element == "Overworld_Level" )
+		{
+			Handle_Overworld_Level( xml_attributes );
+			// don't clear attributes
+			return;
+		}
+		else if( element == "Savegame" )
+		{
+			// ignore
+		}
+		else if( element.length() )
+		{
+			printf( "Warning : Savegame Unknown Element : %s\n", element.c_str() );
 		}
 
-		savegame_temp.levelname = parts[1];
+		// clear
+		xml_attributes = XMLAttributes();
 	}
-	else if( parts[0].compare( "Lifes" ) == 0 || parts[0].compare( "Lives" ) == 0  ) // Lifes for older savegame support
+}
+
+void cSavegame :: Handle_Level( const XMLAttributes &attributes )
+{
+	save_temp->level_name = xml_attributes.getValueAsString( "level_name" ).c_str();
+	save_temp->level_posx = xml_attributes.getValueAsFloat( "player_posx" );
+	save_temp->level_posy = xml_attributes.getValueAsFloat( "player_posy" );
+
+	// set level objects
+	save_temp->level_objects.swap( level_objects );
+	level_objects.clear();
+}
+
+void cSavegame :: Handle_Level_Object( const XMLAttributes &attributes )
+{
+	int type = xml_attributes.getValueAsInteger( "type" );
+
+	if( type <= 0 )
 	{
-		if( count != 2 )
-		{
-			printf( "%s : ", Get_filename( 0 ).c_str() );
-			printf( "Savegame Error : line %d : %s needs 2 parameters\n", line, parts[0].c_str() );
-			return 0;
-		}
-
-		if( !is_valid_number( parts[1] ) || string_to_int( parts[1] ) < 0 )
-		{
-			printf( "Savegame Error : line %d : Lives is not a valid number\n", line );
-			return 0;
-		}
-
-		savegame_temp.lives = string_to_int( parts[1] );
-
+		printf( "Warning : Unknown Savegame Level Object type %d\n", type );
+		return;
 	}
-	else if( parts[0].compare( "Position" ) == 0 )
+
+	cSave_Level_Object *object = new cSave_Level_Object();
+
+	// type
+	object->type = (SpriteType)type;
+
+	// position
+	object->properties.push_back( cSave_Level_Object_Property( "posx", xml_attributes.getValueAsString( "posx" ).c_str() ) );
+	object->properties.push_back( cSave_Level_Object_Property( "posy", xml_attributes.getValueAsString( "posy" ).c_str() ) );
+
+	if( type == TYPE_BONUSBOX )
 	{
-		if( count != 3 )
-		{
-			printf( "%s : ", Get_filename( 0 ).c_str() );
-			printf( "Savegame Error : line %d : %s needs 3 parameters\n", line, parts[0].c_str() );
-			return 0;
-		}
+		// useable count
+		object->properties.push_back( cSave_Level_Object_Property( "useable_count", xml_attributes.getValueAsString( "useable_count" ).c_str() ) );
 
-		if( !is_valid_number( parts[1] ) )
-		{
-			printf( "Savegame Error : line %d : X Position is not a number\n", line );
-			return 0;
-		}
-		
-		if( !is_valid_number( parts[2] ) )
-		{
-			printf( "Savegame Error : line %d : Y Position is not a number\n", line );
-			return 0;
-		}
-
-		savegame_temp.posx = string_to_int( parts[1] );
-		savegame_temp.posy = string_to_int( parts[2] );
+		// clear
+		xml_attributes.remove( "useable_count" );
 	}
-	else if( parts[0].compare( "Points" ) == 0 )
+	else if( type == TYPE_GOLDPIECE || type == TYPE_MOON )
 	{
-		if( count != 2 )
-		{
-			printf( "%s : ", Get_filename( 0 ).c_str() );
-			printf( "Line %d, error : %s %s\n", line, parts[0].c_str(), "needs 2 parameters" );
-			return 0;
-		}
+		// visible
+		object->properties.push_back( cSave_Level_Object_Property( "visible", xml_attributes.getValueAsString( "visible" ).c_str() ) );
 
-		if( !is_valid_number( parts[1] ) )
-		{
-			printf( "Savegame Error : line %d : Points is not a number\n", line );
-			return 0;
-		}
-
-		savegame_temp.points = string_to_int( parts[1] );
+		// clear
+		xml_attributes.remove( "visible" );
 	}
-	else if( parts[0].compare( "Goldpieces" ) == 0 )
+
+	// add object
+	level_objects.push_back( object );
+
+	// clear
+	xml_attributes.remove( "type" );
+	xml_attributes.remove( "posx" );
+	xml_attributes.remove( "posy" );
+}
+
+void cSavegame :: Handle_Player( const XMLAttributes &attributes )
+{
+	save_temp->lives = xml_attributes.getValueAsInteger( "lives" );
+	save_temp->points = xml_attributes.getValueAsInteger( "points" );
+	save_temp->goldpieces = xml_attributes.getValueAsInteger( "goldpieces" );
+	save_temp->player_state = xml_attributes.getValueAsInteger( "state" );
+	save_temp->itembox_item = xml_attributes.getValueAsInteger( "itembox_item" );
+}
+
+void cSavegame :: Handle_Overworld_Data( const XMLAttributes &attributes )
+{
+	save_temp->overworld_active = xml_attributes.getValueAsString( "active" ).c_str();
+	save_temp->overworld_current_waypoint = xml_attributes.getValueAsInteger( "current_waypoint" );
+}
+
+void cSavegame :: Handle_Overworld( const XMLAttributes &attributes )
+{
+	string name = xml_attributes.getValueAsString( "name" ).c_str();
+
+	// Search if Overworld is available
+	cOverworld *overworld = pOverworld_manager->Get_from_Name( name );
+
+	if( !overworld )
 	{
-		if( count != 2 )
-		{
-			printf( "%s : ", Get_filename( 0 ).c_str() );
-			printf( "Savegame Error : line %d, %s needs 2 parameters\n", line, parts[0].c_str() );
-			return 0;
-		}
-		
-		if( !is_valid_number( parts[1] ) )
-		{
-			printf( "Savegame Error : line %d : Goldpieces is not a number\n", line );
-			return 0;
-		}
-
-		savegame_temp.goldpieces = string_to_int( parts[1] );
+		printf( "Warning : Savegame %s Overworld %s not found\n", save_temp->description.c_str(), name.c_str() );
 	}
-	else if( parts[0].compare( "State" ) == 0 )
+
+	// Create Savegame Overworld
+	cSave_Overworld *save_overworld = new cSave_Overworld();
+	// set name
+	save_overworld->name = name;
+	// set waypoints
+	save_overworld->Waypoints.swap( active_waypoints );
+	active_waypoints.clear();
+	// save
+	save_temp->Overworlds.push_back( save_overworld );
+}
+
+void cSavegame :: Handle_Overworld_Level( const XMLAttributes &attributes )
+{
+	bool access = xml_attributes.getValueAsBool( "access" );
+
+	cSave_Overworld_Waypoint *waypoint = new cSave_Overworld_Waypoint();
+
+	// destination ( level_name and world_name is pre 0.99.6 )
+	if( xml_attributes.exists( "world_name" ) )
 	{
-		if( count != 2 )
-		{
-			printf( "%s : ", Get_filename( 0 ).c_str() );
-			printf( "Savegame Error : line %d, %s needs 2 parameters\n", line, parts[0].c_str() );
-			return 0;
-		}
-
-		if( !is_valid_number( parts[1] ) )
-		{
-			printf( "Savegame Error : line %d : State is not a number\n", line );
-			return 0;
-		}
-
-		savegame_temp.state = string_to_int( parts[1] );
+		waypoint->destination = xml_attributes.getValueAsString( "world_name" ).c_str();
 	}
-	else if( parts[0].compare( "Itembox_Item" ) == 0 )
+	else if( xml_attributes.exists( "level_name" ) )
 	{
-		if( count != 2 )
-		{
-			printf( "%s : ", Get_filename( 0 ).c_str() );
-			printf( "Line %d, error : %s %s\n", line, parts[0].c_str(), "needs 2 parameters" );
-			return 0;
-		}
-
-		if( !is_valid_number( parts[1] ) )
-		{
-			printf( "Savegame Error : line %d : Itembox_item is not a number\n", line );
-			return 0;
-		}
-
-		savegame_temp.itembox_item = string_to_int( parts[1] );
+		waypoint->destination = xml_attributes.getValueAsString( "level_name" ).c_str();
 	}
-	else if( parts[0].compare( "Save_Description" ) == 0 )
-	{
-		if( count != 2 )
-		{
-			printf( "%s : ", Get_filename( 0 ).c_str() );
-			printf( "Savegame Error : line %d, %s needs 2 parameters\n", line, parts[0].c_str() );
-			return 0;
-		}
-
-		if( !savegame_temp.description.length() )
-		{
-			savegame_temp.description = parts[1];
-		}
-
-	}
-	else if( parts[0].compare( "Save_Version" ) == 0 )
-	{
-		if( count != 2 )
-		{
-			printf( "%s : ", Get_filename( 0 ).c_str() );
-			printf( "Savegame Error : line %d, %s needs 2 parameters\n", line, parts[0].c_str() );
-			return 0;
-		}
-
-		if( !is_valid_number( parts[1] ) )
-		{
-			printf( "Savegame Error : line %d : Save_Version is not a number\n", line );
-			return 0;
-		}
-
-		savegame_temp.version = string_to_int( parts[1] );
-	}
-	else if( parts[0].compare( "Save_Time_Stamp" ) == 0 )
-	{
-		if( count != 6 )
-		{
-			printf( "%s : ", Get_filename( 0 ).c_str() );
-			printf( "Savegame Error : line %d, %s needs 6 parameters\n", line, parts[0].c_str() );
-			return 0;
-		}
-
-		string str_date;
-		/* Date parts
-		 * 1 = Day string
-		 * 2 = Month
-		 * 3 = Day number
-		 * 4 = Day time
-		 * 5 = Year
-		*/
-		str_date = parts[4] + " " + parts[3] + " " + parts[2] + " " + parts[5];
-
-		savegame_temp.timestamp = str_date;
-	}
-	else if( parts[0].compare( "OWsave" ) == 0 )
-	{
-		if( count != 2 )
-		{
-			printf( "%s : ", Get_filename( 0 ).c_str() );
-			printf( "Savegame Error : line %d, %s needs 2 parameters\n", line, parts[0].c_str() );
-			return 0;
-		}
-
-		if( !is_valid_number( parts[1] ) )
-		{
-			printf( "Savegame Error : line %d : OWsave is not a number\n", line );
-			return 0;
-		}
-
-		savegame_temp.Overworld_save = string_to_int( parts[1] );
-	}
-	else if( parts[0].compare( "OWNlevel" ) == 0 ) // Overworld Normal Level
-	{
-		if( count != 2 )
-		{
-			printf( "%s : ", Get_filename( 0 ).c_str() );
-			printf( "Savegame Error : line %d, error : %s needs 2 parameters\n", line, parts[0].c_str() );
-			return 0;
-		}
-
-		if( !is_valid_number( parts[1] ) )
-		{
-			printf( "Savegame Error : line %d : OWNlevel is not a number\n", line );
-			return 0;
-		}
-
-		savegame_temp.Overworld_nlevel = string_to_int( parts[1] );
-	}
-	else if( parts[0].compare( "OWSlevel" ) == 0 ) // Overworld Secret Level
-	{
-		if( count != 2 )
-		{
-			printf( "%s : ", Get_filename( 0 ).c_str() );
-			printf( "Savegame Error : line %d, error : %s needs 2 parameters\n", line, parts[0].c_str() );
-			return 0;
-		}
-
-		if( !is_valid_number( parts[1] ) )
-		{
-			printf( "Savegame Error : line %d : OWSlevel is not a number\n", line );
-			return 0;
-		}
-
-		savegame_temp.Overworld_slevel = string_to_int( parts[1] );
-	}
-	else if( parts[0].compare( "OWCurr_WP" ) == 0 )
-	{
-		if( count != 2 )
-		{
-			printf( "%s : ", Get_filename( 0 ).c_str() );
-			printf( "Savegame Error : line %d, error : %s needs 2 parameters\n", line, parts[0].c_str() );
-			return 0;
-		}
-
-		if( !is_valid_number( parts[1] ) )
-		{
-			printf( "Savegame Error : line %d : OWCurr_WP is not a number\n", line );
-			return 0;
-		}
-
-		savegame_temp.Overworld_curr_waypoint = string_to_int( parts[1] );
-	}
-	else if( parts[0].compare( "OverWorld" ) == 0 )
-	{
-		if( count != 2 )
-		{
-			printf( "%s : ", Get_filename( 0 ).c_str() );
-			printf( "Savegame Error : line %d, error : %s needs 2 parameters\n", line, parts[0].c_str() );
-			return 0;
-		}
-
-		if( !is_valid_number( parts[1] ) )
-		{
-			printf( "Savegame Error : line %d : OverWorld is not a number\n", line );
-			return 0;
-		}
-
-		savegame_temp.Overworld_world = string_to_int( parts[1] );
-	}
+	// default
 	else
 	{
-		printf( "Savegame Error : %s : line %d, ", Get_filename( 0 ).c_str(), line );
-		printf( "Unknown Command : %s\n", parts[0].c_str() );
-		return 0; // error
+		waypoint->destination = xml_attributes.getValueAsString( "destination" ).c_str();
 	}
 
-	return 1;
+	waypoint->access = access;
+
+	active_waypoints.push_back( waypoint );
+
+	// clear
+	xml_attributes.remove( "level_name" );
+	xml_attributes.remove( "world_name" );
 }
 
-void cSavegame :: Debug_Print( cSavegame_data savegame )
-{
-	printf( "\nSavegame Debug Print : \n\nLevel_Name %s\nLifes : %d\nPos x : %d\nPos y : %d\nPoints : %d\nGoldpieces : %d\nState : %d\nOverWorld Save : %d\nOverWorld Normal Level : %d\nOverWorld Secret Level : %d\nOverWorld : %d\n",
-		savegame.levelname.c_str(), savegame.lives, savegame.posx, savegame.posy, savegame.points, savegame.goldpieces, savegame.state, savegame.Overworld_save, savegame.Overworld_nlevel, savegame.Overworld_slevel, savegame.Overworld_world );
-}
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+cSavegame *pSavegame = NULL;

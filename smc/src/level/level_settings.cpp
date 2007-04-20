@@ -1,7 +1,7 @@
 /***************************************************************************
-     level_settings.cpp  - settings class for the Leveleditor
+			level_settings.cpp  - settings class for the Leveleditor
                              -------------------
-    copyright            : (C) 2006 by FluXy
+    copyright            : (C) 2006 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -12,15 +12,31 @@
  *                                                                         *
  ***************************************************************************/ 
 
-#include "../globals.h"
-#include "../main.h"
+#include "../core/globals.h"
+#include "../core/main.h"
+#include "../core/game_core.h"
+#include "../core/camera.h"
+#include "../level/level_settings.h"
+#include "../input/mouse.h"
+#include "../level/level.h"
+#include "../video/font.h"
+#include "../video/video.h"
+#include "../video/renderer.h"
+#include "../video/gl_surface.h"
+
+/* *** *** *** *** *** cLevel_Settings *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cLevel_Settings :: cLevel_Settings( void )
 {
-	background_preview = new cSprite( NULL, GAME_RES_W * 0.5, GAME_RES_H * 0.56, 0, &lightgreyalpha, 1 );
-	background_type = new cSprite( NULL, GAME_RES_W * 0.26, GAME_RES_H * 0.58, 0, NULL, 1 );
+	// Main
+	background_preview = new cHudSprite( NULL, GAME_RES_W * 0.73f, GAME_RES_H * 0.33f );
+	background_preview->Set_Shadow( lightgrey, 2 );
+	// Global Effects
+	global_effect_preview = new cHudSprite( NULL, GAME_RES_W * 0.75f, GAME_RES_H * 0.15f );
+	global_effect_preview->Set_Shadow( lightgrey, 2 );
+	
+	tabcontrol = NULL;
 
-	pDialogManager->DeleteAll();
 	Init();
 
 	active = 0;
@@ -28,113 +44,191 @@ cLevel_Settings :: cLevel_Settings( void )
 
 cLevel_Settings :: ~cLevel_Settings( void )
 {
-	delete text_caption;
-
 	delete background_preview;
-	delete background_type;
+	delete global_effect_preview;
 
+	pGuiSystem->getGUISheet()->removeChildWindow( guiwindow );
 	WindowManager::getSingleton().destroyWindow( guiwindow );
-	pDialogManager->DeleteAll();
 }
 
 void cLevel_Settings :: Init( void )
 {
-	// level settings caption
-	text_caption = new cSprite( GetImage( "game/leveleditor/settings.png" ), GAME_RES_W * 0.35, 5, 0, NULL, 1 );
-
 	// ## Gui
-	guiwindow = WindowManager::getSingleton().loadWindowLayout( "data/gui/layout/level_settings.layout" );
-	pGuiSystem->setGUISheet( guiwindow );
+	guiwindow = WindowManager::getSingleton().loadWindowLayout( "level_settings.layout" );
+	pGuiSystem->getGUISheet()->addChildWindow( guiwindow );
 	
+	// Tab Control
+	tabcontrol = (TabControl *)WindowManager::getSingleton().getWindow( "tabcontrol_main" );
+	// tab main
+	Window *tabwindow = WindowManager::getSingleton().loadWindowLayout( "level_settings_tab_main.layout" );
+	tabcontrol->addTab( tabwindow );
+	// Tab background
+	tabwindow = WindowManager::getSingleton().loadWindowLayout( "level_settings_tab_background.layout" );
+	tabcontrol->addTab( tabwindow );
+	// tab global effects
+	tabwindow = WindowManager::getSingleton().loadWindowLayout( "level_settings_tab_global_effect.layout" );
+	tabcontrol->addTab( tabwindow );
+
+	// Main
 	// level filename
 	Editbox *editbox_level_filename = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_level_filename" );
-	editbox_level_filename->setText( pLevel->Get_filename( 0, 0 ) );
+	editbox_level_filename->setText( Get_filename( pLevel->data_file, 0, 0 ).c_str() );
 	// music filename
 	Editbox *editbox_music_filename = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_music_filename" );
-	editbox_music_filename->setText( pLevel->Get_Musicfile( 0 ) );
+	editbox_music_filename->setText( pLevel->Get_Musicfile( 1 ).c_str() );
+	// author
+	Editbox *editbox_author = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_author" );
+	editbox_author->setText( pLevel->author.c_str() );
+	// version
+	Editbox *editbox_version = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_version" );
+	editbox_version->setText( pLevel->version.c_str() );
+	// camera limits
+	Spinner *spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_camera_limit_w" );
+	spinner->setCurrentValue( pCamera->limit_rect.w );
+	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_camera_limit_h" );
+	spinner->setCurrentValue( pCamera->limit_rect.h );
+	// last Save time
+	Editbox *editbox_save_time = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_save_time" );
+	editbox_save_time->setText( Time_to_String( pLevel->last_saved, "%Y-%m-%d  %H:%M:%S" ) );
+
+
 	// add background image button
-	PushButton *button_add_background_image = (PushButton *)WindowManager::getSingleton().getWindow( "button_add_background_image" );
+	PushButton *button_add_background_image = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_add_background_image" ));
 	button_add_background_image->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cLevel_Settings::Add_Background_image, this ) );
 	// delete background image button
-	PushButton *button_delete_background_image = (PushButton *)WindowManager::getSingleton().getWindow( "button_delete_background_image" );
+	PushButton *button_delete_background_image = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_delete_background_image" ));
 	button_delete_background_image->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cLevel_Settings::Delete_Background_image, this ) );
 	// save and exit button
-	PushButton *button_save = (PushButton *)WindowManager::getSingleton().getWindow( "button_save" );
+	PushButton *button_save = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_save" ));
 	button_save->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cLevel_Settings::Button_Save, this ) );
 
-	// ## Background Colors
+	// Background
+	// listbox
+	Listbox *listbox = (Listbox *)WindowManager::getSingleton().getWindow( "listbox_backgrounds" );
+	listbox->subscribeEvent( Listbox::EventSelectionChanged, Event::Subscriber( &cLevel_Settings::Set_Background_image, this ) );
+	// type
+	Combobox *combobox = (Combobox *)WindowManager::getSingleton().getWindow( "combo_bg_image_type" );
+	ListboxTextItem *item = new ListboxTextItem( "Disabled", 1 );
+	combobox->addItem( item );
+	item = new ListboxTextItem( "Left and Right", 2 );
+	combobox->addItem( item );
+	combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cLevel_Settings::Update_BG_image, this ) );
+	// filename
+	Editbox *editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_image_name" );
+	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_image, this ) );
+	// speed
+	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_x" );
+	spinner->subscribeEvent( Spinner::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_image, this ) );
+	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_y" );
+	spinner->subscribeEvent( Spinner::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_image, this ) );
+	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_image_posz" );
+	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_image, this ) );
+	// Gradient colors
+	bg_color_1 = Color( pLevel->backgrounds[0]->color_1.red, pLevel->backgrounds[0]->color_1.green, pLevel->backgrounds[0]->color_1.blue, 255 );
+	bg_color_2 = Color( pLevel->backgrounds[0]->color_2.red, pLevel->backgrounds[0]->color_2.green, pLevel->backgrounds[0]->color_2.blue, 255 );
 
-	bg_color_1 = Get_Color( pLevel->backgrounds[0]->color_1.red, pLevel->backgrounds[0]->color_1.green, pLevel->backgrounds[0]->color_1.blue, 255 );
-	bg_color_2 = Get_Color( pLevel->backgrounds[0]->color_2.red, pLevel->backgrounds[0]->color_2.green, pLevel->backgrounds[0]->color_2.blue, 255 );
-
-	// ## editbox Events
-	Editbox *editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_color_1_red" );
+	// color 1
+	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_color_1_red" );
 	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_Colors, this ) );
-	editbox->setText( int_to_string( bg_color_1.red ) );
+	editbox->setText( int_to_string( bg_color_1.red ).c_str() );
 	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_color_1_green" );
 	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_Colors, this ) );
-	editbox->setText( int_to_string( bg_color_1.green ) );
+	editbox->setText( int_to_string( bg_color_1.green ).c_str() );
 	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_color_1_blue" );
 	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_Colors, this ) );
-	editbox->setText( int_to_string( bg_color_1.blue ) );
-
+	editbox->setText( int_to_string( bg_color_1.blue ).c_str() );
+	// color 2
 	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_color_2_red" );
 	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_Colors, this ) );
-	editbox->setText( int_to_string( bg_color_2.red ) );
+	editbox->setText( int_to_string( bg_color_2.red ).c_str() );
 	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_color_2_green" );
 	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_Colors, this ) );
-	editbox->setText( int_to_string( bg_color_2.green ) );
+	editbox->setText( int_to_string( bg_color_2.green ).c_str() );
 	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_color_2_blue" );
 	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_Colors, this ) );
-	editbox->setText( int_to_string( bg_color_2.blue ) );
-
-	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_image_name" );
-	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_image, this ) );
-
-	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_image_type" );
-	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_image, this ) );
+	editbox->setText( int_to_string( bg_color_2.blue ).c_str() );
 
 	Update_BG_Colors( EventArgs() );
 
-	Listbox *listbox = (Listbox *)WindowManager::getSingleton().getWindow( "listbox_backgrounds" );
-	listbox->subscribeEvent( Listbox::EventSelectionChanged, Event::Subscriber( &cLevel_Settings::Set_Background_image, this ) );
+	// global effect
+	// filename
+	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_global_effect_file" );
+	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_global_effect_image, this ) );
+	// type
+	combobox = (Combobox *)WindowManager::getSingleton().getWindow( "combo_global_effect_type" );
+	item = new ListboxTextItem( "Disabled", 1 );
+	combobox->addItem( item );
+	item = new ListboxTextItem( "Falling", 2 );
+	combobox->addItem( item );
+	//item = new ListboxTextItem( "Flying", 3 );
+	//combobox->addItem( item );
+	// Z Position
+	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z" );
+	editbox->setText( float_to_string( pLevel->pGlobal_effect->posz ) );
+	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z_rand" );
+	editbox->setText( float_to_string( pLevel->pGlobal_effect->posz_rand ) );
+	// creation rect
+	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_x" );
+	spinner->setCurrentValue( pLevel->pGlobal_effect->rect.x );
+	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_y" );
+	spinner->setCurrentValue( pLevel->pGlobal_effect->rect.y );
+	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_w" );
+	spinner->setCurrentValue( pLevel->pGlobal_effect->rect.w );
+	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_h" );
+	spinner->setCurrentValue( pLevel->pGlobal_effect->rect.h );
+	// time to live
+	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_time_to_live" );
+	spinner->setCurrentValue( pLevel->pGlobal_effect->time_to_live );
+	// scale
+	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_scale" );
+	spinner->setCurrentValue( pLevel->pGlobal_effect->scale );
+	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_scale_rand" );
+	spinner->setCurrentValue( pLevel->pGlobal_effect->scale_rand );
+	// creation speed
+	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_creation_speed" );
+	spinner->setCurrentValue( pLevel->pGlobal_effect->creation_speed );
+	// speed
+	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_speed" );
+	spinner->setCurrentValue( pLevel->pGlobal_effect->speed );
+	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_speed_rand" );
+	spinner->setCurrentValue( pLevel->pGlobal_effect->speed_rand );
+	// direction
+	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_direction_start" );
+	spinner->setCurrentValue( pLevel->pGlobal_effect->dir_range_start );
+	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_direction_size" );
+	spinner->setCurrentValue( pLevel->pGlobal_effect->dir_range_size );
+	// constant rotation z
+	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z" );
+	spinner->setCurrentValue( pLevel->pGlobal_effect->const_rotz );
+	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z_rand" );
+	spinner->setCurrentValue( pLevel->pGlobal_effect->const_rotz_rand );
+
+	Clear_Layer_field();
 
 	Load_BG_imageList();
+	Load_global_effect();
+
+	Update_global_effect_image( EventArgs() );
 }
 
 void cLevel_Settings :: Enter( void )
 {
-	Game_Mode = MODE_LEVEL_SETTINGS;
+	Change_Game_Mode( MODE_LEVEL_SETTINGS );
 
 	active = 1;
 
 	while( active )
 	{
-		// Clear Screen
-		ResetScreen();
-		// Mouse Position update
-		pMouseCursor->Update_Position();
-		// sprites
-		text_caption->Draw();
-		// background color boxes
-		DrawRect( 470, 168, 30, 30, &bg_color_1 );
-		DrawRect( 470, 218, 30, 30, &bg_color_2 );
-		// background image preview
-		background_preview->Draw();
-		// background image type text
-		background_type->Draw();
-		
-		// gui
-		pGuiSystem->renderGUI();
-		// draw
-		SDL_GL_SwapBuffers();
-
 		// input
-		while( SDL_PollEvent( &event ) )
+		while( SDL_PollEvent( &input_event ) )
 		{
-			HandleInput();
+			// was handled
+			if( Handle_Input_Global( &input_event ) )
+			{
+				continue;
+			}
 
-			switch( event.type )
+			switch( input_event.type )
 			{
 				case SDL_QUIT:
 				{
@@ -144,7 +238,7 @@ void cLevel_Settings :: Enter( void )
 				}
 				case SDL_KEYDOWN:
 				{
-					if( event.key.keysym.sym == SDLK_ESCAPE )
+					if( input_event.key.keysym.sym == SDLK_ESCAPE )
 					{
 						active = 0;
 					}
@@ -157,31 +251,108 @@ void cLevel_Settings :: Enter( void )
 			}
 		}
 
+		// Clear Screen
+		pVideo->Clear_Screen();
+		// Mouse Position update
+		pMouseCursor->Update_Position();
+
+		// background Tab
+		if( tabcontrol->getSelectedTabIndex() == 1 )
+		{
+			// create request
+			cSurfaceRequest *request = new cSurfaceRequest();
+			// draw background image preview
+			background_preview->Draw( request );
+			// add request
+			pRenderer_GUI->Add( request );
+		}
+		// Global Effect Tab
+		else if( tabcontrol->getSelectedTabIndex() == 2 )
+		{
+			// create request
+			cSurfaceRequest *request = new cSurfaceRequest();
+			// draw global effect preview
+			global_effect_preview->Draw( request );
+			// add request
+			pRenderer_GUI->Add( request );
+		}
+
+		// draw
+		pVideo->Render();
+
+		// gui
 		Gui_handle_Time();
 	}
 
 	// ### Save Changes
-	if( pLevel->Get_filename( 0, 0 ).compare( WindowManager::getSingleton().getWindow( "editbox_level_filename" )->getText().c_str() ) != 0 )
+
+	// # Main
+	// filename
+	if( Get_filename( pLevel->data_file, 0, 0 ).compare( WindowManager::getSingleton().getWindow( "editbox_level_filename" )->getText().c_str() ) != 0 )
 	{
 		pLevel->Set_Levelfile( WindowManager::getSingleton().getWindow( "editbox_level_filename" )->getText().c_str() );
-
-		debugdisplay->counter = 0; // no level saved info
+		// show no level saved info text
+		debugdisplay->Set_Text( "" );
 	}
-
+	// musicfile
 	pLevel->Set_Musicfile( WindowManager::getSingleton().getWindow( "editbox_music_filename" )->getText().c_str() );
+	// Author
+	pLevel->Set_Author( WindowManager::getSingleton().getWindow( "editbox_author" )->getText().c_str() );
+	// Version
+	pLevel->Set_Version( WindowManager::getSingleton().getWindow( "editbox_version" )->getText().c_str() );
+	// Camera Limits
+	pCamera->Set_Limit_W( ((Spinner *)WindowManager::getSingleton().getWindow( "spinner_camera_limit_w" ))->getCurrentValue() );
+	pCamera->Set_Limit_H( ((Spinner *)WindowManager::getSingleton().getWindow( "spinner_camera_limit_h" ))->getCurrentValue() );
 
+	// # background
+	// Gradient
 	pLevel->backgrounds[0]->Set_color_1( bg_color_1 );
 	pLevel->backgrounds[0]->Set_color_2( bg_color_2 );
 
-	Game_Mode = MODE_LEVEL;
-	pMouseCursor->Reset();
+	// # Global Effect
+	pLevel->pGlobal_effect->image_filename = WindowManager::getSingleton().getWindow( "editbox_global_effect_file" )->getText().c_str();
+	pLevel->pGlobal_effect->Set_ZPos( string_to_float( ( (Editbox *)WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z" ))->getText().c_str() ), string_to_float( ( (Editbox *)WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z_rand" ))->getText().c_str() ) );
+	pLevel->pGlobal_effect->Set_type( WindowManager::getSingleton().getWindow( "combo_global_effect_type" )->getText().c_str() );
+	pLevel->pGlobal_effect->Init();
+	// creation rect
+	Spinner *spinner_rect_x = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_x" );
+	Spinner *spinner_rect_y = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_y" );
+	Spinner *spinner_rect_w = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_w" );
+	Spinner *spinner_rect_h = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_h" );
+	pLevel->pGlobal_effect->Set_rect( GL_rect( spinner_rect_x->getCurrentValue(), spinner_rect_y->getCurrentValue(), spinner_rect_w->getCurrentValue(), spinner_rect_h->getCurrentValue() ) );
+	// lifetime
+	Spinner *spinner_time_to_live = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_time_to_live" );
+	pLevel->pGlobal_effect->Set_Time_to_Live( spinner_time_to_live->getCurrentValue() );
+	// scale
+	Spinner *spinner_scale = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_scale" );
+	Spinner *spinner_scale_rand = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_scale_rand" );
+	pLevel->pGlobal_effect->Set_Scale( spinner_scale->getCurrentValue(), spinner_scale_rand->getCurrentValue() );
+	// creation speed
+	Spinner *spinner_creation_speed = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_creation_speed" );
+	pLevel->pGlobal_effect->Set_Creation_Speed( spinner_creation_speed->getCurrentValue() );
+	// speed
+	Spinner *spinner_speed = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_speed" );
+	Spinner *spinner_speed_rand = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_speed_rand" );
+	pLevel->pGlobal_effect->Set_Speed( spinner_speed->getCurrentValue(), spinner_speed_rand->getCurrentValue() );
+	// direction
+	Spinner *spinner_dir_start = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_direction_start" );
+	Spinner *spinner_dir_size = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_direction_size" );
+	pLevel->pGlobal_effect->Set_Direction( spinner_dir_start->getCurrentValue(), spinner_dir_size->getCurrentValue() );
+	// constant rotation z
+	Spinner *spinner_const_rot_z = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z" );
+	Spinner *spinner_const_rot_z_rand = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z_rand" );
+	pLevel->pGlobal_effect->Set_ConstRotationZ( spinner_const_rot_z->getCurrentValue(), spinner_const_rot_z_rand->getCurrentValue() );
+
+	// back to level mode
+	Change_Game_Mode( MODE_LEVEL );
+	pMouseCursor->Reset( 0 );
 }
 
 bool cLevel_Settings :: Add_Background_image( const EventArgs &event )
 {
 	cBackground *background = new cBackground();
 	background->Set_type( BG_IMG_LEFTRIGHT );
-	background->Set_image( "game/background/green_junglehills.png" );
+	background->Set_image( LEVEL_DEFAULT_BACKGROUND );
 
 	pLevel->backgrounds.push_back( background );
 
@@ -223,16 +394,22 @@ bool cLevel_Settings :: Set_Background_image( const EventArgs &event )
 		cBackground *background = pLevel->Get_background( string_to_int( item->getText().c_str() ) );
 		string background_filename = background->img_file_1;
 
-		Editbox *editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_image_name" );
+		// type
+		Editbox *editbox = (Editbox *)WindowManager::getSingleton().getWindow( "combo_bg_image_type" );
+		editbox->setText( background->Get_Typename().c_str() );
+		// filename
+		editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_image_name" );
 		editbox->setText( background_filename.c_str() );
+		// speed
+		Spinner *spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_x" );
+		spinner->setCurrentValue( background->speedx );
+		spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_y" );
+		spinner->setCurrentValue( background->speedy );
+		// posz
+		editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_image_posz" );
+		editbox->setText( float_to_string( background->posz ).c_str() );
 
-		editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_image_type" );
-		editbox->setText( int_to_string( background->type ).c_str() );
-
-		// type name
-		background_type->SetImage( RenderText( font_small, background->Get_Typename(), black ), 0, 1 );
-
-		// image preview
+		// set image preview
 		background_filename.insert( 0, PIXMAPS_DIR "/" );
 		Set_Background_image_Preview( background_filename );
 	}
@@ -261,19 +438,24 @@ bool cLevel_Settings :: Update_BG_Colors( const EventArgs &event )
 
 
 	// color 1
-	StaticText *statictext = (StaticText *)WindowManager::getSingleton().getWindow( "text_bg_color_1_red" );
-	statictext->setTextColours( colour( 1, 1 - ( (float)bg_color_1.red / 255 ), 1 - ( (float)bg_color_1.red / 255 ), 1 ) );
-	statictext = (StaticText *)WindowManager::getSingleton().getWindow( "text_bg_color_1_green" );
-	statictext->setTextColours( colour( 1 - ( (float)bg_color_1.green / 255 ), 1, 1 - ( (float)bg_color_1.green / 255 ), 1 ) );
-	statictext = (StaticText *)WindowManager::getSingleton().getWindow( "text_bg_color_1_blue" );
-	statictext->setTextColours( colour( 1 - ( (float)bg_color_1.blue / 255 ), 1 - ( (float)bg_color_1.blue / 255 ), 1, 1 ) );
+	Window *statictext = WindowManager::getSingleton().getWindow( "text_bg_color_1_red" );
+	statictext->setProperty( "TextColours", PropertyHelper::colourToString( colour( 1, 1 - ( (float)bg_color_1.red / 255 ), 1 - ( (float)bg_color_1.red / 255 ), 1 ) ) );
+	statictext = WindowManager::getSingleton().getWindow( "text_bg_color_1_green" );
+	statictext->setProperty( "TextColours", PropertyHelper::colourToString( colour( 1 - ( (float)bg_color_1.green / 255 ), 1, 1 - ( (float)bg_color_1.green / 255 ), 1 ) ) );
+	statictext = WindowManager::getSingleton().getWindow( "text_bg_color_1_blue" );
+	statictext->setProperty( "TextColours", PropertyHelper::colourToString( colour( 1 - ( (float)bg_color_1.blue / 255 ), 1 - ( (float)bg_color_1.blue / 255 ), 1, 1 ) ) );
 	// color 2
-	statictext = (StaticText *)WindowManager::getSingleton().getWindow( "text_bg_color_2_red" );
-	statictext->setTextColours( colour( 1, 1 - ( (float)bg_color_2.red / 255 ), 1 - ( (float)bg_color_2.red / 255 ), 1 ) );
-	statictext = (StaticText *)WindowManager::getSingleton().getWindow( "text_bg_color_2_green" );
-	statictext->setTextColours( colour( 1 - ( (float)bg_color_2.green / 255 ), 1, 1 - ( (float)bg_color_2.green / 255 ), 1 ) );
-	statictext = (StaticText *)WindowManager::getSingleton().getWindow( "text_bg_color_2_blue" );
-	statictext->setTextColours( colour( 1 - ( (float)bg_color_2.blue / 255 ), 1 - ( (float)bg_color_2.blue / 255 ), 1, 1 ) );
+	statictext = WindowManager::getSingleton().getWindow( "text_bg_color_2_red" );
+	statictext->setProperty( "TextColours", PropertyHelper::colourToString( colour( 1, 1 - ( (float)bg_color_2.red / 255 ), 1 - ( (float)bg_color_2.red / 255 ), 1 ) ) );
+	statictext = WindowManager::getSingleton().getWindow( "text_bg_color_2_green" );
+	statictext->setProperty( "TextColours", PropertyHelper::colourToString( colour( 1 - ( (float)bg_color_2.green / 255 ), 1, 1 - ( (float)bg_color_2.green / 255 ), 1 ) ) );
+	statictext = WindowManager::getSingleton().getWindow( "text_bg_color_2_blue" );
+	statictext->setProperty( "TextColours", PropertyHelper::colourToString( colour( 1 - ( (float)bg_color_2.blue / 255 ), 1 - ( (float)bg_color_2.blue / 255 ), 1, 1 ) ) );
+
+	statictext = WindowManager::getSingleton().getWindow( "rect_color_1" );
+	statictext->setProperty( "TextColours", PropertyHelper::colourToString( bg_color_1.Get_cegui_colour() ) );
+	statictext = WindowManager::getSingleton().getWindow( "rect_color_2" );
+	statictext->setProperty( "TextColours", PropertyHelper::colourToString( bg_color_2.Get_cegui_colour() ) );
 
 	return 1;
 }
@@ -285,11 +467,11 @@ void cLevel_Settings :: Load_BG_imageList( void )
 
 	for( unsigned int i = 0; i < pLevel->Get_Backgroundlayers() - 1; i++ )
 	{
-		ListboxTextItem *item = new ListboxTextItem( int_to_string( i + 1 ) );
+		ListboxTextItem *item = new ListboxTextItem( int_to_string( i + 1 ).c_str() );
 		listbox->addItem( (ListboxItem *)item );
 	}
 
-	PushButton *button_add = (PushButton *)WindowManager::getSingleton().getWindow( "button_add_background_image" );
+	PushButton *button_add = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_add_background_image" ));
 
 	if( pLevel->Get_Backgroundlayers() >= 4 ) // 3 layers + default background maximum
 	{
@@ -303,32 +485,36 @@ void cLevel_Settings :: Load_BG_imageList( void )
 
 void cLevel_Settings :: Set_Background_image_Preview( string filename )
 {
-	if( valid_file( filename ) )
+	Convert_path_separators( filename );
+
+	if( !valid_file( filename ) )
 	{
-		GL_Surface *temp = LoadTexture( filename );
-		
-		if( !temp )
-		{
-			printf( "Warning : Couldn't open Background preview : %s\n", filename.c_str() );
-		}
-		else
-		{
-			double zoom = Get_scale( temp, 100, 100 );
-			temp->w *= zoom;
-			temp->h *= zoom;
-			background_preview->SetImage( temp, 0, 1 );
-		}
+		background_preview->Set_Image( NULL );
+		return;
+	}
+
+	GL_Surface *temp = pVideo->Load_Surface( filename );
+	
+	if( !temp )
+	{
+		printf( "Warning : Couldn't open Background preview : %s\n", filename.c_str() );
 	}
 	else
 	{
-		background_preview->SetImage( NULL );
+		float zoom = pVideo->Get_scale( temp, 100, 100 );
+		temp->w *= zoom;
+		temp->h *= zoom;
+		background_preview->Set_Image( temp, 0, 1 );
 	}
 }
 
 bool cLevel_Settings :: Update_BG_image( const EventArgs &event )
 {
+	string bg_type = WindowManager::getSingleton().getWindow( "combo_bg_image_type" )->getText().c_str();
 	string bg_filename = WindowManager::getSingleton().getWindow( "editbox_bg_image_name" )->getText().c_str();
-	int bg_type = string_to_int( WindowManager::getSingleton().getWindow( "editbox_bg_image_type" )->getText().c_str() );
+	float speed_x = ((Spinner *)WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_x" ))->getCurrentValue();
+	float speed_y = ((Spinner *)WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_y" ))->getCurrentValue();
+	float posz = string_to_float( ( (Spinner *)WindowManager::getSingleton().getWindow( "editbox_bg_image_posz" ))->getText().c_str() );
 
 	Listbox *listbox = (Listbox *)WindowManager::getSingleton().getWindow( "listbox_backgrounds" );
 	ListboxItem *item = listbox->getFirstSelectedItem();
@@ -339,23 +525,84 @@ bool cLevel_Settings :: Update_BG_image( const EventArgs &event )
 		return 1;
 	}
 
-	cBackground *background = pLevel->Get_background( string_to_int( item->getText().c_str() ) );
-	background->img_file_1 = bg_filename;
-	background->type = (BackgroundType)bg_type;
-
-	// image preview
+	// full filename for validation
 	bg_filename.insert( 0, PIXMAPS_DIR "/" );
+
+	cBackground *background = pLevel->Get_background( string_to_int( item->getText().c_str() ) );
+	background->Set_type( bg_type );
+
+	// valid
+	if( valid_file( bg_filename ) )
+	{
+		background->Set_image( bg_filename );
+	}
+	// invalid
+	else
+	{
+		// empty
+		background->Set_image( "" );
+	}
+
+	background->Set_scroll_speed( speed_x, speed_y );
+	background->Set_PosZ( posz );
+
+	// update image preview
 	Set_Background_image_Preview( bg_filename );
-	// type name
-	background_type->SetImage( RenderText( font_small, background->Get_Typename(), black ), 0, 1 );
 
 	return 1;
 }
 
-void cLevel_Settings ::Clear_Layer_field( void )
+void cLevel_Settings :: Clear_Layer_field( void )
 {
+	((Editbox *)WindowManager::getSingleton().getWindow( "combo_bg_image_type" ))->setText( "Disabled" );
 	((Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_image_name" ))->setText( "" );
-	((Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_image_type" ))->setText( "" );
-	background_type->SetImage( NULL, 0, 1 );
+	((Spinner *)WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_x" ))->setText( "" );
+	((Spinner *)WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_y" ))->setText( "" );
+	((Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_image_posz" ))->setText( "" );
 	Set_Background_image_Preview( "" );
+}
+
+void cLevel_Settings :: Load_global_effect( void )
+{
+	Editbox *editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_global_effect_file" );
+	editbox->setText( pLevel->pGlobal_effect->image_filename.c_str() );
+
+	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "combo_global_effect_type" );
+	editbox->setText( pLevel->pGlobal_effect->Get_Typename().c_str() );
+}
+
+void cLevel_Settings :: Set_global_effect_image_Preview( string filename )
+{
+	Convert_path_separators( filename );
+
+	if( !valid_file( filename ) )
+	{
+		global_effect_preview->Set_Image( NULL );
+		return;
+	}
+
+	GL_Surface *temp = pVideo->Load_Surface( filename );
+	
+	if( !temp )
+	{
+		printf( "Warning : Couldn't open global effect preview : %s\n", filename.c_str() );
+	}
+	else
+	{
+		float zoom = pVideo->Get_scale( temp, 100, 100 );
+		temp->w *= zoom;
+		temp->h *= zoom;
+		global_effect_preview->Set_Image( temp, 0, 1 );
+	}
+}
+
+bool cLevel_Settings :: Update_global_effect_image( const EventArgs &event )
+{
+	string ge_filename = WindowManager::getSingleton().getWindow( "editbox_global_effect_file" )->getText().c_str();
+
+	// image preview
+	ge_filename.insert( 0, PIXMAPS_DIR "/" );
+	Set_global_effect_image_Preview( ge_filename );
+
+	return 1;
 }

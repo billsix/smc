@@ -1,2 +1,2 @@
 <?xml version="1.0" ?>
-<Font Name="bluebold_medium" Filename="data/font/bluebold.ttf" Type="Dynamic" Size="16" NativeHorzRes="800" NativeVertRes="600" AutoScaled="true"/>
+<Font Name="bluebold_medium" Filename="default_bold.ttf" Type="FreeType" Size="11" NativeHorzRes="800" NativeVertRes="600" AutoScaled="true"/>

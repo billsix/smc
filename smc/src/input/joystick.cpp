@@ -1,7 +1,7 @@
 /***************************************************************************
            joystick.cpp  -  Joystick class
                              -------------------
-    copyright            : (C) 2003 - 2006 by FluXy
+    copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -10,18 +10,21 @@
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
- ***************************************************************************/ 
+ ***************************************************************************/
 
-#include "../globals.h"
-#include "../main.h"
+#include "../core/globals.h"
+#include "../input/keyboard.h"
+#include "../input/joystick.h"
+#include "../user/preferences.h"
+#include "../core/game_core.h"
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** cJoystick *** *** *** *** *** *** *** *** *** *** *** */
 
 cJoystick :: cJoystick( void )
 {
-	Joystick = NULL;
+	joystick = NULL;
 
-	Opened = 0;
+	stick_open = 0;
 	Threshold = 3000;
 
 	cur_stick = 0;
@@ -29,21 +32,9 @@ cJoystick :: cJoystick( void )
 	num_axes = 0;
 	num_balls = 0;
 
-#ifdef _DEBUG
-	debug = 1;
-#else
 	debug = 0;
-#endif
 
-	for( unsigned int i = 0; i < MAX_BUTTONS; i++ )
-	{
-		Buttons[i] = 0;
-	}
-	
-	left = 0;
-	right = 0;
-	up = 0;
-	down = 0;
+	Reset_keys();
 
 	Init();
 }
@@ -55,26 +46,52 @@ cJoystick :: ~cJoystick( void )
 
 int cJoystick :: Init( void )
 {
-	int joy = SDL_NumJoysticks();
-	
-	if( joy <= 0 )
+	// if not enabled
+	if( !pPreferences->joy_enabled )
+	{
+		return 0;
+	}
+
+	int joy_count = SDL_NumJoysticks();
+
+	// no joystick available
+	if( joy_count <= 0 )
     {
 		printf( "No joysticks available\n" );
-		pPreferences->Joy_enabled = 0;
+		pPreferences->joy_enabled = 0;
 		return 0;
     }
 
 	if( debug )
 	{
-		printf( "Joysticks found : %d\n\n", joy );
+		printf( "Joysticks found : %d\n\n", joy_count );
 	}
 
+	unsigned int default_joy = 0;
+
+	// if default joy name is given
+	if( !pPreferences->joy_name.empty() )
+	{
+		vector<string> joy_names = Get_Names();
+
+		for( unsigned int i = 0; i < joy_names.size(); i++ )
+		{
+			// found default joy
+			if( joy_names[i].compare( pPreferences->joy_name ) == 0 )
+			{
+				default_joy = i;
+				break;
+			}
+		}
+	}
+
+	// setup
 	SDL_JoystickEventState( SDL_ENABLE );
-	OpenStick( 0 );
+	Stick_Open( default_joy );
 
 	if( debug )
 	{
-		printf( "Joypad System Initialised\n" );
+		printf( "Joypad System Initialized\n" );
 	}
 
 	return 1;
@@ -82,69 +99,85 @@ int cJoystick :: Init( void )
 
 void cJoystick :: Close( void )
 {
-	CloseStick();
+	Stick_Close();
 }
 
-bool cJoystick :: OpenStick( unsigned int index )
+bool cJoystick :: Stick_Open( unsigned int index )
 {
-	SDL_Joystick *Joystick = SDL_JoystickOpen( index );
+	// if a joystick is already opened close it first
+	if( stick_open )
+	{
+		Stick_Close();
+	}
 
-	if( !Joystick )
+	joystick = SDL_JoystickOpen( index );
+
+	if( !joystick )
 	{
 		printf( "Couldn't open joystick %d\n", index );
-		Opened = 0;
+		stick_open = 0;
 		return 0;
 	}
 
 	cur_stick = index;
 
-	num_buttons = SDL_JoystickNumButtons( Joystick );
-	num_axes = SDL_JoystickNumAxes( Joystick );
-	num_balls = SDL_JoystickNumBalls( Joystick );
+	num_buttons = SDL_JoystickNumButtons( joystick );
+	num_axes = SDL_JoystickNumAxes( joystick );
+	num_balls = SDL_JoystickNumBalls( joystick );
+
+	// setup available button
+	for( unsigned int i = 0; i < num_buttons; i++ )
+	{
+		buttons.push_back( 0 );
+	}
 
 	if( debug )
 	{
-		printf( "Opened Joystick %d\n", index );
-		printf( "Name: %s\n", SDL_JoystickName( index ) );
-		printf( "Number of Axes: %d\n", num_axes );
+		printf( "Opened Joystick %d\n", cur_stick );
+		printf( "Name: %s\n", Get_Name().c_str() );
 		printf( "Number of Buttons: %d\n", num_buttons );
+		printf( "Number of Axes: %d\n", num_axes );
 		printf( "Number of Balls: %d\n\n", num_balls );
 	}
 
-	Opened = 1;
-
+	stick_open = 1;
 	return 1;
 }
 
-void cJoystick :: CloseStick( void )
+void cJoystick :: Stick_Close( void )
 {
-	if( Joystick )
+	// not available
+	if( !joystick )
 	{
-		SDL_JoystickClose( Joystick );
-		Joystick = NULL;
-
-		Reset_keys();
-
-		num_buttons = 0;
-		num_axes = 0;
-		num_balls = 0;
-
-		Opened = 0;
-
-		if( debug )
-		{
-			printf( "Joystick %d closed\n", cur_stick );
-		}
-
-		cur_stick = 0;
+		return;
 	}
+
+	SDL_JoystickClose( joystick );
+	joystick = NULL;
+
+	Reset_keys();
+
+	num_buttons = 0;
+	num_axes = 0;
+	num_balls = 0;
+
+	buttons.clear();
+	stick_open = 0;
+
+	if( debug )
+	{
+		printf( "Joystick %d closed\n", cur_stick );
+	}
+
+	cur_stick = 0;
 }
 
 void cJoystick :: Reset_keys( void )
 {
-	for( unsigned int i = 0; i < MAX_BUTTONS; i++ )
+	// clear buttons
+	for( unsigned int i = 0; i < buttons.size(); i++ )
 	{
-		Buttons[i] = 0;
+		buttons[i] = 0;
 	}
 	
 	left = 0;
@@ -153,39 +186,42 @@ void cJoystick :: Reset_keys( void )
 	down = 0;
 }
 
-void cJoystick :: Handle_Events( void )
+bool cJoystick :: Handle_Event( SDL_Event *ev )
 {
-	if( !pPreferences->Joy_enabled ) // Joystick Motion
+	// not enabled
+	if( !pPreferences->joy_enabled )
 	{
-		return;
+		return 0;
 	}
 
-	if( !Opened )
+	// not opened
+	if( !stick_open )
 	{
 		if( debug )
 		{
 			printf( "No Joysticks opened : Joypad is now Disabled\n" );
 		}
 
-		pPreferences->Joy_enabled = 0;
-		return;
+		pPreferences->joy_enabled = 0;
+		return 0;
 	}
 
-	switch( event.type )
+	// handle events
+	switch( ev->type )
 	{
 		case SDL_JOYBUTTONDOWN:
 		{
-			Handle_Button_Event();
+			Handle_Button_Event( ev );
 			break;
 		}
 		case SDL_JOYBUTTONUP:
 		{
-			Handle_Button_Event();
+			Handle_Button_Event( ev );
 			break;
 		}
 		case SDL_JOYAXISMOTION:
 		{
-			Handle_Motion();
+			Handle_Motion( ev );
 			break;
 		}
 		default:
@@ -193,15 +229,18 @@ void cJoystick :: Handle_Events( void )
 			break;
 		}
 	}
+
+	return 0;
 }
 
-void cJoystick :: Handle_Motion( void )
+void cJoystick :: Handle_Motion( SDL_Event *ev )
 {
-	switch( event.jaxis.axis )
+	// handle motion
+	switch( ev->jaxis.axis )
 	{
 		case 1: /* Up/Down */
 		{
-			if( event.jaxis.value < -Threshold ) // Up
+			if( ev->jaxis.value < -Threshold ) // Up
 			{
 				if( debug )
 				{
@@ -210,18 +249,18 @@ void cJoystick :: Handle_Motion( void )
 
 				if( !up )
 				{
-					KeyDown( pPreferences->Key_up );
+					pKeyboard->Key_Down( pPreferences->key_up );
 				}
 
 				if( down )
 				{
-					KeyUp( pPreferences->Key_down );
+					pKeyboard->Key_Up( pPreferences->key_down );
 				}
 				
 				up = 1;
 				down = 0;
 			}
-			else if( event.jaxis.value > Threshold * 2 ) // Down ( 2 times harder )
+			else if( ev->jaxis.value > Threshold * 2 ) // Down ( 2 times harder )
 			{
 				if( debug )
 				{
@@ -230,12 +269,12 @@ void cJoystick :: Handle_Motion( void )
 
 				if( !down )
 				{
-					KeyDown( pPreferences->Key_down );
+					pKeyboard->Key_Down( pPreferences->key_down );
 				}
 
 				if( up )
 				{
-					KeyUp( pPreferences->Key_up );
+					pKeyboard->Key_Up( pPreferences->key_up );
 				}
 
 				up = 0;
@@ -245,12 +284,12 @@ void cJoystick :: Handle_Motion( void )
 			{
 				if( down )
 				{
-					KeyUp( pPreferences->Key_down );
+					pKeyboard->Key_Up( pPreferences->key_down );
 				}
 				
 				if( up )
 				{
-					KeyUp( pPreferences->Key_up );
+					pKeyboard->Key_Up( pPreferences->key_up );
 				}
 
 				up = 0;
@@ -260,7 +299,7 @@ void cJoystick :: Handle_Motion( void )
 		}
 		case 0: /* Left/Right */
 		{
-			if( event.jaxis.value < -Threshold ) // Left
+			if( ev->jaxis.value < -Threshold ) // Left
 			{
 				if( debug )
 				{
@@ -269,18 +308,18 @@ void cJoystick :: Handle_Motion( void )
 
 				if( !left )
 				{
-					KeyDown( pPreferences->Key_left );
+					pKeyboard->Key_Down( pPreferences->key_left );
 				}
 
 				if( right )
 				{
-					KeyUp( pPreferences->Key_right );
+					pKeyboard->Key_Up( pPreferences->key_right );
 				}
 				
 				left = 1;
 				right = 0; 
 			}
-			else if( event.jaxis.value > Threshold ) // Right
+			else if( ev->jaxis.value > Threshold ) // Right
 			{
 				if( debug )
 				{
@@ -289,12 +328,12 @@ void cJoystick :: Handle_Motion( void )
 
 				if( !right )
 				{
-					KeyDown( pPreferences->Key_right );
+					pKeyboard->Key_Down( pPreferences->key_right );
 				}
 
 				if( left )
 				{
-					KeyUp( pPreferences->Key_left );
+					pKeyboard->Key_Up( pPreferences->key_left );
 				}
 
 				left = 0;
@@ -304,12 +343,12 @@ void cJoystick :: Handle_Motion( void )
 			{
 				if( left )
 				{
-					KeyUp( pPreferences->Key_left );
+					pKeyboard->Key_Up( pPreferences->key_left );
 				}
 				
 				if( right )
 				{
-					KeyUp( pPreferences->Key_right );
+					pKeyboard->Key_Up( pPreferences->key_right );
 				}
 				
 				left = 0;
@@ -323,64 +362,80 @@ void cJoystick :: Handle_Motion( void )
 		}
 	}
 }
-void cJoystick :: Handle_Button_Event( void )
+
+void cJoystick :: Handle_Button_Event( SDL_Event *ev )
 {
-	if( !pPreferences->Joy_enabled || !Opened )
+	// not enabled or opened
+	if( !pPreferences->joy_enabled || !stick_open )
 	{
 		return;
 	}
 
-	switch( event.type )
+	// handle button events
+	switch( ev->type )
 	{
 	case SDL_JOYBUTTONDOWN:
 	{
-		SetButton( event.jbutton.button, 1 );
+		Set_Button( ev->jbutton.button, 1 );
 
-		if( event.jbutton.button < MAX_BUTTONS )
+		if( ev->jbutton.button < buttons.size() )
 		{
-			if( event.jbutton.button == pPreferences->Joy_jump )
+			if( ev->jbutton.button == pPreferences->joy_jump )
 			{
 				if( Game_Mode == MODE_LEVEL )
 				{
-					KeyDown( pPreferences->Key_up );
+					pKeyboard->Key_Down( pPreferences->key_jump );
 				}
 			}
-			else if( event.jbutton.button == pPreferences->Joy_shoot )
+			else if( ev->jbutton.button == pPreferences->joy_shoot )
 			{
-				KeyDown( pPreferences->Key_shoot );
+				pKeyboard->Key_Down( pPreferences->key_shoot );
 			}
-			else if( event.jbutton.button == pPreferences->Joy_exit )
+			else if( ev->jbutton.button == pPreferences->joy_item )
 			{
-				KeyDown( SDLK_ESCAPE );
+				pKeyboard->Key_Down( SDLK_RETURN );
 			}
-			else if( event.jbutton.button == pPreferences->Joy_item )
+			else if( ev->jbutton.button == pPreferences->joy_action )
 			{
-				KeyDown( SDLK_RETURN );
+				pKeyboard->Key_Down( pPreferences->key_action );
 			}
+			else if( ev->jbutton.button == pPreferences->joy_exit )
+			{
+				pKeyboard->Key_Down( SDLK_ESCAPE );
+			}
+			else if( ev->jbutton.button == 9 )
+			{
+				pKeyboard->Key_Down( SDLK_PAUSE );
+			}
+
 		}
 		break;
 	}
 	case SDL_JOYBUTTONUP:
 	{
-		SetButton( event.jbutton.button, 0 );
+		Set_Button( ev->jbutton.button, 0 );
 
-		if( event.jbutton.button < MAX_BUTTONS )
+		if( ev->jbutton.button < buttons.size() )
 		{
-			if( event.jbutton.button == pPreferences->Joy_jump )
+			if( ev->jbutton.button == pPreferences->joy_jump )
 			{
-				KeyUp( pPreferences->Key_up );
+				pKeyboard->Key_Up( pPreferences->key_jump );
 			}
-			else if( event.jbutton.button == pPreferences->Joy_shoot )
+			else if( ev->jbutton.button == pPreferences->joy_shoot )
 			{
-				KeyUp( pPreferences->Key_shoot );
+				pKeyboard->Key_Up( pPreferences->key_shoot );
 			}
-			else if( event.jbutton.button == pPreferences->Joy_exit )
+			else if( ev->jbutton.button == pPreferences->joy_item )
 			{
-				KeyUp( SDLK_ESCAPE );
+				pKeyboard->Key_Up( SDLK_RETURN );
 			}
-			else if( event.jbutton.button == pPreferences->Joy_item )
+			else if( ev->jbutton.button == pPreferences->joy_action )
 			{
-				KeyUp( SDLK_RETURN );
+				pKeyboard->Key_Up( pPreferences->key_action );
+			}
+			else if( ev->jbutton.button == pPreferences->joy_exit )
+			{
+				pKeyboard->Key_Up( SDLK_ESCAPE );
 			}
 		}
 		break;
@@ -392,9 +447,30 @@ void cJoystick :: Handle_Button_Event( void )
 	}
 }
 
-void cJoystick :: SetButton( unsigned int num, bool pressed )
+string cJoystick :: Get_Name( void )
 {
-	if( num > MAX_BUTTONS )
+	return SDL_JoystickName( cur_stick );
+}
+
+vector<string> cJoystick :: Get_Names( void )
+{
+	vector<string> names;
+	// get joy count
+	int joy_count = SDL_NumJoysticks();
+
+	// joystick names
+	for( int i = 0; i < joy_count; i++  )
+    {
+		names.push_back( SDL_JoystickName( i ) );
+	}
+
+	return names;
+}
+
+void cJoystick :: Set_Button( unsigned int num, bool pressed )
+{
+	// not available
+	if( num >= buttons.size() )
 	{
 		return;
 	}
@@ -411,13 +487,13 @@ void cJoystick :: SetButton( unsigned int num, bool pressed )
 		}
 	}
 
-	Buttons[num] = pressed;
+	buttons[num] = pressed;
 }
 
 bool cJoystick :: Left( int nThreshold )
 {
-	if( pPreferences->Joy_enabled && event.type == SDL_JOYAXISMOTION && event.jaxis.value < -nThreshold && 
-		event.jaxis.axis == 0 )
+	if( pPreferences->joy_enabled && input_event.type == SDL_JOYAXISMOTION && input_event.jaxis.value < -nThreshold && 
+		input_event.jaxis.axis == 0 )
 	{
 		return 1;
 	}
@@ -427,8 +503,8 @@ bool cJoystick :: Left( int nThreshold )
 
 bool cJoystick :: Right( int nThreshold )
 {
-	if( pPreferences->Joy_enabled && event.type == SDL_JOYAXISMOTION && event.jaxis.value > nThreshold && 
-		event.jaxis.axis == 0 )
+	if( pPreferences->joy_enabled && input_event.type == SDL_JOYAXISMOTION && input_event.jaxis.value > nThreshold && 
+		input_event.jaxis.axis == 0 )
 	{
 		return 1;
 	}
@@ -438,8 +514,8 @@ bool cJoystick :: Right( int nThreshold )
 
 bool cJoystick :: Up( int nThreshold )
 {
-	if( pPreferences->Joy_enabled && event.type == SDL_JOYAXISMOTION && event.jaxis.value < -nThreshold && 
-		event.jaxis.axis == 1 )
+	if( pPreferences->joy_enabled && input_event.type == SDL_JOYAXISMOTION && input_event.jaxis.value < -nThreshold && 
+		input_event.jaxis.axis == 1 )
 	{
 		return 1;
 	}
@@ -449,8 +525,8 @@ bool cJoystick :: Up( int nThreshold )
 
 bool cJoystick :: Down( int nThreshold )
 {
-	if( pPreferences->Joy_enabled && event.type == SDL_JOYAXISMOTION && event.jaxis.value > nThreshold 
-			&& event.jaxis.axis == 1 )
+	if( pPreferences->joy_enabled && input_event.type == SDL_JOYAXISMOTION && input_event.jaxis.value > nThreshold 
+			&& input_event.jaxis.axis == 1 )
 	{
 		return 1;
 	}
@@ -460,10 +536,15 @@ bool cJoystick :: Down( int nThreshold )
 
 bool cJoystick :: Button( unsigned int num )
 {
-	if( num < MAX_BUTTONS && Buttons[num] )
+	// if available and pressed
+	if( num < buttons.size() && buttons[num] )
 	{
 		return 1;
 	}
 
 	return 0;
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+cJoystick *pJoystick = NULL;

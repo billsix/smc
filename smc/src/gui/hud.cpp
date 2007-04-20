@@ -1,8 +1,7 @@
 /***************************************************************************
-           hud.cpp  -  the User interfaces in the game
+           hud.cpp  -  human user interfaces in the game
                              -------------------
-    copyright            :	(C) 2003-2004 by Artur Hallmann
-							(C) 2003-2006 by FluXy
+    copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -13,26 +12,53 @@
  *                                                                         *
  ***************************************************************************/ 
 
-#include "../globals.h"
+#include "../gui/hud.h"
+#include "../core/game_core.h"
+#include "../player/player.h"
+#include "../audio/audio.h"
+#include "../core/camera.h"
+#include "../video/font.h"
+#include "../core/framerate.h"
+#include "../level/level.h"
+#include "../core/obj_manager.h"
+#include "../objects/bonusbox.h"
+#include "../video/gl_surface.h"
+#include "../video/renderer.h"
 
-/* *** *** *** *** *** *** Paoints text*** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** cHudSprite *** *** *** *** *** *** *** *** *** *** */
 
-PointsText :: PointsText( void ) : cSprite()
+cHudSprite :: cHudSprite( GL_Surface *new_image /* = NULL */, float x /* = 0 */, float y /* = 0 */, bool del_img /* = 0 */ )
+: cSprite( new_image, x, y, del_img )
 {
-	points = 0;
-	vely = 0;
+	player_range = 0;
+	posz = 0.13f;
+
+	Set_Ignore_Camera( 1 );
 }
 
-PointsText :: ~PointsText( void )
+cHudSprite :: ~cHudSprite( void )
 {
-	//
+
 }
 
-/* *** *** *** *** *** *** *** Hud Manager *** *** *** *** *** *** *** *** *** *** */
+cHudSprite *cHudSprite :: Copy( void )
+{
+	cHudSprite *hud_sprite = new cHudSprite( start_image, posx, posy );
+
+	hud_sprite->type = type;
+	hud_sprite->sprite_array = sprite_array;
+	hud_sprite->massivetype = massivetype;
+	hud_sprite->Set_Ignore_Camera( no_camera );
+	hud_sprite->Set_Shadow_Pos( shadow_pos );
+	hud_sprite->Set_Shadow_Color( shadow_color );
+
+	return hud_sprite;
+}
+
+/* *** *** *** *** *** *** *** cHudManager *** *** *** *** *** *** *** *** *** *** */
 
 cHudManager :: cHudManager( void )
 {
-	Objects.clear();
 	loaded = 0;
 
 	Load();
@@ -45,57 +71,53 @@ cHudManager :: ~cHudManager( void )
 
 void cHudManager :: Load( void )
 {
-	if( !loaded && Get_Size() )
+	if( !loaded && objects.size() )
 	{
 		Unload();
 	}
 	else if( loaded )
 	{
-		UpdateText();
+		Update_Text();
 		return;
 	}
 
-	// Menu Background ( Mario head and the Goldpiece )
-	AddObject( (cSprite*)new cMenuBackground() );
+	// Menu Background ( Maryo head and the Goldpiece )
+	Add( (cHudSprite *)new cMenuBackground() );
 	// Point Display
 	pointsdisplay = new cPlayerPoints();
-	AddObject( (cSprite*)pointsdisplay );
+	Add( (cHudSprite *)pointsdisplay );
 	// Time Display
 	timedisplay = new cTimeDisplay();
-	AddObject( (cSprite*)timedisplay );
-	// Debug Display
-	debugdisplay = new cDebugDisplay();
-	AddObject( (cSprite*)debugdisplay );
+	Add( (cHudSprite *)timedisplay );
 	// Live Display
 	livedisplay = new cLiveDisplay();
-	AddObject( (cSprite*)livedisplay );
+	Add( (cHudSprite *)livedisplay );
 	// Gold Display
 	golddisplay = new cGoldDisplay();
-	AddObject( (cSprite*)golddisplay );
+	Add( (cHudSprite *)golddisplay );
 	// Itembox
 	Itembox = new cItemBox();
-	AddObject( (cSprite*)Itembox );
+	Add( (cHudSprite *)Itembox );
+	// Debug Display
+	debugdisplay = new cDebugDisplay();
+	Add( (cHudSprite *)debugdisplay );
 
 	loaded = 1;
 }
 
 void cHudManager :: Unload( void )
 {
-	if( !Get_Size() )
+	if( !objects.size() )
 	{
 		return;
 	}
 	
-	for( unsigned int i = 0; i < Get_Size(); i++ )
+	for( HudSpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
-		if( Objects[i] )
-		{
-			delete Objects[i];
-			Objects[i] = NULL;
-		}
+		delete *itr;
 	}
 
-	Objects.clear();
+	objects.clear();
 
 	livedisplay = NULL;
 	golddisplay = NULL;
@@ -107,26 +129,32 @@ void cHudManager :: Unload( void )
 	loaded = 0;
 }
 
-void cHudManager :: AddObject( cSprite *obj )
+void cHudManager :: Add( cHudSprite *obj )
 {
-	Objects.push_back( obj );
+	if( !obj )
+	{
+		return;
+	}
+
+	objects.push_back( obj );
 }
 
-void cHudManager :: UpdateText( void )
+void cHudManager :: Update_Text( void )
 {
-	// note : update the lifedisplay before you update the timedisplay !
+	// note : update the lifedisplay before you update the timedisplay
 	
-	if( Objects.size() > 0 )
+	if( objects.size() > 0 )
 	{
-		cMenuBackground *item = (cMenuBackground *)Objects[0];
+		cMenuBackground *item = (cMenuBackground *)objects[0];
 
 		if( Game_Mode != MODE_OVERWORLD )
 		{
-			item->rect_goldpiece.y = item->rect_mario_head.y + 6;
+			// goldpiece
+			item->rect_goldpiece.y = item->rect_maryo_head.y + 6;
 		}
 		else
 		{
-			// Goldpiece
+			// goldpiece
 			item->rect_goldpiece.y = 4;
 		}
 	}
@@ -135,11 +163,11 @@ void cHudManager :: UpdateText( void )
 	{
 		if( Game_Mode != MODE_OVERWORLD )
 		{
-			livedisplay->SetPos( GAME_RES_W - GAME_RES_W / 10, 18.0 );
+			livedisplay->Set_Pos( GAME_RES_W - GAME_RES_W / 10, 18.0f );
 		}
 		else
 		{
-			livedisplay->SetPos( GAME_RES_W - GAME_RES_W / 7.5, 4 );
+			livedisplay->Set_Pos( GAME_RES_W - GAME_RES_W / 7.5f, 4 );
 		}
 
 		livedisplay->AddLives( 0 );
@@ -149,11 +177,11 @@ void cHudManager :: UpdateText( void )
 	{
 		if( Game_Mode != MODE_OVERWORLD )
 		{
-			golddisplay->SetPos( 280.0, 18.0 );
+			golddisplay->Set_Pos( 280.0, 18.0 );
 		}
 		else
 		{
-			golddisplay->SetPos( 280.0, 1.0 );
+			golddisplay->Set_Pos( 280.0, 1.0 );
 		}
 
 		golddisplay->AddGold( 0 );
@@ -163,76 +191,97 @@ void cHudManager :: UpdateText( void )
 	{
 		if( Game_Mode != MODE_OVERWORLD )
 		{
-			pointsdisplay->SetPos( 50.0, 18.0 );
+			pointsdisplay->Set_Pos( 50.0, 18.0 );
 		}
 		else
 		{
-			pointsdisplay->SetPos( 50.0, 4 );
+			pointsdisplay->Set_Pos( 50.0, 4 );
 		}
 
-		pointsdisplay->AddPoints( 0 );
+		pointsdisplay->Add_Points( 0 );
 	}
 
 	if( timedisplay )
 	{
-		timedisplay->SetPos( GAME_RES_W * 0.75, 18.0 );
+		timedisplay->Set_Pos( GAME_RES_W * 0.75, 18.0 );
 		timedisplay->Update();
 	}
 
 	if( debugdisplay )
 	{
-		debugdisplay->SetPos( GAME_RES_W / 2 - 100, 80.0 );
+		debugdisplay->Set_Pos( GAME_RES_W / 2 - 100, 80.0 );
 		debugdisplay->Update();
 	}
 
 	if( Itembox ) 
 	{
-		Itembox->SetPos( GAME_RES_W / 2 - 20, 10 );
+		Itembox->Set_Pos( GAME_RES_W / 2 - 20, 10 );
 		Itembox->Update();
 	}
 }
 
 void cHudManager :: Update( void )
 {
-	// HUD Objects
-	for( unsigned int i = 0; i < Get_Size(); i++ )
+	// update HUD objects
+	for( HudSpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
-		if( !Objects[i] )
-		{
-			continue;
-		}
+		(*itr)->Update();
+	}
+}
 
-		Objects[i]->Update();
+void cHudManager :: Draw( void )
+{
+	// draw HUD objects
+	for( HudSpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	{
+		(*itr)->Draw();
 	}
 }
 
 unsigned int cHudManager :: Get_Size( void )
 {
-	return (unsigned int)Objects.size();
+	return (unsigned int)objects.size();
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cMenuBackground :: cMenuBackground( double x /* = 0 */, double y /* = 0 */ ) : cActiveSprite( x, y )
+cHudManager *pHudManager = NULL;
+
+/* *** *** *** *** *** *** PointsText *** *** *** *** *** *** *** *** *** *** *** */
+
+PointsText :: PointsText( void )
+: cHudSprite()
+{
+	points = 0;
+	vely = 0;
+}
+
+PointsText :: ~PointsText( void )
+{
+	//
+}
+
+/* *** *** *** *** *** *** cMenuBackground *** *** *** *** *** *** *** *** *** *** *** */
+
+cMenuBackground :: cMenuBackground( float x /* = 0 */, float y /* = 0 */ )
+: cHudSprite( NULL, x, y )
 {
 	type = TYPE_MENUBG;
-	array = ARRAY_HUD;
+	sprite_array = ARRAY_HUD;
 
-	mario_head = GetImage( "game/maryo_l.png" );
-	goldpiece = GetImage( "game/gold_m.png" );
+	maryo_head = pVideo->Get_Surface( "game/maryo_l.png" );
+	goldpiece = pVideo->Get_Surface( "game/gold_m.png" );
 
-	massivetype = MASS_PASSIVE;
-
-	if(	!mario_head || !goldpiece )
+	if(	!maryo_head || !goldpiece )
 	{
 		printf( "Error : MenuBackground images loading failed\n" );
 		return;
 	}
 
-	// Maryo head
-	rect_mario_head.x = GAME_RES_W - GAME_RES_W / 11 + 25;
-	rect_mario_head.y = 15;
-	// Goldpiece
+	// maryo head
+	rect_maryo_head.x = GAME_RES_W - GAME_RES_W / 11 + 25;
+	rect_maryo_head.y = 15;
+	// goldpiece
 	rect_goldpiece.x = 250;
 }
 
@@ -241,31 +290,32 @@ cMenuBackground :: ~cMenuBackground( void )
 	//
 }
 
-void cMenuBackground :: Draw( void )
+void cMenuBackground :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
-	if( Game_Mode != MODE_OVERWORLD )
-	{
-		mario_head->Blit( rect_mario_head.x, rect_mario_head.y );
-	}
-	goldpiece->Blit( rect_goldpiece.x, rect_goldpiece.y );
-}
-
-void cMenuBackground :: Update( void )
-{
-	if( Leveleditor_Mode )
+	if( editor_enabled || Game_Mode == MODE_MENU )
 	{
 		return;
 	}
 
-	Draw();
+	// maryo head
+	if( Game_Mode != MODE_OVERWORLD )
+	{
+		maryo_head->Blit( rect_maryo_head.x, rect_maryo_head.y, posz );
+	}
+
+	// goldpiece
+	goldpiece->Blit( rect_goldpiece.x, rect_goldpiece.y, posz );
 }
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** cStatusText *** *** *** *** *** *** *** *** *** *** *** */
 
-cStatusText :: cStatusText( double x /* = 0 */, double y /* = 0 */ ) : cSprite( NULL, x, y, 0, &black, 1 )
+cStatusText :: cStatusText( float x /* = 0 */, float y /* = 0 */ )
+: cHudSprite( NULL, x, y )
 {
 	type = TYPE_STATUSTEXT;
-	array = ARRAY_HUD;
+	sprite_array = ARRAY_HUD;
+
+	Set_Shadow( black, 1.5f );
 }
 
 cStatusText :: ~cStatusText( void )
@@ -273,22 +323,27 @@ cStatusText :: ~cStatusText( void )
 	//
 }
 
-void cStatusText :: Update( void )
+void cStatusText :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
-	Draw();
+	if( Game_Mode == MODE_MENU )
+	{
+		return;
+	}
+
+	cHudSprite::Draw();
 }
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** cPlayerPoints *** *** *** *** *** *** *** *** *** *** *** */
 
-cPlayerPoints :: cPlayerPoints( double x /* = 0 */, double y /* = 0 */ ) : cStatusText( x, y )
+cPlayerPoints :: cPlayerPoints( float x /* = 0 */, float y /* = 0 */ )
+: cStatusText( x, y )
 {
-	array = ARRAY_HUD;
+	sprite_array = ARRAY_HUD;
 	type = TYPE_POINTDISPLAY;
 	
-	SetPoints( pPlayer->points );
-	massivetype = MASS_PASSIVE;
+	Set_Points( pPlayer->points );
 
-	PointTexts.reserve( 50 );
+	pointsobjects.reserve( 50 );
 }
 
 cPlayerPoints :: ~cPlayerPoints( void )
@@ -296,114 +351,157 @@ cPlayerPoints :: ~cPlayerPoints( void )
 	//
 }
 
-void cPlayerPoints :: Update( void )
+void cPlayerPoints :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
-	if( Leveleditor_Mode )
+	if( editor_enabled || Game_Mode == MODE_MENU )
 	{
 		return;
 	}
 	
-	Draw();
+	cHudSprite::Draw( request );
 
-	for( unsigned int i = 0; i < PointTexts.size(); i++ )
+	// draw small points
+	for( PointsTextList::iterator itr = pointsobjects.begin(); itr != pointsobjects.end(); )
 	{
-		if( PointTexts[i]->image )
+		// get object pointer
+		PointsText *obj = (*itr);
+		
+		// if finished
+		if( !obj->image )
 		{
-			PointTexts[i]->vely -= ( PointTexts[i]->vely * 0.01 ) * Framerate.speedfactor;
-			PointTexts[i]->posy += PointTexts[i]->vely * Framerate.speedfactor;
-
-			double x = PointTexts[i]->posx - cameraposx;
-			double y = PointTexts[i]->posy - cameraposy;
-			double distance_x = PointTexts[i]->posx - ( GAME_RES_W + cameraposx );
-			double distance_y = ( PointTexts[i]->posy - cameraposy ) - GAME_RES_H;
-			double distance_final = 0;
-
-			if( distance_x > 0 )
-			{
-				x = GAME_RES_W - (Sint16)PointTexts[i]->col_rect.w - 2;
-
-				distance_final += distance_x;
-			}
-
-			if( distance_y > 0 )
-			{
-				y = GAME_RES_H - 20;
-
-				distance_final += distance_y;
-			}
-			glColor3ub( (Uint8)( 255 - ( distance_final/ 12 ) - ( PointTexts[i]->points / 55 ) ), (Uint8)( 255 - ( PointTexts[i]->points/ 45 ) ), (Uint8)( 255 - ( distance_final / 15 ) - ( PointTexts[i]->points / 18 ) ) );
-			PointTexts[i]->image->Blit( x, y, & black );
-			glColor3ub( 255, 255, 255 );
-
-			if( PointTexts[i]->vely > -1.0 )
-			{
-				PointTexts[i]->SetImage( NULL );
-			}
+			itr = pointsobjects.erase( itr );
+			delete obj;
 		}
+		// active
 		else
 		{
-			delete PointTexts[i];
-			PointTexts.erase( PointTexts.begin() + i );
+			obj->vely -= obj->vely * 0.01f * pFramerate->speedfactor;
+			obj->posy += obj->vely * pFramerate->speedfactor;
+
+			if( obj->vely > -1.0 )
+			{
+				obj->Set_Image( NULL );
+				continue;
+			}
+
+			float x = obj->posx - pCamera->x;
+			float y = obj->posy - pCamera->y;
+
+			// out in left
+			if( x < 0 )
+			{
+				x = 5;
+			}
+			// out in right
+			else if( x > GAME_RES_W )
+			{
+				x = (float)GAME_RES_W - obj->col_rect.w - 2; 
+			}
+
+			// out on bottom
+			if( y < 0 )
+			{
+				y = 5;
+			}
+			// out on top
+			else if( y > GAME_RES_H )
+			{
+				y = (float)GAME_RES_H - obj->col_rect.h - 20;
+			}
+
+			// create request
+			cSurfaceRequest *request = new cSurfaceRequest();
+			obj->image->Blit( x, y, posz, request );
+
+			// shadow
+			request->shadow_color = black;
+			request->shadow_pos = 1;
+
+			// color
+			request->color = Color( (Uint8)( 255 - ( obj->points / 150 ) ), (Uint8)( 255 - ( obj->points / 150 ) ), (Uint8)( 255 - ( obj->points / 30 ) ) );
+
+			// add request
+			pRenderer->Add( request );
+
+			++itr;
 		}
 	}
 }
 
-void cPlayerPoints :: SetPoints( unsigned int points )
+void cPlayerPoints :: Set_Points( unsigned int points )
 {
 	pPlayer->points = points;
 	
 	char text[70];
 	sprintf( text, "Points %08d", (int)pPlayer->points );
-	SetImage( RenderText( font_normal, text, white ), 0, 1 );
+	Set_Image( pFont->RenderText( pFont->font_normal, text, white ), 0, 1 );
 }
 
-void cPlayerPoints :: AddPoints( unsigned int points, double x /* = 0 */, double y /* = 0 */, string strtext /* = "" */, Color color /* = 255 */ )
+void cPlayerPoints :: Add_Points( unsigned int points, float x /* = 0 */, float y /* = 0 */, string strtext /* = "" */, Color color /* = (Uint8)255 */, bool allow_multiplier /* = 0 */ )
 {
 	if( !pPlayer )
 	{
 		return;
 	}
 	
-	SetPoints( pPlayer->points + points );
-
-	if( x != 0 && y != 0 && PointTexts.size() < 50 )
+	if( allow_multiplier )
 	{
-		PointsText *new_PointText = new PointsText();
-
-		string text;
-
-		if( strtext.length() )
-		{
-			text = strtext;
-		}
-		else
-		{
-			text= int_to_string( points );
-		}
-
-		new_PointText->SetImage( RenderText( font_small, text, color ), 1, 1 );
-
-		new_PointText->SetPos( x, y );
-		new_PointText->vely = -1.4;
-		new_PointText->points = points;
-		
-		PointTexts.push_back( new_PointText );
+		points = (unsigned int)( pPlayer->kill_multiplier * (float)points );
 	}
+
+	Set_Points( pPlayer->points + points );
+
+	if( x == 0 || y == 0 || pointsobjects.size() > 50 )
+	{
+		return;
+	}
+
+	// if empty set the points as text
+	if( strtext.empty() )
+	{
+		strtext = int_to_string( points );
+	}
+
+	PointsText *new_obj = new PointsText();
+	new_obj->Set_Image( pFont->RenderText( pFont->font_small, strtext, color ), 1, 1 );
+
+	new_obj->Set_Pos( x, y );
+	new_obj->vely = -1.4f;
+	new_obj->points = points;
+	
+	// check if it collides with an already active points text
+	for( PointsTextList::iterator itr = pointsobjects.begin(); itr != pointsobjects.end(); ++itr )
+	{
+		// get object pointer
+		PointsText *obj = (*itr);
+
+		if( Col_Box( &new_obj->rect, &obj->col_rect ) )
+		{
+			new_obj->Move( obj->col_rect.w + 5, 0, 1 );
+		}
+	}
+
+	pointsobjects.push_back( new_obj );
 }
 
 void cPlayerPoints :: Clear( void )
 {
+	for( PointsTextList::iterator itr = pointsobjects.begin(), itr_end = pointsobjects.end(); itr != itr_end; ++itr )
+	{
+		delete *itr;
+	}
 
+	pointsobjects.clear();
 }
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** cTimeDisplay *** *** *** *** *** *** *** *** *** *** */
 
-cTimeDisplay :: cTimeDisplay( double x /* = 0 */, double y /* = 0 */ ) : cStatusText( x, y )
+cTimeDisplay :: cTimeDisplay( float x /* = 0 */, float y /* = 0 */ )
+: cStatusText( x, y )
 {
-	array = ARRAY_HUD;
+	sprite_array = ARRAY_HUD;
 	type = TYPE_GAMETIMEDISPLAY;
 
-	massivetype = MASS_PASSIVE;
 	counter = -1;
 }
 
@@ -412,14 +510,14 @@ cTimeDisplay :: ~cTimeDisplay( void )
 	//
 }
 
-void cTimeDisplay :: Update( void )
+void cTimeDisplay :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
-	if( Leveleditor_Mode || Game_Mode == MODE_OVERWORLD)
+	if( editor_enabled || Game_Mode == MODE_OVERWORLD || Game_Mode == MODE_MENU )
 	{
 		return;
 	}
 
-	counter += Framerate.speedfactor;
+	counter += pFramerate->speedfactor;
 
 	int time = (int)( counter / DESIRED_FPS );	// time = seconds since start
 	int minutes = (int)( time / 60 );
@@ -429,68 +527,70 @@ void cTimeDisplay :: Update( void )
 	if( strcmp( text, text_old ) != 0 )
 	{
 		strcpy( text_old, text );
-		SetImage( RenderText( font_normal, text, white ), 0, 1 );
+		Set_Image( pFont->RenderText( pFont->font_normal, text, white ), 0, 1 );
 	}
 
-	Draw();
+	cHudSprite::Draw();
 }
 
-cItemBox :: cItemBox( double x /* = 0 */, double y /* = 0 */ ) : cStatusText( x, y )
+/* *** *** *** *** *** *** *** cItemBox *** *** *** *** *** *** *** *** *** *** */
+
+cItemBox :: cItemBox( float x /* = 0 */, float y /* = 0 */ )
+: cStatusText( x, y )
 {
-	array = ARRAY_HUD;
+	sprite_array = ARRAY_HUD;
 	type = TYPE_ITEMBOXDISPLAY;
 
-	SetImage( GetImage( "game/itembox.png" ) );
-	SetShadow( NULL );
-	massivetype = MASS_PASSIVE;
+	Set_Image( pVideo->Get_Surface( "game/itembox.png" ) );
+	// disable shadow
+	Set_Shadow_Pos( 0 );
 
 	box_color = white;
 
-	item_counter = 0; // The alpha
+	item_counter = 0;
 	item_counter_mod = 0;
-	item_id = 0;
+	item_id = TYPE_UNDEFINED;
 
-	item = new cSprite();
-	item->massivetype = MASS_MASSIVE;
-	item->no_camera = 1;
+	item = new cMovingSprite();
+	item->Set_Ignore_Camera( 1 );
+	item->player_range = 0;
+	item->Set_Massivetype( MASS_MASSIVE );
+	item->posz = 0.1299f;
 }
 
 cItemBox :: ~cItemBox( void )
 {
-	if( item )
-	{
-		delete item;
-	}
+	delete item;
 }
 
-void cItemBox :: Update( void )
+void cItemBox :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
-	if( Leveleditor_Mode || !pPlayer || Game_Mode == MODE_OVERWORLD )
+	if( editor_enabled || Game_Mode == MODE_OVERWORLD || Game_Mode == MODE_MENU )
 	{
 		return;
 	}
 
 	if( pPlayer->maryo_type == MARYO_DEAD )
 	{
-		item_counter = 50;
+		item_counter = 90;
 	}
 	else if( item_counter )
 	{
-		item->posy += Framerate.speedfactor * 4;
+		item->posy += pFramerate->speedfactor * 4;
 
 		if( item_counter_mod )
 		{
-			item_counter += Framerate.speedfactor * 10;
+			item_counter += pFramerate->speedfactor * 10;
 
-			if( item_counter >= 50 )
+			if( item_counter >= 90 )
 			{
 				item_counter_mod = 0;
-				item_counter = 50;
+				item_counter = 90;
 			}
 		}
 		else
 		{
-			item_counter -= Framerate.speedfactor * 10;
+			item_counter -= pFramerate->speedfactor * 10;
 
 			if( item_counter <= 0 )
 			{
@@ -504,54 +604,62 @@ void cItemBox :: Update( void )
 			Reset();
 		}
 
-		if( item->ColCheckAuto( 0, 0, 0, 0, 1 ) == 4 ) // if colliding with the Player
+		cObjectCollisionType col_list = item->ColCheckAuto( 0, 0, 0, 0, COLLIDE_ONLY_CHECK );
+
+		// if colliding with the Player
+		if( col_list.find( CO_PLAYER ) )
 		{
-			unsigned int item_id_temp = item_id; // player can set the item back
+			SpriteType item_id_temp = item_id; // player can set the item back
 			Reset();
 			pPlayer->Get_Item( item_id_temp, 1 );
 		}
 	}
 
-	if( item_id && item->image && !Leveleditor_Mode )
+	if( item_id && item->image )
 	{
-		if( !item_counter ) // Draw it without Camera
+		// with alpha
+		if( item_counter )
 		{
-			item->Draw();
+			item->Set_Color( 255, 255, 255, 100 + (Uint8)item_counter );
 		}
-		else
-		{
-			glColor4ub( 255, 255, 255, 100 + (Uint8)item_counter );
-			item->no_camera = 0;
-			item->Draw();
-			item->no_camera = 1;
-			glColor4f( 1, 1, 1, 1 );
-		}
+		
+		item->Draw();
 	}
 
-	glColor3ub( box_color.red, box_color.green, box_color.blue );
-	Draw();
-	glColor3f( 1, 1, 1 );
+	Set_Color( box_color.red, box_color.green, box_color.blue );
+	cHudSprite::Draw();
 }
 
-void cItemBox :: Set_Item( unsigned int item_type )
+void cItemBox :: Set_Item( SpriteType item_type )
 {
-	pAudio->PlaySound( SOUNDS_DIR "/itembox_set.ogg" );
+	pAudio->PlaySound( "itembox_set.ogg" );
 	Reset();
 
 	// reset startposition
-	item->SetPos( 0, 0, 1 );
+	item->Set_Pos( 0, 0, 1 );
+	// reset color
+	item->Set_Color( white );
 
 	if( item_type == TYPE_MUSHROOM_DEFAULT )
 	{
-		box_color = Get_Color( 250, 50, 50 );
-		item->SetImage( GetImage( "game/items/mushroom_red.png" ) );
-		item->SetPos( posx + 11, posy + 11 );
+		box_color = Color( (Uint8)250, 50, 50 );
+		item->Set_Image( pVideo->Get_Surface( "game/items/mushroom_red.png" ) );
 	}
 	else if( item_type == TYPE_FIREPLANT )
 	{
-		box_color = Get_Color( 250, 200, 150 );
-		item->SetImage( GetImage( "game/items/flower_red_1.png" ) );
-		item->SetPos( posx + 12, posy + 17 );
+		box_color = Color( (Uint8)250, 200, 150 );
+		item->Set_Image( pVideo->Get_Surface( "game/items/fire_flower.png" ) );
+	}
+	else if( item_type == TYPE_MUSHROOM_BLUE )
+	{
+		box_color = Color( (Uint8)100, 100, 250 );
+		item->Set_Image( pVideo->Get_Surface( "game/items/mushroom_blue.png" ) );
+	}
+
+
+	if( item->image )
+	{
+		item->Set_Pos( posx - ( ( item->image->w - rect.w ) / 2 ), posy - ( ( item->image->h - rect.h ) / 2 ) );
 	}
 
 	item_id = item_type;
@@ -564,10 +672,12 @@ void cItemBox :: Request_Item( void )
 		return;
 	}
 
-	pAudio->PlaySound( SOUNDS_DIR "/itembox_get.ogg" );
+	pAudio->PlaySound( "itembox_get.ogg" );
 
 	item_counter = 255;
-	item->SetPos( item->posx + cameraposx, item->posy + cameraposy );
+	// draw item with camera
+	item->Set_Ignore_Camera( 0 );
+	item->Set_Pos( item->posx + pCamera->x, item->posy + pCamera->y );
 }
 
 void cItemBox :: Push_back( void )
@@ -575,35 +685,48 @@ void cItemBox :: Push_back( void )
 	item_counter = 0;
 	item_counter_mod = 0;
 
-	item->posx = item->startposx;
-	item->posy = item->startposy;
+	// draw item without camera
+	item->Set_Ignore_Camera( 1 );
+	item->Set_Pos( item->startposx, item->startposy );
+	item->Set_Color( white );
 }
 
 void cItemBox :: Reset( void )
 {
-	item_id = 0;
+	item->Set_Ignore_Camera( 1 );
+	item_id = TYPE_UNDEFINED;
 	item_counter = 0;
 	item_counter_mod = 0;
 	box_color = white;
 }
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** cDebugDisplay *** *** *** *** *** *** *** *** *** *** *** */
 
-cDebugDisplay :: cDebugDisplay( double x /* = 0 */, double y /* = 0 */ ) : cStatusText( x, y )
+cDebugDisplay :: cDebugDisplay( float x /* = 0 */, float y /* = 0 */ )
+: cStatusText( x, y )
 {
-	array = ARRAY_HUD;
+	sprite_array = ARRAY_HUD;
 	type = TYPE_DEBUGDISPLAY;
 
-	level_old = "." ;
+	level_old = ".";
 	text.clear();
 	text_old.clear();
 
-	double tempx = GAME_RES_W - 200;
-	double tempy = GAME_RES_H / 2 - 250;
+	// debug text window
+	window_debugtext = WindowManager::getSingleton().loadWindowLayout( "debugtext.layout" );
+	pGuiSystem->getGUISheet()->addChildWindow( window_debugtext );
+	// debug text
+	text_debugtext = (Window *)WindowManager::getSingleton().getWindow( "text_debugmessage" );
+
+	// debug box positions
+	float tempx = GAME_RES_W - 200;
+	float tempy = GAME_RES_H / 2 - 250;
 
 	for( unsigned int i = 0; i < 20; i++ )
 	{
-		sprites.push_back( new cSprite( NULL, tempx, tempy, 0, &black, 1 ) );
+		sprites.push_back( new cHudSprite( NULL, tempx, tempy ) );
+		sprites[i]->Set_Shadow( black, 1 );
+		sprites[i]->posz = posz;
 
 		// not the framerate text
 		if( i > 2 )
@@ -614,31 +737,34 @@ cDebugDisplay :: cDebugDisplay( double x /* = 0 */, double y /* = 0 */ ) : cStat
 		// active box
 		if( i > 9 && i < 14 )
 		{
-			sprites[i]->posx += 5;
-			sprites[i]->startposx += 5;
+			sprites[i]->Set_PosX( sprites[i]->startposx += 5, 1 );
 		}
 	}
 
 	// fps display position
-	sprites[0]->SetPos( 15, 5, 1 );
-	sprites[1]->SetPos( 230, 5, 1 );
-	sprites[2]->SetPos( 450, 5, 1 );
+	sprites[0]->Set_Pos( 15, 5, 1 );
+	// average
+	sprites[1]->Set_Pos( 280, 5, 1 );
+	// speedfactor
+	sprites[2]->Set_Pos( 500, 5, 1 );
 
 	// Debug type text
-	sprites[4]->SetImage( RenderText( font_small, "Level information", lightblue ), 0, 1 );
-	sprites[16]->SetImage( RenderText( font_small, "Player information", lightblue ), 0, 1 );
+	sprites[4]->Set_Image( pFont->RenderText( pFont->font_small, "Level information", lightblue ), 0, 1 );
+	sprites[16]->Set_Image( pFont->RenderText( pFont->font_small, "Player information", lightblue ), 0, 1 );
 
 	passcount = -1;
 	masscount = -1;
-	enemcount = -1;
-	activcount = -1;
+	enemycount = -1;
+	activecount = -1;
 
 	counter = 0;
-	massivetype = MASS_PASSIVE;
 }
 
 cDebugDisplay :: ~cDebugDisplay( void )
 {
+	pGuiSystem->getGUISheet()->removeChildWindow( window_debugtext );
+	WindowManager::getSingleton().destroyWindow( window_debugtext );
+
 	for( unsigned int i = 0; i < sprites.size(); i++ )
 	{
 		delete sprites[i];
@@ -647,39 +773,65 @@ cDebugDisplay :: ~cDebugDisplay( void )
 	sprites.clear();
 }
 
-void cDebugDisplay :: Update( void )
+void cDebugDisplay :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
-	if( counter <= 0 )
+	// draw complete debug info
+	GameDebugDraw();
+
+	// no text to display
+	if( text.empty() )
 	{
-		if( text.compare( text_old ) != 0 )
-		{
-			text = "empty";
-			text_old = text;
-
-			SetImage( NULL );
-		}
-
 		return;
 	}
-	else
+
+	// if time reached hide the text display
+	if( counter <= 0 )
 	{
-		counter -= Framerate.speedfactor;
+		text.clear();
+		text_old.clear();
+
+		text_debugtext->setVisible( 0 );
+		return;
 	}
-	
+
+	// update counter
+	counter -= pFramerate->speedfactor;
+
+	// set new text
 	if( text.compare( text_old ) != 0 )
 	{
 		text_old = text;
-		SetImage( RenderText( font_normal, text, white ), 0, 1 );
-	}
-	
-	SetPos( GAME_RES_W / 2 - col_rect.w / 2 - 10, posy, 1 );
 
-	Draw();
+		// display the new text
+		text_debugtext->setText( text );
+		text_debugtext->setVisible( 1 );
+
+		// update position
+		Font *font = FontManager::getSingleton().getFont( "bluebold_medium" );
+		text_debugtext->setXPosition( UDim( 0, GAME_RES_W / 2 - font->getTextExtent( text ) / 2 ) );
+	}
+
+}
+
+void cDebugDisplay :: Set_Text( string ntext, float display_time /* = DESIRED_FPS * 2 */ )
+{
+	text = ntext;
+
+	if( text.empty() )
+	{
+		text = text_old;
+		text_old.empty();
+
+		counter = 0;
+		return;
+	}
+
+	counter = display_time;
 }
 
 void cDebugDisplay :: GameDebugDraw( void )
 {
-	if( !Game_debug || pPlayer->maryo_type == MARYO_DEAD ) 
+	if( !Game_debug || ( Game_Mode == MODE_LEVEL && pPlayer->maryo_type == MARYO_DEAD ) ) 
 	{
 		return;
 	}
@@ -691,179 +843,189 @@ void cDebugDisplay :: GameDebugDraw( void )
 	*/
 
 	// black background
-	Color color = Get_Color( 0, 0, 0, 128 );
-	DrawRect( GAME_RES_W - 205, GAME_RES_H / 12, 180, 325, &color );
+	Color color = blackalpha128;
+	pVideo->Draw_Rect( GAME_RES_W - 205, GAME_RES_H / 12, 180, 325, posz - 0.00001f, &color );
 
 	// ### Frames per Second
-	temp_text = "FPS : best " + int_to_string( (int)Framerate.fps_best ) + ", worst " + int_to_string( (int)Framerate.fps_worst ) + ", current " + int_to_string( (int)Framerate.fps );
-	sprites[0]->SetImage( RenderText( font_small, temp_text, white ), 0, 1 );
+	temp_text = "FPS : best " + int_to_string( (int)pFramerate->fps_best ) + ", worst " + int_to_string( (int)pFramerate->fps_worst ) + ", current " + int_to_string( (int)pFramerate->fps );
+	sprites[0]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	// average
-	temp_text = "average " + int_to_string( (int)Framerate.fps_average );
-	sprites[1]->SetImage( RenderText( font_small, temp_text, white ), 0, 1 );
+	temp_text = "average " + int_to_string( (int)pFramerate->fps_average );
+	sprites[1]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	// speedfactor
-	temp_text = "Speedfactor " + double_to_string( Framerate.speedfactor );
-	sprites[2]->SetImage( RenderText( font_small, temp_text, white ), 0, 1 );
+	temp_text = "Speedfactor " + float_to_string( pFramerate->speedfactor );
+	sprites[2]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 
-	// ### Cameraposition
-	temp_text = "Camera : X " + int_to_string( (int)cameraposx ) + ", Y " + int_to_string( (int)cameraposy );
-	sprites[3]->SetImage( RenderText( font_small, temp_text, white ), 0, 1 );
+	// ### Camera position
+	temp_text = "Camera : X " + int_to_string( (int)pCamera->x ) + ", Y " + int_to_string( (int)pCamera->y );
+	sprites[3]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 
 	// ### Level informations
 	if( pLevel->levelfile.compare( level_old ) != 0 ) 
 	{
-		string lvl_text = "Level : " + pLevel->Get_filename( 0, 0 );
+		string lvl_text = "Level : " + Get_filename( pLevel->data_file, 0, 0 );
 		level_old = pLevel->levelfile;
 		
-		sprites[5]->SetImage( RenderText( font_small, lvl_text, white ), 0, 1 );
+		sprites[5]->Set_Image( pFont->RenderText( pFont->font_very_small, lvl_text, white ), 0, 1 );
 	}
 
 	// ### Level Objects
 	// # Passive
-	if( passcount != (int)pObjManager->Get_Size_array( ARRAY_PASSIVE ) ) 
+	if( passcount != (int)(pObjManager->Get_Size_array( ARRAY_PASSIVE ) + pObjManager->Get_Size_array( ARRAY_FRONT_PASSIVE )) ) 
 	{
-		passcount = pObjManager->Get_Size_array( ARRAY_PASSIVE );
+		passcount = pObjManager->Get_Size_array( ARRAY_PASSIVE ) + pObjManager->Get_Size_array( ARRAY_FRONT_PASSIVE );
 
-		temp_text = "Passive Objects : " + int_to_string( pObjManager->Get_Size_array( ARRAY_PASSIVE ) );
-		sprites[6]->SetImage( RenderText( font_small, temp_text, white ), 0, 1 );
+		temp_text = "Passive Objects : " + int_to_string( passcount );
+		sprites[6]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
 	// # Massive
 	if( masscount != (int)pObjManager->Get_Size_array( ARRAY_MASSIVE ) ) 
 	{
 		masscount = pObjManager->Get_Size_array( ARRAY_MASSIVE );
 
-		temp_text = "Massive Objects : " + int_to_string( pObjManager->Get_Size_array( ARRAY_MASSIVE ) );
-		sprites[7]->SetImage( RenderText( font_small, temp_text, white ), 0, 1 );
+		temp_text = "Massive Objects : " + int_to_string( masscount );
+		sprites[7]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
 	// # Enemy
-	if( enemcount != (int)pObjManager->Get_Size_array( ARRAY_ENEMY ) ) 
+	if( enemycount != (int)pObjManager->Get_Size_array( ARRAY_ENEMY ) ) 
 	{
-		enemcount = pObjManager->Get_Size_array( ARRAY_ENEMY );
+		enemycount = pObjManager->Get_Size_array( ARRAY_ENEMY );
 
-		temp_text ="Enemy Objects : " + int_to_string( pObjManager->Get_Size_array( ARRAY_ENEMY ) );
-		sprites[8]->SetImage( RenderText( font_small, temp_text, white ), 0, 1 );
+		temp_text ="Enemy Objects : " + int_to_string( enemycount );
+		sprites[8]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
 	// # Active
-	if( activcount != (int)pObjManager->Get_Size_array( ARRAY_ACTIVE ) ) 
+	if( activecount != (int)pObjManager->Get_Size_array( ARRAY_ACTIVE ) ) 
 	{
-		temp_text = "Active Objects : " + int_to_string( pObjManager->Get_Size_array( ARRAY_ACTIVE ) );
-		sprites[9]->SetImage( RenderText( font_small, temp_text, white ), 0, 1 );
-	}
+		activecount = pObjManager->Get_Size_array( ARRAY_ACTIVE );
 
-	// # Active Objects Rect
-	GL_rect r( sprites[10]->posx - 8, sprites[10]->posy, 135, 1 );
+		temp_text = "Active Objects : " + int_to_string( activecount );
+		sprites[9]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 
-	DrawRect( r.x, r.y + 74, r.w, r.h, &white );	// Up
-	DrawRect( r.x, r.y + 75, r.w, r.h, &white );	// Down
-	DrawRect( r.x, r.y, r.w, r.h, &grey );			// Down Shadow
-	r.w = 1;
-	r.h = 75;
-	DrawRect( r.x, r.y, r.w, r.h, &white );			// Left
-	DrawRect( r.x + 135, r.y, r.w, r.h, &white );	// Right
-	DrawRect( r.x + 136, r.y, r.w, r.h + 1, &grey );// Right Shadow
-	
-	// # Active : HalfMassive
-	if( activcount != (int)pObjManager->Get_Size_array( ARRAY_ACTIVE ) ) 
-	{
+		// # Active : Halfmassive
 		unsigned int halfmassive = 0;
 
-		for( unsigned int i = 0; i < pObjManager->Get_Size(); i++ )
+		for( ObjectList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
 		{
-			if( pObjManager->Get_Pointer( i )->type == TYPE_HALFMASSIVE )
+			// get object pointer
+			cSprite *obj = (*itr);
+
+			if( obj->type == TYPE_HALFMASSIVE )
 			{
 				halfmassive++;
 			}
 		}
 
-		temp_text = "HalfMassive : " + int_to_string( halfmassive );
-		sprites[10]->SetImage( RenderText( font_small, temp_text, white ), 0, 1 );
-	}
-	// # Active : Cloud
-	if( activcount != (int)pObjManager->Get_Size_array( ARRAY_ACTIVE ) ) 
-	{
+		temp_text = "Halfmassive : " + int_to_string( halfmassive );
+		sprites[10]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+		// # Active : Moving Platform
 		unsigned int clouds = 0;
 
-		for( unsigned int i = 0; i < pObjManager->Get_Size(); i++ )
+		for( ObjectList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
 		{
-			if( pObjManager->Get_Pointer( i )->type == TYPE_CLOUD )
+			// get object pointer
+			cSprite *obj = (*itr);
+
+			if( obj->type == TYPE_MOVING_PLATFORM )
 			{
 				clouds++;
 			}
 		}
 
-		temp_text = "Cloud : " + int_to_string( clouds );
-		sprites[11]->SetImage( RenderText( font_small, temp_text, white ), 0, 1 );
-	}
-	// # Active : Goldbox
-	if( activcount != (int)pObjManager->Get_Size_array( ARRAY_ACTIVE ) ) 
-	{
+		temp_text = "Moving Platform : " + int_to_string( clouds );
+		sprites[11]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+		// # Active : Goldbox
 		unsigned int goldbox = 0;
 
-		for( unsigned int i = 0; i < pObjManager->Get_Size(); i++ )
+		for( ObjectList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
 		{
-			if( pObjManager->Get_Pointer( i )->type == TYPE_GOLDBOX )
+			// get object pointer
+			cSprite *obj = (*itr);
+
+			if( obj->type == TYPE_BONUSBOX )
 			{
-				goldbox++;
+				cBonusBox *bonusbox = static_cast<cBonusBox *>(obj);
+
+				if( bonusbox->box_type == TYPE_GOLDPIECE )
+				{
+					goldbox++;
+				}
 			}
 		}
 
 		temp_text = "Goldbox : " + int_to_string( goldbox );
-		sprites[12]->SetImage( RenderText( font_small, temp_text, white ), 0, 1 );
-	}
-	// # Active : Bonusbox
-	if( activcount != (int)pObjManager->Get_Size_array( ARRAY_ACTIVE ) ) 
-	{
+		sprites[12]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+		// # Active : Bonusbox
 		unsigned int bonusbox = 0;
 
-		for( unsigned int i = 0; i < pObjManager->Get_Size(); i++ )
+		for( ObjectList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
 		{
-			if( pObjManager->Get_Pointer( i )->type == TYPE_BONUSBOX_LIVE || pObjManager->Get_Pointer( i )->type == TYPE_BONUSBOX_MUSHROOM_FIRE )
+			// get object pointer
+			cSprite *obj = (*itr);
+
+			if( obj->type == TYPE_BONUSBOX )
 			{
-				bonusbox++;
+				cBonusBox *bonusbox = static_cast<cBonusBox *>(obj);
+
+				if( bonusbox->box_type != TYPE_GOLDPIECE )
+				{
+					bonusbox++;
+				}
 			}
 		}
 
 		temp_text = "Bonusbox : " + int_to_string( bonusbox );
-		sprites[13]->SetImage( RenderText( font_small, temp_text, white ), 0, 1 );
-	}
-	// # Active : Other
-	if( activcount != (int)pObjManager->Get_Size_array( ARRAY_ACTIVE ) )
-	{
-		activcount = pObjManager->Get_Size_array( ARRAY_ACTIVE );
-
+		sprites[13]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+		// # Active : Other
 		unsigned int active_other = pObjManager->Get_Size_array( ARRAY_ACTIVE );
 
-		for( unsigned int i = 0; i < pObjManager->Get_Size(); i++ )
+		for( ObjectList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
 		{
-			if( pObjManager->Get_Pointer( i )->type == TYPE_HALFMASSIVE || pObjManager->Get_Pointer( i )->type == TYPE_BONUSBOX_LIVE || 
-				pObjManager->Get_Pointer( i )->type == TYPE_BONUSBOX_MUSHROOM_FIRE || pObjManager->Get_Pointer( i )->type == TYPE_GOLDBOX || 
-				pObjManager->Get_Pointer( i )->type == TYPE_CLOUD )
+			// get object pointer
+			cSprite *obj = (*itr);
+
+			if( obj->type == TYPE_HALFMASSIVE || obj->type == TYPE_BONUSBOX || obj->type == TYPE_MOVING_PLATFORM )
 			{
 				active_other--;
 			}
 		}
 
 		temp_text = "Other : " + int_to_string( active_other );
-		sprites[14]->SetImage( RenderText( font_small, temp_text, white ), 0, 1 );
+		sprites[14]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
+
+	// # Active Objects Rect
+
+	// create request
+	cRectRequest *request = new cRectRequest();
+	GL_rect r( sprites[10]->posx - 8, sprites[10]->posy, 135, 75 );
+	pVideo->Draw_Rect( &r, posz, &white, request );
+
+	// not filled
+	request->filled = 0;
+
+	// add request
+	pRenderer->Add( request );
+
 
 	// ### Player informations
 	// position
 	temp_text = "Position X " + int_to_string( (int)pPlayer->posx ) + " ,Y " + int_to_string( (int)pPlayer->posy );
-	sprites[16]->SetImage( RenderText( font_small, temp_text, white ), 0, 1 );
+	sprites[16]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	// velocity
 	temp_text = "Velocity X " + int_to_string( (int)pPlayer->velx ) + " ,Y " + int_to_string( (int)pPlayer->vely );
-	sprites[17]->SetImage( RenderText( font_small, temp_text, white ), 0, 1 );
+	sprites[17]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	// state
 	temp_text = "Moving State " + int_to_string( (int)pPlayer->state );
-	sprites[18]->SetImage( RenderText( font_small, temp_text, white ), 0, 1 );
+	sprites[18]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	// onground
 	int groundtype = 0;
-	if( pPlayer->groundObject )
+	if( pPlayer->ground_object )
 	{
-		groundtype = (int)pPlayer->groundObject->massivetype;
+		groundtype = (int)pPlayer->ground_object->massivetype;
 	}
 	temp_text = "Ground type " + int_to_string( groundtype );
-	sprites[19]->SetImage( RenderText( font_small, temp_text, white ), 0, 1 );
+	sprites[19]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 
 	for( unsigned int i = 0; i < sprites.size(); i++ )
 	{
@@ -871,14 +1033,13 @@ void cDebugDisplay :: GameDebugDraw( void )
 	}
 }
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cGoldDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cGoldDisplay :: cGoldDisplay( double x /* = 0 */, double y /* = 0 */ ) : cStatusText( x, y )
+cGoldDisplay :: cGoldDisplay( float x /* = 0 */, float y /* = 0 */ )
+: cStatusText( x, y )
 {
-	array = ARRAY_HUD;
+	sprite_array = ARRAY_HUD;
 	type = TYPE_GOLDDISPLAY;
-
-	massivetype = MASS_PASSIVE;
 
 	SetGold( pPlayer->goldpieces );
 }
@@ -888,14 +1049,14 @@ cGoldDisplay :: ~cGoldDisplay( void )
 	//
 }
 
-void cGoldDisplay :: Update( void )
+void cGoldDisplay :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
-	if( Leveleditor_Mode ) 
+	if( editor_enabled || Game_Mode == MODE_MENU ) 
 	{
 		return;
 	}
 
-	Draw();
+	cHudSprite::Draw();
 }
 
 void cGoldDisplay :: SetGold( int gold )
@@ -903,18 +1064,18 @@ void cGoldDisplay :: SetGold( int gold )
 	if( gold >= 100 )
 	{
 		gold -= 100;
-		pAudio->PlaySound( SOUNDS_DIR "/live_up.ogg" );	
+		pAudio->PlaySound( "item/live_up.ogg" );	
 		livedisplay->AddLives( 1 );
 
-		pointsdisplay->AddPoints( 0, pPlayer->posx + pPlayer->image->w/3, pPlayer->posy + 5, "1UP", lightred );
+		pointsdisplay->Add_Points( 0, pPlayer->posx + pPlayer->image->w/3, pPlayer->posy + 5, "1UP", lightred );
 	}
 	
 	pPlayer->goldpieces = gold;
 	string text = int_to_string( pPlayer->goldpieces );
 
-	Color color = Get_Color( 255, 255, 255 - ( gold * 2 ) );
+	Color color = Color( (Uint8)255, 255, 255 - ( gold * 2 ) );
 
-	SetImage( RenderText( font_normal, text, color ), 0, 1 );
+	Set_Image( pFont->RenderText( pFont->font_normal, text, color ), 0, 1 );
 }
 
 void cGoldDisplay :: AddGold( int gold )
@@ -923,17 +1084,17 @@ void cGoldDisplay :: AddGold( int gold )
 }
 
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cLiveDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLiveDisplay :: cLiveDisplay( double x /* = 0 */, double y /* = 0 */ ) : cStatusText( x, y )
+cLiveDisplay :: cLiveDisplay( float x /* = 0 */, float y /* = 0 */ )
+: cStatusText( x, y )
 {
-	array = ARRAY_HUD;
+	sprite_array = ARRAY_HUD;
 	type = TYPE_LIFEDISPLAY;
 
-	massivetype = MASS_PASSIVE;
 	SetLives( pPlayer->lives );
 
-	SetImage( NULL );
+	Set_Image( NULL );
 }
 
 cLiveDisplay :: ~cLiveDisplay( void )
@@ -941,14 +1102,14 @@ cLiveDisplay :: ~cLiveDisplay( void )
 	//
 }
 
-void cLiveDisplay :: Update( void )
+void cLiveDisplay :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
-	if( Leveleditor_Mode ) 
+	if( editor_enabled || Game_Mode == MODE_MENU ) 
 	{
 		return;
 	}
 
-	Draw();
+	cHudSprite::Draw();
 }
 
 void cLiveDisplay :: SetLives( int lives )
@@ -957,9 +1118,10 @@ void cLiveDisplay :: SetLives( int lives )
 	
 	string text;
 
-	if( lives >= 0 ) 
+	if( lives >= 0 )
 	{
-		if( Game_Mode != MODE_OVERWORLD ) // if not in OverWorld
+		// if not in Overworld
+		if( Game_Mode != MODE_OVERWORLD )
 		{
 			text = int_to_string( pPlayer->lives ) + "x";
 		}
@@ -967,12 +1129,21 @@ void cLiveDisplay :: SetLives( int lives )
 		{
 			text = "Lives : " + int_to_string( pPlayer->lives );
 		}
+	
+		Set_Image( pFont->RenderText( pFont->font_normal, text, green ), 0, 1 );
 	}
-
-	SetImage( RenderText( font_normal, text, green ), 0, 1 );
 }
 
 void cLiveDisplay :: AddLives( int lives )
 {
 	SetLives( pPlayer->lives + lives );
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+cPlayerPoints *pointsdisplay = NULL;
+cDebugDisplay *debugdisplay = NULL;
+cGoldDisplay *golddisplay = NULL;
+cLiveDisplay *livedisplay = NULL;
+cTimeDisplay *timedisplay = NULL;
+cItemBox *Itembox = NULL;

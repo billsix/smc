@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout >
+    <Window Type="DefaultWindow" Name="level_settings_tab_global_effects" >
+        <Property Name="Text" Value="Global Effect" />
+        <Property Name="InheritsAlpha" Value="False" />
+        <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+        <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
+        <Window Type="TaharezLook/StaticText" Name="text_global_effect_image" >
+            <Property Name="Text" Value="Image" />
+            <Property Name="FrameEnabled" Value="False" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.012849,0},{0.100623,0},{0.112053,0},{0.160623,0}}" />
+            <Property Name="BackgroundEnabled" Value="False" />
+        </Window>
+        <Window Type="TaharezLook/StaticText" Name="text_global_effect_pos" >
+            <Property Name="Text" Value="Position Z" />
+            <Property Name="Tooltip" Value="Use Values from 0.0001 to 0.12" />
+            <Property Name="FrameEnabled" Value="False" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.002793,0},{0.193481,0},{0.13,0},{0.253481,0}}" />
+            <Property Name="BackgroundEnabled" Value="False" />
+        </Window>
+        <Window Type="TaharezLook/StaticText" Name="text_global_effect_rect" >
+            <Property Name="Text" Value="Rect" />
+            <Property Name="FrameEnabled" Value="False" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.357479,0},{0.02,0},{0.447109,0},{0.08,0}}" />
+            <Property Name="BackgroundEnabled" Value="False" />
+        </Window>
+        <Window Type="TaharezLook/StaticText" Name="text_global_effect_time_to_live" >
+            <Property Name="Text" Value="Time to Live" />
+            <Property Name="FrameEnabled" Value="False" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.003911,0},{0.301232,0},{0.15,0},{0.361232,0}}" />
+            <Property Name="BackgroundEnabled" Value="False" />
+        </Window>
+        <Window Type="TaharezLook/StaticText" Name="text_global_effect_scale" >
+            <Property Name="Text" Value="Scale" />
+            <Property Name="FrameEnabled" Value="False" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.32,0},{0.30427,0},{0.42,0},{0.36427,0}}" />
+            <Property Name="BackgroundEnabled" Value="False" />
+        </Window>
+        <Window Type="TaharezLook/StaticText" Name="text_global_effect_creation_speed" >
+            <Property Name="Text" Value="Creation Speed" />
+            <Property Name="FrameEnabled" Value="False" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.002792,0},{0.360502,0},{0.186913,0},{0.420502,0}}" />
+            <Property Name="BackgroundEnabled" Value="False" />
+        </Window>
+        <Window Type="TaharezLook/StaticText" Name="text_global_effect_speed" >
+            <Property Name="Text" Value="Speed" />
+            <Property Name="FrameEnabled" Value="False" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.32,0},{0.362021,0},{0.42,0},{0.422021,0}}" />
+            <Property Name="BackgroundEnabled" Value="False" />
+        </Window>
+        <Window Type="TaharezLook/StaticText" Name="text_global_effect_direction" >
+            <Property Name="Text" Value="Direction" />
+            <Property Name="FrameEnabled" Value="False" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.0054725,0},{0.418252,0},{0.149134,0},{0.478252,0}}" />
+            <Property Name="BackgroundEnabled" Value="False" />
+        </Window>
+        <Window Type="TaharezLook/StaticText" Name="text_global_effect_constant_rotation_z" >
+            <Property Name="Text" Value="Constant Rotation Z" />
+            <Property Name="FrameEnabled" Value="False" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.454189,0},{0.422811,0},{0.671828,0},{0.482811,0}}" />
+            <Property Name="BackgroundEnabled" Value="False" />
+        </Window>
+        <Window Type="TaharezLook/StaticText" Name="text_global_effect_type" >
+            <Property Name="Text" Value="Type" />
+            <Property Name="FrameEnabled" Value="False" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.013966,0},{0.02,0},{0.112506,0},{0.08,0}}" />
+            <Property Name="BackgroundEnabled" Value="False" />
+        </Window>
+        <Window Type="TaharezLook/StaticText" Name="text_global_effect_preview" >
+            <Property Name="Text" Value="Preview" />
+            <Property Name="FrameEnabled" Value="False" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.627933,0},{0.1001,0},{0.724769,0},{0.160101,0}}" />
+            <Property Name="BackgroundEnabled" Value="False" />
+        </Window>
+        <Window Type="TaharezLook/Editbox" Name="editbox_global_effect_file" >
+            <Property Name="MaxTextLength" Value="1073741823" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.12067,0},{0.104568,0},{0.620671,0},{0.154568,0}}" />
+        </Window>
+        <Window Type="TaharezLook/Combobox" Name="combo_global_effect_type" >
+            <Property Name="Text" Value="Disabled" />
+            <Property Name="Tooltip" Value="Global Effect Type." />
+            <Property Name="ReadOnly" Value="True" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="ClippedByParent" Value="False" />
+            <Property Name="UnifiedAreaRect" Value="{{0.12067,0},{0.025235,0},{0.352793,0},{0.175406,0}}" />
+            <Property Name="MaxEditTextLength" Value="1073741823" />
+        </Window>
+        <Window Type="TaharezLook/Editbox" Name="editbox_global_effect_pos_z" >
+            <Property Name="Tooltip" Value="Default Z position" />
+            <Property Name="MaxTextLength" Value="1073741823" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.155,0},{0.198632,0},{0.280048,0},{0.238906,0}}" />
+            <Property Name="ValidationString" Value="[-+]?[0-9]*\.?[0-9]*" />
+        </Window>
+        <Window Type="TaharezLook/Editbox" Name="editbox_global_effect_pos_z_rand" >
+            <Property Name="Tooltip" Value="Additional Random Z position" />
+            <Property Name="MaxTextLength" Value="1073741823" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.3,0},{0.198632,0},{0.42,0},{0.238906,0}}" />
+            <Property Name="ValidationString" Value="[-+]?[0-9]*\.?[0-9]*" />
+        </Window>
+        <Window Type="TaharezLook/Spinner" Name="spinner_global_effect_rect_x" >
+            <Property Name="Text" Value="0" />
+            <Property Name="Tooltip" Value="X Position of the Creation Rect" />
+            <Property Name="StepSize" Value="1" />
+            <Property Name="CurrentValue" Value="0" />
+            <Property Name="MaximumValue" Value="32767" />
+            <Property Name="MinimumValue" Value="-32768" />
+            <Property Name="TextInputMode" Value="FloatingPoint" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.453492,0},{0.03,0},{0.575674,0},{0.07,0}}" />
+        </Window>
+        <Window Type="TaharezLook/Spinner" Name="spinner_global_effect_rect_y" >
+            <Property Name="Tooltip" Value="Y Position of the Creation Rect" />
+            <Property Name="StepSize" Value="1" />
+            <Property Name="CurrentValue" Value="0" />
+            <Property Name="MaximumValue" Value="32767" />
+            <Property Name="MinimumValue" Value="-32768" />
+            <Property Name="TextInputMode" Value="FloatingPoint" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.58648,0},{0.03,0},{0.710223,0},{0.07,0}}" />
+        </Window>
+        <Window Type="TaharezLook/Spinner" Name="spinner_global_effect_rect_w" >
+            <Property Name="Tooltip" Value="Width of the Creation Rect" />
+            <Property Name="StepSize" Value="1" />
+            <Property Name="CurrentValue" Value="0" />
+            <Property Name="MaximumValue" Value="32767" />
+            <Property Name="MinimumValue" Value="0" />
+            <Property Name="TextInputMode" Value="FloatingPoint" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.716577,0},{0.03,0},{0.840321,0},{0.07,0}}" />
+        </Window>
+        <Window Type="TaharezLook/Spinner" Name="spinner_global_effect_rect_h" >
+            <Property Name="Tooltip" Value="Height of the Creation Rect" />
+            <Property Name="StepSize" Value="1" />
+            <Property Name="CurrentValue" Value="0" />
+            <Property Name="MaximumValue" Value="32767" />
+            <Property Name="MinimumValue" Value="0" />
+            <Property Name="TextInputMode" Value="FloatingPoint" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.852925,0},{0.03,0},{0.976669,0},{0.07,0}}" />
+        </Window>
+        <Window Type="TaharezLook/Spinner" Name="spinner_global_effect_time_to_live" >
+            <Property Name="Text" Value="0" />
+            <Property Name="Tooltip" Value="Particle Time to Live" />
+            <Property Name="StepSize" Value="1" />
+            <Property Name="CurrentValue" Value="0" />
+            <Property Name="MaximumValue" Value="32767" />
+            <Property Name="MinimumValue" Value="0" />
+            <Property Name="TextInputMode" Value="FloatingPoint" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.155,0},{0.309422,0},{0.28,0},{0.349696,0}}" />
+        </Window>
+        <Window Type="TaharezLook/Spinner" Name="spinner_global_effect_scale" >
+            <Property Name="Tooltip" Value="Image Scale" />
+            <Property Name="StepSize" Value="1" />
+            <Property Name="CurrentValue" Value="0" />
+            <Property Name="MaximumValue" Value="32767" />
+            <Property Name="MinimumValue" Value="0" />
+            <Property Name="TextInputMode" Value="FloatingPoint" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.42,0},{0.309422,0},{0.55,0},{0.349696,0}}" />
+        </Window>
+        <Window Type="TaharezLook/Spinner" Name="spinner_global_effect_scale_rand" >
+            <Property Name="Tooltip" Value="Additional Image Scale Random Value" />
+            <Property Name="StepSize" Value="1" />
+            <Property Name="CurrentValue" Value="0" />
+            <Property Name="MaximumValue" Value="32767" />
+            <Property Name="MinimumValue" Value="0" />
+            <Property Name="TextInputMode" Value="FloatingPoint" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.6,0},{0.309422,0},{0.72,0},{0.349696,0}}" />
+        </Window>
+        <Window Type="TaharezLook/Spinner" Name="spinner_global_effect_creation_speed" >
+            <Property Name="Tooltip" Value="Object Creation Speed" />
+            <Property Name="StepSize" Value="1" />
+            <Property Name="CurrentValue" Value="0" />
+            <Property Name="MaximumValue" Value="32767" />
+            <Property Name="MinimumValue" Value="0" />
+            <Property Name="TextInputMode" Value="FloatingPoint" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.184359,0},{0.370212,0},{0.308103,0},{0.410486,0}}" />
+        </Window>
+        <Window Type="TaharezLook/Spinner" Name="spinner_global_effect_speed" >
+            <Property Name="Tooltip" Value="Object Speed" />
+            <Property Name="StepSize" Value="1" />
+            <Property Name="CurrentValue" Value="0" />
+            <Property Name="MaximumValue" Value="32767" />
+            <Property Name="MinimumValue" Value="0" />
+            <Property Name="TextInputMode" Value="FloatingPoint" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.42,0},{0.370212,0},{0.55,0},{0.410486,0}}" />
+        </Window>
+        <Window Type="TaharezLook/Spinner" Name="spinner_global_effect_speed_rand" >
+            <Property Name="Tooltip" Value="Additional Object Speed Random Value" />
+            <Property Name="StepSize" Value="1" />
+            <Property Name="CurrentValue" Value="0" />
+            <Property Name="MaximumValue" Value="32767" />
+            <Property Name="MinimumValue" Value="0" />
+            <Property Name="TextInputMode" Value="FloatingPoint" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.6,0},{0.370212,0},{0.72,0},{0.410486,0}}" />
+        </Window>
+        <Window Type="TaharezLook/Spinner" Name="spinner_global_effect_direction_start" >
+            <Property Name="Tooltip" Value="Object Direction Start" />
+            <Property Name="StepSize" Value="1" />
+            <Property Name="CurrentValue" Value="0" />
+            <Property Name="MaximumValue" Value="360" />
+            <Property Name="MinimumValue" Value="0" />
+            <Property Name="TextInputMode" Value="FloatingPoint" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.162013,0},{0.431002,0},{0.285757,0},{0.471276,0}}" />
+        </Window>
+        <Window Type="TaharezLook/Spinner" Name="spinner_global_effect_direction_size" >
+            <Property Name="Tooltip" Value="Object Direction Size" />
+            <Property Name="StepSize" Value="1" />
+            <Property Name="CurrentValue" Value="0" />
+            <Property Name="MaximumValue" Value="360" />
+            <Property Name="MinimumValue" Value="0" />
+            <Property Name="TextInputMode" Value="FloatingPoint" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.318438,0},{0.431002,0},{0.442182,0},{0.471276,0}}" />
+        </Window>
+        <Window Type="TaharezLook/Spinner" Name="spinner_global_effect_const_rot_z" >
+            <Property Name="Tooltip" Value="Object Constant Rotation Z" />
+            <Property Name="StepSize" Value="1" />
+            <Property Name="CurrentValue" Value="0" />
+            <Property Name="MaximumValue" Value="360" />
+            <Property Name="MinimumValue" Value="0" />
+            <Property Name="TextInputMode" Value="FloatingPoint" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.675979,0},{0.431002,0},{0.799724,0},{0.471276,0}}" />
+        </Window>
+        <Window Type="TaharezLook/Spinner" Name="spinner_global_effect_const_rot_z_rand" >
+            <Property Name="Tooltip" Value="Additional Object Constant Rotation Z Random Value" />
+            <Property Name="StepSize" Value="1" />
+            <Property Name="CurrentValue" Value="0" />
+            <Property Name="MaximumValue" Value="360" />
+            <Property Name="MinimumValue" Value="0" />
+            <Property Name="TextInputMode" Value="FloatingPoint" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.832404,0},{0.431002,0},{0.956148,0},{0.471276,0}}" />
+        </Window>
+    </Window>
+</GUILayout>

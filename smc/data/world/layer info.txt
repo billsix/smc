@@ -1,6 +1,0 @@
-Layer color definitions :
-
-black = blocked
-green = walkable
-blue = water [ not supported ]
-red = special ( bonus ) [ not supported ]

@@ -1,7 +1,7 @@
 /***************************************************************************
                 star.h  -  header for the corresponding cpp file
                              -------------------
-    copyright            :	(C) 2006 by FluXy
+    copyright            :	(C) 2006 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -15,26 +15,44 @@
 #ifndef __STAR_H__
 #define __STAR_H__
 
-#include "../globals.h"
-#include "powerup.h"
+#include "../core/globals.h"
+#include "../objects/powerup.h"
+
+/* *** *** *** *** *** Jumping Star *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cjStar : public cPowerUp
 {
 public:
-	cjStar( double x, double y );
+	// constructor
+	cjStar( float x, float y );
+	// destructor
 	virtual ~cjStar( void );
 	
+	// copy
+	virtual cjStar *Copy( void );
+
+	// update the Star
 	virtual void Update( void );
+	// draw the Star
+	virtual void Draw( cSurfaceRequest *request = NULL );
+
 	// Activate the star
 	void Activate( void );
 	// Adds Star Particles
-	void Generate_Particles( double x = 0, double y = 0, unsigned int power = 2 );
+	void Generate_Particles( float x = 0, float y = 0, unsigned int quota = 2 );
 
-	// stars animation counter
-	double anim_counter;
+	// collision with massive
+	virtual void Handle_Collision_Massive( cObjectCollision *collision );
 
-	// handles the collision
-	virtual void HandleCollision( cObjectCollision *collision );
+	// small stars animation counter
+	float anim_counter;
+
+	// glim animation modifier
+	bool glim_mod;
+	// glim animation counter
+	float glim_counter;
 };
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 #endif

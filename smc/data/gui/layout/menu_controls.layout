@@ -1,12 +1,27 @@
-<?xml version="1.0" ?>
-<GUILayout>
-	<Window Type="DefaultWindow" Name="root">
-		<Window Type="TaharezLook/Combobox" Name="combo_joystick">
-			<Property Name="Position" Value="x:0.5 y:0.825" />
-			<Property Name="Size" Value="w:0.10 h:0.145" />
-			<Property Name="Text" Value="Joystick" />
-			<Property Name="ClippedByParent" Value="false" />
-			<Property Name="ReadOnly" Value="true" />
-		</Window>
-	</Window>
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout >
+    <Window Type="DefaultWindow" Name="menu_controls" >
+        <Property Name="InheritsAlpha" Value="False" />
+        <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+        <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
+        <Window Type="TaharezLook/Combobox" Name="combo_joy" >
+            <Property Name="Text" Value="on" />
+            <Property Name="Tooltip" Value="Joystick to use" />
+            <Property Name="ReadOnly" Value="True" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="ClippedByParent" Value="False" />
+            <Property Name="UnifiedAreaRect" Value="{{0.796286,0},{0.590218,0},{0.98,0},{0.8,0}}" />
+            <Property Name="MaxEditTextLength" Value="1073741823" />
+        </Window>
+        <Window Type="TaharezLook/Combobox" Name="combo_joy_analog_jump" >
+            <Property Name="Text" Value="off" />
+            <Property Name="Tooltip" Value="Enable Joystick Analog up for Jumping." />
+            <Property Name="ReadOnly" Value="True" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="ClippedByParent" Value="False" />
+            <Property Name="UnifiedAreaRect" Value="{{0.797327,0},{0.644799,0},{0.89844,0},{0.770039,0}}" />
+            <Property Name="MaxEditTextLength" Value="1073741823" />
+        </Window>
+    </Window>
 </GUILayout>

@@ -1,0 +1,5 @@
+width 60
+height 95
+editor_tags level;ghost;window
+name Ghost_Window
+type passive

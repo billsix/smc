@@ -1,8 +1,7 @@
 /***************************************************************************
                 hud.h  -  header for the corresponding cpp file
                              -------------------
-    copyright            :	(C) 2003-2004 by Artur Hallmann
-							(C) 2003-2006 by FluXy
+    copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -16,23 +15,23 @@
 #ifndef __STATUSTEXT_H__
 #define __STATUSTEXT_H__
 
-#include "../globals.h"
+#include "../objects/movingsprite.h"
 
-/* *** *** *** *** *** *** *** *** Pointinfo *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** cHudSprite *** *** *** *** *** *** *** *** *** *** */
 
-struct PointsText : public cSprite
+class cHudSprite : public cSprite
 {
 public:
-	PointsText( void );
-	~PointsText( void );
-
-	double vely;
-	unsigned int points;
+	cHudSprite( GL_Surface *new_image = NULL, float x = 0, float y = 0, bool del_img = 0 );
+	virtual ~cHudSprite( void );
+	
+	// copy this sprite
+	virtual cHudSprite *Copy( void );
 };
 
-/* *** *** *** *** *** *** *** HudManager *** *** *** *** *** *** *** *** *** *** */
+typedef vector<cHudSprite *> HudSpriteList;
 
-typedef vector<cSprite*> HudSpriteList;
+/* *** *** *** *** *** *** *** HudManager *** *** *** *** *** *** *** *** *** *** */
 
 class cHudManager
 {
@@ -45,13 +44,15 @@ public:
 	// Unloads the complete HUD
 	void Unload( void );
 
-	// Adds a HUD Object
-	void AddObject( cSprite *obj );
+	// Add a HUD Object
+	void Add( cHudSprite *obj );
 
-	// Updates and reloads the Text Displays
-	void UpdateText( void );
-	// Updates the Objects
+	// Update and reload the Text Displays
+	void Update_Text( void );
+	// Update the Objects
 	void Update( void );
+	// Draw the Objects
+	void Draw( void );
 
 	// Returns the current size
 	unsigned int Get_Size( void );
@@ -59,109 +60,125 @@ public:
 	// is the HUD loaded
 	bool loaded;
 	// HUD objects
-	HudSpriteList Objects;
+	HudSpriteList objects;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cMenuBackground : public cActiveSprite
+// The HUD Manager
+extern cHudManager *pHudManager;
+
+/* *** *** *** *** *** *** *** *** PointsText *** *** *** *** *** *** *** *** *** */
+
+struct PointsText : public cHudSprite
 {
 public:
-	cMenuBackground( double x = 0, double y = 0 );
-	~cMenuBackground( void );
+	PointsText( void );
+	virtual ~PointsText( void );
 
-	virtual void Draw( void );
-	virtual void Update( void );	
-
-	GL_Surface *mario_head, *goldpiece;
-	SDL_Rect rect_mario_head, rect_goldpiece;
+	float vely;
+	unsigned int points;
 };
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cMenuBackground *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cStatusText : public cSprite
+class cMenuBackground : public cHudSprite
 {
 public:
-	cStatusText( double x = 0, double y = 0 );
-	~cStatusText( void );
+	cMenuBackground( float x = 0, float y = 0 );
+	virtual ~cMenuBackground( void );
+
+	virtual void Draw( cSurfaceRequest *request = NULL );
+
+	GL_Surface *maryo_head, *goldpiece;
+	SDL_Rect rect_maryo_head, rect_goldpiece;
+};
+
+/* *** *** *** *** *** cStatusText *** *** *** *** *** *** *** *** *** *** *** *** */
+
+class cStatusText : public cHudSprite
+{
+public:
+	cStatusText( float x = 0, float y = 0 );
+	virtual ~cStatusText( void );
 	
-	virtual void Update( void );
+	virtual void Draw( cSurfaceRequest *request = NULL );
 };
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cPlayerPoints *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cPlayerPoints : public cStatusText
 {
 public:
-	cPlayerPoints( double x = 0, double y = 0 );
-	~cPlayerPoints( void );
+	cPlayerPoints( float x = 0, float y = 0 );
+	virtual ~cPlayerPoints( void );
 
-	void SetPoints( unsigned int points );
-	void AddPoints( unsigned int points, double x = 0, double y = 0, string strtext = "", Color color = (Uint8)255 );
+	void Set_Points( unsigned int points );
+	void Add_Points( unsigned int points, float x = 0, float y = 0, string strtext = "", Color color = (Uint8)255, bool allow_multiplier = 0 );
 
 	// removes all point texts
 	void Clear( void );
 
-	virtual void Update( void );
+	virtual void Draw( cSurfaceRequest *request = NULL );
 
 	typedef vector<PointsText *> PointsTextList;
-	PointsTextList PointTexts;
+	PointsTextList pointsobjects;
 };
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cGoldDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cGoldDisplay : public cStatusText
 {
 public:
-	cGoldDisplay( double x = 0, double y = 0 );
-	~cGoldDisplay( void );
+	cGoldDisplay( float x = 0, float y = 0 );
+	virtual ~cGoldDisplay( void );
 
 	void SetGold( int gold );
 	void AddGold( int gold );
 
-	virtual void Update( void );
+	virtual void Draw( cSurfaceRequest *request = NULL );
 };
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cLiveDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cLiveDisplay : public cStatusText
 {
 public:
-	cLiveDisplay( double x = 0, double y = 0 );
-	~cLiveDisplay( void );
+	cLiveDisplay( float x = 0, float y = 0 );
+	virtual ~cLiveDisplay( void );
 
 	void SetLives( int lives );
 	void AddLives( int lives );
 
-	virtual void Update( void );
+	virtual void Draw( cSurfaceRequest *request = NULL );
 };
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cTimeDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cTimeDisplay : public cStatusText
 {
 public:
-	cTimeDisplay( double x = 0, double y = 0 );
-	~cTimeDisplay( void );
+	cTimeDisplay( float x = 0, float y = 0 );
+	virtual ~cTimeDisplay( void );
 
-	virtual void Update( void );
+	virtual void Draw( cSurfaceRequest *request = NULL );
 
 	char text[50], text_old[50];
-	double counter;
+	float counter;
 };
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cItemBox *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cItemBox : public cStatusText
 {
 public:
-	cItemBox( double x = 0, double y = 0 );
-	~cItemBox( void );
+	cItemBox( float x = 0, float y = 0 );
+	virtual ~cItemBox( void );
 
-	virtual void Update( void );
+	virtual void Draw( cSurfaceRequest *request = NULL );
 
 	// Set the item
-	void Set_Item( unsigned int item_type );
+	void Set_Item( SpriteType item_type );
 	// Activates the itembox
 	void Request_Item( void );
 	// push the item back to the itembox
@@ -172,10 +189,10 @@ public:
 	/* The current Item
 	 * uses the Item defines
 	 */
-	unsigned int item_id;
+	SpriteType item_id;
 
 	// alpha effect
-	double item_counter;
+	float item_counter;
 	// alpha effect mod
 	bool item_counter_mod;
 
@@ -183,31 +200,48 @@ public:
 	Color box_color;
 
 	// stored item
-	cSprite *item;
+	cMovingSprite *item;
 };
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cDebugDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cDebugDisplay : public cStatusText
 {
 public:
-	cDebugDisplay( double x = 0, double y = 0 );
-	~cDebugDisplay( void );
+	cDebugDisplay( float x = 0, float y = 0 );
+	virtual ~cDebugDisplay( void );
 
-	virtual void Update( void );
+	virtual void Draw( cSurfaceRequest *request = NULL );
 	void GameDebugDraw( void );
+
+	// set the debug text to display
+	void Set_Text( string ntext, float display_time = DESIRED_FPS * 2 );
 
 	// display text
 	string text, text_old;
+	// text counter
+	float counter;
+
+	// CEGUI debugtext
+	Window *window_debugtext, *text_debugtext;
+
 	// temp level text
 	string level_old;
-	// temp object counts
-	int passcount, masscount, enemcount, activcount;
+	// last object counters
+	int passcount, masscount, enemycount, activecount;
 	// sprites
-	SpriteList sprites;
-	// text counter
-	double counter;
+	HudSpriteList sprites;
 };
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+// The HUD
+extern cPlayerPoints *pointsdisplay;
+extern cDebugDisplay *debugdisplay;
+extern cGoldDisplay *golddisplay;
+extern cLiveDisplay *livedisplay;
+extern cTimeDisplay *timedisplay;
+extern cItemBox *Itembox;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

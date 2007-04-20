@@ -1,7 +1,7 @@
 /***************************************************************************
                 layer.h  -  header for the corresponding cpp file
                              -------------------
-    copyright            : (C) 2003 - 2006 by FluXy
+    copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -15,33 +15,65 @@
 #ifndef __OVERWORLD_LAYER_H__
 #define __OVERWORLD_LAYER_H__
 
-#include "../globals.h"
+#include "../core/globals.h"
+#include "../objects/movingsprite.h"
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** Layer_Line *** *** *** *** *** *** *** *** *** *** *** */
 
-// Overworld Layer Waypoint class
-class cLayer_Waypoint
+// Layer Line Point class
+// TODO : create a real basic sprite ?
+class cLayer_Line_Point : public cSprite
 {
 public:
-	double x, y;
-	unsigned int type; // 0 = default level waypoint, 1 = line connection
+	cLayer_Line_Point( SpriteType ntype );
+	virtual ~cLayer_Line_Point( void );
+
+	// copy this sprite
+	virtual cLayer_Line_Point *Copy( void ) { return NULL; };
+
+	// save to stream
+	virtual void Save_to_Stream( ofstream &file ) {};
+
+	// draw
+	virtual void Draw( cSurfaceRequest *request = NULL );
+
+	// editor activation
+	virtual void Editor_Activate( void );
+	// editor events
+	bool Editor_Origin_Key( const EventArgs &event ); // editor origin key up
+
+	float Get_Line_posx( void );
+	float Get_Line_posy( void );
+
+	// line
+	void *line;
 };
 
 // Overworld Layer Line class
-class cLayer_Line : public GL_line
+class cLayer_Line
 {
 public:
 	cLayer_Line( void );
-	~cLayer_Line( void );
+	virtual ~cLayer_Line( void );
 
-	// Draw the line
+	// Draw
 	void Draw( void );
 
-	bool collision_test; // collision testing enabled
-	unsigned int type; // 0 = normal walking, 1 = swimming
+	
+	// start point
+	cLayer_Line_Point *start;
+	// end point
+	cLayer_Line_Point *end;
+
+	/* animation type 
+	 * 0 = normal walking, 1 = swimming
+	 */
+	unsigned int anim_type;
+	// waypoint origin identifier
+	unsigned int origin;
 };
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** Layer *** *** *** *** *** *** *** *** *** *** */
 
 // Layer Line Collision data
 class cLine_collision
@@ -49,8 +81,10 @@ class cLine_collision
 public:
 	void clear( void );
 
-	int line_number; // nearest line number
-	double difference; // position difference
+	// nearest line number
+	int line_number;
+	// position difference
+	float difference;
 };
 
 // Layer Nearest Line Collision data
@@ -59,8 +93,10 @@ class cNearLine_collision
 public:
 	void clear( void );
 
-	int line_number; // nearest line number
-	bool start; // line start collision else end collision
+	// nearest line number
+	int line_number;
+	// line start collision else end collision
+	bool start;
 };
 
 // Layer Contact Collision data
@@ -72,12 +108,14 @@ public:
 	// returns the best fitting line for the given direction
 	int Get_best_line( ObjectDirection dir );
 
-	bool contact; // is there a contact
-	cLine_collision line_hor; // horizontal line contact
-	cLine_collision line_ver; // vertical line contact
+	// is there a contact
+	bool contact;
+	// horizontal line contact
+	cLine_collision line_hor;
+	// vertical line contact
+	cLine_collision line_ver;
 };
 
-typedef vector<cLayer_Waypoint *> LayerWaypointList;
 typedef vector<cLayer_Line *> LayerLineList;
 
 // Layer class
@@ -88,18 +126,28 @@ public:
 	cLayer( void );
 	virtual ~cLayer( void );
 
-	// loads the Layer settings
+	// Load from file
 	void Load( string filename );
-	// Draws the lines and waypoints
+	// Unload
+	void Unload( void );
+	// Save
+	bool Save( string filename );
+
+	// Draw the lines and waypoints
 	void Draw( void );
 
-	// returns the data between the nearest line and the given position
-	cLine_collision Get_diff( double x, double y, ObjectDirection directions = DIR_HORIZONTAL, unsigned int check_size = 15 );
+	// Return the data between the nearest line and the given position
+	cLine_collision Get_diff( float x, float y, ObjectDirection directions = DIR_HORIZONTAL, unsigned int check_size = 15 );
 
-	LayerWaypointList waypoints;
+	/* Returns the line array number
+	 * if not found returns -1
+	*/
+	int Get_Line_num( cLayer_Line *obj );
+
+	// lines
 	LayerLineList lines;
 
-	// draws the layer
+	// draw the layer
 	bool draw;
 
 private:
@@ -107,8 +155,12 @@ private:
     virtual void elementStart( const String &element, const XMLAttributes &attributes );
 	// XML element end
     virtual void elementEnd( const String &element );
+
 	// handles a world
-    void handle_line( const XMLAttributes& attributes );
+    void handle_line( const XMLAttributes &attributes );
+
+	// XML element Property list
+	XMLAttributes xml_attributes;
 };
 
 

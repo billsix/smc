@@ -1,2 +1,5 @@
 width 55
 height 55
+editor_tags level;plastic;ground
+name Green_Down
+type passive

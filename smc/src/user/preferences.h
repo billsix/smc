@@ -1,7 +1,7 @@
 /***************************************************************************
            preferences.h  -  header for the corresponding cpp file
                              -------------------
-    copyright            : (C) 2003 - 2006 by FluXy
+    copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -15,7 +15,9 @@
 #ifndef __PREFERENCES_H__
 #define __PREFERENCES_H__
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+#include "../core/globals.h"
+
+/* *** *** *** *** *** cPreferences *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cPreferences : public XMLHandler
 {
@@ -37,22 +39,29 @@ public:
 
 	/* *** *** *** Game Settings *** *** *** *** */
 
+	// Game
+	float camera_hor_speed, camera_ver_speed;
+
 	// Audio
 	bool Music, Sounds;
 	Uint8 music_volume, sound_volume;
 
 	// Video
-	bool Fullscreen, Joy_enabled;
+	bool Fullscreen, joy_enabled;
 	Uint16 Screen_W, Screen_H;
 	Uint8 Screen_Bpp;
+	bool vsync;
 
 	// Keyboard key definitions
-	SDLKey Key_up, Key_down, Key_left, Key_right, Key_shoot;
+	SDLKey key_up, key_down, key_left, key_right, key_jump, key_shoot, key_action;
 	// Joypad key definitions
-	int Joy_shoot, Joy_jump, Joy_exit, Joy_item;
+	int joy_shoot, joy_jump, joy_item, joy_action, joy_exit;
 
 	// Special
-	bool Lvleditor_automousehide, Backgroundimages_disabled;
+	bool always_run;
+	string joy_name;
+	bool joy_analog_jump;
+	bool editor_mouse_auto_hide, background_images;
 
 	// directories
 	string level_dir;
@@ -69,5 +78,12 @@ private:
 	// handles an item
     void handle_item( const XMLAttributes& attributes );
 };
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+// The Preferences
+extern cPreferences *pPreferences;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 #endif

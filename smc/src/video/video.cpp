@@ -1,7 +1,7 @@
 /***************************************************************************
-    video.cpp  -  internal video functions
+			video.cpp  -  General video functions
                              -------------------
-    copyright            : (C) 2003 - 2006 FluXy
+    copyright            : (C) 2005 - 2007 Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -11,8 +11,20 @@
  *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/ 
- 
-#include "../globals.h"
+
+#include "../video/video.h"
+#include "../gui/hud.h"
+#include "../user/preferences.h"
+#include "../core/framerate.h"
+#include "../video/font.h"
+#include "../core/game_core.h"
+#include "../video/img_settings.h"
+#include "../core/camera.h"
+#include "../input/mouse.h"
+#include "../video/gl_surface.h"
+#include "../video/renderer.h"
+
+#include "CEGUIDefaultResourceProvider.h"
 
 /* *** *** *** *** *** *** *** *** Color struct *** *** *** *** *** *** *** *** *** */
 
@@ -89,7 +101,7 @@ SDL_Color Color :: Get_SDL_Color( void )
 
 colour Color :: Get_cegui_colour( void )
 {
-	return colour( (float)(red / 255), (float)(green / 255), (float)(blue / 255), (float)(alpha / 255) );
+	return colour( (float)red / 255, (float)green / 255, (float)blue / 255, (float)alpha / 255 );
 }
 
 bool Color :: Compare( const Color color )
@@ -107,170 +119,45 @@ bool Color :: operator == ( const SDL_Color color ) const
 	return red == color.r && green == color.g && blue == color.b;
 }
 
-/* *** *** *** *** *** *** *** *** GL_Surface *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** Video class *** *** *** *** *** *** *** *** *** *** */
 
-GL_Surface :: GL_Surface( void )
+cVideo :: cVideo( void )
 {
-	image = 0;
+	double_buffer = 0;
+	hardware_surfaces = 0;
 
-	int_x = 0;
-	int_y = 0;
-	w = 0;
-	h = 0;
-	tex_w = 0;
-	tex_h = 0;
+	rgb_size[0] = 0;
+	rgb_size[1] = 0;
+	rgb_size[2] = 0;
 
-	// internal rotation data
-	base_rotx = 0;
-	base_roty = 0;
-	base_rotz = 0;
+	default_buffer = GL_BACK;
 	
-	// collision data
-	col_pos.x = 0;
-	col_pos.y = 0;
-	col_w = 0;
-	col_h = 0;
-
-	filename = "";
-
-	auto_del_img = 1;
+	audio_init_failed = 0;
+	joy_init_failed = 0;
+	initialised = 0;
 }
 
-GL_Surface :: ~GL_Surface( void )
+cVideo :: ~cVideo( void )
 {
-	if( auto_del_img && glIsTexture( image ) )
-	{
-		glDeleteTextures( 1, &image );
-	}
+
 }
 
-void GL_Surface :: Blit( double x, double y, Color *shadow /* = NULL */, double rotx /* = 0 */, double roty /* = 0 */, double rotz /* = 0 */, double scale /* = 1 */, bool no_globalscale /* = 0 */ )
-{
-	if( shadow )
-	{
-		glColor4ub( shadow->red, shadow->green, shadow->blue, shadow->alpha );
-		Blit( x + 2, y + 2, 0, rotx, roty, rotz, scale, no_globalscale );
-		glColor4f( 1, 1, 1, 1 );
-	}
-
-	glLoadIdentity();
-	
-	// global scaling
-	if( !no_globalscale && ( global_scalex != 1 || global_scaley != 1 ) )
-	{
-		glScaled( global_scalex, global_scaley, 0 );
-	}
-
-	// position
-	glTranslated( x + ( ( w / 2 ) * scale ) + int_x, y + ( ( h / 2 ) * scale ) + int_y, 0 );
-
-	// requested scaling
-	if( scale != 1 )
-	{
-		glScaled( scale, scale, 1 );
-	}
-
-	// base image rotation
-	if( base_rotx != 0 )
-	{
-		glRotated( base_rotx, 1, 0, 0 );
-	}
-	if( base_roty != 0 )
-	{
-		glRotated( base_roty, 0, 1, 0 );
-	}
-	if( base_rotz != 0 )
-	{
-		glRotated( base_rotz, 0, 0, 1 );
-	}
-
-	// requested rotation
-	if( rotx != 0 )
-	{
-		glRotated( rotx, 1, 0, 0 );
-	}
-	if( roty != 0 )
-	{
-		glRotated( roty, 0, 1, 0 );
-	}
-	if( rotz != 0 )
-	{
-		glRotated( rotz, 0, 0, 1 );
-	}
-
-	glEnable( GL_TEXTURE_2D );
-	// texture id
-	glBindTexture( GL_TEXTURE_2D, image );
-
-	// rectangle
-	glBegin( GL_QUADS );
-		// top left
-		glTexCoord2f( 0, 0 );
-		glVertex3d( -w / 2, -h / 2, 0 );
-		// top right
-		glTexCoord2f( 1, 0 );
-		glVertex3d( w / 2, -h / 2, 0 );
-		// bottom right
-		glTexCoord2f( 1, 1 );
-		glVertex3d( w / 2, h / 2, 0 );
-		// bottom left
-		glTexCoord2f( 0, 1 );
-		glVertex3d( -w / 2, h / 2, 0 );
-	glEnd();
-
-	glDisable( GL_TEXTURE_2D );
-}
-
-GL_Surface *GL_Surface :: Copy( void )
-{
-	GL_Surface *new_surface = LoadTexture( filename, 0 );
-
-	if( !new_surface )
-	{
-		printf( "Error : Couldn't load copy Texture\n" );
-		return NULL;
-	}
-
-	if( !new_surface->image )
-	{
-		printf( "Error : Couldn't get GL image\n" );
-		delete new_surface;
-		return NULL;
-	}
-
-	new_surface->int_x = int_x;
-	new_surface->int_y = int_y;
-	new_surface->w = w;
-	new_surface->h = h;
-	new_surface->tex_h = tex_h;
-	new_surface->tex_w = tex_w;
-	new_surface->base_rotx = base_rotx;
-	new_surface->base_roty = base_roty;
-	new_surface->base_rotz = base_rotz;
-	new_surface->col_pos = col_pos;
-	new_surface->col_w = col_w;
-	new_surface->col_h = col_h;
-
-	return new_surface;
-}
-
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
-
-void Init_CEGUI( void )
+void cVideo :: Init_CEGUI( void )
 {
 	try
 	{
 		pGuiRenderer = new OpenGLRenderer( 0, GAME_RES_W, GAME_RES_H );
 		pGuiSystem = new System( pGuiRenderer );
 	}
+	// catch CEGUI Exceptions
 	catch( Exception &ex )
 	{
-		fprintf( stderr, "CEGUI Exception occured : %s", ex.getMessage().c_str() );
+		fprintf( stderr, "CEGUI Exception occurred : %s", ex.getMessage().c_str() );
 		exit( 0 );
 	}
 }
 
-void Init_CEGUI_data( void )
+void cVideo :: Init_CEGUI_data( void )
 {
 #ifdef _DEBUG
 	Logger::getSingleton().setLoggingLevel( Informative );
@@ -278,41 +165,83 @@ void Init_CEGUI_data( void )
 	Logger::getSingleton().setLoggingLevel( Errors );
 #endif
 
+	// initialise the required Resource Provider directories
+	DefaultResourceProvider *rp = (DefaultResourceProvider *)System::getSingleton().getResourceProvider();
+
+	rp->setResourceGroupDirectory( "schemes", GUI_SCHEME_DIR "/" );
+	rp->setResourceGroupDirectory( "imagesets", GUI_IMAGESET_DIR "/" );
+	rp->setResourceGroupDirectory( "fonts", GUI_FONT_DIR "/" );
+	rp->setResourceGroupDirectory( "looknfeels", GUI_LOOKNFEEL_DIR "/" );
+	rp->setResourceGroupDirectory( "layouts", GUI_LAYOUT_DIR "/" );
+#ifdef CEGUI_WITH_XERCES
+	// This is needed for Xerces to specify the schemas location
+	rp->setResourceGroupDirectory( "schemas", SCHEMA_DIR "/" );
+#endif
+
+	// set the default resource groups to be used
+	Scheme::setDefaultResourceGroup( "schemes" );
+	Imageset::setDefaultResourceGroup( "imagesets" );
+	Font::setDefaultResourceGroup( "fonts" );
+	WidgetLookManager::setDefaultResourceGroup( "looknfeels" );
+	WindowManager::setDefaultResourceGroup( "layouts" );
+	// only needed for Xerces
+#if defined( CEGUI_WITH_XERCES ) && ( CEGUI_DEFAULT_XMLPARSER == XercesParser )
+	XercesParser::setSchemaDefaultResourceGroup( "schemas" );
+#endif
+
 	// load the scheme file, which auto-loads the imageset
 	try
 	{
-		SchemeManager::getSingleton().loadScheme( "data/gui/schemes/TaharezLookSkin.scheme" );
+		SchemeManager::getSingleton().loadScheme( "TaharezLook.scheme" );
 	}
+	// catch CEGUI Exceptions
 	catch( Exception &ex )
 	{
-		fprintf( stderr, "CEGUI Exception occured : %s", ex.getMessage().c_str() );
+		fprintf( stderr, "CEGUI Exception occurred : %s", ex.getMessage().c_str() );
 		exit( 0 );
 	}
 
 	// first font loaded automatically becomes the default font
 	try
 	{
-		if( pPreferences->Screen_W >= 1024 ) // medium texture font
+		// load best fitting texture font
+		if( pPreferences->Screen_W >= 1024 )
 		{
-			FontManager::getSingleton().createFont( "data/gui/font/bluebold1024_medium.font" );
-			FontManager::getSingleton().createFont( "data/gui/font/bluebold1024_big.font" );
+			FontManager::getSingleton().createFont( "bluebold1024_medium.font" );
+			FontManager::getSingleton().createFont( "bluebold1024_big.font" );
 		}
-		else // small texture font
+		else if( pPreferences->Screen_W >= 800 )
 		{
-			FontManager::getSingleton().createFont( "data/gui/font/bluebold800_medium.font" );
-			FontManager::getSingleton().createFont( "data/gui/font/bluebold800_big.font" );
+			FontManager::getSingleton().createFont( "bluebold800_medium.font" );
+			FontManager::getSingleton().createFont( "bluebold800_big.font" );
+		}
+		else
+		{
+			FontManager::getSingleton().createFont( "bluebold640_medium.font" );
+			FontManager::getSingleton().createFont( "bluebold640_big.font" );
 		}
 	}
+	// catch CEGUI Exceptions
 	catch( Exception &ex )
 	{
-		fprintf( stderr, "CEGUI Exception occured : %s", ex.getMessage().c_str() );
+		fprintf( stderr, "CEGUI Exception occurred : %s", ex.getMessage().c_str() );
 		exit( 0 );
 	}
 
+	// default mouse cursor
 	pGuiSystem->setDefaultMouseCursor( "TaharezLook", "MouseArrow" );
+	// force new mouse image
+	MouseCursor::getSingleton().setImage( &ImagesetManager::getSingleton().getImageset( "TaharezLook" )->getImage( "MouseArrow" ) );
+	// hide CEGUI mouse always because we render the mouse manually
+	MouseCursor::getSingleton().hide();
+	// default tooltip
+	pGuiSystem->setDefaultTooltip( "TaharezLook/Tooltip" );
+	// create default root window
+	Window *window_root = WindowManager::getSingleton().loadWindowLayout( "default.layout" );
+	pGuiSystem->setGUISheet( window_root );
 }
 
-void Init_SDL( void )
+void cVideo :: Init_SDL( void )
 {
 	if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE ) == -1 )
 	{
@@ -323,42 +252,212 @@ void Init_SDL( void )
 	if( SDL_InitSubSystem( SDL_INIT_JOYSTICK ) == -1 )
 	{
 		printf( "Warning : SDL Joystick initialization failed\nReason : %s\n", SDL_GetError() );
-		pPreferences->Joy_enabled = 0;
+		joy_init_failed = 1;
+	}
+	else
+	{
+		joy_init_failed = 0;
 	}
 
 	if( SDL_InitSubSystem( SDL_INIT_AUDIO ) == -1 )
 	{
 		printf( "Warning : SDL Audio initialization failed\nReason : %s\n", SDL_GetError() );
-		pPreferences->Sounds = 0;
-		pPreferences->Music = 0;
+		audio_init_failed = 1;
+	}
+	else
+	{
+		audio_init_failed = 0;
 	}
 
 	SDL_EnableUNICODE( 1 );
+	// hide by default
+	SDL_ShowCursor( SDL_DISABLE );
 }
 
-void Init_Video( void )
+void cVideo :: Init_Video( void )
 {
-	int flags = GetVideoflags();
-	
-    SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 5 );
-    SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 6 );
-    SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 5 );
-	//SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE, 8 ); // hangs on 16 bit
-    //SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 16 ); // not yet needed
-    SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+	// set the video flags
+	int flags = SDL_OPENGL | SDL_SWSURFACE;
 
-	screen = SDL_SetVideoMode( pPreferences->Screen_W, pPreferences->Screen_H, pPreferences->Screen_Bpp, flags );
+	// only enter fullscreen if already initialized
+	if( initialised && pPreferences->Fullscreen )
+	{
+		flags |= SDL_FULLSCREEN;
+	}
+
+	int screen_w = pPreferences->Screen_W;
+	int screen_h = pPreferences->Screen_H;
+	int screen_bpp = pPreferences->Screen_Bpp;
+	int screen_rgb_size[3];
+
+	// first initialization with SDL defaults
+	if( !initialised )
+	{
+		screen_w = 800;
+		screen_h = 600;
+		screen_bpp = 0;
+
+		// Set Caption
+		SDL_WM_SetCaption( CAPTION, NULL );
+		// Set Icon
+		SDL_Surface *icon = IMG_Load( ICON_DIR "/window_32.png" );
+		SDL_WM_SetIcon( icon, NULL );
+		SDL_FreeSurface( icon );
+	}
+
+	// set bits per pixel sizes
+	if( screen_bpp == 8 )
+	{
+		screen_rgb_size[0] = 3;
+		screen_rgb_size[1] = 3;
+		screen_rgb_size[2] = 2;
+	}
+	else if( screen_bpp == 32 )
+	{
+		screen_rgb_size[0] = 8;
+		screen_rgb_size[1] = 8;
+		screen_rgb_size[2] = 8;
+	}
+	else if( screen_bpp == 15 )
+	{
+		screen_rgb_size[0] = 5;
+		screen_rgb_size[1] = 5;
+		screen_rgb_size[2] = 5;
+	}
+	else // 16 and default
+	{
+		screen_rgb_size[0] = 5;
+		screen_rgb_size[1] = 6;
+		screen_rgb_size[2] = 5;
+	}
+
+	// request settings
+	SDL_GL_SetAttribute( SDL_GL_RED_SIZE, screen_rgb_size[0] );
+	SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, screen_rgb_size[1] );
+	SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, screen_rgb_size[2] );
+	// hangs on 16 bit
+	//SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE, 8 ); 
+	// not yet needed
+	//SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 16 );
+	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+	// if VSync is enabled
+	if( initialised && pPreferences->vsync )
+	{
+		SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, 1 );
+	}
+
+	// if reinitialization
+	if( initialised )
+	{
+		// save textures
+		pImageManager->Grab_Textures();
+		pFont->Grab_Textures();
+		pGuiRenderer->grabTextures();
+		pImageManager->Delete_Hardware_Textures();
+	}
+
+	// SDL handles the screen surface memory management
+	screen = SDL_SetVideoMode( screen_w, screen_h, screen_bpp, flags );
 
 	if( !screen )
 	{
 		printf( "Error : Screen mode creation failed\nReason : %s\n", SDL_GetError() );
 		exit( 0 );
 	}
-	
-	SDL_WM_SetCaption( CAPTION, NULL );
+
+	// check fullscreen
+	if( initialised && pPreferences->Fullscreen )
+	{
+		int is_fullscreen = ( ( screen->flags & SDL_FULLSCREEN ) == SDL_FULLSCREEN );
+
+		if( !is_fullscreen )
+		{
+			printf( "Warning : Fullscreen mode not set\n" );
+		}
+	}
+
+	// check Double Buffering
+	int is_double_buffer;
+	SDL_GL_GetAttribute( SDL_GL_DOUBLEBUFFER, &is_double_buffer );
+
+	if( is_double_buffer )
+	{
+		double_buffer = 1;
+	}
+	else
+	{
+		double_buffer = 0;
+
+		if( initialised )
+		{
+			printf( "Warning : not using Double Buffering\n" );
+		}
+	}
+
+	// check VSync
+	if( pPreferences->vsync && initialised )
+	{
+		int is_vsync;
+		// seems to return always true even if not available
+		SDL_GL_GetAttribute( SDL_GL_SWAP_CONTROL, &is_vsync );
+
+		if( !is_vsync )
+		{
+			printf( "Warning : not using VSync\n" );
+		}
+	}
+
+	// get color bit size
+	SDL_GL_GetAttribute( SDL_GL_RED_SIZE, &rgb_size[0] );
+	SDL_GL_GetAttribute( SDL_GL_GREEN_SIZE, &rgb_size[1] );
+	SDL_GL_GetAttribute( SDL_GL_BLUE_SIZE, &rgb_size[2] );
+
+	// check color bit size
+	if( initialised )
+	{
+		if( rgb_size[0] < screen_rgb_size[0] )
+		{
+			printf( "Warning : smaller red bit size %d as requested %d\n", rgb_size[0], screen_rgb_size[0] );
+		}
+
+		if( rgb_size[1] < screen_rgb_size[1] )
+		{
+			printf( "Warning : smaller green bit size %d as requested %d\n", rgb_size[1], screen_rgb_size[1] );
+		}
+
+		if( rgb_size[2] < screen_rgb_size[2] )
+		{
+			printf( "Warning : smaller blue bit size %d as requested %d\n", rgb_size[2], screen_rgb_size[2] );
+		}
+	}
+
+	// remember default buffer
+	glGetIntegerv( GL_DRAW_BUFFER, &default_buffer );
+
+	/* check if accelerated visual
+	int accelerated = 0;
+	SDL_GL_GetAttribute( SDL_GL_ACCELERATED_VISUAL, &accelerated );
+	printf( "accel %d\n", accelerated );*/
+
+	// if reinitialization
+	if( initialised )
+	{
+		// reset highest texture id
+		pImageManager->high_texture_id = 0;
+
+		// reinit opengl
+		Init_OpenGL();
+
+		// restore textures
+		pGuiRenderer->restoreTextures();
+		pImageManager->Restore_Textures();
+		pFont->Restore_Textures();
+	}
+
+	initialised = 1;
 }
 
-void Init_OpenGL( void )
+void cVideo :: Init_OpenGL( void )
 {
     // viewport should cover the whole screen
     glViewport( 0, 0, pPreferences->Screen_W, pPreferences->Screen_H );
@@ -366,12 +465,13 @@ void Init_OpenGL( void )
     // Camera projection matrix
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
-	// Set Up An Ortho Screen
-	glOrtho( 0, (double)pPreferences->Screen_W, (double)pPreferences->Screen_H, 0, -100, 100 );
+	// Set up an Ortho Screen
+	glOrtho( 0, (float)pPreferences->Screen_W, (float)pPreferences->Screen_H, 0, -1, 1 );
 	
-    // now matrix operations 
+    // matrix operations
     glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
+
 	// Smooth Shading
 	glShadeModel( GL_SMOOTH );
 	// Line Smoothing
@@ -380,92 +480,75 @@ void Init_OpenGL( void )
 
     // clear color
     glClearColor( 0, 0, 0, 1 );
-	// Depth Buffer Setup
-	//glClearDepth( 1.0 );
 
     // Z-Buffer
-	//glEnable( GL_DEPTH_TEST );
-	// depth mask
-	glDepthMask( GL_TRUE );
+	glEnable( GL_DEPTH_TEST );
+
 	// Depth function
-	//glDepthFunc( GL_LEQUAL );
+	glDepthFunc( GL_LEQUAL );
+	// Depth Buffer Setup
+	glClearDepth( 1 );
+
 	// Blending
 	glEnable( GL_BLEND );
 	// Blending function
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+
 	// Alpha
-	//glEnable( GL_ALPHA_TEST );
+	glEnable( GL_ALPHA_TEST );
 	// Alpha function
-	//glAlphaFunc( GL_GREATER, 0.1f );
+	glAlphaFunc( GL_GREATER, 0.01f );
+
 	// Perspective Calculations
 	glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
     // back-facing polygons
-    glDisable( GL_CULL_FACE );
+    //glDisable( GL_CULL_FACE );
 
 	Init_ImageScale();
 }
 
-void Init_BasicColors( void )
+void cVideo :: Init_BasicColors( void )
 {
-	std_bgcolor.Parse_uint8( 150, 200, 225 );
 	blue.Parse_uint8( 150, 200, 225 );
 	darkblue.Parse_uint8( 0, 0, 128 );
 	lightblue.Parse_uint8( 41, 167, 255 );
 	black.Parse_uint8( 0, 0, 0 );
+	blackalpha128.Parse_uint8( 0, 0, 0, 128 );
+	blackalpha192.Parse_uint8( 0, 0, 0, 192 );
 	white.Parse_uint8( 255, 255, 255 );
+	whitealpha128.Parse_uint8( 255, 255, 255, 128 );
 	grey.Parse_uint8( 128, 128, 128 );
 	lightgrey.Parse_uint8( 64, 64, 64 );
-	lightgreyalpha.Parse_uint8( 64, 64, 64, 64 );
+	lightgreyalpha64.Parse_uint8( 64, 64, 64, 64 );
 	green.Parse_uint8( 0, 230, 0 );
-	lightgreenalpha.Parse_uint8( 30, 230, 30, 64 );
+	lightgreen.Parse_uint8( 20, 253, 20 );
+	lightgreenalpha64.Parse_uint8( 30, 230, 30, 64 );
+	yellow.Parse_uint8( 255, 245, 10 );
 	greenyellow.Parse_uint8( 154, 205, 50 );
 	darkgreen.Parse_uint8( 1, 119, 34 );
 	red.Parse_uint8( 250, 0, 0 );
-	lightred.Parse_uint8( 253, 22, 12 );
+	lightred.Parse_uint8( 255, 40, 20 );
 	lila.Parse_uint8( 200, 0, 255 );
 	orange.Parse_uint8( 248, 191, 38 );
+	lightorange.Parse_uint8( 255, 220, 100 );
 }
 
-void Init_ImageScale( void )
+void cVideo :: Init_ImageScale( void )
 {
-	global_scalex = (double)pPreferences->Screen_W / (double)GAME_RES_W;
-	global_scaley = (double)pPreferences->Screen_H / (double)GAME_RES_H;
+	global_scalex = (float)pPreferences->Screen_W / (float)GAME_RES_W;
+	global_scaley = (float)pPreferences->Screen_H / (float)GAME_RES_H;
 }
 
-int GetVideoflags( void )
+bool cVideo :: Test_Video( int width, int height, int bpp )
 {
-	const SDL_VideoInfo *videoinfo = SDL_GetVideoInfo();
+	// set the video flags
+	int flags = SDL_OPENGL;
 
-	int flags = SDL_HWPALETTE | SDL_OPENGL | SDL_GL_DOUBLEBUFFER;
-
-   // check if surfaces can be stored in video memory
-    if( videoinfo->hw_available )
-	{
-		flags |= SDL_HWSURFACE;
-	}
-    else
-	{
-		printf( "Warning : using Software surfaces\n" );
-		flags |= SDL_SWSURFACE;
-	}
-
-    // check if hardware blits can be done
-    if( videoinfo->blit_hw )
-	{
-		flags |= SDL_HWACCEL;
-	}
-
+	// only in fullscreen if already initialized
 	if( pPreferences->Fullscreen )
 	{
 		flags |= SDL_FULLSCREEN;
 	}
-
-	return flags;
-}
-
-bool TestVideo( int width, int height, int bpp )
-{
-	int flags = GetVideoflags();
 
 	if( SDL_VideoModeOK( width, height, bpp, flags ) == 0 )
 	{
@@ -475,87 +558,174 @@ bool TestVideo( int width, int height, int bpp )
 	return 1;
 }
 
-void ResetScreen( void )
+void cVideo :: Clear_Screen( void )
 {
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	glLoadIdentity();
 }
 
-void Toggle_Fullscreen( void )
+void cVideo :: Render( void )
 {
-#ifdef WIN32
-	// Todo
-#else
-	SDL_WM_ToggleFullScreen( screen );	// this command doesn't work for non-X11 platforms
-#endif
+	pRenderer->Render();
+	pGuiSystem->renderGUI();
+	pRenderer_GUI->Render();
+	pMouseCursor->Render();
+	SDL_GL_SwapBuffers();
 }
 
-GL_Surface *GetImage( string filename )
+void cVideo :: Toggle_Fullscreen( void )
 {
-	if( filename.find( PIXMAPS_DIR ) == string::npos ) 
+	// toggle fullscreen
+	pPreferences->Fullscreen = !pPreferences->Fullscreen;
+
+	// save clear color
+	GLclampf clear_color[4];
+	glGetFloatv( GL_COLOR_CLEAR_VALUE, clear_color );
+
+#ifdef WIN32
+	// windows needs reinitialization
+	pVideo->Init_Video();
+#else
+	// works only for X11 platforms
+	SDL_WM_ToggleFullScreen( screen );
+#endif
+
+	// set back clear color
+	glClearColor( clear_color[0], clear_color[1], clear_color[2], clear_color[3] );
+}
+
+GL_Surface *cVideo :: Get_Surface( string filename, bool print_errors /* = 1 */ )
+{
+	// .settings file type can't be used directly
+	if( filename.find( ".settings" ) != string::npos )
 	{
-		filename.insert( 0, "/" );
-		filename.insert( 0, PIXMAPS_DIR );
+		filename.erase( filename.find( ".settings" ) );
+		filename.insert( filename.length(), ".png" );
 	}
 
-	string filename_final = filename;
+	// pixmaps dir must be given
+	if( filename.find( PIXMAPS_DIR ) == string::npos )
+	{
+		filename.insert( 0, PIXMAPS_DIR "/" );
+	}
 
-	GL_Surface *image = pImageManager->Get_Pointer( filename_final );
-
+	// check if already loaded
+	GL_Surface *image = pImageManager->Get_Pointer( filename );
+	// already loaded
 	if( image )
 	{
 		return image;
 	}
-
-	image = LoadTexture( filename );
-
+	
+	// load new image
+	image = Load_Surface( filename, 1, print_errors );
+	// add new image
 	if( image )
 	{
-		pImageManager->Add( image );	
+		pImageManager->Add( image );
 	}
 	
 	return image;
 }
 
-GL_Surface *LoadTexture( string filename, bool use_settings /* = 1 */ )
+GL_Surface *cVideo :: Load_Surface( string filename, int use_settings /* = 1 */, bool print_errors /* = 1 */ )
 {
+	// pixmaps dir must be given
 	if( filename.find( PIXMAPS_DIR ) == string::npos ) 
 	{
-		filename.insert( 0, "/" );
-		filename.insert( 0, PIXMAPS_DIR );
+		filename.insert( 0, PIXMAPS_DIR "/" );
 	}
 
-	SDL_Surface *surface = NULL;
 	GL_Surface *image = NULL;
+	SDL_Surface *sdl_surface = NULL;
 	bool surface_found = 0;
 
-	if( valid_file( filename ) ) // does the image exist
+	// image exist
+	if( valid_file( filename ) )
 	{
-		surface = IMG_Load( filename.c_str() );
-
-		if( surface ) // got the image loaded
+		// create empty image
+		if( use_settings == -1 )
 		{
+			image = new GL_Surface();
 			surface_found = 1;
-			image = CreateTexture( surface ); // create the texture
+		}
+		// load image
+		else
+		{
+			sdl_surface = IMG_Load( filename.c_str() );
+
+			if( sdl_surface )
+			{
+				surface_found = 1;
+			}
 		}
 	}
 
+	cImage_settings_data *settings = NULL;
+
+	// try to load settings
 	if( use_settings )
 	{
 		string settings_file = filename;
-		settings_file.erase( settings_file.rfind( "." ) + 1, 3 );
-		settings_file.insert( settings_file.rfind( "." ) + 1, "settings" );
 
+		// if not already image settings based
+		if( settings_file.rfind( ".settings" ) == string::npos )
+		{
+			settings_file.erase( settings_file.rfind( "." ) + 1 );
+			settings_file.insert( settings_file.rfind( "." ) + 1, "settings" );
+		}
+
+		// if a settings file exists
 		if( valid_file( settings_file ) )
 		{
-			if( !image ) // if the image is based on another image in the settings
+			settings = pSettingsParser->Get( settings_file );
+		}
+	}
+
+	// create GL image
+	if( !image )
+	{
+		// with settings
+		if( settings )
+		{
+			// if the image is based on another image in the settings
+			if( !sdl_surface )
 			{
 				image = new GL_Surface();
 			}
+			// create image
+			else
+			{
+				// check if texture should be downscaled
+				float new_w = (float)Get_GLsize( sdl_surface->w ), new_h = (float)Get_GLsize( sdl_surface->h );
 
-			cImage_settings *SettingsParser = new cImage_settings();
-			SettingsParser->ApplyTextureSettings( image, settings_file );
-			delete SettingsParser;
+				if( settings->width > 0 && settings->height > 0 )
+				{
+					while( new_w * 0.5f > settings->width * global_scalex && new_h * 0.5f > settings->height * global_scaley )
+					{
+						new_w *= 0.5f;
+						new_h *= 0.5f;
+					}
+
+					// if smaller : downscale
+					if( new_w != sdl_surface->w )
+					{
+						//printf( "%s\n", filename.c_str() );
+						//printf( "\torig %d - %d\tscaled %f - %f\n", sdl_surface->w, sdl_surface->h, sdl_surface->w * global_scalex, sdl_surface->h * global_scaley );
+						//printf( "\tnew %f  -  %f\n", new_w, new_h );
+					}
+				}
+
+				image = CreateTexture( sdl_surface, settings->mipmap, (unsigned int)new_w, (unsigned int)new_h );
+			}
+
+			// apply settings
+			settings->Apply( image );
+		}
+		// without settings
+		else
+		{
+			image = CreateTexture( sdl_surface );
 		}
 	}
 
@@ -563,20 +733,22 @@ GL_Surface *LoadTexture( string filename, bool use_settings /* = 1 */ )
 	{
 		image->filename = filename;
 	}
-
-	if( !surface_found && !image )
+	else if( print_errors )
 	{
-		printf( "Error loading image : %s\nReason : %s\n", filename.c_str(), SDL_GetError() );
-	}
-	else if( !image )
-	{
-		printf( "Error creating GL image : %s\nReason : %s\n", filename.c_str(), SDL_GetError() );
+		if( !surface_found )
+		{
+			printf( "Error loading image : %s\nReason : %s\n", filename.c_str(), SDL_GetError() );
+		}
+		else
+		{
+			printf( "Error creating GL image : %s\nReason : %s\n", filename.c_str(), SDL_GetError() );
+		}
 	}
 
 	return image;
 }
 
-GL_Surface *CreateTexture( SDL_Surface *surface )
+GL_Surface *cVideo :: CreateTexture( SDL_Surface *surface, bool mipmap /* = 0 */, unsigned int force_width /* = 0 */, unsigned int force_height /* = 0 */ )
 {
 	if( !surface )
 	{
@@ -608,19 +780,74 @@ GL_Surface *CreateTexture( SDL_Surface *surface )
 		SDL_FreeSurface( final );
 		return NULL;
 	}
+	
+	// set highest texture id
+	if( pImageManager->high_texture_id < image_num )
+	{
+		pImageManager->high_texture_id = image_num;
+	}
+
+	// new dimension is set
+	if( force_width > 0 && force_height > 0 )
+	{
+		force_width = Get_GLsize( force_width );
+		force_height = Get_GLsize( force_height );
+
+		// scale
+		if( force_width != width || force_height != height )
+		{
+			// create scaled image
+			void *new_pixels = SDL_malloc( force_width * force_height * 4 );
+			gluScaleImage( GL_RGBA, final->w, final->h, GL_UNSIGNED_BYTE, final->pixels, force_width, force_height, GL_UNSIGNED_BYTE, new_pixels );
+			SDL_free( final->pixels );
+			final->pixels = new_pixels;
+
+			// set new dimension
+			width = force_width;
+			height = force_height;
+		}
+		// set SDL_image pixel store mode
+		else
+		{
+			glPixelStorei( GL_UNPACK_ROW_LENGTH, final->pitch / final->format->BytesPerPixel );
+		}
+	}
+
 	// use the generated texture
 	glBindTexture( GL_TEXTURE_2D, image_num );
 
 	// affect how this texture is drawn later on
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-	// copies the sdl surface into the opengl texture
-    glPixelStorei( GL_UNPACK_ROW_LENGTH, final->pitch / final->format->BytesPerPixel );
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, final->w, final->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, final->pixels );
-    glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
+	// create mipmaps
+    if( mipmap )
+    {
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+
+		// Opengl 1.4 and higher
+        if( strcmp( reinterpret_cast<const char*>( glGetString(GL_VERSION) ), "1.4" ) >= 0 )
+		{
+			// instead of using glu, we rely on glTexImage2D to create the Mipmaps
+			glTexParameteri( GL_TEXTURE_2D, GL_GENERATE_MIPMAP, 1 );
+			// copy the sdl surface into the opengl texture
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, final->pixels );
+        }
+		// Opengl below 1.4
+		else
+		{
+			gluBuild2DMipmaps( GL_TEXTURE_2D, GL_RGBA, width, height, GL_RGBA, GL_UNSIGNED_BYTE, final->pixels );
+		}
+    }
+	// no mipmaps
+    else
+    {
+ 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, final->pixels );
+    }
+	
+	glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
 
 	SDL_FreeSurface( final );
 
@@ -628,20 +855,265 @@ GL_Surface *CreateTexture( SDL_Surface *surface )
 	image->image = image_num;
 	image->tex_w = width;
 	image->tex_h = height;
-	image->w = width;
-	image->h = height;
+	image->w = (float)width;
+	image->h = (float)height;
 	image->col_w = image->w;
 	image->col_h = image->h;
 
+	// if debug build check for errors
 #ifdef _DEBUG
 	GLenum error = glGetError();
 	if( error != GL_NO_ERROR )
 	{
-		printf( "GL Error found : %s\n", gluErrorString( error ) );
+		printf( "CreateTexture : GL Error found : %s\n", gluErrorString( error ) );
 	}
 #endif
+
 	return image;
 }
+
+Color cVideo :: GetPixel( int x, int y, GL_Surface *source /* = NULL */ )
+{
+	//glReadBuffer( GL_FRONT );
+
+	Color color;
+	float pixel[3];
+	glLoadIdentity();
+	glReadPixels( x, y, 1, 1, GL_RGB, GL_FLOAT, &pixel );
+
+	color.Parse_float( pixel[0], pixel[1], pixel[2] );
+
+	return color;
+}
+
+void cVideo :: DrawLine( GL_line *line, float z, Color *color, cLineRequest *request /* = NULL */ )
+{
+	if( !line )
+	{
+		return;
+	}
+
+	DrawLine( line->x1, line->y1, line->x2, line->y2, z, color, request );
+}
+
+void cVideo :: DrawLine( float x1, float y1, float x2, float y2, float z, Color *color, cLineRequest *request /* = NULL */ )
+{
+	if( !color )
+	{
+		return;
+	}
+
+	bool create_request = 0;
+
+	if( !request )
+	{
+		create_request = 1;
+		// create request
+		request = new cLineRequest();
+	}
+
+	// line
+	request->line.x1 = x1;
+	request->line.y1 = y1;
+	request->line.x2 = x2;
+	request->line.y2 = y2;
+
+	// z position
+	request->pos_z = z;
+
+	// color
+	request->color = *color;
+
+	if( create_request )
+	{
+		// add request
+		pRenderer->Add( request );
+	}
+}
+
+void cVideo :: Draw_Rect( GL_rect *rect, float z, Color *color, cRectRequest *request /* = NULL */ )
+{
+	if( !rect )
+	{
+		Draw_Rect( 0, 0, GAME_RES_W, GAME_RES_H, z, color, request );
+	}
+	else
+	{
+		Draw_Rect( rect->x, rect->y, rect->w, rect->h, z, color, request );
+	}
+}
+
+void cVideo :: Draw_Rect( float x, float y, float width, float height, float z, Color *color, cRectRequest *request /* = NULL */ )
+{
+	if( !color || height == 0 || width == 0 )
+	{
+		return;
+	}
+
+	bool create_request = 0;
+
+	if( !request )
+	{
+		create_request = 1;
+		// create request
+		request = new cRectRequest();
+	}
+
+	// rect
+	request->rect.x = x;
+	request->rect.y = y;
+	request->rect.w = width;
+	request->rect.h = height;
+
+	// z position
+	request->pos_z = z;
+
+	// color
+	request->color = *color;
+
+	if( create_request )
+	{
+		// add request
+		pRenderer->Add( request );
+	}
+}
+
+void cVideo :: Draw_Gradient( GL_rect *rect, float z, Color *color1, Color *color2, ObjectDirection direction, cGradientRequest *request /* = NULL */ )
+{
+	if( !rect )
+	{
+		Draw_Gradient( 0, 0, GAME_RES_W, GAME_RES_H, z, color1, color2, direction, request );
+	}
+	else
+	{
+		Draw_Gradient( rect->x, rect->y, rect->w, rect->h, z, color1, color2, direction, request );
+	}
+}
+
+void cVideo :: Draw_Gradient( float x, float y, float width, float height, float z, Color *color1, Color *color2, ObjectDirection direction, cGradientRequest *request /* = NULL */ )
+{
+	if( !color1 || !color2 || height == 0 || width == 0 )
+	{
+		return;
+	}
+
+	bool create_request = 0;
+
+	if( !request )
+	{
+		create_request = 1;
+		// create request
+		request = new cGradientRequest();
+	}
+
+	// rect
+	request->rect.x = x;
+	request->rect.y = y;
+	request->rect.w = width;
+	request->rect.h = height;
+
+	// z position
+	request->pos_z = z;
+
+	// color
+	request->color_1 = *color1;
+	request->color_2 = *color2;
+
+	// direction
+	request->dir = direction;
+
+	if( create_request )
+	{
+		// add request
+		pRenderer->Add( request );
+	}
+}
+
+float cVideo :: Get_scale( GL_Surface *image, float height, float width, bool only_downscale /* = 1 */ )
+{
+	if( !image )
+	{
+		return 0;
+	}
+
+	// change size
+	if( !( only_downscale && image->h <= height && image->w <= width ) )
+	{
+		float zoom = width / image->w;
+
+		if( height / image->h < zoom ) // if height is smaller
+		{
+			zoom = height / image->h;
+		}
+
+		return zoom;
+	}
+
+	return 1;
+}
+
+void cVideo :: Save_Screenshot( void )
+{
+	string filename;
+	
+	for( unsigned int i = 1; i < 1000; i++ )
+	{
+		filename = user_data_dir + SCREENSHOT_DIR "/" + int_to_string( i ) + ".bmp";
+
+		if( !valid_file( filename ) )
+		{
+			// Todo : save it as png
+
+			// create RGB image data
+			GLubyte *data = new GLubyte[pPreferences->Screen_W * pPreferences->Screen_H * 3];
+
+			// read gl screen
+			glReadPixels( 0, 0, pPreferences->Screen_W, pPreferences->Screen_H, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid *)data );
+
+			// create SDL surface
+			SDL_Surface *temp = SDL_CreateRGBSurface( SDL_SWSURFACE, pPreferences->Screen_W, pPreferences->Screen_H, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000 );
+
+			if( SDL_MUSTLOCK( temp ) )
+			{
+				SDL_LockSurface( temp );
+			}
+
+			Uint32 *pdata = (Uint32 *)temp->pixels;
+
+			// copy into SDL surface
+			for( int y = temp->h - 1, y2 = 0; y >= 0 && y2 < pPreferences->Screen_H; --y, ++y2 )
+			{
+				for( int x = temp->w -1; x >= 0; --x )
+				{
+					pdata[y * temp->pitch/4 + x] =
+						SDL_MapRGBA( temp->format,
+							data[ y2 * pPreferences->Screen_W * 3 + x * 3 + 0 ],
+							data[ y2 * pPreferences->Screen_W * 3 + x * 3 + 1 ],
+							data[ y2 * pPreferences->Screen_W * 3 + x * 3 + 2 ],
+							255 );
+				}
+			}
+
+			if( SDL_MUSTLOCK( temp ) )
+			{
+				SDL_UnlockSurface( temp );
+			}
+
+			// save the surface
+			SDL_SaveBMP( temp, filename.c_str() );
+			
+			// delete screen data
+			SDL_FreeSurface( temp );
+			delete[] data;
+
+			debugdisplay->Set_Text( "Screenshot " + int_to_string( i ) + " saved", DESIRED_FPS * 2.5 );
+
+			return;
+		}
+	}
+}
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 unsigned int Get_GLsize( unsigned int size )
 {
@@ -655,191 +1127,47 @@ unsigned int Get_GLsize( unsigned int size )
 	return value;
 }
 
-Color Get_Color( Uint8 r, Uint8 g, Uint8 b, Uint8 a /* = 255 */ )
-{
-	return Color( r, g, b, a );
-}
-
-Color GetPixel( int x, int y, GL_Surface *source /* = NULL */ )
-{
-	//glReadBuffer( GL_FRONT );
-
-	Color pixel = (Uint8)0;
-	glLoadIdentity();
-	//glReadPixels( x, y, 1, 1, GL_RGB, GL_UNSIGNED_INT, &pixel );
-
-	return pixel;
-}
-
-void DrawPixel( double x, double y, Color *color, GL_Surface *target /* = NULL */ )
-{
-	DrawRect( x, y, 1, 1, color, target );
-}
-
-void DrawLine( GL_line *line, Color *color, GL_Surface *target /* = NULL */ )
-{
-	if( !line )
-	{
-		return;
-	}
-
-	DrawLine( line->x1, line->y1, line->x2, line->y2, color, target );
-}
-
-void DrawLine( double x1, double y1, double x2, double y2, Color *color, GL_Surface *target /* = NULL */ )
-{
-	if( !color )
-	{
-		return;
-	}
-
-	// TODO : target drawing support
-
-	glLoadIdentity();
-
-	// global scaling
-	if( global_scalex != 1 || global_scaley != 1 )
-	{
-		glScaled( global_scalex, global_scaley, 0 );
-	}
-
-	if( target )
-	{
-		// draw on the target !!
-	}
-
-	glColor4ub( color->red, color->green, color->blue, color->alpha );
-
-	glBegin( GL_LINES );
-		glVertex2d( x1, y1 );
-		glVertex2d( x2, y2 );
-	glEnd();
-
-	glColor4ub( 255, 255, 255, 255 );
-}
-
-void DrawRect( GL_rect *rect, Color *color, GL_Surface *target /* = NULL */ )
-{
-	if( !rect )
-	{
-		if( !target )
-		{
-			DrawRect( 0, 0, GAME_RES_W, GAME_RES_H, color );
-		}
-		else
-		{
-			DrawRect( 0, 0, target->w, target->h, color, target );
-		}
-
-		return;
-	}
-
-	DrawRect( rect->x, rect->y, rect->w, rect->h, color, target );
-}
-
-void DrawRect( double x, double y, double width, double height, Color *color, GL_Surface *target /* = NULL */ )
-{
-	if( !color || height == 0 || width == 0 )
-	{
-		return;
-	}
-
-	// TODO : target drawing support
-
-	glLoadIdentity();
-
-	// global image scaling
-	if( global_scalex != 1 || global_scaley != 1 )
-	{
-		glScaled( global_scalex, global_scaley, 0 );
-	}
-
-	if( target )
-	{
-		// draw on the target !!
-	}
-
-	glColor4ub( color->red, color->green, color->blue, color->alpha );
-
-	glBegin( GL_POLYGON );
-		glVertex2d( x, y );
-		glVertex2d( x + width, y );
-		glVertex2d( x + width, y + height );
-		glVertex2d( x, y + height );
-	glEnd();
-
-	glColor4ub( 255, 255, 255, 255 );
-}
-
-GL_Surface *RenderText( TTF_Font *font, string text, Color color )
-{
-	SDL_Color sdlcolor = color.Get_SDL_Color();
-
-	return CreateTexture( TTF_RenderText_Blended( font, text.c_str(), sdlcolor ) );
-}
-
-
-double Get_scale( GL_Surface *image, double height, double width, bool only_downscale /* = 1 */ )
-{
-	if( !image )
-	{
-		return NULL;
-	}
-
-	if( !( only_downscale && image->h <= height && image->w <= width ) ) // size
-	{
-		double zoom = width / image->w;
-
-		if( height / image->h < zoom ) // if height is smaller
-		{
-			zoom = height / image->h;
-		}
-
-		return zoom;
-	}
-
-	return 1;
-}
-
-void DrawEffect( FadeoutEffect effect, double speed )
+void DrawEffect( FadeoutEffect effect /* = RANDOM_EFFECT */, float speed /* = 1 */ )
 {
 	if( effect == RANDOM_EFFECT )
 	{
 		effect = (FadeoutEffect)( ( rand() % (TOTAL_FADE_EFFECTS - 1) ) + 1 );
 	}
 
-	// remember buffer mode
-	int buffer = GL_BACK;
-	glGetIntegerv( GL_DRAW_BUFFER, &buffer );
-
 	switch( effect )
 	{
 	case BLACK_FADEOUT:
 	{
-		// switch to single buffer
-		glDrawBuffer( GL_FRONT );
-
 		Color color = (Uint8)0;
 
-		for( double i = 1; i > 0; i -= ( speed / 30 ) * Framerate.speedfactor )
+		for( float i = 1; i > 0; i -= ( speed / 30 ) * pFramerate->speedfactor )
 		{
-			color.alpha = (Uint8)( ( 25 - ( 25 * i ) ) * Framerate.speedfactor );
-			DrawRect( NULL, &color );
+			color.alpha = (Uint8)( ( 45 - ( 45 * i ) ) * pFramerate->speedfactor );
+
+			// create request
+			cRectRequest *request = new cRectRequest();
+			pVideo->Draw_Rect( NULL, 0.9f, &color, request );
 			
-			glFlush();
-			Framerate.Update();
+			request->render_count = 2;
+
+			// add request
+			pRenderer->Add( request );
+
+			pVideo->Render();
+
+			pFramerate->Update();
+			// maximum 50 fps
+			CorrectFrameTime( 50 );
 		}
+		
 		break;
 	}
 	case HORIZONTAL_VERTICAL_FADE:
 	{
-		// switch to single buffer
-		glDrawBuffer( GL_FRONT );
-
-		double pos = 0;
-		double size = 1;
+		float pos = 0;
+		float size = 1;
 		int hor = ( rand() % 2 ) - 1;
-		Color color = Get_Color( rand() % 100, rand() % 100, rand() % 100, 150 );
+		Color color = Color( (Uint8)( rand() % 100 ), rand() % 100, rand() % 100, 150 );
 
 		if( hor ) // horizontal
 		{
@@ -852,116 +1180,185 @@ void DrawEffect( FadeoutEffect effect, double speed )
 
 		while( pos > 0 )
 		{
+			// horizontal
 			if( hor )
 			{
-				DrawRect( pos, 0, size, GAME_RES_H, &color ); // left/top
-				DrawRect( GAME_RES_W - pos - size, 0, size, GAME_RES_H, &color ); // down/right
+				// left/top
+				cRectRequest *rect_request = new cRectRequest();
+				pVideo->Draw_Rect( pos, 0, size, GAME_RES_H, 0.9f, &color, rect_request );
+				rect_request->render_count = 2;
+				// add request
+				pRenderer->Add( rect_request );
 
-				size = 20 * Framerate.speedfactor;
+				// down/right
+				rect_request = new cRectRequest();
+				pVideo->Draw_Rect( GAME_RES_W - pos - size, 0, size, GAME_RES_H, 0.9f, &color, rect_request );
+				rect_request->render_count = 2;
+				// add request
+				pRenderer->Add( rect_request );
+
+				size = 20 * pFramerate->speedfactor;
 				pos -= size;
 			}
+			// vertical
 			else
 			{
-				DrawRect( 0, pos, GAME_RES_W, size, &color ); // left/top
-				DrawRect( 0, GAME_RES_H - pos - size, GAME_RES_W, size, &color ); // down/right
+				// left/top
+				cRectRequest *rect_request = new cRectRequest();
+				pVideo->Draw_Rect( 0, pos, GAME_RES_W, size, 0.9f, &color, rect_request );
+				rect_request->render_count = 2;
+				// add request
+				pRenderer->Add( rect_request );
 
-				size = 15 * Framerate.speedfactor;
+				// down/right
+				rect_request = new cRectRequest();
+				pVideo->Draw_Rect( 0, GAME_RES_H - pos - size, GAME_RES_W, size, 0.9f, &color, rect_request );
+				rect_request->render_count = 2;
+				// add request
+				pRenderer->Add( rect_request );
+
+				size = 15 * pFramerate->speedfactor;
 				pos -= size;
 			}
 
-			glFlush();
+			pVideo->Render();
 
-			Framerate.Update();
+			pFramerate->Update();
 			CorrectFrameTime( DESIRED_FPS * 2 ); // correction needed
 		}
 		break;
 	}
-	case BIG_MUSHROOM:
+	case BIG_ITEM:
 	{
-		double f = 0;
-		GL_Surface *image = GetImage( "game/items/mushroom_red.png" );
+		float f = 0.1f;
+		GL_Surface *image = NULL;
+
+		// item based on the camera x position
+		if( pCamera->x < 2000 )
+		{
+			image = pVideo->Get_Surface( "game/items/mushroom_red.png" );
+		}
+		else if( pCamera->x < 5000 )
+		{
+			image = pVideo->Get_Surface( "game/items/flower_red_1.png" );
+		}
+		else if( pCamera->x < 10000 )
+		{
+			image = pVideo->Get_Surface( "game/items/mushroom_green.png" );
+		}
+		else if( pCamera->x < 20000 )
+		{
+			image = pVideo->Get_Surface( "game/items/star.png" );
+		}
+		else
+		{
+			image = pVideo->Get_Surface( "game/items/moon_1.png" );
+		}
 
 		while( f < 50 )
 		{
-			f += 0.9 * Framerate.speedfactor;
+			f += 0.9f * pFramerate->speedfactor * speed * ( f / 7 );
 
-			Color color = Get_Color( 255 - (int)( f * 4 ), 255 - (int)( f * 4 ), 255 - (int)( f * 4 ) );
+			Color color = Color( (Uint8)( 255 - (Uint8)( f * 4 ) ), 255 - (Uint8)( f * 4 ), 255 - (Uint8)( f * 4 ) );
 
 			glColor3ub( color.red, color.green, color.blue );
-			image->Blit( ( GAME_RES_W / 2 ) - ( ( image->w * f ) / 2 ) , GAME_RES_H / 2 - ( ( image->h * f ) / 2 ), NULL, 0, 0, 0, f );
+
+			// create request
+			cSurfaceRequest *request = new cSurfaceRequest();
+			image->Blit( ( GAME_RES_W / 2 ) - ( ( image->w * f ) / 2 ) , GAME_RES_H / 2 - ( ( image->h * f ) / 2 ), 0.9f, request );
+
+			request->render_count = 2;
+
+			// scale
+			request->scale_x = f;
+			request->scale_y = f;
+
+			// add request
+			pRenderer->Add( request );
+
 			glColor3ub( 255, 255, 255 );
 
-			SDL_GL_SwapBuffers();
-			Framerate.Update();
+			pVideo->Render();
+			pFramerate->Update();
 		}
 
 		break;
 	}
 	case RANDOM_COLOR_BOOST:
 	{
-		// switch to single buffer
-		glDrawBuffer( GL_FRONT );
-
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR );
-
-		double f = ( ( GAME_RES_W * GAME_RES_H ) / 11000 );
+		float f = 50;
 		unsigned int rand_color = ( rand() % 4 );
-		
-		double xwidth = 8;
 
-		GL_rect Rct;
+		float xwidth = 45;
+
+		GL_rect rect;
 		
 		while( f > 0 )
 		{
-			xwidth += 1.1 * Framerate.speedfactor;
+			xwidth -= 0.1f + ( xwidth / 50 ) * pFramerate->speedfactor;
 
-			for( unsigned int g = 0; g < 2000; g++ )
+			for( unsigned int g = 0; g < 50; g++ )
 			{
-				Rct.x = rand() % ( GAME_RES_W );
-				Rct.y = rand() % ( GAME_RES_H );
+				rect.x = (float)( rand() % ( GAME_RES_W ) );
+				rect.y = (float)( rand() % ( GAME_RES_H ) );
 				
-				Rct.w = xwidth;
-				Rct.h = xwidth;
+				rect.w = xwidth;
+				rect.h = xwidth;
 
-				Color pixel = (Uint8)0;
+				Color pixel = black;
 
-				if( rand_color == 0 ) // red
+				// red
+				if( rand_color == 0 )
 				{
-					pixel = Get_Color( 1, (Uint8)( Rct.y / 4 ), (Uint8)( Rct.x / 4 ), (Uint8)( 12 * Framerate.speedfactor ) );
+					pixel = Color( 1, (Uint8)( rect.y / 4 ), (Uint8)( rect.x / 4 ), (Uint8)( 5 * pFramerate->speedfactor ) );
 				}
-				else if( rand_color == 1 ) // green
+				// green
+				else if( rand_color == 1 )
 				{
-					pixel = Get_Color( (Uint8)( Rct.x/4 ), 1, (Uint8)( Rct.y/4 ), (Uint8)( 12 * Framerate.speedfactor ) );
+					pixel = Color( (Uint8)( rect.x / 4 ), 1, (Uint8)( rect.y / 4 ), (Uint8)( 5 * pFramerate->speedfactor ) );
 				}
-				else if( rand_color == 2 ) // blue
+				// blue
+				else if( rand_color == 2 )
 				{
-					pixel = Get_Color( (Uint8)( Rct.x/4 ), (Uint8)( Rct.y/4 ), 1, (Uint8)( 12 * Framerate.speedfactor ) );
+					pixel = Color( (Uint8)( rect.x / 4 ), (Uint8)( rect.y / 4 ), 1, (Uint8)( 5 * pFramerate->speedfactor ) );
 				}
-				else // yellow
+				// yellow
+				else
 				{
-					pixel = Get_Color( 1, 1, (Uint8)( Rct.y/4 ), (Uint8)( 15 * Framerate.speedfactor ) );
+					pixel = Color( 1, 1, (Uint8)( rect.y / 4 ), (Uint8)( 6 * pFramerate->speedfactor ) );
 				}
 
-				Rct.x -= xwidth / 2;
-				Rct.y -= xwidth / 2;
+				// fix alpha
+				if( pixel.alpha < 5 )
+				{
+					pixel.alpha = 5;
+				}
+
+				rect.x -= xwidth / 2;
+				rect.y -= xwidth / 2;
 				
-				DrawRect( &Rct, &pixel );
+				// create request
+				cRectRequest *request = new cRectRequest();
+				pVideo->Draw_Rect( &rect, 0.9f, &pixel, request );
+				
+				request->render_count = 2;
+
+				request->blend_sfactor = GL_SRC_ALPHA;
+				request->blend_dfactor = GL_ONE_MINUS_SRC_COLOR;
+
+				// add request
+				pRenderer->Add( request );
 			}
 			
-			f -= Framerate.speedfactor;
+			f -= pFramerate->speedfactor;
 
-			glFlush();
-
-			Framerate.Update();
+			pVideo->Render();
+			pFramerate->Update();
 		}
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 		break;
 	}
 	case TILE_PIXELATION:
 	{
-		// switch to single buffer
-		glDrawBuffer( GL_FRONT );
-
 		const unsigned int num_hor = 8;
 		const unsigned int num_ver = 6;
 		unsigned int num = num_hor * num_ver;
@@ -994,108 +1391,176 @@ void DrawEffect( FadeoutEffect effect, double speed )
 			dest.x = select_x * dest.w;
 			dest.y = select_y * dest.h;
 			
-			Color color = (Uint8)0;
-			DrawRect( &dest, &color );
+			Color color = black;
 
-			glFlush();
-			Framerate.Update();
+			// create request
+			cRectRequest *request = new cRectRequest();
+			pVideo->Draw_Rect( &dest, 0.9f, &color, request );
+			
+			request->render_count = 2;
+
+			// add request
+			pRenderer->Add( request );
+			
+
+			pVideo->Render();
+			pFramerate->Update();
 			CorrectFrameTime( DESIRED_FPS ); // correction needed
 		}
 		break;
 	}
 	case FIXED_COLORBOX_FADEOUT:
 	{
-		// switch to single buffer
-		glDrawBuffer( GL_FRONT );
-
-		//glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR );
-		glBlendFunc( GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA );
-
-		double xsize = 4.5;
+		float xsize = 10;
 		int xtemp = 0;
 		Uint16 xpos = 0;
 		Uint16 ypos = 0;
 
-		GL_rect Rct;
-		Color color = (Uint8)0;
+		GL_rect rect;
+		Color color = black;
 
-		unsigned int rand_color = ( rand() % 4 );
+		unsigned int rand_color = ( rand() % 3 );
 
-		if( rand_color == 1 ) // green
+		// green
+		if( rand_color == 0 )
 		{
-			color = Get_Color( 10, 50, 10 );
+			color = Color( (Uint8)10, 55, 10 );
 		}
-		else if( rand_color == 2 ) // blue
+		// blue
+		else if( rand_color == 1 )
 		{
-			color = Get_Color( 10, 10, 50 );
+			color = Color( (Uint8)10, 10, 55 );
 		}
-		else // yellow
+		// yellow
+		else
 		{
-			color = Get_Color( 50, 50, 10 );
+			color = Color( (Uint8)55, 55, 10 );
 		}
 
-		while( xsize < 90 )
+		color.alpha = 1;
+
+		while( xsize < 20 )
 		{
-			xsize += 2.2 * Framerate.speedfactor;
+			xsize += 0.3f * pFramerate->speedfactor;
 
 			if( xtemp < (int)xsize )
 			{
-				xpos = (Uint16)( rand() % (unsigned int)xsize ) + 1;
-				ypos = (Uint16)( rand() % (unsigned int)xsize ) + 1;
-				xtemp = (int)xsize + 1;
+				if( xtemp < 10 && xsize > 10 )
+				{
+					// todo : float color class ?
+					color.red *= 0.1f;
+					color.green *= 0.1f;
+					color.blue *= 0.1f;
+				}
+
+				xpos = (Uint16)( rand() % (unsigned int)xsize ) + 2;
+				ypos = (Uint16)( rand() % (unsigned int)xsize ) + 2;
+				xtemp = (int)xsize + 2;
 			}
 
-			for( unsigned int g = xpos; g < GAME_RES_W; g += (unsigned int)xtemp )
+			for( unsigned int g = xpos; g < GAME_RES_W; g += (unsigned int)xtemp + 5 )
 			{
-				for( unsigned int y = ypos; y < GAME_RES_H; y += (unsigned int)xtemp )
+				for( unsigned int y = ypos; y < GAME_RES_H; y += (unsigned int)xtemp + 5 )
 				{
-					Rct.x = g;
-					Rct.y = y;
+					rect.x = (float)g;
+					rect.y = (float)y;
 					
-					Rct.w = 10 + ( rand() % ( 5 + ( xtemp / 5 ) ) );
-					Rct.h = 10 + ( rand() % ( 5 + ( xtemp / 5 ) ) );
+					rect.w = (float)( 5 + ( rand() % ( (unsigned int)xsize + ( xtemp / 2 ) ) ) );
+					rect.h = (float)( 5 + ( rand() % ( (unsigned int)xsize + ( xtemp / 2 ) ) ) );
 
-					Color pixel = Get_Color( rand() % color.red, rand() % color.green, rand() % color.blue, ( rand() % 3 ) + 2 );
+					Color pixel = Color( ( rand() % color.red ) + 5, ( rand() % color.green ) + 5, ( rand() % color.blue ) + 5, (Uint8)color.alpha );
 					
-					Rct.x -= 2 + ( xtemp / 2 );
-					Rct.y -= 2 + ( xtemp / 2 );
-					
-					DrawRect( &Rct, &pixel );
-					pixel.alpha += (Uint8)( xsize / 5 );
+					rect.x -= 2 + ( xtemp / 2 );
+					rect.y -= 2 + ( xtemp / 2 );
+
+					// create request
+					cRectRequest *request = new cRectRequest();
+					pVideo->Draw_Rect( &rect, 0.9f, &pixel, request );
+
+					request->render_count = 2;
+
+					request->blend_sfactor = GL_ONE_MINUS_SRC_ALPHA;
+					request->blend_dfactor = GL_ONE_MINUS_SRC_ALPHA;
+
+					// add request
+					pRenderer->Add( request );
 				}
 			}
 
-			DrawRect( NULL, &Get_Color( 0, 0, 0, 10 ) );
+			if( xsize > 15 )
+			{
+				color.alpha = xsize * 3.5f;
+			}
+			else
+			{
+				color.alpha = xsize * 0.5f;
+			}
 
-			glFlush();
-			Framerate.Update();
+			// create request
+			cRectRequest *request = new cRectRequest();
+			pVideo->Draw_Rect( NULL, 0.9f, &color, request );
+			
+			request->render_count = 2;
+
+			request->blend_sfactor = GL_SRC_ALPHA;
+			request->blend_dfactor = GL_ONE_MINUS_SRC_COLOR;
+
+			// add request
+			pRenderer->Add( request );
+
+			pVideo->Render();
+			pFramerate->Update();
 		}
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 		break;
 	}
 	default:
 		break;  // be happy
 	}
 	
-	glDrawBuffer( buffer ); // reset draw buffer
-	Framerate.Update();
+	pFramerate->Update();
 }
 
-void DrawLoadingScreen( void )
+void Draw_Loading_Screen( void )
 {
-	Window *window_1 = WindowManager::getSingleton().loadWindowLayout( "data/gui/layout/loading.layout" );
-	pGuiSystem->setGUISheet( window_1 );
-	cSprite *loading_img_1 = new cSprite( GetImage( "menu/extra_1.png" ), GAME_RES_W / 7, (double)( GAME_RES_H / 1.5 ) );
-	cSprite *loading_img_2 = new cSprite( GetImage( "menu/extra_2.png" ), GAME_RES_W / 1.4, (double)( GAME_RES_H / 10 ) );
+	bool mouse_hide = 0;
 
-	glClearColor( 1, 1, 1, 1 ); // white
-	ResetScreen();
+	// get loading window
+	Window *window_1 = WindowManager::getSingleton().loadWindowLayout( "loading.layout" );
+	pGuiSystem->getGUISheet()->addChildWindow( window_1 );
+	// loading images
+	cHudSprite *loading_img_1 = new cHudSprite( pVideo->Get_Surface( "menu/extra_1.png" ), GAME_RES_W * 0.08f, GAME_RES_H * 0.75f );
+	cHudSprite *loading_img_2 = new cHudSprite( pVideo->Get_Surface( "menu/extra_2.png" ), GAME_RES_W * 0.6f, GAME_RES_H * 0.1f );
+
+	// white background
+	glClearColor( 1, 1, 1, 1 );
+	pVideo->Clear_Screen();
+
+	// Gradient
+	Color col1 = Color( 0.7f, 0.5f, 0 );
+	Color col2 = Color( 0.7f, 0.8f, 0.4f );
+	pVideo->Draw_Gradient( NULL, 0.08f, &col1, &col2, DIR_VERTICAL );
+	// Loading Images
 	loading_img_1->Draw();
 	loading_img_2->Draw();
+
+	pRenderer->Render();
 	pGuiSystem->renderGUI();
+	pRenderer_GUI->Render();
 	SDL_GL_SwapBuffers();
 
+	// delete
 	delete loading_img_1;
 	delete loading_img_2;
+	pGuiSystem->getGUISheet()->removeChildWindow( window_1 );
 	WindowManager::getSingleton().destroyWindow( window_1 );
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+cVideo *pVideo = NULL;
+
+OpenGLRenderer *pGuiRenderer = NULL;
+System *pGuiSystem = NULL;
+
+SDL_Surface *screen = NULL;
+Color blue, darkblue, lightblue, black, blackalpha128, blackalpha192, white, whitealpha128, grey, lightgrey, lightgreyalpha64, green, lightgreen, lightgreenalpha64, yellow, greenyellow, darkgreen, red, lightred, lila, orange, lightorange;

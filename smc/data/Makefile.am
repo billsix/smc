@@ -1,17 +1,9 @@
-install-data-local:
-	install -c -d $(pkgdatadir); \
-	cp -R font $(pkgdatadir); \
-	cp -R music $(pkgdatadir); \
-	cp -R pixmaps $(pkgdatadir); \
-	cp -R sounds $(pkgdatadir); \
-	cp -R world $(pkgdatadir); \
-	cp -R levels $(pkgdatadir);
+install-data-local: uninstall-local
+	mkdir -p "$(DESTDIR)$(pkgdatadir)"; \
+	for dir in * ; do \
+		test -d "$$dir" || continue; \
+		cp -r "$$dir" "$(DESTDIR)$(pkgdatadir)"; \
+	done
 
 uninstall-local:
-	rm -rf $(pkgdatadir)/font; \
-	rm -rf $(pkgdatadir)/music; \
-	rm -rf $(pkgdatadir)/pixmaps; \
-	rm -rf $(pkgdatadir)/sounds; \
-	rm -rf $(pkgdatadir)/world; \
-	rm -rf $(pkgdatadir)/levels;
-
+	-test -d "$(DESTDIR)$(pkgdatadir)" && rm -rf "$(DESTDIR)$(pkgdatadir)"

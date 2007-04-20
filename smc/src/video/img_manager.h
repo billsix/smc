@@ -1,7 +1,7 @@
 /***************************************************************************
                 img_manager.h  -  header for the corresponding cpp file
                              -------------------
-    copyright            :  (C) 2003- 2006 by FluXy
+    copyright            :  (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -16,32 +16,56 @@
 #ifndef __IMG_MANAGER_H__
 #define __IMG_MANAGER_H__
 
-#include "../globals.h"
-#include "video.h"
+#include "../core/globals.h"
+#include "../video/video.h"
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
-
-// Struct: ImageItem
-// The Imageitem Structure
-struct ImageItem 
+/* *** *** *** *** *** image_item *** *** *** *** *** *** *** *** *** *** *** *** */
+ 
+// image_item Structure
+struct image_item
 {
 	GL_Surface *item;
 	unsigned int count_id;
 };
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+typedef vector<image_item> ImageList;
 
-typedef vector<ImageItem> ImageList;
+/* *** *** *** *** *** cSoftware_texture *** *** *** *** *** *** *** *** *** *** *** *** */
 
-// Class: cImageManager
-//  Keeps track of all the images (surfaces in memory).
+// software_texture data
+class cSoftware_texture
+{
+public:
+	cSoftware_texture( void );
+	~cSoftware_texture( void );
+
+	// base surface
+	GL_Surface *base;
+
+    uint8 *pixels;
+
+    int width;
+    int height;
+    int border;
+
+    int min_filter;
+    int mag_filter;
+    int wrap_s;
+    int wrap_t;
+};
+
+typedef vector<cSoftware_texture *> SoftwareTextureList;
+
+/* *** *** *** *** *** *** cImageManager *** *** *** *** *** *** *** *** *** *** *** */
+
+//  Keeps track of all the images in memory
 //
 // Operators:
 //  - cImageManager [path]
 //  - cImageManager [ID]
 class cImageManager
 {
-public:	
+public:
 	cImageManager( void );
 	~cImageManager( void );
 
@@ -86,32 +110,53 @@ public:
 		return Get_Pointer( path );
 	}
 
-	/**
-	* Call this function to reload all images.
-	*
-	* step: 0 = complete reload
-	*       1 = only delete bitmap surfaces
-	*       2 = only load the bitmap surfaces
+	/*
+	* Function: Grab_Textures
+	* saves hardware textures in software memory
 	*/
-	//void ReloadImages( unsigned int step = 0 );
+	void Grab_Textures( void );
 
-	/**
-	* Function: DeleteImages
-	* Frees all bitmap surfaces, but keep ImageItems vector entries
+	/*
+	* Function: Reload_Textures
+	* Loads the saved software textures back into hardware textures
 	*/
-	void DeleteImages( void );
+	void Restore_Textures( void );
 
-	/**
-	* Function: DeleteAll
+	/*
+	* Function: Delete_Images
+	* Frees all bitmap surfaces, but keep Items vector entries
+	*/
+	void Delete_Images( void );
+
+	/*
+	* Function: Delete_Hardware_Textures
+	* Frees all hardware surfaces
+	*/
+	void Delete_Hardware_Textures( void );
+
+	/*
+	* Function: Delete_All
 	* Deletes all ImageItems completely.
 	*/
-	void DeleteAll( void );
+	void Delete_All( void );
+
+	// highest opengl texture id found
+	GLuint high_texture_id;
 
 private:
-	// The images loaded since initialization
+	// images loaded since initialization
 	unsigned int load_count;
-	// The ImageItems Array
+	// image items array
 	ImageList items;
+	// saved software textures for reloading
+	SoftwareTextureList software_textures;
 };
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+// Image Manager
+extern cImageManager *pImageManager;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 #endif

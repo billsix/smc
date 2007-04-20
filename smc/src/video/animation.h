@@ -1,7 +1,7 @@
 /***************************************************************************
 			animation.h  -  header for the corresponding cpp file
                          -------------------
-    copyright            : (C) 2003 - 2006 by FluXy
+    copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -12,177 +12,229 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "../globals.h"
-#include "../objects/sprite.h"
-
 #ifndef __ANIMATION_H__
 #define __ANIMATION_H__
 
+#include "../objects/movingsprite.h"
+#include "../objects/objectsprite.h"
+
 /* *** *** *** *** *** *** *** Animation definitions *** *** *** *** *** *** *** *** *** *** */
 
-typedef enum
+enum AnimationEffect
 {
+	ANIM_UNDEFINED,
 	BLINKING_POINTS,
 	FIRE_EXPLOSION,
 	PARTICLE_EXPLOSION,
-} AnimationEffect;
-
-
-/* *** *** *** *** *** *** *** Particle fading definitions *** *** *** *** *** *** *** *** *** *** */
-
-typedef enum // todo : multi-select
-{
-	FADE_SIZE,
-	FADE_ALPHA,
-	FADE_COLOR, // todo : dest-color
-} FadingType;
+};
 
 /* *** *** *** *** *** *** *** Particle blending definitions *** *** *** *** *** *** *** *** *** *** */
 
-typedef enum // todo : more
+enum BlendingMode // todo : more
 {
 	BLEND_NONE,
 	BLEND_ADD,
 	BLEND_DRIVE
-} BlendingMode;
+};
 
 /* *** *** *** *** *** *** *** Base Animation class *** *** *** *** *** *** *** *** *** *** */
 
-class cAnimation : public cObjectSprite
+class cAnimation : public cImageObjectSprite
 {
 public:
-	cAnimation( double posx, double posy, double nfading_speed = 1, Color col = (Uint8)255 );
-	~cAnimation( void );
+	cAnimation( float posx, float posy );
+	virtual ~cAnimation( void );
 
-	// initialize the animation
+	// initialize animation
 	virtual void Init( void );
-	// update the aniamtion
+	// update animation
 	virtual void Update( void );
-	// draw the animation
-	virtual void Draw( void );
-	// sets the speed of fading out ( 0.01 - 100 )
-	void SetFadingSpeed( double speed );
-	// sets the draw color
-	void SetColor( Color col );
+	// draw animation
+	virtual void Draw( cSurfaceRequest *request = NULL );
 
-	double fading_speed;
-	double counter;
+	// ignore onground check
+	virtual void Check_onGround( void ) {};
+
+	// Set time to live for Objects in seconds
+	void Set_Time_to_Live( float time, float time_rand = 0 );
+	/* Set speed of fading out ( 0.01 - 100 )
+	* the lower the longer it takes
+	* Note : only useful for non particle animation Objects
+	*/
+	void Set_FadingSpeed( float speed );
+	// set z position
+	void Set_ZPos( float pos, float pos_rand = 0 );
+
+	// Z random position
+	float posz_rand;
+	// fading out speed
+	float fading_speed;
+	// object time to live
+	float time_to_live, time_to_live_rand;
+	// animation type
 	AnimationEffect animtype;
-	Color color;
 };
 
 /* *** *** *** *** *** *** *** *** Blinking points *** *** *** *** *** *** *** *** *** */
 
-class cAnimation_1 : public cAnimation
+class cBlinkAnimation : public cAnimation
 {
 public:
-	cAnimation_1( double posx, double posy, unsigned int height = 40, unsigned int width = 20 );
-	~cAnimation_1( void );
+	cBlinkAnimation( float posx, float posy, unsigned int height = 40, unsigned int width = 20 );
+	virtual ~cBlinkAnimation( void );
 
+	// update
 	virtual void Update( void );
-	virtual void Draw( void );
+	// draw
+	virtual void Draw( cSurfaceRequest *request = NULL );
 
-	typedef vector<cSprite> Animation1PointList;
-	Animation1PointList objects;
+	typedef vector<cSprite> BlinkPointList;
+	BlinkPointList objects;
 	
 };
 
 /* *** *** *** *** *** *** *** Fire Explosion *** *** *** *** *** *** *** *** *** *** */
 
-struct Animation2item : public cSprite
+struct FireAnimation_item : public cMovingSprite
 {
-	Animation2item( void ) : cSprite()
+	FireAnimation_item( void )
+	: cMovingSprite()
 	{
 		counter = 0;
 	}
-	~Animation2item( void ) {}
 
-	double counter;
+	~FireAnimation_item( void ) {}
+
+	// lifetime
+	float counter;
 };
 
-class cAnimation_2 : public cAnimation
+class cFireAnimation : public cAnimation
 {
 public:
-	cAnimation_2( double posx, double posy, unsigned int power = 5 );
-	~cAnimation_2( void );
+	cFireAnimation( float posx, float posy, unsigned int power = 5 );
+	virtual ~cFireAnimation( void );
 
+	// init
+	virtual void Init( void );
+	// update
 	virtual void Update( void );
-	virtual void Draw( void );
+	// draw
+	virtual void Draw( cSurfaceRequest *request = NULL );
 
-	typedef vector<Animation2item> Animation2List;
-	Animation2List objects;
+	typedef vector<FireAnimation_item> FireAnimList;
+	FireAnimList objects;
 };
 
 /* *** *** *** *** *** *** *** Particle Animation *** *** *** *** *** *** *** *** *** *** */
 
-struct Animation3item : public cSprite
-{
-	Animation3item( void ) : cSprite()
-	{
-		counter = 0;
-	}
-	~Animation3item( void ) {}
+class cParticleAnimation;
 
-	double counter;
-	// constant rotation
-	double const_rotx, const_roty, const_rotz;
-};
-
-class cAnimation_3 : public cAnimation
+// Particle Item
+class cParticle : public cMovingSprite
 {
 public:
-	cAnimation_3( double posx, double posy, unsigned int power = 5, GL_Surface *img = NULL );
-	~cAnimation_3( void );
+	cParticle( void );
+	virtual ~cParticle( void );
 
-	// Initialize settings
+	// update
+	void Update( void );
+	// draw
+	void Draw( cParticleAnimation *origin );
+
+	// ignore onground check
+	virtual void Check_onGround( void ) {};
+
+	// time to live
+	float time_to_live;
+	// constant rotation
+	float const_rotx, const_roty, const_rotz;
+
+	// fading position value
+	float fade_pos;
+};
+
+// Particle Animation Manager
+class cParticleAnimation : public cAnimation
+{
+public:
+	cParticleAnimation( float posx, float posy );
+	virtual ~cParticleAnimation( void );
+
+	// init
 	virtual void Init( void );
-	// update given settings
+	// Emit Particles
+	virtual void Emit( void );
+	// Clear Particles and Animation data
+	void Clear( void );
+
+	// Update given settings
 	virtual void Update( void );
-	// draw everything
-	virtual void Draw( void );
+	// Draw everything
+	virtual void Draw( cSurfaceRequest *request = NULL );
 
-	// set speed ( 0 - 100 )
-	void SetSpeed( double vel_base, double vel_random = 2 );
-	// set x constant rotation
-	void Set_ConstRotationX( double rot, double rot_random = 0 );
-	// set y constant rotation
-	void Set_ConstRotationY( double rot, double rot_random = 0 );
-	// set z constant rotation
-	void Set_ConstRotationZ( double rot, double rot_random = 0 );
-	// set direction range ( 0 - 360 )
-	void SetDirectionRange( double start, double range = 20 );
-	// set image scale ( 0.01 - 100 )
-	void SetScale( double size );
-	// set lifetime modifier ( 0.01 - 100 )
-	void SetLifetimeMod( double time );
-	// set fading type
-	void SetFading( FadingType type );
-	// set blending mode
-	void SetBlending( BlendingMode mode );
-	// set image
-	virtual void SetImage( GL_Surface *img );
+	// Set time to live for the Emitter in seconds
+	void Set_Emitter_Time_to_Live( float time );
+	// Set time between Iterations
+	void Set_Emitter_Iteration_Interval( float time );
+	// Set Particle Count/Quota
+	void Set_Quota( unsigned int size );
+	// Set speed ( 0 - 100 )
+	void Set_Speed( float vel_base, float vel_random = 2 );
+	// Set x constant rotation
+	void Set_ConstRotationX( float rot, float rot_random = 0 );
+	// Set y constant rotation
+	void Set_ConstRotationY( float rot, float rot_random = 0 );
+	// Set z constant rotation
+	void Set_ConstRotationZ( float rot, float rot_random = 0 );
+	// Set direction range ( 0 - 360 )
+	void Set_DirectionRange( float start, float range = 0 );
+	// Set image scale ( 0.01 - 100 )
+	void Set_Scale( float nscale, float scale_random = 0 );
+	// Set the Color
+	void Set_Color( Color col, Color col_rand = Color( (Uint8)0, 0, 0, 0 ) );
+	// Set fading type
+	void Set_Fading_Size( bool enable );
+	void Set_Fading_Alpha( bool enable );
+	void Set_Fading_Color( bool enable );
+	// Set blending mode
+	void Set_Blending( BlendingMode mode );
+	// Set image
+	virtual void Set_Image( GL_Surface *img );
 
-	typedef vector<Animation3item> Animation3List;
-	Animation3List objects;
+	// Particle items
+	typedef vector<cParticle *> ParticleList;
+	ParticleList objects;
+
+	// emitter time to live
+	float emitter_time_to_live;
+	// emitter iteration interval
+	float emitter_iteration_interval;
+	// emitter object quota
+	unsigned int emitter_quota;
 
 	// velocity
-	double vel, vel_rand;
+	float vel, vel_rand;
 	// constant rotation
-	double const_rotx, const_roty, const_rotz;
+	float const_rotx, const_roty, const_rotz;
 	// constant rotation random modifier
-	double const_rotx_rand, const_roty_rand, const_rotz_rand;
+	float const_rotx_rand, const_roty_rand, const_rotz_rand;
 	// direction range
-	double angle_start, angle_range;
+	float angle_start, angle_range;
 	// size scaling
-	double size_scale;
-	// lifetime modifier
-	double lifetime;
-	// fading type
-	FadingType fadetype;
-	// fading value
-	double fade;
+	float size_scale, size_scale_rand;
+	// color random
+	Color color_rand;
+	// fading types todo : dest-color
+	bool fade_size, fade_alpha, fade_color;
 	// blending mode
 	BlendingMode blending;
+
+private:
+	// time alive
+	float emitter_living_time;
+	// emit counter
+	float emit_counter;
 };
 
 /* *** *** *** *** *** *** *** Animation Manager *** *** *** *** *** *** *** *** *** *** */
@@ -193,24 +245,31 @@ public:
 	cAnimationManager( void );
 	~cAnimationManager( void );
 
-	// adds an animation object with the given settings
+	// Add an animation object with the given settings
 	void Add( cAnimation *animation );
-	// deletes an animation object
+	// Delete an animation object
 	void Delete( unsigned int num );
 
-	// updates the objects
+	// Update the objects
 	void Update( void );
-	// draws the bjects
+	// Draw the objects
 	void Draw( void );
 
-	// deletes all animation objects
-	void DeleteAll( void );
+	// Delete all animation objects
+	void Delete_All( void );
 
-	// returns the current size
-	unsigned int Get_Size( void );
+	// Return the current size
+	unsigned int size( void );
 
-	typedef vector<cAnimation*> AnimationList;
+	typedef vector<cAnimation *> AnimationList;
 	AnimationList objects;
 };
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+// The Animation Manager
+extern cAnimationManager *pAnimationManager;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 #endif

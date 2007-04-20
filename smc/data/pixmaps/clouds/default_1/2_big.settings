@@ -1,2 +1,4 @@
-width 350
-height 66
+base 2.png 1
+editor_tags level;cloud
+name Cloud_2_Big
+type passive

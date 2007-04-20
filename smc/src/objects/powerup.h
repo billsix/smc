@@ -1,8 +1,7 @@
 /***************************************************************************
                 powerup.h  -  header for the corresponding cpp file
                              -------------------
-    copyright            :	(C) 2003-2004 by Artur Hallmann
-							(C) 2003-2006 by FluXy
+    copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -16,61 +15,127 @@
 #ifndef __POWERUP_H__
 #define __POWERUP_H__
 
-#include "../globals.h"
+#include "../core/globals.h"
+#include "../objects/objectsprite.h"
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cPowerUp *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cPowerUp : public cActiveSprite
+class cPowerUp : public cImageObjectSprite
 {
 public:
-	cPowerUp( double x, double y );
+	// constructor
+	cPowerUp( float x = 0, float y = 0 );
+	// destructor
 	virtual ~cPowerUp( void );
-	
-	virtual void Update( void );
 
-	virtual void PlayerCollision( ObjectDirection cdirection );
-	virtual void BoxCollision( ObjectDirection direction, GL_rect *r2 );	
+	/* draw
+	 * by default spawned powerups don't draw in leveleditor mode
+	*/
+	virtual void Draw( cSurfaceRequest *request = NULL );
 
-	double counter;
+	/* Validate the given collision object
+	 * returns 1 if the given object collides with this object
+	*/
+	virtual unsigned int Validate_Collision( cSprite *obj );
+	// handle moved out of Level
+	virtual void Handle_OutofLevel( ObjectDirection dir );
+
+	float counter;
 };
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cMushroom *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cMushroom : public cPowerUp
 {
 public:
-	cMushroom( double x, double y, SpriteType ntype = TYPE_MUSHROOM_DEFAULT );
+	// constructor
+	cMushroom( float x, float y );
+	// create from stream
+	cMushroom( XMLAttributes &attributes );
+	// destructor
 	virtual ~cMushroom( void );
 
+	// init defaults
+	void Init( void );
+
+	// copy
+	virtual cMushroom *Copy( void );
+
+	// create from stream
+	virtual void Create_from_Stream( XMLAttributes &attributes );
+	// save to stream
+	virtual void Save_to_Stream( ofstream &file );
+
+	// Set the Mushroom Type
+	void Set_Type( SpriteType ntype );
+
+	// Activates the item
+	virtual void Activate( void );
+
+	// update
 	virtual void Update( void );
 
-	// handles the collision
-	virtual void HandleCollision( cObjectCollision *collision );
-	virtual void BoxCollision( ObjectDirection cdirection, GL_rect *r2 );
+	// collision with massive
+	virtual void Handle_Collision_Massive( cObjectCollision *collision );
+	// collision from a box
+	virtual void Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 );
+
+	// glim animation modifier
+	bool glim_mod;
 };
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cFirePlant *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cFirePlant : public cPowerUp
 {
 public:
-	cFirePlant( double x, double y );
+	// constructor
+	cFirePlant( float x, float y );
+	// destructor
 	virtual ~cFirePlant( void );
 
+	// copy
+	virtual cFirePlant *Copy( void );
+
+	// update
 	virtual void Update( void );
+
+	// ignore onground check
+	virtual void Check_onGround( void ) {};
 };
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cMoon *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cMoon : public cPowerUp
 {
 public:
-	cMoon( double x, double y );
+	// constructor
+	cMoon( float x, float y );
+	// create from stream
+	cMoon( XMLAttributes &attributes );
+	// destructor
 	virtual ~cMoon( void );
 
+	// init defaults
+	void Init( void );
+
+	// copy
+	virtual cMoon *Copy( void );
+
+	// create from stream
+	virtual void Create_from_Stream( XMLAttributes &attributes );
+	// save to stream
+	virtual void Save_to_Stream( ofstream &file );
+
+	// update
 	virtual void Update( void );
 
-	double particle_counter;
+	// ignore onground check
+	virtual void Check_onGround( void ) {};
+
+	float particle_counter;
 };
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 #endif

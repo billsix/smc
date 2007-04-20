@@ -1,0 +1,5 @@
+base mushroom.png 1
+editor_tags world;special
+name Mushroom_Left
+width 45
+height 45

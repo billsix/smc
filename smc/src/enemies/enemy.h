@@ -1,10 +1,8 @@
 /***************************************************************************
                 enemy.h  -  headers for the corresponding cpp file
                              -------------------
-    copyright            :	(C) 2003-2004 by Artur Hallmann
-							(C) 2003-2006 by FluXy
+    copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -12,30 +10,53 @@
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
- ***************************************************************************/ 
+ ***************************************************************************/
 
 #ifndef __ENEMY_H__
 #define __ENEMY_H__
 
-#include "../globals.h"
+#include "../objects/objectsprite.h"
+#include "../core/framerate.h"
+#include "../audio/audio.h"
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cEnemy : public cObjectSprite
+class cEnemy : public cImageObjectSprite
 {
 public:
-	cEnemy( double x, double y ); 
+	cEnemy( float x = 0, float y = 0 );
 	virtual ~cEnemy( void );
 
+	// death animation step
 	virtual void DieStep( void );
+	// handle basic enemy updates
+	virtual void Update( void );
+	// update gravity velocity
+	virtual void Update_Gravity( void );
+	
+	// Generates the default Hit Animation Particles
+	void Generate_Hit_Animation( cParticleAnimation *anim = NULL );
 
-	// true if dead :O
+	// default collision handler
+	virtual void Handle_Collision( cObjectCollision *collision );
+	// handle moved out of Level
+	virtual void Handle_OutofLevel( ObjectDirection dir );
+
+	// if dead
 	bool dead;
 
 	// counter for the walking animation
-	double walk_count;
+	float walk_count;
 	// default counter for animations
-	double counter;
+	float counter;
+
+	// sound filename if got killed
+	string kill_sound;
+	// points if enemy got killed
+	unsigned int kill_points;
+
+    // is fire able to kill enemy
+    bool fire_resistant;
 };
 
 #endif

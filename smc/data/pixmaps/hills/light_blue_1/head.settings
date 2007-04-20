@@ -1,2 +1,6 @@
 width 91
 height 26
+col_rect 0 10 91 16
+editor_tags level;hill
+name Blue_Head
+type passive

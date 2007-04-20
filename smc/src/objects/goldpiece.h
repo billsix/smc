@@ -1,8 +1,7 @@
 /***************************************************************************
            goldpiece.h  -  header for the corresponding cpp file
                              -------------------
-    copyright            :	(C) 2003-2004 by Artur Hallmann
-							(C) 2003-2006 by FluXy
+    copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -16,35 +15,92 @@
 #ifndef __GOLDPIECE_H__
 #define __GOLDPIECE_H__
 
-#include "../globals.h"
+#include "../core/globals.h"
+#include "../objects/objectsprite.h"
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cGoldPiece *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cGoldPiece : public cActiveSprite
+class cGoldpiece : public cImageObjectSprite
 {
 public:
-	cGoldPiece( double x, double y, DefaultColor goldcolor = COL_YELLOW );
-	virtual ~cGoldPiece( void );
+	// constructor
+	cGoldpiece( float x, float y );
+	// create from stream
+	cGoldpiece( XMLAttributes &attributes );
+	// destructor
+	virtual ~cGoldpiece( void );
 	
+	// init defaults
+	void Init( void );
+
+	// copy
+	virtual cGoldpiece *Copy( void );
+
+	// create from stream
+	virtual void Create_from_Stream( XMLAttributes &attributes );
+	// save to stream
+	virtual void Save_to_Stream( ofstream &file );
+
+	// Set the gold color
+	virtual void Set_Goldcolor( DefaultColor ncolor );
+
+	// update
 	virtual void Update( void );
+	// draw
+	virtual void Draw( cSurfaceRequest *request = NULL );
+
 	// the player gets the goldpiece
 	void Activate( void );
 
 	// goldpiece rotation
-	double counter;
+	float counter;
 	// gold color
-	DefaultColor color;
+	DefaultColor color_type;
 };
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cJGoldpiece *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cBouncingGoldPiece : public cGoldPiece 
+/* Jumping Goldpiece
+ * used by Goldbox
+*/
+class cJGoldpiece : public cGoldpiece
 {
 public:
-	cBouncingGoldPiece( double x, double y, DefaultColor goldcolor = COL_YELLOW );
-	virtual ~cBouncingGoldPiece( void );
+	cJGoldpiece( float x, float y );
+	virtual ~cJGoldpiece( void );
 	
+	// update
 	virtual void Update( void );
+
+	// ignore onground check
+	virtual void Check_onGround( void ) {};
+};
+
+/* *** *** *** *** *** cFGoldpiece *** *** *** *** *** *** *** *** *** *** *** *** */
+
+/* Falling Goldpiece
+ * if direction is nothing it will be a random direction
+*/
+class cFGoldpiece : public cGoldpiece
+{
+public:
+	cFGoldpiece( float x, float y, ObjectDirection dir = DIR_UNDEFINED );
+	virtual ~cFGoldpiece( void );
+	
+	// Set the gold color
+	virtual void Set_Goldcolor( DefaultColor ncolor );
+
+	// update
+	virtual void Update( void );
+
+	/* Validate the given collision object
+	 * returns 1 if the given object collides with this object
+	*/
+	virtual unsigned int Validate_Collision( cSprite *obj );
+	// collision with massive
+	virtual void Handle_Collision_Massive( cObjectCollision *collision );
+	// collision from a box
+	virtual void Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 );
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

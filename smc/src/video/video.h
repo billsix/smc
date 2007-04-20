@@ -1,7 +1,7 @@
 /***************************************************************************
 			video.h  -  header for the corresponding cpp file
                          -------------------
-    copyright            : (C) 2005 - 2006 by FluXy
+    copyright            : (C) 2005 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -12,141 +12,31 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "../globals.h"
-
 #ifndef __VIDEO_H__
 #define __VIDEO_H__
 
+#include "../core/globals.h"
+
 /* *** *** *** *** *** *** *** *** Primitive types *** *** *** *** *** *** *** *** *** */
 
-struct GL_line
+class GL_line
 {
 public:
 	GL_line( void )
 	: x1( 0 ), y1( 0 ), x2( 0 ), y2( 0 ) {}
 
-	GL_line( double x1, double y1, double x2, double y2 )
+	GL_line( float x1, float y1, float x2, float y2 )
 	: x1( x1 ), y1( y1 ), x2( x2 ), y2( y2 ) {}
 
-	double x1, y1;
-	double x2, y2;
-};
-
-struct GL_point
-{
-public:
-	GL_point( void )
-	: x( 0 ), y( 0 ) {}
-	
-	GL_point( double x, double y )
-	: x( x ), y( y ) {}
-	
-	GL_point( const GL_point &p )
-	: x( p.x ), y( p.y ) {}
-
-	// Returns the distance to another point
-	double distance( const GL_point &p ) const
-	{
-    	return sqrt( ( x - p.x ) * ( x- p.x ) + ( y - p.y ) * ( y - p.y ) );
-	}
-
-	// Translate point
-	GL_point &operator += ( const GL_point &p )
-	{
-		x += p.x; y += p.y; 
-		return *this; 
-	}
-	
-	// Translate point negatively
-	GL_point &operator -= ( const GL_point &p )
-	{
-		x -= p.x; y -= p.y;
-		return *this; 
-	}
-	
-	// Point + Point operator
-	GL_point operator + ( const GL_point &p ) const
-	{
-		return GL_point( x + p.x, y + p.y );
-	}
-
-	// Point - Point operator
-	GL_point operator - ( const GL_point &p ) const
-	{
-		return GL_point( x - p.x, y - p.y ); 
-	}
-
-	// Point == Point operator
-	bool operator == ( const GL_point &p ) const
-	{
-		return ( x == p.x ) && ( y == p.y ); 
-	}
-
-	// Point != Point operator
-	bool operator != ( const GL_point &p ) const
-	{
-		return ( x != p.x ) || ( y != p.y ); 
-	}
-
-	double x, y;
-};
-
-struct GL_rect
-{
-public:
-	GL_rect( void )
-	: x( 0 ), y( 0 ), w( 0 ), h( 0 ) {}
-
-	GL_rect( double x, double y, double w, double h )
-	: x( x ), y( y ), w( w ), h( h ) {}
-
-	// returns a SDL_Rect
-	SDL_Rect Get_Rect( void )
-	{
-		SDL_Rect rect;
-		rect.x = (Sint16)x;
-		rect.y = (Sint16)y;
-		rect.w = (Uint16)w;
-		rect.h = (Uint16)h;
-
-		return rect;
-	}
-
-	// returns a SDL_Rect with the given position
-	SDL_Rect Get_Rect_pos( double posx, double posy )
-	{
-		SDL_Rect rect;
-		rect.x = (Sint16)( x + posx );
-		rect.y = (Sint16)( y + posy );
-		rect.w = (Uint16)w;
-		rect.h = (Uint16)h;
-
-		return rect;
-	}
-
-	// returns the point in the middle of the rect
-	GL_point Get_pos_middle( void )
-	{
-		return GL_point( x + ( w / 2 ), y + ( h / 2 ) );
-	}
-
-	// clears the data
-	void clear( void )
-	{
-		x = 0;
-		y = 0;
-		w = 0;
-		h = 0;
-	}
-
-	double x, y;
-	double w, h;
+	float x1, y1;
+	float x2, y2;
 };
 
 /* *** *** *** *** *** *** *** *** Color struct *** *** *** *** *** *** *** *** *** */
 
-struct Color
+class Color
 {
+public:
 	Color( void );
 	Color( Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255 );
 	Color( float r, float g, float b, float a = 1 );
@@ -173,136 +63,146 @@ struct Color
 	Uint8 red, green, blue, alpha;
 };
 
-/* *** *** *** *** *** *** *** *** OpenGL Surface *** *** *** *** *** *** *** *** *** */
-
-struct GL_Surface
-{
-public:
-	GL_Surface( void );
-	~GL_Surface( void );
-
-	/* Blit the surface on the given position
-	* can optional have rotation, scaling and shadowing
-	*/
-	void Blit( double x, double y, Color *shadow = NULL, double rotx = 0, double roty = 0, double rotz = 0, double scale = 1, bool no_globalscale = 0 );
-
-	/* copies an image and returns it
-	 * works only for images
-	*/
-	GL_Surface *Copy( void );
-
-	// GL texture
-	unsigned int image;
-	// internal drawing offset
-	double int_x, int_y;
-	// drawing dimension
-	double w, h;
-	// texture dimension
-	unsigned int tex_w, tex_h;
-	// internal rotation
-	double base_rotx, base_roty, base_rotz;
-	// image collision data
-	GL_point col_pos;
-	double col_w, col_h;
-
-	// origin if created from a file
-	string filename;
-	// should the image be deleted
-	bool auto_del_img;
-};
-
 /* *** *** *** *** *** *** *** Effect types *** *** *** *** *** *** *** *** *** *** */
 
-typedef enum
+enum FadeoutEffect
 {
 	RANDOM_EFFECT,
 	BLACK_FADEOUT, // fade out the screen to black
 	HORIZONTAL_VERTICAL_FADE, // random color boxes from left/right or up/down
-	BIG_MUSHROOM, // a big mushroom eats the whole screen
+	BIG_ITEM, // a big item eats the whole screen
 	RANDOM_COLOR_BOOST, // boosts a random color in a cool fadeout
 	TILE_PIXELATION, // big black boxes pup up random on a tile grid
 	FIXED_COLORBOX_FADEOUT, // small fast random alpha color boxes fades out the screen
 	TOTAL_FADE_EFFECTS
-} FadeoutEffect;
+};
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** Video class *** *** *** *** *** *** *** *** *** *** */
 
-/* Initializes the CEGUI System and Renderer
-*/
-void Init_CEGUI( void );
-// Initializes the basic CEGUI data and configuration
-void Init_CEGUI_data( void );
-/* Initializes all the SDL systems
-*/
-void Init_SDL( void );
-/* Initializes the screen surface
- * shows an error if failed and exits
-*/
-void Init_Video( void );
-// Initializes the OpenGL settings
-void Init_OpenGL( void );
-// Initializes the Basic color set
-void Init_BasicColors( void );
-// initializes the scaling value for all images for the current resolution
-void Init_ImageScale( void );
+class cVideo
+{
+public:
+	cVideo( void );
+	~cVideo( void );
 
+	/* Initializes the CEGUI System and Renderer
+	*/
+	void Init_CEGUI( void );
+	// Initializes the basic CEGUI data and configuration
+	void Init_CEGUI_data( void );
+	/* Initializes all the SDL systems
+	*/
+	void Init_SDL( void );
+	/* Initializes the screen surface
+	 * shows an error if failed and exits
+	*/
+	void Init_Video( void );
+	// Initializes the OpenGL settings
+	void Init_OpenGL( void );
+	// Initializes the Basic color set
+	void Init_BasicColors( void );
+	// initializes the scaling value for all images for the current resolution
+	void Init_ImageScale( void );
 
-// Returns the current Video flags
-int GetVideoflags( void );
+	// Tests if the given resolution and bits per pixel are working/valid
+	bool Test_Video( int width, int height, int bpp );
 
-// Tests if the given resolution and bits per pixel are working/valid
-bool TestVideo( int width, int height, int bpp );
+	// Resets and clears the screen
+	void Clear_Screen( void );
 
-// Resets and clears the screen
-void ResetScreen( void );
+	// Renders the Queue, GUI and Swaps Buffers
+	void Render( void );
 
-// Toggle fullscreen video mode with windowed
-void Toggle_Fullscreen( void );
+	// Toggle fullscreen video mode with windowed
+	void Toggle_Fullscreen( void );
 
-/* Checks if the image was already loaded and returns a pointer to it
- * else it will be loaded
- * The returned image should not be deleted or modified.
- */
-GL_Surface *GetImage( string filename );
+	/* Checks if the image was already loaded and returns a pointer to it else it will be loaded
+	 * The returned image should not be deleted or modified.
+	 */
+	GL_Surface *Get_Surface( string filename, bool print_errors = 1 );
 
-/* Loads and returns the image
- * and sets the file settings by default
- * The returned image should be deleted if not used anymore
-*/
-GL_Surface *LoadTexture( string filename, bool use_settings = 1 );
+	/* Loads and returns the image
+	 * use_settings : sets the file settings if set to 1 and only loads settings and no image if set to -1
+	 * print_errors : print errors if image couldn't be created or loaded
+	 * The returned image should be deleted if not used anymore
+	*/
+	GL_Surface *Load_Surface( string filename, int use_settings = 1, bool print_errors = 1 );
 
-/* Creates a GL image from a SDL_Surface
-*/
-GL_Surface *CreateTexture( SDL_Surface *surface );
+	/* Creates a GL image from a SDL_Surface
+	 * mipmap : create texture mipmaps
+	 * force_width/height : force the given width and height
+	*/
+	GL_Surface *CreateTexture( SDL_Surface *surface, bool mipmap = 0, unsigned int force_width = 0, unsigned int force_height = 0 );
+
+	// Gets the Pixel color of a GL image
+	Color GetPixel( int x, int y, GL_Surface *source = NULL );
+
+	// Draws a line
+	void DrawLine( GL_line *line, float z, Color *color, cLineRequest *request = NULL );
+	void DrawLine( float x1, float y1, float x2, float y2, float z, Color *color, cLineRequest *request = NULL );
+	/* Draw a rectangle
+	* if request is NULL automatically creates the request
+	*/
+	void Draw_Rect( GL_rect *rect, float z, Color *color, cRectRequest *request = NULL );
+	void Draw_Rect( float x, float y, float width, float height, float z, Color *color, cRectRequest *request = NULL );
+	/* Draw a gradient
+	* if request is NULL automatically creates the request
+	*/
+	void Draw_Gradient( GL_rect *rect, float z, Color *color1, Color *color2, ObjectDirection direction, cGradientRequest *request = NULL );
+	void Draw_Gradient( float x, float y, float width, float height, float z, Color *color1, Color *color2, ObjectDirection direction, cGradientRequest *request = NULL );
+
+	/* returns the scale size if the image is bigger as the given size
+	 * - also upscales if only_downscale is set to 0
+	*/
+	float Get_scale( GL_Surface *image, float height, float width, bool only_downscale = 1 );
+
+	// Function: Save_Screenshot
+	// Save bitmap of current screen.
+	void Save_Screenshot( void );
+
+	// using double buffering
+	bool double_buffer;
+	// using hardware surfaces
+	bool hardware_surfaces;
+
+	// screen red, green and blue color bit size
+	int rgb_size[3];
+
+	// default drawing buffer
+	int default_buffer;
+
+	// if audio initialization failed
+	bool audio_init_failed;
+	// if joystick initialization failed
+	bool joy_init_failed;
+
+private:
+	bool initialised;
+};
 
 // sets the next fitting size for an texture dimension
 unsigned int Get_GLsize( unsigned int size );
 
-// Returns the values as a color class
-Color Get_Color( Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255 );
-
-// Gets the Pixel color of an GL image
-Color GetPixel( int x, int y, GL_Surface *source = NULL );
-// Puts a pixel with the color on a GL image
-void DrawPixel( double x, double y, Color *color, GL_Surface *target = NULL );
-// Draws a line
-void DrawLine( GL_line *line, Color *color, GL_Surface *target = NULL );
-void DrawLine( double x1, double y1, double x2, double y2, Color *color, GL_Surface *target = NULL );
-// Draws a rectangle
-void DrawRect( GL_rect *rect, Color *color, GL_Surface *target = NULL );
-void DrawRect( double x, double y, double width, double height, Color *color, GL_Surface *target = NULL );
-// Renders the given text into a new surface
-GL_Surface *RenderText( TTF_Font *font, string text, Color color = (Uint8)0 );
-
-/* returns the scale size if the image is bigger as the given size
- * - also upscales if only_downscale is set to 0
-*/
-double Get_scale( GL_Surface *image, double height, double width, bool only_downscale = 1 );
-
 // Draws a defined or if effect is RANDOM_EFFECT a random effect will be selected
-void DrawEffect( FadeoutEffect effect = RANDOM_EFFECT, double speed = 1 );
+void DrawEffect( FadeoutEffect effect = RANDOM_EFFECT, float speed = 1 );
 
 // draws the loading screen
-void DrawLoadingScreen( void );
+void Draw_Loading_Screen( void );
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+// Video Handler
+extern cVideo *pVideo;
+
+// GUI System
+extern OpenGLRenderer *pGuiRenderer;
+extern System *pGuiSystem;
+
+// Screen
+extern SDL_Surface *screen;
+// Default Colors
+extern Color blue, darkblue, lightblue, black, blackalpha128, blackalpha192, white, whitealpha128, grey, lightgrey, lightgreyalpha64, green, lightgreen, lightgreenalpha64, yellow, greenyellow, darkgreen, red, lightred, lila, orange, lightorange;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 #endif

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Menu>
+	<Item>
+		<Property Name="name" Value="---Sprites---" />
+		<Property Name="tags" Value="header" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="Way" />
+		<Property Name="tags" Value="way" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="Castle" />
+		<Property Name="tags" Value="castle" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="Clouds" />
+		<Property Name="tags" Value="cloud" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="Hedges" />
+		<Property Name="tags" Value="hedge" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="Plants" />
+		<Property Name="tags" Value="plant" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="Cactus" />
+		<Property Name="tags" Value="cactus" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="Hills" />
+		<Property Name="tags" Value="hill" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="Pipes" />
+		<Property Name="tags" Value="pipe" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="Lakes" />
+		<Property Name="tags" Value="lake" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="Blocks" />
+		<Property Name="tags" Value="block" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="Special" />
+		<Property Name="tags" Value="special" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="---Objects---" />
+		<Property Name="tags" Value="header" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="Generic" />
+		<Property Name="tags" Value="generic" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="---Functions---" />
+		<Property Name="tags" Value="header" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="Load" />
+		<Property Name="tags" Value="function:load" />
+		<Property Name="color" Value="FFDFA30F" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="Save" />
+		<Property Name="tags" Value="function:save" />
+		<Property Name="color" Value="FF0FC30F" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="Save &amp; Reload" />
+		<Property Name="tags" Value="function:reload" />
+		<Property Name="color" Value="FFCFCA0F" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="Clear" />
+		<Property Name="tags" Value="function:clear" />
+		<Property Name="color" Value="FFFF7000" />
+	</Item>
+</Menu>

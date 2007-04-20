@@ -1,7 +1,7 @@
 /***************************************************************************
                 waypoint.h  -  header for the corresponding cpp file
                              -------------------
-    copyright            : (C) 2003 - 2006 by FluXy
+    copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -15,53 +15,74 @@
 #ifndef __OVERWORLD_WAYPOINT_H__
 #define __OVERWORLD_WAYPOINT_H__
 
-#include "../globals.h"
+#include "../core/globals.h"
+#include "../video/video.h"
+#include "../objects/movingsprite.h"
 
 /* *** *** *** *** *** Waypoint types *** *** *** *** *** *** *** *** *** *** *** *** */
-typedef enum
+
+enum Waypoint_type
 {
 	WAYPOINT_NORMAL = 1,
-	WAYPOINT_SPECIAL = 2, // Bonus Map
-	WAYPOINT_SECRET = 3, // Extra Path if maryo found a secret door/pipe
+	WAYPOINT_WORLD_LINK = 2 // Enters another World
+};
 
-} Waypoint_type;
+/* *** *** *** *** *** *** cWaypoint *** *** *** *** *** *** *** *** *** *** *** */
 
-/* *** *** *** *** *** *** Waypoint class *** *** *** *** *** *** *** *** *** *** *** */
-class cWaypoint
+class cWaypoint : public cSprite
 {
 public:
+	// constructor
 	cWaypoint( void );
-	~cWaypoint( void );
+	// create from stream
+	cWaypoint( XMLAttributes &attributes );
+	// destructor
+	virtual ~cWaypoint( void );
 	
-	// Draws the Waypoint
-	void Draw( void );
+	// Init defaults
+	void Init( void );
 
-	// Returns the Levelfile
-	string Get_Levelfile( bool with_dir = 1, bool with_end = 1 );
+	// copy this object
+	virtual cWaypoint *Copy( void );
 
-	GL_rect rect;
+	// create from stream
+	virtual void Create_from_Stream( XMLAttributes &attributes );
+	// save to stream
+	virtual void Save_to_Stream( ofstream &file );
 
-	/* back and forward direction
-	 * 100 = First
-	 * 101 = Last
-	 */ 
-	ObjectDirection direction_back, direction_forward;
+	// Update
+	virtual void Update( void );
+	// Draw
+	virtual void Draw( cSurfaceRequest *request = NULL );
 
-	// white arrow
-	GL_Surface *arrow_white_l, *arrow_white_r, *arrow_white_u, *arrow_white_d;
-	// blue arrow
-	GL_Surface *arrow_blue_l, *arrow_blue_r, *arrow_blue_u, *arrow_blue_d;
-	// The waypoint image
-	GL_Surface *image;
+	// Set Access
+	void Set_Access( bool enabled, bool new_start_access = 0 );
+
+	// Set the Destination
+	void Set_Destination( string str );
+	// Returns the Destination
+	string Get_Destination( bool with_dir = 0, bool with_end = 0 );
+
+	// editor activation
+	virtual void Editor_Activate( void );
+	// editor events
+	bool Editor_Destination_Key( const EventArgs &event );  // editor destination key up
+	bool Editor_Access_Select( const EventArgs &event ); // editor access option selected
+	bool Editor_Backward_Direction_Select( const EventArgs &event ); // editor direction backward option selected
+	bool Editor_Forward_Direction_Select( const EventArgs &event ); // editor direction forward option selected
+
+	/* backward and forward direction
+	 */
+	ObjectDirection direction_backward, direction_forward;
 
 	/* The Waypoint type
 	 * look at the definitions
 	*/
-	Waypoint_type type;
-	// The Levelname
-	string levelname;
+	Waypoint_type waypoint_type;
+	// destination
+	string destination;
 
-	// if this waypoint is accessable
+	// if this waypoint is accessible
 	bool access;
 	// the default access defined in the definition
 	bool access_default;
@@ -70,9 +91,17 @@ public:
 	unsigned int ID;
 
 	// color for the glim effect
-	double gcolor;
+	float gcolor;
 	// glim effect type switch
 	bool glim;
+
+
+	// white arrow
+	GL_Surface *arrow_white_l, *arrow_white_r, *arrow_white_u, *arrow_white_d;
+	// blue arrow
+	GL_Surface *arrow_blue_l, *arrow_blue_r, *arrow_blue_u, *arrow_blue_d;
 };
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 #endif

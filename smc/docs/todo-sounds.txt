@@ -1,0 +1,27 @@
+##################### Who works on which Sounds ##################
+
+Sound Designers shouldn't create sounds which are already in work by others.
+Use ( X % ) of 100 % percent so everyone can see how much is done.
+
+
+################## Todo List ########################################
+
+
+A list for all the things which needs to be done
+Priority is H for High, M for Medium and L for Low
+
+---------------- In Progress 	----------------
+
+---------------- Not Assigned -----------------
+
+H! - Replace all Sounds from Badboy
+H - Ghost Powerup (item/mushroom_ghost.ogg)
+M - Eato
+M - Red Goldpiece
+L - New Ice Powerup (item/mushroom_blue.ogg)
+L - New Empty Box (item/death_box.ogg)
+L - New Ice Ball Shoot (item/iceball.ogg) and kill (item/ice_kill.ogg)
+
+---------------- Planning 	----------------
+
+M - New big Jump Sounds ( no voice ? )

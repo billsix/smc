@@ -1,7 +1,7 @@
 /***************************************************************************
-           sprite.cpp  -  basic sprite class
+           sprite.cpp  -  sprite class
                              -------------------
-    copyright            :	(C) 2003 - 2006 FluXy
+    copyright            :	(C) 2003 - 2007 Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -10,70 +10,280 @@
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
- ***************************************************************************/ 
+ ***************************************************************************/
 
-#include "../globals.h"
-#include "../main.h"
+#include "../objects/sprite.h"
+#include "../objects/movingsprite.h"
+#include "../core/game_core.h"
+#include "../core/obj_manager.h"
+#include "../core/camera.h"
+#include "../core/framerate.h"
+#include "../player/player.h"
+#include "../gui/hud.h"
+#include "../video/gl_surface.h"
+#include "../video/renderer.h"
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** *** cCollidingSprite *** *** *** *** *** *** *** *** *** */
 
-cSprite :: cSprite( GL_Surface *new_image /* = NULL */, double x /* = 0 */, double y /* = 0 */, bool del_img /* = 0 */, Color *shadow /* = NULL */, bool no_cam /* = 0 */ )
+cCollidingSprite :: cCollidingSprite( void )
 {
-	// undefined
-	type = TYPE_UNDEFINED;
-	array = ARRAY_UNDEFINED;
 
-	// collision data
-	col_pos.x = 0;
-	col_pos.y = 0;
-	col_rect.x = x;
-	col_rect.y = y;
-	col_rect.w = 0;
-	col_rect.h = 0;
-	// image data
-	rect.x = x;
-	rect.y = y;
-	rect.w = 0;
-	rect.h = 0;
-	start_rect.x = 0;
-	start_rect.y = 0;
-	start_rect.w = 0;
-	start_rect.h = 0;
+}
 
-	startposx = 0;
-	startposy = 0;
+cCollidingSprite :: ~cCollidingSprite( void )
+{
 
-	start_image = NULL;
-	image = NULL;
-	destroy = 0;
-	delete_image = 0;
-	shadow_color = shadow;
-	no_camera = no_cam;
+}
+
+void cCollidingSprite :: Parse_Collisions( void )
+{
+	// get collision list
+	ObjectCollisionList col_list;
+	collisions.swap( col_list );
+
+	// parse the found collisions
+	for( ObjectCollisionList::iterator itr = col_list.begin(), itr_end = col_list.end(); itr != itr_end; ++itr )
+	{
+		// get object pointer
+		cObjectCollision *col = (*itr);
+
+		// handle
+		Handle_Collision( col );
+	}
+}
+
+void cCollidingSprite :: Handle_Collisions( void )
+{
+	// parse
+	Parse_Collisions();
+	// clear
+	Collisions_Clear();
+}
+
+bool cCollidingSprite :: Collision_Add( cSprite *base, cSprite *col, unsigned int col_id /* = 0 */, ObjectCollisionType col_type /* = CO_NOTHING */, bool add_if_new /* = 0 */ )
+{
+	// invalid base
+	if( !base )
+	{
+		return 0;
+	}
+
+	// create
+	cObjectCollision *collision = new cObjectCollision();
+
+	// type
+	collision->type = col_type;
+	// identifier
+	collision->number = col_id;
+
+	// if col object is available
+	if( col )
+	{
+		// direction 
+		collision->Set_direction( base, col );
+	}
+
+	// add
+	return Collision_Add( collision, add_if_new );
+}
+
+bool cCollidingSprite :: Collision_Add( cObjectCollision *collision, bool add_if_new /* = 0 */ )
+{
+	// invalid collision data
+	if( !collision )
+	{
+		return 0;
+	}
+
+	// check if collision data is new
+	if( add_if_new )
+	{
+		// check found collisions list
+		for( ObjectCollisionList::iterator itr = collisions.begin(), itr_end = collisions.end(); itr != itr_end; ++itr )
+		{
+			// get object pointer
+			cObjectCollision *col = (*itr);
+
+			// already in list
+			if( col->number == collision->number )
+			{
+				return 0;
+			}
+		}
+	}
+
+	collisions.push_back( collision );
+
+	return 1;
+}
+
+void cCollidingSprite :: Collision_Delete( cObjectCollision *collision )
+{
+	if( !collision )
+	{
+		return;
+	}
+
+	for( ObjectCollisionList::iterator itr = collisions.begin(), itr_end = collisions.end(); itr != itr_end; ++itr )
+	{
+		// get object pointer
+		cObjectCollision *col = (*itr);
+
+		if( col == collision )
+		{
+			delete collision;
+			collisions.erase( itr );
+			break;
+		}
+	}
+}
+
+void cCollidingSprite :: Collision_Delete_last( void )
+{
+	if( collisions.empty() )
+	{
+		return;
+	}
+	
+	delete collisions[collisions.size() - 1];
+	collisions.erase( collisions.begin() + collisions.size() - 1 );
+}
+
+int cCollidingSprite :: Collision_Check_Direction( ObjectDirection dir )
+{
+	for( unsigned int i = 0; i < collisions.size(); i++ )
+	{
+		if( collisions[i]->direction == dir )
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+cObjectCollision *cCollidingSprite :: Collision_Get_first( void )
+{
+	// no collision available
+	if( collisions.empty() )
+	{
+		return NULL;	
+	}
+
+	return collisions[0];
+}
+
+cObjectCollision *cCollidingSprite :: Collision_Get_last( bool only_blocking /* = 0 */ )
+{
+	// no collisions available
+	if( collisions.empty() )
+	{
+		return NULL;
+	}
+
+	if( only_blocking )
+	{
+		for( ObjectCollisionList::reverse_iterator itr = collisions.rbegin(), itr_end = collisions.rend(); itr != itr_end; ++itr )
+		{
+			// get object pointer
+			cObjectCollision *col = (*itr);
+
+			cSprite *col_obj = pObjManager->Get_Pointer( col->number );
+
+			// ignore passive
+			if( col_obj->massivetype == MASS_PASSIVE )
+			{
+				continue;
+			}
+			// if active check if not climbable
+			else if( col->type == CO_ACTIVE )
+			{
+				// not a valid object
+				if( col_obj->massivetype == MASS_CLIMBABLE )
+				{
+					continue;
+				}
+
+			}
+
+			// is blocking
+			return col;
+		}
+
+		// not found
+		return NULL;
+	}
+
+	return collisions[collisions.size() - 1];
+}
+
+void cCollidingSprite :: Collisions_Clear( void )
+{
+	for( ObjectCollisionList::iterator itr = collisions.begin(), itr_end = collisions.end(); itr != itr_end; ++itr )
+	{
+		delete *itr;
+	}
+
+	collisions.clear();
+}
+
+void cCollidingSprite :: Handle_Collision( cObjectCollision *collision )
+{
+	// player
+	if( collision->type == CO_PLAYER )
+	{
+		Handle_Collision_Player( collision->direction );
+	}
+	// enemy
+	else if( collision->type == CO_ENEMY )
+	{
+		Handle_Collision_Enemy( collision );
+	}
+	// massive
+	else if( collision->type == CO_MASSIVE || collision->type == CO_ACTIVE )
+	{
+		Handle_Collision_Massive( collision );
+	}
+}
+
+void cCollidingSprite :: Handle_Collision_Player( ObjectDirection direction )
+{
+	// virtual
+}
+
+void cCollidingSprite :: Handle_Collision_Enemy( cObjectCollision *collision )
+{
+	// virtual
+}
+
+void cCollidingSprite :: Handle_Collision_Massive( cObjectCollision *collision )
+{
+	// virtual
+}
+
+void cCollidingSprite :: Handle_Collision_Box( ObjectDirection direction, GL_rect *r2 )
+{
+	// virtual
+}
+
+/* *** *** *** *** *** *** *** cSprite *** *** *** *** *** *** *** *** *** *** */
+
+cSprite :: cSprite( GL_Surface *new_image /* = NULL */, float x /* = 0 */, float y /* = 0 */, bool del_img /* = 0 */ )
+{
+	Init();
 
 	if( new_image )
 	{
-		SetImage( new_image, 0, del_img );
+		Set_Image( new_image, 0, del_img );
 	}
 
-	SetPos( x, y );
+	Set_Pos( x, y );
+}
 
-	massivetype = MASS_PASSIVE;
-	visible = 1;
-	spawned = 0;
-	player_range = 0;
-	state = STAY;
-
-	velx = 0;
-	vely = 0;
-	rotz = 0;
-	rotx = 0;
-	roty = 0;
-	scale = 1;
-	direction = DIR_NOTHING;
-	start_direction = DIR_NOTHING;
-	groundObject = NULL;
-
-	ID = (unsigned int)rand() % ( 600000 ); // Unique Identifier
+cSprite :: cSprite( XMLAttributes &attributes )
+{
+	Init();
+	Create_from_Stream( attributes );
 }
 
 cSprite :: ~cSprite( void )
@@ -82,22 +292,145 @@ cSprite :: ~cSprite( void )
 	{
 		delete image;
 	}
-
-	ClearCollisions();
 }
 
-void cSprite :: SetImage( GL_Surface *new_image, bool new_start_image /* = 0 */, bool del_img /* = 0 */ )
+void cSprite :: Init( void )
+{
+	// undefined
+	type = TYPE_UNDEFINED;
+	sprite_array = ARRAY_UNDEFINED;
+
+	// collision data
+	col_pos.x = 0;
+	col_pos.y = 0;
+	col_rect.x = 0;
+	col_rect.y = 0;
+	col_rect.w = 0;
+	col_rect.h = 0;
+	// image data
+	rect.x = 0;
+	rect.y = 0;
+	rect.w = 0;
+	rect.h = 0;
+	start_rect.clear();
+
+	startposx = 0;
+	startposy = 0;
+
+	start_image = NULL;
+	image = NULL;
+	destroy = 0;
+	delete_image = 0;
+	shadow_pos = 0;
+	shadow_color = black;
+	no_camera = 0;
+
+	color = (Uint8)255;
+
+	combine_type = 0;
+	combine_col[0] = 0;
+	combine_col[1] = 0;
+	combine_col[2] = 0;
+
+	posx = 0;
+	posy = 0;
+	posz = 0;
+	editor_posz = 0;
+
+	massivetype = MASS_PASSIVE;
+	visible = 1;
+	spawned = 0;
+	player_range = 1000;
+
+	// rotation
+	start_rotx = 0;
+	start_roty = 0;
+	start_rotz = 0;
+	rotx = 0;
+	roty = 0;
+	rotz = 0;
+	// scale
+	start_scalex = 1;
+	start_scaley = 1;
+	scalex = 1;
+	scaley = 1;
+
+	valid_draw = 1;
+}
+
+cSprite *cSprite :: Copy( void )
+{
+	cSprite *basic_sprite = new cSprite( start_image, startposx, startposy );
+
+	basic_sprite->type = type;
+	basic_sprite->sprite_array = sprite_array;
+	basic_sprite->Set_Massivetype( massivetype );
+	basic_sprite->Set_Ignore_Camera( no_camera );
+	basic_sprite->Set_Shadow_Pos( shadow_pos );
+	basic_sprite->Set_Shadow_Color( shadow_color );
+
+	return basic_sprite;
+}
+
+void cSprite :: Create_from_Stream( XMLAttributes &attributes )
+{
+	// position
+	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	// image
+	Set_Image( pVideo->Get_Surface( attributes.getValueAsString( "image" ).c_str() ), 1 ) ;
+	// type
+	Set_Sprite_Type( Get_Sprite_Type_id( attributes.getValueAsString( "type" ).c_str() ) );
+}
+
+void cSprite :: Save_to_Stream( ofstream &file )
+{
+	// begin sprite
+	file << "\t<sprite>" << std::endl;
+
+	// position
+	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	// image
+	string img_filename;
+
+	if( start_image )
+	{
+		img_filename = start_image->filename;
+	}
+	else if( image )
+	{
+		img_filename = image->filename;
+	}
+	else
+	{
+		img_filename = "No Image from type : " + int_to_string( type );
+	}
+
+	// remove pixmaps directory from string
+	if( img_filename.find( PIXMAPS_DIR ) == 0 )
+	{
+		img_filename.erase( 0, strlen( PIXMAPS_DIR ) + 1 );
+	}
+	file << "\t\t<Property name=\"image\" value=\"" << img_filename << "\" />" << std::endl;
+	// type
+	file << "\t\t<Property name=\"type\" value=\"" << Get_Sprite_Type_String() << "\" />" << std::endl;
+
+	// end sprite
+	file << "\t</sprite>" << std::endl;
+}
+
+void cSprite :: Set_Image( GL_Surface *new_image, bool new_start_image /* = 0 */, bool del_img /* = 0 */ )
 {
 	if( delete_image )
 	{
 		if( image )
 		{
-			// if same image reset startimage
+			// if same image reset start_image
 			if( start_image == image )
 			{
 				start_image = NULL;
 			}
-			
+
 			delete image;
 			image = NULL;
 		}
@@ -107,7 +440,7 @@ void cSprite :: SetImage( GL_Surface *new_image, bool new_start_image /* = 0 */,
 
 	image = new_image;
 
-	if( new_image )
+	if( image )
 	{
 		// collision data
 		col_pos = image->col_pos;
@@ -116,8 +449,19 @@ void cSprite :: SetImage( GL_Surface *new_image, bool new_start_image /* = 0 */,
 		// image data
 		rect.w = image->w;
 		rect.h = image->h;
-		
+
 		delete_image = del_img;
+
+		// if no name is set use the first image name
+		if( !name.length() )
+		{
+			name = image->name;
+		}
+		// if no editor tags are set use the first image editor tags
+		if( !editor_tags.length() )
+		{
+			editor_tags = image->editor_tags;
+		}
 	}
 	else
 	{
@@ -145,9 +489,93 @@ void cSprite :: SetImage( GL_Surface *new_image, bool new_start_image /* = 0 */,
 			start_rect.h = 0;
 		}
 	}
+	
+	Update_valid_draw();
 }
 
-void cSprite :: SetPos( double x, double y, bool new_startpos /* = 0 */ )
+void cSprite :: Set_Sprite_Type( SpriteType ntype )
+{
+	// set first because of massivetype z calculation
+	type = ntype;
+
+	if( ntype == TYPE_MASSIVE )
+	{
+		sprite_array = ARRAY_MASSIVE;
+		Set_Massivetype( MASS_MASSIVE );
+	}
+	else if( ntype == TYPE_PASSIVE )
+	{
+		sprite_array = ARRAY_PASSIVE;
+		Set_Massivetype( MASS_PASSIVE );
+	}
+	else if( ntype == TYPE_FRONT_PASSIVE )
+	{
+		sprite_array = ARRAY_FRONT_PASSIVE;
+		Set_Massivetype( MASS_PASSIVE );
+	}
+	else if( ntype == TYPE_HALFMASSIVE )
+	{
+		sprite_array = ARRAY_ACTIVE;
+		Set_Massivetype( MASS_HALFMASSIVE );
+	}
+	else if( ntype == TYPE_CLIMBABLE )
+	{
+		sprite_array = ARRAY_ACTIVE;
+		Set_Massivetype( MASS_CLIMBABLE );
+	}
+}
+
+string cSprite :: Get_Sprite_Type_String( void )
+{
+	if( sprite_array == ARRAY_PASSIVE )
+	{
+		return "passive";
+	}
+	else if( sprite_array == ARRAY_FRONT_PASSIVE )
+	{
+		return "front_passive";
+	}
+	else if( sprite_array == ARRAY_ACTIVE )
+	{
+		if( type == TYPE_HALFMASSIVE )
+		{
+			return "halfmassive";
+		}
+		else if( type == TYPE_CLIMBABLE )
+		{
+			return "climbable";
+		}
+		else
+		{
+			printf( "Warning : Sprite array set as active but unknown type %d\n", type );
+		}
+	}
+	else if( sprite_array == ARRAY_MASSIVE )
+	{
+		return "massive";
+	}
+	else
+	{
+		printf( "Warning : Sprite unknown array %d\n", sprite_array );
+	}
+
+	return "";
+}
+
+void cSprite :: Set_Ignore_Camera( bool enable /* = 0 */ )
+{
+	// already set
+	if( no_camera == enable )
+	{
+		return;
+	}
+
+	no_camera = enable;
+
+	Update_valid_draw();
+}
+
+void cSprite :: Set_Pos( float x, float y, bool new_startpos /* = 0 */ )
 {
 	posx = x;
 	posy = y;
@@ -157,345 +585,234 @@ void cSprite :: SetPos( double x, double y, bool new_startpos /* = 0 */ )
 		startposx = x;
 		startposy = y;
 	}
+
+	Update_Position_Rect();
 }
 
-void cSprite :: SetShadow( Color *shadow )
+void cSprite :: Set_PosX( float x, bool new_startpos /* = 0 */ )
+{
+	posx = x;
+
+	if( new_startpos )
+	{
+		startposx = x;
+	}
+
+	Update_Position_Rect();
+}
+
+void cSprite :: Set_PosY( float y, bool new_startpos /* = 0 */ )
+{
+	posy = y;
+
+	if( new_startpos )
+	{
+		startposx = y;
+	}
+
+	Update_Position_Rect();
+}
+
+void cSprite :: Set_Visible( bool enabled )
+{
+	visible = enabled;
+
+	Update_valid_draw();
+}
+
+void cSprite :: Set_Shadow( Color shadow, float pos )
+{
+	Set_Shadow_Pos( pos );
+	Set_Shadow_Color( shadow );
+}
+
+void cSprite :: Set_Shadow_Pos( float pos )
+{
+	shadow_pos = pos;
+}
+
+void cSprite :: Set_Shadow_Color( Color shadow )
 {
 	shadow_color = shadow;
 }
 
-void cSprite :: SetCamera( bool enabled )
+void cSprite :: Set_Color( Uint8 red, Uint8 green, Uint8 blue, Uint8 alpha /* = 255 */ )
 {
-	no_camera = !enabled;
+	color.red = red;
+	color.green = green;
+	color.blue = blue;
+	color.alpha = alpha;
 }
 
-void cSprite :: SetRotationX( double rot )
+void cSprite :: Set_Color( Color col )
 {
-	while( rot > 360 )
-	{
-		rot -= 360;
-	}
-
-	while( rot < -360 )
-	{
-		rot += 360;
-	}
-
-	rotx = rot;
+	color = col;
 }
 
-void cSprite :: SetRotationY( double rot )
+void cSprite :: Set_Color_Combine( float red, float green, float blue, GLint com_type )
 {
-	while( rot > 360 )
-	{
-		rot -= 360;
-	}
+	combine_type = com_type;
+	combine_col[0] = red;
+	combine_col[1] = green;
+	combine_col[2] = blue;
 
-	while( rot < -360 )
+	// red limits
+	if( combine_col[0] > 1 )
 	{
-		rot += 360;
+		combine_col[0] = 1;
 	}
-
-	roty = rot;
+	else if( combine_col[0] <= 0 )
+	{
+		combine_col[0] = 0.000001f;
+	}
+	// green limits
+	if( combine_col[1] > 1 )
+	{
+		combine_col[1] = 1;
+	}
+	else if( combine_col[1] <= 0 )
+	{
+		combine_col[1] = 0.000001f;
+	}
+	// blue limits
+	if( combine_col[2] > 1 )
+	{
+		combine_col[2] = 1;
+	}
+	else if( combine_col[2] <= 0 )
+	{
+		combine_col[2] = 0.000001f;
+	}
 }
 
-void cSprite :: SetRotationZ( double rot )
+void cSprite :: Set_RotationX( float rot, bool new_start_rot /* = 0 */ )
 {
-	while( rot > 360 )
-	{
-		rot -= 360;
-	}
+	rotx = fmod( rot, 360 );
 
-	while( rot < -360 )
+	if( new_start_rot )
 	{
-		rot += 360;
+		start_rotx = rotx;
 	}
-
-	rotz = rot;
 }
 
-void cSprite :: SetRotation( double x, double y, double z )
+void cSprite :: Set_RotationY( float rot, bool new_start_rot /* = 0 */ )
 {
-	SetRotationX( x );
-	SetRotationY( y );
-	SetRotationZ( z );
+	roty = fmod( rot, 360 );
+
+	if( new_start_rot )
+	{
+		start_roty = roty;
+	}
 }
 
-void cSprite :: Set_Direction( ObjectDirection dir, bool new_start_direction /* = 0 */ )
+void cSprite :: Set_RotationZ( float rot, bool new_start_rot /* = 0 */ )
 {
-	direction = dir;
+	rotz = fmod( rot, 360 );
 
-	// turn velocity if wrong
-	if( ( dir == DIR_LEFT && velx > 0 ) || ( dir == DIR_RIGHT && velx < 0 ) )
+	if( new_start_rot )
 	{
-		velx *= -1;
+		start_rotz = rotz;
 	}
+}
 
-	if( new_start_direction )
-	{
-		start_direction = dir;
-	}
+void cSprite :: Set_Rotation( float x, float y, float z, bool new_start_rot /* = 0 */ )
+{
+	Set_RotationX( x, new_start_rot );
+	Set_RotationY( y, new_start_rot );
+	Set_RotationZ( z, new_start_rot );
+}
+
+void cSprite :: Add_RotationX( float rot )
+{
+	Set_RotationX( rotx + rot );
+}
+
+void cSprite :: Add_RotationY( float rot )
+{
+	Set_RotationY( roty + rot );
+}
+
+void cSprite :: Add_RotationZ( float rot )
+{
+	Set_RotationZ( rotz + rot );
+}
+
+void cSprite :: Add_Rotation( float x, float y, float z )
+{
+	Set_RotationX( rotx + x );
+	Set_RotationY( roty + y );
+	Set_RotationZ( rotz + z );
+}
+
+void cSprite :: Set_ScaleX( float scale )
+{
+	scalex = scale;
+}
+
+void cSprite :: Set_ScaleY( float scale )
+{
+	scaley = scale;
+}
+
+void cSprite :: Set_Scale( float scale )
+{
+	scalex = scale;
+	scaley = scale;
+}
+
+void cSprite :: Add_ScaleX( float val )
+{
+	Set_ScaleX( scalex + val );
+}
+
+void cSprite :: Add_ScaleY( float val )
+{
+	Set_ScaleY( scaley + val );
+}
+
+void cSprite :: Add_Scale( float val )
+{
+	Set_ScaleX( scalex + val );
+	Set_ScaleY( scaley + val );
 }
 
 void cSprite :: Set_onTop( cSprite *sprite, bool optimize_hor_pos /* = 1 */ )
 {
 	// set correct onground position
-	posy = sprite->posy - col_pos.y - col_rect.h - 0.01;
+	posy = sprite->col_rect.y - col_pos.y - col_rect.h - 0.01f;
 
 	// optimize the horizontal position if given
 	if( optimize_hor_pos && ( posx < sprite->posx || posx > sprite->posx + sprite->col_rect.w ) )
 	{
 		posx = sprite->posx + sprite->col_rect.w / 3;
 	}
+
+	Update_Position_Rect();
 }
 
-void cSprite :: AddRotationX( double rot )
-{
-	SetRotationX( rotx + rot );
-}
-
-void cSprite :: AddRotationY( double rot )
-{
-	SetRotationY( roty + rot );
-}
-
-void cSprite :: AddRotationZ( double rot )
-{
-	SetRotationZ( rotz + rot );
-}
-
-void cSprite :: AddRotation( double x, double y, double z )
-{
-	SetRotationX( rotx + x );
-	SetRotationY( roty + y );
-	SetRotationZ( rotz + z );
-}
-
-void cSprite :: Auto_SlowDown( double x_speed, double y_speed /* = 0 */ )
-{
-	// horizontal slow down
-	if( x_speed > 0 )
-	{
-		if( velx > 0 )
-		{
-			AddVel( -x_speed, 0 );
-
-			if( velx < 0 )
-			{
-				velx = 0;
-			}
-		}
-		else if( velx < 0 )
-		{
-			AddVel( x_speed, 0 );
-
-			if( velx > 0 )
-			{
-				velx = 0;
-			}
-		}
-	}
-
-	// vertical slow down
-	if( y_speed > 0 )
-	{
-		if( vely > 0 )
-		{
-			AddVel( 0, -y_speed );
-
-			if( vely < 0 )
-			{
-				vely = 0;
-			}
-		}
-		else if( vely < 0 )
-		{
-			AddVel( 0, y_speed );
-
-			if( vely > 0 )
-			{
-				vely = 0;
-			}
-		}
-	}
-}
-
-ObjectDirection cSprite :: Move( double move_x, double move_y, bool real /* = 0 */, bool force /* = 0 */, bool check_onground /* = 1 */ )
+void cSprite :: Move( float move_x, float move_y, bool real /* = 0 */ )
 {
 	if( move_x == 0 && move_y == 0 )
-	{
-		return DIR_NOTHING;
-	}
-
-	if( col_rect.w == 0 || col_rect.h == 0 )
-	{
-		return DIR_NOTHING;
-	}
-
-	if( !real )
-	{
-		move_x *= Framerate.speedfactor;
-		move_y *= Framerate.speedfactor;
-	}
-
-	ObjectDirection collision_dir = DIR_NOTHING;
-
-	if( !force ) // check for collisions
-	{
-		double posx_old = posx;
-		double posy_old = posy;
-		double check_x = move_x;
-		double check_y = move_y;
-
-		// check if object collision rect is smaller as the position check size
-		if( move_x > col_rect.w )
-		{
-			move_x = col_rect.w;
-		}
-		else if( move_x < -col_rect.w )
-		{
-			move_x = -col_rect.w;
-		}
-
-		if( move_y > col_rect.h )
-		{
-			move_y = col_rect.h;
-		}
-		else if( move_y < -col_rect.h )
-		{
-			move_y = -col_rect.h;
-		}
-
-		/* Checks in both directions simultan
-		 * if a collision occurs changes to pixel collision testing
-		*/
-		while( check_x != 0 || check_y != 0 )
-		{
-			if( check_x != 0 )
-			{
-				if( ColCheckAuto( check_x, 0, 0, 0, ( check_x <= 1 && check_x >= -1 ) ? (0) : (1) ) == CO_NOTHING )
-				{
-					posx += check_x;
-
-					if( ( check_x > 0 && posx_old + move_x <= posx ) || ( check_x < 0 && posx_old + move_x >= posx ) )
-					{
-						posx = posx_old + move_x;
-						check_x = 0;
-					}
-				}
-				else // collision found
-				{
-					if( check_x <= 1 && check_x >= -1 ) // final collision
-					{
-						if( collision_dir == DIR_NOTHING )
-						{
-							collision_dir = DIR_HORIZONTAL;	// Collision Left/Right
-						}
-						else
-						{
-							collision_dir = DIR_ALL;	// Collision Up/Down/Left/Right
-						}
-						
-						check_x = 0;
-					}
-					else // set to pixel movement
-					{
-						if( check_x > 0 )
-						{
-							check_x = 1;
-						}
-						else
-						{
-							check_x = -1;
-						}
-					}
-				}
-			}
-
-			if( check_y != 0 )
-			{
-				if( ColCheckAuto( 0, check_y, 0, 0, ( check_y <= 1 && check_y >= -1 ) ? (0) : (1) ) == CO_NOTHING )
-				{
-					posy += check_y;
-
-					if( ( check_y > 0 && posy_old + move_y <= posy ) || ( check_y < 0 && posy_old + move_y >= posy ) )
-					{
-						posy = posy_old + move_y;
-						check_y = 0;
-					}
-				}
-				else // collision found
-				{
-					if( check_y <= 1 && check_y >= -1 ) // final collision
-					{
-						if( collision_dir == DIR_NOTHING ) 
-						{
-							collision_dir = DIR_VERTICAL;	// Collision Up/Down
-						}
-						else
-						{
-							collision_dir = DIR_ALL;	// Collision Up/Down/Left/Right
-						}
-
-						check_y = 0;
-					}
-					else // set to pixel movement
-					{
-						if( check_y > 0 )
-						{
-							check_y = 1;
-						}
-						else
-						{
-							check_y = -1;
-						}
-					}
-				}
-			}
-		}
-	}
-	else // do not check for collisions
-	{
-		posx += move_x;
-		posy += move_y;
-	}
-
-	if( check_onground )
-	{
-		Check_onGround();
-	}
-
-	return collision_dir;
-}
-
-void cSprite :: AddVel( double move_x, double move_y, bool real /* = 0 */ )
-{
-	if( real )
-	{
-		velx += move_x;
-		vely += move_y;
-	}
-	else
-	{
-		velx += move_x * Framerate.speedfactor;
-		vely += move_y * Framerate.speedfactor;
-	}
-}
-
-void cSprite :: Turn_Around( void )
-{
-	velx *= -1;
-	Update_Direction();
-}
-
-void cSprite :: Draw( void )
-{
-	if( !visible && !Leveleditor_Mode )
 	{
 		return;
 	}
 
-	if( !Leveleditor_Mode || Game_Mode != MODE_LEVEL )
+	if( !real )
+	{
+		move_x *= pFramerate->speedfactor;
+		move_y *= pFramerate->speedfactor;
+	}
+
+	posx += move_x;
+	posy += move_y;
+
+	Update_Position_Rect();
+}
+
+void cSprite :: Update_Position_Rect( void )
+{
+	// if not editor mode
+	if( !editor_enabled )
 	{
 		rect.x = posx;
 		rect.y = posy;
@@ -506,110 +823,231 @@ void cSprite :: Draw( void )
 		col_rect.x = posx + col_pos.x;
 		col_rect.y = posy + col_pos.y;
 	}
+	// editor mode
 	else
 	{
 		rect.x = startposx;
 		rect.y = startposy;
 		start_rect.x = startposx;
 		start_rect.y = startposy;
-		col_rect.x = startposx + col_pos.x; // todo : startcol_pos ?
-		col_rect.y = startposy + col_pos.y;
+		// Use not startposx/startposy because col_rect is not the editor/start rect
+		col_rect.x = posx + col_pos.x; // todo : startcol_pos ?
+		col_rect.y = posy + col_pos.y;
 	}
 
-	if( !no_camera && !isVisible_onScreen() ) 
+	Update_valid_draw();
+}
+
+void cSprite :: Update( void )
+{
+	// virtual
+}
+
+void cSprite :: Update_valid_draw( void )
+{
+	valid_draw = is_Draw_valid();
+}
+
+void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
+{
+	if( !valid_draw )
 	{
 		return;
 	}
 
-	// draw the collision rect
-	/*SDL_Rect rect1 = Get_Col_rect();
-	rect1.x -= (Sint16)cameraposx;
-	rect1.y -= (Sint16)cameraposy;
-	DrawRect( &rect1, &white );*/
+	Draw_Image( request );
 
-	if( image )
+	// no editor drawing
+	if( !editor_enabled )
 	{
-		if( !Leveleditor_Mode || Game_Mode != MODE_LEVEL )
+		// draw debugging collision rects
+		if( Game_debug )
 		{
-			if( !no_camera )
+			// create request
+			cRectRequest *rect_request = new cRectRequest();
+
+			if( type == TYPE_PLAYER )
 			{
-				image->Blit( posx - cameraposx, posy - cameraposy, shadow_color, rotx, roty, rotz, scale );
+				pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, posz + 0.000001f, &lila, rect_request );
+			}
+			else if( sprite_array == ARRAY_ENEMY )
+			{
+				pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, posz + 0.000001f, &red, rect_request );
+			}
+			else if( sprite_array == ARRAY_ACTIVE )
+			{
+				pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, posz + 0.000001f, &blue, rect_request );
+			}
+			else if( sprite_array == ARRAY_MASSIVE )
+			{
+				pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, posz + 0.000001f, &orange, rect_request );
+			}
+			else if( sprite_array == ARRAY_PASSIVE )
+			{
+				pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, posz + 0.000001f, &green, rect_request );
+			}
+			else if( sprite_array == ARRAY_FRONT_PASSIVE )
+			{
+				pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, posz + 0.000001f, &greenyellow, rect_request );
+			}
+			else
+			{
+				pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &lightgreyalpha64, rect_request );
 
-				if( Game_debug )
+				if( !no_camera )
 				{
-					glBlendFunc( GL_SRC_COLOR, GL_DST_ALPHA );
-					if( type == TYPE_PLAYER )
-					{
-						DrawRect( col_rect.x - cameraposx, col_rect.y - cameraposy, col_rect.w, col_rect.h, &lila );
-					}
-					else if( array == ARRAY_ENEMY )
-					{
-						DrawRect( col_rect.x - cameraposx, col_rect.y - cameraposy, col_rect.w, col_rect.h, &red );
-					}
-					else if( array == ARRAY_ACTIVE )
-					{
-						DrawRect( col_rect.x - cameraposx, col_rect.y - cameraposy, col_rect.w, col_rect.h, &blue );
-					}
-					else if( array == ARRAY_MASSIVE )
-					{
-						DrawRect( col_rect.x - cameraposx, col_rect.y - cameraposy, col_rect.w, col_rect.h, &orange );
-					}
-					else if( array == ARRAY_PASSIVE )
-					{
-						DrawRect( col_rect.x - cameraposx, col_rect.y - cameraposy, col_rect.w, col_rect.h, &green );
-					}
-
-					if( groundObject && type == TYPE_PLAYER )
-					{
-						DrawRect( groundObject->col_rect.x - cameraposx, groundObject->col_rect.y  - cameraposy, groundObject->col_rect.w, groundObject->col_rect.h, &grey );
-					}
-					
-					glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+					rect_request->rect.x -= pCamera->x;
+					rect_request->rect.y -= pCamera->y;
 				}
 			}
-			else
+
+			rect_request->blend_sfactor = GL_SRC_COLOR;
+			rect_request->blend_dfactor = GL_DST_ALPHA;
+
+			// add request
+			pRenderer->Add( rect_request );
+
+			if( type == TYPE_PLAYER )
 			{
-				image->Blit( posx, posy, shadow_color, rotx, roty, rotz, scale );
-			}
-		}
-		else if( Leveleditor_Mode && start_image )
-		{
-			if( !no_camera )
-			{
-				start_image->Blit( startposx - cameraposx, startposy - cameraposy, shadow_color, rotx, roty, rotz, scale );
-			}
-			else
-			{
-				start_image->Blit( startposx, startposy, shadow_color, rotx, roty, rotz, scale );
+				// Get Moving Sprite
+				cMovingSprite *moving_sprite = static_cast<cMovingSprite *>(this);
+
+				// if on ground
+				if( moving_sprite->ground_object )
+				{
+					// create request
+					rect_request = new cRectRequest();
+
+					pVideo->Draw_Rect( moving_sprite->ground_object->col_rect.x - pCamera->x, moving_sprite->ground_object->col_rect.y  - pCamera->y, moving_sprite->ground_object->col_rect.w, moving_sprite->ground_object->col_rect.h, posz + 0.000002f, &grey, rect_request );
+
+					rect_request->blend_sfactor = GL_SRC_COLOR;
+					rect_request->blend_dfactor = GL_DST_ALPHA;
+
+					// add request
+					pRenderer->Add( rect_request );
+				}
 			}
 		}
 	}
 }
 
-bool cSprite :: isVisible_onScreen( void )
+void cSprite :: Draw_Image( cSurfaceRequest *request /* = NULL */ )
 {
-	if( rect.x + rect.w < cameraposx ) // not visible (left)
+	if( !valid_draw )
 	{
-		return 0;
-	}
-	else if( rect.x > cameraposx + GAME_RES_W ) // not visible (right)
-	{
-		return 0;
-	}
-	else if( rect.y + rect.h < cameraposy ) // not visible (down)
-	{
-		return 0;
-	}
-	else if( rect.y > cameraposy + GAME_RES_H ) // not visible (up)
-	{
-		return 0;
+		return;
 	}
 
-	return 1;
+	bool create_request = 0;
+
+	if( !request )
+	{
+		create_request = 1;
+		// create request
+		request = new cSurfaceRequest();
+	}
+
+	// blit surface
+	if( editor_enabled )
+	{
+		start_image->Blit( startposx, startposy, posz, request );
+	}
+	else
+	{
+		image->Blit( posx, posy, posz, request );
+	}
+
+	// if editor z position is given
+	if( editor_enabled && editor_posz > 0 )
+	{
+		request->pos_z = editor_posz;
+	}
+
+	if( !no_camera )
+	{
+		request->pos_x -= pCamera->x;
+		request->pos_y -= pCamera->y;
+	}
+
+	// color
+	request->color = color;
+	// combine color
+	if( combine_type )
+	{
+		request->combine_type = combine_type;
+		request->combine_col[0] = combine_col[0];
+		request->combine_col[1] = combine_col[1];
+		request->combine_col[2] = combine_col[2];
+	}
+
+	// shadow
+	if( shadow_pos )
+	{
+		request->shadow_pos = shadow_pos;
+		request->shadow_color = shadow_color;
+	}
+
+
+	if( editor_enabled )
+	{
+		// rotation
+		request->rotx += start_rotx;
+		request->roty += start_roty;
+		request->rotz += start_rotz;
+		// scale
+		request->scale_x = start_scalex;
+		request->scale_y = start_scaley;
+	}
+	else
+	{
+		// rotation
+		request->rotx += rotx;
+		request->roty += roty;
+		request->rotz += rotz;
+		// scale
+		request->scale_x = scalex;
+		request->scale_y = scaley;
+	}
+
+	if( create_request )
+	{
+		// add request
+		pRenderer->Add( request );
+	}
+}
+
+void cSprite :: Set_Massivetype( MassiveType mtype )
+{
+	// set massivetype z position
+	if( mtype == MASS_MASSIVE )
+	{
+		posz = 0.08f;
+	}
+	else if( mtype == MASS_PASSIVE )
+	{
+		if( sprite_array == ARRAY_FRONT_PASSIVE )
+		{
+			posz = 0.1f;
+		}
+		else
+		{
+			posz = 0.01f;
+		}
+	}
+	else if( mtype == MASS_CLIMBABLE || mtype == MASS_HALFMASSIVE )
+	{
+		posz = 0.04f;
+	}
+
+	massivetype = mtype;
+
+	// set correct Z position
+	pObjManager->Set_Z( this );
 }
 
 bool cSprite :: is_onTop( cSprite *obj )
 {
+	// invalid
 	if( !obj )
 	{
 		return 0;
@@ -625,9 +1063,44 @@ bool cSprite :: is_onTop( cSprite *obj )
 	return 0;
 }
 
-bool cSprite :: isPlayer_range( void )
+bool cSprite :: is_Visible_onScreen( void )
 {
-	if( player_range && ( posx < pPlayer->posx - player_range || posy < pPlayer->posy - player_range ||
+	// camera position
+	float cam_x = 0, cam_y = 0;
+
+	if( !no_camera )
+	{
+		cam_x = pCamera->x;
+		cam_y = pCamera->y;
+	}
+
+	// not visible left
+	if( rect.x + rect.w < cam_x )
+	{
+		return 0;
+	}
+	// not visible right
+	else if( rect.x > cam_x + GAME_RES_W )
+	{
+		return 0;
+	}
+	// not visible down
+	else if( rect.y + rect.h < cam_y )
+	{
+		return 0;
+	}
+	// not visible up
+	else if( rect.y > cam_y + GAME_RES_H )
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+bool cSprite :: is_Player_range( void )
+{
+	if( player_range > 300 && ( posx < pPlayer->posx - player_range || posy < pPlayer->posy - player_range ||
 		posx > pPlayer->posx + player_range || posy > pPlayer->posy + player_range ) )
 	{
 		return 0;
@@ -636,498 +1109,34 @@ bool cSprite :: isPlayer_range( void )
 	return 1;
 }
 
-ObjectCollisionType cSprite :: ColCheckAuto( double x, double y, double w /* = 0 */, double h /* = 0 */, bool only_check /* = 0 */ )
+bool cSprite :: is_Draw_valid( void )
 {
-	GL_rect rectb;
-	// use position with collision position and add the given position
-	rectb.x = posx + col_pos.x + x;
-	rectb.y = posy + col_pos.y + y;
-
-	// use width if given
-	if( w > 0 )
+	// if editor not enabled
+	if( !editor_enabled )
 	{
-		rectb.w = w;
+		// not visible
+		if( !visible || !image )
+		{
+			return 0;
+		}
 	}
+	// editor enabled
 	else
 	{
-		rectb.w = col_rect.w;
-	}
-	// use height if given
-	if( h > 0 )
-	{
-		rectb.h = h;
-	}
-	else
-	{
-		rectb.h = col_rect.h;
-	}
-
-	if( Game_debug )
-	{
-		glBlendFunc( GL_SRC_COLOR, GL_DST_ALPHA );
-		DrawRect( rectb.x - cameraposx, rectb.y - cameraposy, rectb.w, rectb.h, &green );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	}
-
-	return ColCheck( &rectb, only_check );
-}
-
-ObjectCollisionType cSprite :: ColCheck( double x, double y, double w /* = 0 */, double h /* = 0 */, bool only_check /* = 0 */ )
-{
-	GL_rect rectb;
-	rectb.x = x;
-	rectb.y = y;
-
-	// use width and correct the position if given
-	if( w > 0 )
-	{
-		rectb.x += ( rect.w - w ) / 2;
-		rectb.w = w;
-	}
-	else
-	{
-		rectb.w = col_rect.w;
-	}
-	// use height and correct the position if given
-	if( h > 0 )
-	{
-		rectb.y += ( rect.h - h ) / 2;
-		rectb.h = h;
-	}
-	else
-	{
-		rectb.h = col_rect.h;
-	}
-
-	return ColCheck( &rectb, only_check );
-}
-	
-ObjectCollisionType cSprite :: ColCheck( GL_rect *rect1, bool only_check /* = 0 */ )
-{
-	if( rect1->w == 0 || rect1->h == 0 )
-	{
-		return CO_NOTHING;
-	}
-
-	unsigned int i;
-	
-	// Active Objects
-	for( i = 0; i < pObjManager->Get_Size(); i++ )
-	{
-		/*	There's no collision if :
-		 *	1. This is an Cloud, Banzaii_Bill,  
-		 *	2. This is an Fireball, Mushroom, moving Turtle shell and the colliding Object is an Enemystopper
-		 *  3. This is an Enemy and the colliding Object is a Powerup
-		 */
-		if( !pObjManager->items[i] || pObjManager->items[i]->array != ARRAY_ACTIVE || ID == pObjManager->items[i]->ID || type == TYPE_CLOUD || type == TYPE_MOVING_PLATFORM || ( ( type == TYPE_BANZAI_BILL || type == TYPE_JPIRANHA ) && pObjManager->items[i]->type != TYPE_FIREBALL ) ||
-			( ( type == TYPE_FIREBALL || type == TYPE_MUSHROOM_DEFAULT || type == TYPE_MUSHROOM_LIVE_1 ||
-			( type == TYPE_TURTLE && state == RUN ) ) && pObjManager->items[i]->type == TYPE_ENEMYSTOPPER ) || 
-			( array == ARRAY_ACTIVE && ( pObjManager->items[i]->type == TYPE_GOLDPIECE || pObjManager->items[i]->type == TYPE_BOUNCINGGOLDPIECE ) ) || 
-			( array == ARRAY_ENEMY && ( pObjManager->items[i]->type == TYPE_MUSHROOM_DEFAULT || pObjManager->items[i]->type == TYPE_MUSHROOM_LIVE_1 || pObjManager->items[i]->type == TYPE_MOON ) ) )
+		// no image
+		if( !start_image )
 		{
-			continue;
-		}
-
-		if( type == TYPE_PLAYER ) // if player
-		{
-			if( pObjManager->items[i]->massivetype == MASS_PASSIVE ) 
-			{
-				continue;
-			}
-		}
-		else // if no player
-		{
-			if( !pObjManager->items[i]->massivetype && pObjManager->items[i]->type != TYPE_ENEMYSTOPPER && 
-				pObjManager->items[i]->type != TYPE_MUSHROOM_DEFAULT && pObjManager->items[i]->type != TYPE_MUSHROOM_LIVE_1 ) 
-			{
-				continue;
-			}
-			else if( pObjManager->items[i]->type == TYPE_CLOUD || type == TYPE_MOVING_PLATFORM || pObjManager->items[i]->type == TYPE_FIREPLANT || pObjManager->items[i]->massivetype == MASS_CLIMBABLE ) 
-			{
-				continue;
-			}
-			else if( ( pObjManager->items[i]->type == TYPE_MUSHROOM_DEFAULT || pObjManager->items[i]->type == TYPE_MUSHROOM_LIVE_1 ) && type == TYPE_FIREBALL )
-			{
-				continue;
-			}
-		}
-
-		if( pObjManager->items[i]->massivetype == MASS_HALFMASSIVE ) // halfmassive
-		{
-			// if moving downwards and object is on top
-			if( vely >= 0 && is_onTop( pObjManager->items[i] ) )
-			{
-				// valid
-			}
-			else
-			{
-				continue;
-			}
-		}
-
-		if( Col_Box( rect1, &pObjManager->items[i]->col_rect ) )
-		{
-			if( !only_check )
-			{
-				Add_Collision( this, pObjManager->items[i], i, CO_ACTIVE );
-			}
-
-			if( pObjManager->items[i]->massivetype == MASS_CLIMBABLE )
-			{
-				if( type == TYPE_PLAYER )
-				{
-					GL_rect rect3 = pPlayer->col_rect;
-
-					// small rect for collision checking
-					rect3.h -= rect3.h * 0.6;
-					rect3.w -= rect3.w * 0.8;
-					rect3.x += rect3.w / 2;
-					rect3.y += rect3.h / 2;
-
-					if( Col_Box( &rect3, &pObjManager->items[i]->col_rect ) )
-					{
-						if( ( keys[pPreferences->Key_up] || pJoystick->up ) || ( keys[pPreferences->Key_down] || pJoystick->down ) )
-						{
-							pPlayer->Start_climbing();
-						}
-					}
-				}
-
-				continue;
-			}
-
-			return CO_ACTIVE;
-		}
-	}
-	
-	// Massive Objects
-	for( i = 0; i < pObjManager->Get_Size(); i++ )
-	{
-		if( !pObjManager->items[i] || pObjManager->items[i]->array != ARRAY_MASSIVE || ID == pObjManager->items[i]->ID || 
-			pObjManager->items[i]->massivetype != MASS_MASSIVE || type == TYPE_BANZAI_BILL || type == TYPE_JPIRANHA )
-		{
-			continue;
-		}
-
-		if( Col_Box( rect1, &pObjManager->items[i]->col_rect ) )
-		{
-			if( !only_check )
-			{
-				Add_Collision( this, pObjManager->items[i], i, CO_MASSIVE );
-			}
-
-			return CO_MASSIVE;
+			return 0;
 		}
 	}
 
-	// Enemy Objects
-	for( i = 0; i < pObjManager->Get_Size(); i++ )
+	// not visible on the screen
+	if( !is_Visible_onScreen() )
 	{
-		if( !pObjManager->items[i] || pObjManager->items[i]->array != ARRAY_ENEMY || ID == pObjManager->items[i]->ID || massivetype == MASS_PASSIVE || pObjManager->items[i]->massivetype == MASS_PASSIVE || // only valid enemies
-			type == TYPE_MUSHROOM_DEFAULT || type == TYPE_MUSHROOM_LIVE_1 || type == TYPE_FIREPLANT || // items should not collide with enemies
-			type == TYPE_BANZAI_BILL || // banzai bill should not collide with enemies
-			( !( type == TYPE_PLAYER && ( pPlayer->invincible <= 0 || pPlayer->invincible_star <= 0 ) ) && pObjManager->items[i]->type == TYPE_BANZAI_BILL ) || // only default player should collide with banzai bill
-			( array == ARRAY_ENEMY && !( type == TYPE_TURTLE && state == RUN ) && pObjManager->items[i]->type == TYPE_JPIRANHA ) || // no enemy except turtle shells should collide with jumping piranhas
-			( type == TYPE_JPIRANHA && pObjManager->items[i]->array == ARRAY_ENEMY ) ) // jumping piranha should not collide with enemies
-		{
-			continue;
-		}
-
-		GL_rect rect2 = pObjManager->items[i]->col_rect;
-
-		if( pObjManager->items[i]->type != TYPE_BANZAI_BILL )
-		{
-			if( type == TYPE_PLAYER )
-			{
-				rect2.x += ( rect2.w - ( rect2.w * 0.6 ) ) / 2;
-				rect2.w = rect2.w * 0.6;
-
-				rect2.y += ( rect2.h - ( rect2.h * 0.5 ) ) / 2;
-				rect2.h = rect2.h * 0.5;
-			}
-			else if( array == ARRAY_ENEMY )
-			{
-				rect2.x += ( rect2.w - ( rect2.w * 0.8 ) ) / 2;
-				rect2.w = rect2.w * 0.8;
-
-				rect2.y += (rect2.h - ( rect2.h * 0.8 ) ) / 2;
-				rect2.h = rect2.h * 0.8;
-			}
-		}
-
-		if( Col_Box( rect1, &rect2 ) )
-		{
-			 // do not collide with enemies if invincible from star
-			if( type == TYPE_PLAYER && pPlayer->invincible_star > 0 )
-			{
-				// if colliding force complete downgrade
-				if( Col_Box( &pPlayer->col_rect, &pObjManager->items[i]->col_rect ) )
-				{
-					pAudio->PlaySound( SOUNDS_DIR "/fireball.ogg" );
-					pObjManager->items[i]->DownGrade( 1 );
-				}
-				
-				continue;
-			}
-
-			if( !only_check ) 
-			{
-				Add_Collision( this, pObjManager->items[i], i, CO_ENEMY );
-
-				cObjectCollision *col = Get_lastCollision();
-
-				if( ( pObjManager->items[i]->velx >= velx && velx > 0 && col->direction == DIR_LEFT ) || 
-					( pObjManager->items[i]->velx <= velx && velx < 0 && col->direction == DIR_RIGHT ) ||
-					( pObjManager->items[i]->velx < 0 && velx > 0 ) || ( pObjManager->items[i]->velx > 0 && velx < 0 ) ) 
-				{
-					pObjManager->items[i]->EnemyCollision( col->direction );
-				}
-			}
-
-			return CO_ENEMY;
-		}
+		return 0;
 	}
 
-	// Player
-	if( massivetype == MASS_MASSIVE && type != TYPE_PLAYER && type != TYPE_FIREBALL && type != TYPE_MUSHROOM_DEFAULT && type != TYPE_MUSHROOM_LIVE_1 &&
-		!( type == TYPE_TURTLE && state == RUN && ( ( (cTurtle *)this ) )->playercounter ) && !( type == TYPE_BANZAI_BILL && pPlayer->invincible > 0 ) )
-	{
-		GL_rect rect2 = pPlayer->col_rect;
-
-		if( type != TYPE_BANZAI_BILL )
-		{
-			if( array == ARRAY_ENEMY )
-			{
-				rect2.x += ( rect2.w - rect2.w * 0.6 ) / 2;
-				rect2.w = rect2.w * 0.6;
-
-				rect2.y += ( rect2.h - rect2.h * 0.6 ) / 2;
-				rect2.h = rect2.h * 0.6;
-			}
-		}
-		
-		if( Col_Box( rect1, &rect2 ) )
-		{
-			if( !only_check )
-			{
-				Add_Collision( this, pPlayer, 0, CO_PLAYER );
-			}
-
-			return CO_PLAYER;
-		}
-	}
-
-	return CO_NOTHING;
-}
-
-void cSprite :: Set_onGround( cObjectCollision *collision )
-{
-	if( !collision || collision->type == CO_PLAYER || collision->type == CO_ENEMY )
-	{
-		return;
-	}
-
-	groundObject = pObjManager->Get_Pointer( collision->number );
-	Set_onTop( groundObject, 0 );
-}
-
-void cSprite :: Check_onGround( void )
-{
-	if( type != TYPE_PLAYER && array != ARRAY_ENEMY && array != ARRAY_ACTIVE )
-	{
-		return;
-	}
-
-	// if on ground
-	if( groundObject )
-	{
-		GL_rect rect2( col_rect.x, col_rect.y + col_rect.h, col_rect.w, 1 );
-
-		if( Col_Box( &groundObject->col_rect, &rect2 ) )
-		{
-			return;
-		}
-		else
-		{
-			Reset_onGround();
-		}
-	}
-
-	// if no collision
-	if( ColCheckAuto( 0, col_rect.h, 0, 1 ) == CO_NOTHING )
-	{
-		Reset_onGround();
-	}
-	else // collision found
-	{
-		cObjectCollision *collision = Get_lastCollision();
-
-		// if no valid collision
-		if( !collision )
-		{
-			Reset_onGround();
-		}
-		else
-		{
-			if( collision->direction == DIR_NOTHING )
-			{
-				Reset_onGround();
-			}
-			else
-			{
-				Set_onGround( collision );
-			}
-			
-			Delete_lastCollision();
-		}
-	}
-}
-
-void cSprite :: Reset_onGround( void )
-{
-	groundObject = NULL;
-}
-
-void cSprite :: Update_antistuck( void )
-{
-	if( ColCheck( posx, posy ) == DIR_NOTHING )
-	{
-		return;
-	}
-
-	cObjectCollision *collision = Get_lastCollision();
-
-	if( !collision )
-	{
-		return;
-	}
-
-	if( collision->type != CO_ENEMY && !( collision->type == CO_ACTIVE && ( pObjManager->items[collision->number]->massivetype == MASS_HALFMASSIVE || pObjManager->items[collision->number]->massivetype == MASS_CLIMBABLE ) ) )
-	{
-		if( ColCheck( posx + col_rect.w / 2, posy, 0, 0, 1 ) == DIR_NOTHING ) 
-		{
-			Move( 2, 0 );
-		}
-		else if( ColCheck( posx - col_rect.w / 2, posy, 0, 0, 1 ) == DIR_NOTHING ) 
-		{
-			Move( -2, 0 );
-		}
-		else if( ColCheck( posx, posy + col_rect.h / 2, 0, 0, 1 ) == DIR_NOTHING ) 
-		{
-			Move( 0, 2 );
-		}
-		else if( ColCheck( posx, posy - col_rect.h / 2, 0, 0, 1 ) == DIR_NOTHING ) 
-		{
-			Move( 0, -2 );
-		}
-	}
-
-	Delete_lastCollision();
-}
-
-void cSprite :: CollideMove( void )
-{
-	// if the ground object moves also move this sprite
-	if( groundObject && ( groundObject->array == ARRAY_ACTIVE || groundObject->array == ARRAY_MASSIVE ) )
-	{
-		if( groundObject->velx != 0 || groundObject->vely != 0 )
-		{
-			Move( groundObject->velx, groundObject->vely );
-		}
-	}
-
-	ClearCollisions();
-
-	// move and creates collision data
-	Move( velx, vely );
-
-	// don't move out of screen
-	if( posx < 0 && type != TYPE_BANZAI_BILL )
-	{
-		posx = 0;
-
-		// turn around if out of screen
-		if( array == ARRAY_ENEMY || array == ARRAY_ACTIVE )
-		{
-			Turn_Around();
-		}
-	}
-
-	// handle the found collisions
-	for( unsigned int i = 0; i < collisions.size(); i++ )
-	{
-		HandleCollision( collisions[i] );
-	}
-}
-
-void cSprite :: Add_Collision( cSprite *base, cSprite *col, unsigned int col_num /* = 0 */, ObjectCollisionType col_type /* = CO_NOTHING */ )
-{
-	cObjectCollision *collision = new cObjectCollision();
-
-	collision->number = col_num;
-	collision->type = col_type;
-	if( base && col )
-	{
-		collision->Set_direction( base, col );
-	}
-
-	collisions.push_back( collision );
-}
-
-void cSprite :: Delete_lastCollision( void )
-{
-	if( collisions.size() )
-	{
-		collisions.erase( collisions.begin() + collisions.size() - 1 );
-	}
-}
-
-int cSprite :: Check_CollisionDir( ObjectDirection dir )
-{
-	for( unsigned int i = 0; i < collisions.size(); i++ )
-	{
-		if( collisions[i]->direction == dir )
-		{
-			return i;
-		}
-	}
-
-	return -1;
-}
-
-cObjectCollision *cSprite :: Get_firstCollision( void )
-{
-	if( collisions.size() )
-	{
-		return collisions[0];
-	}
-
-	return NULL;
-}
-
-cObjectCollision *cSprite :: Get_lastCollision( void )
-{
-	if( collisions.size() > 0 )
-	{
-		return collisions[collisions.size() - 1];
-	}
-
-	return NULL;
-}
-
-void cSprite :: ClearCollisions( void )
-{
-	for( unsigned int i = 0; i < collisions.size(); i++ )
-	{
-		delete collisions[i];
-	}
-
-	collisions.clear();
-}
-
-void cSprite :: DownGrade( bool force )
-{
-	// virtual
+	return 1;
 }
 
 void cSprite :: Destroy( void )
@@ -1135,53 +1144,31 @@ void cSprite :: Destroy( void )
 	destroy = 1;
 }
 
-void cSprite :: Update( void )
+void cSprite :: Editor_Add( Window *obj, float obj_width, float obj_height )
 {
-	Draw();
-}
+	// add to main window
+	pGuiSystem->getGUISheet()->addChildWindow( obj );
 
-void cSprite :: Update_Direction( void )
-{
-	if( velx < 0 )
+	// needs to be always selectable
+	obj->setAlwaysOnTop( 1 );
+	// set size
+	obj->setWidth( UDim( 0, obj_width ) );
+	obj->setHeight( UDim( 0, obj_height ) );
+	// mouse hover events
+	// if combobox use the editbox
+	if( obj->getType() == "TaharezLook/Combobox" )
 	{
-		direction = DIR_LEFT;
+		((Combobox *)obj)->getEditbox()->subscribeEvent( Window::EventMouseEnters, Event::Subscriber( &cSprite::Editor_Mouse_Enter, this ) );
+		((Combobox *)obj)->getEditbox()->subscribeEvent( Window::EventMouseLeaves, Event::Subscriber( &cSprite::Editor_Mouse_Leave, this ) );
 	}
-	else if( velx > 0 )
+	else
 	{
-		direction = DIR_RIGHT;
+		obj->subscribeEvent( Window::EventMouseEnters, Event::Subscriber( &cSprite::Editor_Mouse_Enter, this ) );
+		obj->subscribeEvent( Window::EventMouseLeaves, Event::Subscriber( &cSprite::Editor_Mouse_Leave, this ) );
 	}
-}
 
-void cSprite :: Update_Rotation_velx( void )
-{
-	if( velx < 0 ) // left
-	{
-		roty = 0;
-	}
-	else if( velx > 0 ) // right
-	{
-		roty = 180;
-	}
-}
 
-void cSprite :: HandleCollision( cObjectCollision *collision )
-{
-	// virtual
-}
-
-void cSprite :: PlayerCollision( ObjectDirection direction )
-{
-	// virtual
-}
-
-void cSprite :: EnemyCollision( ObjectDirection direction )
-{
-	// virtual
-}
-
-void cSprite :: BoxCollision( ObjectDirection direction, GL_rect *r2 )
-{
-	// virtual
+	editor_windows.push_back( obj );
 }
 
 void cSprite :: Editor_Activate( void )
@@ -1191,52 +1178,68 @@ void cSprite :: Editor_Activate( void )
 
 void cSprite :: Editor_Deactivate( void )
 {
-	// virtual
+	// remove editor controls
+	WindowManager &wmgr = WindowManager::getSingleton();
+
+	for( unsigned int i = 0; i < editor_windows.size(); i++ )
+	{
+		wmgr.destroyWindow( editor_windows[i] );
+	}
+
+	editor_windows.clear();
 }
 
 void cSprite :: Editor_pos_update( void )
 {
-	// virtual
-}
+	float obj_posy = 0;
 
-void cSprite :: Editor_val_update( void )
-{
-	// virtual
-}
-
-/* *** *** *** *** *** *** *** cObjectSprite *** *** *** *** *** *** *** *** *** *** */
-
-cObjectSprite :: cObjectSprite( double x, double y ) : cSprite( NULL, x, y )
-{
-	curr_img = -1;
-}
-
-cObjectSprite :: ~cObjectSprite( void )
-{
-	images.clear();
-}
-
-void cObjectSprite :: SetImage( int num, bool new_Startimage /* = 0 */ )
-{
-	if( curr_img == num )
+	// set all positions
+	for( unsigned int i = 0; i < editor_windows.size(); i++ )
 	{
-		return;
-	}
+		editor_windows[i]->setXPosition( UDim( 0, posx + rect.w + 5 - pCamera->x ) );
+		editor_windows[i]->setYPosition( UDim( 0, posy + 5 + obj_posy - pCamera->y ) );
 
-	curr_img = num;
+		// if combobox get the editbox height
+		if( editor_windows[i]->getType() == "TaharezLook/Combobox" )
+		{
+			obj_posy += ((Combobox *)editor_windows[i])->getEditbox()->getHeight().asAbsolute( GAME_RES_H );
+		}
+		// get default height
+		else
+		{
+			obj_posy += editor_windows[i]->getHeight().asAbsolute( GAME_RES_H );
+		}
 
-	if( curr_img < 0 )
-	{
-		cSprite::SetImage( NULL, new_Startimage );
-	}
-	else if( (unsigned int)curr_img < images.size() )
-	{
-		cSprite::SetImage( images[curr_img], new_Startimage );
-	}
-	else if( Game_debug )
-	{
-		printf( "Warning : Object image number (%d) bigger as the array size (%d)\n", curr_img, images.size() );
+		// some space between objects
+		obj_posy += 1;
 	}
 }
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+bool cSprite :: Editor_Mouse_Enter( const EventArgs &event )
+{
+	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
+	string str_text = windowEventArgs.window->getTooltipText().c_str();
+
+	// if no tooltip defined
+	if( str_text.empty() )
+	{
+		// use the CEGUI window name
+		debugdisplay->Set_Text( windowEventArgs.window->getName().c_str(), 100000 );
+	}
+	else
+	{
+		debugdisplay->Set_Text( str_text, 100000 );
+	}
+
+	return 1;
+}
+
+bool cSprite :: Editor_Mouse_Leave( const EventArgs &event )
+{
+	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
+	string str_text = windowEventArgs.window->getTooltipText().c_str();
+
+	debugdisplay->Set_Text( "" );
+
+	return 1;
+}

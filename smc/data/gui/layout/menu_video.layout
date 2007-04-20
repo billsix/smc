@@ -1,26 +1,45 @@
-<?xml version="1.0" ?>
-<GUILayout>
-	<Window Type="DefaultWindow" Name="root">
-		<Window Type="TaharezLook/Combobox" Name="combo_resolution">
-			<Property Name="Position" Value="x:0.5 y:0.54" />
-			<Property Name="Size" Value="w:0.15 h:0.17" />
-			<Property Name="Text" Value="Resolution" />
-			<Property Name="ClippedByParent" Value="false" />
-			<Property Name="ReadOnly" Value="true" />
-		</Window>
-		<Window Type="TaharezLook/Combobox" Name="combo_bpp">
-			<Property Name="Position" Value="x:0.5 y:0.625" />
-			<Property Name="Size" Value="w:0.10 h:0.145" />
-			<Property Name="Text" Value="BPP" />
-			<Property Name="ClippedByParent" Value="false" />
-			<Property Name="ReadOnly" Value="true" />
-		</Window>
-		<Window Type="TaharezLook/Combobox" Name="combo_fullscreen">
-			<Property Name="Position" Value="x:0.5 y:0.71" />
-			<Property Name="Size" Value="w:0.10 h:0.145" />
-			<Property Name="Text" Value="Fullscreen" />
-			<Property Name="ClippedByParent" Value="false" />
-			<Property Name="ReadOnly" Value="true" />
-		</Window>
-	</Window>
+<?xml version="1.0" encoding="UTF-8"?>
+
+<GUILayout >
+    <Window Type="DefaultWindow" Name="menu_video" >
+        <Property Name="InheritsAlpha" Value="False" />
+        <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+        <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
+        <Window Type="TaharezLook/Combobox" Name="combo_resolution" >
+            <Property Name="Text" Value="Resolution" />
+            <Property Name="Tooltip" Value="Set the Screen Resolution. Lowering this value boosts FPS but lowers Visual Detail." />
+            <Property Name="ReadOnly" Value="True" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="ClippedByParent" Value="False" />
+            <Property Name="UnifiedAreaRect" Value="{{0.501562,0},{0.364829,0},{0.651562,0},{0.53483,0}}" />
+            <Property Name="MaxEditTextLength" Value="1073741823" />
+        </Window>
+        <Window Type="TaharezLook/Combobox" Name="combo_bpp" >
+            <Property Name="Text" Value="BPP" />
+            <Property Name="Tooltip" Value="Set the Bits per Pixel. Only lower this value if you don&apos;t support it." />
+            <Property Name="ReadOnly" Value="True" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="ClippedByParent" Value="False" />
+            <Property Name="UnifiedAreaRect" Value="{{0.501562,0},{0.447746,0},{0.601563,0},{0.592745,0}}" />
+            <Property Name="MaxEditTextLength" Value="1073741823" />
+        </Window>
+        <Window Type="TaharezLook/Combobox" Name="combo_fullscreen" >
+            <Property Name="Text" Value="Fullscreen" />
+            <Property Name="Tooltip" Value="Should the Game run in Fullscreen or in Windowed Mode. Windowed Mode is usually used for bug hunting" />
+            <Property Name="ReadOnly" Value="True" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="ClippedByParent" Value="False" />
+            <Property Name="UnifiedAreaRect" Value="{{0.501562,0},{0.530663,0},{0.601563,0},{0.675662,0}}" />
+            <Property Name="MaxEditTextLength" Value="1073741823" />
+        </Window>
+        <Window Type="TaharezLook/Combobox" Name="combo_vsync" >
+            <Property Name="Text" Value="VSync" />
+            <Property Name="Tooltip" Value="Visual Sync waits for vertical refresh and stops Visual Glitches. This usally looks smoother and should be enabled." />
+            <Property Name="ReadOnly" Value="True" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="ClippedByParent" Value="False" />
+            <Property Name="UnifiedAreaRect" Value="{{0.501562,0},{0.617067,0},{0.601563,0},{0.762067,0}}" />
+            <Property Name="MaxEditTextLength" Value="1073741823" />
+        </Window>
+    </Window>
 </GUILayout>

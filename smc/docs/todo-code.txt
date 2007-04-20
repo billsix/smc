@@ -1,0 +1,44 @@
+########################### Todo ########################
+
+Priority
+{
+	L : Low
+	M : Medium
+	H : High
+	? : Unknown/Maybe
+}
+
+Easy
+- L : Level addon : a new special sprite which is just a color rectangle, circle, etc ( the size can be set over the dialogs if you double-click on the sprite )
+
+Medium
+- ### Classes
+	- M : cAnimatedSprite with image ms timings for animated Sprites and also for Goldpiece, Moon, etc...
+		- H : Super-Image Class should be a better solution
+- ###
+- L : boxes activateable from upwards only ( like in SMB3 )
+- L : If an image could not get loaded display the image name with a small font ingame
+- M : A Score menu on the end of a Level the score also should be saved and displayed on the obverworld ( like in SMW II )
+- L? : Gravity defined per Level ( 0 = default ) ?
+- L : Overworld : More Waypoint types and options ( should be able to specify image layers and what they do [ rotating image, just a color, glimming, color, alpha image only, etc.. ] )
+- M : Editor : Option for users who have no middle mouse key ( like some notebooks )
+
+Medium-Hard
+- M : Maryo's rotating jump ( Needs the images first )
+- M? : Level Background Editor ( should also have a small configuration for easy pre-random backgrounds )
+- M : Rotating platforms ( like in SMW )
+- M : Fixed Level Camera movement optionally with a specified path ( like in SMW II )
+- M : Collision detection with slope support
+
+Hard
+- L : Multiplayer Support on a single PC
+	- H : and later over the network ( with enet or HawkNL )
+- L : A Yoshi like pet ( maybe dog ) you can jump on it and it should be able to eat the enemies ( Needs the images first )
+
+New Enemies
+- M : Mini Rokkos who get shot out of a Cannon ( needs the images first )
+- L : A Fireplant which lays on the ground and spies fire somewhat randomly ( like in SMW ) ( needs the images first )
+
+
+Other good ideas :
+http://supertux.lethargik.org/wiki/Milestone_2_Design_Document

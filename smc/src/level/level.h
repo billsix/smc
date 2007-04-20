@@ -1,7 +1,7 @@
 /***************************************************************************
                 level.h  -  header for the corresponding cpp file
                              -------------------
-    copyright            :	(C) 2003 - 2006 by FluXy
+    copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -15,80 +15,27 @@
 #ifndef __LEVEL_H__
 #define __LEVEL_H__
 
-#include "../globals.h"
+#include "../core/globals.h"
+#include "../level/global_effect.h"
+#include "../level/level_background.h"
+#include "../core/file_parser.h"
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+// default files for levels
+#define LEVEL_DEFAULT_MUSIC "land/land_5.ogg"
+#define LEVEL_DEFAULT_BACKGROUND "game/background/green_junglehills.png"
 
-// Background Image Type definitions
-typedef enum 
+/* *** *** *** *** *** Level drawing Types *** *** *** *** *** *** *** *** *** *** *** *** */
+
+enum LevelDrawType
 {
-	BG_NONE = 0,			// no background type
-	BG_IMG_LEFTRIGHT = 1,	// only to the horizontal
-	BG_IMG_ALL = 2,			// into all directions
-	BG_IMG_TOP = 3,			// is always on top
-	BG_GR_VER = 103,		// Gradient Vertical
-	BG_GR_HOR = 104			// Gradient Horizontal
-} BackgroundType;
-
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
-
-class cBackground
-{
-public:
-	cBackground( void );
-	~cBackground( void );
-
-	// Sets the type of Background
-	void Set_type( BackgroundType ntype );
-
-	// Sets the background color
-	void Set_color_1( const Color &color );
-	void Set_color_2( const Color &color );
-
-	// Set the Background image
-	void Set_image( string nimg_file_1 );
-	// Set the Background Image scrolling speed
-	void Set_image_scroll( double x = 1, double y = 1 );
-
-	void Draw( void );
-	void DrawGradient( void );
-
-	// Returns the name of the current type
-	string Get_Typename( void );
-
-	// type
-	BackgroundType type;
-
-	// background image filename
-	string img_file_1;
-	// background image
-	GL_Surface *img_1;
-
-	// position
-	double posx, posy;
-
-	// background image scrolling speed
-	double speedx, speedy;
-
-	// background gradient colors
-	Color color_1, color_2;
+	LVL_DRAW		= 0,	// only draw
+	LVL_DRAW_NO_BG	= 1,	// only draws and without background gradient and image
+	LVL_DRAW_BG		= 2		// only draws the background gradient and image
 };
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cLevel  *** *** *** *** *** *** *** *** *** *** *** *** */
 
-// Level drawing Type definitions
-typedef enum 
-{
-	LVL_UPDATE		= 1,	// updates and draws
-	LVL_DRAW		= 0,	// only draw
-	LVL_DRAW_EDITOR = 2,	// only draw but in the leveleditor order
-	LVL_DRAW_NO_BG	= 3,	// only draws and without background gradient and image
-	LVL_DRAW_BG		= 4		// only draws the backround gradient and image
-} LevelDrawType;
-
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
-
-class cLevel : public cFile_parser
+class cLevel : public cFile_parser, public XMLHandler
 {
 public:
 	cLevel( void );
@@ -96,16 +43,38 @@ public:
 
 	// Creates a new level
 	int New( string filename = "null" );
-	// Loads a Level
-	bool Load( string filename );
-	// Unloads the current Level
-	void Unload( void );
-	// Saves the current Level
+	/* Loads a Level
+	 * if delayed is given the level will be loaded on the next update
+	*/
+	bool Load( string filename, bool delayed = 0 );
+	/* Unloads the current Level
+	 * if delayed is given unloads the on the next update
+	*/
+	void Unload( bool delayed = 0 );
+	// Save the Level
 	void Save( void );
 
-	// Draws all Level Objects ( Sprites, Enemies, Hud )
+	// update level changes
+	void Update( void );
+
+	// Draws all Layer 1 Level Objects ( Passive/Massive Sprites, Enemies, Animations )
 	// and updates them if update is true
-	void Draw( LevelDrawType type = LVL_UPDATE );
+	void Draw_Layer1( LevelDrawType type = LVL_DRAW );
+	// Draws all Layer 2 Level Objects ( Front Passive Sprites, Editor Objects, Editor Hud )
+	// and updates them if update is true
+	void Draw_Layer2( LevelDrawType type = LVL_DRAW );
+
+	// Function : Process_Input
+	// static input handler
+	void Process_Input( void );
+	/* handle key down event
+	 * returns true if the key was processed
+	*/
+	bool Key_Down( SDLKey key );
+	/* handle key up event
+	 * returns true if the key was processed
+	*/
+	bool Key_Up( SDLKey key );
 
 	// Shows a big Text with the string and exits
 	void Show_Error( string text );
@@ -117,14 +86,22 @@ public:
 	*/
 	cBackground *Get_background( unsigned int num );
 
-	// Returns the current Music filename with the given options
-	string Get_Musicfile( bool with_dir = 1, bool with_end = 1 );
-	// Sets the Musicfile
+	/* Returns the current Music filename with the given options
+	 * if with_dir is set to 0 the whole directory is cut
+	 * if set to 1 the music directory is cut out
+	 * if set to 1 the full directory will be returned
+	*/
+	string Get_Musicfile( int with_dir = 2, bool with_end = 1 );
+	// Set the Music filename
 	void Set_Musicfile( string filename );
-	/* Sets a new Levelfile name and automatically resaves the level
-	 * if given also deletes the old level name
+	/* Set a new Level filename name and automatically re-save the level
+	 * delete_old : if set delete the old level name
 	*/
 	void Set_Levelfile( string filename, bool delete_old = 1 );
+	// Set the Level Author
+	void Set_Author( string name );
+	// Set the Level Version
+	void Set_Version( string level_version );
 
 	// Returns true if a level is loaded
 	bool is_Loaded( void );
@@ -136,23 +113,48 @@ public:
 
 	// level filename
 	string levelfile;
+	// if a new level should be loaded this is the next level filename
+	string next_levelfile;
 
-	// levelengine version from the loaded Level
-	int levelengine_version;
+	// unload the level on the next update
+	bool delayed_unload;
+
+	// level engine version
+	float engine_version;
+	// last save time
+	time_t last_saved;
+	// level author
+	string author;
+	// level version
+	string version;
 
 	// background layers
 	typedef vector<cBackground *> BackgroundList;
 	BackgroundList backgrounds;
 
-	// Returns 0 if failed, 1 if ingame save, 2 if Overworld save
-	int Load_Savegame( unsigned int save_slot );
-	// saves the game with the given description
-	bool Save_Savegame( unsigned int save_slot, string description );
+	// global effect
+	cGlobal_effect *pGlobal_effect;
 private:
-	// Handles the command
+	// Handles the old level format command
 	virtual bool HandleMessage( string *parts, unsigned int count, unsigned int line );
-	bool read_color_info(string *parts, unsigned int count, unsigned int line, Color &read_color );
+	bool read_color_info( string *parts, unsigned int count, unsigned int line, Color &read_color );
+
+	// XML element start
+    virtual void elementStart( const String &element, const XMLAttributes &attributes );
+	// XML element end
+    virtual void elementEnd( const String &element );
+
+	// XML element Item Tag list
+	XMLAttributes xml_attributes;
 };
+
+// Returns a Level Object if element name is available else NULL
+cSprite *Get_Level_Object( const String &element, XMLAttributes &attributes );
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+// The Level
+extern cLevel *pLevel;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

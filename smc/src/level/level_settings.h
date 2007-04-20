@@ -1,7 +1,7 @@
 /***************************************************************************
      level_settings.h  -  header for the corresponding cpp file
                              -------------------
-    copyright            : (C) 2006 by FluXy
+    copyright            : (C) 2006 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -15,8 +15,8 @@
 #ifndef __LEVEL_SETTINGS_H__
 #define __LEVEL_SETTINGS_H__
 
-#include "../globals.h"
-#include "../gui/dialog.h"
+#include "../core/globals.h"
+#include "../gui/hud.h"
 
 /* *** *** *** *** *** *** *** Level Settings *** *** *** *** *** *** *** *** *** *** */
 class cLevel_Settings
@@ -45,29 +45,35 @@ public:
 	// Loads the Background image List
 	void Load_BG_imageList( void );
 
-	// Set the Background image Preview
+	// Set the Background image preview
 	void Set_Background_image_Preview( string filename );
-	// Updates the Backgound image
+	// Updates the Background image
 	bool Update_BG_image( const EventArgs &event );
 	// Clears the background Layer fields
 	void Clear_Layer_field( void );
 
+	// Loads the global effect data
+	void Load_global_effect( void );
+	// Set the global effect image preview
+	void Set_global_effect_image_Preview( string filename );
+	// Updates the global effect image
+	bool Update_global_effect_image( const EventArgs &event );
+
 	// true if menu is active
 	bool active;
-
-	// text sprites
-	cSprite *text_caption;
 
 	// Background colors
 	Color bg_color_1, bg_color_2;
 
 	// Gui
 	Window *guiwindow;
+	TabControl *tabcontrol;
 
-	// backgound image preview
-	cSprite *background_preview;
-	// backgound image type sprite
-	cSprite *background_type;
+	// background image preview
+	cHudSprite *background_preview;
+
+	// global effect image preview
+	cHudSprite *global_effect_preview;
 };
 
 #endif

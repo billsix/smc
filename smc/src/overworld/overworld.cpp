@@ -1,7 +1,7 @@
 /***************************************************************************
-    overworld.cpp  -  class for the Overworld
+				overworld.cpp  -  Overworld class
                              -------------------
-    copyright            : (C) 2003 - 2006 by FluXy
+    copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -10,431 +10,535 @@
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
- ***************************************************************************/ 
- 
-#include "../globals.h"
-#include "../main.h"
+ ***************************************************************************/
 
-/* *** *** *** *** *** *** *** *** Overworld handler *** *** *** *** *** *** *** *** *** */
+#include "../core/globals.h"
+#include "../core/main.h"
+#include "../overworld/overworld.h"
+#include "../audio/audio.h"
+#include "../core/game_core.h"
+#include "../level/level_editor.h"
+#include "../overworld/world_editor.h"
+#include "../core/camera.h"
+#include "../core/framerate.h"
+#include "../gui/menu.h"
+#include "../user/preferences.h"
+#include "../video/font.h"
+#include "../input/mouse.h"
+#include "../input/joystick.h"
+#include "../input/keyboard.h"
+#include "../level/level.h"
 
-cOverworld_world :: cOverworld_world( void )
+
+/* *** *** *** *** *** *** *** *** cOverworld_description *** *** *** *** *** *** *** *** *** */
+
+cOverworld_description :: cOverworld_description( void )
 {
-	name = "Not Loaded";
-	dir = "default";
+	path = "world_1";
+	name = "Unnamed";
+	visible = 1;
+
+	comment = "No Comment";
 }
 
-cOverworld_world :: ~cOverworld_world( void )
+cOverworld_description :: ~cOverworld_description( void )
 {
 	//
 }
 
-string cOverworld_world :: Get_WorldFile( void )
+void cOverworld_description :: Load( void )
 {
-	string filename = "/world.xml";
-	filename.insert( 0, dir );
-	filename.insert( 0, "data/world/" );
+	string filename = Get_Description_filename();
 
-	return filename;
-}
-
-cOverworld_worlds :: cOverworld_worlds( void )
-{
-	world_filename.insert( 0, "/worlds.xml" );
-	world_filename.insert( 0, OVERWORLD_DIR );
-
-	Load();
-}
-
-cOverworld_worlds :: ~cOverworld_worlds( void )
-{
-	Unload();
-}
-
-void cOverworld_worlds :: Load( void )
-{
-	if( !valid_file( world_filename ) )
+	// filename not valid
+	if( !valid_file( filename ) )
 	{
-		printf( "Error : Couldn't open Overworlds description file : %s\n", world_filename.c_str() );
+		printf( "Error : Couldn't open World description file : %s\n", filename.c_str() );
 		return;
 	}
 
-	System::getSingleton().getXMLParser()->parseXMLFile( *this, world_filename, "data/schemes/WorldsScheme.xsd", "" );
+	// Load Description
+	System::getSingleton().getXMLParser()->parseXMLFile( *this, filename.c_str(), SCHEMA_DIR "/World/Description.xsd", "" );
 }
 
-void cOverworld_worlds :: Unload( void )
+string cOverworld_description :: Get_World_filename( void )
 {
-	for( unsigned int i = 0; i < worlds.size(); i++ )
-	{
-		if( worlds[i] )
-		{
-			delete worlds[i];
-		}
-	}
-	
-	worlds.clear();
+	return OVERWORLD_DIR "/" + path + "/world.xml";
 }
 
-cOverworld_world *cOverworld_worlds :: Get( string name )
+string cOverworld_description :: Get_Description_filename( void )
 {
-	for( unsigned int i = 0; i < worlds.size(); i++ )
-	{
-		if( worlds[i]->name.compare( name ) == 0 )
-		{
-			return worlds[i];
-		}
-	}
+	return OVERWORLD_DIR "/" + path + "/description.xml";
+}
 
-	return NULL;
+string cOverworld_description :: Get_Layer_filename( void )
+{
+	return OVERWORLD_DIR "/" + path + "/layer.xml";
 }
 
 // XML element start
-void cOverworld_worlds :: elementStart( const String &element, const XMLAttributes &attributes )
+void cOverworld_description :: elementStart( const String &element, const XMLAttributes &attributes )
 {
-    if( element == "World" )
+	// Property of an Element
+    if( element == "Property" )
     {
-        handle_world( attributes );
+		xml_attributes.add( attributes.getValueAsString( "Name" ), attributes.getValueAsString( "Value" ) );
     }
 }
 
 // XML element end
-void cOverworld_worlds :: elementEnd( const String &element )
+void cOverworld_description :: elementEnd( const String &element )
 {
-	
+	if( element != "Property" )
+	{
+		if( element == "World" )
+		{
+			handle_world( xml_attributes );
+		}
+		else if( element == "Description" )
+		{
+			// ignore
+		}
+		else if( element.length() )
+		{
+			printf( "Warning : Overworld Description Unknown element : %s\n", element.c_str() );
+		}
+
+		// clear
+		xml_attributes = XMLAttributes();
+	}
 }
 
-void cOverworld_worlds :: handle_world( const XMLAttributes &attributes )
+void cOverworld_description :: handle_world( const XMLAttributes &attributes )
 {
-	string name = attributes.getValueAsString( "Name" ).c_str();
-	string dir = attributes.getValueAsString( "Path" ).c_str();
-
-	cOverworld_world *item = new cOverworld_world();
-
-	item->name = name;
-	item->dir = dir;
-
-	worlds.push_back( item );
+	name = attributes.getValueAsString( "name", name.c_str() ).c_str();
+	visible = attributes.getValueAsBool( "visible", 1 );
 }
 
-/* *** *** *** *** *** *** *** *** Overworld *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** *** cOverworld *** *** *** *** *** *** *** *** *** */
 
-
-cOverWorld :: cOverWorld( void )
+cOverworld :: cOverworld( void )
 {
-	current_world = 0;
+	object_manager = new cObjectManager( 500 );
 
-	Map = 0;
-	Layer = NULL;
+	description = new cOverworld_description();
+	pLayer = new cLayer();
 
-	Maryo = new cWorld_Maryo();
-	world_handler = new cOverworld_worlds();
-	hud_level = new cSprite( NULL, 350, 0, 0, &black );
-	hud_level->no_camera = 1;
+	background_color = Color();
+	musicfile = "overworld/land_1.ogg";
+	hud_world_name = new cHudSprite( NULL, 10, GAME_RES_H - 30, 0 );
+	hud_world_name->Set_Shadow( black, 1.5f );
+	hud_level_name = new cHudSprite( NULL, 350, 2, 0 );
+	hud_level_name->Set_Shadow( black, 1.5f );
 
-	// debug images
-	debugimage = NULL;
-	debug_curr_waypoint = NULL;
-	debug_curr_line = NULL;
-	debug_nlevel = NULL;
-	
 	entered = 0;
+	delayed_enter = 0;
 
-	debugmode = 0;
+	next_level = 0;
 
-	cameramode = 0;
-	editormode = 0;
+	player_start_waypoint = 0;
+	player_moving_state = STA_STAY;
 }
 
-cOverWorld :: ~cOverWorld( void )
+cOverworld :: ~cOverworld( void )
 {
 	Unload();
 
-	if( debugimage )
-	{
-		delete debugimage;
-	}
-
-	if( debug_curr_waypoint )
-	{
-		delete debug_curr_waypoint;
-	}
-
-	if( debug_curr_line )
-	{
-		delete debug_curr_line;
-	}
-
-	if( debug_nlevel )
-	{
-		delete debug_nlevel;
-	}
-
-	delete Maryo;
-	delete world_handler;
-	delete hud_level;
+	delete description;
+	delete pLayer;
+	delete hud_level_name;
+	delete hud_world_name;
 }
 
-void cOverWorld :: Enter( void )
+void cOverworld :: Enter( bool delayed /* = 0 */ )
 {
 	if( done )
 	{
 		return;
 	}
 
+	// enter on the next update
+	if( delayed )
+	{
+		delayed_enter = 1;
+		return;
+	}
+
+	// unload level if possible
+	if( pLevel->delayed_unload )
+	{
+		pLevel->Update();
+	}
+
+	delayed_enter = 0;
+
+	// if not loaded
+	if( !object_manager->size() )
+	{
+		return;
+	}
+
 	entered = 0;
-	Game_Mode = MODE_OVERWORLD;
-	Leveleditor_Mode = 0;
+	Change_Game_Mode( MODE_OVERWORLD );
 
-	Maryo->Load_Images();
+	pAudio->PlayMusic( musicfile, -1, 0, 3000 );
 
-	pAudio->FadeOutMusic( 1000 );
-	pAudio->PlayMusic( MUSIC_DIR "/overworld/land_1.ogg", -1, 0, 3000 );
+	// reset camera
+	pCamera->Set_Pos( 0, 0 );
 
-	if( !MapObjects.size() && !Layer ) // if not loaded
+	// if goto next level
+	if( next_level )
 	{
-		Load( "default" ); // load the default world
-	}
-	else // update the hud
-	{
-		pHudManager->Load();
+		Goto_next_Level();
 	}
 
-	cameraposx = 0;
-	cameraposy = 0;
+	// if player start waypoint not set
+	if( pOverworld_Player->current_waypoint < 0 )
+	{
+		pOverworld_Player->Reset();
+		pOverworld_Player->Set_Waypoint( player_start_waypoint, 1 );
+	}
+
+	// if on start waypoint
+	if( pOverworld_Player->current_waypoint == player_start_waypoint )
+	{
+		// if player state is walk
+		if( player_moving_state == STA_WALK )
+		{
+			// walk to the next Waypoint
+			pOverworld_Player->Start_Walk( waypoints[pOverworld_Player->current_waypoint]->direction_forward );
+		}
+	}
+
 
 	while( !entered )
 	{
-		while( SDL_PollEvent( &event ) )
-		{
-			HandleInput();
-
-			switch( event.type )
-			{
-				case SDL_QUIT:
-				{
-					entered = 1;
-					break;
-				}
-				default:
-				{
-					break;
-				}
-			}
-		}
-
-		// ## Input Keys
-		keys = SDL_GetKeyState( NULL );
-
-		// ## Update
+		// Update
 		Update();
 
+		// don't draw if entered
 		if( entered )
 		{
-			continue;
+			break;
 		}
 
+		// Draw
 		Draw();
+		// Render
+		pVideo->Render();
 
-		// ## Frametime
-		Framerate.Update();
+		// update speedfactor
+		pFramerate->Update();
 	}
 
+	// Enter Menu
 	if( entered == 2 )
 	{
-		pMenu->Enter_Menu();
+		pMenuCore->Enter();
 	}
-
-	Framerate.Reset();
-	Game_Mode = MODE_LEVEL;
-	pHudManager->UpdateText();
-
-	ClearEvents();
+	// Enter Credits Menu
+	else if( entered == 3 )
+	{
+		pMenuCore->Enter( MENU_CREDITS );
+	}
+	// Enter Level
+	else
+	{
+		Change_Game_Mode( MODE_LEVEL );
+	}
 }
 
-void cOverWorld :: KeyDown_OW( SDLKey key )
+bool cOverworld :: Key_Down( SDLKey key )
 {
-	if( key == SDLK_LEFT && !cameramode )
+	if( key == SDLK_LEFT )
 	{
-		Maryo->Start_Walk( DIR_LEFT );
+		if( !pOverworld_manager->cameramode && !editor_world_enabled )
+		{
+			pOverworld_Player->Start_Walk( DIR_LEFT );
+		}
+		return 0;
 	}
-	else if( key == SDLK_RIGHT && !cameramode )
+	else if( key == SDLK_RIGHT )
 	{
-		Maryo->Start_Walk( DIR_RIGHT );
+		if( !pOverworld_manager->cameramode && !editor_world_enabled )
+		{
+			pOverworld_Player->Start_Walk( DIR_RIGHT );
+		}
+		return 0;
 	}
-	else if( key == SDLK_UP && !cameramode )
+	else if( key == SDLK_UP )
 	{
-		Maryo->Start_Walk( DIR_UP );
+		if( !pOverworld_manager->cameramode && !editor_world_enabled )
+		{
+			pOverworld_Player->Start_Walk( DIR_UP );
+		}
+		return 0;
 	}
-	else if( key == SDLK_DOWN && !cameramode )
+	else if( key == SDLK_DOWN )
 	{
-		Maryo->Start_Walk( DIR_DOWN );
+		if( !pOverworld_manager->cameramode && !editor_world_enabled )
+		{
+			pOverworld_Player->Start_Walk( DIR_DOWN );
+		}
+		return 0;
 	}
-	else if( key == SDLK_c )
+	else if( key == SDLK_c && !editor_world_enabled )
 	{
-		cameramode = !cameramode;
+		pOverworld_manager->cameramode = !pOverworld_manager->cameramode;
 	}
 	else if( key == SDLK_F8 )
 	{
-		editormode = !editormode;
-		cameramode = editormode;
-		
-		if( editormode )
-		{
-			debugdisplay->text = "Editor enabled";
-		}
-		else
-		{
-			debugdisplay->text = "Editor disabled";
-		}
-
-		debugdisplay->counter = DESIRED_FPS * 2;
-		pAudio->PlaySound( SOUNDS_DIR "/editor.ogg" );
+		pWorld_Editor->Toggle();
 	}
-	else if( key == SDLK_d && ( event.key.keysym.mod & KMOD_LCTRL ) )
+	else if( key == SDLK_d && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
 	{
-		debugmode = !debugmode;
+		pOverworld_manager->debugmode = !pOverworld_manager->debugmode;
+		Game_debug = pOverworld_manager->debugmode;
 	}
-	else if( key == SDLK_l && debugmode )
+	else if( key == SDLK_l && pOverworld_manager->debugmode )
 	{
-		Layer->draw = !Layer->draw;
+		// toggle layer drawing
+		pLayer->draw = !pLayer->draw;
 	}
-	else if( key == SDLK_ESCAPE || event.key.keysym.sym == SDLK_BACKSPACE )
+	else if( pKeyboard->keys[SDLK_g] && pKeyboard->keys[SDLK_o] && pKeyboard->keys[SDLK_d] )
 	{
+		// all waypoint access
+		pActive_Overworld->Set_Progress( pActive_Overworld->waypoints.size(), 1 );
+	}
+	else if( key == SDLK_ESCAPE || key == SDLK_BACKSPACE )
+	{
+		// exit
 		entered = 2;
 	}
-	else if( key == SDLK_RETURN || event.key.keysym.sym == SDLK_KP_ENTER )
+	else if( key == SDLK_RETURN || key == SDLK_KP_ENTER || key == SDLK_SPACE )
 	{
-		if( Maryo->current_waypoint >= 0 && Maryo->direction == -1 )
-		{
-			pLevel->Load( Waypoints[Maryo->current_waypoint]->Get_Levelfile() );
-			
-			if( pLevel->is_Loaded() ) // if it's a valid level
-			{
-				entered = 1;
-				DrawEffect( FIXED_COLORBOX_FADEOUT ); // Cool Pixelation
-			}
-			else // if it's not a valid level just walk to the next
-			{
-				printf( "Not a valid Overworld level %s\n", Waypoints[Maryo->current_waypoint]->Get_Levelfile().c_str() );
-				GotoNextLevel();
-			}
-		}
-
-		ClearEvents();
+		// enter
+		pOverworld_Player->Activate_Waypoint();
+		ClearInputEvents();
 	}
-}
-
-bool cOverWorld :: Load( string name )
-{
-	Unload();
-
-	string world_filename = world_handler->Get( name )->Get_WorldFile();
-
-	if( !valid_file( world_filename ) )
+	// ## editor
+	else if( pWorld_Editor->Key_Down( key )  )
 	{
-		printf( "Couldn't find Overworld file : %s from %s\n", world_filename.c_str(), name.c_str() );
+		// processed by the editor
+		return 1;
+	}
+	else
+	{
+		// not processed
 		return 0;
 	}
 
-	System::getSingleton().getXMLParser()->parseXMLFile( *this, world_filename, "data/schemes/WorldScheme.xsd", "" );
+	// key got processed
+	return 1;
+}
 
-	Maryo->Load_Images();
-	pHudManager->Load();
+bool cOverworld :: Load( void )
+{
+	Unload();
+
+	// set active for loading
+	pActive_Overworld = this;
+
+	// description
+	description->Load();
+
+	// layer
+	string layer_filename = description->Get_Layer_filename();
+
+	if( !valid_file( layer_filename ) )
+	{
+		printf( "Couldn't find Overworld Layer file : %s from %s\n", layer_filename.c_str(), description->path.c_str() );
+		return 0;
+	}
+
+	pLayer->Load( layer_filename );
+
+	// world
+	string world_filename = description->Get_World_filename();
+
+	if( !valid_file( world_filename ) )
+	{
+		printf( "Couldn't find Overworld file : %s from %s\n", world_filename.c_str(), description->path.c_str() );
+		return 0;
+	}
+
+	try
+	{
+		// parse overworld
+		System::getSingleton().getXMLParser()->parseXMLFile( *this, world_filename.c_str(), SCHEMA_DIR "/World/World.xsd", "" );
+	}
+	// catch CEGUI Exceptions
+	catch( Exception &ex )
+	{
+		printf( "Overworld Loading CEGUI Exception %s\n", ex.getMessage().c_str() );
+		debugdisplay->Set_Text( "Overworld Loading failed : " + (string)ex.getMessage().c_str() );
+	}
+
+	hud_world_name->Set_Image( pFont->RenderText( pFont->font_normal, description->name, yellow ), 1, 1 );
+
+	// center camera position
+	pCamera->Set_Pos( 0, 0 );
 
 	return 1;
 }
 
-// XML element start
-void cOverWorld :: elementStart( const String &element, const XMLAttributes &attributes )
+void cOverworld :: Unload( void )
 {
-    if( element == "Sprite" )
-    {
-        handle_sprite( attributes );
-    }
-    else if( element == "Waypoint" )
-    {
-        handle_waypoint( attributes );
-    }
-    else if( element == "Layer" )
-    {
-        handle_layer( attributes );
-    }
-    else if( element == "Player" )
-    {
-        handle_player( attributes );
-    }
+	// set active for unloading
+	pActive_Overworld = this;
+
+	// Waypoints
+	waypoints.clear();
+	// Layer
+	pLayer->Unload();
+	// Objects
+	object_manager->Delete_All();
+
+	pActive_Overworld = NULL;
 }
 
-// XML element end
-void cOverWorld :: elementEnd( const String &element )
+void cOverworld :: Save( void )
 {
-	
+	pAudio->PlaySound( "editor/save.ogg" );
+
+	string filename = description->Get_World_filename();
+
+	ofstream file( filename.c_str(), ios::out | ios::trunc );
+
+	if( !file )
+	{
+		debugdisplay->Set_Text( "Couldn't save world " + filename );
+		return;
+	}
+
+	// xml info
+	file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;
+	// begin overworld
+	file << "<overworld>" << std::endl;
+
+	// begin info
+	file << "\t<information>" << std::endl;
+		// game version
+		file << "\t\t<Property name=\"game_version\" value=\"" << VERSION << "\" />" << std::endl;
+		// engine version
+		file << "\t\t<Property name=\"engine_version\" value=\"" << 1 << "\" />" << std::endl;
+		// time ( seconds since 1970 )
+		file << "\t\t<Property name=\"save_time\" value=\"" << time( NULL ) << "\" />" << std::endl;
+	// end info
+	file << "\t</information>" << std::endl;
+
+	// begin settings
+	file << "\t<settings>" << std::endl;
+		// music
+		file << "\t\t<Property name=\"music\" value=\"" << string_to_xml_string( musicfile ) << "\" />" << std::endl;
+	// end settings
+	file << "\t</settings>" << std::endl;
+
+	// begin background
+	file << "\t<background>" << std::endl;
+		// color
+		file << "\t\t<Property name=\"color_red\" value=\"" << (int)background_color.red << "\" />" << std::endl;
+		file << "\t\t<Property name=\"color_green\" value=\"" << (int)background_color.green << "\" />" << std::endl;
+		file << "\t\t<Property name=\"color_blue\" value=\"" << (int)background_color.blue << "\" />" << std::endl;
+	// end background
+	file << "\t</background>" << std::endl;
+
+	// begin player
+	file << "\t<player>" << std::endl;
+		// start waypoint
+		file << "\t\t<Property name=\"waypoint\" value=\"" << player_start_waypoint << "\" />" << std::endl;
+		// moving state
+		file << "\t\t<Property name=\"moving_state\" value=\"" << (int)player_moving_state << "\" />" << std::endl;
+	// end player
+	file << "\t</player>" << std::endl;
+
+	// objects
+	for( ObjectList::iterator itr = object_manager->items.begin(), itr_end = object_manager->items.end(); itr != itr_end; ++itr )
+	{
+		cSprite *obj = (*itr);
+
+		// skip spawned objects
+		if( obj->spawned )
+		{
+			continue;
+		}
+
+		// save to file stream
+		obj->Save_to_Stream( file );
+	}
+
+	// end overworld
+	file << "</overworld>" << std::endl;
+	file.close();
+
+	// save Layer
+	if( pLayer->Save( description->Get_Layer_filename() ) )
+	{
+		debugdisplay->Set_Text( "Overworld " + description->name + " saved" );
+	}
 }
 
-void cOverWorld :: Unload( void )
+void cOverworld :: Set_Progress( unsigned int normal_level, bool force /* = 1 */ )
 {
-	for( unsigned int i = 0; i < Waypoints.size(); i++ )
+	for( unsigned int i = 0; i < waypoints.size(); i++ )
 	{
-		delete Waypoints[i];
-	}
-
-	Waypoints.clear();
-
-	for( unsigned int i = 0; i < MapObjects.size(); i++ )
-	{
-		if( MapObjects[i] )
+		// accessible
+		if( normal_level >= i )
 		{
-			delete MapObjects[i];
+			waypoints[i]->Set_Access( 1 );
 		}
-	}
-
-	MapObjects.clear();
-
-	if( Layer )
-	{
-		delete Layer;
-		Layer = NULL;
-	}
-
-	current_world = 0;
-	Maryo->current_waypoint = -2;
-
-	Map = 0;
-}
-
-void cOverWorld :: Set_Progress( unsigned int normal_level, unsigned int secret_level )
-{
-	for( unsigned int i = 0; i < Waypoints.size(); i++ )
-	{
-		if( normal_level >= i && Waypoints[i]->type == WAYPOINT_NORMAL )
+		// force unset
+		else if( force )
 		{
-			Waypoints[i]->access = 1;
-		}
-		else if( secret_level >= i && Waypoints[i]->type == WAYPOINT_SECRET )
-		{
-			Waypoints[i]->access = 1;
-		}
-		else
-		{
-			Waypoints[i]->access = 0;
+			waypoints[i]->Set_Access( 0 );
 		}
 	}
 }
 
-cWaypoint *cOverWorld :: Get_Waypoint( unsigned int num )
+cWaypoint *cOverworld :: Get_Waypoint( unsigned int num )
 {
-	if( num >= Waypoints.size() )
+	if( num >= waypoints.size() )
 	{
+		// out of bounds
 		return NULL;
 	}
 
-	return Waypoints[num];
+	// available
+	return waypoints[num];
 }
 
-int cOverWorld :: Get_Waypoint_Collision( GL_rect *rect_2 )
+int cOverworld :: Get_Level_Waypoint_num( string level_name )
 {
-	for( unsigned int i = 0; i < Waypoints.size(); i++ )
+	// erase file type if set
+	if( level_name.rfind( ".txt" ) != string::npos || level_name.rfind( ".smclvl" ) != string::npos )
 	{
-		if( Col_Box( rect_2, &Waypoints[i]->rect ) )
+		level_name.erase( level_name.rfind( "." ) );
+	}
+
+	return Get_Waypoint_num( level_name );
+}
+
+int cOverworld :: Get_Waypoint_num( string name )
+{
+	// search waypoint
+	for( unsigned int i = 0; i < waypoints.size(); i++ )
+	{
+		if( waypoints[i]->destination.compare( name ) == 0 )
+		{
+			// found
+			return i;
+		}
+	}
+
+	// not found
+	return -1;
+}
+
+int cOverworld :: Get_Waypoint_Collision( GL_rect *rect_2 )
+{
+	for( unsigned int i = 0; i < waypoints.size(); i++ )
+	{
+		if( Col_Box( rect_2, &waypoints[i]->rect ) )
 		{
 			return i;
 		}
@@ -443,11 +547,17 @@ int cOverWorld :: Get_Waypoint_Collision( GL_rect *rect_2 )
 	return -1;
 }
 
-int cOverWorld :: Get_LastValidWaypoint( void )
+int cOverworld :: Get_LastValidWaypoint( void )
 {
-	for( unsigned int i = (unsigned int)Waypoints.size() - 1; i > 0; i-- )
+	// no waypoints
+	if( !waypoints.size() )
 	{
-		if( Waypoints[i]->access )
+		return -1;
+	}
+
+	for( unsigned int i = waypoints.size() - 1; i > 0; i-- )
+	{
+		if( waypoints[i]->access )
 		{
 			return i;
 		}
@@ -456,404 +566,348 @@ int cOverWorld :: Get_LastValidWaypoint( void )
 	return -1;
 }
 
-bool cOverWorld :: GotoNextLevel( void )
+void cOverworld :: Update_Waypoint_text( void )
 {
-	if( !Waypoints.size() )
+	// get waypoint
+	cWaypoint *waypoint = waypoints[pOverworld_Player->current_waypoint];
+
+	// set color
+	Color color = (Uint8)0;
+
+	if( waypoint->waypoint_type == WAYPOINT_NORMAL )
+	{
+		color = lightblue;
+	}
+	else if( waypoint->waypoint_type == WAYPOINT_WORLD_LINK )
+	{
+		color = green;
+	}
+	
+	hud_level_name->Set_Image( pFont->RenderText( pFont->font_normal, waypoint->Get_Destination(), color ), 1, 1 );
+}
+
+bool cOverworld :: Goto_next_Level( void )
+{
+	// if not in overworld only goto next level on overworld enter
+	if( Game_Mode != MODE_OVERWORLD )
+	{
+		next_level = 1;
+		return 0;
+	}
+
+	next_level = 0;
+
+	// no Waypoint or invalid current Waypoint
+	if( !waypoints.size() || pOverworld_Player->current_waypoint < 0 || pOverworld_Player->current_waypoint >= (int)waypoints.size() )
 	{
 		return 0;
 	}
 
-	// Checks if Waypoint exist and if its not the first
-	if( Maryo->current_waypoint < (int)Waypoints.size() && Waypoints[Maryo->current_waypoint]->direction_forward != DIR_NOTHING )
+	// Waypoint direction is invalid
+	if( waypoints[pOverworld_Player->current_waypoint]->direction_forward == DIR_UNDEFINED )
 	{
-		cWaypoint *next_waypoint = Get_Waypoint( Maryo->current_waypoint + 1 );
+		return 0;
+	}
 
-		// if no next waypoint available return
-		if( !next_waypoint )
+	cWaypoint *next_waypoint = Get_Waypoint( pOverworld_Player->current_waypoint + 1 );
+
+	// if no next waypoint available
+	if( !next_waypoint )
+	{
+		return 0;
+	}
+
+	// if next waypoint is new
+	if( !next_waypoint->access )
+	{
+		next_waypoint->Set_Access( 1 );
+
+		// animation
+		cParticleAnimation *anim = new cParticleAnimation( next_waypoint->rect.x + ( next_waypoint->rect.w * 0.4f ), next_waypoint->rect.y + ( next_waypoint->rect.h * 0.4f ) );
+		anim->Set_Emitter_Time_to_Live( 1.5f );
+		anim->Set_Emitter_Iteration_Interval( 0.1f );
+		anim->Set_Quota( 2 );
+		anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
+		anim->Set_ZPos( 0.081f );
+		anim->Set_Time_to_Live( 1.3f );
+		anim->Set_Speed( 1, 1 );
+		anim->Set_Scale( 0.5f, 0.4f );
+		anim->Set_ConstRotationZ( 1, 12 );
+
+		// World Waypoint
+		if( next_waypoint->waypoint_type == WAYPOINT_WORLD_LINK )
 		{
-			return 0;
+			anim->Set_Color( lightgreen, Color( (Uint8)60, 0, 60 ) );
+		}
+		else
+		{
+			anim->Set_Color( orange, Color( (Uint8)6, 60, 20 ) );
 		}
 
-		if( !next_waypoint->access )
+		// add animation
+		pAnimationManager->Add( anim );
+	}
+
+	pOverworld_Player->Start_Walk( waypoints[pOverworld_Player->current_waypoint]->direction_forward );
+
+	return  1;
+}
+
+void cOverworld :: Reset_Waypoints( void )
+{
+	for( unsigned int i = 0; i < waypoints.size(); i++ )
+	{
+		waypoints[i]->Set_Access( waypoints[i]->access_default );
+	}
+}
+
+// XML element start
+void cOverworld :: elementStart( const String &element, const XMLAttributes &attributes )
+{
+	// Property of an Element
+    if( element == "Property" )
+    {
+		xml_attributes.add( attributes.getValueAsString( "name" ), attributes.getValueAsString( "value" ) );
+    }
+}
+
+// XML element end
+void cOverworld :: elementEnd( const String &element )
+{
+	if( element != "Property" )
+	{
+		if( element == "information" )
 		{
-			next_waypoint->access = 1;
+			//engine_version = xml_attributes.getValueAsInteger( "engine_version" );
+			//last_saved = xml_attributes.getValueAsInteger( "save_time" );
 		}
-		
-		Maryo->Start_Walk( Waypoints[Maryo->current_waypoint]->direction_forward );	
-		return 1;
+		else if( element == "settings" )
+		{
+			// Author
+			//author = xml_attributes.getValueAsString( "author" ).c_str();
+			// Version
+			//version = xml_attributes.getValueAsString( "version" ).c_str();
+			// Music
+			musicfile = xml_attributes.getValueAsString( "music" ).c_str();
+			// Camera Limits
+			//pCamera->Set_Limits( GL_rect( (float)xml_attributes.getValueAsInteger( "cam_limit_x" ), (float)(float)xml_attributes.getValueAsInteger( "cam_limit_y" ), (float)(float)xml_attributes.getValueAsInteger( "cam_limit_w" ), (float)(float)xml_attributes.getValueAsInteger( "cam_limit_h" ) ) );
+		}
+		else if( element == "player" )
+		{
+			// Start Waypoint
+			player_start_waypoint = xml_attributes.getValueAsInteger( "waypoint" );
+			// Moving State
+			player_moving_state = (Moving_state)xml_attributes.getValueAsInteger( "moving_state" );
+		}
+		else if( element == "background" )
+		{
+			background_color = Color( (Uint8)xml_attributes.getValueAsInteger( "color_red" ), xml_attributes.getValueAsInteger( "color_green" ), xml_attributes.getValueAsInteger( "color_blue" ) );
+		}
+		else
+		{
+			// get World object
+			cSprite *object = Get_World_Object( element, xml_attributes );
+			
+			// valid
+			if( object )
+			{
+				Add_Map_Object( object );
+			}
+			else if( element == "overworld" )
+			{
+				// ignore
+			}
+			else if( element.length() )
+			{
+				printf( "Warning : Overworld Unknown element : %s\n", element.c_str() );
+			}
+		}
+
+		// clear
+		xml_attributes = XMLAttributes();
+	}
+}
+
+void cOverworld :: Draw( void )
+{
+	// Background
+	pVideo->Clear_Screen();
+	pVideo->Draw_Rect( NULL, 0.00001f, &background_color );
+
+	// Map
+	object_manager->Draw_items();
+	// Animations
+	pAnimationManager->Draw();
+	// Player
+	pOverworld_Player->Draw();
+	// Hud
+	Draw_HUD();
+
+	// Line Layer
+	pLayer->Draw();
+	// Editor
+	pWorld_Editor->Draw();
+	// Mouse
+	pMouseCursor->Draw();
+}
+
+void cOverworld :: Draw_HUD( void )
+{
+	// if not editor mode
+	if( !editor_world_enabled )
+	{
+		// Background
+		Color color = Color( (Uint8)230, 170, 0, 128 );
+		pVideo->Draw_Rect( 0, 0, GAME_RES_W, 30, 0.12f, &color );
+		// Line
+		color = Color( (Uint8)200, 150, 0, 128 );
+		pVideo->Draw_Rect( 0, 30, GAME_RES_W, 5, 0.121f, &color );
+
+		// Overworld name and level
+		hud_world_name->Draw();
+		hud_level_name->Draw();
 	}
 
-	return  0;
+
+	// hud
+	pHudManager->Draw();
 }
 
-void cOverWorld :: Reset_Waypoints( void )
+void cOverworld :: Update( void )
 {
-	for( unsigned int i = 0; i < pOverWorld->Waypoints.size(); i++ )
+	// Mouse
+	pMouseCursor->Update_Position();
+	pMouseCursor->Update();
+
+	// input
+	while( SDL_PollEvent( &input_event ) )
 	{
-		pOverWorld->Waypoints[i]->access = pOverWorld->Waypoints[i]->access_default;
+		// was handled
+		if( Handle_Input_Global( &input_event ) )
+		{
+			continue;
+		}
+
+		switch( input_event.type )
+		{
+			case SDL_QUIT:
+			{
+				entered = 1;
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
 	}
-}
 
-void cOverWorld :: Load_Map( void )
-{
-	// todo
-}
+	// editor
+	pWorld_Editor->Process_Input();
 
-void cOverWorld :: handle_sprite( const XMLAttributes &attributes )
-{
-	string filename = attributes.getValueAsString( "Filename" ).c_str();
-	int posx = attributes.getValueAsInteger( "PosX" );
-	int posy = attributes.getValueAsInteger( "PosY" );
+	// Audio
+	pAudio->Update();
 
-	string final_filename = filename;
-	final_filename.insert( 0, "/world/overworlds/" );
-	final_filename.insert( 0, PIXMAPS_DIR );
-
-	if( !valid_file( final_filename ) )
+	if( !editor_world_enabled )
 	{
-		printf( "%s : ", world_handler->worlds[current_world]->dir.c_str() );
-		printf( "Line %d, error : %s %s\n", 0, final_filename.c_str(), "file not found" );
+		// Camera
+		Update_Camera();
+		// Map
+		object_manager->Update_items();
+		// Player
+		pOverworld_Player->Update();
+		// hud
+		pHudManager->Update();
+		// Animations
+		pAnimationManager->Update();
+	}
+
+	// Editor
+	pWorld_Editor->Update();
+}
+
+void cOverworld :: Update_Camera( void )
+{
+	if( editor_world_enabled )
+	{
 		return;
 	}
 
-	cSprite *temp = new cSprite( GetImage( final_filename ), posx, GAME_RES_H - posy );
-	AddMapObject( temp );
-}
-
-void cOverWorld :: handle_waypoint( const XMLAttributes &attributes )
-{
-	int posx = attributes.getValueAsInteger( "PosX" );
-	int posy = attributes.getValueAsInteger( "PosY" );
-	int type = attributes.getValueAsInteger( "Type" );
-	string levelname = attributes.getValueAsString( "LevelName" ).c_str();
-	string dir_back = attributes.getValueAsString( "Dir_Back" ).c_str();
-	string dir_for = attributes.getValueAsString( "Dir_For" ).c_str();
-	int access = attributes.getValueAsInteger( "Access" );
-
-	if( dir_back.compare( "FIRST" ) != 0 && dir_back.compare( "LAST" ) != 0 && dir_back.compare( "LEFT" ) != 0 && 
-		dir_back.compare( "RIGHT" ) != 0 && dir_back.compare( "UP" ) != 0 && dir_back.compare( "DOWN" ) != 0 )
+	// todo : move to a Process_Input function
+	if( pOverworld_manager->cameramode )
 	{
-		printf( "%s : ", world_handler->worlds[current_world]->dir.c_str() );
-		printf( "Line %d, error : %s %s\n", 0, dir_back.c_str(), "is not a valid direction value" );
-		return;
+		if( pKeyboard->keys[pPreferences->key_right] || ( pJoystick->right && pPreferences->joy_enabled ) )
+		{
+			pCamera->Move( pFramerate->speedfactor * 15, 0 );
+		}
+		else if( pKeyboard->keys[pPreferences->key_left] || ( pJoystick->left && pPreferences->joy_enabled ) )
+		{
+			pCamera->Move( pFramerate->speedfactor * -15, 0 );
+		}
+		if( pKeyboard->keys[pPreferences->key_up] || ( pJoystick->up && pPreferences->joy_enabled ) )
+		{
+			pCamera->Move( 0, pFramerate->speedfactor * -15 );
+		}
+		else if( pKeyboard->keys[pPreferences->key_down] || ( pJoystick->down && pPreferences->joy_enabled ) )
+		{
+			pCamera->Move( 0, pFramerate->speedfactor * 15 );
+		}
 	}
-
-	if( dir_for.compare( "FIRST" ) != 0 && dir_for.compare( "LAST" ) != 0 &&  dir_for.compare( "LEFT" ) != 0 && 
-		dir_for.compare( "RIGHT" ) != 0 && dir_for.compare( "UP" ) != 0 && dir_for.compare( "DOWN" ) != 0 )
-	{
-		printf( "%s : ", world_handler->worlds[current_world]->dir.c_str() );
-		printf( "Line %d, error : %s %s\n", 0, dir_for.c_str(), "is not a valid direction value" );
-		return;
-	}
-
-	cWaypoint *waypoint = new cWaypoint();
-
-	waypoint->rect.x = posx;
-	waypoint->rect.y = GAME_RES_H - posy;
-	waypoint->type = (Waypoint_type)type;
-
-	string filename = levelname;
-	filename.insert( filename.length(), ".txt" );
-	// Todo : check if level exists
-	waypoint->levelname = filename;
-
-	if( dir_back.compare( "FIRST" ) == 0 )
-	{
-		waypoint->direction_back = DIR_FIRST;
-	}
-	else if( dir_back.compare( "LAST" ) == 0 )
-	{
-		waypoint->direction_back = DIR_LAST;
-	}
-	else if( dir_back.compare( "LEFT" ) == 0 )
-	{
-		waypoint->direction_back = DIR_LEFT;
-	}
-	else if( dir_back.compare( "RIGHT" ) == 0 )
-	{
-		waypoint->direction_back = DIR_RIGHT; 
-	}
-	else if( dir_back.compare( "UP" ) == 0 )
-	{
-		waypoint->direction_back = DIR_UP;
-	}
-	else if( dir_back.compare( "DOWN" ) == 0 )
-	{
-		waypoint->direction_back = DIR_DOWN;
-	}
+	// default player camera
 	else
 	{
-		printf( "%s : ", world_handler->worlds[current_world]->dir.c_str() );
-		printf( "Line %d, error : %s %s\n", 0, dir_back.c_str(), "Waypoint backward direction unknown" );
-	}
-
-	if( dir_for.compare( "FIRST" ) == 0 )
-	{
-		waypoint->direction_forward = DIR_FIRST;
-	}
-	else if( dir_for.compare( "LAST" ) == 0 )
-	{
-		waypoint->direction_forward = DIR_LAST;
-	}
-	else if( dir_for.compare( "LEFT" ) == 0 )
-	{
-		waypoint->direction_forward = DIR_LEFT;
-	}
-	else if( dir_for.compare( "RIGHT" ) == 0 )
-	{
-		waypoint->direction_forward = DIR_RIGHT; 
-	}
-	else if( dir_for.compare( "UP" ) == 0 )
-	{
-		waypoint->direction_forward = DIR_UP;
-	}
-	else if( dir_for.compare( "DOWN" ) == 0 )
-	{
-		waypoint->direction_forward = DIR_DOWN;
-	}
-	else
-	{
-		printf( "%s : ", world_handler->worlds[current_world]->dir.c_str() );
-		printf( "Line %d, error : %s %s\n", 0, dir_for.c_str(), "Waypoint forward direction unknown" );
-	}
-
-	if( access == 1 || Waypoints.size() == 0 )
-	{
-		waypoint->access = 1;
-		waypoint->access_default = 1;
-	}
-
-	Waypoints.push_back( waypoint );
-}
-
-void cOverWorld :: handle_layer( const XMLAttributes &attributes )
-{
-	string filename = attributes.getValueAsString( "Filename" ).c_str();
-	int posx = attributes.getValueAsInteger( "PosX" );
-	int posy = attributes.getValueAsInteger( "PosY" );
-
-	string final_filename = "data/world/" + world_handler->worlds[current_world]->dir + "/" + filename;
-
-	if( !valid_file( final_filename ) )
-	{
-		printf( "%s : ", world_handler->worlds[current_world]->dir.c_str() );
-		printf( "Line %d, error : %s %s\n", 0, final_filename.c_str(), "file not found" );
-		return;
-	}
-
-	if( Layer )
-	{
-		printf( "%s : ", world_handler->worlds[current_world]->dir.c_str() );
-		printf( "Line %d, error : %s %s\n", 0, final_filename.c_str(), "Layer already loaded" );
-		return;
-	}
-	else
-	{
-		Layer = new cLayer();
-		Layer->Load( final_filename );
+		pOverworld_Player->Update_Camera();
 	}
 }
 
-void cOverWorld :: handle_player( const XMLAttributes &attributes )
+void cOverworld :: Add_Map_Object( cSprite *object )
 {
-	unsigned int waypoint = attributes.getValueAsInteger( "Waypoint" );
-	int state = attributes.getValueAsInteger( "State" );
-
-	if( waypoint > Waypoints.size() )
-	{
-		printf( "%s : ", world_handler->worlds[current_world]->dir.c_str() );
-		printf( "Line %d, error : %d %s\n", 0, waypoint, "is bigger as the available Waypoints" );
-		return;
-	}
-	
-	if( state > 5 )
-	{
-		printf( "%s : ", world_handler->worlds[current_world]->dir.c_str() );
-		printf( "Line %d, error : %d %s\n", 0, state, "is not a valid state value" );
-		return;
-	}
-
-	if( Maryo->current_waypoint < 0 )
-	{
-		Maryo->Set_Waypoint( waypoint );
-	}
-
-	Maryo->maryo_state = (Maryo_type)state;
-}
-
-void cOverWorld :: AddMapObject( cSprite *object )
-{
+	// invalid
 	if( !object )
 	{
 		return;
 	}
 
-	MapObjects.push_back( object );
+	// no player range
+	object->player_range = 0;
+
+	// add
+	object_manager->Add( object );
+
+	// Add to Waypoints array
+	if( object->type == TYPE_OW_WAYPOINT )
+	{
+		waypoints.push_back( static_cast<cWaypoint *>(object) );
+	}
 }
 
-void cOverWorld :: Draw( void )
+cSprite *Get_World_Object( const String &element, XMLAttributes &attributes )
 {
-	ResetScreen();
-	// TODO : defined Background color
-	DrawRect( NULL, &darkblue );
-
-	Draw_MapObjects();
-	Draw_Waypoints();
-	Maryo->Draw();
-	Draw_HUD();
-	Draw_Debug();
-	Layer->Draw();
-
-	if( editormode )
+	if( element == "sprite" )
 	{
-		pMouseCursor->Update();
+		// old position name
+		if( attributes.exists( "filename" ) )
+		{
+			attributes.add( "image", attributes.getValueAsString( "filename" ) );
+			attributes.add( "posx", attributes.getValueAsString( "pos_x" ) );
+			attributes.add( "posy", attributes.getValueAsString( "pos_y" ) );
+		}
+
+		// create sprite
+		cSprite *object = new cSprite( attributes );
+		// set sprite type
+		object->Set_Sprite_Type( TYPE_PASSIVE );
+
+		return object;
+	}
+	else if( element == "waypoint" )
+	{
+		return new cWaypoint( attributes );
 	}
 
-	SDL_GL_SwapBuffers();
+	return NULL;
 }
 
-void cOverWorld :: Draw_MapObjects( void )
-{
-	for( unsigned int i = 0; i < MapObjects.size(); i++ )
-	{
-		if( !MapObjects[i] )
-		{
-			continue;
-		}
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-		MapObjects[i]->Draw();
-	}
-}
-
-void cOverWorld :: Draw_Waypoints( void )
-{
-	for( unsigned int i = 0; i < Waypoints.size(); i++ )
-	{
-		Waypoints[i]->Draw();
-	}
-}
-
-void cOverWorld :: Draw_HUD( void )
-{
-	// Background
-	Color color = Get_Color( 230, 170, 0 );
-	DrawRect( 0, 0, GAME_RES_W, 30, &color );
-	// Line
-	color = Get_Color( 200, 150, 0 );
-	DrawRect( 0, 30, GAME_RES_W, 5, &color );
-	
-	hud_level->Draw();
-	pHudManager->Update();
-}
-
-void cOverWorld :: Draw_Debug( void )
-{
-	if( !debugmode )
-	{
-		return;
-	}
-
-	double x, y;
-
-	// Debug Mode Text
-	x = 15;
-	y = GAME_RES_H / 1.06;
-
-	if( debugimage )
-	{
-		debugimage->Blit( x, y, &black );
-	}
-	else
-	{
-		debugimage = RenderText( font_normal, "Debug Mode", white );
-	}
-	x += debugimage->w + 40;
-
-	// The Current Waypoint Text
-	char dtext[100];
-	sprintf( dtext, "Curr Waypoint : %d", Maryo->current_waypoint );
-
-	if( debug_curr_waypoint )
-	{
-		delete debug_curr_waypoint;
-	}
-	debug_curr_waypoint = RenderText( font_normal, dtext, green );
-
-	debug_curr_waypoint->Blit( x, y, &black );
-	x += debug_curr_waypoint->w + 40;
-
-	// The Current Line Text
-	sprintf( dtext, "Curr Line : %d", Maryo->current_line );
-
-	if( debug_curr_line )
-	{
-		delete debug_curr_line;
-	}
-	debug_curr_line = RenderText( font_normal, dtext, green );
-
-	debug_curr_line->Blit( x, y, &black );
-	x += debug_curr_line->w + 40;
-
-	// The Lines Text
-	sprintf( dtext, "Lines : %d", Layer->lines.size() );
-
-	if( debug_nlevel )
-	{
-		delete debug_nlevel;
-	}
-	debug_nlevel = RenderText( font_normal, dtext, blue );
-	
-	debug_nlevel->Blit( x, y, &black );
-}
-
-void cOverWorld :: Update( void )
-{
-	pAudio->Update();
-	pMouseCursor->Update_Position();
-
-	Update_Camera();
-	Maryo->Update();
-}
-
-void cOverWorld :: Update_Camera( void )
-{
-	if( cameramode )
-	{
-		if( keys[pPreferences->Key_right] || ( pJoystick->right && pPreferences->Joy_enabled ) )
-		{
-			cameraposx += 10 * Framerate.speedfactor;
-		}
-		else if( keys[pPreferences->Key_left] || ( pJoystick->left && pPreferences->Joy_enabled ) )
-		{
-			cameraposx -= 10 * Framerate.speedfactor;
-		}
-		if( keys[pPreferences->Key_up] || ( ( pJoystick->up || pJoystick->Button( pPreferences->Joy_jump ) ) && pPreferences->Joy_enabled ) )
-		{
-			cameraposy -= 10 * Framerate.speedfactor;
-		}
-		else if( keys[pPreferences->Key_down] || ( pJoystick->down && pPreferences->Joy_enabled ) )
-		{
-			cameraposy += 10 * Framerate.speedfactor;
-		}
-	}
-	else
-	{
-		if( Maryo->posx - cameraposx - 1> (GAME_RES_W / 4 * 3) ) // Right
-		{
-			cameraposx = Maryo->posx - ( GAME_RES_W / 4 * 3 );
-		}
-		else if( cameraposx && Maryo->posx - cameraposx + 1 < (GAME_RES_W / 8 * 2) ) // Left
-		{
-			cameraposx = Maryo->posx - ( GAME_RES_W / 8 * 2 );
-		}
-		
-		if( Maryo->posy - cameraposy + 1 < ( GAME_RES_H / 6 ) ) // Up
-		{
-			cameraposy = Maryo->posy - ( GAME_RES_H / 6 );
-		}
-		else if( cameraposy && Maryo->posy - cameraposy - 1 > ( GAME_RES_H / 6 * 2.9 ) ) // Down
-		{
-			cameraposy = Maryo->posy - ( GAME_RES_H / 6 * 2.9 );
-		}
-	}
-}
+cOverworld *pActive_Overworld = NULL;

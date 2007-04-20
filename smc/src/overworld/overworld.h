@@ -1,7 +1,7 @@
 /***************************************************************************
                 overworld.h  -  header for the corresponding cpp file
                              -------------------
-    copyright            : (C) 2003 - 2006 by FluXy
+    copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -15,158 +15,170 @@
 #ifndef __OVERWORLD_H__
 #define __OVERWORLD_H__
 
-#include "../globals.h"
+#include "../overworld/worlds.h"
+#include "../overworld/waypoint.h"
+#include "../overworld/layer.h"
+#include "../overworld/ow_player.h"
+#include "../core/obj_manager.h"
+#include "../gui/hud.h"
 
-/* *** *** *** *** *** *** *** *** Overworld handler *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** *** cOverworld_description *** *** *** *** *** *** *** *** *** */
 
-class cOverworld_world
+class cOverworld_description : public XMLHandler
 {
 public:
-	cOverworld_world( void );
-	~cOverworld_world( void );
+	cOverworld_description( void );
+	~cOverworld_description( void );
 
-	string Get_WorldFile( void );
-
-	string name;
-	string dir;
-};
-
-typedef vector<cOverworld_world *> Overworld_worldList;
-
-class cOverworld_worlds : public XMLHandler
-{
-public:
-	cOverworld_worlds( void );
-	~cOverworld_worlds( void );
-
-	// Load Overworld descriptions
+	// Load Overworld Description
 	void Load( void );
-	// Unload Overworld descriptions
-	void Unload( void );
 
-	// Returns Overworld description
-	cOverworld_world *Get( string name );
+	// returns the world filename
+	string Get_World_filename( void );
+	// returns the description filename
+	string Get_Description_filename( void );
+	// returns the layer filename
+	string Get_Layer_filename( void );
 
-	Overworld_worldList worlds;
+	// directory name
+	string path;
+	// world name
+	string name;
+	// is visible on selection
+	bool visible;
 
-	// world descriptor filename
-	string world_filename;
-
+	// world comment
+	string comment;
 private:
 	// XML element start
     virtual void elementStart( const String &element, const XMLAttributes &attributes );
 	// XML element end
     virtual void elementEnd( const String &element );
-	// handles a world
+	// handle world description
     void handle_world( const XMLAttributes& attributes );
+
+	// XML element Property list
+	XMLAttributes xml_attributes;
 };
 
-/* *** *** *** *** *** *** *** *** OverWorld *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** *** cOverworld *** *** *** *** *** *** *** *** *** */
 
-
-typedef vector<cSprite *> MapObjectList;
 typedef vector<cWaypoint *> WaypointList;
 
-class cOverWorld : public XMLHandler
+class cOverworld : public XMLHandler
 {
 public:
-	cOverWorld( void );
-	~cOverWorld( void );
+	cOverworld( void );
+	~cOverworld( void );
 
-	 // Enters the Overworld
-	void Enter( void );
-	// handles keydown events
-	void KeyDown_OW( SDLKey key );
+	/* Enter
+	* if delayed is given this overworld will be entered on the next update
+	*/
+	void Enter( bool delayed = 0 );
 
-	 // Loads an Overworld
-	bool Load( string name );
-	// Unloads the Overworld
+	/* handle key down event
+	 * returns true if the key was processed
+	*/
+	bool Key_Down( SDLKey key );
+
+	// Load
+	bool Load( void );
+	// Unload
 	void Unload( void );
-	// Todo : Loads a map from the current OverWorld
-	void Load_Map( void );
+	// Save
+	void Save( void );
 
-	// Draws the Overworld
+	// Draw
 	void Draw( void );
-	// Draws all Map Objects
-	void Draw_MapObjects( void );
-	// Draw all Waypoints
-	void Draw_Waypoints( void );
 	// Draws the HUD
 	void Draw_HUD( void );
-	// Draws the Debug Stuff ( if Debugmode )
-	void Draw_Debug( void );
 
-	// Updates the Overworld
+	// Update
 	void Update( void );
 	// Updates the Camera
 	void Update_Camera( void );
 
-	// Sets the current Map progress
-	void Set_Progress( unsigned int normal_level, unsigned int secret_level );
+	// Add Map Object
+	void Add_Map_Object( cSprite *object );
 
-	// Returns a pointer to the Waypoint if in index else NULL
+	/* Sets the current Waypoint progress
+	 * if force is set already accessible waypoints will be unset
+	*/
+	void Set_Progress( unsigned int normal_level, bool force = 1 );
+
+	/* Returns a pointer to the Waypoint
+	 * if not found returns NULL
+	*/
 	cWaypoint *Get_Waypoint( unsigned int num );
-	// Checks if the rect collides with a waypoint returns -1 if no collisions
+	/* Returns the Waypoint array number if the level name matches
+	 * if not found returns -1
+	*/
+	int Get_Level_Waypoint_num( string level_name );
+	/* Returns the Waypoint array number if the destination name matches
+	 * if not found returns -1
+	*/
+	int Get_Waypoint_num( string world_name );
+
+	// Checks if the rect collides with a Waypoint returns -1 if no collisions
 	int Get_Waypoint_Collision( GL_rect *rect_2 );
-	// returns the last accessable waypoint
+	// returns the last accessible Waypoint
 	int Get_LastValidWaypoint( void );
+	// update the Waypoint text
+	void Update_Waypoint_text( void );
 
 	// Enable the next Level and walk into the forward direction
-	bool GotoNextLevel( void );
+	bool Goto_next_Level( void );
 	// Resets the Waypoint access to the default
 	void Reset_Waypoints( void );
 
-	// Current Overworld Map
-	unsigned int Map;
+	// description
+	cOverworld_description *description;
 
-	// Waypoints on the map
-	WaypointList Waypoints;
-	
-	// current Overworld
-	int current_world;
-	// Overworld information handler
-	cOverworld_worlds *world_handler;
-
-	// Map Objects
-	MapObjectList MapObjects;
+	// Map objects
+	cObjectManager *object_manager;
+	// Waypoints
+	WaypointList waypoints;
 
 	// current Layer for collision checking
-	cLayer *Layer;
-	// Maryo sprite
-	cWorld_Maryo *Maryo;
-	// HUD
-	cSprite *hud_level;
+	cLayer *pLayer;
+	// Background Color
+	Color background_color;
+	// music filename
+	string musicfile;
+	// HUD world name
+	cHudSprite *hud_world_name;
+	// HUD current level name
+	cHudSprite *hud_level_name;
 
 	// if the overworld should be left ( 1 = quit, 2 = Enter Main Menu )
 	unsigned int entered;
-	// shows additional information
-	bool debugmode;
-	// map scrolling with the arrow keys
-	bool cameramode;
-	// enables world editing
-	bool editormode;
+	// if the overworld should be entered on the next update
+	bool delayed_enter;
+	// goto next level on overworld enter
+	bool next_level;
+
+	// Settings
+	unsigned int player_start_waypoint;
+	Moving_state player_moving_state;
+
 private:
 	// XML element start
     virtual void elementStart( const String &element, const XMLAttributes &attributes );
 	// XML element end
     virtual void elementEnd( const String &element );
-	// handles a Sprite
-    void handle_sprite( const XMLAttributes& attributes );
-	// handles a Waypoint
-    void handle_waypoint( const XMLAttributes& attributes );
-	// handles a Layer
-    void handle_layer( const XMLAttributes& attributes );
-	// handles the Player
-    void handle_player( const XMLAttributes& attributes );
-
-	// Adds a Sprite Map Object
-	void AddMapObject( cSprite *object );
  
-	// Debug Texts
-	GL_Surface *debugimage;
-	GL_Surface *debug_curr_waypoint;
-	GL_Surface *debug_curr_line;
-	GL_Surface *debug_nlevel;
+	// XML element Property list
+	XMLAttributes xml_attributes;
 };
+
+// Returns a World Object if element name is available else NULL
+cSprite *Get_World_Object( const String &element, XMLAttributes &attributes );
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+// The Overworld
+extern cOverworld *pActive_Overworld;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 #endif

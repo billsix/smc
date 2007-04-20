@@ -3,7 +3,7 @@
 
 Levelengine_version 1
 
-Music land_1.ogg
+Music land/land_1.ogg
 Background_color_1 200 0 0
 Background_color_2 60 0 0
 

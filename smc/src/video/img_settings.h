@@ -1,7 +1,7 @@
 /***************************************************************************
 			img_settings.h  -  header for the corresponding cpp file
                          -------------------
-    copyright            : (C) 2005 - 2006 by FluXy
+    copyright            : (C) 2005 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -12,32 +12,78 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "../globals.h"
-
 #ifndef __IMG_SETTINGS_H__
 #define __IMG_SETTINGS_H__
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+#include "../core/globals.h"
+#include "../core/file_parser.h"
+#include "../video/gl_surface.h"
+#include "../core/math/rect.h"
 
-// Class: cImage_settings
+
+/* *** *** *** *** *** *** cImage_settings_data *** *** *** *** *** *** *** *** *** *** *** */
+
+class cImage_settings_data
+{
+public:
+	cImage_settings_data( void );
+	~cImage_settings_data( void );
+
+	void Apply( GL_Surface *image );
+
+	// base image/settings path
+	string base;
+	// inherit base settings
+	bool base_settings;
+
+	// internal drawing offset
+	int int_x, int_y;
+	// collision rect
+	GL_rect col_rect;
+	// width
+	int width;
+	// height
+	int height;
+	// rotation
+	int rotation_x, rotation_y, rotation_z;
+	// texture mipmapping
+	bool mipmap;
+
+	// editor tags
+	string editor_tags;
+	// name
+	string name;
+	// sprite type
+	int type;
+	// obsolete
+	bool obsolete;
+};
+
+/* *** *** *** *** *** *** cImage_settings *** *** *** *** *** *** *** *** *** *** *** */
+
 // Image Settings Handler
-// Inherits from <cFile_parser>
+// Inherits from cFile_parser
 class cImage_settings : public cFile_parser
 {
 public:
 	cImage_settings( void );
 	virtual ~cImage_settings( void );
 
-	// Apply the settings from the given file on the given image
-	void ApplyTextureSettings( GL_Surface *image, string filename );
+	// Returns the settings from the given file
+	cImage_settings_data *Get( string &filename );
 
 	// Handles the Image Settings Line
 	virtual bool HandleMessage( string *parts, unsigned int count, unsigned int line );
 
 	// the surface pointer used
-	GL_Surface *surface;
+	cImage_settings_data *settings;
 };
 
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+// Image Settings Handler class
+extern cImage_settings *pSettingsParser;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 #endif
-

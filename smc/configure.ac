@@ -1,103 +1,76 @@
-dnl Process this file with autoconf to produce a configure script.
-
-AC_INIT(src/main.cpp)
-
-PACKAGE=smc
-VERSION=0.98
-
-AC_PREREQ(2.50)
+AC_PREREQ(2.57)
+AC_INIT(smc, 0.99.6)
 AC_CANONICAL_TARGET
-AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS(config.h)
+AM_INIT_AUTOMAKE(foreign)
 
-AC_ISC_POSIX
-AC_PROG_CC
+# Check for programs
 AC_PROG_CXX
-AM_PROG_CC_STDC
-AC_HEADER_STDC
-AC_PROG_INSTALL
-#AM_PROG_LIBTOOL
+AC_LANG(C++)
 
-dnl Checks for programs.
+# Check for Boost Filesystem
+AC_CHECK_LIB(boost_filesystem, main, ,
+	AC_MSG_ERROR([Unable to find Boost Filesystem library]))
 
-
-dnl Checks for libraries.
-
-dnl Check for SDL
-SDL_VERSION=1.2.0
-AM_PATH_SDL($SDL_VERSION, :,
-  AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!]))
-CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
-LIBS="$LIBS $SDL_LIBS -lGL"
-
-dnl Check for SDL_image library
-AC_CHECK_LIB(SDL_image, IMG_LoadPNG_RW, ,
-  AC_MSG_ERROR([Unable to find the SDL_image library with PNG support
-   (http://www.libsdl.org/projects/SDL_image/)]),
-  [-lpng])
-
-dnl Check for SDL_mixer library
-AC_CHECK_LIB(SDL_mixer, main, ,
-  AC_MSG_ERROR([Unable to find the SDL_mixer library
-   (http://www.libsdl.org/projects/SDL_mixer/)] ))
-
-dnl Check for SDL_ttf library
-AC_CHECK_LIB(SDL_ttf, TTF_Init, ,
-  AC_MSG_ERROR([Unable to find the SDL_ttf library] ))
-
-dnl Check for CEGUI
-PKG_CHECK_MODULES(CEGUI, CEGUI >= 0)
-#AC_SUBST(CEGUI_CFLAGS)
-#AC_SUBST(CEGUI_LIBS)
-#CPPFLAGS="$CPPFLAGS $CEGUI_CFLAGS"
-#LIBS="$LIBS $CEGUI_LIBS"
-#PKG_CHECK_MODULES(CEGUI-OPENGL, CEGUI >= 0)
-#AC_SUBST(CEGUI-OPENGL_CFLAGS)
-#AC_SUBST(CEGUI-OPENGL_LIBS)
-#CPPFLAGS="$CPPFLAGS $CEGUI-OPENGL_CFLAGS"
-CPPFLAGS="$CPPFLAGS `pkg-config --cflags CEGUI-OPENGL`"
-LIBS="$LIBS `pkg-config --libs CEGUI-OPENGL`"
-
-
-dnl Checks for header files.
-
-AC_HEADER_STDC
-
-AC_CHECK_HEADERS([SDL_rotozoom.h], ,
-  AC_MSG_ERROR([The SDL_gfx library is not installed correctly!]))
-
-
-dnl Checks for typedefs, structures, and compiler characteristics.
-
-
-dnl Checks for library functions.
-
-
-dnl Checks for Additional stuffs.
-
-
-
-dnl Set PACKAGE SOURCE DIR in config.h.
-packagesrcdir=`cd $srcdir && pwd`
-
-dnl Set PACKAGE PREFIX
-if test "x${prefix}" = "xNONE"; then
-  packageprefix=${ac_default_prefix}
-else
-  packageprefix=${prefix}
+# Check for OpenGL, GLU
+AC_CHECK_LIB(GL, main, , has_gl=no)
+AC_CHECK_LIB(GLU, main, , has_glu=no)
+if test "x$has_gl" = "xno" -o "x$has_glu" = "xno"; then
+	AC_MSG_ERROR(Unable to find the OpenGL library)
 fi
 
-dnl Set PACKAGE DATA & DOC DIR
-packagedatadir=share/${PACKAGE}
-packagedocdir=doc/${PACKAGE}
+# Check for SDL
+SDL_VERSION=1.2.10
+AM_PATH_SDL($SDL_VERSION, ,
+	AC_MSG_ERROR([Unable to find SDL $SDL_VERSION]))
+CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+LIBS="$LIBS $SDL_LIBS"
 
-AC_DEFINE_UNQUOTED(SAVE_DIR, "savegames", [Directory for savegames])
-AC_DEFINE_UNQUOTED(LEVEL_DIR, "${packageprefix}/${packagedatadir}/levels/", [Directory for level files])
-AC_DEFINE_UNQUOTED(OVERWORLD_DIR, "${packageprefix}/${packagedatadir}/world", [Directory for word data])
-AC_DEFINE_UNQUOTED(PIXMAPS_DIR, "${packageprefix}/${packagedatadir}/pixmaps", [Directory for pixmap data])
-AC_DEFINE_UNQUOTED(SOUNDS_DIR, "${packageprefix}/${packagedatadir}/sounds", [Directory for sound data])
-AC_DEFINE_UNQUOTED(MUSIC_DIR, "${packageprefix}/${packagedatadir}/music", [Directory for music data])
-AC_DEFINE_UNQUOTED(FONT_DIR, "${packageprefix}/${packagedatadir}/font", [Directory for font data])
+# Check for SDL_image library
+AC_CHECK_LIB(SDL_image, IMG_LoadPNG_RW, ,
+	AC_MSG_ERROR([Unable to find the SDL_image library with PNG support]))
 
+# Check for SDL_mixer library
+AC_CHECK_LIB(SDL_mixer, Mix_OpenAudio, ,
+	AC_MSG_ERROR([Unable to find the SDL_mixer library]))
 
-AC_OUTPUT([Makefile src/Makefile data/Makefile docs/Makefile])
+# Check for SDL_ttf library
+AC_CHECK_LIB(SDL_ttf, TTF_Init, ,
+	AC_MSG_ERROR([Unable to find the SDL_ttf library]))
+
+# Check for CEGUI
+PKG_CHECK_MODULES(CEGUI, CEGUI-OPENGL >= 0.5.0)
+CPPFLAGS="$CPPFLAGS $CEGUI_CFLAGS"
+LIBS="$LIBS $CEGUI_LIBS"
+
+# Set paths
+test "x${prefix}" = "xNONE" && prefix=${ac_default_prefix}
+test "x${exec_prefix}" = "xNONE" && exec_prefix=${prefix}
+test "x${datadir}" = 'x${datarootdir}' && datadir=${prefix}/share
+packagedatadir=${datadir}/${PACKAGE}
+
+AC_DEFINE_UNQUOTED(SAVE_DIR, "savegames", [savegames directory])
+AC_DEFINE_UNQUOTED(SCREENSHOT_DIR, "screenshots", [screenshots directory])
+AC_DEFINE_UNQUOTED(OVERWORLD_DIR, "${packagedatadir}/world", [overworld directory])
+AC_DEFINE_UNQUOTED(LEVEL_DIR, "${packagedatadir}/levels", [level directory])
+AC_DEFINE_UNQUOTED(PIXMAPS_DIR, "${packagedatadir}/pixmaps", [pixmaps directory])
+AC_DEFINE_UNQUOTED(SOUNDS_DIR, "${packagedatadir}/sounds", [sounds directory])
+AC_DEFINE_UNQUOTED(MUSIC_DIR, "${packagedatadir}/music", [music directory])
+AC_DEFINE_UNQUOTED(EDITOR_DIR, "${packagedatadir}/editor", [editor directory])
+AC_DEFINE_UNQUOTED(ICON_DIR, "${packagedatadir}/icon", [icon directory])
+AC_DEFINE_UNQUOTED(SCHEMA_DIR, "${packagedatadir}/schema", [schema directory])
+AC_DEFINE_UNQUOTED(GUI_SCHEME_DIR, "${packagedatadir}/gui/schemes", [GUI scheme directory])
+AC_DEFINE_UNQUOTED(GUI_IMAGESET_DIR, "${packagedatadir}/gui/imagesets", [GUI imageset directory])
+AC_DEFINE_UNQUOTED(GUI_FONT_DIR, "${packagedatadir}/gui/font", [GUI font directory])
+AC_DEFINE_UNQUOTED(GUI_LAYOUT_DIR, "${packagedatadir}/gui/layout", [GUI layout directory])
+AC_DEFINE_UNQUOTED(GUI_LOOKNFEEL_DIR, "${packagedatadir}/gui/looknfeel", [GUI looknfeel directory])
+
+AC_CONFIG_FILES([Makefile src/Makefile data/Makefile])
+AC_OUTPUT
+
+echo
+echo "Install paths:"
+echo "  prefix:  `eval echo ${prefix}`"
+echo "  bindir:  `eval echo ${bindir}`"
+echo "  datadir: `eval echo ${datadir}`"
+echo

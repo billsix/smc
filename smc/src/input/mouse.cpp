@@ -1,7 +1,7 @@
 /***************************************************************************
            mouse.cpp  -  mousecursor class
                              -------------------
-    copyright            :	(C) 2003 - 2006 by FluXy
+    copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -10,135 +10,296 @@
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
- ***************************************************************************/ 
+ ***************************************************************************/
 
-#include "../globals.h"
-#include "../main.h"
+#include "../core/globals.h"
+#include "../core/main.h"
+#include "../input/mouse.h"
+#include "../input/keyboard.h"
+#include "../core/game_core.h"
+#include "../level/level_editor.h"
+#include "../overworld/world_editor.h"
+#include "../overworld/overworld.h"
+#include "../overworld/ow_player.h"
+#include "../gui/menu.h"
+#include "../core/camera.h"
+#include "../core/obj_manager.h"
+#include "../player/player.h"
+#include "../user/preferences.h"
+#include "../core/framerate.h"
+#include "../objects/goldpiece.h"
+#include "../objects/levelexit.h"
+#include "../objects/bonusbox.h"
+#include "../enemies/gumba.h"
+#include "../video/font.h"
+#include "../video/renderer.h"
+#include "../video/gl_surface.h"
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cSelectedObject *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cMouseCursor :: cMouseCursor( void ) : cSprite( GetImage( "game/mouse.png" ) )
+cSelectedObject :: cSelectedObject( void )
+{
+	obj = NULL;
+
+	mouse_h = 0;
+	mouse_w = 0;
+
+	user = 0;
+}
+
+cSelectedObject :: ~cSelectedObject( void )
+{
+
+}
+
+/* *** *** *** *** *** cCopyObject *** *** *** *** *** *** *** *** *** *** *** *** */
+
+cCopyObject :: cCopyObject( void )
+{
+	obj = NULL;
+}
+
+cCopyObject :: ~cCopyObject( void )
+{
+	if( obj )
+	{
+		delete obj;
+	}
+}
+
+/* *** *** *** *** *** cMouseCursor *** *** *** *** *** *** *** *** *** *** *** *** */
+
+cMouseCursor :: cMouseCursor( void )
+: cMovingSprite()
 {
 	type = TYPE_MOUSECURSOR;
 
 	clickcounter = 0;
 
-	HoveredObject.x = 0;
-	HoveredObject.y = 0;
-	HoveredObject.w = 0;
-	HoveredObject.h = 0;
+	mode_selection = 0;
+	selection_rect = GL_rect( 0, 0, 0, 0 );
 
-	MouseObject = NULL;
-	CopyObject = NULL;
-	ActiveObject = NULL;
+	mouse_object = new cSelectedObject();
+	active_object = NULL;
 
-	mouse_h = 0;
-	mouse_w = 0;
-
-	fastCopyMode = 0;
+	mode_fastcopy = 0;
 	mover_mode = 0;
 	click_temp = NULL;
 
-	left = 0;
-	right = 0;
-	middle = 0;
-
-	Mover_mouse = GetImage( "game/axis_m.png" );
+	Reset_keys();
 
 	SDL_GetMouseState( &x, &y );
-	SDL_ShowCursor( SDL_DISABLE );
 }
 
 cMouseCursor :: ~cMouseCursor( void )
 {
-	//
+	Clear_copy_objects();
+	Clear_selected_objects();
+	delete mouse_object;
 }
 
-void cMouseCursor :: Reset( void )
+void cMouseCursor :: Reset( bool clear_copy_buffer /* = 1 */ )
 {
-	CopyObject = NULL;
-	MouseObject = NULL;
-	ActiveObject = NULL;
+	// only clear copy buffer if requested
+	if( clear_copy_buffer )
+	{
+		Clear_copy_objects();
+	}
+	Clear_selected_objects();
+	Clear_mouse_object();
+	Clear_active_object();
+
+	// change to default cursor
+	if( mover_mode )
+	{
+		MouseCursor::getSingleton().setImage( "TaharezLook", "MouseArrow" );
+	}
+
 	mover_mode = 0;
-	fastCopyMode = 0;
+	mode_selection = 0;
+	mode_fastcopy = 0;
 
-	ClearCollisions();
-	pDialogManager->DeleteAll();
+	Collisions_Clear();
+
+	// show mouse
+	if( editor_enabled )
+	{
+		visible = 1;
+	}
 }
 
-void cMouseCursor :: Handle_Events( void )
+void cMouseCursor :: Reset_keys( void )
 {
-	switch( event.type )
+	left = 0;
+	right = 0;
+	middle = 0;
+}
+
+bool cMouseCursor :: Handle_Event( SDL_Event *ev )
+{
+	switch( ev->type )
 	{
 		case SDL_MOUSEMOTION:
 		{
-			pGuiSystem->injectMousePosition( (float)event.motion.x, (float)event.motion.y );
+			pGuiSystem->injectMousePosition( (float)ev->motion.x, (float)ev->motion.y );
 			break;
 		}
 		case SDL_MOUSEBUTTONUP:
 		{
-			Gui_handle_Mouse_up( event.button.button );
-
-			if( event.button.button == SDL_BUTTON_LEFT )
+			if( Handle_Mouse_up( ev->button.button ) )
+			{
+				// GUI handled
+				return 1;
+			}
+			else if( ev->button.button == SDL_BUTTON_LEFT )
 			{
 				left = 0;
 			}
-			else if( event.button.button == SDL_BUTTON_MIDDLE )
+			else if( ev->button.button == SDL_BUTTON_MIDDLE )
 			{
 				middle = 0;
 			}
-			else if( event.button.button == SDL_BUTTON_RIGHT )
+			else if( ev->button.button == SDL_BUTTON_RIGHT )
 			{
 				right = 0;
 			}
+
 			break;
 		}
 		case SDL_MOUSEBUTTONDOWN:
 		{
-			Gui_handle_Mouse_down( event.button.button );
-
-			if( event.button.button == SDL_BUTTON_LEFT )
+			if( Handle_Mouse_down( ev->button.button ) )
+			{
+				// GUI handled
+				return 1;
+			}
+			else if( ev->button.button == SDL_BUTTON_LEFT )
 			{
 				left = 1;
 			}
-			else if( event.button.button == SDL_BUTTON_MIDDLE )
+			else if( ev->button.button == SDL_BUTTON_MIDDLE )
 			{
 				middle = 1;
 			}
-			else if( event.button.button == SDL_BUTTON_RIGHT )
+			else if( ev->button.button == SDL_BUTTON_RIGHT )
 			{
 				right = 1;
 			}
 			break;
 		}
-
 		default:
 		{
 			break;
 		}
 	}
+
+	// editor events
+	if( pWorld_Editor->enabled )
+	{
+		if( pWorld_Editor->Handle_Event( ev ) )
+		{
+			return 1;
+		}
+	}
+	else if( pLevel_Editor->enabled )
+	{
+		if( pLevel_Editor->Handle_Event( ev ) )
+		{
+			return 1;
+		}
+	}
+
+	return 0;
 }
 
-bool cMouseCursor :: CollsionCheck( GL_rect *rect )
+bool cMouseCursor :: Handle_Mouse_down( Uint8 button )
 {
-	if( !rect )
+	switch ( button )
+	{
+		// mouse buttons
+		case SDL_BUTTON_LEFT:
+		{
+			return System::getSingleton().injectMouseButtonDown( LeftButton );
+			break;
+		}
+		case SDL_BUTTON_MIDDLE:
+		{
+			return System::getSingleton().injectMouseButtonDown( MiddleButton );
+			break;
+		}
+		case SDL_BUTTON_RIGHT:
+		{
+			return System::getSingleton().injectMouseButtonDown( RightButton );
+			break;
+		}
+		// mouse wheel
+		case SDL_BUTTON_WHEELDOWN:
+		{
+			return System::getSingleton().injectMouseWheelChange( -1 );
+			break;
+		}
+		case SDL_BUTTON_WHEELUP:
+		{
+			return System::getSingleton().injectMouseWheelChange( +1 );
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+
+	return 0;
+}
+
+bool cMouseCursor :: Handle_Mouse_up( Uint8 button )
+{
+	switch ( button )
+	{
+		case SDL_BUTTON_LEFT:
+		{
+			return System::getSingleton().injectMouseButtonUp( LeftButton );
+		}
+		break;
+		case SDL_BUTTON_MIDDLE:
+		{
+			return System::getSingleton().injectMouseButtonUp( MiddleButton );
+		}
+		break;
+		case SDL_BUTTON_RIGHT:
+		{
+			return System::getSingleton().injectMouseButtonUp( RightButton );
+		}
+		break;
+		default:
+		{
+			break;
+		}
+	}
+
+	return 0;
+}
+
+bool cMouseCursor :: Collsion_Check( GL_rect *crect )
+{
+	if( !crect )
 	{
 		return 0;
 	}
 
-	if( x > rect->x + rect->w )
+	if( x > crect->x + crect->w )
 	{
 		return 0;
 	}
-	if( x < rect->x )
+	if( x < crect->x )
 	{
 		return 0;
 	}
-	if( y > rect->y + rect->h )
+	if( y > crect->y + crect->h )
 	{
 		return 0;
 	}
-	if( y < rect->y )
+	if( y < crect->y )
 	{
 		return 0;
 	}
@@ -146,361 +307,218 @@ bool cMouseCursor :: CollsionCheck( GL_rect *rect )
 	return 1;
 }
 
-bool cMouseCursor :: Editor_CollsionCheck( double x, double y )
+bool cMouseCursor :: Editor_Collsion_Check( float px /* = 0 */, float py /* = 0 */ )
 {
-	ClearCollisions();
+	Collisions_Clear();
 
 	if( mover_mode )
 	{
 		return 0;
 	}
 
-	GL_rect rect1;
-	GL_rect rect2;
-	
-	rect1.x = x;
-	rect1.y = y;
-	rect1.w = 1;
-	rect1.h = 1;
-	
-	HoveredObject.x = 0;
-	HoveredObject.y = 0;
-	HoveredObject.w = 0;
-	HoveredObject.h = 0;
+	// Get CEGUI Window containing the mouse
+	Window *mouse_window = pGuiSystem->getWindowContainingMouse();
 
-	// Leveleditor Objects
-	if( Leveleditor_Mode > 0 && !MouseObject )
+	// if mouse is over a blocking CEGUI window
+	if( mouse_window && !mouse_window->isMousePassThroughEnabled() )
 	{
-		// Item Menu
-		if( pLeveleditor->wItem.y == GAME_RES_H - pLeveleditor->wItem.h ) 
-		{
-			for( unsigned int i = 0; i < pLeveleditor->wItem_Objects.size(); i++ )
-			{
-				cMenu_Item_Object *item = pLeveleditor->Get_Item_Object( i );
-
-				if( !item || !item->visible ) 
-				{
-					continue;
-				}
-
-				rect2 = item->Col_rect;
-				rect2.x += cameraposx;
-				rect2.y += cameraposy;
-				
-				if( Col_Box( &rect1, &rect2 ) )
-				{
-					Add_Collision( this, NULL, i, CO_EDITOR_ITEM );
-
-					HoveredObject = item->Col_rect;
-					pLeveleditor->wItem_timer = DESIRED_FPS * 3;
-
-					return 1;
-				}
-			}
-		}
-		
-		// Main menu
-		if( pLeveleditor->wMain_open == 150 ) 
-		{
-			bool found = 0;
-
-			for( unsigned int i = 0; i < pLeveleditor->wMenu_Objects.size() ; i++ )
-			{
-				cMenu_Main_Object *item = pLeveleditor->Get_Main_Object( i );
-
-				if( !item ) 
-				{
-					continue;
-				}
-
-				rect2 = item->Col_rect;
-				rect2.x = pLeveleditor->wMain.x + 15;
-				rect2.w = pLeveleditor->wMain.w - 22;
-				rect2.x += cameraposx;
-				rect2.y += cameraposy;
-				
-				if( Col_Box( &rect1, &rect2 ) )
-				{
-					Add_Collision( this, NULL, i, CO_EDITOR_MENU );
-
-					rect2.x -= cameraposx;
-					rect2.y -= cameraposy;
-					HoveredObject = rect2;
-
-					if( item->state == 0 )
-					{
-						item->state = 1;
-					}
-					
-					pLeveleditor->wMain_timer = DESIRED_FPS * 3;
-
-					found = 1;
-				}
-				else // reset hovered
-				{
-					if( item->state == 1 )
-					{
-						item->state = 0;
-					}
-				}
-			}
-
-			if( found )
-			{
-				return 1;
-			}
-		}
-	}
-	// The Leveleditor Main Menu
-	rect2 = pLeveleditor->wMain;
-	rect2.x += cameraposx;
-	rect2.y += cameraposy;
-
-	if( Leveleditor_Mode && Col_Box( &rect1, &rect2 ) ) 
-	{
-		pLeveleditor->wMain_timer = ( DESIRED_FPS * 3 );
 		return 0;
 	}
-	
-	// Leveleditor item menu
-	if( pLeveleditor->wItem_Objects.size() && Leveleditor_Mode ) 
+
+	// mouse rect
+	GL_rect mouse_rect;
+
+	// use given posx
+	if( px != 0 )
 	{
-		if( pLeveleditor->wItem.y == GAME_RES_H - pLeveleditor->wItem.h ) 
+		mouse_rect.x = px;
+	}
+	else
+	{
+		mouse_rect.x = posx;
+	}
+
+	// use given posy
+	if( py != 0 )
+	{
+		mouse_rect.y = py;
+	}
+	else
+	{
+		mouse_rect.y = posy;
+	}
+
+	mouse_rect.w = 1;
+	mouse_rect.h = 1;
+
+	// Level
+	if( Game_Mode == MODE_LEVEL )
+	{
+		if( Get_Collision_Level( &mouse_rect ) )
 		{
-			rect2 = pLeveleditor->Item_scroller_left->col_rect;
-			rect2.x += cameraposx;
-			rect2.y += cameraposy;
+			return 1;
+		}
+	}
+	// World
+	else if( Game_Mode == MODE_OVERWORLD )
+	{
+		if( Get_Collision_World( &mouse_rect ) )
+		{
+			return 1;
+		}
+	}
 
-			// left Item Object Scroller
-			if( Col_Box( &rect1, &rect2 ) ) 
+	// no collisions
+	return 0;
+}
+
+bool cMouseCursor :: Get_Collision_Level( GL_rect *mouse_rect )
+{
+	ObjectList level_objects;
+	pObjManager->Get_Objects_sorted( level_objects, 1, 1 );
+
+	// objects before player
+	for( ObjectList::reverse_iterator itr = level_objects.rbegin(), itr_end = level_objects.rend(); itr != itr_end; ++itr )
+	{
+		cSprite *obj = (*itr);
+
+		// don't check spawned objects
+		if( obj->spawned )
+		{
+			continue;
+		}
+
+		if( Col_Box( mouse_rect, &obj->start_rect ) )
+		{
+			if( obj->type == TYPE_PLAYER )
 			{
-				pLeveleditor->wItem_timer = DESIRED_FPS * 3;
-				Add_Collision( this, NULL, 0, CO_EDITOR_SCROLL );
-				Get_lastCollision()->direction = DIR_LEFT;
-
-				HoveredObject = pLeveleditor->Item_scroller_left->col_rect;
-
-				return 1;	
+				Collision_Add( this, pPlayer, 0, CO_PLAYER );
+			}
+			else
+			{
+				Collision_Add( this, obj, pObjManager->Get_Array_num( obj ), Get_CollisionType( obj->sprite_array ) );
 			}
 
-			rect2 = pLeveleditor->Item_scroller_right->col_rect;
-			rect2.x += cameraposx;
-			rect2.y += cameraposy;
+			return 1;
+		}
+	}
 
-			// right Item Object Scroller
-			if( Col_Box( &rect1, &rect2 ) ) 
+	return 0;
+}
+
+bool cMouseCursor :: Get_Collision_World( GL_rect *mouse_rect )
+{
+	ObjectList level_objects;
+	pActive_Overworld->object_manager->Get_Objects_sorted( level_objects, 1, 1 );
+
+
+	// objects before player
+	for( ObjectList::reverse_iterator itr = level_objects.rbegin(), itr_end = level_objects.rend(); itr != itr_end; ++itr )
+	{
+		cSprite *obj = (*itr);
+
+		// don't check spawned objects
+		if( obj->spawned )
+		{
+			continue;
+		}
+
+		if( Col_Box( mouse_rect, &obj->start_rect ) )
+		{
+			if( obj->type == TYPE_PLAYER )
 			{
-				pLeveleditor->wItem_timer = DESIRED_FPS * 3;
-				Add_Collision( this, NULL, 0, CO_EDITOR_SCROLL );
-				Get_lastCollision()->direction = DIR_RIGHT;
-
-				HoveredObject = pLeveleditor->Item_scroller_right->col_rect;
-				
-				return 1;	
+				Collision_Add( this, pOverworld_Player, 0, CO_PLAYER );
 			}
-		}
+			else
+			{
+				Collision_Add( this, obj, pActive_Overworld->object_manager->Get_Array_num( obj ), Get_CollisionType( obj->sprite_array ) );
+			}
 
-		rect2 = pLeveleditor->wItem;
-		rect2.x += cameraposx;
-		rect2.y += cameraposy;
-
-		if( Col_Box( &rect1, &rect2 ) ) 
-		{
-			pLeveleditor->wItem_timer = DESIRED_FPS * 3;
-			return 0;
-		}
-	}
-
-	// Dialog Boxes
-	if( ( !MouseObject || MouseObject != ActiveObject ) && pDialogManager->Get_Collision( (int)x, (int)y ) >= 0 )
-	{
-		Add_Collision( this, NULL, pDialogManager->Get_Collision( (int)x, (int)y ), CO_DIALOG );
-		return 1;
-	}
-
-	// Active Objects
-	// only Enemystopper and Levelexit
-	for( int i = pObjManager->Get_Size() - 1; i >= 0; i-- )
-	{
-		if( !pObjManager->items[i] || pObjManager->items[i]->array != ARRAY_ACTIVE || ( pObjManager->items[i]->type != TYPE_ENEMYSTOPPER && pObjManager->items[i]->type!= TYPE_LEVELEXIT ) )
-		{
-			continue;
-		}
-
-		
-		rect2 = pObjManager->items[i]->start_rect;
-
-		if( Col_Box( &rect1, &rect2 ) )
-		{
-			Add_Collision( this, pObjManager->items[i], i, CO_ACTIVE );
-			return 1;
-		}
-	}
-	
-	// Enemy Objects
-	// only jPiranha
-	for( int i = pObjManager->Get_Size() - 1; i >= 0; i-- )
-	{
-		if( !pObjManager->items[i] || pObjManager->items[i]->array != ARRAY_ENEMY || pObjManager->items[i]->type != TYPE_JPIRANHA )
-		{
-			continue;
-		}
-
-		rect2 = pObjManager->items[i]->start_rect;
-
-		if( Col_Box( &rect1, &rect2 ) )
-		{
-			Add_Collision( this, pObjManager->items[i], i, CO_ENEMY );
-			return 1;
-		}
-	}
-	
-	// Massive Objects
-	for( int i = pObjManager->Get_Size() - 1; i >= 0; i-- )
-	{
-		if( !pObjManager->items[i] || !pObjManager->items[i]->massivetype || pObjManager->items[i]->array != ARRAY_MASSIVE )
-		{
-			continue;
-		}
-
-		rect2 = pObjManager->items[i]->start_rect;
-
-		if( Col_Box( &rect1, &rect2 ) )
-		{
-			Add_Collision( this, pObjManager->items[i], i, CO_MASSIVE );
 			return 1;
 		}
 	}
 
-	// Active Objects
-	// All non Enemystopper
-	for( int i = pObjManager->Get_Size() - 1; i >= 0; i-- )
-	{
-		if( !pObjManager->items[i] || pObjManager->items[i]->array != ARRAY_ACTIVE || pObjManager->items[i]->type == TYPE_ENEMYSTOPPER || pObjManager->items[i]->type == TYPE_LEVELEXIT 
-			|| pObjManager->items[i]->type == TYPE_MUSHROOM_DEFAULT || pObjManager->items[i]->type == TYPE_MUSHROOM_LIVE_1 || pObjManager->items[i]->type == TYPE_FIREPLANT )
-		{
-			continue;
-		}
-
-		rect2 = pObjManager->items[i]->start_rect;
-
-		if( Col_Box( &rect1, &rect2 ) )
-		{
-			Add_Collision( this, pObjManager->items[i], i, CO_ACTIVE );
-			return 1;
-		}
-	}
-
-	// Enemy Objects
-	// only non jPiranha
-	for( int i = pObjManager->Get_Size() - 1; i >= 0; i-- )
-	{
-		if( !pObjManager->items[i] || pObjManager->items[i]->array != ARRAY_ENEMY || pObjManager->items[i]->type == TYPE_JPIRANHA )
-		{
-			continue;
-		}
-
-		rect2 = pObjManager->items[i]->start_rect;
-
-		if( Col_Box( &rect1, &rect2 ) )
-		{
-			Add_Collision( this, pObjManager->items[i], i, CO_ENEMY );
-			return 1;
-		}
-	}
-
-	// player
-	if( pPlayer )
-	{
-		rect2 = pPlayer->start_rect;
-
-		if( Col_Box( &rect1, &rect2 ) )
-		{
-			Add_Collision( this, pPlayer, 0, CO_PLAYER );
-			return 1;
-		}
-	}
-
-	// passive
-	for( int i = pObjManager->Get_Size() - 1; i >= 0; i-- )
-	{
-		if( !pObjManager->items[i] || pObjManager->items[i]->array != ARRAY_PASSIVE )
-		{
-			continue;
-		}
-
-		rect2 = pObjManager->items[i]->start_rect;
-
-		if( Col_Box( &rect1, &rect2 ) )
-		{
-			Add_Collision( this, pObjManager->items[i], i, CO_PASSIVE );
-			return 1;
-		}
-	}
-	
-	
-	ClearCollisions();
 	return 0;
 }
 
 void cMouseCursor :: Update( void )
 {
-	if( Game_Mode == MODE_LEVEL )
+	// only if editor is enabled
+	if( !editor_enabled )
 	{
-		if( !mover_mode ) 
-		{
-			cObjectCollision *col = Get_firstCollision();
+		return;
+	}
 
-			if( !left && ( MouseObject || ( col && ( col->type == CO_EDITOR_ITEM || col->type == CO_EDITOR_MENU || col->type == CO_EDITOR_SCROLL ) ) ) )
-			{
-				Draw_HoveredObject();
-			}
-			
-			if( !( left && MouseObject && pPreferences->Lvleditor_automousehide ) )
-			{
-				start_image->Blit( x, y );
-			}
-		}
-		else
+	// o.0
+}
+
+void cMouseCursor :: Draw( void )
+{
+	// only if editor is enabled
+	if( !editor_enabled )
+	{
+		return;
+	}
+
+	Update_selection();
+
+	// if in Level or Overworld
+	if( Game_Mode == MODE_LEVEL || Game_Mode == MODE_OVERWORLD )
+	{
+		// draw if not in mover mode
+		if( !mover_mode )
 		{
-			Mover_mouse->Blit( x, y );
+			Draw_object_rects();
+
+			// auto hide on selection if enabled
+			if( left && mouse_object->obj && pPreferences->editor_mouse_auto_hide )
+			{
+				visible = 0;
+			}
 		}
 	}
-	else if( Game_Mode == MODE_MENU )
+}
+
+void cMouseCursor :: Render( void )
+{
+	if( !visible )
 	{
-		start_image->Blit( x, y );
+		return;
 	}
-	else if( Game_Mode == MODE_OVERWORLD )
-	{
-		start_image->Blit( x, y );
-	}
+
+	// Render CEGUI Mouse
+	pGuiRenderer->setQueueingEnabled( false );
+	MouseCursor *mouse = MouseCursor::getSingletonPtr();
+	mouse->setVisible( 1 );
+	mouse->draw();
+	mouse->setVisible( 0 );
 }
 
 void cMouseCursor :: Update_Position( void )
 {
 	SDL_GetMouseState( &x, &y );
 
-	if( Game_Mode == MODE_LEVEL )
+	if( editor_enabled )
 	{
 		if( !mover_mode )
 		{
-			SetPos( x + cameraposx, y + cameraposy );
+			Set_Pos( x + pCamera->x, y + pCamera->y, 1 );
 		}
+
+		Update_mouse_object();
+		Update_selected_objects();
 	}
 	else
 	{
-		SetPos( x, y );
+		Set_Pos( (float)x, (float)y, 1 );
 	}
-	
-	col_rect.x = posx;
-	col_rect.y = posy;
 }
 
 void cMouseCursor :: Update_Doubleclick( void )
 {
 	if( clickcounter )
 	{
-		clickcounter -= Framerate.speedfactor;
+		clickcounter -= pFramerate->speedfactor;
 
 		if( clickcounter < 0 )
 		{
@@ -509,61 +527,66 @@ void cMouseCursor :: Update_Doubleclick( void )
 	}
 }
 
-void cMouseCursor :: MouseObject_Update( void )
-{
-	if( !Leveleditor_Mode || !MouseObject || ( mover_mode && Game_Mode == MODE_LEVEL ) ) 
-	{
-		return;
-	}
-
-	if( !left )
-	{
-		HoveredObject.x = (Sint16)( MouseObject->startposx - cameraposx );
-		HoveredObject.y = (Sint16)( MouseObject->startposy - cameraposy );
-		
-		if( MouseObject->start_image )
-		{
-			HoveredObject.w = (Uint16)MouseObject->start_image->w;
-			HoveredObject.h = (Uint16)MouseObject->start_image->h;
-		}
-		else
-		{
-			HoveredObject.w = MouseObject->col_rect.w;
-			HoveredObject.h = MouseObject->col_rect.h;
-		}
-	}
-	else
-	{
-		MouseObject->SetPos( (int)posx - mouse_w, (int)posy - mouse_h, 1 );
-
-		if( ActiveObject && ActiveObject == MouseObject )
-		{
-			ActiveObject->Editor_pos_update();
-		}
-
-	}
-}
-
 void cMouseCursor :: Click( void )
 {
-	Editor_CollsionCheck( posx, posy );
-	cObjectCollision *col = Get_firstCollision();
-	cSprite *col_sprite = NULL;
+	Editor_Collsion_Check();
 
-	if( col && ( col->type == CO_PASSIVE || col->type == CO_MASSIVE || col->type == CO_ACTIVE || col->type == CO_ENEMY || col->type == CO_PLAYER ) )
+	// no colliding sprite
+	if( !mouse_object->obj )
 	{
-		col_sprite = pObjManager->Get_Pointer( col->number );
-	}
+		cObjectCollision *col = Collision_Get_first();
 
-	if( !col_sprite )
-	{
+		// collision with an object
+		if( col )
+		{
+			cSprite *col_obj = NULL;
+
+			if( Game_Mode == MODE_LEVEL )
+			{
+				if( col->type == CO_PLAYER )
+				{
+					col_obj = static_cast<cSprite *>(pPlayer);
+				}
+				else
+				{
+					col_obj = pObjManager->items[col->number];
+				}
+			}
+			// World
+			else if( Game_Mode == MODE_OVERWORLD )
+			{
+				// if player
+				if( col->type == CO_PLAYER )
+				{
+					col_obj = static_cast<cSprite *>(pOverworld_Player);
+				}
+				// object manager object
+				else
+				{
+					col_obj = pActive_Overworld->object_manager->Get_Pointer( col->number );
+				}
+			}
+
+			// if shift is pressed add object to the mouse objects
+			if( pKeyboard->keys[SDLK_RSHIFT] || pKeyboard->keys[SDLK_LSHIFT] )
+			{
+				// add object
+				if( !Add_selected_object( col_obj, 1 ) )
+				{
+					// if already added remove it
+					Remove_selected_object( col_obj );
+				}
+			}
+		}
+
+		Start_selection();
 		clickcounter = 0;
 		return;
 	}
 
-	if( clickcounter > 0 ) 
+	if( clickcounter > 0 )
 	{
-		if( click_temp == col_sprite ) // if last lciked object was the same
+		if( click_temp == mouse_object->obj ) // if last clicked object was the same
 		{
 			Double_Click();
 		}
@@ -574,124 +597,694 @@ void cMouseCursor :: Click( void )
 	}
 	else
 	{
-		clickcounter = DESIRED_FPS * 0.4; // double click counter
-		click_temp = col_sprite; // save last clicked object
+		clickcounter = DESIRED_FPS * 0.3f; // double click counter
+		click_temp = mouse_object->obj; // save last clicked object
 	}
 }
 
-void cMouseCursor :: Double_Click( bool activate )
+void cMouseCursor :: Double_Click( bool activate /* = 1 */ )
 {
-	if( ActiveObject )
+	Clear_active_object();
+
+	// add new
+	if( activate )
 	{
-		ActiveObject->Editor_Deactivate();
-		ActiveObject = NULL;
-	}
-
-	if( activate ) // add new
-	{
-		Editor_CollsionCheck( posx, posy );
-		cObjectCollision *col = Get_firstCollision();
-
-		if( col && col->number >= 0 )
-		{
-			ActiveObject = pObjManager->Get_Pointer( col->number );
-
-			if( ActiveObject )
-			{
-				ActiveObject->Editor_Activate();
-			}
-		}
+		Set_active_object( mouse_object->obj );
 	}
 
 	clickcounter = 0;
 }
 
-void cMouseCursor :: Set_MouseObject( cSprite *sprite )
+void cMouseCursor :: Set_mouse_object( cSprite *sprite )
 {
-	MouseObject = sprite;
-}
-
-void cMouseCursor :: Copy( cSprite *nCopyObject, double x, double y )
-{
-	cSprite *new_Sprite = Copy_Object( nCopyObject, x, y );
-
-	if( !new_Sprite )
+	// return if mouse object is the same or in mouse selection mode
+	if( mouse_object->obj == sprite || ( sprite && ( pKeyboard->keys[SDLK_RSHIFT] || pKeyboard->keys[SDLK_LSHIFT] || mode_selection ) ) )
 	{
-		printf( "MouseCursor CopyObject invald source Object\n" );
 		return;
 	}
 
-	if( new_Sprite->array == ARRAY_MASSIVE || new_Sprite->array == ARRAY_PASSIVE || new_Sprite->array == ARRAY_ACTIVE || new_Sprite->array == ARRAY_ENEMY ) 
+	// remove old mouse_object from selected objects
+	if( mouse_object->obj )
 	{
-		pObjManager->Add( new_Sprite );
+		Remove_selected_object( mouse_object->obj, 1 );
+	}
+
+	// set new mouse object
+	mouse_object->obj = sprite;
+	// add new mouse object to selected objects
+	Add_selected_object( sprite );
+}
+
+void cMouseCursor :: Update_mouse_object( void )
+{
+	if( ( !editor_enabled ) || !mouse_object->obj || ( mover_mode && ( Game_Mode == MODE_LEVEL || Game_Mode == MODE_OVERWORLD ) ) )
+	{
+		return;
+	}
+
+	// left mouse is pressed and no shift
+	if( left )
+	{
+		// set new position
+		mouse_object->obj->Set_Pos( (float)( (int)posx - mouse_object->mouse_w ), (float)( (int)posy - mouse_object->mouse_h ), 1 );
+
+		// update object settings position
+		if( active_object && active_object == mouse_object->obj )
+		{
+			active_object->Editor_pos_update();
+		}
+	}
+	// left mouse is not pressed
+	else
+	{
+		// update mouse object positioning mouse width and height
+		mouse_object->mouse_w = (int)posx - (int)mouse_object->obj->startposx;
+		mouse_object->mouse_h = (int)posy - (int)mouse_object->obj->startposy;
+	}
+}
+
+void cMouseCursor :: Clear_mouse_object( void )
+{
+	Set_mouse_object( NULL );
+}
+
+void cMouseCursor :: Add_copy_object( cSprite *sprite )
+{
+	if( !sprite )
+	{
+		return;
+	}
+
+	// check if not already added
+	for( unsigned int i = 0; i < copy_objects.size(); i++ )
+	{
+		if( copy_objects[i]->obj == sprite )
+		{
+			return;
+		}
+	}
+
+	cSprite *copy = sprite->Copy();
+
+	// can't be copied
+	if( !copy )
+	{
+		return;
+	}
+
+	// insert object
+	cCopyObject *copy_object = new cCopyObject();
+	copy_object->obj = copy;
+	copy_objects.push_back( copy_object );
+}
+
+void cMouseCursor :: Add_copy_objects( SpriteList spritelist )
+{
+	if( !spritelist.size() )
+	{
+		return;
+	}
+
+	// inserts all objects
+	for( unsigned int i = 0; i < spritelist.size(); i++ )
+	{
+		Add_copy_object( spritelist[i] );
+	}
+}
+
+bool cMouseCursor :: Remove_copy_object( cSprite *sprite )
+{
+	if( !sprite )
+	{
+		return 0;
+	}
+
+	for( unsigned int i = 0; i < copy_objects.size(); i++ )
+	{
+		if( copy_objects[i]->obj == sprite )
+		{
+			delete copy_objects[i];
+			copy_objects.erase( copy_objects.begin() + i );
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+void cMouseCursor :: Clear_copy_objects( void )
+{
+	for( unsigned int i = 0; i < copy_objects.size(); i++ )
+	{
+		delete copy_objects[i];
+	}
+
+	copy_objects.clear();
+}
+
+GL_Vector cMouseCursor :: Get_copy_object_base( float px, float py )
+{
+	GL_Vector vec = GL_Vector();
+
+	if( !copy_objects.size() )
+	{
+		return vec;
+	}
+
+	// set a base
+	float base_x = copy_objects[0]->obj->posx;
+	float base_y = copy_objects[0]->obj->posy;
+
+	for( unsigned int i = 1; i < copy_objects.size(); i++ )
+	{
+		// if more in top or left
+		if( copy_objects[i]->obj->posx < base_x || copy_objects[i]->obj->posy < base_y )
+		{
+			base_x = copy_objects[i]->obj->posx;
+			base_y = copy_objects[i]->obj->posy;
+		}
+	}
+
+	vec.x = px - base_x;
+	vec.y = py - base_y;
+
+	return vec;
+}
+
+void cMouseCursor :: Paste_copy_objects( float px, float py )
+{
+	if( !copy_objects.size() )
+	{
+		return;
+	}
+
+	SpriteList new_objects;
+
+	for( unsigned int i = 0; i < copy_objects.size(); i++ )
+	{
+		// set base vector
+		GL_Vector base_vec = Get_copy_object_base( copy_objects[i]->obj->posx, copy_objects[i]->obj->posy );
+
+		// copy
+		cSprite* new_object = static_cast<cSprite *>(Copy( static_cast<cMovingSprite *>(copy_objects[i]->obj), px + base_vec.x, py + base_vec.y ));
+
+		if( new_object )
+		{
+			new_objects.push_back( new_object );
+		}
+	}
+
+	if( copy_objects.size() )
+	{
+		mouse_object->mouse_h = (int)( copy_objects[0]->obj->col_rect.h / 2 );
+		mouse_object->mouse_w = (int)( copy_objects[0]->obj->col_rect.w / 2 );
+	}
+
+	// pasted objects are selected
+	Clear_selected_objects();
+	Add_selected_objects( new_objects, 1 );
+}
+
+bool cMouseCursor :: Add_selected_object( cSprite *sprite, bool from_user /* = 0 */ )
+{
+	if( !sprite )
+	{
+		return 0;
+	}
+
+	// check if not already added
+	for( unsigned int i = 0; i < selected_objects.size(); i++ )
+	{
+		if( selected_objects[i]->obj == sprite )
+		{
+			// overwrite user if given
+			if( from_user && !selected_objects[i]->user )
+			{
+				selected_objects[i]->user = 1;
+				return 1;
+			}
+
+			return 0;
+		}
+	}
+
+	// insert object
+	cSelectedObject *selected_object = new cSelectedObject();
+	selected_object->obj = sprite;
+	selected_object->user = from_user;
+	selected_objects.push_back( selected_object );
+
+	return 1;
+}
+
+void cMouseCursor :: Add_selected_objects( SpriteList spritelist, bool from_user /* = 0 */ )
+{
+	if( !spritelist.size() )
+	{
+		return;
+	}
+
+	// inserts all objects
+	for( unsigned int i = 0; i < spritelist.size(); i++ )
+	{
+		Add_selected_object( spritelist[i], from_user );
+	}
+}
+
+bool cMouseCursor :: Remove_selected_object( cSprite *sprite, bool no_user /* = 0 */ )
+{
+	if( !sprite )
+	{
+		return 0;
+	}
+
+	for( unsigned int i = 0; i < selected_objects.size(); i++ )
+	{
+		if( selected_objects[i]->obj == sprite )
+		{
+			// don't delete user added selected object
+			if( no_user && selected_objects[i]->user )
+			{
+				return 0;
+			}
+
+			delete selected_objects[i];
+			selected_objects.erase( selected_objects.begin() + i );
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+SpriteList cMouseCursor :: Get_selected_objects( void )
+{
+	SpriteList spritelist;
+
+	for( unsigned int i = 0; i < selected_objects.size(); i++ )
+	{
+		spritelist.push_back( selected_objects[i]->obj );
+	}
+
+	return spritelist;
+}
+
+void cMouseCursor :: Clear_selected_objects( void )
+{
+	for( unsigned int i = 0; i < selected_objects.size(); i++ )
+	{
+		delete selected_objects[i];
+	}
+
+	selected_objects.clear();
+}
+
+void cMouseCursor :: Update_selected_objects( void )
+{
+	if( !editor_enabled || ( mover_mode && ( Game_Mode == MODE_LEVEL || Game_Mode == MODE_OVERWORLD ) ) )
+	{
+		return;
+	}
+
+	// update selected objects positioning mouse width and height
+	for( unsigned int i = 0; i < selected_objects.size(); i++ )
+	{
+		if( !left || mode_selection )
+		{
+			selected_objects[i]->mouse_w = (int)posx - (int)selected_objects[i]->obj->startposx;
+			selected_objects[i]->mouse_h = (int)posy - (int)selected_objects[i]->obj->startposy;
+		}
+	}
+
+	// if a user selected object is not active
+	if( !is_selected_object( mouse_object->obj, 1 ) )
+	{
+		return;
+	}
+
+	for( unsigned int i = 0; i < selected_objects.size(); i++ )
+	{
+		// left mouse is pressed
+		if( left )
+		{
+			// set new position
+			selected_objects[i]->obj->Set_Pos( (float)( (int)posx - selected_objects[i]->mouse_w ), (float)( (int)posy - selected_objects[i]->mouse_h ), 1 );
+
+			// update object settings position
+			if( active_object && active_object == selected_objects[i]->obj )
+			{
+				active_object->Editor_pos_update();
+			}
+		}
+	}
+}
+
+bool cMouseCursor :: is_selected_object( cSprite *sprite, bool only_user /* = 0 */ )
+{
+	if( !sprite )
+	{
+		return 0;
+	}
+
+	for( unsigned int i = 0; i < selected_objects.size(); i++ )
+	{
+		if( selected_objects[i]->obj == sprite )
+		{
+			// if only user objects
+			if( only_user && !selected_objects[i]->user )
+			{
+				continue;
+			}
+
+			// found
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+void cMouseCursor :: Delete_selected_objects( void )
+{
+	for( int i = selected_objects.size() - 1; i >= 0; i-- )
+	{
+		Delete( static_cast<cMovingSprite *>( selected_objects[i]->obj ) );
+	}
+
+	Clear_selected_objects();
+}
+
+unsigned int cMouseCursor :: Get_selected_object_size( void )
+{
+	return selected_objects.size();
+}
+
+void cMouseCursor :: Set_active_object( cSprite *sprite )
+{
+	// clear existing
+	Clear_active_object();
+
+	if( sprite )
+	{
+		active_object = sprite;
+		active_object->Editor_Activate();
+	}
+}
+
+void cMouseCursor :: Clear_active_object( void )
+{
+	if( active_object )
+	{
+		active_object->Editor_Deactivate();
+		active_object = NULL;
+	}
+}
+
+cSprite *cMouseCursor :: Copy( cSprite *ncopy_object, float px, float py )
+{
+	if( !ncopy_object )
+	{
+		return NULL;
+	}
+
+	cSprite *new_sprite = Copy_Object( ncopy_object, px, py );
+
+	if( !new_sprite )
+	{
+		printf( "Warning : Mouse object copying failed\n" );
+		return NULL;
+	}
+
+	if( new_sprite->sprite_array == ARRAY_MASSIVE || new_sprite->sprite_array == ARRAY_PASSIVE || new_sprite->sprite_array == ARRAY_FRONT_PASSIVE || new_sprite->sprite_array == ARRAY_ACTIVE || new_sprite->sprite_array == ARRAY_ENEMY )
+	{
+		if( editor_level_enabled )
+		{
+			pObjManager->Add( new_sprite );
+		}
+		else if( editor_world_enabled )
+		{
+			pActive_Overworld->object_manager->Add( new_sprite );
+		}
 	}
 	else
 	{
-		printf( "MouseCursor CopyObject unknown Array : %d\n", new_Sprite->array );
-		delete new_Sprite;
+		printf( "copy object unknown Array : %d\n", new_sprite->sprite_array );
+		delete new_sprite;
+		return NULL;
 	}
+
+	return new_sprite;
 }
 
-void cMouseCursor :: Delete( void )
+void cMouseCursor :: Delete( cSprite *sprite )
 {
-	if( !MouseObject )
+	if( !sprite )
 	{
 		return;
 	}
 
-	cObjectCollision *col = Get_firstCollision();
-
-	if( col && ( col->type == CO_PASSIVE || col->type == CO_MASSIVE || col->type == CO_ACTIVE || col->type == CO_ENEMY ) )
+	if( sprite->sprite_array == ARRAY_PASSIVE || sprite->sprite_array == ARRAY_FRONT_PASSIVE || sprite->sprite_array == ARRAY_MASSIVE || sprite->sprite_array == ARRAY_ACTIVE || sprite->sprite_array == ARRAY_ENEMY )
 	{
-		if( ActiveObject == pObjManager->Get_Pointer( col->number ) )
+		// deactivate active object
+		if( active_object == sprite )
 		{
 			Double_Click( 0 );
 		}
 
-		pObjManager->Delete( col->number );
+		// remove if current player active item object
+		if( pPlayer->active_object == sprite )
+		{
+			pPlayer->active_object = NULL;
+		}
+
+		// remove selected object
+		Remove_selected_object( sprite );
+		// remove copy object
+		Remove_copy_object( sprite );
+
+		// delete object
+		if( editor_level_enabled )
+		{
+			pObjManager->Delete( sprite );
+		}
+		else if( editor_world_enabled )
+		{
+			// if line point
+			if( sprite->type == TYPE_OW_LINE_START || sprite->type == TYPE_OW_LINE_END )
+			{
+				cLayer_Line *line = static_cast<cLayer_Line *>(static_cast<cLayer_Line_Point *>(sprite)->line);
+
+				// delete line
+				pActive_Overworld->pLayer->lines.erase( pActive_Overworld->pLayer->lines.begin() + pActive_Overworld->pLayer->Get_Line_num( line ) );
+				delete line;
+			}
+			else
+			{
+				pActive_Overworld->object_manager->Delete( sprite );
+			}
+		}
+
+		sprite = NULL;
 	}
 }
 
-void cMouseCursor :: Draw_HoveredObject( void )
+void cMouseCursor :: Draw_object_rects( void )
 {
-	if( HoveredObject.w == 0 || HoveredObject.h == 0 )
+	// draw mouse object
+	GL_rect hover_rect;
+
+	if( !left && mouse_object->obj )
+	{
+		hover_rect.x = mouse_object->obj->startposx - pCamera->x;
+		hover_rect.y = mouse_object->obj->startposy - pCamera->y;
+		hover_rect.w = mouse_object->obj->start_rect.w;
+		hover_rect.h = mouse_object->obj->start_rect.h;
+
+		// create request
+		cRectRequest *request = new cRectRequest();
+
+		if( mode_fastcopy )
+		{
+			pVideo->Draw_Rect( &hover_rect, 0.6f, &green, request );
+		}
+		else
+		{
+			pVideo->Draw_Rect( &hover_rect, 0.6f, &blue, request );
+		}
+
+		// not filled
+		request->filled = 0;
+
+		// add request
+		pRenderer->Add( request );
+	}
+
+
+	// draw selected objects if not left mouse is pressed, shift selection or mouse selection
+	if( !left || ( pKeyboard->keys[SDLK_RSHIFT] || pKeyboard->keys[SDLK_LSHIFT] ) || mode_selection )
+	{
+		Color obj_color = white;
+
+		for( unsigned int i = 0; i < selected_objects.size(); i++ )
+		{
+			cSprite *object = selected_objects[i]->obj;
+
+			// check if visible on screen
+			if( !object->is_Visible_onScreen() )
+			{
+				continue;
+			}
+
+			hover_rect.x = object->startposx - pCamera->x;
+			hover_rect.y = object->startposy - pCamera->y;
+			hover_rect.w = object->start_rect.w;
+			hover_rect.h = object->start_rect.h;
+
+			// object color
+			obj_color = Get_Massivetype_Color( object->massivetype );
+
+			// create request
+			cRectRequest *rect_request = new cRectRequest();
+			pVideo->Draw_Rect( &hover_rect, 0.5f, &obj_color, rect_request );
+
+			// not filled
+			rect_request->filled = 0;
+
+			// add request
+			pRenderer->Add( rect_request );
+		}
+	}
+}
+
+void cMouseCursor :: Start_selection( void )
+{
+	Clear_mouse_object();
+	mode_selection = 1;
+	selection_rect.x = x + pCamera->x;
+	selection_rect.y = y + pCamera->y;
+}
+
+void cMouseCursor :: End_selection( void )
+{
+	mode_selection = 0;
+
+	Update_Position();
+}
+
+void cMouseCursor :: Update_selection( void )
+{
+	if( !mode_selection )
 	{
 		return;
 	}
 
-	Color dColor = (Uint8)0;
+	selection_rect.w = x - selection_rect.x + pCamera->x;
+	selection_rect.h = y - selection_rect.y + pCamera->y;
 
-	if( fastCopyMode )
+	// create collision checking rect
+	GL_rect rect = GL_rect( selection_rect.x, selection_rect.y, 0, 0 );
+
+	// negative to positive
+	if( selection_rect.w < 0 )
 	{
-		dColor = green;
+		rect.x = selection_rect.x + selection_rect.w;
+		rect.w = -selection_rect.w;
+	}
+	// positive
+	else
+	{
+		rect.w = selection_rect.w;
+	}
+
+	// negative to positive
+	if( selection_rect.h < 0 )
+	{
+		rect.y = selection_rect.y + selection_rect.h;
+		rect.h = -selection_rect.h;
+	}
+	// positive
+	else
+	{
+		rect.h = selection_rect.h;
+	}
+
+	// if rect is below minimum
+	if( rect.w < 2 && rect.h < 2 )
+	{
+		return;
+	}
+
+	// only clear if not shift is pressed
+	if( !( pKeyboard->keys[SDLK_RSHIFT] || pKeyboard->keys[SDLK_LSHIFT] ) )
+	{
+		Clear_selected_objects();
+	}
+
+	cObjectManager *obj_manager = NULL;
+
+	if( editor_level_enabled )
+	{
+		obj_manager = pObjManager;
 	}
 	else
 	{
-		dColor = white;
+		obj_manager = pActive_Overworld->object_manager;
+
+
 	}
 
-	GL_rect r2 = HoveredObject;
-	
-	r2.h = 1;
-	DrawRect( &r2, &dColor ); // Up
+	// add selected objects
+	for( ObjectList::iterator itr = obj_manager->items.begin(), itr_end = obj_manager->items.end(); itr != itr_end; ++itr )
+	{
+		cSprite *object = (*itr);
 
-	r2.y += HoveredObject.h;
-	DrawRect( &r2, &dColor ); // Down
+		if( !object->spawned && Col_Box( &rect, &object->rect ) )
+		{
+			Add_selected_object( object, 1 );
+		}
+	}
 
-	r2.y += 1;
-	DrawRect( &r2, &grey );	// Down Shadow
+	if( Col_Box( &rect, &pPlayer->rect ) )
+	{
+		Add_selected_object( pPlayer, 1 );
+	}
 
-	r2.y = HoveredObject.y;
-	r2.h = HoveredObject.h;
-	r2.w = 1;
-	DrawRect( &r2, &dColor );	// Left
+	// ## inner rect
+	cRectRequest *rect_request = new cRectRequest();
+	pVideo->Draw_Rect( selection_rect.x - pCamera->x + 0.5f, selection_rect.y - pCamera->y + 0.5f, selection_rect.w, selection_rect.h, 0.51f, &white, rect_request );
 
-	r2.x = HoveredObject.x + HoveredObject.w;
-	r2.h += 1;
-	DrawRect( &r2, &dColor ); // Right
+	// not filled
+	rect_request->filled = 0;
+	// color
+	rect_request->color.alpha = 128;
 
-	r2.x += 1;
-	DrawRect( &r2, &grey );	// Right Shadow
+	// add request
+	pRenderer->Add( rect_request );
+
+	// ## outer rect
+	// create request
+	rect_request = new cRectRequest();
+	pVideo->Draw_Rect( selection_rect.x - pCamera->x, selection_rect.y - pCamera->y, selection_rect.w, selection_rect.h, 0.51f, &lightblue, rect_request );
+
+	// not filled
+	rect_request->filled = 0;
+
+	// add request
+	pRenderer->Add( rect_request );
+}
+
+void cMouseCursor :: Toggle_Mover_mode( void )
+{
+	mover_mode = !mover_mode;
+
+	if( mover_mode )
+	{
+		MouseCursor::getSingleton().setImage( "TaharezLook", "MouseMoveCursor" );
+	}
+	else
+	{
+		MouseCursor::getSingleton().setImage( "TaharezLook", "MouseArrow" );
+	}
 }
 
 void cMouseCursor :: Mover_Update( Sint16 move_x, Sint16 move_y )
@@ -700,11 +1293,10 @@ void cMouseCursor :: Mover_Update( Sint16 move_x, Sint16 move_y )
 	{
 		return;
 	}
-	
-	cameraposx += move_x;
-	cameraposy += move_y;
 
-	SDL_WarpMouse( x, y );
+	pCamera->Move( move_x, move_y );
+
+	SDL_WarpMouse( x - move_x, y - move_y );
 
 	SDL_Event inEvent;
 	SDL_PeepEvents( &inEvent, 1, SDL_GETEVENT, SDL_MOUSEMOTIONMASK );
@@ -724,7 +1316,7 @@ void cMouseCursor :: Mover_Update( Sint16 move_x, Sint16 move_y )
 			case SDL_KEYDOWN:
 			{
 				mover_mode = 0;
-				KeyDown( event.key.keysym.sym );
+				pKeyboard->Key_Down( inEvent.key.keysym.sym );
 				break;
 			}
 			case SDL_QUIT:
@@ -738,350 +1330,174 @@ void cMouseCursor :: Mover_Update( Sint16 move_x, Sint16 move_y )
 
 void cMouseCursor :: Editor_Update( void )
 {
-	bool is_col = Editor_CollsionCheck( posx, posy );
-	cObjectCollision *col = Get_firstCollision();
+	if( !editor_enabled )
+	{
+		return;
+	}
 
+	bool is_col = Editor_Collsion_Check();
+	cObjectCollision *col = Collision_Get_first();
+
+	// valid object
 	if( is_col && col )
 	{
-		string type;
-		type.reserve( 60 );
+		// get colliding object
+		cSprite *obj = NULL;
 
+		// Level
+		if( Game_Mode == MODE_LEVEL )
+		{
+			// if player
+			if( col->type == CO_PLAYER )
+			{
+				obj = static_cast<cSprite *>(pPlayer);
+			}
+			// object manager object
+			else
+			{
+				obj = pObjManager->Get_Pointer( col->number );
+			}
+		}
+		// World
+		else if( Game_Mode == MODE_OVERWORLD )
+		{
+			// if player
+			if( col->type == CO_PLAYER )
+			{
+				obj = static_cast<cSprite *>(pOverworld_Player);
+			}
+			// object manager object
+			else
+			{
+				obj = pActive_Overworld->object_manager->Get_Pointer( col->number );
+			}
+		}
+
+		// mouse object type string
+		string type_name;
+
+		// set object data
+		if( obj )
+		{
+			type_name = obj->name;
+
+			if( !left || !mouse_object->obj )
+			{
+				Set_mouse_object( obj );
+			}
+		}
+
+		// ## Set Massivetype Text
 		if( col->type == CO_MASSIVE )
 		{
-			if( !left || !MouseObject )
+			if( obj->massivetype == MASS_HALFMASSIVE )
 			{
-				Set_MouseObject( pObjManager->items[col->number] );
-			}
-
-			if( MouseObject->massivetype == MASS_HALFMASSIVE )
-			{
-				type = "Halfmassive";
+				type_name.insert( 0, "Halfmassive - " );
 			}
 			else
 			{
-				type = "Massive";
+				type_name.insert( 0, "Massive - " );
+			}
+		}
+		else if( col->type == CO_PASSIVE )
+		{
+			if( obj->type == TYPE_OW_LINE_START || obj->type == TYPE_OW_LINE_END || obj->type == TYPE_OW_WAYPOINT )
+			{
+				// ignore
+			}
+			else if( obj->sprite_array == ARRAY_PASSIVE )
+			{
+				type_name.insert( 0, "Passive - " );
+			}
+			else
+			{
+				type_name.insert( 0, "Front Passive - " );
 			}
 		}
 		else if( col->type == CO_ACTIVE )
 		{
-			if( !left || !MouseObject )
+			if( obj->type == TYPE_HALFMASSIVE )
 			{
-				Set_MouseObject( pObjManager->items[col->number] );
+				type_name.insert( 0, "Halfmassive - " );
 			}
-
-			if( MouseObject->type == TYPE_ENEMYSTOPPER )
+			else if( obj->type == TYPE_CLIMBABLE )
 			{
-				type = "Enemystopper";
-			}
-			else if( MouseObject->type == TYPE_GOLDPIECE )
-			{
-				cGoldPiece *active = (cGoldPiece*)MouseObject;
-
-				if( active->color == COL_RED )
-				{
-					type = "Red Goldpiece";
-				}
-				else
-				{
-					type = "Goldpiece";
-				}
-			}
-			else if( MouseObject->type == TYPE_MOON )
-			{
-				type = "Moon (3-UP)";
-			}
-			else if( MouseObject->type == TYPE_CLOUD )
-			{
-				type = "Moving Cloud";
-			}
-			else if( MouseObject->type == TYPE_MOVING_PLATFORM )
-			{
-				type = "Moving Platform";
-			}
-			else if( MouseObject->type == TYPE_HALFMASSIVE )
-			{
-				if( MouseObject->massivetype != MASS_CLIMBABLE )
-				{
-					type = "Halfmassive";
-				}
-				else
-				{
-					type = "Climbable";
-				}
-			}
-			else if( MouseObject->type == TYPE_GOLDBOX )
-			{
-				cGoldBox *active = (cGoldBox*)MouseObject;
-
-				if( active->color == COL_RED )
-				{
-					type = "Red Goldbox";
-				}
-				else
-				{
-					type = "Goldbox";
-				}
-			}
-			else if( MouseObject->type == TYPE_BONUSBOX_MUSHROOM_FIRE )
-			{
-				type = "Bonus box Mushroom - Fire";
-			}
-			else if( MouseObject->type == TYPE_BONUSBOX_LIVE )
-			{
-				type = "Bonus box Level-UP";
-			}
-			else if( MouseObject->type == TYPE_BONUSBOX_JSTAR )
-			{
-				type = "Bonus box Star";
-			}
-			else if( MouseObject->type == TYPE_SPINBOX )
-			{
-				type = "Spin box";
-			}
-			else if( MouseObject->type == TYPE_LEVELEXIT )
-			{
-				cLevelExit *active = (cLevelExit*)MouseObject;
-
-				if( active->levelchange == LVLCHANGE_WARP )
-				{
-					type = "Levelexit (Warp)";
-				}
-				else
-				{
-					type = "Levelexit (Beam)";
-				}
-			}
-			else
-			{
-				type = "Active";
-			}
-		}
-		else if( col->type == CO_ENEMY )
-		{
-			if( !left || !MouseObject )
-			{
-				Set_MouseObject( pObjManager->items[col->number] );
-			}
-
-			if( MouseObject->type == TYPE_TURTLE )
-			{
-				type = "Red Turtle";
-			}
-			else if( MouseObject->type == TYPE_GOOMBA )
-			{
-				cGoomba *enemy = (cGoomba*)MouseObject;
-
-				if( enemy->color == 1 ) // Red
-				{
-					type = "Blue Goomba";
-				}
-				else
-				{
-					type = "Brown Goomba";
-				}
-			}
-			else if( MouseObject->type == TYPE_JPIRANHA )
-			{
-				type = "Jumping Piranha";
-			}
-			else if( MouseObject->type == TYPE_BANZAI_BILL )
-			{
-				type = "Banzai Bill";
-			}
-			else if( MouseObject->type == TYPE_REX )
-			{
-				type = "Rex";
-			}
-			else
-			{
-				type = "Enemy";
-			}
-		}
-		else if( col->type == CO_PLAYER )
-		{
-			if( !left || !MouseObject )
-			{
-				Set_MouseObject( (cSprite *)pPlayer );
-			}
-			
-			type = "Maryo";
-		}
-		else if( col->type == CO_PASSIVE )
-		{
-			if( !left || !MouseObject )
-			{
-				Set_MouseObject( pObjManager->items[col->number] );
-			}
-			
-			type = "Passive";
-		}
-		else if( col->type == CO_EDITOR_ITEM )
-		{
-			cMenu_Item_Object *item = pLeveleditor->Get_Item_Object( col->number );
-
-			if( item && !left )
-			{
-				type = item->name;
-			}
-			else
-			{
-				type = "";
-			}
-
-			if( !MouseObject ) 
-			{
-				if( left ) 
-				{
-					cSprite *new_sprite = Copy_Object( item->Sprite_type, posx, posy );
-
-					if( !new_sprite ) 
-					{
-						printf( "Error : Sprite copy failed\n" );
-						return;
-					}
-
-					pObjManager->Add( new_sprite );
-
-					new_sprite->posx = posx;
-					new_sprite->posy = posy;
-
-					mouse_h = (int)( new_sprite->col_rect.h / 2 );
-					mouse_w = (int)( new_sprite->col_rect.w / 2 );
-
-					Set_MouseObject( new_sprite );
-				}
-			}
-			else if( !left ) 
-			{
-				MouseObject = NULL;
-			}
-		}
-		else if( col->type == CO_EDITOR_MENU )
-		{
-			cMenu_Main_Object *item = pLeveleditor->Get_Main_Object( col->number );
-
-			if( item && !left ) 
-			{
-				type = item->name;
-			}
-			else
-			{
-				type = "";
-			}
-
-			if( !MouseObject ) 
-			{
-				if( left ) 
-				{
-					if( item->Item_Menu_Id != MENU_FUNCTION ) 
-					{
-						// load the menu
-						pLeveleditor->Load_Item_Menu( item->Item_Menu_Id );
-						pLeveleditor->Set_Main_Active( col->number );
-					}
-					else
-					{
-						// call the function
-						item->pfunction();
-						left = 0;
-						
-						// exit because col pointers could have changed
-						return;
-					}
-				}
-			}
-			else
-			{
-				MouseObject = NULL;
-			}
-		}
-		else if( col->type == CO_EDITOR_SCROLL )
-		{
-			type = "Object Scroller";
-
-			if( !MouseObject && left ) 
-			{
-				if( col->direction == DIR_LEFT )
-				{
-					pLeveleditor->Item_scroller_left->active = 1;
-				}
-				else if( col->direction == DIR_RIGHT )
-				{
-					pLeveleditor->Item_scroller_right->active = 1;
-				}
-			}
-			else if( !left ) 
-			{
-				MouseObject = NULL;
-			}
-
-		}
-		else if( col->type == CO_DIALOG )
-		{
-			if( col->number >= 0 && pDialogManager->Get_Size() >= (unsigned int)col->number )
-			{
-				MouseObject = NULL;
-				type = pDialogManager->Objects[col->number]->identifier;
-
-				if( left ) 
-				{
-					pDialogManager->Objects[col->number]->Get_Focus();
-					left = 0;
-
-					if( ActiveObject )
-					{
-						ActiveObject->Editor_val_update();
-					}
-				}
+				type_name.insert( 0, "Climbable - " );
 			}
 		}
 
-		if( col->type > CO_NOTHING && col->type < CO_EDITOR_ITEM && MouseObject )
+
+		// if valid object draw position text
+		if( col->type > CO_NOTHING && col->type <= CO_PASSIVE && mouse_object->obj )
 		{
-			if( !left )
+			// position text
+			string info = "X : " + int_to_string( (int)mouse_object->obj->posx ) + "  Y : " + int_to_string( (int)mouse_object->obj->posy );
+
+			// if in debug mode draw editor Z position
+			if( Game_debug )
 			{
-				if( col->type == CO_PLAYER || col->type == CO_ENEMY )
+				info.insert( info.length(), "  Z : " + float_to_string( mouse_object->obj->posz ) );
+
+				// if also got editor z position
+				if( obj->editor_posz != 0 )
 				{
-					mouse_w = (int)posx - (int)MouseObject->startposx;
-					mouse_h = (int)posy - (int)MouseObject->startposy;
-				}
-				else
-				{
-					mouse_w = (int)posx - (int)MouseObject->posx;
-					mouse_h = (int)posy - (int)MouseObject->posy;
+					info.insert( info.length(), "  Editor Z : " + float_to_string( mouse_object->obj->editor_posz ) );
 				}
 			}
-		
-			string info = "X : " + int_to_string( (int)MouseObject->posx ) + "  Y : " + int_to_string( (int)MouseObject->posy );
-			GL_Surface *position_info = RenderText( font_small, info, white );
-			position_info->Blit( x + 20, y + 35, &black );
+
+			GL_Surface *position_info = pFont->RenderText( pFont->font_small, info, white );
+
+			// create request
+			cSurfaceRequest *request = new cSurfaceRequest();
+			position_info->Blit( (float)( x + 20 ), (float)( y + 35 ), 0.52f, request );
+			request->delete_texture = 1;
+
+			// shadow
+			request->shadow_pos = 1;
+			request->shadow_color = black;
+
+			// add request
+			pRenderer->Add( request );
+
+			position_info->auto_del_img = 0;
 			delete position_info;
 		}
-		
+
 		if( debugdisplay->counter <= 0 )
 		{
-			debugdisplay->text = type;
-			debugdisplay->counter = 1;
+			debugdisplay->Set_Text( type_name, 1 );
 		}
 	}
 	else
 	{
 		if( !left )
 		{
-			MouseObject = NULL;
+			Clear_mouse_object();
 
 			if( !col )
 			{
-				mouse_w = 0;
-				mouse_h = 0;
+				mouse_object->mouse_w = 0;
+				mouse_object->mouse_h = 0;
 			}
 		}
 		else
 		{
-			if( !MouseObject )
+			// no mouse object
+			if( !mouse_object->obj )
 			{
+				// clear active object
 				Double_Click( 0 );
+
+				// clear selected objects if no shift is pressed
+				if( !( pKeyboard->keys[SDLK_RSHIFT] || pKeyboard->keys[SDLK_LSHIFT] ) )
+				{
+					Clear_selected_objects();
+				}
 			}
 		}
 	}
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+cMouseCursor *pMouseCursor = NULL;

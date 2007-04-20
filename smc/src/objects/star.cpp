@@ -1,7 +1,7 @@
 /***************************************************************************
            star.cpp  -  jumping star class
                              -------------------
-    copyright            :	(C) 2006 FluXy
+    copyright            :	(C) 2006 - 2007 Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -12,22 +12,29 @@
  *                                                                         *
  ***************************************************************************/ 
 
-#include "../globals.h"
+#include "../objects/star.h"
+#include "../player/player.h"
+#include "../core/framerate.h"
+#include "../video/animation.h"
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** cjStar *** *** *** *** *** *** *** *** *** *** *** */
 
-cjStar :: cjStar( double x, double y ) : cPowerUp( x, y )
+cjStar :: cjStar( float x, float y )
+: cPowerUp( x, y )
 {
 	type = TYPE_JSTAR;
 	massivetype = MASS_PASSIVE;
 
-	images.push_back( GetImage( "game/items/star.png" ) );
+	images.push_back( pVideo->Get_Surface( "game/items/star.png" ) );
 
 	anim_counter = 0;
-	vely = 0;
+
+	glim_mod = 1;
+	glim_counter = 0;
+
 	velx = 5;
 
-	SetImage( 0 );
+	Set_Image( 0, 1, 0 );
 }
 
 cjStar :: ~cjStar( void )
@@ -35,10 +42,16 @@ cjStar :: ~cjStar( void )
 	//
 }
 
+cjStar *cjStar :: Copy( void )
+{
+	cjStar *star = new cjStar( startposx, startposy );
+
+	return star;
+}
 
 void cjStar :: Update( void )
 {
-	if( !visible || !isPlayer_range() )
+	if( !visible || !is_Player_range() )
 	{
 		return;
 	}
@@ -52,7 +65,7 @@ void cjStar :: Update( void )
 	// Add Gravitation
 	if( vely < 25.0 )
 	{
-		AddVel( 0, 1.8 );
+		AddVel( 0, 1.8f );
 	}
 
 	CollideMove();
@@ -60,39 +73,71 @@ void cjStar :: Update( void )
 	// rotate
 	if( vely < 0 )
 	{
-		AddRotationZ( ( 5 - ( vely / 2.5 ) ) * Framerate.speedfactor );
+		Add_RotationZ( ( 5 - ( vely / 2.5f ) ) * pFramerate->speedfactor );
 	}
 	// rotate back to 0 if falling
 	else
 	{
 		if( rotz > 5 && rotz <= 175 )
 		{
-			AddRotationZ( ( 5 - ( vely / 1.2 ) ) * Framerate.speedfactor );
+			Add_RotationZ( ( 5 - ( vely / 1.2f ) ) * pFramerate->speedfactor );
 		}
 		else if( rotz < 355 && rotz > 185 )
 		{
-			AddRotationZ( ( -5 + ( vely / 1.2 ) ) * Framerate.speedfactor );
+			Add_RotationZ( ( -5 + ( vely / 1.2f ) ) * pFramerate->speedfactor );
 		}
 	}
 
+	// small stars
+	anim_counter += 1.1f * pFramerate->speedfactor;
 
-	anim_counter += 1.1 * Framerate.speedfactor;
-
-	if( anim_counter > 1 )
+	while( anim_counter > 1 )
 	{
 		Generate_Particles();
 
-		anim_counter = 0;
+		anim_counter--;
 	}
 
-	Draw();
+	// glim animation
+	if( glim_mod )
+	{
+		glim_counter += pFramerate->speedfactor * 0.2f;
+
+		if( glim_counter > 1 ) 
+		{
+			glim_counter = 1;
+			glim_mod = 0;
+		}
+	}
+	else
+	{
+		glim_counter -= pFramerate->speedfactor * 0.2f;
+
+		if( glim_counter < 0 ) 
+		{
+			glim_counter = 0;
+			glim_mod = 1;
+		}
+	}
+}
+
+void cjStar :: Draw( cSurfaceRequest *request /* = NULL */ )
+{
+	if( !valid_draw )
+	{
+		return;
+	}
+
+	Set_Color_Combine( glim_counter / 0.8f, glim_counter / 0.9f, glim_counter, GL_ADD );
+
+	cPowerUp::Draw();
 }
 
 void cjStar :: Activate( void )
 {
 	// animation
-	cAnimation_1 *anim = new cAnimation_1( posx + ( col_rect.w / 10 ), posy + ( col_rect.h / 10 ) );
-	anim->SetColor( Get_Color( 255, 240, 20, 200 ) );
+	cBlinkAnimation *anim = new cBlinkAnimation( posx + ( col_rect.w / 10 ), posy + ( col_rect.h / 10 ) );
+	anim->Set_Color( Color( (Uint8)255, 240, 20, 200 ) );
 	pAnimationManager->Add( anim );
 
 	// disable
@@ -102,54 +147,55 @@ void cjStar :: Activate( void )
 	pPlayer->Get_Item( TYPE_JSTAR );
 }
 
-void cjStar :: Generate_Particles( double x /* = 0 */, double y /* = 0 */, unsigned int power /* = 2 */ )
+void cjStar :: Generate_Particles( float x /* = 0 */, float y /* = 0 */, unsigned int quota /* = 2 */ )
 {
 	if( x == 0 )
 	{
-		x = posx + (double)( rand() % (int)( col_rect.w * 0.9 ) );
+		x = posx + (float)( rand() % (int)( col_rect.w * 0.9 ) );
 	}
 
 	if( y == 0 )
 	{
-		y = posy + (double)( rand() % (int)( col_rect.h * 0.9 ) );
+		y = posy + (float)( rand() % (int)( col_rect.h * 0.9 ) );
 	}
 
-	cAnimation_3 *anim = new cAnimation_3( x, y, power );
-	anim->SetFadingSpeed( 1.5 );
-	anim->SetImage( GetImage( "animation/particles/star.png" ) );
-	anim->SetLifetimeMod( 3 );
-	anim->SetFading( FADE_ALPHA );
-	anim->SetSpeed( 1.5, 0.5 );
-	anim->SetScale( 0.15 );
-	anim->SetColor( orange );
-	anim->SetBlending( BLEND_ADD );
-	anim->Set_ConstRotationZ( 1.0, 10 );
+	// set particle color
+	Color particle_color = orange;
+	particle_color.green += (Uint8)( glim_counter / 5 );
+	particle_color.blue += (Uint8)( glim_counter / 1.5 );
+
+	// create particles
+	cParticleAnimation *anim = new cParticleAnimation( x, y );
+	anim->Set_Quota( quota );
+	anim->Set_Image( pVideo->Get_Surface( "animation/particles/star.png" ) );
+	anim->Set_Time_to_Live( 0.4f );
+	anim->Set_Fading_Alpha( 1 );
+	anim->Set_Fading_Size( 1 );
+	anim->Set_Speed( 1.5f, 0.5f );
+	anim->Set_Scale( 0.15f );
+	anim->Set_Color( particle_color );
+	anim->Set_Blending( BLEND_ADD );
+	anim->Set_ConstRotationZ( 1, 10 );
 	pAnimationManager->Add( anim );
 }
 
-void cjStar :: HandleCollision( cObjectCollision *collision )
+void cjStar :: Handle_Collision_Massive( cObjectCollision *collision )
 {
-	if( collision->type > CO_NOTHING && collision->type != CO_PLAYER ) // no Player
+	if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
 	{
-		if( collision->type == CO_MASSIVE || collision->type == CO_ACTIVE )
+		velx = -velx;
+	}
+	else if( collision->direction == DIR_UP )
+	{
+		vely = -( vely * 0.3f );
+	}
+	else if( collision->direction == DIR_DOWN )
+	{
+		if( ground_object )
 		{
-			if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
-			{
-				velx = -velx;
-			}
-			else if( collision->direction == DIR_UP )
-			{
-				vely = -( vely * 0.3 );
-			}
-			else if( collision->direction == DIR_DOWN )
-			{
-				if( groundObject )
-				{
-					Generate_Particles( posx + rect.w / 2, groundObject->posy, 10 );
-				}
-
-				vely = -25;
-			}
+			Generate_Particles( posx + rect.w / 2, ground_object->posy, 10 );
 		}
+
+		vely = -25;
 	}
 }

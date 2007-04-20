@@ -4,21 +4,20 @@ smc - a super mario like jump 'n run game.
 
 =head1 DESCRIPTION
 
-Secret Maryo Chronicles is a two-dimensional platform game which 
-utilizes the platform independent library, SDL.
-It's a jump 'n run game inspired by Super Mario games.
+Secret Maryo Chronicles is an Open Source two-dimensional platform game 
+with a style designed similar to the classic sidescroller games.
+which utilizes the platform independent libray, SDL and since Version 0.98 OpenGL.
 
-The game includes a level editor (hit F8). You can find
+The game includes an editor (hit F8). You can find
 useful hints in the documentation provided with SMC.
 You can see the website too :
-    http://smclone.sf.net/
+    http://www.secretmaryo.org
 
 =head1 AUTHOR
 
 Lead Developer : FluXy
-Linux Compatibility : Thothy
 
-Lead Graphic Designer : Badboy
+Lead Graphic Designer : Frostbringer
 Graphic Designers :
 Enzakun
 Stephane
@@ -28,10 +27,8 @@ maYO
 
 =head1 LICENCE
 
-The source code is released under the GPL Licence.
-The resources ( Images, Sounds, Music ) are also under the GPL.
-Some Resources are from other GPL, LGPL and Creative Commons Projects.
+The Game is licensed under the GPL unless expressly stated otherwise.
 
 =head1 VERSION
 
-game : 0.98
+game : 0.99

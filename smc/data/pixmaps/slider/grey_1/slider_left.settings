@@ -1,2 +1,5 @@
 width 36
 height 21
+editor_tags level;platform
+name Slider_Left
+type halfmassive

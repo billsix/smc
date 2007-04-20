@@ -1,7 +1,7 @@
 /***************************************************************************
 			img_manager.cpp  -  Image Handler/Manager
                               -------------------
-    copyright            :	(C) 2003 - 2006 by FluXy
+    copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -12,41 +12,78 @@
  *                                                                         *
  ***************************************************************************/ 
 
-#include "../globals.h"
+#include "../video/img_manager.h"
+#include "../video/gl_surface.h"
+
+/* *** *** *** *** *** cSoftware_texture *** *** *** *** *** *** *** *** *** *** *** *** */
+
+cSoftware_texture :: cSoftware_texture( void )
+{
+	base = NULL;
+	pixels = NULL;
+
+	width = 0;
+	height = 0;
+	border = 0;
+
+	min_filter = 0;
+	mag_filter = 0;
+	wrap_s = 0;
+	wrap_t = 0;
+}
+
+cSoftware_texture :: ~cSoftware_texture( void )
+{
+	if( pixels )
+	{
+		delete[] pixels;
+	}
+}
+
+/* *** *** *** *** *** *** cImageManager *** *** *** *** *** *** *** *** *** *** *** */
 
 cImageManager :: cImageManager( void )
 {
 	load_count = 0;
+	high_texture_id = 0;
 }
 
 cImageManager :: ~cImageManager( void )
 {
-	DeleteAll();
+	Delete_All();
 }
 
 GL_Surface *cImageManager :: Get_Pointer( string path )
 {
-	for( unsigned int i = 0; i < items.size(); i++ )
+	for( ImageList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
 	{
-		if( items[i].item->filename.compare( path ) == 0 )
+		image_item &obj = (*itr);
+
+		// return first match
+		if( obj.item->filename.compare( path ) == 0 )
 		{
-			return items[i].item;	// the first found
+			return obj.item;
 		}
 	}
 
-	return NULL; // not found
+	// not found
+	return NULL;
 }
 
 GL_Surface *cImageManager :: Get_Pointer( unsigned int identifier )
 {
-	if( load_count > identifier ) 
+	if( identifier >= load_count ) 
 	{
-		for( unsigned int i = 0; i < items.size(); i++ )
+		return NULL;
+	}
+
+	for( ImageList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
+	{
+		image_item &obj = (*itr);
+
+		if( obj.count_id == identifier ) 
 		{
-			if( items[i].count_id == identifier ) 
-			{
-				return items[i].item;
-			}
+			return obj.item;
 		}
 	}
 
@@ -55,21 +92,24 @@ GL_Surface *cImageManager :: Get_Pointer( unsigned int identifier )
 
 GL_Surface *cImageManager :: Get_Pointer_array( unsigned int identifier )
 {
-	if( Get_Size() > identifier && items[identifier].item )
+	if( identifier >= items.size() )
 	{
-		return items[identifier].item;
+		return NULL; // not found
 	}
 
-	return NULL; // not found
+	return items[identifier].item;
 }
 
 GL_Surface *cImageManager :: Copy( string path )
 {
-	for( unsigned int i = 0; i < items.size(); i++ )
+	for( ImageList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
 	{
-		if( items[i].item->filename.compare( path ) == 0 )	// The first match
+		// get object
+		image_item &obj = (*itr);
+
+		if( obj.item->filename.compare( path ) == 0 )	// The first match
 		{
-			return items[i].item->Copy();
+			return obj.item->Copy();
 		}
 	}
 
@@ -78,14 +118,19 @@ GL_Surface *cImageManager :: Copy( string path )
 
 string cImageManager :: Get_Path( unsigned int identifier )
 {
-	if( load_count >= identifier ) 
+	if( identifier >= load_count ) 
 	{
-		for( unsigned int i = 0; i < items.size(); i++ )
+		return "";
+	}
+
+	for( ImageList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
+	{
+		// get object
+		image_item &obj = (*itr);
+
+		if( obj.count_id == identifier ) 
 		{
-			if( items[i].count_id == identifier ) 
-			{
-				return items[i].item->filename;
-			}
+			return obj.item->filename;
 		}
 	}
 
@@ -101,61 +146,80 @@ void cImageManager :: Add( GL_Surface *image )
 {
 	load_count++;
 
-	ImageItem nitem;
+	image_item nitem;
 	nitem.item = image;
 	nitem.count_id = load_count;
 
 	items.push_back( nitem );
 }
 
-/*void cImageManager :: ReloadImages( unsigned int step )
+void cImageManager :: Grab_Textures( void )
 {
-	if( step == 1 ) // only delete
+	// save to software memory
+	for( ImageList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
 	{
-		DeleteImages();
-		return;
-	}
-
-	if( step == 2 ) // Loads the images
-	{
-		for( unsigned int i = 0; i < items.size(); i++ )
+		// get software texture and save it
+		software_textures.push_back( itr->item->Get_Software_Texture() );
+		// delete hardware texture
+		if( glIsTexture( itr->item->image ) )
 		{
-			if( !items[i].item && items[i].path.length() > 4 ) 
-			{
-				items[i].item = LoadImage( items[i].path );
-
-				if( !items[i].item  )
-				{
-					printf( "Error loading file : %s\n", items[i].path.c_str() );
-				}
-			}
+			glDeleteTextures( 1, &itr->item->image );
 		}
-
-		return;
-	}
-
-	if( !step ) // Complete Reload
-	{
-		ReloadImages( 1 );
-		ReloadImages( 2 );
-	}
-}*/
-
-void cImageManager :: DeleteImages( void )
-{
-	for( unsigned int i = 0; i < items.size(); i++ )
-	{
-		if( items[i].item ) 
-		{
-			glDeleteTextures( 1, &items[i].item->image );
-			delete items[i].item;
-			items[i].item = NULL;
-		}
+		itr->item->image = 0;
 	}
 }
 
-void cImageManager :: DeleteAll( void )
+void cImageManager :: Restore_Textures( void )
 {
-	DeleteImages();
+	// load back into hardware textures
+	for( SoftwareTextureList::iterator itr = software_textures.begin(), itr_end = software_textures.end(); itr != itr_end; ++itr )
+	{
+		// get saved texture
+		cSoftware_texture *soft_tex = (*itr);
+
+		// load it
+		soft_tex->base->Load_Software_Texture( soft_tex );
+		// delete
+		delete soft_tex;
+	}
+
+	software_textures.clear();
+}
+
+void cImageManager :: Delete_Images( void )
+{
+	for( ImageList::iterator itr = items.begin(); itr != items.end(); ++itr ) 
+	{
+		// get object
+		image_item &obj = (*itr);
+
+		glDeleteTextures( 1, &obj.item->image );
+		delete obj.item;
+		obj.item = NULL;
+	}
+}
+
+void cImageManager :: Delete_Hardware_Textures( void )
+{
+	// delete all hardware surfaces
+	for( unsigned int i = 0; i < high_texture_id; i++ )
+	{
+		if( glIsTexture( i ) )
+		{
+			printf( "ImageManager : deleting texture %d\n", i );
+			glDeleteTextures( 1, &i );
+		}
+	}
+
+	high_texture_id = 0;
+}
+
+void cImageManager :: Delete_All( void )
+{
+	Delete_Images();
 	items.clear();
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+cImageManager *pImageManager = NULL;

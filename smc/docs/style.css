@@ -1,71 +1,30 @@
 body
 {
-	background-color: #FFFFEE;
-	color: #519200;
+	background-color: #FFFFEE; color: #000000;
+	padding: 10px; margin: 0px;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
 }
 
-h1
-{
-	text-align: center;
-	color: #00A8E0;
-	margin-bottom: 0px;
-}
+table { margin: 0px; padding: 0px; }
+img { border: none; }
 
-h2
-{
-	color: #2309B0;
-	margin-top: 0px;
-	margin-bottom: 0px;
-}
+p { margin: 0px; padding: 6px; }
+h1 { font-size: 20px; text-align: center; color: #005890; margin-bottom: 0px; }
+h2 { font-size: 18px; color: #2309B0; margin-top: 5px; margin-bottom: 5px; }
+h3 { font-size: 16px; font-family: Arial; color: #990033; margin-top: 3px; margin-bottom: 3px; }
+h4 { margin: 8px; margin-bottom: 12px; }
+h5 { width: 100%; text-align: center; color: #ffffdf; background: #378500; padding: 5px 0px 5px 0px; }
 
-h3
-{
-	color: #B05A6A;
-	margin-top: 2px;
-}
+th { font-size: 25px; color: #5ff70f; }
 
-th
-{
-	font-size: 25px;
-	color: #5FF70F;
-}
+dd { font-size: 13px; }
+dt { font-size: 15px; font-family: Arial; font-weight: bold; color: #002200; margin-top: 5px; }
 
-dt
-{
-	font-weight: bold;
-	color: #44A100;
-}
+a { color: #009604; }
+a:visited { color: #59B608; }
+a:hover { color: #1AD058; }
 
-a
-{
-	color: #099684;
-}
-
-a:visited
-{
-	color: #59B608;
-}
-
-a:hover
-{
-	color: #1AD058;
-}
-
-td.version
-{
-	font-family: sans-serif;
-	font-weight: bold;
-	background-color: #3F16AF;
-	color: #FFCA50;
-}
-
-td.fixes
-{
-	font-size: 14px;
-	font-spacing : 3px;
-	background-color: #29A900;
-	color: #22112D;
-	padding: 15px 10px 35px;
-	border: medium dotted blue;
-
-}
+#box_1 { background-color: #fff0d0; border-width: 0px 0px 0px medium; border-style: dotted; border-color: #0066ff; vertical-align: top; width: 33%; padding: 5px; }
+#menu { text-align: center; }
+td.version { text-align: center; padding: 5px 0px 5px 0px; font-family: arial; font-weight: bold; background-color: #CBAA22; color: #0F2ABB; }
+td.fixes { font-size: 14px; color: #22112D; background-color: #59B900; padding: 15px 10px 35px 0px; border: medium groove yellow; }
