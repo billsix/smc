@@ -15,7 +15,6 @@ Priority is H for High, M for Medium and L for Low
 ---------------- Not Assigned -----------------
 
 H! - Replace all Sounds from Badboy
-H - Ghost Powerup (item/mushroom_ghost.ogg)
 M - Eato
 M - Red Goldpiece
 L - New Ice Powerup (item/mushroom_blue.ogg)

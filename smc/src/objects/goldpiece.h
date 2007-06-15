@@ -44,13 +44,16 @@ public:
 	// Set the gold color
 	virtual void Set_Goldcolor( DefaultColor ncolor );
 
+	// the player gets the goldpiece
+	void Activate( void );
+
 	// update
 	virtual void Update( void );
 	// draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
-	// the player gets the goldpiece
-	void Activate( void );
+	// if update is valid for the current state
+	virtual bool is_Update_valid( void );
 
 	// goldpiece rotation
 	float counter;
@@ -72,14 +75,20 @@ public:
 	// update
 	virtual void Update( void );
 
-	// ignore onground check
+	// ignore ground check
 	virtual void Check_onGround( void ) {};
+
+	/* Validate the given collision object
+	 * returns 1 if an internal collision with this object is valid
+	 * returns 2 if the given object collides with this object (blocking)
+	*/
+	virtual unsigned int Validate_Collision( cSprite *obj );
 };
 
 /* *** *** *** *** *** cFGoldpiece *** *** *** *** *** *** *** *** *** *** *** *** */
 
 /* Falling Goldpiece
- * if direction is nothing it will be a random direction
+ * if direction is undefined it moves into a random direction
 */
 class cFGoldpiece : public cGoldpiece
 {
@@ -94,7 +103,8 @@ public:
 	virtual void Update( void );
 
 	/* Validate the given collision object
-	 * returns 1 if the given object collides with this object
+	 * returns 1 if an internal collision with this object is valid
+	 * returns 2 if the given object collides with this object (blocking)
 	*/
 	virtual unsigned int Validate_Collision( cSprite *obj );
 	// collision with massive

@@ -325,7 +325,7 @@ void cLevel :: Save( void )
 	// player
 	pPlayer->Save_to_Stream( file );
 	// objects
-	for( ObjectList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
 	{
 		cSprite *obj = (*itr);
 
@@ -437,6 +437,11 @@ bool cLevel :: Key_Down( SDLKey key )
 	// debug key F4
 	else if( key == SDLK_F4 && !editor_level_enabled )
 	{
+		if( pPlayer->ground_object )
+		{
+			pPlayer->Set_onTop( pPlayer->ground_object, 1 );
+		}
+		
 		/*for( unsigned int i = 0; i < pObjManager->Get_Size(); i++ )
 		{
 			if( pObjManager->Get_Pointer( i )->type == TYPE_TURTLE_BOSS )
@@ -1672,7 +1677,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			temp = new cLevelExit( (float)string_to_int( parts[1] ), (float)( GAME_RES_H - string_to_int( parts[2] ) ) );
 
 			// type
-			temp->Set_Type( (Levelchange_type)string_to_int( parts[3] ) );
+			temp->Set_Type( (Level_Exit_type)string_to_int( parts[3] ) );
 
 			// with a given level
 			if( count == 5 )

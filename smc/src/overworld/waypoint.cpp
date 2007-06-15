@@ -64,17 +64,17 @@ void cWaypoint :: Init( void )
 	direction_backward = DIR_UNDEFINED;
 	direction_forward = DIR_UNDEFINED;
 
-	Set_Image( pVideo->Get_Surface( "world/Waypoints/default_1.png" ) );
+	Set_Image( pVideo->Get_Surface( "world/waypoint/default_1.png" ) );
 
-	arrow_blue_l = pVideo->Get_Surface( "world/arrows/blue_left_small.png" );
-	arrow_blue_r = pVideo->Get_Surface( "world/arrows/blue_right_small.png" );
-	arrow_blue_u = pVideo->Get_Surface( "world/arrows/blue_up_small.png" );
-	arrow_blue_d = pVideo->Get_Surface( "world/arrows/blue_down_small.png" );
+	arrow_blue_l = pVideo->Get_Surface( "game/arrow/small/blue/left.png" );
+	arrow_blue_r = pVideo->Get_Surface( "game/arrow/small/blue/right.png" );
+	arrow_blue_u = pVideo->Get_Surface( "game/arrow/small/blue/up.png" );
+	arrow_blue_d = pVideo->Get_Surface( "game/arrow/small/blue/down.png" );
 
-	arrow_white_l = pVideo->Get_Surface( "world/arrows/left_small.png" );
-	arrow_white_r = pVideo->Get_Surface( "world/arrows/right_small.png" );
-	arrow_white_u = pVideo->Get_Surface( "world/arrows/up_small.png" );
-	arrow_white_d = pVideo->Get_Surface( "world/arrows/down_small.png" );
+	arrow_white_l = pVideo->Get_Surface( "game/arrow/small/white/left.png" );
+	arrow_white_r = pVideo->Get_Surface( "game/arrow/small/white/right.png" );
+	arrow_white_u = pVideo->Get_Surface( "game/arrow/small/white/up.png" );
+	arrow_white_d = pVideo->Get_Surface( "game/arrow/small/white/down.png" );
 }
 
 cWaypoint *cWaypoint :: Copy( void )
@@ -197,11 +197,11 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 		if( direction_backward == DIR_RIGHT )
 		{
 			x += image->w;
-			y -= 2;
+			y += image->h * 0.2f;
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
-			arrow_blue_r->Blit( x, y, 0.079f, surface_request );
+			arrow_blue_r->Blit( x, y, 0.089f, surface_request );
 			surface_request->shadow_pos = 2;
 			surface_request->shadow_color = lightgreyalpha64;
 			// add request
@@ -210,11 +210,11 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 		else if( direction_backward == DIR_LEFT )
 		{
 			x -= arrow_blue_l->w;
-			y -= 2;
+			y += image->h * 0.2f;
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
-			arrow_blue_l->Blit( x, y, 0.079f, surface_request );
+			arrow_blue_l->Blit( x, y, 0.089f, surface_request );
 			surface_request->shadow_pos = 2;
 			surface_request->shadow_color = lightgreyalpha64;
 			// add request
@@ -227,7 +227,7 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
-			arrow_blue_u->Blit( x, y, 0.079f, surface_request );
+			arrow_blue_u->Blit( x, y, 0.089f, surface_request );
 			surface_request->shadow_pos = 2;
 			surface_request->shadow_color = lightgreyalpha64;
 			// add request
@@ -240,7 +240,7 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
-			arrow_blue_d->Blit( x, y, 0.079f, surface_request );
+			arrow_blue_d->Blit( x, y, 0.089f, surface_request );
 			surface_request->shadow_pos = 2;
 			surface_request->shadow_color = lightgreyalpha64;
 			// add request
@@ -254,11 +254,11 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 		if( direction_forward == DIR_RIGHT )
 		{
 			x += image->w;
-			y -= 2;
+			y += image->h * 0.2f;
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
-			arrow_white_r->Blit( x, y, 0.79f, surface_request );
+			arrow_white_r->Blit( x, y, 0.089f, surface_request );
 			surface_request->shadow_pos = 2;
 			surface_request->shadow_color = lightgreyalpha64;
 			// add request
@@ -267,11 +267,11 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 		else if( direction_forward == DIR_LEFT )
 		{
 			x -= arrow_white_l->w;
-			y -= 2;
+			y += image->h * 0.2f;
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
-			arrow_white_l->Blit( x, y, 0.079f, surface_request );
+			arrow_white_l->Blit( x, y, 0.089f, surface_request );
 			surface_request->shadow_pos = 2;
 			surface_request->shadow_color = lightgreyalpha64;
 			// add request
@@ -284,7 +284,7 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
-			arrow_white_u->Blit( x, y, 0.079f, surface_request );
+			arrow_white_u->Blit( x, y, 0.089f, surface_request );
 			surface_request->shadow_pos = 2;
 			surface_request->shadow_color = lightgreyalpha64;
 			// add request
@@ -297,7 +297,7 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
-			arrow_white_d->Blit( x, y, 0.079f, surface_request );
+			arrow_white_d->Blit( x, y, 0.089f, surface_request );
 			surface_request->shadow_pos = 2;
 			surface_request->shadow_color = lightgreyalpha64;
 			// add request

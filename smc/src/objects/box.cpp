@@ -245,6 +245,7 @@ void cBaseBox :: Activate_collision( ObjectDirection cdirection )
 
 	// set collision direction
 	move_col_dir = cdirection;
+	Update_valid_update();
 
 	Check_Collision( Get_OppositeDirection( move_col_dir ) );
 	Activate();
@@ -291,6 +292,7 @@ void cBaseBox :: Update_collision( void )
 	{
 		printf( "Warning : wrong box collision direction %d\n", move_col_dir );
 		move_col_dir = DIR_UNDEFINED;
+		Update_valid_update();
 		return;
 	}
 
@@ -345,6 +347,7 @@ void cBaseBox :: Update_collision( void )
 		if(	move_counter > 1 )
 		{
 			move_col_dir = DIR_UNDEFINED;
+			Update_valid_update();
 			move_back = 0;
 			move_counter = 0;
 
@@ -361,37 +364,30 @@ void cBaseBox :: Update_collision( void )
 void cBaseBox :: Check_Collision( ObjectDirection cdirection )
 {
 	// additional direction based check position
-	float check_x = posx;
-	float check_y = posy;
-	// check rect size
-	float check_width = col_rect.w;
-	float check_height = col_rect.h;
+	float check_x = 0;
+	float check_y = 0;
 
 
-	// set the collision rect based on the collision direction
+	// set the collision size based on the collision direction
 	if( cdirection == DIR_BOTTOM )
 	{
 		check_y -= 10;
-		check_width *= 0.9f;
 	}
 	else if( cdirection == DIR_TOP )
 	{
 		check_y += 10;
-		check_width *= 0.9f;
 	}
 	else if( cdirection == DIR_LEFT ) 
 	{
-		check_x += 10;
-		check_height *= 0.8f;
+		check_x += 5;
 	}
 	else if( cdirection == DIR_RIGHT )
 	{
-		check_x -= 10;
-		check_height *= 0.8f;
+		check_x -= 5;
 	}
 
 	// collision count
-	unsigned int col_count = ColCheck( check_x, check_y, check_width, check_height ).size();
+	unsigned int col_count = Collision_Check_Relative( check_x, check_y, col_rect.w - ( check_x * 0.5f ), col_rect.h - ( check_y * 0.5f ) ).size();
 
 	// handle collisions
 	for( unsigned int i = 0; i < col_count; i++ )
@@ -572,6 +568,16 @@ void cBaseBox :: Generate_active_Particles( void )
 
 		particle_counter_active--;
 	}
+}
+
+bool cBaseBox :: is_Update_valid( void )
+{
+	if( !useable_count && move_col_dir == DIR_UNDEFINED )
+	{
+		return 0;
+	}
+
+	return 1;
 }
 
 bool cBaseBox :: is_Draw_valid( void )

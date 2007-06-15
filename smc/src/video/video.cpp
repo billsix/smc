@@ -123,6 +123,8 @@ bool Color :: operator == ( const SDL_Color color ) const
 
 cVideo :: cVideo( void )
 {
+	opengl_version = 0;
+
 	double_buffer = 0;
 	hardware_surfaces = 0;
 
@@ -453,6 +455,17 @@ void cVideo :: Init_Video( void )
 		pImageManager->Restore_Textures();
 		pFont->Restore_Textures();
 	}
+	// finished first initialization
+	else
+	{
+		// get opengl version
+		opengl_version = atof( reinterpret_cast<const char*>(glGetString( GL_VERSION )) );
+
+		if( opengl_version < 1.4f )
+		{
+			printf( "Warning : OpenGL Version %f below optimal version 1.4 and higher\n", opengl_version );
+		}
+	}
 
 	initialised = 1;
 }
@@ -696,23 +709,17 @@ GL_Surface *cVideo :: Load_Surface( string filename, int use_settings /* = 1 */,
 			// create image
 			else
 			{
-				// check if texture should be downscaled
+				// check if texture needs to get downscaled
 				float new_w = (float)Get_GLsize( sdl_surface->w ), new_h = (float)Get_GLsize( sdl_surface->h );
 
+				// if image settings dimension
 				if( settings->width > 0 && settings->height > 0 )
 				{
+					// downscale to fit best for the current resolution
 					while( new_w * 0.5f > settings->width * global_scalex && new_h * 0.5f > settings->height * global_scaley )
 					{
 						new_w *= 0.5f;
 						new_h *= 0.5f;
-					}
-
-					// if smaller : downscale
-					if( new_w != sdl_surface->w )
-					{
-						//printf( "%s\n", filename.c_str() );
-						//printf( "\torig %d - %d\tscaled %f - %f\n", sdl_surface->w, sdl_surface->h, sdl_surface->w * global_scalex, sdl_surface->h * global_scaley );
-						//printf( "\tnew %f  -  %f\n", new_w, new_h );
 					}
 				}
 
@@ -816,36 +823,12 @@ GL_Surface *cVideo :: CreateTexture( SDL_Surface *surface, bool mipmap /* = 0 */
 	// use the generated texture
 	glBindTexture( GL_TEXTURE_2D, image_num );
 
-	// affect how this texture is drawn later on
+	// how this texture is drawn
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-	// create mipmaps
-    if( mipmap )
-    {
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-
-		// Opengl 1.4 and higher
-        if( strcmp( reinterpret_cast<const char*>( glGetString(GL_VERSION) ), "1.4" ) >= 0 )
-		{
-			// instead of using glu, we rely on glTexImage2D to create the Mipmaps
-			glTexParameteri( GL_TEXTURE_2D, GL_GENERATE_MIPMAP, 1 );
-			// copy the sdl surface into the opengl texture
-			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, final->pixels );
-        }
-		// Opengl below 1.4
-		else
-		{
-			gluBuild2DMipmaps( GL_TEXTURE_2D, GL_RGBA, width, height, GL_RGBA, GL_UNSIGNED_BYTE, final->pixels );
-		}
-    }
-	// no mipmaps
-    else
-    {
- 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, final->pixels );
-    }
+	Create_Texture( width, height, final->pixels, mipmap );
 	
 	glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
 
@@ -870,6 +853,39 @@ GL_Surface *cVideo :: CreateTexture( SDL_Surface *surface, bool mipmap /* = 0 */
 #endif
 
 	return image;
+}
+
+void cVideo :: Create_Texture( unsigned int width, unsigned int height, void *pixels, bool mipmap /* = 0 */ )
+{
+	// create mipmaps
+    if( mipmap )
+    {
+		// enable mipmap filter
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+
+		// if OpenGL 1.4 or higher
+        if( opengl_version >= 1.4f )
+		{
+			// use glTexImage2D to create Mipmaps
+			glTexParameteri( GL_TEXTURE_2D, GL_GENERATE_MIPMAP, 1 );
+			// copy the software bitmap into the opengl texture
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels );
+        }
+		// OpenGL below 1.4
+		else
+		{
+			// use glu to create Mipmaps
+			gluBuild2DMipmaps( GL_TEXTURE_2D, GL_RGBA, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels );
+		}
+    }
+	// no mipmaps
+    else
+    {
+		// default filter
+ 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		// copy the software bitmap into the opengl texture
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels );
+    }
 }
 
 Color cVideo :: GetPixel( int x, int y, GL_Surface *source /* = NULL */ )

@@ -57,24 +57,28 @@ public:
 	void Set_Speed( float val );
 	// Set the middle image count
 	void Set_Middle_Count( int val );
+	// set image
+	void Set_image_top_left( GL_Surface *surface );
+	void Set_image_top_middle( GL_Surface *surface );
+	void Set_image_top_right( GL_Surface *surface );
 
 	// update
 	virtual void Update( void );
 	// draw
 	virtual void Draw( cSurfaceRequest *request /* = NULL */ );
 
-	// ignore onground check
-	virtual void Check_onGround( void ) {};
-
-	// set image
-	void Set_image_top_left( GL_Surface *surface );
-	void Set_image_top_middle( GL_Surface *surface );
-	void Set_image_top_right( GL_Surface *surface );
 	// update rect
 	void Update_rect( void );
 
+	// ignore onground check
+	virtual void Check_onGround( void ) {};
+
+	// if update is valid for the current state
+	virtual bool is_Update_valid( void );
+
 	/* Validate the given collision object
-	 * returns 1 if the given object collides with this object
+	 * returns 1 if an internal collision with this object is valid
+	 * returns 2 if the given object collides with this object (blocking)
 	*/
 	virtual unsigned int Validate_Collision( cSprite *obj );
 

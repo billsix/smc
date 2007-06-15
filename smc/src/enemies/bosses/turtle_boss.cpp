@@ -204,10 +204,9 @@ void cTurtleBoss :: Set_Color( DefaultColor col )
 		return;
 	}
 
-	// clear old images
-	Clear_Images();
-
 	color_type = col;
+
+	Clear_Images();
 
 	if( color_type == COL_RED )
 	{
@@ -282,12 +281,14 @@ void cTurtleBoss :: DownGrade( bool force /* = 0 */ )
 					pAudio->PlayMusic( "game/courseclear.ogg", 0, 0 );
 
 					// set shell image
-                    Set_Image( 5 );
+					Set_Image( 5 );
 
 					// death state
-                    massivetype = MASS_PASSIVE;
-                    counter = 8;
-                    dead = 1;
+					Set_Dead( 1 );
+					massivetype = MASS_PASSIVE;
+					counter = 8;
+					velx = 0;
+					vely = 0;
                 }
 				// downgrade
                 else
@@ -327,8 +328,8 @@ void cTurtleBoss :: DownGrade( bool force /* = 0 */ )
 	// falling death
 	else
 	{
+		Set_Dead( 1 );
 		counter = 8;
-		dead = 1;
 		massivetype = MASS_PASSIVE;
 
 		if( turtle_state == TURTLEBOSS_WALK )
@@ -398,10 +399,12 @@ void cTurtleBoss :: DieStep( void )
 	// if below disable
 	else
 	{
-		visible = 0;
-		rotz = 0;
 		state = STA_STAY;
 		turtle_state = TURTLEBOSS_DEAD;
+		Set_Visible( 0 );
+		rotz = 0;
+		velx = 0;
+		vely = 0;
 	}
 }
 
@@ -409,7 +412,7 @@ void cTurtleBoss :: Update( void )
 {
 	cEnemy::Update();
 
-	if( dead || freeze_counter || !is_Player_range() )
+	if( !valid_update || !is_Player_range() )
 	{
 		return;
 	}
@@ -600,8 +603,6 @@ void cTurtleBoss :: Update( void )
 
 	// gravity
 	Update_Gravity();
-
-	CollideMove();
 }
 
 void cTurtleBoss :: Throw_Fireballs( unsigned int amount /* = 6 */ )
@@ -623,6 +624,16 @@ void cTurtleBoss :: Throw_Fireballs( unsigned int amount /* = 6 */ )
 	anim->Set_FadingSpeed( 0.15f );
 	anim->Set_ZPos( posz + 0.000001f );
 	pAnimationManager->Add( anim );
+}
+
+bool cTurtleBoss :: is_Update_valid( void )
+{
+	if( dead || freeze_counter )
+	{
+		return 0;
+	}
+
+	return 1;
 }
 
 unsigned int cTurtleBoss :: Validate_Collision( cSprite *obj )

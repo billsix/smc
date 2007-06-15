@@ -158,13 +158,11 @@ cSoftware_texture *GL_Surface :: Get_Software_Texture( void )
 	// texture settings
 	glGetTexLevelParameteriv( GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &soft_tex->width );
 	glGetTexLevelParameteriv( GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &soft_tex->height );
-	glGetTexLevelParameteriv( GL_TEXTURE_2D, 0, GL_TEXTURE_BORDER, &soft_tex->border );
 
 	glGetTexParameteriv( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &soft_tex->wrap_s );
 	glGetTexParameteriv( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &soft_tex->wrap_t );
 	glGetTexParameteriv( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &soft_tex->min_filter );
 	glGetTexParameteriv( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &soft_tex->mag_filter );
-
 
 	// texture data
 	soft_tex->pixels = new uint8[soft_tex->width * soft_tex->height * 4];
@@ -193,9 +191,18 @@ void GL_Surface :: Load_Software_Texture( cSoftware_texture *soft_tex )
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, soft_tex->wrap_t );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, soft_tex->min_filter );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, soft_tex->mag_filter );
-	glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, soft_tex->width, soft_tex->height, soft_tex->border, GL_RGBA, GL_UNSIGNED_BYTE, soft_tex->pixels );
+	// check if mipmaps are enabled
+	bool mipmaps = 0;
+
+	// if mipmaps are enabled
+	if( soft_tex->min_filter == GL_LINEAR_MIPMAP_LINEAR )
+	{
+		mipmaps = 1;
+	}
+
+	// Create Hardware Texture
+	pVideo->Create_Texture( soft_tex->width, soft_tex->height, soft_tex->pixels, mipmaps );
 
 	image = tex_id;
 }

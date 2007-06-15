@@ -88,22 +88,22 @@ public:
 	// draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
-	typedef vector<cSprite> BlinkPointList;
+	typedef vector<cSprite *> BlinkPointList;
 	BlinkPointList objects;
 	
 };
 
 /* *** *** *** *** *** *** *** Fire Explosion *** *** *** *** *** *** *** *** *** *** */
 
-struct FireAnimation_item : public cMovingSprite
+struct FireAnimation_item : public cImageObjectSprite
 {
 	FireAnimation_item( void )
-	: cMovingSprite()
+	: cImageObjectSprite()
 	{
 		counter = 0;
 	}
 
-	~FireAnimation_item( void ) {}
+	virtual ~FireAnimation_item( void ) {}
 
 	// lifetime
 	float counter;
@@ -122,7 +122,7 @@ public:
 	// draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
-	typedef vector<FireAnimation_item> FireAnimList;
+	typedef vector<FireAnimation_item *> FireAnimList;
 	FireAnimList objects;
 };
 

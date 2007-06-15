@@ -49,9 +49,23 @@ cjStar *cjStar :: Copy( void )
 	return star;
 }
 
+void cjStar :: Activate( void )
+{
+	// animation
+	cBlinkAnimation *anim = new cBlinkAnimation( posx + ( col_rect.w / 10 ), posy + ( col_rect.h / 10 ) );
+	anim->Set_Color( Color( (Uint8)255, 240, 20, 200 ) );
+	pAnimationManager->Add( anim );
+
+	// disable
+	Set_Visible( 0 );
+
+	// activate star
+	pPlayer->Get_Item( TYPE_JSTAR );
+}
+
 void cjStar :: Update( void )
 {
-	if( !visible || !is_Player_range() )
+	if( !valid_update || !is_Player_range() )
 	{
 		return;
 	}
@@ -63,12 +77,10 @@ void cjStar :: Update( void )
 	}
 
 	// Add Gravitation
-	if( vely < 25.0 )
+	if( vely < 25 )
 	{
 		AddVel( 0, 1.8f );
 	}
-
-	CollideMove();
 	
 	// rotate
 	if( vely < 0 )
@@ -94,7 +106,6 @@ void cjStar :: Update( void )
 	while( anim_counter > 1 )
 	{
 		Generate_Particles();
-
 		anim_counter--;
 	}
 
@@ -133,36 +144,22 @@ void cjStar :: Draw( cSurfaceRequest *request /* = NULL */ )
 	cPowerUp::Draw();
 }
 
-void cjStar :: Activate( void )
-{
-	// animation
-	cBlinkAnimation *anim = new cBlinkAnimation( posx + ( col_rect.w / 10 ), posy + ( col_rect.h / 10 ) );
-	anim->Set_Color( Color( (Uint8)255, 240, 20, 200 ) );
-	pAnimationManager->Add( anim );
-
-	// disable
-	visible = 0;
-
-	// activate star
-	pPlayer->Get_Item( TYPE_JSTAR );
-}
-
 void cjStar :: Generate_Particles( float x /* = 0 */, float y /* = 0 */, unsigned int quota /* = 2 */ )
 {
 	if( x == 0 )
 	{
-		x = posx + (float)( rand() % (int)( col_rect.w * 0.9 ) );
+		x = posx + (float)( rand() % (int)( col_rect.w * 0.9f ) );
 	}
 
 	if( y == 0 )
 	{
-		y = posy + (float)( rand() % (int)( col_rect.h * 0.9 ) );
+		y = posy + (float)( rand() % (int)( col_rect.h * 0.9f ) );
 	}
 
 	// set particle color
 	Color particle_color = orange;
 	particle_color.green += (Uint8)( glim_counter / 5 );
-	particle_color.blue += (Uint8)( glim_counter / 1.5 );
+	particle_color.blue += (Uint8)( glim_counter / 1.5f );
 
 	// create particles
 	cParticleAnimation *anim = new cParticleAnimation( x, y );

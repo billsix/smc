@@ -175,11 +175,40 @@ void cThromp :: Set_Speed( float val )
 	Update_dest_vel();
 }
 
+void cThromp :: Activate( void )
+{
+	if( state == STA_FLY )
+	{
+		return;
+	}
+
+	state = STA_FLY;
+
+	velx = dest_velx;
+	vely = dest_vely;
+	move_back = 0;
+}
+
+void cThromp :: Move_Back( void )
+{
+	if( state == STA_STAY || move_back )
+	{
+		return;
+	}
+
+	velx = -dest_velx * 0.01f;
+	vely = -dest_vely * 0.01f;
+
+	move_back = 1;
+}
+
 void cThromp :: DownGrade( bool force /* = 0 */ )
 {
-	dead = 1;
+	Set_Dead( 1 );
 	massivetype = MASS_PASSIVE;
 	counter = 0;
+	velx = 0;
+	vely = 0;
 
 	if( !force )
 	{
@@ -204,7 +233,7 @@ void cThromp :: DieStep( void )
 
 	if( rotz != 180 ) // default death
 	{
-		visible = 0;
+		Set_Visible( 0 );
 	}
 	else // falling death
 	{
@@ -219,7 +248,7 @@ void cThromp :: DieStep( void )
 		else // if below disable
 		{
 			rotz = 0;
-			visible = 0;
+			Set_Visible( 0 );
 		}
 	}
 }
@@ -228,7 +257,7 @@ void cThromp :: Update( void )
 {
 	cEnemy::Update();
 
-	if( dead || freeze_counter || !is_Player_range() )
+	if( !valid_update || !is_Player_range() )
 	{
 		return;
 	}
@@ -336,8 +365,6 @@ void cThromp :: Update( void )
 			move_back = 0;
 		}
 	}
-
-	CollideMove();
 }
 
 void cThromp :: Draw( cSurfaceRequest *request /* = NULL */ )
@@ -356,13 +383,15 @@ void cThromp :: Draw( cSurfaceRequest *request /* = NULL */ )
 
 		if( start_direction == DIR_LEFT || start_direction == DIR_RIGHT )
 		{
-			rect_distance.h = 15;
+			rect_distance.y += ( rect.h * 0.5f ) - 5;
+			rect_distance.h = 10;
 			rect_distance.w += rect.w;
 		}
 		else if( start_direction == DIR_UP || start_direction == DIR_DOWN )
 		{
+			rect_distance.x += ( rect.w * 0.5f ) - 5;
 			rect_distance.h += rect.h;
-			rect_distance.w = 15;
+			rect_distance.w = 10;
 		}
 
 		pVideo->Draw_Rect( &rect_distance, posz - 0.000001f, &whitealpha128 );
@@ -426,31 +455,14 @@ GL_rect cThromp :: Get_Distance_rect( void )
 	return rect_distance;
 }
 
-void cThromp :: Activate( void )
+bool cThromp :: is_Update_valid( void )
 {
-	if( state == STA_FLY )
+	if( dead || freeze_counter )
 	{
-		return;
+		return 0;
 	}
 
-	state = STA_FLY;
-
-	velx = dest_velx;
-	vely = dest_vely;
-	move_back = 0;
-}
-
-void cThromp :: Move_Back( void )
-{
-	if( state == STA_STAY || move_back )
-	{
-		return;
-	}
-
-	velx = -dest_velx * 0.01f;
-	vely = -dest_vely * 0.01f;
-
-	move_back = 1;
+	return 1;
 }
 
 void cThromp :: Generate_Smoke( unsigned int power /* = 10 */ )

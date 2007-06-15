@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.5" />
-		<Property name="engine_version" value="2" />
-		<Property name="save_time" value="1173810339" />
+		<Property name="game_version" value="0.99.6" />
+		<Property name="engine_version" value="2.1" />
+		<Property name="save_time" value="1178117301" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Martimor" />
@@ -25,14 +25,14 @@
 	</background>
 	<background>
 		<Property name="type" value="1" />
-		<Property name="image" value="game/background/blue_mountains_1.png" />
+		<Property name="image" value="game/background/blue_damnis.png" />
 		<Property name="speedx" value="1" />
 		<Property name="speedy" value="1" />
 		<Property name="posz" value="0.00011" />
 	</background>
 	<player>
-		<Property name="posx" value="42" />
-		<Property name="posy" value="296" />
+		<Property name="posx" value="71" />
+		<Property name="posy" value="200" />
 		<Property name="direction" value="right" />
 	</player>
 	<sprite>
@@ -1700,6 +1700,7 @@
 	<moving_platform>
 		<Property name="posx" value="1162" />
 		<Property name="posy" value="-1173" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
 		<Property name="speed" value="3" />
@@ -5590,6 +5591,7 @@
 	<moving_platform>
 		<Property name="posx" value="10870" />
 		<Property name="posy" value="-791" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="150" />
 		<Property name="speed" value="3" />
@@ -7767,6 +7769,7 @@
 	<moving_platform>
 		<Property name="posx" value="17714" />
 		<Property name="posy" value="-2051" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="3" />
@@ -7778,6 +7781,7 @@
 	<moving_platform>
 		<Property name="posx" value="18088" />
 		<Property name="posy" value="-2151" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="4" />
@@ -7789,6 +7793,7 @@
 	<moving_platform>
 		<Property name="posx" value="18457" />
 		<Property name="posy" value="-2235" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="350" />
 		<Property name="speed" value="6" />
@@ -7803,6 +7808,9 @@
 		<Property name="posy" value="-2286" />
 		<Property name="direction" value="vertical" />
 		<Property name="max_distance" value="400" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="green" />
 	</enemy>
 	<enemy>
@@ -7811,6 +7819,9 @@
 		<Property name="posy" value="-2194" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="green" />
 	</enemy>
 	<enemy>
@@ -7819,6 +7830,9 @@
 		<Property name="posy" value="-2350" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="green" />
 	</enemy>
 	<sprite>
@@ -7985,18 +7999,6 @@
 	</sprite>
 	<sprite>
 		<Property name="posx" value="19668" />
-		<Property name="posy" value="-2310" />
-		<Property name="image" value="blocks/screw/1.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="19668" />
-		<Property name="posy" value="-2353" />
-		<Property name="image" value="blocks/screw/1.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="19711" />
 		<Property name="posy" value="-2353" />
 		<Property name="image" value="blocks/screw/1.png" />
 		<Property name="type" value="massive" />
@@ -8009,18 +8011,6 @@
 	</sprite>
 	<sprite>
 		<Property name="posx" value="19754" />
-		<Property name="posy" value="-2396" />
-		<Property name="image" value="blocks/screw/1.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="19754" />
-		<Property name="posy" value="-2439" />
-		<Property name="image" value="blocks/screw/1.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="19797" />
 		<Property name="posy" value="-2439" />
 		<Property name="image" value="blocks/screw/1.png" />
 		<Property name="type" value="massive" />
@@ -8449,6 +8439,7 @@
 		<Property name="posx" value="17975" />
 		<Property name="posy" value="-2742" />
 		<Property name="type" value="0" />
+		<Property name="level_name" value="mondercalyptica" />
 	</levelexit>
 	<box>
 		<Property name="posx" value="1894" />

@@ -28,22 +28,29 @@ cFont :: cFont( void )
 {
 	font_normal = NULL;
 	font_small = NULL;
+	font_very_small = NULL;
 }
 
 cFont :: ~cFont( void )
 {
 	if( TTF_WasInit() )
 	{
+		if( font_normal )
+		{
+			TTF_CloseFont( font_normal );
+			font_normal = NULL;
+		}
+
 		if( font_small )
 		{
 			TTF_CloseFont( font_small );
 			font_small = NULL;
 		}
 
-		if( font_normal )
+		if( font_very_small )
 		{
-			TTF_CloseFont( font_normal );
-			font_normal = NULL;
+			TTF_CloseFont( font_very_small );
+			font_very_small = NULL;
 		}
 
 		TTF_Quit();

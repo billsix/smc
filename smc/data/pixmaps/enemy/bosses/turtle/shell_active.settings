@@ -1,3 +1,2 @@
-width 108
-height 108
-col_rect 5 5 100 100
+base shell_front.png 1
+rotation 0 180 0

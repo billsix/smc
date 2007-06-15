@@ -18,12 +18,12 @@
 #include "../core/globals.h"
 #include "../objects/objectsprite.h"
 
-/* *** *** *** *** *** *** *** Levelchange types *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** Level Exit types *** *** *** *** *** *** *** *** *** *** */
 
-enum Levelchange_type
+enum Level_Exit_type
 {
-	LVLCHANGE_BEAM		= 0,	// no special animation ( e.g. doors )
-	LVLCHANGE_WARP		= 1		// the player slowly moves into the object ( e.g. pipes )
+	LEVELEXIT_BEAM		= 0,	// no special animation ( e.g. doors )
+	LEVELEXIT_WARP		= 1		// the player slowly moves into the object ( e.g. pipes )
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -62,7 +62,7 @@ public:
 	void Activate( void );
 
 	// Set the type
-	void Set_Type( Levelchange_type ltype );
+	void Set_Type( Level_Exit_type ltype );
 
 	// Sets the destination level
 	void Set_Level( string filename );
@@ -78,8 +78,8 @@ public:
 	bool Editor_Direction_Select( const EventArgs &event ); // editor direction option selected
 	bool Editor_Destination_Level_Key( const EventArgs &event );  // editor destination level key up
 
-	// levelchange type
-	Levelchange_type levelchange_type;
+	// level exit type
+	Level_Exit_type levelchange_type;
 	// destination level if type is not exit
 	string levelname;
 

@@ -193,7 +193,7 @@ void cPreferences :: Default( void )
 	background_images = 1;
 	level_dir = LEVEL_DIR;
 
-	// Leveleditor
+	// editor
 	editor_mouse_auto_hide = 0;
 
 	config_filename = user_data_dir + "config.xml";

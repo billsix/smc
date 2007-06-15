@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.5" />
-		<Property name="engine_version" value="2" />
-		<Property name="save_time" value="1173810352" />
+		<Property name="game_version" value="0.99.6" />
+		<Property name="engine_version" value="2.1" />
+		<Property name="save_time" value="1178117867" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Martimor" />
@@ -16,23 +16,23 @@
 	</settings>
 	<background>
 		<Property name="type" value="103" />
-		<Property name="bg_color_1_red" value="60" />
+		<Property name="bg_color_1_red" value="180" />
 		<Property name="bg_color_1_green" value="60" />
 		<Property name="bg_color_1_blue" value="180" />
-		<Property name="bg_color_2_red" value="90" />
-		<Property name="bg_color_2_green" value="60" />
-		<Property name="bg_color_2_blue" value="90" />
+		<Property name="bg_color_2_red" value="130" />
+		<Property name="bg_color_2_green" value="50" />
+		<Property name="bg_color_2_blue" value="50" />
 	</background>
 	<background>
 		<Property name="type" value="1" />
-		<Property name="image" value="game/background/blue_mountains_1.png" />
+		<Property name="image" value="game/background/blue_damnis.png" />
 		<Property name="speedx" value="1" />
 		<Property name="speedy" value="1" />
 		<Property name="posz" value="0.00011" />
 	</background>
 	<player>
 		<Property name="posx" value="6573" />
-		<Property name="posy" value="-742" />
+		<Property name="posy" value="-800" />
 		<Property name="direction" value="right" />
 	</player>
 	<sprite>
@@ -2327,7 +2327,7 @@
 		<Property name="posx" value="8035" />
 		<Property name="posy" value="-793" />
 		<Property name="type" value="1" />
-		<Property name="level_name" value="Mond3r" />
+		<Property name="level_name" value="monder" />
 		<Property name="direction" value="right" />
 	</levelexit>
 	<sprite>

@@ -24,7 +24,6 @@ cSoftware_texture :: cSoftware_texture( void )
 
 	width = 0;
 	height = 0;
-	border = 0;
 
 	min_filter = 0;
 	mag_filter = 0;
@@ -158,14 +157,17 @@ void cImageManager :: Grab_Textures( void )
 	// save to software memory
 	for( ImageList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
 	{
+		// get surface
+		GL_Surface *obj = itr->item;
+
 		// get software texture and save it
-		software_textures.push_back( itr->item->Get_Software_Texture() );
+		software_textures.push_back( obj->Get_Software_Texture() );
 		// delete hardware texture
-		if( glIsTexture( itr->item->image ) )
+		if( glIsTexture( obj->image ) )
 		{
-			glDeleteTextures( 1, &itr->item->image );
+			glDeleteTextures( 1, &obj->image );
 		}
-		itr->item->image = 0;
+		obj->image = 0;
 	}
 }
 

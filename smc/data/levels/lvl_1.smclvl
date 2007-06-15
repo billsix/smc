@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.6" />
+		<Property name="game_version" value="0.99.7" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1174971739" />
+		<Property name="save_time" value="1181444769" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="SMC Team and Yuki" />
@@ -17,10 +17,10 @@
 	<background>
 		<Property name="type" value="103" />
 		<Property name="bg_color_1_red" value="30" />
-		<Property name="bg_color_1_green" value="90" />
-		<Property name="bg_color_1_blue" value="143" />
-		<Property name="bg_color_2_red" value="10" />
-		<Property name="bg_color_2_green" value="0" />
+		<Property name="bg_color_1_green" value="190" />
+		<Property name="bg_color_1_blue" value="13" />
+		<Property name="bg_color_2_red" value="0" />
+		<Property name="bg_color_2_green" value="100" />
 		<Property name="bg_color_2_blue" value="10" />
 	</background>
 	<background>
@@ -2362,7 +2362,7 @@
 		<Property name="type" value="halfmassive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="1180" />
+		<Property name="posx" value="1182" />
 		<Property name="posy" value="-358" />
 		<Property name="image" value="blocks/wood/1.png" />
 		<Property name="type" value="halfmassive" />
@@ -2736,19 +2736,19 @@
 		<Property name="useable_count" value="-1" />
 	</box>
 	<sprite>
-		<Property name="posx" value="1137" />
+		<Property name="posx" value="1139" />
 		<Property name="posy" value="-358" />
 		<Property name="image" value="blocks/wood/1.png" />
 		<Property name="type" value="halfmassive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="1094" />
+		<Property name="posx" value="1096" />
 		<Property name="posy" value="-358" />
 		<Property name="image" value="blocks/wood/1.png" />
 		<Property name="type" value="halfmassive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="1223" />
+		<Property name="posx" value="1225" />
 		<Property name="posy" value="-358" />
 		<Property name="image" value="blocks/wood/1.png" />
 		<Property name="type" value="halfmassive" />

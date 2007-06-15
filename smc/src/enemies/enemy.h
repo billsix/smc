@@ -27,6 +27,9 @@ public:
 	cEnemy( float x = 0, float y = 0 );
 	virtual ~cEnemy( void );
 
+	// Set Dead
+	virtual void Set_Dead( bool enable = 1 );
+
 	// death animation step
 	virtual void DieStep( void );
 	// handle basic enemy updates

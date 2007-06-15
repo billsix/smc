@@ -44,14 +44,13 @@ public:
 
     uint8 *pixels;
 
-    int width;
-    int height;
-    int border;
+    GLint width;
+    GLint height;
 
-    int min_filter;
-    int mag_filter;
-    int wrap_s;
-    int wrap_t;
+    GLint min_filter;
+    GLint mag_filter;
+    GLint wrap_s;
+    GLint wrap_t;
 };
 
 typedef vector<cSoftware_texture *> SoftwareTextureList;

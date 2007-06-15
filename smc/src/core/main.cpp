@@ -400,8 +400,23 @@ void Update_Game( void )
 		Handle_Input_Global( &input_event );
 	}
 
-	// if a level isn't loaded or delay enter overworld
-	if( !pLevel->is_Loaded() || pActive_Overworld->delayed_enter )
+	// if a level isn't loaded
+	if( !pLevel->is_Loaded() )
+	{
+		// custom level
+		if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM )
+		{
+			pMenuCore->Enter( MENU_START );
+		}
+		// world level
+		else
+		{
+			pActive_Overworld->Enter();
+		}
+	}
+
+	// delay enter overworld
+	if( pActive_Overworld->delayed_enter )
 	{
 		pActive_Overworld->Enter();
 	}
@@ -412,6 +427,8 @@ void Update_Game( void )
 
 	if( Game_Mode == MODE_LEVEL )
 	{
+		// Camera
+		pPlayer->Update_Camera();
 		// input
 		pLevel->Process_Input();
 		pLevel_Editor->Process_Input();
@@ -424,8 +441,12 @@ void Update_Game( void )
 		// player
 		pPlayer->Update();
 		// collisions
-		pPlayer->Handle_Collisions();
-		pObjManager->Handle_Collision_items();
+		if( !editor_enabled )
+		{
+			pPlayer->Collide_Move();
+			pPlayer->Handle_Collisions();
+			pObjManager->Handle_Collision_items();
+		}
 		// object events
 		pObjManager->Update();
 	}

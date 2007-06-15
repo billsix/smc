@@ -112,7 +112,7 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 		float new_cameraposx = 0;
 		float new_cameraposy = 0;
 
-		for( ObjectList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
 		{
 			cSprite *obj = (*itr);
 

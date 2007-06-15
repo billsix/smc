@@ -76,8 +76,12 @@ public:
 	// Throw Fireballs upwards
     void Throw_Fireballs( unsigned int amount = 6 );
 
+	// if update is valid for the current state
+	virtual bool is_Update_valid( void );
+
 	/* Validate the given collision object
-	 * returns 1 if the given object collides with this object
+	 * returns 1 if an internal collision with this object is valid
+	 * returns 2 if the given object collides with this object (blocking)
 	*/
 	virtual unsigned int Validate_Collision( cSprite *obj );
 	// collision from player

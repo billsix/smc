@@ -149,7 +149,7 @@ void cEato :: Set_Direction( ObjectDirection dir )
 
 void cEato :: DownGrade( bool force /* = 0 */ )
 {
-	dead = 1;
+	Set_Dead( 1 );
 	massivetype = MASS_PASSIVE;
 	counter = 0;
 
@@ -177,7 +177,7 @@ void cEato :: DieStep( void )
 	// default death
 	if( rotz != 180 )
 	{
-		visible = 0;
+		Set_Visible( 0 );
 	}
 	// falling death
 	else
@@ -196,7 +196,7 @@ void cEato :: DieStep( void )
 		else
 		{
 			rotz = 0;
-			visible = 0;
+			Set_Visible( 0 );
 		}
 	}
 }
@@ -205,7 +205,7 @@ void cEato :: Update( void )
 {
 	cEnemy::Update();
 
-	if( dead || freeze_counter || !is_Player_range() )
+	if( !valid_update || !is_Player_range() )
 	{
 		return;
 	}
@@ -218,8 +218,16 @@ void cEato :: Update( void )
 	}
 
 	Set_Image( (int)walk_count );
+}
 
-	CollideMove();
+bool cEato :: is_Update_valid( void )
+{
+	if( dead || freeze_counter )
+	{
+		return 0;
+	}
+
+	return 1;
 }
 
 unsigned int cEato :: Validate_Collision( cSprite *obj )

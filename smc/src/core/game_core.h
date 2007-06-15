@@ -22,12 +22,10 @@
 
 // quit game if true
 extern bool done;
-/* 0 = nothing
- * 1 = Level
- * 2 = Overworld
- * 3 = Menu
- */
+// current Game Mode
 extern GameMode Game_Mode;
+// current Game Mode Type
+extern GameModeType Game_Mode_Type;
 // global debugging
 extern bool Game_debug;
 

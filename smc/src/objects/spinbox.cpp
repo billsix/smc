@@ -1,5 +1,5 @@
 /***************************************************************************
-           box.cpp  -  class for spinbox
+           box.cpp  -  spinbox
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
@@ -55,7 +55,7 @@ void cSpinBox :: Init( void )
 	anim_counter_max = 1;
 
 	// editor image
-	item_image = pVideo->Get_Surface( "world/arrows/up_small.png" );
+	item_image = pVideo->Get_Surface( "game/arrow/small/white/up.png" );
 
 	Create_Name();
 }
@@ -94,6 +94,7 @@ void cSpinBox :: Activate( void )
 	}
 
 	spin = 1;
+	Update_valid_update();
 	// passive box for spinning
 	massivetype = MASS_PASSIVE;
 
@@ -123,6 +124,7 @@ void cSpinBox :: Stop( void )
 	}
 	// reset
 	spin = 0;
+	Update_valid_update();
 	counter = (float)anim_counter_min;
 	spin_counter = 0;
 
@@ -134,7 +136,7 @@ void cSpinBox :: Stop( void )
 
 void cSpinBox :: Update( void )
 {
-	if( !is_Player_range() )
+	if( !valid_update || !is_Player_range() )
 	{
 		return;
 	}
@@ -156,34 +158,28 @@ void cSpinBox :: Update( void )
 				// for collision check and if spinning stopped back to a massive box
 				massivetype = MASS_MASSIVE;
 				// collision data
-				cObjectCollisionType col_list = ColCheck( posx, posy );
+				cObjectCollisionType col_list = Collision_Check( &col_rect, COLLIDE_ONLY_CHECK );
 				
 				// check if spinning should continue
 				bool spin_again = 0;
 
 				// colliding with player or enemy
-				if( col_list.find( CO_PLAYER ) || col_list.find( CO_ENEMY ) )
+				if( col_list.find( TYPE_PLAYER ) || col_list.find( ARRAY_ENEMY ) )
 				{
 					spin_again = 1;
 				}
 				// colliding with an active object
-				else if( col_list.find( CO_ACTIVE ) )
+				else if( col_list.find( ARRAY_ACTIVE ) )
 				{
-					cObjectCollision *col = Collision_Get_last();
-
-					// collision available
-					if( col )
+					cSprite *col_obj = col_list.find( ARRAY_ACTIVE );
+					
+					// check for items
+					if( col_obj->type == TYPE_MUSHROOM_LIVE_1 || col_obj->type == TYPE_MUSHROOM_DEFAULT || 
+						col_obj->type == TYPE_MUSHROOM_POISON || col_obj->type == TYPE_MUSHROOM_BLUE || col_obj->type == TYPE_MUSHROOM_GHOST || 
+						col_obj->type == TYPE_FIREPLANT || col_obj->type == TYPE_JSTAR || col_obj->type == TYPE_FGOLDPIECE )
 					{
-						cSprite *col_obj = pObjManager->items[col->number];
-						
-						// check for items
-						if( col_obj->type == TYPE_MUSHROOM_LIVE_1 || col_obj->type == TYPE_MUSHROOM_DEFAULT || 
-							col_obj->type == TYPE_MUSHROOM_POISON || col_obj->type == TYPE_MUSHROOM_BLUE || col_obj->type == TYPE_MUSHROOM_GHOST || 
-							col_obj->type == TYPE_FIREPLANT || col_obj->type == TYPE_JSTAR || col_obj->type == TYPE_FGOLDPIECE )
-						{
-							// found blocking active object
-							spin_again = 1;
-						}
+						// found blocking active object
+						spin_again = 1;
 					}
 				}
 
@@ -200,13 +196,17 @@ void cSpinBox :: Update( void )
 				{
 					Stop();
 				}
-
-				// delete all found collisions
-				for( unsigned int i = 0; i < col_list.size(); i++ )
-				{
-					Collision_Delete_last();
-				}
 			}
 		}
 	}
+}
+
+bool cSpinBox :: is_Update_valid( void )
+{
+	if( spin )
+	{
+		return 1;
+	}
+
+	return cBaseBox::is_Update_valid();
 }

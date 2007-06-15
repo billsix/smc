@@ -154,9 +154,11 @@ void cGumba :: Set_Color( DefaultColor col )
 
 void cGumba :: DownGrade( bool force /* = 0 */ )
 {
-	dead = 1;
+	Set_Dead( 1 );
 	massivetype = MASS_PASSIVE;
 	counter = 0;
+	velx = 0;
+	vely = 0;
 
 	// default stomp death
 	if( !force )
@@ -187,8 +189,8 @@ void cGumba :: DieStep( void )
 
 		if( scaley < 0.1f )
 		{
-			visible = 0;
 			Set_Scale( 1 );
+			Set_Visible( 0 );
 		}
 	}
 	// falling death
@@ -212,7 +214,7 @@ void cGumba :: DieStep( void )
 		{
 			rotz = 0;
 			Set_Scale( 1 );
-			visible = 0;
+			Set_Visible( 0 );
 		}
 	}
 }
@@ -221,7 +223,7 @@ void cGumba :: Update( void )
 {
 	cEnemy::Update();
 
-	if( dead || freeze_counter || !is_Player_range() )
+	if( !valid_update || !is_Player_range() )
 	{
 		return;
 	}
@@ -239,9 +241,17 @@ void cGumba :: Update( void )
 	// gravity
 	Update_Gravity();
 
-	CollideMove();
-
 	Update_Rotation_velx();
+}
+
+bool cGumba :: is_Update_valid( void )
+{
+	if( dead || freeze_counter )
+	{
+		return 0;
+	}
+
+	return 1;
 }
 
 unsigned int cGumba :: Validate_Collision( cSprite *obj )

@@ -29,7 +29,10 @@ public:
 	cImage_settings_data( void );
 	~cImage_settings_data( void );
 
+	// Apply settings to an image
 	void Apply( GL_Surface *image );
+	// Apply base settings
+	void Apply_base( cImage_settings_data *base_settings_data );
 
 	// base image/settings path
 	string base;
@@ -70,13 +73,15 @@ public:
 	virtual ~cImage_settings( void );
 
 	// Returns the settings from the given file
-	cImage_settings_data *Get( string &filename );
+	cImage_settings_data *Get( string &filename, bool load_base_settings = 1 );
 
 	// Handles the Image Settings Line
 	virtual bool HandleMessage( string *parts, unsigned int count, unsigned int line );
 
 	// the surface pointer used
 	cImage_settings_data *settings;
+	// load base settings
+	bool load_base;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

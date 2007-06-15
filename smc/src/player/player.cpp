@@ -337,7 +337,7 @@ void cPlayer :: Move_Player( float velocity, float vel_wrongway )
 	}
 
 	// collision count
-	unsigned int col_count = ColCheck( posx + velocity, posy, 0, 0, COLLIDE_ALLOW_BLOCKING ).size();
+	unsigned int col_count = Collision_Check_Relative( velocity, 0, 0, 0, COLLIDE_ALLOW_BLOCKING ).size();
 	// if collision with a blocking object
 	bool is_col = 0;
 
@@ -779,7 +779,7 @@ void cPlayer :: Update_climbing( void )
 	vely = 0;
 
 	// collision testing
-	ColCheck();
+	Collision_Check( &col_rect );
 
 	for( ObjectCollisionList::iterator itr = collisions.begin(), itr_end = collisions.end(); itr != itr_end; ++itr )
 	{
@@ -811,7 +811,7 @@ void cPlayer :: Update_climbing( void )
 			}
 
 			// in contact testing
-			ColCheckAuto( 0, -15 );
+			Collision_Check_Relative( 0, -15 );
 			col = Collision_Get_first();
 
 			// do not climb further upwards if maryo will loose contact
@@ -1001,10 +1001,7 @@ void cPlayer :: Update_item( void )
 		{
 			// update the item position
 			active_object->Set_Pos( posx + ( ( direction == DIR_LEFT ) ? (-active_object->col_rect.w) : (rect.w * 0.8f) ), posy + ( rect.h * 0.1f ) );
-
-			// update the item velocity for collision direction checking
-			active_object->velx = velx;
-			active_object->vely = vely;
+			active_object->Move( velx, vely );
 		}
 
 		return;
@@ -1028,7 +1025,7 @@ void cPlayer :: Update_item( void )
 		}
 
 		// check the next player position for objects
-		unsigned int object_count = ColCheckAuto( ( direction == DIR_LEFT ) ? (check_x) : (rect.w), 0, ( direction == DIR_LEFT ) ? (-check_x) : (check_x) ).size();
+		unsigned int object_count = Collision_Check_Relative( ( direction == DIR_LEFT ) ? (check_x) : (rect.w), 0, ( direction == DIR_LEFT ) ? (-check_x) : (check_x) ).size();
 
 		// possible objects
 		for( unsigned int i = 0; i < object_count; i++ )
@@ -1129,6 +1126,8 @@ void cPlayer :: Release_item( bool set_position /* = 1 */, bool no_action /* = 0
 			turtle->direction = kick_direction;
 			turtle->playercounter = DESIRED_FPS * 0.5f;
 		}
+
+		turtle->Update_valid_update();
 	}
 
 	// if the new object position is in the player ( e.g. add velx to move slowly out of the player position )
@@ -1175,13 +1174,13 @@ void cPlayer :: Release_item( bool set_position /* = 1 */, bool no_action /* = 0
 		while( start_posx - 50 < active_object->posx && start_posx + 50 > active_object->posx && 
 			   start_posy - 50 < active_object->posy && start_posy + 50 > active_object->posy )
 		{
-			cObjectCollisionType col_list = active_object->ColCheckAuto( step_x, step_y, 0, 0, COLLIDE_ALLOW_BLOCKING );
+			cObjectCollisionType col_list = active_object->Collision_Check_Relative( step_x, step_y, 0, 0, COLLIDE_ALLOW_BLOCKING );
 			
 			// check for blocking objects
 			if( col_list.size() )
 			{
 				// collides with a blocking object
-				if( col_list.find( CO_MASSIVE ) || col_list.find( CO_ACTIVE ) || col_list.find( CO_ENEMY ) )
+				if( col_list.find( ARRAY_MASSIVE ) || col_list.find( ARRAY_ACTIVE ) || col_list.find( ARRAY_ENEMY ) )
 				{
 					// move into the opposite kick direction
 					active_object->Move( step_x, step_y, 1 );
@@ -1192,18 +1191,18 @@ void cPlayer :: Release_item( bool set_position /* = 1 */, bool no_action /* = 0
 			break;
 		}
 
-		cObjectCollisionType col_list = active_object->ColCheck( 0, 0, 0, 0, COLLIDE_ALLOW_BLOCKING );
+		cObjectCollisionType col_list = active_object->Collision_Check( &active_object->col_rect, COLLIDE_ALLOW_BLOCKING );
 
 		// check for blocking objects on the final position
 		if( col_list.size() )
 		{
 			// still collides with a blocking object
-			if( col_list.find( CO_MASSIVE ) || col_list.find( CO_ACTIVE ) || col_list.find( CO_ENEMY ) )
+			if( col_list.find( ARRAY_MASSIVE ) || col_list.find( ARRAY_ACTIVE ) || col_list.find( ARRAY_ENEMY ) )
 			{
 				if( active_object->type == TYPE_TURTLE )
 				{
 					// downgrade if collision with static blocking objects
-					if( active_object->state == STA_RUN && ( col_list.find( CO_MASSIVE ) || col_list.find( CO_ACTIVE ) ) )
+					if( active_object->state == STA_RUN && ( col_list.find( ARRAY_MASSIVE ) || col_list.find( ARRAY_ACTIVE ) ) )
 					{
 						active_object->DownGrade( 1 );
 					}
@@ -1214,9 +1213,8 @@ void cPlayer :: Release_item( bool set_position /* = 1 */, bool no_action /* = 0
 					}
 				}
 			}
-
 			// collides with player
-			if( col_list.find( CO_PLAYER ) )
+			else if( col_list.find( TYPE_PLAYER ) )
 			{
 				position_in_player = 1;
 			}
@@ -1228,7 +1226,7 @@ void cPlayer :: Release_item( bool set_position /* = 1 */, bool no_action /* = 0
 	{
 		if( active_object->type == TYPE_TURTLE )
 		{
-			cTurtle *turtle = (cTurtle *)active_object;
+			cTurtle *turtle = static_cast<cTurtle *>(active_object);
 			
 			// if staying
 			if( turtle->state == STA_STAY )
@@ -1430,7 +1428,7 @@ bool cPlayer :: ChangeSize( float x, float y, bool only_check /* = 0 */ )
 
 	while( !valid_hor )
 	{
-		if( !ColCheckAuto( check_pos, 0, 0, 0, COLLIDE_ONLY_CHECK ).size() )
+		if( !Collision_Check_Relative( check_pos, 0, 0, 0, COLLIDE_ONLY_CHECK ).size() )
 		{
 			if( !only_check )
 			{
@@ -1439,7 +1437,7 @@ bool cPlayer :: ChangeSize( float x, float y, bool only_check /* = 0 */ )
 
 			valid_hor = 1;
 		}
-		else if( !ColCheckAuto( -check_pos, 0, 0, 0, COLLIDE_ONLY_CHECK ).size() )
+		else if( !Collision_Check_Relative( -check_pos, 0, 0, 0, COLLIDE_ONLY_CHECK ).size() )
 		{
 			if( !only_check )
 			{
@@ -1482,7 +1480,7 @@ bool cPlayer :: ChangeSize( float x, float y, bool only_check /* = 0 */ )
 
 	while( !valid_ver )
 	{
-		if( !ColCheckAuto( 0, check_pos, 0, 0, COLLIDE_ONLY_CHECK ).size() )
+		if( !Collision_Check_Relative( 0, check_pos, 0, 0, COLLIDE_ONLY_CHECK ).size() )
 		{
 			if( !only_check )
 			{
@@ -1491,7 +1489,7 @@ bool cPlayer :: ChangeSize( float x, float y, bool only_check /* = 0 */ )
 
 			valid_ver = 1;
 		}
-		else if( !ColCheckAuto( 0, -check_pos, 0, 0, COLLIDE_ONLY_CHECK ).size() )
+		else if( !Collision_Check_Relative( 0, -check_pos, 0, 0, COLLIDE_ONLY_CHECK ).size() )
 		{
 			if( !only_check )
 			{
@@ -1609,9 +1607,6 @@ void cPlayer :: Goto_SubLevel( string sublevel )
 	// same level - scroll to the position
 	if( sublevel.compare( Get_filename( pLevel->data_file, 0, 0 ) ) == 0 )
 	{
-		//float orig_posx = posx;
-		//float orig_posy = posy;
-
 		Reset( 0 );
 
 		for( unsigned int i = 0; i < 200; i++ )
@@ -1662,9 +1657,6 @@ void cPlayer :: Update( void )
 		DownGrade( 1 );
 	}
 
-	// clear collision data
-	//Collisions_Clear();
-
 	// check if Maryo got stuck
 	if( !ducked )
 	{
@@ -1713,6 +1705,7 @@ void cPlayer :: Update( void )
 		// ended
 		if( ghost_time <= 0 )
 		{
+			pAudio->PlaySound( "player/ghost_end.ogg", RID_MUSHROOM_GHOST );
 			Set_Type( maryo_type_temp_power, 1, 0 );
 		}
 		// near end
@@ -1806,9 +1799,6 @@ void cPlayer :: Update( void )
 			}
 		}
 	}
-
-	// collision and movement handling
-	CollideMove();
 
 	// update active item
 	Update_item();
@@ -1958,9 +1948,6 @@ void cPlayer :: Update( void )
 		}
 	}
 
-	// Camera
-	Update_Camera();
-
 	// Special
 	Update_Kill_Multiplier();
 }
@@ -2060,7 +2047,7 @@ void cPlayer :: Draw_Player( cSurfaceRequest *request /* = NULL */ )
 void cPlayer :: Draw_Animation( Maryo_type new_mtype )
 {
 	// already set or invalid
-	if( new_mtype == maryo_type || new_mtype == MARYO_DEAD )
+	if( new_mtype == maryo_type || maryo_type == MARYO_DEAD || new_mtype == MARYO_DEAD )
 	{
 		return;
 	}
@@ -2619,7 +2606,7 @@ void cPlayer :: Get_Item( SpriteType item_type, bool force /* = 0 */, cMovingSpr
 			maryo_type != MARYO_SMALL )
 		{
 			// set back ghost time
-			if( maryo_type == MARYO_GHOST ) 
+			if( maryo_type == MARYO_GHOST )
 			{
 				ghost_time = DESIRED_FPS * 10;
 				ghost_time_mod = 0;
@@ -2670,10 +2657,13 @@ void cPlayer :: Get_Item( SpriteType item_type, bool force /* = 0 */, cMovingSpr
 		active_object = base;
 		active_object->massivetype = MASS_PASSIVE;
 		active_object->state = STA_OBJ_LINKED;
+		active_object->Update_valid_update();
 		active_object->Reset_onGround();
+		active_object->velx = 0;
+		active_object->vely = 0;
 		
 		
-		cTurtle *turtle = (cTurtle *)active_object;
+		cTurtle *turtle = static_cast<cTurtle *>(active_object);
 		// clear the standing counter
 		turtle->counter = 0;
 		// clear player counter
@@ -2734,16 +2724,16 @@ void cPlayer :: Action_Jump( bool enemy_jump /* = 0 */ )
 void cPlayer :: Action_Interact( void )
 {
 	// Search for colliding Levelexit Objects
-	for( ObjectList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
 	{
 		cSprite *obj = (*itr);
 
 		if( obj->type == TYPE_LEVELEXIT && Col_Box( &col_rect, &obj->col_rect ) )
 		{
-			cLevelExit *levelexit = (cLevelExit *)obj;
+			cLevelExit *levelexit = static_cast<cLevelExit *>(obj);
 
 			// only beam levelexit
-			if( levelexit->levelchange_type == LVLCHANGE_BEAM )
+			if( levelexit->levelchange_type == LEVELEXIT_BEAM )
 			{
 				levelexit->Activate();
 			}
@@ -2861,7 +2851,7 @@ bool cPlayer :: Ball_add( ball_effect effect_type /* = FIREBALL_DEFAULT */ )
 void cPlayer :: Ball_clear( void )
 {
 	// destroy all fireballs from the player
-	for( ObjectList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
 	{
 		cSprite *obj = (*itr);
 
@@ -3012,6 +3002,12 @@ unsigned int cPlayer :: Validate_Collision( cSprite *obj )
 			}
 		}
 
+		// don't collide with ground
+		if( ground_object == obj )
+		{
+			return 0;
+		}
+
 		return 2;
 	}
 	if( obj->massivetype == MASS_HALFMASSIVE )
@@ -3019,6 +3015,12 @@ unsigned int cPlayer :: Validate_Collision( cSprite *obj )
 		// if moving downwards and object is on top
 		if( vely >= 0 && is_onTop( obj ) )
 		{
+			// don't collide with ground
+			if( ground_object == obj )
+			{
+				return 0;
+			}
+
 			return 2;
 		}
 
@@ -3050,20 +3052,10 @@ unsigned int cPlayer :: Validate_Collision( cSprite *obj )
 	return 0;
 }
 
-void cPlayer :: Handle_Collision( cObjectCollision *collision )
-{
-	// unknown direction
-	if( collision->direction == DIR_UNDEFINED )
-	{
-		return;
-	}
-
-	cImageObjectSprite::Handle_Collision( collision );
-}
-
 void cPlayer :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
-	if( maryo_type == MARYO_DEAD || !visible )
+	// if invalid
+	if( collision->direction == DIR_UNDEFINED || maryo_type == MARYO_DEAD || !visible )
 	{
 		return;
 	}
@@ -3171,6 +3163,12 @@ void cPlayer :: Handle_Collision_Enemy( cObjectCollision *collision )
 
 void cPlayer :: Handle_Collision_Massive( cObjectCollision *collision )
 {
+	// if invalid
+	if( collision->direction == DIR_UNDEFINED )
+	{
+		return;
+	}
+
 	cSprite *col_obj = pObjManager->Get_Pointer( collision->number );
 
 	// ignore climbable
@@ -3190,6 +3188,17 @@ void cPlayer :: Handle_Collision_Massive( cObjectCollision *collision )
 				Set_MovingState( STA_FALL );
 				UpKeytime = 0;
 				jump_power = 0;
+
+				cMovingSprite *moving_object = dynamic_cast<cMovingSprite *>(col_obj);
+
+				// if valid moving sprite
+				if( moving_object )
+				{
+					if( moving_object->vely > 0 )
+					{
+						vely += moving_object->vely;
+					}
+				}
 
 				if( collision->type == CO_MASSIVE )
 				{

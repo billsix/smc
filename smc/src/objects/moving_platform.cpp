@@ -119,11 +119,11 @@ void cMoving_Platform :: Save_to_Stream( ofstream &file )
 	file << "\t\t<Property name=\"speed\" value=\"" << speed << "\" />" << std::endl;
 	// middle image count
 	file << "\t\t<Property name=\"middle_img_count\" value=\"" << middle_count << "\" />" << std::endl;
-	// image begin
+	// image top left
 	file << "\t\t<Property name=\"image_top_left\" value=\"" << images[0]->Get_filename( 1 ) << "\" />" << std::endl;
-	// image middle 1
+	// image top middle
 	file << "\t\t<Property name=\"image_top_middle\" value=\"" << images[1]->Get_filename( 1 ) << "\" />" << std::endl;
-	// image end
+	// image top right
 	file << "\t\t<Property name=\"image_top_right\" value=\"" << images[2]->Get_filename( 1 ) << "\" />" << std::endl;
 
 	// end moving_platform
@@ -140,12 +140,13 @@ void cMoving_Platform :: Set_Massivetype( MassiveType mtype )
 void cMoving_Platform :: Set_Direction( ObjectDirection dir )
 {
 	// already set
-	if( direction == dir )
+	if( start_direction == dir )
 	{
 		return;
 	}
 
 	cImageObjectSprite::Set_Direction( dir, 1 );
+	Create_Name();
 }
 
 void cMoving_Platform :: Set_Max_Distance( int nmax_distance )
@@ -178,9 +179,42 @@ void cMoving_Platform :: Set_Middle_Count( int val )
 	}
 }
 
+void cMoving_Platform :: Set_image_top_left( GL_Surface *surface )
+{
+	if( !surface )
+	{
+		return;
+	}
+
+	images[0] = surface;
+	Update_rect();
+}
+
+void cMoving_Platform :: Set_image_top_middle( GL_Surface *surface )
+{
+	if( !surface )
+	{
+		return;
+	}
+
+	images[1] = surface;
+	Update_rect();
+}
+
+void cMoving_Platform :: Set_image_top_right( GL_Surface *surface )
+{
+	if( !surface )
+	{
+		return;
+	}
+
+	images[2] = surface;
+	Update_rect();
+}
+
 void cMoving_Platform :: Update( void )
 {
-	if( !visible || !is_Player_range() )
+	if( !valid_update || !is_Player_range() )
 	{
 		return;
 	}
@@ -225,10 +259,7 @@ void cMoving_Platform :: Update( void )
 			direction = DIR_LEFT;
 		}
 	}
-
-	Col_Move( velx, vely, 0, 0, 0 );
 }
-
 
 void cMoving_Platform :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
@@ -283,39 +314,6 @@ void cMoving_Platform :: Draw( cSurfaceRequest *request /* = NULL */ )
 
 }
 
-void cMoving_Platform :: Set_image_top_left( GL_Surface *surface )
-{
-	if( !surface )
-	{
-		return;
-	}
-
-	images[0] = surface;
-	Update_rect();
-}
-
-void cMoving_Platform :: Set_image_top_middle( GL_Surface *surface )
-{
-	if( !surface )
-	{
-		return;
-	}
-
-	images[1] = surface;
-	Update_rect();
-}
-
-void cMoving_Platform :: Set_image_top_right( GL_Surface *surface )
-{
-	if( !surface )
-	{
-		return;
-	}
-
-	images[2] = surface;
-	Update_rect();
-}
-
 void cMoving_Platform :: Update_rect( void )
 {
 	col_rect.w = 0;
@@ -339,21 +337,31 @@ void cMoving_Platform :: Update_rect( void )
 	start_rect.w = rect.w;
 }
 
+bool cMoving_Platform :: is_Update_valid( void )
+{
+	if( !visible )
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
 unsigned int cMoving_Platform :: Validate_Collision( cSprite *obj )
 {
 	if( obj->type == TYPE_PLAYER )
 	{
 		cMovingSprite *moving_sprite = static_cast<cMovingSprite *>(obj);
 
-		// don't set onground if jumping
+		// don't set ground if jumping
 		if( moving_sprite->is_onTop( this ) && moving_sprite->state != STA_JUMP )
 		{
-			if( !moving_sprite->ground_object )
+			if( ( massivetype == MASS_HALFMASSIVE && !moving_sprite->ground_object ) ||
+				 ( massivetype == MASS_MASSIVE && moving_sprite->ground_object != this ) )
 			{
 				moving_sprite->ground_object = this;
+				moving_sprite->Set_onTop( this, 0 );
 			}
-
-			moving_sprite->Set_onTop( this, 0 );
 
 			return 1;
 		}
@@ -365,6 +373,7 @@ unsigned int cMoving_Platform :: Validate_Collision( cSprite *obj )
 		if( obj->is_onTop( this ) )
 		{
 			obj->Set_onTop( this, 0 );
+
 			return 1;
 		}
 
@@ -379,7 +388,7 @@ void cMoving_Platform :: Editor_Activate( void )
 	WindowManager &wmgr = WindowManager::getSingleton();
 
 	// max distance
-	Editbox *editbox = (Editbox *)wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_max_distance" );
+	Editbox *editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_max_distance" ));
 
 	Editor_Add( editbox, 120 );
 	editbox->setTooltipText( "Max Distance" );
@@ -387,7 +396,7 @@ void cMoving_Platform :: Editor_Activate( void )
 	editbox->subscribeEvent( Editbox::EventTextChanged, Event::Subscriber( &cMoving_Platform::Editor_Max_Distance_Key, this ) );
 
 	// speed
-	editbox = (Editbox *)wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_speed" );
+	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_speed" ));
 	editbox->setTooltipText( "Speed" );
 	Editor_Add( editbox, 120 );
 
@@ -395,7 +404,7 @@ void cMoving_Platform :: Editor_Activate( void )
 	editbox->subscribeEvent( Editbox::EventTextChanged, Event::Subscriber( &cMoving_Platform::Editor_Speed_Key, this ) );
 
 	// horizontal middle image count
-	editbox = (Editbox *)wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_hor_middle_count" );
+	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_hor_middle_count" ));
 	editbox->setTooltipText( "Horizontal Middle Image Count" );
 	Editor_Add( editbox, 120 );
 
@@ -403,7 +412,7 @@ void cMoving_Platform :: Editor_Activate( void )
 	editbox->subscribeEvent( Editbox::EventTextChanged, Event::Subscriber( &cMoving_Platform::Editor_Hor_Middle_Count_Key, this ) );
 
 	// image top left
-	editbox = (Editbox *)wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_image_top_left" );
+	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_image_top_left" ));
 	editbox->setTooltipText( "Image Top Left" );
 	Editor_Add( editbox, 200 );
 
@@ -411,7 +420,7 @@ void cMoving_Platform :: Editor_Activate( void )
 	editbox->subscribeEvent( Editbox::EventTextChanged, Event::Subscriber( &cMoving_Platform::Editor_Image_Top_Left_Key, this ) );
 
 	// image top middle
-	editbox = (Editbox *)wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_image_top_middle" );
+	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_image_top_middle" ));
 	editbox->setTooltipText( "Image Top Middle" );
 	Editor_Add( editbox, 200 );
 
@@ -419,7 +428,7 @@ void cMoving_Platform :: Editor_Activate( void )
 	editbox->subscribeEvent( Editbox::EventTextChanged, Event::Subscriber( &cMoving_Platform::Editor_Image_Top_Middle_Key, this ) );
 
 	// image top right
-	editbox = (Editbox *)wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_image_top_right" );
+	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_image_top_right" ));
 	editbox->setTooltipText( "Image Top Right" );
 	Editor_Add( editbox, 200 );
 
@@ -493,5 +502,5 @@ bool cMoving_Platform :: Editor_Image_Top_Right_Key( const EventArgs &event )
 
 void cMoving_Platform :: Create_Name( void )
 {
-	name = "Moving Platform - " + Get_Massivetype_name( massivetype );
+	name = "Moving Platform - " + Get_Direction_name( start_direction ) + " - " + Get_Massivetype_name( massivetype );
 }

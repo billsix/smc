@@ -20,8 +20,6 @@
 
 /* *** *** *** *** *** cObjectManager *** *** *** *** *** *** *** *** *** *** *** *** */
 
-typedef vector<cSprite *> ObjectList;
-
 class cObjectManager
 {
 public:	
@@ -64,7 +62,7 @@ public:
 	/* Get a sorted Objects Array
 	 * editor_sort : if set sorts from editor zpos
 	*/
-	void Get_Objects_sorted( ObjectList &objects, bool editor_sort = 0, bool with_player = 0 );
+	void Get_Objects_sorted( SpriteList &objects, bool editor_sort = 0, bool with_player = 0 );
 
 	/* Returns the object array number
 	 * if not found returns -1
@@ -77,7 +75,7 @@ public:
 	void Update_items( void );
 	// Draw items
 	void Draw_items( void );
-	// Handle item collisions
+	// Create Collision data and Handle the collisions
 	void Handle_Collision_items( void );
 
 	// Updates the destroy handler
@@ -104,7 +102,7 @@ public:
 	void Set_Z( cSprite *sprite );
 
 	// objects array
-	ObjectList items;
+	SpriteList items;
 
 	typedef vector<float> ZposList;
 	// biggest type z position

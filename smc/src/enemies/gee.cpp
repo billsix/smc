@@ -237,9 +237,11 @@ void cGee :: Set_Color( DefaultColor col )
 
 void cGee :: DownGrade( bool force /* = 0 */ )
 {
-	dead = 1;
+	Set_Dead( 1 );
 	massivetype = MASS_PASSIVE;
 	counter = 0;
+	velx = 0;
+	vely = 0;
 
 	if( !force )
 	{
@@ -261,7 +263,7 @@ void cGee :: DieStep( void )
 	// default death
 	if( rotz != 180 )
 	{
-		visible = 0;
+		Set_Visible( 0 );
 	}
 	// falling death
 	else
@@ -280,7 +282,7 @@ void cGee :: DieStep( void )
 		else
 		{
 			rotz = 0;
-			visible = 0;
+			Set_Visible( 0 );
 		}
 	}
 }
@@ -289,7 +291,7 @@ void cGee :: Update( void )
 {
 	cEnemy::Update();
 
-	if( dead || freeze_counter || !is_Player_range() )
+	if( !valid_update || !is_Player_range() )
 	{
 		return;
 	}
@@ -338,7 +340,7 @@ void cGee :: Update( void )
 			}
 		}
 		// check out of max distance
-		else if( !Check_Max_Distance() )
+		if( !Check_Max_Distance() )
 		{
 			Stop();
 		}
@@ -368,8 +370,6 @@ void cGee :: Update( void )
 	}
 
 	Set_Image( (int)walk_count );
-
-	CollideMove();
 }
 
 void cGee :: Draw( cSurfaceRequest *request /* = NULL */ )
@@ -384,11 +384,11 @@ void cGee :: Draw( cSurfaceRequest *request /* = NULL */ )
 	{
 		if( start_direction == DIR_HORIZONTAL )
 	    {
-            pVideo->Draw_Rect( startposx - pCamera->x - max_distance, startposy - pCamera->y, col_rect.w + ( max_distance * 2 ), 15, posz - 0.000001f, &whitealpha128 );
+            pVideo->Draw_Rect( startposx - pCamera->x - max_distance, startposy + ( rect.h * 0.5f ) - 5 - pCamera->y, col_rect.w + ( max_distance * 2 ), 10, posz - 0.000001f, &whitealpha128 );
 	    }
 		else if( start_direction == DIR_VERTICAL )
 	    {
-            pVideo->Draw_Rect( startposx - pCamera->x, startposy - pCamera->y - max_distance, 15, col_rect.h + ( max_distance * 2 ), posz - 0.000001f, &whitealpha128 );
+            pVideo->Draw_Rect( startposx + ( rect.w * 0.5f ) - 5 - pCamera->x, startposy - pCamera->y - max_distance, 10, col_rect.h + ( max_distance * 2 ), posz - 0.000001f, &whitealpha128 );
 	    }
 	}
 
@@ -514,6 +514,16 @@ bool cGee :: Check_Max_Distance( void )
 		{
 			return 0;
 		}
+	}
+
+	return 1;
+}
+
+bool cGee :: is_Update_valid( void )
+{
+	if( dead || freeze_counter )
+	{
+		return 0;
 	}
 
 	return 1;

@@ -510,7 +510,7 @@ cTimeDisplay :: ~cTimeDisplay( void )
 	//
 }
 
-void cTimeDisplay :: Draw( cSurfaceRequest *request /* = NULL */ )
+void cTimeDisplay :: Update( void )
 {
 	if( editor_enabled || Game_Mode == MODE_OVERWORLD || Game_Mode == MODE_MENU )
 	{
@@ -528,6 +528,14 @@ void cTimeDisplay :: Draw( cSurfaceRequest *request /* = NULL */ )
 	{
 		strcpy( text_old, text );
 		Set_Image( pFont->RenderText( pFont->font_normal, text, white ), 0, 1 );
+	}
+}
+
+void cTimeDisplay :: Draw( cSurfaceRequest *request /* = NULL */ )
+{
+	if( editor_enabled || Game_Mode == MODE_OVERWORLD || Game_Mode == MODE_MENU )
+	{
+		return;
 	}
 
 	cHudSprite::Draw();
@@ -563,20 +571,11 @@ cItemBox :: ~cItemBox( void )
 	delete item;
 }
 
-void cItemBox :: Draw( cSurfaceRequest *request /* = NULL */ )
+void cItemBox :: Update( void )
 {
-	if( editor_enabled || Game_Mode == MODE_OVERWORLD || Game_Mode == MODE_MENU )
+	if( item_counter )
 	{
-		return;
-	}
-
-	if( pPlayer->maryo_type == MARYO_DEAD )
-	{
-		item_counter = 90;
-	}
-	else if( item_counter )
-	{
-		item->posy += pFramerate->speedfactor * 4;
+		item->Move( 0, 4 );
 
 		if( item_counter_mod )
 		{
@@ -604,15 +603,23 @@ void cItemBox :: Draw( cSurfaceRequest *request /* = NULL */ )
 			Reset();
 		}
 
-		cObjectCollisionType col_list = item->ColCheckAuto( 0, 0, 0, 0, COLLIDE_ONLY_CHECK );
+		cObjectCollisionType col_list = item->Collision_Check( &item->col_rect, COLLIDE_ONLY_CHECK );
 
-		// if colliding with the Player
-		if( col_list.find( CO_PLAYER ) )
+		// if colliding with the player
+		if( col_list.find( TYPE_PLAYER ) )
 		{
 			SpriteType item_id_temp = item_id; // player can set the item back
 			Reset();
 			pPlayer->Get_Item( item_id_temp, 1 );
 		}
+	}
+}
+
+void cItemBox :: Draw( cSurfaceRequest *request /* = NULL */ )
+{
+	if( editor_enabled || Game_Mode == MODE_OVERWORLD || Game_Mode == MODE_MENU )
+	{
+		return;
 	}
 
 	if( item_id && item->image )
@@ -722,7 +729,7 @@ cDebugDisplay :: cDebugDisplay( float x /* = 0 */, float y /* = 0 */ )
 	float tempx = GAME_RES_W - 200;
 	float tempy = GAME_RES_H / 2 - 250;
 
-	for( unsigned int i = 0; i < 20; i++ )
+	for( unsigned int i = 0; i < 22; i++ )
 	{
 		sprites.push_back( new cHudSprite( NULL, tempx, tempy ) );
 		sprites[i]->Set_Shadow( black, 1 );
@@ -735,7 +742,7 @@ cDebugDisplay :: cDebugDisplay( float x /* = 0 */, float y /* = 0 */ )
 		}
 
 		// active box
-		if( i > 9 && i < 14 )
+		if( i > 10 && i < 16 )
 		{
 			sprites[i]->Set_PosX( sprites[i]->startposx += 5, 1 );
 		}
@@ -749,13 +756,14 @@ cDebugDisplay :: cDebugDisplay( float x /* = 0 */, float y /* = 0 */ )
 	sprites[2]->Set_Pos( 500, 5, 1 );
 
 	// Debug type text
-	sprites[4]->Set_Image( pFont->RenderText( pFont->font_small, "Level information", lightblue ), 0, 1 );
-	sprites[16]->Set_Image( pFont->RenderText( pFont->font_small, "Player information", lightblue ), 0, 1 );
+	sprites[4]->Set_Image( pFont->RenderText( pFont->font_small, "Level", lightblue ), 0, 1 );
+	sprites[16]->Set_Image( pFont->RenderText( pFont->font_small, "Player", lightblue ), 0, 1 );
 
-	passcount = -1;
-	masscount = -1;
-	enemycount = -1;
-	activecount = -1;
+	obj_counter = -1;
+	pass_counter = -1;
+	mass_counter = -1;
+	enemy_counter = -1;
+	active_counter = -1;
 
 	counter = 0;
 }
@@ -765,19 +773,16 @@ cDebugDisplay :: ~cDebugDisplay( void )
 	pGuiSystem->getGUISheet()->removeChildWindow( window_debugtext );
 	WindowManager::getSingleton().destroyWindow( window_debugtext );
 
-	for( unsigned int i = 0; i < sprites.size(); i++ )
+	for( HudSpriteList::iterator itr = sprites.begin(), itr_end = sprites.end(); itr != itr_end; ++itr )
 	{
-		delete sprites[i];
+		delete *itr;
 	}
 
 	sprites.clear();
 }
 
-void cDebugDisplay :: Draw( cSurfaceRequest *request /* = NULL */ )
+void cDebugDisplay :: Update( void )
 {
-	// draw complete debug info
-	GameDebugDraw();
-
 	// no text to display
 	if( text.empty() )
 	{
@@ -810,7 +815,12 @@ void cDebugDisplay :: Draw( cSurfaceRequest *request /* = NULL */ )
 		Font *font = FontManager::getSingleton().getFont( "bluebold_medium" );
 		text_debugtext->setXPosition( UDim( 0, GAME_RES_W / 2 - font->getTextExtent( text ) / 2 ) );
 	}
+}
 
+void cDebugDisplay :: Draw( cSurfaceRequest *request /* = NULL */ )
+{
+	// debugbox info
+	DebugBox_Draw();
 }
 
 void cDebugDisplay :: Set_Text( string ntext, float display_time /* = DESIRED_FPS * 2 */ )
@@ -829,7 +839,7 @@ void cDebugDisplay :: Set_Text( string ntext, float display_time /* = DESIRED_FP
 	counter = display_time;
 }
 
-void cDebugDisplay :: GameDebugDraw( void )
+void cDebugDisplay :: DebugBox_Draw( void )
 {
 	if( !Game_debug || ( Game_Mode == MODE_LEVEL && pPlayer->maryo_type == MARYO_DEAD ) ) 
 	{
@@ -839,12 +849,24 @@ void cDebugDisplay :: GameDebugDraw( void )
 	string temp_text;
 
 	/* ### Extend
-	- Other Special ( Active ) Objects
+	- Ground Object name, position and velocity
 	*/
 
 	// black background
 	Color color = blackalpha128;
-	pVideo->Draw_Rect( GAME_RES_W - 205, GAME_RES_H / 12, 180, 325, posz - 0.00001f, &color );
+	pVideo->Draw_Rect( GAME_RES_W - 205, GAME_RES_H * 0.08f, 190, 360, posz - 0.00001f, &color );
+
+	// Active objects rect
+
+	// create request
+	cRectRequest *request = new cRectRequest();
+	pVideo->Draw_Rect( sprites[11]->posx - 8, sprites[11]->posy - 4, 135, 95, posz, &white, request );
+
+	// not filled
+	request->filled = 0;
+
+	// add request
+	pRenderer->Add( request );
 
 	// ### Frames per Second
 	temp_text = "FPS : best " + int_to_string( (int)pFramerate->fps_best ) + ", worst " + int_to_string( (int)pFramerate->fps_worst ) + ", current " + int_to_string( (int)pFramerate->fps );
@@ -863,49 +885,57 @@ void cDebugDisplay :: GameDebugDraw( void )
 	// ### Level informations
 	if( pLevel->levelfile.compare( level_old ) != 0 ) 
 	{
-		string lvl_text = "Level : " + Get_filename( pLevel->data_file, 0, 0 );
+		string lvl_text = "Name : " + Get_filename( pLevel->data_file, 0, 0 );
 		level_old = pLevel->levelfile;
 		
 		sprites[5]->Set_Image( pFont->RenderText( pFont->font_very_small, lvl_text, white ), 0, 1 );
 	}
 
 	// ### Level Objects
-	// # Passive
-	if( passcount != (int)(pObjManager->Get_Size_array( ARRAY_PASSIVE ) + pObjManager->Get_Size_array( ARRAY_FRONT_PASSIVE )) ) 
+	// All
+	if( obj_counter != (int)pObjManager->size() )
 	{
-		passcount = pObjManager->Get_Size_array( ARRAY_PASSIVE ) + pObjManager->Get_Size_array( ARRAY_FRONT_PASSIVE );
+		obj_counter = pObjManager->size();
 
-		temp_text = "Passive Objects : " + int_to_string( passcount );
+		temp_text = "Objects : " + int_to_string( obj_counter );
 		sprites[6]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
-	// # Massive
-	if( masscount != (int)pObjManager->Get_Size_array( ARRAY_MASSIVE ) ) 
+	// Passive
+	if( pass_counter != (int)(pObjManager->Get_Size_array( ARRAY_PASSIVE ) + pObjManager->Get_Size_array( ARRAY_FRONT_PASSIVE )) )
 	{
-		masscount = pObjManager->Get_Size_array( ARRAY_MASSIVE );
+		pass_counter = pObjManager->Get_Size_array( ARRAY_PASSIVE ) + pObjManager->Get_Size_array( ARRAY_FRONT_PASSIVE );
 
-		temp_text = "Massive Objects : " + int_to_string( masscount );
+		temp_text = "Passive : " + int_to_string( pass_counter );
 		sprites[7]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
-	// # Enemy
-	if( enemycount != (int)pObjManager->Get_Size_array( ARRAY_ENEMY ) ) 
+	// Massive
+	if( mass_counter != (int)pObjManager->Get_Size_array( ARRAY_MASSIVE ) )
 	{
-		enemycount = pObjManager->Get_Size_array( ARRAY_ENEMY );
+		mass_counter = pObjManager->Get_Size_array( ARRAY_MASSIVE );
 
-		temp_text ="Enemy Objects : " + int_to_string( enemycount );
+		temp_text = "Massive : " + int_to_string( mass_counter );
 		sprites[8]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
-	// # Active
-	if( activecount != (int)pObjManager->Get_Size_array( ARRAY_ACTIVE ) ) 
+	// Enemy
+	if( enemy_counter != (int)pObjManager->Get_Size_array( ARRAY_ENEMY ) ) 
 	{
-		activecount = pObjManager->Get_Size_array( ARRAY_ACTIVE );
+		enemy_counter = pObjManager->Get_Size_array( ARRAY_ENEMY );
 
-		temp_text = "Active Objects : " + int_to_string( activecount );
+		temp_text ="Enemy : " + int_to_string( enemy_counter );
 		sprites[9]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+	}
+	// Active
+	if( active_counter != (int)pObjManager->Get_Size_array( ARRAY_ACTIVE ) )
+	{
+		active_counter = pObjManager->Get_Size_array( ARRAY_ACTIVE );
 
-		// # Active : Halfmassive
+		temp_text = "Active : " + int_to_string( active_counter );
+		sprites[10]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+
+		// Halfmassive
 		unsigned int halfmassive = 0;
 
-		for( ObjectList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *obj = (*itr);
@@ -917,27 +947,29 @@ void cDebugDisplay :: GameDebugDraw( void )
 		}
 
 		temp_text = "Halfmassive : " + int_to_string( halfmassive );
-		sprites[10]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
-		// # Active : Moving Platform
-		unsigned int clouds = 0;
+		sprites[11]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 
-		for( ObjectList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+		// Moving Platform
+		unsigned int moving_platform = 0;
+
+		for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *obj = (*itr);
 
 			if( obj->type == TYPE_MOVING_PLATFORM )
 			{
-				clouds++;
+				moving_platform++;
 			}
 		}
 
-		temp_text = "Moving Platform : " + int_to_string( clouds );
-		sprites[11]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
-		// # Active : Goldbox
+		temp_text = "Moving Platform : " + int_to_string( moving_platform );
+		sprites[12]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+
+		// Goldbox
 		unsigned int goldbox = 0;
 
-		for( ObjectList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *obj = (*itr);
@@ -954,11 +986,12 @@ void cDebugDisplay :: GameDebugDraw( void )
 		}
 
 		temp_text = "Goldbox : " + int_to_string( goldbox );
-		sprites[12]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
-		// # Active : Bonusbox
+		sprites[13]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+
+		// Bonusbox
 		unsigned int bonusbox = 0;
 
-		for( ObjectList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *obj = (*itr);
@@ -975,61 +1008,42 @@ void cDebugDisplay :: GameDebugDraw( void )
 		}
 
 		temp_text = "Bonusbox : " + int_to_string( bonusbox );
-		sprites[13]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
-		// # Active : Other
-		unsigned int active_other = pObjManager->Get_Size_array( ARRAY_ACTIVE );
+		sprites[14]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 
-		for( ObjectList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
-		{
-			// get object pointer
-			cSprite *obj = (*itr);
-
-			if( obj->type == TYPE_HALFMASSIVE || obj->type == TYPE_BONUSBOX || obj->type == TYPE_MOVING_PLATFORM )
-			{
-				active_other--;
-			}
-		}
+		// Other
+		unsigned int active_other = active_counter - halfmassive - moving_platform - goldbox - bonusbox;
 
 		temp_text = "Other : " + int_to_string( active_other );
-		sprites[14]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+		sprites[15]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
 
-	// # Active Objects Rect
 
-	// create request
-	cRectRequest *request = new cRectRequest();
-	GL_rect r( sprites[10]->posx - 8, sprites[10]->posy, 135, 75 );
-	pVideo->Draw_Rect( &r, posz, &white, request );
-
-	// not filled
-	request->filled = 0;
-
-	// add request
-	pRenderer->Add( request );
-
-
-	// ### Player informations
-	// position
-	temp_text = "Position X " + int_to_string( (int)pPlayer->posx ) + " ,Y " + int_to_string( (int)pPlayer->posy );
-	sprites[16]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+	// ### Player information
+	// position x
+	temp_text = "X1 " + float_to_string( pPlayer->posx ) + "  X2 " + float_to_string( pPlayer->col_rect.x + pPlayer->col_rect.w );
+	sprites[17]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+	// position y
+	temp_text = "Y1 " + float_to_string( pPlayer->posy ) + "  Y2 " + float_to_string( pPlayer->col_rect.y + pPlayer->col_rect.h );
+	sprites[18]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	// velocity
 	temp_text = "Velocity X " + int_to_string( (int)pPlayer->velx ) + " ,Y " + int_to_string( (int)pPlayer->vely );
-	sprites[17]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+	sprites[19]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	// state
 	temp_text = "Moving State " + int_to_string( (int)pPlayer->state );
-	sprites[18]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
-	// onground
-	int groundtype = 0;
+	sprites[20]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+	// ground type
+	string ground_type;
 	if( pPlayer->ground_object )
 	{
-		groundtype = (int)pPlayer->ground_object->massivetype;
+		ground_type = int_to_string( pPlayer->ground_object->massivetype ) + " (" + Get_Massivetype_name( pPlayer->ground_object->massivetype ) + ")";
 	}
-	temp_text = "Ground type " + int_to_string( groundtype );
-	sprites[19]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+	temp_text = "Ground " + ground_type;
+	sprites[21]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 
-	for( unsigned int i = 0; i < sprites.size(); i++ )
+	// draw text
+	for( HudSpriteList::iterator itr = sprites.begin(), itr_end = sprites.end(); itr != itr_end; ++itr )
 	{
-		sprites[i]->Draw();
+		(*itr)->Draw();
 	}
 }
 

@@ -48,6 +48,9 @@ public:
 	// update
 	virtual void Update( void );
 
+	// if update is valid for the current state
+	virtual bool is_Update_valid( void );
+
 	// ignore onground check
 	virtual void Check_onGround( void ) {};
 

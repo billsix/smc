@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.3" />
-		<Property name="engine_version" value="2" />
-		<Property name="save_time" value="1165015048" />
+		<Property name="game_version" value="0.99.6.2" />
+		<Property name="engine_version" value="2.1" />
+		<Property name="save_time" value="1179811319" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="WeirdNose" />
@@ -19,8 +19,8 @@
 		<Property name="bg_color_1_red" value="0" />
 		<Property name="bg_color_1_green" value="0" />
 		<Property name="bg_color_1_blue" value="0" />
-		<Property name="bg_color_2_red" value="255" />
-		<Property name="bg_color_2_green" value="64" />
+		<Property name="bg_color_2_red" value="205" />
+		<Property name="bg_color_2_green" value="104" />
 		<Property name="bg_color_2_blue" value="0" />
 	</background>
 	<background>
@@ -30,6 +30,13 @@
 		<Property name="speedy" value="1" />
 		<Property name="posz" value="0.00011" />
 	</background>
+	<background>
+		<Property name="type" value="1" />
+		<Property name="image" value="game/background/sand_hill_1.png" />
+		<Property name="speedx" value="1.5" />
+		<Property name="speedy" value="1.5" />
+		<Property name="posz" value="0.00012" />
+	</background>
 	<global_effect>
 		<Property name="type" value="1" />
 		<Property name="image" value="animation/particles/dirt.png" />
@@ -37,7 +44,9 @@
 		<Property name="rect_y" value="0" />
 		<Property name="rect_w" value="800" />
 		<Property name="rect_h" value="1" />
-		<Property name="lifetime_mod" value="20" />
+		<Property name="z" value="0.12" />
+		<Property name="z_rand" value="0" />
+		<Property name="time_to_live" value="6" />
 		<Property name="creation_speed" value="0.3" />
 		<Property name="scale" value="0.2" />
 		<Property name="scale_rand" value="0.2" />
@@ -50,7 +59,7 @@
 	</global_effect>
 	<player>
 		<Property name="posx" value="175" />
-		<Property name="posy" value="406" />
+		<Property name="posy" value="348" />
 		<Property name="direction" value="right" />
 	</player>
 	<sprite>
@@ -867,12 +876,6 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="731" />
-		<Property name="posy" value="546" />
-		<Property name="image" value="blocks/stone/1.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
 		<Property name="posx" value="1462" />
 		<Property name="posy" value="589" />
 		<Property name="image" value="blocks/stone/1.png" />
@@ -1112,6 +1115,12 @@
 		<Property name="posx" value="1194" />
 		<Property name="posy" value="-279" />
 		<Property name="image" value="game/box/brown1_1.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="731" />
+		<Property name="posy" value="546" />
+		<Property name="image" value="blocks/stone/1.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 </level>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.6" />
+		<Property name="game_version" value="0.99.6.2" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1176574528" />
+		<Property name="save_time" value="1179248077" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="SMC_Team_&amp;_Markoff" />
@@ -25,7 +25,7 @@
 	</background>
 	<background>
 		<Property name="type" value="1" />
-		<Property name="image" value="game/background/green_junglehills.png" />
+		<Property name="image" value="game/background/green_hills_2.png" />
 		<Property name="speedx" value="1" />
 		<Property name="speedy" value="1" />
 		<Property name="posz" value="0.00011" />

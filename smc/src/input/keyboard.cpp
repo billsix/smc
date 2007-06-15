@@ -213,6 +213,8 @@ bool cKeyboard :: Key_Down( SDLKey key )
 			// success
 			if( pLevel->Load( level_name ) )
 			{
+				Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
+
 				// reset level player
 				pPlayer->Reset();
 

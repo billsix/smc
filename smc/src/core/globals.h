@@ -23,7 +23,7 @@
 
 #define CAPTION "Secret Maryo Chronicles"
 #ifndef VERSION
-#define VERSION "0.99.6"
+#define VERSION "0.99.7"
 #endif
 
 // used for animations and the framerate speedfactor calculation
@@ -97,11 +97,17 @@ enum DefaultColor
 
 enum GameMode
 {
-	MODE_NOTHING	= 0,
-	MODE_LEVEL		= 1,
-	MODE_OVERWORLD	= 2,
-	MODE_MENU		= 3,
+	MODE_NOTHING		= 0,
+	MODE_LEVEL			= 1,
+	MODE_OVERWORLD		= 2,
+	MODE_MENU			= 3,
 	MODE_LEVEL_SETTINGS	= 4
+};
+
+enum GameModeType
+{
+	MODE_TYPE_DEFAULT		= 0,
+	MODE_TYPE_LEVEL_CUSTOM	= 1
 };
 
 /* *** *** *** *** *** *** *** Debugging *** *** *** *** *** *** *** *** *** *** */
@@ -214,6 +220,81 @@ using namespace CEGUI;
 
 // Allows use of pointers in header files without including individual headers
 // and decreases dependencies between files
+
+/* *** *** *** *** *** *** *** Sprite Types *** *** *** *** *** *** *** *** *** *** */
+
+enum SpriteType
+{
+	TYPE_UNDEFINED = 0,
+	// global
+	TYPE_SPRITE = 1,
+	TYPE_PASSIVE = 44,
+	TYPE_FRONT_PASSIVE = 45,
+	TYPE_MASSIVE = 46,
+	TYPE_HALFMASSIVE = 5,
+	TYPE_CLIMBABLE = 47,
+	TYPE_ENEMY = 2,
+	TYPE_PLAYER = 3,
+	TYPE_ACTIVESPRITE = 4,
+	// game
+	TYPE_MOUSECURSOR = 100,
+	// overworld
+	TYPE_OW_WAYPOINT = 55,
+	TYPE_OW_LINE_START = 57,
+	TYPE_OW_LINE_END = 58,
+	// level
+	TYPE_LEVELEXIT = 18,
+	TYPE_ENEMYSTOPPER = 20,
+	TYPE_BONUSBOX = 26,
+	TYPE_SPINBOX = 27,
+	TYPE_MOVING_PLATFORM = 38,
+	// enemy
+	TYPE_GUMBA = 10,
+	TYPE_TURTLE = 19,
+	TYPE_TURTLE_BOSS = 56,
+	TYPE_JPIRANHA = 29,
+	TYPE_ROKKO = 30,
+	TYPE_REX = 36,
+	TYPE_THROMP = 41,
+	TYPE_EATO = 42,
+	TYPE_GEE = 43,
+	TYPE_SPIKA = 31,
+	TYPE_STATIC_ENEMY = 50,
+	// items
+	TYPE_POWERUP = 23,
+	TYPE_MUSHROOM_DEFAULT = 25,
+	TYPE_MUSHROOM_LIVE_1 = 35,
+	TYPE_MUSHROOM_POISON = 49,
+	TYPE_MUSHROOM_BLUE = 51,
+	TYPE_MUSHROOM_GHOST = 52,
+	TYPE_FIREPLANT = 24,
+	TYPE_JGOLDPIECE = 22, // Jumping Goldpiece
+	TYPE_FGOLDPIECE = 48, // Falling Goldpiece
+	TYPE_GOLDPIECE = 8,
+	TYPE_MOON = 37,
+	TYPE_JSTAR = 39, // Jumping Star
+	// special
+	TYPE_BALL = 28,
+	// HUD
+	TYPE_STATUSTEXT = 9,
+	TYPE_POINTDISPLAY = 12,
+	TYPE_GAMETIMEDISPLAY = 13,
+	TYPE_DEBUGDISPLAY = 14,
+	TYPE_LIFEDISPLAY = 15,
+	TYPE_GOLDDISPLAY = 16,
+	TYPE_MENUBG = 17,
+	TYPE_ITEMBOXDISPLAY = 32
+};
+
+/* *** *** *** *** *** *** *** Massive Types *** *** *** *** *** *** *** *** *** *** */
+
+enum MassiveType
+{
+	MASS_PASSIVE = 0,
+	MASS_MASSIVE = 1,
+	MASS_HALFMASSIVE = 2,
+	MASS_CLIMBABLE = 3
+};
 
 /* *** Array Types *** */
 

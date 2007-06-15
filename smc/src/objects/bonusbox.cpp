@@ -42,9 +42,9 @@ cBonusBox :: cBonusBox( XMLAttributes &attributes )
 
 cBonusBox :: ~cBonusBox( void )
 {
-	for( unsigned int i = 0; i < active_items.size(); i++ )
+	for( MovingSpriteList::iterator itr = active_items.begin(), itr_end = active_items.end(); itr != itr_end; ++itr )
 	{
-		delete active_items[i];
+		delete *itr;
 	}
 
 	active_items.clear();
@@ -127,6 +127,8 @@ void cBonusBox :: Set_UseableCount( int count, bool new_startcount /* = 0 */ )
 			start_image = NULL;
 		}
 	}
+
+	Update_valid_update();
 }
 
 void cBonusBox :: Set_Bonus_Type( SpriteType nbonus_type )
@@ -236,7 +238,8 @@ void cBonusBox :: Set_Goldcolor( DefaultColor ncolor )
 
 void cBonusBox :: Activate( void )
 {
-	cMovingSprite *new_item = NULL;
+	// boxed item
+	cMovingSprite *box_item = NULL;
 
 	// no item
 	if( box_type == TYPE_UNDEFINED )
@@ -250,12 +253,12 @@ void cBonusBox :: Activate( void )
 		pAudio->PlaySound( "sprout_1.ogg" );
 
 		cMushroom *mushroom = new cMushroom( startposx - ( ( item_image->w - rect.w ) / 2 ), startposy - ( ( item_image->h - rect.h ) / 2 ) );
-		new_item = static_cast<cMovingSprite *>(mushroom);
+		box_item = static_cast<cMovingSprite *>(mushroom);
 	}
 	else if( box_type == TYPE_FIREPLANT )
 	{
 		pAudio->PlaySound( "sprout_1.ogg" );
-		new_item = static_cast<cMovingSprite *>(new cFirePlant( startposx, startposy ));
+		box_item = static_cast<cMovingSprite *>(new cFirePlant( startposx, startposy ));
 	}
 	else if( box_type == TYPE_MUSHROOM_DEFAULT || box_type == TYPE_MUSHROOM_LIVE_1 || box_type == TYPE_MUSHROOM_POISON || box_type == TYPE_MUSHROOM_BLUE || box_type == TYPE_MUSHROOM_GHOST )
 	{
@@ -263,12 +266,14 @@ void cBonusBox :: Activate( void )
 
 		cMushroom *mushroom = new cMushroom( startposx - ( ( item_image->w - rect.w ) / 2 ), startposy - ( ( item_image->h - rect.h ) / 2 ) );
 		mushroom->Set_Type( box_type );
-		new_item = static_cast<cMovingSprite *>(mushroom);
+		box_item = static_cast<cMovingSprite *>(mushroom);
 	}
 	else if( box_type == TYPE_JSTAR )
 	{
 		pAudio->PlaySound( "sprout_1.ogg" );
-		new_item = static_cast<cMovingSprite *>(new cjStar( startposx, startposy ));
+		cjStar *star = new cjStar( startposx, startposy );
+		// add to global objects
+		pObjManager->Add( star );
 	}
 	else if( box_type == TYPE_GOLDPIECE )
 	{
@@ -276,6 +281,7 @@ void cBonusBox :: Activate( void )
 
 		cJGoldpiece *goldpiece = new cJGoldpiece( posx + 4, posy );
 		goldpiece->Set_Goldcolor( gold_color );
+		// add to global objects
 		pObjManager->Add( goldpiece );
 	}
 	else
@@ -284,60 +290,62 @@ void cBonusBox :: Activate( void )
 		return;
 	}
 
-	if( new_item )
+	if( box_item )
 	{
 		// set posz behind box
-		new_item->posz = posz - 0.000001f;
+		box_item->posz = posz - 0.000001f;
+
 		// add to item list
-		active_items.push_back( new_item );
+		active_items.push_back( box_item );
+		Update_valid_update();
 	}
 }
 
 void cBonusBox :: Update( void )
 {
-	if( !is_Player_range() )
+	if( !valid_update || !is_Player_range() )
 	{
 		return;
 	}
 
 	// update active items
-	for( unsigned int i = 0; i < active_items.size(); i++ )
+	for( MovingSpriteList::iterator itr = active_items.begin(); itr != active_items.end(); )
 	{
-		cMovingSprite *active_item = active_items[i];
+		cPowerUp *powerup = static_cast<cPowerUp *>(*itr);
 
-		if( active_item->visible )
+		if( !powerup->visible )
 		{
-			// default animation
-			if( active_item->type != TYPE_JGOLDPIECE )
-			{
-				cPowerUp *powerup = (cPowerUp *)active_item;
+			++itr;
+			continue;
+		}
 
-				// position over the box reached
-				if( powerup->posy < posy - powerup->col_rect.h - powerup->col_pos.y )
-				{
-					// clear animation counter
-					powerup->counter = 0;
-					// set spawned
-					powerup->spawned = 1;
+		// position over the box reached
+		if( powerup->posy < posy - powerup->col_rect.h - powerup->col_pos.y )
+		{
+			// clear animation counter
+			powerup->counter = 0;
+			// set spawned
+			powerup->spawned = 1;
 
-					// set powerup default posz
-					powerup->posz = 0.05f;
+			// set powerup default posz
+			powerup->posz = 0.05f;
 
-					// set the item on top
-					powerup->Set_onTop( this, 0 );
-					// add the item to the level objects
-					pObjManager->Add( active_item );
+			// set the item on top
+			powerup->Set_onTop( this, 0 );
+			// add the item to the level objects
+			pObjManager->Add( powerup );
 
-					// remove from array
-					active_items.erase( active_items.begin() + i );
-				}
-				// moving upwards animation
-				else
-				{
-					powerup->counter += pFramerate->speedfactor;
-					powerup->Move( 0, -3.1f );
-				}
-			}
+			// remove from array
+			itr = active_items.erase( itr );
+			Update_valid_update();
+		}
+		// move upwards
+		else
+		{
+			powerup->counter += pFramerate->speedfactor;
+			powerup->Move( 0, -3.1f );
+
+			++itr;
 		}
 	}
 
@@ -351,17 +359,29 @@ void cBonusBox :: Draw( cSurfaceRequest *request /* = NULL */ )
 		return;
 	}
 
-	for( unsigned int i = 0; i < active_items.size(); i++ )
+	for( MovingSpriteList::iterator itr = active_items.begin(), itr_end = active_items.end(); itr != itr_end; ++itr )
 	{
-		if( !active_items[i]->visible )
+		cMovingSprite *obj = (*itr);
+
+		if( !obj->visible )
 		{
 			continue;
 		}
 		
-		active_items[i]->Draw();
+		obj->Draw();
 	}
 
 	cBaseBox::Draw( request );
+}
+
+bool cBonusBox :: is_Update_valid( void )
+{
+	if( active_items.size() )
+	{
+		return 1;
+	}
+
+	return cBaseBox::is_Update_valid();
 }
 
 void cBonusBox :: Editor_Activate( void )
@@ -372,7 +392,7 @@ void cBonusBox :: Editor_Activate( void )
 	WindowManager &wmgr = WindowManager::getSingleton();
 
 	// Animation
-	Combobox *combobox = (Combobox *)wmgr.createWindow( "TaharezLook/Combobox", "editor_bonusbox_animation" );
+	Combobox *combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_bonusbox_animation" ));
 	combobox->getEditbox()->setTooltipText( "Animation" );
 	Editor_Add( combobox, 120, 100 );
 
@@ -385,7 +405,7 @@ void cBonusBox :: Editor_Activate( void )
 	combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cBonusBox::Editor_Animation_Select, this ) );
 
 	// Item
-	combobox = (Combobox *)wmgr.createWindow( "TaharezLook/Combobox", "editor_bonusbox_item" );
+	combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_bonusbox_item" ));
 	combobox->getEditbox()->setTooltipText( "Item" );
 	Editor_Add( combobox, 160, 140 );
 
@@ -439,7 +459,7 @@ void cBonusBox :: Editor_Activate( void )
 	combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cBonusBox::Editor_Item_Select, this ) );
 
 	// Force best item
-	combobox = (Combobox *)wmgr.createWindow( "TaharezLook/Combobox", "editor_bonusbox_force_best_item" );
+	combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_bonusbox_force_best_item" ));
 	combobox->getEditbox()->setTooltipText( "Force best Item" );
 	Editor_Add( combobox, 120, 80 );
 
@@ -459,7 +479,7 @@ void cBonusBox :: Editor_Activate( void )
 	combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cBonusBox::Editor_Force_best_item_Select, this ) );
 
 	// gold color
-	combobox = (Combobox *)wmgr.createWindow( "TaharezLook/Combobox", "editor_bonusbox_gold_color" );
+	combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_bonusbox_gold_color" ));
 	combobox->getEditbox()->setTooltipText( "Gold Color" );
 	Editor_Add( combobox, 100, 80 );
 

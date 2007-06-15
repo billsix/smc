@@ -49,6 +49,11 @@ public:
 	// Set the Speed
 	void Set_Speed( float val );
 
+	// Jump out
+	void Activate( void );
+	// Moves back to the original position
+	void Move_Back( void );
+
 	// die
 	virtual void DownGrade( bool force = 0 );
 	virtual void DieStep( void );
@@ -63,18 +68,17 @@ public:
 	// returns the distance rect
 	GL_rect Get_Distance_rect( void );
 
-	// Jump out
-	void Activate( void );
-	// Moves back to the original position
-	void Move_Back( void );
-
 	// Generates Smoke Particles
 	void Generate_Smoke( unsigned int power = 10 );
+
+	// if update is valid for the current state
+	virtual bool is_Update_valid( void );
 
 	// ignore onground check
 	virtual void Check_onGround( void ) {};
 	/* Validate the given collision object
-	 * returns 1 if the given object collides with this object
+	 * returns 1 if an internal collision with this object is valid
+	 * returns 2 if the given object collides with this object (blocking)
 	*/
 	virtual unsigned int Validate_Collision( cSprite *obj );
 	// collision from player

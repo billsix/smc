@@ -101,6 +101,10 @@ void cGoldpiece :: Set_Goldcolor( DefaultColor ncolor )
 		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/red/4.png" ) );
 		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/red/5.png" ) );
 		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/red/6.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/red/7.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/red/8.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/red/9.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/red/10.png" ) );
 
 		name = "Red Gold";
 	}
@@ -113,51 +117,15 @@ void cGoldpiece :: Set_Goldcolor( DefaultColor ncolor )
 		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/yellow/4.png" ) );
 		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/yellow/5.png" ) );
 		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/yellow/6.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/yellow/7.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/yellow/8.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/yellow/9.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/yellow/10.png" ) );
 
 		name = "Gold";
 	}
 
 	Set_Image( 0, 1, 0 );
-}
-
-void cGoldpiece :: Update( void )
-{
-	if( !visible || !is_Visible_onScreen() )
-	{
-		return;
-	}
-
-	if( Col_Box( &col_rect, &pPlayer->col_rect ) )
-	{
-		pAudio->PlaySound( "item/goldpiece_1.ogg" );
-		Activate();
-		return;
-	}
-
-	counter += 0.3f * pFramerate->speedfactor;
-
-	if( counter >= 6 )
-	{
-		counter = 0;
-	}
-
-	Set_Image( (int)counter, 0, 0 );
-}
-
-void cGoldpiece :: Draw( cSurfaceRequest *request /* = NULL */ )
-{
-	if( !valid_draw )
-	{
-		return;
-	}
-
-	// don't draw in leveleditor if spawned ingame
-	if( editor_level_enabled && spawned )
-	{
-		return;
-	}
-
-	cImageObjectSprite::Draw( request );
 }
 
 void cGoldpiece :: Activate( void )
@@ -190,7 +158,58 @@ void cGoldpiece :: Activate( void )
 
 	pointsdisplay->Add_Points( points, posx + col_rect.w / 2, posy + 2 );
 	// disable
-	visible = 0;
+	Set_Visible( 0 );
+}
+
+void cGoldpiece :: Update( void )
+{
+	if( !valid_update || !is_Visible_onScreen() )
+	{
+		return;
+	}
+
+	// todo : move to internal collision
+	if( Col_Box( &col_rect, &pPlayer->col_rect ) )
+	{
+		pAudio->PlaySound( "item/goldpiece_1.ogg" );
+		Activate();
+		return;
+	}
+
+	counter += 0.4f * pFramerate->speedfactor;
+
+	if( counter >= 10 )
+	{
+		counter = 0;
+	}
+
+	Set_Image( (int)counter, 0, 0 );
+}
+
+void cGoldpiece :: Draw( cSurfaceRequest *request /* = NULL */ )
+{
+	if( !valid_draw )
+	{
+		return;
+	}
+
+	// don't draw in leveleditor if spawned ingame
+	if( editor_level_enabled && spawned )
+	{
+		return;
+	}
+
+	cImageObjectSprite::Draw( request );
+}
+
+bool cGoldpiece :: is_Update_valid( void )
+{
+	if( !visible )
+	{
+		return 0;
+	}
+
+	return 1;
 }
 
 /* *** *** *** *** *** *** cJGoldpiecee *** *** *** *** *** *** *** *** *** *** *** */
@@ -233,16 +252,19 @@ void cJGoldpiece :: Update( void )
 		Destroy();
 	}
 
-	Move( velx, vely );
-
 	counter += pFramerate->speedfactor * 0.5f;
 
-	if( counter >= 6 )
+	if( counter >= 10 )
 	{
 		counter = 0;
 	}
 
 	Set_Image( (int)counter, 0, 0 );
+}
+
+unsigned int cJGoldpiece :: Validate_Collision( cSprite *obj )
+{
+	return 0;
 }
 
 /* *** *** *** *** *** *** cFGoldpiecee *** *** *** *** *** *** *** *** *** *** *** */
@@ -252,7 +274,7 @@ cFGoldpiece :: cFGoldpiece( float x, float y, ObjectDirection dir /* = DIR_NOTHI
 {
 	type = TYPE_FGOLDPIECE;
 	spawned = 1;
-
+	player_range = 2000;
 	counter = (float)( rand() % 5 );
 	massivetype = MASS_PASSIVE;
 
@@ -280,8 +302,6 @@ cFGoldpiece :: cFGoldpiece( float x, float y, ObjectDirection dir /* = DIR_NOTHI
 		velx = -5;
 	}
 
-	vely = 0;
-
 	Set_Goldcolor( COL_YELLOW );
 }
 
@@ -305,6 +325,10 @@ void cFGoldpiece :: Set_Goldcolor( DefaultColor ncolor )
 		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/red/4_falling.png" ) );
 		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/red/5_falling.png" ) );
 		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/red/6_falling.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/red/7_falling.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/red/8_falling.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/red/9_falling.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/red/10_falling.png" ) );
 	}
 	// default = yellow
 	else
@@ -315,6 +339,10 @@ void cFGoldpiece :: Set_Goldcolor( DefaultColor ncolor )
 		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/yellow/4_falling.png" ) );
 		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/yellow/5_falling.png" ) );
 		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/yellow/6_falling.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/yellow/7_falling.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/yellow/8_falling.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/yellow/9_falling.png" ) );
+		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/yellow/10_falling.png" ) );
 	}
 
 	Set_Image( 0, 1, 0 );
@@ -322,7 +350,7 @@ void cFGoldpiece :: Set_Goldcolor( DefaultColor ncolor )
 
 void cFGoldpiece :: Update( void )
 {
-	if( !visible )
+	if( !valid_update || !is_Player_range() )
 	{
 		return;
 	}
@@ -340,11 +368,9 @@ void cFGoldpiece :: Update( void )
 		AddVel( 0, 1.2f );
 	}
 
-	CollideMove();
-
 	counter += 0.5f * pFramerate->speedfactor;
 
-	if( counter >= 6 )
+	if( counter >= 10 )
 	{
 		counter = 0;
 	}

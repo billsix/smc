@@ -31,13 +31,14 @@ public:
 	// copy
 	virtual cjStar *Copy( void );
 
+	// Activate the star
+	void Activate( void );
+
 	// update the Star
 	virtual void Update( void );
 	// draw the Star
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
-	// Activate the star
-	void Activate( void );
 	// Adds Star Particles
 	void Generate_Particles( float x = 0, float y = 0, unsigned int quota = 2 );
 

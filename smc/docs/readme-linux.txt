@@ -29,7 +29,7 @@ You need:
 	SDL_ttf ( >= 2.0 )
 		FreeType 2
 	CEGUI ( >= 0.5 )
-		SILLY or DevIL
+		Either SILLY, DevIL or FreeImage
 - GNU make
 - autoconf (2.57 or higher) and automake (IMPORTANT: version 1.7 or higher)
 

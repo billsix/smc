@@ -51,9 +51,14 @@ void cImage_settings_data :: Apply( GL_Surface *image )
 		return;
 	}
 
-
 	if( !base.empty() )
 	{
+		if( image->image )
+		{
+			printf( "Warning : surface for base %s already assigned the image %d which will be replaced\n", base.c_str(), image->image );
+			glDeleteTextures( 1, &image->image );
+		}
+
 		// load the base image
 		string filename = Get_filename( base, 0, 1 );
 		filename.insert( 0, PIXMAPS_DIR "/" );
@@ -146,116 +151,135 @@ void cImage_settings_data :: Apply( GL_Surface *image )
 		surface_final = NULL;
 	}
 
-	if( image )
+
+	// ## int_x/int_y
+	image->int_x = (float)int_x;
+	image->int_y = (float)int_y;
+
+	// ## width
+	if( width > 0 )
 	{
-		// ## int_x/int_y
-		image->int_x = (float)int_x;
-		image->int_y = (float)int_y;
+		image->w = (float)width;
+		image->col_w = image->w;
+	}
+	// ## height
+	if( height > 0 )
+	{
+		image->h = (float)height;
+		image->col_h = image->h;
+	}
 
-		// ## width
-		if( width > 0 )
-		{
-			image->w = (float)width;
-			image->col_w = image->w;
-		}
-		// ## height
-		if( height > 0 )
-		{
-			image->h = (float)height;
-			image->col_h = image->h;
-		}
+	// ## col_rect
+	if( col_rect.w > 0 && col_rect.h > 0 )
+	{
+		// position
+		image->col_pos.x = col_rect.x;
+		image->col_pos.y = col_rect.y;
+		// dimension
+		image->col_w = col_rect.w;
+		image->col_h = col_rect.h;
+	}
 
-		// ## col_rect
-		if( col_rect.w > 0 && col_rect.h > 0 )
-		{
-			// position
-			image->col_pos.x = col_rect.x;
-			image->col_pos.y = col_rect.y;
-			// dimension
-			image->col_w = col_rect.w;
-			image->col_h = col_rect.h;
-		}
+	// ## rotation x
+	if( rotation_x != 0 )
+	{
+		image->base_rotx = (float)rotation_x;
+	}
+	// ## rotation y
+	if( rotation_y != 0 )
+	{
+		image->base_roty = (float)rotation_y;
 
-		// ## rotation x
-		if( rotation_x != 0 )
+		// mirror
+		if( image->base_roty == 180 )
 		{
-			image->base_rotx = (float)rotation_x;
+			image->col_pos.x = image->w - ( image->col_w + image->col_pos.x );
 		}
-		// ## rotation y
-		if( rotation_y != 0 )
-		{
-			image->base_roty = (float)rotation_y;
+	}
+	// ## rotation z
+	if( rotation_z != 0 )
+	{
+		image->base_rotz = (float)rotation_z;
 
-			// mirror
-			if( image->base_roty == 180 )
+		if( image->base_rotz == 90 )
+		{
+			float col_w = image->col_w;
+			image->col_w = image->col_h;
+			image->col_h = col_w;
+
+
+			image->col_pos = image->col_pos.rotate( GL_point( image->w * 0.5f, image->h * 0.5f ), image->base_rotz );
+			image->col_pos.x -= image->col_w;
+		}
+		// mirror
+		else if( image->base_rotz == 180 )
+		{
+			image->col_pos.y = image->h - ( image->col_h + image->col_pos.y );
+		}
+		else if( image->base_rotz == 270 )
+		{
+			float col_w = image->col_w;
+			image->col_w = image->col_h;
+			image->col_h = col_w;
+
+			image->col_pos = image->col_pos.rotate( GL_point( image->w * 0.5f, image->h * 0.5f ), image->base_rotz );
+			image->col_pos.y -= image->col_h;
+		}
+	}
+
+	// ## editor_tags
+	if( !editor_tags.empty() )
+	{
+		image->editor_tags = editor_tags;
+	}
+
+	// ## name
+	if( !name.empty() )
+	{
+		image->name = name;
+
+		// finds all "_" and replaces them with " "
+		for( string::iterator itr = image->name.begin(); itr != image->name.end(); ++itr )
+		{
+			// change
+			if( *itr == '_' )
 			{
-				image->col_pos.x = image->w - ( image->col_w + image->col_pos.x );
+				*itr = ' ';
 			}
 		}
-		// ## rotation z
-		if( rotation_z != 0 )
-		{
-			image->base_rotz = (float)rotation_z;
+	}
 
-			if( image->base_rotz == 90 )
-			{
-				float col_w = image->col_w;
-				image->col_w = image->col_h;
-				image->col_h = col_w;
+	// ## type
+	if( type != 0 )
+	{
+		image->type = type;
+	}
 
+	// ## obsolete
+	if( obsolete )
+	{
+		image->obsolete = 1;
+	}
+}
 
-				image->col_pos = image->col_pos.rotate( GL_point( image->w * 0.5f, image->h * 0.5f ), image->base_rotz );
-				image->col_pos.x -= image->col_w;
-			}
-			// mirror
-			else if( image->base_rotz == 180 )
-			{
-				image->col_pos.y = image->h - ( image->col_h + image->col_pos.y );
-			}
-			else if( image->base_rotz == 270 )
-			{
-				float col_w = image->col_w;
-				image->col_w = image->col_h;
-				image->col_h = col_w;
+void cImage_settings_data :: Apply_base( cImage_settings_data *base_settings_data )
+{
+	int_x = base_settings_data->int_x;
+	int_y = base_settings_data->int_y;
+	col_rect = base_settings_data->col_rect;
+	width = base_settings_data->width;
+	height = base_settings_data->height;
+	rotation_x = base_settings_data->rotation_x;
+	rotation_y = base_settings_data->rotation_y;
+	rotation_z = base_settings_data->rotation_z;
+	mipmap = base_settings_data->mipmap;
+	editor_tags = base_settings_data->editor_tags;
+	name = base_settings_data->name;
+	type = base_settings_data->type;
 
-				image->col_pos = image->col_pos.rotate( GL_point( image->w * 0.5f, image->h * 0.5f ), image->base_rotz );
-				image->col_pos.y -= image->col_h;
-			}
-		}
-
-		// ## editor_tags
-		if( !editor_tags.empty() )
-		{
-			image->editor_tags = editor_tags;
-		}
-
-		// ## name
-		if( !name.empty() )
-		{
-			image->name = name;
-
-			// finds all "_" and replaces them with " "
-			for( string::iterator itr = image->name.begin(); itr != image->name.end(); ++itr )
-			{
-				// change
-				if( *itr == '_' )
-				{
-					*itr = ' ';
-				}
-			}
-		}
-
-		// ## type
-		if( type != 0 )
-		{
-			image->type = type;
-		}
-
-		// ## obsolete
-		if( obsolete )
-		{
-			image->obsolete = 1;
-		}
+	if( !obsolete && base_settings_data->obsolete )
+	{
+		obsolete = 1;
 	}
 }
 
@@ -265,6 +289,7 @@ cImage_settings :: cImage_settings( void )
 : cFile_parser()
 {
 	settings = NULL;
+	load_base = 1;
 }
 
 cImage_settings :: ~cImage_settings( void )
@@ -272,8 +297,9 @@ cImage_settings :: ~cImage_settings( void )
 	//
 }
 
-cImage_settings_data *cImage_settings :: Get( string &filename )
+cImage_settings_data *cImage_settings :: Get( string &filename, bool load_base_settings /* = 1 */ )
 {
+	load_base = load_base_settings;
 	settings = new cImage_settings_data();
 
 	Parse( filename );
@@ -304,6 +330,32 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 		if( count == 3 && string_to_int( parts[2] ) )
 		{
 			settings->base_settings = 1;
+
+			if( load_base )
+			{
+				string settings_file = settings->base;
+
+				// if not already image settings based
+				if( settings_file.rfind( ".settings" ) == string::npos )
+				{
+					settings_file.erase( settings_file.rfind( "." ) + 1 );
+					settings_file.insert( settings_file.rfind( "." ) + 1, "settings" );
+				}
+
+				// if a settings file exists
+				if( valid_file( settings_file ) )
+				{
+					cImage_settings *temp_parser = new cImage_settings();
+					cImage_settings_data *base_settings = temp_parser->Get( settings_file );
+					delete temp_parser;
+
+					if( base_settings )
+					{
+						settings->Apply_base( base_settings );
+						delete base_settings;
+					}
+				}
+			}
 		}
 	}
 	else if( parts[0].compare( "int_x" ) == 0 )

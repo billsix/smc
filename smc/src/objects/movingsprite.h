@@ -32,6 +32,19 @@ enum Moving_state
 	STA_OBJ_LINKED = 7
 };
 
+/* *** *** *** *** *** *** *** collision check type *** *** *** *** *** *** *** *** *** *** */
+
+enum ColCheckType
+{
+	// Don't add found collisions to the collision list
+	COLLIDE_ONLY_CHECK = 0,
+	// Only allow internal collisions
+	COLLIDE_ALLOW_INTERNAL = 1,
+	// Only allow blocking collisions
+	COLLIDE_ALLOW_BLOCKING = 2,
+	// Complete collision check
+	COLLIDE_COMPLETE = 3
+};
 
 /* *** *** *** *** *** *** *** cMovingSprite *** *** *** *** *** *** *** *** *** *** */
 
@@ -83,25 +96,26 @@ public:
 	 */
 	virtual void Turn_Around( ObjectDirection col_dir = DIR_UNDEFINED );
 
-	// sprite Update
+	// update
 	virtual void Update( void );
-	/* Draw
+	/* draw
 	* if request is NULL automatically creates the request
 	*/
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
-	/* Check if the given Position is valid
-	 * uses the image collision rect
+	/* Check if the current position with the given additional value is valid
+	 * uses the collision rect
 	*/
-	cObjectCollisionType ColCheckAuto( float x, float y, float w = 0, float h = 0, ColCheckType check_type = COLLIDE_COMPLETE );
-	/* Check if the given Position is valid
-	 * automatically creates a collision rect for the given width and height
+	cObjectCollisionType Collision_Check_Relative( float x, float y, float w = 0, float h = 0, ColCheckType check_type = COLLIDE_COMPLETE, SpriteList *objects = NULL );
+	/* Check if the given position is valid
+	 * Creates a collision rect with the given values
 	*/
-	cObjectCollisionType ColCheck( float x = 0, float y = 0, float w = 0, float h = 0, ColCheckType check_type = COLLIDE_COMPLETE );
+	cObjectCollisionType Collision_Check_Absolute( float x, float y, float w = 0, float h = 0, ColCheckType check_type = COLLIDE_COMPLETE, SpriteList *objects = NULL );
 	/* Check if the given Position is valid
-	 * uses the given rect as the source collision rect
+	 * uses the given rect as new source collision rect
 	*/
-	cObjectCollisionType ColCheck( GL_rect *rect1, ColCheckType check_type = COLLIDE_COMPLETE );
+	cObjectCollisionType Collision_Check( GL_rect *new_rect, ColCheckType check_type = COLLIDE_COMPLETE, SpriteList *objects = NULL );
+
 	/* Check if the given movement goes out of the level rect
 	 * handle : if set handle out of level if valid
 	*/
@@ -116,8 +130,7 @@ public:
 	void Update_antistuck( void );
 
 	// default collision and movement handling
-	void CollideMove( void );
-
+	virtual void Collide_Move( void );
 
 	/* Freeze for the given time
 	*/
@@ -137,7 +150,8 @@ public:
 	void Update_Rotation_velx( bool start_rotation = 0 );
 
 	/* Validate the given collision object
-	 * returns 1 if the given object collides with this object
+	 * returns 1 if an internal collision with this object is valid
+	 * returns 2 if the given object collides with this object (blocking)
 	*/
 	virtual unsigned int Validate_Collision( cSprite *obj );
 	// returns -1 if nothing found

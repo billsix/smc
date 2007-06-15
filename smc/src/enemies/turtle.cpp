@@ -144,9 +144,6 @@ void cTurtle :: Set_Color( DefaultColor col )
 		return;
 	}
 
-	// clear old images
-	Clear_Images();
-
 	color_type = col;
 
 	string filename_dir;
@@ -172,6 +169,8 @@ void cTurtle :: Set_Color( DefaultColor col )
 	{
 		printf( "Error : Unknown Turtle color : %d\n", color_type );
 	}
+
+	Clear_Images();
 
 	// Walk
 	images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/walk_0.png" ) );
@@ -247,8 +246,10 @@ void cTurtle :: DownGrade( bool force /* = 0 */ )
 	else
 	{
 		counter = 8;
-		dead = 1;
+		Set_Dead( 1 );
 		massivetype = MASS_PASSIVE;
+		velx = 0;
+		vely = 0;
 
 		if( turtle_state == TURTLE_WALK )
 		{
@@ -293,7 +294,7 @@ void cTurtle :: DieStep( void )
 	// if below disable
 	else
 	{
-		visible = 0;
+		Set_Visible( 0 );
 		rotz = 0;
 		state = STA_STAY;
 		turtle_state = TURTLE_DEAD;
@@ -304,7 +305,7 @@ void cTurtle :: Update( void )
 {
 	cEnemy::Update();
 
-	if( dead || freeze_counter || state == STA_OBJ_LINKED || !is_Player_range() )
+	if( !valid_update || !is_Player_range() )
 	{
 		return;
 	}
@@ -447,8 +448,16 @@ void cTurtle :: Update( void )
 
 	// gravity
 	Update_Gravity();
+}
 
-	CollideMove();
+bool cTurtle :: is_Update_valid( void )
+{
+	if( dead || freeze_counter || state == STA_OBJ_LINKED )
+	{
+		return 0;
+	}
+
+	return 1;
 }
 
 unsigned int cTurtle :: Validate_Collision( cSprite *obj )
@@ -682,7 +691,7 @@ void cTurtle :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
 	if( turtle_state == TURTLE_SHELL_STAND )
 	{
-		cEnemy *enemy = (cEnemy *)pObjManager->Get_Pointer( collision->number );
+		cEnemy *enemy = static_cast<cEnemy *>(pObjManager->Get_Pointer( collision->number ));
 
 		// if able to collide
 		if( state == STA_OBJ_LINKED || vely < -5 )
@@ -704,7 +713,7 @@ void cTurtle :: Handle_Collision_Enemy( cObjectCollision *collision )
 	}
 	else if( turtle_state == TURTLE_SHELL_RUN )
 	{
-		cEnemy *enemy = (cEnemy *)pObjManager->Get_Pointer( collision->number );
+		cEnemy *enemy = static_cast<cEnemy *>(pObjManager->Get_Pointer( collision->number ));
 
 		
 		// don't collide with already dead enemies

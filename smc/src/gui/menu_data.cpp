@@ -280,17 +280,14 @@ void cMenu_Start :: Init_GUI( void )
 	cMenu_Base::Init_GUI();
 
 	// Tab Control
-	TabControl *tabcontrol = (TabControl *)WindowManager::getSingleton().getWindow( "tabcontrol_main" );
+	TabControl *tabcontrol = static_cast<TabControl *>(WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
 	tabcontrol->activate();
-
-	// remove not yet used tabs
-	Window *tab_level = tabcontrol->getTabContents( "tab_level" );
 
 	// events
 	tabcontrol->subscribeEvent( Window::EventKeyDown, Event::Subscriber( &cMenu_Start::window_keydown, this ) );
 
 	// Worlds
-	Listbox *listbox_worlds = (Listbox *)WindowManager::getSingleton().getWindow( "listbox_worlds" );
+	Listbox *listbox_worlds = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_worlds" ));
 	
 	// overworld names
 	for( unsigned int i = 0; i < pOverworld_manager->worlds.size(); i++ )
@@ -313,7 +310,7 @@ void cMenu_Start :: Init_GUI( void )
 	}
 
 	// Levels
-	Listbox *listbox_levels = (Listbox *)WindowManager::getSingleton().getWindow( "listbox_levels" );
+	Listbox *listbox_levels = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
 
 	// get all level names
 	fs::path full_path( pPreferences->level_dir );
@@ -2031,8 +2028,6 @@ bool cMenu_Options_Controls :: joy_name_Select( const EventArgs &event )
 	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
 	Combobox *combo = static_cast<Combobox*>( windowEventArgs.window );
 	ListboxItem *item = combo->getSelectedItem();
-
-	bool enabled = 0;
 
 	if( item->getText().compare( "None" ) == 0 )
 	{

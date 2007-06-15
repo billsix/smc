@@ -368,7 +368,7 @@ bool cSavegame :: Save_Game( unsigned int save_slot, string description )
 		savegame->level_posy = pPlayer->posy + GAME_RES_H - 5;
 
 		// Level Objects
-		for( ObjectList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *object = (*itr);
@@ -461,7 +461,7 @@ bool cSavegame :: Save_Game( unsigned int save_slot, string description )
 		save_overworld->name = overworld->description->name;
 		
 		// Waypoints
-		for( ObjectList::iterator itr = overworld->object_manager->items.begin(), itr_end = overworld->object_manager->items.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = overworld->object_manager->items.begin(), itr_end = overworld->object_manager->items.end(); itr != itr_end; ++itr )
 		{
 			// get waypoint
 			cWaypoint *waypoint = static_cast<cWaypoint *>(*itr);

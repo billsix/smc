@@ -32,6 +32,7 @@
 bool done = 0;
 
 GameMode Game_Mode = MODE_NOTHING;
+GameModeType Game_Mode_Type = MODE_TYPE_DEFAULT;
 bool Game_debug = 0;
 
 bool editor_enabled = 0;
@@ -83,7 +84,7 @@ void cDialogBox :: Exit( void )
 	// hide mouse
 	if( mouse_hide )
 	{
-		pMouseCursor->visible = 0;
+		pMouseCursor->Set_Visible( 0 );
 	}
 
 	pGuiSystem->getGUISheet()->removeChildWindow( window );
@@ -339,6 +340,12 @@ void Change_Game_Mode( GameMode new_mode )
 	// mode was level
 	if( old_mode == MODE_LEVEL )
 	{
+		// reset mode type
+		if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM )
+		{
+			Game_Mode_Type = MODE_TYPE_DEFAULT;
+		}
+
 		// hide editor window if visible
 		if( pLevel_Editor->enabled )
 		{
@@ -382,7 +389,7 @@ void Change_Game_Mode( GameMode new_mode )
 		// hide mouse
 		if( !editor_enabled )
 		{
-			pMouseCursor->visible = 0;
+			pMouseCursor->Set_Visible( 0 );
 		}
 
 		// menu to level
@@ -1099,6 +1106,10 @@ void Preload_images( void )
 	pVideo->Get_Surface( "game/items/goldpiece/yellow/4.png" );
 	pVideo->Get_Surface( "game/items/goldpiece/yellow/5.png" );
 	pVideo->Get_Surface( "game/items/goldpiece/yellow/6.png" );
+	pVideo->Get_Surface( "game/items/goldpiece/yellow/7.png" );
+	pVideo->Get_Surface( "game/items/goldpiece/yellow/8.png" );
+	pVideo->Get_Surface( "game/items/goldpiece/yellow/9.png" );
+	pVideo->Get_Surface( "game/items/goldpiece/yellow/10.png" );
 	// Red Goldpiece
 	pVideo->Get_Surface( "game/items/goldpiece/red/1.png" );
 	pVideo->Get_Surface( "game/items/goldpiece/red/2.png" );
@@ -1106,6 +1117,10 @@ void Preload_images( void )
 	pVideo->Get_Surface( "game/items/goldpiece/red/4.png" );
 	pVideo->Get_Surface( "game/items/goldpiece/red/5.png" );
 	pVideo->Get_Surface( "game/items/goldpiece/red/6.png" );
+	pVideo->Get_Surface( "game/items/goldpiece/red/7.png" );
+	pVideo->Get_Surface( "game/items/goldpiece/red/8.png" );
+	pVideo->Get_Surface( "game/items/goldpiece/red/9.png" );
+	pVideo->Get_Surface( "game/items/goldpiece/red/10.png" );
 
 	// Brown Box
 	pVideo->Get_Surface( "game/box/brown1_1.png" );	
@@ -1155,6 +1170,7 @@ void Preload_sounds( void )
 	pAudio->Get_Sound( "player/jump_small.ogg" );
 	pAudio->Get_Sound( "player/maryo_au.ogg" );
 	pAudio->Get_Sound( "player/powerdown.ogg" );
+	pAudio->Get_Sound( "player/ghost_end.ogg" );
 	pAudio->Get_Sound( "enter_pipe.ogg" );
 	pAudio->Get_Sound( "leave_pipe.ogg" );
 
@@ -1166,6 +1182,7 @@ void Preload_sounds( void )
 	pAudio->Get_Sound( "item/goldpiece_1.ogg" );
 	pAudio->Get_Sound( "item/live_up.ogg" );
 	pAudio->Get_Sound( "item/mushroom.ogg" );
+	pAudio->Get_Sound( "item/mushroom_ghost.ogg" );
 	pAudio->Get_Sound( "item/moon.ogg" );
 
 	// box

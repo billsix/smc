@@ -107,7 +107,7 @@ void cObjectManager :: Delete_Objects( bool delayed /* = 0 */ )
 	}
 
 	// delete objects
-	for( ObjectList::iterator itr = items.begin(); itr != items.end(); )
+	for( SpriteList::iterator itr = items.begin(); itr != items.end(); )
 	{
 		// get object pointer
 		cSprite *obj = (*itr);
@@ -165,7 +165,7 @@ cSprite *cObjectManager :: Get_First( SpriteType type )
 {
 	cSprite *first = NULL;
 
-	for( ObjectList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
 	{
 		// get object pointer
 		cSprite *obj = (*itr);
@@ -184,7 +184,7 @@ cSprite *cObjectManager :: Get_Last( SpriteType type )
 {
 	cSprite *last = NULL;
 
-	for( ObjectList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
 	{
 		// get object pointer
 		cSprite *obj = (*itr);
@@ -201,7 +201,7 @@ cSprite *cObjectManager :: Get_Last( SpriteType type )
 
 cSprite *cObjectManager :: Get_from_Position( int posx, int posy, SpriteType type /* = TYPE_UNDEFINED */ )
 {
-	for( ObjectList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
 	{
 		// get object pointer
 		cSprite *obj = (*itr);
@@ -228,7 +228,7 @@ cSprite *cObjectManager :: Get_from_Position( int posx, int posy, SpriteType typ
 	return NULL;
 }
 
-void cObjectManager :: Get_Objects_sorted( ObjectList &objects, bool editor_sort /* = 0 */, bool with_player /* = 0 */ )
+void cObjectManager :: Get_Objects_sorted( SpriteList &objects, bool editor_sort /* = 0 */, bool with_player /* = 0 */ )
 {
 	objects = items;
 
@@ -280,7 +280,7 @@ int cObjectManager :: Get_Array_num( cSprite *obj )
 
 void cObjectManager :: Update_items_valid_draw( void )
 {
-	for( ObjectList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
 	{
 		(*itr)->Update_valid_draw();
 	}
@@ -288,7 +288,7 @@ void cObjectManager :: Update_items_valid_draw( void )
 
 void cObjectManager :: Update_items( void )
 {
-	for( ObjectList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
 	{
 		(*itr)->Update();
 	}
@@ -296,7 +296,7 @@ void cObjectManager :: Update_items( void )
 
 void cObjectManager :: Draw_items( void )
 {
-	for( ObjectList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
 	{
 		(*itr)->Draw();
 	}
@@ -304,15 +304,18 @@ void cObjectManager :: Draw_items( void )
 
 void cObjectManager :: Handle_Collision_items( void )
 {
-	for( ObjectList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
 	{
+		// collision and movement handling
+		(*itr)->Collide_Move();
+		// handle found collisions
 		(*itr)->Handle_Collisions();
 	}
 }
 
 void cObjectManager :: Update( void )
 {
-	for( ObjectList::iterator itr = items.begin(); itr != items.end(); )
+	for( SpriteList::iterator itr = items.begin(); itr != items.end(); )
 	{
 		// get object pointer
 		cSprite *obj = (*itr);
@@ -340,7 +343,7 @@ unsigned int cObjectManager :: Get_Size_array( ArrayType sprite_array )
 {
 	unsigned int count = 0;
 
-	for( ObjectList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
 	{
 		if( (*itr)->sprite_array == sprite_array )
 		{

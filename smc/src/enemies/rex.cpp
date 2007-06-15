@@ -151,7 +151,7 @@ void cRex :: DownGrade( bool force /* = 0 */ )
 		{
 			Col_Move( 0, images[3]->col_h - images[4]->col_h, 1, 1, 0 );
 			Set_Image( 4, 0, 0 );
-			dead = 1;
+			Set_Dead( 1 );
 
 			// animation
 			cParticleAnimation *anim = new cParticleAnimation( posx + ( col_rect.w / 2 ), posy + ( col_rect.h / 2 ) );
@@ -166,16 +166,18 @@ void cRex :: DownGrade( bool force /* = 0 */ )
 	// falling death
 	else
 	{
-		dead = 1;
+		Set_Dead( 1 );
 		Set_RotationZ( 180 );
 	}
 
 	if( dead )
 	{
-		massivetype = MASS_PASSIVE;
-		state = STA_STAY;
-		counter = 0;
 		rex_state = REX_DEAD;
+		state = STA_STAY;
+		massivetype = MASS_PASSIVE;
+		counter = 0;
+		velx = 0;
+		vely = 0;
 	}
 }
 
@@ -193,8 +195,8 @@ void cRex :: DieStep( void )
 
 		if( scalex < 0.1f )
 		{
-			visible = 0;
 			Set_Scale( 1 );
+			Set_Visible( 0 );
 		}
 	}
 	// falling death
@@ -214,7 +216,7 @@ void cRex :: DieStep( void )
 		else
 		{
 			rotz = 0;
-			visible = 0;
+			Set_Visible( 0 );
 		}
 	}
 }
@@ -223,7 +225,7 @@ void cRex :: Update( void )
 {
 	cEnemy::Update();
 
-	if( dead || freeze_counter || !is_Player_range() )
+	if( !valid_update || !is_Player_range() )
 	{
 		return;
 	}
@@ -252,9 +254,17 @@ void cRex :: Update( void )
 	// gravity
 	Update_Gravity();
 
-	CollideMove();
-
 	Update_Rotation_velx();
+}
+
+bool cRex :: is_Update_valid( void )
+{
+	if( dead || freeze_counter )
+	{
+		return 0;
+	}
+
+	return 1;
 }
 
 unsigned int cRex :: Validate_Collision( cSprite *obj )

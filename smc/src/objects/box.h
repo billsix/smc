@@ -55,22 +55,25 @@ public:
 	// collision with given active object
 	void Col_Active( cSprite *obj, ObjectDirection dir );
 
-	// activates the box
+	// activate
 	virtual void Activate( void );
 
-	// updates the BaseBox
+	// update
 	virtual void Update( void );
-	// draws the BaseBox
+	// draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
 	// Generate activation Particles
 	void Generate_active_Particles( void );
 
+	// if update is valid for the current state
+	virtual bool is_Update_valid( void );
 	// if draw is valid for the current state and position
 	virtual bool is_Draw_valid( void );
 
 	/* Validate the given collision object
-	 * returns 1 if the given object collides with this object
+	 * returns 1 if an internal collision with this object is valid
+	 * returns 2 if the given object collides with this object (blocking)
 	*/
 	virtual unsigned int Validate_Collision( cSprite *obj );
 	// handle the basic box player collision

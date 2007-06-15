@@ -356,6 +356,7 @@ void cSprite :: Init( void )
 	scaley = 1;
 
 	valid_draw = 1;
+	valid_update = 1;
 }
 
 cSprite *cSprite :: Copy( void )
@@ -618,6 +619,7 @@ void cSprite :: Set_Visible( bool enabled )
 	visible = enabled;
 
 	Update_valid_draw();
+	Update_valid_update();
 }
 
 void cSprite :: Set_Shadow( Color shadow, float pos )
@@ -778,8 +780,8 @@ void cSprite :: Add_Scale( float val )
 
 void cSprite :: Set_onTop( cSprite *sprite, bool optimize_hor_pos /* = 1 */ )
 {
-	// set correct onground position
-	posy = sprite->col_rect.y - col_pos.y - col_rect.h - 0.01f;
+	// set ground position 0.1f over it
+	posy = sprite->col_rect.y - col_pos.y - col_rect.h - 0.1f;
 
 	// optimize the horizontal position if given
 	if( optimize_hor_pos && ( posx < sprite->posx || posx > sprite->posx + sprite->col_rect.w ) )
@@ -807,6 +809,11 @@ void cSprite :: Move( float move_x, float move_y, bool real /* = 0 */ )
 	posy += move_y;
 
 	Update_Position_Rect();
+}
+
+void cSprite :: Collide_Move( void )
+{
+	// virtual
 }
 
 void cSprite :: Update_Position_Rect( void )
@@ -846,6 +853,11 @@ void cSprite :: Update( void )
 void cSprite :: Update_valid_draw( void )
 {
 	valid_draw = is_Draw_valid();
+}
+
+void cSprite :: Update_valid_update( void )
+{
+	valid_update = is_Update_valid();
 }
 
 void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
@@ -1100,12 +1112,24 @@ bool cSprite :: is_Visible_onScreen( void )
 
 bool cSprite :: is_Player_range( void )
 {
-	if( player_range > 300 && ( posx < pPlayer->posx - player_range || posy < pPlayer->posy - player_range ||
-		posx > pPlayer->posx + player_range || posy > pPlayer->posy + player_range ) )
+	// no player range set
+	if( player_range < 300 )
+	{
+		return is_Visible_onScreen();
+	}
+	// check if not in range
+	else if( posx < pPlayer->posx - player_range || posy < pPlayer->posy - player_range ||
+		posx > pPlayer->posx + player_range || posy > pPlayer->posy + player_range )
 	{
 		return 0;
 	}
 
+	// is in range
+	return 1;
+}
+
+bool cSprite :: is_Update_valid( void )
+{
 	return 1;
 }
 

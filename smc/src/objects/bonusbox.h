@@ -71,6 +71,9 @@ public:
 	// draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
+	// if update is valid for the current state
+	virtual bool is_Update_valid( void );
+
 	// ignore onground check
 	virtual void Check_onGround( void ) {};
 

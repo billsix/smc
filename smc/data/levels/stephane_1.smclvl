@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.5" />
-		<Property name="engine_version" value="2" />
-		<Property name="save_time" value="1169757867" />
+		<Property name="game_version" value="0.99.7" />
+		<Property name="engine_version" value="2.1" />
+		<Property name="save_time" value="1181903379" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Stephane" />
 		<Property name="lvl_version" value="1.0" />
+		<Property name="lvl_music" value="land/land_4.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
 		<Property name="cam_limit_w" value="20000" />
@@ -24,7 +25,7 @@
 	</background>
 	<player>
 		<Property name="posx" value="39" />
-		<Property name="posy" value="492" />
+		<Property name="posy" value="414" />
 		<Property name="direction" value="right" />
 	</player>
 	<sprite>
@@ -2886,7 +2887,6 @@
 		<Property name="posx" value="7316" />
 		<Property name="posy" value="-50" />
 		<Property name="type" value="0" />
-		<Property name="level_name" value="" />
 	</levelexit>
 	<sprite>
 		<Property name="posx" value="7503" />

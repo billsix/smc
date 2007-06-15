@@ -145,9 +145,6 @@ void cBall :: Update( void )
 		AddVel( 0, 1 );
 	}
 
-	// collision handling
-	CollideMove();
-
 	// if ball is out of Player Range
 	if( !is_Player_range() )
 	{
@@ -280,7 +277,7 @@ void cBall :: Handle_Collision_Player( ObjectDirection cdirection )
 
 void cBall :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
-	cEnemy *enemy = (cEnemy *)pObjManager->Get_Pointer( collision->number );
+	cEnemy *enemy = static_cast<cEnemy *>(pObjManager->Get_Pointer( collision->number ));
 
 	// if enemy is not destroyable
 	if( ( ball_type == FIREBALL_DEFAULT && enemy->fire_resistant ) || ( ball_type == ICEBALL_DEFAULT && enemy->ice_resistance >= 1 ) )
@@ -336,7 +333,7 @@ void cBall :: Handle_Collision_Enemy( cObjectCollision *collision )
 			// add goldpiece
 			pObjManager->Add( goldpiece );
 
-			enemy->visible = 0;
+			enemy->Set_Visible( 0 );
 			enemy->DownGrade( 1 );
 			pPlayer->Add_Kill_Multiplier();
 		}

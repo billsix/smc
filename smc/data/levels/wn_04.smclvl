@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.3" />
-		<Property name="engine_version" value="2" />
-		<Property name="save_time" value="1165442130" />
+		<Property name="game_version" value="0.99.6.2" />
+		<Property name="engine_version" value="2.1" />
+		<Property name="save_time" value="1179811205" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="WeirdNose" />
@@ -30,16 +30,9 @@
 		<Property name="speedy" value="1" />
 		<Property name="posz" value="0.000107" />
 	</background>
-	<background>
-		<Property name="type" value="1" />
-		<Property name="image" value="game/background/low_sand.png" />
-		<Property name="speedx" value="1" />
-		<Property name="speedy" value="1" />
-		<Property name="posz" value="0.00011" />
-	</background>
 	<player>
 		<Property name="posx" value="83" />
-		<Property name="posy" value="57" />
+		<Property name="posy" value="-1" />
 		<Property name="direction" value="right" />
 	</player>
 	<sprite>
@@ -5180,25 +5173,36 @@
 		<Property name="posy" value="366" />
 	</enemystopper>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="941" />
 		<Property name="posy" value="197" />
-		<Property name="color" value="red" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="red" />
 	</box>
 	<box>
-		<Property name="type" value="bonus" />
 		<Property name="posx" value="984" />
 		<Property name="posy" value="197" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Bonus" />
 		<Property name="item" value="24" />
+		<Property name="invisible" value="0" />
+		<Property name="useable_count" value="1" />
 		<Property name="force_best_item" value="0" />
 	</box>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="1027" />
 		<Property name="posy" value="197" />
-		<Property name="color" value="yellow" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="yellow" />
 	</box>
 	<item>
 		<Property name="type" value="goldpiece" />
@@ -5331,6 +5335,7 @@
 	<moving_platform>
 		<Property name="posx" value="2672" />
 		<Property name="posy" value="302" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="3" />
@@ -5342,6 +5347,7 @@
 	<moving_platform>
 		<Property name="posx" value="3134" />
 		<Property name="posy" value="200" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="300" />
 		<Property name="speed" value="3" />
@@ -5351,11 +5357,15 @@
 		<Property name="image_top_right" value="slider/grey_1/slider_right.png" />
 	</moving_platform>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="4741" />
 		<Property name="posy" value="247" />
-		<Property name="color" value="red" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="4" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="red" />
 	</box>
 	<sprite>
 		<Property name="posx" value="5429" />
@@ -5426,18 +5436,26 @@
 		<Property name="posy" value="126" />
 	</enemystopper>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="2341" />
 		<Property name="posy" value="102" />
-		<Property name="color" value="yellow" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="yellow" />
 	</box>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="2384" />
 		<Property name="posy" value="102" />
-		<Property name="color" value="red" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="red" />
 	</box>
 	<item>
 		<Property name="type" value="goldpiece" />
@@ -5518,10 +5536,13 @@
 		<Property name="type" value="climbable" />
 	</sprite>
 	<box>
-		<Property name="type" value="bonus" />
 		<Property name="posx" value="2997" />
 		<Property name="posy" value="-335" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Bonus" />
 		<Property name="item" value="35" />
+		<Property name="invisible" value="0" />
+		<Property name="useable_count" value="1" />
 		<Property name="force_best_item" value="0" />
 	</box>
 	<enemystopper>
@@ -5579,37 +5600,55 @@
 		<Property name="type" value="climbable" />
 	</sprite>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="1853" />
 		<Property name="posy" value="-787" />
-		<Property name="color" value="yellow" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="yellow" />
 	</box>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="1896" />
 		<Property name="posy" value="-787" />
-		<Property name="color" value="yellow" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="2" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="yellow" />
 	</box>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="1466" />
 		<Property name="posy" value="-1063" />
-		<Property name="color" value="red" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="red" />
 	</box>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="1509" />
 		<Property name="posy" value="-1063" />
-		<Property name="color" value="yellow" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="yellow" />
 	</box>
 	<box>
-		<Property name="type" value="spin" />
 		<Property name="posx" value="1552" />
 		<Property name="posy" value="-1063" />
+		<Property name="type" value="spin" />
+		<Property name="invisible" value="0" />
+		<Property name="useable_count" value="-1" />
 	</box>
 	<item>
 		<Property name="type" value="goldpiece" />
@@ -5674,17 +5713,19 @@
 		<Property name="color" value="yellow" />
 	</item>
 	<box>
-		<Property name="type" value="bonus" />
 		<Property name="posx" value="8849" />
 		<Property name="posy" value="-276" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Bonus" />
 		<Property name="item" value="24" />
+		<Property name="invisible" value="0" />
+		<Property name="useable_count" value="1" />
 		<Property name="force_best_item" value="0" />
 	</box>
 	<levelexit>
 		<Property name="posx" value="10430" />
 		<Property name="posy" value="344" />
 		<Property name="type" value="1" />
-		<Property name="level_name" value="" />
 		<Property name="direction" value="down" />
 	</levelexit>
 	<item>
@@ -5710,103 +5751,156 @@
 		<Property name="posy" value="475" />
 	</enemystopper>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="10016" />
 		<Property name="posy" value="317" />
-		<Property name="color" value="yellow" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="yellow" />
 	</box>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="10059" />
 		<Property name="posy" value="317" />
-		<Property name="color" value="red" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="red" />
 	</box>
 	<box>
-		<Property name="type" value="bonus" />
 		<Property name="posx" value="6525" />
 		<Property name="posy" value="120" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Bonus" />
 		<Property name="item" value="24" />
+		<Property name="invisible" value="0" />
+		<Property name="useable_count" value="1" />
 		<Property name="force_best_item" value="0" />
 	</box>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="6482" />
 		<Property name="posy" value="120" />
-		<Property name="color" value="yellow" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="yellow" />
 	</box>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="6568" />
 		<Property name="posy" value="120" />
-		<Property name="color" value="yellow" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="yellow" />
 	</box>
 	<box>
-		<Property name="type" value="spin" />
 		<Property name="posx" value="6654" />
 		<Property name="posy" value="120" />
+		<Property name="type" value="spin" />
+		<Property name="invisible" value="0" />
+		<Property name="useable_count" value="-1" />
 	</box>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="8066" />
 		<Property name="posy" value="-440" />
-		<Property name="color" value="red" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="5" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="red" />
 	</box>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="7111" />
 		<Property name="posy" value="238" />
-		<Property name="color" value="red" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="red" />
 	</box>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="8064" />
 		<Property name="posy" value="-106" />
-		<Property name="color" value="yellow" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="yellow" />
 	</box>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="7494" />
 		<Property name="posy" value="107" />
-		<Property name="color" value="yellow" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="yellow" />
 	</box>
 	<box>
-		<Property name="type" value="spin" />
 		<Property name="posx" value="7537" />
 		<Property name="posy" value="107" />
+		<Property name="type" value="spin" />
+		<Property name="invisible" value="0" />
+		<Property name="useable_count" value="-1" />
 	</box>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="7623" />
 		<Property name="posy" value="107" />
-		<Property name="color" value="yellow" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="yellow" />
 	</box>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="6981" />
 		<Property name="posy" value="-84" />
-		<Property name="color" value="red" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="red" />
 	</box>
 	<box>
-		<Property name="type" value="gold" />
 		<Property name="posx" value="7024" />
 		<Property name="posy" value="-84" />
-		<Property name="color" value="yellow" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="yellow" />
 	</box>
 	<box>
-		<Property name="type" value="spin" />
 		<Property name="posx" value="7067" />
 		<Property name="posy" value="-84" />
+		<Property name="type" value="spin" />
+		<Property name="invisible" value="0" />
+		<Property name="useable_count" value="-1" />
 	</box>
 	<enemystopper>
 		<Property name="posx" value="6832" />
@@ -5887,14 +5981,24 @@
 		<Property name="color" value="yellow" />
 	</item>
 	<box>
-		<Property name="type" value="empty" />
 		<Property name="posx" value="6611" />
 		<Property name="posy" value="120" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Bonus" />
+		<Property name="item" value="0" />
+		<Property name="invisible" value="0" />
+		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
 	</box>
 	<box>
-		<Property name="type" value="empty" />
 		<Property name="posx" value="7580" />
 		<Property name="posy" value="107" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Bonus" />
+		<Property name="item" value="0" />
+		<Property name="invisible" value="0" />
+		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
 	</box>
 	<sprite>
 		<Property name="posx" value="1242" />

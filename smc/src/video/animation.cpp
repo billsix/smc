@@ -93,13 +93,19 @@ cBlinkAnimation :: cBlinkAnimation( float posx, float posy, unsigned int height 
 
 	for( unsigned int i = 0; i < 4; i++ )
 	{
-		cSprite object( NULL, (float)( rand() % ( width ) ), (float)( rand() % ( height ) ) );
-		objects.push_back( object );
+		cSprite *obj = new cSprite( NULL, (float)( rand() % ( width ) ), (float)( rand() % ( height ) ) );
+		objects.push_back( obj );
 	}
 }
 
 cBlinkAnimation :: ~cBlinkAnimation( void )
 {
+	// clear
+	for( BlinkPointList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	{
+		delete *itr;
+	}
+
 	objects.clear();
 }
 
@@ -198,7 +204,7 @@ void cBlinkAnimation :: Update( void )
 		}
 		}
 
-		objects[i].Set_Scale( 1.1f - ( time_to_live / 12 ) );
+		objects[i]->Set_Scale( 1.1f - ( time_to_live / 12 ) );
 	}
 }
 
@@ -209,30 +215,35 @@ void cBlinkAnimation :: Draw( cSurfaceRequest *request /* = NULL */ )
 		return;
 	}
 
-	// draw the fixed points
-	for( unsigned int i = 0; i < objects.size(); i++ )
+	if( !image )
 	{
-		if( image )
-		{
-			// create request
-			cSurfaceRequest *request = new cSurfaceRequest();
-			image->Blit( objects[i].posx - ( pCamera->x - posx ), objects[i].posy - ( pCamera->y - posy ), posz, request );
+		Set_Visible( 0 );
+		return;
+	}
 
-			// scale
-			request->scale_x = objects[i].scalex;
-			request->scale_y = objects[i].scaley;
+	// draw the fixed points
+	for( BlinkPointList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	{
+		cSprite *obj = (*itr);
 
-			// color
-			request->color = color;
+		// create request
+		cSurfaceRequest *request = new cSurfaceRequest();
+		image->Blit( obj->posx - ( pCamera->x - posx ), obj->posy - ( pCamera->y - posy ), posz, request );
 
-			// add request
-			pRenderer->Add( request );
-		}
+		// scale
+		request->scale_x = obj->scalex;
+		request->scale_y = obj->scaley;
 
-		if( time_to_live > 11 || time_to_live < 0 )
-		{
-			visible = 0;
-		}
+		// color
+		request->color = color;
+
+		// add request
+		pRenderer->Add( request );
+	}
+	
+	if( time_to_live > 11 || time_to_live < 0 )
+	{
+		Set_Visible( 0 );
 	}
 }
 
@@ -243,41 +254,52 @@ cFireAnimation :: cFireAnimation( float posx, float posy, unsigned int power /* 
 {
 	animtype = FIRE_EXPLOSION;
 
-	images.push_back( pVideo->Get_Surface( "animation/fire_1/4.png" ) );
-	images.push_back( pVideo->Get_Surface( "animation/fire_1/3.png" ) );
-	images.push_back( pVideo->Get_Surface( "animation/fire_1/2.png" ) );
-	images.push_back( pVideo->Get_Surface( "animation/fire_1/1.png" ) );
-
-	// fill the objects list
+	// create objects
 	for( unsigned int i = 0; i < power; i++ )
 	{
-		FireAnimation_item temp;
-		objects.push_back( temp );
+		FireAnimation_item *obj = new FireAnimation_item();
+		objects.push_back( obj );
 	}
 }
 
 cFireAnimation :: ~cFireAnimation( void )
 {
+	// clear
+	for( FireAnimList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	{
+		delete *itr;
+	}
+
 	objects.clear();
 }
 
 void cFireAnimation :: Init( void )
 {
-	for( unsigned int i = 0; i < objects.size(); i++ )
+	for( FireAnimList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
+		FireAnimation_item *obj = (*itr);
+
+		// images
+		obj->images.push_back( pVideo->Get_Surface( "animation/fire_1/4.png" ) );
+		obj->images.push_back( pVideo->Get_Surface( "animation/fire_1/3.png" ) );
+		obj->images.push_back( pVideo->Get_Surface( "animation/fire_1/2.png" ) );
+		obj->images.push_back( pVideo->Get_Surface( "animation/fire_1/1.png" ) );
+		obj->Set_Image( 0 );
+
 		// position
-		objects[i].velx = ( (float)( rand() % ( 50 ) - 25 ) ) / 10;
-		objects[i].vely = ( (float)( rand() % ( 50 ) - 25 ) ) / 10;
+		obj->velx = ( (float)( rand() % ( 50 ) - 25 ) ) / 10;
+		obj->vely = ( (float)( rand() % ( 50 ) - 25 ) ) / 10;
 
 		// Z position
-		objects[i].posz = posz;
+		obj->posz = posz;
 		if( posz_rand > 0.001f )
 		{
-			objects[i].posz += (float)( rand() % (int)( posz_rand * 1000 ) ) / 1000;
+			obj->posz += (float)( rand() % (int)( posz_rand * 1000 ) ) / 1000;
 		}
 
 		// lifetime
-		objects[i].counter = (float)( 8 + rand() % ( 5 ) );
+		obj->counter = (float)( 8 + rand() % ( 5 ) );
+		
 	}
 }
 
@@ -291,34 +313,36 @@ void cFireAnimation :: Update( void )
 	time_to_live += pFramerate->speedfactor * fading_speed;
 
 	// update objects
-	for( unsigned int i = 0; i < objects.size(); i++ )
+	for( FireAnimList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
-		if( objects[i].counter > 8 )
+		FireAnimation_item *obj = (*itr);
+
+		if( obj->counter > 8 )
 		{
-			Set_Image( 0 );
+			obj->Set_Image( 0 );
 		}
-		else if( objects[i].counter > 5 )
+		else if( obj->counter > 5 )
 		{
-			Set_Image( 1 );
+			obj->Set_Image( 1 );
 		}
-		else if( objects[i].counter > 3 )
+		else if( obj->counter > 3 )
 		{
-			Set_Image( 2 );
+			obj->Set_Image( 2 );
 		}
-		else if( objects[i].counter > 0 )
+		else
 		{
-			Set_Image( 3 );
+			obj->Set_Image( 3 );
 		}
 
-		objects[i].counter -= pFramerate->speedfactor * fading_speed;
+		obj->counter -= pFramerate->speedfactor * fading_speed;
 
-		objects[i].Set_Scale( objects[i].counter / 10 );
-		objects[i].Move( objects[i].velx, objects[i].vely );
+		obj->Set_Scale( obj->counter / 10 );
+		obj->Move( obj->velx, obj->vely );
 	}
 
 	if( time_to_live > 12 || time_to_live < 0 )
 	{
-		visible = 0;
+		Set_Visible( 0 );
 	}
 }
 
@@ -330,24 +354,23 @@ void cFireAnimation :: Draw( cSurfaceRequest *request /* = NULL */ )
 	}
 
 	// draw objects
-	for( unsigned int i = 0; i < objects.size(); i++ )
+	for( FireAnimList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
-		if( image )
-		{
-			// create request
-			cSurfaceRequest *request = new cSurfaceRequest();
-			image->Blit( objects[i].posx - ( pCamera->x - posx ), objects[i].posy - ( pCamera->y - posy ), objects[i].posz, request );
+		FireAnimation_item *obj = (*itr);
 
-			// scale
-			request->scale_x = objects[i].scalex;
-			request->scale_y = objects[i].scaley;
+		// create request
+		cSurfaceRequest *request = new cSurfaceRequest();
+		obj->image->Blit( obj->posx - ( pCamera->x - posx ), obj->posy - ( pCamera->y - posy ), obj->posz, request );
 
-			// color
-			request->color = color;
+		// scale
+		request->scale_x = obj->scalex;
+		request->scale_y = obj->scaley;
 
-			// add request
-			pRenderer->Add( request );
-		}
+		// color
+		request->color = color;
+
+		// add request
+		pRenderer->Add( request );
 	}
 }
 
@@ -378,7 +401,7 @@ void cParticle :: Update( void )
 	if( fade_pos <= 0 )
 	{
 		fade_pos = 0;
-		visible = 0;
+		Set_Visible( 0 );
 		return;
 	}
 
@@ -670,7 +693,7 @@ void cParticleAnimation :: Update( void )
 	// no particles are active
 	else if( !objects.size() )
 	{
-		visible = 0;
+		Set_Visible( 0 );
 	}
 }
 

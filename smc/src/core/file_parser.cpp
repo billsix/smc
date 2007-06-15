@@ -33,7 +33,7 @@ bool cFile_parser :: Parse( string &filename )
 	
 	if( !ifs )
 	{
-		printf( "Could not load Data File : %s\n", filename.c_str() );
+		printf( "Could not load data file : %s\n", filename.c_str() );
 		return 0;
 	}
 

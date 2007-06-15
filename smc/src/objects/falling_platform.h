@@ -20,7 +20,7 @@
 
 /* *** *** *** *** *** *** *** *** Falling Platform states *** *** *** *** *** *** *** *** *** */
 
-enum Falling_Platform_Status
+enum Falling_Platform_State
 {
     PLATFORM_STAY = 0,
     PLATFORM_TOUCHED = 1,
@@ -55,26 +55,31 @@ public:
 	virtual void Set_Massivetype( MassiveType mtype );
 	// Set the middle image count
 	void Set_Middle_Count( int val );
-
+	// Set time until falling
 	void Set_Time_Fall( float val );
+
+	// set image
+	void Set_image_top_left( GL_Surface *surface );
+	void Set_image_top_middle( GL_Surface *surface );
+	void Set_image_top_right( GL_Surface *surface );
 
 	// update
 	virtual void Update( void );
 	// draw
 	virtual void Draw( cSurfaceRequest *request /* = NULL */ );
 
-	// ignore onground check
-	virtual void Check_onGround( void ) {};
-
-	// set image
-	void Set_image_top_left( GL_Surface *surface );
-	void Set_image_top_middle( GL_Surface *surface );
-	void Set_image_top_right( GL_Surface *surface );
 	// update rect
 	void Update_rect( void );
 
+	// ignore onground check
+	virtual void Check_onGround( void ) {};
+
+	// if update is valid for the current state
+	virtual bool is_Update_valid( void );
+
 	/* Validate the given collision object
-	 * returns 1 if the given object collides with this object
+	 * returns 1 if an internal collision with this object is valid
+	 * returns 2 if the given object collides with this object (blocking)
 	*/
 	virtual unsigned int Validate_Collision( cSprite *obj );
 	// default collision handler
@@ -91,16 +96,17 @@ public:
 	bool Editor_Image_Top_Middle_Key( const EventArgs &event );  // editor image top middle key up
 	bool Editor_Image_Top_Right_Key( const EventArgs &event );  // editor image top right key up
 
-    Falling_Platform_Status falling_platform_status;
+	// internal platform state
+    Falling_Platform_State platform_state;
 
-	// falling speed
+	// time until falling
 	float time_fall;
 	// time since contact of the platform
 	float contact_time;
-	// shaking to indicate the platform will fall down
-	bool shake_left;
+	// shaking direction counter
+	float shake_dir_counter;
 	// time of shaking
-	int shake_counter;
+	float shake_counter;
 	// count the middle image is used
 	unsigned int middle_count;
 };

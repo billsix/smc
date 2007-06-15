@@ -81,9 +81,11 @@ void cStaticEnemy :: Save_to_Stream( ofstream &file )
 
 void cStaticEnemy :: DownGrade( bool force /* = 0 */ )
 {
-	dead = 1;
+	Set_Dead( 1 );
 	massivetype = MASS_PASSIVE;
 	counter = 0;
+	velx = 0;
+	vely = 0;
 
 	// falling death
 	Set_RotationZ( 180 );
@@ -113,7 +115,7 @@ void cStaticEnemy :: DieStep( void )
 	{
 		rotz = 0;
 		Set_Scale( 1 );
-		visible = 0;
+		Set_Visible( 0 );
 	}
 }
 
@@ -121,15 +123,23 @@ void cStaticEnemy :: Update( void )
 {
 	cEnemy::Update();
 
-	if( dead || freeze_counter || !is_Player_range() )
+	if( !valid_update || !is_Player_range() )
 	{
 		return;
 	}
 
 	// update rotation
 	Add_RotationZ( speed / ( image->w * 0.01f ) );
+}
 
-	CollideMove();
+bool cStaticEnemy :: is_Update_valid( void )
+{
+	if( dead || freeze_counter )
+	{
+		return 0;
+	}
+
+	return 1;
 }
 
 unsigned int cStaticEnemy :: Validate_Collision( cSprite *obj )
@@ -173,7 +183,7 @@ void cStaticEnemy :: Handle_Collision_Enemy( cObjectCollision *collision )
 		return;
 	}
 
-	cEnemy *enemy = (cEnemy *)pObjManager->Get_Pointer( collision->number );
+	cEnemy *enemy = static_cast<cEnemy *>(pObjManager->Get_Pointer( collision->number ));
 
 	// already dead
 	if( enemy->dead )

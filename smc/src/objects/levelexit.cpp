@@ -1,5 +1,5 @@
 /***************************************************************************
-     levelexit.cpp  -  class for a little point to enter another level or exit/finish the current
+     levelexit.cpp  -  little point to enter exit the current level
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
@@ -59,7 +59,7 @@ void cLevelExit :: Init( void )
 	start_rect.w = rect.w;
 	start_rect.h = rect.h;
 
-    levelchange_type = LVLCHANGE_BEAM;
+    levelchange_type = LEVELEXIT_BEAM;
 
 	Set_Direction( DIR_DOWN );
 
@@ -84,11 +84,11 @@ void cLevelExit :: Create_from_Stream( XMLAttributes &attributes )
 	// position
 	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
 	// type
-	Set_Type( (Levelchange_type)attributes.getValueAsInteger( "type", levelchange_type ) );
+	Set_Type( (Level_Exit_type)attributes.getValueAsInteger( "type", levelchange_type ) );
 	// destination level
 	Set_Level( attributes.getValueAsString( "level_name" ).c_str() );
 	// direction
-	if( levelchange_type == LVLCHANGE_WARP )
+	if( levelchange_type == LEVELEXIT_WARP )
 	{
 		Set_Direction( Get_Direction_id( attributes.getValueAsString( "direction", Get_Direction_name( start_direction ) ).c_str() ) );
 	}
@@ -112,7 +112,7 @@ void cLevelExit :: Save_to_Stream( ofstream &file )
 		file << "\t\t<Property name=\"level_name\" value=\"" << str_level << "\" />" << std::endl;
 	}
 
-	if( levelchange_type == LVLCHANGE_WARP )
+	if( levelchange_type == LEVELEXIT_WARP )
 	{
 		// direction
 		file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_name( start_direction ) << "\" />" << std::endl;
@@ -139,11 +139,11 @@ void cLevelExit :: Create_Name( void )
 {
     name = "Level";
 
-    if( levelchange_type == LVLCHANGE_BEAM )
+    if( levelchange_type == LEVELEXIT_BEAM )
     {
         name += " Beam";
     }
-    else if( levelchange_type == LVLCHANGE_WARP )
+    else if( levelchange_type == LEVELEXIT_WARP )
     {
         name += " Warp";
 
@@ -173,47 +173,45 @@ void cLevelExit :: Update( void )
 		return;
 	}
 
-	// not colliding with player
-	if( !Col_Box( &pPlayer->col_rect, &col_rect ) )
+	// colliding with player
+	if( Col_Box( &pPlayer->col_rect, &col_rect ) )
 	{
-		return;
-	}
-
-	if( levelchange_type == LVLCHANGE_BEAM )
-	{
-		if( pPlayer->ground_object && ( pKeyboard->keys[pPreferences->key_up] || pJoystick->Button( pPreferences->joy_jump ) ) )
+		if( levelchange_type == LEVELEXIT_BEAM )
 		{
-			Activate();
-		}
-	}
-	else if( levelchange_type == LVLCHANGE_WARP )
-	{
-		if( direction == DIR_DOWN )
-		{
-			if( ( pKeyboard->keys[pPreferences->key_down] || pJoystick->down ) )
+			if( pPlayer->ground_object && ( pKeyboard->keys[pPreferences->key_up] || pJoystick->Button( pPreferences->joy_jump ) ) )
 			{
 				Activate();
 			}
 		}
-		else if( direction == DIR_UP )
+		else if( levelchange_type == LEVELEXIT_WARP )
 		{
-			if( pPlayer->vely <= 0 && ( pKeyboard->keys[pPreferences->key_up] || pJoystick->up ) )
+			if( direction == DIR_DOWN )
 			{
-				Activate();
+				if( ( pKeyboard->keys[pPreferences->key_down] || pJoystick->down ) )
+				{
+					Activate();
+				}
 			}
-		}
-		else if( direction == DIR_RIGHT )
-		{
-			if( pPlayer->velx <= 0 && ( pKeyboard->keys[pPreferences->key_right] || pJoystick->right ) )
+			else if( direction == DIR_UP )
 			{
-				Activate();
+				if( pPlayer->vely <= 0 && ( pKeyboard->keys[pPreferences->key_up] || pJoystick->up ) )
+				{
+					Activate();
+				}
 			}
-		}
-		else if( direction == DIR_LEFT )
-		{
-			if( pPlayer->velx >= 0 && ( pKeyboard->keys[pPreferences->key_left] || pJoystick->left ) )
+			else if( direction == DIR_RIGHT )
 			{
-				Activate();
+				if( pPlayer->velx <= 0 && ( pKeyboard->keys[pPreferences->key_right] || pJoystick->right ) )
+				{
+					Activate();
+				}
+			}
+			else if( direction == DIR_LEFT )
+			{
+				if( pPlayer->velx >= 0 && ( pKeyboard->keys[pPreferences->key_left] || pJoystick->left ) )
+				{
+					Activate();
+				}
 			}
 		}
 	}
@@ -232,12 +230,12 @@ void cLevelExit :: Draw( cSurfaceRequest *request /* = NULL */ )
 		return;
 	}
 
-	// red for levelexit
+	// red for exit
 	if( levelname.empty() )
 	{
 		pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, editor_posz, &col_exit );
 	}
-	// lila for levelchange
+	// lila for change
 	else
 	{
 		pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, editor_posz, &col_change );
@@ -249,7 +247,7 @@ void cLevelExit :: Activate( void )
 	pAudio->FadeOutMusic( 500 );
 
 	// warp player out
-	if( levelchange_type == LVLCHANGE_WARP )
+	if( levelchange_type == LEVELEXIT_WARP )
 	{
 		pAudio->PlaySound( "enter_pipe.ogg" );
 
@@ -309,7 +307,7 @@ void cLevelExit :: Activate( void )
 	}
 }
 
-void cLevelExit :: Set_Type( Levelchange_type ltype )
+void cLevelExit :: Set_Type( Level_Exit_type ltype )
 {
 	levelchange_type = ltype;
 
@@ -323,8 +321,9 @@ void cLevelExit :: Set_Level( string filename )
 		levelname.clear();
 		return;
 	}
+
 	// erase file type if set
-	else if( filename.rfind( ".txt" ) != string::npos || filename.rfind( ".smclvl" ) != string::npos )
+	if( filename.rfind( ".txt" ) != string::npos || filename.rfind( ".smclvl" ) != string::npos )
 	{
 		filename.erase( filename.rfind( "." ) );
 	}
@@ -390,7 +389,7 @@ void cLevelExit :: Editor_Activate( void )
 	WindowManager &wmgr = WindowManager::getSingleton();
 
 	// warp
-	if( levelchange_type == LVLCHANGE_WARP )
+	if( levelchange_type == LEVELEXIT_WARP )
 	{
 		// direction
 		Combobox *combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "levelexit_direction" ));

@@ -201,7 +201,7 @@ void cOverworld_Player :: Draw_Debugtext( void )
 	}
 
 	// Update Lines Texts
-	if( pActive_Overworld->pLayer->lines.size() != debug_lines_last )
+	if( (int)pActive_Overworld->pLayer->lines.size() != debug_lines_last )
 	{
 		debug_lines->Set_Image( pFont->RenderText( pFont->font_small, "Lines : " + int_to_string( pActive_Overworld->pLayer->lines.size() ), blue ), 1, 1 );
 	}

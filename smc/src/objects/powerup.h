@@ -29,12 +29,16 @@ public:
 	virtual ~cPowerUp( void );
 
 	/* draw
-	 * by default spawned powerups don't draw in leveleditor mode
+	 * a spawned powerup doesn't draw in editor mode
 	*/
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
+	// if update is valid for the current state
+	virtual bool is_Update_valid( void );
+
 	/* Validate the given collision object
-	 * returns 1 if the given object collides with this object
+	 * returns 1 if an internal collision with this object is valid
+	 * returns 2 if the given object collides with this object (blocking)
 	*/
 	virtual unsigned int Validate_Collision( cSprite *obj );
 	// handle moved out of Level

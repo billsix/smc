@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.6" />
+		<Property name="game_version" value="0.99.7" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1174869077" />
+		<Property name="save_time" value="1181283425" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="FluXy" />
@@ -670,6 +670,9 @@
 		<Property name="posy" value="301" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="yellow" />
 	</enemy>
 	<enemy>
@@ -678,6 +681,9 @@
 		<Property name="posy" value="254" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="red" />
 	</enemy>
 	<enemy>
@@ -780,7 +786,7 @@
 	</box>
 	<box>
 		<Property name="posx" value="1375" />
-		<Property name="posy" value="511" />
+		<Property name="posy" value="510" />
 		<Property name="type" value="spin" />
 		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="-1" />
@@ -941,7 +947,7 @@
 	</box>
 	<box>
 		<Property name="posx" value="1711" />
-		<Property name="posy" value="509" />
+		<Property name="posy" value="510" />
 		<Property name="type" value="bonus" />
 		<Property name="animation" value="Default" />
 		<Property name="item" value="8" />

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.6" />
+		<Property name="game_version" value="0.99.6.2" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1176172304" />
+		<Property name="save_time" value="1180001991" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="SMC_Team" />
@@ -16,12 +16,19 @@
 	</settings>
 	<background>
 		<Property name="type" value="103" />
-		<Property name="bg_color_1_red" value="130" />
+		<Property name="bg_color_1_red" value="30" />
 		<Property name="bg_color_1_green" value="153" />
-		<Property name="bg_color_1_blue" value="215" />
+		<Property name="bg_color_1_blue" value="205" />
 		<Property name="bg_color_2_red" value="65" />
-		<Property name="bg_color_2_green" value="73" />
-		<Property name="bg_color_2_blue" value="185" />
+		<Property name="bg_color_2_green" value="103" />
+		<Property name="bg_color_2_blue" value="205" />
+	</background>
+	<background>
+		<Property name="type" value="1" />
+		<Property name="image" value="game/background/blue_waterhills_1.png" />
+		<Property name="speedx" value="1" />
+		<Property name="speedy" value="1" />
+		<Property name="posz" value="0.00011" />
 	</background>
 	<global_effect>
 		<Property name="type" value="1" />
@@ -3522,6 +3529,9 @@
 		<Property name="posy" value="267" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="yellow" />
 	</enemy>
 	<enemy>
@@ -3530,6 +3540,9 @@
 		<Property name="posy" value="128" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="yellow" />
 	</enemy>
 	<enemy>
@@ -3550,6 +3563,9 @@
 		<Property name="posy" value="191" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="300" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="yellow" />
 	</enemy>
 	<enemy>
@@ -3558,6 +3574,9 @@
 		<Property name="posy" value="354" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="yellow" />
 	</enemy>
 	<sprite>

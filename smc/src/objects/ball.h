@@ -28,7 +28,7 @@ public:
 	cBall( float x, float y, float nvelx, float nvely = 0, cMovingSprite *norigin = NULL, ball_effect btype = FIREBALL_DEFAULT );
 	virtual ~cBall( void );
 
-	// delete this ball on the next frame start
+	// delete on the next frame start
 	virtual void Destroy( void );
 
 	// update
@@ -37,7 +37,8 @@ public:
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
 	/* Validate the given collision object
-	 * returns 1 if the given object collides with this object
+	 * returns 1 if an internal collision with this object is valid
+	 * returns 2 if the given object collides with this object (blocking)
 	*/
 	virtual unsigned int Validate_Collision( cSprite *obj );
 	// default collision handler

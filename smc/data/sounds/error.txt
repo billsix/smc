@@ -1,1 +1,2 @@
-from badboy
+angel from kde-look
+GPL

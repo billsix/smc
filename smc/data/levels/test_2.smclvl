@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.6" />
+		<Property name="game_version" value="0.99.7" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1176572396" />
+		<Property name="save_time" value="1181283431" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="FluXy" />

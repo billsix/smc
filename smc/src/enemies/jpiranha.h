@@ -20,7 +20,7 @@
 /* *** *** *** *** *** cjPiranha *** *** *** *** *** *** *** *** *** *** *** *** */
 
 /* Jumping Piranha
- * No Description.
+ * Eats your butt
 */
 class cjPiranha : public cEnemy 
 {
@@ -58,13 +58,19 @@ public:
 	// draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
+	// Returns the distance to the end position
+	float Get_End_Distance( void );
 	// update destination velocity from the speed
 	void Update_dest_vel( void );
+
+	// if update is valid for the current state
+	virtual bool is_Update_valid( void );
 
 	// ignore onground check
 	virtual void Check_onGround( void ) {};
 	/* Validate the given collision object
-	 * returns 1 if the given object collides with this object
+	 * returns 1 if an internal collision with this object is valid
+	 * returns 2 if the given object collides with this object (blocking)
 	*/
 	virtual unsigned int Validate_Collision( cSprite *obj );
 	// collision from player

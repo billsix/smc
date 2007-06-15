@@ -55,6 +55,16 @@ void cPowerUp :: Draw( cSurfaceRequest *request /* = NULL */ )
 	cImageObjectSprite::Draw( request );
 }
 
+bool cPowerUp :: is_Update_valid( void )
+{
+	if( !visible )
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
 unsigned int cPowerUp :: Validate_Collision( cSprite *obj )
 {
 	// basic validation checking
@@ -220,7 +230,7 @@ void cMushroom :: Set_Type( SpriteType ntype )
 
 void cMushroom :: Activate( void )
 {
-	visible = 0;
+	Set_Visible( 0 );
 	pPlayer->Get_Item( type );
 
 	if( type == TYPE_MUSHROOM_DEFAULT )
@@ -253,7 +263,7 @@ void cMushroom :: Activate( void )
 
 void cMushroom :: Update( void )
 {
-	if( !visible || !is_Player_range() )
+	if( !valid_update || !is_Player_range() )
 	{
 		return;
 	}
@@ -282,9 +292,6 @@ void cMushroom :: Update( void )
 	{
 		vely = 0;
 	}
-
-	// collision handling
-	CollideMove();
 
 	// particles
 	if( type == TYPE_MUSHROOM_LIVE_1 || type == TYPE_MUSHROOM_POISON )
@@ -414,7 +421,7 @@ cFirePlant *cFirePlant :: Copy( void )
 
 void cFirePlant :: Update( void )
 {
-	if( !visible || !is_Visible_onScreen() )
+	if( !valid_update || !is_Visible_onScreen() )
 	{
 		return;
 	}
@@ -439,7 +446,7 @@ void cFirePlant :: Update( void )
 
 	if( Col_Box( &col_rect, &pPlayer->col_rect ) )
 	{
-		visible = 0;
+		Set_Visible( 0 );
 		pPlayer->Get_Item( TYPE_FIREPLANT );
 
 		pointsdisplay->Add_Points( 700, posx + image->w / 2, posy );
@@ -509,30 +516,30 @@ void cMoon :: Save_to_Stream( ofstream &file )
 
 void cMoon :: Update( void )
 {
-	if( !visible || !is_Visible_onScreen() )
+	if( !valid_update || !is_Visible_onScreen() )
 	{
 		return;
 	}
 
 	counter += pFramerate->speedfactor;
 
-	if( (int)counter > DESIRED_FPS * 2.8 )
+	if( counter > DESIRED_FPS * 2.8f )
 	{
 		Set_Image( 1, 0, 0 );
 	}
-	else if( (int)counter > 0 )
+	else if( counter > 0 )
 	{
 		Set_Image( 0, 0, 0 );
 	}
 
-	if( counter > DESIRED_FPS * 3.3 )
+	if( counter > DESIRED_FPS * 3.3f )
 	{
 		counter = 0;
 	}
 
 	if( Col_Box( &col_rect, &pPlayer->col_rect ) )
 	{
-		visible = 0;
+		Set_Visible( 0 );
 		pPlayer->Get_Item( TYPE_MOON );
 
 		pointsdisplay->Add_Points( 4000, posx + image->w / 2, posy );

@@ -1,5 +1,5 @@
 /***************************************************************************
-              jpiranha.cpp  -  jprinha, jumping piranha plant
+              jpiranha.cpp  -  jumping piranha plant
                              -------------------
     copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
@@ -139,8 +139,8 @@ void cjPiranha :: Set_Direction( ObjectDirection dir )
 	}
 	else
 	{
-		dead = 1;
-		visible = 0;
+		Set_Dead( 1 );
+		Set_Visible( 0 );
 
 		printf( "Error : Unknown jPiranha direction %d\n", direction );
 		return;
@@ -178,9 +178,11 @@ void cjPiranha :: Set_Speed( float val )
 
 void cjPiranha :: DownGrade( bool force /* = 0 */ )
 {
-	dead = 1;
+	Set_Dead( 1 );
 	massivetype = MASS_PASSIVE;
 	counter = 0;
+	velx = 0;
+	vely = 0;
 
 	if( !force )
 	{
@@ -206,7 +208,7 @@ void cjPiranha :: DieStep( void )
 	// default death
 	if( rotz != 180 )
 	{
-		visible = 0;
+		Set_Visible( 0 );
 	}
 	// falling death
 	else
@@ -225,7 +227,7 @@ void cjPiranha :: DieStep( void )
 		else
 		{
 			rotz = 0;
-			visible = 0;
+			Set_Visible( 0 );
 		}
 	}
 }
@@ -234,7 +236,7 @@ void cjPiranha :: Update( void )
 {
 	cEnemy::Update();
 
-	if( dead || freeze_counter || !is_Player_range() )
+	if( !valid_update || !is_Player_range() )
 	{
 		return;
 	}
@@ -278,12 +280,12 @@ void cjPiranha :: Update( void )
 				rect1.w += 35;
 			}
 
-			// if player is in front wait longer
+			// if player is in front wait again
 			if( pPlayer->maryo_type != MARYO_GHOST && Col_Box( &pPlayer->col_rect, &rect1 ) )
 			{
 				wait_time = DESIRED_FPS * 2;
 			}
-			// nothing in the way jump out
+			// if not jump out
 			else
 			{
 				state = STA_FLY;
@@ -298,35 +300,23 @@ void cjPiranha :: Update( void )
 	else
 	{
 		// distance to final position
-		float dist_to_final_pos = 0;
+		float dist_to_final_pos = Get_End_Distance();
 		// multiplier for the minimal velocity
-		float vel_mod_min = 1;
+		float vel_mod_min = ( dist_to_final_pos + ( max_distance * 0.1f ) ) / max_distance;
+
+		// if behind max distance
+		if( vel_mod_min <= 0.1f )
+		{
+			vel_mod_min = 0.1f;
+		}
 
 		/* slow down
 		 * with the velocity mod which is calculated from the distance to the final position
 		*/
-		if( direction == DIR_LEFT )
+		switch( direction )
 		{
-			dist_to_final_pos = max_distance - ( startposx - posx );
-			vel_mod_min = ( dist_to_final_pos + ( max_distance * 0.1f ) ) / max_distance;
-
-			// move forward
-			if( !move_back )
-			{
-				velx = dest_velx * vel_mod_min;
-			}
-			// move back
-			else
-			{
-				velx = -dest_velx * vel_mod_min;
-			}
-
-		}
-		else if( direction == DIR_RIGHT )
+		case DIR_LEFT:
 		{
-			dist_to_final_pos = max_distance + ( startposx - posx );
-			vel_mod_min = ( dist_to_final_pos + ( max_distance * 0.1f ) ) / max_distance;
-
 			// move forward
 			if( !move_back )
 			{
@@ -338,11 +328,21 @@ void cjPiranha :: Update( void )
 				velx = -dest_velx * vel_mod_min;
 			}
 		}
-		else if( direction == DIR_UP )
+		case DIR_RIGHT:
 		{
-			dist_to_final_pos = max_distance - ( startposy - posy );
-			vel_mod_min = ( dist_to_final_pos + ( max_distance * 0.1f ) ) / max_distance;
-
+			// move forward
+			if( !move_back )
+			{
+				velx = dest_velx * vel_mod_min;
+			}
+			// move back
+			else
+			{
+				velx = -dest_velx * vel_mod_min;
+			}
+		}
+		case DIR_UP:
+		{
 			// move forward
 			if( !move_back )
 			{
@@ -354,11 +354,8 @@ void cjPiranha :: Update( void )
 				vely = -dest_vely * vel_mod_min;
 			}
 		}
-		else if( direction == DIR_DOWN )
+		case DIR_DOWN:
 		{
-			dist_to_final_pos = max_distance + ( startposy - posy );
-			vel_mod_min = ( dist_to_final_pos + ( max_distance * 0.1f ) ) / max_distance;
-
 			// move forward
 			if( !move_back )
 			{
@@ -370,39 +367,51 @@ void cjPiranha :: Update( void )
 				vely = -dest_vely * vel_mod_min;
 			}
 		}
-
-		// reached final position move back
-		if( !move_back && dist_to_final_pos < 0 )
+		default:
 		{
-			velx = -dest_velx * 0.01f;
-			vely = -dest_vely * 0.01f;
-
-			move_back = 1;
+			break;
 		}
-		// reached original position
-		else if( move_back && dist_to_final_pos > max_distance )
-		{
-			state = STA_STAY;
-			posx = startposx;
-			posy = startposy;
-			velx = 0;
-			vely = 0;
+		}
 
-			move_back = 0;
-			wait_time = DESIRED_FPS * 2;
+		walk_count += 0.23f * pFramerate->speedfactor;
+
+		if( walk_count >= 4 )
+		{
+			walk_count = 0;
+		}
+
+		Set_Image( (int)walk_count );
+
+		// moving forward
+		if( !move_back )
+		{
+			// reached final position move back
+			if( dist_to_final_pos < 0 )
+			{
+				velx = -dest_velx * 0.01f;
+				vely = -dest_vely * 0.01f;
+
+				move_back = 1;
+			}
+
+		}
+		// moving back
+		else if( move_back )
+		{
+			// reached original position
+			if( dist_to_final_pos > max_distance )
+			{
+				state = STA_STAY;
+				Set_Pos( startposx, startposy );
+				velx = 0;
+				vely = 0;
+
+				move_back = 0;
+				wait_time = DESIRED_FPS * 2;
+				Set_Image( 0 );
+			}
 		}
 	}
-
-	walk_count += 0.23f * pFramerate->speedfactor;
-
-	if( walk_count >= 4 )
-	{
-		walk_count = 0;
-	}
-
-	Set_Image( (int)walk_count );
-
-	CollideMove();
 }
 
 void cjPiranha :: Draw( cSurfaceRequest *request /* = NULL */ )
@@ -417,23 +426,52 @@ void cjPiranha :: Draw( cSurfaceRequest *request /* = NULL */ )
 	{
 		if( start_direction == DIR_RIGHT )
 		{
-			pVideo->Draw_Rect( startposx - pCamera->x, startposy - pCamera->y, max_distance + rect.w, 15, editor_posz - 0.000001f, &whitealpha128 );
+			pVideo->Draw_Rect( startposx - pCamera->x, startposy + ( rect.h * 0.5f ) - 5 - pCamera->y, max_distance + rect.w, 10, editor_posz - 0.000001f, &whitealpha128 );
 		}
 		else if( start_direction == DIR_LEFT )
 		{
-			pVideo->Draw_Rect( startposx - pCamera->x + rect.w, startposy - pCamera->y, -( rect.w + max_distance ), 15, editor_posz - 0.000001f, &whitealpha128 );
+			pVideo->Draw_Rect( startposx - pCamera->x + rect.w, startposy + ( rect.h * 0.5f ) - 5 - pCamera->y, -( rect.w + max_distance ), 10, editor_posz - 0.000001f, &whitealpha128 );
 		}
 		else if( start_direction == DIR_DOWN )
 		{
-			pVideo->Draw_Rect( startposx - pCamera->x, startposy - pCamera->y, 15, max_distance + rect.h, editor_posz - 0.000001f, &whitealpha128 );
+			pVideo->Draw_Rect( startposx + ( rect.w * 0.5f ) - 5 - pCamera->x, startposy - pCamera->y, 10, max_distance + rect.h, editor_posz - 0.000001f, &whitealpha128 );
 		}
 		else if( start_direction == DIR_UP )
 		{
-			pVideo->Draw_Rect( startposx - pCamera->x, startposy - pCamera->y + rect.h, 15, -( rect.h + max_distance ), editor_posz - 0.000001f, &whitealpha128 );
+			pVideo->Draw_Rect( startposx + ( rect.w * 0.5f ) - 5 - pCamera->x, startposy - pCamera->y + rect.h, 10, -( rect.h + max_distance ), editor_posz - 0.000001f, &whitealpha128 );
 		}
 	}
 
 	cEnemy::Draw( request );
+}
+
+float cjPiranha :: Get_End_Distance(void )
+{
+	switch( direction )
+	{
+	case DIR_LEFT:
+	{
+		return max_distance - ( startposx - posx );
+	}
+	case DIR_RIGHT:
+	{
+		return max_distance + ( startposx - posx );
+	}
+	case DIR_UP:
+	{
+		return max_distance - ( startposy - posy );
+	}
+	case DIR_DOWN:
+	{
+		return max_distance + ( startposy - posy );
+	}
+	default:
+	{
+		break;
+	}
+	}
+	
+	return 0;
 }
 
 void cjPiranha :: Update_dest_vel( void )
@@ -463,6 +501,16 @@ void cjPiranha :: Update_dest_vel( void )
 		dest_velx = 0;
 		dest_vely = 0;
 	}
+}
+
+bool cjPiranha :: is_Update_valid( void )
+{
+	if( dead || freeze_counter )
+	{
+		return 0;
+	}
+
+	return 1;
 }
 
 unsigned int cjPiranha :: Validate_Collision( cSprite *obj )

@@ -200,7 +200,7 @@ void cOverworld :: Enter( bool delayed /* = 0 */ )
 	}
 
 	// if on start waypoint
-	if( pOverworld_Player->current_waypoint == player_start_waypoint )
+	if( pOverworld_Player->current_waypoint == (int)player_start_waypoint )
 	{
 		// if player state is walk
 		if( player_moving_state == STA_WALK )
@@ -453,7 +453,7 @@ void cOverworld :: Save( void )
 	file << "\t</player>" << std::endl;
 
 	// objects
-	for( ObjectList::iterator itr = object_manager->items.begin(), itr_end = object_manager->items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = object_manager->items.begin(), itr_end = object_manager->items.end(); itr != itr_end; ++itr )
 	{
 		cSprite *obj = (*itr);
 

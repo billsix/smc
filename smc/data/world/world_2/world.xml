@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <overworld>
 	<information>
-		<Property name="game_version" value="0.99.5" />
+		<Property name="game_version" value="0.99.6" />
 		<Property name="engine_version" value="1" />
-		<Property name="save_time" value="1174262286" />
+		<Property name="save_time" value="1177421505" />
 	</information>
 	<settings>
 		<Property name="music" value="land/cave_1.ogg" />

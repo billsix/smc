@@ -44,6 +44,13 @@ cEnemy :: ~cEnemy( void )
 
 }
 
+void cEnemy :: Set_Dead( bool enable /* = 1 */ )
+{
+	dead = enable;
+
+	Update_valid_update();
+}
+
 void cEnemy :: DieStep( void )
 {
 	// virtual
@@ -57,9 +64,20 @@ void cEnemy :: Update( void )
 	if( state == STA_OBJ_LINKED )
 	{
 		massivetype = MASS_MASSIVE;
-		ColCheck( &col_rect );
+		Collision_Check( &col_rect );
 		Parse_Collisions();
 		massivetype = MASS_PASSIVE;
+		return;
+	}
+
+	// dying animation
+	if( dead && visible )
+	{
+		DieStep();
+	}
+
+	if( !valid_update )
+	{
 		return;
 	}
 
@@ -72,12 +90,6 @@ void cEnemy :: Update( void )
 			Update_Gravity();
 			Col_Move( 0, vely );
 		}
-	}
-
-	// dying animation
-	if( dead && visible )
-	{
-		DieStep();
 	}
 }
 

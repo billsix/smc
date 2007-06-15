@@ -161,6 +161,9 @@ public:
 	cTimeDisplay( float x = 0, float y = 0 );
 	virtual ~cTimeDisplay( void );
 
+	// update
+	virtual void Update( void );
+	// draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
 	char text[50], text_old[50];
@@ -175,6 +178,9 @@ public:
 	cItemBox( float x = 0, float y = 0 );
 	virtual ~cItemBox( void );
 
+	// update
+	virtual void Update( void );
+	// draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
 	// Set the item
@@ -211,8 +217,12 @@ public:
 	cDebugDisplay( float x = 0, float y = 0 );
 	virtual ~cDebugDisplay( void );
 
+	// update
+	virtual void Update( void );
+	// draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
-	void GameDebugDraw( void );
+	// draw the debugging box
+	void DebugBox_Draw( void );
 
 	// set the debug text to display
 	void Set_Text( string ntext, float display_time = DESIRED_FPS * 2 );
@@ -228,7 +238,7 @@ public:
 	// temp level text
 	string level_old;
 	// last object counters
-	int passcount, masscount, enemycount, activecount;
+	int obj_counter, pass_counter, mass_counter, enemy_counter, active_counter;
 	// sprites
 	HudSpriteList sprites;
 };

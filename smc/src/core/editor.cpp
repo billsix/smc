@@ -114,6 +114,10 @@ void cEditor_Item_Object :: Draw_Image( void )
 	request->scale_x = preview_scale;
 	request->scale_y = preview_scale;
 
+	request->rotx += sprite_obj->start_rotx;
+	request->roty += sprite_obj->start_roty;
+	request->rotz += sprite_obj->start_rotz;
+
 	// add request
 	pRenderer_GUI->Add( request );
 }
@@ -168,18 +172,18 @@ void cEditor :: Init( void )
 	pGuiSystem->getGUISheet()->addChildWindow( editor_window );
 
 	// Get TabControl
-	TabControl *tabcontrol_menu = (TabControl *)WindowManager::getSingleton().getWindow( "tabcontrol_editor" );
+	TabControl *tabcontrol_menu = static_cast<TabControl *>(WindowManager::getSingleton().getWindow( "tabcontrol_editor" ));
 	// TabControl Menu Tab Events
 	tabcontrol_menu->getTabContents( "editor_tab_menu" )->subscribeEvent( Window::EventMouseEnters, Event::Subscriber( &cEditor::Editor_Mouse_Enter, this ) );
 	// TabControl Items Tab Events
 	tabcontrol_menu->getTabContents( "editor_tab_items" )->subscribeEvent( Window::EventMouseEnters, Event::Subscriber( &cEditor::Editor_Mouse_Enter, this ) );
 
 	// Get Menu Listbox
-	Listbox *listbox_menu = (Listbox *)WindowManager::getSingleton().getWindow( "editor_menu" );
+	Listbox *listbox_menu = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "editor_menu" ));
 	// Menu Listbox events
 	listbox_menu->subscribeEvent( Listbox::EventSelectionChanged, Event::Subscriber( &cEditor::Menu_Select, this ) );
 	// Get Items Listbox
-	Listbox *listbox_items = (Listbox *)WindowManager::getSingleton().getWindow( "editor_items" );
+	Listbox *listbox_items = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "editor_items" ));
 	// Items Listbox events
 	listbox_items->subscribeEvent( Listbox::EventSelectionChanged, Event::Subscriber( &cEditor::Item_Select, this ) );
 
@@ -293,7 +297,7 @@ void cEditor :: Enable( void )
 		pOverworld_Player->Update_Position_Rect();
 	}
 
-	for( ObjectList::iterator itr = obj_manager->items.begin(), itr_end = obj_manager->items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = obj_manager->items.begin(), itr_end = obj_manager->items.end(); itr != itr_end; ++itr )
 	{
 		(*itr)->Update_Position_Rect();
 	}
@@ -333,14 +337,14 @@ void cEditor :: Disable( void )
 		pOverworld_Player->Update_Position_Rect();
 	}
 
-	for( ObjectList::iterator itr = obj_manager->items.begin(), itr_end = obj_manager->items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = obj_manager->items.begin(), itr_end = obj_manager->items.end(); itr != itr_end; ++itr )
 	{
 		(*itr)->Update_Position_Rect();
 	}
 
 	pCamera->Center();
 	pMouseCursor->Reset( 0 );
-	pMouseCursor->visible = 0;
+	pMouseCursor->Set_Visible( 0 );
 
 	// disable help screen
 	show_editor_help = 0;
@@ -375,6 +379,11 @@ void cEditor :: Update( void )
 				new_alpha = 1;
 				// hide editor window
 				editor_window->setXPosition( UDim( -0.19f, 0 ) );
+				// Hide Listbox
+				Listbox *listbox = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "editor_menu" ));
+				listbox->hide();
+				listbox = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "editor_items" ));
+				listbox->hide();
 				menu_timer = 0;
 			}
 
@@ -479,7 +488,7 @@ void cEditor :: Draw( void )
 	}
 
 	// Get Items Listbox
-	Listbox *listbox_items = (Listbox *)WindowManager::getSingleton().getWindow( "editor_items" );
+	Listbox *listbox_items = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "editor_items" ));
 
 	// Vertical ScrollBar Position
 	float scroll_pos = listbox_items->getVertScrollbar()->getScrollPosition();
@@ -777,7 +786,7 @@ bool cEditor :: Key_Down( SDLKey key )
 		}
 
 		// all level objects
-		for( ObjectList::iterator itr = obj_manager->items.begin(), itr_end = obj_manager->items.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = obj_manager->items.begin(), itr_end = obj_manager->items.end(); itr != itr_end; ++itr )
 		{
 			cSprite *obj = (*itr);
 
@@ -886,7 +895,7 @@ void cEditor :: Add_Menu_Object( string name, string tags, colour normal_color /
 	new_menu->Init();
 
 	// Get Listbox
-	Listbox *listbox_editor_menu = (Listbox *)WindowManager::getSingleton().getWindow( "editor_menu" );
+	Listbox *listbox_editor_menu = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "editor_menu" ));
 	// Add Listbox item
 	listbox_editor_menu->addItem( new_menu );
 }
@@ -916,7 +925,7 @@ void cEditor :: Activate_Menu( cEditor_Menu_Object *entry )
 		if( Load_Item_Menu( entry->tags ) )
 		{
 			// Get TabControl
-			TabControl *tabcontrol_menu = (TabControl *)WindowManager::getSingleton().getWindow( "tabcontrol_editor" );
+			TabControl *tabcontrol_menu = static_cast<TabControl *>(WindowManager::getSingleton().getWindow( "tabcontrol_editor" ));
 			// Select Items Tab
 			tabcontrol_menu->setSelectedTab( "editor_tab_items" );
 		}
@@ -1024,7 +1033,7 @@ void cEditor :: Unload_Item_Menu( void )
 	}
 
 	// Get Items Listbox
-	Listbox *listbox_items = (Listbox *)WindowManager::getSingleton().getWindow( "editor_items" );
+	Listbox *listbox_items = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "editor_items" ));
 	// Clear Listbox
 	listbox_items->resetList();
 }
@@ -1122,7 +1131,7 @@ void cEditor :: Add_Item_Object( cSprite *sprite, string new_name /* = "" */, GL
 	new_item->Init();
 
 	// Get Items Listbox
-	Listbox *listbox_items = (Listbox *)WindowManager::getSingleton().getWindow( "editor_items" );
+	Listbox *listbox_items = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "editor_items" ));
 	// Add Item
 	listbox_items->addItem( new_item );
 }
@@ -1552,6 +1561,12 @@ bool cEditor :: Editor_Mouse_Enter( const EventArgs &event )
 	{
 		editor_window->setXPosition( UDim( 0, 0 ) );
 		editor_window->setAlpha( 0 );
+
+		// Show Listbox
+		Listbox *listbox = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "editor_menu" ));
+		listbox->show();
+		listbox = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "editor_items" ));
+		listbox->show();
 	}
 	// if active but fading out
 	else if( editor_window->getAlpha() < 1 )
@@ -1559,7 +1574,6 @@ bool cEditor :: Editor_Mouse_Enter( const EventArgs &event )
 		editor_window->setAlpha( 1 );
 		menu_timer = 0;
 	}
-
 
 	return 1;
 }

@@ -202,11 +202,11 @@ public:
 	void Update_Kill_Multiplier( void );
 
 	/* Validate the given collision object
-	 * returns 1 if the given object collides with this object
+	 * returns 1 if an internal collision with this object is valid
+	 * returns 2 if the given object collides with this object (blocking)
 	*/
 	virtual unsigned int Validate_Collision( cSprite *obj );
-	// handles the collision
-	virtual void Handle_Collision( cObjectCollision *collision );
+
 	// collision from an enemy
 	virtual void Handle_Collision_Enemy( cObjectCollision *collision );
 	// collision with massive

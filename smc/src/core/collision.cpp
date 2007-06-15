@@ -32,24 +32,52 @@ cObjectCollisionType :: ~cObjectCollisionType( void )
 	list.clear();
 }
 
-void cObjectCollisionType :: add( ObjectCollisionType type )
+void cObjectCollisionType :: add( cSprite *obj )
 {
-	if( type == CO_NOTHING )
+	if( !obj )
 	{
 		return;
 	}
 
-	list.push_back( type );
+	list.push_back( obj );
 }
 
-bool cObjectCollisionType :: find( ObjectCollisionType type )
+bool cObjectCollisionType :: find( cSprite *obj )
 {
-	for( ObjectCollisionTypeList::iterator itr = list.begin(), itr_end = list.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = list.begin(), itr_end = list.end(); itr != itr_end; ++itr )
 	{
 		// matching
-		if( (*itr) == type )
+		if( (*itr) == obj )
 		{
 			return 1;
+		}
+	}
+
+	return 0;
+}
+
+cSprite *cObjectCollisionType :: find( ArrayType type )
+{
+	for( SpriteList::iterator itr = list.begin(), itr_end = list.end(); itr != itr_end; ++itr )
+	{
+		// matching
+		if( (*itr)->sprite_array == type )
+		{
+			return (*itr);
+		}
+	}
+
+	return 0;
+}
+
+cSprite *cObjectCollisionType :: find( SpriteType type )
+{
+	for( SpriteList::iterator itr = list.begin(), itr_end = list.end(); itr != itr_end; ++itr )
+	{
+		// matching
+		if( (*itr)->type == type )
+		{
+			return (*itr);
 		}
 	}
 

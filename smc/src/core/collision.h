@@ -32,17 +32,10 @@ enum ObjectCollisionType
 
 typedef vector<ObjectCollisionType> ObjectCollisionTypeList;
 
-/* *** *** *** *** *** *** *** collision check type *** *** *** *** *** *** *** *** *** *** */
-
-enum ColCheckType
-{
-	COLLIDE_ONLY_CHECK = 0,
-	COLLIDE_ALLOW_INTERNAL = 1,
-	COLLIDE_ALLOW_BLOCKING = 2,
-	COLLIDE_COMPLETE = 3
-};
 
 /* *** *** *** *** *** *** *** collision type class *** *** *** *** *** *** *** *** *** *** */
+
+typedef vector<cSprite *> SpriteList;
 
 class cObjectCollisionType
 {
@@ -50,14 +43,18 @@ public:
 	cObjectCollisionType( void );
 	~cObjectCollisionType( void );
 
-	// add a Object Collision Type
-	void add( ObjectCollisionType type );
-	// returns true if the given Object Collision type was found
-	bool find( ObjectCollisionType type );
+	// add an Object Collision
+	void add( cSprite *obj );
+	// returns true if the given Object Collision was found
+	bool find( cSprite *obj );
+	// returns the first found sprite if the given Array type was found
+	cSprite *find( ArrayType type );
+	// returns the first found sprite if the given Sprite type was found
+	cSprite *find( SpriteType type );
 	// returns the found collision size
 	unsigned int size( void );
 
-	ObjectCollisionTypeList list;
+	SpriteList list;
 };
 
 /* *** *** *** *** *** *** *** cObjectCollision *** *** *** *** *** *** *** *** *** *** */
@@ -69,13 +66,11 @@ public:
 	cObjectCollision( void );
 	~cObjectCollision( void );
 
-	/* Function: Set_direction
-	 * Set the collision direction
+	/* Set the collision direction
 	 * base - the base sprite
 	 * col - the colliding sprite
 	*/
 	void Set_direction( cSprite *base, cSprite *col );
-	// Function: Get_ColObject_rect
 	// returns the colliding object rect
 	GL_rect Get_ColObject_rect( void );
 
@@ -85,14 +80,11 @@ public:
 	*/
 	bool received;
 
-	// Int: number
 	// colliding object number
 	int number;
 
-	// Variable: direction
 	// direction
 	ObjectDirection direction;
-	// Variable: type
 	// Colliding Object type
 	ObjectCollisionType type;
 };

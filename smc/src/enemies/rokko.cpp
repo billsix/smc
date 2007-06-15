@@ -48,7 +48,7 @@ void cRokko :: Init( void  )
 	massivetype = MASS_PASSIVE;
 	posz = 0.03f;
 	editor_posz = 0.09f;
-	visible = 0;
+	Set_Visible( 0 );
 
 	speed = 8.5f;
 	Set_Direction( DIR_LEFT );
@@ -126,13 +126,23 @@ void cRokko :: Set_Direction( ObjectDirection dir )
 	Set_Image( 0, 1 );
 }
 
+void cRokko :: Set_Speed( float nspeed )
+{
+	if( nspeed == 0 )
+	{
+		return;
+	}
+
+	speed = nspeed;
+}
+
 void cRokko :: Activate( void )
 {
 	pAudio->PlaySound( "enemy/rokko/activate.ogg" );
 
 	walk_count = 1;
 	massivetype = MASS_MASSIVE;
-	visible = 1;
+	Set_Visible( 1 );
 
 	if( direction == DIR_LEFT )
 	{
@@ -146,9 +156,9 @@ void cRokko :: Activate( void )
 
 void cRokko :: DownGrade( bool force /* = 0 */ )
 {
-	dead = 1;
+	Set_Dead( 1 );
 	massivetype = MASS_PASSIVE;
-	visible = 1;
+	vely = 0;
 
 	if( !force )
 	{
@@ -185,7 +195,8 @@ void cRokko :: DieStep( void )
 	{
 		rotz = 0;
 		massivetype = MASS_PASSIVE;
-		visible = 0;
+		Set_Visible( 0 );
+		velx = 0;
 	}
 }
 
@@ -193,7 +204,7 @@ void cRokko :: Update( void )
 {
 	cEnemy::Update();
 
-	if( dead || freeze_counter || !is_Player_range() )
+	if( !valid_update || !is_Player_range() )
 	{
 		return;
 	}
@@ -228,23 +239,10 @@ void cRokko :: Update( void )
 		}
 	}
 
-	CollideMove();
-
-
 	// generate smoke
 	smoke_counter += pFramerate->speedfactor * 10;
 	Generate_Smoke( (int)smoke_counter );
 	smoke_counter -= (int)smoke_counter;
-}
-
-void cRokko :: Set_Speed( float nspeed )
-{
-	if( nspeed == 0 )
-	{
-		return;
-	}
-
-	speed = nspeed;
 }
 
 void cRokko :: Generate_Smoke( unsigned int quota /*= 10 */ )
@@ -311,7 +309,16 @@ void cRokko :: Generate_Smoke( unsigned int quota /*= 10 */ )
 	}
 }
 
-// Validate the given collision object type
+bool cRokko :: is_Update_valid( void )
+{
+	if( dead || freeze_counter )
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
 unsigned int cRokko :: Validate_Collision( cSprite *obj )
 {
 	if( obj->type == TYPE_PLAYER )

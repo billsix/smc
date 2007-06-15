@@ -134,6 +134,11 @@ public:
 	*/
 	GL_Surface *CreateTexture( SDL_Surface *surface, bool mipmap = 0, unsigned int force_width = 0, unsigned int force_height = 0 );
 
+	/* Creates a texture into the bound GL texture
+	 * mipmap : create texture mipmaps
+	*/
+	void Create_Texture( unsigned int width, unsigned int height, void *pixels, bool mipmap = 0 );
+
 	// Gets the Pixel color of a GL image
 	Color GetPixel( int x, int y, GL_Surface *source = NULL );
 
@@ -159,6 +164,9 @@ public:
 	// Function: Save_Screenshot
 	// Save bitmap of current screen.
 	void Save_Screenshot( void );
+
+	// available OpenGL version
+	float opengl_version;
 
 	// using double buffering
 	bool double_buffer;

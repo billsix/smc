@@ -484,12 +484,12 @@ void cMenuCore :: Enter( MenuID menu_id /* = MENU_MAIN */ )
 	// Main
 	if( menu_id == MENU_MAIN )
 	{
-		pMenu_Data = (cMenu_Base *)new cMenu_Main();
+		pMenu_Data = static_cast<cMenu_Base *>(new cMenu_Main());
 	}
 	// Start
 	else if( menu_id == MENU_START )
 	{
-		pMenu_Data = (cMenu_Base *)new cMenu_Start();
+		pMenu_Data = static_cast<cMenu_Base *>(new cMenu_Start());
 	}
 	// Options
 	else if( menu_id == MENU_OPTIONS )
@@ -497,38 +497,38 @@ void cMenuCore :: Enter( MenuID menu_id /* = MENU_MAIN */ )
 		// Game
 		if( options_menu_id == MENU_GAME )
 		{
-			pMenu_Data = (cMenu_Base *)new cMenu_Options_Game();
+			pMenu_Data = static_cast<cMenu_Base *>(new cMenu_Options_Game());
 		}
 		// Video
 		else if( options_menu_id == MENU_VIDEO )
 		{
-			pMenu_Data = (cMenu_Base *)new cMenu_Options_Video();
+			pMenu_Data = static_cast<cMenu_Base *>(new cMenu_Options_Video());
 		}
 		// Audio
 		else if( options_menu_id == MENU_AUDIO )
 		{
-			pMenu_Data = (cMenu_Base *)new cMenu_Options_Audio();
+			pMenu_Data = static_cast<cMenu_Base *>(new cMenu_Options_Audio());
 		}
 		// Controls
 		else if( options_menu_id == MENU_CONTROLS )
 		{
-			pMenu_Data = (cMenu_Base *)new cMenu_Options_Controls();
+			pMenu_Data = static_cast<cMenu_Base *>(new cMenu_Options_Controls());
 		}
 	}
 	// Load
 	else if( menu_id == MENU_LOAD )
 	{
-		pMenu_Data = (cMenu_Base *)new cMenu_Savegames( 0 );
+		pMenu_Data = static_cast<cMenu_Base *>(new cMenu_Savegames( 0 ));
 	}
 	// Save
 	else if( menu_id == MENU_SAVE )
 	{
-		pMenu_Data = (cMenu_Base *)new cMenu_Savegames( 1 );
+		pMenu_Data = static_cast<cMenu_Base *>(new cMenu_Savegames( 1 ));
 	}
 	// Credits
 	else if( menu_id == MENU_CREDITS )
 	{
-		pMenu_Data = (cMenu_Base *)new cMenu_Credits();
+		pMenu_Data = static_cast<cMenu_Base *>(new cMenu_Credits());
 	}
 
 	pMenu_Data->Init();
@@ -566,6 +566,7 @@ void cMenuCore :: Enter( MenuID menu_id /* = MENU_MAIN */ )
 	if( pLevel->is_Loaded() )
 	{
 		Change_Game_Mode( MODE_LEVEL );
+		Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
 	}
 	// back to the overworld
 	else

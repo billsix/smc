@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.4" />
-		<Property name="engine_version" value="2" />
-		<Property name="save_time" value="1167832215" />
+		<Property name="game_version" value="0.99.6.2" />
+		<Property name="engine_version" value="2.1" />
+		<Property name="save_time" value="1179246635" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="FluXy" />
 		<Property name="lvl_version" value="1.0" />
+		<Property name="lvl_music" value="land/land_5.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
 		<Property name="cam_limit_w" value="20000" />
@@ -31,7 +32,7 @@
 	</background>
 	<player>
 		<Property name="posx" value="475" />
-		<Property name="posy" value="526" />
+		<Property name="posy" value="468" />
 		<Property name="direction" value="right" />
 	</player>
 	<sprite>
@@ -330,6 +331,9 @@
 		<Property name="posy" value="162" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="yellow" />
 	</enemy>
 	<enemy>
@@ -338,6 +342,9 @@
 		<Property name="posy" value="161" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="red" />
 	</enemy>
 	<enemy>
@@ -346,6 +353,9 @@
 		<Property name="posy" value="159" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="green" />
 	</enemy>
 	<enemy>
@@ -354,6 +364,9 @@
 		<Property name="posy" value="98" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="yellow" />
 	</enemy>
 	<enemy>
@@ -362,6 +375,9 @@
 		<Property name="posy" value="97" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="red" />
 	</enemy>
 	<enemy>
@@ -370,6 +386,9 @@
 		<Property name="posy" value="95" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="green" />
 	</enemy>
 	<enemy>
@@ -379,16 +398,10 @@
 		<Property name="color" value="red" />
 		<Property name="direction" value="right" />
 	</enemy>
-	<enemy>
-		<Property name="type" value="turtle" />
-		<Property name="posx" value="950" />
-		<Property name="posy" value="324" />
-		<Property name="color" value="red" />
-		<Property name="direction" value="right" />
-	</enemy>
 	<moving_platform>
 		<Property name="posx" value="989" />
 		<Property name="posy" value="175" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="150" />
 		<Property name="speed" value="3" />
@@ -400,6 +413,7 @@
 	<moving_platform>
 		<Property name="posx" value="988" />
 		<Property name="posy" value="125" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
 		<Property name="speed" value="3" />
@@ -547,4 +561,11 @@
 		<Property name="invisible" value="1" />
 		<Property name="useable_count" value="-1" />
 	</box>
+	<enemy>
+		<Property name="type" value="turtle" />
+		<Property name="posx" value="939" />
+		<Property name="posy" value="322" />
+		<Property name="color" value="green" />
+		<Property name="direction" value="right" />
+	</enemy>
 </level>

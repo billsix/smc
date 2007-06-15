@@ -374,11 +374,11 @@ bool cMouseCursor :: Editor_Collsion_Check( float px /* = 0 */, float py /* = 0 
 
 bool cMouseCursor :: Get_Collision_Level( GL_rect *mouse_rect )
 {
-	ObjectList level_objects;
+	SpriteList level_objects;
 	pObjManager->Get_Objects_sorted( level_objects, 1, 1 );
 
 	// objects before player
-	for( ObjectList::reverse_iterator itr = level_objects.rbegin(), itr_end = level_objects.rend(); itr != itr_end; ++itr )
+	for( SpriteList::reverse_iterator itr = level_objects.rbegin(), itr_end = level_objects.rend(); itr != itr_end; ++itr )
 	{
 		cSprite *obj = (*itr);
 
@@ -408,12 +408,12 @@ bool cMouseCursor :: Get_Collision_Level( GL_rect *mouse_rect )
 
 bool cMouseCursor :: Get_Collision_World( GL_rect *mouse_rect )
 {
-	ObjectList level_objects;
+	SpriteList level_objects;
 	pActive_Overworld->object_manager->Get_Objects_sorted( level_objects, 1, 1 );
 
 
 	// objects before player
-	for( ObjectList::reverse_iterator itr = level_objects.rbegin(), itr_end = level_objects.rend(); itr != itr_end; ++itr )
+	for( SpriteList::reverse_iterator itr = level_objects.rbegin(), itr_end = level_objects.rend(); itr != itr_end; ++itr )
 	{
 		cSprite *obj = (*itr);
 
@@ -473,7 +473,7 @@ void cMouseCursor :: Draw( void )
 			// auto hide on selection if enabled
 			if( left && mouse_object->obj && pPreferences->editor_mouse_auto_hide )
 			{
-				visible = 0;
+				Set_Visible( 0 );
 			}
 		}
 	}
@@ -1234,7 +1234,7 @@ void cMouseCursor :: Update_selection( void )
 	}
 
 	// add selected objects
-	for( ObjectList::iterator itr = obj_manager->items.begin(), itr_end = obj_manager->items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = obj_manager->items.begin(), itr_end = obj_manager->items.end(); itr != itr_end; ++itr )
 	{
 		cSprite *object = (*itr);
 

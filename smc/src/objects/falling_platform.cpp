@@ -66,8 +66,8 @@ void cFalling_Platform :: Init( void )
 	Update_rect();
 
 	contact_time = 0;
-	falling_platform_status = PLATFORM_STAY;
-	shake_left = 0;
+	platform_state = PLATFORM_STAY;
+	shake_dir_counter = 0;
 	shake_counter = 0;
 }
 
@@ -128,16 +128,6 @@ void cFalling_Platform :: Set_Massivetype( MassiveType mtype )
 	massivetype = mtype;
 }
 
-void cFalling_Platform :: Set_Time_Fall( float val )
-{
-	time_fall = val;
-
-	if( time_fall < 0 )
-	{
-		time_fall = 0;
-	}
-}
-
 void cFalling_Platform :: Set_Middle_Count( int val )
 {
 	middle_count = val;
@@ -148,71 +138,128 @@ void cFalling_Platform :: Set_Middle_Count( int val )
 	}
 }
 
-void cFalling_Platform :: Update( void )
+void cFalling_Platform :: Set_Time_Fall( float val )
 {
-	if( !visible || !is_Player_range() )
+	time_fall = val;
+
+	if( time_fall < 0 )
+	{
+		time_fall = 0;
+	}
+}
+
+void cFalling_Platform :: Set_image_top_left( GL_Surface *surface )
+{
+	if( !surface )
 	{
 		return;
 	}
 
-    if( falling_platform_status == PLATFORM_TOUCHED )
+	images[0] = surface;
+	Update_rect();
+}
+
+void cFalling_Platform :: Set_image_top_middle( GL_Surface *surface )
+{
+	if( !surface )
 	{
-        contact_time += pFramerate->speedfactor;
+		return;
+	}
+
+	images[1] = surface;
+	Update_rect();
+}
+
+void cFalling_Platform :: Set_image_top_right( GL_Surface *surface )
+{
+	if( !surface )
+	{
+		return;
+	}
+
+	images[2] = surface;
+	Update_rect();
+}
+
+void cFalling_Platform :: Update( void )
+{
+	if( !valid_update || !is_Player_range() )
+	{
+		return;
+	}
+
+	if( platform_state == PLATFORM_TOUCHED )
+	{
+		contact_time += pFramerate->speedfactor;
 		// time = seconds since start
-        float time = ( contact_time / DESIRED_FPS );
+		float time = contact_time / DESIRED_FPS;
 
-        if( time > time_fall )
+		if( time > time_fall )
 		{
-            vely = 0;
-            falling_platform_status = PLATFORM_SHAKE;
-        }
-
-        if( Game_debug )
-		{
-            debugdisplay->Set_Text( "top/scnds:" + float_to_string(time) + " against " + float_to_string(time_fall) );
-        }
-    }
-    else if( falling_platform_status == PLATFORM_SHAKE )
+			platform_state = PLATFORM_SHAKE;
+		}
+	}
+	else if( platform_state == PLATFORM_SHAKE )
 	{
-		// fix : this is still framerate dependant
-        if( !shake_left )
-		{
-            posx -= 8 * pFramerate->speedfactor;
-            shake_left = 1;
-        }
-		else
-		{
-            posx += 8 * pFramerate->speedfactor;
-            shake_left = 0;
-        }
+		shake_dir_counter += pFramerate->speedfactor;
 
-        shake_counter++;
-
-        if( shake_counter >= DESIRED_FPS )
+		// move into opposite direction
+		if( shake_dir_counter > 0.8f )
 		{
-            falling_platform_status = PLATFORM_FALL;
-        }
-    }
-    else if( falling_platform_status == PLATFORM_FALL )
+			float move_x = 0;
+			if( posx > startposx )
+			{
+				move_x = -(float)(rand() % 5);
+			}
+			else
+			{
+				move_x = (float)(rand() % 5);
+			}
+
+			// move
+			col_pos.x -= move_x;
+			Move( move_x, 0, 1 );
+
+			shake_dir_counter = 0;
+		}
+
+		shake_counter += pFramerate->speedfactor;
+
+		if( shake_counter > DESIRED_FPS * 0.5f )
+		{
+			platform_state = PLATFORM_FALL;
+			Set_Massivetype( MASS_PASSIVE );
+		}
+	}
+	else if( platform_state == PLATFORM_FALL )
 	{
-        if( vely < 25 )
+		if( vely < 25 )
 		{
-            vely += 3.1f * pFramerate->speedfactor;
+			vely += 3.1f * pFramerate->speedfactor;
 
-			// higher as maximum falling speed
+			// limit falling speed
 			if( vely > 25 )
 			{
 				vely = 25;
 			}
-        }
+		}
 
-		Move( 0, vely );
-
-        if( posy >= 650 )
+		if( posx > startposx )
 		{
-            falling_platform_status = PLATFORM_STAY;
-        }
-    }
+			Add_RotationZ( 1.5f );
+		}
+		else
+		{
+			Add_RotationZ( -1.5f );
+		}
+
+		// below screen
+		if( col_rect.y + col_rect.h > pCamera->limit_rect.y + GAME_RES_H )
+		{
+			platform_state = PLATFORM_STAY;
+			Set_Visible( 0 );
+		}
+	}
 }
 
 void cFalling_Platform :: Draw( cSurfaceRequest *request /* = NULL */ )
@@ -254,39 +301,6 @@ void cFalling_Platform :: Draw( cSurfaceRequest *request /* = NULL */ )
 	Update_Position_Rect();
 }
 
-void cFalling_Platform :: Set_image_top_left( GL_Surface *surface )
-{
-	if( !surface )
-	{
-		return;
-	}
-
-	images[0] = surface;
-	Update_rect();
-}
-
-void cFalling_Platform :: Set_image_top_middle( GL_Surface *surface )
-{
-	if( !surface )
-	{
-		return;
-	}
-
-	images[1] = surface;
-	Update_rect();
-}
-
-void cFalling_Platform :: Set_image_top_right( GL_Surface *surface )
-{
-	if( !surface )
-	{
-		return;
-	}
-
-	images[2] = surface;
-	Update_rect();
-}
-
 void cFalling_Platform :: Update_rect( void )
 {
 	col_rect.w = 0;
@@ -308,6 +322,16 @@ void cFalling_Platform :: Update_rect( void )
 	}
 
 	start_rect.w = rect.w;
+}
+
+bool cFalling_Platform :: is_Update_valid( void )
+{
+	if( !visible )
+	{
+		return 0;
+	}
+
+	return 1;
 }
 
 unsigned int cFalling_Platform :: Validate_Collision( cSprite *obj )
@@ -362,9 +386,9 @@ void cFalling_Platform :: Handle_Collision_Player( ObjectDirection cdirection )
 
 	if( cdirection == DIR_TOP )
 	{
-		if( falling_platform_status == PLATFORM_STAY )
+		if( platform_state == PLATFORM_STAY )
 		{
-			falling_platform_status = PLATFORM_TOUCHED;
+			platform_state = PLATFORM_TOUCHED;
 		}
 	}
 }
