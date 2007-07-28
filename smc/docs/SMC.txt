@@ -6,20 +6,21 @@ Some of the other names will maybe used later for satire in the Story :P
 All the names are listed here :
 
 Boder :
-	Secret Mario Code
-	Snow Mario the Conqueror
-	Sexy Mario Continued
-	Safe Mario Cooking
-	Special Mario Chronicles
-	SDL Mario Code
-	Smashing Mario Cat
+	Secret Maryo Code
+	Snow Maryo the Conqueror
+	Sexy Maryo Continued
+	Safe Maryo Cooking
+	Special Maryo Chronicles
+	SDL Maryo Code
+	Smashing Maryo Cat
 
 FluXy :
-	Stinky Mario Clothes
-	Stupid Mario Castles
-	Supa Mario Cool
-	Superior Mario Continentals
+	Stinky Maryo Clothes
+	Stupid Maryo Castles
+	Supa Maryo Cool
+	Superior Maryo Continentals
 	Secret Maryo Chronicles
+	Special Maryo Chronicles
 
 Yuki :
 	Salty Maccaroni Chiller
@@ -39,28 +40,21 @@ Thothy :
 	Superb Marijo County
 
 
-- Really good and usable names :
-
-FluXy : 
-	Secret Maryo Chronicles
-	Special Maryo Chronicles
-
-
 ################### Ingame Character names #########################
 
 
 Mario   : Maryo (done)
-Luigi   : ?
-Yoshi   : Yuppi
+Luigi   : Rotai
+Yoshi   : Yuffi
 Peach   : Mariko
 Toad    : Tydo
 
 - Enemies -
-Goomba : Gumba 	(done)
-Koopa : Doopy 	(not used)
-Piranha : ? 	(keep ?)
-Thwomb : Thromp 	(done)
-Bowser  : Bommer 	(not yet used)
+Goomba 	: Gumba 	(done)
+Koopa 	: Doopy 	(not used)
+Piranha 	: ? 	(keep ?)
+Thwomb 	: Thromp 	(done)
+Bowser  	: Bommer 	(not yet available)
 Banzaii Bill : Rokko (done)
 
 ###################### New Ideas here ############################

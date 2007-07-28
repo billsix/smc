@@ -1,0 +1,3 @@
+?package(smc):needs="X11" section="Games/Arcade"\
+title="Secret Maryo Chronicles" command="/usr/games/smc"\
+icon="/usr/share/pixmaps/smc/smc.xpm"

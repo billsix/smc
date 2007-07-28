@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef __STATUSTEXT_H__
 #define __STATUSTEXT_H__
@@ -183,8 +184,10 @@ public:
 	// draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
-	// Set the item
-	void Set_Item( SpriteType item_type );
+	/* Set the item
+	* sound : if set the box sound is played
+	*/
+	void Set_Item( SpriteType item_type, bool sound = 1 );
 	// Activates the itembox
 	void Request_Item( void );
 	// push the item back to the itembox
@@ -235,7 +238,9 @@ public:
 	// CEGUI debugtext
 	Window *window_debugtext, *text_debugtext;
 
-	// temp level text
+	// last game mode
+	GameMode Game_Mode_last;
+	// last level text
 	string level_old;
 	// last object counters
 	int obj_counter, pass_counter, mass_counter, enemy_counter, active_counter;

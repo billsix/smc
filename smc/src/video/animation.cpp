@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../video/animation.h"
 #include "../core/framerate.h"
@@ -20,8 +21,8 @@
 
 /* *** *** *** *** *** *** *** Base Animation class *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation :: cAnimation( float posx, float posy )
-: cImageObjectSprite( posx, posy )
+cAnimation :: cAnimation( float x, float y )
+: cImageObjectSprite( x, y )
 {
 	sprite_array = ARRAY_ANIM;
 	type = TYPE_ACTIVESPRITE;
@@ -299,7 +300,6 @@ void cFireAnimation :: Init( void )
 
 		// lifetime
 		obj->counter = (float)( 8 + rand() % ( 5 ) );
-		
 	}
 }
 
@@ -405,9 +405,8 @@ void cParticle :: Update( void )
 		return;
 	}
 
-	// position
-	posx += velx * pFramerate->speedfactor;
-	posy += vely * pFramerate->speedfactor;
+	// move
+	Move( velx, vely );
 	
 	// constant rotation
 	if( const_rotx > 0.0001f )
@@ -481,9 +480,12 @@ void cParticle :: Draw( cParticleAnimation *origin )
 
 /* *** *** *** *** *** *** *** cParticleAnimation *** *** *** *** *** *** *** *** *** *** */
 
-cParticleAnimation :: cParticleAnimation( float posx, float posy )
-: cAnimation( posx, posy )
+cParticleAnimation :: cParticleAnimation( float x /* = 0 */, float y /* = 0 */, float w /* = 0 */, float h /* = 0 */ )
+: cAnimation( x, y )
 {
+	rect.w = w;
+	rect.h = h;
+
 	animtype = PARTICLE_EXPLOSION;
 
 	// 0 = 1 emit
@@ -539,8 +541,20 @@ void cParticleAnimation :: Emit( void )
 	{
 		cParticle *particle = new cParticle();
 
-		// Position
-		particle->Set_Pos( posx, posy, 1 );
+		// X Position
+		float x = posx;
+		if( rect.w > 0 )
+		{
+			x += ( rand() % (int)rect.w );
+		}
+		// Y Position
+		float y = posy;
+		if( rect.h > 0 )
+		{
+			y += ( rand() % (int)rect.h );
+		}
+		// Set Position
+		particle->Set_Pos( x, y, 1 );
 
 		// Image
 		particle->Set_Image( image, 1, 0 );
@@ -553,15 +567,11 @@ void cParticleAnimation :: Emit( void )
 		}
 
 		// angle range
-		float dir_angle = 0;
+		float dir_angle = angle_start;
 		// start angle
-		if( angle_start > 0.001f )
-		{
-			dir_angle += angle_start;
-		}
 		if( angle_range > 0.001f )
 		{
-			dir_angle += (float)( rand() % (int)( angle_range * 100 ) ) / 100;
+			dir_angle += (float)( rand() % (int)( angle_range * 10 ) ) / 10;
 		}
 
 		// Velocity
@@ -678,8 +688,8 @@ void cParticleAnimation :: Update( void )
 		}
 	}
 
-	// if able to emit
-	if( emitter_living_time < emitter_time_to_live )
+	// if able to emit or endless emitter
+	if( emitter_living_time < emitter_time_to_live || emitter_time_to_live == -1 )
 	{
 		// emit
 		while( emit_counter > emitter_iteration_interval )
@@ -710,6 +720,29 @@ void cParticleAnimation :: Draw( cSurfaceRequest *request /* = NULL */ )
 	}
 }
 
+void cParticleAnimation :: Set_Emitter_Rect( float x, float y, float w /* = 0 */, float h /* = 0 */ )
+{
+	Set_Pos( x, y, 1 );
+	rect.w = w;
+	rect.h = h;
+
+	// invalid width
+	if( rect.w < 0 )
+	{
+		rect.w = 0;
+	}
+	// invalid height
+	if( rect.h < 0 )
+	{
+		rect.h = 0;
+	}
+}
+
+void cParticleAnimation :: Set_Emitter_Rect( GL_rect r )
+{
+	Set_Emitter_Rect( r.x, r.y, r.w, r.h );
+}
+
 void cParticleAnimation :: Set_Emitter_Time_to_Live( float time )
 {
 	emitter_time_to_live = time;
@@ -725,7 +758,7 @@ void cParticleAnimation :: Set_Quota( unsigned int size )
 	emitter_quota = size;
 }
 
-void cParticleAnimation :: Set_Speed( float vel_base, float vel_random /* = 1 */ )
+void cParticleAnimation :: Set_Speed( float vel_base, float vel_random /* = 2 */ )
 {
 	vel = vel_base;
 	vel_rand = vel_random;
@@ -749,7 +782,7 @@ void cParticleAnimation :: Set_ConstRotationZ( float rot, float rot_random /* = 
 	const_rotz_rand = rot_random;
 }
 
-void cParticleAnimation :: Set_DirectionRange( float start, float range /* = 20 */ )
+void cParticleAnimation :: Set_DirectionRange( float start, float range /* = 0 */ )
 {
 	angle_start = start;
 	angle_range = range;
@@ -761,7 +794,7 @@ void cParticleAnimation :: Set_Scale( float nscale, float scale_random /* = 0 */
 	size_scale_rand = scale_random;
 }
 
-void cParticleAnimation :: Set_Color( Color col, Color col_rand )
+void cParticleAnimation :: Set_Color( Color col, Color col_rand /* = Color( (Uint8)0 ) */ )
 {
 	color = col;
 	color_rand = col_rand;

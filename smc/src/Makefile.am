@@ -47,6 +47,7 @@ smc_SOURCES = \
 	objects/falling_platform.cpp \
 	objects/ball.cpp \
 	objects/goldpiece.cpp \
+	objects/level_entry.cpp \
 	objects/levelexit.cpp \
 	objects/moving_platform.cpp \
 	objects/movingsprite.cpp \
@@ -54,6 +55,7 @@ smc_SOURCES = \
 	objects/powerup.cpp \
 	objects/spinbox.cpp \
 	objects/star.cpp \
+	objects/text_box.cpp \
 	overworld/layer.cpp \
 	overworld/overworld.cpp \
 	overworld/ow_player.cpp \

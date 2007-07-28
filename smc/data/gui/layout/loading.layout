@@ -9,15 +9,15 @@
         <Window Type="TaharezLook/StaticText" Name="text_loading" >
             <Property Name="Text" Value="Loading..." />
 		<Property Name="Font" Value="bluebold_big" />
-            <Property Name="TextColours" Value="tl:FFFFEE66 tr:FFFFEE66 bl:FFFFBB22 br:FFFFBB22" />
+            <Property Name="TextColours" Value="tl:FFFFAA66 tr:FFFFAA66 bl:FFFF9944 br:FFFF9944" />
             <Property Name="FrameEnabled" Value="False" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
             <Property Name="UnifiedAreaRect" Value="{{0.4,0},{0.45,0},{0.6,0},{0.55,0}}" />
             <Property Name="BackgroundEnabled" Value="False" />
         </Window>
         <Window Type="TaharezLook/StaticText" Name="text_gpl" >
-            <Property Name="Text" Value="This program is distributed under the terms of the GPL" />
-            <Property Name="TextColours" Value="tl:FF005500 tr:FF005500 bl:FF002200 br:FF002200" />
+            <Property Name="Text" Value="This program is distributed under the terms of the GPL 3" />
+            <Property Name="TextColours" Value="tl:FF0000AA tr:FF0000AA bl:FF0000DD br:FF0000DD" />
             <Property Name="FrameEnabled" Value="False" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
             <Property Name="ClippedByParent" Value="False" />

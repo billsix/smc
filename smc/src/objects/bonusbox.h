@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef __BONUSBOX_H__
 #define __BONUSBOX_H__
@@ -77,9 +78,9 @@ public:
 	// ignore onground check
 	virtual void Check_onGround( void ) {};
 
-	// leveleditor activation
+	// level editor activation
 	virtual void Editor_Activate( void );
-	// leveleditor events
+	// level editor events
 	bool Editor_Animation_Select( const EventArgs &event ); // editor animation option selected
 	bool Editor_Item_Select( const EventArgs &event ); // editor item option selected
 	bool Editor_Force_best_item_Select( const EventArgs &event ); // editor force best item option selected

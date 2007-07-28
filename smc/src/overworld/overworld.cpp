@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../core/globals.h"
 #include "../core/main.h"
@@ -131,9 +132,6 @@ cOverworld :: cOverworld( void )
 	hud_level_name = new cHudSprite( NULL, 350, 2, 0 );
 	hud_level_name->Set_Shadow( black, 1.5f );
 
-	entered = 0;
-	delayed_enter = 0;
-
 	next_level = 0;
 
 	player_start_waypoint = 0;
@@ -160,17 +158,15 @@ void cOverworld :: Enter( bool delayed /* = 0 */ )
 	// enter on the next update
 	if( delayed )
 	{
-		delayed_enter = 1;
+		Game_Action = GA_ENTER_WORLD;
 		return;
 	}
 
 	// unload level if possible
 	if( pLevel->delayed_unload )
 	{
-		pLevel->Update();
+		pLevel->Unload();
 	}
-
-	delayed_enter = 0;
 
 	// if not loaded
 	if( !object_manager->size() )
@@ -178,12 +174,13 @@ void cOverworld :: Enter( bool delayed /* = 0 */ )
 		return;
 	}
 
-	entered = 0;
+	// remember old game mode
+	GameMode old_game_mode = Game_Mode;
 	Change_Game_Mode( MODE_OVERWORLD );
 
 	pAudio->PlayMusic( musicfile, -1, 0, 3000 );
 
-	// reset camera
+	// center camera position
 	pCamera->Set_Pos( 0, 0 );
 
 	// if goto next level
@@ -210,41 +207,10 @@ void cOverworld :: Enter( bool delayed /* = 0 */ )
 		}
 	}
 
-
-	while( !entered )
+	if( old_game_mode == MODE_LEVEL )
 	{
-		// Update
-		Update();
-
-		// don't draw if entered
-		if( entered )
-		{
-			break;
-		}
-
-		// Draw
-		Draw();
-		// Render
-		pVideo->Render();
-
-		// update speedfactor
-		pFramerate->Update();
-	}
-
-	// Enter Menu
-	if( entered == 2 )
-	{
-		pMenuCore->Enter();
-	}
-	// Enter Credits Menu
-	else if( entered == 3 )
-	{
-		pMenuCore->Enter( MENU_CREDITS );
-	}
-	// Enter Level
-	else
-	{
-		Change_Game_Mode( MODE_LEVEL );
+		// draw fade in
+		Draw_Effect_in();
 	}
 }
 
@@ -308,7 +274,7 @@ bool cOverworld :: Key_Down( SDLKey key )
 	else if( key == SDLK_ESCAPE || key == SDLK_BACKSPACE )
 	{
 		// exit
-		entered = 2;
+		Game_Action = GA_ENTER_MENU;
 	}
 	else if( key == SDLK_RETURN || key == SDLK_KP_ENTER || key == SDLK_SPACE )
 	{
@@ -375,9 +341,6 @@ bool cOverworld :: Load( void )
 	}
 
 	hud_world_name->Set_Image( pFont->RenderText( pFont->font_normal, description->name, yellow ), 1, 1 );
-
-	// center camera position
-	pCamera->Set_Pos( 0, 0 );
 
 	return 1;
 }
@@ -480,18 +443,24 @@ void cOverworld :: Save( void )
 
 void cOverworld :: Set_Progress( unsigned int normal_level, bool force /* = 1 */ )
 {
-	for( unsigned int i = 0; i < waypoints.size(); i++ )
+	unsigned int level_num = 0;
+
+	for( WaypointList::iterator itr = waypoints.begin(), itr_end = waypoints.end(); itr != itr_end; ++itr )
 	{
+		cWaypoint *obj = (*itr);
+
 		// accessible
-		if( normal_level >= i )
+		if( normal_level >= level_num )
 		{
-			waypoints[i]->Set_Access( 1 );
+			obj->Set_Access( 1 );
 		}
 		// force unset
 		else if( force )
 		{
-			waypoints[i]->Set_Access( 0 );
+			obj->Set_Access( 0 );
 		}
+
+		level_num++;
 	}
 }
 
@@ -655,9 +624,11 @@ bool cOverworld :: Goto_next_Level( void )
 
 void cOverworld :: Reset_Waypoints( void )
 {
-	for( unsigned int i = 0; i < waypoints.size(); i++ )
+	for( WaypointList::iterator itr = waypoints.begin(), itr_end = waypoints.end(); itr != itr_end; ++itr )
 	{
-		waypoints[i]->Set_Access( waypoints[i]->access_default );
+		cWaypoint *obj = (*itr);
+
+		obj->Set_Access( obj->access_default );
 	}
 }
 
@@ -747,8 +718,6 @@ void cOverworld :: Draw( void )
 	pLayer->Draw();
 	// Editor
 	pWorld_Editor->Draw();
-	// Mouse
-	pMouseCursor->Draw();
 }
 
 void cOverworld :: Draw_HUD( void )
@@ -775,38 +744,8 @@ void cOverworld :: Draw_HUD( void )
 
 void cOverworld :: Update( void )
 {
-	// Mouse
-	pMouseCursor->Update_Position();
-	pMouseCursor->Update();
-
-	// input
-	while( SDL_PollEvent( &input_event ) )
-	{
-		// was handled
-		if( Handle_Input_Global( &input_event ) )
-		{
-			continue;
-		}
-
-		switch( input_event.type )
-		{
-			case SDL_QUIT:
-			{
-				entered = 1;
-				break;
-			}
-			default:
-			{
-				break;
-			}
-		}
-	}
-
 	// editor
 	pWorld_Editor->Process_Input();
-
-	// Audio
-	pAudio->Update();
 
 	if( !editor_world_enabled )
 	{

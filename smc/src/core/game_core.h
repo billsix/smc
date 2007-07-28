@@ -3,14 +3,15 @@
                              -------------------
     copyright            :  (C) 2005 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef __GAME_CORE_H__
 #define __GAME_CORE_H__
@@ -26,6 +27,12 @@ extern bool done;
 extern GameMode Game_Mode;
 // current Game Mode Type
 extern GameModeType Game_Mode_Type;
+// next global Game Action
+extern GameAction Game_Action;
+// Game Action data
+extern string Game_Action_Data;
+// Game Action pointer
+extern void *Game_Action_ptr;
 // global debugging
 extern bool Game_debug;
 
@@ -122,7 +129,7 @@ public:
 void Change_Game_Mode( GameMode new_mode );
 
 /* Function: Copy_Object
- * Returns the Copied Object with the given position
+ * Returns the copied object with the given position
  * if no position is given defaults to 0
  * returns NULL if an error occurred
  */
@@ -169,7 +176,7 @@ void Gui_handle_Time( void );
 /* Draw a Statictext
  * if wait_for_input is given draws the text until the user pressed a key
  */
-void Draw_StaticText( string text, Color *color_text = &orange, Color *color_bg = &black, Color *color_box_in = &grey, Color *color_box_out = &black, bool wait_for_input = 1 );
+void Draw_StaticText( string text, Color *color_text = &white, Color *color_bg = NULL, bool wait_for_input = 1 );
 
 /* CEGUI EditBox with header
  *
@@ -237,6 +244,8 @@ int string_to_int( const string &str );
 double string_to_double( const string &str );
 // Returns a valid XML string
 string string_to_xml_string( const string &str );
+// Returns the real string
+string xml_string_to_string( string str );
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

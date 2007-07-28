@@ -14,13 +14,11 @@ Priority is H for High, M for Medium and L for Low
 
 ---------------- Not Assigned -----------------
 
-H! - Replace all Sounds from Badboy
-M - Eato
 M - Red Goldpiece
-L - New Ice Powerup (item/mushroom_blue.ogg)
-L - New Empty Box (item/death_box.ogg)
-L - New Ice Ball Shoot (item/iceball.ogg) and kill (item/ice_kill.ogg)
+M - New Ice Powerup (item/mushroom_blue.ogg)
+M - New Empty Box (item/death_box.ogg)
+M - New Ice Ball Shoot (item/iceball.ogg) and kill (item/ice_kill.ogg)
 
 ---------------- Planning 	----------------
 
-M - New big Jump Sounds ( no voice ? )
+

@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2004 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef __MENU_DATA_H__
 #define __MENU_DATA_H__
@@ -25,13 +26,16 @@ class cMenu_Base
 {
 public:
 	cMenu_Base( void );
-	virtual ~cMenu_Base( void );
+	~cMenu_Base( void );
 
 	virtual void Init( void );
 	virtual void Init_GUI( void );
 	virtual void Update( void );
 	virtual void Draw( void );
 	void Draw_End( void );
+
+	// Exit
+	virtual void Exit( void );
 
 	// gui layout filename
 	string layout_file;
@@ -43,6 +47,10 @@ public:
 
 	// menu position
 	float menu_posy;
+	// default text color
+	Color text_color;
+	// value text color
+	Color text_color_value;
 
 	// current menu sprites
 	typedef vector<cHudSprite *> HudSpriteList;
@@ -61,6 +69,9 @@ public:
 	virtual void Init_GUI( void );
 	virtual void Update( void );
 	virtual void Draw( void );
+
+	// Exit
+	virtual void Exit( void );
 };
 
 /* *** *** *** *** *** *** *** cMenu_Start *** *** *** *** *** *** *** *** *** *** */
@@ -76,10 +87,13 @@ public:
 	virtual void Update( void );
 	virtual void Draw( void );
 
+	// Exit
+	virtual void Exit( void );
+
 	/* Load the Selected World
 	 * and exits if successful
 	*/
-	void Load_World( string name );
+	void Load_World( string level_name );
 	/* Load the Selected Level
 	 * and exits if successful
 	*/
@@ -107,6 +121,9 @@ public:
 	virtual void Init_GUI( void );
 	virtual void Update( void );
 	virtual void Draw( void );
+
+	// Exit
+	virtual void Exit( void );
 };
 
 /* *** *** *** *** *** *** *** cMenu_Options_Game *** *** *** *** *** *** *** *** *** *** */
@@ -121,6 +138,7 @@ public:
 	virtual void Init_GUI( void );
 	virtual void Update( void );
 	virtual void Draw( void );
+
 	// CEGUI events
 	bool always_run_Select( const EventArgs &event ); // always run option selected
 	bool camera_hor_Select( const EventArgs &event ); // Camera Horizontal Value changed
@@ -139,6 +157,7 @@ public:
 	virtual void Init_GUI( void );
 	virtual void Update( void );
 	virtual void Draw( void );
+
 	// CEGUI events
 	bool res_Select( const EventArgs &event ); // resolution option selected
 	bool bpp_Select( const EventArgs &event ); // bpp option selected
@@ -168,6 +187,7 @@ public:
 	virtual void Init_GUI( void );
 	virtual void Update( void );
 	virtual void Draw( void );
+
 	// CEGUI events
 	bool music_Select( const EventArgs &event ); // music option selected
 	bool music_vol_changed( const EventArgs &event ); // music volume changed
@@ -193,6 +213,7 @@ public:
 	virtual void Init_GUI( void );
 	virtual void Update( void );
 	virtual void Draw( void );
+
 	void Joy_Default( unsigned int index );
 	void Joy_Disable( void );
 
@@ -202,7 +223,8 @@ public:
 
 	// Gamepad Image
 	cHudSprite *gamepad;
-	// input keynames
+	// input names
+	// Keyboard
 	cHudSprite *keyboard_up_keyname;
 	cHudSprite *keyboard_down_keyname;
 	cHudSprite *keyboard_left_keyname;
@@ -210,10 +232,12 @@ public:
 	cHudSprite *keyboard_jump_keyname;
 	cHudSprite *keyboard_shoot_keyname;
 	cHudSprite *keyboard_action_keyname;
+	// Joypad
 	cHudSprite *joypad_jump_keyname;
 	cHudSprite *joypad_item_keyname;
 	cHudSprite *joypad_shoot_keyname;
 	cHudSprite *joypad_action_keyname;
+	cHudSprite *joypad_exit_keyname;
 };
 
 /* *** *** *** *** *** *** *** cMenu_Savegames *** *** *** *** *** *** *** *** *** *** */
@@ -228,6 +252,10 @@ public:
 	virtual void Init_GUI( void );
 	virtual void Update( void );
 	virtual void Draw( void );
+
+	// Exit
+	virtual void Exit( void );
+
 	void Update_Load( void );
 	void Update_Save( void );
 
@@ -255,6 +283,9 @@ public:
 	virtual void Init_GUI( void );
 	virtual void Update( void );
 	virtual void Draw( void );
+
+	// Exit
+	virtual void Exit( void );
 };
 
 #endif

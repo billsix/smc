@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../core/globals.h"
 #include "../user/savegame.h"
@@ -182,8 +183,6 @@ int cSavegame :: Load_Game( unsigned int save_slot )
 
 	// unload level
 	pLevel->Unload();
-	// clear deleted objects
-	pObjManager->Update();
 	// reset player
 	pPlayer->ResetSave();
 
@@ -201,28 +200,32 @@ int cSavegame :: Load_Game( unsigned int save_slot )
 	// set overworld progress
 	else
 	{
-		for( unsigned int i = 0; i < savegame->Overworlds.size(); i++ )
+		for( Save_OverworldList::iterator itr = savegame->Overworlds.begin(), itr_end = savegame->Overworlds.end(); itr != itr_end; ++itr )
 		{
-			cOverworld *overworld = pOverworld_manager->Get_from_Name( savegame->Overworlds[i]->name );
+			// get savegame overworld pointer
+			cSave_Overworld *save_overworld = (*itr);
+
+			// get overworld
+			cOverworld *overworld = pOverworld_manager->Get_from_Name( save_overworld->name );
 
 			if( !overworld )
 			{
-				printf( "Warning : Savegame %d : Overworld %s not found\n", save_slot, savegame->Overworlds[i]->name.c_str() );
+				printf( "Warning : Savegame %d : Overworld %s not found\n", save_slot, save_overworld->name.c_str() );
 				continue;
 			}
 
-			for( unsigned int w = 0; w < savegame->Overworlds[i]->Waypoints.size() ; w++ )
+			for( Save_Overworld_WaypointList::iterator wp_itr = save_overworld->Waypoints.begin(), wp_itr_end = save_overworld->Waypoints.end(); wp_itr != wp_itr_end; ++wp_itr )
 			{
-				// Get Savegame Waypoint
-				cSave_Overworld_Waypoint *save_waypoint = savegame->Overworlds[i]->Waypoints[w];
+				// get savegame waypoint pointer
+				cSave_Overworld_Waypoint *save_waypoint = (*wp_itr);
 
-				// Get Overworld Waypoint
+				// get overworld waypoint
 				cWaypoint *waypoint = overworld->Get_Waypoint( overworld->Get_Waypoint_num( save_waypoint->destination ) );
 
 				// not found
 				if( !waypoint )
 				{
-					printf( "Warning : Savegame %d : Overworld %s Waypoint %s not found\n", save_slot, savegame->Overworlds[i]->name.c_str(), save_waypoint->destination.c_str() );
+					printf( "Warning : Savegame %d : Overworld %s Waypoint %s not found\n", save_slot, save_overworld->name.c_str(), save_waypoint->destination.c_str() );
 					continue;
 				}
 
@@ -259,10 +262,10 @@ int cSavegame :: Load_Game( unsigned int save_slot )
 			pPlayer->Set_Pos( savegame->level_posx, savegame->level_posy - (float)GAME_RES_H );
 
 			// Level Objects
-			for( unsigned int i = 0; i < savegame->level_objects.size(); i++ )
+			for( Save_Level_ObjectList::iterator itr = savegame->level_objects.begin(), itr_end = savegame->level_objects.end(); itr != itr_end; ++itr )
 			{
 				// get object pointer
-				cSave_Level_Object *save_object = savegame->level_objects[i];
+				cSave_Level_Object *save_object = (*itr);
 
 				// get position
 				int posx = string_to_int( save_object->Get_Value( "posx" ) );
@@ -274,13 +277,13 @@ int cSavegame :: Load_Game( unsigned int save_slot )
 				// if not anymore available
 				if( !level_object )
 				{
-					printf( "Warning : Savegame object type %d on pos x %d, y %d not available\n", save_object->type, posx, posy );
+					printf( "Warning : Savegame object type %d on x %d, y %d not available\n", save_object->type, posx, posy );
 					continue;
 				}
 
 				if( level_object->type == TYPE_BONUSBOX )
 				{
-					cBonusBox *bonusbox = (cBonusBox *)level_object;
+					cBonusBox *bonusbox = static_cast<cBonusBox *>(level_object);
 
 					// useable count
 					int useable_count = string_to_int( save_object->Get_Value( "useable_count" ) );
@@ -288,19 +291,19 @@ int cSavegame :: Load_Game( unsigned int save_slot )
 				}
 				else if( level_object->type == TYPE_GOLDPIECE )
 				{
-					cGoldpiece *goldpiece = (cGoldpiece *)level_object;
+					cGoldpiece *goldpiece = static_cast<cGoldpiece *>(level_object);
 
 					// visible
 					bool visible = string_to_int( save_object->Get_Value( "visible" ) ) > 0;
-					goldpiece->visible = visible;
+					goldpiece->Set_Visible( visible );
 				}
 				else if( level_object->type == TYPE_MOON )
 				{
-					cMoon *moon = (cMoon *)level_object;
+					cMoon *moon = static_cast<cMoon *>(level_object);
 
 					// visible
 					bool visible = string_to_int( save_object->Get_Value( "visible" ) ) > 0;
-					moon->visible = visible;
+					moon->Set_Visible( visible );
 				}
 			}
 
@@ -316,16 +319,11 @@ int cSavegame :: Load_Game( unsigned int save_slot )
 	pointsdisplay->Set_Points( savegame->points );
 	golddisplay->SetGold( savegame->goldpieces );
 	livedisplay->SetLives( savegame->lives );
-	Itembox->Set_Item( (SpriteType)savegame->itembox_item );
+	Itembox->Set_Item( (SpriteType)savegame->itembox_item, 0 );
 
-	pCamera->Set_Pos( 0, 0 );
+	pCamera->Center();
 
-	pPlayer->Ball_clear();
-
-	debugdisplay->Update();
-	pointsdisplay->Update();
-	pPlayer->Update();
-	golddisplay->Update();
+	pHudManager->Update();
 
 	debugdisplay->Set_Text( "Savegame " + int_to_string( save_slot ) + " loaded" );
 
@@ -346,7 +344,7 @@ bool cSavegame :: Save_Game( unsigned int save_slot, string description )
 {
 	if( pPlayer->maryo_type == MARYO_DEAD || pPlayer->lives < 0 )
 	{
-		printf( "Couldn't save Savegame %s\n", description.c_str() );
+		printf( "Error : Couldn't save savegame %s because of invalid game state\n", description.c_str() );
 		return 0;
 	}
 
@@ -378,7 +376,7 @@ bool cSavegame :: Save_Game( unsigned int save_slot, string description )
 			// Bonusbox
 			if( object->type == TYPE_BONUSBOX )
 			{
-				cBonusBox *bonusbox = (cBonusBox *)object;
+				cBonusBox *bonusbox = static_cast<cBonusBox *>(object);
 
 				// only save if needed
 				if( bonusbox->useable_count == bonusbox->start_useable_count )
@@ -394,7 +392,7 @@ bool cSavegame :: Save_Game( unsigned int save_slot, string description )
 			// Goldpiece
 			else if( object->type == TYPE_GOLDPIECE )
 			{
-				cGoldpiece *goldpiece = (cGoldpiece *)object;
+				cGoldpiece *goldpiece = static_cast<cGoldpiece *>(object);
 
 				// only save if needed
 				if( goldpiece->visible == 1 )
@@ -410,7 +408,7 @@ bool cSavegame :: Save_Game( unsigned int save_slot, string description )
 			// Moon
 			else if( object->type == TYPE_MOON )
 			{
-				cMoon *moon = (cMoon *)object;
+				cMoon *moon = static_cast<cMoon *>(object);
 
 				// only save if needed
 				if( moon->visible == 1 )
@@ -581,7 +579,7 @@ int cSavegame :: Save( unsigned int save_slot, cSave *savegame )
 	
 	if( !file.is_open() )
 	{
-		printf( "Error : couldn't open savegame file for saving. Is the file read-only ?" );
+		printf( "Error : Couldn't open savegame file for saving. Is the file read-only ?" );
 		return 0;
 	}
 
@@ -613,10 +611,10 @@ int cSavegame :: Save( unsigned int save_slot, cSave *savegame )
 		file << "\t\t<Property Name=\"player_posy\" Value=\"" << savegame->level_posy << "\" />" << std::endl;
 
 		// Level Objects
-		for( unsigned int i = 0; i < savegame->level_objects.size(); i++ )
+		for( Save_Level_ObjectList::iterator itr = savegame->level_objects.begin(), itr_end = savegame->level_objects.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
-			cSave_Level_Object *object = savegame->level_objects[i];
+			cSave_Level_Object *object = (*itr);
 
 			// begin Level Object
 			file << "\t\t<Level_Object>" << std::endl;
@@ -625,10 +623,10 @@ int cSavegame :: Save( unsigned int save_slot, cSave *savegame )
 			file << "\t\t\t<Property Name=\"type\" Value=\"" << object->type << "\" />" << std::endl;
 
 			// Properties
-			for( unsigned int i = 0; i < object->properties.size(); i++ )
+			for( Save_Level_Object_ProprtyList::iterator prop_itr = object->properties.begin(), prop_itr_end = object->properties.end(); prop_itr != prop_itr_end; ++prop_itr )
 			{
 				// get properties pointer
-				cSave_Level_Object_Property Property = object->properties[i];
+				cSave_Level_Object_Property Property = (*prop_itr);
 
 				// property
 				file << "\t\t\t<Property Name=\"" << Property.Name <<"\" Value=\"" << Property.Value << "\" />" << std::endl;
@@ -665,17 +663,22 @@ int cSavegame :: Save( unsigned int save_slot, cSave *savegame )
 	// end Overworld_Data
 	file << "\t</Overworld_Data>" << std::endl;
 
-	for( unsigned int i = 0; i < savegame->Overworlds.size(); i++ )
+	// Overworlds
+	for( Save_OverworldList::iterator itr = savegame->Overworlds.begin(), itr_end = savegame->Overworlds.end(); itr != itr_end; ++itr )
 	{
+		// get object pointer
+		cSave_Overworld *overworld = (*itr);
+
 		// begin Overworld
 		file << "\t<Overworld>" << std::endl;
 
 		// current Overworld
-		file << "\t\t<Property Name=\"name\" Value=\"" << savegame->Overworlds[i]->name << "\" />" << std::endl;
+		file << "\t\t<Property Name=\"name\" Value=\"" << overworld->name << "\" />" << std::endl;
 
-		for( unsigned int w = 0; w < savegame->Overworlds[i]->Waypoints.size(); w++ )
+		for( Save_Overworld_WaypointList::iterator wp_itr = overworld->Waypoints.begin(), wp_itr_end = overworld->Waypoints.end(); wp_itr != wp_itr_end; ++wp_itr )
 		{
-			cSave_Overworld_Waypoint *overworld_waypoint = savegame->Overworlds[i]->Waypoints[w];
+			// get object pointer
+			cSave_Overworld_Waypoint *overworld_waypoint = (*wp_itr);
 
 			// skip empty waypoints
 			if( overworld_waypoint->destination.empty() )

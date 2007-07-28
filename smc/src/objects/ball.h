@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2006 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef __BALL_H__
 #define __BALL_H__
@@ -35,6 +36,9 @@ public:
 	virtual void Update( void );
 	// draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
+
+	// Generate the default animation Particles
+	void Generate_Particles( cParticleAnimation *anim = NULL );
 
 	/* Validate the given collision object
 	 * returns 1 if an internal collision with this object is valid

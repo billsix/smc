@@ -1,16 +1,17 @@
 /***************************************************************************
-              gumba.cpp  -  gumba, little moving around enemy
+              gumba.cpp  -  little moving around enemy
                              -------------------
     copyright            :	(C) 2003 - 2007 Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../enemies/gumba.h"
 #include "../core/game_core.h"
@@ -123,9 +124,10 @@ void cGumba :: Set_Color( DefaultColor col )
 		velx = 2.7f;
 		kill_points = 10;
 	}
-	else if( color_type == COL_RED )
+	// red was used in pre 1.0 but was in fact blue
+	else if( color_type == COL_RED || color_type == COL_BLUE )
 	{
-		// todo : learn colors
+		color_type = COL_BLUE;
 		filename_dir = "blue";
 
 		velx = 4.5f;
@@ -146,6 +148,7 @@ void cGumba :: Set_Color( DefaultColor col )
 	images.push_back( pVideo->Get_Surface( "enemy/gumba/" + filename_dir + "/walk_8.png" ) );
 	images.push_back( pVideo->Get_Surface( "enemy/gumba/" + filename_dir + "/walk_9.png" ) );
 	images.push_back( pVideo->Get_Surface( "enemy/gumba/" + filename_dir + "/walk_10.png" ) );
+	images.push_back( pVideo->Get_Surface( "enemy/gumba/" + filename_dir + "/dead.png" ) );
 
 	Set_Image( 0, 1 );
 
@@ -159,6 +162,8 @@ void cGumba :: DownGrade( bool force /* = 0 */ )
 	counter = 0;
 	velx = 0;
 	vely = 0;
+	// dead image
+	Set_Image( 10 );
 
 	// default stomp death
 	if( !force )

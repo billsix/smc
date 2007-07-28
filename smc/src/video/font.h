@@ -3,14 +3,15 @@
                          -------------------
     copyright            : (C) 2006 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef __FONT_H__
 #define __FONT_H__
@@ -40,15 +41,11 @@ public:
 	// Renders the given text into a new surface
 	GL_Surface *RenderText( TTF_Font *font, string text, Color color = (Uint8)0 );
 
-	/*
-	* Function : Grab_Textures
-	* saves hardware textures in software memory
+	/* Saves hardware textures in software memory
 	*/
 	void Grab_Textures( void );
 
-	/*
-	* Function : Reload_Textures
-	* Loads the saved software textures back into hardware textures
+	/* Loads the saved software textures back into hardware textures
 	*/
 	void Restore_Textures( void );
 

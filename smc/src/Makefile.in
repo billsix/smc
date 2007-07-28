@@ -61,10 +61,11 @@ am_smc_OBJECTS = audio.$(OBJEXT) sound_manager.$(OBJEXT) \
 	level_editor.$(OBJEXT) level_settings.$(OBJEXT) \
 	sprite.$(OBJEXT) bonusbox.$(OBJEXT) box.$(OBJEXT) \
 	enemystopper.$(OBJEXT) falling_platform.$(OBJEXT) \
-	ball.$(OBJEXT) goldpiece.$(OBJEXT) levelexit.$(OBJEXT) \
-	moving_platform.$(OBJEXT) movingsprite.$(OBJEXT) \
-	objectsprite.$(OBJEXT) powerup.$(OBJEXT) spinbox.$(OBJEXT) \
-	star.$(OBJEXT) layer.$(OBJEXT) overworld.$(OBJEXT) \
+	ball.$(OBJEXT) goldpiece.$(OBJEXT) level_entry.$(OBJEXT) \
+	levelexit.$(OBJEXT) moving_platform.$(OBJEXT) \
+	movingsprite.$(OBJEXT) objectsprite.$(OBJEXT) \
+	powerup.$(OBJEXT) spinbox.$(OBJEXT) star.$(OBJEXT) \
+	text_box.$(OBJEXT) layer.$(OBJEXT) overworld.$(OBJEXT) \
 	ow_player.$(OBJEXT) waypoint.$(OBJEXT) worlds.$(OBJEXT) \
 	world_editor.$(OBJEXT) player.$(OBJEXT) preferences.$(OBJEXT) \
 	savegame.$(OBJEXT) animation.$(OBJEXT) font.$(OBJEXT) \
@@ -230,6 +231,7 @@ smc_SOURCES = \
 	objects/falling_platform.cpp \
 	objects/ball.cpp \
 	objects/goldpiece.cpp \
+	objects/level_entry.cpp \
 	objects/levelexit.cpp \
 	objects/moving_platform.cpp \
 	objects/movingsprite.cpp \
@@ -237,6 +239,7 @@ smc_SOURCES = \
 	objects/powerup.cpp \
 	objects/spinbox.cpp \
 	objects/star.cpp \
+	objects/text_box.cpp \
 	overworld/layer.cpp \
 	overworld/overworld.cpp \
 	overworld/ow_player.cpp \
@@ -352,6 +355,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/level.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/level_background.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/level_editor.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/level_entry.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/level_settings.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/levelexit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
@@ -379,6 +383,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sprite.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/star.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/static.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/text_box.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/thromp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/turtle.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/turtle_boss.Po@am__quote@
@@ -1018,6 +1023,20 @@ goldpiece.obj: objects/goldpiece.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o goldpiece.obj `if test -f 'objects/goldpiece.cpp'; then $(CYGPATH_W) 'objects/goldpiece.cpp'; else $(CYGPATH_W) '$(srcdir)/objects/goldpiece.cpp'; fi`
 
+level_entry.o: objects/level_entry.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT level_entry.o -MD -MP -MF $(DEPDIR)/level_entry.Tpo -c -o level_entry.o `test -f 'objects/level_entry.cpp' || echo '$(srcdir)/'`objects/level_entry.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/level_entry.Tpo $(DEPDIR)/level_entry.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='objects/level_entry.cpp' object='level_entry.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o level_entry.o `test -f 'objects/level_entry.cpp' || echo '$(srcdir)/'`objects/level_entry.cpp
+
+level_entry.obj: objects/level_entry.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT level_entry.obj -MD -MP -MF $(DEPDIR)/level_entry.Tpo -c -o level_entry.obj `if test -f 'objects/level_entry.cpp'; then $(CYGPATH_W) 'objects/level_entry.cpp'; else $(CYGPATH_W) '$(srcdir)/objects/level_entry.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/level_entry.Tpo $(DEPDIR)/level_entry.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='objects/level_entry.cpp' object='level_entry.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o level_entry.obj `if test -f 'objects/level_entry.cpp'; then $(CYGPATH_W) 'objects/level_entry.cpp'; else $(CYGPATH_W) '$(srcdir)/objects/level_entry.cpp'; fi`
+
 levelexit.o: objects/levelexit.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT levelexit.o -MD -MP -MF $(DEPDIR)/levelexit.Tpo -c -o levelexit.o `test -f 'objects/levelexit.cpp' || echo '$(srcdir)/'`objects/levelexit.cpp
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/levelexit.Tpo $(DEPDIR)/levelexit.Po
@@ -1115,6 +1134,20 @@ star.obj: objects/star.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='objects/star.cpp' object='star.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o star.obj `if test -f 'objects/star.cpp'; then $(CYGPATH_W) 'objects/star.cpp'; else $(CYGPATH_W) '$(srcdir)/objects/star.cpp'; fi`
+
+text_box.o: objects/text_box.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT text_box.o -MD -MP -MF $(DEPDIR)/text_box.Tpo -c -o text_box.o `test -f 'objects/text_box.cpp' || echo '$(srcdir)/'`objects/text_box.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/text_box.Tpo $(DEPDIR)/text_box.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='objects/text_box.cpp' object='text_box.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o text_box.o `test -f 'objects/text_box.cpp' || echo '$(srcdir)/'`objects/text_box.cpp
+
+text_box.obj: objects/text_box.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT text_box.obj -MD -MP -MF $(DEPDIR)/text_box.Tpo -c -o text_box.obj `if test -f 'objects/text_box.cpp'; then $(CYGPATH_W) 'objects/text_box.cpp'; else $(CYGPATH_W) '$(srcdir)/objects/text_box.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/text_box.Tpo $(DEPDIR)/text_box.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='objects/text_box.cpp' object='text_box.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o text_box.obj `if test -f 'objects/text_box.cpp'; then $(CYGPATH_W) 'objects/text_box.cpp'; else $(CYGPATH_W) '$(srcdir)/objects/text_box.cpp'; fi`
 
 layer.o: overworld/layer.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT layer.o -MD -MP -MF $(DEPDIR)/layer.Tpo -c -o layer.o `test -f 'overworld/layer.cpp' || echo '$(srcdir)/'`overworld/layer.cpp

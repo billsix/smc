@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
  
 #include "../overworld/waypoint.h"
 #include "../overworld/overworld.h"
@@ -201,6 +202,7 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
+			// blit
 			arrow_blue_r->Blit( x, y, 0.089f, surface_request );
 			surface_request->shadow_pos = 2;
 			surface_request->shadow_color = lightgreyalpha64;
@@ -214,6 +216,7 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
+			// blit
 			arrow_blue_l->Blit( x, y, 0.089f, surface_request );
 			surface_request->shadow_pos = 2;
 			surface_request->shadow_color = lightgreyalpha64;
@@ -227,6 +230,7 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
+			// blit
 			arrow_blue_u->Blit( x, y, 0.089f, surface_request );
 			surface_request->shadow_pos = 2;
 			surface_request->shadow_color = lightgreyalpha64;
@@ -240,6 +244,7 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
+			// blit
 			arrow_blue_d->Blit( x, y, 0.089f, surface_request );
 			surface_request->shadow_pos = 2;
 			surface_request->shadow_color = lightgreyalpha64;

@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef __LEVELEXIT_H__
 #define __LEVELEXIT_H__
@@ -22,69 +23,75 @@
 
 enum Level_Exit_type
 {
-	LEVELEXIT_BEAM		= 0,	// no special animation ( e.g. doors )
-	LEVELEXIT_WARP		= 1		// the player slowly moves into the object ( e.g. pipes )
+	LEVELEXIT_BEAM		= 0,	// no animation ( f.e. a door )
+	LEVELEXIT_WARP		= 1		// player moves rotated slowly into the destination direction
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-/* The Levelexit
- * if a level filename is given the given level is the destination
+/* Level exit
+ * if a level filename it's the destination
 */
-class cLevelExit : public cImageObjectSprite
+class cLevel_Exit : public cImageObjectSprite
 {
 public:
 	// constructor
-	cLevelExit( float x, float y );
+	cLevel_Exit( float x, float y );
 	// create from stream
-	cLevelExit( XMLAttributes &attributes );
+	cLevel_Exit( XMLAttributes &attributes );
 	// destructor
-	virtual ~cLevelExit( void );
+	virtual ~cLevel_Exit( void );
 
 	// init defaults
 	void Init( void );
 	// copy this sprite
-	virtual cLevelExit *Copy( void );
+	virtual cLevel_Exit *Copy( void );
 
 	// create from stream
 	virtual void Create_from_Stream( XMLAttributes &attributes );
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file );
-    // Set Direction
+    // Set direction
 	void Set_Direction( ObjectDirection dir );
 
-	// update
-	virtual void Update( void );
 	// draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
-	// Activate the Levelexit
+	// Activate
 	void Activate( void );
 
 	// Set the type
 	void Set_Type( Level_Exit_type ltype );
 
-	// Sets the destination level
+	// Set the destination level
 	void Set_Level( string filename );
-	// Returns the destination level
+	// Return the destination level
 	string Get_Level( bool with_dir = 1, bool with_end = 1 );
+
+	// Set the destination entry
+	void Set_Entry( string entry_name );
 
 	// if draw is valid for the current state and position
 	virtual bool is_Draw_valid( void );
 
-	// leveleditor activation
+	// level editor activation
 	virtual void Editor_Activate( void );
-	// leveleditor events
+	// level editor events
 	bool Editor_Direction_Select( const EventArgs &event ); // editor direction option selected
 	bool Editor_Destination_Level_Key( const EventArgs &event );  // editor destination level key up
+	bool Editor_Destination_Entry_Key( const EventArgs &event );  // editor destination entry key up
 
 	// level exit type
-	Level_Exit_type levelchange_type;
-	// destination level if type is not exit
-	string levelname;
+	Level_Exit_type exit_type;
+	// destination level
+	string dest_level;
+	// destination entry ( only used if in same level )
+	string dest_entry;
 
-	// colors for the type
-	Color col_exit, col_change;
+	// editor type color
+	Color editor_color;
+	// editor entry name text
+	GL_Surface *editor_entry_name;
 
 private:
     void Create_Name( void );

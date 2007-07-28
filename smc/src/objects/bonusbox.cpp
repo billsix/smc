@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../objects/bonusbox.h"
 #include "../objects/star.h"
@@ -258,7 +259,7 @@ void cBonusBox :: Activate( void )
 	else if( box_type == TYPE_FIREPLANT )
 	{
 		pAudio->PlaySound( "sprout_1.ogg" );
-		box_item = static_cast<cMovingSprite *>(new cFirePlant( startposx, startposy ));
+		box_item = static_cast<cMovingSprite *>(new cFirePlant( startposx - ( ( item_image->w - rect.w ) / 2 ), startposy ));
 	}
 	else if( box_type == TYPE_MUSHROOM_DEFAULT || box_type == TYPE_MUSHROOM_LIVE_1 || box_type == TYPE_MUSHROOM_POISON || box_type == TYPE_MUSHROOM_BLUE || box_type == TYPE_MUSHROOM_GHOST )
 	{
@@ -271,7 +272,9 @@ void cBonusBox :: Activate( void )
 	else if( box_type == TYPE_JSTAR )
 	{
 		pAudio->PlaySound( "sprout_1.ogg" );
-		cjStar *star = new cjStar( startposx, startposy );
+		cjStar *star = new cjStar( startposx - ( ( item_image->w - rect.w ) / 2 ), startposy );
+		star->Set_onTop( this );
+		star->spawned = 1;
 		// add to global objects
 		pObjManager->Add( star );
 	}
@@ -279,7 +282,7 @@ void cBonusBox :: Activate( void )
 	{
 		pAudio->PlaySound( "item/goldpiece_1.ogg" );
 
-		cJGoldpiece *goldpiece = new cJGoldpiece( posx + 4, posy );
+		cJGoldpiece *goldpiece = new cJGoldpiece( startposx - ( ( item_image->w - rect.w ) / 2 ), posy );
 		goldpiece->Set_Goldcolor( gold_color );
 		// add to global objects
 		pObjManager->Add( goldpiece );
@@ -294,6 +297,8 @@ void cBonusBox :: Activate( void )
 	{
 		// set posz behind box
 		box_item->posz = posz - 0.000001f;
+		// set spawned
+		box_item->spawned = 1;
 
 		// add to item list
 		active_items.push_back( box_item );
@@ -324,8 +329,6 @@ void cBonusBox :: Update( void )
 		{
 			// clear animation counter
 			powerup->counter = 0;
-			// set spawned
-			powerup->spawned = 1;
 
 			// set powerup default posz
 			powerup->posz = 0.05f;

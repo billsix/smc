@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2006 - 2007 Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../enemies/spika.h"
 #include "../core/game_core.h"
@@ -43,6 +44,8 @@ void cSpika :: Init( void )
 {
 	type = TYPE_SPIKA;
 	posz = 0.09f;
+	can_be_ground = 1;
+
 	color_type = COL_DEFAULT;
 	speed = 0;
 	detection_size = 0;
@@ -356,7 +359,7 @@ void cSpika :: Handle_Collision_Enemy( cObjectCollision *collision )
 		return;
 	}
 
-	cEnemy *enemy = (cEnemy *)pObjManager->Get_Pointer( collision->number );
+	cEnemy *enemy = static_cast<cEnemy *>(pObjManager->Get_Pointer( collision->number ));
 
 	// already dead
 	if( enemy->dead )
@@ -367,7 +370,7 @@ void cSpika :: Handle_Collision_Enemy( cObjectCollision *collision )
 	// check spika power
 	if( enemy->type == TYPE_SPIKA )
 	{
-		cSpika *spika = (cSpika *)enemy;
+		cSpika *spika = static_cast<cSpika *>(enemy);
 
 		// if colliding spika is more powerful
 		if( speed < spika->speed )
@@ -389,4 +392,30 @@ void cSpika :: Handle_Collision_Massive( cObjectCollision *collision )
 	{
 		velx = 0;
 	}
+}
+
+void cSpika :: Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 )
+{
+	if( cdirection == DIR_DOWN )
+	{
+		vely = -10;
+
+		// left
+		if( posx > r2->x )
+		{
+			velx += 10;
+		}
+		// right
+		else if( posx < r2->x )
+		{
+			velx -= 10;
+		}
+	}
+	// unsupported collision direction
+	else
+	{
+		return;
+	}
+
+	Reset_onGround();
 }

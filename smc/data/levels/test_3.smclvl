@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.6.2" />
+		<Property name="game_version" value="0.99.7" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1179246635" />
+		<Property name="save_time" value="1183235739" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="FluXy" />
@@ -30,6 +30,26 @@
 		<Property name="speedy" value="1" />
 		<Property name="posz" value="0.00011" />
 	</background>
+	<global_effect>
+		<Property name="type" value="0" />
+		<Property name="image" value="" />
+		<Property name="rect_x" value="0" />
+		<Property name="rect_y" value="0" />
+		<Property name="rect_w" value="800" />
+		<Property name="rect_h" value="0" />
+		<Property name="z" value="0.12" />
+		<Property name="z_rand" value="0" />
+		<Property name="time_to_live" value="7" />
+		<Property name="emitter_iteration_interval" value="0.3" />
+		<Property name="scale" value="0.2" />
+		<Property name="scale_rand" value="0.2" />
+		<Property name="speed" value="2" />
+		<Property name="speed_rand" value="8" />
+		<Property name="dir_range_start" value="0" />
+		<Property name="dir_range_size" value="90" />
+		<Property name="const_rotz" value="0.5" />
+		<Property name="const_rotz_rand" value="10" />
+	</global_effect>
 	<player>
 		<Property name="posx" value="475" />
 		<Property name="posy" value="468" />
@@ -295,40 +315,40 @@
 	</sprite>
 	<enemy>
 		<Property name="type" value="thromp" />
-		<Property name="posx" value="1260" />
-		<Property name="posy" value="-2" />
+		<Property name="posx" value="1254" />
+		<Property name="posy" value="296" />
 		<Property name="direction" value="up" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="7" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="thromp" />
-		<Property name="posx" value="1224" />
-		<Property name="posy" value="31" />
+		<Property name="posx" value="1944" />
+		<Property name="posy" value="370" />
 		<Property name="direction" value="left" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="7" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="thromp" />
-		<Property name="posx" value="1296" />
-		<Property name="posy" value="30" />
+		<Property name="posx" value="1416" />
+		<Property name="posy" value="371" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="7" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="thromp" />
-		<Property name="posx" value="1259" />
-		<Property name="posy" value="63" />
+		<Property name="posx" value="1334" />
+		<Property name="posy" value="170" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="7" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="gee" />
-		<Property name="posx" value="1549" />
-		<Property name="posy" value="162" />
+		<Property name="posx" value="2304" />
+		<Property name="posy" value="185" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
 		<Property name="always_fly" value="0" />
@@ -338,8 +358,8 @@
 	</enemy>
 	<enemy>
 		<Property name="type" value="gee" />
-		<Property name="posx" value="1635" />
-		<Property name="posy" value="161" />
+		<Property name="posx" value="2390" />
+		<Property name="posy" value="184" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
 		<Property name="always_fly" value="0" />
@@ -349,8 +369,8 @@
 	</enemy>
 	<enemy>
 		<Property name="type" value="gee" />
-		<Property name="posx" value="1719" />
-		<Property name="posy" value="159" />
+		<Property name="posx" value="2474" />
+		<Property name="posy" value="182" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
 		<Property name="always_fly" value="0" />
@@ -360,8 +380,8 @@
 	</enemy>
 	<enemy>
 		<Property name="type" value="gee" />
-		<Property name="posx" value="1549" />
-		<Property name="posy" value="98" />
+		<Property name="posx" value="2304" />
+		<Property name="posy" value="121" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
 		<Property name="always_fly" value="0" />
@@ -371,8 +391,8 @@
 	</enemy>
 	<enemy>
 		<Property name="type" value="gee" />
-		<Property name="posx" value="1635" />
-		<Property name="posy" value="97" />
+		<Property name="posx" value="2390" />
+		<Property name="posy" value="120" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
 		<Property name="always_fly" value="0" />
@@ -382,8 +402,8 @@
 	</enemy>
 	<enemy>
 		<Property name="type" value="gee" />
-		<Property name="posx" value="1719" />
-		<Property name="posy" value="95" />
+		<Property name="posx" value="2474" />
+		<Property name="posy" value="118" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
 		<Property name="always_fly" value="0" />
@@ -568,4 +588,82 @@
 		<Property name="color" value="green" />
 		<Property name="direction" value="right" />
 	</enemy>
+	<sprite>
+		<Property name="posx" value="1308" />
+		<Property name="posy" value="403" />
+		<Property name="image" value="pipes/green/hor.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="1358" />
+		<Property name="posy" value="403" />
+		<Property name="image" value="pipes/green/hor.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="1408" />
+		<Property name="posy" value="403" />
+		<Property name="image" value="pipes/green/hor.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="1458" />
+		<Property name="posy" value="403" />
+		<Property name="image" value="pipes/green/hor.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="1508" />
+		<Property name="posy" value="403" />
+		<Property name="image" value="pipes/green/hor.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="1558" />
+		<Property name="posy" value="403" />
+		<Property name="image" value="pipes/green/hor.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="1608" />
+		<Property name="posy" value="403" />
+		<Property name="image" value="pipes/green/hor.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="1658" />
+		<Property name="posy" value="403" />
+		<Property name="image" value="pipes/green/hor.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="1708" />
+		<Property name="posy" value="403" />
+		<Property name="image" value="pipes/green/hor.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="1758" />
+		<Property name="posy" value="403" />
+		<Property name="image" value="pipes/green/hor.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="1808" />
+		<Property name="posy" value="403" />
+		<Property name="image" value="pipes/green/hor.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="1858" />
+		<Property name="posy" value="403" />
+		<Property name="image" value="pipes/green/hor.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="1908" />
+		<Property name="posy" value="403" />
+		<Property name="image" value="pipes/green/right.png" />
+		<Property name="type" value="massive" />
+	</sprite>
 </level>

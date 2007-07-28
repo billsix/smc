@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.4" />
-		<Property name="engine_version" value="2" />
-		<Property name="save_time" value="1167869987" />
+		<Property name="game_version" value="0.99.8" />
+		<Property name="engine_version" value="2.1" />
+		<Property name="save_time" value="1184071630" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="" />
 		<Property name="lvl_version" value="" />
+		<Property name="lvl_music" value="land/land_5.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
 		<Property name="cam_limit_w" value="20000" />
@@ -22,9 +23,29 @@
 		<Property name="bg_color_2_green" value="0" />
 		<Property name="bg_color_2_blue" value="0" />
 	</background>
+	<global_effect>
+		<Property name="type" value="0" />
+		<Property name="image" value="" />
+		<Property name="rect_x" value="0" />
+		<Property name="rect_y" value="0" />
+		<Property name="rect_w" value="800" />
+		<Property name="rect_h" value="0" />
+		<Property name="z" value="0.12" />
+		<Property name="z_rand" value="0" />
+		<Property name="time_to_live" value="7" />
+		<Property name="emitter_iteration_interval" value="0.3" />
+		<Property name="scale" value="0.2" />
+		<Property name="scale_rand" value="0.2" />
+		<Property name="speed" value="2" />
+		<Property name="speed_rand" value="8" />
+		<Property name="dir_range_start" value="0" />
+		<Property name="dir_range_size" value="90" />
+		<Property name="const_rotz" value="0.5" />
+		<Property name="const_rotz_rand" value="10" />
+	</global_effect>
 	<player>
-		<Property name="posx" value="181" />
-		<Property name="posy" value="256" />
+		<Property name="posx" value="200" />
+		<Property name="posy" value="200" />
 		<Property name="direction" value="right" />
 	</player>
 	<sprite>
@@ -4664,7 +4685,6 @@
 		<Property name="posx" value="10194" />
 		<Property name="posy" value="276" />
 		<Property name="type" value="1" />
-		<Property name="level_name" value="" />
 		<Property name="direction" value="down" />
 	</levelexit>
 </level>

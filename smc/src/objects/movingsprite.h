@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef __MOVING_SPRITE_H__
 #define __MOVING_SPRITE_H__
@@ -89,8 +90,12 @@ public:
 	 * if check_onground is set after moving onground will be checked
 	*/
 	virtual ObjectDirection Col_Move( float move_x, float move_y, bool real = 0, bool force = 0, bool check_onground = 1 );
+
+	// Set velocity
+	void Set_Velocity( float x, float y );
 	// Add Velocity
-	void AddVel( float move_x, float move_y, bool real = 0 );
+	void Add_Velocity( float x, float y, bool real = 0 );
+
 	/* Move into the opposite Direction
 	 * if col_dir is given only turns around if the collision direction is in front
 	 */
@@ -120,8 +125,8 @@ public:
 	 * handle : if set handle out of level if valid
 	*/
 	bool Check_OutofLevel( float move_x, float move_y, bool handle = 0 );
-	// Sets the ground object
-	void Set_onGround( cObjectCollision *collision );
+	// Set the ground object
+	virtual void Set_onGround( cSprite *obj );
 	// Check if the Object is onground and sets the state to onground
 	virtual void Check_onGround( void );
 	// object looses onground state

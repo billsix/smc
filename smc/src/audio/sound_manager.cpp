@@ -3,14 +3,15 @@
                               -------------------
     copyright            :	(C) 2006 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../audio/sound_manager.h"
 
@@ -28,11 +29,13 @@ cSoundManager :: ~cSoundManager( void )
 
 cAudio_Sound *cSoundManager :: Get_Pointer( string path )
 {
-	for( unsigned int i = 0; i < items.size(); i++ )
+	for( SoundList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
 	{
-		if( items[i]->filename.compare( path ) == 0 )
+		cAudio_Sound *obj = (*itr);
+
+		if( obj->filename.compare( path ) == 0 )
 		{
-			return items[i];	// return first found
+			return obj;	// return first found
 		}
 	}
 
@@ -62,10 +65,12 @@ void cSoundManager :: Add( cAudio_Sound *sound )
 
 void cSoundManager :: Delete_Sounds( void )
 {
-	for( unsigned int i = 0; i < items.size(); i++ )
+	for( SoundList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
 	{
-		delete items[i];
-		items[i]= NULL;
+		cAudio_Sound *obj = (*itr);
+
+		delete obj;
+		obj = NULL;
 	}
 }
 

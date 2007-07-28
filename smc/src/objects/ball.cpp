@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2006 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../objects/ball.h"
 #include "../core/game_core.h"
@@ -66,7 +67,8 @@ cBall :: cBall( float x, float y, float nvelx, float nvely /* = 0 */, cMovingSpr
 	else
 	{
 		printf( "Warning : Ball unknown type %d\n", btype );
-		Destroy();
+		cMovingSprite::Destroy();
+		return;
 	}
 
 	if( origin->type == TYPE_PLAYER )
@@ -84,17 +86,7 @@ cBall :: cBall( float x, float y, float nvelx, float nvely /* = 0 */, cMovingSpr
 
 cBall :: ~cBall( void )
 {
-	if( origin->type == TYPE_PLAYER )
-	{
-		if( ball_type == FIREBALL_DEFAULT )
-		{
-			pPlayer->fireball_count--;
-		}
-		else if( ball_type == ICEBALL_DEFAULT )
-		{
-			pPlayer->iceball_count--;
-		}
-	}
+
 }
 
 void cBall :: Destroy( void )
@@ -107,21 +99,25 @@ void cBall :: Destroy( void )
 	if( ball_type == FIREBALL_DEFAULT )
 	{
 		pAnimationManager->Add( new cFireAnimation( posx + col_rect.w / 2, posy + col_rect.h / 2 ) );
+
+		if( origin->type == TYPE_PLAYER )
+		{
+			pPlayer->fireball_count--;
+		}
 	}
 	else if( ball_type == ICEBALL_DEFAULT )
 	{
 		// create animation
-		cParticleAnimation *anim = new cParticleAnimation( posx + col_rect.w / 2, posy + col_rect.h / 2 );
-		anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
-		anim->Set_Quota( 10 );
-		anim->Set_Time_to_Live( 0.5f );
-		anim->Set_ZPos( posz + 0.0001f );
-		anim->Set_Color( Color( (Uint8)50, 50, 250 ) );
-		anim->Set_Blending( BLEND_ADD );
-		anim->Set_Speed( 0.35f, 0.9f );
-		anim->Set_Scale( 0.4f, 0.2f );
+		cParticleAnimation *anim = new cParticleAnimation();
+		Generate_Particles( anim );
+		anim->Set_Quota( 15 );
 		// add animation
 		pAnimationManager->Add( anim );
+
+		if( origin->type == TYPE_PLAYER )
+		{
+			pPlayer->iceball_count--;
+		}
 	}
 
 	cMovingSprite::Destroy();
@@ -129,6 +125,11 @@ void cBall :: Destroy( void )
 
 void cBall :: Update( void )
 {
+	if( !valid_update )
+	{
+		return;
+	}
+
 	// right
 	if( velx > 0 )
 	{
@@ -142,7 +143,7 @@ void cBall :: Update( void )
 
 	if( vely < 30 )
 	{
-		AddVel( 0, 1 );
+		Add_Velocity( 0, 1 );
 	}
 
 	// if ball is out of Player Range
@@ -172,10 +173,18 @@ void cBall :: Update( void )
 			glim_mod = 1;
 		}
 	}
+
+	// Particle animation
+	Generate_Particles();
 }
 
 void cBall :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
+	if( !valid_draw )
+	{
+		return;
+	}
+
 	// don't draw if leveleditor mode
 	if( editor_level_enabled )
 	{
@@ -192,6 +201,41 @@ void cBall :: Draw( cSurfaceRequest *request /* = NULL */ )
 	}
 
 	cMovingSprite::Draw( request );
+}
+
+void cBall :: Generate_Particles( cParticleAnimation *anim /* = NULL */ )
+{
+	bool create_anim = 0;
+
+	if( !anim )
+	{
+		create_anim = 1;
+		// create animation
+		anim = new cParticleAnimation();
+	}
+
+	anim->Set_Emitter_Rect( col_rect );
+	anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
+	anim->Set_ZPos( posz + 0.0001f );
+	if( ball_type == FIREBALL_DEFAULT )
+	{
+		anim->Set_Time_to_Live( 0.2f );
+		anim->Set_Color( Color( (Uint8)250, 140, 90 ) );
+	}
+	else if( ball_type == ICEBALL_DEFAULT )
+	{
+		anim->Set_Time_to_Live( 0.5f );
+		anim->Set_Color( Color( (Uint8)90, 90, 255 ) );
+	}
+	anim->Set_Blending( BLEND_ADD );
+	anim->Set_Speed( 0.35f, 0.3f );
+	anim->Set_Scale( 0.4f, 0.2f );
+	
+	if( create_anim )
+	{
+		// add animation
+		pAnimationManager->Add( anim );
+	}
 }
 
 unsigned int cBall :: Validate_Collision( cSprite *obj )
@@ -354,6 +398,7 @@ void cBall :: Handle_Collision_Massive( cObjectCollision *collision )
 		if( velx < 0.1f && velx > -0.1f )
 		{
 			Destroy();
+			return;
 		}
 
 		if( ball_type == FIREBALL_DEFAULT )

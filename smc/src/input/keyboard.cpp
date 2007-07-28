@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2006 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../core/game_core.h"
 #include "../core/main.h"
@@ -23,10 +24,7 @@
 #include "../core/framerate.h"
 #include "../audio/audio.h"
 #include "../level/level.h"
-
-/* *** *** *** *** *** *** *** *** Variables *** *** *** *** *** *** *** *** *** */
-
-Uint8 *keys = NULL;
+#include "../user/preferences.h"
 
 /* *** *** *** *** *** *** *** *** Functions  *** *** *** *** *** *** *** *** *** */
 
@@ -127,8 +125,6 @@ bool cKeyboard :: Key_Down( SDLKey key )
 	// game exit
 	if( key == SDLK_F4 && input_event.key.keysym.mod & KMOD_ALT )
 	{
-		pMenuCore->leave = 1;
-		pActive_Overworld->entered = 1;
 		done = 1;
 		return 1;
 	}
@@ -192,10 +188,11 @@ bool cKeyboard :: Key_Down( SDLKey key )
 	// pause the game
 	else if( key == SDLK_PAUSE )
 	{
-		Draw_StaticText( "Pause", &yellow, &lightgreyalpha64, &lila, &black );
+		Draw_StaticText( "Pause", &yellow, &lightgreyalpha64 );
 	}
 	// load a level
-	else if( key == SDLK_l && !( Game_Mode == MODE_OVERWORLD && pOverworld_manager->debugmode ) && Game_Mode != MODE_LEVEL_SETTINGS )
+	else if( key == SDLK_l && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) &&
+			!( Game_Mode == MODE_OVERWORLD && pOverworld_manager->debugmode ) && Game_Mode != MODE_LEVEL_SETTINGS )
 	{
 		string level_name = "Name";
 
@@ -204,36 +201,36 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		{
 			level_name = Box_Text_Input( level_name, "Load a Level", level_name.compare( "Name" ) == 0 ? 1 : 0 );
 
+			// erase file type
+			if( level_name.find( "." ) != string::npos )
+			{
+				level_name.erase( level_name.rfind( "." ) );
+			}
+
 			// break if empty
 			if( level_name.empty() )
 			{
 				break;
 			}
 
-			// success
-			if( pLevel->Load( level_name ) )
+			// add level directory
+			if( level_name.find( pPreferences->level_dir ) == string::npos )
 			{
+				level_name.insert( 0, pPreferences->level_dir + "/" );
+			}
+
+			// if available
+			if( valid_file( level_name + ".smclvl" ) || valid_file( level_name + ".txt" )  )
+			{
+				Game_Action = GA_ENTER_LEVEL;
 				Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
+				Game_Action_Data = level_name;
 
-				// reset level player
-				pPlayer->Reset();
-
-				if( Game_Mode == MODE_OVERWORLD )
-				{
-					pActive_Overworld->entered = 1;
-				}
-				else if( Game_Mode == MODE_MENU )
-				{
-					pMenuCore->handler->Set_Active( 0 );
-					pMenuCore->leave = 1;
-					pMenuCore->next_menu = MENU_NOTHING;
-				}
-
-				debugdisplay->Set_Text( "Loaded " + level_name );
+				debugdisplay->Set_Text( "Loaded " + Get_filename( level_name, 0, 0 ) );
 
 				break;
 			}
-			// failed to load
+			// not found
 			else
 			{
 				pAudio->PlaySound( "error.ogg" );
@@ -241,7 +238,8 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		}
 	}
 	// load an overworld
-	else if( key == SDLK_w && !( Game_Mode == MODE_OVERWORLD && pOverworld_manager->debugmode ) && Game_Mode != MODE_LEVEL_SETTINGS )
+	else if( key == SDLK_w && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) &&
+			!( Game_Mode == MODE_OVERWORLD && pOverworld_manager->debugmode ) && Game_Mode != MODE_LEVEL_SETTINGS )
 	{
 		string world_name = "Name";
 
@@ -259,16 +257,7 @@ bool cKeyboard :: Key_Down( SDLKey key )
 			// success
 			if( pOverworld_manager->Set_Active( world_name ) )
 			{
-				if( Game_Mode == MODE_LEVEL || Game_Mode == MODE_OVERWORLD )
-				{
-					pActive_Overworld->delayed_enter = 1;
-				}
-				else if( Game_Mode == MODE_MENU )
-				{
-					pMenuCore->handler->Set_Active( 0 );
-					pMenuCore->leave = 1;
-					pMenuCore->next_menu = MENU_NOTHING;
-				}
+				Game_Action = GA_ENTER_WORLD;
 
 				debugdisplay->Set_Text( "Loaded " + world_name );
 

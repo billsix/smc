@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.7" />
+		<Property name="game_version" value="0.99.8" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1181283431" />
+		<Property name="save_time" value="1184521692" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="FluXy" />
@@ -25,13 +25,6 @@
 	</background>
 	<background>
 		<Property name="type" value="1" />
-		<Property name="image" value="game/background/blue_mountains_1.png" />
-		<Property name="speedx" value="2" />
-		<Property name="speedy" value="2" />
-		<Property name="posz" value="0.00011" />
-	</background>
-	<background>
-		<Property name="type" value="1" />
 		<Property name="image" value="game/background/green_junglehills.png" />
 		<Property name="speedx" value="1" />
 		<Property name="speedy" value="1" />
@@ -40,14 +33,14 @@
 	<global_effect>
 		<Property name="type" value="1" />
 		<Property name="image" value="animation/particles/rain_small.png" />
-		<Property name="rect_x" value="0" />
+		<Property name="rect_x" value="111" />
 		<Property name="rect_y" value="0" />
 		<Property name="rect_w" value="800" />
 		<Property name="rect_h" value="1" />
 		<Property name="z" value="0.12" />
 		<Property name="z_rand" value="0" />
 		<Property name="time_to_live" value="1.2" />
-		<Property name="creation_speed" value="2" />
+		<Property name="emitter_iteration_interval" value="0.016" />
 		<Property name="scale" value="0.1" />
 		<Property name="scale_rand" value="0.8" />
 		<Property name="speed" value="23" />

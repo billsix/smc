@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../enemies/jpiranha.h"
 #include "../core/game_core.h"
@@ -535,9 +536,10 @@ void cjPiranha :: Handle_Collision_Player( ObjectDirection cdirection )
 		return;
 	}
 
-	if( pPlayer->maryo_type != MARYO_SMALL && ( cdirection != DIR_BOTTOM ) )
+	if( pPlayer->maryo_type != MARYO_SMALL && !pPlayer->invincible && cdirection == direction )
 	{
-		pAudio->PlaySound( "player/maryo_au.ogg", RID_MARYO_AU );
+		// todo : create again
+		//pAudio->PlaySound( "player/maryo_au.ogg", RID_MARYO_AU );
 		pPlayer->start_enemyjump = 1;
 	}
 
@@ -549,7 +551,7 @@ void cjPiranha :: Editor_Activate( void )
 	WindowManager &wmgr = WindowManager::getSingleton();
 
 	// max distance
-	Editbox *editbox = (Editbox *)wmgr.createWindow( "TaharezLook/Editbox", "editor_jpiranha_max_distance" );
+	Editbox *editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_jpiranha_max_distance" ));
 	editbox->setTooltipText( "Max Distance" );
 	Editor_Add( editbox, 90 );
 
@@ -557,7 +559,7 @@ void cjPiranha :: Editor_Activate( void )
 	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cjPiranha::Editor_Max_Distance_Key, this ) );
 
 	// speed
-	editbox = (Editbox *)wmgr.createWindow( "TaharezLook/Editbox", "editor_jpiranha_speed" );
+	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_jpiranha_speed" ));
 	editbox->setTooltipText( "Speed" );
 	Editor_Add( editbox, 120 );
 

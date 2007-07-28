@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.5" />
-		<Property name="engine_version" value="2" />
-		<Property name="save_time" value="1172702579" />
+		<Property name="game_version" value="0.99.7" />
+		<Property name="engine_version" value="2.1" />
+		<Property name="save_time" value="1182482831" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="WeirdNose" />
@@ -45,7 +45,7 @@
 	</global_effect>
 	<player>
 		<Property name="posx" value="225" />
-		<Property name="posy" value="341" />
+		<Property name="posy" value="283" />
 		<Property name="direction" value="right" />
 	</player>
 	<sprite>
@@ -2388,8 +2388,8 @@
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemystopper>
-		<Property name="posx" value="1083" />
-		<Property name="posy" value="409" />
+		<Property name="posx" value="1088" />
+		<Property name="posy" value="416" />
 	</enemystopper>
 	<box>
 		<Property name="posx" value="2691" />
@@ -2437,6 +2437,7 @@
 	<moving_platform>
 		<Property name="posx" value="4567" />
 		<Property name="posy" value="205" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="3" />
@@ -2448,6 +2449,7 @@
 	<moving_platform>
 		<Property name="posx" value="5054" />
 		<Property name="posy" value="285" />
+		<Property name="massive_type" value="massive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="300" />
 		<Property name="speed" value="3" />
@@ -2459,6 +2461,7 @@
 	<moving_platform>
 		<Property name="posx" value="6982" />
 		<Property name="posy" value="-658" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="500" />
 		<Property name="speed" value="5" />
@@ -2468,48 +2471,48 @@
 		<Property name="image_top_right" value="slider/grey_1/slider_right.png" />
 	</moving_platform>
 	<enemystopper>
-		<Property name="posx" value="6807" />
-		<Property name="posy" value="-856" />
+		<Property name="posx" value="6805" />
+		<Property name="posy" value="-847" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="6206" />
-		<Property name="posy" value="-899" />
+		<Property name="posx" value="6207" />
+		<Property name="posy" value="-891" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="5690" />
-		<Property name="posy" value="-982" />
+		<Property name="posx" value="5691" />
+		<Property name="posy" value="-976" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="5331" />
-		<Property name="posy" value="-984" />
+		<Property name="posx" value="5334" />
+		<Property name="posy" value="-976" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="5025" />
-		<Property name="posy" value="-919" />
+		<Property name="posx" value="5021" />
+		<Property name="posy" value="-910" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="4486" />
-		<Property name="posy" value="-919" />
+		<Property name="posx" value="4489" />
+		<Property name="posy" value="-912" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="5962" />
-		<Property name="posy" value="404" />
+		<Property name="posx" value="5965" />
+		<Property name="posy" value="415" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="4030" />
-		<Property name="posy" value="346" />
+		<Property name="posx" value="4035" />
+		<Property name="posy" value="351" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="4390" />
-		<Property name="posy" value="339" />
+		<Property name="posx" value="4384" />
+		<Property name="posy" value="352" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="3254" />
-		<Property name="posy" value="341" />
+		<Property name="posx" value="3261" />
+		<Property name="posy" value="348" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="3555" />
-		<Property name="posy" value="337" />
+		<Property name="posx" value="3551" />
+		<Property name="posy" value="348" />
 	</enemystopper>
 	<enemy>
 		<Property name="type" value="turtle" />
@@ -2519,8 +2522,8 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemystopper>
-		<Property name="posx" value="7168" />
-		<Property name="posy" value="9" />
+		<Property name="posx" value="7170" />
+		<Property name="posy" value="27" />
 	</enemystopper>
 	<enemy>
 		<Property name="type" value="spika" />
@@ -3197,6 +3200,7 @@
 	<moving_platform>
 		<Property name="posx" value="1895" />
 		<Property name="posy" value="-1825" />
+		<Property name="massive_type" value="massive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="300" />
 		<Property name="speed" value="3" />
@@ -6305,6 +6309,7 @@
 	<moving_platform>
 		<Property name="posx" value="7153" />
 		<Property name="posy" value="-3337" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="350" />
 		<Property name="speed" value="4" />
@@ -7316,12 +7321,12 @@
 		<Property name="gold_color" value="red" />
 	</box>
 	<enemystopper>
-		<Property name="posx" value="3971" />
-		<Property name="posy" value="-1298" />
+		<Property name="posx" value="3965" />
+		<Property name="posy" value="-1283" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="3662" />
-		<Property name="posy" value="-1297" />
+		<Property name="posx" value="3676" />
+		<Property name="posy" value="-1280" />
 	</enemystopper>
 	<enemy>
 		<Property name="type" value="gumba" />
@@ -7487,8 +7492,8 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<enemystopper>
-		<Property name="posx" value="7744" />
-		<Property name="posy" value="-3259" />
+		<Property name="posx" value="7760" />
+		<Property name="posy" value="-3246" />
 	</enemystopper>
 	<enemy>
 		<Property name="type" value="gumba" />
@@ -7498,12 +7503,12 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemystopper>
-		<Property name="posx" value="4390" />
-		<Property name="posy" value="-2977" />
+		<Property name="posx" value="4388" />
+		<Property name="posy" value="-2966" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="4140" />
-		<Property name="posy" value="-2978" />
+		<Property name="posx" value="4153" />
+		<Property name="posy" value="-2964" />
 	</enemystopper>
 	<item>
 		<Property name="type" value="goldpiece" />
@@ -7538,12 +7543,12 @@
 		<Property name="color" value="yellow" />
 	</item>
 	<enemystopper>
-		<Property name="posx" value="3794" />
-		<Property name="posy" value="-3303" />
+		<Property name="posx" value="3804" />
+		<Property name="posy" value="-3294" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="4043" />
-		<Property name="posy" value="-3297" />
+		<Property name="posx" value="4041" />
+		<Property name="posy" value="-3294" />
 	</enemystopper>
 	<enemy>
 		<Property name="type" value="gumba" />
@@ -7560,12 +7565,12 @@
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemystopper>
-		<Property name="posx" value="5033" />
-		<Property name="posy" value="-3677" />
+		<Property name="posx" value="5030" />
+		<Property name="posy" value="-3667" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="4448" />
-		<Property name="posy" value="-3676" />
+		<Property name="posx" value="4457" />
+		<Property name="posy" value="-3667" />
 	</enemystopper>
 	<item>
 		<Property name="type" value="goldpiece" />
@@ -7656,12 +7661,12 @@
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemystopper>
-		<Property name="posx" value="1401" />
-		<Property name="posy" value="-2062" />
+		<Property name="posx" value="1409" />
+		<Property name="posy" value="-2051" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="1763" />
-		<Property name="posy" value="-2065" />
+		<Property name="posx" value="1754" />
+		<Property name="posy" value="-2051" />
 	</enemystopper>
 	<enemy>
 		<Property name="type" value="gumba" />
@@ -7685,8 +7690,8 @@
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemystopper>
-		<Property name="posx" value="2381" />
-		<Property name="posy" value="-2433" />
+		<Property name="posx" value="2389" />
+		<Property name="posy" value="-2419" />
 	</enemystopper>
 	<enemy>
 		<Property name="type" value="turtle" />
@@ -7696,16 +7701,16 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemystopper>
-		<Property name="posx" value="2771" />
-		<Property name="posy" value="-2598" />
+		<Property name="posx" value="2778" />
+		<Property name="posy" value="-2589" />
 	</enemystopper>
 	<enemystopper>
 		<Property name="posx" value="3570" />
-		<Property name="posy" value="-2595" />
+		<Property name="posy" value="-2593" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="4238" />
-		<Property name="posy" value="-2603" />
+		<Property name="posx" value="4240" />
+		<Property name="posy" value="-2593" />
 	</enemystopper>
 	<box>
 		<Property name="posx" value="4619" />
@@ -7740,8 +7745,8 @@
 		<Property name="gold_color" value="yellow" />
 	</box>
 	<enemystopper>
-		<Property name="posx" value="5849" />
-		<Property name="posy" value="-3123" />
+		<Property name="posx" value="5845" />
+		<Property name="posy" value="-3107" />
 	</enemystopper>
 	<box>
 		<Property name="posx" value="7933" />
@@ -7754,13 +7759,13 @@
 		<Property name="force_best_item" value="0" />
 	</box>
 	<levelexit>
-		<Property name="posx" value="8051" />
-		<Property name="posy" value="-3268" />
+		<Property name="posx" value="8052" />
+		<Property name="posy" value="-3259" />
 		<Property name="type" value="0" />
 	</levelexit>
 	<levelexit>
-		<Property name="posx" value="5076" />
-		<Property name="posy" value="-3380" />
+		<Property name="posx" value="5077" />
+		<Property name="posy" value="-3365" />
 		<Property name="type" value="1" />
 		<Property name="level_name" value="wn_06_down" />
 		<Property name="direction" value="down" />
@@ -7792,4 +7797,16 @@
 		<Property name="image_top_middle" value="slider/grey_1/slider_middle.png" />
 		<Property name="image_top_right" value="slider/grey_1/slider_right.png" />
 	</falling_platform>
+	<enemystopper>
+		<Property name="posx" value="6525" />
+		<Property name="posy" value="241" />
+	</enemystopper>
+	<enemystopper>
+		<Property name="posx" value="3510" />
+		<Property name="posy" value="-1494" />
+	</enemystopper>
+	<enemystopper>
+		<Property name="posx" value="2936" />
+		<Property name="posy" value="-1581" />
+	</enemystopper>
 </level>

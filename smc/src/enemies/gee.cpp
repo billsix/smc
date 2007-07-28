@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2006 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../enemies/gee.h"
 #include "../core/game_core.h"
@@ -561,11 +562,12 @@ void cGee :: Handle_Collision_Player( ObjectDirection cdirection )
 		pointsdisplay->Add_Points( kill_points, pPlayer->posx, pPlayer->posy, "", (Uint8)255, 1 );
 		pPlayer->Add_Kill_Multiplier();
 	}
-	else
+	else if( !pPlayer->invincible )
 	{
 		if( pPlayer->maryo_type != MARYO_SMALL )
 		{
-			pAudio->PlaySound( "player/maryo_au.ogg", RID_MARYO_AU );
+			// todo : create again
+			//pAudio->PlaySound( "player/maryo_au.ogg", RID_MARYO_AU );
 
 			if( cdirection == DIR_BOTTOM  )
 			{

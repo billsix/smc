@@ -8,10 +8,8 @@
         <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
         <Window Type="TaharezLook/StaticText" Name="text_default" >
             <Property Name="AlwaysOnTop" Value="True" />
-            <Property Name="FrameEnabled" Value="False" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
             <Property Name="UnifiedAreaRect" Value="{{0.35475,0},{0.451216,0},{0.713407,0},{0.501217,0}}" />
-            <Property Name="BackgroundEnabled" Value="False" />
         </Window>
     </Window>
 </GUILayout>

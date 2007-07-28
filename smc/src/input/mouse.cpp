@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../core/globals.h"
 #include "../core/main.h"
@@ -190,22 +191,6 @@ bool cMouseCursor :: Handle_Event( SDL_Event *ev )
 		default:
 		{
 			break;
-		}
-	}
-
-	// editor events
-	if( pWorld_Editor->enabled )
-	{
-		if( pWorld_Editor->Handle_Event( ev ) )
-		{
-			return 1;
-		}
-	}
-	else if( pLevel_Editor->enabled )
-	{
-		if( pLevel_Editor->Handle_Event( ev ) )
-		{
-			return 1;
 		}
 	}
 
@@ -676,9 +661,9 @@ void cMouseCursor :: Add_copy_object( cSprite *sprite )
 	}
 
 	// check if not already added
-	for( unsigned int i = 0; i < copy_objects.size(); i++ )
+	for( CopyObjectList::iterator itr = copy_objects.begin(), itr_end = copy_objects.end(); itr != itr_end; ++itr )
 	{
-		if( copy_objects[i]->obj == sprite )
+		if( (*itr)->obj == sprite )
 		{
 			return;
 		}
@@ -706,9 +691,11 @@ void cMouseCursor :: Add_copy_objects( SpriteList spritelist )
 	}
 
 	// inserts all objects
-	for( unsigned int i = 0; i < spritelist.size(); i++ )
+	for( SpriteList::iterator itr = spritelist.begin(), itr_end = spritelist.end(); itr != itr_end; ++itr )
 	{
-		Add_copy_object( spritelist[i] );
+		cSprite *obj = (*itr);
+
+		Add_copy_object( obj );
 	}
 }
 
@@ -719,12 +706,15 @@ bool cMouseCursor :: Remove_copy_object( cSprite *sprite )
 		return 0;
 	}
 
-	for( unsigned int i = 0; i < copy_objects.size(); i++ )
+	for( CopyObjectList::iterator itr = copy_objects.begin(), itr_end = copy_objects.end(); itr != itr_end; ++itr )
 	{
-		if( copy_objects[i]->obj == sprite )
+		cCopyObject *copy_obj = (*itr);
+
+		if( copy_obj->obj == sprite )
 		{
-			delete copy_objects[i];
-			copy_objects.erase( copy_objects.begin() + i );
+			copy_objects.erase( itr );
+			delete copy_obj;
+			
 			return 1;
 		}
 	}
@@ -734,9 +724,9 @@ bool cMouseCursor :: Remove_copy_object( cSprite *sprite )
 
 void cMouseCursor :: Clear_copy_objects( void )
 {
-	for( unsigned int i = 0; i < copy_objects.size(); i++ )
+	for( CopyObjectList::iterator itr = copy_objects.begin(), itr_end = copy_objects.end(); itr != itr_end; ++itr )
 	{
-		delete copy_objects[i];
+		delete *itr;
 	}
 
 	copy_objects.clear();
@@ -755,13 +745,15 @@ GL_Vector cMouseCursor :: Get_copy_object_base( float px, float py )
 	float base_x = copy_objects[0]->obj->posx;
 	float base_y = copy_objects[0]->obj->posy;
 
-	for( unsigned int i = 1; i < copy_objects.size(); i++ )
+	for( CopyObjectList::iterator itr = copy_objects.begin(), itr_end = copy_objects.end(); itr != itr_end; ++itr )
 	{
+		cCopyObject *copy_obj = (*itr);
+
 		// if more in top or left
-		if( copy_objects[i]->obj->posx < base_x || copy_objects[i]->obj->posy < base_y )
+		if( copy_obj->obj->posx < base_x || copy_obj->obj->posy < base_y )
 		{
-			base_x = copy_objects[i]->obj->posx;
-			base_y = copy_objects[i]->obj->posy;
+			base_x = copy_obj->obj->posx;
+			base_y = copy_obj->obj->posy;
 		}
 	}
 
@@ -780,13 +772,15 @@ void cMouseCursor :: Paste_copy_objects( float px, float py )
 
 	SpriteList new_objects;
 
-	for( unsigned int i = 0; i < copy_objects.size(); i++ )
+	for( CopyObjectList::iterator itr = copy_objects.begin(), itr_end = copy_objects.end(); itr != itr_end; ++itr )
 	{
+		cCopyObject *copy_obj = (*itr);
+
 		// set base vector
-		GL_Vector base_vec = Get_copy_object_base( copy_objects[i]->obj->posx, copy_objects[i]->obj->posy );
+		GL_Vector base_vec = Get_copy_object_base( copy_obj->obj->posx, copy_obj->obj->posy );
 
 		// copy
-		cSprite* new_object = static_cast<cSprite *>(Copy( static_cast<cMovingSprite *>(copy_objects[i]->obj), px + base_vec.x, py + base_vec.y ));
+		cSprite* new_object = Copy( copy_obj->obj, px + base_vec.x, py + base_vec.y );
 
 		if( new_object )
 		{
@@ -813,14 +807,16 @@ bool cMouseCursor :: Add_selected_object( cSprite *sprite, bool from_user /* = 0
 	}
 
 	// check if not already added
-	for( unsigned int i = 0; i < selected_objects.size(); i++ )
+	for( SelectedObjectList::iterator itr = selected_objects.begin(), itr_end = selected_objects.end(); itr != itr_end; ++itr )
 	{
-		if( selected_objects[i]->obj == sprite )
+		cSelectedObject *sel_obj = (*itr);
+
+		if( sel_obj->obj == sprite )
 		{
 			// overwrite user if given
-			if( from_user && !selected_objects[i]->user )
+			if( from_user && !sel_obj->user )
 			{
-				selected_objects[i]->user = 1;
+				sel_obj->user = 1;
 				return 1;
 			}
 
@@ -845,9 +841,11 @@ void cMouseCursor :: Add_selected_objects( SpriteList spritelist, bool from_user
 	}
 
 	// inserts all objects
-	for( unsigned int i = 0; i < spritelist.size(); i++ )
+	for( SpriteList::iterator itr = spritelist.begin(), itr_end = spritelist.end(); itr != itr_end; ++itr )
 	{
-		Add_selected_object( spritelist[i], from_user );
+		cSprite *obj = (*itr);
+
+		Add_selected_object( obj, from_user );
 	}
 }
 
@@ -858,18 +856,21 @@ bool cMouseCursor :: Remove_selected_object( cSprite *sprite, bool no_user /* = 
 		return 0;
 	}
 
-	for( unsigned int i = 0; i < selected_objects.size(); i++ )
+	for( SelectedObjectList::iterator itr = selected_objects.begin(), itr_end = selected_objects.end(); itr != itr_end; ++itr )
 	{
-		if( selected_objects[i]->obj == sprite )
+		cSelectedObject *sel_obj = (*itr);
+
+		if( sel_obj->obj == sprite )
 		{
 			// don't delete user added selected object
-			if( no_user && selected_objects[i]->user )
+			if( no_user && sel_obj->user )
 			{
 				return 0;
 			}
 
-			delete selected_objects[i];
-			selected_objects.erase( selected_objects.begin() + i );
+			selected_objects.erase( itr );
+			delete sel_obj;
+			
 			return 1;
 		}
 	}
@@ -891,9 +892,9 @@ SpriteList cMouseCursor :: Get_selected_objects( void )
 
 void cMouseCursor :: Clear_selected_objects( void )
 {
-	for( unsigned int i = 0; i < selected_objects.size(); i++ )
+	for( SelectedObjectList::iterator itr = selected_objects.begin(), itr_end = selected_objects.end(); itr != itr_end; ++itr )
 	{
-		delete selected_objects[i];
+		delete *itr;
 	}
 
 	selected_objects.clear();
@@ -907,12 +908,14 @@ void cMouseCursor :: Update_selected_objects( void )
 	}
 
 	// update selected objects positioning mouse width and height
-	for( unsigned int i = 0; i < selected_objects.size(); i++ )
+	for( SelectedObjectList::iterator itr = selected_objects.begin(), itr_end = selected_objects.end(); itr != itr_end; ++itr )
 	{
+		cSelectedObject *sel_obj = (*itr);
+
 		if( !left || mode_selection )
 		{
-			selected_objects[i]->mouse_w = (int)posx - (int)selected_objects[i]->obj->startposx;
-			selected_objects[i]->mouse_h = (int)posy - (int)selected_objects[i]->obj->startposy;
+			sel_obj->mouse_w = (int)posx - (int)sel_obj->obj->startposx;
+			sel_obj->mouse_h = (int)posy - (int)sel_obj->obj->startposy;
 		}
 	}
 
@@ -922,16 +925,18 @@ void cMouseCursor :: Update_selected_objects( void )
 		return;
 	}
 
-	for( unsigned int i = 0; i < selected_objects.size(); i++ )
+	for( SelectedObjectList::iterator itr = selected_objects.begin(), itr_end = selected_objects.end(); itr != itr_end; ++itr )
 	{
+		cSelectedObject *sel_obj = (*itr);
+
 		// left mouse is pressed
 		if( left )
 		{
 			// set new position
-			selected_objects[i]->obj->Set_Pos( (float)( (int)posx - selected_objects[i]->mouse_w ), (float)( (int)posy - selected_objects[i]->mouse_h ), 1 );
+			sel_obj->obj->Set_Pos( (int)posx - sel_obj->mouse_w, (int)posy - sel_obj->mouse_h, 1 );
 
 			// update object settings position
-			if( active_object && active_object == selected_objects[i]->obj )
+			if( active_object && active_object == sel_obj->obj )
 			{
 				active_object->Editor_pos_update();
 			}
@@ -946,12 +951,14 @@ bool cMouseCursor :: is_selected_object( cSprite *sprite, bool only_user /* = 0 
 		return 0;
 	}
 
-	for( unsigned int i = 0; i < selected_objects.size(); i++ )
+	for( SelectedObjectList::iterator itr = selected_objects.begin(), itr_end = selected_objects.end(); itr != itr_end; ++itr )
 	{
-		if( selected_objects[i]->obj == sprite )
+		cSelectedObject *sel_obj = (*itr);
+
+		if( sel_obj->obj == sprite )
 		{
 			// if only user objects
-			if( only_user && !selected_objects[i]->user )
+			if( only_user && !sel_obj->user )
 			{
 				continue;
 			}
@@ -968,7 +975,7 @@ void cMouseCursor :: Delete_selected_objects( void )
 {
 	for( int i = selected_objects.size() - 1; i >= 0; i-- )
 	{
-		Delete( static_cast<cMovingSprite *>( selected_objects[i]->obj ) );
+		Delete( selected_objects[i]->obj );
 	}
 
 	Clear_selected_objects();
@@ -1025,10 +1032,16 @@ cSprite *cMouseCursor :: Copy( cSprite *ncopy_object, float px, float py )
 		{
 			pActive_Overworld->object_manager->Add( new_sprite );
 		}
+		else
+		{
+			printf( "no editor enabled for copy object: %s\n", new_sprite->name.c_str() );
+			delete new_sprite;
+			return NULL;
+		}
 	}
 	else
 	{
-		printf( "copy object unknown Array : %d\n", new_sprite->sprite_array );
+		printf( "copy object unknown array : %d\n", new_sprite->sprite_array );
 		delete new_sprite;
 		return NULL;
 	}
@@ -1125,9 +1138,9 @@ void cMouseCursor :: Draw_object_rects( void )
 	{
 		Color obj_color = white;
 
-		for( unsigned int i = 0; i < selected_objects.size(); i++ )
+		for( SelectedObjectList::iterator itr = selected_objects.begin(), itr_end = selected_objects.end(); itr != itr_end; ++itr )
 		{
-			cSprite *object = selected_objects[i]->obj;
+			cSprite *object = (*itr)->obj;
 
 			// check if visible on screen
 			if( !object->is_Visible_onScreen() )

@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
  
 #include "../objects/box.h"
 #include "../audio/audio.h"
@@ -30,6 +31,7 @@ cBaseBox :: cBaseBox( float x /* = 0 */, float y /* = 0 */ )
 	type = TYPE_ACTIVESPRITE;
 	sprite_array = ARRAY_ACTIVE;
 	massivetype = MASS_MASSIVE;
+	can_be_ground = 1;
 
 	counter = 0;
 	box_type = TYPE_UNDEFINED;
@@ -56,7 +58,7 @@ void cBaseBox :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
-	if( box_type != TYPE_SPINBOX )
+	if( box_type != TYPE_SPINBOX && box_type != TYPE_TEXT_BOX )
 	{
 		// animation
 		Set_Animation( attributes.getValueAsString( "animation", anim_type ).c_str() );
@@ -72,14 +74,17 @@ void cBaseBox :: Save_to_Stream( ofstream &file )
 	// position
 	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
 	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	// type
 	if( box_type == TYPE_SPINBOX )
 	{
-		// type
 		file << "\t\t<Property name=\"type\" value=\"spin\" />" << std::endl;
+	}
+	else if( box_type == TYPE_TEXT_BOX )
+	{
+		file << "\t\t<Property name=\"type\" value=\"text\" />" << std::endl;
 	}
 	else
 	{
-		// type
 		file << "\t\t<Property name=\"type\" value=\"bonus\" />" << std::endl;
 		// animation type
 		file << "\t\t<Property name=\"animation\" value=\"" << anim_type << "\" />" << std::endl;
@@ -140,7 +145,9 @@ void cBaseBox :: Set_Animation( string new_anim_type )
 	}
 	else if( anim_type.compare( "Spin" ) == 0 )
 	{
+		// disabled image
 		images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/disabled.png" ) );
+		// animation images
 		images.push_back( pVideo->Get_Surface( "game/box/yellow/default.png" ) );
 		images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/1.png" ) );
 		images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/2.png" ) );
@@ -395,15 +402,13 @@ void cBaseBox :: Check_Collision( ObjectDirection cdirection )
 		cObjectCollision *col = Collision_Get_last();
 		cSprite *col_obj = pObjManager->Get_Pointer( col->number );
 
-		 // Enemy collision
+		// send box collision
+		col_obj->Handle_Collision_Box( Get_OppositeDirection( col->direction ), &col_rect );
+
+		// Enemy collision
 		if( col->type == CO_ENEMY )
 		{
 			Col_Enemy( col_obj );
-		}
-		// Active
-		else if( col->type == CO_ACTIVE ) 
-		{
-			Col_Active( col_obj, cdirection );
 		}
 
 		Collision_Delete( col );
@@ -417,16 +422,6 @@ void cBaseBox :: Col_Enemy( cSprite *obj )
 	{
 		pAudio->PlaySound( "death_box.ogg" );
 		static_cast<cMovingSprite *>(obj)->DownGrade( 1 );
-	}
-}
-
-void cBaseBox :: Col_Active( cSprite *obj, ObjectDirection dir )
-{
-	// Mushroom collision
-	if( obj->type == TYPE_MUSHROOM_DEFAULT || obj->type == TYPE_MUSHROOM_LIVE_1 || obj->type == TYPE_MUSHROOM_POISON
-		|| obj->type == TYPE_MUSHROOM_BLUE || obj->type == TYPE_MUSHROOM_GHOST || obj->type == TYPE_FGOLDPIECE )
-	{
-		static_cast<cMovingSprite *>(obj)->Handle_Collision_Box( dir, &col_rect );
 	}
 }
 
@@ -445,7 +440,7 @@ void cBaseBox :: Update( void )
 		{
 			counter += pFramerate->speedfactor * 0.4f;
 
-			if( counter >= anim_counter_max )
+			if( counter >= anim_counter_max + 1 )
 			{
 				counter = (float)anim_counter_min;
 			}
@@ -453,7 +448,7 @@ void cBaseBox :: Update( void )
 			// Set_Image overwrites col_pos
 			GL_point col_pos_temp = col_pos;
 
-			Set_Image( (int)counter, 0, 0 );
+			Set_Image( (int)counter );
 
 			// save col_pos
 			col_pos = col_pos_temp;
@@ -515,7 +510,7 @@ void cBaseBox :: Draw( cSurfaceRequest *request /* = NULL */ )
 void cBaseBox :: Generate_active_Particles( void )
 {
 	// no default/unimportant boxes
-	if( type == TYPE_SPINBOX || box_type == TYPE_GOLDPIECE )
+	if( type == TYPE_SPINBOX || type == TYPE_TEXT_BOX || box_type == TYPE_GOLDPIECE )
 	{
 		return;
 	}
@@ -686,18 +681,21 @@ void cBaseBox :: Editor_Activate( void )
 {
 	WindowManager &wmgr = WindowManager::getSingleton();
 
-	// useable count
-	Editbox *editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_basebox_useable_count" ));
-	editbox->setTooltipText( "Useable Count" );
-	Editor_Add( editbox, 80 );
+	if( type != TYPE_TEXT_BOX )
+	{
+		// useable count
+		Editbox *editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_basebox_useable_count" ));
+		editbox->setTooltipText( "Useable Count" );
+		Editor_Add( editbox, 80 );
 
-	editbox->setText( int_to_string( start_useable_count ) );
-	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cBaseBox::Editor_Useable_Count_Key, this ) );
+		editbox->setText( int_to_string( start_useable_count ) );
+		editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cBaseBox::Editor_Useable_Count_Key, this ) );
+	}
 
 	// Invisible
 	Combobox *combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_basebox_invisible" ));
 	combobox->getEditbox()->setTooltipText( "Invisible" );
-	Editor_Add( combobox, 120, 80 );
+	Editor_Add( combobox, 120, 100 );
 
 	combobox->addItem( new ListboxTextItem( "Enabled" ) );
 	combobox->addItem( new ListboxTextItem( "Disabled" ) );
@@ -759,6 +757,10 @@ void cBaseBox :: Create_Name( void )
 	else if( box_type == TYPE_SPINBOX )
 	{
 		name = "Spinbox";
+	}
+	else if( box_type == TYPE_TEXT_BOX )
+	{
+		name = "Textbox";
 	}
 	else if( box_type == TYPE_MUSHROOM_DEFAULT )
 	{

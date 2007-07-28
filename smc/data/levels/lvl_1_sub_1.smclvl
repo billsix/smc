@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.6" />
+		<Property name="game_version" value="0.99.8" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1174960961" />
+		<Property name="save_time" value="1184146455" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="FluXy" />
@@ -16,24 +16,24 @@
 	</settings>
 	<background>
 		<Property name="type" value="103" />
-		<Property name="bg_color_1_red" value="130" />
-		<Property name="bg_color_1_green" value="120" />
-		<Property name="bg_color_1_blue" value="0" />
-		<Property name="bg_color_2_red" value="70" />
+		<Property name="bg_color_1_red" value="80" />
+		<Property name="bg_color_1_green" value="60" />
+		<Property name="bg_color_1_blue" value="40" />
+		<Property name="bg_color_2_red" value="80" />
 		<Property name="bg_color_2_green" value="60" />
-		<Property name="bg_color_2_blue" value="10" />
+		<Property name="bg_color_2_blue" value="40" />
 	</background>
 	<global_effect>
 		<Property name="type" value="1" />
 		<Property name="image" value="animation/particles/star.png" />
-		<Property name="rect_x" value="0" />
-		<Property name="rect_y" value="664" />
+		<Property name="rect_x" value="80.3918" />
+		<Property name="rect_y" value="0" />
 		<Property name="rect_w" value="800" />
 		<Property name="rect_h" value="0" />
 		<Property name="z" value="0.001" />
 		<Property name="z_rand" value="0" />
 		<Property name="time_to_live" value="14" />
-		<Property name="creation_speed" value="0.12" />
+		<Property name="emitter_iteration_interval" value="0.266667" />
 		<Property name="scale" value="0.2" />
 		<Property name="scale_rand" value="0.1" />
 		<Property name="speed" value="1" />

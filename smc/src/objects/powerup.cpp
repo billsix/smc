@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../objects/powerup.h"
 #include "../core/game_core.h"
@@ -83,6 +84,11 @@ unsigned int cPowerUp :: Validate_Collision( cSprite *obj )
 			return 0;
 		}
 		if( obj->sprite_array == ARRAY_ENEMY )
+		{
+			return 0;
+		}
+		// don't collide with balls
+		if( obj->type == TYPE_BALL )
 		{
 			return 0;
 		}
@@ -230,7 +236,6 @@ void cMushroom :: Set_Type( SpriteType ntype )
 
 void cMushroom :: Activate( void )
 {
-	Set_Visible( 0 );
 	pPlayer->Get_Item( type );
 
 	if( type == TYPE_MUSHROOM_DEFAULT )
@@ -239,7 +244,7 @@ void cMushroom :: Activate( void )
 	}
 	else if( type == TYPE_MUSHROOM_LIVE_1 )
 	{
-		pointsdisplay->Add_Points( 1000, posx + image->w/ 2, posy + 3 );
+		pointsdisplay->Add_Points( 1000, posx + image->w / 2, posy + 3 );
 	}
 	else if( type == TYPE_MUSHROOM_POISON )
 	{
@@ -259,6 +264,11 @@ void cMushroom :: Activate( void )
 	{
 		Destroy();
 	}
+	// hide
+	else
+	{
+		Set_Visible( 0 );
+	}
 }
 
 void cMushroom :: Update( void )
@@ -276,16 +286,9 @@ void cMushroom :: Update( void )
 
 	if( !ground_object )
 	{
-		if( vely < 50 )
+		if( vely < 25 )
 		{
-			if( vely > 0 )
-			{
-				AddVel( 0, 0.5f + ( vely * 0.05f ) );
-			}
-			else
-			{
-				AddVel( 0, 2.5f );
-			}
+			Add_Velocity( 0, 1.5f );
 		}
 	}
 	else
@@ -363,12 +366,6 @@ void cMushroom :: Handle_Collision_Massive( cObjectCollision *collision )
 
 void cMushroom :: Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 )
 {
-	// if unsupported collision direction
-	if( cdirection != DIR_DOWN && cdirection != DIR_LEFT && cdirection != DIR_RIGHT )
-	{
-		return;
-	}
-
 	if( cdirection == DIR_DOWN )
 	{
 		vely = -30;
@@ -388,6 +385,11 @@ void cMushroom :: Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 
 	{
 		vely = -13;
 		Turn_Around( cdirection );
+	}
+	// unsupported collision direction
+	else
+	{
+		return;
 	}
 
 	Reset_onGround();
@@ -446,10 +448,20 @@ void cFirePlant :: Update( void )
 
 	if( Col_Box( &col_rect, &pPlayer->col_rect ) )
 	{
-		Set_Visible( 0 );
 		pPlayer->Get_Item( TYPE_FIREPLANT );
 
 		pointsdisplay->Add_Points( 700, posx + image->w / 2, posy );
+		
+		// if spawned destroy
+		if( spawned )
+		{
+			Destroy();
+		}
+		// hide
+		else
+		{
+			Set_Visible( 0 );
+		}
 	}
 }
 
@@ -539,10 +551,20 @@ void cMoon :: Update( void )
 
 	if( Col_Box( &col_rect, &pPlayer->col_rect ) )
 	{
-		Set_Visible( 0 );
 		pPlayer->Get_Item( TYPE_MOON );
 
 		pointsdisplay->Add_Points( 4000, posx + image->w / 2, posy );
+
+		// if spawned destroy
+		if( spawned )
+		{
+			Destroy();
+		}
+		// hide
+		else
+		{
+			Set_Visible( 0 );
+		}
 	}
 
 	particle_counter += pFramerate->speedfactor;

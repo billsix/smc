@@ -3,18 +3,20 @@
                              -------------------
     copyright            :	(C) 2006 - 2007 Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../video/renderer.h"
 #include "../core/globals.h"
 #include "../core/game_core.h"
+#include "../core/camera.h"
 
 /* *** *** *** *** *** *** cRenderRequest *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -22,6 +24,7 @@ cRenderRequest :: cRenderRequest( void )
 {
 	type = REND_NOTHING;
 	globalscale = 1;
+	no_camera = 1;
 
 	pos_z = 0;
 	blend_sfactor = GL_SRC_ALPHA;
@@ -129,6 +132,12 @@ void cGradientRequest :: Draw( void )
 {
 	Begin_render();
 
+	if( !no_camera )
+	{
+		rect.x -= pCamera->x;
+		rect.y -= pCamera->y;
+	}
+
 	// z position
 	if( pos_z != 0 )
 	{
@@ -190,6 +199,14 @@ cLineRequest :: ~cLineRequest( void )
 void cLineRequest :: Draw( void )
 {
 	Begin_render();
+
+	if( !no_camera )
+	{
+		line.x1 -= pCamera->x;
+		line.y1 -= pCamera->y;
+		line.x2 -= pCamera->x;
+		line.y2 -= pCamera->y;
+	}
 
 	// z position
 	if( pos_z != 0 )
@@ -255,6 +272,12 @@ cRectRequest :: ~cRectRequest( void )
 void cRectRequest :: Draw( void )
 {
 	Begin_render();
+
+	if( !no_camera )
+	{
+		rect.x -= pCamera->x;
+		rect.y -= pCamera->y;
+	}
 
 	// z position
 	if( pos_z != 0 )
@@ -337,6 +360,12 @@ cSurfaceRequest :: ~cSurfaceRequest( void )
 
 void cSurfaceRequest :: Draw( void )
 {
+	if( !no_camera )
+	{
+		pos_x -= pCamera->x;
+		pos_y -= pCamera->y;
+	}
+
 	// draw shadow
 	if( shadow_pos )
 	{

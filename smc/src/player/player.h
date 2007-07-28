@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef __PLAYER_H__
 #define __PLAYER_H__
@@ -77,8 +78,13 @@ public:
 	*/
 	virtual void Set_Direction( ObjectDirection dir, bool new_start_direction = 0 );
 
-	// downgrade maryo's state ( if small maryo : dies )
-	void DownGrade( bool handle = 0 );
+	// Set the ground object
+	virtual void Set_onGround( cSprite *obj );
+
+	/* downgrade maryo's state ( if small maryo : dies )
+	 * if delayed is set the downgrade is handled on the next game update
+	*/
+	void DownGrade( bool delayed = 1 );
 
 	// moves in the current direction
 	void Move_Player( float velocity, float vel_wrongway );
@@ -129,7 +135,7 @@ public:
 
 	/* Set the Type
 	 * animate : show type change animation
-	 * sound : define if the upgrade sound should be played
+	 * sound : if set the upgrade sound is played
 	*/
 	void Set_Type( Maryo_type mtype, bool animation = 1, bool sound = 1 );
 	void Set_Type( SpriteType item_type, bool animation = 1, bool sound = 1 );
@@ -139,14 +145,12 @@ public:
 	// default update
 	virtual void Update( void );
 	/* Updates the Camera
-	 * set smooth_x for slow moving into the new position
+	 * set smooth for slow moving into the new position
 	*/
-	void Update_Camera( bool smooth_x = 0 );
+	void Update_Camera( bool smooth = 0 );
 
-	// Draw the current image
+	// Draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
-	// Draw the player
-	void Draw_Player( cSurfaceRequest *request = NULL );
 	// Draw an animation using the given new type
 	void Draw_Animation( Maryo_type new_mtype );
 	// Returns the current image number without the direction modifier
@@ -173,7 +177,7 @@ public:
 	// Start a jump
 	void Action_Jump( bool enemy_jump = 0 );
 	// Interact with items
-	void Action_Interact();
+	void Action_Interact( SDLKey key_type );
 	// Shoot if available
 	void Action_Shoot();
 
@@ -186,15 +190,15 @@ public:
 	
 	// Resets the complete game state
 	void ResetSave( void );
-	/* reset maryo's state
-	 * if full is set resets only level states
+	/* Reset state and status
+	 * if full is set reset item and camera state
 	*/
 	void Reset( bool full = 1 );
 
 	// Exits the level and walks to the next Overworld waypoint
 	void Goto_next_Level( void );
-	// Enters the given sublevel
-	void Goto_SubLevel( string sublevel );
+	// Enters the given level and entry
+	void Goto_SubLevel( string str_level, string str_entry );
 	
 	// Add an enemy to the kill multiplier
 	void Add_Kill_Multiplier( void );
@@ -248,8 +252,6 @@ public:
 	float walk_count;
 	// lives left
 	int lives;
-	// if on the next update the downgrade should be updated
-	bool update_downgrade;
 
 	// jumping keytime
 	float UpKeytime;

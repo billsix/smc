@@ -3,14 +3,15 @@
                          -------------------
     copyright            : (C) 2005 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef __VIDEO_H__
 #define __VIDEO_H__
@@ -44,12 +45,6 @@ public:
 	Color( Uint32 color );
 	Color( SDL_Color color );
 
-	// Parses the given color value
-	void Parse( Uint32 mapcolor );
-	void Parse( SDL_Color color );
-	void Parse_uint8( Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255 );
-	void Parse_float( float r, float g, float b, float a = 1 );
-
 	// Returns a matching Color value
 	SDL_Color Get_SDL_Color( void );
 	colour Get_cegui_colour( void );
@@ -65,16 +60,23 @@ public:
 
 /* *** *** *** *** *** *** *** Effect types *** *** *** *** *** *** *** *** *** *** */
 
-enum FadeoutEffect
+enum Effect_Fadeout
 {
-	RANDOM_EFFECT,
-	BLACK_FADEOUT, // fade out the screen to black
-	HORIZONTAL_VERTICAL_FADE, // random color boxes from left/right or up/down
-	BIG_ITEM, // a big item eats the whole screen
-	RANDOM_COLOR_BOOST, // boosts a random color in a cool fadeout
-	TILE_PIXELATION, // big black boxes pup up random on a tile grid
-	FIXED_COLORBOX_FADEOUT, // small fast random alpha color boxes fades out the screen
-	TOTAL_FADE_EFFECTS
+	EFFECT_OUT_RANDOM,
+	EFFECT_OUT_BLACK, // fade out the screen to black
+	EFFECT_OUT_HORIZONTAL_VERTICAL, // random color boxes from left/right or up/down
+	EFFECT_OUT_BIG_ITEM, // a big item eats the whole screen
+	EFFECT_OUT_RANDOM_COLOR_BOOST, // boosts a random color in a cool fadeout
+	EFFECT_OUT_TILE_PIXELATION, // big black boxes pup up random on a tile grid
+	EFFECT_OUT_FIXED_COLORBOX, // small fast random alpha color boxes fades out the screen
+	EFFECT_OUT_AMOUNT
+};
+
+enum Effect_Fadein
+{
+	EFFECT_IN_RANDOM,
+	EFFECT_IN_BLACK, // fade in the screen from black
+	EFFECT_IN_AMOUNT
 };
 
 /* *** *** *** *** *** *** *** Video class *** *** *** *** *** *** *** *** *** *** */
@@ -191,8 +193,15 @@ private:
 // sets the next fitting size for an texture dimension
 unsigned int Get_GLsize( unsigned int size );
 
-// Draws a defined or if effect is RANDOM_EFFECT a random effect will be selected
-void DrawEffect( FadeoutEffect effect = RANDOM_EFFECT, float speed = 1 );
+/* Draw an Screen Fadeout Effect
+ * if effect is RANDOM_EFFECT a random effect is selected
+*/
+void Draw_Effect_out( Effect_Fadeout effect = EFFECT_OUT_RANDOM, float speed = 1 );
+
+/* Draw an Screen Fadein Effect
+ * if effect is RANDOM_EFFECT a random effect is selected
+*/
+void Draw_Effect_in( Effect_Fadein effect = EFFECT_IN_RANDOM, float speed = 1 );
 
 // draws the loading screen
 void Draw_Loading_Screen( void );

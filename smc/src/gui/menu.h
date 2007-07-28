@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef __MENU_H__
 #define __MENU_H__
@@ -47,7 +48,7 @@ class cMenu_Item : public cHudSprite
 {
 public:
 	cMenu_Item( void );
-	~cMenu_Item( void );
+	virtual ~cMenu_Item( void );
 
 	// Sets the Active Modifier
 	void Set_Active( bool nactive = 0 );
@@ -137,8 +138,8 @@ public:
 	cMenuCore( void );
 	~cMenuCore( void );
 
-	// Generic Menu Input handler
-	void Update_Generic( void );
+	// Handle Input event
+	bool Handle_Event( SDL_Event *ev );
 	/* handle key down event
 	 * returns true if the key was processed
 	*/
@@ -151,27 +152,22 @@ public:
 	// Returns a Menu with the common image filenames
 	cMenu_Item *Auto_Menu( string imagename, string imagename_menu, float ypos = 0, bool is_quit = 0 );
 
-	// Enters the given Menu
-	void Enter( MenuID menu_id = MENU_MAIN );
+	// Load the given Menu
+	void Load( MenuID menu = MENU_MAIN );
+	// Unload
+	void Unload( void );
 
 	// Update current Menu
 	void Update( void );
-	// Update the Menu Animation
-	void Update_Animation( void );
 	// Draw current Menu
 	void Draw( void );
 
-	/* For leaving the current menu
-	 * 1 = default leaving
-	 * 2 = The user pressed ESC
-	*/
-	unsigned int leave;
+	// current menu id
+	MenuID menu_id;
 	// for entering another menu after leaving
 	MenuID next_menu;
 	// the current option menu
 	OptionMenuID options_menu_id;
-	// background particle animation counter
-	float particle_counter;
 
 	// Menu class
 	cMenu_Base *pMenu_Data;

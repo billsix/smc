@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../gui/hud.h"
 #include "../core/game_core.h"
@@ -82,25 +83,25 @@ void cHudManager :: Load( void )
 	}
 
 	// Menu Background ( Maryo head and the Goldpiece )
-	Add( (cHudSprite *)new cMenuBackground() );
+	Add( static_cast<cHudSprite *>(new cMenuBackground()) );
 	// Point Display
 	pointsdisplay = new cPlayerPoints();
-	Add( (cHudSprite *)pointsdisplay );
+	Add( static_cast<cHudSprite *>(pointsdisplay) );
 	// Time Display
 	timedisplay = new cTimeDisplay();
-	Add( (cHudSprite *)timedisplay );
+	Add( static_cast<cHudSprite *>(timedisplay) );
 	// Live Display
 	livedisplay = new cLiveDisplay();
-	Add( (cHudSprite *)livedisplay );
+	Add( static_cast<cHudSprite *>(livedisplay) );
 	// Gold Display
 	golddisplay = new cGoldDisplay();
-	Add( (cHudSprite *)golddisplay );
+	Add( static_cast<cHudSprite *>(golddisplay) );
 	// Itembox
 	Itembox = new cItemBox();
-	Add( (cHudSprite *)Itembox );
+	Add( static_cast<cHudSprite *>(Itembox) );
 	// Debug Display
 	debugdisplay = new cDebugDisplay();
-	Add( (cHudSprite *)debugdisplay );
+	Add( static_cast<cHudSprite *>(debugdisplay) );
 
 	loaded = 1;
 }
@@ -145,7 +146,7 @@ void cHudManager :: Update_Text( void )
 	
 	if( objects.size() > 0 )
 	{
-		cMenuBackground *item = (cMenuBackground *)objects[0];
+		cMenuBackground *item = static_cast<cMenuBackground *>(objects[0]);
 
 		if( Game_Mode != MODE_OVERWORLD )
 		{
@@ -155,7 +156,7 @@ void cHudManager :: Update_Text( void )
 		else
 		{
 			// goldpiece
-			item->rect_goldpiece.y = 4;
+			item->rect_goldpiece.y = 7;
 		}
 	}
 
@@ -163,7 +164,7 @@ void cHudManager :: Update_Text( void )
 	{
 		if( Game_Mode != MODE_OVERWORLD )
 		{
-			livedisplay->Set_Pos( GAME_RES_W - GAME_RES_W / 10, 18.0f );
+			livedisplay->Set_Pos( GAME_RES_W - GAME_RES_W * 0.1f, 18 );
 		}
 		else
 		{
@@ -177,11 +178,11 @@ void cHudManager :: Update_Text( void )
 	{
 		if( Game_Mode != MODE_OVERWORLD )
 		{
-			golddisplay->Set_Pos( 280.0, 18.0 );
+			golddisplay->Set_Pos( 280, 18 );
 		}
 		else
 		{
-			golddisplay->Set_Pos( 280.0, 1.0 );
+			golddisplay->Set_Pos( 280, 4 );
 		}
 
 		golddisplay->AddGold( 0 );
@@ -191,11 +192,11 @@ void cHudManager :: Update_Text( void )
 	{
 		if( Game_Mode != MODE_OVERWORLD )
 		{
-			pointsdisplay->Set_Pos( 50.0, 18.0 );
+			pointsdisplay->Set_Pos( 50, 18 );
 		}
 		else
 		{
-			pointsdisplay->Set_Pos( 50.0, 4 );
+			pointsdisplay->Set_Pos( 50, 4 );
 		}
 
 		pointsdisplay->Add_Points( 0 );
@@ -203,19 +204,19 @@ void cHudManager :: Update_Text( void )
 
 	if( timedisplay )
 	{
-		timedisplay->Set_Pos( GAME_RES_W * 0.75, 18.0 );
+		timedisplay->Set_Pos( GAME_RES_W * 0.70f, 18 );
 		timedisplay->Update();
 	}
 
 	if( debugdisplay )
 	{
-		debugdisplay->Set_Pos( GAME_RES_W / 2 - 100, 80.0 );
+		debugdisplay->Set_Pos( GAME_RES_W * 0.45f, 80 );
 		debugdisplay->Update();
 	}
 
 	if( Itembox ) 
 	{
-		Itembox->Set_Pos( GAME_RES_W / 2 - 20, 10 );
+		Itembox->Set_Pos( GAME_RES_W * 0.49f, 10 );
 		Itembox->Update();
 	}
 }
@@ -637,9 +638,14 @@ void cItemBox :: Draw( cSurfaceRequest *request /* = NULL */ )
 	cHudSprite::Draw();
 }
 
-void cItemBox :: Set_Item( SpriteType item_type )
+void cItemBox :: Set_Item( SpriteType item_type, bool sound /* = 1 */ )
 {
-	pAudio->PlaySound( "itembox_set.ogg" );
+	// play sound
+	if( sound )
+	{
+		pAudio->PlaySound( "itembox_set.ogg" );
+	}
+	// reset data
 	Reset();
 
 	// reset startposition
@@ -715,21 +721,31 @@ cDebugDisplay :: cDebugDisplay( float x /* = 0 */, float y /* = 0 */ )
 	sprite_array = ARRAY_HUD;
 	type = TYPE_DEBUGDISPLAY;
 
-	level_old = ".";
 	text.clear();
 	text_old.clear();
+
+	// debug box text data
+	Game_Mode_last = MODE_NOTHING;
+	level_old = ".";
+	obj_counter = -1;
+	pass_counter = -1;
+	mass_counter = -1;
+	enemy_counter = -1;
+	active_counter = -1;
 
 	// debug text window
 	window_debugtext = WindowManager::getSingleton().loadWindowLayout( "debugtext.layout" );
 	pGuiSystem->getGUISheet()->addChildWindow( window_debugtext );
 	// debug text
-	text_debugtext = (Window *)WindowManager::getSingleton().getWindow( "text_debugmessage" );
+	text_debugtext = static_cast<Window *>(WindowManager::getSingleton().getWindow( "text_debugmessage" ));
+	// hide
+	text_debugtext->setVisible( 0 );
 
 	// debug box positions
 	float tempx = GAME_RES_W - 200;
 	float tempy = GAME_RES_H / 2 - 250;
 
-	for( unsigned int i = 0; i < 22; i++ )
+	for( unsigned int i = 0; i < 23; i++ )
 	{
 		sprites.push_back( new cHudSprite( NULL, tempx, tempy ) );
 		sprites[i]->Set_Shadow( black, 1 );
@@ -751,19 +767,13 @@ cDebugDisplay :: cDebugDisplay( float x /* = 0 */, float y /* = 0 */ )
 	// fps display position
 	sprites[0]->Set_Pos( 15, 5, 1 );
 	// average
-	sprites[1]->Set_Pos( 280, 5, 1 );
+	sprites[1]->Set_Pos( 290, 5, 1 );
 	// speedfactor
-	sprites[2]->Set_Pos( 500, 5, 1 );
+	sprites[2]->Set_Pos( 480, 5, 1 );
 
 	// Debug type text
 	sprites[4]->Set_Image( pFont->RenderText( pFont->font_small, "Level", lightblue ), 0, 1 );
 	sprites[16]->Set_Image( pFont->RenderText( pFont->font_small, "Player", lightblue ), 0, 1 );
-
-	obj_counter = -1;
-	pass_counter = -1;
-	mass_counter = -1;
-	enemy_counter = -1;
-	active_counter = -1;
 
 	counter = 0;
 }
@@ -813,7 +823,10 @@ void cDebugDisplay :: Update( void )
 
 		// update position
 		Font *font = FontManager::getSingleton().getFont( "bluebold_medium" );
-		text_debugtext->setXPosition( UDim( 0, GAME_RES_W / 2 - font->getTextExtent( text ) / 2 ) );
+		float text_width = font->getTextExtent( text.c_str() );
+
+		text_debugtext->setWidth( UDim( 0, text_width + 15 ) );
+		text_debugtext->setXPosition( UDim( 0, GAME_RES_W / 2 - text_width / 2 ) );
 	}
 }
 
@@ -1039,6 +1052,11 @@ void cDebugDisplay :: DebugBox_Draw( void )
 	}
 	temp_text = "Ground " + ground_type;
 	sprites[21]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+	// game mode
+	if( Game_Mode != Game_Mode_last )
+	{
+		sprites[22]->Set_Image( pFont->RenderText( pFont->font_very_small, "Game Mode : " + int_to_string( Game_Mode ), white ), 0, 1 );
+	}
 
 	// draw text
 	for( HudSpriteList::iterator itr = sprites.begin(), itr_end = sprites.end(); itr != itr_end; ++itr )

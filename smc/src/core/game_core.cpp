@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../core/game_core.h"
 #include "../core/main.h"
@@ -26,6 +27,7 @@
 #include "../player/player.h"
 #include "../video/gl_surface.h"
 #include "../video/renderer.h"
+#include "../level/level.h"
 
 /* *** *** *** *** *** *** *** *** Variables *** *** *** *** *** *** *** *** *** */
 
@@ -33,6 +35,9 @@ bool done = 0;
 
 GameMode Game_Mode = MODE_NOTHING;
 GameModeType Game_Mode_Type = MODE_TYPE_DEFAULT;
+GameAction Game_Action = GA_NONE;
+string Game_Action_Data;
+void *Game_Action_ptr = NULL;
 bool Game_debug = 0;
 
 bool editor_enabled = 0;
@@ -147,8 +152,6 @@ string cDialogBox_Text :: Enter( string default_text, string title_text, bool au
 
 	while( !finished )
 	{
-		Draw();
-
 		while( SDL_PollEvent( &input_event ) )
 		{
 			if( input_event.type == SDL_KEYDOWN )
@@ -174,6 +177,10 @@ string cDialogBox_Text :: Enter( string default_text, string title_text, bool au
 					pKeyboard->CEGUI_Handle_Key_Down( input_event.key.keysym.sym );
 				}
 			}
+			else if( input_event.type == SDL_KEYUP )
+			{
+				pKeyboard->CEGUI_Handle_Key_Up( input_event.key.keysym.sym );
+			}
 			else
 			{
 				pMouseCursor->Handle_Event( &input_event );
@@ -181,6 +188,7 @@ string cDialogBox_Text :: Enter( string default_text, string title_text, bool au
 		}
 
 		Update();
+		Draw();
 	}
 
 	string return_string = box_editbox->getText().c_str();
@@ -287,6 +295,10 @@ int cDialogBox_Question :: Enter( string text, bool with_cancel /* = 0 */ )
 					pKeyboard->CEGUI_Handle_Key_Down( input_event.key.keysym.sym );
 				}
 			}
+			else if( input_event.type == SDL_KEYUP )
+			{
+				pKeyboard->CEGUI_Handle_Key_Up( input_event.key.keysym.sym );
+			}
 			else
 			{
 				pMouseCursor->Handle_Event( &input_event );
@@ -340,12 +352,6 @@ void Change_Game_Mode( GameMode new_mode )
 	// mode was level
 	if( old_mode == MODE_LEVEL )
 	{
-		// reset mode type
-		if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM )
-		{
-			Game_Mode_Type = MODE_TYPE_DEFAULT;
-		}
-
 		// hide editor window if visible
 		if( pLevel_Editor->enabled )
 		{
@@ -379,7 +385,17 @@ void Change_Game_Mode( GameMode new_mode )
 		{
 			// update hud
 			pHudManager->Update_Text();
+
+			// fade out music
+			pAudio->FadeOutMusic( 1000 );
+
+			// reset speedfactor
 			pFramerate->Reset();
+
+			// center camera position
+			pCamera->Center();
+
+			// clear input
 			ClearInputEvents();
 		}
 	}
@@ -395,7 +411,7 @@ void Change_Game_Mode( GameMode new_mode )
 		// menu to level
 		if( new_mode == MODE_LEVEL )
 		{
-			pCamera->Center( DIR_ALL );
+			pCamera->Center();
 		}
 		// menu to overworld
 		else if( new_mode == MODE_OVERWORLD )
@@ -408,6 +424,16 @@ void Change_Game_Mode( GameMode new_mode )
 	// mode gets level
 	if( new_mode == MODE_LEVEL )
 	{
+		// play music
+		if( pLevel->valid_music )
+		{
+			pAudio->PlayMusic( pLevel->musicfile, -1, 0, 1000 );
+		}
+		else if( pAudio->music_enabled )
+		{
+			printf( "Warning : Music file not found %s\n", pLevel->musicfile.c_str() );
+		}
+
 		// disable world editor
 		pWorld_Editor->Disable();
 
@@ -426,6 +452,12 @@ void Change_Game_Mode( GameMode new_mode )
 	// mode gets overworld
 	else if( new_mode == MODE_OVERWORLD )
 	{
+		// reset custom level mode type
+		if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM )
+		{
+			Game_Mode_Type = MODE_TYPE_DEFAULT;
+		}
+
 		// disable level editor
 		pLevel_Editor->Disable();
 
@@ -457,6 +489,11 @@ void Change_Game_Mode( GameMode new_mode )
 	else if( new_mode == MODE_LEVEL_SETTINGS )
 	{
 		editor_enabled = 0;
+
+		if( pMouseCursor->active_object )
+		{
+			pMouseCursor->Clear_active_object();
+		}
 	}
 }
 
@@ -931,15 +968,15 @@ void Gui_handle_Time( void )
 	last_time_pulse = t;
 }
 
-void Draw_StaticText( string text, Color *color_text, Color *color_bg, Color *color_1, Color *color_2, bool wait_for_input )
+void Draw_StaticText( string text, Color *color_text /* = &white */, Color *color_bg /* = NULL */, bool wait_for_input /* = 1 */ )
 {
 	bool draw = 1;
 
-	// statictext window
+	// Statictext window
 	Window *window_statictext = WindowManager::getSingleton().loadWindowLayout( "statictext.layout" );
 	pGuiSystem->getGUISheet()->addChildWindow( window_statictext );
 	// get default text
-	Window *text_default = (Window *)WindowManager::getSingleton().getWindow( "text_default" );
+	Window *text_default = static_cast<Window *>(WindowManager::getSingleton().getWindow( "text_default" ));
 
 	// set text
 	text_default->setProperty( "TextColours", PropertyHelper::colourToString( colour( (float)color_text->red / 255, (float)color_text->green / 255, (float)color_text->blue / 255, 1 ) ) );
@@ -948,11 +985,9 @@ void Draw_StaticText( string text, Color *color_text, Color *color_bg, Color *co
 	// align text
 	Font *font = FontManager::getSingleton().getFont( "bluebold_medium" );
 	float text_width = font->getTextExtent( text.c_str() );
+	text_default->setWidth( UDim( 0, text_width + 10 ) );
 	text_default->setXPosition( UDim( 0, GAME_RES_W / 2 - text_width / 2 ) );
 	text_default->moveToFront();
-
-	// create centered rect
-	GL_point pos( text_default->getXPosition().asAbsolute( GAME_RES_W ), text_default->getYPosition().asAbsolute( GAME_RES_H ) );
 
 	while( draw )
 	{
@@ -970,20 +1005,6 @@ void Draw_StaticText( string text, Color *color_text, Color *color_bg, Color *co
 			// add request
 			pRenderer->Add( request );
 		}
-
-		// create request
-		cRectRequest *request = new cRectRequest();
-		pVideo->Draw_Rect( pos.x - 40, pos.y - 5, text_width + 80, 20 + 20, 0.901f, color_1, request );
-		request->render_count = wait_for_input ? 4 : 1;
-		// add request
-		pRenderer->Add( request );
-
-		// create request
-		request = new cRectRequest();
-		pVideo->Draw_Rect( pos.x - 35, pos.y, text_width + 70, 20 + 10, 0.902f, color_2, request );
-		request->render_count = wait_for_input ? 4 : 1;
-		// add request
-		pRenderer->Add( request );
 
 		pVideo->Render();
 
@@ -1164,11 +1185,11 @@ void Preload_sounds( void )
 	pAudio->Get_Sound( "player/dead.ogg" );
 	pAudio->Get_Sound( "itembox_get.ogg" );
 	pAudio->Get_Sound( "itembox_set.ogg" );
-	pAudio->Get_Sound( "player/jump_big_0.ogg" );
-	pAudio->Get_Sound( "player/jump_big_1.ogg" );
-	pAudio->Get_Sound( "player/jump_big_2.ogg" );
 	pAudio->Get_Sound( "player/jump_small.ogg" );
-	pAudio->Get_Sound( "player/maryo_au.ogg" );
+	pAudio->Get_Sound( "player/jump_big.ogg" );
+	pAudio->Get_Sound( "player/jump_ghost.ogg" );
+	// todo : create again
+	//pAudio->Get_Sound( "player/maryo_au.ogg" );
 	pAudio->Get_Sound( "player/powerdown.ogg" );
 	pAudio->Get_Sound( "player/ghost_end.ogg" );
 	pAudio->Get_Sound( "enter_pipe.ogg" );
@@ -1189,26 +1210,29 @@ void Preload_sounds( void )
 	pAudio->Get_Sound( "death_box.ogg" );
 
 	// enemies
+	// eato
+	pAudio->Get_Sound( "enemy/eato/die.ogg" );
+	// gee
+	pAudio->Get_Sound( "enemy/gee/die.ogg" );
+	// gumba
+	pAudio->Get_Sound( "enemy/gumba/die.ogg" );
+	// jpiranha
+	pAudio->Get_Sound( "enemy/jpiranha/die.ogg" );
+	// rex
+	pAudio->Get_Sound( "enemy/rex/die.ogg" );
 	// rokko
 	pAudio->Get_Sound( "enemy/rokko/activate.ogg" );
+	// spika
+	pAudio->Get_Sound( "enemy/spika/move.ogg" );
 	// thromp
 	pAudio->Get_Sound( "enemy/thromp/hit.ogg" );
 	pAudio->Get_Sound( "enemy/thromp/die.ogg" );
-	// rex
-	pAudio->Get_Sound( "enemy/rex/die.ogg" );
-	// jpiranha
-	pAudio->Get_Sound( "enemy/jpiranha/die.ogg" );
-	// gumba
-	pAudio->Get_Sound( "enemy/gumba/die.ogg" );
 	// turtle
 	pAudio->Get_Sound( "enemy/turtle/hit.ogg" );
 	pAudio->Get_Sound( "enemy/turtle/shell/hit.ogg" );
-	pAudio->Get_Sound( "enemy/turtle/shell/smash_default.ogg" );
-	pAudio->Get_Sound( "enemy/turtle/power_up.ogg" );
-	// gee
-	pAudio->Get_Sound( "enemy/gee/die.ogg" );
-	// spika
-	pAudio->Get_Sound( "enemy/spika/move.ogg" );
+	// todo : create again
+	//pAudio->Get_Sound( "enemy/turtle/power_up.ogg" );
+
 	// default
 	pAudio->Get_Sound( "sprout_1.ogg" );
 	pAudio->Get_Sound( "stomp_1.ogg" );
@@ -1233,10 +1257,8 @@ bool Delete_file( const string &filename )
 	{
 		return 1;
 	}
-	else
-	{
-		return 0;
-	}
+
+	return 0;
 }
 
 bool valid_file( const string &filename )
@@ -1336,40 +1358,54 @@ double string_to_double( const string &str )
 	return num;
 }
 
-string string_to_xml_string( const string &text )
+string string_to_xml_string( const string &str )
 {
-    string res;
-    res.reserve( text.size() * 2 );
+	string res;
+	res.reserve( str.size() * 2 );
 
-    const string::const_iterator iterEnd = text.end();
-    for( string::const_iterator iter = text.begin(); iter != iterEnd ; ++iter )
-    {
-        switch( *iter )
-        {
-            case '<':
-                res += "&lt;";
-                break;
-      
-            case '>':
-                res += "&gt;";
-                break;
-        
-            case '&':
-                res += "&amp;";
-                break;
-        
-            case '\'':
-                res += "&apos;";
-                break;
+	const string::const_iterator iterEnd = str.end();
+	for( string::const_iterator iter = str.begin(); iter != iterEnd ; ++iter )
+	{
+		switch( *iter )
+		{
+			case '<':
+				res += "&lt;";
+				break;
 
-            case '"':
-                res += "&quot;";
-                break;
-      
-            default:
-                res += *iter;
-        }
-    }
+			case '>':
+				res += "&gt;";
+				break;
 
-    return res;
+			case '&':
+				res += "&amp;";
+				break;
+
+			case '\'':
+				res += "&apos;";
+				break;
+
+			case '"':
+				res += "&quot;";
+				break;
+
+			case '\n':
+				res += "&lt;br/&gt;";
+				break;
+
+			default:
+				res += *iter;
+		}
+	}
+
+	return res;
+}
+
+string xml_string_to_string( string str )
+{
+	while( str.find( "<br/>" ) != string::npos )
+	{
+		str.replace( str.find( "<br/>" ), 5, "\n" );
+	}
+
+	return str;
 }

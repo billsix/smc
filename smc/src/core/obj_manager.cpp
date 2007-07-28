@@ -3,14 +3,15 @@
                               -------------------
     copyright            :	(C) 2005 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../core/obj_manager.h"
 #include "../core/game_core.h"
@@ -45,6 +46,24 @@ void cObjectManager :: Add( cSprite *sprite )
 	}
 
 	Set_Z( sprite );
+
+	// Check if an destroyed object can be replaced
+	for( SpriteList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
+	{
+		// get object pointer
+		cSprite *obj = (*itr);
+
+		// if destroy is set
+		if( obj->destroy )
+		{
+			// set new object
+			*itr = sprite;
+			// delete old
+			delete obj;
+
+			return;
+		}
+	}
 
 	items.push_back( sprite );
 }
@@ -310,27 +329,6 @@ void cObjectManager :: Handle_Collision_items( void )
 		(*itr)->Collide_Move();
 		// handle found collisions
 		(*itr)->Handle_Collisions();
-	}
-}
-
-void cObjectManager :: Update( void )
-{
-	for( SpriteList::iterator itr = items.begin(); itr != items.end(); )
-	{
-		// get object pointer
-		cSprite *obj = (*itr);
-
-		// if destroy is set
-		if( obj->destroy )
-		{
-			itr = items.erase( itr );
-			delete obj;
-		}
-		// increment
-		else
-		{
-			++itr;
-		}
 	}
 }
 

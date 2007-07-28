@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2006 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef __EDITOR_H__
 #define __EDITOR_H__
@@ -26,7 +27,7 @@ class cEditor_Item_Object : public ListboxItem
 {
 public:
 	cEditor_Item_Object( string text );
-	~cEditor_Item_Object( void );
+	virtual ~cEditor_Item_Object( void );
 
 	// Initialize
 	void Init( void );
@@ -58,7 +59,7 @@ class cEditor_Menu_Object : public ListboxTextItem
 {
 public:
 	cEditor_Menu_Object( string text );
-	~cEditor_Menu_Object( void );
+	virtual ~cEditor_Menu_Object( void );
 
 	// Initialize
 	void Init( void );
@@ -81,7 +82,7 @@ class cEditor : public XMLHandler
 {
 public:
 	cEditor( void );
-	~cEditor( void );
+	virtual ~cEditor( void );
 
 	// Initialize Editor
 	virtual void Init( void );

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="All" />
+	<File name="..\..\..\src\audio\audio.cpp" open="0" top="0" tabpos="1">
+		<Cursor position="3373" topLine="0" />
+	</File>
+	<File name="..\..\..\src\core\globals.h" open="0" top="0" tabpos="0">
+		<Cursor position="7685" topLine="322" />
+	</File>
+	<File name="..\..\..\src\core\main.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="7129" topLine="461" />
+	</File>
+	<File name="..\..\..\src\core\main.h" open="0" top="0" tabpos="0">
+		<Cursor position="0" topLine="7" />
+	</File>
+	<File name="..\..\..\src\objects\falling_platform.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="5217" topLine="154" />
+	</File>
+	<File name="..\..\..\src\objects\moving_platform.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="8744" topLine="310" />
+	</File>
+</CodeBlocks_layout_file>

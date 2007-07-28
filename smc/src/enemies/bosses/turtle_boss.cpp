@@ -4,14 +4,15 @@
     copyright            :	(C) 2003 - 2007 by Florian Richter
 							(C) 2006 by Tobias Maasland
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../../enemies/bosses/turtle_boss.h"
 #include "../../core/game_core.h"
@@ -490,7 +491,7 @@ void cTurtleBoss :: Update( void )
 
 		if( velx != 0 )
 		{
-			AddVel( -velx * 0.2f, 0 );
+			Add_Velocity( -velx * 0.2f, 0 );
 
 			if( velx < 0.3f && velx > -0.3f )
 			{
@@ -503,7 +504,7 @@ void cTurtleBoss :: Update( void )
 	{
         run_time += pFramerate->speedfactor;
 		// time = seconds since start
-        float time = ( run_time / DESIRED_FPS );
+        float time = run_time / DESIRED_FPS;
 
         if( time > max_downgrade_time )
 		{
@@ -584,8 +585,8 @@ void cTurtleBoss :: Update( void )
 			// shell attack sound
 			pAudio->PlaySound( "enemy/boss/turtle/shell_attack.ogg" );
 
-			// throw more fireballs if hit
-		    Throw_Fireballs( 6 + ( hits * 2 ) );
+			// throw more fireballs with downgrades
+		    Throw_Fireballs( 6 + ( downgrade_counts * 2 ) );
 
             Col_Move( 0, images[0]->col_h - images[5]->col_h, 1, 1 );
             Set_Image( 5 );
@@ -615,7 +616,7 @@ void cTurtleBoss :: Throw_Fireballs( unsigned int amount /* = 6 */ )
 
 		cBall *ball = new cBall( posx + col_rect.w / 2, posy + col_rect.h / 2, 0, 0, this, FIREBALL_EXPLOSION );
 		ball->Set_Direction( ball_angle, 15 );
-		ball->Col_Move( ball->velx * 6, ball->vely + 6, 1 );
+		ball->Col_Move( ball->velx * 2, ball->vely * 2, 1 );
 
 		pObjManager->Add( ball );
 	}
@@ -879,7 +880,7 @@ void cTurtleBoss :: Handle_Collision_Player( ObjectDirection cdirection )
 
 void cTurtleBoss :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
-	cEnemy *enemy = (cEnemy *)pObjManager->Get_Pointer( collision->number );
+	cEnemy *enemy = static_cast<cEnemy *>(pObjManager->Get_Pointer( collision->number ));
 
 	if( turtle_state == TURTLEBOSS_SHELL_STAND )
 	{

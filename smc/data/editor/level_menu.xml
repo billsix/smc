@@ -35,6 +35,11 @@
 		<Property Name="color" Value="FF8DE7FF" />
 	</Item>
 	<Item>
+		<Property Name="name" Value="Jungle Ground" />
+		<Property Name="tags" Value="jungle;ground" />
+		<Property Name="color" Value="FFA0FF5E" />
+	</Item>
+	<Item>
 		<Property Name="name" Value="Blocks" />
 		<Property Name="tags" Value="block" />
 		<Property Name="color" Value="FF7D00BC" />

@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+  
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/autotools.mk
+include /usr/share/cdbs/1/class/makefile.mk
+include /usr/share/cdbs/1/rules/dpatch.mk
+
+DEB_CONFIGURE_EXTRA_FLAGS := --prefix=$(DEB_DESTDIR)/usr --bindir=/usr/games --datadir=/usr/share/games
+
+clean::
+	rm -f config.log config.cache config.status
+install/smc:: 
+	cp -f debian/smc.xpm debian/smc/usr/share/pixmaps/smc/ 

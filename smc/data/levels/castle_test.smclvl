@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.5" />
-		<Property name="engine_version" value="2" />
-		<Property name="save_time" value="1174590931" />
+		<Property name="game_version" value="0.99.8" />
+		<Property name="engine_version" value="2.1" />
+		<Property name="save_time" value="1183594851" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="" />
@@ -27,13 +27,13 @@
 		<Property name="type" value="2" />
 		<Property name="image" value="animation/particles/rain.png" />
 		<Property name="rect_x" value="0" />
-		<Property name="rect_y" value="0" />
+		<Property name="rect_y" value="-64" />
 		<Property name="rect_w" value="800" />
 		<Property name="rect_h" value="1" />
 		<Property name="z" value="0.12" />
 		<Property name="z_rand" value="0" />
-		<Property name="time_to_live" value="1.2" />
-		<Property name="creation_speed" value="2" />
+		<Property name="time_to_live" value="2.2" />
+		<Property name="emitter_iteration_interval" value="0.016" />
 		<Property name="scale" value="0.5" />
 		<Property name="scale_rand" value="0.5" />
 		<Property name="speed" value="13" />
@@ -45,7 +45,7 @@
 	</global_effect>
 	<player>
 		<Property name="posx" value="237" />
-		<Property name="posy" value="462" />
+		<Property name="posy" value="404" />
 		<Property name="direction" value="right" />
 	</player>
 	<sprite>

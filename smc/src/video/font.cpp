@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2006 - 2007 Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
  
 #include "../video/font.h"
 #include "../video/gl_surface.h"
@@ -133,9 +134,9 @@ GL_Surface *cFont :: RenderText( TTF_Font *font, string text, Color color )
 void cFont :: Grab_Textures( void )
 {
 	// save to software memory
-	for( unsigned int i = 0; i < active_fonts.size(); i++ ) 
+	for( ActiveFontList::iterator itr = active_fonts.begin(), itr_end = active_fonts.end(); itr != itr_end; ++itr )
 	{
-		GL_Surface *obj = active_fonts[i];
+		GL_Surface *obj = (*itr);
 
 		// get software texture and save it
 		software_textures.push_back( obj->Get_Software_Texture() );
@@ -151,18 +152,18 @@ void cFont :: Grab_Textures( void )
 void cFont :: Restore_Textures( void )
 {
 	// load back into hardware textures
-	for( unsigned int i = 0; i < software_textures.size(); i++ )
+	for( SoftwareTextureList::iterator itr = software_textures.begin(), itr_end = software_textures.end(); itr != itr_end; ++itr )
 	{
 		// get saved texture
-		cSoftware_texture *soft_tex = software_textures[i];
+		cSoftware_texture *soft_tex = (*itr);
 		// load it
 		soft_tex->base->Load_Software_Texture( soft_tex );
 	}
 
 	// delete software surfaces
-	for( unsigned int i = 0; i < software_textures.size(); i++ )
+	for( SoftwareTextureList::iterator itr = software_textures.begin(), itr_end = software_textures.end(); itr != itr_end; ++itr )
 	{
-		delete software_textures[i];
+		delete *itr;
 	}
 
 	software_textures.clear();

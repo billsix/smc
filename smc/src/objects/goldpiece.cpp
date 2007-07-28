@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../objects/goldpiece.h"
 #include "../core/game_core.h"
@@ -157,8 +158,17 @@ void cGoldpiece :: Activate( void )
 	}
 
 	pointsdisplay->Add_Points( points, posx + col_rect.w / 2, posy + 2 );
-	// disable
-	Set_Visible( 0 );
+
+	// if spawned destroy
+	if( spawned )
+	{
+		Destroy();
+	}
+	// hide
+	else
+	{
+		Set_Visible( 0 );
+	}
 }
 
 void cGoldpiece :: Update( void )
@@ -212,6 +222,16 @@ bool cGoldpiece :: is_Update_valid( void )
 	return 1;
 }
 
+void cGoldpiece :: Check_onGround( void )
+{
+	if( type == TYPE_GOLDPIECE )
+	{
+		return;
+	}
+
+	cImageObjectSprite::Check_onGround();
+}
+
 /* *** *** *** *** *** *** cJGoldpiecee *** *** *** *** *** *** *** *** *** *** *** */
 
 cJGoldpiece :: cJGoldpiece( float x, float y )
@@ -223,7 +243,6 @@ cJGoldpiece :: cJGoldpiece( float x, float y )
 	Set_Goldcolor( COL_YELLOW );
 
 	counter = (float)( rand() % 5 );
-	massivetype = MASS_PASSIVE;
 
 	vely = -18;
 }
@@ -243,13 +262,12 @@ void cJGoldpiece :: Update( void )
 	// add velocity downwards
 	if( vely < 8 )
 	{
-		AddVel( 0, 1.62f );
+		Add_Velocity( 0, 1.62f );
 	}
 	// finished animation
 	else
 	{
 		Activate();
-		Destroy();
 	}
 
 	counter += pFramerate->speedfactor * 0.5f;
@@ -276,7 +294,6 @@ cFGoldpiece :: cFGoldpiece( float x, float y, ObjectDirection dir /* = DIR_NOTHI
 	spawned = 1;
 	player_range = 2000;
 	counter = (float)( rand() % 5 );
-	massivetype = MASS_PASSIVE;
 
 	// set a random direction
 	if( dir != DIR_LEFT && dir != DIR_RIGHT )
@@ -365,7 +382,7 @@ void cFGoldpiece :: Update( void )
 	// Add Gravitation
 	if( !ground_object && vely < 25 )
 	{
-		AddVel( 0, 1.2f );
+		Add_Velocity( 0, 1.2f );
 	}
 
 	counter += 0.5f * pFramerate->speedfactor;

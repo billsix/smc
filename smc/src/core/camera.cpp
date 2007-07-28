@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2006 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../core/camera.h"
 #include "../core/game_core.h"
@@ -117,14 +118,17 @@ void cCamera :: Move( float move_x, float move_y )
 
 void cCamera :: Center( ObjectDirection direction /* = DIR_ALL */ )
 {
-	if( direction == DIR_ALL || direction == DIR_HORIZONTAL )
+	if( direction == DIR_HORIZONTAL )
 	{
 		Set_PosY( pPlayer->posy + pPlayer->col_pos.y + pPlayer->col_rect.h - ( GAME_RES_H / 2 ) );
 	}
-
-	if( direction == DIR_ALL || direction == DIR_VERTICAL )
+	else if( direction == DIR_VERTICAL )
 	{
 		Set_PosX( pPlayer->posx + pPlayer->col_pos.x - ( GAME_RES_W / 2 ) );
+	}
+	else if( direction == DIR_ALL )
+	{
+		Set_Pos( pPlayer->posx + pPlayer->col_pos.x - ( GAME_RES_W / 2 ), pPlayer->posy + pPlayer->col_pos.y + pPlayer->col_rect.h - ( GAME_RES_H / 2 ) );
 	}
 }
 

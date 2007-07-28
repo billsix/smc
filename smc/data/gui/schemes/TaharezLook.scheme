@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <GUIScheme Name="TaharezLook">
-	<Imageset Name="TaharezLook" Filename="TaharezLook.imageset" />
+	<Imageset Name="TaharezLook" Filename="SMCLook256.imageset" />
 	<LookNFeel Filename="TaharezLook.looknfeel" />
 	<WindowRendererSet Filename="CEGUIFalagardWRBase" />
 	<FalagardMapping WindowType="TaharezLook/Button"      TargetType="CEGUI/PushButton"  Renderer="Falagard/Button"       LookNFeel="TaharezLook/Button" />

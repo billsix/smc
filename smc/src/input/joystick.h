@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2003 - 2007 Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef __JOYSTICK_H__
 #define __JOYSTICK_H__
@@ -43,7 +44,7 @@ public:
 	// Handles the Joystick motion
 	void Handle_Motion( SDL_Event *ev );
 	// Handles the Joystick Button Events
-	void Handle_Button_Event( SDL_Event *ev );
+	bool Handle_Button_Event( SDL_Event *ev );
 
 	// Returns the current Joystick name
 	string Get_Name( void );

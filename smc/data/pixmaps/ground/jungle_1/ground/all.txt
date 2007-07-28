@@ -1,0 +1,4 @@
+Jungle Tileset - for Levels
+version 1.0
+
+All tiles created by youngheart80 for Secret Maryo Chronicles, employing the tileset file structure 1.0.0.

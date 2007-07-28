@@ -74,8 +74,11 @@
 		<Property Name="object_name" Value="box" />
 		<Property Name="object_tags" Value="level;box" />
 		<Property Name="type" Value="spin" />
-		<Property Name="invisible" Value="0" />
-		<Property Name="useable_count" Value="-1" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="box" />
+		<Property Name="object_tags" Value="level;box" />
+		<Property Name="type" Value="text" />
 	</Item>
 	<Item>
 		<Property Name="object_name" Value="enemy" />
@@ -387,6 +390,11 @@
 		<Property Name="object_tags" Value="level;special" />
 		<Property Name="type" Value="1" />
 		<Property Name="direction" Value="left" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="level_entry" />
+		<Property Name="object_tags" Value="level;special" />
+		<Property Name="direction" Value="up" />
 	</Item>
 	<Item>
 		<Property Name="object_name" Value="moving_platform" />

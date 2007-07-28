@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.7" />
+		<Property name="game_version" value="1.0" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1181444769" />
+		<Property name="save_time" value="1185554594" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="SMC Team and Yuki" />
@@ -34,13 +34,13 @@
 		<Property name="type" value="1" />
 		<Property name="image" value="animation/particles/leaf_brown.png" />
 		<Property name="rect_x" value="0" />
-		<Property name="rect_y" value="0" />
+		<Property name="rect_y" value="-64" />
 		<Property name="rect_w" value="800" />
 		<Property name="rect_h" value="1" />
 		<Property name="z" value="0.12" />
 		<Property name="z_rand" value="0" />
 		<Property name="time_to_live" value="15" />
-		<Property name="creation_speed" value="0.01" />
+		<Property name="emitter_iteration_interval" value="3.2" />
 		<Property name="scale" value="0.2" />
 		<Property name="scale_rand" value="0.2" />
 		<Property name="speed" value="2" />
@@ -2457,7 +2457,7 @@
 		<Property name="gold_color" value="yellow" />
 	</box>
 	<box>
-		<Property name="posx" value="6681" />
+		<Property name="posx" value="6682" />
 		<Property name="posy" value="354" />
 		<Property name="type" value="bonus" />
 		<Property name="animation" value="Default" />
@@ -2479,7 +2479,7 @@
 		<Property name="gold_color" value="yellow" />
 	</box>
 	<box>
-		<Property name="posx" value="6825" />
+		<Property name="posx" value="6824" />
 		<Property name="posy" value="354" />
 		<Property name="type" value="bonus" />
 		<Property name="animation" value="Default" />
@@ -3045,4 +3045,58 @@
 		<Property name="image" value="game/box/brown1_1.png" />
 		<Property name="type" value="massive" />
 	</sprite>
+	<sprite>
+		<Property name="posx" value="540" />
+		<Property name="posy" value="353" />
+		<Property name="image" value="game/box/brown1_1.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="497" />
+		<Property name="posy" value="353" />
+		<Property name="image" value="game/box/brown1_1.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="454" />
+		<Property name="posy" value="353" />
+		<Property name="image" value="game/box/brown1_1.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="411" />
+		<Property name="posy" value="353" />
+		<Property name="image" value="game/box/brown1_1.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="368" />
+		<Property name="posy" value="353" />
+		<Property name="image" value="game/box/brown1_1.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<box>
+		<Property name="posx" value="454" />
+		<Property name="posy" value="188" />
+		<Property name="type" value="text" />
+		<Property name="invisible" value="0" />
+		<Property name="useable_count" value="-1" />
+		<Property name="text" value="             ---   Welcome   ---&lt;br/&gt;&lt;br/&gt;Secret Maryo Chronicles (SMC) is a classic Jump and Run thus most enemies can be hit through jumping on their head but not all.&lt;br/&gt;&lt;br/&gt;          ---   Savegames   ---&lt;br/&gt;&lt;br/&gt;You can always save but in a&lt;br/&gt;level you need 3000 points to save. Save often before running into difficult passages !&lt;br/&gt;If you need more points find all the Goldpieces and the secret areas.&lt;br/&gt;" />
+	</box>
+	<box>
+		<Property name="posx" value="3033" />
+		<Property name="posy" value="127" />
+		<Property name="type" value="text" />
+		<Property name="invisible" value="0" />
+		<Property name="useable_count" value="-1" />
+		<Property name="text" value="            ---    High Jump   ---&lt;br/&gt;&lt;br/&gt;To overcome large spaces press the Run key all the time and jump on the last moment.&lt;br/&gt;&lt;br/&gt;If you want to stop jumping early stop pressing the jump button.&lt;br/&gt;&lt;br/&gt;Wheeeeeeeee&lt;br/&gt;" />
+	</box>
+	<box>
+		<Property name="posx" value="7647" />
+		<Property name="posy" value="244" />
+		<Property name="type" value="text" />
+		<Property name="invisible" value="0" />
+		<Property name="useable_count" value="-1" />
+		<Property name="text" value="       ---   Secret Passage   ---&lt;br/&gt;&lt;br/&gt;Pssst...&lt;br/&gt;&lt;br/&gt;There&apos;s a secret Pipe passage ahead with alot of Goldpieces...&lt;br/&gt;" />
+	</box>
 </level>

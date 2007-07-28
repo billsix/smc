@@ -17,7 +17,7 @@
         <Window Type="TaharezLook/StaticText" Name="text_homepage" >
             <Property Name="Font" Value="bluebold_big" />
             <Property Name="Text" Value="www.secretmaryo.org" />
-            <Property Name="Tooltip" Value="New Levels, latest News and Forums :D" />
+            <Property Name="Tooltip" Value="Latest News, User Level, Wiki and a Community Forum." />
             <Property Name="TextColours" Value="tl:FFBB8800 tr:FFBB8800 bl:FFFFEE00 br:FFFFEE00" />
             <Property Name="FrameEnabled" Value="False" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />

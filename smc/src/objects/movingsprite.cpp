@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../core/globals.h"
 #include "../objects/movingsprite.h"
@@ -76,6 +77,7 @@ cMovingSprite *cMovingSprite :: Copy( void )
 	moving_sprite->type = type;
 	moving_sprite->sprite_array = sprite_array;
 	moving_sprite->Set_Massivetype( massivetype );
+	moving_sprite->can_be_ground = can_be_ground;
 	moving_sprite->Set_Ignore_Camera( no_camera );
 	moving_sprite->Set_Shadow_Pos( shadow_pos );
 	moving_sprite->Set_Shadow_Color( shadow_color );
@@ -141,7 +143,7 @@ void cMovingSprite :: Auto_SlowDown( float x_speed, float y_speed /* = 0 */ )
 	{
 		if( velx > 0 )
 		{
-			AddVel( -x_speed, 0 );
+			Add_Velocity( -x_speed, 0 );
 
 			if( velx < 0 )
 			{
@@ -150,7 +152,7 @@ void cMovingSprite :: Auto_SlowDown( float x_speed, float y_speed /* = 0 */ )
 		}
 		else if( velx < 0 )
 		{
-			AddVel( x_speed, 0 );
+			Add_Velocity( x_speed, 0 );
 
 			if( velx > 0 )
 			{
@@ -164,7 +166,7 @@ void cMovingSprite :: Auto_SlowDown( float x_speed, float y_speed /* = 0 */ )
 	{
 		if( vely > 0 )
 		{
-			AddVel( 0, -y_speed );
+			Add_Velocity( 0, -y_speed );
 
 			if( vely < 0 )
 			{
@@ -173,7 +175,7 @@ void cMovingSprite :: Auto_SlowDown( float x_speed, float y_speed /* = 0 */ )
 		}
 		else if( vely < 0 )
 		{
-			AddVel( 0, y_speed );
+			Add_Velocity( 0, y_speed );
 
 			if( vely > 0 )
 			{
@@ -417,17 +419,23 @@ ObjectDirection cMovingSprite :: Col_Move( float move_x, float move_y, bool real
 	return collision_dir;
 }
 
-void cMovingSprite :: AddVel( float move_x, float move_y, bool real /* = 0 */ )
+void cMovingSprite :: Set_Velocity( float x, float y )
+{
+	velx = x;
+	vely = y;
+}
+
+void cMovingSprite :: Add_Velocity( float x, float y, bool real /* = 0 */ )
 {
 	if( real )
 	{
-		velx += move_x;
-		vely += move_y;
+		velx += x;
+		vely += y;
 	}
 	else
 	{
-		velx += move_x * pFramerate->speedfactor;
-		vely += move_y * pFramerate->speedfactor;
+		velx += x * pFramerate->speedfactor;
+		vely += y * pFramerate->speedfactor;
 	}
 }
 
@@ -509,7 +517,6 @@ void cMovingSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 		}
 	}
 
-
 	if( create_request )
 	{
 		// add request
@@ -573,9 +580,12 @@ cObjectCollisionType cMovingSprite :: Collision_Check_Absolute( float x, float y
 		// create request
 		cRectRequest *request = new cRectRequest();
 
-		pVideo->Draw_Rect( new_rect.x - pCamera->x, new_rect.y - pCamera->y, new_rect.w, new_rect.h, posz + 0.00001f, &green, request );
+		pVideo->Draw_Rect( &new_rect, posz + 0.00001f, &green, request );
+		request->no_camera = 0;
+
 		request->blend_sfactor = GL_SRC_COLOR;
 		request->blend_dfactor = GL_DST_ALPHA;
+
 
 		// add request
 		pRenderer->Add( request );
@@ -608,8 +618,8 @@ cObjectCollisionType cMovingSprite :: Collision_Check( GL_rect *new_rect, ColChe
 		// get object pointer
 		cSprite *level_object = (*itr);
 
-		// if the same object
-		if( this == level_object )
+		// if the same object or destroyed object
+		if( this == level_object || level_object->destroy )
 		{
 			continue;
 		}
@@ -750,28 +760,22 @@ bool cMovingSprite :: Check_OutofLevel( float move_x, float move_y, bool handle 
 	return 0;
 }
 
-void cMovingSprite :: Set_onGround( cObjectCollision *collision )
+void cMovingSprite :: Set_onGround( cSprite *obj )
 {
-	// no invalid or player collisions
-	if( !collision || collision->type == CO_PLAYER )
+	// invalid
+	if( !obj )
 	{
 		return;
 	}
 
-	// check enemies 
-	if( collision->type == CO_ENEMY )
+	// if can't be ground object
+	if( !obj->can_be_ground )
 	{
-		cSprite *enemy = pObjManager->items[collision->number];
-
-		// if enemy is not valid groundobject
-		if( !enemy || !( enemy->type == TYPE_THROMP || enemy->type == TYPE_EATO || enemy->type == TYPE_SPIKA || enemy->type == TYPE_ROKKO ) )
-		{
-			return;
-		}
+		return;
 	}
 
 	// set groundobject
-	ground_object = pObjManager->Get_Pointer( collision->number );
+	ground_object = obj;
 	Set_onTop( ground_object, 0 );
 }
 
@@ -788,7 +792,7 @@ void cMovingSprite :: Check_onGround( void )
 		GL_rect rect2( col_rect.x, col_rect.y + col_rect.h, col_rect.w, 1 );
 
 		// if on ground object
-		if( Col_Box( &ground_object->col_rect, &rect2 ) && ground_object->massivetype != MASS_PASSIVE )
+		if( Col_Box( &ground_object->col_rect, &rect2 ) && ground_object->can_be_ground )
 		{
 			return;
 		}
@@ -801,12 +805,12 @@ void cMovingSprite :: Check_onGround( void )
 	}
 
 	// new onground check
-	unsigned int object_count = Collision_Check_Relative( 0, col_rect.h, 0, 1, COLLIDE_ALLOW_BLOCKING ).size();
+	cObjectCollisionType col_objects = Collision_Check_Relative( 0, col_rect.h, 0, 1, COLLIDE_ALLOW_BLOCKING );
 
 	Reset_onGround();
 
 	// possible ground objects
-	for( unsigned int i = 0; i < object_count; i++ )
+	for( SpriteList::iterator itr = col_objects.list.begin(), itr_end = col_objects.list.end(); itr != itr_end; ++itr )
 	{
 		cObjectCollision *collision = Collision_Get_last();
 
@@ -819,7 +823,7 @@ void cMovingSprite :: Check_onGround( void )
 		// ground collision found
 		if( collision->direction == DIR_BOTTOM )
 		{
-			Set_onGround( collision );
+			Set_onGround( *itr );
 			// send collision ( for falling platform )
 			Send_Collision( collision );
 		}
@@ -1034,8 +1038,11 @@ void cMovingSprite :: Send_Collision( cObjectCollision *collision )
 
 	// this is a received collision
 	ncollision->received = 1;
-	// set data
-	ncollision->number = pObjManager->Get_Array_num( this );
+	// set object manager id
+	if( type != TYPE_PLAYER )
+	{
+		ncollision->number = pObjManager->Get_Array_num( this );
+	}
 
 	// set direction
 	if( collision->direction != DIR_UNDEFINED )

@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="SMC" />
+		<Option pch_mode="0" />
+		<Option compiler="msvc8" />
+		<Build>
+			<Target title="default">
+				<Option output="..\..\..\SMC.exe" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="..\..\..\..\SMC" />
+				<Option type="0" />
+				<Option compiler="msvc8" />
+				<Option projectResourceIncludeDirsRelation="1" />
+			</Target>
+		</Build>
+		<VirtualTargets>
+			<Add alias="All" targets="default;" />
+		</VirtualTargets>
+		<Compiler>
+			<Add option="/MD" />
+			<Add option="/EHc" />
+			<Add option="/EHs" />
+		</Compiler>
+		<Linker>
+			<Add library="SDL" />
+			<Add library="SDLmain" />
+			<Add library="SDL_image" />
+			<Add library="SDL_mixer" />
+			<Add library="SDL_ttf" />
+			<Add library="CEGUIBase" />
+			<Add library="OpenGLGUIRenderer" />
+			<Add library="OpenGL32" />
+		</Linker>
+		<Unit filename="..\..\..\src\audio\audio.cpp" />
+		<Unit filename="..\..\..\src\audio\audio.h" />
+		<Unit filename="..\..\..\src\audio\sound_manager.cpp" />
+		<Unit filename="..\..\..\src\audio\sound_manager.h" />
+		<Unit filename="..\..\..\src\core\camera.cpp" />
+		<Unit filename="..\..\..\src\core\camera.h" />
+		<Unit filename="..\..\..\src\core\collision.cpp" />
+		<Unit filename="..\..\..\src\core\collision.h" />
+		<Unit filename="..\..\..\src\core\editor.cpp" />
+		<Unit filename="..\..\..\src\core\editor.h" />
+		<Unit filename="..\..\..\src\core\file_parser.cpp" />
+		<Unit filename="..\..\..\src\core\file_parser.h" />
+		<Unit filename="..\..\..\src\core\framerate.cpp" />
+		<Unit filename="..\..\..\src\core\framerate.h" />
+		<Unit filename="..\..\..\src\core\game_core.cpp" />
+		<Unit filename="..\..\..\src\core\game_core.h" />
+		<Unit filename="..\..\..\src\core\globals.cpp" />
+		<Unit filename="..\..\..\src\core\globals.h" />
+		<Unit filename="..\..\..\src\core\main.cpp" />
+		<Unit filename="..\..\..\src\core\main.h" />
+		<Unit filename="..\..\..\src\core\math\point.cpp" />
+		<Unit filename="..\..\..\src\core\math\point.h" />
+		<Unit filename="..\..\..\src\core\math\rect.cpp" />
+		<Unit filename="..\..\..\src\core\math\rect.h" />
+		<Unit filename="..\..\..\src\core\math\vector.cpp" />
+		<Unit filename="..\..\..\src\core\math\vector.h" />
+		<Unit filename="..\..\..\src\core\obj_manager.cpp" />
+		<Unit filename="..\..\..\src\core\obj_manager.h" />
+		<Unit filename="..\..\..\src\enemies\bosses\turtle_boss.cpp" />
+		<Unit filename="..\..\..\src\enemies\bosses\turtle_boss.h" />
+		<Unit filename="..\..\..\src\enemies\eato.cpp" />
+		<Unit filename="..\..\..\src\enemies\eato.h" />
+		<Unit filename="..\..\..\src\enemies\enemy.cpp" />
+		<Unit filename="..\..\..\src\enemies\enemy.h" />
+		<Unit filename="..\..\..\src\enemies\gee.cpp" />
+		<Unit filename="..\..\..\src\enemies\gee.h" />
+		<Unit filename="..\..\..\src\enemies\gumba.cpp" />
+		<Unit filename="..\..\..\src\enemies\gumba.h" />
+		<Unit filename="..\..\..\src\enemies\jpiranha.cpp" />
+		<Unit filename="..\..\..\src\enemies\jpiranha.h" />
+		<Unit filename="..\..\..\src\enemies\rex.cpp" />
+		<Unit filename="..\..\..\src\enemies\rex.h" />
+		<Unit filename="..\..\..\src\enemies\rokko.cpp" />
+		<Unit filename="..\..\..\src\enemies\rokko.h" />
+		<Unit filename="..\..\..\src\enemies\spika.cpp" />
+		<Unit filename="..\..\..\src\enemies\spika.h" />
+		<Unit filename="..\..\..\src\enemies\static.cpp" />
+		<Unit filename="..\..\..\src\enemies\static.h" />
+		<Unit filename="..\..\..\src\enemies\thromp.cpp" />
+		<Unit filename="..\..\..\src\enemies\thromp.h" />
+		<Unit filename="..\..\..\src\enemies\turtle.cpp" />
+		<Unit filename="..\..\..\src\enemies\turtle.h" />
+		<Unit filename="..\..\..\src\gui\hud.cpp" />
+		<Unit filename="..\..\..\src\gui\hud.h" />
+		<Unit filename="..\..\..\src\gui\menu.cpp" />
+		<Unit filename="..\..\..\src\gui\menu.h" />
+		<Unit filename="..\..\..\src\gui\menu_data.cpp" />
+		<Unit filename="..\..\..\src\gui\menu_data.h" />
+		<Unit filename="..\..\..\src\input\joystick.cpp" />
+		<Unit filename="..\..\..\src\input\joystick.h" />
+		<Unit filename="..\..\..\src\input\keyboard.cpp" />
+		<Unit filename="..\..\..\src\input\keyboard.h" />
+		<Unit filename="..\..\..\src\input\mouse.cpp" />
+		<Unit filename="..\..\..\src\input\mouse.h" />
+		<Unit filename="..\..\..\src\level\global_effect.cpp" />
+		<Unit filename="..\..\..\src\level\global_effect.h" />
+		<Unit filename="..\..\..\src\level\level.cpp" />
+		<Unit filename="..\..\..\src\level\level.h" />
+		<Unit filename="..\..\..\src\level\level_background.cpp" />
+		<Unit filename="..\..\..\src\level\level_background.h" />
+		<Unit filename="..\..\..\src\level\level_editor.cpp" />
+		<Unit filename="..\..\..\src\level\level_editor.h" />
+		<Unit filename="..\..\..\src\level\level_settings.cpp" />
+		<Unit filename="..\..\..\src\level\level_settings.h" />
+		<Unit filename="..\..\..\src\objects\active.cpp" />
+		<Unit filename="..\..\..\src\objects\active.h" />
+		<Unit filename="..\..\..\src\objects\ball.cpp" />
+		<Unit filename="..\..\..\src\objects\ball.h" />
+		<Unit filename="..\..\..\src\objects\basicsprite.cpp" />
+		<Unit filename="..\..\..\src\objects\basicsprite.h" />
+		<Unit filename="..\..\..\src\objects\bonusbox.cpp" />
+		<Unit filename="..\..\..\src\objects\bonusbox.h" />
+		<Unit filename="..\..\..\src\objects\box.cpp" />
+		<Unit filename="..\..\..\src\objects\box.h" />
+		<Unit filename="..\..\..\src\objects\enemystopper.cpp" />
+		<Unit filename="..\..\..\src\objects\enemystopper.h" />
+		<Unit filename="..\..\..\src\objects\falling_platform.cpp" />
+		<Unit filename="..\..\..\src\objects\falling_platform.h" />
+		<Unit filename="..\..\..\src\objects\goldpiece.cpp" />
+		<Unit filename="..\..\..\src\objects\goldpiece.h" />
+		<Unit filename="..\..\..\src\objects\levelexit.cpp" />
+		<Unit filename="..\..\..\src\objects\levelexit.h" />
+		<Unit filename="..\..\..\src\objects\moving_platform.cpp" />
+		<Unit filename="..\..\..\src\objects\moving_platform.h" />
+		<Unit filename="..\..\..\src\objects\movingsprite.cpp" />
+		<Unit filename="..\..\..\src\objects\movingsprite.h" />
+		<Unit filename="..\..\..\src\objects\objectsprite.cpp" />
+		<Unit filename="..\..\..\src\objects\objectsprite.h" />
+		<Unit filename="..\..\..\src\objects\powerup.cpp" />
+		<Unit filename="..\..\..\src\objects\powerup.h" />
+		<Unit filename="..\..\..\src\objects\spinbox.cpp" />
+		<Unit filename="..\..\..\src\objects\spinbox.h" />
+		<Unit filename="..\..\..\src\objects\star.cpp" />
+		<Unit filename="..\..\..\src\objects\star.h" />
+		<Unit filename="..\..\..\src\overworld\layer.cpp" />
+		<Unit filename="..\..\..\src\overworld\layer.h" />
+		<Unit filename="..\..\..\src\overworld\overworld.cpp" />
+		<Unit filename="..\..\..\src\overworld\overworld.h" />
+		<Unit filename="..\..\..\src\overworld\ow_player.cpp" />
+		<Unit filename="..\..\..\src\overworld\ow_player.h" />
+		<Unit filename="..\..\..\src\overworld\waypoint.cpp" />
+		<Unit filename="..\..\..\src\overworld\waypoint.h" />
+		<Unit filename="..\..\..\src\overworld\world_editor.cpp" />
+		<Unit filename="..\..\..\src\overworld\world_editor.h" />
+		<Unit filename="..\..\..\src\overworld\worlds.cpp" />
+		<Unit filename="..\..\..\src\overworld\worlds.h" />
+		<Unit filename="..\..\..\src\player\player.cpp" />
+		<Unit filename="..\..\..\src\player\player.h" />
+		<Unit filename="..\..\..\src\user\preferences.cpp" />
+		<Unit filename="..\..\..\src\user\preferences.h" />
+		<Unit filename="..\..\..\src\user\savegame.cpp" />
+		<Unit filename="..\..\..\src\user\savegame.h" />
+		<Unit filename="..\..\..\src\video\animation.cpp" />
+		<Unit filename="..\..\..\src\video\animation.h" />
+		<Unit filename="..\..\..\src\video\font.cpp" />
+		<Unit filename="..\..\..\src\video\font.h" />
+		<Unit filename="..\..\..\src\video\gl_surface.cpp" />
+		<Unit filename="..\..\..\src\video\gl_surface.h" />
+		<Unit filename="..\..\..\src\video\img_manager.cpp" />
+		<Unit filename="..\..\..\src\video\img_manager.h" />
+		<Unit filename="..\..\..\src\video\img_settings.cpp" />
+		<Unit filename="..\..\..\src\video\img_settings.h" />
+		<Unit filename="..\..\..\src\video\renderer.cpp" />
+		<Unit filename="..\..\..\src\video\renderer.h" />
+		<Unit filename="..\..\..\src\video\video.cpp" />
+		<Unit filename="..\..\..\src\video\video.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

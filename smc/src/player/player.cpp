@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../core/globals.h"
 #include "../player/player.h"
@@ -28,6 +29,7 @@
 #include "../gui/menu.h"
 #include "../core/camera.h"
 #include "../objects/levelexit.h"
+#include "../objects/level_entry.h"
 #include "../objects/box.h"
 #include "../input/keyboard.h"
 #include "../video/gl_surface.h"
@@ -59,7 +61,6 @@ cPlayer :: cPlayer( float x /* = 120 */, float y /* = 0 */ )
 
 	walk_count = 0;
 	running_particle_counter = 0;
-	update_downgrade = 0;
 
 	godmode = 0;
 
@@ -78,7 +79,7 @@ cPlayer :: cPlayer( float x /* = 120 */, float y /* = 0 */ )
 	UpKeytime = 0;
 	start_enemyjump = 0;
 	jump_power = 0;
-	jump_accel_up = 4.5;
+	jump_accel_up = 4.5f;
 	jump_vel_deaccel = 0.06f;
 
 	// no movement timer
@@ -89,9 +90,9 @@ cPlayer :: cPlayer( float x /* = 120 */, float y /* = 0 */ )
 	iceball_count = 0;
 	active_object = NULL;
 
+	Load_Images();
 	// default direction : right
 	Set_Direction( DIR_RIGHT, 1 );
-	Load_Images();
 }
 
 cPlayer :: ~cPlayer( void )
@@ -172,20 +173,47 @@ void cPlayer :: Set_Direction( ObjectDirection dir, bool new_start_direction /* 
 	cImageObjectSprite::Set_Direction( dir, new_start_direction );
 }
 
-void cPlayer :: DownGrade( bool handle /* = 0 */ )
+void cPlayer :: Set_onGround( cSprite *obj )
+{
+	cMovingSprite::Set_onGround( obj );
+
+	// if valid ground
+	if( ground_object )
+	{
+		// if moving
+		if( velx )
+		{
+			if( state != STA_STAY && state != STA_RUN )
+			{
+				Set_MovingState( STA_WALK );
+			}
+		}
+		// not moving
+		else if( !velx )
+		{
+			Set_MovingState( STA_STAY );
+		}
+
+		// if massive ground and ducking key is pressed
+		if( ground_object->massivetype == MASS_MASSIVE && pKeyboard->keys[pPreferences->key_down] )
+		{
+			Start_ducking();
+		}
+	}
+}
+
+void cPlayer :: DownGrade( bool delayed /* = 1 */ )
 {
 	if( godmode || invincible )
 	{
 		return;
 	}
 
-	if( !handle )
+	if( delayed )
 	{
-		update_downgrade = 1;
+		Game_Action = GA_DOWNGRADE_PLAYER;
 		return;
 	}
-
-	update_downgrade = 0;
 
 	// if not dead because of falling below ground
 	if( maryo_type != MARYO_SMALL && !( posy - pCamera->y > ( GAME_RES_H - col_rect.h ) ) )
@@ -206,44 +234,44 @@ void cPlayer :: DownGrade( bool handle /* = 0 */ )
 
 	Set_Type( MARYO_DEAD, 0, 0 );
 	pointsdisplay->Clear();
-
-	pAudio->FadeOutMusic( 1700 );
-	pAudio->PlaySound( "player/dead.ogg", RID_MARYO_DEATH );
-
 	Ball_clear();
+	livedisplay->AddLives( -1 );
+	pAudio->FadeOutMusic( 1700 );
 
-	if( livedisplay )
+	// lost a live
+	if( lives >= 0 )
 	{
-		livedisplay->AddLives( -1 );
+		pAudio->PlaySound( "player/dead.ogg", RID_MARYO_DEATH );
 	}
-
-	if( debugdisplay )
+	// game over
+	else
 	{
-		debugdisplay->Set_Text( "You Died", DESIRED_FPS );
+		pAudio->PlaySound( MUSIC_DIR "/game/lost_1.ogg", RID_MARYO_DEATH );
 	}
 	
-	// Maryo's dying animation
-
-	// no Level updates
-	pLevel->Draw_Layer1( LVL_DRAW );
+	// dying animation
 	Set_Image( MARYO_IMG_DEAD + 1 );
-	Draw_Player();
-	pLevel->Draw_Layer2( LVL_DRAW );
-	pHudManager->Draw();
+
+	// draw
+	Draw_Game();
+	// render
 	pVideo->Render();
+
+	// wait
 	SDL_Delay( 500 );
 	pFramerate->Reset();
 	
+	Set_Image( MARYO_IMG_DEAD );
+
 	float i;
 
 	for( i = 0; i < 7; i += pFramerate->speedfactor )
 	{
-		Move( 0, -13, 0 );
-		pLevel->Draw_Layer1( LVL_DRAW );
-		Set_Image( MARYO_IMG_DEAD );
-		Draw_Player();
-		pLevel->Draw_Layer2( LVL_DRAW );
-		pHudManager->Draw();
+		// move up
+		Move( 0, -13 );
+		// draw
+		Draw_Game();
+		// render
 		pVideo->Render();
 		pFramerate->Update();
 	}
@@ -262,11 +290,9 @@ void cPlayer :: DownGrade( bool handle /* = 0 */ )
 		{
 			walk_count = 0;
 		}
-
-		Move( 0, 14, 0 );
-		// no Level updates
-		pLevel->Draw_Layer1( LVL_DRAW );
-
+		
+		// move down
+		Move( 0, 14 );
 
 		if( walk_count > 2 )
 		{
@@ -277,54 +303,97 @@ void cPlayer :: DownGrade( bool handle /* = 0 */ )
 			Set_Image( MARYO_IMG_DEAD + 1 );
 		}
 		
-		Draw_Player();
-		pLevel->Draw_Layer2( LVL_DRAW );
-
-		pHudManager->Draw();
+		// draw
+		Draw_Game();
+		// render
 		pVideo->Render();
-		
 		pFramerate->Update();
 	}
 
 	// lost a live
 	if( lives >= 0 )
 	{
-		// clear level data
-		pLevel->Unload();
-		Reset();
-		// draw effect
-		DrawEffect();
+		// unload level
+		pLevel->Unload( 1 );
 	}
 	// game over
 	else
 	{
-		if( debugdisplay )
+		GL_Surface *game_over = pVideo->Get_Surface( "game/game_over.png" );
+		cSprite *sprite = new cSprite( game_over, ( GAME_RES_W * 0.5f ) - ( game_over->w * 0.5f ), ( GAME_RES_H * 0.5f ) - ( game_over->h * 0.5f ) );
+		sprite->posz = 0.8f;
+		sprite->spawned = 1;
+		sprite->Set_Ignore_Camera( 1 );
+		pObjManager->Add( sprite );
+
+		cParticleAnimation *anim = new cParticleAnimation();
+		anim->Set_Emitter_Rect( sprite->rect.x + pCamera->x, sprite->rect.y + pCamera->y, sprite->rect.w ,sprite->rect.h );
+		anim->Set_Emitter_Time_to_Live( 25 );
+		anim->Set_Emitter_Iteration_Interval( 0.1f );
+		anim->Set_Quota( 1 );
+		anim->Set_ZPos( 0.79f );
+		anim->Set_Image( pVideo->Get_Surface( "animation/particles/axis.png" ) );
+		anim->Set_Time_to_Live( 10 );
+		anim->Set_Fading_Alpha( 1 );
+		anim->Set_Speed( 2, 0.5f );
+		anim->Set_Scale( 0.9f );
+		anim->Set_Color( Color( (Uint8)250, 140, 90 ), Color( (Uint8)5, 100, 0 ) );
+		anim->Set_ConstRotationZ( 0.1f, 5 );
+
+		anim->Init();
+
+		for( float i = 1; i > 0; i -= 0.001f * pFramerate->speedfactor )
 		{
-			debugdisplay->Set_Text( "Game Over", DESIRED_FPS );
+			// update pressed keys
+			SDL_PumpEvents();
+			Uint8 *keys = SDL_GetKeyState( NULL );
+			// Escape stops
+			if( keys[SDLK_ESCAPE] || keys[SDLK_RETURN] || keys[SDLK_SPACE] || keys[pPreferences->key_action] )
+			{
+				break;
+			}
+
+			// if joystick enabled and exit pressed
+			if( pPreferences->joy_enabled && SDL_JoystickGetButton( pJoystick->joystick, pPreferences->joy_exit ) )
+			{
+				 break;
+			}
+
+			// update animation
+			anim->Update();
+			
+			// draw
+			Draw_Game();
+			anim->Draw();
+
+			pVideo->Render();
+			pFramerate->Update();
 		}
 
-		// no Level updates
-		pLevel->Draw_Layer1( LVL_DRAW );
-		Set_Image( MARYO_IMG_DEAD + 1 );
-		Draw_Player();
-		pLevel->Draw_Layer2( LVL_DRAW );
-		pHudManager->Draw();
-		pVideo->Render();
-
-		// draw effect
-		DrawEffect();
+		delete anim;
+		pAudio->StopSounds();
 	}
 	
 	// clear
-	pFramerate->Reset();
-	ClearInputEvents();
 	Set_Type( MARYO_SMALL, 0, 0 );
+	ClearInputEvents();
+	pFramerate->Reset();
 
 	// game over - reset
 	if( lives < 0 )
 	{
 		ResetSave();
-		pMenuCore->Enter();
+		Game_Action = GA_ENTER_MENU;
+	}
+	// custom level
+	else if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM )
+	{
+		Game_Action = GA_ENTER_MENU;
+	}
+	// back to overworld
+	else
+	{
+		Game_Action = GA_ENTER_WORLD;
 	}
 }
 
@@ -354,7 +423,7 @@ void cPlayer :: Move_Player( float velocity, float vel_wrongway )
 		// special enemies
 		else if( collision->type == CO_ENEMY )
 		{
-			cEnemy *enemy = (cEnemy *)pObjManager->Get_Pointer( collision->number );
+			cEnemy *enemy = static_cast<cEnemy *>(pObjManager->Get_Pointer( collision->number ));
 
 			// blocking enemies
 			if( enemy->type == TYPE_EATO )
@@ -369,6 +438,11 @@ void cPlayer :: Move_Player( float velocity, float vel_wrongway )
 	// don't move if colliding
 	if( is_col )
 	{
+		if( !velx )
+		{
+			Set_MovingState( STA_STAY );
+		}
+
 		return;
 	}
 
@@ -377,7 +451,7 @@ void cPlayer :: Move_Player( float velocity, float vel_wrongway )
 	{
 		if( velx > 0 )
 		{
-			AddVel( velocity, 0 );
+			Add_Velocity( velocity, 0 );
 
 			if( velx > 10 * Get_Vel_mod() )
 			{
@@ -397,7 +471,7 @@ void cPlayer :: Move_Player( float velocity, float vel_wrongway )
 			}
 
 			// slow down
-			AddVel( vel_wrongway, 0 );
+			Add_Velocity( vel_wrongway, 0 );
 		}
 	}
 	// move left
@@ -405,7 +479,7 @@ void cPlayer :: Move_Player( float velocity, float vel_wrongway )
 	{
 		if( velx < 0 )
 		{
-			AddVel( velocity, 0 );
+			Add_Velocity( velocity, 0 );
 
 			if( velx < -10 * Get_Vel_mod() )
 			{
@@ -425,8 +499,14 @@ void cPlayer :: Move_Player( float velocity, float vel_wrongway )
 			}
 
 			// slow down
-			AddVel( vel_wrongway, 0 );
+			Add_Velocity( vel_wrongway, 0 );
 		}
+	}
+
+	// start walking
+	if( state == STA_STAY )
+	{
+		Set_MovingState( STA_WALK );
 	}
 }
 
@@ -440,7 +520,7 @@ void cPlayer :: Update_walking( void )
 	// validate ground object
 	if( ( ground_object->type == TYPE_EATO || ground_object->type == TYPE_SPIKA || ground_object->type == TYPE_ROKKO ) && invincible <= 0 )
 	{
-		ground_object = NULL;
+		Reset_onGround();
 	}
 
 	// only if left or right is pressed
@@ -509,7 +589,17 @@ void cPlayer :: Update_staying( void )
 	// if left and right is not pressed
 	if( !pKeyboard->keys[pPreferences->key_left] && !pKeyboard->keys[pPreferences->key_right] && !pJoystick->left && !pJoystick->right )
 	{
-		Auto_SlowDown( 1.1f );
+		// walking
+		if( velx )
+		{
+			Auto_SlowDown( 1.1f );
+
+			// stopped walking
+			if( !velx )
+			{
+				Set_MovingState( STA_STAY );
+			}
+		}
 
 		// walk on spika
 		if( ground_object->type == TYPE_SPIKA )
@@ -556,14 +646,14 @@ void cPlayer :: Update_flying( void )
 		{
 			if( velx > -15 * Get_Vel_mod() )
 			{
-				AddVel( -1.1f, 0 );
+				Add_Velocity( -1.1f, 0 );
 			}
 		}
 		else
 		{
 			if( velx < 15 * Get_Vel_mod() )
 			{
-				AddVel( 1.1f, 0 );
+				Add_Velocity( 1.1f, 0 );
 			}
 		}
 
@@ -572,7 +662,7 @@ void cPlayer :: Update_flying( void )
 		{
 			if( vely < 5 * Get_Vel_mod() )
 			{
-				AddVel( 0, 0.6f );
+				Add_Velocity( 0, 0.6f );
 			}
 		}
 		// move up
@@ -580,7 +670,7 @@ void cPlayer :: Update_flying( void )
 		{
 			if( vely > -5 * Get_Vel_mod() )
 			{
-				AddVel( 0, -0.6f );
+				Add_Velocity( 0, -0.6f );
 			}
 		}
 		// slow down if not pressed
@@ -614,7 +704,7 @@ void cPlayer :: Update_flying( void )
 			{
 				if( velx > -10 * Get_Vel_mod() )
 				{
-					AddVel( -1.2f, 0 );
+					Add_Velocity( -1.2f, 0 );
 				}
 			}
 			// slow fall/parachute
@@ -622,7 +712,7 @@ void cPlayer :: Update_flying( void )
 			{
 				if( velx > -5 * Get_Vel_mod() )
 				{
-					AddVel( -0.6f, 0 );
+					Add_Velocity( -0.6f, 0 );
 				}
 			}
 
@@ -634,7 +724,7 @@ void cPlayer :: Update_flying( void )
 			{
 				if( velx < 10 * Get_Vel_mod() )
 				{
-					AddVel( 1.2f, 0 );
+					Add_Velocity( 1.2f, 0 );
 				}
 			}
 			// slow fall/parachute
@@ -642,7 +732,7 @@ void cPlayer :: Update_flying( void )
 			{
 				if( velx < 5 * Get_Vel_mod() )
 				{
-					AddVel( 0.6f, 0 );
+					Add_Velocity( 0.6f, 0 );
 				}
 			}
 		}
@@ -688,7 +778,7 @@ void cPlayer :: Update_falling( void )
 	{
 		if( vely < 25 )
 		{
-			AddVel( 0, 2.8f );
+			Add_Velocity( 0, 2.8f );
 		}
 	}
 	// slow fall/parachute
@@ -696,7 +786,7 @@ void cPlayer :: Update_falling( void )
 	{
 		if( vely < 10 )
 		{
-			AddVel( 0, 0.6f );
+			Add_Velocity( 0, 0.6f );
 		}
 	}
 
@@ -718,8 +808,8 @@ void cPlayer :: Start_ducking( void )
 	Release_item( 1, 1 );
 
 	// set ducking image
+	Move( 0, image->h - images[MARYO_IMG_DUCK]->h, 1 );
 	Set_Image( MARYO_IMG_DUCK + direction );
-	Col_Move( 0, images[MARYO_IMG_STAND]->h - image->h, 1, 1 );
 
 	ducked = 1;
 	Set_MovingState( STA_STAY );
@@ -733,8 +823,8 @@ void cPlayer :: Stop_ducking( void )
 	}
 
 	// unset ducking image
+	Move( 0, -( images[MARYO_IMG_STAND]->h - image->h ), 1 );
 	Set_Image( MARYO_IMG_STAND + direction );
-	Col_Move( 0, -( image->h - images[MARYO_IMG_DUCK]->h ), 1, 1 );
 
 	ducked = 0;
 	Set_MovingState( STA_STAY );
@@ -754,7 +844,11 @@ void cPlayer :: Update_ducking( void )
 		return;
 	}
 
-	Auto_SlowDown( 0.6f );
+	// slow down
+	if( velx )
+	{
+		Auto_SlowDown( 0.6f );
+	}
 }
 
 void cPlayer :: Start_climbing( void )
@@ -865,12 +959,15 @@ void cPlayer :: Start_jump( float power /* = 17 */, float accel /* = 4 */, float
 		{
 			pAudio->PlaySound( "player/jump_small.ogg", RID_MARYO_JUMP );
 		}
-		// not small
+		// ghost
+		else if( maryo_type == MARYO_GHOST )
+		{
+			pAudio->PlaySound( "player/jump_ghost.ogg", RID_MARYO_JUMP );
+		}
+		// big
 		else
 		{
-			// random jump sound
-			string jump_file = "player/jump_big_" + int_to_string( (int)rand() % (3) ) + ".ogg";
-			pAudio->PlaySound( jump_file, RID_MARYO_JUMP );
+			pAudio->PlaySound( "player/jump_big.ogg", RID_MARYO_JUMP );
 		}
 	}
 
@@ -950,12 +1047,12 @@ void cPlayer :: Update_jump( void )
 	// jumping physics
 	if( pKeyboard->keys[pPreferences->key_jump] || ( pPreferences->joy_analog_jump && pJoystick->up ) || pJoystick->Button( pPreferences->joy_jump ) )
 	{
-		AddVel( 0, -( jump_accel_up + ( vely * jump_vel_deaccel ) / Get_Vel_mod() ) );
+		Add_Velocity( 0, -( jump_accel_up + ( vely * jump_vel_deaccel ) / Get_Vel_mod() ) );
 		jump_power -= pFramerate->speedfactor;
 	}
 	else
 	{
-		AddVel( 0, 0.5f );
+		Add_Velocity( 0, 0.5f );
 		jump_power -= 6 * pFramerate->speedfactor;
 	}
 	
@@ -964,7 +1061,7 @@ void cPlayer :: Update_jump( void )
 	{
 		if( velx > -10 * Get_Vel_mod() )
 		{
-			AddVel( ( -1.1f * Get_Vel_mod() ) - ( velx / 100 ), 0 );
+			Add_Velocity( ( -1.1f * Get_Vel_mod() ) - ( velx / 100 ), 0 );
 		}
 		
 	}	
@@ -972,10 +1069,11 @@ void cPlayer :: Update_jump( void )
 	{
 		if( velx < 10 * Get_Vel_mod() )
 		{
-			AddVel( ( 1.1f * Get_Vel_mod() ) + ( velx / 100 ), 0 );
+			Add_Velocity( ( 1.1f * Get_Vel_mod() ) + ( velx / 100 ), 0 );
 		}
 	}
-	else // slow down if nothing is pressed
+	// slow down
+	else 
 	{
 		Auto_SlowDown( 0.2f );
 	}
@@ -1000,7 +1098,33 @@ void cPlayer :: Update_item( void )
 		else
 		{
 			// update the item position
-			active_object->Set_Pos( posx + ( ( direction == DIR_LEFT ) ? (-active_object->col_rect.w) : (rect.w * 0.8f) ), posy + ( rect.h * 0.1f ) );
+			float pos_hor = 0;
+
+			if( maryo_type == MARYO_SMALL )
+			{
+				if( direction == DIR_LEFT )
+				{
+					pos_hor = rect.w * 0.1f - active_object->col_rect.w;
+				}
+				else
+				{
+					pos_hor = rect.w * 0.7f;
+				}
+			}
+			// big
+			else
+			{
+				if( direction == DIR_LEFT )
+				{
+					pos_hor = rect.w * 0.03f - active_object->col_rect.w;
+				}
+				else
+				{
+					pos_hor = rect.w * 0.77f;
+				}
+			}
+
+			active_object->Set_Pos( posx + pos_hor, posy + ( rect.h * 0.1f ) );
 			active_object->Move( velx, vely );
 		}
 
@@ -1084,6 +1208,12 @@ void cPlayer :: Release_item( bool set_position /* = 1 */, bool no_action /* = 0
 		kick_direction = direction;
 	}
 
+	// if frozen
+	if( active_object->freeze_counter )
+	{
+		no_action = 1;
+	}
+
 	// add back to level
 	if( active_object->type == TYPE_TURTLE )
 	{
@@ -1124,7 +1254,11 @@ void cPlayer :: Release_item( bool set_position /* = 1 */, bool no_action /* = 0
 		{
 			turtle->massivetype = MASS_MASSIVE;
 			turtle->direction = kick_direction;
-			turtle->playercounter = DESIRED_FPS * 0.5f;
+
+			if( !turtle->freeze_counter )
+			{
+				turtle->playercounter = DESIRED_FPS * 0.5f;
+			}
 		}
 
 		turtle->Update_valid_update();
@@ -1342,6 +1476,21 @@ void cPlayer :: Set_Type( Maryo_type mtype, bool animation /* = 1 */, bool sound
 		ghost_time = 0;
 		ghost_time_mod = 0;
 		maryo_type_temp_power = MARYO_DEAD;
+
+		// check for ghost ground
+		if( ground_object )
+		{
+			cBaseBox *box = dynamic_cast<cBaseBox *>( ground_object );
+
+			if( box )
+			{
+				// ghost box
+				if( box->box_invisible == 2 )
+				{
+					Reset_onGround();
+				}
+			}
+		}
 	}
 
 	maryo_type = mtype;
@@ -1537,6 +1686,7 @@ void cPlayer :: ResetSave( void )
 
 	pLevel->Unload();
 	Reset();
+	Ball_clear();
 
 	lives = 3;
 	goldpieces = 0;
@@ -1552,11 +1702,12 @@ void cPlayer :: ResetSave( void )
 void cPlayer :: Reset( bool full /* = 1 */ )
 {
 	// reset level states
+	Set_Visible( 1 );
 	Set_Pos( startposx, startposy + start_image->col_h - col_rect.h );
 	Set_Direction( start_direction );
 	ducked = 0;
 	Set_MovingState( STA_FALL );
-	update_downgrade = 0;
+	Set_Image( Get_Image() + direction );
 	jump_power = 0;
 	start_enemyjump = 0;
 	jump_accel_up = 0;
@@ -1569,11 +1720,15 @@ void cPlayer :: Reset( bool full /* = 1 */ )
 	Collisions_Clear();
 	walk_count = 0;
 	Reset_onGround();
-	active_object = NULL;
+	if( active_object )
+	{
+		active_object = NULL;
+		Load_Images();
+	}
 	kill_multiplier = 1;
 	last_kill_counter = 0;
 
-	// reset player item states
+	// reset item and camera
 	if( full )
 	{
 		pCamera->Center();
@@ -1587,60 +1742,97 @@ void cPlayer :: Reset( bool full /* = 1 */ )
 
 void cPlayer :: Goto_next_Level( void )
 {
-	// draw level for the effect
-	pLevel->Draw_Layer1( LVL_DRAW );
-	pLevel->Draw_Layer2( LVL_DRAW );
-	// Random effect
-	DrawEffect();
-
-	// delay unload level
-	pLevel->Unload( 1 );
-	// reset player
-	Reset();
-	// enter overworld
-	pActive_Overworld->Goto_next_Level();
-	pActive_Overworld->Enter( 1 );
+	// custom level
+	if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM )
+	{
+		// delay unload level
+		pLevel->Unload( 1 );
+		// Enter Menu
+		Game_Action = GA_ENTER_MENU;
+	}
+	else
+	{
+		// Finish level
+		pActive_Overworld->Goto_next_Level();
+		// Enter World
+		Game_Action = GA_ENTER_WORLD;
+	}
 }
 
-void cPlayer :: Goto_SubLevel( string sublevel )
+void cPlayer :: Goto_SubLevel( string str_level, string str_entry )
 {
 	// same level - scroll to the position
-	if( sublevel.compare( Get_filename( pLevel->data_file, 0, 0 ) ) == 0 )
+	if( str_level.compare( Get_filename( pLevel->data_file, 0, 0 ) ) == 0 )
 	{
 		Reset( 0 );
+		
+		cLevel_Entry *entry = NULL;
 
-		for( unsigned int i = 0; i < 200; i++ )
+		// entry position
+		if( !str_entry.empty() )
 		{
-			Set_Pos( startposx, startposy + start_image->col_h - col_rect.h );
-			Update_Camera( 1 );
-
-			// position not visible
-			if( pCamera->x > posx )
+			// Search for the entry
+			for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
 			{
-				Set_Pos( pCamera->x, pCamera->y );
+				cSprite *obj = (*itr);
+
+				// only level entry
+				if( obj->type != TYPE_LEVEL_ENTRY )
+				{
+					continue;
+				}
+				
+				cLevel_Entry *level_entry = static_cast<cLevel_Entry *>(obj);
+
+				// found
+				if( level_entry->entry_name.compare( str_entry ) == 0 )
+				{
+					entry = level_entry;
+					break;
+				}
 			}
-
-			pLevel->Draw_Layer1( LVL_DRAW );
-			// position visible
-			if( pCamera->x < posx )
-			{
-				Draw();
-			}
-			pLevel->Draw_Layer2( LVL_DRAW );
-			pHudManager->Update();
-
-			pVideo->Render();
-
-			pFramerate->Update();
 		}
 
-		Set_Pos( startposx, startposy + start_image->col_h - col_rect.h );
+		// use entry position
+		if( entry )
+		{
+			Set_Pos( entry->posx, entry->posy );
+			// set invisible for warp animation
+			Set_Visible( 0 );
+		}
+		// not found
+		else if( !str_entry.empty() )
+		{
+			printf( "Warning : Level entry %s not found\n", str_entry.c_str() );
+		}
+
+		pFramerate->speedfactor = 1;
+
+		// move camera to new position
+		for( unsigned int i = 0; i < 200; i++ )
+		{
+			Update_Camera( 1 );
+
+			// draw
+			Draw_Game();
+
+			pVideo->Render();
+		}
+
+		// warp animation
+		if( entry )
+		{
+			// set back visible
+			Set_Visible( 1 );
+			// activate entry
+			entry->Activate();
+		}
 	}
 	// another level - load the level
 	else
 	{
-		Reset();
-		pLevel->Load( sublevel, 1 );
+		Game_Action = GA_ENTER_LEVEL;
+		Game_Action_Data = str_level;
 	}
 }
 
@@ -1651,13 +1843,7 @@ void cPlayer :: Update( void )
 		return;
 	}
 
-	// handle downgrade
-	if( update_downgrade )
-	{
-		DownGrade( 1 );
-	}
-
-	// check if Maryo got stuck
+	// check if got stuck
 	if( !ducked )
 	{
 		Update_antistuck();
@@ -1665,18 +1851,6 @@ void cPlayer :: Update( void )
 
 	// check if starting a jump is possible
 	Update_jump_keytime();
-
-	if( ground_object )
-	{
-		if( state != STA_WALK && state != STA_RUN && velx != 0 )
-		{
-			Set_MovingState( STA_WALK );
-		}
-		else if( state != STA_JUMP && state != STA_STAY && velx == 0 )
-		{
-			Set_MovingState( STA_STAY );
-		}
-	}
 
 	// update states
 	Update_jump();
@@ -1948,37 +2122,7 @@ void cPlayer :: Update( void )
 		}
 	}
 
-	// Special
-	Update_Kill_Multiplier();
-}
-
-void cPlayer :: Update_Camera( bool smooth_x /* = 0 */ )
-{
-	// if smooth horizontal scroll
-	if( smooth_x )
-	{
-		if( posx - pCamera->x > ( GAME_RES_W / 6 ) * 3 )
-		{
-			pCamera->Move( ( ( posx - pCamera->x - ( GAME_RES_W / 6 ) * 3 ) / 30 ) * pFramerate->speedfactor, 0 );
-		}
-		else if( pCamera->x && posx - pCamera->x < ( GAME_RES_W / 6 ) * 2.5f )
-		{
-			pCamera->Move( ( ( posx - pCamera->x - ( GAME_RES_W / 6 ) * 3 ) / 20 ) * pFramerate->speedfactor, 0 );
-		}
-	}
-	else
-	{
-		pCamera->Update();
-	}
-}
-
-void cPlayer :: Draw( cSurfaceRequest *request /* = NULL */ )
-{
-	if( !valid_draw )
-	{
-		return;
-	}
-
+	// Set image
 	if( state != STA_CLIMB )
 	{
 		Set_Image( Get_Image() + direction );
@@ -1988,10 +2132,70 @@ void cPlayer :: Draw( cSurfaceRequest *request /* = NULL */ )
 		Set_Image( Get_Image() );
 	}
 
-	Draw_Player( request );
+	// Special
+	Update_Kill_Multiplier();
 }
 
-void cPlayer :: Draw_Player( cSurfaceRequest *request /* = NULL */ )
+void cPlayer :: Update_Camera( bool smooth /* = 0 */ )
+{
+	// if smooth scrolling
+	if( smooth )
+	{
+		float vel = 0;
+
+		if( posx - pCamera->x > ( GAME_RES_W / 6 ) * 3 )
+		{
+			vel = ( ( posx - pCamera->x - ( GAME_RES_W / 6 ) * 3 ) / 30 );
+
+			if( vel < 2 )
+			{
+				vel = 2;
+			}
+
+			pCamera->Move( vel * pFramerate->speedfactor, 0 );
+		}
+		else if( posx - pCamera->x < ( GAME_RES_W / 6 ) * 2.5f )
+		{
+			vel = ( ( posx - pCamera->x - ( GAME_RES_W / 6 ) * 3 ) / 20 );
+
+			if( vel > -2 )
+			{
+				vel = -2;
+			}
+
+			pCamera->Move( vel * pFramerate->speedfactor, 0 );
+		}
+
+		if( posy - pCamera->y > ( GAME_RES_H / 6 ) * 3 )
+		{
+			vel = ( ( posy - pCamera->y - ( GAME_RES_H / 6 ) * 3 ) / 30 );
+
+			if( vel < 2 )
+			{
+				vel = 2;
+			}
+
+			pCamera->Move( 0, vel * pFramerate->speedfactor );
+		}
+		else if( posy - pCamera->y < ( GAME_RES_H / 6 ) * 2.5f )
+		{
+			vel = ( ( posy - pCamera->y - ( GAME_RES_H / 6 ) * 3 ) / 20 );
+
+			if( vel > -2 )
+			{
+				vel = -2;
+			}
+
+			pCamera->Move( 0, vel * pFramerate->speedfactor );
+		}
+	}
+	else
+	{
+		pCamera->Update();
+	}
+}
+
+void cPlayer :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
 	if( !valid_draw )
 	{
@@ -2102,14 +2306,11 @@ void cPlayer :: Draw_Animation( Maryo_type new_mtype )
 		}
 
 		// draw
-		pLevel->Draw_Layer1( LVL_DRAW );
-		Draw();
-		pLevel->Draw_Layer2( LVL_DRAW );
-		pHudManager->Draw();
+		Draw_Game();
 		pVideo->Render();
 
 		// frame delay
-		SDL_Delay( 150 );
+		SDL_Delay( 120 );
 	}
 
 	pFramerate->Reset();
@@ -2721,21 +2922,179 @@ void cPlayer :: Action_Jump( bool enemy_jump /* = 0 */ )
 	Update_jump_keytime();
 }
 
-void cPlayer :: Action_Interact( void )
+void cPlayer :: Action_Interact( SDLKey key_type )
 {
-	// Search for colliding Levelexit Objects
-	for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+	// Up
+	if( key_type == pPreferences->key_up )
 	{
-		cSprite *obj = (*itr);
-
-		if( obj->type == TYPE_LEVELEXIT && Col_Box( &col_rect, &obj->col_rect ) )
+		// Search for colliding level exit Objects
+		for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
 		{
-			cLevelExit *levelexit = static_cast<cLevelExit *>(obj);
+			cSprite *obj = (*itr);
 
-			// only beam levelexit
-			if( levelexit->levelchange_type == LEVELEXIT_BEAM )
+			// levelexit
+			if( obj->type == TYPE_LEVELEXIT && Col_Box( &col_rect, &obj->col_rect ) )
 			{
-				levelexit->Activate();
+				cLevel_Exit *level_exit = static_cast<cLevel_Exit *>(obj);
+
+				// beam
+				if( level_exit->exit_type == LEVELEXIT_BEAM )
+				{
+					// needs to be on ground
+					if( ground_object )
+					{
+						Game_Action = GA_ACTIVATE_LEVEL_EXIT;
+						Game_Action_ptr = level_exit;
+						return;
+					}
+				}
+				// warp
+				else if( level_exit->exit_type == LEVELEXIT_WARP )
+				{
+					if( level_exit->direction == DIR_UP )
+					{
+						if( vely <= 0 )
+						{
+							Game_Action = GA_ACTIVATE_LEVEL_EXIT;
+							Game_Action_ptr = level_exit;
+							return;
+						}
+					}
+				}
+			}
+		}
+	}
+	// Down
+	else if( key_type == pPreferences->key_down )
+	{
+		// Search for colliding Levelexit Objects
+		for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+		{
+			cSprite *obj = (*itr);
+
+			// levelexit
+			if( obj->type == TYPE_LEVELEXIT && Col_Box( &col_rect, &obj->col_rect ) )
+			{
+				cLevel_Exit *level_exit = static_cast<cLevel_Exit *>(obj);
+
+				// warp
+				if( level_exit->exit_type == LEVELEXIT_WARP )
+				{
+					if( level_exit->direction == DIR_DOWN )
+					{
+						// needs to be on ground
+						if( ground_object )
+						{
+							Game_Action = GA_ACTIVATE_LEVEL_EXIT;
+							Game_Action_ptr = level_exit;
+							return;
+						}
+					}
+				}
+			}
+		}
+
+		// ducking / falling
+		if( state != STA_FLY )
+		{
+			if( ground_object )
+			{
+				if( ground_object->massivetype == MASS_MASSIVE )
+				{
+					Start_ducking();
+				}
+				else if( ground_object->massivetype == MASS_HALFMASSIVE )
+				{
+					Start_falling();
+				}
+			}
+		}
+	}
+	// Left
+	else if( key_type == pPreferences->key_left )
+	{
+		// Search for colliding Levelexit Objects
+		for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+		{
+			cSprite *obj = (*itr);
+
+			// levelexit
+			if( obj->type == TYPE_LEVELEXIT && Col_Box( &col_rect, &obj->col_rect ) )
+			{
+				cLevel_Exit *level_exit = static_cast<cLevel_Exit *>(obj);
+
+				// warp
+				if( level_exit->exit_type == LEVELEXIT_WARP )
+				{
+					if( level_exit->direction == DIR_LEFT )
+					{
+						if( velx >= 0 )
+						{
+							Game_Action = GA_ACTIVATE_LEVEL_EXIT;
+							Game_Action_ptr = level_exit;
+							return;
+						}
+					}
+				}
+			}
+		}
+
+		// direction
+		if( state != STA_FLY )
+		{
+			if( direction != DIR_LEFT )
+			{
+				// play stop sound if already running
+				if( velx > 12 && ground_object )
+				{
+					pAudio->PlaySound( "player/maryo_stop.ogg", RID_MARYO_STOP );
+				}
+
+				direction = DIR_LEFT;
+			}
+		}
+	}
+	// Right
+	else if( key_type == pPreferences->key_right )
+	{
+		// Search for colliding Levelexit Objects
+		for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+		{
+			cSprite *obj = (*itr);
+
+			// levelexit
+			if( obj->type == TYPE_LEVELEXIT && Col_Box( &col_rect, &obj->col_rect ) )
+			{
+				cLevel_Exit *level_exit = static_cast<cLevel_Exit *>(obj);
+
+				// warp
+				if( level_exit->exit_type == LEVELEXIT_WARP )
+				{
+					if( level_exit->direction == DIR_RIGHT )
+					{
+						if( velx <= 0 )
+						{
+							Game_Action = GA_ACTIVATE_LEVEL_EXIT;
+							Game_Action_ptr = level_exit;
+							return;
+						}
+					}
+				}
+			}
+		}
+
+		// direction
+		if( state != STA_FLY )
+		{
+			if( direction != DIR_RIGHT )
+			{
+				// play stop sound if already running
+				if( velx < -12 && ground_object )
+				{
+					pAudio->PlaySound( "player/maryo_stop.ogg", RID_MARYO_STOP );
+				}
+
+				direction = DIR_RIGHT;
 			}
 		}
 	}
@@ -2808,7 +3167,7 @@ bool cPlayer :: Ball_add( ball_effect effect_type /* = FIREBALL_DEFAULT */ )
 			// add ball
 			cBall *ball = new cBall( posx + col_rect.w / 2, posy + col_rect.h / 2, 0, 0, this, effect_type );
 			ball->Set_Direction( ball_angle, 15 );
-			ball->Col_Move( ball->velx * 6, ball->vely + 6, 1 );
+			ball->Col_Move( ball->velx * 2, ball->vely * 2, 1 );
 			pObjManager->Add( ball );
 		}
 
@@ -2922,15 +3281,15 @@ unsigned int cPlayer :: Validate_Collision( cSprite *obj )
 				// gee
 				else if( obj->type == TYPE_GEE )
 				{
+					if( invincible_star > 0 )
+					{
+						return 1;
+					}
+
 					// block if on top
 					if( vely >= 0 && is_onTop( obj ) )
 					{
 						return 2;
-					}
-
-					if( invincible_star > 0 )
-					{
-						return 1;
 					}
 
 					return 0;
@@ -2965,6 +3324,20 @@ unsigned int cPlayer :: Validate_Collision( cSprite *obj )
 						return 1;
 					}
 				}
+				// turtle
+				else if( obj->type == TYPE_TURTLE )
+				{
+					// block if on top
+					if( vely >= 0 && is_onTop( obj ) )
+					{
+						return 2;
+					}
+
+					if( invincible_star > 0 )
+					{
+						return 1;
+					}
+				}
 			}
 
 			// turtle
@@ -2972,11 +3345,11 @@ unsigned int cPlayer :: Validate_Collision( cSprite *obj )
 			{
 				cTurtle *turtle = static_cast<cTurtle *>(obj);
 
-				// if player counter active
-				if( turtle->playercounter )
+				// if not on top
+				if( !( vely >= 0 && is_onTop( obj ) ) )
 				{
-					// if not on top
-					if( !( vely >= 0 && is_onTop( obj ) ) )
+					// if player counter active or invincible
+					if( turtle->playercounter || invincible )
 					{
 						return 0;
 					}
@@ -3012,6 +3385,12 @@ unsigned int cPlayer :: Validate_Collision( cSprite *obj )
 	}
 	if( obj->massivetype == MASS_HALFMASSIVE )
 	{
+		// fall through
+		if( pKeyboard->keys[pPreferences->key_down] )
+		{
+			return 0;
+		}
+
 		// if moving downwards and object is on top
 		if( vely >= 0 && is_onTop( obj ) )
 		{
@@ -3030,12 +3409,12 @@ unsigned int cPlayer :: Validate_Collision( cSprite *obj )
 	if( obj->massivetype == MASS_CLIMBABLE )
 	{
 		// if not climbing and player wants to climb
-		if( state != STA_CLIMB && state != STA_FLY && ( pKeyboard->keys[pPreferences->key_up] || pJoystick->up || pKeyboard->keys[pPreferences->key_down] || pJoystick->down ) )
+		if( state != STA_CLIMB && state != STA_FLY && ( ( pKeyboard->keys[pPreferences->key_up] || pJoystick->up ) || ( ( pKeyboard->keys[pPreferences->key_down] || pJoystick->down ) && !ground_object ) ) )
 		{
 			GL_rect climb_rect = obj->col_rect;
-			climb_rect.x += climb_rect.w * 0.4f;
+			climb_rect.x += climb_rect.w * 0.25f;
 			climb_rect.y += climb_rect.h * 0.25f;
-			climb_rect.w *= 0.2f;
+			climb_rect.w *= 0.5f;
 			climb_rect.h *= 0.5f;
 
 			// check if core collision
@@ -3047,6 +3426,33 @@ unsigned int cPlayer :: Validate_Collision( cSprite *obj )
 		}
 
 		return 1;
+	}
+	// warp levelexit key check
+	if( obj->type == TYPE_LEVELEXIT )
+	{
+		cLevel_Exit *levelexit = static_cast<cLevel_Exit *>(obj);
+
+		if( levelexit->exit_type == LEVELEXIT_WARP )
+		{
+			if( pKeyboard->keys[pPreferences->key_up] && levelexit->start_direction == DIR_UP )
+			{
+				Action_Interact( pPreferences->key_up );
+			}
+			else if( pKeyboard->keys[pPreferences->key_down] && levelexit->start_direction == DIR_DOWN )
+			{
+				Action_Interact( pPreferences->key_down );
+			}
+			else if( pKeyboard->keys[pPreferences->key_right] && levelexit->start_direction == DIR_RIGHT )
+			{
+				Action_Interact( pPreferences->key_right );
+			}
+			else if( pKeyboard->keys[pPreferences->key_left] && levelexit->start_direction == DIR_LEFT )
+			{
+				Action_Interact( pPreferences->key_left );
+			}
+		}
+
+		return 0;
 	}
 
 	return 0;
@@ -3074,7 +3480,7 @@ void cPlayer :: Handle_Collision_Enemy( cObjectCollision *collision )
 		bool hit_enemy = 1;
 
 		// spika and eato ignore top collisions
-		if( ( enemy->type == TYPE_SPIKA || enemy->type == TYPE_EATO ) && collision->direction == DIR_DOWN )
+		if( ( enemy->type == TYPE_SPIKA || enemy->type == TYPE_EATO || enemy->type == TYPE_THROMP ) && collision->direction == DIR_DOWN )
 		{
 			hit_enemy = 0;
 		}
@@ -3156,6 +3562,20 @@ void cPlayer :: Handle_Collision_Enemy( cObjectCollision *collision )
 		return;
 	}
 
+	if( collision->direction == DIR_TOP )
+	{
+		vely = 0;
+
+		if( state != STA_FLY )
+		{
+			if( state != STA_CLIMB )
+			{
+				Set_MovingState( STA_FALL );
+				UpKeytime = 0;
+				jump_power = 0;
+			}
+		}
+	}
 
 	// send collision
 	Send_Collision( collision );

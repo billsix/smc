@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../objects/sprite.h"
 #include "../objects/movingsprite.h"
@@ -341,6 +342,7 @@ void cSprite :: Init( void )
 	visible = 1;
 	spawned = 0;
 	player_range = 1000;
+	can_be_ground = 0;
 
 	// rotation
 	start_rotx = 0;
@@ -366,6 +368,7 @@ cSprite *cSprite :: Copy( void )
 	basic_sprite->type = type;
 	basic_sprite->sprite_array = sprite_array;
 	basic_sprite->Set_Massivetype( massivetype );
+	basic_sprite->can_be_ground = can_be_ground;
 	basic_sprite->Set_Ignore_Camera( no_camera );
 	basic_sprite->Set_Shadow_Pos( shadow_pos );
 	basic_sprite->Set_Shadow_Color( shadow_color );
@@ -491,7 +494,8 @@ void cSprite :: Set_Image( GL_Surface *new_image, bool new_start_image /* = 0 */
 		}
 	}
 	
-	Update_valid_draw();
+	// because col_pos could have changed
+	Update_Position_Rect();
 }
 
 void cSprite :: Set_Sprite_Type( SpriteType ntype )
@@ -503,26 +507,31 @@ void cSprite :: Set_Sprite_Type( SpriteType ntype )
 	{
 		sprite_array = ARRAY_MASSIVE;
 		Set_Massivetype( MASS_MASSIVE );
+		can_be_ground = 1;
 	}
 	else if( ntype == TYPE_PASSIVE )
 	{
 		sprite_array = ARRAY_PASSIVE;
 		Set_Massivetype( MASS_PASSIVE );
+		can_be_ground = 0;
 	}
 	else if( ntype == TYPE_FRONT_PASSIVE )
 	{
 		sprite_array = ARRAY_FRONT_PASSIVE;
 		Set_Massivetype( MASS_PASSIVE );
+		can_be_ground = 0;
 	}
 	else if( ntype == TYPE_HALFMASSIVE )
 	{
 		sprite_array = ARRAY_ACTIVE;
 		Set_Massivetype( MASS_HALFMASSIVE );
+		can_be_ground = 1;
 	}
 	else if( ntype == TYPE_CLIMBABLE )
 	{
 		sprite_array = ARRAY_ACTIVE;
 		Set_Massivetype( MASS_CLIMBABLE );
+		can_be_ground = 0;
 	}
 }
 
@@ -616,6 +625,12 @@ void cSprite :: Set_PosY( float y, bool new_startpos /* = 0 */ )
 
 void cSprite :: Set_Visible( bool enabled )
 {
+	// already set
+	if( visible == enabled )
+	{
+		return;
+	}
+
 	visible = enabled;
 
 	Update_valid_draw();
@@ -880,37 +895,38 @@ void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 
 			if( type == TYPE_PLAYER )
 			{
-				pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, posz + 0.000001f, &lila, rect_request );
+				pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &lila, rect_request );
+				rect_request->no_camera = 0;
 			}
 			else if( sprite_array == ARRAY_ENEMY )
 			{
-				pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, posz + 0.000001f, &red, rect_request );
+				pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &red, rect_request );
+				rect_request->no_camera = 0;
 			}
 			else if( sprite_array == ARRAY_ACTIVE )
 			{
-				pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, posz + 0.000001f, &blue, rect_request );
+				pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &blue, rect_request );
+				rect_request->no_camera = 0;
 			}
 			else if( sprite_array == ARRAY_MASSIVE )
 			{
-				pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, posz + 0.000001f, &orange, rect_request );
+				pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &orange, rect_request );
+				rect_request->no_camera = 0;
 			}
 			else if( sprite_array == ARRAY_PASSIVE )
 			{
-				pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, posz + 0.000001f, &green, rect_request );
+				pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &green, rect_request );
+				rect_request->no_camera = 0;
 			}
 			else if( sprite_array == ARRAY_FRONT_PASSIVE )
 			{
-				pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, posz + 0.000001f, &greenyellow, rect_request );
+				pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &greenyellow, rect_request );
+				rect_request->no_camera = 0;
 			}
 			else
 			{
 				pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &lightgreyalpha64, rect_request );
-
-				if( !no_camera )
-				{
-					rect_request->rect.x -= pCamera->x;
-					rect_request->rect.y -= pCamera->y;
-				}
+				rect_request->no_camera = no_camera;
 			}
 
 			rect_request->blend_sfactor = GL_SRC_COLOR;
@@ -930,7 +946,8 @@ void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 					// create request
 					rect_request = new cRectRequest();
 
-					pVideo->Draw_Rect( moving_sprite->ground_object->col_rect.x - pCamera->x, moving_sprite->ground_object->col_rect.y  - pCamera->y, moving_sprite->ground_object->col_rect.w, moving_sprite->ground_object->col_rect.h, posz + 0.000002f, &grey, rect_request );
+					pVideo->Draw_Rect( &moving_sprite->ground_object->col_rect, posz + 0.000002f, &grey, rect_request );
+					rect_request->no_camera = 0;
 
 					rect_request->blend_sfactor = GL_SRC_COLOR;
 					rect_request->blend_dfactor = GL_DST_ALPHA;
@@ -940,6 +957,21 @@ void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 				}
 			}
 		}
+	}
+	// show obsolete images in editor
+	else if( image && image->obsolete )
+	{
+		// create request
+		cRectRequest *rect_request = new cRectRequest();
+
+		pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &red, rect_request );
+		rect_request->no_camera = 0;
+
+		rect_request->blend_sfactor = GL_SRC_COLOR;
+		rect_request->blend_dfactor = GL_DST_ALPHA;
+
+		// add request
+		pRenderer->Add( rect_request );
 	}
 }
 
@@ -975,11 +1007,7 @@ void cSprite :: Draw_Image( cSurfaceRequest *request /* = NULL */ )
 		request->pos_z = editor_posz;
 	}
 
-	if( !no_camera )
-	{
-		request->pos_x -= pCamera->x;
-		request->pos_y -= pCamera->y;
-	}
+	request->no_camera = no_camera;
 
 	// color
 	request->color = color;
@@ -1166,6 +1194,9 @@ bool cSprite :: is_Draw_valid( void )
 void cSprite :: Destroy( void )
 {
 	destroy = 1;
+	visible = 0;
+	valid_draw = 0;
+	valid_update = 0;
 }
 
 void cSprite :: Editor_Add( Window *obj, float obj_width, float obj_height )
@@ -1182,8 +1213,8 @@ void cSprite :: Editor_Add( Window *obj, float obj_width, float obj_height )
 	// if combobox use the editbox
 	if( obj->getType() == "TaharezLook/Combobox" )
 	{
-		((Combobox *)obj)->getEditbox()->subscribeEvent( Window::EventMouseEnters, Event::Subscriber( &cSprite::Editor_Mouse_Enter, this ) );
-		((Combobox *)obj)->getEditbox()->subscribeEvent( Window::EventMouseLeaves, Event::Subscriber( &cSprite::Editor_Mouse_Leave, this ) );
+		static_cast<Combobox *>(obj)->getEditbox()->subscribeEvent( Window::EventMouseEnters, Event::Subscriber( &cSprite::Editor_Mouse_Enter, this ) );
+		static_cast<Combobox *>(obj)->getEditbox()->subscribeEvent( Window::EventMouseLeaves, Event::Subscriber( &cSprite::Editor_Mouse_Leave, this ) );
 	}
 	else
 	{
@@ -1205,9 +1236,11 @@ void cSprite :: Editor_Deactivate( void )
 	// remove editor controls
 	WindowManager &wmgr = WindowManager::getSingleton();
 
-	for( unsigned int i = 0; i < editor_windows.size(); i++ )
+	for( WindowList::iterator itr = editor_windows.begin(), itr_end = editor_windows.end(); itr != itr_end; ++itr )
 	{
-		wmgr.destroyWindow( editor_windows[i] );
+		Window *obj = (*itr);
+
+		wmgr.destroyWindow( obj );
 	}
 
 	editor_windows.clear();
@@ -1218,20 +1251,22 @@ void cSprite :: Editor_pos_update( void )
 	float obj_posy = 0;
 
 	// set all positions
-	for( unsigned int i = 0; i < editor_windows.size(); i++ )
+	for( WindowList::iterator itr = editor_windows.begin(), itr_end = editor_windows.end(); itr != itr_end; ++itr )
 	{
-		editor_windows[i]->setXPosition( UDim( 0, posx + rect.w + 5 - pCamera->x ) );
-		editor_windows[i]->setYPosition( UDim( 0, posy + 5 + obj_posy - pCamera->y ) );
+		Window *obj = (*itr);
+
+		obj->setXPosition( UDim( 0, posx + rect.w + 5 - pCamera->x ) );
+		obj->setYPosition( UDim( 0, posy + 5 + obj_posy - pCamera->y ) );
 
 		// if combobox get the editbox height
-		if( editor_windows[i]->getType() == "TaharezLook/Combobox" )
+		if( obj->getType() == "TaharezLook/Combobox" )
 		{
-			obj_posy += ((Combobox *)editor_windows[i])->getEditbox()->getHeight().asAbsolute( GAME_RES_H );
+			obj_posy += static_cast<Combobox *>(obj)->getEditbox()->getHeight().asAbsolute( GAME_RES_H );
 		}
 		// get default height
 		else
 		{
-			obj_posy += editor_windows[i]->getHeight().asAbsolute( GAME_RES_H );
+			obj_posy += obj->getHeight().asAbsolute( GAME_RES_H );
 		}
 
 		// some space between objects

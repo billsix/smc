@@ -3,14 +3,15 @@
                          -------------------
     copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef __ANIMATION_H__
 #define __ANIMATION_H__
@@ -63,7 +64,7 @@ public:
 	*/
 	void Set_FadingSpeed( float speed );
 	// set z position
-	void Set_ZPos( float pos, float pos_rand = 0 );
+	virtual void Set_ZPos( float pos, float pos_rand = 0 );
 
 	// Z random position
 	float posz_rand;
@@ -95,8 +96,9 @@ public:
 
 /* *** *** *** *** *** *** *** Fire Explosion *** *** *** *** *** *** *** *** *** *** */
 
-struct FireAnimation_item : public cImageObjectSprite
+class FireAnimation_item : public cImageObjectSprite
 {
+public:
 	FireAnimation_item( void )
 	: cImageObjectSprite()
 	{
@@ -138,9 +140,9 @@ public:
 	virtual ~cParticle( void );
 
 	// update
-	void Update( void );
+	virtual void Update( void );
 	// draw
-	void Draw( cParticleAnimation *origin );
+	virtual void Draw( cParticleAnimation *origin );
 
 	// ignore onground check
 	virtual void Check_onGround( void ) {};
@@ -154,26 +156,31 @@ public:
 	float fade_pos;
 };
 
-// Particle Animation Manager
+// Particle Animation Emitter
 class cParticleAnimation : public cAnimation
 {
 public:
-	cParticleAnimation( float posx, float posy );
+	cParticleAnimation( float x = 0, float y = 0, float w = 0, float h = 0 );
 	virtual ~cParticleAnimation( void );
 
-	// init
+	// Init
 	virtual void Init( void );
 	// Emit Particles
 	virtual void Emit( void );
 	// Clear Particles and Animation data
-	void Clear( void );
+	virtual void Clear( void );
 
 	// Update given settings
 	virtual void Update( void );
 	// Draw everything
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
-	// Set time to live for the Emitter in seconds
+	// Set the Emitter rect
+	void Set_Emitter_Rect( float x, float y, float w = 0, float h = 0 );
+	void Set_Emitter_Rect( GL_rect r );
+	/* Set time to live for the Emitter in seconds
+	 * set -1 for infinite
+	*/
 	void Set_Emitter_Time_to_Live( float time );
 	// Set time between Iterations
 	void Set_Emitter_Iteration_Interval( float time );
@@ -190,15 +197,15 @@ public:
 	// Set direction range ( 0 - 360 )
 	void Set_DirectionRange( float start, float range = 0 );
 	// Set image scale ( 0.01 - 100 )
-	void Set_Scale( float nscale, float scale_random = 0 );
+	virtual void Set_Scale( float nscale, float scale_random = 0 );
 	// Set the Color
-	void Set_Color( Color col, Color col_rand = Color( (Uint8)0, 0, 0, 0 ) );
+	virtual void Set_Color( Color col, Color col_rand = Color( (Uint8)0 ) );
 	// Set fading type
 	void Set_Fading_Size( bool enable );
 	void Set_Fading_Alpha( bool enable );
 	void Set_Fading_Color( bool enable );
 	// Set blending mode
-	void Set_Blending( BlendingMode mode );
+	virtual void Set_Blending( BlendingMode mode );
 	// Set image
 	virtual void Set_Image( GL_Surface *img );
 

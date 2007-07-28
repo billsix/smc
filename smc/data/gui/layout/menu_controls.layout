@@ -11,7 +11,7 @@
             <Property Name="ReadOnly" Value="True" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
             <Property Name="ClippedByParent" Value="False" />
-            <Property Name="UnifiedAreaRect" Value="{{0.796286,0},{0.590218,0},{0.98,0},{0.8,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.797,0},{0.615,0},{0.98,0},{0.825,0}}" />
             <Property Name="MaxEditTextLength" Value="1073741823" />
         </Window>
         <Window Type="TaharezLook/Combobox" Name="combo_joy_analog_jump" >
@@ -20,7 +20,7 @@
             <Property Name="ReadOnly" Value="True" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
             <Property Name="ClippedByParent" Value="False" />
-            <Property Name="UnifiedAreaRect" Value="{{0.797327,0},{0.644799,0},{0.89844,0},{0.770039,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.797,0},{0.665,0},{0.89,0},{0.795,0}}" />
             <Property Name="MaxEditTextLength" Value="1073741823" />
         </Window>
     </Window>

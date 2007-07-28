@@ -17,6 +17,7 @@
 			<xsd:element name="item" type="PropertyType" minOccurs="0" maxOccurs="unbounded"/>
 			<xsd:element name="enemy" type="PropertyType" minOccurs="0" maxOccurs="unbounded"/>
 			<xsd:element name="levelexit" type="PropertyType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="level_entry" type="PropertyType" minOccurs="0" maxOccurs="unbounded"/>
 			<xsd:element name="enemystopper" type="PropertyType" minOccurs="0" maxOccurs="unbounded"/>
 			<xsd:element name="box" type="PropertyType" minOccurs="0" maxOccurs="unbounded"/>
 			<xsd:element name="moving_platform" type="PropertyType" minOccurs="0" maxOccurs="unbounded"/>

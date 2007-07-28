@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../enemies/enemy.h"
 #include "../core/camera.h"
@@ -76,11 +77,6 @@ void cEnemy :: Update( void )
 		DieStep();
 	}
 
-	if( !valid_update )
-	{
-		return;
-	}
-
 	// frozen
 	if( freeze_counter )
 	{
@@ -97,7 +93,7 @@ void cEnemy :: Update_Gravity( void )
 {
 	if( !ground_object && vely < 25 )
 	{
-		AddVel( 0, 1.5f );
+		Add_Velocity( 0, 1.5f );
 	}
 	else if( ground_object && vely > 0 )
 	{
@@ -113,16 +109,17 @@ void cEnemy :: Generate_Hit_Animation( cParticleAnimation *anim /* = NULL */ )
 	{
 		create_anim = 1;
 		// create animation
-		anim = new cParticleAnimation( posx + ( col_rect.w / 2 ), posy + ( col_rect.h / 3 ) );
+		anim = new cParticleAnimation();
 	}
 
+	anim->Set_Emitter_Rect( col_rect.x, posy + ( col_rect.h / 3 ), col_rect.w );
 	anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
 	anim->Set_Quota( 4 );
 	anim->Set_ZPos( posz - 0.000001f );
 	anim->Set_Time_to_Live( 0.3f );
 	anim->Set_Color( Color( (Uint8)150, 150, 150, 200 ), Color( (Uint8)( rand() % 155 ), rand() % 155, rand() % 155 ) );
 	anim->Set_Speed( 3, 0.6f );
-	anim->Set_Scale( 0.5f );
+	anim->Set_Scale( 0.6f );
 	anim->Set_DirectionRange( 180, 180 );
 	anim->Set_Fading_Alpha( 1 );
 	anim->Set_Fading_Size( 1 );

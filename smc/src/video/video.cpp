@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2005 - 2007 Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../video/video.h"
 #include "../gui/hud.h"
@@ -23,6 +24,7 @@
 #include "../input/mouse.h"
 #include "../video/gl_surface.h"
 #include "../video/renderer.h"
+#include "../core/main.h"
 
 #include "CEGUIDefaultResourceProvider.h"
 
@@ -38,56 +40,39 @@ Color :: Color( void )
 
 Color :: Color( Uint8 r, Uint8 g, Uint8 b, Uint8 a /* = 255 */ )
 {
-	Parse_uint8( r, g, b, a );
-};
-
-Color :: Color( float r, float g, float b, float a /* = 1 */ )
-{
-	Parse_float( r, g, b, a );
-}
-
-Color :: Color( Uint8 grey )
-{
-	Parse_uint8( grey, grey, grey );
-};
-
-Color :: Color( Uint32 color )
-{
-	Parse( color );
-};
-
-Color :: Color( SDL_Color color )
-{
-	Parse( color );
-	alpha = 255;
-}
-
-void Color :: Parse( Uint32 mapcolor )
-{
-	//SDL_GetRGBA( mapcolor, format, &red, &green, &blue, &alpha );
-}
-
-void Color :: Parse( SDL_Color color )
-{
-	red = color.r;
-	green = color.g;
-	blue = color.b;
-}
-
-void Color :: Parse_uint8( Uint8 r, Uint8 g, Uint8 b, Uint8 a /* = 255 */ )
-{
 	red = r;
 	green = g;
 	blue = b;
 	alpha = a;
-}
+};
 
-void Color :: Parse_float( float r, float g, float b, float a /* = 1 */ )
+Color :: Color( float r, float g, float b, float a /* = 1 */ )
 {
 	red = (Uint8)(r * 255);
 	green = (Uint8)(g * 255);
 	blue = (Uint8)(b * 255);
 	alpha = (Uint8)(a * 255);
+}
+
+Color :: Color( Uint8 grey )
+{
+	red = grey;
+	green = grey;
+	blue = grey;
+	alpha = 255;
+};
+
+Color :: Color( Uint32 color )
+{
+	//SDL_GetRGBA( mapcolor, format, &red, &green, &blue, &alpha );
+};
+
+Color :: Color( SDL_Color color )
+{
+	red = color.r;
+	green = color.g;
+	blue = color.b;
+	alpha = 255;
 }
 
 SDL_Color Color :: Get_SDL_Color( void )
@@ -459,7 +444,7 @@ void cVideo :: Init_Video( void )
 	else
 	{
 		// get opengl version
-		opengl_version = atof( reinterpret_cast<const char*>(glGetString( GL_VERSION )) );
+		opengl_version = (float)atof( reinterpret_cast<const char*>(glGetString( GL_VERSION )) );
 
 		if( opengl_version < 1.4f )
 		{
@@ -522,28 +507,28 @@ void cVideo :: Init_OpenGL( void )
 
 void cVideo :: Init_BasicColors( void )
 {
-	blue.Parse_uint8( 150, 200, 225 );
-	darkblue.Parse_uint8( 0, 0, 128 );
-	lightblue.Parse_uint8( 41, 167, 255 );
-	black.Parse_uint8( 0, 0, 0 );
-	blackalpha128.Parse_uint8( 0, 0, 0, 128 );
-	blackalpha192.Parse_uint8( 0, 0, 0, 192 );
-	white.Parse_uint8( 255, 255, 255 );
-	whitealpha128.Parse_uint8( 255, 255, 255, 128 );
-	grey.Parse_uint8( 128, 128, 128 );
-	lightgrey.Parse_uint8( 64, 64, 64 );
-	lightgreyalpha64.Parse_uint8( 64, 64, 64, 64 );
-	green.Parse_uint8( 0, 230, 0 );
-	lightgreen.Parse_uint8( 20, 253, 20 );
-	lightgreenalpha64.Parse_uint8( 30, 230, 30, 64 );
-	yellow.Parse_uint8( 255, 245, 10 );
-	greenyellow.Parse_uint8( 154, 205, 50 );
-	darkgreen.Parse_uint8( 1, 119, 34 );
-	red.Parse_uint8( 250, 0, 0 );
-	lightred.Parse_uint8( 255, 40, 20 );
-	lila.Parse_uint8( 200, 0, 255 );
-	orange.Parse_uint8( 248, 191, 38 );
-	lightorange.Parse_uint8( 255, 220, 100 );
+	blue = Color( (Uint8)150, 200, 225 );
+	darkblue = Color( (Uint8)0, 0, 128 );
+	lightblue = Color( (Uint8)41, 167, 255 );
+	black = Color( (Uint8)0, 0, 0 );
+	blackalpha128 = Color( (Uint8)0, 0, 0, 128 );
+	blackalpha192 = Color( (Uint8)0, 0, 0, 192 );
+	white = Color( (Uint8)255, 255, 255 );
+	whitealpha128 = Color( (Uint8)255, 255, 255, 128 );
+	grey = Color( (Uint8)128, 128, 128 );
+	lightgrey = Color( (Uint8)64, 64, 64 );
+	lightgreyalpha64 = Color( (Uint8)64, 64, 64, 64 );
+	green = Color( (Uint8)0, 230, 0 );
+	lightgreen = Color( (Uint8)20, 253, 20 );
+	lightgreenalpha64 = Color( (Uint8)30, 230, 30, 64 );
+	yellow = Color( (Uint8)255, 245, 10 );
+	greenyellow = Color( (Uint8)154, 205, 50 );
+	darkgreen = Color( (Uint8)1, 119, 34 );
+	red = Color( (Uint8)250, 0, 0 );
+	lightred = Color( (Uint8)255, 40, 20 );
+	lila = Color( (Uint8)200, 0, 255 );
+	orange = Color( (Uint8)248, 191, 38 );
+	lightorange = Color( (Uint8)255, 220, 100 );
 }
 
 void cVideo :: Init_ImageScale( void )
@@ -897,7 +882,7 @@ Color cVideo :: GetPixel( int x, int y, GL_Surface *source /* = NULL */ )
 	glLoadIdentity();
 	glReadPixels( x, y, 1, 1, GL_RGB, GL_FLOAT, &pixel );
 
-	color.Parse_float( pixel[0], pixel[1], pixel[2] );
+	color = Color( pixel[0], pixel[1], pixel[2] );
 
 	return color;
 }
@@ -1143,22 +1128,22 @@ unsigned int Get_GLsize( unsigned int size )
 	return value;
 }
 
-void DrawEffect( FadeoutEffect effect /* = RANDOM_EFFECT */, float speed /* = 1 */ )
+void Draw_Effect_out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float speed /* = 1 */ )
 {
-	if( effect == RANDOM_EFFECT )
+	if( effect == EFFECT_OUT_RANDOM )
 	{
-		effect = (FadeoutEffect)( ( rand() % (TOTAL_FADE_EFFECTS - 1) ) + 1 );
+		effect = (Effect_Fadeout)( ( rand() % (EFFECT_OUT_AMOUNT - 1) ) + 1 );
 	}
 
 	switch( effect )
 	{
-	case BLACK_FADEOUT:
+	case EFFECT_OUT_BLACK:
 	{
 		Color color = (Uint8)0;
 
 		for( float i = 1; i > 0; i -= ( speed / 30 ) * pFramerate->speedfactor )
 		{
-			color.alpha = (Uint8)( ( 45 - ( 45 * i ) ) * pFramerate->speedfactor );
+			color.alpha = (Uint8)( 45 - ( 45 * i ) );
 
 			// create request
 			cRectRequest *request = new cRectRequest();
@@ -1172,13 +1157,13 @@ void DrawEffect( FadeoutEffect effect /* = RANDOM_EFFECT */, float speed /* = 1 
 			pVideo->Render();
 
 			pFramerate->Update();
-			// maximum 50 fps
-			CorrectFrameTime( 50 );
+			// maximum 90 fps
+			CorrectFrameTime( 90 );
 		}
 		
 		break;
 	}
-	case HORIZONTAL_VERTICAL_FADE:
+	case EFFECT_OUT_HORIZONTAL_VERTICAL:
 	{
 		float pos = 0;
 		float size = 1;
@@ -1240,11 +1225,12 @@ void DrawEffect( FadeoutEffect effect /* = RANDOM_EFFECT */, float speed /* = 1 
 			pVideo->Render();
 
 			pFramerate->Update();
-			CorrectFrameTime( DESIRED_FPS * 2 ); // correction needed
+			// maximum 90 fps
+			CorrectFrameTime( 90 );
 		}
 		break;
 	}
-	case BIG_ITEM:
+	case EFFECT_OUT_BIG_ITEM:
 	{
 		float f = 0.1f;
 		GL_Surface *image = NULL;
@@ -1256,7 +1242,7 @@ void DrawEffect( FadeoutEffect effect /* = RANDOM_EFFECT */, float speed /* = 1 
 		}
 		else if( pCamera->x < 5000 )
 		{
-			image = pVideo->Get_Surface( "game/items/flower_red_1.png" );
+			image = pVideo->Get_Surface( "game/items/fire_flower.png" );
 		}
 		else if( pCamera->x < 10000 )
 		{
@@ -1271,19 +1257,25 @@ void DrawEffect( FadeoutEffect effect /* = RANDOM_EFFECT */, float speed /* = 1 
 			image = pVideo->Get_Surface( "game/items/moon_1.png" );
 		}
 
+		Color color = white;
+
 		while( f < 50 )
 		{
+			Draw_Game();
+
 			f += 0.9f * pFramerate->speedfactor * speed * ( f / 7 );
 
-			Color color = Color( (Uint8)( 255 - (Uint8)( f * 4 ) ), 255 - (Uint8)( f * 4 ), 255 - (Uint8)( f * 4 ) );
+			color = Color( (Uint8)( 255 - ( f * 4 ) ), 255 - (Uint8)( f * 4 ), 255 - (Uint8)( f * 4 ), 200 - (Uint8)( f * 4 ) );
 
-			glColor3ub( color.red, color.green, color.blue );
-
+			// ## item
 			// create request
 			cSurfaceRequest *request = new cSurfaceRequest();
 			image->Blit( ( GAME_RES_W / 2 ) - ( ( image->w * f ) / 2 ) , GAME_RES_H / 2 - ( ( image->h * f ) / 2 ), 0.9f, request );
 
-			request->render_count = 2;
+			request->blend_sfactor = GL_SRC_ALPHA;
+			request->blend_dfactor = GL_ONE;
+
+			request->color = color;
 
 			// scale
 			request->scale_x = f;
@@ -1291,8 +1283,17 @@ void DrawEffect( FadeoutEffect effect /* = RANDOM_EFFECT */, float speed /* = 1 
 
 			// add request
 			pRenderer->Add( request );
+			
 
-			glColor3ub( 255, 255, 255 );
+			// ## additional black fadeout
+			color = Color( 0, 0, 0, (Uint8)( 50 + ( f * 4 ) ) );
+
+			// create request
+			cRectRequest *rect_request = new cRectRequest();
+			pVideo->Draw_Rect( NULL, 0.901f, &color, rect_request );
+
+			// add request
+			pRenderer->Add( rect_request );
 
 			pVideo->Render();
 			pFramerate->Update();
@@ -1300,7 +1301,7 @@ void DrawEffect( FadeoutEffect effect /* = RANDOM_EFFECT */, float speed /* = 1 
 
 		break;
 	}
-	case RANDOM_COLOR_BOOST:
+	case EFFECT_OUT_RANDOM_COLOR_BOOST:
 	{
 		float f = 50;
 		unsigned int rand_color = ( rand() % 4 );
@@ -1373,7 +1374,7 @@ void DrawEffect( FadeoutEffect effect /* = RANDOM_EFFECT */, float speed /* = 1 
 		}
 		break;
 	}
-	case TILE_PIXELATION:
+	case EFFECT_OUT_TILE_PIXELATION:
 	{
 		const unsigned int num_hor = 8;
 		const unsigned int num_ver = 6;
@@ -1425,7 +1426,7 @@ void DrawEffect( FadeoutEffect effect /* = RANDOM_EFFECT */, float speed /* = 1 
 		}
 		break;
 	}
-	case FIXED_COLORBOX_FADEOUT:
+	case EFFECT_OUT_FIXED_COLORBOX:
 	{
 		float xsize = 10;
 		int xtemp = 0;
@@ -1507,6 +1508,10 @@ void DrawEffect( FadeoutEffect effect /* = RANDOM_EFFECT */, float speed /* = 1 
 			{
 				color.alpha = xsize * 3.5f;
 			}
+			else if( xsize > 10 )
+			{
+				color.alpha = xsize * 1.5f;
+			}
 			else
 			{
 				color.alpha = xsize * 0.5f;
@@ -1536,6 +1541,51 @@ void DrawEffect( FadeoutEffect effect /* = RANDOM_EFFECT */, float speed /* = 1 
 	pFramerate->Update();
 }
 
+void Draw_Effect_in( Effect_Fadein effect /* = EFFECT_IN_RANDOM */, float speed /* = 1 */ )
+{
+	// Clear render cache
+	pRenderer->Clear( 1 );
+
+	if( effect == EFFECT_IN_RANDOM )
+	{
+		effect = (Effect_Fadein)( ( rand() % (EFFECT_IN_AMOUNT - 1) ) + 1 );
+	}
+
+	switch( effect )
+	{
+	case EFFECT_IN_BLACK:
+	{
+		Color color = (Uint8)0;
+
+		for( float i = 1; i > 0; i -= ( speed / 30 ) * pFramerate->speedfactor )
+		{
+			color.alpha = (Uint8)( 255 * i );
+
+			// create request
+			cRectRequest *request = new cRectRequest();
+			pVideo->Draw_Rect( NULL, 0.9f, &color, request );
+
+			// add request
+			pRenderer->Add( request );
+
+			Draw_Game();
+
+			pVideo->Render();
+
+			pFramerate->Update();
+			// maximum 90 fps
+			CorrectFrameTime( 90 );
+		}
+		
+		break;
+	}
+	default:
+		break;  // be happy
+	}
+	
+	pFramerate->Update();
+}
+
 void Draw_Loading_Screen( void )
 {
 	bool mouse_hide = 0;
@@ -1552,8 +1602,8 @@ void Draw_Loading_Screen( void )
 	pVideo->Clear_Screen();
 
 	// Gradient
-	Color col1 = Color( 0.7f, 0.5f, 0 );
-	Color col2 = Color( 0.7f, 0.8f, 0.4f );
+	Color col1 = Color( 0.7f, 0.93f, 1 );
+	Color col2 = Color( 0.26f, 0.8f, 1 );
 	pVideo->Draw_Gradient( NULL, 0.08f, &col1, &col2, DIR_VERTICAL );
 	// Loading Images
 	loading_img_1->Draw();

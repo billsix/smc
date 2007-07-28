@@ -1,14 +1,17 @@
 /***************************************************************************
 	framerate.cpp  -  Framerate independant class and a time correcting function
                              -------------------
-	copyright : (C) 2003 - 2007 by Florian Richter
- ***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the LGPL; either version 2 of the License, or   *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+	copyright                : (C) 2003 - 2007 by Florian Richter
+ ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../core/globals.h"
 #include "../core/framerate.h"
@@ -17,7 +20,7 @@
 
 cFramerate :: cFramerate( float tfps /* = DESIRED_FPS */ )
 {
-	speedfactor = 1;
+	speedfactor = 0.1f;
 	fps = 0;
 	fps_best = 0;
 	fps_worst = 100;
@@ -110,7 +113,7 @@ void cFramerate :: Update( void )
 void cFramerate :: Reset( void )
 {
 	framedelay = SDL_GetTicks();
-	speedfactor = 1;
+	speedfactor = 0.1f;
 	fps_best = 0;
 	fps_worst = 100;
 	fps_average = 0;

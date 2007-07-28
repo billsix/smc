@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../enemies/turtle.h"
 #include "../core/game_core.h"
@@ -391,7 +392,8 @@ void cTurtle :: Update( void )
 				Update_Direction();
 				Update_Rotation_velx();
 
-				pAudio->PlaySound( "enemy/turtle/power_up.ogg" );
+				// todo : create again
+				//pAudio->PlaySound( "enemy/turtle/power_up.ogg" );
 
 				if( curr_img > 4 )
 				{
@@ -405,7 +407,7 @@ void cTurtle :: Update( void )
 
 		if( velx != 0 )
 		{
-			AddVel( -velx * 0.2f, 0 );
+			Add_Velocity( -velx * 0.2f, 0 );
 
 			if( velx < 0.3f && velx > -0.3f )
 			{
@@ -744,6 +746,31 @@ void cTurtle :: Handle_Collision_Enemy( cObjectCollision *collision )
 		pAudio->PlaySound( enemy->kill_sound );
 		pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", (Uint8)255, 1 );
 		enemy->DownGrade( 1 );
+
+		// create animation
+		cParticleAnimation *anim = new cParticleAnimation();
+
+		anim->Set_Emitter_Rect( col_rect.x + ( col_rect.w * 0.2f ), col_rect.y + ( col_rect.h * 0.2f ), col_rect.w * 0.6f, col_rect.h * 0.8f );
+		anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
+		anim->Set_Quota( 5 );
+		anim->Set_ZPos( posz + 0.000001f );
+		anim->Set_Time_to_Live( 0.3f );
+		anim->Set_Speed( 1.2f, 0.8f );
+		anim->Set_Scale( 0.7f );
+		anim->Set_Fading_Alpha( 1 );
+		anim->Set_Blending( BLEND_ADD );
+
+		if( collision->direction == DIR_RIGHT )
+		{
+			anim->Set_DirectionRange( 0 );
+		}
+		else if( collision->direction == DIR_LEFT )
+		{
+			anim->Set_DirectionRange( 180 );
+		}
+		
+		// add animation
+		pAnimationManager->Add( anim );
 
 		pPlayer->Add_Kill_Multiplier();
 	}

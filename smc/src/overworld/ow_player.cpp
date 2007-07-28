@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
  
 #include "../overworld/ow_player.h"
 #include "../core/game_core.h"
@@ -297,8 +298,8 @@ void cOverworld_Player :: Activate_Waypoint( void )
 		// valid level
 		if( pLevel->is_Loaded() )
 		{
-			pActive_Overworld->entered = 1;
-			DrawEffect( FIXED_COLORBOX_FADEOUT );
+			// Enter Level
+			Game_Action = GA_ENTER_LEVEL;
 		}
 		// not a valid level - just walk to the next
 		else
@@ -319,8 +320,8 @@ void cOverworld_Player :: Activate_Waypoint( void )
 		// Enter Credits Menu ( World End )
 		if( str_world.compare( "credits" ) == 0 )
 		{
-			DrawEffect( HORIZONTAL_VERTICAL_FADE );
-			pActive_Overworld->entered = 3;
+			Draw_Effect_out( EFFECT_OUT_HORIZONTAL_VERTICAL );
+			Game_Action = GA_ENTER_MENU_CREDITS;
 		}
 		// world link
 		else if( pOverworld_manager->Set_Active( str_world ) )
@@ -336,7 +337,7 @@ void cOverworld_Player :: Activate_Waypoint( void )
 				Set_Waypoint( waypoint_num );
 			}
 
-			DrawEffect( TILE_PIXELATION );
+			Draw_Effect_out( EFFECT_OUT_TILE_PIXELATION );
 		}
 		else
 		{

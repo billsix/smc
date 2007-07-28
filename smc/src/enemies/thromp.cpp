@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2006 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../enemies/thromp.h"
 #include "../core/game_core.h"
@@ -43,11 +44,12 @@ cThromp :: ~cThromp( void )
 
 void cThromp :: Init( void  )
 {
-    fire_resistant = true;
-
 	type = TYPE_THROMP;
 	posz = 0.093f;
 	player_range = 1000;
+	can_be_ground = 1;
+
+	fire_resistant = 1;
 
 	state = STA_STAY;
 	Set_Direction( DIR_DOWN );
@@ -572,20 +574,27 @@ unsigned int cThromp :: Validate_Collision( cSprite *obj )
 
 void cThromp :: Handle_Collision_Player( ObjectDirection cdirection )
 {
-	if( cdirection == DIR_LEFT || cdirection == DIR_RIGHT || cdirection == direction )
+	// behind
+	if( cdirection == Get_OppositeDirection( direction ) )
+	{
+		if( cdirection == DIR_LEFT || cdirection == DIR_RIGHT )
+		{
+			pPlayer->Col_Move( velx, 0, 1 );
+		}
+	}
+	// front
+	else if( cdirection == direction )
 	{
 		pPlayer->DownGrade();
 
-		if( cdirection == direction )
+		if( !move_back )
 		{
-			if( !move_back )
-			{
-				pAudio->PlaySound( "enemy/thromp/hit.ogg" );
-				Generate_Smoke();
-				Move_Back();
-			}
+			pAudio->PlaySound( "enemy/thromp/hit.ogg" );
+			Generate_Smoke();
+			Move_Back();
 		}
 	}
+	// else is left/right of front direction which doesn't harm
 }
 
 void cThromp :: Handle_Collision_Enemy( cObjectCollision *collision )

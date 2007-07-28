@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.6" />
+		<Property name="game_version" value="0.99.8" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1176574720" />
+		<Property name="save_time" value="1183400955" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="SMC Team &amp; Frettchen" />
@@ -30,6 +30,26 @@
 		<Property name="speedy" value="1" />
 		<Property name="posz" value="0.00011" />
 	</background>
+	<global_effect>
+		<Property name="type" value="0" />
+		<Property name="image" value="" />
+		<Property name="rect_x" value="0" />
+		<Property name="rect_y" value="0" />
+		<Property name="rect_w" value="800" />
+		<Property name="rect_h" value="0" />
+		<Property name="z" value="0.12" />
+		<Property name="z_rand" value="0" />
+		<Property name="time_to_live" value="7" />
+		<Property name="emitter_iteration_interval" value="0.3" />
+		<Property name="scale" value="0.2" />
+		<Property name="scale_rand" value="0.2" />
+		<Property name="speed" value="2" />
+		<Property name="speed_rand" value="8" />
+		<Property name="dir_range_start" value="0" />
+		<Property name="dir_range_size" value="90" />
+		<Property name="const_rotz" value="0.5" />
+		<Property name="const_rotz_rand" value="10" />
+	</global_effect>
 	<player>
 		<Property name="posx" value="831" />
 		<Property name="posy" value="423" />
@@ -3813,12 +3833,6 @@
 		<Property name="posx" value="16432" />
 		<Property name="posy" value="-47" />
 		<Property name="image" value="ground/green_1/hedges/wild_medium.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="16683" />
-		<Property name="posy" value="498" />
-		<Property name="image" value="signs/yoshi/post.png" />
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>

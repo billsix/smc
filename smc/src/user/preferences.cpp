@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../user/preferences.h"
 #include "../audio/audio.h"
@@ -180,8 +181,9 @@ void cPreferences :: Default( void )
 
 	// Joypad
 	joy_enabled = 1;
-	joy_shoot = 1;
+	// buttons
 	joy_jump = 0;
+	joy_shoot = 1;
 	joy_item = 3;
 	joy_action = 2;
 	joy_exit = 4;
@@ -464,13 +466,15 @@ void cPreferences :: handle_item( const XMLAttributes& attributes )
 	{
 		string val = attributes.getValueAsString( "Value" ).c_str();
 
-		// if directory is not valid
-		if( !fs::exists( val ) )
+		if( fs::exists( val ) )
 		{
-			printf( "Warning : Preferences level directory %s doesn't exists\n", val.c_str() );
+			level_dir = val;
 		}
-		
-		level_dir = val;
+		// if directory is not valid
+		else
+		{
+			printf( "Warning : Preferences level directory %s doesn't exist\n", val.c_str() );
+		}
 	}
 }
 

@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../level/level.h"
 #include "../level/level_editor.h"
@@ -26,6 +27,7 @@
 #include "../core/obj_manager.h"
 #include "../objects/goldpiece.h"
 #include "../objects/levelexit.h"
+#include "../objects/level_entry.h"
 #include "../video/font.h"
 #include "../input/keyboard.h"
 #include "../input/mouse.h"
@@ -48,6 +50,7 @@
 #include "../objects/enemystopper.h"
 #include "../objects/spinbox.h"
 #include "../objects/bonusbox.h"
+#include "../objects/text_box.h"
 #include "../objects/moving_platform.h"
 #include "../objects/falling_platform.h"
 #include "../video/renderer.h"
@@ -233,32 +236,24 @@ bool cLevel :: Load( string filename, bool delayed /* = 0 */ )
 		pPlayer->Set_Direction( DIR_RIGHT, 1 );
 	}
 
+	// hack : save current camera position
+	float cam_x = pCamera->x;
+	float cam_y = pCamera->y;
+
+	// hack : use level camera position for global effect initialization
+	pCamera->Center();
+
 	// init global effect
 	pGlobal_effect->Init();
+	
+	// hack : set back old position
+	pCamera->Set_Pos( cam_x, cam_y );
 
 	// engine version entry not set
 	if( engine_version < 0 )
 	{
 		engine_version = 0;
 	}
-
-	// hud reset
-	pHudManager->Load();
-
-	pAudio->FadeOutMusic( 1000 );
-	if( valid_music )
-	{
-		pAudio->PlayMusic( musicfile, -1, 0, 1000 );
-	}
-	else if( pAudio->music_enabled )
-	{
-		printf( "Warning : Music file not found %s\n", musicfile.c_str() );
-	}
-
-	pFramerate->Reset();
-
-	// center camera position
-	pCamera->Center();
 
 	return 1;
 }
@@ -351,60 +346,7 @@ void cLevel :: Process_Input( void )
 	// only non editor
 	if( !editor_level_enabled )
 	{
-		// todo : move to player class
-		// player direction
-		if( pKeyboard->keys[pPreferences->key_left] || pJoystick->left )
-		{
-			if( pPlayer->state != STA_FLY )
-			{
-				if( pPlayer->direction != DIR_LEFT )
-				{
-					// play stop sound if already running
-					if( pPlayer->velx > 12 && pPlayer->ground_object )
-					{
-						pAudio->PlaySound( "player/maryo_stop.ogg", RID_MARYO_STOP );
-					}
-
-					pPlayer->direction = DIR_LEFT;
-				}
-			}
-		}
-		else if( pKeyboard->keys[pPreferences->key_right] || pJoystick->right )
-		{
-			if( pPlayer->state != STA_FLY )
-			{
-				if( pPlayer->direction != DIR_RIGHT )
-				{
-					// play stop sound if already running
-					if( pPlayer->velx < -12 && pPlayer->ground_object )
-					{
-						pAudio->PlaySound( "player/maryo_stop.ogg", RID_MARYO_STOP );
-					}
-
-					pPlayer->direction = DIR_RIGHT;
-				}
-			}
-		}
-
-		// todo : move to player class
-		// player ducking / falling
-		if( pKeyboard->keys[pPreferences->key_down] || pJoystick->down )
-		{
-			if( pPlayer->state != STA_FLY )
-			{
-				if( pPlayer->ground_object )
-				{
-					if( pPlayer->ground_object->massivetype == MASS_MASSIVE )
-					{
-						pPlayer->Start_ducking();
-					}
-					else if( pPlayer->ground_object->massivetype == MASS_HALFMASSIVE )
-					{
-						pPlayer->Start_falling();
-					}
-				}
-			}
-		}
+		// none
 	}
 }
 
@@ -422,35 +364,23 @@ bool cLevel :: Key_Down( SDLKey key )
 		//DrawEffect( HORIZONTAL_VERTICAL_FADE );
 		//pPlayer->Draw_Animation( MARYO_FIRE );
 
-		cParticleAnimation *anim = new cParticleAnimation( pPlayer->posx + (float)( pPlayer->col_rect.w / 2 ), pPlayer->posy - 100 );
-		anim->Set_Emitter_Time_to_Live( 2 );
-		anim->Set_Emitter_Iteration_Interval( 0.1f );
-		anim->Set_Quota( 2 );
+		cParticleAnimation *anim = new cParticleAnimation();
+		anim->Set_Emitter_Rect( pPlayer->posx + (float)( pPlayer->col_rect.w / 2 ), pPlayer->posy - 100, 10, 10 );
+		anim->Set_Emitter_Time_to_Live( -1 );
+		anim->Set_Emitter_Iteration_Interval( 5 );
+		anim->Set_Quota( 200 );
 		anim->Set_Image( pVideo->Get_Surface( "animation/particles/star.png" ) );
 		anim->Set_Time_to_Live( 3, 3 );
 		anim->Set_Fading_Alpha( 1 );
-		anim->Set_Speed( 2, 8 );
+		anim->Set_Speed( 1, 4 );
 		anim->Set_Scale( 0.5f );
 		anim->Set_ConstRotationZ( 0.5f, 15 );
 		pAnimationManager->Add( anim );
 	}
 	// debug key F4
-	else if( key == SDLK_F4 && !editor_level_enabled )
+	else if( key == SDLK_F4 )
 	{
-		if( pPlayer->ground_object )
-		{
-			pPlayer->Set_onTop( pPlayer->ground_object, 1 );
-		}
-		
-		/*for( unsigned int i = 0; i < pObjManager->Get_Size(); i++ )
-		{
-			if( pObjManager->Get_Pointer( i )->type == TYPE_TURTLE_BOSS )
-			{
-				cTurtleBoss *boss = (cTurtleBoss *)pObjManager->Get_Pointer( i );
-
-				boss->Throw_Fireballs();
-			}
-		}*/
+		Draw_Effect_out();
 
 		/*if( pGlobal_effect->type != GL_EFF_FALLING )
 		{
@@ -465,49 +395,55 @@ bool cLevel :: Key_Down( SDLKey key )
 			pGlobal_effect->Init();
 		}*/
 	}
-	// toggle leveleditor
+	// Toggle leveleditor
 	else if( key == SDLK_F8 )
 	{
 		pLevel_Editor->Toggle();
 	}
-	// ## only game
+	// ## Game
+	// Shoot
 	else if( key == pPreferences->key_shoot && !editor_enabled )
 	{
 		pPlayer->Action_Shoot();
 	}
+	// Jump
 	else if( key == pPreferences->key_jump && !editor_enabled )
 	{
 		pPlayer->Action_Jump();
 	}
-	else if( key == pPreferences->key_action && !editor_enabled )
+	// Interaction keys
+	else if( ( key == pPreferences->key_action || key == pPreferences->key_up || key == pPreferences->key_down || key == pPreferences->key_left || key == pPreferences->key_right ) && !editor_enabled )
 	{
-		pPlayer->Action_Interact();
+		pPlayer->Action_Interact( key );
 	}
+	// Request Itembox Item
 	else if( key == SDLK_RETURN && !editor_enabled )
 	{
 		Itembox->Request_Item();
 	}
+	// God Mode
 	else if( pKeyboard->keys[SDLK_g] && pKeyboard->keys[SDLK_o] && pKeyboard->keys[SDLK_d] && !editor_enabled )
 	{
 		if( pPlayer->godmode )
 		{
-			debugdisplay->Set_Text( "Funky Godmode disabled" );
+			debugdisplay->Set_Text( "Funky God Mode disabled" );
 		}
 		else
 		{
-			debugdisplay->Set_Text( "Funky Godmode enabled" );
+			debugdisplay->Set_Text( "Funky God Mode enabled" );
 		}
 
 		pPlayer->godmode = !pPlayer->godmode;
 	}
+	// Set Small state
 	else if( pKeyboard->keys[SDLK_k] && pKeyboard->keys[SDLK_i] && pKeyboard->keys[SDLK_d] && !editor_enabled )
 	{
 		pPlayer->Set_Type( MARYO_SMALL, 0 );
 	}
-	// enter menu
+	// Enter menu
 	else if( key == SDLK_ESCAPE )
 	{
-		pMenuCore->Enter();
+		Game_Action = GA_ENTER_MENU;
 	}
 	// ## editor
 	else if( pLevel_Editor->Key_Down( key )  )
@@ -558,19 +494,6 @@ bool cLevel :: Key_Up( SDLKey key )
 	return 1;
 }
 
-void cLevel :: Show_Error( string errortext )
-{
-	GL_Surface *image = pFont->RenderText( pFont->font_normal, errortext, black );
-	cHudSprite *temp = new cHudSprite( image, GAME_RES_W / 2 - image->w / 2, GAME_RES_H / 2 - image->h / 2, 1 );
-
-	temp->Draw();
-	pVideo->Render();
-	SDL_Delay( 4000 ); // todo with pollevent for ESC and a counter
-	delete temp;
-
-	exit( 1 );
-}
-
 unsigned int cLevel :: Get_Backgroundlayers( void )
 {
 	return backgrounds.size();
@@ -610,7 +533,6 @@ void cLevel :: Update( void )
 
 		// global effect
 		pGlobal_effect->Update();
-		pGlobal_effect->Update_anim();
 	}
 }
 
@@ -715,15 +637,15 @@ void cLevel :: Unload( bool delayed /* = 0 */ )
 	// clear global effect
 	pGlobal_effect->Clear();
 
+	// reset time display
 	if( timedisplay )
 	{
 		timedisplay->counter = -1;
 	}
-
-	if( pMouseCursor )
-	{
-		pMouseCursor->Reset( 0 );
-	}
+	// reset mouse
+	pMouseCursor->Reset( 0 );
+	// reset player
+	pPlayer->Reset( 0 );
 
 	engine_version = -1; // no version
 
@@ -854,7 +776,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			return 0; // error
 		}
 
-		pPlayer->Set_Pos( (float)string_to_int( parts[1] ), (float)GAME_RES_H - (float)( string_to_int( parts[2] ) + pPlayer->image->h ), 1 );
+		pPlayer->Set_Pos( (float)string_to_int( parts[1] ), (float)GAME_RES_H - (float)( string_to_int( parts[2] ) + pPlayer->start_image->h ), 1 );
 	}
 	else if( parts[0].compare( "author" ) == 0 )
 	{
@@ -1082,7 +1004,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 	/***************************************************************************/
 	else if( parts[0].find( "ge_rect" ) == 0 )
 	{
-		pGlobal_effect->Set_rect( GL_rect( string_to_float( parts[1] ), string_to_float( parts[2] ), string_to_float( parts[3] ), string_to_float( parts[4] ) ) );
+		pGlobal_effect->Set_Emitter_Rect( GL_rect( string_to_float( parts[1] ), string_to_float( parts[2] ), string_to_float( parts[3] ), string_to_float( parts[4] ) ) );
 	}
 	else if( parts[0].find( "ge_lifetime_mod" ) == 0 )
 	{
@@ -1090,7 +1012,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 	}
 	else if( parts[0].find( "ge_creation_speed" ) == 0 )
 	{
-		pGlobal_effect->Set_Creation_Speed( string_to_float( parts[1] ) );
+		pGlobal_effect->Set_Emitter_Iteration_Interval( ( 1 / string_to_float( parts[1] ) ) * 0.032f );
 	}
 	else if( parts[0].find( "ge_scale" ) == 0 )
 	{
@@ -1662,7 +1584,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			return 0; // error
 		}
 
-		cLevelExit *temp = NULL;
+		cLevel_Exit *temp = NULL;
 
 		// with type and level
 		if( count == 4 || count == 5 )
@@ -1674,7 +1596,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 				return 0; // error
 			}
 
-			temp = new cLevelExit( (float)string_to_int( parts[1] ), (float)( GAME_RES_H - string_to_int( parts[2] ) ) );
+			temp = new cLevel_Exit( (float)string_to_int( parts[1] ), (float)( GAME_RES_H - string_to_int( parts[2] ) ) );
 
 			// type
 			temp->Set_Type( (Level_Exit_type)string_to_int( parts[3] ) );
@@ -1713,7 +1635,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			door_sprite->Set_Sprite_Type( TYPE_PASSIVE );
 			pObjManager->Add( door_sprite );
 			// add the levelexit
-			temp = new cLevelExit( (float)( string_to_int( parts[1] ) + 13 ), (float)( GAME_RES_H - string_to_int( parts[2] ) + 60 ) );
+			temp = new cLevel_Exit( (float)( string_to_int( parts[1] ) + 13 ), (float)( GAME_RES_H - string_to_int( parts[2] ) + 60 ) );
 		}
 
 		pObjManager->Add( (cMovingSprite *)temp );
@@ -2138,7 +2060,11 @@ cSprite *Get_Level_Object( const String &element, XMLAttributes &attributes )
 	}
 	else if( element == "levelexit" )
 	{
-		return new cLevelExit( attributes );
+		return new cLevel_Exit( attributes );
+	}
+	else if( element == "level_entry" )
+	{
+		return new cLevel_Entry( attributes );
 	}
 	else if( element == "box" )
 	{
@@ -2161,6 +2087,10 @@ cSprite *Get_Level_Object( const String &element, XMLAttributes &attributes )
 		else if( str_type == "spin" )
 		{
 			return new cSpinBox( attributes );
+		}
+		else if( str_type == "text" )
+		{
+			return new cText_Box( attributes );
 		}
 		else if ( str_type == "empty" )
 		{

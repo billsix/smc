@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../enemies/rokko.h"
 #include "../core/game_core.h"
@@ -41,14 +42,15 @@ cRokko :: ~cRokko( void )
 
 void cRokko :: Init( void  )
 {
-    fire_resistant = 1;
-	ice_resistance = 1;
-
 	type = TYPE_ROKKO;
 	massivetype = MASS_PASSIVE;
 	posz = 0.03f;
 	editor_posz = 0.09f;
 	Set_Visible( 0 );
+	can_be_ground = 1;
+
+	fire_resistant = 1;
+	ice_resistance = 1;
 
 	speed = 8.5f;
 	Set_Direction( DIR_LEFT );
@@ -146,11 +148,11 @@ void cRokko :: Activate( void )
 
 	if( direction == DIR_LEFT )
 	{
-		AddVel( -speed, 0, 1 );
+		Add_Velocity( -speed, 0, 1 );
 	}
 	else
 	{
-		AddVel( speed, 0, 1 );
+		Add_Velocity( speed, 0, 1 );
 	}
 }
 
@@ -212,30 +214,44 @@ void cRokko :: Update( void )
 	// not active
 	if( massivetype == MASS_PASSIVE )
 	{
-		// player is not ghost
-		if( pPlayer->maryo_type != MARYO_GHOST )
-		{
-			if( direction == DIR_LEFT )
-			{
-				if( pPlayer->posx + 1000 > posx && pPlayer->posx + 400 < posx )
-				{
-					Activate();
-				}
-			}
-			// right
-			else
-			{
-				if( pPlayer->posx - 1000 > posx && pPlayer->posx + 400 > posx + col_rect.w )
-				{
-					Activate();
-				}
-			}
-		}
-
-		// not active
-		if( massivetype == MASS_PASSIVE )
+		// player is ghost
+		if( pPlayer->maryo_type == MARYO_GHOST )
 		{
 			return;
+		}
+
+		// not in vertical range
+		if( col_rect.y < pPlayer->col_rect.y - 100 || col_rect.y > pPlayer->col_rect.y + 100 )
+		{
+			return;
+		}
+
+		if( direction == DIR_LEFT )
+		{
+			// in range
+			if( pPlayer->col_rect.x + 1000 > col_rect.x && pPlayer->col_rect.x + 400 < col_rect.x )
+			{
+				Activate();
+			}
+			// not in range
+			else
+			{
+				return;
+			}
+		}
+		// right
+		else
+		{
+			// in range
+			if( pPlayer->col_rect.x - 1000 > col_rect.x && pPlayer->col_rect.x + 400 > col_rect.x + col_rect.w )
+			{
+				Activate();
+			}
+			// not in range
+			else
+			{
+				return;
+			}
 		}
 	}
 

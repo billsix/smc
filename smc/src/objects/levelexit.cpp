@@ -1,50 +1,55 @@
 /***************************************************************************
-     levelexit.cpp  -  little point to enter exit the current level
+     levelexit.cpp  -  area to exit the current level
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../objects/levelexit.h"
 #include "../player/player.h"
 #include "../core/game_core.h"
 #include "../user/preferences.h"
-#include "../input/joystick.h"
 #include "../core/camera.h"
 #include "../audio/audio.h"
 #include "../core/framerate.h"
-#include "../level/level.h"
-#include "../gui/hud.h"
-#include "../input/keyboard.h"
+#include "../core/main.h"
+#include "../video/gl_surface.h"
+#include "../video/font.h"
+#include "../video/renderer.h"
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLevelExit :: cLevelExit( float x, float y )
+cLevel_Exit :: cLevel_Exit( float x, float y )
 : cImageObjectSprite( x, y )
 {
 	Init();
 }
 
-cLevelExit :: cLevelExit( XMLAttributes &attributes )
+cLevel_Exit :: cLevel_Exit( XMLAttributes &attributes )
 : cImageObjectSprite()
 {
 	Init();
 	Create_from_Stream( attributes );
 }
 
-cLevelExit :: ~cLevelExit( void )
+cLevel_Exit :: ~cLevel_Exit( void )
 {
-
+	if( editor_entry_name )
+	{
+		delete editor_entry_name;
+		editor_entry_name = NULL;
+	}
 }
 
-void cLevelExit :: Init( void )
+void cLevel_Exit :: Init( void )
 {
 	sprite_array = ARRAY_ACTIVE;
 	type = TYPE_LEVELEXIT;
@@ -59,42 +64,44 @@ void cLevelExit :: Init( void )
 	start_rect.w = rect.w;
 	start_rect.h = rect.h;
 
-    levelchange_type = LEVELEXIT_BEAM;
+    exit_type = LEVELEXIT_BEAM;
 
 	Set_Direction( DIR_DOWN );
 
-	col_change = lila;
-	col_change.alpha = 128;
-	col_exit = red;
-	col_exit.alpha = 128;
+	editor_color = red;
+	editor_color.alpha = 128;
+
+	editor_entry_name = NULL;
 }
 
-cLevelExit *cLevelExit :: Copy( void )
+cLevel_Exit *cLevel_Exit :: Copy( void )
 {
-	cLevelExit *levelexit = new cLevelExit( startposx, startposy );
-	levelexit->Set_Type( levelchange_type );
-	levelexit->Set_Direction( start_direction );
-	levelexit->Set_Level( levelname );
+	cLevel_Exit *level_exit = new cLevel_Exit( startposx, startposy );
+	level_exit->Set_Type( exit_type );
+	level_exit->Set_Direction( start_direction );
+	level_exit->Set_Level( dest_level );
 
-	return levelexit;
+	return level_exit;
 }
 
-void cLevelExit :: Create_from_Stream( XMLAttributes &attributes )
+void cLevel_Exit :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
 	// type
-	Set_Type( (Level_Exit_type)attributes.getValueAsInteger( "type", levelchange_type ) );
+	Set_Type( (Level_Exit_type)attributes.getValueAsInteger( "type", exit_type ) );
 	// destination level
 	Set_Level( attributes.getValueAsString( "level_name" ).c_str() );
+	// destination entry
+	Set_Entry( attributes.getValueAsString( "entry" ).c_str() );
 	// direction
-	if( levelchange_type == LEVELEXIT_WARP )
+	if( exit_type == LEVELEXIT_WARP )
 	{
 		Set_Direction( Get_Direction_id( attributes.getValueAsString( "direction", Get_Direction_name( start_direction ) ).c_str() ) );
 	}
 }
 
-void cLevelExit :: Save_to_Stream( ofstream &file )
+void cLevel_Exit :: Save_to_Stream( ofstream &file )
 {
 	// begin levelexit
 	file << "\t<levelexit>" << std::endl;
@@ -103,16 +110,22 @@ void cLevelExit :: Save_to_Stream( ofstream &file )
 	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
 	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
 	// type
-	file << "\t\t<Property name=\"type\" value=\"" << levelchange_type << "\" />" << std::endl;
+	file << "\t\t<Property name=\"type\" value=\"" << exit_type << "\" />" << std::endl;
 
 	// destination level name
 	string str_level = Get_Level( 0, 0 );
 	if( !str_level.empty() )
 	{
-		file << "\t\t<Property name=\"level_name\" value=\"" << str_level << "\" />" << std::endl;
+		file << "\t\t<Property name=\"level_name\" value=\"" << string_to_xml_string( str_level ) << "\" />" << std::endl;
 	}
 
-	if( levelchange_type == LEVELEXIT_WARP )
+	// destination entry name
+	if( !dest_entry.empty() )
+	{
+		file << "\t\t<Property name=\"entry\" value=\"" << string_to_xml_string( dest_entry ) << "\" />" << std::endl;
+	}
+
+	if( exit_type == LEVELEXIT_WARP )
 	{
 		// direction
 		file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_name( start_direction ) << "\" />" << std::endl;
@@ -122,7 +135,7 @@ void cLevelExit :: Save_to_Stream( ofstream &file )
 	file << "\t</levelexit>" << std::endl;
 }
 
-void cLevelExit :: Set_Direction( ObjectDirection dir )
+void cLevel_Exit :: Set_Direction( ObjectDirection dir )
 {
 	// already set
 	if( direction == dir )
@@ -135,89 +148,38 @@ void cLevelExit :: Set_Direction( ObjectDirection dir )
 	Create_Name();
 }
 
-void cLevelExit :: Create_Name( void )
+void cLevel_Exit :: Create_Name( void )
 {
     name = "Level";
 
-    if( levelchange_type == LEVELEXIT_BEAM )
+    if( exit_type == LEVELEXIT_BEAM )
     {
         name += " Beam";
     }
-    else if( levelchange_type == LEVELEXIT_WARP )
+    else if( exit_type == LEVELEXIT_WARP )
     {
-        name += " Warp";
+		name += " Warp";
 
-        if( direction == DIR_UP )
-        {
-            name += " U";
-        }
-        else if( direction == DIR_LEFT )
-        {
-            name += " L";
-        }
-        else if( direction == DIR_DOWN )
-        {
-            name += " D";
-        }
-        else if( direction == DIR_RIGHT )
-        {
-            name += " R";
-        }
+		if( direction == DIR_UP )
+		{
+			name += " U";
+		}
+		else if( direction == DIR_LEFT )
+		{
+			name += " L";
+		}
+		else if( direction == DIR_DOWN )
+		{
+			name += " D";
+		}
+		else if( direction == DIR_RIGHT )
+		{
+			name += " R";
+		}
     }
 }
 
-void cLevelExit :: Update( void )
-{
-	if( !is_Visible_onScreen() )
-	{
-		return;
-	}
-
-	// colliding with player
-	if( Col_Box( &pPlayer->col_rect, &col_rect ) )
-	{
-		if( levelchange_type == LEVELEXIT_BEAM )
-		{
-			if( pPlayer->ground_object && ( pKeyboard->keys[pPreferences->key_up] || pJoystick->Button( pPreferences->joy_jump ) ) )
-			{
-				Activate();
-			}
-		}
-		else if( levelchange_type == LEVELEXIT_WARP )
-		{
-			if( direction == DIR_DOWN )
-			{
-				if( ( pKeyboard->keys[pPreferences->key_down] || pJoystick->down ) )
-				{
-					Activate();
-				}
-			}
-			else if( direction == DIR_UP )
-			{
-				if( pPlayer->vely <= 0 && ( pKeyboard->keys[pPreferences->key_up] || pJoystick->up ) )
-				{
-					Activate();
-				}
-			}
-			else if( direction == DIR_RIGHT )
-			{
-				if( pPlayer->velx <= 0 && ( pKeyboard->keys[pPreferences->key_right] || pJoystick->right ) )
-				{
-					Activate();
-				}
-			}
-			else if( direction == DIR_LEFT )
-			{
-				if( pPlayer->velx >= 0 && ( pKeyboard->keys[pPreferences->key_left] || pJoystick->left ) )
-				{
-					Activate();
-				}
-			}
-		}
-	}
-}
-
-void cLevelExit :: Draw( cSurfaceRequest *request /* = NULL */ )
+void cLevel_Exit :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
 	if( !valid_draw )
 	{
@@ -230,75 +192,102 @@ void cLevelExit :: Draw( cSurfaceRequest *request /* = NULL */ )
 		return;
 	}
 
-	// red for exit
-	if( levelname.empty() )
+	// draw color rect
+	pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, editor_posz, &editor_color );
+
+	// draw destination entry name
+	if( editor_entry_name )
 	{
-		pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, editor_posz, &col_exit );
-	}
-	// lila for change
-	else
-	{
-		pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, editor_posz, &col_change );
+		// create request
+		cSurfaceRequest *surface_request = new cSurfaceRequest();
+		// blit
+		editor_entry_name->Blit( col_rect.x + col_rect.w + 5 - pCamera->x, col_rect.y - pCamera->y, editor_posz, surface_request );
+		surface_request->shadow_pos = 2;
+		surface_request->shadow_color = lightgreyalpha64;
+		// add request
+		pRenderer->Add( surface_request );
 	}
 }
 
-void cLevelExit :: Activate( void )
+void cLevel_Exit :: Activate( void )
 {
 	pAudio->FadeOutMusic( 500 );
 
 	// warp player out
-	if( levelchange_type == LEVELEXIT_WARP )
+	if( exit_type == LEVELEXIT_WARP )
 	{
 		pAudio->PlaySound( "enter_pipe.ogg" );
 
-		if( pPlayer->ducked )
+		pPlayer->Set_MovingState( STA_FALL );
+		pPlayer->Set_Image( pPlayer->Get_Image() + pPlayer->direction );
+		pPlayer->Stop_ducking();
+		pPlayer->Reset_onGround();
+
+		// set position and image
+		if( direction == DIR_UP || direction == DIR_DOWN )
 		{
-			pPlayer->Stop_ducking();
+			pPlayer->Set_PosX( posx + ( col_rect.w * 0.5f ) - ( pPlayer->col_rect.w * 0.5f ) );
+		}
+		else if( direction == DIR_LEFT || direction == DIR_RIGHT )
+		{
+			pPlayer->Set_PosY( posy + ( col_rect.h * 0.5f ) - ( pPlayer->col_rect.h * 0.5f ) );
+
+			// set rotation
+			if( direction == DIR_RIGHT )
+			{
+				pPlayer->Set_RotationZ( 90 );
+			}
+			else if( direction == DIR_LEFT )
+			{
+				pPlayer->Set_RotationZ( 270 );
+			}
 		}
 
 		float player_posz = pPlayer->posz;
 		pPlayer->posz = 0.0799f; // just before massive
 
-		for( float i = 0; i < ( DESIRED_FPS * 0.9 ); i += pFramerate->speedfactor )
+		for( float i = 0; i < ( DESIRED_FPS * 0.9f ); i += pFramerate->speedfactor )
 		{
-			float move_x = 0;
-			float move_y = 0;
-
 			if( direction == DIR_DOWN )
 			{
-				move_y = 2.7f;
+				pPlayer->Move( 0, 2.7f );
 			}
 			else if( direction == DIR_UP )
 			{
-				move_y = -2.7f;
+				pPlayer->Move( 0, -2.7f );
 			}
 			else if( direction == DIR_RIGHT )
 			{
-				move_x = 2.7f;
+				pPlayer->Move( 2.7f, 0 );
 			}
 			else if( direction == DIR_LEFT )
 			{
-				move_x = -2.7f;
+				pPlayer->Move( -2.7f, 0 );
 			}
 
-			pPlayer->Move( move_x, move_y );
-			pLevel->Draw_Layer1( LVL_DRAW_BG );
-			pPlayer->Set_Image( pPlayer->direction );
-			pPlayer->Draw_Player();
-			pLevel->Draw_Layer1( LVL_DRAW_NO_BG );
-			pLevel->Draw_Layer2( LVL_DRAW_NO_BG );
-			pHudManager->Draw();
+			// draw
+			Draw_Game();
 
 			pVideo->Render();
 			pFramerate->Update();
 		}
 
+		// set position z back
 		pPlayer->posz = player_posz;
+		// set invisible
+		pPlayer->Set_Visible( 0 );
+
+		if( direction == DIR_RIGHT || direction == DIR_LEFT )
+		{
+			pPlayer->Set_RotationZ( 0 );
+		}
 	}
 
-	if( levelname.length() )
+	pPlayer->Collisions_Clear();
+
+	if( dest_level.length() )
 	{
-		pPlayer->Goto_SubLevel( levelname );
+		pPlayer->Goto_SubLevel( dest_level, dest_entry );
 	}
 	else
 	{
@@ -307,20 +296,27 @@ void cLevelExit :: Activate( void )
 	}
 }
 
-void cLevelExit :: Set_Type( Level_Exit_type ltype )
+void cLevel_Exit :: Set_Type( Level_Exit_type ltype )
 {
-	levelchange_type = ltype;
+	exit_type = ltype;
 
 	Create_Name();
 }
 
-void cLevelExit :: Set_Level( string filename )
+void cLevel_Exit :: Set_Level( string filename )
 {
 	if( filename.empty() )
 	{
-		levelname.clear();
+		dest_level.clear();
+		// red for no destination level
+		editor_color = red;
+		editor_color.alpha = 128;
 		return;
 	}
+
+	// lila for set destination level
+	editor_color = lila;
+	editor_color.alpha = 128;
 
 	// erase file type if set
 	if( filename.rfind( ".txt" ) != string::npos || filename.rfind( ".smclvl" ) != string::npos )
@@ -333,12 +329,32 @@ void cLevelExit :: Set_Level( string filename )
 		filename.erase( 0, pPreferences->level_dir.length() + 1 );
 	}
 
-	levelname = filename;
+	dest_level = filename;
 }
 
-string cLevelExit :: Get_Level( bool with_dir /* = 1 */, bool with_end /* = 1 */ )
+void cLevel_Exit :: Set_Entry( string entry_name )
 {
-	string name = levelname;
+	if( editor_entry_name )
+	{
+		delete editor_entry_name;
+		editor_entry_name = NULL;
+	}
+
+	// Set new name
+	dest_entry = entry_name;
+
+	// if empty don't create editor image
+	if( dest_entry.empty() )
+	{
+		return;
+	}
+
+	editor_entry_name = pFont->RenderText( pFont->font_small, dest_entry, white );
+}
+
+string cLevel_Exit :: Get_Level( bool with_dir /* = 1 */, bool with_end /* = 1 */ )
+{
+	string name = dest_level;
 
 	// add directory
 	if( with_dir && name.find( pPreferences->level_dir ) == string::npos )
@@ -363,7 +379,7 @@ string cLevelExit :: Get_Level( bool with_dir /* = 1 */, bool with_end /* = 1 */
 	return name;
 }
 
-bool cLevelExit :: is_Draw_valid( void )
+bool cLevel_Exit :: is_Draw_valid( void )
 {
 	// if editor not enabled
 	if( !editor_enabled )
@@ -384,15 +400,15 @@ bool cLevelExit :: is_Draw_valid( void )
 	return 1;
 }
 
-void cLevelExit :: Editor_Activate( void )
+void cLevel_Exit :: Editor_Activate( void )
 {
 	WindowManager &wmgr = WindowManager::getSingleton();
 
 	// warp
-	if( levelchange_type == LEVELEXIT_WARP )
+	if( exit_type == LEVELEXIT_WARP )
 	{
 		// direction
-		Combobox *combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "levelexit_direction" ));
+		Combobox *combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "level_exit_direction" ));
 		combobox->getEditbox()->setTooltipText( "Direction" );
 		Editor_Add( combobox, 100, 105 );
 
@@ -402,22 +418,30 @@ void cLevelExit :: Editor_Activate( void )
 		combobox->addItem( new ListboxTextItem( "left" ) );
 		combobox->setText( Get_Direction_name( start_direction ) );
 
-		combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cLevelExit::Editor_Direction_Select, this ) );
+		combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cLevel_Exit::Editor_Direction_Select, this ) );
 	}
 
 	// destination level
-	Editbox *editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "levelexit_destination_level" ));
+	Editbox *editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "level_exit_destination_level" ));
 	editbox->setTooltipText( "Destination Level" );
 	Editor_Add( editbox, 150 );
 
 	editbox->setText( Get_Level( 0, 0 ) );
-	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevelExit::Editor_Destination_Level_Key, this ) );
+	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Exit::Editor_Destination_Level_Key, this ) );
+
+	// destination entry
+	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "level_exit_destination_entry" ));
+	editbox->setTooltipText( "Destination Entry" );
+	Editor_Add( editbox, 150 );
+
+	editbox->setText( dest_entry.c_str() );
+	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Exit::Editor_Destination_Entry_Key, this ) );
 
 	// set position
 	Editor_pos_update();
 }
 
-bool cLevelExit :: Editor_Direction_Select( const EventArgs &event )
+bool cLevel_Exit :: Editor_Direction_Select( const EventArgs &event )
 {
 	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
 	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
@@ -427,12 +451,22 @@ bool cLevelExit :: Editor_Direction_Select( const EventArgs &event )
 	return 1;
 }
 
-bool cLevelExit :: Editor_Destination_Level_Key( const EventArgs &event )
+bool cLevel_Exit :: Editor_Destination_Level_Key( const EventArgs &event )
 {
 	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
 	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Level( str_text );
+
+	return 1;
+}
+
+bool cLevel_Exit :: Editor_Destination_Entry_Key( const EventArgs &event )
+{
+	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
+	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
+
+	Set_Entry( str_text );
 
 	return 1;
 }

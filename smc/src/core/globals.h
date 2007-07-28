@@ -3,36 +3,39 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef __GLOBALS_H__
 #define __GLOBALS_H__
 
 /* *** *** *** *** *** *** *** Maryo ! *** *** *** *** *** *** *** *** *** *** */
 
-#ifdef HAVE_CONFIG_H // For non-Windows platforms
+// For non-Windows platforms
+#ifdef HAVE_CONFIG_H
 	#include "config.h"
 #endif
 
 #define CAPTION "Secret Maryo Chronicles"
+// Version
 #ifndef VERSION
-#define VERSION "0.99.7"
+#define VERSION "1.0"
 #endif
 
-// used for animations and the framerate speedfactor calculation
+// framerate speedfactor calculation is based on this
 #define DESIRED_FPS 32
-// ingame default resolution for scaling
+// game resolution for global scaling
 #define GAME_RES_W 800
 #define GAME_RES_H 600
 
-/* *** *** *** *** *** *** *** Object Directions *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** Object Direction *** *** *** *** *** *** *** *** *** *** */
 
 enum ObjectDirection
 {
@@ -77,7 +80,7 @@ enum ObjectDirection
 	DIR_LAST		= 101	// Overworld last waypoint
 };
 
-/* *** *** *** *** *** *** *** Default Colors *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** Default Color *** *** *** *** *** *** *** *** *** *** */
 
 enum DefaultColor
 {
@@ -93,7 +96,7 @@ enum DefaultColor
 	COL_GREY	= 8
 };
 
-/* *** *** *** *** *** *** *** Game Modes *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** Game Mode *** *** *** *** *** *** *** *** *** *** */
 
 enum GameMode
 {
@@ -108,6 +111,19 @@ enum GameModeType
 {
 	MODE_TYPE_DEFAULT		= 0,
 	MODE_TYPE_LEVEL_CUSTOM	= 1
+};
+
+/* *** *** *** *** *** *** *** Game Action *** *** *** *** *** *** *** *** *** *** */
+
+enum GameAction
+{
+	GA_NONE				= 0,
+	GA_DOWNGRADE_PLAYER	= 1,
+	GA_ENTER_MENU		= 2,
+	GA_ENTER_MENU_CREDITS = 3,
+	GA_ENTER_WORLD		= 4,
+	GA_ENTER_LEVEL		= 5,
+	GA_ACTIVATE_LEVEL_EXIT	= 6
 };
 
 /* *** *** *** *** *** *** *** Debugging *** *** *** *** *** *** *** *** *** *** */
@@ -161,10 +177,6 @@ using std::ofstream;
 using std::stringstream;
 using std::ios;
 
-// no Visual Studio 8 and higher
-#if defined( _MSC_VER ) && _MSC_VER < 1400
-//	using std::find_if;
-#endif
 
 /* *** *** *** *** *** *** *** Paths *** *** *** *** *** *** *** *** *** *** */
 
@@ -244,9 +256,11 @@ enum SpriteType
 	TYPE_OW_LINE_END = 58,
 	// level
 	TYPE_LEVELEXIT = 18,
+	TYPE_LEVEL_ENTRY = 54,
 	TYPE_ENEMYSTOPPER = 20,
 	TYPE_BONUSBOX = 26,
 	TYPE_SPINBOX = 27,
+	TYPE_TEXT_BOX = 59,
 	TYPE_MOVING_PLATFORM = 38,
 	// enemy
 	TYPE_GUMBA = 10,

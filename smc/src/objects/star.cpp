@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2006 - 2007 Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../objects/star.h"
 #include "../player/player.h"
@@ -56,11 +57,19 @@ void cjStar :: Activate( void )
 	anim->Set_Color( Color( (Uint8)255, 240, 20, 200 ) );
 	pAnimationManager->Add( anim );
 
-	// disable
-	Set_Visible( 0 );
-
 	// activate star
 	pPlayer->Get_Item( TYPE_JSTAR );
+
+	// if spawned destroy
+	if( spawned )
+	{
+		Destroy();
+	}
+	// hide
+	else
+	{
+		Set_Visible( 0 );
+	}
 }
 
 void cjStar :: Update( void )
@@ -79,7 +88,7 @@ void cjStar :: Update( void )
 	// Add Gravitation
 	if( vely < 25 )
 	{
-		AddVel( 0, 1.8f );
+		Add_Velocity( 0, 1.8f );
 	}
 	
 	// rotate

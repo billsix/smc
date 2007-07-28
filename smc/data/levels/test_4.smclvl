@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.7" />
+		<Property name="game_version" value="1.0" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1181895549" />
+		<Property name="save_time" value="1185595283" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="FluXy" />
@@ -993,4 +993,16 @@
 		<Property name="image_top_middle" value="slider/grey_1/slider_middle.png" />
 		<Property name="image_top_right" value="slider/grey_1/slider_right.png" />
 	</falling_platform>
+	<levelexit>
+		<Property name="posx" value="3188" />
+		<Property name="posy" value="417" />
+		<Property name="type" value="1" />
+		<Property name="direction" value="down" />
+	</levelexit>
+	<sprite>
+		<Property name="posx" value="3147" />
+		<Property name="posy" value="423" />
+		<Property name="image" value="pipes/blue/up.png" />
+		<Property name="type" value="massive" />
+	</sprite>
 </level>

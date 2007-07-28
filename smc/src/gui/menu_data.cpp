@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2004 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../core/globals.h"
 #include "../gui/menu_data.h"
@@ -27,6 +28,7 @@
 #include "../user/savegame.h"
 #include "../video/renderer.h"
 #include "../level/level.h"
+#include "../input/keyboard.h"
 // boost filesystem
 #include "boost/filesystem/operations.hpp"
 #include "boost/filesystem/path.hpp"
@@ -39,6 +41,8 @@ cMenu_Base :: cMenu_Base( void )
 	guiwindow = NULL;
 	action = 0;
 	menu_posy = 140;
+	text_color = Color( (Uint8)255, 251, 98 );
+	text_color_value = Color( (Uint8)255, 190, 30 );
 }
 
 cMenu_Base :: ~cMenu_Base( void )
@@ -49,9 +53,9 @@ cMenu_Base :: ~cMenu_Base( void )
 		WindowManager::getSingleton().destroyWindow( guiwindow );
 	}
 
-	for( unsigned int i = 0; i < drawlist.size(); i++ )
+	for( HudSpriteList::iterator itr = drawlist.begin(), itr_end = drawlist.end(); itr != itr_end; ++itr )
 	{
-		delete drawlist[i];
+		delete *itr;
 	}
 	
 	drawlist.clear();
@@ -83,8 +87,6 @@ void cMenu_Base :: Init_GUI( void )
 
 void cMenu_Base :: Update( void )
 {
-	// events, time and audio
-	pMenuCore->Update_Generic();
 	// animation
 	pMenuCore->pMenu_AnimManager->Update();
 	// hud
@@ -100,9 +102,9 @@ void cMenu_Base :: Draw( void )
 	pMenuCore->handler->Draw();
 
 	// menu items
-	for( unsigned int i = 0; i < drawlist.size(); i++ )
+	for( HudSpriteList::iterator itr = drawlist.begin(), itr_end = drawlist.end(); itr != itr_end; ++itr )
 	{
-		drawlist[i]->Draw();
+		(*itr)->Draw();
 	}
 }
 
@@ -110,6 +112,11 @@ void cMenu_Base :: Draw_End( void )
 {
 	// hud
 	pHudManager->Draw();
+}
+
+void cMenu_Base :: Exit( void )
+{
+	// virtual
 }
 
 /* *** *** *** *** *** *** *** *** cMenu_Main *** *** *** *** *** *** *** *** *** */
@@ -169,7 +176,7 @@ void cMenu_Main :: Init( void )
 	temp_item->Set_Pos( GAME_RES_W * 0.45f, GAME_RES_H - 30 );
 	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
 
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/logo_sdl.png" ), 10, (float)( GAME_RES_H * 0.935f ) ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/logo_sdl.png" ), 10, (float)GAME_RES_H * 0.935f ) );
 	drawlist.push_back( new cHudSprite( credits, -200, 0, 1 ) );
 
 	Init_GUI();
@@ -198,37 +205,36 @@ void cMenu_Main :: Update( void )
 	if( pMenuCore->handler->active == 0 )
 	{
 		pMenuCore->next_menu = MENU_START;
-		pMenuCore->leave = 1;
+		Game_Action = GA_ENTER_MENU;
 	}
 	// Options
 	else if( pMenuCore->handler->active == 1 )
 	{
 		pMenuCore->next_menu = MENU_OPTIONS;
-		pMenuCore->leave = 1;
+		Game_Action = GA_ENTER_MENU;
 	}
 	// Load
 	else if( pMenuCore->handler->active == 2 )
 	{
 		pMenuCore->next_menu = MENU_LOAD;
-		pMenuCore->leave = 1;
+		Game_Action = GA_ENTER_MENU;
 	}
 	// Save
 	else if( pMenuCore->handler->active == 3 )
 	{
 		pMenuCore->next_menu = MENU_SAVE;
-		pMenuCore->leave = 1;
+		Game_Action = GA_ENTER_MENU;
 	}
 	// Quit
 	else if( pMenuCore->handler->active == 4 )
 	{
-		pMenuCore->leave = 1;
 		done = 1;
 	}
 	// Credits
 	else if( pMenuCore->handler->active == 5 )
 	{
 		pMenuCore->next_menu = MENU_CREDITS;
-		pMenuCore->leave = 1;
+		Game_Action = GA_ENTER_MENU;
 	}
 }
 
@@ -236,6 +242,18 @@ void cMenu_Main :: Draw( void )
 {
 	cMenu_Base::Draw();
 	Draw_End();
+}
+
+void cMenu_Main :: Exit( void )
+{
+	if( pLevel->is_Loaded() )
+	{
+		Game_Action = GA_ENTER_LEVEL;
+	}
+	else if( pActive_Overworld )
+	{
+		Game_Action = GA_ENTER_WORLD;
+	}
 }
 
 /* *** *** *** *** *** *** *** *** cMenu_Start *** *** *** *** *** *** *** *** *** */
@@ -257,9 +275,9 @@ void cMenu_Start :: Init( void )
 
 	cMenu_Item *temp_item = NULL;
 
-	GL_Surface *back1 = pFont->RenderText( pFont->font_normal, "Back", orange );
+	GL_Surface *back1 = pFont->RenderText( pFont->font_normal, "Back", text_color );
 
-	layout_file = "menu_overworld.layout";
+	layout_file = "menu_start.layout";
  
 	// back
 	temp_item = new cMenu_Item();
@@ -290,9 +308,9 @@ void cMenu_Start :: Init_GUI( void )
 	Listbox *listbox_worlds = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_worlds" ));
 	
 	// overworld names
-	for( unsigned int i = 0; i < pOverworld_manager->worlds.size(); i++ )
+	for( OverworldList::iterator itr = pOverworld_manager->worlds.begin(), itr_end = pOverworld_manager->worlds.end(); itr != itr_end; ++itr )
 	{
-		cOverworld_description *world = pOverworld_manager->worlds[i]->description;
+		cOverworld_description *world = (*itr)->description;
 
 // show all worlds in debug builds
 #ifndef _DEBUG
@@ -387,10 +405,9 @@ void cMenu_Start :: Update( void )
 	action = 0;
 
 	// back
-	if( pMenuCore->handler->active == 0 || pMenuCore->leave == 2 )
+	if( pMenuCore->handler->active == 0 )
 	{
-		pMenuCore->next_menu = MENU_MAIN;
-		pMenuCore->leave = 1;
+		Exit();
 	}
 }
 
@@ -398,6 +415,12 @@ void cMenu_Start :: Draw( void )
 {
 	cMenu_Base::Draw();
 	Draw_End();
+}
+
+void cMenu_Start :: Exit( void )
+{
+	pMenuCore->next_menu = MENU_MAIN;
+	Game_Action = GA_ENTER_MENU;
 }
 
 void cMenu_Start :: Load_World( string name )
@@ -412,46 +435,53 @@ void cMenu_Start :: Load_World( string name )
 	{
 		// unload possible loaded level
 		pLevel->Unload();
-		// fade music out
-		pAudio->FadeOutMusic( 1000 );
-		// exit menu
-		pMenuCore->leave = 1;
+		// enter world
+		Game_Action = GA_ENTER_WORLD;
 	}
 }
 
-void cMenu_Start :: Load_Level( string name )
+void cMenu_Start :: Load_Level( string level_name )
 {
-	// if not successful
-	if( !pLevel->Load( name ) )
+	// erase file type
+	if( level_name.find( "." ) != string::npos )
 	{
-		debugdisplay->Set_Text( "Could not load Level active " + name, DESIRED_FPS );
+		level_name.erase( level_name.rfind( "." ) );
 	}
-	// if successfully set active
-	else
+
+	// add level directory
+	if( level_name.find( pPreferences->level_dir ) == string::npos )
 	{
-		// reset level player
-		pPlayer->Reset();
-		// fade music out
-		pAudio->FadeOutMusic( 1000 );
-		// exit menu
-		pMenuCore->leave = 1;
+		level_name.insert( 0, pPreferences->level_dir + "/" );
 	}
+
+	// if not available
+	if( !valid_file( level_name + ".smclvl" ) && !valid_file( level_name + ".txt" )  )
+	{
+		pAudio->PlaySound( "error.ogg" );
+		debugdisplay->Set_Text( "Couldn't load level " + level_name, DESIRED_FPS );
+		return;
+	}
+
+	// enter level
+	Game_Action = GA_ENTER_LEVEL;
+	Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
+	Game_Action_Data = level_name;
 }
 
 bool cMenu_Start :: window_keydown( const EventArgs &e )
 {
 	const KeyEventArgs &ke = static_cast<const KeyEventArgs &>(e);
 
-	// if Return Key
+	// Return
 	if( ke.scancode == Key::Return || ke.scancode == Key::NumpadEnter )
 	{
 		// Get Tab Control
-		TabControl *tabcontrol = (TabControl *)WindowManager::getSingleton().getWindow( "tabcontrol_main" );
+		TabControl *tabcontrol = static_cast<TabControl *>(WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
 
 		// World
 		if( tabcontrol->getSelectedTabIndex() == 0 )
 		{
-			ListboxItem *item = ((Listbox *)WindowManager::getSingleton().getWindow( "listbox_worlds" ))->getFirstSelectedItem();
+			ListboxItem *item = (static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_worlds" )))->getFirstSelectedItem();
 
 			// load world
 			if( item )
@@ -462,7 +492,7 @@ bool cMenu_Start :: window_keydown( const EventArgs &e )
 		// Level
 		else
 		{
-			ListboxItem *item = ((Listbox *)WindowManager::getSingleton().getWindow( "listbox_levels" ))->getFirstSelectedItem();
+			ListboxItem *item = (static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" )))->getFirstSelectedItem();
 
 			// load level
 			if( item )
@@ -472,6 +502,77 @@ bool cMenu_Start :: window_keydown( const EventArgs &e )
 		}
 
 		return 1;
+	}
+	// Shift Tab
+	else if( ( pKeyboard->keys[SDLK_LSHIFT] || pKeyboard->keys[SDLK_RSHIFT] ) && ke.scancode == Key::Tab )
+	{
+		// Get Tab Control
+		TabControl *tabcontrol = static_cast<TabControl *>(WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
+
+		// if last tab
+		if( tabcontrol->getSelectedTabIndex() + 1 == tabcontrol->getTabCount() )
+		{
+			tabcontrol->setSelectedTabAtIndex( 0 );
+		}
+		// select next tab
+		else
+		{
+			tabcontrol->setSelectedTabAtIndex( tabcontrol->getSelectedTabIndex() + 1 );
+		}
+	}
+	// Tab
+	else if( ke.scancode == Key::ArrowDown || ke.scancode == Key::ArrowUp )
+	{
+		// Get Tab Control
+		TabControl *tabcontrol = static_cast<TabControl *>(WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
+
+		// Items Listbox
+		Listbox *listbox;
+
+		// World
+		if( tabcontrol->getSelectedTabIndex() == 0 )
+		{
+			listbox = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_worlds" ));
+		}
+		// Level
+		else
+		{
+			listbox = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
+		}
+
+		ListboxItem *new_selected = NULL;
+
+		// if none selected
+		if( listbox->getSelectedCount() == 0 )
+		{
+			new_selected = listbox->getListboxItemFromIndex( 0 );
+		}
+		// last item selected
+		else if( ke.scancode == Key::ArrowDown && listbox->getFirstSelectedItem() == listbox->getListboxItemFromIndex( listbox->getItemCount() - 1 ) )
+		{
+			new_selected = listbox->getListboxItemFromIndex( 0 );
+		}
+		// first item selected
+		else if( ke.scancode == Key::ArrowUp && listbox->getFirstSelectedItem() == listbox->getListboxItemFromIndex( 0 ) )
+		{
+			new_selected = listbox->getListboxItemFromIndex( listbox->getItemCount() - 1 );
+		}
+		// select next item
+		else
+		{
+			if( ke.scancode == Key::ArrowDown )
+			{
+				new_selected = listbox->getListboxItemFromIndex( listbox->getItemIndex( listbox->getFirstSelectedItem() ) + 1 );
+			}
+			// up
+			else
+			{
+				new_selected = listbox->getListboxItemFromIndex( listbox->getItemIndex( listbox->getFirstSelectedItem() ) - 1 );
+			}
+		}
+		
+		listbox->setItemSelectState( new_selected, 1 );
+		listbox->ensureItemIsVisible( new_selected );
 	}
 
 	return 0;
@@ -483,7 +584,7 @@ bool cMenu_Start :: world_Select( const EventArgs &event )
 	ListboxItem *item = static_cast<Listbox *>( windowEventArgs.window )->getFirstSelectedItem();
 
 	// World Comment
-	Editbox *editbox_world_comment = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_world_comment" );
+	Editbox *editbox_world_comment = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_world_comment" ));
 
 	// set world comment
 	if( item )
@@ -516,7 +617,7 @@ bool cMenu_Start :: world_Select_final_list( const EventArgs &event )
 bool cMenu_Start :: world_Select_final_button( const EventArgs &event )
 {
 	// Get Selected World
-	Listbox *listbox_worlds = (Listbox *)WindowManager::getSingleton().getWindow( "listbox_worlds" );
+	Listbox *listbox_worlds = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_worlds" ));
 	ListboxItem *item = listbox_worlds->getFirstSelectedItem();
 
 	// load world
@@ -537,12 +638,12 @@ bool cMenu_Start :: level_Select( const EventArgs &event )
 	// set level something
 	if( item )
 	{
-		
+		// todo : needs level manager
 	}
 	// clear
 	else
 	{
-		
+		// todo : needs level manager
 	}
 
 	return 1;
@@ -565,7 +666,7 @@ bool cMenu_Start :: level_Select_final_list( const EventArgs &event )
 bool cMenu_Start :: level_Select_final_button( const EventArgs &event )
 {
 	// Get Selected Level
-	Listbox *listbox_levels = (Listbox *)WindowManager::getSingleton().getWindow( "listbox_levels" );
+	Listbox *listbox_levels = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
 	ListboxItem *item = listbox_levels->getFirstSelectedItem();
 
 	// load level
@@ -597,7 +698,7 @@ void cMenu_Options :: Init( void )
 	cMenu_Item *temp_item = NULL;
 	menu_posy = 210;
 
-	GL_Surface *back1 = pFont->RenderText( pFont->font_normal, "Back", orange );
+	GL_Surface *back1 = pFont->RenderText( pFont->font_normal, "Back", text_color );
 
 	// Game
 	temp_item = new cMenu_Item();
@@ -661,41 +762,46 @@ void cMenu_Options :: Update( void )
 	{
 		pMenuCore->next_menu = MENU_OPTIONS;
 		pMenuCore->options_menu_id	= MENU_GAME;
-		pMenuCore->leave = 1;
+		Game_Action = GA_ENTER_MENU;
 	}
 	 // Video
 	else if( pMenuCore->handler->active == MENU_VIDEO )
 	{
 		pMenuCore->next_menu = MENU_OPTIONS;
 		pMenuCore->options_menu_id	= MENU_VIDEO;
-		pMenuCore->leave = 1;
+		Game_Action = GA_ENTER_MENU;
 	}
 	// Audio
 	else if( pMenuCore->handler->active == MENU_AUDIO )
 	{
 		pMenuCore->next_menu = MENU_OPTIONS;
 		pMenuCore->options_menu_id	= MENU_AUDIO;
-		pMenuCore->leave = 1;
+		Game_Action = GA_ENTER_MENU;
 	}
 	// Controls
 	else if( pMenuCore->handler->active == MENU_CONTROLS )
 	{
 		pMenuCore->next_menu = MENU_OPTIONS;
 		pMenuCore->options_menu_id = MENU_CONTROLS;
-		pMenuCore->leave = 1;
+		Game_Action = GA_ENTER_MENU;
 	}
 	// back
-	else if( pMenuCore->handler->active == 4 || pMenuCore->leave == 2 )
+	else if( pMenuCore->handler->active == 4 )
 	{
-		pMenuCore->next_menu = MENU_MAIN;
-		pPreferences->Save();
-		pMenuCore->leave = 1;
+		Exit();
 	}
 }
 
 void cMenu_Options :: Draw( void )
 {
 	cMenu_Base::Draw();
+}
+
+void cMenu_Options :: Exit( void )
+{
+	pMenuCore->next_menu = MENU_MAIN;
+	pPreferences->Save();
+	Game_Action = GA_ENTER_MENU;
 }
 
 /* *** *** *** *** *** *** *** *** cMenu_Options_Game *** *** *** *** *** *** *** *** *** */
@@ -720,9 +826,9 @@ void cMenu_Options_Game :: Init( void )
 	layout_file = "menu_game.layout";
 	menu_posy = 220;
 
-	GL_Surface *controls_always_run = pFont->RenderText( pFont->font_normal, "Always Run", orange );
-	GL_Surface *game_camera_hor_speed = pFont->RenderText( pFont->font_normal, "Camera Hor Speed", orange );
-	GL_Surface *game_camera_ver_speed = pFont->RenderText( pFont->font_normal, "Camera Ver Speed", orange );
+	GL_Surface *controls_always_run = pFont->RenderText( pFont->font_normal, "Always Run", text_color );
+	GL_Surface *game_camera_hor_speed = pFont->RenderText( pFont->font_normal, "Camera Hor Speed", text_color );
+	GL_Surface *game_camera_ver_speed = pFont->RenderText( pFont->font_normal, "Camera Ver Speed", text_color );
 
 	// always run
 	temp_item = new cMenu_Item();
@@ -746,7 +852,7 @@ void cMenu_Options_Game :: Init( void )
 	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
 	drawlist.push_back( new cHudSprite( game_camera_ver_speed, -200, 0, 1 ) );
 
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/game.png" ), GAME_RES_W / 2.3f, 140 ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/game.png" ), GAME_RES_W * 0.47f, 140 ) );
 	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/game.png" ), GAME_RES_W / 2.6f, 140 ) );
 
 	pMenuCore->handler->Set_Active( MENU_GAME );
@@ -762,7 +868,7 @@ void cMenu_Options_Game :: Init_GUI( void )
 	WindowManager &windowmanager = WindowManager::getSingleton();
 
 	// always run
-	Combobox *combo_always_run = (Combobox *)windowmanager.getWindow( "combo_always_run" );
+	Combobox *combo_always_run = static_cast<Combobox *>(windowmanager.getWindow( "combo_always_run" ));
 
 	ListboxTextItem *item = new ListboxTextItem( "On", 0 );
 	item->setTextColours( colour( 0, 1, 0 ) );
@@ -783,13 +889,13 @@ void cMenu_Options_Game :: Init_GUI( void )
 	combo_always_run->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cMenu_Options_Game::always_run_Select, this ) );
 
 	// Camera Horizontal Speed
-	Spinner *spinner_camera_hor_speed = (Spinner *)windowmanager.getWindow( "spinner_camera_hor_speed" );
+	Spinner *spinner_camera_hor_speed = static_cast<Spinner *>(windowmanager.getWindow( "spinner_camera_hor_speed" ));
 	spinner_camera_hor_speed->setCurrentValue( pCamera->hor_offset_speed );
 
 	spinner_camera_hor_speed->subscribeEvent( Spinner::EventValueChanged, Event::Subscriber( &cMenu_Options_Game::camera_hor_Select, this ) );
 
 	// Camera Vertical Speed
-	Spinner *spinner_camera_ver_speed = (Spinner *)windowmanager.getWindow( "spinner_camera_ver_speed" );
+	Spinner *spinner_camera_ver_speed = static_cast<Spinner *>(windowmanager.getWindow( "spinner_camera_ver_speed" ));
 	spinner_camera_ver_speed->setCurrentValue( pCamera->ver_offset_speed );
 
 	spinner_camera_ver_speed->subscribeEvent( Spinner::EventValueChanged, Event::Subscriber( &cMenu_Options_Game::camera_ver_Select, this ) );
@@ -909,11 +1015,11 @@ void cMenu_Options_Video :: Init( void )
 	layout_file = "menu_video.layout";
 	menu_posy = 220;
 
-	GL_Surface *video_resolution = pFont->RenderText( pFont->font_normal, "Resolution", orange );
-	GL_Surface *video_bpp = pFont->RenderText( pFont->font_normal, "Bpp", orange );
-	GL_Surface *video_fullscreen = pFont->RenderText( pFont->font_normal, "Fullscreen", orange );
-	GL_Surface *video_vsync = pFont->RenderText( pFont->font_normal, "VSync", orange );
-	GL_Surface *video_apply = pFont->RenderText( pFont->font_normal, "Apply", orange );
+	GL_Surface *video_resolution = pFont->RenderText( pFont->font_normal, "Resolution", text_color );
+	GL_Surface *video_bpp = pFont->RenderText( pFont->font_normal, "Bpp", text_color );
+	GL_Surface *video_fullscreen = pFont->RenderText( pFont->font_normal, "Fullscreen", text_color );
+	GL_Surface *video_vsync = pFont->RenderText( pFont->font_normal, "VSync", text_color );
+	GL_Surface *video_apply = pFont->RenderText( pFont->font_normal, "Apply", text_color );
 
 	// Resolution
 	temp_item = new cMenu_Item();
@@ -958,7 +1064,7 @@ void cMenu_Options_Video :: Init( void )
 	vid_fullscreen = pPreferences->Fullscreen;
 	vid_vsync = pPreferences->vsync;
 
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/video.png" ), GAME_RES_W / 2.3f, 140 ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/video.png" ), GAME_RES_W * 0.47f, 140 ) );
 	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/video.png" ), GAME_RES_W / 2.6f, 140 ) );
 
 	pMenuCore->handler->Set_Active( MENU_VIDEO );
@@ -971,7 +1077,7 @@ void cMenu_Options_Video :: Init_GUI( void )
 	cMenu_Options::Init_GUI();
 
 	// Resolution
-	Combobox *combo_resolution = (Combobox *)WindowManager::getSingleton().getWindow( "combo_resolution" );
+	Combobox *combo_resolution = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_resolution" ));
 
 	ListboxTextItem *item = new ListboxTextItem( "800x600", 1 );
 	item->setTextColours( colour( 1, 1, 0 ) );
@@ -995,7 +1101,7 @@ void cMenu_Options_Video :: Init_GUI( void )
 	combo_resolution->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cMenu_Options_Video::res_Select, this ) );
 
 	// BPP
-	Combobox *combo_bpp = (Combobox *)WindowManager::getSingleton().getWindow( "combo_bpp" );
+	Combobox *combo_bpp = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_bpp" ));
 
 	item = new ListboxTextItem( "16", 0 );
 	item->setTextColours( colour( 1, 0.6f, 0.3f ) );
@@ -1009,7 +1115,7 @@ void cMenu_Options_Video :: Init_GUI( void )
 	combo_bpp->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cMenu_Options_Video::bpp_Select, this ) );
 
 	// Fullscreen
-	Combobox *combo_fullscreen = (Combobox *)WindowManager::getSingleton().getWindow( "combo_fullscreen" );
+	Combobox *combo_fullscreen = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_fullscreen" ));
 
 	item = new ListboxTextItem( "On", 0 );
 	item->setTextColours( colour( 0, 1, 0 ) );
@@ -1030,7 +1136,7 @@ void cMenu_Options_Video :: Init_GUI( void )
 	combo_fullscreen->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cMenu_Options_Video::fullscreen_Select, this ) );
 
 	// VSync
-	Combobox *combo_vsync = (Combobox *)WindowManager::getSingleton().getWindow( "combo_vsync" );
+	Combobox *combo_vsync = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_vsync" ));
 
 	item = new ListboxTextItem( "On", 0 );
 	item->setTextColours( colour( 0, 1, 0 ) );
@@ -1148,7 +1254,7 @@ void cMenu_Options_Video :: Update( void )
 	else if( pMenuCore->handler->active == 9 )
 	{
 		// draw reinitialization text
-		Draw_StaticText( "Reinitialization", &green, &blackalpha128, &grey, &black, 0 );
+		Draw_StaticText( "Reinitialization", &green, NULL, 0 );
 
 		pGuiSystem->renderGUI();
 		pRenderer->Render();
@@ -1178,7 +1284,7 @@ void cMenu_Options_Video :: Update( void )
 
 		// clear
 		pMenuCore->next_menu = MENU_OPTIONS;
-		pMenuCore->leave = 1;
+		Game_Action = GA_ENTER_MENU;
 	}
 }
 
@@ -1295,8 +1401,8 @@ void cMenu_Options_Audio :: Init( void )
 
 	cMenu_Item *temp_item = NULL;
 
-	GL_Surface *audio_music = pFont->RenderText( pFont->font_normal, "Music", orange );
-	GL_Surface *audio_sounds = pFont->RenderText( pFont->font_normal, "Sounds", orange );
+	GL_Surface *audio_music = pFont->RenderText( pFont->font_normal, "Music", text_color );
+	GL_Surface *audio_sounds = pFont->RenderText( pFont->font_normal, "Sounds", text_color );
 
 	layout_file = "menu_audio.layout";
 	menu_posy = 220;
@@ -1317,7 +1423,7 @@ void cMenu_Options_Audio :: Init( void )
 	pMenuCore->handler->Add_MenuItem( temp_item, 1.5, grey );
 	drawlist.push_back( new cHudSprite( audio_sounds, -200, 0, 1 ) );
 
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/audio.png" ), GAME_RES_W / 2.3f, 140 ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/audio.png" ), GAME_RES_W * 0.47f, 140 ) );
 	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/audio.png" ), GAME_RES_W / 2.6f, 140 ) );
 	
 	pMenuCore->handler->Set_Active( MENU_AUDIO );
@@ -1330,7 +1436,7 @@ void cMenu_Options_Audio :: Init_GUI( void )
 	cMenu_Options::Init_GUI();
 
 	// Music
-	Combobox *combo_music = (Combobox *)WindowManager::getSingleton().getWindow( "combo_music" );
+	Combobox *combo_music = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_music" ));
 
 	ListboxTextItem *item = new ListboxTextItem( "On", 0 );
 	item->setTextColours( colour( 0, 1, 0 ) );
@@ -1357,7 +1463,7 @@ void cMenu_Options_Audio :: Init_GUI( void )
 	
 
 	// Sounds
-	Combobox *combo_sounds = (Combobox *)WindowManager::getSingleton().getWindow( "combo_sounds" );
+	Combobox *combo_sounds = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_sounds" ));
 
 	item = new ListboxTextItem( "On", 0 );
 	item->setTextColours( colour( 0, 1, 0 ) );
@@ -1530,11 +1636,13 @@ cMenu_Options_Controls :: cMenu_Options_Controls( void )
 	joypad_item_keyname = keyboard_up_keyname->Copy();
 	joypad_shoot_keyname = keyboard_up_keyname->Copy();
 	joypad_action_keyname = keyboard_up_keyname->Copy();
+	joypad_exit_keyname = keyboard_up_keyname->Copy();
 }
 
 cMenu_Options_Controls :: ~cMenu_Options_Controls( void )
 {
 	delete gamepad;
+	// Keyboard
 	delete keyboard_up_keyname;
 	delete keyboard_down_keyname;
 	delete keyboard_left_keyname;
@@ -1542,10 +1650,12 @@ cMenu_Options_Controls :: ~cMenu_Options_Controls( void )
 	delete keyboard_jump_keyname;
 	delete keyboard_shoot_keyname;
 	delete keyboard_action_keyname;
+	// Joypad
 	delete joypad_jump_keyname;
 	delete joypad_item_keyname;
 	delete joypad_shoot_keyname;
 	delete joypad_action_keyname;
+	delete joypad_exit_keyname;
 }
 
 void cMenu_Options_Controls :: Init( void )
@@ -1555,36 +1665,38 @@ void cMenu_Options_Controls :: Init( void )
 	// gamepad
 	gamepad->Set_Image( pVideo->Get_Surface( "menu/items/gamepad.png" ), 1 );
 	// Keyboard
-	keyboard_up_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_up ), black ), 1, 1 );
-	keyboard_down_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_down ), black ), 1, 1 );
-	keyboard_left_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_left ), black ), 1, 1 );
-	keyboard_right_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_right ), black ), 1, 1 );
-	keyboard_jump_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_jump ), black ), 1, 1 );
-	keyboard_shoot_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_shoot ), black ), 1, 1 );
-	keyboard_action_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_action ), black ), 1, 1 );
+	keyboard_up_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_up ), text_color_value ), 1, 1 );
+	keyboard_down_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_down ), text_color_value ), 1, 1 );
+	keyboard_left_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_left ), text_color_value ), 1, 1 );
+	keyboard_right_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_right ), text_color_value ), 1, 1 );
+	keyboard_jump_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_jump ), text_color_value ), 1, 1 );
+	keyboard_shoot_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_shoot ), text_color_value ), 1, 1 );
+	keyboard_action_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_action ), text_color_value ), 1, 1 );
 	// Joypad
-	joypad_jump_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_jump ), black ), 1, 1 );
-	joypad_item_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_item ), black ), 1, 1 );
-	joypad_shoot_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_shoot ), black ), 1, 1 );
-	joypad_action_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_action ), black ), 1, 1 );
+	joypad_jump_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_jump ), text_color_value ), 1, 1 );
+	joypad_item_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_item ), text_color_value ), 1, 1 );
+	joypad_shoot_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_shoot ), text_color_value ), 1, 1 );
+	joypad_action_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_action ), text_color_value ), 1, 1 );
+	joypad_exit_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_exit ), text_color_value ), 1, 1 );
 
 	cMenu_Item *temp_item = NULL;
 
-	GL_Surface *keyboard_up = pFont->RenderText( pFont->font_normal, "Up", orange );
-	GL_Surface *keyboard_down = pFont->RenderText( pFont->font_normal, "Down", orange );
-	GL_Surface *keyboard_left = pFont->RenderText( pFont->font_normal, "Left", orange );
-	GL_Surface *keyboard_right = pFont->RenderText( pFont->font_normal, "Right", orange );
-	GL_Surface *keyboard_jump = pFont->RenderText( pFont->font_normal, "Jump", orange );
-	GL_Surface *keyboard_shoot = pFont->RenderText( pFont->font_normal, "Shoot", orange );
-	GL_Surface *keyboard_action = pFont->RenderText( pFont->font_normal, "Action/Run", orange );
+	GL_Surface *keyboard_up = pFont->RenderText( pFont->font_normal, "Up", text_color );
+	GL_Surface *keyboard_down = pFont->RenderText( pFont->font_normal, "Down", text_color );
+	GL_Surface *keyboard_left = pFont->RenderText( pFont->font_normal, "Left", text_color );
+	GL_Surface *keyboard_right = pFont->RenderText( pFont->font_normal, "Right", text_color );
+	GL_Surface *keyboard_jump = pFont->RenderText( pFont->font_normal, "Jump", text_color );
+	GL_Surface *keyboard_shoot = pFont->RenderText( pFont->font_normal, "Shoot", text_color );
+	GL_Surface *keyboard_action = pFont->RenderText( pFont->font_normal, "Action/Run", text_color );
 
-	GL_Surface *joypad_jump = pFont->RenderText( pFont->font_normal, "Jump", orange );
-	GL_Surface *joypad_item = pFont->RenderText( pFont->font_normal, "Item", orange );
-	GL_Surface *joypad_shoot = pFont->RenderText( pFont->font_normal, "Shoot", orange );
-	GL_Surface *joypad_action = pFont->RenderText( pFont->font_normal, "Action/Run", orange );
+	GL_Surface *joypad_jump = pFont->RenderText( pFont->font_normal, "Jump", text_color );
+	GL_Surface *joypad_item = pFont->RenderText( pFont->font_normal, "Item", text_color );
+	GL_Surface *joypad_shoot = pFont->RenderText( pFont->font_normal, "Shoot", text_color );
+	GL_Surface *joypad_action = pFont->RenderText( pFont->font_normal, "Action/Run", text_color );
+	GL_Surface *joypad_exit = pFont->RenderText( pFont->font_normal, "Exit", text_color );
 
-	GL_Surface *controls_joy_enabled = pFont->RenderText( pFont->font_normal, "Joystick", orange );
-	GL_Surface *controls_joy_analog_jump = pFont->RenderText( pFont->font_normal, "Analog Jump", orange );
+	GL_Surface *controls_joy_enabled = pFont->RenderText( pFont->font_normal, "Joystick", text_color );
+	GL_Surface *controls_joy_analog_jump = pFont->RenderText( pFont->font_normal, "Analog Jump", text_color );
 
 	layout_file = "menu_controls.layout";
 	menu_posy = 220;
@@ -1653,55 +1765,62 @@ void cMenu_Options_Controls :: Init( void )
 	// Jump
 	temp_item = new cMenu_Item();
 	temp_item->image_default->Set_Image( joypad_jump );
-	temp_item->Set_Pos( GAME_RES_W / 1.6, menu_posy );
+	temp_item->Set_Pos( GAME_RES_W / 1.6f, menu_posy );
 	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	joypad_jump_keyname->Set_Pos( GAME_RES_W / 1.2f, menu_posy );
+	joypad_jump_keyname->Set_Pos( GAME_RES_W / 1.25f, menu_posy );
 	drawlist.push_back( new cHudSprite( joypad_jump, -200, 0, 1 ) );
 	// Item
 	temp_item = new cMenu_Item();
 	menu_posy += 30;
 	temp_item->image_default->Set_Image( joypad_item );
-	temp_item->Set_Pos( GAME_RES_W / 1.6, menu_posy );
+	temp_item->Set_Pos( GAME_RES_W / 1.6f, menu_posy );
 	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	joypad_item_keyname->Set_Pos( GAME_RES_W / 1.2f, menu_posy );
+	joypad_item_keyname->Set_Pos( GAME_RES_W / 1.25f, menu_posy );
 	drawlist.push_back( new cHudSprite( joypad_item, -200, 0, 1 ) );
 	// Shoot
 	temp_item = new cMenu_Item();
 	menu_posy += 30;
 	temp_item->image_default->Set_Image( joypad_shoot );
-	temp_item->Set_Pos( GAME_RES_W / 1.6, menu_posy );
+	temp_item->Set_Pos( GAME_RES_W / 1.6f, menu_posy );
 	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	joypad_shoot_keyname->Set_Pos( GAME_RES_W / 1.2f, menu_posy );
+	joypad_shoot_keyname->Set_Pos( GAME_RES_W / 1.25f, menu_posy );
 	drawlist.push_back( new cHudSprite( joypad_shoot, -200, 0, 1 ) );
 	// Action
 	temp_item = new cMenu_Item();
 	menu_posy += 30;
 	temp_item->image_default->Set_Image( joypad_action );
-	temp_item->Set_Pos( GAME_RES_W / 1.6, menu_posy );
+	temp_item->Set_Pos( GAME_RES_W / 1.6f, menu_posy );
 	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	joypad_action_keyname->Set_Pos( GAME_RES_W / 1.2f, menu_posy );
+	joypad_action_keyname->Set_Pos( GAME_RES_W / 1.25f, menu_posy );
 	drawlist.push_back( new cHudSprite( joypad_action, -200, 0, 1 ) );
-
+	// Exit
+	temp_item = new cMenu_Item();
+	menu_posy += 30;
+	temp_item->image_default->Set_Image( joypad_exit );
+	temp_item->Set_Pos( GAME_RES_W / 1.6f, menu_posy );
+	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
+	joypad_exit_keyname->Set_Pos( GAME_RES_W / 1.25f, menu_posy );
+	drawlist.push_back( new cHudSprite( joypad_exit, -200, 0, 1 ) );
 	
 	// use joystick
 	temp_item = new cMenu_Item();
-	menu_posy += 45;
+	menu_posy += 30;
 	temp_item->image_default->Set_Image( controls_joy_enabled );
-	temp_item->Set_Pos( GAME_RES_W / 1.6, menu_posy );
+	temp_item->Set_Pos( GAME_RES_W / 1.6f, menu_posy );
 	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	gamepad->Set_Pos( GAME_RES_W * 0.74f, menu_posy - gamepad->col_rect.h / 3 );
+	gamepad->Set_Pos( GAME_RES_W * 0.74f, menu_posy - gamepad->col_rect.h * 0.2f );
 	drawlist.push_back( new cHudSprite( controls_joy_enabled, -200, 0, 1 ) );
 	// allow analog jump
 	temp_item = new cMenu_Item();
 	menu_posy += 30;
 	temp_item->image_default->Set_Image( controls_joy_analog_jump );
-	temp_item->Set_Pos( GAME_RES_W / 1.6, menu_posy );
+	temp_item->Set_Pos( GAME_RES_W / 1.6f, menu_posy );
 	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
 	drawlist.push_back( new cHudSprite( controls_joy_analog_jump, -200, 0, 1 ) );
 
 
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/controls.png" ), GAME_RES_W / 2.3f, 140 ) );
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/controls.png" ), GAME_RES_W / 2.75f, 140 ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/controls.png" ), GAME_RES_W * 0.47f, 140 ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/controls.png" ), GAME_RES_W / 2.6f, 140 ) );
 
 	pMenuCore->handler->Set_Active( MENU_CONTROLS );
 
@@ -1713,7 +1832,7 @@ void cMenu_Options_Controls :: Init_GUI( void )
 	cMenu_Options::Init_GUI();
 
 	// Joystick enabled
-	Combobox *combo_joy = (Combobox *)WindowManager::getSingleton().getWindow( "combo_joy" );
+	Combobox *combo_joy = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_joy" ));
 
 	// Add None
 	ListboxTextItem *item = new ListboxTextItem( "None", 0 );
@@ -1749,7 +1868,7 @@ void cMenu_Options_Controls :: Init_GUI( void )
 	combo_joy->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cMenu_Options_Controls::joy_name_Select, this ) );
 
 	// Joystick analog jump
-	Combobox *combo_joy_analog_jump = (Combobox *)WindowManager::getSingleton().getWindow( "combo_joy_analog_jump" );
+	Combobox *combo_joy_analog_jump = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_joy_analog_jump" ));
 
 	item = new ListboxTextItem( "On", 0 );
 	item->setTextColours( colour( 0, 1, 0 ) );
@@ -1834,7 +1953,7 @@ void cMenu_Options_Controls :: Update( void )
 			// initialised
 			if( pPreferences->joy_enabled )
 			{
-				Draw_StaticText( "Enabled : " + pJoystick->Get_Name(), &yellow, &lightgreyalpha64 );
+				Draw_StaticText( "Enabled : " + pJoystick->Get_Name(), &yellow );
 			}
 			// failed
 			else
@@ -1861,13 +1980,13 @@ void cMenu_Options_Controls :: Update( void )
 		}
 	}
 
-	// Keys / Buttons
-	if( pMenuCore->handler->active <= 4 || pMenuCore->handler->active > 15 )
+	// Keys / Joy Buttons
+	if( pMenuCore->handler->active > 16 )
 	{
 		return;
 	}
 
-	Draw_StaticText( "Press a key. ( ESC to cancel )", &orange, &lightgreyalpha64, &grey, &black, 0 );
+	Draw_StaticText( "Press a key. ( ESC to cancel )", &orange, NULL, 0 );
 
 	bool sub_done = 0;
 
@@ -1969,6 +2088,13 @@ void cMenu_Options_Controls :: Update( void )
 			joypad_action_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_action ), black ), 1, 1 );
 			break;
 		}
+		// joy exit
+		case 16:
+		{
+			pPreferences->joy_exit = input_event.jbutton.button; 
+			joypad_exit_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_exit ), black ), 1, 1 );
+			break;
+		}
 		default:
 		{
 			break;
@@ -1996,6 +2122,7 @@ void cMenu_Options_Controls :: Draw( void )
 	joypad_item_keyname->Draw();
 	joypad_shoot_keyname->Draw();
 	joypad_action_keyname->Draw();
+	joypad_exit_keyname->Draw();
 
 	if( pPreferences->joy_enabled )
 	{
@@ -2073,9 +2200,9 @@ cMenu_Savegames :: cMenu_Savegames( bool ntype_save )
 
 cMenu_Savegames :: ~cMenu_Savegames( void )
 {
-	for( unsigned int i = 0; i < savegame_temp.size(); i++ )
+	for( HudSpriteList::iterator itr = savegame_temp.begin(), itr_end = savegame_temp.end(); itr != itr_end; ++itr )
 	{
-		delete savegame_temp[i];
+		delete *itr;
 	}
 
 	savegame_temp.clear();
@@ -2087,15 +2214,15 @@ void cMenu_Savegames :: Init( void )
 
 	cMenu_Item *temp_item = NULL;
 
-	GL_Surface *back1 = pFont->RenderText( pFont->font_normal, "Back", orange );
+	GL_Surface *back1 = pFont->RenderText( pFont->font_normal, "Back", text_color );
 
 	Update_SavedGames_Text();
 
 	// savegame descriptions
-	for( unsigned int i = 0; i < savegame_temp.size(); i++ )
+	for( HudSpriteList::iterator itr = savegame_temp.begin(), itr_end = savegame_temp.end(); itr != itr_end; ++itr )
 	{
 		temp_item = new cMenu_Item();
-		temp_item->image_default->Set_Image( savegame_temp[i]->image );
+		temp_item->image_default->Set_Image( (*itr)->image );
 		temp_item->Set_Pos( GAME_RES_W / 5, menu_posy );
 		pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
 		
@@ -2111,13 +2238,13 @@ void cMenu_Savegames :: Init( void )
 
 	if( type_save )
 	{
-		drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/save.png" ), GAME_RES_W / 20, 140 ) );
-		drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/save.png" ), GAME_RES_W * 0.07f, 210 ) );
+		drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/save.png" ), GAME_RES_W * 0.5f, GAME_RES_H * 0.1f ) );
+		drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/save.png" ), GAME_RES_W * 0.07f, GAME_RES_H * 0.24f ) );
 	}
 	else
 	{
-		drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/load.png" ), GAME_RES_W / 20, 140 ) );
-		drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/load.png" ), GAME_RES_W * 0.07f, 210 ) );
+		drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/load.png" ), GAME_RES_W * 0.5f, GAME_RES_H * 0.1f ) );
+		drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/load.png" ), GAME_RES_W * 0.07f, GAME_RES_H * 0.24f ) );
 	}
 	drawlist.push_back( new cHudSprite( back1, -200, 0, 1 ) );
 
@@ -2133,6 +2260,20 @@ void cMenu_Savegames :: Update( void )
 {
 	cMenu_Base::Update();
 
+	if( !action )
+	{
+		return;
+	}
+
+	action = 0;
+
+	// back
+	if( pMenuCore->handler->active == 9 )
+	{
+		Exit();
+		return;
+	}
+
 	if( !type_save )
 	{
 		Update_Load();
@@ -2143,111 +2284,97 @@ void cMenu_Savegames :: Update( void )
 	}
 }
 
-void cMenu_Savegames :: Update_Load( void )
-{
-	if( !action )
-	{
-		return;
-	}
-
-	action = 0;
- 
-	// back
-	if( pMenuCore->handler->active == 9 || pMenuCore->leave == 2 )
-	{
-		pMenuCore->next_menu = MENU_MAIN;
-		pMenuCore->leave = 1;
-	}
-	// savegame
-	else if( pSavegame->is_valid( pMenuCore->handler->active + 1 ) )
-	{
-		pAudio->PauseMusic();
-		pAudio->PlaySound( "savegame_load.ogg" );
-
-		pSavegame->Load_Game( pMenuCore->handler->active + 1 );
-		pMenuCore->leave = 1;
-	}
-}
-
-void cMenu_Savegames :: Update_Save( void )
-{
-	if( !action )
-	{
-		return;
-	}
-
-	action = 0;
-
-	// back
-	if( pMenuCore->handler->active == 9 || pMenuCore->leave == 2 )
-	{
-		pMenuCore->next_menu = MENU_MAIN;
-		pMenuCore->leave = 1;
-	}
-	// savegame
-	else if( pOverworld_Player->current_waypoint >= 0 || pLevel->is_Loaded() )
-	{
-		pAudio->PlaySound( "beep_1.ogg" );
-		string tmp_Descripion = Set_SaveDescription( pMenuCore->handler->active + 1 );
-		
-		pFramerate->Reset();
-
-		if( tmp_Descripion.compare( "Not enough Points" ) == 0 ) 
-		{
-			pMenuCore->next_menu = MENU_MAIN;
-			pMenuCore->leave = 1;
-			return;
-		}
-		else if( tmp_Descripion.length() > 0 )
-		{
-			pAudio->PlaySound( "savegame_save.ogg" );
-
-			// no costs in debug builds
-#ifndef _DEBUG
-			if( pLevel->is_Loaded() )
-			{
-				pointsdisplay->Set_Points( pPlayer->points - 3000 );
-			}
-#endif
-			// save
-			pSavegame->Save_Game( pMenuCore->handler->active + 1, tmp_Descripion );
-
-			pMenuCore->leave = 1;
-		}
-	}
-}
 void cMenu_Savegames :: Draw( void )
 {
 	cMenu_Base::Draw();
 	Draw_End();
 }
 
+void cMenu_Savegames :: Exit( void )
+{
+	pMenuCore->next_menu = MENU_MAIN;
+	Game_Action = GA_ENTER_MENU;
+}
+
+void cMenu_Savegames :: Update_Load( void )
+{
+	// savegame
+	if( pSavegame->is_valid( pMenuCore->handler->active + 1 ) )
+	{
+		pAudio->FadeOutMusic( 1000 );
+		pAudio->PlaySound( "savegame_load.ogg" );
+
+		int save_type = pSavegame->Load_Game( pMenuCore->handler->active + 1 );
+
+		// Level save
+		if( save_type == 1 )
+		{
+			Game_Action = GA_ENTER_LEVEL;
+		}
+		// World save
+		else if( save_type == 2 )
+		{
+			Game_Action = GA_ENTER_WORLD;
+		}
+	}
+}
+
+void cMenu_Savegames :: Update_Save( void )
+{
+	// savegame
+	if( pOverworld_Player->current_waypoint >= 0 || pLevel->is_Loaded() )
+	{
+		string descripion = Set_SaveDescription( pMenuCore->handler->active + 1 );
+		
+		pFramerate->Reset();
+
+		if( descripion.compare( "Not enough Points" ) == 0 ) 
+		{
+			Game_Action = GA_ENTER_MENU;
+			pMenuCore->next_menu = MENU_MAIN;
+			return;
+		}
+
+		if( descripion.empty() )
+		{
+			return;
+		}
+
+		pAudio->PlaySound( "savegame_save.ogg" );
+
+		// no costs in debug builds
+#ifndef _DEBUG
+		if( pLevel->is_Loaded() )
+		{
+			pointsdisplay->Set_Points( pPlayer->points - 3000 );
+		}
+#endif
+		// save
+		pSavegame->Save_Game( pMenuCore->handler->active + 1, descripion );
+
+		Game_Action = GA_ENTER_MENU;
+		pMenuCore->next_menu = MENU_MAIN;
+	}
+}
 string cMenu_Savegames :: Set_SaveDescription( unsigned int save_slot )
 {
-	if( save_slot <= 0 || save_slot >= 10 )
+	if( save_slot == 0 || save_slot > 9 )
 	{
-		return "Wrong Savefile";
+		return "";
 	}
 // save always in debug builds
 #ifndef _DEBUG
-	if( pPlayer ) 
+	if( pLevel->is_Loaded() && pPlayer->points < 3000 )
 	{
-		if( pLevel->is_Loaded() && pPlayer->points < 3000 )
-		{
-			ClearInputEvents();
-			Draw_StaticText( "Not enough Points [ 3000 needed ]", &orange );
+		ClearInputEvents();
+		Draw_StaticText( "3000 Points needed for level saving." );
 
-			return "Not enough Points";
-		}
-	}
-	else
-	{
-		return NULL;
+		return "Not enough Points";
 	}
 #endif
 	string save_description;
 
-	bool auto_controls = 0;
+	bool auto_erase_description = 0;
 
 	// if Savegame exists use old description
 	if( pSavegame->is_valid( save_slot ) )
@@ -2260,17 +2387,20 @@ string cMenu_Savegames :: Set_SaveDescription( unsigned int save_slot )
 	{
 		// use default description
 		save_description = "No Description";
-		auto_controls = 1;
+		auto_erase_description = 1;
 	}
 
-	return Box_Text_Input( save_description, "Enter Description", auto_controls );
+	return Box_Text_Input( save_description, "Enter Description", auto_erase_description );
 }
 
 void cMenu_Savegames :: Update_SavedGames_Text( void )
 {
-	for( unsigned int i = 0; i < savegame_temp.size(); i++ )
+	unsigned int save_slot = 0;
+
+	for( HudSpriteList::iterator itr = savegame_temp.begin(), itr_end = savegame_temp.end(); itr != itr_end; ++itr )
 	{
-		savegame_temp[i]->Set_Image( pFont->RenderText( pFont->font_normal, pSavegame->Get_Description( i + 1 ), greenyellow ), 1, 1 );
+		save_slot++;
+		(*itr)->Set_Image( pFont->RenderText( pFont->font_normal, pSavegame->Get_Description( save_slot ), text_color_value ), 1, 1 );
 	}
 }
 
@@ -2301,7 +2431,7 @@ void cMenu_Credits :: Init( void )
 	// fade out
 	Color color = black;
 
-	for( float i = 0; i < 100; i += 2.5f * pFramerate->speedfactor )
+	for( float i = 0; i < 180; i += 4.5f * pFramerate->speedfactor )
 	{
 		color.alpha = (Uint8)i;
 
@@ -2322,17 +2452,17 @@ void cMenu_Credits :: Init( void )
 		pVideo->Render();
 
 		pFramerate->Update();
-		// maximum 50 fps
-		CorrectFrameTime( 50 );
+		// maximum 90 fps
+		CorrectFrameTime( 90 );
 	}
 
 	// black background
 	glClearColor( 0, 0, 0, 1 );
 	// set menu gradient colors
-	pMenuCore->handler->color_start = Color( 0.01f, 0.05f, 0.2f );
-	pMenuCore->handler->color_end = Color( 0.5f, 0.4f, 0 );
+	pMenuCore->handler->color_start = Color( 0, 0, 0.01f );
+	pMenuCore->handler->color_end = Color( 0, 0.1f, 0.2f );
 
-	GL_Surface *back1 = pFont->RenderText( pFont->font_normal, "Back", orange );
+	GL_Surface *back1 = pFont->RenderText( pFont->font_normal, "Back", text_color );
 
 	// clear credits
 	drawlist.clear();
@@ -2348,19 +2478,9 @@ void cMenu_Credits :: Init( void )
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Torrent Packager, Quality Assurance", white ), 0, -3, 1 ) );
 	drawlist.back()->Set_Shadow( grey, 1 );
 
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Mark Richards (dteck)", white ), 0, 20, 1 ) );
-	drawlist.back()->Set_Shadow( blue, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Grant ... (youngheart80)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( green, 1 );
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Graphics", white ), 0, -3, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
-
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Mario Fink (maYO)", white ), 0, 20, 1 ) );
-	drawlist.back()->Set_Shadow( blue, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Graphics, Website Images, Other Support", white ), 0, -3, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
-
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Tobias Maasland (Weirdnose)", white ), 0, 20, 1 ) );
-	drawlist.back()->Set_Shadow( Color( 0.9f, 0.7f, 0.2f ), 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Level and World Contributor, Assistant Developer", white ), 0, -3, 1 ) );
 	drawlist.back()->Set_Shadow( grey, 1 );
 
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Tristan Heaven (nyhm)", white ), 0, 20, 1 ) );
@@ -2368,9 +2488,29 @@ void cMenu_Credits :: Init( void )
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Gentoo eBuild Maintainer", white ), 0, -3, 1 ) );
 	drawlist.back()->Set_Shadow( grey, 1 );
 
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Mario Fink (maYO)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( blue, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Graphics, Website Images, Other Support", white ), 0, -3, 1 ) );
+	drawlist.back()->Set_Shadow( grey, 1 );
+
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Mark Richards (dteck)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( blue, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Graphics", white ), 0, -3, 1 ) );
+	drawlist.back()->Set_Shadow( grey, 1 );
+
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Ursula ... (Pipgirl)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( Color( 0.2f, 0.9f, 0.2f ), 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Graphics", white ), 0, -3, 1 ) );
+	drawlist.back()->Set_Shadow( grey, 1 );
+
 	// Retired
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "-- Retired --", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( lightgrey, 1 );
+
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Tobias Maasland (Weirdnose)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( Color( 0.9f, 0.7f, 0.2f ), 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Level and World Contributor, Assistant Developer", white ), 0, -3, 1 ) );
+	drawlist.back()->Set_Shadow( grey, 1 );
 
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Markus Hiebl (Frostbringer)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( Color( 0.9f, 0.1f, 0.8f ), 1 );
@@ -2421,18 +2561,19 @@ void cMenu_Credits :: Init( void )
 	drawlist.back()->Set_Shadow( grey, 1 );
 
 	// set credits position
-	for( unsigned int i = 0; i < drawlist.size(); i++ )
+	for( HudSpriteList::iterator itr = drawlist.begin(), itr_end = drawlist.end(); itr != itr_end; ++itr )
 	{
-		drawlist[i]->posx += GAME_RES_W / 5;
-		drawlist[i]->posy += menu_posy;
+		cHudSprite *obj = (*itr);
+		obj->posx += GAME_RES_W / 5;
+		obj->posy += menu_posy;
 		// behind ground
-		drawlist[i]->posz = 0.09f;
+		obj->posz = 0.09f;
 		// set color combine
-		drawlist[i]->Set_Color_Combine( 0, 0, 0, GL_MODULATE );
-		drawlist[i]->color.alpha = 0;
-		drawlist[i]->shadow_color.alpha = 0;
+		obj->Set_Color_Combine( 0, 0, 0, GL_MODULATE );
+		obj->color.alpha = 0;
+		obj->shadow_color.alpha = 0;
 
-		menu_posy = drawlist[i]->posy + drawlist[i]->col_rect.h;
+		menu_posy = obj->posy + obj->col_rect.h;
 	}
 
 	// back
@@ -2456,38 +2597,40 @@ void cMenu_Credits :: Update( void )
 {
 	cMenu_Base::Update();
 
-	for( unsigned int i = 0; i < drawlist.size() - 1; i++ )
+	for( HudSpriteList::iterator itr = drawlist.begin(), itr_end = drawlist.end(); itr != itr_end; ++itr )
 	{
+		cHudSprite *obj = (*itr);
+
 		// long inactive reset
-		if( drawlist[i]->posy < -1000 )
+		if( obj->posy < -1000 )
 		{
-			drawlist[i]->Set_PosY( GAME_RES_H * 1.1 );
+			obj->Set_PosY( GAME_RES_H * 1.1 );
 		}
 		// fading out
-		else if( drawlist[i]->posy < GAME_RES_H * 0.3f )
+		else if( obj->posy < GAME_RES_H * 0.3f )
 		{
-			float new_value = drawlist[i]->combine_col[0] - ( pFramerate->speedfactor * 0.01f );
+			float new_value = obj->combine_col[0] - ( pFramerate->speedfactor * 0.01f );
 
 			if( new_value < 0 )
 			{
 				new_value = 0;
 			}
 
-			drawlist[i]->Set_Color_Combine( new_value, new_value, new_value, GL_MODULATE );
-			drawlist[i]->color.alpha = (Uint8)( new_value * 255 );
-			drawlist[i]->shadow_color.alpha = drawlist[i]->color.alpha;
+			obj->Set_Color_Combine( new_value, new_value, new_value, GL_MODULATE );
+			obj->color.alpha = (Uint8)( new_value * 255 );
+			obj->shadow_color.alpha = obj->color.alpha;
 		}
 		// fading in
-		else if( drawlist[i]->posy < GAME_RES_H * 0.9f )
+		else if( obj->posy < GAME_RES_H * 0.9f )
 		{
-			float new_value = drawlist[i]->combine_col[0] + ( pFramerate->speedfactor * 0.01f );
+			float new_value = obj->combine_col[0] + ( pFramerate->speedfactor * 0.01f );
 
 			if( new_value > 1 )
 			{
 				new_value = 1;
 
 				// add particles
-				if( drawlist[i]->combine_col[0] < 1 )
+				if( obj->combine_col[0] < 1 )
 				{
 					cParticleAnimation *anim = new cParticleAnimation( (float)( rand() % GAME_RES_W ), (float)( rand() % 200 ) );
 					anim->Set_Quota( rand() % 25 );
@@ -2504,13 +2647,13 @@ void cMenu_Credits :: Update( void )
 				}
 			}
 
-			drawlist[i]->Set_Color_Combine( new_value, new_value, new_value, GL_MODULATE );
-			drawlist[i]->color.alpha = (Uint8)( new_value * 255 );
-			drawlist[i]->shadow_color.alpha = drawlist[i]->color.alpha;
+			obj->Set_Color_Combine( new_value, new_value, new_value, GL_MODULATE );
+			obj->color.alpha = (Uint8)( new_value * 255 );
+			obj->shadow_color.alpha = obj->color.alpha;
 		}
 
 		// default upwards scroll
-		drawlist[i]->Move( 0, -1.1f );
+		obj->Move( 0, -1.1f );
 	}
 
 	if( !action )
@@ -2521,14 +2664,9 @@ void cMenu_Credits :: Update( void )
 	action = 0;
 
 	// back
-	if( pMenuCore->handler->active == 0 || pMenuCore->leave == 2 )
+	if( pMenuCore->handler->active == 0 )
 	{
-		// stop credits music
-		pAudio->FadeOutMusic();
-		pAudio->PlayMusic( "game/menu.ogg", -1, 0, 1500 );
-
-		pMenuCore->next_menu = MENU_MAIN;
-		pMenuCore->leave = 1;
+		Exit();
 	}
 }
 
@@ -2536,4 +2674,14 @@ void cMenu_Credits :: Draw( void )
 {
 	cMenu_Base::Draw();
 	Draw_End();
+}
+
+void cMenu_Credits :: Exit( void )
+{
+	// stop credits music
+	pAudio->FadeOutMusic();
+	pAudio->PlayMusic( "game/menu.ogg", -1, 0, 1500 );
+
+	pMenuCore->next_menu = MENU_MAIN;
+	Game_Action = GA_ENTER_MENU;
 }

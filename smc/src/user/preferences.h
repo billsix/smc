@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef __PREFERENCES_H__
 #define __PREFERENCES_H__
@@ -55,7 +56,7 @@ public:
 	// Keyboard key definitions
 	SDLKey key_up, key_down, key_left, key_right, key_jump, key_shoot, key_action;
 	// Joypad key definitions
-	int joy_shoot, joy_jump, joy_item, joy_action, joy_exit;
+	int joy_jump, joy_shoot, joy_item, joy_action, joy_exit;
 
 	// Special
 	bool always_run;

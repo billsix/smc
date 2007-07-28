@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.5" />
-		<Property name="engine_version" value="2" />
-		<Property name="save_time" value="1173786382" />
+		<Property name="game_version" value="0.99.7" />
+		<Property name="engine_version" value="2.1" />
+		<Property name="save_time" value="1182972837" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="" />
@@ -23,9 +23,36 @@
 		<Property name="bg_color_2_green" value="0" />
 		<Property name="bg_color_2_blue" value="0" />
 	</background>
+	<background>
+		<Property name="type" value="1" />
+		<Property name="image" value="game/background/green_block_weaves_1.png" />
+		<Property name="speedx" value="1" />
+		<Property name="speedy" value="1" />
+		<Property name="posz" value="0.00011" />
+	</background>
+	<global_effect>
+		<Property name="type" value="0" />
+		<Property name="image" value="" />
+		<Property name="rect_x" value="0" />
+		<Property name="rect_y" value="0" />
+		<Property name="rect_w" value="800" />
+		<Property name="rect_h" value="0" />
+		<Property name="z" value="0.12" />
+		<Property name="z_rand" value="0" />
+		<Property name="time_to_live" value="7" />
+		<Property name="emitter_iteration_interval" value="0.3" />
+		<Property name="scale" value="0.2" />
+		<Property name="scale_rand" value="0.2" />
+		<Property name="speed" value="2" />
+		<Property name="speed_rand" value="8" />
+		<Property name="dir_range_start" value="0" />
+		<Property name="dir_range_size" value="90" />
+		<Property name="const_rotz" value="0.5" />
+		<Property name="const_rotz_rand" value="10" />
+	</global_effect>
 	<player>
 		<Property name="posx" value="385" />
-		<Property name="posy" value="234" />
+		<Property name="posy" value="176" />
 		<Property name="direction" value="right" />
 	</player>
 	<sprite>
@@ -492,6 +519,9 @@
 		<Property name="posy" value="466" />
 		<Property name="direction" value="vertical" />
 		<Property name="max_distance" value="400" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="yellow" />
 	</enemy>
 	<enemy>
@@ -500,6 +530,9 @@
 		<Property name="posy" value="459" />
 		<Property name="direction" value="vertical" />
 		<Property name="max_distance" value="400" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="red" />
 	</enemy>
 	<enemy>
@@ -508,6 +541,9 @@
 		<Property name="posy" value="463" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="400" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="green" />
 	</enemy>
 	<sprite>

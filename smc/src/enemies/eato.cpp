@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2006 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../enemies/eato.h"
 #include "../core/game_core.h"
@@ -39,11 +40,11 @@ cEato :: ~cEato( void )
 
 void cEato :: Init( void )
 {
-    fire_resistant = 1;
-
 	type = TYPE_EATO;
 	player_range = 1000;
 	posz = 0.087f;
+	can_be_ground = 1;
+	fire_resistant = 1;
 
 	state = STA_STAY;
 	Set_Direction( DIR_UP_LEFT );
@@ -55,7 +56,7 @@ void cEato :: Init( void )
 
 	walk_count = (float)( rand() % 4 );
 
-	kill_sound = "stomp_4.ogg";
+	kill_sound = "enemy/eato/die.ogg";
 	kill_points = 150;
 
 	Set_Image( 0 );
@@ -258,7 +259,8 @@ void cEato :: Handle_Collision_Player( ObjectDirection cdirection )
 		// if player is big and not a bottom collision
 		if( pPlayer->maryo_type != MARYO_SMALL && ( cdirection != DIR_BOTTOM ) )
 		{
-			pAudio->PlaySound( "player/maryo_au.ogg", RID_MARYO_AU );
+			// todo : create again
+			//pAudio->PlaySound( "player/maryo_au.ogg", RID_MARYO_AU );
 			pPlayer->start_enemyjump = 1;
 		}
 

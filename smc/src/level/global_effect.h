@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2006 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef __GLOBAL_EFFECT_H__
 #define __GLOBAL_EFFECT_H__
@@ -30,7 +31,7 @@ enum  GlobalEffectType
 
 /* *** *** *** *** *** *** *** Global effect class *** *** *** *** *** *** *** *** *** *** */
 
-class cGlobal_effect
+class cGlobal_effect : public cParticleAnimation
 {
 public:
 	// default constructor
@@ -38,14 +39,14 @@ public:
 	// create from stream
 	cGlobal_effect( XMLAttributes &attributes );
 	// destructor
-	~cGlobal_effect( void );
+	virtual ~cGlobal_effect( void );
 
 	// init defaults
 	void Init_default( void );
 	// initialise
 	void Init( void );
 	// clear
-	void Clear( void );
+	virtual void Clear( void );
 
 	// create from stream
 	void Create_from_Stream( XMLAttributes &attributes );
@@ -59,63 +60,23 @@ public:
 	// draw
 	void Draw( void );
 
-	// Sets the type of the global effect
+	// Sets global effect type
 	void Set_type( GlobalEffectType ntype );
 	void Set_type( string ntype );
-	// Set the image
+	// Set image
 	void Set_image( string nimg_file );
-	// Set creation rect
-	void Set_rect( GL_rect nrect );
-	// Set Z position
-	void Set_ZPos( float pos, float pos_random = 0 );
-	// Set Time to Live
-	void Set_Time_to_Live( float val );
-	// Set scale and randomness
-	void Set_Scale( float nscale, float scale_random = 0 );
-	// Set creation speed
-	void Set_Creation_Speed( float nspeed );
-	// Set speed and randomness
-	void Set_Speed( float nspeed, float speed_random = 0 );
-	// Set direction range start and size
-	void Set_Direction( float range_start, float range_size );
-	// Set constant rotation and randomness
-	void Set_ConstRotationZ( float rot, float rot_random = 0 );
 
-	// Returns the name of the current type
+	// Return the type name
 	string Get_Typename( void );
 
 	// type
-	GlobalEffectType type;
+	GlobalEffectType ge_type;
 
 	// image filename
 	string image_filename;
-	// image
-	GL_Surface *image;
-	// rect
-	GL_rect rect;
-	// Z position
-	float posz, posz_rand;
 
-	// object time to live
-	float time_to_live;
-	// object creation speed
-	float creation_speed;
-	// scale
-	float scale, scale_rand;
-	// speed
-	float speed, speed_rand;
-	// direction range
-	float dir_range_start, dir_range_size;
-	// constant rotation
-	float const_rotz, const_rotz_rand;
-
-	// counter
-	float counter;
 	// valid global effect
 	bool valid;
-
-	// animation manager
-	cAnimationManager *anim_manager;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

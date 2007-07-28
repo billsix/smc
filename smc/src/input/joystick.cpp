@@ -3,20 +3,24 @@
                              -------------------
     copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../core/globals.h"
 #include "../input/keyboard.h"
 #include "../input/joystick.h"
 #include "../user/preferences.h"
 #include "../core/game_core.h"
+#include "../player/player.h"
+#include "../gui/hud.h"
+#include "../gui/menu.h"
 
 /* *** *** *** *** *** *** cJoystick *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -211,12 +215,18 @@ bool cJoystick :: Handle_Event( SDL_Event *ev )
 	{
 		case SDL_JOYBUTTONDOWN:
 		{
-			Handle_Button_Event( ev );
+			if( Handle_Button_Event( ev ) )
+			{
+				return 1;
+			}
 			break;
 		}
 		case SDL_JOYBUTTONUP:
 		{
-			Handle_Button_Event( ev );
+			if( Handle_Button_Event( ev ) )
+			{
+				return 1;
+			}
 			break;
 		}
 		case SDL_JOYAXISMOTION:
@@ -250,15 +260,14 @@ void cJoystick :: Handle_Motion( SDL_Event *ev )
 				if( !up )
 				{
 					pKeyboard->Key_Down( pPreferences->key_up );
+					up = 1;
 				}
 
 				if( down )
 				{
 					pKeyboard->Key_Up( pPreferences->key_down );
+					down = 0;
 				}
-				
-				up = 1;
-				down = 0;
 			}
 			else if( ev->jaxis.value > Threshold * 2 ) // Down ( 2 times harder )
 			{
@@ -270,30 +279,28 @@ void cJoystick :: Handle_Motion( SDL_Event *ev )
 				if( !down )
 				{
 					pKeyboard->Key_Down( pPreferences->key_down );
+					down = 1;
 				}
 
 				if( up )
 				{
 					pKeyboard->Key_Up( pPreferences->key_up );
+					up = 0;
 				}
-
-				up = 0;
-				down = 1;
 			}
 			else // No Down/Left
 			{
 				if( down )
 				{
 					pKeyboard->Key_Up( pPreferences->key_down );
+					down = 0;
 				}
 				
 				if( up )
 				{
 					pKeyboard->Key_Up( pPreferences->key_up );
+					up = 0;
 				}
-
-				up = 0;
-				down = 0;
 			}
 			break;
 		}
@@ -309,15 +316,14 @@ void cJoystick :: Handle_Motion( SDL_Event *ev )
 				if( !left )
 				{
 					pKeyboard->Key_Down( pPreferences->key_left );
+					left = 1;
 				}
 
 				if( right )
 				{
 					pKeyboard->Key_Up( pPreferences->key_right );
+					right = 0; 
 				}
-				
-				left = 1;
-				right = 0; 
 			}
 			else if( ev->jaxis.value > Threshold ) // Right
 			{
@@ -329,30 +335,28 @@ void cJoystick :: Handle_Motion( SDL_Event *ev )
 				if( !right )
 				{
 					pKeyboard->Key_Down( pPreferences->key_right );
+					right = 1;
 				}
 
 				if( left )
 				{
 					pKeyboard->Key_Up( pPreferences->key_left );
+					left = 0;
 				}
-
-				left = 0;
-				right = 1; 
 			}
 			else // No Left/Right
 			{
 				if( left )
 				{
 					pKeyboard->Key_Up( pPreferences->key_left );
+					left = 0;
 				}
 				
 				if( right )
 				{
 					pKeyboard->Key_Up( pPreferences->key_right );
+					right = 0; 
 				}
-				
-				left = 0;
-				right = 0; 
 			}
 			break;
 		}
@@ -363,12 +367,12 @@ void cJoystick :: Handle_Motion( SDL_Event *ev )
 	}
 }
 
-void cJoystick :: Handle_Button_Event( SDL_Event *ev )
+bool cJoystick :: Handle_Button_Event( SDL_Event *ev )
 {
 	// not enabled or opened
 	if( !pPreferences->joy_enabled || !stick_open )
 	{
-		return;
+		return 0;
 	}
 
 	// handle button events
@@ -380,34 +384,76 @@ void cJoystick :: Handle_Button_Event( SDL_Event *ev )
 
 		if( ev->jbutton.button < buttons.size() )
 		{
+			// Jump
 			if( ev->jbutton.button == pPreferences->joy_jump )
 			{
 				if( Game_Mode == MODE_LEVEL )
 				{
-					pKeyboard->Key_Down( pPreferences->key_jump );
+					pPlayer->Action_Jump();
+					return 1;
 				}
 			}
+			// Shoot
 			else if( ev->jbutton.button == pPreferences->joy_shoot )
 			{
-				pKeyboard->Key_Down( pPreferences->key_shoot );
+				if( Game_Mode == MODE_LEVEL )
+				{
+					pPlayer->Action_Shoot();
+				}
+				else
+				{
+					pKeyboard->Key_Down( pPreferences->key_shoot );
+				}
+
+				return 1;
 			}
+			// Request Itembox Item
 			else if( ev->jbutton.button == pPreferences->joy_item )
 			{
-				pKeyboard->Key_Down( SDLK_RETURN );
+				if( Game_Mode == MODE_LEVEL )
+				{
+					Itembox->Request_Item();
+				}
+				else
+				{
+					pKeyboard->Key_Down( SDLK_RETURN );
+				}
+
+				return 1;
 			}
+			// Interaction
 			else if( ev->jbutton.button == pPreferences->joy_action )
 			{
-				pKeyboard->Key_Down( pPreferences->key_action );
+				if( Game_Mode == MODE_LEVEL )
+				{
+					pPlayer->Action_Interact( pPreferences->key_action );
+				}
+				else
+				{
+					pKeyboard->Key_Down( pPreferences->key_action );
+				}
+
+				return 1;
 			}
+			// Exit
 			else if( ev->jbutton.button == pPreferences->joy_exit )
 			{
-				pKeyboard->Key_Down( SDLK_ESCAPE );
+				if( Game_Mode == MODE_LEVEL )
+				{
+					Game_Action = GA_ENTER_MENU;
+				}
+				else
+				{
+					pKeyboard->Key_Down( SDLK_ESCAPE );
+				}
+
+				return 1;
 			}
 			else if( ev->jbutton.button == 9 )
 			{
 				pKeyboard->Key_Down( SDLK_PAUSE );
+				return 1;
 			}
-
 		}
 		break;
 	}
@@ -419,23 +465,45 @@ void cJoystick :: Handle_Button_Event( SDL_Event *ev )
 		{
 			if( ev->jbutton.button == pPreferences->joy_jump )
 			{
-				pKeyboard->Key_Up( pPreferences->key_jump );
+				if( Game_Mode == MODE_LEVEL )
+				{
+					pPlayer->Stop_flying();
+					pPlayer->UpKeytime = 0;
+				}
+				else
+				{
+					pKeyboard->Key_Up( pPreferences->key_jump );
+				}
+
+				return 1;
 			}
 			else if( ev->jbutton.button == pPreferences->joy_shoot )
 			{
 				pKeyboard->Key_Up( pPreferences->key_shoot );
+				return 1;
 			}
 			else if( ev->jbutton.button == pPreferences->joy_item )
 			{
 				pKeyboard->Key_Up( SDLK_RETURN );
+				return 1;
 			}
 			else if( ev->jbutton.button == pPreferences->joy_action )
 			{
-				pKeyboard->Key_Up( pPreferences->key_action );
+				if( Game_Mode == MODE_LEVEL )
+				{
+					pPlayer->Release_item();
+				}
+				else
+				{
+					pKeyboard->Key_Up( pPreferences->key_action );
+				}
+
+				return 1;
 			}
 			else if( ev->jbutton.button == pPreferences->joy_exit )
 			{
 				pKeyboard->Key_Up( SDLK_ESCAPE );
+				return 1;
 			}
 		}
 		break;
@@ -445,6 +513,8 @@ void cJoystick :: Handle_Button_Event( SDL_Event *ev )
 		break;
 	}
 	}
+
+	return 0;
 }
 
 string cJoystick :: Get_Name( void )

@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2006 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../core/editor.h"
 #include "../core/game_core.h"
@@ -227,12 +228,15 @@ void cEditor :: Unload( void )
 	{
 		delete *itr;
 	}
+
 	tagged_item_objects.clear();
+
 	// Tagged Image Settings
 	for( TaggedItemImageSettingsList::iterator itr = tagged_item_images.begin(), itr_end = tagged_item_images.end(); itr != itr_end; ++itr )
 	{
 		delete *itr;
 	}
+
 	tagged_item_images.clear();
 
 
@@ -268,7 +272,7 @@ void cEditor :: Enable( void )
 	}
 
 	// Draw Loading Text
-	Draw_StaticText( "Loading", &orange, &lightgreyalpha64, &grey, &black, 0 );
+	Draw_StaticText( "Loading", &orange, NULL, 0 );
 
 	// Basic Initialize
 	Init();
@@ -364,7 +368,6 @@ void cEditor :: Update( void )
 	{
 		return;
 	}
-
 
 	// if timed out
 	if( menu_timer >= DESIRED_FPS * 2 )
@@ -529,7 +532,7 @@ void cEditor :: Process_Input( void )
 	// Drag Delete
 	if( ( pKeyboard->keys[SDLK_RCTRL] || pKeyboard->keys[SDLK_LCTRL] ) && pMouseCursor->right && pMouseCursor->Editor_Collsion_Check() )
 	{
-		pMouseCursor->Delete( static_cast<cMovingSprite *>(pMouseCursor->mouse_object->obj) );
+		pMouseCursor->Delete( pMouseCursor->mouse_object->obj );
 	}
 
 	// Camera Movement
@@ -625,7 +628,7 @@ bool cEditor :: Handle_Event( SDL_Event *ev )
 		{
 			if( !pMouseCursor->left )
 			{
-				pMouseCursor->Delete( static_cast<cMovingSprite *>(pMouseCursor->mouse_object->obj) );
+				pMouseCursor->Delete( pMouseCursor->mouse_object->obj );
 				return 1;
 			}
 		}
@@ -684,17 +687,21 @@ bool cEditor :: Key_Down( SDLKey key )
 	// push selected objects into the front
 	else if( key == SDLK_KP_PLUS )
 	{
-		for( unsigned int i = 0; i < pMouseCursor->selected_objects.size(); i++ )
+		for( SelectedObjectList::iterator itr = pMouseCursor->selected_objects.begin(), itr_end = pMouseCursor->selected_objects.end(); itr != itr_end; ++itr )
 		{
-			Change_DrawPosition( static_cast<cMovingSprite *>(pMouseCursor->selected_objects[i]->obj), 0 );
+			cSelectedObject *sel_obj = (*itr);
+
+			Change_DrawPosition( sel_obj->obj, 0 );
 		}
 	}
 	// push selected objects into the back
 	else if( key == SDLK_KP_MINUS )
 	{
-		for( unsigned int i = 0; i < pMouseCursor->selected_objects.size(); i++ )
+		for( SelectedObjectList::iterator itr = pMouseCursor->selected_objects.begin(), itr_end = pMouseCursor->selected_objects.end(); itr != itr_end; ++itr )
 		{
-			Change_DrawPosition( static_cast<cMovingSprite *>(pMouseCursor->selected_objects[i]->obj), 1 );
+			cSelectedObject *sel_obj = (*itr);
+
+			Change_DrawPosition( sel_obj->obj, 1 );
 		}
 	}
 	// ## only with mouse_object functions
@@ -731,12 +738,20 @@ bool cEditor :: Key_Down( SDLKey key )
 			// copy objects
 			SpriteList new_objects = Copy_Direction( objects, dir );
 
-			for( unsigned int i = 0; i < objects.size(); i++ )
+			// add new objects
+			for( SpriteList::iterator itr = new_objects.begin(), itr_end = new_objects.end(); itr != itr_end; ++itr )
 			{
-				// add new object
-				pMouseCursor->Add_selected_object( new_objects[i], 1 );
-				// deselect old object
-				pMouseCursor->Remove_selected_object( objects[i] );
+				cSprite *obj = (*itr);
+
+				pMouseCursor->Add_selected_object( obj, 1 );
+			}
+			
+			// deselect old objects
+			for( SpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+			{
+				cSprite *obj = (*itr);
+
+				pMouseCursor->Remove_selected_object( obj );
 			}
 		}
 		else
@@ -796,16 +811,18 @@ bool cEditor :: Key_Down( SDLKey key )
 	// Paste copy buffer objects
 	else if( key == SDLK_INSERT || ( key == SDLK_v && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) ) )
 	{
-		pMouseCursor->Paste_copy_objects( pMouseCursor->posx, pMouseCursor->posy );
+		pMouseCursor->Paste_copy_objects( (int)pMouseCursor->posx, (int)pMouseCursor->posy );
 	}
 	// Cut selected Sprites to the copy buffer
 	else if( key == SDLK_x && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
 	{
 		pMouseCursor->Clear_copy_objects();
 
-		for( unsigned int i = 0; i < pMouseCursor->selected_objects.size(); i++ )
+		for( SelectedObjectList::iterator itr = pMouseCursor->selected_objects.begin(), itr_end = pMouseCursor->selected_objects.end(); itr != itr_end; ++itr )
 		{
-			pMouseCursor->Add_copy_object( pMouseCursor->selected_objects[i]->obj );
+			cSelectedObject *sel_obj = (*itr);
+
+			pMouseCursor->Add_copy_object( sel_obj->obj );
 		}
 
 		pMouseCursor->Delete_selected_objects();
@@ -815,15 +832,17 @@ bool cEditor :: Key_Down( SDLKey key )
 	{
 		pMouseCursor->Clear_copy_objects();
 
-		for( unsigned int i = 0; i < pMouseCursor->selected_objects.size(); i++ )
+		for( SelectedObjectList::iterator itr = pMouseCursor->selected_objects.begin(), itr_end = pMouseCursor->selected_objects.end(); itr != itr_end; ++itr )
 		{
-			pMouseCursor->Add_copy_object( pMouseCursor->selected_objects[i]->obj );
+			cSelectedObject *sel_obj = (*itr);
+
+			pMouseCursor->Add_copy_object( sel_obj->obj );
 		}
 	}
 	// Delete mouse object
 	else if( key == SDLK_DELETE && pMouseCursor->mouse_object->obj )
 	{
-		pMouseCursor->Delete( static_cast<cMovingSprite *>(pMouseCursor->mouse_object->obj) );
+		pMouseCursor->Delete( pMouseCursor->mouse_object->obj );
 	}
 	// if shift got pressed remove mouse object for possible mouse selection
 	else if( ( key == SDLK_RSHIFT || key == SDLK_LSHIFT ) && pMouseCursor->mouse_object->obj )
@@ -984,8 +1003,8 @@ bool cEditor :: Load_Item_Menu( string item_tags )
 			if( tag_pos == array_tags.size() )
 			{
 				GL_Surface *image = pVideo->Get_Surface( settings->base );
-				// Create Sprite
-				cMovingSprite *new_sprite = new cMovingSprite( image );
+				// Create sprite
+				cSprite *new_sprite = new cSprite( image );
 				// default massivetype
 				new_sprite->Set_Sprite_Type( (SpriteType)image->type );
 				// Add new Sprite
@@ -1051,6 +1070,8 @@ void cEditor :: Add_Item_Object( cSprite *sprite, string new_name /* = "" */, GL
 	// set correct array if not given
 	if( sprite->sprite_array == ARRAY_UNDEFINED )
 	{
+		printf( "Warning : Editor sprite %s array not set\n", sprite->name.c_str() );
+
 		if( sprite->massivetype == MASS_PASSIVE )
 		{
 			sprite->sprite_array = ARRAY_PASSIVE;
@@ -1068,6 +1089,8 @@ void cEditor :: Add_Item_Object( cSprite *sprite, string new_name /* = "" */, GL
 	// set correct type if not given
 	if( sprite->type == TYPE_UNDEFINED )
 	{
+		printf( "Warning : Editor sprite %s type not set\n", sprite->name.c_str() );
+
 		if( sprite->massivetype == MASS_PASSIVE )
 		{
 			sprite->type = TYPE_PASSIVE;
@@ -1207,6 +1230,11 @@ void cEditor :: Activate_Item( cEditor_Item_Object *entry )
 
 	// hide editor window
 	editor_window->setXPosition( UDim( -0.19f, 0 ) );
+	// Hide Listbox
+	Listbox *listbox = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "editor_menu" ));
+	listbox->hide();
+	listbox = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "editor_items" ));
+	listbox->hide();
 
 	Add_Object( new_sprite );
 
@@ -1266,8 +1294,8 @@ void cEditor :: Draw_Editor_Help( void )
 		Add_Help_Line( "N", "Step one screen to the right ( Next Screen )" );
 		Add_Help_Line( "P", "Step one screen to the left ( Previous Screen )" );
 		Add_Help_Line( "M", "Cycle through massive types (use for object groups)" );
-		Add_Help_Line( "Massive types (with hover color):" );
-		Add_Help_Line( "Massive ->   Halfmassive ->   Climbable ->   Passive ->   Front Passive", "" , 0, 80 );
+		Add_Help_Line( "Massive types (color):" );
+		Add_Help_Line( "Massive(red) ->   Halfmassive(orange) ->   Climbable(lila) ->   Passive(green) ->   Front Passive(green)", "" , 0, 80 );
 		Add_Help_Line( "Ctrl + S", "Quicksave current Level" );
 		Add_Help_Line( "Ctrl + D", "Toggle debug mode" );
 		Add_Help_Line( "Ctrl + A", "Select all objects" );
@@ -1295,13 +1323,6 @@ void cEditor :: Draw_Editor_Help( void )
 	{
 		(*itr)->Draw();
 	}
-
-	// Draw Massivetype colors
-	pVideo->Draw_Rect( 70, 218, 10, 10, 0.581f, &Get_Massivetype_Color( MASS_MASSIVE ) );
-	pVideo->Draw_Rect( 132, 218, 10, 10, 0.581f, &Get_Massivetype_Color( MASS_HALFMASSIVE ) );
-	pVideo->Draw_Rect( 213, 218, 10, 10, 0.581f, &Get_Massivetype_Color( MASS_CLIMBABLE ) );
-    pVideo->Draw_Rect( 284, 218, 10, 10, 0.581f, &Get_Massivetype_Color( MASS_PASSIVE ) );
-    pVideo->Draw_Rect( 343, 218, 10, 10, 0.581f, &Get_Massivetype_Color( MASS_PASSIVE ) );
 }
 
 void cEditor :: Add_Help_Line( string key_text, string text /* = "" */, float spacing /* = 0 */, float pos_x /* = 60 */ )
@@ -1481,9 +1502,11 @@ SpriteList cEditor :: Copy_Direction( SpriteList objects, ObjectDirection dir )
 	// new copied objects
 	SpriteList new_objects;
 
-	for( unsigned int i = 0; i < objects.size(); i++ )
+	for( SpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
-		new_objects.push_back( Copy_Direction( objects[i], dir, offset ) );
+		cSprite *obj = (*itr);
+
+		new_objects.push_back( Copy_Direction( obj, dir, offset ) );
 	}
 
 	// return only new objects

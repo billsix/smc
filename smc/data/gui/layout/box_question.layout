@@ -8,7 +8,7 @@
         <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
         <Window Type="TaharezLook/FrameWindow" Name="box_question_window" >
             <Property Name="Text" Value="Question" />
-            <Property Name="Tooltip" Value="This Box wants an answer !" />
+            <Property Name="Tooltip" Value="Box wants an answer !" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
             <Property Name="TitlebarEnabled" Value="True" />
             <Property Name="UnifiedAreaRect" Value="{{0.30625,0},{0.3375,0},{0.689063,0},{0.6,0}}" />
@@ -20,13 +20,13 @@
             </Window>
             <Window Type="TaharezLook/Button" Name="box_question_button_yes" >
                 <Property Name="Text" Value="Yes" />
-                <Property Name="Tooltip" Value="Yes, please !" />
+                <Property Name="Tooltip" Value="Yes, please." />
                 <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
                 <Property Name="UnifiedAreaRect" Value="{{0.04,0},{0.8,0},{0.3,0},{0.98,0}}" />
             </Window>
             <Window Type="TaharezLook/Button" Name="box_question_button_no" >
                 <Property Name="Text" Value="No" />
-                <Property Name="Tooltip" Value="NOOOOOO !!!" />
+                <Property Name="Tooltip" Value="NOOO !" />
                 <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
                 <Property Name="UnifiedAreaRect" Value="{{0.33,0},{0.8,0},{0.6,0},{0.98,0}}" />
             </Window>

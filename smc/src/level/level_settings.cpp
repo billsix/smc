@@ -1,16 +1,17 @@
 /***************************************************************************
-			level_settings.cpp  - settings class for the Leveleditor
+			level_settings.cpp  - class for the level editor settings
                              -------------------
     copyright            : (C) 2006 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../core/globals.h"
 #include "../core/main.h"
@@ -58,7 +59,7 @@ void cLevel_Settings :: Init( void )
 	pGuiSystem->getGUISheet()->addChildWindow( guiwindow );
 	
 	// Tab Control
-	tabcontrol = (TabControl *)WindowManager::getSingleton().getWindow( "tabcontrol_main" );
+	tabcontrol = static_cast<TabControl *>(WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
 	// tab main
 	Window *tabwindow = WindowManager::getSingleton().loadWindowLayout( "level_settings_tab_main.layout" );
 	tabcontrol->addTab( tabwindow );
@@ -71,24 +72,24 @@ void cLevel_Settings :: Init( void )
 
 	// Main
 	// level filename
-	Editbox *editbox_level_filename = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_level_filename" );
+	Editbox *editbox_level_filename = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_level_filename" ));
 	editbox_level_filename->setText( Get_filename( pLevel->data_file, 0, 0 ).c_str() );
 	// music filename
-	Editbox *editbox_music_filename = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_music_filename" );
+	Editbox *editbox_music_filename = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_music_filename" ));
 	editbox_music_filename->setText( pLevel->Get_Musicfile( 1 ).c_str() );
 	// author
-	Editbox *editbox_author = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_author" );
+	Editbox *editbox_author = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_author" ));
 	editbox_author->setText( pLevel->author.c_str() );
 	// version
-	Editbox *editbox_version = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_version" );
+	Editbox *editbox_version = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_version" ));
 	editbox_version->setText( pLevel->version.c_str() );
 	// camera limits
-	Spinner *spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_camera_limit_w" );
+	Spinner *spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_camera_limit_w" ));
 	spinner->setCurrentValue( pCamera->limit_rect.w );
-	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_camera_limit_h" );
+	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_camera_limit_h" ));
 	spinner->setCurrentValue( pCamera->limit_rect.h );
 	// last Save time
-	Editbox *editbox_save_time = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_save_time" );
+	Editbox *editbox_save_time = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_save_time" ));
 	editbox_save_time->setText( Time_to_String( pLevel->last_saved, "%Y-%m-%d  %H:%M:%S" ) );
 
 
@@ -104,47 +105,47 @@ void cLevel_Settings :: Init( void )
 
 	// Background
 	// listbox
-	Listbox *listbox = (Listbox *)WindowManager::getSingleton().getWindow( "listbox_backgrounds" );
+	Listbox *listbox = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_backgrounds" ));
 	listbox->subscribeEvent( Listbox::EventSelectionChanged, Event::Subscriber( &cLevel_Settings::Set_Background_image, this ) );
 	// type
-	Combobox *combobox = (Combobox *)WindowManager::getSingleton().getWindow( "combo_bg_image_type" );
+	Combobox *combobox = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_bg_image_type" ));
 	ListboxTextItem *item = new ListboxTextItem( "Disabled", 1 );
 	combobox->addItem( item );
 	item = new ListboxTextItem( "Left and Right", 2 );
 	combobox->addItem( item );
 	combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cLevel_Settings::Update_BG_image, this ) );
 	// filename
-	Editbox *editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_image_name" );
+	Editbox *editbox = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_bg_image_name" ));
 	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_image, this ) );
 	// speed
-	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_x" );
+	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_x" ));
 	spinner->subscribeEvent( Spinner::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_image, this ) );
-	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_y" );
+	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_y" ));
 	spinner->subscribeEvent( Spinner::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_image, this ) );
-	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_image_posz" );
+	editbox = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_bg_image_posz" ));
 	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_image, this ) );
 	// Gradient colors
 	bg_color_1 = Color( pLevel->backgrounds[0]->color_1.red, pLevel->backgrounds[0]->color_1.green, pLevel->backgrounds[0]->color_1.blue, 255 );
 	bg_color_2 = Color( pLevel->backgrounds[0]->color_2.red, pLevel->backgrounds[0]->color_2.green, pLevel->backgrounds[0]->color_2.blue, 255 );
 
 	// color 1
-	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_color_1_red" );
+	editbox = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_bg_color_1_red" ));
 	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_Colors, this ) );
 	editbox->setText( int_to_string( bg_color_1.red ).c_str() );
-	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_color_1_green" );
+	editbox = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_bg_color_1_green" ));
 	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_Colors, this ) );
 	editbox->setText( int_to_string( bg_color_1.green ).c_str() );
-	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_color_1_blue" );
+	editbox = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_bg_color_1_blue" ));
 	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_Colors, this ) );
 	editbox->setText( int_to_string( bg_color_1.blue ).c_str() );
 	// color 2
-	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_color_2_red" );
+	editbox = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_bg_color_2_red" ));
 	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_Colors, this ) );
 	editbox->setText( int_to_string( bg_color_2.red ).c_str() );
-	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_color_2_green" );
+	editbox = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_bg_color_2_green" ));
 	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_Colors, this ) );
 	editbox->setText( int_to_string( bg_color_2.green ).c_str() );
-	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_color_2_blue" );
+	editbox = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_bg_color_2_blue" ));
 	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_BG_Colors, this ) );
 	editbox->setText( int_to_string( bg_color_2.blue ).c_str() );
 
@@ -152,10 +153,10 @@ void cLevel_Settings :: Init( void )
 
 	// global effect
 	// filename
-	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_global_effect_file" );
+	editbox = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_global_effect_file" ));
 	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Settings::Update_global_effect_image, this ) );
 	// type
-	combobox = (Combobox *)WindowManager::getSingleton().getWindow( "combo_global_effect_type" );
+	combobox = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_global_effect_type" ));
 	item = new ListboxTextItem( "Disabled", 1 );
 	combobox->addItem( item );
 	item = new ListboxTextItem( "Falling", 2 );
@@ -163,44 +164,44 @@ void cLevel_Settings :: Init( void )
 	//item = new ListboxTextItem( "Flying", 3 );
 	//combobox->addItem( item );
 	// Z Position
-	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z" );
+	editbox = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z" ));
 	editbox->setText( float_to_string( pLevel->pGlobal_effect->posz ) );
-	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z_rand" );
+	editbox = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z_rand" ));
 	editbox->setText( float_to_string( pLevel->pGlobal_effect->posz_rand ) );
 	// creation rect
-	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_x" );
-	spinner->setCurrentValue( pLevel->pGlobal_effect->rect.x );
-	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_y" );
-	spinner->setCurrentValue( pLevel->pGlobal_effect->rect.y );
-	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_w" );
+	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_x" ));
+	spinner->setCurrentValue( pLevel->pGlobal_effect->startposx );
+	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_y" ));
+	spinner->setCurrentValue( pLevel->pGlobal_effect->startposy );
+	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_w" ));
 	spinner->setCurrentValue( pLevel->pGlobal_effect->rect.w );
-	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_h" );
+	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_h" ));
 	spinner->setCurrentValue( pLevel->pGlobal_effect->rect.h );
 	// time to live
-	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_time_to_live" );
+	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_time_to_live" ));
 	spinner->setCurrentValue( pLevel->pGlobal_effect->time_to_live );
 	// scale
-	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_scale" );
-	spinner->setCurrentValue( pLevel->pGlobal_effect->scale );
-	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_scale_rand" );
-	spinner->setCurrentValue( pLevel->pGlobal_effect->scale_rand );
-	// creation speed
-	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_creation_speed" );
-	spinner->setCurrentValue( pLevel->pGlobal_effect->creation_speed );
-	// speed
-	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_speed" );
-	spinner->setCurrentValue( pLevel->pGlobal_effect->speed );
-	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_speed_rand" );
-	spinner->setCurrentValue( pLevel->pGlobal_effect->speed_rand );
-	// direction
-	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_direction_start" );
-	spinner->setCurrentValue( pLevel->pGlobal_effect->dir_range_start );
-	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_direction_size" );
-	spinner->setCurrentValue( pLevel->pGlobal_effect->dir_range_size );
+	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_scale" ));
+	spinner->setCurrentValue( pLevel->pGlobal_effect->size_scale );
+	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_scale_rand" ));
+	spinner->setCurrentValue( pLevel->pGlobal_effect->size_scale_rand );
+	// emitter iteration interval
+	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_emitter_iteration_interval" ));
+	spinner->setCurrentValue( pLevel->pGlobal_effect->emitter_iteration_interval );
+	// velocity
+	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_vel" ));
+	spinner->setCurrentValue( pLevel->pGlobal_effect->vel );
+	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_vel_rand" ));
+	spinner->setCurrentValue( pLevel->pGlobal_effect->vel_rand );
+	// angle
+	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_angle_start" ));
+	spinner->setCurrentValue( pLevel->pGlobal_effect->angle_start );
+	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_angle_range" ));
+	spinner->setCurrentValue( pLevel->pGlobal_effect->angle_range );
 	// constant rotation z
-	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z" );
+	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z" ));
 	spinner->setCurrentValue( pLevel->pGlobal_effect->const_rotz );
-	spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z_rand" );
+	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z_rand" ));
 	spinner->setCurrentValue( pLevel->pGlobal_effect->const_rotz_rand );
 
 	Clear_Layer_field();
@@ -301,8 +302,8 @@ void cLevel_Settings :: Enter( void )
 	// Version
 	pLevel->Set_Version( WindowManager::getSingleton().getWindow( "editbox_version" )->getText().c_str() );
 	// Camera Limits
-	pCamera->Set_Limit_W( ((Spinner *)WindowManager::getSingleton().getWindow( "spinner_camera_limit_w" ))->getCurrentValue() );
-	pCamera->Set_Limit_H( ((Spinner *)WindowManager::getSingleton().getWindow( "spinner_camera_limit_h" ))->getCurrentValue() );
+	pCamera->Set_Limit_W( (static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_camera_limit_w" )))->getCurrentValue() );
+	pCamera->Set_Limit_H( (static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_camera_limit_h" )))->getCurrentValue() );
 
 	// # background
 	// Gradient
@@ -311,36 +312,36 @@ void cLevel_Settings :: Enter( void )
 
 	// # Global Effect
 	pLevel->pGlobal_effect->image_filename = WindowManager::getSingleton().getWindow( "editbox_global_effect_file" )->getText().c_str();
-	pLevel->pGlobal_effect->Set_ZPos( string_to_float( ( (Editbox *)WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z" ))->getText().c_str() ), string_to_float( ( (Editbox *)WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z_rand" ))->getText().c_str() ) );
+	pLevel->pGlobal_effect->Set_ZPos( string_to_float( ( static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z" )))->getText().c_str() ), string_to_float( ( static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z_rand" )))->getText().c_str() ) );
 	pLevel->pGlobal_effect->Set_type( WindowManager::getSingleton().getWindow( "combo_global_effect_type" )->getText().c_str() );
 	pLevel->pGlobal_effect->Init();
 	// creation rect
-	Spinner *spinner_rect_x = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_x" );
-	Spinner *spinner_rect_y = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_y" );
-	Spinner *spinner_rect_w = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_w" );
-	Spinner *spinner_rect_h = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_h" );
-	pLevel->pGlobal_effect->Set_rect( GL_rect( spinner_rect_x->getCurrentValue(), spinner_rect_y->getCurrentValue(), spinner_rect_w->getCurrentValue(), spinner_rect_h->getCurrentValue() ) );
+	Spinner *spinner_rect_x = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_x" ));
+	Spinner *spinner_rect_y = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_y" ));
+	Spinner *spinner_rect_w = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_w" ));
+	Spinner *spinner_rect_h = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_h" ));
+	pLevel->pGlobal_effect->Set_Emitter_Rect( spinner_rect_x->getCurrentValue(), spinner_rect_y->getCurrentValue(), spinner_rect_w->getCurrentValue(), spinner_rect_h->getCurrentValue() );
 	// lifetime
-	Spinner *spinner_time_to_live = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_time_to_live" );
+	Spinner *spinner_time_to_live = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_time_to_live" ));
 	pLevel->pGlobal_effect->Set_Time_to_Live( spinner_time_to_live->getCurrentValue() );
 	// scale
-	Spinner *spinner_scale = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_scale" );
-	Spinner *spinner_scale_rand = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_scale_rand" );
+	Spinner *spinner_scale = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_scale" ));
+	Spinner *spinner_scale_rand = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_scale_rand" ));
 	pLevel->pGlobal_effect->Set_Scale( spinner_scale->getCurrentValue(), spinner_scale_rand->getCurrentValue() );
-	// creation speed
-	Spinner *spinner_creation_speed = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_creation_speed" );
-	pLevel->pGlobal_effect->Set_Creation_Speed( spinner_creation_speed->getCurrentValue() );
-	// speed
-	Spinner *spinner_speed = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_speed" );
-	Spinner *spinner_speed_rand = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_speed_rand" );
-	pLevel->pGlobal_effect->Set_Speed( spinner_speed->getCurrentValue(), spinner_speed_rand->getCurrentValue() );
+	// Emitter Iteration Interval
+	Spinner *spinner_emitter_iteration_interval = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_emitter_iteration_interval" ));
+	pLevel->pGlobal_effect->Set_Emitter_Iteration_Interval( spinner_emitter_iteration_interval->getCurrentValue() );
+	// velocity
+	Spinner *spinner_vel = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_vel" ));
+	Spinner *spinner_vel_rand = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_vel_rand" ));
+	pLevel->pGlobal_effect->Set_Speed( spinner_vel->getCurrentValue(), spinner_vel_rand->getCurrentValue() );
 	// direction
-	Spinner *spinner_dir_start = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_direction_start" );
-	Spinner *spinner_dir_size = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_direction_size" );
-	pLevel->pGlobal_effect->Set_Direction( spinner_dir_start->getCurrentValue(), spinner_dir_size->getCurrentValue() );
+	Spinner *spinner_angle_start = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_angle_start" ));
+	Spinner *spinner_angle_range = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_angle_range" ));
+	pLevel->pGlobal_effect->Set_Direction( spinner_angle_start->getCurrentValue(), spinner_angle_range->getCurrentValue() );
 	// constant rotation z
-	Spinner *spinner_const_rot_z = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z" );
-	Spinner *spinner_const_rot_z_rand = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z_rand" );
+	Spinner *spinner_const_rot_z = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z" ));
+	Spinner *spinner_const_rot_z_rand = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z_rand" ));
 	pLevel->pGlobal_effect->Set_ConstRotationZ( spinner_const_rot_z->getCurrentValue(), spinner_const_rot_z_rand->getCurrentValue() );
 
 	// back to level mode
@@ -363,7 +364,7 @@ bool cLevel_Settings :: Add_Background_image( const EventArgs &event )
 
 bool cLevel_Settings :: Delete_Background_image( const EventArgs &event )
 {
-	Listbox *listbox = (Listbox *)WindowManager::getSingleton().getWindow( "listbox_backgrounds" );
+	Listbox *listbox = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_backgrounds" ));
 	ListboxItem *item = listbox->getFirstSelectedItem();
 
 	if( !item )
@@ -386,7 +387,7 @@ bool cLevel_Settings :: Delete_Background_image( const EventArgs &event )
 
 bool cLevel_Settings :: Set_Background_image( const EventArgs &event )
 {
-	Listbox *listbox = (Listbox *)WindowManager::getSingleton().getWindow( "listbox_backgrounds" );
+	Listbox *listbox = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_backgrounds" ));
 	ListboxItem *item = listbox->getFirstSelectedItem();
 
 	if( item ) // selected
@@ -395,18 +396,18 @@ bool cLevel_Settings :: Set_Background_image( const EventArgs &event )
 		string background_filename = background->img_file_1;
 
 		// type
-		Editbox *editbox = (Editbox *)WindowManager::getSingleton().getWindow( "combo_bg_image_type" );
+		Editbox *editbox = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "combo_bg_image_type" ));
 		editbox->setText( background->Get_Typename().c_str() );
 		// filename
-		editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_image_name" );
+		editbox = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_bg_image_name" ));
 		editbox->setText( background_filename.c_str() );
 		// speed
-		Spinner *spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_x" );
+		Spinner *spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_x" ));
 		spinner->setCurrentValue( background->speedx );
-		spinner = (Spinner *)WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_y" );
+		spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_y" ));
 		spinner->setCurrentValue( background->speedy );
 		// posz
-		editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_image_posz" );
+		editbox = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_bg_image_posz" ));
 		editbox->setText( float_to_string( background->posz ).c_str() );
 
 		// set image preview
@@ -462,13 +463,13 @@ bool cLevel_Settings :: Update_BG_Colors( const EventArgs &event )
 
 void cLevel_Settings :: Load_BG_imageList( void )
 {
-	Listbox *listbox = (Listbox *)WindowManager::getSingleton().getWindow( "listbox_backgrounds" );
+	Listbox *listbox = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_backgrounds" ));
 	listbox->resetList();
 
 	for( unsigned int i = 0; i < pLevel->Get_Backgroundlayers() - 1; i++ )
 	{
 		ListboxTextItem *item = new ListboxTextItem( int_to_string( i + 1 ).c_str() );
-		listbox->addItem( (ListboxItem *)item );
+		listbox->addItem( static_cast<ListboxItem *>(item) );
 	}
 
 	PushButton *button_add = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_add_background_image" ));
@@ -512,11 +513,11 @@ bool cLevel_Settings :: Update_BG_image( const EventArgs &event )
 {
 	string bg_type = WindowManager::getSingleton().getWindow( "combo_bg_image_type" )->getText().c_str();
 	string bg_filename = WindowManager::getSingleton().getWindow( "editbox_bg_image_name" )->getText().c_str();
-	float speed_x = ((Spinner *)WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_x" ))->getCurrentValue();
-	float speed_y = ((Spinner *)WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_y" ))->getCurrentValue();
-	float posz = string_to_float( ( (Spinner *)WindowManager::getSingleton().getWindow( "editbox_bg_image_posz" ))->getText().c_str() );
+	float speed_x = (static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_x" )))->getCurrentValue();
+	float speed_y = (static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_y" )))->getCurrentValue();
+	float posz = string_to_float( ( static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "editbox_bg_image_posz" )))->getText().c_str() );
 
-	Listbox *listbox = (Listbox *)WindowManager::getSingleton().getWindow( "listbox_backgrounds" );
+	Listbox *listbox = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_backgrounds" ));
 	ListboxItem *item = listbox->getFirstSelectedItem();
 
 	if( !item ) // clear
@@ -554,20 +555,20 @@ bool cLevel_Settings :: Update_BG_image( const EventArgs &event )
 
 void cLevel_Settings :: Clear_Layer_field( void )
 {
-	((Editbox *)WindowManager::getSingleton().getWindow( "combo_bg_image_type" ))->setText( "Disabled" );
-	((Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_image_name" ))->setText( "" );
-	((Spinner *)WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_x" ))->setText( "" );
-	((Spinner *)WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_y" ))->setText( "" );
-	((Editbox *)WindowManager::getSingleton().getWindow( "editbox_bg_image_posz" ))->setText( "" );
+	(static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "combo_bg_image_type" )))->setText( "Disabled" );
+	(static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_bg_image_name" )))->setText( "" );
+	(static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_x" )))->setText( "" );
+	(static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_bg_image_speed_y" )))->setText( "" );
+	(static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_bg_image_posz" )))->setText( "" );
 	Set_Background_image_Preview( "" );
 }
 
 void cLevel_Settings :: Load_global_effect( void )
 {
-	Editbox *editbox = (Editbox *)WindowManager::getSingleton().getWindow( "editbox_global_effect_file" );
+	Editbox *editbox = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_global_effect_file" ));
 	editbox->setText( pLevel->pGlobal_effect->image_filename.c_str() );
 
-	editbox = (Editbox *)WindowManager::getSingleton().getWindow( "combo_global_effect_type" );
+	editbox = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "combo_global_effect_type" ));
 	editbox->setText( pLevel->pGlobal_effect->Get_Typename().c_str() );
 }
 

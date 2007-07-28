@@ -3,14 +3,15 @@
                              -------------------
     copyright            :	(C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../core/globals.h"
 #include "../gui/menu.h"
@@ -25,6 +26,7 @@
 #include "../core/camera.h"
 #include "../video/gl_surface.h"
 #include "../level/level.h"
+#include "../overworld/overworld.h"
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -157,9 +159,9 @@ void cMenuHandler :: Add_MenuItem( cMenu_Item *item, float shadow_pos /* = 0 */,
 
 void cMenuHandler :: Reset( void )
 {
-	for( unsigned int i = 0; i < Get_Size(); i++ )
+	for( MenuList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
 	{
-		delete items[i];
+		delete *itr;
 	}
 
 	items.clear();
@@ -170,8 +172,8 @@ void cMenuHandler :: Reset( void )
 	use_quit_image = 0;
 
 	// Default Gradient Colors
-	color_start = Color( 0.7f, 0.5f, 0 );
-	color_end = Color( 0.7f, 0.8f, 0.4f );
+	color_start = Color( 0.7f, 0.93f, 1 );
+	color_end = Color( 0.26f, 0.8f, 1 );
 }
 
 void cMenuHandler :: Set_Active( int num )
@@ -254,9 +256,9 @@ void cMenuHandler :: Draw( void )
 	cloud->Draw();
 
 	// menu items
-	for( unsigned int i = 0; i < items.size(); i++ )
+	for( MenuList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
 	{
-		items[i]->Draw();
+		(*itr)->Draw();
 	}
 }
 
@@ -275,18 +277,51 @@ unsigned int cMenuHandler :: Get_Size( void )
 	return (unsigned int)items.size();
 }
 
+/* *** *** *** *** *** *** *** cMenuCore *** *** *** *** *** *** *** *** *** *** */
+
 cMenuCore :: cMenuCore( void )
 {
-	leave = 0;
 	next_menu = MENU_NOTHING;
 	options_menu_id = MENU_GAME;
-	particle_counter = 0;
 
 	pMenu_Data = NULL;
 	
 	handler = new cMenuHandler();
 
+	// particle animation
 	pMenu_AnimManager = new cAnimationManager();
+
+	// left side
+	cParticleAnimation *anim = new cParticleAnimation( -100, 0, 0, GAME_RES_H * 0.5f );
+	anim->Set_Emitter_Time_to_Live( -1 );
+	anim->Set_Emitter_Iteration_Interval( 6 );
+	anim->Set_DirectionRange( 350, 20 );
+	anim->Set_Image( pVideo->Get_Surface( "clouds/default_1/1_middle.png" ) );
+	anim->Set_Time_to_Live( 400 );
+	anim->Set_Fading_Alpha( 0 );
+	anim->Set_Fading_Size( 1 );
+	anim->Set_Scale( 0.4f, 0.15f );
+	anim->Set_Color( Color( (Uint8)220, 240, 255 ), Color( (Uint8)25, 5, 0 ) );
+	anim->Set_Speed( 0.1f, 0.01f );
+	anim->Set_ZPos( 0.105f );
+
+	pMenu_AnimManager->Add( anim );
+
+	// right side
+	anim = new cParticleAnimation( GAME_RES_W + 100, 0, 0, GAME_RES_H * 0.5f );
+	anim->Set_Emitter_Time_to_Live( -1 );
+	anim->Set_Emitter_Iteration_Interval( 6 );
+	anim->Set_DirectionRange( 170, 20 );
+	anim->Set_Image( pVideo->Get_Surface( "clouds/default_1/1_middle.png" ) );
+	anim->Set_Time_to_Live( 400 );
+	anim->Set_Fading_Alpha( 0 );
+	anim->Set_Fading_Size( 1 );
+	anim->Set_Scale( 0.4f, 0.15f );
+	anim->Set_Color( Color( (Uint8)220, 240, 255 ), Color( (Uint8)25, 5, 0 ) );
+	anim->Set_Speed( 0.1f, 0.01f );
+	anim->Set_ZPos( 0.105f );
+
+	pMenu_AnimManager->Add( anim );
 }
 
 cMenuCore :: ~cMenuCore( void )
@@ -295,49 +330,33 @@ cMenuCore :: ~cMenuCore( void )
 	delete pMenu_AnimManager;
 }
 
-void cMenuCore :: Update_Generic( void )
+bool cMenuCore :: Handle_Event( SDL_Event *ev )
 {
-	pMouseCursor->Update_Position();
-
-	while( SDL_PollEvent( &input_event ) )
+	switch( ev->type )
 	{
-		// was handled
-		if( Handle_Input_Global( &input_event ) )
-		{
-			continue;
-		}
+	case SDL_MOUSEMOTION:
+	{
+		handler->Update_Mouse();
+		break;
+	}
+	case SDL_MOUSEBUTTONDOWN:
+	{
+		cMenu_Item *item = handler->Get_Active_Item();
 
-		switch( input_event.type )
+		if( item && pMouseCursor->Collsion_Check( &item->col_rect ) )
 		{
-			case SDL_QUIT:
-			{
-				leave = 2;
-				break;
-			}
-			case SDL_MOUSEMOTION:
-			{
-				handler->Update_Mouse();
-				break;
-			}
-			case SDL_MOUSEBUTTONDOWN:
-			{
-				cMenu_Item *item = handler->Get_Active_Item();
-
-				if( item && pMouseCursor->Collsion_Check( &item->col_rect ) )
-				{
-					pMenu_Data->action = 1;
-				}
-				break;
-			}
-			default:
-			{
-				break;
-			}
+			pMenu_Data->action = 1;
+			return 1;
 		}
+		break;
+	}
+	default: // other events
+	{
+		break;
+	}
 	}
 
-	Gui_handle_Time();
-	pAudio->Update();
+	return 0;
 }
 
 bool cMenuCore :: Key_Down( SDLKey key )
@@ -377,20 +396,41 @@ bool cMenuCore :: Key_Down( SDLKey key )
 	// Fast Debug Level entering
 	else if( key == SDLK_x && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
 	{
-		pLevel->Load( "test_3" );
-		
-		pPlayer->Reset();
+		// random level name
+		string lvl_name;
 
-		handler->Set_Active( 0 );
-		leave = 1;
-		next_menu = MENU_NOTHING;
+		if( !WindowManager::getSingleton().isWindowPresent( "listbox_levels" ) )
+		{
+			// Create virtual start menu
+			cMenu_Start *menu_start = new cMenu_Start();
+
+			menu_start->Init();
+			// Get Levels Listbox
+			Listbox *listbox_levels = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
+			// select random level
+			listbox_levels->setItemSelectState( rand() % listbox_levels->getItemCount(), 1 );
+			// get level name
+			lvl_name = listbox_levels->getFirstSelectedItem()->getText().c_str();
+			// destroy virtual menu
+			delete menu_start;
+		}
+		else
+		{
+			// Get Levels Listbox
+			Listbox *listbox_levels = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
+			// select random level
+			listbox_levels->setItemSelectState( rand() % listbox_levels->getItemCount(), 1 );
+			// get level name
+			lvl_name = listbox_levels->getFirstSelectedItem()->getText().c_str();
+		}
+
+		Game_Action = GA_ENTER_LEVEL;
+		Game_Action_Data = lvl_name;
 	}
 	// exit
 	else if( key == SDLK_ESCAPE )
 	{
-		pMenu_Data->action = 1;
-		handler->active = -1;
-		leave = 2;
+		pMenu_Data->Exit();
 	}
 	else
 	{
@@ -444,25 +484,30 @@ cMenu_Item *cMenuCore :: Auto_Menu( string imagename, string imagefilename_menu,
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-void cMenuCore :: Enter( MenuID menu_id /* = MENU_MAIN */ )
+void cMenuCore :: Load( MenuID menu /* = MENU_MAIN */ )
 {
-	if( done )
+	Unload();
+
+	// unload level if possible
+	if( pLevel->delayed_unload )
 	{
-		return;
+		pLevel->Unload();
 	}
+
+	// Set ID
+	menu_id = menu;
 
 	// check if not entering from another menu
 	if( next_menu == MENU_NOTHING )
 	{
 		// clear animations
-		pMenu_AnimManager->Delete_All();
+		static_cast<cParticleAnimation *>(pMenu_AnimManager->objects[0])->Clear();
 
 		// pre render
-		pFramerate->speedfactor = 1;
+		pFramerate->speedfactor = 2;
 
-		for( unsigned int i = 0; i < DESIRED_FPS * 20; i++ )
+		for( unsigned int i = 0; i < DESIRED_FPS * 100; i++ )
 		{
-			Update_Animation();
 			pMenu_AnimManager->Update();
 		}
 
@@ -470,7 +515,6 @@ void cMenuCore :: Enter( MenuID menu_id /* = MENU_MAIN */ )
 	}
 	
 	next_menu = MENU_NOTHING;
-	leave = 0;
 
 	// clear mouse active object
 	pMouseCursor->Double_Click( 0 );
@@ -532,54 +576,16 @@ void cMenuCore :: Enter( MenuID menu_id /* = MENU_MAIN */ )
 	}
 
 	pMenu_Data->Init();
+}
 
-	while( !leave )
+void cMenuCore :: Unload( void )
+{
+	menu_id = MENU_NOTHING;
+
+	if( pMenu_Data )
 	{
-		// update
-		Update();
-		// draw
-		Draw();
-
-		// limit frames for no full CPU usage in the menu
-		CorrectFrameTime( 90 );
-
-		// render
-		pVideo->Render();
-
-		// update speedfactor
-		pFramerate->Update();
-	}
-
-	// ESC quits the game if no progress was made only in debug builds
-#ifdef _DEBUG
-	if( menu_id == MENU_MAIN )
-	{
-		// if ESC got pressed
-		if( leave == 2 && !pPlayer->points && !editor_enabled )	
-		{
-			done = 1;
-		}
-	}
-#endif
-
-	// back to level
-	if( pLevel->is_Loaded() )
-	{
-		Change_Game_Mode( MODE_LEVEL );
-		Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
-	}
-	// back to the overworld
-	else
-	{
-		Change_Game_Mode( MODE_OVERWORLD );
-	}
-
-	delete pMenu_Data;
-	pMenu_Data = NULL;
-
-	if( next_menu != MENU_NOTHING )
-	{
-		Enter( next_menu );
+		delete pMenu_Data;
+		pMenu_Data = NULL;
 	}
 }
 
@@ -591,31 +597,6 @@ void cMenuCore :: Update( void )
 	}
 
 	pMenu_Data->Update();
-
-	Update_Animation();
-}
-
-void cMenuCore :: Update_Animation( void )
-{
-	particle_counter += pFramerate->speedfactor * 0.15f;
-
-	while( particle_counter > 1 )
-	{
-		// particles ahoy !
-		cParticleAnimation *anim = new cParticleAnimation( (float)( rand() % GAME_RES_W ), -20 );
-		anim->Set_DirectionRange( 65, 50 );
-		anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
-		anim->Set_Time_to_Live( 70 );
-		anim->Set_Fading_Alpha( 1 );
-		anim->Set_Scale( 0.2f, 0.35f );
-		anim->Set_Color( Color( (Uint8)( 220 + ( rand() % 25 ) ), 200 + ( rand() % 5 ), 5 + ( rand() % 5 ) ) );
-		anim->Set_Speed( 0.1f, 0.45f );
-		anim->Set_ZPos( 0.105f );
-		anim->Set_RotationZ( (float)(rand() % 360), 1 );
-		pMenuCore->pMenu_AnimManager->Add( anim );
-
-		particle_counter--;
-	}
 }
 
 void cMenuCore :: Draw( void ) 
@@ -626,6 +607,9 @@ void cMenuCore :: Draw( void )
 	}
 
 	pMenu_Data->Draw();
+
+	// limit frames for no full CPU usage
+	CorrectFrameTime( 90 );
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

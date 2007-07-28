@@ -1,0 +1,35 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 01_configure.dpatch by Oleksandr Moskalenko <malex@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: Fix libbost test
+
+@DPATCH@
+
+--- smc-0.99.6/configure	2007-05-21 13:36:19.000000000 -0600
++++ configure.new	2007-05-21 13:35:17.000000000 -0600
+@@ -3117,13 +3117,13 @@
+ # Check for Boost Filesystem
+ 
+ 
+-{ echo "$as_me:$LINENO: checking for main in -lboost_filesystem" >&5
++{ echo "$as_me:$LINENO: checking for main in -lboost_filesystem-mt" >&5
+ echo $ECHO_N "checking for main in -lboost_filesystem... $ECHO_C" >&6; }
+ if test "${ac_cv_lib_boost_filesystem_main+set}" = set; then
+   echo $ECHO_N "(cached) $ECHO_C" >&6
+ else
+   ac_check_lib_save_LIBS=$LIBS
+-LIBS="-lboost_filesystem  $LIBS"
++LIBS="-lboost_filesystem-mt  $LIBS"
+ cat >conftest.$ac_ext <<_ACEOF
+ /* confdefs.h.  */
+ _ACEOF
+@@ -3177,7 +3177,7 @@
+ #define HAVE_LIBBOOST_FILESYSTEM 1
+ _ACEOF
+ 
+-  LIBS="-lboost_filesystem $LIBS"
++  LIBS="-lboost_filesystem-mt $LIBS"
+ 
+ else
+   { { echo "$as_me:$LINENO: error: Unable to find Boost Filesystem library" >&5

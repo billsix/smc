@@ -3,14 +3,15 @@
                              -------------------
     copyright            : (C) 2003 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "../audio/audio.h"
 #include "../audio/sound_manager.h"
@@ -23,16 +24,18 @@
 void Finished_Sound( int channel )
 {
 	// find the finished sound and free the data
-	for( unsigned int i = 0; i < pAudio->sounds.size(); i++ )
+	for( SoundList::iterator itr = pAudio->sounds.begin(), itr_end = pAudio->sounds.end(); itr != itr_end; ++itr )
 	{
-		if( !pAudio->sounds[i] )
+		cAudio_Sound *obj = (*itr);
+
+		if( !obj )
 		{
 			continue;
 		}
 
-		if( pAudio->sounds[i]->channel == channel )
+		if( obj->channel == channel )
 		{
-			pAudio->sounds[i]->Finished();
+			obj->Finished();
 		}
 	}
 }
@@ -93,17 +96,21 @@ int cAudio_Sound :: Play( int use_res_id /* = -1 */ )
 
 	if( use_res_id >= 0 )
 	{
-		for( unsigned int i = 0; i < pAudio->sounds.size(); i++ )
+		for( SoundList::iterator itr = pAudio->sounds.begin(), itr_end = pAudio->sounds.end(); itr != itr_end; ++itr )
 		{
-			if( !pAudio->sounds[i] || pAudio->sounds[i] == this )
+			// get object pointer
+			cAudio_Sound *obj = (*itr);
+
+			// skip self
+			if( !obj || obj->channel == channel )
 			{
 				continue;
 			}
 
 			// stop Sounds using the given resource id
-			if( pAudio->sounds[i]->resource_id == use_res_id )
+			if( obj->resource_id == use_res_id )
 			{
-				pAudio->sounds[i]->Stop();
+				obj->Stop();
 			}
 		}
 	}
@@ -328,9 +335,14 @@ cAudio_Sound *cAudio :: Get_Sound( string filename )
 		return NULL;
 	}
 
-	if( filename.find( SOUNDS_DIR ) == string::npos )
+	// not available
+	if( !valid_file( filename ) )
 	{
-		filename.insert( 0, SOUNDS_DIR "/" );
+		// add sound directory
+		if( filename.find( SOUNDS_DIR ) == string::npos )
+		{
+			filename.insert( 0, SOUNDS_DIR "/" );
+		}
 	}
 
 	cAudio_Sound *sound = pSoundManager->Get_Pointer( filename );
@@ -370,15 +382,21 @@ bool cAudio :: PlaySound( string filename, int res_id /* = -1 */, int volume /* 
 		return 0;
 	}
 
-	if( filename.find( SOUNDS_DIR ) == string::npos )
-	{
-		filename.insert( 0, SOUNDS_DIR "/" );
-	}
-
+	// not available
 	if( !valid_file( filename ) )
 	{
-		printf( "Couldn't find sound file : %s\n", filename.c_str() );
-		return 0;
+		// add sound directory
+		if( filename.find( SOUNDS_DIR ) == string::npos )
+		{
+			filename.insert( 0, SOUNDS_DIR "/" );
+		}
+
+		// not found
+		if( !valid_file( filename ) )
+		{
+			printf( "Couldn't find sound file : %s\n", filename.c_str() );
+			return 0;
+		}
 	}
 
 	sound_count++;
@@ -399,6 +417,7 @@ bool cAudio :: PlaySound( string filename, int res_id /* = -1 */, int volume /* 
 	// failed loading
 	if( !sounds[sound_count] )
 	{
+		printf( "Warning : Couldn't load sound file : %s\n", filename.c_str() );
 		return 0;
 	}
 
@@ -557,7 +576,7 @@ void cAudio :: ToggleMusic( void )
 		// Warning if no music pack is installed and music got enabled
 		if( !valid_file( MUSIC_DIR "/game/menu.ogg" ) && !valid_file( MUSIC_DIR "/land/land_1.ogg" ) )
 		{
-			Draw_StaticText( "Warning : No Music Addon detected", &orange, &lightgreyalpha64 );
+			Draw_StaticText( "Warning : No Music Addon detected", &orange );
 		}
 	}
 }

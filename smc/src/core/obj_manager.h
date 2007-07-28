@@ -3,14 +3,15 @@
                              -------------------
     copyright            :  (C) 2005 - 2007 by Florian Richter
  ***************************************************************************/
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/ 
+/*
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef __OBJ_MANAGER_H__
 #define __OBJ_MANAGER_H__
@@ -77,9 +78,6 @@ public:
 	void Draw_items( void );
 	// Create Collision data and Handle the collisions
 	void Handle_Collision_items( void );
-
-	// Updates the destroy handler
-	void Update( void );
 
 	/* Returns the current size
 	 */
