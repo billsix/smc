@@ -19,7 +19,6 @@
 #include "../core/camera.h"
 #include "../overworld/overworld.h"
 
-
 /* *** *** *** *** *** *** *** *** Layer Line Point *** *** *** *** *** *** *** *** *** */
 
 cLayer_Line_Point :: cLayer_Line_Point( SpriteType ntype )
@@ -115,19 +114,19 @@ cLayer_Line :: cLayer_Line( void )
 
 	start = new cLayer_Line_Point( TYPE_OW_LINE_START );
 	start->line = (void *)this;
-	pActive_Overworld->object_manager->Add( start );
+	pActive_Overworld->sprite_manager->Add( start );
 
 
 	end = new cLayer_Line_Point( TYPE_OW_LINE_END );
 	end->line = (void *)this;
-	pActive_Overworld->object_manager->Add( end );
+	pActive_Overworld->sprite_manager->Add( end );
 }
 
 cLayer_Line :: ~cLayer_Line( void )
 {
 	// delete points
-	pActive_Overworld->object_manager->Delete( start, 1 );
-	pActive_Overworld->object_manager->Delete( end, 1 );
+	pActive_Overworld->sprite_manager->Delete( start, 1 );
+	pActive_Overworld->sprite_manager->Delete( end, 1 );
 }
 
 void cLayer_Line :: Draw( void )
@@ -139,7 +138,7 @@ void cLayer_Line :: Draw( void )
 	Color color = darkgreen;
 
 	// if active
-	if( pOverworld_Player->current_line >= 0 && pActive_Overworld->pLayer->lines[pOverworld_Player->current_line] == this )
+	if( pOverworld_Player->current_line >= 0 && pActive_Overworld->pLayer->objects[pOverworld_Player->current_line] == this )
 	{
 		color = lightblue;
 	}
@@ -151,17 +150,44 @@ void cLayer_Line :: Draw( void )
 	pRenderer->Add( line_request );
 }
 
+GL_line cLayer_Line :: Get_Line( void )
+{
+	return GL_line( start->posx + ( start->col_rect.w * 0.5f ), start->posy + ( start->col_rect.h * 0.5f ), end->posx + ( end->col_rect.w * 0.5f ), end->posy + ( end->col_rect.h * 0.5f ) );
+}
+
+cWaypoint *cLayer_Line :: Get_End_Waypoint( void )
+{
+	int wp_num = pActive_Overworld->Get_Waypoint_Collision( &end->col_rect );
+
+	// no waypoint collision
+	if( wp_num < 0 )
+	{
+		cLayer_Line *line_col = pActive_Overworld->pLayer->Get_Line_Collision_Start( &end->col_rect );
+
+		// line collision
+		if( line_col )
+		{
+			// follow line
+			return line_col->Get_End_Waypoint();
+		}
+	}
+
+	// return Waypoint
+	return pActive_Overworld->Get_Waypoint( wp_num );
+}
+
 /* *** *** *** *** *** *** *** *** Line Collision *** *** *** *** *** *** *** *** *** */
 
-void cLine_collision :: clear( void )
+cLine_collision :: cLine_collision( void )
 {
+	line = NULL;
 	line_number = -2;
 	difference = 0;
 }
 
 /* *** *** *** *** *** *** *** *** Near Line Collision *** *** *** *** *** *** *** *** *** */
 
-void cNearLine_collision :: clear( void )
+cNearLine_collision :: cNearLine_collision( void )
 {
 	line_number = -2;
 	start = 0;
@@ -172,13 +198,14 @@ void cNearLine_collision :: clear( void )
 void cContact_collision :: clear( void )
 {
 	contact = 0;
-	line_hor.clear();
-	line_ver.clear();
+	line_hor = cLine_collision();
+	line_ver = cLine_collision();
 }
 
 int cContact_collision :: Get_best_line( ObjectDirection dir )
 {
-	if( dir == DIR_LEFT || dir == DIR_RIGHT ) // favor vertical
+	// favor vertical
+	if( dir == DIR_LEFT || dir == DIR_RIGHT )
 	{
 		if( line_ver.line_number >= 0 && line_ver.difference < line_hor.difference )
 		{
@@ -193,7 +220,8 @@ int cContact_collision :: Get_best_line( ObjectDirection dir )
 			return line_ver.line_number;
 		}
 	}
-	else if( dir == DIR_UP || dir == DIR_DOWN ) // favor horizontal
+	// favor horizontal
+	else if( dir == DIR_UP || dir == DIR_DOWN )
 	{
 		if( line_hor.line_number >= 0 && line_hor.difference < line_ver.difference )
 		{
@@ -221,24 +249,14 @@ cLayer :: cLayer( void )
 
 cLayer :: ~cLayer( void )
 {
-	Unload();
+	Delete_All();
 }
 
 void cLayer :: Load( string filename )
 {
-	Unload();
+	Delete_All();
 
-	System::getSingleton().getXMLParser()->parseXMLFile( *this, filename.c_str(), SCHEMA_DIR "/World/Lines.xsd", "" );
-}
-
-void cLayer :: Unload( void )
-{
-	for( LayerLineList::iterator itr = lines.begin(), itr_end = lines.end(); itr != itr_end; ++itr )
-	{
-		delete *itr;
-	}
-
-	lines.clear();
+	System::getSingleton().getXMLParser()->parseXMLFile( *this, filename.c_str(), DATA_DIR "/" GAME_SCHEMA_DIR "/World/Lines.xsd", "" );
 }
 
 bool cLayer :: Save( string filename )
@@ -257,7 +275,7 @@ bool cLayer :: Save( string filename )
 	file << "<layer>" << std::endl;
 
 	// lines
-	for( LayerLineList::iterator itr = lines.begin(), itr_end = lines.end(); itr != itr_end; ++itr )
+	for( LayerLineList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		cLayer_Line *line = (*itr);
 
@@ -289,123 +307,164 @@ void cLayer :: Draw( void )
 		return;
 	}
 
-	for( LayerLineList::iterator itr = lines.begin(), itr_end = lines.end(); itr != itr_end; ++itr )
+	for( LayerLineList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	{
+		// draw line
+		(*itr)->Draw();
+	}
+}
+
+cLayer_Line *cLayer :: Get_Line_Collision_Start( GL_rect *line_rect )
+{
+	for( LayerLineList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		// get pointer
 		cLayer_Line *layer_line = (*itr);
 
-		// draw line
-		layer_line->Draw();
+		// check line 1
+		if( Col_Box( line_rect, &layer_line->start->col_rect ) )
+		{
+			return layer_line;
+		}
 	}
+
+	return NULL;
 }
 
-cLine_collision cLayer :: Get_diff( float x, float y, ObjectDirection dir /* = DIR_HORIZONTAL */, unsigned int check_size /* = 15 */ )
+cLine_collision cLayer :: Get_Line_Collision_Direction( float x, float y, ObjectDirection dir, float dir_size /* = 10 */, float check_size /* = 10 */ )
 {
-	cLine_collision col;
-	col.clear();
+	if( dir == DIR_UP )
+	{
+		y -= dir_size;
+	}
+	else if( dir == DIR_DOWN )
+	{
+		y += dir_size;
+	}
+	else if( dir == DIR_RIGHT )
+	{
+		x += dir_size;
+	}
+	else if( dir == DIR_LEFT )
+	{
+		x -= dir_size;
+	}
 
-	for( unsigned int i = 0; i < lines.size(); i++ )
+	if( dir == DIR_LEFT || dir == DIR_RIGHT )
+	{
+		return pActive_Overworld->pLayer->Get_nearest( x, y, DIR_VERTICAL, check_size );
+	}
+	else if( dir == DIR_UP || dir == DIR_DOWN )
+	{
+		return pActive_Overworld->pLayer->Get_nearest( x, y, DIR_HORIZONTAL, check_size );
+	}
+
+	// invalid direction
+	return cLine_collision();
+}
+
+cLine_collision cLayer :: Get_nearest( float x, float y, ObjectDirection dir /* = DIR_HORIZONTAL */, unsigned int check_size /* = 15 */, int only_origin_id /* = -1 */ )
+{
+	for( LayerLineList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		// get pointer
-		cLayer_Line *layer_line = lines[i];
+		cLayer_Line *layer_line = (*itr);
 
 		// line is not from waypoint
-		if( pOverworld_Player->line_waypoint != layer_line->origin )
+		if( only_origin_id >= 0 && only_origin_id != layer_line->origin )
 		{
 			continue;
 		}
 
-		GL_line line_1, line_2;
+		cLine_collision col = Get_nearest_line( layer_line, x, y, dir, check_size );
 
-		// check into both directions from inside
-		for( float csize = 0; csize < check_size; csize++ )
+		// found
+		if( col.line )
 		{
-			line_1.x1 = x;
-			line_1.y1 = y;
-			line_1.x2 = x;
-			line_1.y2 = y;
-			line_2 = line_1;
-
-			if( dir == DIR_HORIZONTAL )
-			{
-				line_1.x1 += csize;
-				line_2.x2 -= csize;
-			}
-			else // vertical
-			{
-				line_1.y1 += csize;
-				line_2.y2 -= csize;
-			}
-
-			// debug drawing
-			if( pOverworld_manager->debugmode && draw )
-			{
-				// create request
-				cLineRequest *line_request = new cLineRequest();
-				pVideo->DrawLine( line_1.x1 - pCamera->x, line_1.y1 - pCamera->y, line_1.x2 - pCamera->x, line_1.y2 - pCamera->y, 0.087f, &white );
-				line_request->line_width = 2;
-				// add request
-				pRenderer->Add( line_request );
-
-				// create request
-				line_request = new cLineRequest();
-				pVideo->DrawLine( line_2.x1 - pCamera->x, line_2.y1 - pCamera->y, line_2.x2 - pCamera->x, line_2.y2 - pCamera->y, 0.087f, &black );
-				line_request->line_width = 2;
-				// add request
-				pRenderer->Add( line_request );
-			}
-
-			// create layer line
-			GL_line check_line = GL_line( layer_line->start->Get_Line_posx(), layer_line->start->Get_Line_posy(), layer_line->end->Get_Line_posx(), layer_line->end->Get_Line_posy() );
-
-			// check line 1
-			if( Col_line( &line_1, &check_line ) )
-			{
-				// if this line is closer to maryo
-				if( csize > col.difference )
-				{
-					col.line_number = i;
-					col.difference = csize;
-				}
-				break;
-			}
-
-			// check line 2
-			if( Col_line( &line_2, &check_line ) )
-			{
-				// if this line is closer to maryo
-				if( csize > col.difference )
-				{
-					col.line_number = i;
-					col.difference = -csize;
-				}
-				break;
-			}
+			return col;
 		}
 	}
 
-	return col;
+	// none found
+	return cLine_collision();
 }
 
-int cLayer :: Get_Line_num( cLayer_Line *obj ) 
+cLine_collision cLayer :: Get_nearest_line( cLayer_Line *map_layer_line, float x, float y, ObjectDirection dir /* = DIR_HORIZONTAL */, unsigned int check_size /* = 15  */ )
 {
-	// invalid
-	if( !obj )
-	{
-		return -1;
-	}
+	GL_line line_1, line_2;
 
-	for( unsigned int i = 0; i < lines.size(); i++ )
+	// create map line
+	GL_line map_line = map_layer_line->Get_Line();
+
+	// check into both directions from inside
+	for( float csize = 0; csize < check_size; csize++ )
 	{
-		// if the same
-		if( lines[i] == obj )
+		line_1.x1 = x;
+		line_1.y1 = y;
+		line_1.x2 = x;
+		line_1.y2 = y;
+		line_2 = line_1;
+
+		// set line size
+		if( dir == DIR_HORIZONTAL )
 		{
-			return i;
+			line_1.x1 += csize;
+			line_2.x2 -= csize;
+		}
+		else // vertical
+		{
+			line_1.y1 += csize;
+			line_2.y2 -= csize;
+		}
+
+		// debug drawing
+		if( pOverworld_manager->debugmode && draw )
+		{
+			// create request
+			cLineRequest *line_request = new cLineRequest();
+			pVideo->DrawLine( line_1.x1 - pCamera->x, line_1.y1 - pCamera->y, line_1.x2 - pCamera->x, line_1.y2 - pCamera->y, 0.09f, &white );
+			line_request->line_width = 2;
+			// add request
+			pRenderer->Add( line_request );
+
+			// create request
+			line_request = new cLineRequest();
+			pVideo->DrawLine( line_2.x1 - pCamera->x, line_2.y1 - pCamera->y, line_2.x2 - pCamera->x, line_2.y2 - pCamera->y, 0.09f, &black );
+			line_request->line_width = 2;
+			// add request
+			pRenderer->Add( line_request );
+		}
+
+
+		// check direction line 1
+		if( Col_line( &line_1, &map_line, 1 ) )
+		{
+			cLine_collision col = cLine_collision();
+
+			col.line = map_layer_line;
+			col.line_number = Get_Array_num( map_layer_line );
+			col.difference = csize;
+
+			// found
+			return col;
+		}
+
+		// check direction line 2
+		if( Col_line( &line_2, &map_line, 1 ) )
+		{
+			cLine_collision col = cLine_collision();
+
+			col.line = map_layer_line;
+			col.line_number = Get_Array_num( map_layer_line );
+			col.difference = -csize;
+
+			// found
+			return col;
 		}
 	}
 
 	// not found
-	return -1;
+	return cLine_collision();
 }
 
 // XML element start
@@ -454,5 +513,5 @@ void cLayer :: handle_line( const XMLAttributes &attributes )
 	item->origin = attributes.getValueAsInteger( "origin" );
 
 	// add
-	lines.push_back( item );
+	Add( item );
 }

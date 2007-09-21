@@ -63,15 +63,16 @@ cMenu_Base :: ~cMenu_Base( void )
 
 void cMenu_Base :: Init( void )
 {
+	// continue playing level/world music but not if finished level 
+	if( !pAudio->isMusicPlaying() || ( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM && !pLevel->is_Loaded() ) )
+	{
+		pAudio->PlayMusic( "game/menu.ogg", -1, 0, 1500 );
+	}
+
 	// init
 	Change_Game_Mode( MODE_MENU );
 
 	layout_file = "";
-
-	if( !pAudio->isMusicPlaying() )
-	{
-		pAudio->PlayMusic( "game/menu.ogg", -1, 0, 1500 );
-	}
 }
 
 void cMenu_Base :: Init_GUI( void )
@@ -308,7 +309,7 @@ void cMenu_Start :: Init_GUI( void )
 	Listbox *listbox_worlds = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_worlds" ));
 	
 	// overworld names
-	for( OverworldList::iterator itr = pOverworld_manager->worlds.begin(), itr_end = pOverworld_manager->worlds.end(); itr != itr_end; ++itr )
+	for( OverworldList::iterator itr = pOverworld_manager->objects.begin(), itr_end = pOverworld_manager->objects.end(); itr != itr_end; ++itr )
 	{
 		cOverworld_description *world = (*itr)->description;
 
@@ -327,51 +328,14 @@ void cMenu_Start :: Init_GUI( void )
 		listbox_worlds->addItem( item );
 	}
 
-	// Levels
+	// Level Listbox
 	Listbox *listbox_levels = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
+	listbox_levels->setSortingEnabled( 1 );
 
-	// get all level names
-	fs::path full_path( pPreferences->level_dir );
-	fs::directory_iterator end_iter;
-
-	for( fs::directory_iterator dir_itr( full_path ); dir_itr != end_iter; ++dir_itr )
-	{
-		try
-		{
-			// only files
-			if( !fs::is_directory( *dir_itr ) )
-			{
-				string lvl_name = dir_itr->leaf();
-
-				// erase file type only if smclvl
-				if( lvl_name.rfind( ".smclvl" ) != string::npos )
-				{
-					lvl_name.erase( lvl_name.rfind( ".smclvl" ) );
-				}
-
-				ListboxTextItem *item = new ListboxTextItem( lvl_name, 0 );
-
-				// smclvl
-				if( dir_itr->leaf().rfind( ".smclvl" ) != string::npos )
-				{
-					item->setTextColours( colour( 1, 0.8f, 0.6f ) );
-				}
-				// grey out txt/unknown levels
-				else
-				{
-					item->setTextColours( colour( 0.6f, 0.6f, 0.6f ) );
-				}
-
-				item->setSelectionColours( colour( 0.33f, 0.33f, 0.33f ) );
-				item->setSelectionBrushImage( "TaharezLook", "ListboxSelectionBrush" );
-				listbox_levels->addItem( item );
-			}
-		}
-		catch( const std::exception &ex )
-		{
-			printf( "%s %s\n", dir_itr->leaf().c_str(), ex.what() );
-		}
-	}
+	// get game level
+	Get_Levels( DATA_DIR "/" GAME_LEVEL_DIR, colour( 1, 0.8f, 0.6f ) );
+	// get user level
+	Get_Levels( user_data_dir + USER_LEVEL_DIR, colour( 0.8f, 1, 0.6f ) );
 
 	// World Listbox events
 	listbox_worlds->subscribeEvent( Listbox::EventSelectionChanged, Event::Subscriber( &cMenu_Start::world_Select, this ) );
@@ -423,6 +387,62 @@ void cMenu_Start :: Exit( void )
 	Game_Action = GA_ENTER_MENU;
 }
 
+void cMenu_Start :: Get_Levels( string dir, colour color )
+{
+	// Level Listbox
+	Listbox *listbox_levels = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
+
+	// get all level names
+	fs::path full_path( dir, fs::native );
+
+	for( fs::directory_iterator dir_itr( full_path ), end_iter; dir_itr != end_iter; ++dir_itr )
+	{
+		try
+		{
+			// only files
+			if( !fs::is_directory( *dir_itr ) )
+			{
+				string lvl_name = dir_itr->leaf();
+
+				// erase file type only if smclvl
+				if( lvl_name.rfind( ".smclvl" ) != string::npos )
+				{
+					lvl_name.erase( lvl_name.rfind( ".smclvl" ) );
+				}
+
+				// check if item with the same name already exists
+				ListboxItem *old_item = listbox_levels->findItemWithText( lvl_name, NULL );
+				// remove old item
+				if( old_item )
+				{
+					listbox_levels->removeItem( old_item );
+				}
+
+				ListboxTextItem *item = new ListboxTextItem( lvl_name, 0 );
+
+				// smclvl
+				if( dir_itr->leaf().rfind( ".smclvl" ) != string::npos )
+				{
+					item->setTextColours( color );
+				}
+				// grey out txt/unknown levels
+				else
+				{
+					item->setTextColours( colour( 0.6f, 0.6f, 0.6f ) );
+				}
+
+				item->setSelectionColours( colour( 0.33f, 0.33f, 0.33f ) );
+				item->setSelectionBrushImage( "TaharezLook", "ListboxSelectionBrush" );
+				listbox_levels->addItem( item );
+			}
+		}
+		catch( const std::exception &ex )
+		{
+			printf( "%s %s\n", dir_itr->leaf().c_str(), ex.what() );
+		}
+	}
+}
+
 void cMenu_Start :: Load_World( string name )
 {
 	// if not successful
@@ -442,20 +462,8 @@ void cMenu_Start :: Load_World( string name )
 
 void cMenu_Start :: Load_Level( string level_name )
 {
-	// erase file type
-	if( level_name.find( "." ) != string::npos )
-	{
-		level_name.erase( level_name.rfind( "." ) );
-	}
-
-	// add level directory
-	if( level_name.find( pPreferences->level_dir ) == string::npos )
-	{
-		level_name.insert( 0, pPreferences->level_dir + "/" );
-	}
-
 	// if not available
-	if( !valid_file( level_name + ".smclvl" ) && !valid_file( level_name + ".txt" )  )
+	if( !pLevel->Get_path( level_name )  )
 	{
 		pAudio->PlaySound( "error.ogg" );
 		debugdisplay->Set_Text( "Couldn't load level " + level_name, DESIRED_FPS );
@@ -2367,7 +2375,7 @@ string cMenu_Savegames :: Set_SaveDescription( unsigned int save_slot )
 	if( pLevel->is_Loaded() && pPlayer->points < 3000 )
 	{
 		ClearInputEvents();
-		Draw_StaticText( "3000 Points needed for level saving." );
+		Draw_StaticText( "3000 Points needed for saving in a level.\nSaving on the Overworld is free." );
 
 		return "Not enough Points";
 	}

@@ -55,6 +55,8 @@ public:
 
 	// update
 	virtual void Update( void );
+	// draw
+	virtual void Draw( cSurfaceRequest *request = NULL );
 
 	// Generates Smoke Particles
 	void Generate_Smoke( unsigned int quota = 10 );
@@ -70,7 +72,7 @@ public:
 	*/
 	virtual unsigned int Validate_Collision( cSprite *obj );
 	// collision from player
-	virtual void Handle_Collision_Player( ObjectDirection cdirection );
+	virtual void Handle_Collision_Player( cObjectCollision *collision );
 	// handle moved out of Level
 	virtual void Handle_OutofLevel( ObjectDirection dir );
 

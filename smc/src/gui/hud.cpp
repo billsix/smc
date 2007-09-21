@@ -21,7 +21,7 @@
 #include "../video/font.h"
 #include "../core/framerate.h"
 #include "../level/level.h"
-#include "../core/obj_manager.h"
+#include "../core/sprite_manager.h"
 #include "../objects/bonusbox.h"
 #include "../video/gl_surface.h"
 #include "../video/renderer.h"
@@ -59,6 +59,7 @@ cHudSprite *cHudSprite :: Copy( void )
 /* *** *** *** *** *** *** *** cHudManager *** *** *** *** *** *** *** *** *** *** */
 
 cHudManager :: cHudManager( void )
+: cObject_Manager<cHudSprite>()
 {
 	loaded = 0;
 
@@ -113,12 +114,7 @@ void cHudManager :: Unload( void )
 		return;
 	}
 	
-	for( HudSpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
-	{
-		delete *itr;
-	}
-
-	objects.clear();
+	Delete_All();
 
 	livedisplay = NULL;
 	golddisplay = NULL;
@@ -130,19 +126,9 @@ void cHudManager :: Unload( void )
 	loaded = 0;
 }
 
-void cHudManager :: Add( cHudSprite *obj )
-{
-	if( !obj )
-	{
-		return;
-	}
-
-	objects.push_back( obj );
-}
-
 void cHudManager :: Update_Text( void )
 {
-	// note : update the lifedisplay before you update the timedisplay
+	// note : update the life display before you update the timedisplay
 	
 	if( objects.size() > 0 )
 	{
@@ -237,11 +223,6 @@ void cHudManager :: Draw( void )
 	{
 		(*itr)->Draw();
 	}
-}
-
-unsigned int cHudManager :: Get_Size( void )
-{
-	return (unsigned int)objects.size();
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -906,41 +887,41 @@ void cDebugDisplay :: DebugBox_Draw( void )
 
 	// ### Level Objects
 	// All
-	if( obj_counter != (int)pObjManager->size() )
+	if( obj_counter != (int)pSprite_Manager->size() )
 	{
-		obj_counter = pObjManager->size();
+		obj_counter = pSprite_Manager->size();
 
 		temp_text = "Objects : " + int_to_string( obj_counter );
 		sprites[6]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
 	// Passive
-	if( pass_counter != (int)(pObjManager->Get_Size_array( ARRAY_PASSIVE ) + pObjManager->Get_Size_array( ARRAY_FRONT_PASSIVE )) )
+	if( pass_counter != (int)(pSprite_Manager->Get_Size_array( ARRAY_PASSIVE ) + pSprite_Manager->Get_Size_array( ARRAY_FRONT_PASSIVE )) )
 	{
-		pass_counter = pObjManager->Get_Size_array( ARRAY_PASSIVE ) + pObjManager->Get_Size_array( ARRAY_FRONT_PASSIVE );
+		pass_counter = pSprite_Manager->Get_Size_array( ARRAY_PASSIVE ) + pSprite_Manager->Get_Size_array( ARRAY_FRONT_PASSIVE );
 
 		temp_text = "Passive : " + int_to_string( pass_counter );
 		sprites[7]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
 	// Massive
-	if( mass_counter != (int)pObjManager->Get_Size_array( ARRAY_MASSIVE ) )
+	if( mass_counter != (int)pSprite_Manager->Get_Size_array( ARRAY_MASSIVE ) )
 	{
-		mass_counter = pObjManager->Get_Size_array( ARRAY_MASSIVE );
+		mass_counter = pSprite_Manager->Get_Size_array( ARRAY_MASSIVE );
 
 		temp_text = "Massive : " + int_to_string( mass_counter );
 		sprites[8]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
 	// Enemy
-	if( enemy_counter != (int)pObjManager->Get_Size_array( ARRAY_ENEMY ) ) 
+	if( enemy_counter != (int)pSprite_Manager->Get_Size_array( ARRAY_ENEMY ) ) 
 	{
-		enemy_counter = pObjManager->Get_Size_array( ARRAY_ENEMY );
+		enemy_counter = pSprite_Manager->Get_Size_array( ARRAY_ENEMY );
 
 		temp_text ="Enemy : " + int_to_string( enemy_counter );
 		sprites[9]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
 	// Active
-	if( active_counter != (int)pObjManager->Get_Size_array( ARRAY_ACTIVE ) )
+	if( active_counter != (int)pSprite_Manager->Get_Size_array( ARRAY_ACTIVE ) )
 	{
-		active_counter = pObjManager->Get_Size_array( ARRAY_ACTIVE );
+		active_counter = pSprite_Manager->Get_Size_array( ARRAY_ACTIVE );
 
 		temp_text = "Active : " + int_to_string( active_counter );
 		sprites[10]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
@@ -948,7 +929,7 @@ void cDebugDisplay :: DebugBox_Draw( void )
 		// Halfmassive
 		unsigned int halfmassive = 0;
 
-		for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *obj = (*itr);
@@ -965,7 +946,7 @@ void cDebugDisplay :: DebugBox_Draw( void )
 		// Moving Platform
 		unsigned int moving_platform = 0;
 
-		for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *obj = (*itr);
@@ -982,7 +963,7 @@ void cDebugDisplay :: DebugBox_Draw( void )
 		// Goldbox
 		unsigned int goldbox = 0;
 
-		for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *obj = (*itr);
@@ -1004,7 +985,7 @@ void cDebugDisplay :: DebugBox_Draw( void )
 		// Bonusbox
 		unsigned int bonusbox = 0;
 
-		for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *obj = (*itr);

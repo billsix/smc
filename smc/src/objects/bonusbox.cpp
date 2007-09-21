@@ -19,7 +19,7 @@
 #include "../player/player.h"
 #include "../audio/audio.h"
 #include "../core/framerate.h"
-#include "../core/obj_manager.h"
+#include "../core/sprite_manager.h"
 #include "../core/camera.h"
 #include "../level/level_editor.h"
 #include "../core/game_core.h"
@@ -276,7 +276,7 @@ void cBonusBox :: Activate( void )
 		star->Set_onTop( this );
 		star->spawned = 1;
 		// add to global objects
-		pObjManager->Add( star );
+		pSprite_Manager->Add( star );
 	}
 	else if( box_type == TYPE_GOLDPIECE )
 	{
@@ -285,7 +285,7 @@ void cBonusBox :: Activate( void )
 		cJGoldpiece *goldpiece = new cJGoldpiece( startposx - ( ( item_image->w - rect.w ) / 2 ), posy );
 		goldpiece->Set_Goldcolor( gold_color );
 		// add to global objects
-		pObjManager->Add( goldpiece );
+		pSprite_Manager->Add( goldpiece );
 	}
 	else
 	{
@@ -336,7 +336,7 @@ void cBonusBox :: Update( void )
 			// set the item on top
 			powerup->Set_onTop( this, 0 );
 			// add the item to the level objects
-			pObjManager->Add( powerup );
+			pSprite_Manager->Add( powerup );
 
 			// remove from array
 			itr = active_items.erase( itr );

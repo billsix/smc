@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.8" />
+		<Property name="game_version" value="1.1" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1184151138" />
+		<Property name="save_time" value="1189857161" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="WeirdNose" />
@@ -19,8 +19,8 @@
 		<Property name="bg_color_1_red" value="0" />
 		<Property name="bg_color_1_green" value="0" />
 		<Property name="bg_color_1_blue" value="0" />
-		<Property name="bg_color_2_red" value="205" />
-		<Property name="bg_color_2_green" value="104" />
+		<Property name="bg_color_2_red" value="50" />
+		<Property name="bg_color_2_green" value="40" />
 		<Property name="bg_color_2_blue" value="0" />
 	</background>
 	<background>
@@ -30,18 +30,11 @@
 		<Property name="speedy" value="1" />
 		<Property name="posz" value="0.00011" />
 	</background>
-	<background>
-		<Property name="type" value="1" />
-		<Property name="image" value="game/background/sand_hill_1.png" />
-		<Property name="speedx" value="1.5" />
-		<Property name="speedy" value="1.5" />
-		<Property name="posz" value="0.00012" />
-	</background>
 	<global_effect>
 		<Property name="type" value="1" />
 		<Property name="image" value="animation/particles/dirt.png" />
 		<Property name="rect_x" value="0" />
-		<Property name="rect_y" value="-30.8186" />
+		<Property name="rect_y" value="-30" />
 		<Property name="rect_w" value="800" />
 		<Property name="rect_h" value="1" />
 		<Property name="z" value="0.12" />

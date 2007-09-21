@@ -42,7 +42,7 @@ enum AudioChannel
 
 /* *** *** *** *** *** *** *** Sound object *** *** *** *** *** *** *** *** *** *** */
 	
-// Callback for finished playing a sound
+// Callback for a sound finished playing 
 void Finished_Sound( int channel );
 
 class cAudio_Sound
@@ -86,10 +86,8 @@ public:
 	cAudio( void );
 	~cAudio( void );
 
-	// Function: Init
 	// Initializes the Audio Engine
 	bool Init( bool sound = 1, bool music = 1 );
-	// Function: Close
 	// De-initializes the Audio Engine
 	void Close( void );
 
@@ -101,77 +99,61 @@ public:
 	 */
 	cAudio_Sound *Get_Sound( string filename );
 
-	// Function: PlaySound
 	// Plays the given sound
 	bool PlaySound( string filename, int res_id = -1, int volume = -1 );
-	// Function: PlayMusic
 	// If no forcing it will be played after the current Music file
 	bool PlayMusic( string filename, int loops = 0, bool force = 1, unsigned int fadein_ms = 0 ); 
 
-	// Function: ToggleMusic
+
 	// Switches Music on and off
 	void ToggleMusic( void );
-	// Function: ToggleSounds
 	// Switches Sounds on and off
 	void ToggleSounds( void );
 
-	// Function: PauseMusic
 	// Pause Music
 	void PauseMusic( void );
 
-	/* Function: ResumeSounds
-	 * Resumes halted sound
+	/* Resume halted sound
 	 * if channel is -1 all halted sounds will be resumed
 	*/
 	void Resume_Sound( int channel = -1 );
-	// Function: ResumeMusic
 	// Resumes Music
 	void Resume_Music( void );
 
-	// Function: FadeOutSounds
+
 	// Fades the given Sound channels with the given time out
 	void FadeOutSounds( unsigned int ms  = 200, int channel = -1, bool overwrite_fading = 0 );
-	// Function: FadeOutMusic
 	// Fades the Music with the given time out
 	void FadeOutMusic( unsigned int ms = 500, bool overwrite_fading = 0 );
 
-	// Function: SetMusicPosition
 	// Sets the Music position ( if .ogg in seconds )
 	void SetMusicPosition( float position );
 
-	// Function: isMusicFading
+
 	// Returns 1 if the Music is currently fading in and 2 if it's fading out else 0
 	Mix_Fading isMusicFading( void );
-	// Function: isSoundFading
 	// Returns 1 if the Sound is currently fading in and 2 if it's fading out else 0
 	Mix_Fading isSoundFading( int sound_channel );
 
-	// Function: isMusicPaused
+
 	// Returns true if the Music is paused
 	bool isMusicPaused( void );
-	// Function: isMusicPlaying
 	// Returns true if the Music is playing
 	bool isMusicPlaying( void );
 
-	// Function: HaltSounds
 	// Halts the given sounds
 	void HaltSounds( int channel = -1 );
-	// Function: HaltMusic
 	// halts the Music
 	void HaltMusic( void );
 
-	// Function: StopSounds
 	// Stops all sounds
 	void StopSounds( void ); 
 
-	// Function: SetSoundVolume
 	// Sets the Sound Volume
 	void SetSoundVolume( Uint8 volume, int channel = -1 );
-	// Function: SetMusicVolume
 	// Sets the Music Volume
 	void SetMusicVolume( Uint8 volume );
 
-	// Function: Update
 	// Updates the Audio Engine
 	void Update( void );
 

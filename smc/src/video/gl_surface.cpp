@@ -102,18 +102,8 @@ void GL_Surface :: Blit( float x, float y, float z, cSurfaceRequest *request /* 
 
 GL_Surface *GL_Surface :: Copy( void )
 {
-	GL_Surface *new_surface = NULL;
-
-	// based on image settings
-	if( filename.rfind( ".settings" ) != string::npos )
-	{
-		new_surface = pVideo->Load_Surface( filename, 1 );
-	}
-	// default image
-	else
-	{
-		new_surface = pVideo->Load_Surface( filename, 0 );
-	}
+	// load image
+	GL_Surface *new_surface = pVideo->Load_Surface( filename );;
 
 	if( !new_surface )
 	{
@@ -203,7 +193,7 @@ void GL_Surface :: Load_Software_Texture( cSoftware_texture *soft_tex )
 	}
 
 	// Create Hardware Texture
-	pVideo->Create_Texture( soft_tex->width, soft_tex->height, soft_tex->pixels, mipmaps );
+	pVideo->Create_GL_Texture( soft_tex->width, soft_tex->height, soft_tex->pixels, mipmaps );
 
 	image = tex_id;
 }
@@ -218,9 +208,9 @@ string GL_Surface :: Get_filename( int with_dir /*= 2*/, bool with_end /*= 1 */ 
 		name.erase( 0, name.rfind( "/" ) + 1 );
 	}
 	// erase pixmaps directory
-	else if( with_dir == 1 && name.find( PIXMAPS_DIR ) != string::npos ) 
+	else if( with_dir == 1 && name.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) != string::npos ) 
 	{
-		name.erase( 0, strlen( PIXMAPS_DIR ) + 1 );
+		name.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
 	}
 
 	// erase file type

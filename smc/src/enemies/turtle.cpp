@@ -18,7 +18,7 @@
 #include "../objects/box.h"
 #include "../video/animation.h"
 #include "../player/player.h"
-#include "../core/obj_manager.h"
+#include "../core/sprite_manager.h"
 #include "../gui/hud.h"
 #include "../video/gl_surface.h"
 
@@ -551,14 +551,14 @@ unsigned int cTurtle :: Validate_Collision( cSprite *obj )
 	return 0;
 }
 
-void cTurtle :: Handle_Collision_Player( ObjectDirection cdirection )
+void cTurtle :: Handle_Collision_Player( cObjectCollision *collision )
 {
-	if( cdirection == DIR_UNDEFINED || ( turtle_state == TURTLE_SHELL_RUN && playercounter > 0 ) || state == STA_OBJ_LINKED )
+	if( collision->direction == DIR_UNDEFINED || ( turtle_state == TURTLE_SHELL_RUN && playercounter > 0 ) || state == STA_OBJ_LINKED )
 	{
 		return;
 	}
 
-	if( cdirection == DIR_TOP && pPlayer->state != STA_FLY )
+	if( collision->direction == DIR_TOP && pPlayer->state != STA_FLY )
 	{
 		if( turtle_state == TURTLE_WALK )
 		{
@@ -611,7 +611,7 @@ void cTurtle :: Handle_Collision_Player( ObjectDirection cdirection )
 		if( turtle_state == TURTLE_WALK )
 		{
 			pPlayer->DownGrade();
-			Turn_Around( cdirection );
+			Turn_Around( collision->direction );
 		}
 		else if( turtle_state == TURTLE_SHELL_STAND )
 		{
@@ -619,13 +619,13 @@ void cTurtle :: Handle_Collision_Player( ObjectDirection cdirection )
 			DownGrade();
 
 			cParticleAnimation *anim = NULL;
-			if( cdirection == DIR_RIGHT )
+			if( collision->direction == DIR_RIGHT )
 			{
 				anim = new cParticleAnimation( posx + col_pos.x + col_rect.w, posy + ( col_rect.h / 2 ) );
 				anim->Set_DirectionRange( 90, 180 );
 				velx = -speed_shell;
 			}
-			else if( cdirection == DIR_LEFT )
+			else if( collision->direction == DIR_LEFT )
 			{
 				anim = new cParticleAnimation( posx, posy + ( col_rect.h / 2 ) );
 				anim->Set_DirectionRange( 270, 180 );
@@ -663,7 +663,7 @@ void cTurtle :: Handle_Collision_Player( ObjectDirection cdirection )
 			playercounter = DESIRED_FPS * 0.13f;
 
 			// small upwards kick
-			if( cdirection == DIR_BOTTOM )
+			if( collision->direction == DIR_BOTTOM )
 			{
 				vely = -5 + pPlayer->vely / 3;
 			}
@@ -671,10 +671,10 @@ void cTurtle :: Handle_Collision_Player( ObjectDirection cdirection )
 		else if( turtle_state == TURTLE_SHELL_RUN )
 		{
 			// bottom kicks upwards
-			if( cdirection == DIR_BOTTOM )
+			if( collision->direction == DIR_BOTTOM )
 			{
 				// small upwards kick
-				if( cdirection == DIR_BOTTOM )
+				if( collision->direction == DIR_BOTTOM )
 				{
 					vely = -5 + pPlayer->vely / 3;
 				}
@@ -683,7 +683,7 @@ void cTurtle :: Handle_Collision_Player( ObjectDirection cdirection )
 			else
 			{
 				pPlayer->DownGrade();
-				Turn_Around( cdirection );
+				Turn_Around( collision->direction );
 			}
 		}
 	}
@@ -693,7 +693,7 @@ void cTurtle :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
 	if( turtle_state == TURTLE_SHELL_STAND )
 	{
-		cEnemy *enemy = static_cast<cEnemy *>(pObjManager->Get_Pointer( collision->number ));
+		cEnemy *enemy = static_cast<cEnemy *>(pSprite_Manager->Get_Pointer( collision->number ));
 
 		// if able to collide
 		if( state == STA_OBJ_LINKED || vely < -5 )
@@ -715,7 +715,7 @@ void cTurtle :: Handle_Collision_Enemy( cObjectCollision *collision )
 	}
 	else if( turtle_state == TURTLE_SHELL_RUN )
 	{
-		cEnemy *enemy = static_cast<cEnemy *>(pObjManager->Get_Pointer( collision->number ));
+		cEnemy *enemy = static_cast<cEnemy *>(pSprite_Manager->Get_Pointer( collision->number ));
 
 		
 		// don't collide with already dead enemies
@@ -798,7 +798,7 @@ void cTurtle :: Handle_Collision_Massive( cObjectCollision *collision )
 	{
 		if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
 		{
-			cSprite *col_object = pObjManager->Get_Pointer( collision->number );
+			cSprite *col_object = pSprite_Manager->Get_Pointer( collision->number );
 
 			// animation
 			cParticleAnimation *anim = NULL;
@@ -836,7 +836,7 @@ void cTurtle :: Handle_Collision_Massive( cObjectCollision *collision )
 			if( collision->type == CO_ACTIVE )
 			{
 				// get colliding object
-				cSprite *col_object = pObjManager->Get_Pointer( collision->number );
+				cSprite *col_object = pSprite_Manager->Get_Pointer( collision->number );
 
 				if( col_object->type == TYPE_BONUSBOX || col_object->type == TYPE_SPINBOX )
 				{

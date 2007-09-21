@@ -544,15 +544,15 @@ unsigned int cGee :: Validate_Collision( cSprite *obj )
 	return 0;
 }
 
-void cGee :: Handle_Collision_Player( ObjectDirection cdirection )
+void cGee :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// unknown direction
-	if( cdirection == DIR_UNDEFINED )
+	if( collision->direction == DIR_UNDEFINED )
 	{
 		return;
 	}
 
-	if( cdirection == DIR_TOP && pPlayer->state != STA_FLY )
+	if( collision->direction == DIR_TOP && pPlayer->state != STA_FLY )
 	{
 		pAudio->PlaySound( kill_sound );
 
@@ -569,22 +569,22 @@ void cGee :: Handle_Collision_Player( ObjectDirection cdirection )
 			// todo : create again
 			//pAudio->PlaySound( "player/maryo_au.ogg", RID_MARYO_AU );
 
-			if( cdirection == DIR_BOTTOM  )
+			if( collision->direction == DIR_BOTTOM  )
 			{
 				pPlayer->start_enemyjump = 1;
 			}
-			else if( cdirection == DIR_LEFT )
+			else if( collision->direction == DIR_LEFT )
 			{
 				pPlayer->velx = -7;
 			}
-			else if( cdirection == DIR_RIGHT )
+			else if( collision->direction == DIR_RIGHT )
 			{
 				pPlayer->velx = 7;
 			}
 		}
 
 		pPlayer->DownGrade();
-		Turn_Around( cdirection );
+		Turn_Around( collision->direction );
 	}
 }
 

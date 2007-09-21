@@ -201,26 +201,14 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		{
 			level_name = Box_Text_Input( level_name, "Load a Level", level_name.compare( "Name" ) == 0 ? 1 : 0 );
 
-			// erase file type
-			if( level_name.find( "." ) != string::npos )
-			{
-				level_name.erase( level_name.rfind( "." ) );
-			}
-
 			// break if empty
 			if( level_name.empty() )
 			{
 				break;
 			}
 
-			// add level directory
-			if( level_name.find( pPreferences->level_dir ) == string::npos )
-			{
-				level_name.insert( 0, pPreferences->level_dir + "/" );
-			}
-
 			// if available
-			if( valid_file( level_name + ".smclvl" ) || valid_file( level_name + ".txt" )  )
+			if( pLevel->Get_path( level_name ) )
 			{
 				Game_Action = GA_ENTER_LEVEL;
 				Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;

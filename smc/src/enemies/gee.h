@@ -81,7 +81,7 @@ public:
 	*/
 	virtual unsigned int Validate_Collision( cSprite *obj );
 	// collision from player
-	virtual void Handle_Collision_Player( ObjectDirection cdirection );
+	virtual void Handle_Collision_Player( cObjectCollision *collision );
 
 	// leveleditor activation
 	virtual void Editor_Activate( void );

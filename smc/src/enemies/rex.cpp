@@ -312,15 +312,15 @@ unsigned int cRex :: Validate_Collision( cSprite *obj )
 	return 0;
 }
 
-void cRex :: Handle_Collision_Player( ObjectDirection cdirection )
+void cRex :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// invalid
-	if( cdirection == DIR_UNDEFINED )
+	if( collision->direction == DIR_UNDEFINED )
 	{
 		return;
 	}
 
-	if( cdirection == DIR_TOP && pPlayer->state != STA_FLY )
+	if( collision->direction == DIR_TOP && pPlayer->state != STA_FLY )
 	{
 		pointsdisplay->Add_Points( kill_points, pPlayer->posx, pPlayer->posy, "", (Uint8)255, 1 );
 		pAudio->PlaySound( kill_sound );
@@ -343,7 +343,7 @@ void cRex :: Handle_Collision_Player( ObjectDirection cdirection )
 	else
 	{
 		pPlayer->DownGrade();
-		Turn_Around( cdirection );
+		Turn_Around( collision->direction );
 	}
 }
 

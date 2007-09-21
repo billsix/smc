@@ -86,7 +86,7 @@ cLevel :: ~cLevel( void )
 	}
 }
 
-int cLevel :: New( string filename )
+bool cLevel :: New( string filename )
 {
 	Unload();
 
@@ -101,7 +101,7 @@ int cLevel :: New( string filename )
 		while( 1 )
 		{
 			// set name
-			filename = pPreferences->level_dir + "/new_" + int_to_string( i ) + ".smclvl";
+			filename = user_data_dir + USER_LEVEL_DIR + "/new_" + int_to_string( i ) + ".smclvl";
 			// try to open the file
 			ifs.open( filename.c_str(), ios::in );
 
@@ -123,32 +123,35 @@ int cLevel :: New( string filename )
 	}
 	else
 	{
+		// set file type
 		if( filename.find( ".smclvl" ) == string::npos )
 		{
 			filename.insert( filename.length(), ".smclvl" );
 		}
 
-		if( filename.find( pPreferences->level_dir ) == string::npos )
+		// set user directory
+		if( filename.find( user_data_dir + USER_LEVEL_DIR + "/" ) == string::npos )
 		{
-			filename.insert( 0, pPreferences->level_dir + "/" );
+			filename.insert( 0, user_data_dir + USER_LEVEL_DIR + "/" );
 		}
 	}
 
 	// open file
 	ifs.open( filename.c_str(), ios::in );
 
-	// Level does not exists
+	// Level doesn't exist
 	if( !ifs )
 	{
-		Set_Levelfile( filename, 0 );
-		engine_version = 2;
+		// set filename
+		levelfile = filename;
+		data_file = Get_filename( filename, 0, 1 );
+
+		engine_version = LEVEL_ENGINE_VERSION;
 
 		// set default music
-		musicfile = MUSIC_DIR "/" LEVEL_DEFAULT_MUSIC;
+		musicfile = DATA_DIR "/" GAME_MUSIC_DIR "/" LEVEL_DEFAULT_MUSIC;
 		valid_music = valid_file( musicfile );
 
-		// todo : remove save ?
-		Save();
 		return 1;
 	}
 
@@ -159,40 +162,15 @@ int cLevel :: New( string filename )
 
 bool cLevel :: Load( string filename, bool delayed /* = 0 */ )
 {
-	// erase old file type if set
-	if( filename.rfind( ".txt" ) != string::npos )
-	{
-		filename.erase( filename.rfind( "." ) );
-	}
-
-	// use new file type as default
-	if( filename.find( ".smclvl" ) == string::npos )
-	{
-		filename.insert( filename.length(), ".smclvl" );
-	}
-
-	// add level directory
-	if( filename.find( pPreferences->level_dir ) == string::npos )
-	{
-		filename.insert( 0, pPreferences->level_dir + "/" );
-	}
-
 	next_levelfile.clear();
 
-	if( !valid_file( filename ) )
+	if( !Get_path( filename ) )
 	{
-		// erase file type and use the old
+		// show error without file type
 		filename.erase( filename.rfind( "." ) );
-		filename.insert( filename.length(), ".txt" );
 
-		if( !valid_file( filename ) )
-		{
-			// show error without file type
-			filename.erase( filename.rfind( "." ) );
-
-			printf( "Couldn't load Level : %s\n", filename.c_str() );
-			return 0;
-		}
+		printf( "Couldn't load Level : %s\n", filename.c_str() );
+		return 0;
 	}
 
 	if( delayed )
@@ -206,7 +184,7 @@ bool cLevel :: Load( string filename, bool delayed /* = 0 */ )
 	levelfile = filename;
 
 	// set default music
-	musicfile = MUSIC_DIR "/" LEVEL_DEFAULT_MUSIC;
+	musicfile = DATA_DIR "/" GAME_MUSIC_DIR "/" LEVEL_DEFAULT_MUSIC;
 	valid_music = valid_file( musicfile );
 
 	// new level format
@@ -214,7 +192,7 @@ bool cLevel :: Load( string filename, bool delayed /* = 0 */ )
 	{
 		try
 		{
-			System::getSingleton().getXMLParser()->parseXMLFile( *this, filename.c_str(), SCHEMA_DIR "/Level.xsd", "" );
+			System::getSingleton().getXMLParser()->parseXMLFile( *this, filename.c_str(), DATA_DIR "/" GAME_SCHEMA_DIR "/Level.xsd", "" );
 		}
 		// catch CEGUI Exceptions
 		catch( Exception &ex )
@@ -269,6 +247,15 @@ void cLevel :: Save( void )
 		levelfile.insert( levelfile.length(), ".smclvl" );
 	}
 
+	// use user level dir
+	if( levelfile.find( user_data_dir + USER_LEVEL_DIR + "/" ) == string::npos )
+	{
+		// erase old directory
+		levelfile = Get_filename( levelfile, 0, 1 );
+		// set user directory
+		levelfile.insert( 0, user_data_dir + USER_LEVEL_DIR + "/" );
+	}
+
 	ofstream file( levelfile.c_str(), ios::out | ios::trunc );
 
 	if( !file )
@@ -287,7 +274,7 @@ void cLevel :: Save( void )
 		// game version
 		file << "\t\t<Property name=\"game_version\" value=\"" << VERSION << "\" />" << std::endl;
 		// engine version
-		file << "\t\t<Property name=\"engine_version\" value=\"" << 2.1 << "\" />" << std::endl;
+		file << "\t\t<Property name=\"engine_version\" value=\"" << LEVEL_ENGINE_VERSION << "\" />" << std::endl;
 		// time ( seconds since 1970 )
 		file << "\t\t<Property name=\"save_time\" value=\"" << time( NULL ) << "\" />" << std::endl;
 	// end info
@@ -320,7 +307,7 @@ void cLevel :: Save( void )
 	// player
 	pPlayer->Save_to_Stream( file );
 	// objects
-	for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 	{
 		cSprite *obj = (*itr);
 
@@ -381,6 +368,7 @@ bool cLevel :: Key_Down( SDLKey key )
 	else if( key == SDLK_F4 )
 	{
 		Draw_Effect_out();
+		//pPlayer->Get_Item( TYPE_MUSHROOM_DEFAULT );
 
 		/*if( pGlobal_effect->type != GL_EFF_FALLING )
 		{
@@ -526,7 +514,7 @@ void cLevel :: Update( void )
 	if( !editor_level_enabled )
 	{
 		// Objects
-		pObjManager->Update_items();
+		pSprite_Manager->Update_items();
 
 		// Animations
 		pAnimationManager->Update();
@@ -554,7 +542,7 @@ void cLevel :: Draw_Layer1( LevelDrawType type /* = LVL_DRAW */ )
 	}
 
 	// Objects
-	pObjManager->Draw_items();
+	pSprite_Manager->Draw_items();
 	// Animations
 	pAnimationManager->Draw();
 }
@@ -606,7 +594,7 @@ void cLevel :: Unload( bool delayed /* = 0 */ )
 		delayed_unload = 0;
 	}
 
-	pObjManager->Delete_All();
+	pSprite_Manager->Delete_All();
 	pAnimationManager->Delete_All();
 
 	pHudManager->Update();
@@ -662,9 +650,9 @@ string cLevel :: Get_Musicfile( int with_dir /* = 2 */, bool with_end /* = 1 */ 
 		filename.erase( 0, filename.rfind( "/" ) + 1 );
 	}
 	// erase music directory
-	else if( with_dir == 1 && filename.find( MUSIC_DIR ) != string::npos )
+	else if( with_dir == 1 && filename.find( DATA_DIR "/" GAME_MUSIC_DIR "/" ) != string::npos )
 	{
-		filename.erase( 0, strlen( MUSIC_DIR ) + 1 );
+		filename.erase( 0, strlen( DATA_DIR "/" GAME_MUSIC_DIR "/" ) );
 	}
 
 	// erase file type
@@ -686,9 +674,9 @@ void cLevel :: Set_Musicfile( string filename )
 	Convert_path_separators( filename );
 
 	// add music dir
-	if( filename.find( MUSIC_DIR ) == string::npos )
+	if( filename.find( DATA_DIR "/" GAME_MUSIC_DIR "/" ) == string::npos )
 	{
-		filename.insert( 0, MUSIC_DIR "/" );
+		filename.insert( 0, DATA_DIR "/" GAME_MUSIC_DIR "/" );
 	}
 
 	musicfile = filename;
@@ -698,6 +686,9 @@ void cLevel :: Set_Musicfile( string filename )
 
 void cLevel :: Set_Levelfile( string filename, bool delete_old /* = 1 */ )
 {
+	// erase file type and directory
+	filename = Get_filename( filename, 0, 0 );
+
 	// if invalid
 	if( filename.length() < 2 )
 	{
@@ -710,25 +701,86 @@ void cLevel :: Set_Levelfile( string filename, bool delete_old /* = 1 */ )
 		Delete_file( levelfile );
 	}
 
+	Convert_path_separators( filename );
+
 	// add level file type
 	if( filename.find( ".smclvl" ) == string::npos )
 	{
 		filename.insert( filename.length(), ".smclvl" );
 	}
 
-	Convert_path_separators( filename );
-
 	levelfile = filename;
 	data_file = filename;
 
 	// add level dir
-	if( levelfile.find( pPreferences->level_dir ) == string::npos )
+	if( levelfile.find( user_data_dir + USER_LEVEL_DIR + "/" ) == string::npos )
 	{
-		levelfile.insert( 0, pPreferences->level_dir + "/" );
+		levelfile.insert( 0, user_data_dir + USER_LEVEL_DIR + "/" );
 	}
 
 	// save with new filename
 	Save();
+}
+
+bool cLevel :: Get_path( string &filename )
+{
+	filename = Get_filename( filename, 0, 0 );
+
+	// user level directory as default
+	filename.insert( 0, user_data_dir + USER_LEVEL_DIR + "/" );
+	// use new file type as default
+	filename.insert( filename.length(), ".smclvl" );
+
+	if( valid_file( filename ) )
+	{
+		// found
+		return 1;
+	}
+
+	// use old file type
+	filename.erase( filename.rfind( "." ) );
+	filename.insert( filename.length(), ".txt" );
+
+	if( valid_file( filename ) )
+	{
+		// found
+		return 1;
+	}
+
+	// use new file type
+	filename.erase( filename.rfind( "." ) );
+	filename.insert( filename.length(), ".smclvl" );
+
+	// erase user level directory
+	filename.erase( 0, user_data_dir.length() + strlen( USER_LEVEL_DIR "/" ) );
+
+	// game level directory
+	if( filename.find( DATA_DIR "/" GAME_LEVEL_DIR "/" ) == string::npos )
+	{
+		filename.insert( 0, DATA_DIR "/" GAME_LEVEL_DIR "/" );
+	}
+
+	if( valid_file( filename ) )
+	{
+		// found
+		return 1;
+	}
+
+	// use old file type
+	filename.erase( filename.rfind( "." ) );
+	filename.insert( filename.length(), ".txt" );
+
+	if( valid_file( filename ) )
+	{
+		// found
+		return 1;
+	}
+
+	// erase file type and directory
+	filename = Get_filename( filename, 0, 0 );
+
+	// not found
+	return 0;
 }
 
 void cLevel :: Set_Author( string name )
@@ -881,9 +933,9 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 		filename.reserve( parts[1].length() + 50 );
 		filename = parts[1];
 
-		if( filename.find( PIXMAPS_DIR ) == string::npos )
+		if( filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == string::npos )
 		{
-			filename.insert( 0, PIXMAPS_DIR "/" );
+			filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
 		}
 
 		if( !valid_file( filename ) )
@@ -977,9 +1029,9 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 		filename.reserve( parts[2].length() + 50 );
 		filename = parts[2];
 
-		if( filename.find( PIXMAPS_DIR ) == string::npos )
+		if( filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == string::npos )
 		{
-			filename.insert( 0, PIXMAPS_DIR "/" );
+			filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
 		}
 
 		if( !valid_file( filename ) )
@@ -991,9 +1043,9 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 		}
 
 		// remove pixmaps dir
-		if( filename.find( PIXMAPS_DIR ) == 0 )
+		if( filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == 0 )
 		{
-			filename.erase( 0, strlen( PIXMAPS_DIR ) + 1 );
+			filename.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
 		}
 
 		int effect_type = string_to_int( parts[1] );
@@ -1067,9 +1119,9 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			filename.erase( 0, 1 );
 		}
 
-		if( filename.find( PIXMAPS_DIR ) == string::npos )
+		if( filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == string::npos )
 		{
-			filename.insert( 0, PIXMAPS_DIR "/" );
+			filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
 		}
 
 		string settings_file = filename;
@@ -1103,7 +1155,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 		}
 
 		string getimage_path = filename;
-		getimage_path.erase( 0, strlen( PIXMAPS_DIR ) + 1 );
+		getimage_path.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
 
 		GL_Surface *surface = pVideo->Get_Surface( getimage_path );
 		int posx = string_to_int( parts[2] );
@@ -1144,7 +1196,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			}
 		}
 
-		pObjManager->Add( temp );
+		pSprite_Manager->Add( temp );
 	}
 	/***************************************************************************/
 	else if( parts[0].compare( "Enemy" ) == 0 )
@@ -1225,13 +1277,13 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 
 				if( temp )
 				{
-					pObjManager->Add( (cMovingSprite *)temp );
+					pSprite_Manager->Add( (cMovingSprite *)temp );
 				}
 			}
 			else // support for old levels ( lower than V.0.8 )
 			{
 				cGumba *temp = new cGumba( (float)string_to_int( parts[2] ), (float)( GAME_RES_H - string_to_int( parts[3] ) ) );
-				pObjManager->Add( (cMovingSprite *)temp );
+				pSprite_Manager->Add( (cMovingSprite *)temp );
 			}
 
 		}
@@ -1256,7 +1308,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 
 			cTurtle *temp = new cTurtle( (float)string_to_int( parts[2] ), (float)( GAME_RES_H - string_to_int( parts[3] ) ) );
 			temp->Set_Direction( direction );
-			pObjManager->Add( (cMovingSprite *)temp );
+			pSprite_Manager->Add( (cMovingSprite *)temp );
 		}
 		// Jumping Piranha
 		else if( parts[1].compare( "JPIRANHA" ) == 0 )
@@ -1309,7 +1361,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			temp->Set_Direction( direction );
 			temp->Set_Max_Distance( max_distance );
 			temp->Set_Speed( speed );
-			pObjManager->Add( (cMovingSprite *)temp );
+			pSprite_Manager->Add( (cMovingSprite *)temp );
 		}
 		// Rokko
 		// BANZAI_BILL was the old name
@@ -1333,7 +1385,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			cRokko *temp = new cRokko( (float)string_to_int( parts[2] ), (float)( GAME_RES_H - string_to_int( parts[3] ) ) );
 			temp->Set_Direction( (ObjectDirection)string_to_int( parts[4] ) );
 			temp->Set_Speed( speed );
-			pObjManager->Add( (cMovingSprite *)temp );
+			pSprite_Manager->Add( (cMovingSprite *)temp );
 		}
 		// Rex
 		else if( parts[1].compare( "REX" ) == 0 )
@@ -1355,7 +1407,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 
 			cRex *temp = new cRex( (float)string_to_int( parts[2] ), (float)( GAME_RES_H - string_to_int( parts[3] ) ) );
 			temp->Set_Direction( direction );
-			pObjManager->Add( (cMovingSprite *)temp );
+			pSprite_Manager->Add( (cMovingSprite *)temp );
 		}
 		// Thromp
 		// Thwomp was the old name
@@ -1403,7 +1455,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			temp->Set_Max_Distance( max_distance );
 			temp->Set_Speed( speed );
 
-			pObjManager->Add( (cMovingSprite *)temp );
+			pSprite_Manager->Add( (cMovingSprite *)temp );
 		}
 		// Eato
 		else if( parts[1].compare( "EATO" ) == 0 )
@@ -1426,7 +1478,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 
 			cEato *temp = new cEato( (float)string_to_int( parts[2] ), (float)( GAME_RES_H - string_to_int( parts[3] ) ) );
 			temp->Set_Direction( direction );
-			pObjManager->Add( (cMovingSprite *)temp );
+			pSprite_Manager->Add( (cMovingSprite *)temp );
 		}
 		// Gee
 		else if( parts[1].compare( "GEE" ) == 0 )
@@ -1482,7 +1534,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			temp->Set_Direction( direction );
 			temp->Set_Max_Distance( max_distance );
 			temp->Set_Color( color );
-			pObjManager->Add( (cMovingSprite *)temp );
+			pSprite_Manager->Add( (cMovingSprite *)temp );
 		}
 		else
 		{
@@ -1532,7 +1584,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 
 		cGoldpiece *temp = new cGoldpiece( (float)string_to_int( parts[1] ), (float)( GAME_RES_H - string_to_int( parts[2] ) ) );
 		temp->Set_Goldcolor( color );
-		pObjManager->Add( (cMovingSprite *)temp );
+		pSprite_Manager->Add( (cMovingSprite *)temp );
 	}
 	/***************************************************************************/
 	else if( parts[0].compare( "Moon" ) == 0 )
@@ -1559,7 +1611,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 		}
 
 		cMoon *temp = new cMoon( (float)string_to_int( parts[1] ), (float)( GAME_RES_H - string_to_int( parts[2] ) ) );
-		pObjManager->Add( (cMovingSprite*)temp );
+		pSprite_Manager->Add( (cMovingSprite*)temp );
 	}
 	/***************************************************************************/
 	else if( parts[0].compare( "Levelexit" ) == 0 )
@@ -1604,28 +1656,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			// with a given level
 			if( count == 5 )
 			{
-				string level = parts[4];
-
-				if( level.find( pPreferences->level_dir ) == string::npos )
-				{
-					level.insert( 0, pPreferences->level_dir + "/" );
-				}
-
-				if( level.find( ".txt" ) == string::npos )
-				{
-					level.insert( level.length(), ".txt" );
-				}
-
-				// if not found
-				if( !valid_file( level ) )
-				{
-					printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
-					printf( "Sublevel not found : %s\n", level.c_str() );
-				}
-				else
-				{
-					temp->Set_Level( level );
-				}
+				temp->Set_Level( parts[4] );
 			}
 		}
 		else // older level support
@@ -1633,12 +1664,12 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			// add a door sprite
 			cMovingSprite *door_sprite = new cMovingSprite( pVideo->Get_Surface( "game/level/door_yellow_1.png" ), (float)string_to_int( parts[1] ), (float)( GAME_RES_H - string_to_int( parts[2] ) ) );
 			door_sprite->Set_Sprite_Type( TYPE_PASSIVE );
-			pObjManager->Add( door_sprite );
+			pSprite_Manager->Add( door_sprite );
 			// add the levelexit
 			temp = new cLevel_Exit( (float)( string_to_int( parts[1] ) + 13 ), (float)( GAME_RES_H - string_to_int( parts[2] ) + 60 ) );
 		}
 
-		pObjManager->Add( (cMovingSprite *)temp );
+		pSprite_Manager->Add( (cMovingSprite *)temp );
 	}
 	/***************************************************************************/
 	else if( parts[0].compare( "BonusBox" ) == 0 )
@@ -1666,7 +1697,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			}
 
 			cBonusBox *temp = new cBonusBox( (float)string_to_int( parts[1] ), (float)( GAME_RES_H - string_to_int( parts[2] ) ) );
-			pObjManager->Add( (cMovingSprite *)temp );
+			pSprite_Manager->Add( (cMovingSprite *)temp );
 		}
 		else if( count == 4 )
 		{
@@ -1709,7 +1740,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 				return 0; // error
 			}
 
-			pObjManager->Add( (cMovingSprite *)temp );
+			pSprite_Manager->Add( (cMovingSprite *)temp );
 		}
 		else
 		{
@@ -1760,7 +1791,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 		temp->Set_Animation( "Default" );
 		temp->Set_Bonus_Type( TYPE_GOLDPIECE );
 		temp->Set_Goldcolor( color );
-		pObjManager->Add( (cMovingSprite *)temp );
+		pSprite_Manager->Add( (cMovingSprite *)temp );
 
 		// with useable times information
 		if( count > 4 )
@@ -1800,7 +1831,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 		}
 
 		cSpinBox *temp = new cSpinBox( (float)string_to_int( parts[1] ), (float)( GAME_RES_H - string_to_int( parts[2] ) ) );
-		pObjManager->Add( (cMovingSprite *)temp );
+		pSprite_Manager->Add( (cMovingSprite *)temp );
 	}
 	/***************************************************************************/
 	else if( parts[0].compare( "Cloud" ) == 0 )
@@ -1830,7 +1861,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 		cMovingSprite *temp = new cMovingSprite( pVideo->Get_Surface( "clouds/default_1/1_middle.png" ), (float)string_to_int( parts[1] ), (float)( GAME_RES_H - string_to_int( parts[2] ) ) );
 		temp->Set_Sprite_Type( TYPE_HALFMASSIVE );
 
-		pObjManager->Add( temp );
+		pSprite_Manager->Add( temp );
 	}
 	/***************************************************************************/
 	else if( parts[0].compare( "EnemyStopper" ) == 0 )
@@ -1855,7 +1886,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 		}
 
 		cEnemyStopper *temp = new cEnemyStopper( (float)string_to_int( parts[1] ), (float)( GAME_RES_H - string_to_int( parts[2] ) ) );
-		pObjManager->Add( (cMovingSprite *)temp );
+		pSprite_Manager->Add( (cMovingSprite *)temp );
 	}
 	/***************************************************************************/
 	else if( parts[0].compare( "movingplatform" ) == 0 )
@@ -1886,7 +1917,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 		temp->Set_image_top_middle( pVideo->Get_Surface( parts[8] ) );
 		temp->Set_image_top_right( pVideo->Get_Surface( parts[9] ) );
 
-		pObjManager->Add( (cMovingSprite *)temp );
+		pSprite_Manager->Add( (cMovingSprite *)temp );
 	}
 	/***************************************************************************/
 	else if( parts[0].compare( "camera_limits" ) == 0 )
@@ -2030,7 +2061,7 @@ void cLevel :: elementEnd( const String &element )
 			// valid
 			if( object )
 			{
-				pObjManager->Add( object );
+				pSprite_Manager->Add( object );
 			}
 			else if( element == "level" )
 			{

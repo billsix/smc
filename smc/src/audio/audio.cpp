@@ -339,9 +339,9 @@ cAudio_Sound *cAudio :: Get_Sound( string filename )
 	if( !valid_file( filename ) )
 	{
 		// add sound directory
-		if( filename.find( SOUNDS_DIR ) == string::npos )
+		if( filename.find( DATA_DIR "/" GAME_SOUNDS_DIR "/" ) == string::npos )
 		{
-			filename.insert( 0, SOUNDS_DIR "/" );
+			filename.insert( 0, DATA_DIR "/" GAME_SOUNDS_DIR "/" );
 		}
 	}
 
@@ -386,9 +386,9 @@ bool cAudio :: PlaySound( string filename, int res_id /* = -1 */, int volume /* 
 	if( !valid_file( filename ) )
 	{
 		// add sound directory
-		if( filename.find( SOUNDS_DIR ) == string::npos )
+		if( filename.find( DATA_DIR "/" GAME_SOUNDS_DIR "/" ) == string::npos )
 		{
-			filename.insert( 0, SOUNDS_DIR "/" );
+			filename.insert( 0, DATA_DIR "/" GAME_SOUNDS_DIR "/" );
 		}
 
 		// not found
@@ -459,9 +459,9 @@ bool cAudio :: PlayMusic( string filename, int loops /* = 0 */, bool force /* = 
 		return 0;
 	}
 
-	if( filename.find( MUSIC_DIR ) == string::npos )
+	if( filename.find( DATA_DIR "/" GAME_MUSIC_DIR "/" ) == string::npos )
 	{
-		filename.insert( 0, MUSIC_DIR "/" );
+		filename.insert( 0, DATA_DIR "/" GAME_MUSIC_DIR "/" );
 	}
 
 	// no valid file
@@ -574,7 +574,7 @@ void cAudio :: ToggleMusic( void )
 		}
 
 		// Warning if no music pack is installed and music got enabled
-		if( !valid_file( MUSIC_DIR "/game/menu.ogg" ) && !valid_file( MUSIC_DIR "/land/land_1.ogg" ) )
+		if( !valid_file( DATA_DIR "/" GAME_MUSIC_DIR "/game/menu.ogg" ) && !valid_file( DATA_DIR "/" GAME_MUSIC_DIR "/land/land_1.ogg" ) )
 		{
 			Draw_StaticText( "Warning : No Music Addon detected", &orange );
 		}

@@ -46,7 +46,7 @@ public:
 	virtual void Activate_Menu( cEditor_Menu_Object *entry );
 
 	// Menu functions
-	//virtual void Function_New( void );
+	virtual void Function_New( void );
 	virtual void Function_Load( void );
 	virtual void Function_Save( void );
 	//virtual void Function_Save_as( void );

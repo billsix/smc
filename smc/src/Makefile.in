@@ -49,28 +49,28 @@ PROGRAMS = $(bin_PROGRAMS)
 am_smc_OBJECTS = audio.$(OBJEXT) sound_manager.$(OBJEXT) \
 	camera.$(OBJEXT) collision.$(OBJEXT) editor.$(OBJEXT) \
 	file_parser.$(OBJEXT) framerate.$(OBJEXT) game_core.$(OBJEXT) \
-	globals.$(OBJEXT) obj_manager.$(OBJEXT) main.$(OBJEXT) \
-	point.$(OBJEXT) rect.$(OBJEXT) vector.$(OBJEXT) \
+	globals.$(OBJEXT) main.$(OBJEXT) point.$(OBJEXT) \
+	rect.$(OBJEXT) vector.$(OBJEXT) sprite_manager.$(OBJEXT) \
 	turtle_boss.$(OBJEXT) eato.$(OBJEXT) enemy.$(OBJEXT) \
 	gee.$(OBJEXT) gumba.$(OBJEXT) jpiranha.$(OBJEXT) rex.$(OBJEXT) \
-	rokko.$(OBJEXT) spika.$(OBJEXT) thromp.$(OBJEXT) \
-	turtle.$(OBJEXT) static.$(OBJEXT) hud.$(OBJEXT) menu.$(OBJEXT) \
+	rokko.$(OBJEXT) spika.$(OBJEXT) static.$(OBJEXT) \
+	thromp.$(OBJEXT) turtle.$(OBJEXT) hud.$(OBJEXT) menu.$(OBJEXT) \
 	menu_data.$(OBJEXT) joystick.$(OBJEXT) keyboard.$(OBJEXT) \
 	mouse.$(OBJEXT) global_effect.$(OBJEXT) \
 	level_background.$(OBJEXT) level.$(OBJEXT) \
-	level_editor.$(OBJEXT) level_settings.$(OBJEXT) \
-	sprite.$(OBJEXT) bonusbox.$(OBJEXT) box.$(OBJEXT) \
-	enemystopper.$(OBJEXT) falling_platform.$(OBJEXT) \
-	ball.$(OBJEXT) goldpiece.$(OBJEXT) level_entry.$(OBJEXT) \
-	levelexit.$(OBJEXT) moving_platform.$(OBJEXT) \
-	movingsprite.$(OBJEXT) objectsprite.$(OBJEXT) \
-	powerup.$(OBJEXT) spinbox.$(OBJEXT) star.$(OBJEXT) \
-	text_box.$(OBJEXT) layer.$(OBJEXT) overworld.$(OBJEXT) \
-	ow_player.$(OBJEXT) waypoint.$(OBJEXT) worlds.$(OBJEXT) \
-	world_editor.$(OBJEXT) player.$(OBJEXT) preferences.$(OBJEXT) \
-	savegame.$(OBJEXT) animation.$(OBJEXT) font.$(OBJEXT) \
-	gl_surface.$(OBJEXT) img_manager.$(OBJEXT) \
-	img_settings.$(OBJEXT) renderer.$(OBJEXT) video.$(OBJEXT)
+	level_editor.$(OBJEXT) level_settings.$(OBJEXT) ball.$(OBJEXT) \
+	bonusbox.$(OBJEXT) box.$(OBJEXT) enemystopper.$(OBJEXT) \
+	falling_platform.$(OBJEXT) goldpiece.$(OBJEXT) \
+	level_entry.$(OBJEXT) levelexit.$(OBJEXT) \
+	moving_platform.$(OBJEXT) movingsprite.$(OBJEXT) \
+	objectsprite.$(OBJEXT) powerup.$(OBJEXT) spinbox.$(OBJEXT) \
+	sprite.$(OBJEXT) star.$(OBJEXT) text_box.$(OBJEXT) \
+	layer.$(OBJEXT) overworld.$(OBJEXT) ow_player.$(OBJEXT) \
+	waypoint.$(OBJEXT) world_editor.$(OBJEXT) worlds.$(OBJEXT) \
+	player.$(OBJEXT) preferences.$(OBJEXT) savegame.$(OBJEXT) \
+	animation.$(OBJEXT) font.$(OBJEXT) gl_surface.$(OBJEXT) \
+	img_manager.$(OBJEXT) img_settings.$(OBJEXT) \
+	renderer.$(OBJEXT) video.$(OBJEXT)
 smc_OBJECTS = $(am_smc_OBJECTS)
 smc_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I. -I$(top_builddir)@am__isrc@
@@ -196,11 +196,11 @@ smc_SOURCES = \
 	core/framerate.cpp \
 	core/game_core.cpp \
 	core/globals.cpp \
-	core/obj_manager.cpp \
 	core/main.cpp \
 	core/math/point.cpp \
 	core/math/rect.cpp \
 	core/math/vector.cpp \
+	core/sprite_manager.cpp \
 	enemies/bosses/turtle_boss.cpp \
 	enemies/eato.cpp \
 	enemies/enemy.cpp \
@@ -210,9 +210,9 @@ smc_SOURCES = \
 	enemies/rex.cpp \
 	enemies/rokko.cpp \
 	enemies/spika.cpp \
+	enemies/static.cpp \
 	enemies/thromp.cpp \
 	enemies/turtle.cpp \
-	enemies/static.cpp \
 	gui/hud.cpp \
 	gui/menu.cpp \
 	gui/menu_data.cpp \
@@ -224,12 +224,11 @@ smc_SOURCES = \
 	level/level.cpp \
 	level/level_editor.cpp \
 	level/level_settings.cpp \
-	objects/sprite.cpp \
+	objects/ball.cpp \
 	objects/bonusbox.cpp \
 	objects/box.cpp \
 	objects/enemystopper.cpp \
 	objects/falling_platform.cpp \
-	objects/ball.cpp \
 	objects/goldpiece.cpp \
 	objects/level_entry.cpp \
 	objects/levelexit.cpp \
@@ -238,14 +237,15 @@ smc_SOURCES = \
 	objects/objectsprite.cpp \
 	objects/powerup.cpp \
 	objects/spinbox.cpp \
+	objects/sprite.cpp \
 	objects/star.cpp \
 	objects/text_box.cpp \
 	overworld/layer.cpp \
 	overworld/overworld.cpp \
 	overworld/ow_player.cpp \
 	overworld/waypoint.cpp \
-	overworld/worlds.cpp \
 	overworld/world_editor.cpp \
+	overworld/worlds.cpp \
 	player/player.cpp \
 	user/preferences.cpp \
 	user/savegame.cpp \
@@ -364,7 +364,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mouse.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/moving_platform.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/movingsprite.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/obj_manager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/objectsprite.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/overworld.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ow_player.Po@am__quote@
@@ -381,6 +380,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spika.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spinbox.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sprite.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sprite_manager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/star.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/static.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/text_box.Po@am__quote@
@@ -533,20 +533,6 @@ globals.obj: core/globals.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o globals.obj `if test -f 'core/globals.cpp'; then $(CYGPATH_W) 'core/globals.cpp'; else $(CYGPATH_W) '$(srcdir)/core/globals.cpp'; fi`
 
-obj_manager.o: core/obj_manager.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT obj_manager.o -MD -MP -MF $(DEPDIR)/obj_manager.Tpo -c -o obj_manager.o `test -f 'core/obj_manager.cpp' || echo '$(srcdir)/'`core/obj_manager.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/obj_manager.Tpo $(DEPDIR)/obj_manager.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='core/obj_manager.cpp' object='obj_manager.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o obj_manager.o `test -f 'core/obj_manager.cpp' || echo '$(srcdir)/'`core/obj_manager.cpp
-
-obj_manager.obj: core/obj_manager.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT obj_manager.obj -MD -MP -MF $(DEPDIR)/obj_manager.Tpo -c -o obj_manager.obj `if test -f 'core/obj_manager.cpp'; then $(CYGPATH_W) 'core/obj_manager.cpp'; else $(CYGPATH_W) '$(srcdir)/core/obj_manager.cpp'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/obj_manager.Tpo $(DEPDIR)/obj_manager.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='core/obj_manager.cpp' object='obj_manager.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o obj_manager.obj `if test -f 'core/obj_manager.cpp'; then $(CYGPATH_W) 'core/obj_manager.cpp'; else $(CYGPATH_W) '$(srcdir)/core/obj_manager.cpp'; fi`
-
 main.o: core/main.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT main.o -MD -MP -MF $(DEPDIR)/main.Tpo -c -o main.o `test -f 'core/main.cpp' || echo '$(srcdir)/'`core/main.cpp
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/main.Tpo $(DEPDIR)/main.Po
@@ -602,6 +588,20 @@ vector.obj: core/math/vector.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='core/math/vector.cpp' object='vector.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o vector.obj `if test -f 'core/math/vector.cpp'; then $(CYGPATH_W) 'core/math/vector.cpp'; else $(CYGPATH_W) '$(srcdir)/core/math/vector.cpp'; fi`
+
+sprite_manager.o: core/sprite_manager.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sprite_manager.o -MD -MP -MF $(DEPDIR)/sprite_manager.Tpo -c -o sprite_manager.o `test -f 'core/sprite_manager.cpp' || echo '$(srcdir)/'`core/sprite_manager.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/sprite_manager.Tpo $(DEPDIR)/sprite_manager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='core/sprite_manager.cpp' object='sprite_manager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sprite_manager.o `test -f 'core/sprite_manager.cpp' || echo '$(srcdir)/'`core/sprite_manager.cpp
+
+sprite_manager.obj: core/sprite_manager.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sprite_manager.obj -MD -MP -MF $(DEPDIR)/sprite_manager.Tpo -c -o sprite_manager.obj `if test -f 'core/sprite_manager.cpp'; then $(CYGPATH_W) 'core/sprite_manager.cpp'; else $(CYGPATH_W) '$(srcdir)/core/sprite_manager.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/sprite_manager.Tpo $(DEPDIR)/sprite_manager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='core/sprite_manager.cpp' object='sprite_manager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sprite_manager.obj `if test -f 'core/sprite_manager.cpp'; then $(CYGPATH_W) 'core/sprite_manager.cpp'; else $(CYGPATH_W) '$(srcdir)/core/sprite_manager.cpp'; fi`
 
 turtle_boss.o: enemies/bosses/turtle_boss.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT turtle_boss.o -MD -MP -MF $(DEPDIR)/turtle_boss.Tpo -c -o turtle_boss.o `test -f 'enemies/bosses/turtle_boss.cpp' || echo '$(srcdir)/'`enemies/bosses/turtle_boss.cpp
@@ -729,6 +729,20 @@ spika.obj: enemies/spika.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o spika.obj `if test -f 'enemies/spika.cpp'; then $(CYGPATH_W) 'enemies/spika.cpp'; else $(CYGPATH_W) '$(srcdir)/enemies/spika.cpp'; fi`
 
+static.o: enemies/static.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT static.o -MD -MP -MF $(DEPDIR)/static.Tpo -c -o static.o `test -f 'enemies/static.cpp' || echo '$(srcdir)/'`enemies/static.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/static.Tpo $(DEPDIR)/static.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='enemies/static.cpp' object='static.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o static.o `test -f 'enemies/static.cpp' || echo '$(srcdir)/'`enemies/static.cpp
+
+static.obj: enemies/static.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT static.obj -MD -MP -MF $(DEPDIR)/static.Tpo -c -o static.obj `if test -f 'enemies/static.cpp'; then $(CYGPATH_W) 'enemies/static.cpp'; else $(CYGPATH_W) '$(srcdir)/enemies/static.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/static.Tpo $(DEPDIR)/static.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='enemies/static.cpp' object='static.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o static.obj `if test -f 'enemies/static.cpp'; then $(CYGPATH_W) 'enemies/static.cpp'; else $(CYGPATH_W) '$(srcdir)/enemies/static.cpp'; fi`
+
 thromp.o: enemies/thromp.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT thromp.o -MD -MP -MF $(DEPDIR)/thromp.Tpo -c -o thromp.o `test -f 'enemies/thromp.cpp' || echo '$(srcdir)/'`enemies/thromp.cpp
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/thromp.Tpo $(DEPDIR)/thromp.Po
@@ -756,20 +770,6 @@ turtle.obj: enemies/turtle.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='enemies/turtle.cpp' object='turtle.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o turtle.obj `if test -f 'enemies/turtle.cpp'; then $(CYGPATH_W) 'enemies/turtle.cpp'; else $(CYGPATH_W) '$(srcdir)/enemies/turtle.cpp'; fi`
-
-static.o: enemies/static.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT static.o -MD -MP -MF $(DEPDIR)/static.Tpo -c -o static.o `test -f 'enemies/static.cpp' || echo '$(srcdir)/'`enemies/static.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/static.Tpo $(DEPDIR)/static.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='enemies/static.cpp' object='static.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o static.o `test -f 'enemies/static.cpp' || echo '$(srcdir)/'`enemies/static.cpp
-
-static.obj: enemies/static.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT static.obj -MD -MP -MF $(DEPDIR)/static.Tpo -c -o static.obj `if test -f 'enemies/static.cpp'; then $(CYGPATH_W) 'enemies/static.cpp'; else $(CYGPATH_W) '$(srcdir)/enemies/static.cpp'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/static.Tpo $(DEPDIR)/static.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='enemies/static.cpp' object='static.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o static.obj `if test -f 'enemies/static.cpp'; then $(CYGPATH_W) 'enemies/static.cpp'; else $(CYGPATH_W) '$(srcdir)/enemies/static.cpp'; fi`
 
 hud.o: gui/hud.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT hud.o -MD -MP -MF $(DEPDIR)/hud.Tpo -c -o hud.o `test -f 'gui/hud.cpp' || echo '$(srcdir)/'`gui/hud.cpp
@@ -925,19 +925,19 @@ level_settings.obj: level/level_settings.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o level_settings.obj `if test -f 'level/level_settings.cpp'; then $(CYGPATH_W) 'level/level_settings.cpp'; else $(CYGPATH_W) '$(srcdir)/level/level_settings.cpp'; fi`
 
-sprite.o: objects/sprite.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sprite.o -MD -MP -MF $(DEPDIR)/sprite.Tpo -c -o sprite.o `test -f 'objects/sprite.cpp' || echo '$(srcdir)/'`objects/sprite.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/sprite.Tpo $(DEPDIR)/sprite.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='objects/sprite.cpp' object='sprite.o' libtool=no @AMDEPBACKSLASH@
+ball.o: objects/ball.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ball.o -MD -MP -MF $(DEPDIR)/ball.Tpo -c -o ball.o `test -f 'objects/ball.cpp' || echo '$(srcdir)/'`objects/ball.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/ball.Tpo $(DEPDIR)/ball.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='objects/ball.cpp' object='ball.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sprite.o `test -f 'objects/sprite.cpp' || echo '$(srcdir)/'`objects/sprite.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ball.o `test -f 'objects/ball.cpp' || echo '$(srcdir)/'`objects/ball.cpp
 
-sprite.obj: objects/sprite.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sprite.obj -MD -MP -MF $(DEPDIR)/sprite.Tpo -c -o sprite.obj `if test -f 'objects/sprite.cpp'; then $(CYGPATH_W) 'objects/sprite.cpp'; else $(CYGPATH_W) '$(srcdir)/objects/sprite.cpp'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/sprite.Tpo $(DEPDIR)/sprite.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='objects/sprite.cpp' object='sprite.obj' libtool=no @AMDEPBACKSLASH@
+ball.obj: objects/ball.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ball.obj -MD -MP -MF $(DEPDIR)/ball.Tpo -c -o ball.obj `if test -f 'objects/ball.cpp'; then $(CYGPATH_W) 'objects/ball.cpp'; else $(CYGPATH_W) '$(srcdir)/objects/ball.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/ball.Tpo $(DEPDIR)/ball.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='objects/ball.cpp' object='ball.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sprite.obj `if test -f 'objects/sprite.cpp'; then $(CYGPATH_W) 'objects/sprite.cpp'; else $(CYGPATH_W) '$(srcdir)/objects/sprite.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ball.obj `if test -f 'objects/ball.cpp'; then $(CYGPATH_W) 'objects/ball.cpp'; else $(CYGPATH_W) '$(srcdir)/objects/ball.cpp'; fi`
 
 bonusbox.o: objects/bonusbox.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT bonusbox.o -MD -MP -MF $(DEPDIR)/bonusbox.Tpo -c -o bonusbox.o `test -f 'objects/bonusbox.cpp' || echo '$(srcdir)/'`objects/bonusbox.cpp
@@ -994,20 +994,6 @@ falling_platform.obj: objects/falling_platform.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='objects/falling_platform.cpp' object='falling_platform.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o falling_platform.obj `if test -f 'objects/falling_platform.cpp'; then $(CYGPATH_W) 'objects/falling_platform.cpp'; else $(CYGPATH_W) '$(srcdir)/objects/falling_platform.cpp'; fi`
-
-ball.o: objects/ball.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ball.o -MD -MP -MF $(DEPDIR)/ball.Tpo -c -o ball.o `test -f 'objects/ball.cpp' || echo '$(srcdir)/'`objects/ball.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/ball.Tpo $(DEPDIR)/ball.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='objects/ball.cpp' object='ball.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ball.o `test -f 'objects/ball.cpp' || echo '$(srcdir)/'`objects/ball.cpp
-
-ball.obj: objects/ball.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ball.obj -MD -MP -MF $(DEPDIR)/ball.Tpo -c -o ball.obj `if test -f 'objects/ball.cpp'; then $(CYGPATH_W) 'objects/ball.cpp'; else $(CYGPATH_W) '$(srcdir)/objects/ball.cpp'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/ball.Tpo $(DEPDIR)/ball.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='objects/ball.cpp' object='ball.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ball.obj `if test -f 'objects/ball.cpp'; then $(CYGPATH_W) 'objects/ball.cpp'; else $(CYGPATH_W) '$(srcdir)/objects/ball.cpp'; fi`
 
 goldpiece.o: objects/goldpiece.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT goldpiece.o -MD -MP -MF $(DEPDIR)/goldpiece.Tpo -c -o goldpiece.o `test -f 'objects/goldpiece.cpp' || echo '$(srcdir)/'`objects/goldpiece.cpp
@@ -1121,6 +1107,20 @@ spinbox.obj: objects/spinbox.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o spinbox.obj `if test -f 'objects/spinbox.cpp'; then $(CYGPATH_W) 'objects/spinbox.cpp'; else $(CYGPATH_W) '$(srcdir)/objects/spinbox.cpp'; fi`
 
+sprite.o: objects/sprite.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sprite.o -MD -MP -MF $(DEPDIR)/sprite.Tpo -c -o sprite.o `test -f 'objects/sprite.cpp' || echo '$(srcdir)/'`objects/sprite.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/sprite.Tpo $(DEPDIR)/sprite.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='objects/sprite.cpp' object='sprite.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sprite.o `test -f 'objects/sprite.cpp' || echo '$(srcdir)/'`objects/sprite.cpp
+
+sprite.obj: objects/sprite.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sprite.obj -MD -MP -MF $(DEPDIR)/sprite.Tpo -c -o sprite.obj `if test -f 'objects/sprite.cpp'; then $(CYGPATH_W) 'objects/sprite.cpp'; else $(CYGPATH_W) '$(srcdir)/objects/sprite.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/sprite.Tpo $(DEPDIR)/sprite.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='objects/sprite.cpp' object='sprite.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sprite.obj `if test -f 'objects/sprite.cpp'; then $(CYGPATH_W) 'objects/sprite.cpp'; else $(CYGPATH_W) '$(srcdir)/objects/sprite.cpp'; fi`
+
 star.o: objects/star.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT star.o -MD -MP -MF $(DEPDIR)/star.Tpo -c -o star.o `test -f 'objects/star.cpp' || echo '$(srcdir)/'`objects/star.cpp
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/star.Tpo $(DEPDIR)/star.Po
@@ -1205,20 +1205,6 @@ waypoint.obj: overworld/waypoint.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o waypoint.obj `if test -f 'overworld/waypoint.cpp'; then $(CYGPATH_W) 'overworld/waypoint.cpp'; else $(CYGPATH_W) '$(srcdir)/overworld/waypoint.cpp'; fi`
 
-worlds.o: overworld/worlds.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT worlds.o -MD -MP -MF $(DEPDIR)/worlds.Tpo -c -o worlds.o `test -f 'overworld/worlds.cpp' || echo '$(srcdir)/'`overworld/worlds.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/worlds.Tpo $(DEPDIR)/worlds.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='overworld/worlds.cpp' object='worlds.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o worlds.o `test -f 'overworld/worlds.cpp' || echo '$(srcdir)/'`overworld/worlds.cpp
-
-worlds.obj: overworld/worlds.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT worlds.obj -MD -MP -MF $(DEPDIR)/worlds.Tpo -c -o worlds.obj `if test -f 'overworld/worlds.cpp'; then $(CYGPATH_W) 'overworld/worlds.cpp'; else $(CYGPATH_W) '$(srcdir)/overworld/worlds.cpp'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/worlds.Tpo $(DEPDIR)/worlds.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='overworld/worlds.cpp' object='worlds.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o worlds.obj `if test -f 'overworld/worlds.cpp'; then $(CYGPATH_W) 'overworld/worlds.cpp'; else $(CYGPATH_W) '$(srcdir)/overworld/worlds.cpp'; fi`
-
 world_editor.o: overworld/world_editor.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT world_editor.o -MD -MP -MF $(DEPDIR)/world_editor.Tpo -c -o world_editor.o `test -f 'overworld/world_editor.cpp' || echo '$(srcdir)/'`overworld/world_editor.cpp
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/world_editor.Tpo $(DEPDIR)/world_editor.Po
@@ -1232,6 +1218,20 @@ world_editor.obj: overworld/world_editor.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='overworld/world_editor.cpp' object='world_editor.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o world_editor.obj `if test -f 'overworld/world_editor.cpp'; then $(CYGPATH_W) 'overworld/world_editor.cpp'; else $(CYGPATH_W) '$(srcdir)/overworld/world_editor.cpp'; fi`
+
+worlds.o: overworld/worlds.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT worlds.o -MD -MP -MF $(DEPDIR)/worlds.Tpo -c -o worlds.o `test -f 'overworld/worlds.cpp' || echo '$(srcdir)/'`overworld/worlds.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/worlds.Tpo $(DEPDIR)/worlds.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='overworld/worlds.cpp' object='worlds.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o worlds.o `test -f 'overworld/worlds.cpp' || echo '$(srcdir)/'`overworld/worlds.cpp
+
+worlds.obj: overworld/worlds.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT worlds.obj -MD -MP -MF $(DEPDIR)/worlds.Tpo -c -o worlds.obj `if test -f 'overworld/worlds.cpp'; then $(CYGPATH_W) 'overworld/worlds.cpp'; else $(CYGPATH_W) '$(srcdir)/overworld/worlds.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/worlds.Tpo $(DEPDIR)/worlds.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='overworld/worlds.cpp' object='worlds.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o worlds.obj `if test -f 'overworld/worlds.cpp'; then $(CYGPATH_W) 'overworld/worlds.cpp'; else $(CYGPATH_W) '$(srcdir)/overworld/worlds.cpp'; fi`
 
 player.o: player/player.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT player.o -MD -MP -MF $(DEPDIR)/player.Tpo -c -o player.o `test -f 'player/player.cpp' || echo '$(srcdir)/'`player/player.cpp

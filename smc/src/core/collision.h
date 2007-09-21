@@ -2,7 +2,8 @@
 			collision.h  -  header for the corresponding cpp file
                          -------------------
     copyright            : (C) 2005 - 2007 Florian Richter
-						   (C) 2005 Amir Taaki ( Circle Collision tests )
+						   (C) 2005 Amir Taaki ( Circle Collision tests ) - MIT License
+						   (C) 2005 Magnus Norddahl ( Line Collision tests ) - BSD License
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -154,5 +155,7 @@ GL_point get_lineintersection( GL_line *line1, GL_line *line2 );
 // Function: Col_line
 // returns true if the lines intersect
 bool Col_line( GL_line *line1, GL_line *line2, bool collinear_intersect = 0 );
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 #endif

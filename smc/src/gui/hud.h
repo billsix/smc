@@ -17,6 +17,7 @@
 #define __STATUSTEXT_H__
 
 #include "../objects/movingsprite.h"
+#include "../core/obj_manager.h"
 
 /* *** *** *** *** *** *** *** cHudSprite *** *** *** *** *** *** *** *** *** *** */
 
@@ -34,19 +35,16 @@ typedef vector<cHudSprite *> HudSpriteList;
 
 /* *** *** *** *** *** *** *** HudManager *** *** *** *** *** *** *** *** *** *** */
 
-class cHudManager
+class cHudManager : public cObject_Manager<cHudSprite>
 {
 public:
 	cHudManager( void );
-	~cHudManager( void );
+	virtual ~cHudManager( void );
 
 	// Loads the complete HUD
 	void Load( void );
 	// Unloads the complete HUD
 	void Unload( void );
-
-	// Add a HUD Object
-	void Add( cHudSprite *obj );
 
 	// Update and reload the Text Displays
 	void Update_Text( void );
@@ -55,13 +53,8 @@ public:
 	// Draw the Objects
 	void Draw( void );
 
-	// Returns the current size
-	unsigned int Get_Size( void );
-
 	// is the HUD loaded
 	bool loaded;
-	// HUD objects
-	HudSpriteList objects;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

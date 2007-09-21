@@ -143,9 +143,9 @@ void cBackground :: Set_image( string nimg_file_1 )
 
 	if( img_file_1.length() > 3 )
 	{
-		if( img_file_1.find( PIXMAPS_DIR ) != string::npos )
+		if( img_file_1.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) != string::npos )
 		{
-			img_file_1.erase( 0, strlen( PIXMAPS_DIR ) + 1 );
+			img_file_1.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
 		}
 
 		img_1 = pVideo->Get_Surface( img_file_1 );

@@ -21,7 +21,7 @@
 
 /* *** *** *** *** *** *** *** Background Image Type *** *** *** *** *** *** *** *** *** *** */
 
-enum  BackgroundType
+enum BackgroundType
 {
 	BG_NONE = 0,			// no background type
 	BG_IMG_LEFTRIGHT = 1,	// only to the horizontal

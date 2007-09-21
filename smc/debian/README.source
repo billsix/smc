@@ -1,8 +1,0 @@
-This package has been repackaged to remove the bzip2 compression and to add
-music files.
-It also was made to achieve a better compression, and to follow what Debian 
-policy says about compressions that are differents to gzip. Also, docs/licenses
-directory was deleted from upstream tarball since it included licenses of 
-software smc links against.
-
- -- Muammar El Khatib <muammarelkhatib@gmail.com> Fri, 20 Apr 2007 19:43:20 -0400

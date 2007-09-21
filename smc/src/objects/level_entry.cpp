@@ -186,30 +186,30 @@ void cLevel_Entry :: Activate( void )
 	{
 		if( direction == DIR_UP )
 		{
-			pPlayer->posy = col_rect.y + col_rect.h;
+			pPlayer->posy = col_rect.y - pPlayer->col_pos.y + col_rect.h;
 		}
 		// down
 		else
 		{
-			pPlayer->posy = col_rect.y - 5 - pPlayer->rect.h;
+			pPlayer->posy = col_rect.y - pPlayer->col_pos.y - 5 - pPlayer->rect.h;
 		}
 
-		pPlayer->posx = posx + ( col_rect.w * 0.5f ) - ( pPlayer->col_rect.w * 0.5f );
+		pPlayer->posx = col_rect.x - pPlayer->col_pos.x + ( col_rect.w * 0.5f ) - ( pPlayer->col_rect.w * 0.5f );
 		pPlayer->Set_Image( MARYO_IMG_FALL + pPlayer->direction );
 	}
 	else if( direction == DIR_LEFT || direction == DIR_RIGHT )
 	{
 		if( direction == DIR_LEFT )
 		{
-			pPlayer->posx = col_rect.x + col_rect.w;
+			pPlayer->posx = col_rect.x - pPlayer->col_pos.y + col_rect.w;
 		}
 		// right
 		else
 		{
-			pPlayer->posx = col_rect.x - col_rect.w - pPlayer->rect.w;
+			pPlayer->posx = col_rect.x - pPlayer->col_pos.y - col_rect.w - pPlayer->col_rect.w;
 		}
 
-		pPlayer->posy = posy + ( col_rect.h * 0.5f ) - ( pPlayer->col_rect.h * 0.5f );
+		pPlayer->posy = col_rect.y - pPlayer->col_pos.y + ( col_rect.h * 0.5f ) - ( pPlayer->col_rect.h * 0.5f );
 		pPlayer->Set_Image( pPlayer->direction );
 
 		// set rotation

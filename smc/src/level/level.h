@@ -21,6 +21,8 @@
 #include "../level/level_background.h"
 #include "../core/file_parser.h"
 
+// engine version
+#define LEVEL_ENGINE_VERSION 2.1f
 // default files for levels
 #define LEVEL_DEFAULT_MUSIC "land/land_5.ogg"
 #define LEVEL_DEFAULT_BACKGROUND "game/background/green_junglehills.png"
@@ -40,15 +42,17 @@ class cLevel : public cFile_parser, public XMLHandler
 {
 public:
 	cLevel( void );
-	~cLevel( void );
+	virtual ~cLevel( void );
 
-	// Creates a new level
-	int New( string filename = "null" );
-	/* Loads a Level
+	/* Create a new level
+	 * returns true if successful
+	*/
+	bool New( string filename );
+	/* Load a Level
 	 * if delayed is given the level will be loaded on the next update
 	*/
 	bool Load( string filename, bool delayed = 0 );
-	/* Unloads the current Level
+	/* Unload the current Level
 	 * if delayed is given unloads the on the next update
 	*/
 	void Unload( bool delayed = 0 );
@@ -58,10 +62,10 @@ public:
 	// update level changes
 	void Update( void );
 
-	// Draws all Layer 1 Level Objects ( Passive/Massive Sprites, Enemies, Animations )
+	// Draw all Layer 1 Level Objects ( Passive/Massive Sprites, Enemies, Animations )
 	// and updates them if update is true
 	void Draw_Layer1( LevelDrawType type = LVL_DRAW );
-	// Draws all Layer 2 Level Objects ( Front Passive Sprites, Editor Objects, Editor Hud )
+	// Draw all Layer 2 Level Objects ( Front Passive Sprites, Editor Objects, Editor Hud )
 	// and updates them if update is true
 	void Draw_Layer2( LevelDrawType type = LVL_DRAW );
 
@@ -77,14 +81,14 @@ public:
 	*/
 	bool Key_Up( SDLKey key );
 
-	// Returns the number of Backgrounds
+	// Return the number of Backgrounds
 	unsigned int Get_Backgroundlayers( void );
-	/* Returns a pointer to the requested Background
+	/* Return a pointer to the requested Background
 	 * If it doesn't exists returns NULL
 	*/
 	cBackground *Get_background( unsigned int num );
 
-	/* Returns the current Music filename with the given options
+	/* Return the current Music filename with the given options
 	 * if with_dir is set to 0 the whole directory is cut
 	 * if set to 1 the music directory is cut out
 	 * if set to 1 the full directory will be returned
@@ -96,12 +100,14 @@ public:
 	 * delete_old : if set delete the old level name
 	*/
 	void Set_Levelfile( string filename, bool delete_old = 1 );
+	// Return the level path if level is valid else empty
+	bool Get_path( string &filename );
 	// Set the Level Author
 	void Set_Author( string name );
 	// Set the Level Version
 	void Set_Version( string level_version );
 
-	// Returns true if a level is loaded
+	// Return true if a level is loaded
 	bool is_Loaded( void );
 
 	// music filename

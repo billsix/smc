@@ -338,7 +338,7 @@ void cLevel_Settings :: Enter( void )
 	// direction
 	Spinner *spinner_angle_start = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_angle_start" ));
 	Spinner *spinner_angle_range = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_angle_range" ));
-	pLevel->pGlobal_effect->Set_Direction( spinner_angle_start->getCurrentValue(), spinner_angle_range->getCurrentValue() );
+	pLevel->pGlobal_effect->Set_DirectionRange( spinner_angle_start->getCurrentValue(), spinner_angle_range->getCurrentValue() );
 	// constant rotation z
 	Spinner *spinner_const_rot_z = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z" ));
 	Spinner *spinner_const_rot_z_rand = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z_rand" ));
@@ -411,7 +411,7 @@ bool cLevel_Settings :: Set_Background_image( const EventArgs &event )
 		editbox->setText( float_to_string( background->posz ).c_str() );
 
 		// set image preview
-		background_filename.insert( 0, PIXMAPS_DIR "/" );
+		background_filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
 		Set_Background_image_Preview( background_filename );
 	}
 	else // deselected
@@ -527,7 +527,7 @@ bool cLevel_Settings :: Update_BG_image( const EventArgs &event )
 	}
 
 	// full filename for validation
-	bg_filename.insert( 0, PIXMAPS_DIR "/" );
+	bg_filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
 
 	cBackground *background = pLevel->Get_background( string_to_int( item->getText().c_str() ) );
 	background->Set_type( bg_type );
@@ -602,7 +602,7 @@ bool cLevel_Settings :: Update_global_effect_image( const EventArgs &event )
 	string ge_filename = WindowManager::getSingleton().getWindow( "editbox_global_effect_file" )->getText().c_str();
 
 	// image preview
-	ge_filename.insert( 0, PIXMAPS_DIR "/" );
+	ge_filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
 	Set_global_effect_image_Preview( ge_filename );
 
 	return 1;

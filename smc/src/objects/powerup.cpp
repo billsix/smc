@@ -306,7 +306,7 @@ void cMushroom :: Update( void )
 			// randomly generated
 			if( ( rand() % 3 ) == 0 )
 			{
-				cParticleAnimation *anim = new cParticleAnimation( posx + col_pos.x + ( rand() % (int)col_rect.w ), posy + col_pos.y + ( rand() % (int)col_rect.h ) );
+				cParticleAnimation *anim = new cParticleAnimation( col_rect.x + ( rand() % (int)col_rect.w ), col_rect.y + ( rand() % (int)col_rect.h ) );
 				anim->Set_DirectionRange( 180, 180 );
 				anim->Set_Time_to_Live( 0.3f );
 				anim->Set_Scale( 0.6f, 0.1f );
@@ -334,28 +334,58 @@ void cMushroom :: Update( void )
 	}
 	else if( type == TYPE_MUSHROOM_BLUE )
 	{
+		// animation only if on ground
+		if( ground_object )
+		{
+			counter += pFramerate->speedfactor * 2;
+
+
+			while( counter > 1 )
+			{
+				// randomly generated
+				if( ( rand() % 3 ) == 0 )
+				{
+					cParticleAnimation *anim = new cParticleAnimation( col_rect.x + col_rect.w * 0.3f + ( rand() % (int)col_rect.w * 0.4f ), col_rect.y + col_rect.h * 0.72f +  ( rand() % (int)( col_rect.h * 0.1f ) ) );
+					anim->Set_Time_to_Live( 1.4f, 1 );
+					anim->Set_Scale( 0.3f, 0.1f );
+					anim->Set_Color( Color( (Uint8)100, 100, 255 ) );
+					anim->Set_Blending( BLEND_ADD );
+					anim->Set_Speed( 0, 0.01f );
+					
+					anim->Set_Image( pVideo->Get_Surface( "animation/particles/ice_1.png" ) );
+
+					pAnimationManager->Add( anim );
+				}
+
+				counter--;
+			}
+		}
+
+		// glimming
+		float new_glim = combine_col[2]; 
+
 		if( glim_mod )
 		{
-			counter += pFramerate->speedfactor * 0.1f;
+			new_glim += pFramerate->speedfactor * 0.05f;
 
-			if( counter > 1 )
+			if( new_glim > 0.5f )
 			{
-				counter = 1;
+				new_glim = 1;
 				glim_mod = 0;
 			}
 		}
 		else
 		{
-			counter -= pFramerate->speedfactor * 0.1f;
+			new_glim -= pFramerate->speedfactor * 0.05f;
 
-			if( counter < 0 )
+			if( new_glim < 0 )
 			{
-				counter = 0;
+				new_glim = 0;
 				glim_mod = 1;
 			}
 		}
 
-		Set_Color_Combine( counter * 0.3f, counter * 0.3f, counter * 0.9f, GL_ADD );
+		Set_Color_Combine( new_glim * 0.1f, new_glim * 0.1f, new_glim, GL_ADD );
 	}
 }
 

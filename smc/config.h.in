@@ -1,22 +1,7 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* editor directory */
-#undef EDITOR_DIR
-
-/* GUI font directory */
-#undef GUI_FONT_DIR
-
-/* GUI imageset directory */
-#undef GUI_IMAGESET_DIR
-
-/* GUI layout directory */
-#undef GUI_LAYOUT_DIR
-
-/* GUI looknfeel directory */
-#undef GUI_LOOKNFEEL_DIR
-
-/* GUI scheme directory */
-#undef GUI_SCHEME_DIR
+/* data directory */
+#undef DATA_DIR
 
 /* Define to 1 if you have the `boost_filesystem' library
    (-lboost_filesystem). */
@@ -37,18 +22,6 @@
 /* Define to 1 if you have the `SDL_ttf' library (-lSDL_ttf). */
 #undef HAVE_LIBSDL_TTF
 
-/* icon directory */
-#undef ICON_DIR
-
-/* level directory */
-#undef LEVEL_DIR
-
-/* music directory */
-#undef MUSIC_DIR
-
-/* overworld directory */
-#undef OVERWORLD_DIR
-
 /* Name of package */
 #undef PACKAGE
 
@@ -66,21 +39,6 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
-
-/* pixmaps directory */
-#undef PIXMAPS_DIR
-
-/* savegames directory */
-#undef SAVE_DIR
-
-/* schema directory */
-#undef SCHEMA_DIR
-
-/* screenshots directory */
-#undef SCREENSHOT_DIR
-
-/* sounds directory */
-#undef SOUNDS_DIR
 
 /* Version number of package */
 #undef VERSION

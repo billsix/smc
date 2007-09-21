@@ -86,7 +86,7 @@ public:
 	// default collision handler
 	virtual void Handle_Collision( cObjectCollision *collision );
 	// collision from player
-	virtual void Handle_Collision_Player( ObjectDirection cdirection );
+	virtual void Handle_Collision_Player( cObjectCollision *collision );
 
 	// leveleditor activation
 	virtual void Editor_Activate( void );

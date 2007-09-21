@@ -144,7 +144,7 @@ cSavegame :: cSavegame( void )
 	save_temp = NULL;
 	debug = 0;
 
-	savegame_dir = user_data_dir + SAVE_DIR;
+	savegame_dir = user_data_dir + USER_SAVEGAME_DIR;
 }
 
 cSavegame :: ~cSavegame( void )
@@ -172,10 +172,10 @@ int cSavegame :: Load_Game( unsigned int save_slot )
 	// level available
 	if( savegame->level_name.length() )
 	{
-		string level_name = pPreferences->level_dir + "/" + savegame->level_name;
+		string level_name = savegame->level_name;
 
 		// level not found
-		if( !valid_file( level_name + ".txt" ) && !valid_file( level_name + ".smclvl" ) )
+		if( !pLevel->Get_path( level_name ) )
 		{
 			printf( "Warning : Savegame %d : Level not found : %s\n", save_slot, level_name.c_str() );
 		}
@@ -193,7 +193,7 @@ int cSavegame :: Load_Game( unsigned int save_slot )
 	{
 		// Use first Overworld
 		cSave_Overworld *save_overworld = new cSave_Overworld();
-		save_overworld->name = pOverworld_manager->Get( 0 )->description->path;
+		save_overworld->name = pOverworld_manager->Get_Pointer( 0 )->description->path;
 
 		savegame->Overworlds.push_back( save_overworld );
 	}
@@ -272,7 +272,7 @@ int cSavegame :: Load_Game( unsigned int save_slot )
 				int posy = string_to_int( save_object->Get_Value( "posy" ) );
 
 				// get level object
-				cSprite *level_object = pObjManager->Get_from_Position( posx, posy, save_object->type );
+				cSprite *level_object = pSprite_Manager->Get_from_Position( posx, posy, save_object->type );
 
 				// if not anymore available
 				if( !level_object )
@@ -366,7 +366,7 @@ bool cSavegame :: Save_Game( unsigned int save_slot, string description )
 		savegame->level_posy = pPlayer->posy + GAME_RES_H - 5;
 
 		// Level Objects
-		for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *object = (*itr);
@@ -448,10 +448,10 @@ bool cSavegame :: Save_Game( unsigned int save_slot, string description )
 	savegame->itembox_item = Itembox->item_id;
 
 	// save overworld progress
-	for( unsigned int i = 0; i < pOverworld_manager->worlds.size(); i++ )
+	for( OverworldList::iterator itr = pOverworld_manager->objects.begin(), itr_end = pOverworld_manager->objects.end(); itr != itr_end; ++itr )
 	{
 		// Get Overworld
-		cOverworld *overworld = pOverworld_manager->worlds[i];
+		cOverworld *overworld = (*itr);
 
 		// create Overworld
 		cSave_Overworld *save_overworld = new cSave_Overworld();
@@ -459,15 +459,18 @@ bool cSavegame :: Save_Game( unsigned int save_slot, string description )
 		save_overworld->name = overworld->description->name;
 		
 		// Waypoints
-		for( SpriteList::iterator itr = overworld->object_manager->items.begin(), itr_end = overworld->object_manager->items.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator wp_itr = overworld->sprite_manager->objects.begin(), wp_itr_end = overworld->sprite_manager->objects.end(); wp_itr != wp_itr_end; ++wp_itr )
 		{
 			// get waypoint
-			cWaypoint *waypoint = static_cast<cWaypoint *>(*itr);
+			cSprite *obj = static_cast<cSprite *>(*wp_itr);
 
-			if( waypoint->type != TYPE_OW_WAYPOINT )
+			if( obj->type != TYPE_OW_WAYPOINT )
 			{
 				continue;
 			}
+
+			// get waypoint
+			cWaypoint *waypoint = static_cast<cWaypoint *>(obj);
 
 			// create savegame waypoint
 			cSave_Overworld_Waypoint *save_waypoint = new cSave_Overworld_Waypoint();
@@ -532,7 +535,7 @@ cSave *cSavegame :: Load( unsigned int save_slot )
 
 	try
 	{
-		System::getSingleton().getXMLParser()->parseXMLFile( *this, filename.c_str(), SCHEMA_DIR "/Savegame.xsd", "" );
+		System::getSingleton().getXMLParser()->parseXMLFile( *this, filename.c_str(), DATA_DIR "/" GAME_SCHEMA_DIR "/Savegame.xsd", "" );
 	}
 	// catch CEGUI Exceptions
 	catch( Exception &ex )

@@ -43,8 +43,8 @@ cSoftware_texture :: ~cSoftware_texture( void )
 /* *** *** *** *** *** *** cImageManager *** *** *** *** *** *** *** *** *** *** *** */
 
 cImageManager :: cImageManager( void )
+: cObject_Manager<GL_Surface>()
 {
-	load_count = 0;
 	high_texture_id = 0;
 }
 
@@ -55,14 +55,14 @@ cImageManager :: ~cImageManager( void )
 
 GL_Surface *cImageManager :: Get_Pointer( string path )
 {
-	for( ImageList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
+	for( SurfaceList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
-		image_item &obj = (*itr);
+		GL_Surface *obj = (*itr);
 
 		// return first match
-		if( obj.item->filename.compare( path ) == 0 )
+		if( obj->filename.compare( path ) == 0 )
 		{
-			return obj.item;
+			return obj;
 		}
 	}
 
@@ -70,96 +70,31 @@ GL_Surface *cImageManager :: Get_Pointer( string path )
 	return NULL;
 }
 
-GL_Surface *cImageManager :: Get_Pointer( unsigned int identifier )
-{
-	if( identifier >= load_count ) 
-	{
-		return NULL;
-	}
-
-	for( ImageList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
-	{
-		image_item &obj = (*itr);
-
-		if( obj.count_id == identifier ) 
-		{
-			return obj.item;
-		}
-	}
-
-	return NULL; // not found
-}
-
-GL_Surface *cImageManager :: Get_Pointer_array( unsigned int identifier )
-{
-	if( identifier >= items.size() )
-	{
-		return NULL; // not found
-	}
-
-	return items[identifier].item;
-}
-
 GL_Surface *cImageManager :: Copy( string path )
 {
-	for( ImageList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
+	for( SurfaceList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		// get object
-		image_item &obj = (*itr);
+		GL_Surface *obj = (*itr);
 
-		if( obj.item->filename.compare( path ) == 0 )	// The first match
+		// first match
+		if( obj->filename.compare( path ) == 0 )
 		{
-			return obj.item->Copy();
+			return obj->Copy();
 		}
 	}
 
-	return NULL; // not found
-}
-
-string cImageManager :: Get_Path( unsigned int identifier )
-{
-	if( identifier >= load_count ) 
-	{
-		return "";
-	}
-
-	for( ImageList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
-	{
-		// get object
-		image_item &obj = (*itr);
-
-		if( obj.count_id == identifier ) 
-		{
-			return obj.item->filename;
-		}
-	}
-
-	return ""; // not found
-}
-
-unsigned int cImageManager :: Get_Size( void )
-{
-	return (unsigned int)items.size();
-}
-
-void cImageManager :: Add( GL_Surface *image )
-{
-	load_count++;
-
-	image_item nitem;
-	nitem.item = image;
-	nitem.count_id = load_count;
-
-	items.push_back( nitem );
+	// not found
+	return NULL;
 }
 
 void cImageManager :: Grab_Textures( void )
 {
 	// save to software memory
-	for( ImageList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
+	for( SurfaceList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		// get surface
-		GL_Surface *obj = itr->item;
+		GL_Surface *obj = (*itr);
 
 		// get software texture and save it
 		software_textures.push_back( obj->Get_Software_Texture() );
@@ -191,14 +126,14 @@ void cImageManager :: Restore_Textures( void )
 
 void cImageManager :: Delete_Images( void )
 {
-	for( ImageList::iterator itr = items.begin(); itr != items.end(); ++itr ) 
+	for( SurfaceList::iterator itr = objects.begin(); itr != objects.end(); ++itr ) 
 	{
 		// get object
-		image_item &obj = (*itr);
+		GL_Surface *obj = (*itr);
 
-		glDeleteTextures( 1, &obj.item->image );
-		delete obj.item;
-		obj.item = NULL;
+		glDeleteTextures( 1, &obj->image );
+		delete obj;
+		obj = NULL;
 	}
 }
 
@@ -220,7 +155,7 @@ void cImageManager :: Delete_Hardware_Textures( void )
 void cImageManager :: Delete_All( void )
 {
 	Delete_Images();
-	items.clear();
+	objects.clear();
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

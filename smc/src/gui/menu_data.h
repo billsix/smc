@@ -90,6 +90,9 @@ public:
 	// Exit
 	virtual void Exit( void );
 
+	// Get all levels from the given directory
+	void Get_Levels( string dir, colour color );
+
 	/* Load the Selected World
 	 * and exits if successful
 	*/

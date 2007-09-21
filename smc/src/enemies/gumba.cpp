@@ -123,6 +123,7 @@ void cGumba :: Set_Color( DefaultColor col )
 
 		velx = 2.7f;
 		kill_points = 10;
+		ice_resistance = 0;
 	}
 	// red was used in pre 1.0 but was in fact blue
 	else if( color_type == COL_RED || color_type == COL_BLUE )
@@ -132,6 +133,7 @@ void cGumba :: Set_Color( DefaultColor col )
 
 		velx = 4.5f;
 		kill_points = 50;
+		ice_resistance = 0.9f;
 	}
 	else
 	{
@@ -303,15 +305,15 @@ unsigned int cGumba :: Validate_Collision( cSprite *obj )
 	return 0;
 }
 
-void cGumba :: Handle_Collision_Player( ObjectDirection cdirection )
+void cGumba :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// invalid
-	if( cdirection == DIR_UNDEFINED )
+	if( collision->direction == DIR_UNDEFINED )
 	{
 		return;
 	}
 
-	if( cdirection == DIR_TOP && pPlayer->state != STA_FLY )
+	if( collision->direction == DIR_TOP && pPlayer->state != STA_FLY )
 	{
 		pAudio->PlaySound( kill_sound );
 
@@ -324,7 +326,7 @@ void cGumba :: Handle_Collision_Player( ObjectDirection cdirection )
 	else
 	{
 		pPlayer->DownGrade();
-		Turn_Around( cdirection );
+		Turn_Around( collision->direction );
 	}
 }
 

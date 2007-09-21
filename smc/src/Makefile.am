@@ -12,11 +12,11 @@ smc_SOURCES = \
 	core/framerate.cpp \
 	core/game_core.cpp \
 	core/globals.cpp \
-	core/obj_manager.cpp \
 	core/main.cpp \
 	core/math/point.cpp \
 	core/math/rect.cpp \
 	core/math/vector.cpp \
+	core/sprite_manager.cpp \
 	enemies/bosses/turtle_boss.cpp \
 	enemies/eato.cpp \
 	enemies/enemy.cpp \
@@ -26,9 +26,9 @@ smc_SOURCES = \
 	enemies/rex.cpp \
 	enemies/rokko.cpp \
 	enemies/spika.cpp \
+	enemies/static.cpp \
 	enemies/thromp.cpp \
 	enemies/turtle.cpp \
-	enemies/static.cpp \
 	gui/hud.cpp \
 	gui/menu.cpp \
 	gui/menu_data.cpp \
@@ -40,12 +40,11 @@ smc_SOURCES = \
 	level/level.cpp \
 	level/level_editor.cpp \
 	level/level_settings.cpp \
-	objects/sprite.cpp \
+	objects/ball.cpp \
 	objects/bonusbox.cpp \
 	objects/box.cpp \
 	objects/enemystopper.cpp \
 	objects/falling_platform.cpp \
-	objects/ball.cpp \
 	objects/goldpiece.cpp \
 	objects/level_entry.cpp \
 	objects/levelexit.cpp \
@@ -54,14 +53,15 @@ smc_SOURCES = \
 	objects/objectsprite.cpp \
 	objects/powerup.cpp \
 	objects/spinbox.cpp \
+	objects/sprite.cpp \
 	objects/star.cpp \
 	objects/text_box.cpp \
 	overworld/layer.cpp \
 	overworld/overworld.cpp \
 	overworld/ow_player.cpp \
 	overworld/waypoint.cpp \
-	overworld/worlds.cpp \
 	overworld/world_editor.cpp \
+	overworld/worlds.cpp \
 	player/player.cpp \
 	user/preferences.cpp \
 	user/savegame.cpp \

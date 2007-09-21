@@ -17,50 +17,36 @@
 #define __SOUND_MANAGER_H__
 
 #include "../audio/audio.h"
+#include "../core/obj_manager.h"
 
 /* *** *** *** *** *** *** cSoundManager *** *** *** *** *** *** *** *** *** *** *** */
 
-//  Keeps track of all the sounds in memory
-//
-// Operators:
-//  - cSoundManager [path]
-//  - cSoundManager [ID]
-class cSoundManager
+/*  Keeps track of all the sounds in memory
+ *
+ * Operators:
+ * - cSoundManager [path]
+ * - cSoundManager [ID]
+*/
+class cSoundManager : public cObject_Manager<cAudio_Sound>
 {
 public:
 	cSoundManager( void );
-	~cSoundManager( void );
+	virtual ~cSoundManager( void );
 
-	// Function: Get_Pointer
-	// Returns the Sound by Path
-	cAudio_Sound *Get_Pointer( string path );
+	// Return the Sound by Path
+	virtual cAudio_Sound *Get_Pointer( string path );
 
-	// Function: Get_Pointer
-	// Returns the Sound by ID
-	cAudio_Sound *Get_Pointer( unsigned int identifier );
-
-	// Function: Get_Pointer_array
-	// Returns an array by ID
-	cAudio_Sound *Get_Pointer_array( unsigned int identifier );
-
-	// Function: Get_Path
-	// Returns the Sound Path in a string
+	// Return the Sound Path in a string
 	string Get_Path( unsigned int identifier );
 
-	/*	Function: Get_Size
-	 *	Returns the Current size
-	 */
-	unsigned int Get_Size( void );
-
-	/* Function: Add
-	 *  Adds a Sound
-	 *	Should always have a Path
+	/* Add a Sound
+	 * Should always have the path set
 	 */
 	void Add( cAudio_Sound *item );
 
 	cAudio_Sound *operator [] ( unsigned int identifier )
 	{
-		return Get_Pointer( identifier );
+		return cObject_Manager<cAudio_Sound>::Get_Pointer( identifier );
 	}
 	
 	cAudio_Sound *operator [] ( string path )
@@ -68,23 +54,13 @@ public:
 		return Get_Pointer( path );
 	}
 
-	/*
-	* Function: Delete_Sounds
-	* Frees all Sounds, but keep items vector entries
+	/* Free all Sounds, but keep object vector entries
 	*/
 	void Delete_Sounds( void );
-
-	/*
-	* Function: Delete_All
-	* Deletes all Items completely.
-	*/
-	void Delete_All( void );
 
 private:
 	// sounds loaded since initialization
 	unsigned int load_count;
-	// sound items array
-	SoundList items;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

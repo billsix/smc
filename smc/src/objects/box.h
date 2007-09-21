@@ -76,7 +76,7 @@ public:
 	*/
 	virtual unsigned int Validate_Collision( cSprite *obj );
 	// handle the basic box player collision
-	virtual void Handle_Collision_Player( ObjectDirection direction );
+	virtual void Handle_Collision_Player( cObjectCollision *collision );
 	// handle the basic box enemy collision
 	virtual void Handle_Collision_Enemy( cObjectCollision *collision );
 

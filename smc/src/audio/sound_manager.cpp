@@ -18,6 +18,7 @@
 /* *** *** *** *** *** *** cSoundManager *** *** *** *** *** *** *** *** *** *** *** */
 
 cSoundManager :: cSoundManager( void )
+: cObject_Manager<cAudio_Sound>()
 {
 	load_count = 0;
 }
@@ -29,7 +30,7 @@ cSoundManager :: ~cSoundManager( void )
 
 cAudio_Sound *cSoundManager :: Get_Pointer( string path )
 {
-	for( SoundList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
+	for( SoundList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		cAudio_Sound *obj = (*itr);
 
@@ -42,42 +43,21 @@ cAudio_Sound *cSoundManager :: Get_Pointer( string path )
 	return NULL; // not found
 }
 
-cAudio_Sound *cSoundManager :: Get_Pointer_array( unsigned int identifier )
-{
-	if( items.size() > identifier )
-	{
-		return items[identifier];
-	}
-
-	return NULL; // not found
-}
-
-unsigned int cSoundManager :: Get_Size( void )
-{
-	return (unsigned int)items.size();
-}
-
 void cSoundManager :: Add( cAudio_Sound *sound )
 {
 	load_count++;
-	items.push_back( sound );
+	cObject_Manager<cAudio_Sound>::Add( sound );
 }
 
 void cSoundManager :: Delete_Sounds( void )
 {
-	for( SoundList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
+	for( SoundList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		cAudio_Sound *obj = (*itr);
 
 		delete obj;
 		obj = NULL;
 	}
-}
-
-void cSoundManager :: Delete_All( void )
-{
-	Delete_Sounds();
-	items.clear();
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

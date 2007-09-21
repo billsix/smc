@@ -528,15 +528,15 @@ unsigned int cjPiranha :: Validate_Collision( cSprite *obj )
 	return 0;
 }
 
-void cjPiranha :: Handle_Collision_Player( ObjectDirection cdirection )
+void cjPiranha :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// unknown direction
-	if( cdirection == DIR_UNDEFINED )
+	if( collision->direction == DIR_UNDEFINED )
 	{
 		return;
 	}
 
-	if( pPlayer->maryo_type != MARYO_SMALL && !pPlayer->invincible && cdirection == direction )
+	if( pPlayer->maryo_type != MARYO_SMALL && !pPlayer->invincible && collision->direction == direction )
 	{
 		// todo : create again
 		//pAudio->PlaySound( "player/maryo_au.ogg", RID_MARYO_AU );

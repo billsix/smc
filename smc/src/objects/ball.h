@@ -48,7 +48,7 @@ public:
 	// default collision handler
 	virtual void Handle_Collision( cObjectCollision *collision );
 	// collision from player
-	virtual void Handle_Collision_Player( ObjectDirection cdirection );
+	virtual void Handle_Collision_Player( cObjectCollision *collision );
 	// collision from an enemy
 	virtual void Handle_Collision_Enemy( cObjectCollision *collision );
 	// collision with massive

@@ -74,9 +74,9 @@ void cFont :: Init( void )
 	}
 
 	// open fonts
-	font_normal = TTF_OpenFont( GUI_FONT_DIR "/default_bold.ttf", 18 );
-	font_small = TTF_OpenFont( GUI_FONT_DIR "/default_bold.ttf", 11 );
-	font_very_small = TTF_OpenFont( GUI_FONT_DIR "/default_bold.ttf", 9 );
+	font_normal = TTF_OpenFont( DATA_DIR "/" GUI_FONT_DIR "/default_bold.ttf", 18 );
+	font_small = TTF_OpenFont( DATA_DIR "/" GUI_FONT_DIR "/default_bold.ttf", 11 );
+	font_very_small = TTF_OpenFont( DATA_DIR "/" GUI_FONT_DIR "/default_bold.ttf", 9 );
 
 	// if loading failed
 	if( !font_normal || !font_small || !font_very_small )
@@ -114,7 +114,7 @@ GL_Surface *cFont :: RenderText( TTF_Font *font, string text, Color color )
 	// get SDL Color
 	SDL_Color sdlcolor = color.Get_SDL_Color();
 	// create text surface
-	GL_Surface *surface = pVideo->CreateTexture( TTF_RenderText_Blended( font, text.c_str(), sdlcolor ) );
+	GL_Surface *surface = pVideo->Create_Texture( TTF_RenderText_Blended( font, text.c_str(), sdlcolor ) );
 
 	if( !surface )
 	{

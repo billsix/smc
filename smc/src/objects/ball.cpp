@@ -21,7 +21,7 @@
 #include "../enemies/spika.h"
 #include "../player/player.h"
 #include "../video/animation.h"
-#include "../core/obj_manager.h"
+#include "../core/sprite_manager.h"
 #include "../gui/hud.h"
 
 /* *** *** *** *** *** *** cBall *** *** *** *** *** *** *** *** *** *** *** */
@@ -86,7 +86,11 @@ cBall :: cBall( float x, float y, float nvelx, float nvely /* = 0 */, cMovingSpr
 
 cBall :: ~cBall( void )
 {
-
+	// always destroy
+	if( !destroy )
+	{
+		Destroy();
+	}
 }
 
 void cBall :: Destroy( void )
@@ -296,7 +300,7 @@ void cBall :: Handle_Collision( cObjectCollision *collision )
 	cMovingSprite::Handle_Collision( collision );
 }
 
-void cBall :: Handle_Collision_Player( ObjectDirection cdirection )
+void cBall :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// velocity hit
 	if( direction == DIR_LEFT )
@@ -321,7 +325,7 @@ void cBall :: Handle_Collision_Player( ObjectDirection cdirection )
 
 void cBall :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
-	cEnemy *enemy = static_cast<cEnemy *>(pObjManager->Get_Pointer( collision->number ));
+	cEnemy *enemy = static_cast<cEnemy *>(pSprite_Manager->Get_Pointer( collision->number ));
 
 	// if enemy is not destroyable
 	if( ( ball_type == FIREBALL_DEFAULT && enemy->fire_resistant ) || ( ball_type == ICEBALL_DEFAULT && enemy->ice_resistance >= 1 ) )
@@ -375,7 +379,7 @@ void cBall :: Handle_Collision_Enemy( cObjectCollision *collision )
 			// set optimal position
 			goldpiece->Col_Move( -( ( goldpiece->col_rect.w - enemy->col_rect.w ) / 2 ), -( goldpiece->col_pos.y + goldpiece->col_rect.h ), 1, 1 );
 			// add goldpiece
-			pObjManager->Add( goldpiece );
+			pSprite_Manager->Add( goldpiece );
 
 			enemy->Set_Visible( 0 );
 			enemy->DownGrade( 1 );

@@ -16,7 +16,7 @@
 #include "../objects/sprite.h"
 #include "../objects/movingsprite.h"
 #include "../core/game_core.h"
-#include "../core/obj_manager.h"
+#include "../core/sprite_manager.h"
 #include "../core/camera.h"
 #include "../core/framerate.h"
 #include "../player/player.h"
@@ -189,7 +189,7 @@ cObjectCollision *cCollidingSprite :: Collision_Get_last( bool only_blocking /* 
 			// get object pointer
 			cObjectCollision *col = (*itr);
 
-			cSprite *col_obj = pObjManager->Get_Pointer( col->number );
+			cSprite *col_obj = pSprite_Manager->Get_Pointer( col->number );
 
 			// ignore passive
 			if( col_obj->massivetype == MASS_PASSIVE )
@@ -233,7 +233,7 @@ void cCollidingSprite :: Handle_Collision( cObjectCollision *collision )
 	// player
 	if( collision->type == CO_PLAYER )
 	{
-		Handle_Collision_Player( collision->direction );
+		Handle_Collision_Player( collision );
 	}
 	// enemy
 	else if( collision->type == CO_ENEMY )
@@ -247,7 +247,7 @@ void cCollidingSprite :: Handle_Collision( cObjectCollision *collision )
 	}
 }
 
-void cCollidingSprite :: Handle_Collision_Player( ObjectDirection direction )
+void cCollidingSprite :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// virtual
 }
@@ -411,9 +411,9 @@ void cSprite :: Save_to_Stream( ofstream &file )
 	}
 
 	// remove pixmaps directory from string
-	if( img_filename.find( PIXMAPS_DIR ) == 0 )
+	if( img_filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == 0 )
 	{
-		img_filename.erase( 0, strlen( PIXMAPS_DIR ) + 1 );
+		img_filename.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
 	}
 	file << "\t\t<Property name=\"image\" value=\"" << img_filename << "\" />" << std::endl;
 	// type
@@ -1082,7 +1082,7 @@ void cSprite :: Set_Massivetype( MassiveType mtype )
 	massivetype = mtype;
 
 	// set correct Z position
-	pObjManager->Set_Z( this );
+	pSprite_Manager->Set_Z( this );
 }
 
 bool cSprite :: is_onTop( cSprite *obj )

@@ -179,12 +179,10 @@ public:
 	~cRenderQueue( void );
 
 	/* Add a Render Request
-	 * 
 	*/
 	void Add( cRenderRequest *obj );
 
-	/*
-	 * if clear is not set doesn't clear the data
+	/* if clear is not set doesn't clear the data
 	*/
 	void Render( bool clear = 1 );
 

@@ -61,6 +61,11 @@
 		<Property Name="tags" Value="header" />
 	</Item>
 	<Item>
+		<Property Name="name" Value="New" />
+		<Property Name="tags" Value="function:new" />
+		<Property Name="color" Value="FF0F03DF" />
+	</Item>
+	<Item>
 		<Property Name="name" Value="Load" />
 		<Property Name="tags" Value="function:load" />
 		<Property Name="color" Value="FFDFA30F" />

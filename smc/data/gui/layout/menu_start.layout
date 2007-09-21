@@ -66,6 +66,16 @@
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
                     <Property Name="UnifiedAreaRect" Value="{{0.885,0},{0.899,0},{0.99,0},{0.99,0}}" />
                 </Window>
+                <Window Type="TaharezLook/StaticText" Name="tab_level/" >
+                    <Property Name="Text" >- Level Colors -
+
+Orange : Game
+Green   : User
+Grey     : Old format</Property>
+                    <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                    <Property Name="VertFormatting" Value="TopAligned" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.549168,0},{0.128302,0},{0.934561,0},{0.570754,0}}" />
+                </Window>
             </Window>
         </Window>
     </Window>

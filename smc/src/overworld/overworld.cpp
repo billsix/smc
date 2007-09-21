@@ -29,6 +29,10 @@
 #include "../input/joystick.h"
 #include "../input/keyboard.h"
 #include "../level/level.h"
+// boost filesystem
+#include "boost/filesystem/operations.hpp"
+#include "boost/filesystem/path.hpp"
+namespace fs = boost::filesystem;
 
 
 /* *** *** *** *** *** *** *** *** cOverworld_description *** *** *** *** *** *** *** *** *** */
@@ -49,7 +53,7 @@ cOverworld_description :: ~cOverworld_description( void )
 
 void cOverworld_description :: Load( void )
 {
-	string filename = Get_Description_filename();
+	string filename = Get_full_path() + "/description.xml";
 
 	// filename not valid
 	if( !valid_file( filename ) )
@@ -59,22 +63,52 @@ void cOverworld_description :: Load( void )
 	}
 
 	// Load Description
-	System::getSingleton().getXMLParser()->parseXMLFile( *this, filename.c_str(), SCHEMA_DIR "/World/Description.xsd", "" );
+	System::getSingleton().getXMLParser()->parseXMLFile( *this, filename.c_str(), DATA_DIR "/" GAME_SCHEMA_DIR "/World/Description.xsd", "" );
 }
 
-string cOverworld_description :: Get_World_filename( void )
+void cOverworld_description :: Save( void )
 {
-	return OVERWORLD_DIR "/" + path + "/world.xml";
+	string save_dir = user_data_dir + USER_WORLD_DIR + "/" + path;
+	string filename = save_dir + "/description.xml";
+
+	ofstream file( filename.c_str(), ios::out | ios::trunc );
+
+	if( !file )
+	{
+		debugdisplay->Set_Text( "Couldn't save world description " + filename );
+		return;
+	}
+
+	// xml info
+	file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;
+	// begin Description
+	file << "<Description>" << std::endl;
+
+	// begin World
+	file << "\t<World>" << std::endl;
+		// name
+		file << "\t\t<Property Name=\"name\" Value=\"" << string_to_xml_string( name ) << "\" />" << std::endl;
+		// visible
+		file << "\t\t<Property Name=\"visible\" Value=\"" << visible << "\" />" << std::endl;
+	// end World
+	file << "\t</World>" << std::endl;
+
+
+	// end Description
+	file << "</Description>" << std::endl;
+	file.close();
 }
 
-string cOverworld_description :: Get_Description_filename( void )
+string cOverworld_description :: Get_full_path( void )
 {
-	return OVERWORLD_DIR "/" + path + "/description.xml";
-}
+	// return user world if available
+	if( fs::exists( fs::path( user_data_dir + USER_WORLD_DIR + "/" + path + "/description.xml", fs::native ) ) )
+	{
+		return user_data_dir + USER_WORLD_DIR + "/" + path;
+	}
 
-string cOverworld_description :: Get_Layer_filename( void )
-{
-	return OVERWORLD_DIR "/" + path + "/layer.xml";
+	// return game world
+	return DATA_DIR "/" GAME_OVERWORLD_DIR "/" + path;
 }
 
 // XML element start
@@ -120,7 +154,7 @@ void cOverworld_description :: handle_world( const XMLAttributes &attributes )
 
 cOverworld :: cOverworld( void )
 {
-	object_manager = new cObjectManager( 500 );
+	sprite_manager = new cSprite_Manager( 500 );
 
 	description = new cOverworld_description();
 	pLayer = new cLayer();
@@ -169,7 +203,7 @@ void cOverworld :: Enter( bool delayed /* = 0 */ )
 	}
 
 	// if not loaded
-	if( !object_manager->size() )
+	if( !sprite_manager->size() )
 	{
 		return;
 	}
@@ -309,7 +343,7 @@ bool cOverworld :: Load( void )
 	description->Load();
 
 	// layer
-	string layer_filename = description->Get_Layer_filename();
+	string layer_filename = description->Get_full_path() + "/layer.xml";
 
 	if( !valid_file( layer_filename ) )
 	{
@@ -320,7 +354,7 @@ bool cOverworld :: Load( void )
 	pLayer->Load( layer_filename );
 
 	// world
-	string world_filename = description->Get_World_filename();
+	string world_filename = description->Get_full_path() + "/world.xml";
 
 	if( !valid_file( world_filename ) )
 	{
@@ -331,7 +365,7 @@ bool cOverworld :: Load( void )
 	try
 	{
 		// parse overworld
-		System::getSingleton().getXMLParser()->parseXMLFile( *this, world_filename.c_str(), SCHEMA_DIR "/World/World.xsd", "" );
+		System::getSingleton().getXMLParser()->parseXMLFile( *this, world_filename.c_str(), DATA_DIR "/" GAME_SCHEMA_DIR "/World/World.xsd", "" );
 	}
 	// catch CEGUI Exceptions
 	catch( Exception &ex )
@@ -353,9 +387,9 @@ void cOverworld :: Unload( void )
 	// Waypoints
 	waypoints.clear();
 	// Layer
-	pLayer->Unload();
+	pLayer->Delete_All();
 	// Objects
-	object_manager->Delete_All();
+	sprite_manager->Delete_All();
 
 	pActive_Overworld = NULL;
 }
@@ -364,7 +398,14 @@ void cOverworld :: Save( void )
 {
 	pAudio->PlaySound( "editor/save.ogg" );
 
-	string filename = description->Get_World_filename();
+	string save_dir = user_data_dir + USER_WORLD_DIR + "/" + description->path;
+	// Create directory if new world
+	if( !fs::exists( fs::path( save_dir, fs::native ) ) )
+	{
+		fs::create_directory( fs::path( save_dir, fs::native ) );
+	}
+
+	string filename = save_dir + "/world.xml";
 
 	ofstream file( filename.c_str(), ios::out | ios::trunc );
 
@@ -416,7 +457,7 @@ void cOverworld :: Save( void )
 	file << "\t</player>" << std::endl;
 
 	// objects
-	for( SpriteList::iterator itr = object_manager->items.begin(), itr_end = object_manager->items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = sprite_manager->objects.begin(), itr_end = sprite_manager->objects.end(); itr != itr_end; ++itr )
 	{
 		cSprite *obj = (*itr);
 
@@ -435,10 +476,13 @@ void cOverworld :: Save( void )
 	file.close();
 
 	// save Layer
-	if( pLayer->Save( description->Get_Layer_filename() ) )
+	if( pLayer->Save( save_dir + "/layer.xml" ) )
 	{
 		debugdisplay->Set_Text( "Overworld " + description->name + " saved" );
 	}
+
+	// save description
+	description->Save();
 }
 
 void cOverworld :: Set_Progress( unsigned int normal_level, bool force /* = 1 */ )
@@ -706,7 +750,7 @@ void cOverworld :: Draw( void )
 	pVideo->Draw_Rect( NULL, 0.00001f, &background_color );
 
 	// Map
-	object_manager->Draw_items();
+	sprite_manager->Draw_items();
 	// Animations
 	pAnimationManager->Draw();
 	// Player
@@ -752,7 +796,7 @@ void cOverworld :: Update( void )
 		// Camera
 		Update_Camera();
 		// Map
-		object_manager->Update_items();
+		sprite_manager->Update_items();
 		// Player
 		pOverworld_Player->Update();
 		// hud
@@ -811,7 +855,7 @@ void cOverworld :: Add_Map_Object( cSprite *object )
 	object->player_range = 0;
 
 	// add
-	object_manager->Add( object );
+	sprite_manager->Add( object );
 
 	// Add to Waypoints array
 	if( object->type == TYPE_OW_WAYPOINT )

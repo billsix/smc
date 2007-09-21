@@ -1,5 +1,5 @@
 /***************************************************************************
-                obj_manager.h  -  header for the corresponding cpp file
+                obj_manager.h  -  Generic object manager
                              -------------------
     copyright            :  (C) 2005 - 2007 by Florian Richter
  ***************************************************************************/
@@ -16,142 +16,145 @@
 #ifndef __OBJ_MANAGER_H__
 #define __OBJ_MANAGER_H__
 
-#include "../core/globals.h"
-#include "../objects/movingsprite.h"
+/* *** *** *** *** *** cObject_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
-/* *** *** *** *** *** cObjectManager *** *** *** *** *** *** *** *** *** *** *** *** */
-
-class cObjectManager
+template<class T> class cObject_Manager
 {
-public:	
-	cObjectManager( unsigned int reserve_items = 2000, unsigned int zpos_items = 100 );
-	~cObjectManager( void );
+public:
+	cObject_Manager( void ) {};
+	virtual ~cObject_Manager( void ) {};
 
-	/*	Adds a sprite Object
+	/*	Add the given object
 	 */
-	void Add( cSprite *sprite );
-
-	// Returns the copied sprite
-	cSprite *Copy( unsigned int identifier );
-
-	/* Deletes the given item
-	 */
-	void Delete( unsigned int array_num, bool delete_data = 1 );
-	bool Delete( cSprite *obj, bool delete_data = 1 );
-
-	/* Deletes all objects
-	 * if delayed is set deletion will occur on the next update
-	 */
-	void Delete_Objects( bool delayed = 0 );
-
-	/* Deletes all items completely.
-	 * if delayed is set deletion will occur on the next update
-	 */
-	void Delete_All( bool delayed = 0 );
-
-	// returns the object pointer if found
-	cSprite *Get_Pointer( unsigned int identifier );
-	// returns the first Z positioned object from the given type
-	cSprite *Get_First( SpriteType type );
-	// returns the last Z positioned object from the given type
-	cSprite *Get_Last( SpriteType type );
-	/* returns the matching object from the given startposition
-	 * type : if not set to zero only returns the object with the given type
-	*/
-	cSprite *Get_from_Position( int posx, int posy, SpriteType type = TYPE_UNDEFINED );
-
-	/* Get a sorted Objects Array
-	 * editor_sort : if set sorts from editor zpos
-	*/
-	void Get_Objects_sorted( SpriteList &objects, bool editor_sort = 0, bool with_player = 0 );
-
-	/* Returns the object array number
-	 * if not found returns -1
-	*/
-	int Get_Array_num( cSprite *obj );
-
-	// Update items drawing validation
-	void Update_items_valid_draw( void );
-	// Update items
-	void Update_items( void );
-	// Draw items
-	void Draw_items( void );
-	// Create Collision data and Handle the collisions
-	void Handle_Collision_items( void );
-
-	/* Returns the current size
-	 */
-	unsigned int size( void );
-	/* Returns the current size
-	 * of the specified sprite array
-	 */
-	unsigned int Get_Size_array( ArrayType sprite_array );
-
-	// Switch objects array position
-	void Switch( cSprite *obj1, cSprite *obj2 );
-
-	// returns a object pointer if found
-	cSprite *operator [] ( unsigned int identifier )
+	virtual void Add( T *obj )
 	{
-		return Get_Pointer( identifier );
+		objects.push_back( obj );
 	}
 
-	// Set the sprite Z position ( updates zpos list )
-	void Set_Z( cSprite *sprite );
-
-	// objects array
-	SpriteList items;
-
-	typedef vector<float> ZposList;
-	// biggest type z position
-	ZposList zposdata;
-	// biggest editor type z position
-	ZposList zposdata_editor;
-
-	// Z position sort
-	struct zpos_sort
+	/* Delete the object from given array number
+	 */
+	virtual bool Delete( unsigned int array_num, bool delete_data = 1 )
 	{
-		bool operator()( const cSprite *a, const cSprite *b ) const
-        {
-            return a->posz > b->posz;
-        }
-	};
+		// out of array
+		if( array_num >= objects.size() )
+		{
+			return 0;
+		}
 
-	// Editor Z position sort
-	struct editor_zpos_sort
+		if( delete_data )
+		{
+			delete objects[array_num];
+		}
+
+		objects.erase( objects.begin() + array_num );
+
+		return 1;
+	}
+
+	/* Delete the given object
+	 */
+	virtual bool Delete( T *obj, bool delete_data = 1 )
 	{
-		bool operator()( const cSprite *a, const cSprite *b ) const
-        {
-			// check if the editor zpos is available
-			if( !a->editor_posz )
+		// empty object
+		if( !obj )
+		{
+			return 0;
+		}
+
+		return Delete( Get_Array_num( obj ), delete_data );
+	}
+
+	/* Delete all objects
+	 */
+	virtual void Delete_All( void )
+	{
+		for( typename vector<T *>::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+		{
+			delete *itr;
+		}
+
+		objects.clear();
+	}
+
+	/* Return the object pointer
+	 * if not found returns NULL
+	*/
+	virtual T *Get_Pointer( unsigned int identifier )
+	{
+		if( identifier >= objects.size() )
+		{
+			// out of array
+			return NULL;
+		}
+
+		// available
+		return objects[identifier];
+	}
+
+	// Switch objects array position
+	bool Switch_Array_num( T *obj1, T *obj2 )
+	{
+		// empty object
+		if( !obj1 || !obj2 )
+		{
+			return 0;
+		}
+
+		// if the same
+		if( obj1 == obj2 )
+		{
+			return 0;
+		}
+
+		int obj1_pos = Get_Array_num( obj1 );
+		int obj2_pos = Get_Array_num( obj2 );
+		
+		// not found
+		if( obj1_pos < 0 || obj2_pos < 0 )
+		{
+			return 0;
+		}
+
+		objects[obj1_pos] = obj2;
+		objects[obj2_pos] = obj1;
+
+		return 1;
+	}
+
+	/* Return the object array number
+	 * if not found returns -1
+	*/
+	int Get_Array_num( T *obj )
+	{
+		// invalid
+		if( !obj )
+		{
+			return -1;
+		}
+
+		for( unsigned int i = 0; i < objects.size(); i++ )
+		{
+			// check if the same
+			if( objects[i] == obj )
 			{
-				if( !b->editor_posz )
-				{
-					return a->posz < b->posz;
-				}
-
-				return a->posz < b->editor_posz;
+				// found
+				return i;
 			}
-			if( !b->editor_posz )
-			{
-				if( !a->editor_posz )
-				{
-					return a->posz < b->posz;
-				}
+		}
 
-				return a->editor_posz < b->posz;
-			}
+		// not found
+		return -1;
+	}
 
-			// both objects have an editor z pos
-            return a->editor_posz < b->editor_posz;
-        }
-	};
+	/* Returns the object count
+	 */
+	unsigned int size( void )
+	{
+		return objects.size();
+	}
+
+	vector<T*> objects;
 };
-
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
-
-// Sprite Manager
-extern cObjectManager *pObjManager;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

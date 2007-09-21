@@ -18,7 +18,7 @@
 #include "../level/level.h"
 #include "../level/level_settings.h"
 #include "../core/game_core.h"
-#include "../core/obj_manager.h"
+#include "../core/sprite_manager.h"
 #include "../core/camera.h"
 #include "../user/preferences.h"
 #include "../input/mouse.h"
@@ -29,8 +29,8 @@
 cEditor_Level :: cEditor_Level( void )
 : cEditor()
 {
-	menu_filename = EDITOR_DIR "/level_menu.xml";
-	items_filename = EDITOR_DIR "/level_items.xml";
+	menu_filename = DATA_DIR "/" GAME_EDITOR_DIR "/level_menu.xml";
+	items_filename = DATA_DIR "/" GAME_EDITOR_DIR "/level_items.xml";
 
 	editor_item_tag = "level";
 }
@@ -113,7 +113,7 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 		float new_cameraposx = 0;
 		float new_cameraposy = 0;
 
-		for( SpriteList::iterator itr = pObjManager->items.begin(), itr_end = pObjManager->items.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			cSprite *obj = (*itr);
 
@@ -186,7 +186,7 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 void cEditor_Level :: Add_Object( cSprite *object )
 {
 	// add to level object manager
-	pObjManager->Add( object );
+	pSprite_Manager->Add( object );
 }
 
 void cEditor_Level :: Activate_Menu( cEditor_Menu_Object *entry )
@@ -299,21 +299,21 @@ bool cEditor_Level :: Switch_ObjectState( cSprite *obj )
 
 void cEditor_Level :: Function_New( void )
 {
-	string levelname = Box_Text_Input( "Create a new Level", "Name" );
+	string level_name = Box_Text_Input( "Create a new Level", "Name" );
 
 	// invalid
-	if( levelname.empty() )
+	if( level_name.empty() )
 	{
 		return;
 	}
 
-	if( pLevel->New( levelname ) )
+	if( pLevel->New( level_name ) )
 	{
-		debugdisplay->Set_Text( "Created " + levelname );
+		debugdisplay->Set_Text( "Created " + level_name );
 	}
 	else
 	{
-		debugdisplay->Set_Text( "Level already exist " + levelname );
+		debugdisplay->Set_Text( "Level " + level_name + " already exists" );
 	}
 }
 
@@ -361,7 +361,7 @@ void cEditor_Level :: Function_Clear( void )
 		return;
 	}
 
-	pObjManager->Delete_All();
+	pSprite_Manager->Delete_All();
 }
 
 void cEditor_Level :: Function_Settings( void )

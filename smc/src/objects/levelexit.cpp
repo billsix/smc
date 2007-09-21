@@ -24,6 +24,7 @@
 #include "../video/gl_surface.h"
 #include "../video/font.h"
 #include "../video/renderer.h"
+#include "../level/level.h"
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -226,11 +227,11 @@ void cLevel_Exit :: Activate( void )
 		// set position and image
 		if( direction == DIR_UP || direction == DIR_DOWN )
 		{
-			pPlayer->Set_PosX( posx + ( col_rect.w * 0.5f ) - ( pPlayer->col_rect.w * 0.5f ) );
+			pPlayer->Set_PosX( col_rect.x - pPlayer->col_pos.x + ( col_rect.w * 0.5f ) - ( pPlayer->col_rect.w * 0.5f ) );
 		}
 		else if( direction == DIR_LEFT || direction == DIR_RIGHT )
 		{
-			pPlayer->Set_PosY( posy + ( col_rect.h * 0.5f ) - ( pPlayer->col_rect.h * 0.5f ) );
+			pPlayer->Set_PosY( col_rect.y - pPlayer->col_pos.y + ( col_rect.h * 0.5f ) - ( pPlayer->col_rect.h * 0.5f ) );
 
 			// set rotation
 			if( direction == DIR_RIGHT )
@@ -318,18 +319,8 @@ void cLevel_Exit :: Set_Level( string filename )
 	editor_color = lila;
 	editor_color.alpha = 128;
 
-	// erase file type if set
-	if( filename.rfind( ".txt" ) != string::npos || filename.rfind( ".smclvl" ) != string::npos )
-	{
-		filename.erase( filename.rfind( "." ) );
-	}
-
-	if( filename.find( pPreferences->level_dir ) != string::npos )
-	{
-		filename.erase( 0, pPreferences->level_dir.length() + 1 );
-	}
-
-	dest_level = filename;
+	// erase file type and directory if set
+	dest_level = Get_filename( filename, 0, 0 );
 }
 
 void cLevel_Exit :: Set_Entry( string entry_name )
@@ -356,27 +347,11 @@ string cLevel_Exit :: Get_Level( bool with_dir /* = 1 */, bool with_end /* = 1 *
 {
 	string name = dest_level;
 
-	// add directory
-	if( with_dir && name.find( pPreferences->level_dir ) == string::npos )
-	{
-		name.insert( 0, pPreferences->level_dir + "/" );
-	}
+	// Get level
+	pLevel->Get_path( name );
 
-	// add file type
-	if( with_end && name.find( ".smclvl" ) == string::npos )
-	{
-		name.insert( name.length(), ".smclvl" );
-	}
-	else if( !with_end )
-	{
-		// erase file type if set
-		if( name.rfind( ".txt" ) != string::npos || name.rfind( ".smclvl" ) != string::npos )
-		{
-			name.erase( name.rfind( "." ) );
-		}
-	}
-
-	return name;
+	// return
+	return Get_filename( name, with_dir, with_end );
 }
 
 bool cLevel_Exit :: is_Draw_valid( void )

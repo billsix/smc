@@ -18,11 +18,14 @@
 
 #include "../core/globals.h"
 #include "../objects/movingsprite.h"
+#include "../core/obj_manager.h"
+#include "../overworld/waypoint.h"
+
 
 /* *** *** *** *** *** *** Layer_Line *** *** *** *** *** *** *** *** *** *** *** */
 
 // Layer Line Point class
-// TODO : create a real basic sprite ?
+// TODO : create a real basic/virtual sprite ?
 class cLayer_Line_Point : public cSprite
 {
 public:
@@ -60,6 +63,13 @@ public:
 	// Draw
 	void Draw( void );
 
+	// return a normal line
+	GL_line Get_Line( void );
+
+	/* Returns the Waypoint on the end of the line(s)
+	 * if the line continues on another line it is followed to the end
+	*/
+	cWaypoint *Get_End_Waypoint( void );
 	
 	// start point
 	cLayer_Line_Point *start;
@@ -80,8 +90,10 @@ public:
 class cLine_collision
 {
 public:
-	void clear( void );
+	cLine_collision( void );
 
+	// nearest line pointer
+	cLayer_Line *line;
 	// nearest line number
 	int line_number;
 	// position difference
@@ -92,7 +104,7 @@ public:
 class cNearLine_collision
 {
 public:
-	void clear( void );
+	cNearLine_collision( void );
 
 	// nearest line number
 	int line_number;
@@ -104,9 +116,9 @@ public:
 class cContact_collision
 {
 public:
-	// clears data
+	// clear data
 	void clear( void );
-	// returns the best fitting line for the given direction
+	// return the best fitting line for the given direction
 	int Get_best_line( ObjectDirection dir );
 
 	// is there a contact
@@ -121,7 +133,7 @@ typedef vector<cLayer_Line *> LayerLineList;
 
 // Layer class
 // handles the line collision detection
-class cLayer : public XMLHandler
+class cLayer : public XMLHandler, public cObject_Manager<cLayer_Line>
 {
 public:
 	cLayer( void );
@@ -129,24 +141,29 @@ public:
 
 	// Load from file
 	void Load( string filename );
-	// Unload
-	void Unload( void );
+
 	// Save
 	bool Save( string filename );
 
 	// Draw the lines and waypoints
 	void Draw( void );
 
-	// Return the data between the nearest line and the given position
-	cLine_collision Get_diff( float x, float y, ObjectDirection directions = DIR_HORIZONTAL, unsigned int check_size = 15 );
-
-	/* Returns the line array number
-	 * if not found returns -1
+	/* Returns the colliding Line start point
+	 * if not found returns NULL
 	*/
-	int Get_Line_num( cLayer_Line *obj );
+	cLayer_Line *Get_Line_Collision_Start( GL_rect *line_rect );
+	/* Returns the colliding Line from the given position and the added direction size
+	 * if not found returns a NULL line in the class
+	*/
+	cLine_collision Get_Line_Collision_Direction( float x, float y, ObjectDirection dir, float dir_size = 15, float check_size = 10 );
 
-	// lines
-	LayerLineList lines;
+	/* Return the collision data between the nearest line and the given position
+	 * check_size is maximum size for both direction checking lines
+	 * if only_origin_id is set only checks lines with the given id
+	*/
+	cLine_collision Get_nearest( float x, float y, ObjectDirection dir = DIR_HORIZONTAL, unsigned int check_size = 15, int only_origin_id = -1 );
+	// Return the collision data between the given line and position
+	cLine_collision Get_nearest_line( cLayer_Line *map_layer_line, float x, float y, ObjectDirection dir = DIR_HORIZONTAL, unsigned int check_size = 15 );
 
 	// draw the layer
 	bool draw;
@@ -164,5 +181,6 @@ private:
 	XMLAttributes xml_attributes;
 };
 
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 #endif

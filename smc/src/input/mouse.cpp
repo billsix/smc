@@ -24,7 +24,7 @@
 #include "../overworld/ow_player.h"
 #include "../gui/menu.h"
 #include "../core/camera.h"
-#include "../core/obj_manager.h"
+#include "../core/sprite_manager.h"
 #include "../player/player.h"
 #include "../user/preferences.h"
 #include "../core/framerate.h"
@@ -360,7 +360,7 @@ bool cMouseCursor :: Editor_Collsion_Check( float px /* = 0 */, float py /* = 0 
 bool cMouseCursor :: Get_Collision_Level( GL_rect *mouse_rect )
 {
 	SpriteList level_objects;
-	pObjManager->Get_Objects_sorted( level_objects, 1, 1 );
+	pSprite_Manager->Get_Objects_sorted( level_objects, 1, 1 );
 
 	// objects before player
 	for( SpriteList::reverse_iterator itr = level_objects.rbegin(), itr_end = level_objects.rend(); itr != itr_end; ++itr )
@@ -381,7 +381,7 @@ bool cMouseCursor :: Get_Collision_Level( GL_rect *mouse_rect )
 			}
 			else
 			{
-				Collision_Add( this, obj, pObjManager->Get_Array_num( obj ), Get_CollisionType( obj->sprite_array ) );
+				Collision_Add( this, obj, pSprite_Manager->Get_Array_num( obj ), Get_CollisionType( obj->sprite_array ) );
 			}
 
 			return 1;
@@ -394,7 +394,7 @@ bool cMouseCursor :: Get_Collision_Level( GL_rect *mouse_rect )
 bool cMouseCursor :: Get_Collision_World( GL_rect *mouse_rect )
 {
 	SpriteList level_objects;
-	pActive_Overworld->object_manager->Get_Objects_sorted( level_objects, 1, 1 );
+	pActive_Overworld->sprite_manager->Get_Objects_sorted( level_objects, 1, 1 );
 
 
 	// objects before player
@@ -416,7 +416,7 @@ bool cMouseCursor :: Get_Collision_World( GL_rect *mouse_rect )
 			}
 			else
 			{
-				Collision_Add( this, obj, pActive_Overworld->object_manager->Get_Array_num( obj ), Get_CollisionType( obj->sprite_array ) );
+				Collision_Add( this, obj, pActive_Overworld->sprite_manager->Get_Array_num( obj ), Get_CollisionType( obj->sprite_array ) );
 			}
 
 			return 1;
@@ -534,7 +534,7 @@ void cMouseCursor :: Click( void )
 				}
 				else
 				{
-					col_obj = pObjManager->items[col->number];
+					col_obj = pSprite_Manager->objects[col->number];
 				}
 			}
 			// World
@@ -548,7 +548,7 @@ void cMouseCursor :: Click( void )
 				// object manager object
 				else
 				{
-					col_obj = pActive_Overworld->object_manager->Get_Pointer( col->number );
+					col_obj = pActive_Overworld->sprite_manager->Get_Pointer( col->number );
 				}
 			}
 
@@ -1014,7 +1014,7 @@ cSprite *cMouseCursor :: Copy( cSprite *ncopy_object, float px, float py )
 		return NULL;
 	}
 
-	cSprite *new_sprite = Copy_Object( ncopy_object, px, py );
+	cSprite *new_sprite = ncopy_object->Copy();
 
 	if( !new_sprite )
 	{
@@ -1022,15 +1022,17 @@ cSprite *cMouseCursor :: Copy( cSprite *ncopy_object, float px, float py )
 		return NULL;
 	}
 
+	new_sprite->Set_Pos( px, py, 1 );
+
 	if( new_sprite->sprite_array == ARRAY_MASSIVE || new_sprite->sprite_array == ARRAY_PASSIVE || new_sprite->sprite_array == ARRAY_FRONT_PASSIVE || new_sprite->sprite_array == ARRAY_ACTIVE || new_sprite->sprite_array == ARRAY_ENEMY )
 	{
 		if( editor_level_enabled )
 		{
-			pObjManager->Add( new_sprite );
+			pSprite_Manager->Add( new_sprite );
 		}
 		else if( editor_world_enabled )
 		{
-			pActive_Overworld->object_manager->Add( new_sprite );
+			pActive_Overworld->sprite_manager->Add( new_sprite );
 		}
 		else
 		{
@@ -1078,7 +1080,7 @@ void cMouseCursor :: Delete( cSprite *sprite )
 		// delete object
 		if( editor_level_enabled )
 		{
-			pObjManager->Delete( sprite );
+			pSprite_Manager->Delete( sprite );
 		}
 		else if( editor_world_enabled )
 		{
@@ -1088,12 +1090,11 @@ void cMouseCursor :: Delete( cSprite *sprite )
 				cLayer_Line *line = static_cast<cLayer_Line *>(static_cast<cLayer_Line_Point *>(sprite)->line);
 
 				// delete line
-				pActive_Overworld->pLayer->lines.erase( pActive_Overworld->pLayer->lines.begin() + pActive_Overworld->pLayer->Get_Line_num( line ) );
-				delete line;
+				pActive_Overworld->pLayer->Delete( line );
 			}
 			else
 			{
-				pActive_Overworld->object_manager->Delete( sprite );
+				pActive_Overworld->sprite_manager->Delete( sprite );
 			}
 		}
 
@@ -1233,21 +1234,19 @@ void cMouseCursor :: Update_selection( void )
 		Clear_selected_objects();
 	}
 
-	cObjectManager *obj_manager = NULL;
+	cSprite_Manager *sprite_manager = NULL;
 
 	if( editor_level_enabled )
 	{
-		obj_manager = pObjManager;
+		sprite_manager = pSprite_Manager;
 	}
 	else
 	{
-		obj_manager = pActive_Overworld->object_manager;
-
-
+		sprite_manager = pActive_Overworld->sprite_manager;
 	}
 
 	// add selected objects
-	for( SpriteList::iterator itr = obj_manager->items.begin(), itr_end = obj_manager->items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = sprite_manager->objects.begin(), itr_end = sprite_manager->objects.end(); itr != itr_end; ++itr )
 	{
 		cSprite *object = (*itr);
 
@@ -1368,7 +1367,7 @@ void cMouseCursor :: Editor_Update( void )
 			// object manager object
 			else
 			{
-				obj = pObjManager->Get_Pointer( col->number );
+				obj = pSprite_Manager->Get_Pointer( col->number );
 			}
 		}
 		// World
@@ -1382,7 +1381,7 @@ void cMouseCursor :: Editor_Update( void )
 			// object manager object
 			else
 			{
-				obj = pActive_Overworld->object_manager->Get_Pointer( col->number );
+				obj = pActive_Overworld->sprite_manager->Get_Pointer( col->number );
 			}
 		}
 

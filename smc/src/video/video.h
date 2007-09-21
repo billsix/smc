@@ -134,12 +134,12 @@ public:
 	 * mipmap : create texture mipmaps
 	 * force_width/height : force the given width and height
 	*/
-	GL_Surface *CreateTexture( SDL_Surface *surface, bool mipmap = 0, unsigned int force_width = 0, unsigned int force_height = 0 );
+	GL_Surface *Create_Texture( SDL_Surface *surface, bool mipmap = 0, unsigned int force_width = 0, unsigned int force_height = 0 );
 
 	/* Creates a texture into the bound GL texture
 	 * mipmap : create texture mipmaps
 	*/
-	void Create_Texture( unsigned int width, unsigned int height, void *pixels, bool mipmap = 0 );
+	void Create_GL_Texture( unsigned int width, unsigned int height, void *pixels, bool mipmap = 0 );
 
 	// Gets the Pixel color of a GL image
 	Color GetPixel( int x, int y, GL_Surface *source = NULL );

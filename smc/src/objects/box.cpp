@@ -17,7 +17,7 @@
 #include "../audio/audio.h"
 #include "../core/camera.h"
 #include "../core/framerate.h"
-#include "../core/obj_manager.h"
+#include "../core/sprite_manager.h"
 #include "../core/game_core.h"
 #include "../video/animation.h"
 #include "../player/player.h"
@@ -400,7 +400,7 @@ void cBaseBox :: Check_Collision( ObjectDirection cdirection )
 	for( unsigned int i = 0; i < col_count; i++ )
 	{
 		cObjectCollision *col = Collision_Get_last();
-		cSprite *col_obj = pObjManager->Get_Pointer( col->number );
+		cSprite *col_obj = pSprite_Manager->Get_Pointer( col->number );
 
 		// send box collision
 		col_obj->Handle_Collision_Box( Get_OppositeDirection( col->direction ), &col_rect );
@@ -639,14 +639,14 @@ unsigned int cBaseBox :: Validate_Collision( cSprite *obj )
 	return 0;
 }
 
-void cBaseBox :: Handle_Collision_Player( ObjectDirection cdirection )
+void cBaseBox :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// if player jumps from below or fly's against it
-	if( cdirection == DIR_BOTTOM && pPlayer->state != STA_FLY )
+	if( collision->direction == DIR_BOTTOM && pPlayer->state != STA_FLY )
 	{
 		if( useable_count != 0 )
 		{
-			Activate_collision( Get_OppositeDirection( cdirection ) );
+			Activate_collision( Get_OppositeDirection( collision->direction ) );
 		}
 		else
 		{

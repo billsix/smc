@@ -257,25 +257,25 @@ void cCamera :: Update_Position( void )
 	// mouse
 	pMouseCursor->Update_Position();
 
-	// object manager
-	cObjectManager *obj_manager = NULL;
+	// sprite manager
+	cSprite_Manager *sprite_manager = NULL;
 
 	if( Game_Mode == MODE_LEVEL )
 	{
-		obj_manager = pObjManager;
+		sprite_manager = pSprite_Manager;
 
 		// player
 		pPlayer->Update_valid_draw();
 	}
 	else
 	{
-		obj_manager = pActive_Overworld->object_manager;
+		sprite_manager = pActive_Overworld->sprite_manager;
 
 		// player
 		pOverworld_Player->Update_valid_draw();
 	}
 
-	obj_manager->Update_items_valid_draw();
+	sprite_manager->Update_items_valid_draw();
 
 	// editor
 	if( editor_enabled )

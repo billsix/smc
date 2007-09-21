@@ -24,8 +24,8 @@
 cEditor_World :: cEditor_World( void )
 : cEditor()
 {
-	menu_filename = EDITOR_DIR "/world_menu.xml";
-	items_filename = EDITOR_DIR "/world_items.xml";
+	menu_filename = DATA_DIR "/" GAME_EDITOR_DIR "/world_menu.xml";
+	items_filename = DATA_DIR "/" GAME_EDITOR_DIR "/world_items.xml";
 
 	editor_item_tag = "world";
 	camera_speed = 20;
@@ -127,11 +127,11 @@ void cEditor_World :: Activate_Menu( cEditor_Menu_Object *entry )
 	// If Function
 	if( entry->bfunction )
 	{
-		/*if( entry->tags.compare( "new" ) == 0 )
+		if( entry->tags.compare( "new" ) == 0 )
 		{
 			Function_New();
 		}
-		else */if( entry->tags.compare( "load" ) == 0 )
+		else if( entry->tags.compare( "load" ) == 0 )
 		{
 			Function_Load();
 		}
@@ -168,6 +168,26 @@ void cEditor_World :: Activate_Menu( cEditor_Menu_Object *entry )
 	}
 }
 
+void cEditor_World :: Function_New( void )
+{
+	string world_name = Box_Text_Input( "Create a new World", "Name" );
+
+	// invalid
+	if( world_name.empty() )
+	{
+		return;
+	}
+
+	if( pOverworld_manager->New( world_name ) )
+	{
+		debugdisplay->Set_Text( "Created " + world_name );
+	}
+	else
+	{
+		debugdisplay->Set_Text( "World " + world_name + " already exists" );
+	}
+}
+
 void cEditor_World :: Function_Load( void )
 {
 	pKeyboard->Key_Down( SDLK_w );
@@ -186,7 +206,7 @@ void cEditor_World :: Function_Reload( void )
 
 void cEditor_World :: Function_Clear( void )
 {
-	pActive_Overworld->object_manager->Delete_All();
+	pActive_Overworld->sprite_manager->Delete_All();
 	pActive_Overworld->waypoints.clear();
 	pOverworld_Player->Reset();
 }

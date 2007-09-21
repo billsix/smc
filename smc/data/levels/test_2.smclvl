@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.8" />
+		<Property name="game_version" value="1.1" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1184521692" />
+		<Property name="save_time" value="1189816107" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="FluXy" />
@@ -19,16 +19,9 @@
 		<Property name="bg_color_1_red" value="70" />
 		<Property name="bg_color_1_green" value="50" />
 		<Property name="bg_color_1_blue" value="80" />
-		<Property name="bg_color_2_red" value="120" />
+		<Property name="bg_color_2_red" value="20" />
 		<Property name="bg_color_2_green" value="20" />
 		<Property name="bg_color_2_blue" value="90" />
-	</background>
-	<background>
-		<Property name="type" value="1" />
-		<Property name="image" value="game/background/green_junglehills.png" />
-		<Property name="speedx" value="1" />
-		<Property name="speedy" value="1" />
-		<Property name="posz" value="0.00012" />
 	</background>
 	<global_effect>
 		<Property name="type" value="1" />

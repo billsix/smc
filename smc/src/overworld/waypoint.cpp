@@ -21,6 +21,7 @@
 #include "../user/preferences.h"
 #include "../video/renderer.h"
 #include "../video/gl_surface.h"
+#include "../level/level.h"
 
 /* *** *** *** *** *** *** *** *** cWaypoint *** *** *** *** *** *** *** *** *** */
 
@@ -59,8 +60,6 @@ void cWaypoint :: Init( void )
 	
 	access = 0;
 	access_default = 0;
-	
-	ID = 0;
 
 	direction_backward = DIR_UNDEFINED;
 	direction_forward = DIR_UNDEFINED;
@@ -363,20 +362,16 @@ void cWaypoint :: Set_Access( bool enabled, bool new_start_access /* = 0 */ )
 
 void cWaypoint :: Set_Destination( string str )
 {
-	// erase file type if set
-	if( str.rfind( ".txt" ) != string::npos || str.rfind( ".smclvl" ) != string::npos )
+	// normal waypoint
+	if( waypoint_type == WAYPOINT_NORMAL )
 	{
-		str.erase( str.rfind( "." ) );
+		// erase file type and directory  if set
+		str = Get_filename( str, 0, 0 );
 	}
-
-	// erase directory
-	if( waypoint_type == WAYPOINT_NORMAL && str.find( pPreferences->level_dir ) != string::npos )
+	// world waypoint
+	else if( waypoint_type == WAYPOINT_WORLD_LINK && str.find( DATA_DIR "/" GAME_OVERWORLD_DIR "/" ) != string::npos )
 	{
-		str.erase( 0, pPreferences->level_dir.length() + 1 );
-	}
-	else if( waypoint_type == WAYPOINT_WORLD_LINK && str.find( OVERWORLD_DIR ) != string::npos )
-	{
-		str.erase( 0, strlen( OVERWORLD_DIR ) + 1 );
+		str.erase( 0, strlen( DATA_DIR "/" GAME_OVERWORLD_DIR "/" ) );
 	}
 
 	destination = str;
@@ -386,23 +381,16 @@ string cWaypoint :: Get_Destination( bool with_dir /* = 0 */, bool with_end /* =
 {
 	string name = destination;
 
-	if( with_dir ) 
+	if( waypoint_type == WAYPOINT_NORMAL )
 	{
-		if( waypoint_type == WAYPOINT_NORMAL && name.find( pPreferences->level_dir ) == string::npos )
-		{
-			name.insert( 0, pPreferences->level_dir + "/" );
-		}
-		else if( waypoint_type == WAYPOINT_WORLD_LINK && name.find( OVERWORLD_DIR ) == string::npos )
-		{
-			name.insert( 0, OVERWORLD_DIR "/" );
-		}
+		pLevel->Get_path( name );
+		name = Get_filename( name, with_dir, with_end );
 	}
-
-	if( with_end ) 
+	else if( waypoint_type == WAYPOINT_WORLD_LINK )
 	{
-		if( waypoint_type == WAYPOINT_NORMAL )
+		if( with_dir && name.find( DATA_DIR "/" GAME_OVERWORLD_DIR "/" ) == string::npos )
 		{
-			name.insert( name.length(), ".smclvl" );
+			name.insert( 0, DATA_DIR "/" GAME_OVERWORLD_DIR "/" );
 		}
 	}
 

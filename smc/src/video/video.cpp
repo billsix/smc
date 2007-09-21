@@ -155,11 +155,11 @@ void cVideo :: Init_CEGUI_data( void )
 	// initialise the required Resource Provider directories
 	DefaultResourceProvider *rp = (DefaultResourceProvider *)System::getSingleton().getResourceProvider();
 
-	rp->setResourceGroupDirectory( "schemes", GUI_SCHEME_DIR "/" );
-	rp->setResourceGroupDirectory( "imagesets", GUI_IMAGESET_DIR "/" );
-	rp->setResourceGroupDirectory( "fonts", GUI_FONT_DIR "/" );
-	rp->setResourceGroupDirectory( "looknfeels", GUI_LOOKNFEEL_DIR "/" );
-	rp->setResourceGroupDirectory( "layouts", GUI_LAYOUT_DIR "/" );
+	rp->setResourceGroupDirectory( "schemes", DATA_DIR "/" GUI_SCHEME_DIR "/" );
+	rp->setResourceGroupDirectory( "imagesets", DATA_DIR "/" GUI_IMAGESET_DIR "/" );
+	rp->setResourceGroupDirectory( "fonts", DATA_DIR "/" GUI_FONT_DIR "/" );
+	rp->setResourceGroupDirectory( "looknfeels", DATA_DIR "/" GUI_LOOKNFEEL_DIR "/" );
+	rp->setResourceGroupDirectory( "layouts", DATA_DIR "/" GUI_LAYOUT_DIR "/" );
 #ifdef CEGUI_WITH_XERCES
 	// This is needed for Xerces to specify the schemas location
 	rp->setResourceGroupDirectory( "schemas", SCHEMA_DIR "/" );
@@ -230,12 +230,14 @@ void cVideo :: Init_CEGUI_data( void )
 
 void cVideo :: Init_SDL( void )
 {
-	if( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE ) == -1 )
+	if( SDL_Init( SDL_INIT_VIDEO ) == -1 )
 	{
 		printf( "Error : SDL initialization failed\nReason : %s\n", SDL_GetError() );
 		exit( 0 );
 	}
-	
+
+	atexit( SDL_Quit );
+
 	if( SDL_InitSubSystem( SDL_INIT_JOYSTICK ) == -1 )
 	{
 		printf( "Warning : SDL Joystick initialization failed\nReason : %s\n", SDL_GetError() );
@@ -287,7 +289,7 @@ void cVideo :: Init_Video( void )
 		// Set Caption
 		SDL_WM_SetCaption( CAPTION, NULL );
 		// Set Icon
-		SDL_Surface *icon = IMG_Load( ICON_DIR "/window_32.png" );
+		SDL_Surface *icon = IMG_Load( DATA_DIR "/" GAME_ICON_DIR "/window_32.png" );
 		SDL_WM_SetIcon( icon, NULL );
 		SDL_FreeSurface( icon );
 	}
@@ -602,9 +604,9 @@ GL_Surface *cVideo :: Get_Surface( string filename, bool print_errors /* = 1 */ 
 	}
 
 	// pixmaps dir must be given
-	if( filename.find( PIXMAPS_DIR ) == string::npos )
+	if( filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR ) == string::npos )
 	{
-		filename.insert( 0, PIXMAPS_DIR "/" );
+		filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
 	}
 
 	// check if already loaded
@@ -629,9 +631,9 @@ GL_Surface *cVideo :: Get_Surface( string filename, bool print_errors /* = 1 */ 
 GL_Surface *cVideo :: Load_Surface( string filename, int use_settings /* = 1 */, bool print_errors /* = 1 */ )
 {
 	// pixmaps dir must be given
-	if( filename.find( PIXMAPS_DIR ) == string::npos ) 
+	if( filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == string::npos ) 
 	{
-		filename.insert( 0, PIXMAPS_DIR "/" );
+		filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
 	}
 
 	GL_Surface *image = NULL;
@@ -708,7 +710,7 @@ GL_Surface *cVideo :: Load_Surface( string filename, int use_settings /* = 1 */,
 					}
 				}
 
-				image = CreateTexture( sdl_surface, settings->mipmap, (unsigned int)new_w, (unsigned int)new_h );
+				image = Create_Texture( sdl_surface, settings->mipmap, (unsigned int)new_w, (unsigned int)new_h );
 			}
 
 			// apply settings
@@ -717,7 +719,7 @@ GL_Surface *cVideo :: Load_Surface( string filename, int use_settings /* = 1 */,
 		// without settings
 		else
 		{
-			image = CreateTexture( sdl_surface );
+			image = Create_Texture( sdl_surface );
 		}
 	}
 
@@ -740,7 +742,7 @@ GL_Surface *cVideo :: Load_Surface( string filename, int use_settings /* = 1 */,
 	return image;
 }
 
-GL_Surface *cVideo :: CreateTexture( SDL_Surface *surface, bool mipmap /* = 0 */, unsigned int force_width /* = 0 */, unsigned int force_height /* = 0 */ )
+GL_Surface *cVideo :: Create_Texture( SDL_Surface *surface, bool mipmap /* = 0 */, unsigned int force_width /* = 0 */, unsigned int force_height /* = 0 */ )
 {
 	if( !surface )
 	{
@@ -813,7 +815,7 @@ GL_Surface *cVideo :: CreateTexture( SDL_Surface *surface, bool mipmap /* = 0 */
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-	Create_Texture( width, height, final->pixels, mipmap );
+	Create_GL_Texture( width, height, final->pixels, mipmap );
 	
 	glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
 
@@ -840,7 +842,7 @@ GL_Surface *cVideo :: CreateTexture( SDL_Surface *surface, bool mipmap /* = 0 */
 	return image;
 }
 
-void cVideo :: Create_Texture( unsigned int width, unsigned int height, void *pixels, bool mipmap /* = 0 */ )
+void cVideo :: Create_GL_Texture( unsigned int width, unsigned int height, void *pixels, bool mipmap /* = 0 */ )
 {
 	// create mipmaps
     if( mipmap )
@@ -1059,7 +1061,7 @@ void cVideo :: Save_Screenshot( void )
 	
 	for( unsigned int i = 1; i < 1000; i++ )
 	{
-		filename = user_data_dir + SCREENSHOT_DIR "/" + int_to_string( i ) + ".bmp";
+		filename = user_data_dir + USER_SCREENSHOT_DIR "/" + int_to_string( i ) + ".bmp";
 
 		if( !valid_file( filename ) )
 		{

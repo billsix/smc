@@ -20,7 +20,7 @@
 #include "../overworld/waypoint.h"
 #include "../overworld/layer.h"
 #include "../overworld/ow_player.h"
-#include "../core/obj_manager.h"
+#include "../core/sprite_manager.h"
 #include "../gui/hud.h"
 
 /* *** *** *** *** *** *** *** *** cOverworld_description *** *** *** *** *** *** *** *** *** */
@@ -31,15 +31,14 @@ public:
 	cOverworld_description( void );
 	virtual ~cOverworld_description( void );
 
-	// Load Overworld Description
+	// Load
 	void Load( void );
 
-	// returns the world filename
-	string Get_World_filename( void );
-	// returns the description filename
-	string Get_Description_filename( void );
-	// returns the layer filename
-	string Get_Layer_filename( void );
+	// Save
+	void Save( void );
+
+	// returns the full path
+	string Get_full_path( void );
 
 	// directory name
 	string path;
@@ -120,7 +119,9 @@ public:
 	*/
 	int Get_Waypoint_num( string world_name );
 
-	// Checks if the rect collides with a Waypoint returns -1 if no collisions
+	/* Check if the rect collides with a Waypoint
+	 * if no collision found returns -1
+	*/
 	int Get_Waypoint_Collision( GL_rect *rect_2 );
 	// returns the last accessible Waypoint
 	int Get_LastValidWaypoint( void );
@@ -136,7 +137,7 @@ public:
 	cOverworld_description *description;
 
 	// Map objects
-	cObjectManager *object_manager;
+	cSprite_Manager *sprite_manager;
 	// Waypoints
 	WaypointList waypoints;
 

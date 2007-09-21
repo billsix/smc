@@ -466,13 +466,13 @@ cMenu_Item *cMenuCore :: Auto_Menu( string imagename, string imagefilename_menu,
 	// The Menu Image
 	if( imagefilename_menu.length() > 0 )
 	{
-		temp_item->image_menu->Set_Image( pVideo->Get_Surface( PIXMAPS_DIR "/menu/" "items/" + imagefilename_menu ), 1 );
+		temp_item->image_menu->Set_Image( pVideo->Get_Surface( DATA_DIR "/" GAME_PIXMAPS_DIR "/menu/" "items/" + imagefilename_menu ), 1 );
 	}
 
 	// The Active Image
 	if( imagename.length() > 0 )
 	{
-		temp_item->image_default->Set_Image( pVideo->Get_Surface( PIXMAPS_DIR "/menu/" + imagename ), 1 );
+		temp_item->image_default->Set_Image( pVideo->Get_Surface( DATA_DIR "/" GAME_PIXMAPS_DIR "/menu/" + imagename ), 1 );
 	}
 
 	// Position and initialization

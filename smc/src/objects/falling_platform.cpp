@@ -395,14 +395,14 @@ void cFalling_Platform :: Handle_Collision( cObjectCollision *collision )
 	cImageObjectSprite::Handle_Collision( collision );
 }
 
-void cFalling_Platform :: Handle_Collision_Player( ObjectDirection cdirection )
+void cFalling_Platform :: Handle_Collision_Player( cObjectCollision *collision )
 {
-	if( cdirection == DIR_UNDEFINED )
+	if( collision->direction == DIR_UNDEFINED )
 	{
 		return;
 	}
 
-	if( cdirection == DIR_TOP )
+	if( collision->direction == DIR_TOP )
 	{
 		if( platform_state == PLATFORM_STAY )
 		{
@@ -416,7 +416,7 @@ void cFalling_Platform :: Editor_Activate( void )
 	WindowManager &wmgr = WindowManager::getSingleton();
 
 	// time to fall
-	Editbox *editbox = (Editbox *)wmgr.createWindow( "TaharezLook/Editbox", "editor_falling_platform_time_fall" );
+	Editbox *editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_falling_platform_time_fall" ));
 	editbox->setTooltipText( "Time to fall" );
 	Editor_Add( editbox, 120 );
 
@@ -424,7 +424,7 @@ void cFalling_Platform :: Editor_Activate( void )
 	editbox->subscribeEvent( Editbox::EventTextChanged, Event::Subscriber( &cFalling_Platform::Editor_Time_Fall_Key, this ) );
 
 	// horizontal middle image count
-	editbox = (Editbox *)wmgr.createWindow( "TaharezLook/Editbox", "editor_falling_platform_hor_middle_count" );
+	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_falling_platform_hor_middle_count" ));
 	editbox->setTooltipText( "Horizontal Middle Image Count" );
 	Editor_Add( editbox, 120 );
 
@@ -432,7 +432,7 @@ void cFalling_Platform :: Editor_Activate( void )
 	editbox->subscribeEvent( Editbox::EventTextChanged, Event::Subscriber( &cFalling_Platform::Editor_Hor_Middle_Count_Key, this ) );
 
 	// image top left
-	editbox = (Editbox *)wmgr.createWindow( "TaharezLook/Editbox", "editor_falling_platform_image_top_left" );
+	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_falling_platform_image_top_left" ));
 	editbox->setTooltipText( "Image Top Left" );
 	Editor_Add( editbox, 200 );
 
@@ -440,7 +440,7 @@ void cFalling_Platform :: Editor_Activate( void )
 	editbox->subscribeEvent( Editbox::EventTextChanged, Event::Subscriber( &cFalling_Platform::Editor_Image_Top_Left_Key, this ) );
 
 	// image top middle
-	editbox = (Editbox *)wmgr.createWindow( "TaharezLook/Editbox", "editor_falling_platform_image_top_middle" );
+	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_falling_platform_image_top_middle" ));
 	editbox->setTooltipText( "Image Top Middle" );
 	Editor_Add( editbox, 200 );
 
@@ -448,7 +448,7 @@ void cFalling_Platform :: Editor_Activate( void )
 	editbox->subscribeEvent( Editbox::EventTextChanged, Event::Subscriber( &cFalling_Platform::Editor_Image_Top_Middle_Key, this ) );
 
 	// image top right
-	editbox = (Editbox *)wmgr.createWindow( "TaharezLook/Editbox", "editor_falling_platform_image_top_right" );
+	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_falling_platform_image_top_right" ));
 	editbox->setTooltipText( "Image Top Right" );
 	Editor_Add( editbox, 200 );
 

@@ -137,7 +137,7 @@ public:
 	 * animate : show type change animation
 	 * sound : if set the upgrade sound is played
 	*/
-	void Set_Type( Maryo_type mtype, bool animation = 1, bool sound = 1 );
+	void Set_Type( Maryo_type new_type, bool animation = 1, bool sound = 1 );
 	void Set_Type( SpriteType item_type, bool animation = 1, bool sound = 1 );
 	// sets the moving state
 	void Set_MovingState( Moving_state new_state );
@@ -151,7 +151,9 @@ public:
 
 	// Draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
-	// Draw an animation using the given new type
+	/* Draw an animation using the given new type
+	 * ends with the new type set
+	*/
 	void Draw_Animation( Maryo_type new_mtype );
 	// Returns the current image number without the direction modifier
 	unsigned int Get_Image( void );
@@ -160,7 +162,7 @@ public:
 	void Load_Images( void );
 
 	/* Sets the best position to advance in size
-	 * if only_check is set no position changes will be made
+	 * if only_check is set position is unchanged
 	*/
 	bool ChangeSize( float x, float y, bool only_check = 0 );
 

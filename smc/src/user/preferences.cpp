@@ -30,6 +30,36 @@ namespace fs = boost::filesystem;
 
 cPreferences :: cPreferences( void )
 {
+	// Get user directory
+	user_data_dir = Get_User_Directory();
+
+	// Create user directory
+	if( !fs::exists( fs::path( user_data_dir, fs::native ) ) )
+	{
+		// first run if not available
+		fs::create_directory( fs::path( user_data_dir, fs::native ) );
+	}
+	// Create savegame directory
+	if( !fs::exists( fs::path( user_data_dir + USER_SAVEGAME_DIR, fs::native ) ) )
+	{
+		fs::create_directory( fs::path( user_data_dir + USER_SAVEGAME_DIR, fs::native ) );
+	}
+	// Create screenshot directory
+	if( !fs::exists( fs::path( user_data_dir + USER_SCREENSHOT_DIR, fs::native ) ) )
+	{
+		fs::create_directory( fs::path( user_data_dir + USER_SCREENSHOT_DIR, fs::native ) );
+	}
+	// Create level directory
+	if( !fs::exists( fs::path( user_data_dir + USER_LEVEL_DIR, fs::native ) ) )
+	{
+		fs::create_directory( fs::path( user_data_dir + USER_LEVEL_DIR, fs::native ) );
+	}
+	// Create world directory
+	if( !fs::exists( fs::path( user_data_dir + USER_WORLD_DIR, fs::native ) ) )
+	{
+		fs::create_directory( fs::path( user_data_dir + USER_WORLD_DIR, fs::native ) );
+	}
+
 	Default();
 }
 
@@ -56,7 +86,7 @@ bool cPreferences :: Load( string filename /* = "" */ )
 
 	try
 	{
-		System::getSingleton().getXMLParser()->parseXMLFile( *this, config_filename.c_str(), SCHEMA_DIR "/Config.xsd", "" );
+		System::getSingleton().getXMLParser()->parseXMLFile( *this, config_filename.c_str(), DATA_DIR "/" GAME_SCHEMA_DIR "/Config.xsd", "" );
 	}
 	// catch CEGUI Exceptions
 	catch( Exception &ex )
@@ -135,8 +165,6 @@ void cPreferences :: Save( void )
 	file << "\t<Item Name=\"background_images\" Value=\"" << background_images << "\" />" << std::endl;
 	// Leveleditor
 	file << "\t<Item Name=\"editor_mouse_auto_hide\" Value=\"" << editor_mouse_auto_hide << "\" />" << std::endl;
-	// Directory
-	file << "\t<Item Name=\"level_dir\" Value=\"" << level_dir << "\" />" << std::endl;
 	// end preferences
 	file << "</Preferences>" << std::endl;
 
@@ -193,7 +221,6 @@ void cPreferences :: Default( void )
 	joy_name.clear();
 	joy_analog_jump = 0;
 	background_images = 1;
-	level_dir = LEVEL_DIR;
 
 	// editor
 	editor_mouse_auto_hide = 0;
@@ -461,20 +488,6 @@ void cPreferences :: handle_item( const XMLAttributes& attributes )
 	else if( name.compare( "editor_mouse_auto_hide" ) == 0 )
 	{
 		editor_mouse_auto_hide = attributes.getValueAsBool( "Value" );
-	}
-	else if( name.compare( "level_dir" ) == 0 )
-	{
-		string val = attributes.getValueAsString( "Value" ).c_str();
-
-		if( fs::exists( val ) )
-		{
-			level_dir = val;
-		}
-		// if directory is not valid
-		else
-		{
-			printf( "Warning : Preferences level directory %s doesn't exist\n", val.c_str() );
-		}
 	}
 }
 

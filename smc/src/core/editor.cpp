@@ -195,10 +195,10 @@ void cEditor :: Init( void )
 		return;
 	}
 	// Parse Items
-	System::getSingleton().getXMLParser()->parseXMLFile( *this, items_filename.c_str(), SCHEMA_DIR "/Editor_Items.xsd", "" );
+	System::getSingleton().getXMLParser()->parseXMLFile( *this, items_filename.c_str(), DATA_DIR "/" GAME_SCHEMA_DIR "/Editor_Items.xsd", "" );
 
 	// Get all image items
-	Load_Image_Items( PIXMAPS_DIR );
+	Load_Image_Items( DATA_DIR "/" GAME_PIXMAPS_DIR );
 
 	// Get Menu
 	if( !valid_file( menu_filename ) )
@@ -207,7 +207,7 @@ void cEditor :: Init( void )
 		return;
 	}
 	// Parse Menu
-	System::getSingleton().getXMLParser()->parseXMLFile( *this, menu_filename.c_str(), SCHEMA_DIR "/Editor_Menu.xsd", "" );
+	System::getSingleton().getXMLParser()->parseXMLFile( *this, menu_filename.c_str(), DATA_DIR "/" GAME_SCHEMA_DIR "/Editor_Menu.xsd", "" );
 }
 
 void cEditor :: Unload( void )
@@ -283,25 +283,25 @@ void cEditor :: Enable( void )
 
 	pMouseCursor->visible = 1;
 
-	// object manager
-	cObjectManager *obj_manager = NULL;
+	// sprite manager
+	cSprite_Manager *sprite_manager = NULL;
 
 	if( Game_Mode == MODE_LEVEL )
 	{
-		obj_manager = pObjManager;
+		sprite_manager = pSprite_Manager;
 
 		// player
 		pPlayer->Update_Position_Rect();
 	}
 	else
 	{
-		obj_manager = pActive_Overworld->object_manager;
+		sprite_manager = pActive_Overworld->sprite_manager;
 
 		// player
 		pOverworld_Player->Update_Position_Rect();
 	}
 
-	for( SpriteList::iterator itr = obj_manager->items.begin(), itr_end = obj_manager->items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = sprite_manager->objects.begin(), itr_end = sprite_manager->objects.end(); itr != itr_end; ++itr )
 	{
 		(*itr)->Update_Position_Rect();
 	}
@@ -323,25 +323,25 @@ void cEditor :: Disable( void )
 	pAudio->PlaySound( "editor/leave.ogg" );
 	debugdisplay->Set_Text( "Editor disabled" );
 
-	// object manager
-	cObjectManager *obj_manager = NULL;
+	// sprite manager
+	cSprite_Manager *sprite_manager = NULL;
 
 	if( Game_Mode == MODE_LEVEL )
 	{
-		obj_manager = pObjManager;
+		sprite_manager = pSprite_Manager;
 
 		// player
 		pPlayer->Update_Position_Rect();
 	}
 	else
 	{
-		obj_manager = pActive_Overworld->object_manager;
+		sprite_manager = pActive_Overworld->sprite_manager;
 
 		// player
 		pOverworld_Player->Update_Position_Rect();
 	}
 
-	for( SpriteList::iterator itr = obj_manager->items.begin(), itr_end = obj_manager->items.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = sprite_manager->objects.begin(), itr_end = sprite_manager->objects.end(); itr != itr_end; ++itr )
 	{
 		(*itr)->Update_Position_Rect();
 	}
@@ -355,8 +355,8 @@ void cEditor :: Disable( void )
 
 	enabled = 0;
 
-	// if level should be saved
-	if( Box_Question( "Save Level ?" ) )
+	// if level/world should be saved
+	if( ( Game_Mode == MODE_LEVEL && Box_Question( "Save Level ?" ) ) || ( Game_Mode == MODE_OVERWORLD && Box_Question( "Save World ?" ) ) )
 	{
 		Function_Save();
 	}
@@ -783,25 +783,25 @@ bool cEditor :: Key_Down( SDLKey key )
 	{
 		pMouseCursor->Clear_selected_objects();
 
-		cObjectManager *obj_manager = NULL;
+		cSprite_Manager *sprite_manager = NULL;
 
 		if( editor_level_enabled )
 		{
-			obj_manager = pObjManager;
+			sprite_manager = pSprite_Manager;
 
 			// player
 			pMouseCursor->Add_selected_object( pPlayer, 1 );
 		}
 		else
 		{
-			obj_manager = pActive_Overworld->object_manager;
+			sprite_manager = pActive_Overworld->sprite_manager;
 
 			// player
 			pMouseCursor->Add_selected_object( pOverworld_Player, 1 );
 		}
 
 		// all level objects
-		for( SpriteList::iterator itr = obj_manager->items.begin(), itr_end = obj_manager->items.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = sprite_manager->objects.begin(), itr_end = sprite_manager->objects.end(); itr != itr_end; ++itr )
 		{
 			cSprite *obj = (*itr);
 
@@ -1219,7 +1219,7 @@ void cEditor :: Activate_Item( cEditor_Item_Object *entry )
 	}
 
 	// create copy from editor item
-	cSprite *new_sprite = Copy_Object( entry->sprite_obj, pMouseCursor->posx, pMouseCursor->posy );
+	cSprite *new_sprite = entry->sprite_obj->Copy();
 
 	// if copying failed
 	if( !new_sprite )
@@ -1227,6 +1227,8 @@ void cEditor :: Activate_Item( cEditor_Item_Object *entry )
 		printf( "Error : Editor Sprite %s copy failed\n", entry->sprite_obj->name.c_str() );
 		return;
 	}
+	
+	new_sprite->Set_Pos( pMouseCursor->posx, pMouseCursor->posy, 1 );
 
 	// hide editor window
 	editor_window->setXPosition( UDim( -0.19f, 0 ) );
@@ -1389,15 +1391,15 @@ void cEditor :: Change_DrawPosition( cSprite *obj, bool push_back )
 		return;
 	}
 
-	cObjectManager *obj_manager = NULL;
+	cSprite_Manager *sprite_manager = NULL;
 
 	if( editor_level_enabled )
 	{
-		obj_manager = pObjManager;
+		sprite_manager = pSprite_Manager;
 	}
 	else
 	{
-		obj_manager = pActive_Overworld->object_manager;
+		sprite_manager = pActive_Overworld->sprite_manager;
 	}
 
 	cSprite *temp = NULL;
@@ -1405,7 +1407,7 @@ void cEditor :: Change_DrawPosition( cSprite *obj, bool push_back )
 	// push front
 	if( !push_back )
 	{
-		temp = obj_manager->items.back();
+		temp = sprite_manager->objects.back();
 
 		// if already in front
 		if( obj == temp )
@@ -1413,16 +1415,16 @@ void cEditor :: Change_DrawPosition( cSprite *obj, bool push_back )
 			return;
 		}
 
-		obj_manager->Delete( obj, 0 );
-		obj_manager->items.back() = obj;
-		obj_manager->items.insert( obj_manager->items.end() - 1, temp );
+		sprite_manager->Delete( obj, 0 );
+		sprite_manager->objects.back() = obj;
+		sprite_manager->objects.insert( sprite_manager->objects.end() - 1, temp );
 
-		obj->posz = obj_manager->Get_Last( obj->type )->posz + 0.000001f;
+		obj->posz = sprite_manager->Get_Last( obj->type )->posz + 0.000001f;
 	}
 	// push back
 	else
 	{
-		temp = obj_manager->items.front();
+		temp = sprite_manager->objects.front();
 
 		// if already in back
 		if( obj == temp )
@@ -1430,11 +1432,11 @@ void cEditor :: Change_DrawPosition( cSprite *obj, bool push_back )
 			return;
 		}
 
-		obj_manager->Delete( obj, 0 );
-		obj_manager->items.front() = obj;
-		obj_manager->items.insert( obj_manager->items.begin() + 1, temp );
+		sprite_manager->Delete( obj, 0 );
+		sprite_manager->objects.front() = obj;
+		sprite_manager->objects.insert( sprite_manager->objects.begin() + 1, temp );
 
-		obj->posz = obj_manager->Get_First( obj->type )->posz - 0.000001f;
+		obj->posz = sprite_manager->Get_First( obj->type )->posz - 0.000001f;
 	}
 }
 

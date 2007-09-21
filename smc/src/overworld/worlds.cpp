@@ -23,8 +23,9 @@ namespace fs = boost::filesystem;
 /* *** *** *** *** *** *** *** *** cOverworld_manager *** *** *** *** *** *** *** *** *** */
 
 cOverworld_manager :: cOverworld_manager( void )
+: cObject_Manager<cOverworld>()
 {
-	worlds_filename = OVERWORLD_DIR "/worlds.xml";
+	worlds_filename = DATA_DIR "/" GAME_OVERWORLD_DIR "/worlds.xml";
 
 	debugmode = 0;
 	cameramode = 0;
@@ -34,19 +35,74 @@ cOverworld_manager :: cOverworld_manager( void )
 
 cOverworld_manager :: ~cOverworld_manager( void )
 {
-	Unload();
+	Delete_All();
+}
+
+bool cOverworld_manager :: New( string name )
+{
+	// no name given
+	if( name.empty() )
+	{
+		return 0;
+	}
+
+	// already available
+	if( fs::exists( fs::path( user_data_dir + USER_WORLD_DIR + "/" + name, fs::native ) ) )
+	{
+		return 0;
+	}
+
+	cOverworld *overworld = new cOverworld();
+
+	// set path
+	overworld->description->path = name;
+	// default name is the path
+	overworld->description->name = name;
+
+	objects.push_back( overworld );
+
+	pActive_Overworld = overworld;
+
+	pOverworld_Player->Reset();
+
+	return 1;
 }
 
 void cOverworld_manager :: Load( void )
 {
 	// if already loaded
-	if( worlds.size() )
+	if( objects.size() )
 	{
-		Unload();
+		Delete_All();
 	}
 
-	// get all world directories
-	fs::path full_path( OVERWORLD_DIR );
+	// Load Worlds
+	Load_dir( DATA_DIR "/" GAME_OVERWORLD_DIR );
+	Load_dir( user_data_dir + USER_WORLD_DIR );
+
+	// Get Overworld User Comments
+	if( valid_file( worlds_filename ) )
+	{
+		// Parse
+		System::getSingleton().getXMLParser()->parseXMLFile( *this, worlds_filename.c_str(), DATA_DIR "/" GAME_SCHEMA_DIR "/Worlds_User_Data.xsd", "" );
+	}
+	else
+	{
+		// filename not valid
+		printf( "Warning : Couldn't open Worlds description file : %s\n", worlds_filename.c_str() );
+	}
+
+	// set default overworld if not set
+	if( !pActive_Overworld )
+	{
+		Set_Active( "World 1" );
+	}
+}
+
+void cOverworld_manager :: Load_dir( string dir )
+{
+	// set world directory
+	fs::path full_path( dir, fs::native );
 	fs::directory_iterator end_iter;
 
 	for( fs::directory_iterator dir_itr( full_path ); dir_itr != end_iter; ++dir_itr )
@@ -54,7 +110,7 @@ void cOverworld_manager :: Load( void )
 		try
 		{
 			// only directories with an existing description
-			if( fs::is_directory( *dir_itr ) && valid_file( OVERWORLD_DIR "/" + dir_itr->leaf() + "/description.xml" ) )
+			if( fs::is_directory( *dir_itr ) && valid_file( dir + "/" + dir_itr->leaf() + "/description.xml" ) )
 			{
 				cOverworld *overworld = new cOverworld();
 
@@ -63,7 +119,9 @@ void cOverworld_manager :: Load( void )
 				// default name is the path
 				overworld->description->name = dir_itr->leaf();
 
-				worlds.push_back( overworld );
+				objects.push_back( overworld );
+
+				overworld->Load();
 			}
 		}
 		catch( const std::exception &ex )
@@ -71,37 +129,6 @@ void cOverworld_manager :: Load( void )
 			printf( "%s %s\n", dir_itr->leaf().c_str(), ex.what() );
 		}
 	}
-
-	// ## Get Overworld User Comments
-	// filename not valid
-	if( !valid_file( worlds_filename ) )
-	{
-		printf( "Warning : Couldn't open Worlds description file : %s\n", worlds_filename.c_str() );
-	}
-	else
-	{
-		// Parse Overworlds
-		System::getSingleton().getXMLParser()->parseXMLFile( *this, worlds_filename.c_str(), SCHEMA_DIR "/Worlds_User_Data.xsd", "" );
-	}
-
-	// Load Overworlds
-	for( unsigned int i = 0; i < worlds.size(); i++ )
-	{
-		worlds[i]->Load();
-	}
-
-	// first overworld is default
-	pActive_Overworld = Get( 0 );
-}
-
-void cOverworld_manager :: Unload( void )
-{
-	for( unsigned int i = 0; i < worlds.size(); i++ )
-	{
-		delete worlds[i];
-	}
-	
-	worlds.clear();
 }
 
 bool cOverworld_manager :: Set_Active( string name ) 
@@ -136,25 +163,27 @@ bool cOverworld_manager :: Set_Active( cOverworld *world )
 void cOverworld_manager :: Reset( void )
 {
 	// default Overworld
-	Set_Active( "world_1" );
+	Set_Active( "World 1" );
 	
 	// Set Player to first Waypoint
 	pOverworld_Player->Set_Waypoint( pActive_Overworld->player_start_waypoint );
 
 	// Reset all Waypoints
-	for( unsigned int i = 0; i < worlds.size(); i++ )
+	for( OverworldList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
-		worlds[i]->Reset_Waypoints();
+		(*itr)->Reset_Waypoints();
 	}
 }
 
 cOverworld *cOverworld_manager :: Get( string path )
 {
-	for( unsigned int i = 0; i < worlds.size(); i++ )
+	for( OverworldList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
-		if( worlds[i]->description->path.compare( path ) == 0 )
+		cOverworld *obj = (*itr);
+
+		if( obj->description->path.compare( path ) == 0 )
 		{
-			return worlds[i];
+			return obj;
 		}
 	}
 
@@ -163,32 +192,24 @@ cOverworld *cOverworld_manager :: Get( string path )
 
 cOverworld *cOverworld_manager :: Get_from_Name( string name )
 {
-	for( unsigned int i = 0; i < worlds.size(); i++ )
+	for( OverworldList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
-		if( worlds[i]->description->name.compare( name ) == 0 )
+		cOverworld *obj = (*itr);
+
+		if( obj->description->name.compare( name ) == 0 )
 		{
-			return worlds[i];
+			return obj;
 		}
 	}
 
 	return NULL;
 }
 
-cOverworld *cOverworld_manager :: Get( unsigned int num )
+int cOverworld_manager :: Get_Array_num( string path )
 {
-	if( num >= worlds.size() )
+	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
-		return NULL;
-	}
-
-	return worlds[num];
-}
-
-int cOverworld_manager :: Get_array_num( string path )
-{
-	for( unsigned int i = 0; i < worlds.size(); i++ )
-	{
-		if( worlds[i]->description->path.compare( path ) == 0 )
+		if( objects[i]->description->path.compare( path ) == 0 )
 		{
 			return i;
 		}

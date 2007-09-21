@@ -39,11 +39,6 @@
 #include "../video/img_settings.h"
 #include "../objects/levelexit.h"
 
-// for linux directory creation
-#ifdef __unix__
-	#include <sys/stat.h>
-#endif
-
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 int main( int argc, char **argv )
@@ -107,16 +102,6 @@ void InitGame( void )
 {
 	srand( (unsigned int)time( NULL ) );
 
-#ifdef __unix__
-	// get linux user data dir ( home directory )
-	user_data_dir = (string)getenv( "HOME" ) + "/.smc/";
-	// create user directories
-	mkdir( user_data_dir.c_str(), S_IRWXU );
-	chdir( user_data_dir.c_str() );
-	mkdir( SAVE_DIR, S_IRWXU );
-	mkdir( SCREENSHOT_DIR, S_IRWXU );
-#endif
-
 	// Init Stage 1
 	pCamera = new cCamera();
 	pVideo = new cVideo();
@@ -145,7 +130,7 @@ void InitGame( void )
 	// Init Stage 2
 	pPreferences->Load();
 
-	pObjManager = new cObjectManager();
+	pSprite_Manager = new cSprite_Manager();
 	pAudio = new cAudio();
 
 	pPreferences->Apply();
@@ -464,6 +449,13 @@ void Update_Game( void )
 				// reset player
 				pPlayer->Reset();
 				pCamera->Center();
+
+				// play new music
+				if( pLevel->valid_music )
+				{
+					pAudio->PlayMusic( pLevel->musicfile, -1, 0, 1000 );
+				}
+
 				// fade in
 				if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM )
 				{
@@ -545,6 +537,11 @@ void Update_Game( void )
 				{
 					// load new level
 					pLevel->Load( Current_Game_Action_Data );
+					// play new music
+					if( pLevel->valid_music )
+					{
+						pAudio->PlayMusic( pLevel->musicfile, -1, 0, 1000 );
+					}
 				}
 				// reset player
 				pPlayer->Reset();
@@ -587,8 +584,8 @@ void Update_Game( void )
 			// Enter Level
 			if( Current_Game_Action == GA_ENTER_LEVEL )
 			{
-				// if level not loaded
-				if( !pLevel->is_Loaded() )
+				// if level not loaded or entering custom level
+				if( !pLevel->is_Loaded() || !Current_Game_Action_Data.empty() )
 				{
 					// fade music out
 					pAudio->FadeOutMusic( 1000 );
@@ -663,7 +660,7 @@ void Update_Game( void )
 		{
 			pPlayer->Collide_Move();
 			pPlayer->Handle_Collisions();
-			pObjManager->Handle_Collision_items();
+			pSprite_Manager->Handle_Collision_items();
 		}
 		// Camera ( update after new player position was set )
 		pPlayer->Update_Camera();

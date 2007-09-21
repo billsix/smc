@@ -164,9 +164,9 @@ void cGlobal_effect :: Save_to_Stream( ofstream &file )
 	// image
 	string img_filename = image_filename;
 
-	if( img_filename.find( PIXMAPS_DIR ) == 0 )
+	if( img_filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == 0 )
 	{
-		img_filename.erase( 0, strlen( PIXMAPS_DIR ) + 1 );
+		img_filename.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
 	}
 
 	file << "\t\t<Property name=\"image\" value=\"" << img_filename << "\" />" << std::endl;

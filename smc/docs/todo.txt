@@ -1,9 +1,0 @@
-A list where only the Overall tasks should be listed.
-
-
-Easy:
-	- A High and Low Quality Music Package
-
-Medium:
-
-Long-Term:

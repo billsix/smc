@@ -88,9 +88,6 @@ public:
 	// the default access defined in the definition
 	bool access_default;
 
-	// identifier
-	unsigned int ID;
-
 	// color for the glim effect
 	float gcolor;
 	// glim effect type switch

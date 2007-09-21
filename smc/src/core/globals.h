@@ -26,7 +26,7 @@
 #define CAPTION "Secret Maryo Chronicles"
 // Version
 #ifndef VERSION
-#define VERSION "1.0"
+#define VERSION "1.1"
 #endif
 
 // framerate speedfactor calculation is based on this
@@ -184,24 +184,29 @@ using std::ios;
 extern string user_data_dir;
 
 #ifndef HAVE_CONFIG_H
-	// Core
-	#define SAVE_DIR "savegames"
-	#define SCREENSHOT_DIR "screenshots"
-	#define OVERWORLD_DIR "data/world"
-	#define LEVEL_DIR "data/levels"
-	#define PIXMAPS_DIR "data/pixmaps"
-	#define SOUNDS_DIR "data/sounds"
-	#define MUSIC_DIR "data/music"
-	#define EDITOR_DIR "data/editor"
-	#define ICON_DIR "data/icon"
-	#define SCHEMA_DIR "data/schema"
-	// CEGUI
-	#define GUI_SCHEME_DIR "data/gui/schemes"
-	#define GUI_IMAGESET_DIR "data/gui/imagesets"
-	#define GUI_FONT_DIR "data/gui/font"
-	#define GUI_LAYOUT_DIR "data/gui/layout"
-	#define GUI_LOOKNFEEL_DIR "data/gui/looknfeel"
+	#define DATA_DIR "data"
 #endif
+
+// Core
+#define GAME_OVERWORLD_DIR "world"
+#define GAME_LEVEL_DIR "levels"
+#define GAME_PIXMAPS_DIR "pixmaps"
+#define GAME_SOUNDS_DIR "sounds"
+#define GAME_MUSIC_DIR "music"
+#define GAME_EDITOR_DIR "editor"
+#define GAME_ICON_DIR "icon"
+#define GAME_SCHEMA_DIR "schema"
+// GUI
+#define GUI_SCHEME_DIR "gui/schemes"
+#define GUI_IMAGESET_DIR "gui/imagesets"
+#define GUI_FONT_DIR "gui/font"
+#define GUI_LAYOUT_DIR "gui/layout"
+#define GUI_LOOKNFEEL_DIR "gui/looknfeel"
+// User
+#define USER_SAVEGAME_DIR "savegames"
+#define USER_SCREENSHOT_DIR "screenshots"
+#define USER_LEVEL_DIR "levels"
+#define USER_WORLD_DIR "worlds"
 
 /* *** *** *** *** *** *** *** *** SDL *** *** *** *** *** *** *** *** *** */
 

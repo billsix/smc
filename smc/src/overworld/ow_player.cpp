@@ -46,8 +46,8 @@ cOverworld_Player :: cOverworld_Player( void )
 
 	fixed_walking = 0;
 
-	line_hor.clear();
-	line_ver.clear();
+	line_hor = cLine_collision();
+	line_ver = cLine_collision();
 
 	debug_current_line_last = -100;
 	debug_lines_last = -100;
@@ -188,9 +188,30 @@ void cOverworld_Player :: Update( void )
 
 void cOverworld_Player :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
-	// Draw Player
+	bool create_request = 0;
+
+	if( !request )
+	{
+		create_request = 1;
+		// create request
+		request = new cSurfaceRequest();
+	}
+
+	// Draw player
 	cImageObjectSprite::Draw( request );
-	// Draw Debug text
+	// alpha in debug mode
+	if( pOverworld_manager->debugmode )
+	{
+		request->color.alpha = 64;
+	}
+
+	if( create_request )
+	{
+		// add request
+		pRenderer->Add( request );
+	}
+
+	// Draw debug text
 	Draw_Debugtext();
 }
 
@@ -202,9 +223,9 @@ void cOverworld_Player :: Draw_Debugtext( void )
 	}
 
 	// Update Lines Texts
-	if( (int)pActive_Overworld->pLayer->lines.size() != debug_lines_last )
+	if( (int)pActive_Overworld->pLayer->size() != debug_lines_last )
 	{
-		debug_lines->Set_Image( pFont->RenderText( pFont->font_small, "Lines : " + int_to_string( pActive_Overworld->pLayer->lines.size() ), blue ), 1, 1 );
+		debug_lines->Set_Image( pFont->RenderText( pFont->font_small, "Lines : " + int_to_string( pActive_Overworld->pLayer->size() ), blue ), 1, 1 );
 	}
 	// Update Current Line Texts
 	if( current_line != debug_current_line_last )
@@ -288,7 +309,7 @@ void cOverworld_Player :: Activate_Waypoint( void )
 	}
 
 	// get waypoint
-	cWaypoint *waypoint =pActive_Overworld->waypoints[current_waypoint];
+	cWaypoint *waypoint = Get_Waypoint();
 
 	// normal level waypoint
 	if( waypoint->waypoint_type == WAYPOINT_NORMAL )
@@ -348,17 +369,7 @@ void cOverworld_Player :: Activate_Waypoint( void )
 
 void cOverworld_Player :: Update_Vel( void )
 {
-	if( direction == DIR_LEFT )
-	{
-		velx = -3;
-		vely = 0;
-	}
-	else if( direction == DIR_RIGHT )
-	{
-		velx = 3;
-		vely = 0;
-	}
-	else if( direction == DIR_UP )
+	if( direction == DIR_UP )
 	{
 		velx = 0;
 		vely = -3;
@@ -367,6 +378,16 @@ void cOverworld_Player :: Update_Vel( void )
 	{
 		velx = 0;
 		vely = 3;
+	}
+	else if( direction == DIR_RIGHT )
+	{
+		velx = 3;
+		vely = 0;
+	}
+	else if( direction == DIR_LEFT )
+	{
+		velx = -3;
+		vely = 0;
 	}
 }
 
@@ -392,7 +413,7 @@ bool cOverworld_Player :: Start_Walk( ObjectDirection new_direction )
 
 		if( current_waypoint > 0 )
 		{
-			printf( "Waypoint Direction Forward : %d Backward : %d\n", pActive_Overworld->waypoints[current_waypoint]->direction_forward, pActive_Overworld->waypoints[current_waypoint]->direction_backward );
+			printf( "Waypoint Direction Forward : %d Backward : %d\n", Get_Waypoint()->direction_forward, Get_Waypoint()->direction_backward );
 		}
 	}
 
@@ -400,10 +421,26 @@ bool cOverworld_Player :: Start_Walk( ObjectDirection new_direction )
 	if( current_waypoint >= 0 && direction == DIR_UNDEFINED )
 	{
 		// forward
-		if( pActive_Overworld->waypoints[current_waypoint]->direction_forward == new_direction )
+		if( Get_Waypoint()->direction_forward == new_direction )
 		{
+			cLayer_Line *front_line = pActive_Overworld->pLayer->Get_Line_Collision_Direction( col_rect.x + ( col_rect.w * 0.5f ), col_rect.y + ( col_rect.h * 0.5f ), new_direction ).line;
+
+			if( !front_line )
+			{
+				printf( "No front line detected\n" );
+				return 0;
+			}
+
+			cWaypoint *next_waypoint = front_line->Get_End_Waypoint();
+
+			if( !next_waypoint )
+			{
+				printf( "Next Waypoint not detected\n" );
+				return 0;
+			}
+
 			// next waypoint is not accessible
-			if( current_waypoint >= pActive_Overworld->Get_LastValidWaypoint() )
+			if( !next_waypoint->access )
 			{
 				if( pOverworld_manager->debugmode )
 				{
@@ -413,11 +450,16 @@ bool cOverworld_Player :: Start_Walk( ObjectDirection new_direction )
 				return 0;
 			}
 
+			if( pOverworld_manager->debugmode )
+			{
+				printf( "found next waypoint setting line_waypoint to %d\n", current_waypoint );
+			}
+
 			// set line waypoint to current waypoint
 			line_waypoint = current_waypoint;
 		}
 		// backward
-		else if( pActive_Overworld->waypoints[current_waypoint]->direction_backward == new_direction )
+		else if( Get_Waypoint()->direction_backward == new_direction )
 		{
 			// set line waypoint to previous waypoint
 			line_waypoint = current_waypoint - 1;
@@ -453,7 +495,7 @@ bool cOverworld_Player :: Start_Walk( ObjectDirection new_direction )
 	}
 
 	// if maryo is not on his current waypoint collide with every waypoint
-	if( current_waypoint >= 0 && !Col_Box( &col_rect, &pActive_Overworld->waypoints[current_waypoint]->rect ) )
+	if( current_waypoint >= 0 && !Col_Box( &col_rect, &Get_Waypoint()->rect ) )
 	{
 		current_waypoint = -1;
 	}
@@ -481,7 +523,14 @@ void cOverworld_Player :: Update_Walk( void )
 	{
 		if( pOverworld_manager->debugmode )
 		{
-			printf( "line connection broken : num %d diff %f\n", line_hor.line_number, line_hor.difference );
+			if( direction == DIR_UP || direction == DIR_DOWN )
+			{
+				printf( "horizontal line connection broken : num %d diff %f\n", line_hor.line_number, line_hor.difference );
+			}
+			else if( direction == DIR_LEFT || direction == DIR_RIGHT )
+			{
+				printf( "vertical line connection broken : num %d diff %f\n", line_ver.line_number, line_ver.difference );
+			}
 		}
 
 		current_waypoint = -1;
@@ -527,7 +576,7 @@ void cOverworld_Player :: Update_Waypoint_Walk( void )
 	}
 
 	unsigned int reached = 0;
-	cWaypoint *waypoint = pActive_Overworld->waypoints[current_waypoint];
+	cWaypoint *waypoint = Get_Waypoint();
 
 	// horizontal position to waypoint
 	float x = col_rect.x + ( col_rect.w * 0.5f );
@@ -591,6 +640,11 @@ bool cOverworld_Player :: Set_Waypoint( unsigned int waypoint, bool new_startpos
 	return 1;
 }
 
+cWaypoint *cOverworld_Player :: Get_Waypoint( void )
+{
+	return pActive_Overworld->waypoints[current_waypoint];
+}
+
 void cOverworld_Player :: Update_Path_Diff( unsigned int csize /* = 25 */ )
 {
 	float x = col_rect.x + ( col_rect.w * 0.5f ) + velx;
@@ -609,14 +663,14 @@ void cOverworld_Player :: Update_Path_Diff( unsigned int csize /* = 25 */ )
 	}
 
 	// get nearest lines
-	line_hor = pActive_Overworld->pLayer->Get_diff( x, y, DIR_HORIZONTAL, csize + (unsigned int)hor_advance );
- 	line_ver = pActive_Overworld->pLayer->Get_diff( x, y, DIR_VERTICAL, csize + (unsigned int)ver_advance );
+	line_hor = pActive_Overworld->pLayer->Get_nearest( x, y, DIR_HORIZONTAL, csize + (unsigned int)hor_advance, line_waypoint );
+ 	line_ver = pActive_Overworld->pLayer->Get_nearest( x, y, DIR_VERTICAL, csize + (unsigned int)ver_advance, line_waypoint );
 }
 
 void cOverworld_Player :: Change_Direction( void )
 {
-	line_hor.clear();
-	line_ver.clear();
+	line_hor = cLine_collision();
+	line_ver = cLine_collision();
 
 	float x = col_rect.x + ( col_rect.w * 0.5f );
 	float y = col_rect.y + ( col_rect.h * 0.5f );
@@ -630,7 +684,7 @@ void cOverworld_Player :: Change_Direction( void )
 		// search for a line with increasing distance
 		for( unsigned int i = 0; i < 30; i++ )
 		{
-			line_ver = pActive_Overworld->pLayer->Get_diff( x - i, y, DIR_VERTICAL, 80 );
+			line_ver = pActive_Overworld->pLayer->Get_nearest( x - i, y, DIR_VERTICAL, 80, line_waypoint );
 
 			// found
 			if( line_ver.line_number >= 0 )
@@ -638,7 +692,7 @@ void cOverworld_Player :: Change_Direction( void )
 				break;
 			}
 
-			line_ver = pActive_Overworld->pLayer->Get_diff( x + i, y, DIR_VERTICAL, 80 );
+			line_ver = pActive_Overworld->pLayer->Get_nearest( x + i, y, DIR_VERTICAL, 80, line_waypoint );
 
 			// found
 			if( line_ver.line_number >= 0 )
@@ -670,7 +724,7 @@ void cOverworld_Player :: Change_Direction( void )
 		// search for a line with increasing distance
 		for( unsigned int i = 0; i < 30; i++ )
 		{
-			line_hor = pActive_Overworld->pLayer->Get_diff( x, y + i, DIR_HORIZONTAL, 80 );
+			line_hor = pActive_Overworld->pLayer->Get_nearest( x, y + i, DIR_HORIZONTAL, 80, line_waypoint );
 
 			// found
 			if( line_hor.line_number >= 0 )
@@ -678,7 +732,7 @@ void cOverworld_Player :: Change_Direction( void )
 				break;
 			}
 
-			line_hor = pActive_Overworld->pLayer->Get_diff( x, y - i, DIR_HORIZONTAL, 80 );
+			line_hor = pActive_Overworld->pLayer->Get_nearest( x, y - i, DIR_HORIZONTAL, 80, line_waypoint );
 
 			// found
 			if( line_hor.line_number >= 0 )

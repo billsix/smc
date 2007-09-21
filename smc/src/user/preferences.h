@@ -26,16 +26,16 @@ public:
 	cPreferences( void );
 	virtual ~cPreferences( void );
 	
-	// Load the Preferences from a file
+	// Load the preferences from a file
 	bool Load( string filename = "" );
-	// Save the Preferences to a file
+	// Save the preferences to a file
 	void Save( void );
 
-	// Reset the Settings
+	// Reset the settings
 	void Default( void );
-	 // Gets the settings from Current in-game Settings
+	 // Gets the settings from current in-game settings
 	void Update( void );
-	// Sets the settings to Current in-game Settings
+	// Sets the settings to current in-game settings
 	void Apply( void );
 
 	/* *** *** *** Game Settings *** *** *** *** */
@@ -63,9 +63,6 @@ public:
 	string joy_name;
 	bool joy_analog_jump;
 	bool editor_mouse_auto_hide, background_images;
-
-	// directories
-	string level_dir;
 
 	/* *** *** *** *** *** *** *** */
 

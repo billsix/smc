@@ -20,6 +20,7 @@
 #include "../gui/hud.h"
 #include "../overworld/layer.h"
 #include "../player/player.h"
+#include "../overworld/waypoint.h"
 
 /* *** *** *** *** *** *** *** cOverworld_Player *** *** *** *** *** *** *** *** *** *** */
 
@@ -71,6 +72,9 @@ public:
 	// Set Maryo to the given Waypoint position
 	bool Set_Waypoint( unsigned int waypoint, bool new_startpos = 0 );
 
+	// Get current Waypoint
+	cWaypoint *Get_Waypoint( void );
+
 	/* Checks how much Maryo can walk into all directions
 	 * and sets the size into the path directions
 	*/
@@ -100,7 +104,7 @@ public:
 	// last image available for the animation
 	unsigned int anim_max;
 
-	// if Maryo touches a Waypoint use fixed walking
+	// if touched a Waypoint use fixed walking
 	bool fixed_walking;
 
 	// valid path detection lines

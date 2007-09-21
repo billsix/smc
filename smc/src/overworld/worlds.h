@@ -18,23 +18,28 @@
 
 #include "../core/globals.h"
 #include "../overworld/overworld.h"
-
+#include "../core/obj_manager.h"
 
 /* *** *** *** *** *** *** *** *** cOverworld_manager *** *** *** *** *** *** *** *** *** */
 
 class cOverworld;
 typedef vector<cOverworld *> OverworldList;
 
-class cOverworld_manager : public XMLHandler
+class cOverworld_manager : public XMLHandler, public cObject_Manager<cOverworld>
 {
 public:
 	cOverworld_manager( void );
 	virtual ~cOverworld_manager( void );
 
-	// Load Overworlds
+	/* Create a new world
+	 * returns true if successful
+	*/
+	bool New( string name );
+
+	// Load all overworlds
 	void Load( void );
-	// Unload Overworlds
-	void Unload( void );
+	// Load overworlds from directory
+	void Load_dir( string dir );
 
 	// Set Active Overworld
 	bool Set_Active( string name );
@@ -43,16 +48,12 @@ public:
 	// Reset to default world first Waypoint
 	void Reset( void );
 
-	// Returns Overworld pointer
+	// Return Overworld pointer
 	cOverworld *Get( string path );
 	cOverworld *Get_from_Name( string name );
-	cOverworld *Get( unsigned int num );
 
-	// Returns Overworld array num
-	int Get_array_num( string path );
-
-	// worlds
-	OverworldList worlds;
+	// Return Overworld array num
+	int Get_Array_num( string path );
 
 	// worlds descriptor filename
 	string worlds_filename;

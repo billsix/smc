@@ -33,7 +33,6 @@ cImage_settings_data :: cImage_settings_data( void )
 	rotation_z = 0;
 	mipmap = 0;
 
-
 	type = -1;
 	obsolete = 0;
 }
@@ -61,8 +60,7 @@ void cImage_settings_data :: Apply( GL_Surface *image )
 		}
 
 		// load the base image
-		string filename = Get_filename( base, 0, 1 );
-		filename.insert( 0, PIXMAPS_DIR "/" );
+		string filename = DATA_DIR "/" GAME_PIXMAPS_DIR "/" + Get_filename( base, 0, 1 );
 
 		GL_Surface *surface_base = pVideo->Get_Surface( filename, 0 );
 
@@ -94,14 +92,15 @@ void cImage_settings_data :: Apply( GL_Surface *image )
 			printf( "Error : Couldn't load base image file : %s\n", base.c_str() );
 			return;
 		}
+
 		// based on image settings
-		else if( !valid_file( filename ) )
+		if( !valid_file( filename ) )
 		{
-			// todo : search for "."
-			surface_base->filename.replace( surface_base->filename.length() - 4, 4, ".settings" );
+			// set .settings
+			surface_base->filename = Get_filename( surface_base->filename, 1, 0 ) + ".settings";
 		}
 
-		// creates a new surface
+		// create new surface
 		GL_Surface *surface_final = surface_base->Copy();
 
 		if( !surface_final )
@@ -147,7 +146,9 @@ void cImage_settings_data :: Apply( GL_Surface *image )
 			image->col_h = image->h;
 		}
 
+		// don't delete image
 		surface_final->auto_del_img = 0;
+		// delete
 		delete surface_final;
 		surface_final = NULL;
 	}
@@ -251,16 +252,13 @@ void cImage_settings_data :: Apply( GL_Surface *image )
 	}
 
 	// ## type
-	if( type != 0 )
+	if( type > 0 )
 	{
 		image->type = type;
 	}
 
 	// ## obsolete
-	if( obsolete )
-	{
-		image->obsolete = 1;
-	}
+	image->obsolete = obsolete;
 }
 
 void cImage_settings_data :: Apply_base( cImage_settings_data *base_settings_data )
@@ -278,6 +276,7 @@ void cImage_settings_data :: Apply_base( cImage_settings_data *base_settings_dat
 	name = base_settings_data->name;
 	type = base_settings_data->type;
 
+	// only set if this isn't obsolete
 	if( !obsolete && base_settings_data->obsolete )
 	{
 		obsolete = 1;

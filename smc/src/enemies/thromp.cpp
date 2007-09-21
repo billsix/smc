@@ -18,7 +18,7 @@
 #include "../core/camera.h"
 #include "../video/animation.h"
 #include "../player/player.h"
-#include "../core/obj_manager.h"
+#include "../core/sprite_manager.h"
 #include "../gui/hud.h"
 #include "../video/gl_surface.h"
 
@@ -572,18 +572,18 @@ unsigned int cThromp :: Validate_Collision( cSprite *obj )
 	return 0;
 }
 
-void cThromp :: Handle_Collision_Player( ObjectDirection cdirection )
+void cThromp :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// behind
-	if( cdirection == Get_OppositeDirection( direction ) )
+	if( collision->direction == Get_OppositeDirection( direction ) )
 	{
-		if( cdirection == DIR_LEFT || cdirection == DIR_RIGHT )
+		if( collision->direction == DIR_LEFT || collision->direction == DIR_RIGHT )
 		{
 			pPlayer->Col_Move( velx, 0, 1 );
 		}
 	}
 	// front
-	else if( cdirection == direction )
+	else if( collision->direction == direction )
 	{
 		pPlayer->DownGrade();
 
@@ -608,7 +608,7 @@ void cThromp :: Handle_Collision_Enemy( cObjectCollision *collision )
 	// if active
 	if( state == STA_FLY )
 	{
-		cEnemy *enemy = (cEnemy *)pObjManager->Get_Pointer( collision->number );
+		cEnemy *enemy = static_cast<cEnemy *>(pSprite_Manager->Get_Pointer( collision->number ));
 
 		// kill enemy
 		pAudio->PlaySound( enemy->kill_sound );

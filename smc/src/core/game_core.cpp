@@ -29,6 +29,13 @@
 #include "../video/renderer.h"
 #include "../level/level.h"
 
+// needed to get the user directory
+#ifdef __unix__
+#include <sys/stat.h>
+#elif _WIN32
+#include <shlobj.h>
+#endif
+
 /* *** *** *** *** *** *** *** *** Variables *** *** *** *** *** *** *** *** *** */
 
 bool done = 0;
@@ -495,28 +502,6 @@ void Change_Game_Mode( GameMode new_mode )
 			pMouseCursor->Clear_active_object();
 		}
 	}
-}
-
-cSprite *Copy_Object( cSprite *copy_object, float x, float y )
-{
-	if( !copy_object )
-	{
-		return NULL;
-	}
-
-	//  copy moving sprite
-	cSprite *new_sprite = copy_object->Copy();
-
-	// if not copyable object
-	if( !new_sprite )
-	{
-		return NULL;
-	}
-
-	// set new position
-	new_sprite->Set_Pos( x, y, 1 );
-
-	return new_sprite;
 }
 
 string Time_to_String( time_t t, const char *format )
@@ -989,6 +974,9 @@ void Draw_StaticText( string text, Color *color_text /* = &white */, Color *colo
 	text_default->setXPosition( UDim( 0, GAME_RES_W / 2 - text_width / 2 ) );
 	text_default->moveToFront();
 
+	// set window size
+	text_default->setHeight( UDim( 0, 12 + font->getFontHeight() * font->getFormattedLineCount( text.c_str(), text_default->getUnclippedInnerRect(), LeftAligned ) ) );
+
 	while( draw )
 	{
 		Draw_Game();
@@ -1114,12 +1102,16 @@ void Preload_images( void )
 	// Mushrooms
 	pVideo->Get_Surface( "game/items/mushroom_red.png" );
 	pVideo->Get_Surface( "game/items/mushroom_green.png" );
+	pVideo->Get_Surface( "game/items/mushroom_blue.png" );
+	pVideo->Get_Surface( "game/items/mushroom_ghost.png" );
 	// Flower
 	pVideo->Get_Surface( "game/items/fire_flower.png" );
 	pVideo->Get_Surface( "game/items/fire_flower_left.png" );
 	pVideo->Get_Surface( "game/items/fire_flower_right.png" );
 	// Star
 	pVideo->Get_Surface( "game/items/star.png" );
+	// Feather
+	pVideo->Get_Surface( "game/items/feather_1.png" );
 	// Yellow Goldpiece
 	pVideo->Get_Surface( "game/items/goldpiece/yellow/1.png" );
 	pVideo->Get_Surface( "game/items/goldpiece/yellow/2.png" );
@@ -1154,12 +1146,15 @@ void Preload_images( void )
 	pVideo->Get_Surface( "game/box/yellow/bonus/6.png" );
 	// Default Box
 	pVideo->Get_Surface( "game/box/yellow/default.png" );
+	// Power Box
+	pVideo->Get_Surface( "game/box/yellow/power_1.png" );
 	// Spin Box
 	pVideo->Get_Surface( "game/box/yellow/spin/1.png" );
 	pVideo->Get_Surface( "game/box/yellow/spin/2.png" );
 	pVideo->Get_Surface( "game/box/yellow/spin/3.png" );
 	pVideo->Get_Surface( "game/box/yellow/spin/4.png" );
 	pVideo->Get_Surface( "game/box/yellow/spin/5.png" );
+	pVideo->Get_Surface( "game/box/yellow/spin/disabled.png" );
 
 	// Goldpiece animation
 	pVideo->Get_Surface( "animation/light_1/1.png" );
@@ -1167,10 +1162,16 @@ void Preload_images( void )
 	pVideo->Get_Surface( "animation/light_1/3.png" );
 	// Particle animation
 	pVideo->Get_Surface( "animation/particles/smoke.png" );
+	pVideo->Get_Surface( "animation/particles/smoke_black.png" );
 	pVideo->Get_Surface( "animation/particles/light.png" );
+	pVideo->Get_Surface( "animation/particles/dirt.png" );
+	pVideo->Get_Surface( "animation/particles/ice_1.png" );
+	pVideo->Get_Surface( "animation/particles/cloud.png" );
+	pVideo->Get_Surface( "animation/particles/axis.png" );
 
-	// Fireball
+	// Ball
 	pVideo->Get_Surface( "animation/fireball/1.png" );
+	pVideo->Get_Surface( "animation/iceball/1.png" );
 
 	// HUD
 	pVideo->Get_Surface( "game/maryo_l.png" );
@@ -1306,6 +1307,29 @@ void Convert_path_separators( string &str )
 			*itr = '/';
 		}
 	}
+}
+
+string Get_User_Directory( void )
+{
+#ifdef _WIN32
+	char path[MAX_PATH + 1];
+
+	if( !SUCCEEDED( SHGetFolderPath( NULL, CSIDL_APPDATA, NULL, 0, path ) ) )
+	{
+		printf( "Error : Couldn't get Windows user directory. Using Application directory.\n" );
+		return "";
+	}
+
+	string str_path = path;
+	Convert_path_separators( str_path );
+
+	return str_path + "/smc/";
+#elif __unix__
+	// get linux user data dir ( home directory )
+	return (string)getenv( "HOME" ) + "/.smc/";
+#else
+	return "";
+#endif
 }
 
 string int_to_string( int number )

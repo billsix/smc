@@ -194,7 +194,9 @@ public:
 	void Set_ConstRotationY( float rot, float rot_random = 0 );
 	// Set z constant rotation
 	void Set_ConstRotationZ( float rot, float rot_random = 0 );
-	// Set direction range ( 0 - 360 )
+	/* Set direction range ( 0 - 360 )
+	 * 0 : Right, 90 Down, 180 Left, 270 Up
+	*/
 	void Set_DirectionRange( float start, float range = 0 );
 	// Set image scale ( 0.01 - 100 )
 	virtual void Set_Scale( float nscale, float scale_random = 0 );

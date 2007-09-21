@@ -245,10 +245,10 @@ unsigned int cEato :: Validate_Collision( cSprite *obj )
 	return 0;
 }
 
-void cEato :: Handle_Collision_Player( ObjectDirection cdirection )
+void cEato :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// unknown direction
-	if( cdirection == DIR_UNDEFINED )
+	if( collision->direction == DIR_UNDEFINED )
 	{
 		return;
 	}
@@ -257,7 +257,7 @@ void cEato :: Handle_Collision_Player( ObjectDirection cdirection )
 	if( pPlayer->invincible <= 0 )
 	{
 		// if player is big and not a bottom collision
-		if( pPlayer->maryo_type != MARYO_SMALL && ( cdirection != DIR_BOTTOM ) )
+		if( pPlayer->maryo_type != MARYO_SMALL && ( collision->direction != DIR_BOTTOM ) )
 		{
 			// todo : create again
 			//pAudio->PlaySound( "player/maryo_au.ogg", RID_MARYO_AU );

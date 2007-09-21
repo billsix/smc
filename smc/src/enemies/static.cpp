@@ -16,7 +16,7 @@
 #include "../enemies/static.h"
 #include "../core/game_core.h"
 #include "../player/player.h"
-#include "../core/obj_manager.h"
+#include "../core/sprite_manager.h"
 #include "../gui/hud.h"
 #include "../video/gl_surface.h"
 
@@ -171,7 +171,7 @@ unsigned int cStaticEnemy :: Validate_Collision( cSprite *obj )
 	return 0;
 }
 
-void cStaticEnemy :: Handle_Collision_Player( ObjectDirection cdirection )
+void cStaticEnemy :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	pPlayer->DownGrade();
 }
@@ -184,7 +184,7 @@ void cStaticEnemy :: Handle_Collision_Enemy( cObjectCollision *collision )
 		return;
 	}
 
-	cEnemy *enemy = static_cast<cEnemy *>(pObjManager->Get_Pointer( collision->number ));
+	cEnemy *enemy = static_cast<cEnemy *>(pSprite_Manager->Get_Pointer( collision->number ));
 
 	// already dead
 	if( enemy->dead )

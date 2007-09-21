@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.7" />
+		<Property name="game_version" value="1.1" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1183235739" />
+		<Property name="save_time" value="1189816260" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="FluXy" />
@@ -30,26 +30,6 @@
 		<Property name="speedy" value="1" />
 		<Property name="posz" value="0.00011" />
 	</background>
-	<global_effect>
-		<Property name="type" value="0" />
-		<Property name="image" value="" />
-		<Property name="rect_x" value="0" />
-		<Property name="rect_y" value="0" />
-		<Property name="rect_w" value="800" />
-		<Property name="rect_h" value="0" />
-		<Property name="z" value="0.12" />
-		<Property name="z_rand" value="0" />
-		<Property name="time_to_live" value="7" />
-		<Property name="emitter_iteration_interval" value="0.3" />
-		<Property name="scale" value="0.2" />
-		<Property name="scale_rand" value="0.2" />
-		<Property name="speed" value="2" />
-		<Property name="speed_rand" value="8" />
-		<Property name="dir_range_start" value="0" />
-		<Property name="dir_range_size" value="90" />
-		<Property name="const_rotz" value="0.5" />
-		<Property name="const_rotz_rand" value="10" />
-	</global_effect>
 	<player>
 		<Property name="posx" value="475" />
 		<Property name="posy" value="468" />
@@ -419,28 +399,16 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<moving_platform>
-		<Property name="posx" value="989" />
-		<Property name="posy" value="175" />
+		<Property name="posx" value="806" />
+		<Property name="posy" value="163" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="150" />
 		<Property name="speed" value="3" />
-		<Property name="middle_img_count" value="2" />
-		<Property name="image_top_left" value="slider/grey_1/slider_left.png" />
-		<Property name="image_top_middle" value="slider/grey_1/slider_middle.png" />
-		<Property name="image_top_right" value="slider/grey_1/slider_right.png" />
-	</moving_platform>
-	<moving_platform>
-		<Property name="posx" value="988" />
-		<Property name="posy" value="125" />
-		<Property name="massive_type" value="halfmassive" />
-		<Property name="direction" value="right" />
-		<Property name="max_distance" value="150" />
-		<Property name="speed" value="3" />
-		<Property name="middle_img_count" value="2" />
-		<Property name="image_top_left" value="slider/grey_1/slider_left.png" />
-		<Property name="image_top_middle" value="slider/grey_1/slider_middle.png" />
-		<Property name="image_top_right" value="slider/grey_1/slider_right.png" />
+		<Property name="middle_img_count" value="4" />
+		<Property name="image_top_left" value="pipes/green/left.png" />
+		<Property name="image_top_middle" value="pipes/green/hor.png" />
+		<Property name="image_top_right" value="pipes/green/right.png" />
 	</moving_platform>
 	<sprite>
 		<Property name="posx" value="512" />

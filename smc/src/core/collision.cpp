@@ -17,7 +17,7 @@
 #include "../core/globals.h"
 #include "../core/collision.h"
 #include "../objects/movingsprite.h"
-#include "../core/obj_manager.h"
+#include "../core/sprite_manager.h"
 #include "../player/player.h"
 #include "../video/gl_surface.h"
 
@@ -114,7 +114,7 @@ GL_rect cObjectCollision :: Get_ColObject_rect( void )
 {
 	if( type == CO_MASSIVE || type == CO_ACTIVE || type == CO_ENEMY )
 	{
-		return pObjManager->items[number]->col_rect;
+		return pSprite_Manager->objects[number]->col_rect;
 	}
 	else if( type == CO_PLAYER )
 	{
@@ -358,7 +358,7 @@ bool Col_Box_full( SDL_Rect *a, SDL_Rect *b )
 	return 1;
 }
 
-// from SDL_collide ( Copyright (C) 2005 Amir Taaki )
+// from SDL_collide ( Copyright (C) 2005 Amir Taaki ) - MIT License
 bool Col_Circle( float x1, float y1, float r1, float x2, float y2, float r2, int offset )
 {
 	float xdiff = x2 - x1;	// x plane difference
@@ -379,7 +379,7 @@ bool Col_Circle( GL_Surface *surface1, SDL_Rect *a, GL_Surface *surface2, SDL_Re
 	return Col_Circle( surface1, a->x, a->y, surface2, b->x, b->y, offset );
 }
 
-// from SDL_collide ( Copyright (C) 2005 Amir Taaki )
+// from SDL_collide ( Copyright (C) 2005 Amir Taaki ) - MIT License
 bool Col_Circle( GL_Surface *a, float x1, float y1, GL_Surface *b, float x2, float y2, int offset )
 {
 	/* if radius is not specified
@@ -400,6 +400,7 @@ bool Col_Circle( GL_Surface *a, float x1, float y1, GL_Surface *b, float x2, flo
 template<typename T> inline T pow2( T value ) { return value * value; }
 template<typename T> inline T cl_min( T a, T b ) { if( a < b ) return a; return b; }
 
+// from ClanLib ( Copyright (C) 2005 Magnus Norddahl ) - BSD License
 float distance_to_line( float x, float y, GL_line *line )
 {
 	float L = sqrt( pow2( line->x2 - line->x1 ) + pow2( line->y2 - line->y1 ) );
@@ -418,6 +419,7 @@ float distance_to_line( float x, float y, GL_line *line )
 	return fabs( s ) * L ;
 }
 
+// from ClanLib ( Copyright (C) 2005 Magnus Norddahl ) - BSD License
 GL_point get_lineintersection( GL_line *line1, GL_line *line2 )
 {
 	float denominator = ( ( line1->x2 - line1->x1 ) * ( line2->y2 - line2->y1 ) - ( line1->y2 - line1->y1 ) * ( line2->x2 - line2->x1 ) );
@@ -436,6 +438,7 @@ GL_point get_lineintersection( GL_line *line1, GL_line *line2 )
 	return p;
 }
 
+// from ClanLib ( Copyright (C) 2005 Magnus Norddahl ) - BSD License
 bool Col_line( GL_line *line1, GL_line *line2, bool collinear_intersect )
 {
 	float denominator = ( ( line1->x2 - line1->x1 ) * ( line2->y2 - line2->y1 ) - ( line1->y2 - line1->y1 ) * ( line2->x2 - line2->x1 ) );	
@@ -460,9 +463,15 @@ bool Col_line( GL_line *line1, GL_line *line2, bool collinear_intersect )
 	float r = ( ( line1->y1 - line2->y1 ) * ( line2->x2 - line2->x1 ) - ( line1->x1 - line2->x1 ) * ( line2->y2 - line2->y1 ) ) / denominator;
 	float s = ( ( line1->y1 - line2->y1 ) * ( line1->x2 - line1->x1 ) - ( line1->x1 - line2->x1 ) * ( line1->y2 - line1->y1 ) ) / denominator;
 	
-	if( ( s >= 0.0f && s <= 1.0f ) && ( r >= 0.0f && r <= 1.0f ) )
+	if( line2->y1 < line2->y2 )
 	{
-		return 1;
+		if( (s >= 0.0f  && s < 1.0f) && ( r >= 0.0f && r <= 1.0f ) )
+			return 1;
+	}
+	else
+	{
+		if( (s > 0.0f  && s <= 1.0f) && ( r >= 0.0f && r <= 1.0f ) )
+			return 1;
 	}
 	
 	return 0;

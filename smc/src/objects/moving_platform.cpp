@@ -328,7 +328,6 @@ void cMoving_Platform :: Draw( cSurfaceRequest *request /* = NULL */ )
             pVideo->Draw_Rect( startposx - pCamera->x, startposy - pCamera->y, 15, max_distance + col_rect.h, posz - 0.000001f, &whitealpha128 );
 	    }
 	}
-
 }
 
 void cMoving_Platform :: Update_rect( void )
@@ -370,17 +369,15 @@ unsigned int cMoving_Platform :: Validate_Collision( cSprite *obj )
 	{
 		cMovingSprite *moving_sprite = static_cast<cMovingSprite *>(obj);
 
-		// don't set ground if jumping
-		if( moving_sprite->is_onTop( this ) && moving_sprite->state != STA_JUMP )
+		// don't handle if not moving upwards or slower
+		if( moving_sprite->is_onTop( this ) && direction == DIR_UP && moving_sprite->vely > vely )
 		{
+			// halfmassive only if no ground but massive always picks you up
 			if( ( massivetype == MASS_HALFMASSIVE && !moving_sprite->ground_object ) ||
 				 ( massivetype == MASS_MASSIVE && moving_sprite->ground_object != this ) )
 			{
-				moving_sprite->ground_object = this;
-				moving_sprite->Set_onTop( this, 0 );
+				return 1;
 			}
-
-			return 1;
 		}
 
 		return 0;
@@ -398,6 +395,16 @@ unsigned int cMoving_Platform :: Validate_Collision( cSprite *obj )
 	}
 
 	return 0;
+}
+
+void cMoving_Platform :: Handle_Collision_Player( cObjectCollision *collision )
+{
+	if( collision->direction == DIR_TOP )
+	{
+		printf( "MP : Send top collision\n" );
+		// send collision
+		Send_Collision( collision );
+	}
 }
 
 void cMoving_Platform :: Editor_Activate( void )

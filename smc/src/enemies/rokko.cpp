@@ -19,6 +19,7 @@
 #include "../video/animation.h"
 #include "../gui/hud.h"
 #include "../video/gl_surface.h"
+#include "../video/renderer.h"
 
 /* *** *** *** *** *** *** cRokko *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -261,6 +262,37 @@ void cRokko :: Update( void )
 	smoke_counter -= (int)smoke_counter;
 }
 
+void cRokko :: Draw( cSurfaceRequest *request /* = NULL */ )
+{
+	if( !valid_draw )
+	{
+		return;
+	}
+
+	bool create_request = 0;
+
+	if( !request )
+	{
+		create_request = 1;
+		// create request
+		request = new cSurfaceRequest();
+	}
+
+	// Draw player
+	cEnemy::Draw( request );
+	// alpha in debug mode
+	if( editor_level_enabled )
+	{
+		request->color.alpha = 64;
+	}
+
+	if( create_request )
+	{
+		// add request
+		pRenderer->Add( request );
+	}
+}
+
 void cRokko :: Generate_Smoke( unsigned int quota /*= 10 */ )
 {
 	cParticleAnimation *anim = NULL;
@@ -349,15 +381,15 @@ unsigned int cRokko :: Validate_Collision( cSprite *obj )
 	return 0;
 }
 
-void cRokko :: Handle_Collision_Player( ObjectDirection cdirection )
+void cRokko :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// if invincible
-	if( pPlayer->invincible > 0 || cdirection == DIR_UNDEFINED )
+	if( pPlayer->invincible > 0 || collision->direction == DIR_UNDEFINED )
 	{
 		return;
 	}
 
-	if( cdirection == DIR_TOP && pPlayer->state != STA_FLY )
+	if( collision->direction == DIR_TOP && pPlayer->state != STA_FLY )
 	{
 		pointsdisplay->Add_Points( kill_points, pPlayer->posx + pPlayer->image->w / 3, pPlayer->posy - 5, "", (Uint8)255, 1 );
 		pAudio->PlaySound( kill_sound );

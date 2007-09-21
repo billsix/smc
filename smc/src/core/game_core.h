@@ -128,13 +128,6 @@ public:
 */
 void Change_Game_Mode( GameMode new_mode );
 
-/* Function: Copy_Object
- * Returns the copied object with the given position
- * if no position is given defaults to 0
- * returns NULL if an error occurred
- */
-cSprite *Copy_Object( cSprite *copy_object, float x = 0, float y = 0 );
-
 // Function: Time_to_String
 // Returns the given time as string
 string Time_to_String( time_t t, const char *format );
@@ -227,6 +220,9 @@ bool is_valid_number( string num, bool accept_floating_point = 1 );
 // Function: Convert_path_separators
 // Converts "\" and "!" to "/"
 void Convert_path_separators( string &str );
+
+// Returns the current smc user directory
+string Get_User_Directory( void );
 
 // Function: int_to_string
 // Returns the number as a string
