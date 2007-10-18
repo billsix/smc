@@ -46,6 +46,7 @@ public:
 	// Audio
 	bool Music, Sounds;
 	Uint8 music_volume, sound_volume;
+	unsigned int audio_hz;
 
 	// Video
 	bool Fullscreen, joy_enabled;

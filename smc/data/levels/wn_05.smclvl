@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.7" />
+		<Property name="game_version" value="1.1" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1182482646" />
+		<Property name="save_time" value="1190280978" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="WeirdNose" />
@@ -4628,7 +4628,7 @@
 		<Property name="type" value="gumba" />
 		<Property name="posx" value="548" />
 		<Property name="posy" value="360" />
-		<Property name="color" value="red" />
+		<Property name="color" value="blue" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
@@ -4648,26 +4648,26 @@
 	</enemy>
 	<enemy>
 		<Property name="type" value="thromp" />
-		<Property name="posx" value="2040" />
-		<Property name="posy" value="185" />
+		<Property name="posx" value="2007" />
+		<Property name="posy" value="153" />
 		<Property name="direction" value="down" />
-		<Property name="max_distance" value="200" />
+		<Property name="max_distance" value="240" />
 		<Property name="speed" value="7" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="thromp" />
-		<Property name="posx" value="2482" />
-		<Property name="posy" value="252" />
+		<Property name="posx" value="2471" />
+		<Property name="posy" value="217" />
 		<Property name="direction" value="down" />
-		<Property name="max_distance" value="200" />
+		<Property name="max_distance" value="240" />
 		<Property name="speed" value="7" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="thromp" />
-		<Property name="posx" value="2654" />
-		<Property name="posy" value="253" />
+		<Property name="posx" value="2653" />
+		<Property name="posy" value="217" />
 		<Property name="direction" value="down" />
-		<Property name="max_distance" value="200" />
+		<Property name="max_distance" value="240" />
 		<Property name="speed" value="7" />
 	</enemy>
 	<enemy>
@@ -4680,24 +4680,24 @@
 	</enemy>
 	<enemy>
 		<Property name="type" value="thromp" />
-		<Property name="posx" value="3223" />
-		<Property name="posy" value="120" />
+		<Property name="posx" value="3222" />
+		<Property name="posy" value="89" />
 		<Property name="direction" value="down" />
-		<Property name="max_distance" value="200" />
+		<Property name="max_distance" value="230" />
 		<Property name="speed" value="7" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="gumba" />
 		<Property name="posx" value="3093" />
 		<Property name="posy" value="306" />
-		<Property name="color" value="red" />
+		<Property name="color" value="blue" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="gumba" />
 		<Property name="posx" value="3301" />
 		<Property name="posy" value="303" />
-		<Property name="color" value="red" />
+		<Property name="color" value="blue" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
@@ -4727,7 +4727,7 @@
 		<Property name="type" value="gumba" />
 		<Property name="posx" value="4904" />
 		<Property name="posy" value="367" />
-		<Property name="color" value="red" />
+		<Property name="color" value="blue" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
@@ -4740,9 +4740,9 @@
 	</enemy>
 	<enemy>
 		<Property name="type" value="gumba" />
-		<Property name="posx" value="7328" />
-		<Property name="posy" value="-170" />
-		<Property name="color" value="red" />
+		<Property name="posx" value="7147" />
+		<Property name="posy" value="-168" />
+		<Property name="color" value="blue" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
@@ -4765,14 +4765,14 @@
 		<Property name="type" value="gumba" />
 		<Property name="posx" value="8484" />
 		<Property name="posy" value="112" />
-		<Property name="color" value="red" />
+		<Property name="color" value="blue" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="gumba" />
 		<Property name="posx" value="8778" />
 		<Property name="posy" value="111" />
-		<Property name="color" value="red" />
+		<Property name="color" value="blue" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
@@ -4792,24 +4792,24 @@
 	</enemy>
 	<enemy>
 		<Property name="type" value="thromp" />
-		<Property name="posx" value="9066" />
-		<Property name="posy" value="-78" />
+		<Property name="posx" value="9061" />
+		<Property name="posy" value="-103" />
 		<Property name="direction" value="down" />
-		<Property name="max_distance" value="200" />
+		<Property name="max_distance" value="230" />
 		<Property name="speed" value="7" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="gumba" />
 		<Property name="posx" value="9243" />
 		<Property name="posy" value="289" />
-		<Property name="color" value="red" />
+		<Property name="color" value="blue" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="gumba" />
 		<Property name="posx" value="9533" />
 		<Property name="posy" value="279" />
-		<Property name="color" value="red" />
+		<Property name="color" value="blue" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
@@ -4823,14 +4823,14 @@
 		<Property name="type" value="gumba" />
 		<Property name="posx" value="5523" />
 		<Property name="posy" value="438" />
-		<Property name="color" value="red" />
+		<Property name="color" value="blue" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="gumba" />
 		<Property name="posx" value="5710" />
 		<Property name="posy" value="445" />
-		<Property name="color" value="red" />
+		<Property name="color" value="blue" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>

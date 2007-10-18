@@ -484,7 +484,8 @@ cTimeDisplay :: cTimeDisplay( float x /* = 0 */, float y /* = 0 */ )
 	sprite_array = ARRAY_HUD;
 	type = TYPE_GAMETIMEDISPLAY;
 
-	counter = -1;
+	old_seconds = 0;
+	counter = 0;
 }
 
 cTimeDisplay :: ~cTimeDisplay( void )
@@ -501,16 +502,20 @@ void cTimeDisplay :: Update( void )
 
 	counter += pFramerate->speedfactor;
 
-	int time = (int)( counter / DESIRED_FPS );	// time = seconds since start
-	int minutes = (int)( time / 60 );
+	// get seconds since start
+	unsigned int seconds = (unsigned int)( counter / DESIRED_FPS );
 
-	sprintf( text, "Time %02d:%02d", minutes, time - ( minutes * 60 ) );
-
-	if( strcmp( text, text_old ) != 0 )
+	// no change
+	if( seconds == old_seconds )
 	{
-		strcpy( text_old, text );
-		Set_Image( pFont->RenderText( pFont->font_normal, text, white ), 0, 1 );
+		return;
 	}
+
+	unsigned int minutes = seconds / 60;
+
+	// Set new time
+	sprintf( text, "Time %02d:%02d", minutes, seconds - ( minutes * 60 ) );
+	Set_Image( pFont->RenderText( pFont->font_normal, text, white ), 0, 1 );
 }
 
 void cTimeDisplay :: Draw( cSurfaceRequest *request /* = NULL */ )
@@ -848,7 +853,7 @@ void cDebugDisplay :: DebugBox_Draw( void )
 
 	// black background
 	Color color = blackalpha128;
-	pVideo->Draw_Rect( GAME_RES_W - 205, GAME_RES_H * 0.08f, 190, 360, posz - 0.00001f, &color );
+	pVideo->Draw_Rect( GAME_RES_W - 205, GAME_RES_H * 0.08f, 190, 390, posz - 0.00001f, &color );
 
 	// Active objects rect
 
@@ -1077,7 +1082,7 @@ void cGoldDisplay :: SetGold( int gold )
 	if( gold >= 100 )
 	{
 		gold -= 100;
-		pAudio->PlaySound( "item/live_up.ogg" );	
+		pAudio->PlaySound( "item/live_up_2.ogg" );	
 		livedisplay->AddLives( 1 );
 
 		pointsdisplay->Add_Points( 0, pPlayer->posx + pPlayer->image->w/3, pPlayer->posy + 5, "1UP", lightred );
@@ -1129,10 +1134,10 @@ void cLiveDisplay :: SetLives( int lives )
 {
 	pPlayer->lives = lives;
 	
-	string text;
-
 	if( lives >= 0 )
 	{
+		string text;
+
 		// if not in Overworld
 		if( Game_Mode != MODE_OVERWORLD )
 		{

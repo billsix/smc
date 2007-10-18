@@ -134,7 +134,7 @@ void cVideo :: Init_CEGUI( void )
 	try
 	{
 		pGuiRenderer = new OpenGLRenderer( 0, GAME_RES_W, GAME_RES_H );
-		pGuiSystem = new System( pGuiRenderer );
+		pGuiSystem = new System( pGuiRenderer, NULL, NULL, NULL, "", user_data_dir + "/cegui.log" );
 	}
 	// catch CEGUI Exceptions
 	catch( Exception &ex )
@@ -628,7 +628,7 @@ GL_Surface *cVideo :: Get_Surface( string filename, bool print_errors /* = 1 */ 
 	return image;
 }
 
-GL_Surface *cVideo :: Load_Surface( string filename, int use_settings /* = 1 */, bool print_errors /* = 1 */ )
+GL_Surface *cVideo :: Load_Surface( string filename, bool use_settings /* = 1 */, bool print_errors /* = 1 */ )
 {
 	// pixmaps dir must be given
 	if( filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == string::npos ) 
@@ -636,39 +636,15 @@ GL_Surface *cVideo :: Load_Surface( string filename, int use_settings /* = 1 */,
 		filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
 	}
 
-	GL_Surface *image = NULL;
-	SDL_Surface *sdl_surface = NULL;
-	bool surface_found = 0;
-
-	// image exist
-	if( valid_file( filename ) )
-	{
-		// create empty image
-		if( use_settings == -1 )
-		{
-			image = new GL_Surface();
-			surface_found = 1;
-		}
-		// load image
-		else
-		{
-			sdl_surface = IMG_Load( filename.c_str() );
-
-			if( sdl_surface )
-			{
-				surface_found = 1;
-			}
-		}
-	}
-
 	cImage_settings_data *settings = NULL;
+	SDL_Surface *sdl_surface = NULL;
 
-	// try to load settings
+	// load settings if available
 	if( use_settings )
 	{
 		string settings_file = filename;
 
-		// if not already image settings based
+		// if not already set
 		if( settings_file.rfind( ".settings" ) == string::npos )
 		{
 			settings_file.erase( settings_file.rfind( "." ) + 1 );
@@ -676,67 +652,93 @@ GL_Surface *cVideo :: Load_Surface( string filename, int use_settings /* = 1 */,
 		}
 
 		// if a settings file exists
-		if( valid_file( settings_file ) )
+		if( file_exists( settings_file ) )
 		{
 			settings = pSettingsParser->Get( settings_file );
-		}
-	}
 
-	// create GL image
-	if( !image )
-	{
-		// with settings
-		if( settings )
-		{
-			// if the image is based on another image in the settings
-			if( !sdl_surface )
+			// image given in base settings
+			if( !settings->base.empty() )
 			{
-				image = new GL_Surface();
-			}
-			// create image
-			else
-			{
-				// check if texture needs to get downscaled
-				float new_w = (float)Get_GLsize( sdl_surface->w ), new_h = (float)Get_GLsize( sdl_surface->h );
+				// use current directory
+				string img_filename = filename.substr( 0, filename.rfind( "/" ) + 1 ) + settings->base;
 
-				// if image settings dimension
-				if( settings->width > 0 && settings->height > 0 )
+				// not found
+				if( !file_exists( img_filename ) )
 				{
-					// downscale to fit best for the current resolution
-					while( new_w * 0.5f > settings->width * global_scalex && new_h * 0.5f > settings->height * global_scaley )
+					// use data dir
+					img_filename = settings->base;
+
+					// pixmaps dir must be given
+					if( img_filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == string::npos ) 
 					{
-						new_w *= 0.5f;
-						new_h *= 0.5f;
+						img_filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
 					}
 				}
 
-				image = Create_Texture( sdl_surface, settings->mipmap, (unsigned int)new_w, (unsigned int)new_h );
+				sdl_surface = IMG_Load( img_filename.c_str() );
 			}
-
-			// apply settings
-			settings->Apply( image );
-		}
-		// without settings
-		else
-		{
-			image = Create_Texture( sdl_surface );
 		}
 	}
 
+	// if not set in image settings and file exists
+	if( ( !settings || settings->base.empty() ) && file_exists( filename ) )
+	{
+		sdl_surface = IMG_Load( filename.c_str() );
+	}
+
+	if( !sdl_surface )
+	{
+		if( print_errors )
+		{
+			printf( "Error loading image : %s\nReason : %s\n", filename.c_str(), SDL_GetError() );
+		}
+
+		return NULL;
+	}
+
+	// create GL image
+	GL_Surface *image = NULL;
+
+	// with settings
+	if( settings )
+	{
+		// check if texture needs to get downscaled
+		float new_w = (float)Get_GLsize( sdl_surface->w ), new_h = (float)Get_GLsize( sdl_surface->h );
+
+		// if image settings dimension
+		if( settings->width > 0 && settings->height > 0 )
+		{
+			/* downscale to fit best for the current resolution
+			 * uses the first dimension which is not smaller as the default scale
+			*/
+			while( new_w * 0.5f > settings->width * global_scalex && new_h * 0.5f > settings->height * global_scaley )
+			{
+				new_w *= 0.5f;
+				new_h *= 0.5f;
+			}
+		}
+
+		image = Create_Texture( sdl_surface, settings->mipmap, (unsigned int)new_w, (unsigned int)new_h );
+
+		// apply settings
+		settings->Apply( image );
+		delete settings;
+	}
+	// without settings
+	else
+	{
+		image = Create_Texture( sdl_surface );
+	}
+
+	// set filename
 	if( image )
 	{
 		image->filename = filename;
 	}
+	// print error
 	else if( print_errors )
 	{
-		if( !surface_found )
-		{
-			printf( "Error loading image : %s\nReason : %s\n", filename.c_str(), SDL_GetError() );
-		}
-		else
-		{
-			printf( "Error creating GL image : %s\nReason : %s\n", filename.c_str(), SDL_GetError() );
-		}
+		printf( "Error loading image : %s\nReason : %s\n", filename.c_str(), SDL_GetError() );
 	}
 
 	return image;
@@ -1063,7 +1065,7 @@ void cVideo :: Save_Screenshot( void )
 	{
 		filename = user_data_dir + USER_SCREENSHOT_DIR "/" + int_to_string( i ) + ".bmp";
 
-		if( !valid_file( filename ) )
+		if( !file_exists( filename ) )
 		{
 			// Todo : save it as png
 

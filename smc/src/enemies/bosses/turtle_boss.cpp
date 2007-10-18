@@ -217,7 +217,8 @@ void cTurtleBoss :: Set_Color( DefaultColor col )
 		images.push_back( pVideo->Get_Surface( "enemy/bosses/turtle/walk_2.png" ) );
 		images.push_back( pVideo->Get_Surface( "enemy/bosses/turtle/walk_1.png" ) );
 		// Walk Turn
-		images.push_back( pVideo->Get_Surface( "enemy/bosses/turtle/turn_1.png" ) );
+		//images.push_back( pVideo->Get_Surface( "enemy/bosses/turtle/turn_1.png" ) );
+		images.push_back( NULL );
 		// Shell
 		images.push_back( pVideo->Get_Surface( "enemy/bosses/turtle/shell_front.png" ) );
 		images.push_back( pVideo->Get_Surface( "enemy/bosses/turtle/shell_move_1.png" ) );

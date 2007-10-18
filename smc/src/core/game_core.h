@@ -188,54 +188,43 @@ string Box_Text_Input( string default_text, string title_text, bool auto_no_text
 */
 int Box_Question( string text, bool with_cancel = 0 );
 
-/* Function: Preload_images
- * Preloads the common images into the image manager
+/* Preloads the common images into the image manager
  */
 void Preload_images( void );
 
-/* Function: Preload_sounds
- * Preloads the common sounds into the sound manager
+/* Preloads the common sounds into the sound manager
  */
 void Preload_sounds( void );
 
-/* Function: Delete_file
- * Deletes the given file
+/* Deletes the given file
  * Use with Caution
  *
  * Returns:
  * true on success
 */
 bool Delete_file( const string &filename );
+// Check if the file exists
+bool file_exists( const string &filename );
 
-// Function: valid_file
-// Checks if the file exists
-bool valid_file( const string &filename );
-
-/* Function: is_valid_number
- * if accept_floating_point is set also accept floating point values
+/* accept_floating_point: if is set also accept floating point values
  * Returns true if the number is valid
 */
 bool is_valid_number( string num, bool accept_floating_point = 1 );
 
-// Function: Convert_path_separators
 // Converts "\" and "!" to "/"
 void Convert_path_separators( string &str );
 
 // Returns the current smc user directory
 string Get_User_Directory( void );
 
-// Function: int_to_string
 // Returns the number as a string
 string int_to_string( int number );
-// Function: float_to_string
 // Returns the number as a string
 string float_to_string( const float number );
 // Returns the string as a float
 float string_to_float( const string &str );
-// Function: string_to_int
 // Returns the string as a number
 int string_to_int( const string &str );
-// Function: string_to_double
 // Returns the string as a double
 double string_to_double( const string &str );
 // Returns a valid XML string

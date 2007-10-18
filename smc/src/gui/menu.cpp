@@ -107,6 +107,8 @@ void cMenu_Item :: Draw( cSurfaceRequest *request /* = NULL */ )
 	}
 }
 
+/* *** *** *** *** *** *** cMenuHandler *** *** *** *** *** *** *** *** *** *** *** */
+
 cMenuHandler :: cMenuHandler( void )
 {
 	Reset();
@@ -326,6 +328,8 @@ cMenuCore :: cMenuCore( void )
 
 cMenuCore :: ~cMenuCore( void )
 {
+	Unload();
+
 	delete handler;
 	delete pMenu_AnimManager;
 }
@@ -481,8 +485,6 @@ cMenu_Item *cMenuCore :: Auto_Menu( string imagename, string imagefilename_menu,
 
 	return temp_item;
 }
-
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 void cMenuCore :: Load( MenuID menu /* = MENU_MAIN */ )
 {

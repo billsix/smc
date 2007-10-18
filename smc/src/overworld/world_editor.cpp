@@ -58,7 +58,7 @@ void cEditor_World :: Enable( void )
 	}
 	
 	editor_world_enabled = 1;
-	pActive_Overworld->pLayer->draw = 1;
+	pOverworld_manager->draw_layer = 1;
 
 	if( Game_Mode == MODE_OVERWORLD )
 	{
@@ -68,7 +68,7 @@ void cEditor_World :: Enable( void )
 	cEditor::Enable();
 }
 
-void cEditor_World :: Disable( void )
+void cEditor_World :: Disable( bool native_mode /* = 0 */ )
 {
 	// already disabled
 	if( !enabled )
@@ -76,16 +76,19 @@ void cEditor_World :: Disable( void )
 		return;
 	}
 
+	debugdisplay->Set_Text( "World Editor disabled" );
+
 	editor_world_enabled = 0;
-	pActive_Overworld->pLayer->draw = 0;
+	pOverworld_manager->draw_layer = 0;
 	pOverworld_manager->cameramode = 0;
 
 	if( Game_Mode == MODE_OVERWORLD )
 	{
+		native_mode = 1;
 		editor_enabled = 0;
 	}
 
-	cEditor::Disable();
+	cEditor::Disable( native_mode );
 }
 
 bool cEditor_World :: Key_Down( SDLKey key )
@@ -168,24 +171,27 @@ void cEditor_World :: Activate_Menu( cEditor_Menu_Object *entry )
 	}
 }
 
-void cEditor_World :: Function_New( void )
+bool cEditor_World :: Function_New( void )
 {
 	string world_name = Box_Text_Input( "Create a new World", "Name" );
 
-	// invalid
+	// aborted/invalid
 	if( world_name.empty() )
 	{
-		return;
+		return 0;
 	}
 
 	if( pOverworld_manager->New( world_name ) )
 	{
 		debugdisplay->Set_Text( "Created " + world_name );
+		return 1;
 	}
 	else
 	{
 		debugdisplay->Set_Text( "World " + world_name + " already exists" );
 	}
+
+	return 0;
 }
 
 void cEditor_World :: Function_Load( void )
@@ -193,8 +199,14 @@ void cEditor_World :: Function_Load( void )
 	pKeyboard->Key_Down( SDLK_w );
 }
 
-void cEditor_World :: Function_Save( void )
+void cEditor_World :: Function_Save( bool with_dialog /* = 0 */ )
 {
+	// if denied
+	if( with_dialog && !Box_Question( "Save " + Get_filename( pActive_Overworld->description->name, 0, 0 ) + " ?" ) )
+	{
+		return;
+	}
+
 	pActive_Overworld->Save();
 }
 

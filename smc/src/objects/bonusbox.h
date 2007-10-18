@@ -80,6 +80,8 @@ public:
 
 	// level editor activation
 	virtual void Editor_Activate( void );
+	// level editor state update
+	virtual void Editor_state_update( void );
 	// level editor events
 	bool Editor_Animation_Select( const EventArgs &event ); // editor animation option selected
 	bool Editor_Item_Select( const EventArgs &event ); // editor item option selected

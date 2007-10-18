@@ -60,7 +60,7 @@ cLayer_Line_Point :: ~cLayer_Line_Point( void )
 
 void cLayer_Line_Point :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
-	if( !pActive_Overworld->pLayer->draw )
+	if( !pOverworld_manager->draw_layer )
 	{
 		return;
 	}
@@ -158,7 +158,6 @@ GL_line cLayer_Line :: Get_Line( void )
 cWaypoint *cLayer_Line :: Get_End_Waypoint( void )
 {
 	int wp_num = pActive_Overworld->Get_Waypoint_Collision( &end->col_rect );
-
 	// no waypoint collision
 	if( wp_num < 0 )
 	{
@@ -244,7 +243,7 @@ int cContact_collision :: Get_best_line( ObjectDirection dir )
 
 cLayer :: cLayer( void )
 {
-	draw = 0;
+
 }
 
 cLayer :: ~cLayer( void )
@@ -302,7 +301,7 @@ bool cLayer :: Save( string filename )
 
 void cLayer :: Draw( void )
 {
-	if( !draw )
+	if( !pOverworld_manager->draw_layer )
 	{
 		return;
 	}
@@ -418,26 +417,27 @@ cLine_collision cLayer :: Get_nearest_line( cLayer_Line *map_layer_line, float x
 		}
 
 		// debug drawing
-		if( pOverworld_manager->debugmode && draw )
+		if( pOverworld_manager->debugmode && pOverworld_manager->draw_layer )
 		{
 			// create request
 			cLineRequest *line_request = new cLineRequest();
-			pVideo->DrawLine( line_1.x1 - pCamera->x, line_1.y1 - pCamera->y, line_1.x2 - pCamera->x, line_1.y2 - pCamera->y, 0.09f, &white );
+			pVideo->DrawLine( line_1.x1 - pCamera->x, line_1.y1 - pCamera->y, line_1.x2 - pCamera->x, line_1.y2 - pCamera->y, map_layer_line->start->posz + 0.001f, &white, line_request );
 			line_request->line_width = 2;
+			line_request->render_count = 50;
 			// add request
 			pRenderer->Add( line_request );
 
 			// create request
 			line_request = new cLineRequest();
-			pVideo->DrawLine( line_2.x1 - pCamera->x, line_2.y1 - pCamera->y, line_2.x2 - pCamera->x, line_2.y2 - pCamera->y, 0.09f, &black );
+			pVideo->DrawLine( line_2.x1 - pCamera->x, line_2.y1 - pCamera->y, line_2.x2 - pCamera->x, line_2.y2 - pCamera->y, map_layer_line->start->posz + 0.001f, &black, line_request );
 			line_request->line_width = 2;
+			line_request->render_count = 50;
 			// add request
 			pRenderer->Add( line_request );
 		}
 
-
 		// check direction line 1
-		if( Col_line( &line_1, &map_line, 1 ) )
+		if( Col_line( &line_1, &map_line ) )
 		{
 			cLine_collision col = cLine_collision();
 
@@ -450,7 +450,7 @@ cLine_collision cLayer :: Get_nearest_line( cLayer_Line *map_layer_line, float x
 		}
 
 		// check direction line 2
-		if( Col_line( &line_2, &map_line, 1 ) )
+		if( Col_line( &line_2, &map_line ) )
 		{
 			cLine_collision col = cLine_collision();
 

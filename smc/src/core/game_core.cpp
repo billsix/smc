@@ -28,6 +28,10 @@
 #include "../video/gl_surface.h"
 #include "../video/renderer.h"
 #include "../level/level.h"
+// boost filesystem
+#include "boost/filesystem/operations.hpp"
+#include "boost/filesystem/path.hpp"
+namespace fs = boost::filesystem;
 
 // needed to get the user directory
 #ifdef __unix__
@@ -454,6 +458,12 @@ void Change_Game_Mode( GameMode new_mode )
 				pLevel_Editor->editor_window->show();
 				pMouseCursor->visible = 1;
 			}
+		}
+		// enable editor
+		else if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM_EDITOR )
+		{
+			Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
+			pLevel_Editor->Enable();
 		}
 	}
 	// mode gets overworld
@@ -1262,17 +1272,9 @@ bool Delete_file( const string &filename )
 	return 0;
 }
 
-bool valid_file( const string &filename )
+bool file_exists( const string &filename )
 {
-	ifstream ifs( filename.c_str(), ios::in );
-
-	if( ifs )
-	{
-		ifs.close();
-		return 1;
-	}
-
-	return 0;
+	return fs::exists( fs::path( filename, fs::native ) );
 }
 
 bool is_valid_number( string num, bool accept_floating_point /* = 1 */ )

@@ -33,6 +33,8 @@ cCamera :: cCamera( void )
 	hor_offset_speed = 0.3f;
 	ver_offset_speed = 0.2f;
 
+	fixed_hor_vel = 0;
+
 	// default camera limit
 	Reset_Limits();
 }
@@ -204,27 +206,6 @@ void cCamera :: Update( void )
 		// no leveleditor mode
 		if( !editor_enabled )
 		{
-			// player is moving horizontal
-			if( pPlayer->velx != 0 && hor_offset_speed > 0 )
-			{
-				pPlayer->no_velx_counter = 0;
-
-				if( ( x_offset < 200 && pPlayer->velx > 0 ) || ( x_offset > -200 && pPlayer->velx < 0 ) )
-				{
-					x_offset += ( pPlayer->velx * hor_offset_speed ) * pFramerate->speedfactor;
-				}
-			}
-			// slowly remove offset
-			else
-			{
-				pPlayer->no_velx_counter += pFramerate->speedfactor;
-
-				if( pPlayer->no_velx_counter > 10 && ( x_offset > 40 || x_offset < -40 ) )
-				{
-					x_offset += -( x_offset / 50 ) * pFramerate->speedfactor;
-				}
-			}
-			
 			// player is moving vertical
 			if( pPlayer->vely != 0 && ver_offset_speed > 0 )
 			{
@@ -246,8 +227,61 @@ void cCamera :: Update( void )
 				}
 			}
 
-			// set position
-			Center();
+			if( fixed_hor_vel )
+			{
+				// todo : remove hackiness
+				x += fixed_hor_vel * pFramerate->speedfactor;
+				// check limit
+				Update_LimitX( x );
+				// center one side
+				Center( DIR_HORIZONTAL );
+
+				// scrolls to the right
+				if( fixed_hor_vel > 0 )
+				{
+					// out of camera on the left side
+					if( pPlayer->col_rect.x + pPlayer->col_rect.w < pCamera->x )
+					{
+						pPlayer->DownGrade( 1, 1 );
+					}
+
+				}
+				// scrolls to the left
+				else
+				{
+					// out of camera on the right side
+					if( pPlayer->col_rect.x - GAME_RES_W > pCamera->x )
+					{
+						pPlayer->DownGrade( 1, 1 );
+					}
+				}
+			}
+			else
+			{
+				// player is moving horizontal
+				if( pPlayer->velx != 0 && hor_offset_speed > 0 )
+				{
+					pPlayer->no_velx_counter = 0;
+
+					if( ( x_offset < 200 && pPlayer->velx > 0 ) || ( x_offset > -200 && pPlayer->velx < 0 ) )
+					{
+						x_offset += ( pPlayer->velx * hor_offset_speed ) * pFramerate->speedfactor;
+					}
+				}
+				// slowly remove offset
+				else
+				{
+					pPlayer->no_velx_counter += pFramerate->speedfactor;
+
+					if( pPlayer->no_velx_counter > 10 && ( x_offset > 40 || x_offset < -40 ) )
+					{
+						x_offset += -( x_offset / 50 ) * pFramerate->speedfactor;
+					}
+				}
+
+				// set position
+				Center();
+			}
 		}
 	}
 }

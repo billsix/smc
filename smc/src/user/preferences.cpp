@@ -78,7 +78,7 @@ bool cPreferences :: Load( string filename /* = "" */ )
 		config_filename = filename;
 	}
 	
-	if( !valid_file( config_filename ) )
+	if( !file_exists( config_filename ) )
 	{
 		printf( "Couldn't open preferences file : %s\n", config_filename.c_str() );
 		return 0;
@@ -143,6 +143,7 @@ void cPreferences :: Save( void )
 	file << "\t<Item Name=\"Sounds\" Value=\"" << Sounds << "\" />" << std::endl;
 	file << "\t<Item Name=\"music_volume\" Value=\"" << (int)music_volume << "\" />" << std::endl;
 	file << "\t<Item Name=\"sound_volume\" Value=\"" << (int)sound_volume << "\" />" << std::endl;
+	file << "\t<Item Name=\"audio_hz\" Value=\"" << audio_hz << "\" />" << std::endl;
 	// Keyboard
 	file << "\t<Item Name=\"Key_up\" Value=\"" << key_up << "\" />" << std::endl;
 	file << "\t<Item Name=\"Key_down\" Value=\"" << key_down << "\" />" << std::endl;
@@ -197,6 +198,7 @@ void cPreferences :: Default( void )
 	Sounds = 1;
 	music_volume = 100;
 	sound_volume = 120;
+	audio_hz = 44100;
 
 	// Keyboard
 	key_up = SDLK_UP;
@@ -352,6 +354,15 @@ void cPreferences :: handle_item( const XMLAttributes& attributes )
 		if( val >= 0 && val <= MIX_MAX_VOLUME )
 		{
 			sound_volume = val;
+		}
+	}
+	else if( name.compare( "audio_hz" ) == 0 )
+	{
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= 44800 )
+		{
+			audio_hz = val;
 		}
 	}
 	// Keyboard

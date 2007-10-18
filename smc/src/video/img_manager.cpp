@@ -124,16 +124,17 @@ void cImageManager :: Restore_Textures( void )
 	software_textures.clear();
 }
 
-void cImageManager :: Delete_Images( void )
+void cImageManager :: Delete_Image_Textures( void )
 {
-	for( SurfaceList::iterator itr = objects.begin(); itr != objects.end(); ++itr ) 
+	for( SurfaceList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr ) 
 	{
 		// get object
 		GL_Surface *obj = (*itr);
 
-		glDeleteTextures( 1, &obj->image );
-		delete obj;
-		obj = NULL;
+		if( obj->auto_del_img && glIsTexture( obj->image ) )
+		{
+			glDeleteTextures( 1, &obj->image );
+		}
 	}
 }
 
@@ -154,8 +155,9 @@ void cImageManager :: Delete_Hardware_Textures( void )
 
 void cImageManager :: Delete_All( void )
 {
-	Delete_Images();
-	objects.clear();
+	// stops GL_Surface destructor from checking if GL texture id still in use
+	Delete_Image_Textures();
+	cObject_Manager<GL_Surface>::Delete_All();
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

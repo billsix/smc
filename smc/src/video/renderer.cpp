@@ -176,6 +176,14 @@ void cGradientRequest :: Draw( void )
 
 	// clear color
 	glColor4ub( 255, 255, 255, 255 );
+
+	// set back position
+	if( render_count > 1 && !no_camera )
+	{
+		rect.x += pCamera->x;
+		rect.y += pCamera->y;
+	}
+
 	End_color_combine();
 	End_render();
 }
@@ -249,6 +257,15 @@ void cLineRequest :: Draw( void )
 		glColor4ub( 255, 255, 255, 255 );
 	}
 
+	// set back position
+	if( render_count > 1 && !no_camera )
+	{
+		line.x1 += pCamera->x;
+		line.y1 += pCamera->y;
+		line.x2 += pCamera->x;
+		line.y2 += pCamera->y;
+	}
+
 	End_color_combine();
 	End_render();
 }
@@ -317,6 +334,13 @@ void cRectRequest :: Draw( void )
 	if( color.red != 255 || color.green != 255 || color.blue != 255 || color.alpha != 255 )
 	{
 		glColor4ub( 255, 255, 255, 255 );
+	}
+
+	// set back position
+	if( render_count > 1 && !no_camera )
+	{
+		rect.x += pCamera->x;
+		rect.y += pCamera->y;
 	}
 
 	End_color_combine();
@@ -487,6 +511,13 @@ void cSurfaceRequest :: Draw( void )
 		glColor4ub( 255, 255, 255, 255 );
 	}
 
+	// set back position
+	if( render_count > 1 && !no_camera )
+	{
+		pos_x += pCamera->x;
+		pos_y += pCamera->y;
+	}
+
 	End_color_combine();
 	End_render();
 }
@@ -513,6 +544,7 @@ void cRenderQueue :: Add( cRenderRequest *obj )
 	// if no type
 	if( obj->type == REND_NOTHING )
 	{
+		delete obj;
 		return;
 	}
 

@@ -73,7 +73,9 @@ public:
 	cImage_settings( void );
 	virtual ~cImage_settings( void );
 
-	// Returns the settings from the given file
+	/* Returns the settings from the given file
+	 * load_base_settings : if set will overwrite settings with all base settings if available
+	*/
 	cImage_settings_data *Get( string &filename, bool load_base_settings = 1 );
 
 	// Handles the Image Settings Line

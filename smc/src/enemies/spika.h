@@ -49,7 +49,9 @@ public:
 	// set color
 	void Set_Color( DefaultColor col );
 
-	// die
+	/* downgrade state ( if already weakest state : dies )
+	 * force : usually dies or a complete downgrade
+	*/
 	virtual void DownGrade( bool force = 0 );
 	virtual void DieStep( void );
 

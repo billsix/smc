@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.5" />
-		<Property name="engine_version" value="2" />
-		<Property name="save_time" value="1174591693" />
+		<Property name="game_version" value="1.2" />
+		<Property name="engine_version" value="2.1" />
+		<Property name="save_time" value="1192722648" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Flippa" />
@@ -13,6 +13,7 @@
 		<Property name="cam_limit_y" value="0" />
 		<Property name="cam_limit_w" value="11050" />
 		<Property name="cam_limit_h" value="-4000" />
+		<Property name="cam_fixed_hor_vel" value="0" />
 	</settings>
 	<background>
 		<Property name="type" value="103" />
@@ -34,13 +35,13 @@
 		<Property name="type" value="1" />
 		<Property name="image" value="animation/particles/rain.png" />
 		<Property name="rect_x" value="0" />
-		<Property name="rect_y" value="0" />
+		<Property name="rect_y" value="-1" />
 		<Property name="rect_w" value="800" />
 		<Property name="rect_h" value="1" />
 		<Property name="z" value="0.12" />
 		<Property name="z_rand" value="0" />
 		<Property name="time_to_live" value="1.5" />
-		<Property name="creation_speed" value="1.5" />
+		<Property name="emitter_iteration_interval" value="0.0213333" />
 		<Property name="scale" value="0.3" />
 		<Property name="scale_rand" value="0.1" />
 		<Property name="speed" value="20" />
@@ -52,7 +53,7 @@
 	</global_effect>
 	<player>
 		<Property name="posx" value="69" />
-		<Property name="posy" value="169" />
+		<Property name="posy" value="91" />
 		<Property name="direction" value="right" />
 	</player>
 	<sprite>
@@ -4827,18 +4828,6 @@
 		<Property name="type" value="climbable" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="9548" />
-		<Property name="posy" value="-1687" />
-		<Property name="image" value="ground/sand_1/ground/middle.png" />
-		<Property name="type" value="climbable" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="9603" />
-		<Property name="posy" value="-1687" />
-		<Property name="image" value="ground/sand_1/ground/middle.png" />
-		<Property name="type" value="climbable" />
-	</sprite>
-	<sprite>
 		<Property name="posx" value="9658" />
 		<Property name="posy" value="-1687" />
 		<Property name="image" value="ground/sand_1/ground/middle.png" />
@@ -5645,21 +5634,21 @@
 	<enemy>
 		<Property name="type" value="turtle" />
 		<Property name="posx" value="8931" />
-		<Property name="posy" value="-1395" />
+		<Property name="posy" value="-1398" />
 		<Property name="color" value="red" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="turtle" />
-		<Property name="posx" value="9442" />
-		<Property name="posy" value="-1555" />
+		<Property name="posx" value="9435" />
+		<Property name="posy" value="-1558" />
 		<Property name="color" value="red" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="turtle" />
-		<Property name="posx" value="10114" />
-		<Property name="posy" value="-1394" />
+		<Property name="posx" value="10108" />
+		<Property name="posy" value="-1400" />
 		<Property name="color" value="red" />
 		<Property name="direction" value="right" />
 	</enemy>
@@ -5820,10 +5809,9 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<levelexit>
-		<Property name="posx" value="10904" />
+		<Property name="posx" value="10903" />
 		<Property name="posy" value="-1513" />
 		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_ending" />
 		<Property name="direction" value="down" />
 	</levelexit>
 	<levelexit>
@@ -5985,4 +5973,16 @@
 		<Property name="level_name" value="flippa_3_green" />
 		<Property name="direction" value="down" />
 	</levelexit>
+	<sprite>
+		<Property name="posx" value="9548" />
+		<Property name="posy" value="-1687" />
+		<Property name="image" value="ground/sand_1/ground/middle.png" />
+		<Property name="type" value="climbable" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="9603" />
+		<Property name="posy" value="-1687" />
+		<Property name="image" value="ground/sand_1/ground/middle.png" />
+		<Property name="type" value="climbable" />
+	</sprite>
 </level>

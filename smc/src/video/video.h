@@ -124,11 +124,11 @@ public:
 	GL_Surface *Get_Surface( string filename, bool print_errors = 1 );
 
 	/* Loads and returns the image
-	 * use_settings : sets the file settings if set to 1 and only loads settings and no image if set to -1
+	 * use_settings : enable file settings if set to 1
 	 * print_errors : print errors if image couldn't be created or loaded
 	 * The returned image should be deleted if not used anymore
 	*/
-	GL_Surface *Load_Surface( string filename, int use_settings = 1, bool print_errors = 1 );
+	GL_Surface *Load_Surface( string filename, bool use_settings = 1, bool print_errors = 1 );
 
 	/* Creates a GL image from a SDL_Surface
 	 * mipmap : create texture mipmaps

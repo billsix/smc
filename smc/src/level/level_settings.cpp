@@ -88,6 +88,9 @@ void cLevel_Settings :: Init( void )
 	spinner->setCurrentValue( pCamera->limit_rect.w );
 	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_camera_limit_h" ));
 	spinner->setCurrentValue( pCamera->limit_rect.h );
+	// fixed camera horizontal velocity
+	spinner = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_camera_hor_vel" ));
+	spinner->setCurrentValue( pCamera->fixed_hor_vel );
 	// last Save time
 	Editbox *editbox_save_time = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_save_time" ));
 	editbox_save_time->setText( Time_to_String( pLevel->last_saved, "%Y-%m-%d  %H:%M:%S" ) );
@@ -293,7 +296,7 @@ void cLevel_Settings :: Enter( void )
 	{
 		pLevel->Set_Levelfile( WindowManager::getSingleton().getWindow( "editbox_level_filename" )->getText().c_str() );
 		// show no level saved info text
-		debugdisplay->Set_Text( "" );
+		debugdisplay->Set_Text( "", 0 );
 	}
 	// musicfile
 	pLevel->Set_Musicfile( WindowManager::getSingleton().getWindow( "editbox_music_filename" )->getText().c_str() );
@@ -304,6 +307,8 @@ void cLevel_Settings :: Enter( void )
 	// Camera Limits
 	pCamera->Set_Limit_W( (static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_camera_limit_w" )))->getCurrentValue() );
 	pCamera->Set_Limit_H( (static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_camera_limit_h" )))->getCurrentValue() );
+	// fixed camera horizontal velocity
+	pCamera->fixed_hor_vel = (static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_camera_hor_vel" )))->getCurrentValue();
 
 	// # background
 	// Gradient
@@ -488,7 +493,7 @@ void cLevel_Settings :: Set_Background_image_Preview( string filename )
 {
 	Convert_path_separators( filename );
 
-	if( !valid_file( filename ) )
+	if( !file_exists( filename ) )
 	{
 		background_preview->Set_Image( NULL );
 		return;
@@ -533,7 +538,7 @@ bool cLevel_Settings :: Update_BG_image( const EventArgs &event )
 	background->Set_type( bg_type );
 
 	// valid
-	if( valid_file( bg_filename ) )
+	if( file_exists( bg_filename ) )
 	{
 		background->Set_image( bg_filename );
 	}
@@ -576,7 +581,7 @@ void cLevel_Settings :: Set_global_effect_image_Preview( string filename )
 {
 	Convert_path_separators( filename );
 
-	if( !valid_file( filename ) )
+	if( !file_exists( filename ) )
 	{
 		global_effect_preview->Set_Image( NULL );
 		return;

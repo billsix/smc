@@ -31,8 +31,10 @@ public:
 
 	// Enable
 	virtual void Enable( void );
-	// Disable
-	virtual void Disable( void );
+	/* Disable
+	 * native_mode : if unset the current game mode isn't altered
+ 	*/
+	virtual void Disable( bool native_mode = 0 );
 
 	/* handle key down event
 	 * returns true if the key was processed
@@ -52,10 +54,11 @@ public:
 	bool Switch_ObjectState( cSprite *obj );
 
 	// Menu functions
-	virtual void Function_New( void );
+	virtual bool Function_New( void );
 	virtual void Function_Load( void );
-	virtual void Function_Save( void );
+	virtual void Function_Save( bool with_dialog = 0 );
 	virtual void Function_Save_as( void );
+	virtual void Function_Delete( void );
 	virtual void Function_Reload( void );
 	virtual void Function_Clear( void );
 	virtual void Function_Settings( void );

@@ -63,6 +63,9 @@ public:
 	float hor_offset_speed, ver_offset_speed;
 	// limits
 	GL_rect limit_rect;
+
+	// fixed horizontal scrolling velocity
+	float fixed_hor_vel;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

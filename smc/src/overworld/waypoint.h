@@ -67,6 +67,7 @@ public:
 	// editor activation
 	virtual void Editor_Activate( void );
 	// editor events
+	bool Editor_Type_Select( const EventArgs &event ); // editor type option selected
 	bool Editor_Destination_Key( const EventArgs &event );  // editor destination key up
 	bool Editor_Access_Select( const EventArgs &event ); // editor access option selected
 	bool Editor_Backward_Direction_Select( const EventArgs &event ); // editor direction backward option selected
@@ -77,7 +78,7 @@ public:
 	ObjectDirection direction_backward, direction_forward;
 
 	/* The Waypoint type
-	 * look at the definitions
+	 * see the definitions
 	*/
 	Waypoint_type waypoint_type;
 	// destination

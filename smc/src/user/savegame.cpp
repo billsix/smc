@@ -527,7 +527,7 @@ cSave *cSavegame :: Load( unsigned int save_slot )
 
 	string filename = savegame_dir + "/" + int_to_string( save_slot ) + ".save";
 
-	if( !valid_file( filename ) )
+	if( !file_exists( filename ) )
 	{
 		printf( "Error : Savegame Loading : No Savegame found at Slot : %s\n", filename.c_str() );
 		return save_temp;
@@ -566,7 +566,7 @@ int cSavegame :: Save( unsigned int save_slot, cSave *savegame )
 {
 	string filename = savegame_dir + "/" + int_to_string( save_slot ) + ".save";
 
-	if( valid_file( filename ) )
+	if( file_exists( filename ) )
 	{
 		ifstream ifs( filename.c_str(), ios::trunc ); // Delete existing
 		ifs.close();
@@ -724,7 +724,7 @@ string cSavegame :: Get_Description( unsigned int save_slot, bool only_descripti
 
 	savefile = savegame_dir + "/" + int_to_string( save_slot ) + ".save";
 
-	if( !valid_file( savefile ) )
+	if( !file_exists( savefile ) )
 	{
 		str_description = int_to_string( save_slot ) + ". Free Save";
 		return str_description;
@@ -766,7 +766,7 @@ string cSavegame :: Get_Description( unsigned int save_slot, bool only_descripti
 
 bool cSavegame :: is_valid( unsigned int save_slot )
 {
-	return valid_file( savegame_dir + "/" + int_to_string( save_slot ) + ".save" );
+	return file_exists( savegame_dir + "/" + int_to_string( save_slot ) + ".save" );
 }
 
 // XML element start

@@ -25,7 +25,9 @@
 class cEnemy : public cImageObjectSprite
 {
 public:
+	// constructor
 	cEnemy( float x = 0, float y = 0 );
+	// destructor
 	virtual ~cEnemy( void );
 
 	// Set Dead

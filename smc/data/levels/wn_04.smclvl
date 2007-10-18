@@ -3,7 +3,7 @@
 	<information>
 		<Property name="game_version" value="1.1" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1189652380" />
+		<Property name="save_time" value="1190280851" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="WeirdNose &amp; FluXy" />
@@ -5668,26 +5668,6 @@
 		<Property name="posy" value="-318" />
 		<Property name="color" value="yellow" />
 	</item>
-	<box>
-		<Property name="posx" value="6611" />
-		<Property name="posy" value="106" />
-		<Property name="type" value="bonus" />
-		<Property name="animation" value="Bonus" />
-		<Property name="item" value="0" />
-		<Property name="invisible" value="0" />
-		<Property name="useable_count" value="1" />
-		<Property name="force_best_item" value="0" />
-	</box>
-	<box>
-		<Property name="posx" value="7573" />
-		<Property name="posy" value="99" />
-		<Property name="type" value="bonus" />
-		<Property name="animation" value="Bonus" />
-		<Property name="item" value="0" />
-		<Property name="invisible" value="0" />
-		<Property name="useable_count" value="1" />
-		<Property name="force_best_item" value="0" />
-	</box>
 	<sprite>
 		<Property name="posx" value="1242" />
 		<Property name="posy" value="353" />
@@ -6078,4 +6058,26 @@
 		<Property name="image" value="ground/sand_1/ground/right_down.png" />
 		<Property name="type" value="massive" />
 	</sprite>
+	<box>
+		<Property name="posx" value="7573" />
+		<Property name="posy" value="99" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
+		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="yellow" />
+	</box>
+	<box>
+		<Property name="posx" value="6611" />
+		<Property name="posy" value="106" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
+		<Property name="invisible" value="0" />
+		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="yellow" />
+	</box>
 </level>

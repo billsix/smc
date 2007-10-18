@@ -11,7 +11,7 @@
             <Property Name="ReadOnly" Value="True" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
             <Property Name="ClippedByParent" Value="False" />
-            <Property Name="UnifiedAreaRect" Value="{{0.5,0},{0.364583,0},{0.6,0},{0.509584,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.5,0},{0.51,0},{0.6,0},{0.65,0}}" />
             <Property Name="MaxEditTextLength" Value="1073741823" />
         </Window>
         <Window Type="TaharezLook/Combobox" Name="combo_sounds" >
@@ -20,7 +20,7 @@
             <Property Name="ReadOnly" Value="True" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
             <Property Name="ClippedByParent" Value="False" />
-            <Property Name="UnifiedAreaRect" Value="{{0.5,0},{0.493749,0},{0.6,0},{0.638749,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.5,0},{0.6,0},{0.6,0},{0.74,0}}" />
             <Property Name="MaxEditTextLength" Value="1073741823" />
         </Window>
         <Window Type="TaharezLook/Slider" Name="slider_music_volume" >
@@ -29,7 +29,7 @@
             <Property Name="MaximumValue" Value="128" />
             <Property Name="ClickStepSize" Value="5" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-            <Property Name="UnifiedAreaRect" Value="{{0.616251,0},{0.35,0},{0.637501,0},{0.43,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.615,0},{0.49,0},{0.635,0},{0.57,0}}" />
         </Window>
         <Window Type="TaharezLook/Slider" Name="slider_sound_volume" >
             <Property Name="Tooltip" Value="Set the Game Sound Volume." />
@@ -37,7 +37,16 @@
             <Property Name="MaximumValue" Value="128" />
             <Property Name="ClickStepSize" Value="5" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-            <Property Name="UnifiedAreaRect" Value="{{0.615001,0},{0.48,0},{0.636251,0},{0.56,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.615,0},{0.58,0},{0.635,0},{0.66,0}}" />
+        </Window>
+        <Window Type="TaharezLook/Combobox" Name="combo_audio_hz" >
+            <Property Name="Text" Value="Hz" />
+            <Property Name="Tooltip" Value="Never change this except if audio is scratchy." />
+            <Property Name="ReadOnly" Value="True" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="ClippedByParent" Value="False" />
+            <Property Name="UnifiedAreaRect" Value="{{0.5,0},{0.37,0},{0.64,0},{0.51,0}}" />
+            <Property Name="MaxEditTextLength" Value="1073741823" />
         </Window>
     </Window>
 </GUILayout>

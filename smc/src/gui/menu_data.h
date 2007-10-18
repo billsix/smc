@@ -100,16 +100,19 @@ public:
 	/* Load the Selected Level
 	 * and exits if successful
 	*/
-	void Load_Level( string name );
+	bool Load_Level( string name );
 
 	// CEGUI events
 	bool window_keydown( const EventArgs &event ); // key down
 	bool world_Select( const EventArgs &event ); // world selected
 	bool world_Select_final_list( const EventArgs &event ); // world selected for entering
-	bool world_Select_final_button( const EventArgs &event ); // button for world entering
+	bool Button_world_Select_final( const EventArgs &event ); // button for world entering
 	bool level_Select( const EventArgs &event ); // level selected
 	bool level_Select_final_list( const EventArgs &event ); // level selected for entering
-	bool level_Select_final_button( const EventArgs &event ); // button for level entering 
+	bool Button_level_Select_final( const EventArgs &event ); // button for level entering 
+	bool Button_level_new_clicked( const EventArgs &event ); // level new button
+	bool Button_level_edit_clicked( const EventArgs &event ); // level edit button
+	bool Button_level_delete_clicked( const EventArgs &event ); // level delete button
 };
 
 /* *** *** *** *** *** *** *** cMenu_Options *** *** *** *** *** *** *** *** *** *** */
@@ -192,6 +195,7 @@ public:
 	virtual void Draw( void );
 
 	// CEGUI events
+	bool Audio_Hz_Select( const EventArgs &event ); // Audio Hz option selected
 	bool music_Select( const EventArgs &event ); // music option selected
 	bool music_vol_changed( const EventArgs &event ); // music volume changed
 	bool sound_Select( const EventArgs &event ); // sound option selected
@@ -200,8 +204,6 @@ public:
 	// Audio
 	cHudSprite *music;
 	cHudSprite *sounds;
-	cHudSprite *audio_music;
-	cHudSprite *audio_sounds;
 };
 
 /* *** *** *** *** *** *** *** cMenu_Options_Controls *** *** *** *** *** *** *** *** *** *** */

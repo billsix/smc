@@ -18,6 +18,7 @@
 #include "../core/game_core.h"
 #include "../level/level.h"
 #include "../overworld/overworld.h"
+#include "../user/preferences.h"
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -154,7 +155,6 @@ cAudio :: cAudio( void )
 
 	sound_count = 0;
 
-	audio_hz = 44800; // default Ogg Samples ( never change this )
 	audio_buffer = 4096; // below 2000 can be choppy
 	audio_channels = MIX_DEFAULT_CHANNELS; // 1 = Mono, 2 = Stereo
 
@@ -168,16 +168,23 @@ cAudio :: ~cAudio( void )
 
 bool cAudio :: Init( bool sound /* = 1 */, bool music /* = 1 */ )
 {
-	// if no change return
-	if( music_enabled == music && sound_enabled == sound )
+	// Get current device parameters
+	int dev_frequency = 0;
+	Uint16 dev_format = 0;
+	int dev_channels = 0;
+	Mix_QuerySpec( &dev_frequency, &dev_format, &dev_channels );
+
+	// if no change
+	if( music_enabled == music && sound_enabled == sound && dev_frequency == pPreferences->audio_hz )
 	{
 		return 1;
 	}
 
-	// if both disabled - unload
+	Close();
+
+	// if no audio
 	if( !music && !sound )
 	{
-		Close();
 		return 1;
 	}
 
@@ -186,7 +193,7 @@ bool cAudio :: Init( bool sound /* = 1 */, bool music /* = 1 */ )
 	{
 		if( debug )
 		{
-			printf( "Initializing Audio System - Buffer %i, Frequency %i, Speaker Channels %i\n", audio_buffer, audio_hz, audio_channels );
+			printf( "Initializing Audio System - Buffer %i, Frequency %i, Speaker Channels %i\n", audio_buffer, pPreferences->audio_hz, audio_channels );
 		}
 
 		/*	Initializing preferred Audio System specs with Mixer Standard format (Stereo)
@@ -197,7 +204,7 @@ bool cAudio :: Init( bool sound /* = 1 */, bool music /* = 1 */ )
 		*	chunk size	: Bytes used per output sample.
 		*/
 
-		if( Mix_OpenAudio( audio_hz, MIX_DEFAULT_FORMAT, audio_channels, audio_buffer ) < 0 ) 
+		if( Mix_OpenAudio( pPreferences->audio_hz, MIX_DEFAULT_FORMAT, audio_channels, audio_buffer ) < 0 ) 
 		{
 			printf( "Warning : Could not init 16-bit Audio\n- Reason : %s\n", SDL_GetError() );
 			return 0;
@@ -336,7 +343,7 @@ cAudio_Sound *cAudio :: Get_Sound( string filename )
 	}
 
 	// not available
-	if( !valid_file( filename ) )
+	if( !file_exists( filename ) )
 	{
 		// add sound directory
 		if( filename.find( DATA_DIR "/" GAME_SOUNDS_DIR "/" ) == string::npos )
@@ -383,7 +390,7 @@ bool cAudio :: PlaySound( string filename, int res_id /* = -1 */, int volume /* 
 	}
 
 	// not available
-	if( !valid_file( filename ) )
+	if( !file_exists( filename ) )
 	{
 		// add sound directory
 		if( filename.find( DATA_DIR "/" GAME_SOUNDS_DIR "/" ) == string::npos )
@@ -392,7 +399,7 @@ bool cAudio :: PlaySound( string filename, int res_id /* = -1 */, int volume /* 
 		}
 
 		// not found
-		if( !valid_file( filename ) )
+		if( !file_exists( filename ) )
 		{
 			printf( "Couldn't find sound file : %s\n", filename.c_str() );
 			return 0;
@@ -465,7 +472,7 @@ bool cAudio :: PlayMusic( string filename, int loops /* = 0 */, bool force /* = 
 	}
 
 	// no valid file
-	if( !valid_file( filename ) )
+	if( !file_exists( filename ) )
 	{
 		printf( "Couldn't find music file : %s\n", filename.c_str() );
 		return 0;
@@ -574,7 +581,7 @@ void cAudio :: ToggleMusic( void )
 		}
 
 		// Warning if no music pack is installed and music got enabled
-		if( !valid_file( DATA_DIR "/" GAME_MUSIC_DIR "/game/menu.ogg" ) && !valid_file( DATA_DIR "/" GAME_MUSIC_DIR "/land/land_1.ogg" ) )
+		if( !file_exists( DATA_DIR "/" GAME_MUSIC_DIR "/game/menu.ogg" ) && !file_exists( DATA_DIR "/" GAME_MUSIC_DIR "/land/land_1.ogg" ) )
 		{
 			Draw_StaticText( "Warning : No Music Addon detected", &orange );
 		}

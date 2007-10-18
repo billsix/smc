@@ -401,7 +401,6 @@ void cMoving_Platform :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	if( collision->direction == DIR_TOP )
 	{
-		printf( "MP : Send top collision\n" );
 		// send collision
 		Send_Collision( collision );
 	}

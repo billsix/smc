@@ -108,6 +108,7 @@ bool cCollidingSprite :: Collision_Add( cObjectCollision *collision, bool add_if
 			// already in list
 			if( col->number == collision->number )
 			{
+				delete collision;
 				return 0;
 			}
 		}
@@ -1272,6 +1273,11 @@ void cSprite :: Editor_pos_update( void )
 		// some space between objects
 		obj_posy += 1;
 	}
+}
+
+void cSprite :: Editor_state_update( void )
+{
+	// virtual
 }
 
 bool cSprite :: Editor_Mouse_Enter( const EventArgs &event )

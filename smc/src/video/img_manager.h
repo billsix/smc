@@ -83,11 +83,11 @@ public:
 	*/
 	void Restore_Textures( void );
 
-	/* Free all bitmap surfaces, but keep object vector entries
+	/* Delete all surface textures, but keep object vector entries
 	*/
-	void Delete_Images( void );
+	void Delete_Image_Textures( void );
 
-	/* Free all hardware surfaces
+	/* Delete all hardware surfaces
 	*/
 	void Delete_Hardware_Textures( void );
 

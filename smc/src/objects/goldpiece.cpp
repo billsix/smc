@@ -126,7 +126,7 @@ void cGoldpiece :: Set_Goldcolor( DefaultColor ncolor )
 		name = "Gold";
 	}
 
-	Set_Image( 0, 1, 0 );
+	Set_Image( 0, 1 );
 }
 
 void cGoldpiece :: Activate( void )
@@ -193,7 +193,7 @@ void cGoldpiece :: Update( void )
 		counter = 0;
 	}
 
-	Set_Image( (int)counter, 0, 0 );
+	Set_Image( (int)counter );
 }
 
 void cGoldpiece :: Draw( cSurfaceRequest *request /* = NULL */ )
@@ -277,7 +277,7 @@ void cJGoldpiece :: Update( void )
 		counter = 0;
 	}
 
-	Set_Image( (int)counter, 0, 0 );
+	Set_Image( (int)counter );
 }
 
 unsigned int cJGoldpiece :: Validate_Collision( cSprite *obj )
@@ -362,7 +362,7 @@ void cFGoldpiece :: Set_Goldcolor( DefaultColor ncolor )
 		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/yellow/10_falling.png" ) );
 	}
 
-	Set_Image( 0, 1, 0 );
+	Set_Image( 0, 1 );
 }
 
 void cFGoldpiece :: Update( void )
@@ -392,7 +392,7 @@ void cFGoldpiece :: Update( void )
 		counter = 0;
 	}
 
-	Set_Image( (int)counter, 0, 0 );
+	Set_Image( (int)counter );
 }
 
 unsigned int cFGoldpiece :: Validate_Collision( cSprite *obj )

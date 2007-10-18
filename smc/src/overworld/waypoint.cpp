@@ -401,6 +401,26 @@ void cWaypoint :: Editor_Activate( void )
 {
 	WindowManager &wmgr = WindowManager::getSingleton();
 
+	// Type
+	Combobox *combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "waypoint_type" ));
+	combobox->getEditbox()->setTooltipText( "Type" );
+	Editor_Add( combobox, 120, 80 );
+
+	combobox->addItem( new ListboxTextItem( "Level" ) );
+	combobox->addItem( new ListboxTextItem( "World" ) );
+
+	if( waypoint_type == WAYPOINT_NORMAL )
+	{
+		combobox->setText( "Level" );
+	}
+	else
+	{
+		combobox->setText( "World" );
+	}
+
+	combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cWaypoint::Editor_Type_Select, this ) );
+
+
 	// destination
 	Editbox *editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "waypoint_destination" ));
 	editbox->setTooltipText( "Destination" );
@@ -410,7 +430,7 @@ void cWaypoint :: Editor_Activate( void )
 	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cWaypoint::Editor_Destination_Key, this ) );
 
 	// backward direction
-	Combobox *combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "waypoint_backward_direction" ));
+	combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "waypoint_backward_direction" ));
 	combobox->getEditbox()->setTooltipText( "Backward Direction" );
 	Editor_Add( combobox, 100, 105 );
 
@@ -458,6 +478,23 @@ void cWaypoint :: Editor_Activate( void )
 	Editor_pos_update();
 }
 
+bool cWaypoint :: Editor_Type_Select( const EventArgs &event )
+{
+	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
+	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+
+	if( item->getText().compare( "Level" ) == 0 )
+	{
+		waypoint_type = WAYPOINT_NORMAL;
+	}
+	else
+	{
+		waypoint_type = WAYPOINT_WORLD_LINK;
+	}
+
+	return 1;
+
+}
 bool cWaypoint :: Editor_Destination_Key( const EventArgs &event )
 {
 	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );

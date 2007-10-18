@@ -3,7 +3,7 @@
 	<information>
 		<Property name="game_version" value="1.1" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1189815737" />
+		<Property name="save_time" value="1190371094" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="FluXy" />
@@ -917,4 +917,14 @@
 		<Property name="color" value="red" />
 		<Property name="direction" value="right" />
 	</enemy>
+	<box>
+		<Property name="posx" value="511" />
+		<Property name="posy" value="328" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Bonus" />
+		<Property name="item" value="51" />
+		<Property name="invisible" value="0" />
+		<Property name="useable_count" value="-1" />
+		<Property name="force_best_item" value="0" />
+	</box>
 </level>

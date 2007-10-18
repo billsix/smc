@@ -80,6 +80,10 @@ cLevel :: ~cLevel( void )
 {
 	Unload();
 
+	// delete default gradient layer
+	delete backgrounds[0];
+	backgrounds.clear();
+
 	if( pGlobal_effect )
 	{
 		delete pGlobal_effect;
@@ -150,7 +154,7 @@ bool cLevel :: New( string filename )
 
 		// set default music
 		musicfile = DATA_DIR "/" GAME_MUSIC_DIR "/" LEVEL_DEFAULT_MUSIC;
-		valid_music = valid_file( musicfile );
+		valid_music = file_exists( musicfile );
 
 		return 1;
 	}
@@ -185,7 +189,7 @@ bool cLevel :: Load( string filename, bool delayed /* = 0 */ )
 
 	// set default music
 	musicfile = DATA_DIR "/" GAME_MUSIC_DIR "/" LEVEL_DEFAULT_MUSIC;
-	valid_music = valid_file( musicfile );
+	valid_music = file_exists( musicfile );
 
 	// new level format
 	if( filename.rfind( ".smclvl" ) != string::npos )
@@ -294,6 +298,8 @@ void cLevel :: Save( void )
 		file << "\t\t<Property name=\"cam_limit_y\" value=\"" << (int)pCamera->limit_rect.y << "\" />" << std::endl;
 		file << "\t\t<Property name=\"cam_limit_w\" value=\"" << (int)pCamera->limit_rect.w << "\" />" << std::endl;
 		file << "\t\t<Property name=\"cam_limit_h\" value=\"" << (int)pCamera->limit_rect.h << "\" />" << std::endl;
+		// fixed camera horizontal velocity
+		file << "\t\t<Property name=\"cam_fixed_hor_vel\" value=\"" << pCamera->fixed_hor_vel << "\" />" << std::endl;
 	// end settings
 	file << "\t</settings>" << std::endl;
 
@@ -326,6 +332,13 @@ void cLevel :: Save( void )
 	file.close();
 
 	debugdisplay->Set_Text( "Level " + Get_filename( data_file, 0, 0 ) + " saved" );
+}
+
+void cLevel :: Delete( void )
+{
+	Delete_file( levelfile );
+
+	Unload();
 }
 
 void cLevel :: Process_Input( void )
@@ -681,7 +694,7 @@ void cLevel :: Set_Musicfile( string filename )
 
 	musicfile = filename;
 	// check if music is available
-	valid_music = valid_file( filename );
+	valid_music = file_exists( filename );
 }
 
 void cLevel :: Set_Levelfile( string filename, bool delete_old /* = 1 */ )
@@ -722,7 +735,7 @@ void cLevel :: Set_Levelfile( string filename, bool delete_old /* = 1 */ )
 	Save();
 }
 
-bool cLevel :: Get_path( string &filename )
+bool cLevel :: Get_path( string &filename, bool check_only_user_dir /* = 0 */ )
 {
 	filename = Get_filename( filename, 0, 0 );
 
@@ -731,7 +744,7 @@ bool cLevel :: Get_path( string &filename )
 	// use new file type as default
 	filename.insert( filename.length(), ".smclvl" );
 
-	if( valid_file( filename ) )
+	if( file_exists( filename ) )
 	{
 		// found
 		return 1;
@@ -741,39 +754,42 @@ bool cLevel :: Get_path( string &filename )
 	filename.erase( filename.rfind( "." ) );
 	filename.insert( filename.length(), ".txt" );
 
-	if( valid_file( filename ) )
+	if( file_exists( filename ) )
 	{
 		// found
 		return 1;
 	}
 
-	// use new file type
-	filename.erase( filename.rfind( "." ) );
-	filename.insert( filename.length(), ".smclvl" );
-
-	// erase user level directory
-	filename.erase( 0, user_data_dir.length() + strlen( USER_LEVEL_DIR "/" ) );
-
-	// game level directory
-	if( filename.find( DATA_DIR "/" GAME_LEVEL_DIR "/" ) == string::npos )
+	if( !check_only_user_dir )
 	{
-		filename.insert( 0, DATA_DIR "/" GAME_LEVEL_DIR "/" );
-	}
+		// use new file type
+		filename.erase( filename.rfind( "." ) );
+		filename.insert( filename.length(), ".smclvl" );
 
-	if( valid_file( filename ) )
-	{
-		// found
-		return 1;
-	}
+		// erase user level directory
+		filename.erase( 0, user_data_dir.length() + strlen( USER_LEVEL_DIR "/" ) );
 
-	// use old file type
-	filename.erase( filename.rfind( "." ) );
-	filename.insert( filename.length(), ".txt" );
+		// game level directory
+		if( filename.find( DATA_DIR "/" GAME_LEVEL_DIR "/" ) == string::npos )
+		{
+			filename.insert( 0, DATA_DIR "/" GAME_LEVEL_DIR "/" );
+		}
 
-	if( valid_file( filename ) )
-	{
-		// found
-		return 1;
+		if( file_exists( filename ) )
+		{
+			// found
+			return 1;
+		}
+
+		// use old file type
+		filename.erase( filename.rfind( "." ) );
+		filename.insert( filename.length(), ".txt" );
+
+		if( file_exists( filename ) )
+		{
+			// found
+			return 1;
+		}
 	}
 
 	// erase file type and directory
@@ -938,7 +954,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
 		}
 
-		if( !valid_file( filename ) )
+		if( !file_exists( filename ) )
 		{
 			printf( "%s : line %d Error : \n", Get_filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s file not found : %s\n", parts[0].c_str(), filename.c_str() );
@@ -1034,7 +1050,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
 		}
 
-		if( !valid_file( filename ) )
+		if( !file_exists( filename ) )
 		{
 			printf( "%s : line %d Error : \n", Get_filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s file not found : %s\n", parts[0].c_str(), filename.c_str() );
@@ -1128,7 +1144,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 		settings_file.erase( settings_file.rfind( "." ) + 1 );
 		settings_file.insert( settings_file.rfind( "." ) + 1, "settings" );
 
-		if( !valid_file( filename ) && !valid_file( settings_file ) )
+		if( !file_exists( filename ) && !file_exists( settings_file ) )
 		{
 			printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
 			printf( "file not found : %s\n", parts[1].c_str() );
@@ -2026,7 +2042,9 @@ void cLevel :: elementEnd( const String &element )
 			// Music
 			Set_Musicfile( xml_attributes.getValueAsString( "lvl_music" ).c_str() );
 			// Camera Limits
-			pCamera->Set_Limits( GL_rect( (float)xml_attributes.getValueAsInteger( "cam_limit_x" ), (float)(float)xml_attributes.getValueAsInteger( "cam_limit_y" ), (float)(float)xml_attributes.getValueAsInteger( "cam_limit_w" ), (float)(float)xml_attributes.getValueAsInteger( "cam_limit_h" ) ) );
+			pCamera->Set_Limits( GL_rect( (float)xml_attributes.getValueAsInteger( "cam_limit_x" ), (float)xml_attributes.getValueAsInteger( "cam_limit_y" ), (float)xml_attributes.getValueAsInteger( "cam_limit_w" ), (float)xml_attributes.getValueAsInteger( "cam_limit_h" ) ) );
+			// fixed camera horizontal velocity
+			pCamera->fixed_hor_vel = xml_attributes.getValueAsFloat( "cam_fixed_hor_vel" );
 		}
 		else if( element == "background" )
 		{

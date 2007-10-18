@@ -32,8 +32,7 @@ public:
 	*/
 	void Blit( float x, float y, float z, cSurfaceRequest *request = NULL );
 
-	/* copies an image and returns it
-	 * works only for images
+	/* copy this image and returns it
 	*/
 	GL_Surface *Copy( void );
 

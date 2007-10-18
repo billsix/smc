@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.0" />
+		<Property name="game_version" value="1.2" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1185692067" />
+		<Property name="save_time" value="1191472852" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="" />
@@ -11,8 +11,9 @@
 		<Property name="lvl_music" value="land/land_5.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
-		<Property name="cam_limit_w" value="20000" />
+		<Property name="cam_limit_w" value="4420" />
 		<Property name="cam_limit_h" value="-4000" />
+		<Property name="cam_fixed_hor_vel" value="1.5" />
 	</settings>
 	<background>
 		<Property name="type" value="103" />

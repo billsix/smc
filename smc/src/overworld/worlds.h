@@ -38,8 +38,10 @@ public:
 
 	// Load all overworlds
 	void Load( void );
-	// Load overworlds from directory
-	void Load_dir( string dir );
+	/* Load overworlds from given directory
+	 * user_dir : if set overrides game worlds
+	*/
+	void Load_dir( string dir, bool user_dir = 0 );
 
 	// Set Active Overworld
 	bool Set_Active( string name );
@@ -60,6 +62,8 @@ public:
 
 	// shows additional information
 	bool debugmode;
+	// draw the layer
+	bool draw_layer;
 	// map scrolling with the arrow keys
 	bool cameramode;
 private:

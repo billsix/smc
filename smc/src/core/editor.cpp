@@ -67,7 +67,6 @@ void cEditor_Item_Object :: Init( void )
 	preview_scale = pVideo->Get_scale( sprite_obj->image, 50, 50 );
 }
 
-// Return the rendered pixel size of this list box item.
 Size cEditor_Item_Object :: getPixelSize( void ) const
 {
 	Size tmp = list_text->getPixelSize();
@@ -80,16 +79,12 @@ void cEditor_Item_Object :: draw( const Vector3 &position, float alpha, const Re
 {
 	// draw text
 	list_text->draw( position, alpha, clipper );
-	// update image position
-	sprite_obj->Set_Pos( position.d_x + 20, position.d_y + 50 );
 }
 
 void cEditor_Item_Object :: draw( RenderCache &cache, const Rect &targetRect, float zBase, float alpha, const Rect *clipper ) const
 {
 	// draw text
 	list_text->draw( cache, targetRect, zBase, alpha, clipper );
-	// update image position
-	sprite_obj->Set_Pos( targetRect.d_left + 20, targetRect.d_top + 50 );
 }
 
 void cEditor_Item_Object :: Draw_Image( void )
@@ -189,7 +184,7 @@ void cEditor :: Init( void )
 	listbox_items->subscribeEvent( Listbox::EventSelectionChanged, Event::Subscriber( &cEditor::Item_Select, this ) );
 
 	// Get Items
-	if( !valid_file( items_filename ) )
+	if( !file_exists( items_filename ) )
 	{
 		printf( "Error : Editor Loading : No Item file found : %s\n", items_filename.c_str() );
 		return;
@@ -201,7 +196,7 @@ void cEditor :: Init( void )
 	Load_Image_Items( DATA_DIR "/" GAME_PIXMAPS_DIR );
 
 	// Get Menu
-	if( !valid_file( menu_filename ) )
+	if( !file_exists( menu_filename ) )
 	{
 		printf( "Error : Editor Loading : No Menu file found : %s\n", menu_filename.c_str() );
 		return;
@@ -310,7 +305,7 @@ void cEditor :: Enable( void )
 	enabled = 1;
 }
 
-void cEditor :: Disable( void )
+void cEditor :: Disable( bool native_mode /* = 1 */ )
 {
 	// already disabled
 	if( !enabled )
@@ -320,45 +315,43 @@ void cEditor :: Disable( void )
 
 	Unload();
 
-	pAudio->PlaySound( "editor/leave.ogg" );
-	debugdisplay->Set_Text( "Editor disabled" );
-
-	// sprite manager
-	cSprite_Manager *sprite_manager = NULL;
-
-	if( Game_Mode == MODE_LEVEL )
-	{
-		sprite_manager = pSprite_Manager;
-
-		// player
-		pPlayer->Update_Position_Rect();
-	}
-	else
-	{
-		sprite_manager = pActive_Overworld->sprite_manager;
-
-		// player
-		pOverworld_Player->Update_Position_Rect();
-	}
-
-	for( SpriteList::iterator itr = sprite_manager->objects.begin(), itr_end = sprite_manager->objects.end(); itr != itr_end; ++itr )
-	{
-		(*itr)->Update_Position_Rect();
-	}
-
-	pCamera->Center();
-	pMouseCursor->Reset( 0 );
-	pMouseCursor->Set_Visible( 0 );
-
+	enabled = 0;
 	// disable help screen
 	show_editor_help = 0;
 
-	enabled = 0;
-
-	// if level/world should be saved
-	if( ( Game_Mode == MODE_LEVEL && Box_Question( "Save Level ?" ) ) || ( Game_Mode == MODE_OVERWORLD && Box_Question( "Save World ?" ) ) )
+	if( native_mode )
 	{
-		Function_Save();
+		pAudio->PlaySound( "editor/leave.ogg" );
+
+		// sprite manager
+		cSprite_Manager *sprite_manager = NULL;
+
+		if( Game_Mode == MODE_LEVEL )
+		{
+			sprite_manager = pSprite_Manager;
+
+			// player
+			pPlayer->Update_Position_Rect();
+		}
+		else
+		{
+			sprite_manager = pActive_Overworld->sprite_manager;
+
+			// player
+			pOverworld_Player->Update_Position_Rect();
+		}
+
+		for( SpriteList::iterator itr = sprite_manager->objects.begin(), itr_end = sprite_manager->objects.end(); itr != itr_end; ++itr )
+		{
+			(*itr)->Update_Position_Rect();
+		}
+
+		pCamera->Center();
+		pMouseCursor->Reset( 0 );
+		pMouseCursor->Set_Visible( 0 );
+
+		// ask if editor should save
+		Function_Save( 1 );
 	}
 }
 
@@ -512,6 +505,7 @@ void cEditor :: Draw( void )
 				continue;
 			}
 
+			item->sprite_obj->Set_PosY( item_pos - 20 - scroll_pos );
 			item->Draw_Image();
 		}
 	}
@@ -1112,6 +1106,13 @@ void cEditor :: Add_Item_Object( cSprite *sprite, string new_name /* = "" */, GL
 	// if no image is given use the sprite start image
 	if( !image )
 	{
+		// special object
+		if( sprite->type == TYPE_ENEMYSTOPPER || sprite->type == TYPE_LEVELEXIT || sprite->type == TYPE_LEVEL_ENTRY )
+		{
+			sprite->image = pVideo->Get_Surface( "game/editor/special.png" );
+			sprite->start_image = sprite->image;
+		}
+
 		image = sprite->start_image;
 	}
 
@@ -1144,6 +1145,9 @@ void cEditor :: Add_Item_Object( cSprite *sprite, string new_name /* = "" */, GL
 		obj_name.erase( 25 );
 		obj_name += "|";
 	}
+
+	// set position
+	sprite->Set_PosX( 50 );
 
 	cEditor_Item_Object *new_item = new cEditor_Item_Object( obj_name );
 
@@ -1611,7 +1615,7 @@ bool cEditor :: Menu_Select( const EventArgs &event )
 	// set item
 	if( item )
 	{
-		Activate_Menu( (cEditor_Menu_Object *)item );
+		Activate_Menu( static_cast<cEditor_Menu_Object *>(item) );
 	}
 	// clear ?
 	else
@@ -1630,7 +1634,7 @@ bool cEditor :: Item_Select( const EventArgs &event )
 	// activate item
 	if( item )
 	{
-		Activate_Item( (cEditor_Item_Object *)item );
+		Activate_Item( static_cast<cEditor_Item_Object *>(item) );
 	}
 
 	return 1;

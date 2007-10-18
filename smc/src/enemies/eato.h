@@ -46,7 +46,9 @@ public:
 	// Set direction
 	void Set_Direction( ObjectDirection dir );
 
-	// die
+	/* downgrade state ( if already weakest state : dies )
+	 * force : usually dies or a complete downgrade
+	*/
 	virtual void DownGrade( bool force = 0 );
 	virtual void DieStep( void );
 

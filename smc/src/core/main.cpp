@@ -198,12 +198,6 @@ void ExitGame( void )
 		pHudManager = NULL;
 	}
 
-	if( pImageManager )
-	{
-		delete pImageManager;
-		pImageManager = NULL;
-	}
-
 	if( pSoundManager )
 	{
 		delete pSoundManager;
@@ -220,6 +214,12 @@ void ExitGame( void )
 	{
 		delete pLevel_Editor;
 		pLevel_Editor = NULL;
+	}
+
+	if( pWorld_Editor )
+	{
+		delete pWorld_Editor;
+		pWorld_Editor = NULL;
 	}
 
 	if( pPreferences )
@@ -306,15 +306,27 @@ void ExitGame( void )
 		pCamera = NULL;
 	}
 
+	if( pImageManager )
+	{
+		delete pImageManager;
+		pImageManager = NULL;
+	}
+
 	if( pSettingsParser )
 	{
 		delete pSettingsParser;
 		pSettingsParser = NULL;
 	}
 
+	if( pFont )
+	{
+		delete pFont;
+		pFont = NULL;
+	}
+
 	if( strlen( SDL_GetError() ) > 0 )
 	{
-		printf( "Last known Error : %s\n", SDL_GetError() );
+		printf( "Last known SDL Error : %s\n", SDL_GetError() );
 	}
 
 	SDL_Quit();
@@ -424,7 +436,7 @@ void Update_Game( void )
 			// handle player downgrade
 			if( Current_Game_Action == GA_DOWNGRADE_PLAYER )
 			{
-				pPlayer->DownGrade( 0 );
+				pPlayer->DownGrade( 0, string_to_int( Current_Game_Action_Data ) > 0 );
 			}
 			// activate level exit
 			else if( Current_Game_Action == GA_ACTIVATE_LEVEL_EXIT )
@@ -600,15 +612,17 @@ void Update_Game( void )
 					// reset player
 					pPlayer->Reset();
 				}
+				// remember origin menu
+				MenuID origin_menu = pMenuCore->menu_id;
+				// unload menu
+				pMenuCore->Unload();
 				// change mode
 				Change_Game_Mode( MODE_LEVEL );
 				// if custom level
-				if( pMenuCore->menu_id == MENU_START )
+				if( origin_menu == MENU_START )
 				{
 					Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
 				}
-				// unload menu
-				pMenuCore->Unload();
 				// fade in
 				Draw_Effect_in( EFFECT_IN_BLACK, 3 );
 			}

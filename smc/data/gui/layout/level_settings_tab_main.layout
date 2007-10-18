@@ -10,35 +10,35 @@
             <Property Name="Text" Value="Level" />
             <Property Name="FrameEnabled" Value="False" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-            <Property Name="UnifiedAreaRect" Value="{{0.010894,0},{0.017933,0},{0.145202,0},{0.077933,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.01,0},{0.017933,0},{0.14,0},{0.077933,0}}" />
             <Property Name="BackgroundEnabled" Value="False" />
         </Window>
         <Window Type="TaharezLook/StaticText" Name="text_music_filename" >
             <Property Name="Text" Value="Music" />
             <Property Name="FrameEnabled" Value="False" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-            <Property Name="UnifiedAreaRect" Value="{{0.013128,0},{0.091854,0},{0.143289,0},{0.151854,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.01,0},{0.091854,0},{0.14,0},{0.151854,0}}" />
             <Property Name="BackgroundEnabled" Value="False" />
         </Window>
         <Window Type="TaharezLook/StaticText" Name="text_author" >
             <Property Name="Text" Value="Author" />
             <Property Name="FrameEnabled" Value="False" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-            <Property Name="UnifiedAreaRect" Value="{{0.013128,0},{0.198237,0},{0.143289,0},{0.258237,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.01,0},{0.198237,0},{0.143289,0},{0.258237,0}}" />
             <Property Name="BackgroundEnabled" Value="False" />
         </Window>
         <Window Type="TaharezLook/StaticText" Name="text_version" >
             <Property Name="Text" Value="Version" />
             <Property Name="FrameEnabled" Value="False" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-            <Property Name="UnifiedAreaRect" Value="{{0.013128,0},{0.275745,0},{0.143289,0},{0.335745,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.01,0},{0.275745,0},{0.143289,0},{0.335745,0}}" />
             <Property Name="BackgroundEnabled" Value="False" />
         </Window>
         <Window Type="TaharezLook/StaticText" Name="text_camera_limit" >
             <Property Name="Text" Value="Camera Limits" />
             <Property Name="FrameEnabled" Value="False" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-            <Property Name="UnifiedAreaRect" Value="{{0.013128,0},{0.366662,0},{0.162289,0},{0.444495,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.01,0},{0.366662,0},{0.162289,0},{0.444495,0}}" />
             <Property Name="BackgroundEnabled" Value="False" />
         </Window>
         <Window Type="TaharezLook/StaticText" Name="text_last_saved" >
@@ -87,17 +87,34 @@
             <Property Name="MinimumValue" Value="0" />
             <Property Name="TextInputMode" Value="FloatingPoint" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-            <Property Name="UnifiedAreaRect" Value="{{0.200113,0},{0.378632,0},{0.353857,0},{0.428906,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.2,0},{0.378,0},{0.35,0},{0.428,0}}" />
         </Window>
         <Window Type="TaharezLook/Spinner" Name="spinner_camera_limit_h" >
             <Property Name="Tooltip" Value="Camera Limit height" />
             <Property Name="StepSize" Value="1" />
             <Property Name="CurrentValue" Value="0" />
             <Property Name="MaximumValue" Value="0" />
-            <Property Name="MinimumValue" Value="-1e+006" />
+            <Property Name="MinimumValue" Value="-32767" />
             <Property Name="TextInputMode" Value="FloatingPoint" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-            <Property Name="UnifiedAreaRect" Value="{{0.482011,0},{0.378632,0},{0.623857,0},{0.428906,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.482011,0},{0.378,0},{0.623857,0},{0.428906,0}}" />
+        </Window>
+        <Window Type="TaharezLook/Spinner" Name="spinner_camera_hor_vel" >
+            <Property Name="Tooltip" Value="Camera Horizontal Velocity" />
+            <Property Name="StepSize" Value="0.5" />
+            <Property Name="CurrentValue" Value="0" />
+            <Property Name="MaximumValue" Value="100" />
+            <Property Name="MinimumValue" Value="-100" />
+            <Property Name="TextInputMode" Value="FloatingPoint" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.200113,0},{0.478,0},{0.35,0},{0.528,0}}" />
+        </Window>
+        <Window Type="TaharezLook/StaticText" Name="text_camera_fixed_hor_vel" >
+            <Property Name="Text" Value="Camera fixed Vel." />
+            <Property Name="FrameEnabled" Value="False" />
+            <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.01,0},{0.460412,0},{0.168539,0},{0.538245,0}}" />
+            <Property Name="BackgroundEnabled" Value="False" />
         </Window>
     </Window>
 </GUILayout>

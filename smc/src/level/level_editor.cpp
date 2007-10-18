@@ -71,7 +71,7 @@ void cEditor_Level :: Enable( void )
 	cEditor::Enable();
 }
 
-void cEditor_Level :: Disable( void )
+void cEditor_Level :: Disable( bool native_mode /* = 0 */ )
 {
 	// already disabled
 	if( !enabled )
@@ -79,14 +79,17 @@ void cEditor_Level :: Disable( void )
 		return;
 	}
 
+	debugdisplay->Set_Text( "Level Editor disabled" );
+
 	editor_level_enabled = 0;
 
 	if( Game_Mode == MODE_LEVEL )
 	{
+		native_mode = 1;
 		editor_enabled = 0;
 	}
 	
-	cEditor::Disable();
+	cEditor::Disable( native_mode );
 }
 
 bool cEditor_Level :: Key_Down( SDLKey key )
@@ -210,6 +213,10 @@ void cEditor_Level :: Activate_Menu( cEditor_Menu_Object *entry )
 		{
 			Function_Save_as();
 		}
+		else if( entry->tags.compare( "delete" ) == 0 )
+		{
+			Function_Delete();
+		}
 		else if( entry->tags.compare( "reload" ) == 0 )
 		{
 			Function_Reload();
@@ -297,24 +304,27 @@ bool cEditor_Level :: Switch_ObjectState( cSprite *obj )
 	return 1;
 }
 
-void cEditor_Level :: Function_New( void )
+bool cEditor_Level :: Function_New( void )
 {
 	string level_name = Box_Text_Input( "Create a new Level", "Name" );
 
-	// invalid
+	// aborted/invalid
 	if( level_name.empty() )
 	{
-		return;
+		return 0;
 	}
 
 	if( pLevel->New( level_name ) )
 	{
 		debugdisplay->Set_Text( "Created " + level_name );
+		return 1;
 	}
 	else
 	{
 		debugdisplay->Set_Text( "Level " + level_name + " already exists" );
 	}
+
+	return 0;
 }
 
 void cEditor_Level :: Function_Load( void )
@@ -322,8 +332,20 @@ void cEditor_Level :: Function_Load( void )
 	pKeyboard->Key_Down( SDLK_l );
 }
 
-void cEditor_Level :: Function_Save( void )
+void cEditor_Level :: Function_Save( bool with_dialog /* = 0 */ )
 {
+	// not loaded
+	if( !pLevel->is_Loaded() )
+	{
+		return;
+	}
+
+	// if denied
+	if( with_dialog && !Box_Question( "Save " + Get_filename( pLevel->levelfile, 0, 0 ) + " ?" ) )
+	{
+		return;
+	}
+
 	pLevel->Save();
 }
 
@@ -331,7 +353,7 @@ void cEditor_Level :: Function_Save_as( void )
 {
 	string levelname = Box_Text_Input( "Save Level as", "New name", 1 );
 
-	// invalid
+	// aborted/invalid
 	if( levelname.empty() )
 	{
 		return;
@@ -339,6 +361,26 @@ void cEditor_Level :: Function_Save_as( void )
 
 	pLevel->Set_Levelfile( levelname, 0 );
 	pLevel->Save();
+}
+
+void cEditor_Level :: Function_Delete( void )
+{
+	string filename = pLevel->levelfile;
+	if( !pLevel->Get_path( filename, 1 ) )
+	{
+		return;
+	}
+
+	// if denied
+	if( !Box_Question( "Delete and Unload " + Get_filename( filename, 0, 0 ) + " ?" ) )
+	{
+		return;
+	}
+
+	pLevel->Delete();
+	pLevel_Editor->Disable();
+
+	Game_Action = GA_ENTER_MENU;
 }
 
 void cEditor_Level :: Function_Reload( void )

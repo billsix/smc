@@ -26,7 +26,7 @@
 #define CAPTION "Secret Maryo Chronicles"
 // Version
 #ifndef VERSION
-#define VERSION "1.1"
+#define VERSION "1.2"
 #endif
 
 // framerate speedfactor calculation is based on this
@@ -110,7 +110,8 @@ enum GameMode
 enum GameModeType
 {
 	MODE_TYPE_DEFAULT		= 0,
-	MODE_TYPE_LEVEL_CUSTOM	= 1
+	MODE_TYPE_LEVEL_CUSTOM	= 1,
+	MODE_TYPE_LEVEL_CUSTOM_EDITOR	= 2
 };
 
 /* *** *** *** *** *** *** *** Game Action *** *** *** *** *** *** *** *** *** *** */

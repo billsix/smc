@@ -158,14 +158,19 @@
 		<Property Name="color" Value="FF2FC35F" />
 	</Item>
 	<Item>
+		<Property Name="name" Value="Delete" />
+		<Property Name="tags" Value="function:delete" />
+		<Property Name="color" Value="FFFF7000" />
+	</Item>
+	<Item>
 		<Property Name="name" Value="Save &amp; Reload" />
 		<Property Name="tags" Value="function:reload" />
-		<Property Name="color" Value="FFCFCA0F" />
+		<Property Name="color" Value="FFAF8A4F" />
 	</Item>
 	<Item>
 		<Property Name="name" Value="Clear" />
 		<Property Name="tags" Value="function:clear" />
-		<Property Name="color" Value="FFFF7000" />
+		<Property Name="color" Value="FFFFC35F" />
 	</Item>
 	<Item>
 		<Property Name="name" Value="Settings" />

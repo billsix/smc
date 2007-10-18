@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <overworld>
 	<information>
-		<Property name="game_version" value="1.1" />
+		<Property name="game_version" value="1.2" />
 		<Property name="engine_version" value="1" />
-		<Property name="save_time" value="1189287253" />
+		<Property name="save_time" value="1192009268" />
 	</information>
 	<settings>
 		<Property name="music" value="land/cave_1.ogg" />
@@ -56,7 +56,7 @@
 	<waypoint>
 		<Property name="x" value="291" />
 		<Property name="y" value="91" />
-		<Property name="type" value="2" />
+		<Property name="type" value="1" />
 		<Property name="destination" value="lvl_1" />
 		<Property name="direction_backward" value="first" />
 		<Property name="direction_forward" value="down" />
@@ -92,7 +92,7 @@
 	<waypoint>
 		<Property name="x" value="178" />
 		<Property name="y" value="159" />
-		<Property name="type" value="2" />
+		<Property name="type" value="1" />
 		<Property name="destination" value="lvl_5" />
 		<Property name="direction_backward" value="right" />
 		<Property name="direction_forward" value="last" />

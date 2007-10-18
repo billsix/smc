@@ -141,9 +141,8 @@ public:
 	*/
 	void Freeze( float freeze_time = DESIRED_FPS * 10 );
 
-	/* usually is a death or a state downgrade
-	 * force : if given no downgrade if available will be handled
-	 * the object will be completely downgraded
+	/* downgrade state ( if already weakest state : dies )
+	 * force : usually dies or a complete downgrade
 	*/
 	virtual void DownGrade( bool force = 0 );
 

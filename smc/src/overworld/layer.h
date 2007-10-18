@@ -165,9 +165,6 @@ public:
 	// Return the collision data between the given line and position
 	cLine_collision Get_nearest_line( cLayer_Line *map_layer_line, float x, float y, ObjectDirection dir = DIR_HORIZONTAL, unsigned int check_size = 15 );
 
-	// draw the layer
-	bool draw;
-
 private:
 	// XML element start
     virtual void elementStart( const String &element, const XMLAttributes &attributes );

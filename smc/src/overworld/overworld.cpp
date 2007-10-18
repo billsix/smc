@@ -42,8 +42,9 @@ cOverworld_description :: cOverworld_description( void )
 	path = "world_1";
 	name = "Unnamed";
 	visible = 1;
+	user = 0;
 
-	comment = "No Comment";
+	comment = "Empty";
 }
 
 cOverworld_description :: ~cOverworld_description( void )
@@ -56,7 +57,7 @@ void cOverworld_description :: Load( void )
 	string filename = Get_full_path() + "/description.xml";
 
 	// filename not valid
-	if( !valid_file( filename ) )
+	if( !file_exists( filename ) )
 	{
 		printf( "Error : Couldn't open World description file : %s\n", filename.c_str() );
 		return;
@@ -176,6 +177,7 @@ cOverworld :: ~cOverworld( void )
 {
 	Unload();
 
+	delete sprite_manager;
 	delete description;
 	delete pLayer;
 	delete hud_level_name;
@@ -298,12 +300,16 @@ bool cOverworld :: Key_Down( SDLKey key )
 	else if( key == SDLK_l && pOverworld_manager->debugmode )
 	{
 		// toggle layer drawing
-		pLayer->draw = !pLayer->draw;
+		pOverworld_manager->draw_layer = !pOverworld_manager->draw_layer;
 	}
 	else if( pKeyboard->keys[SDLK_g] && pKeyboard->keys[SDLK_o] && pKeyboard->keys[SDLK_d] )
 	{
 		// all waypoint access
 		pActive_Overworld->Set_Progress( pActive_Overworld->waypoints.size(), 1 );
+	}
+	else if( key == SDLK_F3 && pOverworld_manager->debugmode )
+	{
+		pActive_Overworld->Goto_next_Level();
 	}
 	else if( key == SDLK_ESCAPE || key == SDLK_BACKSPACE )
 	{
@@ -345,7 +351,7 @@ bool cOverworld :: Load( void )
 	// layer
 	string layer_filename = description->Get_full_path() + "/layer.xml";
 
-	if( !valid_file( layer_filename ) )
+	if( !file_exists( layer_filename ) )
 	{
 		printf( "Couldn't find Overworld Layer file : %s from %s\n", layer_filename.c_str(), description->path.c_str() );
 		return 0;
@@ -356,7 +362,7 @@ bool cOverworld :: Load( void )
 	// world
 	string world_filename = description->Get_full_path() + "/world.xml";
 
-	if( !valid_file( world_filename ) )
+	if( !file_exists( world_filename ) )
 	{
 		printf( "Couldn't find Overworld file : %s from %s\n", world_filename.c_str(), description->path.c_str() );
 		return 0;
@@ -610,19 +616,30 @@ bool cOverworld :: Goto_next_Level( void )
 
 	next_level = 0;
 
-	// no Waypoint or invalid current Waypoint
-	if( !waypoints.size() || pOverworld_Player->current_waypoint < 0 || pOverworld_Player->current_waypoint >= (int)waypoints.size() )
+	cWaypoint *current_waypoint = pOverworld_Player->Get_Waypoint();
+
+	// no Waypoint
+	if( !current_waypoint )
 	{
 		return 0;
 	}
 
-	// Waypoint direction is invalid
-	if( waypoints[pOverworld_Player->current_waypoint]->direction_forward == DIR_UNDEFINED )
+	// Waypoint forward direction is invalid/unset
+	if( current_waypoint->direction_forward == DIR_UNDEFINED )
 	{
 		return 0;
 	}
 
-	cWaypoint *next_waypoint = Get_Waypoint( pOverworld_Player->current_waypoint + 1 );
+	// Get Layer Line in front
+	cLayer_Line *front_line = pOverworld_Player->Get_Front_line( current_waypoint->direction_forward );
+
+	if( !front_line )
+	{
+		return 0;
+	}
+
+	// Get forward Waypoint
+	cWaypoint *next_waypoint = front_line->Get_End_Waypoint();
 
 	// if no next waypoint available
 	if( !next_waypoint )
@@ -661,7 +678,7 @@ bool cOverworld :: Goto_next_Level( void )
 		pAnimationManager->Add( anim );
 	}
 
-	pOverworld_Player->Start_Walk( waypoints[pOverworld_Player->current_waypoint]->direction_forward );
+	pOverworld_Player->Start_Walk( current_waypoint->direction_forward );
 
 	return  1;
 }

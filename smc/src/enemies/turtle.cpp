@@ -179,7 +179,8 @@ void cTurtle :: Set_Color( DefaultColor col )
 	images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/walk_2.png" ) );
 	images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/walk_1.png" ) );
 	// Walk Turn
-	images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/turn_1.png" ) );
+	//images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/turn_1.png" ) );
+	images.push_back( NULL );
 	// Shell
 	images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/shell_front.png" ) );
 	images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/shell_move_1.png" ) );

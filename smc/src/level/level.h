@@ -58,6 +58,8 @@ public:
 	void Unload( bool delayed = 0 );
 	// Save the Level
 	void Save( void );
+	// Delete and Unload Level
+	void Delete( void );
 
 	// update level changes
 	void Update( void );
@@ -100,8 +102,10 @@ public:
 	 * delete_old : if set delete the old level name
 	*/
 	void Set_Levelfile( string filename, bool delete_old = 1 );
-	// Return the level path if level is valid else empty
-	bool Get_path( string &filename );
+	/* Return the level path if level is valid else empty
+	 * check_only_user_dir : only check user directory for the level
+	*/
+	bool Get_path( string &filename, bool check_only_user_dir = 0 );
 	// Set the Level Author
 	void Set_Author( string name );
 	// Set the Level Version

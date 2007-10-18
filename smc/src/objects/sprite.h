@@ -40,7 +40,7 @@ public:
 	 * col : colliding object ( only needed if the collision direction is needed )
 	 * col_id : colliding object identifier
 	 * col_type : collision object type
-	 * add_if_new : add the collision only if the object doesn't already collide
+	 * add_if_new : add the collision only if the object doesn't already collide ( if not added it's deleted )
 	*/
 	bool Collision_Add( cSprite *base, cSprite *col, unsigned int col_id = 0, ObjectCollisionType col_type = CO_NOTHING, bool add_if_new = 0 );
 	/* Add a collision object to the collision list
@@ -232,6 +232,8 @@ public:
 	virtual void Editor_Deactivate( void );
 	// editor position update
 	virtual void Editor_pos_update( void );
+	// editor state update
+	virtual void Editor_state_update( void );
 	// editor mouse hover
 	bool Editor_Mouse_Enter( const EventArgs &event );
 	bool Editor_Mouse_Leave( const EventArgs &event );

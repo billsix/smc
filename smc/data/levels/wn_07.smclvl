@@ -3,7 +3,7 @@
 	<information>
 		<Property name="game_version" value="1.1" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1189857161" />
+		<Property name="save_time" value="1190281136" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="WeirdNose" />
@@ -39,14 +39,14 @@
 		<Property name="rect_h" value="1" />
 		<Property name="z" value="0.12" />
 		<Property name="z_rand" value="0" />
-		<Property name="time_to_live" value="6" />
-		<Property name="emitter_iteration_interval" value="0.106667" />
+		<Property name="time_to_live" value="7" />
+		<Property name="emitter_iteration_interval" value="0.1" />
 		<Property name="scale" value="0.2" />
-		<Property name="scale_rand" value="0.2" />
-		<Property name="speed" value="3" />
+		<Property name="scale_rand" value="0.1" />
+		<Property name="speed" value="5" />
 		<Property name="speed_rand" value="8" />
-		<Property name="dir_range_start" value="0" />
-		<Property name="dir_range_size" value="90" />
+		<Property name="dir_range_start" value="30" />
+		<Property name="dir_range_size" value="120" />
 		<Property name="const_rotz" value="0.5" />
 		<Property name="const_rotz_rand" value="10" />
 	</global_effect>

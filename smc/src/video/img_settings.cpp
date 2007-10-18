@@ -51,109 +51,6 @@ void cImage_settings_data :: Apply( GL_Surface *image )
 		return;
 	}
 
-	if( !base.empty() )
-	{
-		if( image->image )
-		{
-			printf( "Warning : surface for base %s already assigned the image %d which will be replaced\n", base.c_str(), image->image );
-			glDeleteTextures( 1, &image->image );
-		}
-
-		// load the base image
-		string filename = DATA_DIR "/" GAME_PIXMAPS_DIR "/" + Get_filename( base, 0, 1 );
-
-		GL_Surface *surface_base = pVideo->Get_Surface( filename, 0 );
-
-		// if not a valid file
-		if( !valid_file( filename ) )
-		{
-			// try origin directory
-			if( !surface_base )
-			{
-				filename = base;
-				surface_base = pVideo->Get_Surface( filename, 0 );
-
-				// if not valid or no image settings base
-				if( !valid_file( filename ) )
-				{
-					// nothing found
-					if( !surface_base )
-					{
-						printf( "Error : %s is not a valid base image file\n", filename.c_str() );
-						return;
-					}
-				}
-			}
-		}
-
-		// Couldn't load the image
-		if( !surface_base )
-		{
-			printf( "Error : Couldn't load base image file : %s\n", base.c_str() );
-			return;
-		}
-
-		// based on image settings
-		if( !valid_file( filename ) )
-		{
-			// set .settings
-			surface_base->filename = Get_filename( surface_base->filename, 1, 0 ) + ".settings";
-		}
-
-		// create new surface
-		GL_Surface *surface_final = surface_base->Copy();
-
-		if( !surface_final )
-		{
-			printf( "Couldn't create image copy from : %s\n", surface_base->filename.c_str() );
-			return;
-		}
-
-		image->image = surface_final->image;
-		image->tex_w = surface_final->tex_w;
-		image->tex_h = surface_final->tex_h;
-
-		if( base_settings )
-		{
-			image->int_x = surface_final->int_x;
-			image->int_y = surface_final->int_y;
-			image->w = surface_final->w;
-			image->h = surface_final->h;
-			image->base_rotx = surface_final->base_rotx;
-			image->base_roty = surface_final->base_roty;
-			image->base_rotz = surface_final->base_rotz;
-			image->col_pos = surface_final->col_pos;
-			image->col_w = surface_final->col_w;
-			image->col_h = surface_final->col_h;
-
-			// settings
-			image->editor_tags = surface_final->editor_tags;
-			image->name = surface_final->name;
-			image->type = surface_final->type;
-		}
-		else
-		{
-			image->int_x = 0;
-			image->int_y = 0;
-			image->w = (float)surface_final->tex_w;
-			image->h = (float)surface_final->tex_h;
-			image->base_rotx = 0;
-			image->base_roty = 0;
-			image->base_rotz = 0;
-			image->col_pos.x = 0;
-			image->col_pos.y = 0;
-			image->col_w = image->w;
-			image->col_h = image->h;
-		}
-
-		// don't delete image
-		surface_final->auto_del_img = 0;
-		// delete
-		delete surface_final;
-		surface_final = NULL;
-	}
-
-
 	// ## int_x/int_y
 	image->int_x = (float)int_x;
 	image->int_y = (float)int_y;
@@ -263,6 +160,12 @@ void cImage_settings_data :: Apply( GL_Surface *image )
 
 void cImage_settings_data :: Apply_base( cImage_settings_data *base_settings_data )
 {
+	if( !base_settings_data->base.empty() )
+	{
+		base = base_settings_data->base;
+		base_settings = base_settings_data->base_settings;
+	}
+
 	int_x = base_settings_data->int_x;
 	int_y = base_settings_data->int_y;
 	col_rect = base_settings_data->col_rect;
@@ -335,23 +238,41 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 			{
 				string settings_file = settings->base;
 
-				// if not already image settings based
-				if( settings_file.rfind( ".settings" ) == string::npos )
+				// if settings file exists
+				while( !settings_file.empty() )
 				{
-					settings_file.erase( settings_file.rfind( "." ) + 1 );
-					settings_file.insert( settings_file.rfind( "." ) + 1, "settings" );
-				}
+					// if not already image settings based
+					if( settings_file.rfind( ".settings" ) == string::npos )
+					{
+						settings_file.erase( settings_file.rfind( "." ) + 1 );
+						settings_file.insert( settings_file.rfind( "." ) + 1, "settings" );
+					}
 
-				// if a settings file exists
-				if( valid_file( settings_file ) )
-				{
+					// not found
+					if( !file_exists( settings_file ) )
+					{
+						break;
+					}
+
+					// create new temporary parser
 					cImage_settings *temp_parser = new cImage_settings();
 					cImage_settings_data *base_settings = temp_parser->Get( settings_file );
+					// finished loading base settings
 					delete temp_parser;
+					settings_file.clear();
 
+					// handle
 					if( base_settings )
 					{
+						// todo : apply settings in reverse order ( deepest settings should override first )
 						settings->Apply_base( base_settings );
+						
+						// if also based on settings
+						if( !base_settings->base.empty() && base_settings->base_settings )
+						{
+							settings_file = base_settings->base;
+						}
+						
 						delete base_settings;
 					}
 				}

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.0" />
+		<Property name="game_version" value="1.2" />
 		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1185556794" />
+		<Property name="save_time" value="1191418599" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="WeirdNose" />
@@ -527,4 +527,14 @@
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
+	<box>
+		<Property name="posx" value="784" />
+		<Property name="posy" value="401" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="23" />
+		<Property name="invisible" value="0" />
+		<Property name="useable_count" value="-1" />
+		<Property name="force_best_item" value="1" />
+	</box>
 </level>

@@ -56,6 +56,22 @@ GL_Surface :: ~GL_Surface( void )
 {
 	if( auto_del_img && glIsTexture( image ) )
 	{
+		for( SurfaceList::iterator itr = pImageManager->objects.begin(), itr_end = pImageManager->objects.end(); itr != itr_end; ++itr )
+		{
+			GL_Surface *obj = (*itr);
+
+			if( obj == this )
+			{
+				continue;
+			}
+
+			// don't delete GL image if still in use
+			if( obj->image == image )
+			{
+				break;
+			}
+		}
+
 		glDeleteTextures( 1, &image );
 	}
 
@@ -102,22 +118,11 @@ void GL_Surface :: Blit( float x, float y, float z, cSurfaceRequest *request /* 
 
 GL_Surface *GL_Surface :: Copy( void )
 {
-	// load image
-	GL_Surface *new_surface = pVideo->Load_Surface( filename );;
+	// create copy image
+	GL_Surface *new_surface = new GL_Surface();
 
-	if( !new_surface )
-	{
-		printf( "Error : Couldn't load copy Texture\n" );
-		return NULL;
-	}
-
-	if( !new_surface->image )
-	{
-		printf( "Error : Couldn't get GL image\n" );
-		delete new_surface;
-		return NULL;
-	}
-
+	// data
+	new_surface->image = image;
 	new_surface->int_x = int_x;
 	new_surface->int_y = int_y;
 	new_surface->w = w;
@@ -130,8 +135,10 @@ GL_Surface *GL_Surface :: Copy( void )
 	new_surface->col_pos = col_pos;
 	new_surface->col_w = col_w;
 	new_surface->col_h = col_h;
+	new_surface->filename = filename;
 
 	// settings
+	new_surface->obsolete = obsolete;
 	new_surface->editor_tags = editor_tags;
 	new_surface->name = name;
 	new_surface->type = type;

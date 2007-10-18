@@ -12,6 +12,7 @@
             <Property Name="UnifiedAreaRect" Value="{{0.182812,0},{0.241666,0},{0.840625,0},{0.793749,0}}" />
             <Window Type="DefaultWindow" Name="tab_world" >
                 <Property Name="Text" Value="World" />
+                <Property Name="Visible" Value="True" />
                 <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
                 <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
                 <Window Type="TaharezLook/Listbox" Name="listbox_worlds" >
@@ -47,7 +48,6 @@
             </Window>
             <Window Type="DefaultWindow" Name="tab_level" >
                 <Property Name="Text" Value="Level" />
-                <Property Name="Visible" Value="False" />
                 <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
                 <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
                 <Window Type="TaharezLook/Listbox" Name="listbox_levels" >
@@ -66,7 +66,7 @@
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
                     <Property Name="UnifiedAreaRect" Value="{{0.885,0},{0.899,0},{0.99,0},{0.99,0}}" />
                 </Window>
-                <Window Type="TaharezLook/StaticText" Name="tab_level/" >
+                <Window Type="TaharezLook/StaticText" Name="text_level_info" >
                     <Property Name="Text" >- Level Colors -
 
 Orange : Game
@@ -75,6 +75,21 @@ Grey     : Old format</Property>
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
                     <Property Name="VertFormatting" Value="TopAligned" />
                     <Property Name="UnifiedAreaRect" Value="{{0.549168,0},{0.128302,0},{0.934561,0},{0.570754,0}}" />
+                </Window>
+                <Window Type="TaharezLook/Button" Name="button_level_new" >
+                    <Property Name="Text" Value="New" />
+                    <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.548206,0},{0.0159804,0},{0.643206,0},{0.106981,0}}" />
+                </Window>
+                <Window Type="TaharezLook/Button" Name="button_level_edit" >
+                    <Property Name="Text" Value="Edit" />
+                    <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.690724,0},{0.0159804,0},{0.785724,0},{0.106981,0}}" />
+                </Window>
+                <Window Type="TaharezLook/Button" Name="button_level_delete" >
+                    <Property Name="Text" Value="Delete" />
+                    <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.833241,0},{0.0159804,0},{0.928241,0},{0.106981,0}}" />
                 </Window>
             </Window>
         </Window>

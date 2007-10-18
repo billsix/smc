@@ -81,10 +81,11 @@ public:
 	// Set the ground object
 	virtual void Set_onGround( cSprite *obj );
 
-	/* downgrade maryo's state ( if small maryo : dies )
+	/* downgrade state ( if small maryo : dies )
 	 * if delayed is set the downgrade is handled on the next game update
+	 * force : dies or a complete downgrade
 	*/
-	void DownGrade( bool delayed = 1 );
+	void DownGrade( bool delayed = 1, bool force = 0 );
 
 	// moves in the current direction
 	void Move_Player( float velocity, float vel_wrongway );

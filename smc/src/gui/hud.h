@@ -160,7 +160,8 @@ public:
 	// draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
-	char text[50], text_old[50];
+	char text[50];
+	unsigned int old_seconds;
 	float counter;
 };
 

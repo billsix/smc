@@ -29,6 +29,7 @@
 #include "../video/renderer.h"
 #include "../level/level.h"
 #include "../input/keyboard.h"
+#include "../level/level_editor.h"
 // boost filesystem
 #include "boost/filesystem/operations.hpp"
 #include "boost/filesystem/path.hpp"
@@ -322,7 +323,17 @@ void cMenu_Start :: Init_GUI( void )
 #endif
 		
 		ListboxTextItem *item = new ListboxTextItem( world->name, 0 );
-		item->setTextColours( colour( 1, 0.8f, 0.6f ) );
+		// game world
+		if( !world->user )
+		{
+			item->setTextColours( colour( 1, 0.8f, 0.6f ) );
+		}
+		// user world
+		else
+		{
+			item->setTextColours( colour( 0.8f, 1, 0.6f ) );
+		}
+
 		item->setSelectionColours( colour( 0.33f, 0.33f, 0.33f ) );
 		item->setSelectionBrushImage( "TaharezLook", "ListboxSelectionBrush" );
 		listbox_worlds->addItem( item );
@@ -343,6 +354,13 @@ void cMenu_Start :: Init_GUI( void )
 	// Level Listbox events
 	listbox_levels->subscribeEvent( Listbox::EventSelectionChanged, Event::Subscriber( &cMenu_Start::level_Select, this ) );
 	listbox_levels->subscribeEvent( Listbox::EventMouseDoubleClick, Event::Subscriber( &cMenu_Start::level_Select_final_list, this ) );
+	// Level Buttons
+	PushButton *button_new = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_level_new" ));
+	button_new->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cMenu_Start::Button_level_new_clicked, this ) );
+	PushButton *button_edit = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_level_edit" ));
+	button_edit->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cMenu_Start::Button_level_edit_clicked, this ) );
+	PushButton *button_delete = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_level_delete" ));
+	button_delete->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cMenu_Start::Button_level_delete_clicked, this ) );
 
 	// select first Item
 	listbox_worlds->setItemSelectState( (size_t)0, 1 );
@@ -353,8 +371,8 @@ void cMenu_Start :: Init_GUI( void )
 	PushButton *button_level_enter = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_level_enter" ));
 
 	// events
-	button_world_enter->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cMenu_Start::world_Select_final_button, this ) );
-	button_level_enter->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cMenu_Start::level_Select_final_button, this ) );
+	button_world_enter->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cMenu_Start::Button_world_Select_final, this ) );
+	button_level_enter->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cMenu_Start::Button_level_Select_final, this ) );
 }
 
 void cMenu_Start :: Update( void )
@@ -460,20 +478,22 @@ void cMenu_Start :: Load_World( string name )
 	}
 }
 
-void cMenu_Start :: Load_Level( string level_name )
+bool cMenu_Start :: Load_Level( string level_name )
 {
 	// if not available
-	if( !pLevel->Get_path( level_name )  )
+	if( !pLevel->Get_path( level_name ) )
 	{
 		pAudio->PlaySound( "error.ogg" );
 		debugdisplay->Set_Text( "Couldn't load level " + level_name, DESIRED_FPS );
-		return;
+		return 0;
 	}
 
 	// enter level
 	Game_Action = GA_ENTER_LEVEL;
 	Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
 	Game_Action_Data = level_name;
+
+	return 1;
 }
 
 bool cMenu_Start :: window_keydown( const EventArgs &e )
@@ -622,7 +642,7 @@ bool cMenu_Start :: world_Select_final_list( const EventArgs &event )
 	return 1;
 }
 
-bool cMenu_Start :: world_Select_final_button( const EventArgs &event )
+bool cMenu_Start :: Button_world_Select_final( const EventArgs &event )
 {
 	// Get Selected World
 	Listbox *listbox_worlds = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_worlds" ));
@@ -671,7 +691,7 @@ bool cMenu_Start :: level_Select_final_list( const EventArgs &event )
 	return 1;
 }
 
-bool cMenu_Start :: level_Select_final_button( const EventArgs &event )
+bool cMenu_Start :: Button_level_Select_final( const EventArgs &event )
 {
 	// Get Selected Level
 	Listbox *listbox_levels = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
@@ -681,6 +701,65 @@ bool cMenu_Start :: level_Select_final_button( const EventArgs &event )
 	if( item )
 	{
 		Load_Level( item->getText().c_str() );
+	}
+
+	return 1;
+}
+
+bool cMenu_Start :: Button_level_new_clicked( const EventArgs &event )
+{
+	// Create level
+	if( !pLevel_Editor->Function_New() )
+	{
+		// aborted/failed
+		return 0;
+	}
+
+	// Enter level
+	Game_Action = GA_ENTER_LEVEL;
+	Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM_EDITOR;
+
+	return 1;
+}
+
+bool cMenu_Start :: Button_level_edit_clicked( const EventArgs &event )
+{
+	// Get Selected Level
+	Listbox *listbox_levels = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
+	ListboxItem *item = listbox_levels->getFirstSelectedItem();
+
+	// load level
+	if( item && Load_Level( item->getText().c_str() ) )
+	{
+		Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM_EDITOR;
+	}
+
+	return 1;
+}
+
+bool cMenu_Start :: Button_level_delete_clicked( const EventArgs &event )
+{
+	// Get Selected Level
+	Listbox *listbox_levels = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
+	ListboxItem *item = listbox_levels->getFirstSelectedItem();
+
+	// load level
+	if( item )
+	{
+		string filename = item->getText().c_str();
+
+		// if denied
+		if( !Box_Question( "Delete " + filename + " ?" ) )
+		{
+			return 1;
+		}
+
+		// only user directory
+		if( pLevel->Get_path( filename, 1 ) )
+		{
+			Delete_file( filename );
+			listbox_levels->removeItem( item );
+		}
 	}
 
 	return 1;
@@ -1387,16 +1466,12 @@ cMenu_Options_Audio :: cMenu_Options_Audio( void )
 {
 	music = new cHudSprite();
 	sounds = new cHudSprite();
-	audio_music = new cHudSprite();
-	audio_sounds = new cHudSprite();
 }
 
 cMenu_Options_Audio :: ~cMenu_Options_Audio( void )
 {
 	delete music;
 	delete sounds;
-	delete audio_music;
-	delete audio_sounds;
 }
 
 void cMenu_Options_Audio :: Init( void )
@@ -1409,14 +1484,24 @@ void cMenu_Options_Audio :: Init( void )
 
 	cMenu_Item *temp_item = NULL;
 
+	GL_Surface *audio_hz = pFont->RenderText( pFont->font_normal, "Hz", text_color );
 	GL_Surface *audio_music = pFont->RenderText( pFont->font_normal, "Music", text_color );
 	GL_Surface *audio_sounds = pFont->RenderText( pFont->font_normal, "Sounds", text_color );
 
 	layout_file = "menu_audio.layout";
 	menu_posy = 220;
 
+
+	// Audio Hz
+	temp_item = new cMenu_Item();
+	temp_item->image_default->Set_Image( audio_hz );
+	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
+	pMenuCore->handler->Add_MenuItem( temp_item, 1.5, grey );
+	drawlist.push_back( new cHudSprite( audio_hz, -200, 0, 1 ) );
+
 	// Music
 	temp_item = new cMenu_Item();
+	menu_posy += 85;
 	temp_item->image_default->Set_Image( audio_music );
 	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
 	music->Set_Pos( GAME_RES_W / 1.8f + music->col_rect.w + 50, menu_posy - 5 );
@@ -1424,7 +1509,7 @@ void cMenu_Options_Audio :: Init( void )
 	drawlist.push_back( new cHudSprite( audio_music, -200, 0, 1 ) );
 	// Sounds
 	temp_item = new cMenu_Item();
-	menu_posy += 75;
+	menu_posy += 55;
 	temp_item->image_default->Set_Image( audio_sounds );
 	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
 	sounds->Set_Pos( GAME_RES_W / 1.8f + sounds->col_rect.w + 50, menu_posy - 5 );
@@ -1443,10 +1528,29 @@ void cMenu_Options_Audio :: Init_GUI( void )
 {
 	cMenu_Options::Init_GUI();
 
+	// Audio Hz
+	Combobox *combo_audio_hz = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_audio_hz" ));
+
+	ListboxTextItem *item = new ListboxTextItem( "44800", 0 );
+	item->setTextColours( colour( 0, 0, 1 ) );
+	combo_audio_hz->addItem( item );
+	item = new ListboxTextItem( "44100", 1 );
+	item->setTextColours( colour( 0, 1, 0 ) );
+	combo_audio_hz->addItem( item );
+	item = new ListboxTextItem( "22050", 1 );
+	item->setTextColours( colour( 1, 0, 0 ) );
+	combo_audio_hz->addItem( item );
+
+	// Set current value
+	combo_audio_hz->setText( int_to_string( pPreferences->audio_hz ) );
+
+	combo_audio_hz->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cMenu_Options_Audio::Audio_Hz_Select, this ) );
+
+
 	// Music
 	Combobox *combo_music = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_music" ));
 
-	ListboxTextItem *item = new ListboxTextItem( "On", 0 );
+	item = new ListboxTextItem( "On", 0 );
 	item->setTextColours( colour( 0, 1, 0 ) );
 	combo_music->addItem( item );
 	item = new ListboxTextItem( "Off", 1 );
@@ -1562,6 +1666,19 @@ void cMenu_Options_Audio :: Draw( void )
 	}
 
 	Draw_End();
+}
+
+bool cMenu_Options_Audio :: Audio_Hz_Select( const EventArgs &event )
+{
+	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
+	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+
+	pPreferences->audio_hz = string_to_int( item->getText().c_str() );
+	// todo : add Audio function to reload sounds and music when needed
+	//pAudio->Init( pPreferences->Sounds, pPreferences->Music );
+	Draw_StaticText( "You need to restart for the change to take effect.", &white, &lightgreyalpha64 );
+
+	return 1;
 }
 
 bool cMenu_Options_Audio :: music_Select( const EventArgs &event )

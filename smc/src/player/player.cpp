@@ -202,7 +202,7 @@ void cPlayer :: Set_onGround( cSprite *obj )
 	}
 }
 
-void cPlayer :: DownGrade( bool delayed /* = 1 */ )
+void cPlayer :: DownGrade( bool delayed /* = 1 */, bool force /* = 0 */ )
 {
 	if( godmode || invincible )
 	{
@@ -212,11 +212,12 @@ void cPlayer :: DownGrade( bool delayed /* = 1 */ )
 	if( delayed )
 	{
 		Game_Action = GA_DOWNGRADE_PLAYER;
+		Game_Action_Data = int_to_string( force );
 		return;
 	}
 
-	// if not dead because of falling below ground
-	if( maryo_type != MARYO_SMALL && !( col_rect.y - pCamera->y > ( GAME_RES_H - col_rect.h ) ) )
+	// if on weakest state or not forced 
+	if( maryo_type != MARYO_SMALL && !force )
 	{
 		pAudio->PlaySound( "player/powerdown.ogg", RID_MARYO_POWERDOWN );
 
@@ -1483,6 +1484,12 @@ void cPlayer :: Set_Type( Maryo_type new_type, bool animation /* = 1 */, bool so
 	if( animation )
 	{
 		Draw_Animation( new_type );
+	}
+	// only set type
+	else
+	{
+		maryo_type = new_type;
+		Load_Images();
 	}
 
 	// to ghost
@@ -3733,7 +3740,7 @@ void cPlayer :: Handle_OutofLevel( ObjectDirection dir )
 			else
 			{*/
 				invincible = 0;
-				DownGrade();
+				DownGrade( 1, 1 );
 			//}
 		}
 	}

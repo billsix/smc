@@ -28,6 +28,7 @@ cOverworld_manager :: cOverworld_manager( void )
 	worlds_filename = DATA_DIR "/" GAME_OVERWORLD_DIR "/worlds.xml";
 
 	debugmode = 0;
+	draw_layer = 0;
 	cameramode = 0;
 
 	Load();
@@ -77,11 +78,11 @@ void cOverworld_manager :: Load( void )
 	}
 
 	// Load Worlds
+	Load_dir( user_data_dir + USER_WORLD_DIR, 1 );
 	Load_dir( DATA_DIR "/" GAME_OVERWORLD_DIR );
-	Load_dir( user_data_dir + USER_WORLD_DIR );
 
 	// Get Overworld User Comments
-	if( valid_file( worlds_filename ) )
+	if( file_exists( worlds_filename ) )
 	{
 		// Parse
 		System::getSingleton().getXMLParser()->parseXMLFile( *this, worlds_filename.c_str(), DATA_DIR "/" GAME_SCHEMA_DIR "/Worlds_User_Data.xsd", "" );
@@ -92,14 +93,11 @@ void cOverworld_manager :: Load( void )
 		printf( "Warning : Couldn't open Worlds description file : %s\n", worlds_filename.c_str() );
 	}
 
-	// set default overworld if not set
-	if( !pActive_Overworld )
-	{
-		Set_Active( "World 1" );
-	}
+	// set default overworld
+	Set_Active( "World 1" );
 }
 
-void cOverworld_manager :: Load_dir( string dir )
+void cOverworld_manager :: Load_dir( string dir, bool user_dir /* = 0 */ ) 
 {
 	// set world directory
 	fs::path full_path( dir, fs::native );
@@ -110,14 +108,22 @@ void cOverworld_manager :: Load_dir( string dir )
 		try
 		{
 			// only directories with an existing description
-			if( fs::is_directory( *dir_itr ) && valid_file( dir + "/" + dir_itr->leaf() + "/description.xml" ) )
+			if( fs::is_directory( *dir_itr ) && file_exists( dir + "/" + dir_itr->leaf() + "/description.xml" ) )
 			{
+				// already available
+				if( Get( dir_itr->leaf() ) )
+				{
+					continue;
+				}
+
 				cOverworld *overworld = new cOverworld();
 
 				// set path
 				overworld->description->path = dir_itr->leaf();
 				// default name is the path
 				overworld->description->name = dir_itr->leaf();
+				// set user
+				overworld->description->user = user_dir;
 
 				objects.push_back( overworld );
 

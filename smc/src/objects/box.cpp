@@ -754,6 +754,10 @@ void cBaseBox :: Create_Name( void )
 	{
 		name = "Box Empty";
 	}
+	else if( box_type == TYPE_POWERUP )
+	{
+		name = "Box Random";
+	}
 	else if( box_type == TYPE_SPINBOX )
 	{
 		name = "Spinbox";

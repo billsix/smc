@@ -147,6 +147,12 @@ void cBonusBox :: Set_Bonus_Type( SpriteType nbonus_type )
 	{
 		item_image = NULL;
 	}
+	else if( box_type == TYPE_POWERUP )
+	{
+		// force always best item
+		force_best_item = 1;
+		item_image = pVideo->Get_Surface( "game/editor/unknown.png" );
+	}
 	else if( box_type == TYPE_MUSHROOM_DEFAULT )
 	{
 		item_image = pVideo->Get_Surface( "game/items/mushroom_red.png" );
@@ -198,6 +204,12 @@ void cBonusBox :: Set_Bonus_Type( SpriteType nbonus_type )
 
 void cBonusBox :: Set_Force_best_item( bool enable )
 {
+	// can't be set if random 
+	if( box_type == TYPE_POWERUP )
+	{
+		return;
+	}
+
 	force_best_item = enable;
 }
 
@@ -241,6 +253,37 @@ void cBonusBox :: Activate( void )
 {
 	// boxed item
 	cMovingSprite *box_item = NULL;
+
+	bool random = 0;
+
+	// random
+	if( box_type == TYPE_POWERUP )
+	{
+		int r = rand() % 5;
+
+		if( r == 0 )
+		{
+			box_type = TYPE_MUSHROOM_DEFAULT;
+		}
+		else if( r == 1 )
+		{
+			box_type = TYPE_FIREPLANT;
+		}
+		else if( r == 2 )
+		{
+			box_type = TYPE_MUSHROOM_BLUE;
+		}
+		else if( r == 3 )
+		{
+			box_type = TYPE_MUSHROOM_GHOST;
+		}
+		else if( r == 4 )
+		{
+			box_type = TYPE_JSTAR;
+		}
+
+		random = 1;
+	}
 
 	// no item
 	if( box_type == TYPE_UNDEFINED )
@@ -291,6 +334,12 @@ void cBonusBox :: Activate( void )
 	{
 		printf( "Error : Unknown bonusbox item type %d\n", box_type );
 		return;
+	}
+
+	// set back random state
+	if( random )
+	{
+		box_type = TYPE_POWERUP;
 	}
 
 	if( box_item )
@@ -413,6 +462,7 @@ void cBonusBox :: Editor_Activate( void )
 	Editor_Add( combobox, 160, 140 );
 
 	combobox->addItem( new ListboxTextItem( "Empty" ) );
+	combobox->addItem( new ListboxTextItem( "Random" ) );
 	combobox->addItem( new ListboxTextItem( "Mushroom" ) );
 	combobox->addItem( new ListboxTextItem( "Fireplant" ) );
 	combobox->addItem( new ListboxTextItem( "Mushroom Blue" ) );
@@ -454,6 +504,10 @@ void cBonusBox :: Editor_Activate( void )
 	{
 		combobox->setText( "Mushroom Poison" );
 	}
+	else if( box_type == TYPE_POWERUP )
+	{
+		combobox->setText( "Random" );
+	}
 	else
 	{
 		combobox->setText( "Empty" );
@@ -492,8 +546,40 @@ void cBonusBox :: Editor_Activate( void )
 
 	combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cBonusBox::Editor_Gold_Color_Select, this ) );
 
+	// set state
+	Editor_state_update();
 	// set position
 	Editor_pos_update();
+}
+
+void cBonusBox :: Editor_state_update( void )
+{
+	WindowManager &wmgr = WindowManager::getSingleton();
+
+	// Force best item
+	Combobox *combobox = static_cast<Combobox *>(wmgr.getWindow( "editor_bonusbox_force_best_item" ));
+
+	if( box_type == TYPE_UNDEFINED || box_type == TYPE_POWERUP || box_type == TYPE_MUSHROOM_DEFAULT || box_type == TYPE_MUSHROOM_LIVE_1 || box_type == TYPE_MUSHROOM_POISON || 
+		box_type == TYPE_MUSHROOM_GHOST || box_type == TYPE_JSTAR || box_type == TYPE_GOLDPIECE )
+	{
+		combobox->setEnabled( 0 );
+	}
+	else
+	{
+		combobox->setEnabled( 1 );
+	}
+
+	// gold color
+	combobox = static_cast<Combobox *>(wmgr.getWindow( "editor_bonusbox_gold_color" ));
+
+	if( box_type != TYPE_GOLDPIECE )
+	{
+		combobox->setEnabled( 0 );
+	}
+	else
+	{
+		combobox->setEnabled( 1 );
+	}
 }
 
 bool cBonusBox :: Editor_Animation_Select( const EventArgs &event )
@@ -543,10 +629,16 @@ bool cBonusBox :: Editor_Item_Select( const EventArgs &event )
 	{
 		Set_Bonus_Type( TYPE_MUSHROOM_POISON );
 	}
+	else if( item->getText().compare( "Random" ) == 0 )
+	{
+		Set_Bonus_Type( TYPE_POWERUP );
+	}
 	else
 	{
 		Set_Bonus_Type( TYPE_UNDEFINED );
 	}
+
+	Editor_state_update();
 
 	return 1;
 }

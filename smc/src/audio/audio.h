@@ -183,7 +183,7 @@ public:
 	unsigned int sound_count;
 
 	// initialization information
-	int audio_hz, audio_buffer, audio_channels;
+	int audio_buffer, audio_channels;
 	// sound and music played counter since initialization
 	unsigned int sounds_played, music_played;
 };

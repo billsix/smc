@@ -46,6 +46,8 @@ public:
 	string name;
 	// is visible on selection
 	bool visible;
+	// from user directory
+	bool user;
 
 	// world comment
 	string comment;

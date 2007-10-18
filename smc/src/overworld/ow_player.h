@@ -71,9 +71,11 @@ public:
 
 	// Set Maryo to the given Waypoint position
 	bool Set_Waypoint( unsigned int waypoint, bool new_startpos = 0 );
-
 	// Get current Waypoint
 	cWaypoint *Get_Waypoint( void );
+
+	// Returns the current Waypoint front line
+	cLayer_Line *Get_Front_line( ObjectDirection dir );
 
 	/* Checks how much Maryo can walk into all directions
 	 * and sets the size into the path directions

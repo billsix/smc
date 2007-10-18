@@ -5,7 +5,7 @@ To run this game on Linux, you have two possibilities: You can either
 compile your own binary or you can use a pre-compiled version if it's
 available for download, too. The pre-compiled version sometimes is statically linked,
 so it should run on all Linux/i86 systems. To use it simply run the
-"smc" executable in the 0.9* folder.
+"smc" executable in the 1.* folder.
 
 If it does not work or if you are using any other system than Linux/i86, you
 have to get the source code and compile your own executable file.

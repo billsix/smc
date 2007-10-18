@@ -93,8 +93,10 @@ public:
 	void Toggle( void );
 	// Enable
 	virtual void Enable( void );
-	// Disable
-	virtual void Disable( void );
+	/* Disable
+	 * native_mode : if unset the current game mode isn't altered
+ 	*/
+	virtual void Disable( bool native_mode = 1 );
 
 	// Update Editor
 	virtual void Update( void );
@@ -153,10 +155,11 @@ public:
 
 	// Menu functions
 	void Function_Exit( void );
-	virtual void Function_New( void ) {};
+	virtual bool Function_New( void ) { return 0; };
 	virtual void Function_Load( void ) {};
-	virtual void Function_Save( void ) {};
+	virtual void Function_Save( bool with_dialog = 0 ) {};
 	virtual void Function_Save_as( void ) {};
+	virtual void Function_Delete( void ) {};
 	virtual void Function_Reload( void ) {};
 	virtual void Function_Clear( void ) {};
 	virtual void Function_Settings( void ) {};

@@ -11,7 +11,7 @@
             <Property Name="ReadOnly" Value="True" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
             <Property Name="ClippedByParent" Value="False" />
-            <Property Name="UnifiedAreaRect" Value="{{0.582803,0},{0.369362,0},{0.683916,0},{0.490043,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.58,0},{0.369362,0},{0.68,0},{0.490043,0}}" />
             <Property Name="MaxEditTextLength" Value="1073741823" />
         </Window>
         <Window Type="TaharezLook/Spinner" Name="spinner_camera_hor_speed" >
@@ -22,7 +22,7 @@
             <Property Name="MinimumValue" Value="0" />
             <Property Name="TextInputMode" Value="FloatingPoint" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-            <Property Name="UnifiedAreaRect" Value="{{0.587708,0},{0.429166,0},{0.682404,0},{0.4699,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.58,0},{0.429166,0},{0.68,0},{0.4699,0}}" />
         </Window>
         <Window Type="TaharezLook/Spinner" Name="spinner_camera_ver_speed" >
             <Property Name="Tooltip" Value="Camera Vertical Speed" />
@@ -32,7 +32,7 @@
             <Property Name="MinimumValue" Value="0" />
             <Property Name="TextInputMode" Value="FloatingPoint" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-            <Property Name="UnifiedAreaRect" Value="{{0.58659,0},{0.479628,0},{0.6824,0},{0.52,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.58,0},{0.479628,0},{0.68,0},{0.52,0}}" />
         </Window>
     </Window>
 </GUILayout>
