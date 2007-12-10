@@ -155,7 +155,7 @@ public:
 	/* Returns the colliding Line from the given position and the added direction size
 	 * if not found returns a NULL line in the class
 	*/
-	cLine_collision Get_Line_Collision_Direction( float x, float y, ObjectDirection dir, float dir_size = 15, float check_size = 10 );
+	cLine_collision Get_Line_Collision_Direction( float x, float y, ObjectDirection dir, float dir_size = 15, unsigned int check_size = 10 );
 
 	/* Return the collision data between the nearest line and the given position
 	 * check_size is maximum size for both direction checking lines

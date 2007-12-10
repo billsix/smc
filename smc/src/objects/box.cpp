@@ -17,11 +17,12 @@
 #include "../audio/audio.h"
 #include "../core/camera.h"
 #include "../core/framerate.h"
-#include "../core/sprite_manager.h"
+#include "../level/level.h"
 #include "../core/game_core.h"
 #include "../video/animation.h"
 #include "../player/player.h"
 #include "../video/gl_surface.h"
+#include "../user/savegame.h"
 
 /* *** *** *** *** *** *** *** *** cBaseBox *** *** *** *** *** *** *** *** *** */
 
@@ -57,7 +58,7 @@ cBaseBox :: ~cBaseBox( void )
 void cBaseBox :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	if( box_type != TYPE_SPINBOX && box_type != TYPE_TEXT_BOX )
 	{
 		// animation
@@ -72,8 +73,8 @@ void cBaseBox :: Create_from_Stream( XMLAttributes &attributes )
 void cBaseBox :: Save_to_Stream( ofstream &file )
 {
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// type
 	if( box_type == TYPE_SPINBOX )
 	{
@@ -95,6 +96,34 @@ void cBaseBox :: Save_to_Stream( ofstream &file )
 	file << "\t\t<Property name=\"invisible\" value=\"" << box_invisible << "\" />" << std::endl;
 	// useable count
 	file << "\t\t<Property name=\"useable_count\" value=\"" << start_useable_count << "\" />" << std::endl;
+}
+
+void cBaseBox :: Load_from_Savegame( cSave_Level_Object *save_object )
+{
+	// useable count
+	int save_useable_count = string_to_int( save_object->Get_Value( "useable_count" ) );
+	Set_UseableCount( save_useable_count );
+}
+
+cSave_Level_Object *cBaseBox :: Save_to_Savegame( void )
+{
+	// only save if needed
+	if( useable_count == start_useable_count )
+	{
+		return NULL;
+	}
+
+	cSave_Level_Object *save_object = new cSave_Level_Object();
+
+	// default values
+	save_object->type = type;
+	save_object->properties.push_back( cSave_Level_Object_Property( "posx", int_to_string( static_cast<int>(startposx) ) ) );
+	save_object->properties.push_back( cSave_Level_Object_Property( "posy", int_to_string( static_cast<int>(startposy) ) ) );
+
+	// Useable Count
+	save_object->properties.push_back( cSave_Level_Object_Property( "useable_count", int_to_string( useable_count ) ) );
+
+	return save_object;
 }
 
 void cBaseBox :: Set_Animation( string new_anim_type )
@@ -164,8 +193,8 @@ void cBaseBox :: Set_Animation( string new_anim_type )
 		Set_Animation( "Bonus" );
 	}
 
-	counter = (float)anim_counter_min;
-	Set_Image( (int)counter, 1, 0 );
+	counter = static_cast<float>(anim_counter_min);
+	Set_Image( static_cast<int>(counter), 1, 0 );
 }
 
 void cBaseBox :: Set_UseableCount( int count, bool new_startcount /* = 0 */ )
@@ -195,7 +224,7 @@ void cBaseBox :: Set_Invisible( unsigned int type )
 	// was invisible
 	if( box_invisible == 1 )
 	{
-		Set_Image( (int)counter, 1, 0 );
+		Set_Image( static_cast<int>(counter), 1, 0 );
 	}
 	// was ghost
 	else if( box_invisible == 2 )
@@ -247,7 +276,7 @@ void cBaseBox :: Activate_collision( ObjectDirection cdirection )
 	// if invisible go visible
 	if( box_invisible )
 	{
-		Set_Image( (int)counter, 0, 0 );
+		Set_Image( static_cast<int>(counter), 0, 0 );
 	}
 
 	// set collision direction
@@ -400,7 +429,7 @@ void cBaseBox :: Check_Collision( ObjectDirection cdirection )
 	for( unsigned int i = 0; i < col_count; i++ )
 	{
 		cObjectCollision *col = Collision_Get_last();
-		cSprite *col_obj = pSprite_Manager->Get_Pointer( col->number );
+		cSprite *col_obj = pLevel->pSprite_Manager->Get_Pointer( col->number );
 
 		// send box collision
 		col_obj->Handle_Collision_Box( Get_OppositeDirection( col->direction ), &col_rect );
@@ -442,13 +471,13 @@ void cBaseBox :: Update( void )
 
 			if( counter >= anim_counter_max + 1 )
 			{
-				counter = (float)anim_counter_min;
+				counter = static_cast<float>(anim_counter_min);
 			}
 
 			// Set_Image overwrites col_pos
 			GL_point col_pos_temp = col_pos;
 
-			Set_Image( (int)counter );
+			Set_Image( static_cast<int>(counter) );
 
 			// save col_pos
 			col_pos = col_pos_temp;
@@ -482,12 +511,12 @@ void cBaseBox :: Draw( cSurfaceRequest *request /* = NULL */ )
 			// default invisible
 			if( box_invisible == 1 )
 			{
-				color = Color( (Uint8)240, 0, 30, 128 );
+				color = Color( static_cast<Uint8>(240), 0, 30, 128 );
 			}
 			// ghost
 			else if( box_invisible == 2 )
 			{
-				color = Color( (Uint8)20, 20, 150, 128 );
+				color = Color( static_cast<Uint8>(20), 20, 150, 128 );
 			}
 
 			pVideo->Draw_Rect( startposx - pCamera->x, startposy - pCamera->y, col_rect.w, col_rect.h, posz, &color );
@@ -502,7 +531,7 @@ void cBaseBox :: Draw( cSurfaceRequest *request /* = NULL */ )
 		if( item_image )
 		{
 			// auto position
-			item_image->Blit( startposx - ( ( item_image->w - rect.w ) / 2 ) - pCamera->x, startposy - ( ( item_image->h - rect.h ) / 2 ) - pCamera->y, posz + 0.000001f );
+			item_image->Blit( startposx - ( ( item_image->w - rect.w ) / 2 ) - pCamera->x, startposy - ( ( item_image->h - rect.h ) / 2 ) - pCamera->y, posz + 0.000003f );
 		}
 	}
 }
@@ -519,7 +548,7 @@ void cBaseBox :: Generate_active_Particles( void )
 
 	while( particle_counter_active > 0 )
 	{
-		cParticleAnimation *anim = new cParticleAnimation( posx + ( rand() % (int)rect.w ), posy );
+		cParticleAnimation *anim = new cParticleAnimation( posx + ( rand() % static_cast<int>(rect.w) ), posy );
 		anim->Set_DirectionRange( 180, 180 );
 		anim->Set_Speed( 3.1f, 0.5f );
 		anim->Set_Scale( 0.7f, 0.1f );
@@ -528,31 +557,31 @@ void cBaseBox :: Generate_active_Particles( void )
 
 		if( box_type == TYPE_MUSHROOM_DEFAULT )
 		{
-			color = Color( (Uint8)( 100 + ( rand() % 100 ) ), 20 + ( rand() % 50 ), 10 + ( rand() % 30 ) );
+			color = Color( static_cast<Uint8>( 100 + ( rand() % 100 ) ), 20 + ( rand() % 50 ), 10 + ( rand() % 30 ) );
 		}
 		else if( box_type == TYPE_FIREPLANT )
 		{
-			color = Color( (Uint8)( 110 + ( rand() % 150 ) ), rand() % 50, rand() % 30 );
+			color = Color( static_cast<Uint8>( 110 + ( rand() % 150 ) ), rand() % 50, rand() % 30 );
 		}
 		else if( box_type == TYPE_MUSHROOM_BLUE )
 		{
-			color = Color( (Uint8)( rand() % 30 ), ( rand() % 30 ), 150 + ( rand() % 50 ) );
+			color = Color( static_cast<Uint8>( rand() % 30 ), ( rand() % 30 ), 150 + ( rand() % 50 ) );
 		}
 		else if( box_type == TYPE_MUSHROOM_GHOST )
 		{
-			color = Color( (Uint8)( 100 + ( rand() % 50 ) ), 100 + ( rand() % 50 ), 100 + ( rand() % 50 ) );
+			color = Color( static_cast<Uint8>( 100 + ( rand() % 50 ) ), 100 + ( rand() % 50 ), 100 + ( rand() % 50 ) );
 		}
 		else if( box_type == TYPE_MUSHROOM_LIVE_1 )
 		{
-			color = Color( (Uint8)( rand() % 30 ), 100 + ( rand() % 150 ), rand() % 30 );
+			color = Color( static_cast<Uint8>( rand() % 30 ), 100 + ( rand() % 150 ), rand() % 30 );
 		}
 		else if( box_type == TYPE_JSTAR )
 		{
-			color = Color( (Uint8)( 110 + ( rand() % 150 ) ), 80 + ( rand() % 50 ), rand() % 20 );
+			color = Color( static_cast<Uint8>( 110 + ( rand() % 150 ) ), 80 + ( rand() % 50 ), rand() % 20 );
 		}
 		else if( box_type == TYPE_MUSHROOM_POISON )
 		{
-			color = Color( (Uint8)( 50 + rand() % 50 ), 100 + ( rand() % 150 ), rand() % 10 );
+			color = Color( static_cast<Uint8>( 50 + rand() % 50 ), 100 + ( rand() % 150 ), rand() % 10 );
 		}
 
 		anim->Set_Time_to_Live( 0.3f );

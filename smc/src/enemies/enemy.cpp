@@ -16,6 +16,8 @@
 #include "../enemies/enemy.h"
 #include "../core/camera.h"
 #include "../video/animation.h"
+#include "../user/savegame.h"
+#include "../core/game_core.h"
 
 /* *** *** *** *** *** *** cEnemy *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -43,6 +45,98 @@ cEnemy :: cEnemy( float x /* = 0 */, float y /* = 0 */ )
 cEnemy :: ~cEnemy( void )
 {
 
+}
+
+void cEnemy :: Load_from_Savegame( cSave_Level_Object *save_object )
+{
+	// direction
+	if( save_object->exists( "direction" ) )
+	{
+		direction = (ObjectDirection)string_to_int( save_object->Get_Value( "direction" ) );
+	}
+
+	// state
+	if( save_object->exists( "state" ) )
+	{
+		state = (Moving_state)string_to_int( save_object->Get_Value( "state" ) );
+	}
+
+	// new position x
+	if( save_object->exists( "new_posx" ) )
+	{
+		Set_PosX( string_to_float( save_object->Get_Value( "new_posx" ) ) );
+	}
+
+	// new position y
+	if( save_object->exists( "new_posy" ) )
+	{
+		Set_PosY( string_to_float( save_object->Get_Value( "new_posy" ) ) );
+	}
+
+	// velocity x
+	if( save_object->exists( "velx" ) )
+	{
+		velx = string_to_float( save_object->Get_Value( "velx" ) );
+	}
+
+	// velocity y
+	if( save_object->exists( "vely" ) )
+	{
+		vely = string_to_float( save_object->Get_Value( "vely" ) );
+	}
+
+	// visible
+	if( save_object->exists( "visible" ) )
+	{
+		Set_Visible( string_to_int( save_object->Get_Value( "visible" ) ) > 0 );
+	}
+
+	// dead
+	if( save_object->exists( "dead" ) )
+	{
+		Set_Dead( string_to_int( save_object->Get_Value( "dead" ) ) > 0 );
+	}
+}
+
+cSave_Level_Object *cEnemy :: Save_to_Savegame( void )
+{
+	cSave_Level_Object *save_object = new cSave_Level_Object();
+
+	// default values
+	save_object->type = type;
+	save_object->properties.push_back( cSave_Level_Object_Property( "posx", int_to_string( static_cast<int>(startposx) ) ) );
+	save_object->properties.push_back( cSave_Level_Object_Property( "posy", int_to_string( static_cast<int>(startposy) ) ) );
+
+	// direction
+	save_object->properties.push_back( cSave_Level_Object_Property( "direction", int_to_string( direction ) ) );
+
+	// state
+	save_object->properties.push_back( cSave_Level_Object_Property( "state", int_to_string( state ) ) );
+
+	// new position ( only save if needed )
+	if( startposx != posx || startposy != posy )
+	{
+		save_object->properties.push_back( cSave_Level_Object_Property( "new_posx", int_to_string( static_cast<int>(posx) ) ) );
+		save_object->properties.push_back( cSave_Level_Object_Property( "new_posy", int_to_string( static_cast<int>(posy) ) ) );
+	}
+
+	// velocity
+	save_object->properties.push_back( cSave_Level_Object_Property( "velx", float_to_string( velx ) ) );
+	save_object->properties.push_back( cSave_Level_Object_Property( "vely", float_to_string( vely ) ) );
+
+	// visible ( only save if needed )
+	if( !visible )
+	{
+		save_object->properties.push_back( cSave_Level_Object_Property( "visible", int_to_string( visible ) ) );
+	}
+
+	// dead ( only save if needed )
+	if( dead )
+	{
+		save_object->properties.push_back( cSave_Level_Object_Property( "dead", int_to_string( dead ) ) );
+	}
+
+	return save_object;
 }
 
 void cEnemy :: Set_Dead( bool enable /* = 1 */ )
@@ -117,7 +211,7 @@ void cEnemy :: Generate_Hit_Animation( cParticleAnimation *anim /* = NULL */ )
 	anim->Set_Quota( 4 );
 	anim->Set_ZPos( posz - 0.000001f );
 	anim->Set_Time_to_Live( 0.3f );
-	anim->Set_Color( Color( (Uint8)150, 150, 150, 200 ), Color( (Uint8)( rand() % 155 ), rand() % 155, rand() % 155 ) );
+	anim->Set_Color( Color( static_cast<Uint8>(150), 150, 150, 200 ), Color( static_cast<Uint8>( rand() % 155 ), rand() % 155, rand() % 155 ) );
 	anim->Set_Speed( 3, 0.6f );
 	anim->Set_Scale( 0.6f );
 	anim->Set_DirectionRange( 180, 180 );

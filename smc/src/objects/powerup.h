@@ -29,6 +29,11 @@ public:
 	// destructor
 	virtual ~cPowerUp( void );
 
+	// load from savegame
+	virtual void Load_from_Savegame( cSave_Level_Object *save_object );
+	// save to savegame
+	virtual cSave_Level_Object *Save_to_Savegame( void );
+
 	/* draw
 	 * a spawned powerup doesn't draw in editor mode
 	*/

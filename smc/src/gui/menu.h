@@ -81,7 +81,7 @@ public:
 	~cMenuHandler( void );
 
 	// Adds a Menu
-	void Add_MenuItem( cMenu_Item *item, float shadow_pos = 0, Color shadow_color = (Uint8)0 );
+	void Add_MenuItem( cMenu_Item *item, float shadow_pos = 0, Color shadow_color = static_cast<Uint8>(0) );
 
 	// Unloads all items
 	void Reset( void );
@@ -141,13 +141,21 @@ public:
 	// Handle Input event
 	bool Handle_Event( SDL_Event *ev );
 	/* handle key down event
-	 * returns true if the key was processed
+	 * returns true if processed
 	*/
 	bool Key_Down( SDLKey key );
 	/* handle key up event
-	 * returns true if the key was processed
+	 * returns true if processed
 	*/
 	bool Key_Up( SDLKey key );
+	/* handle mouse button down event
+	 * returns true if processed
+	*/
+	bool Mouse_Down( Uint8 button );
+	/* handle mouse button up event
+	 * returns true if processed
+	*/
+	bool Mouse_Up( Uint8 button );
 
 	// Returns a Menu with the common image filenames
 	cMenu_Item *Auto_Menu( string imagename, string imagename_menu, float ypos = 0, bool is_quit = 0 );

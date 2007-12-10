@@ -13,8 +13,6 @@ smc_SOURCES = \
 	core/game_core.cpp \
 	core/globals.cpp \
 	core/main.cpp \
-	core/math/point.cpp \
-	core/math/rect.cpp \
 	core/math/vector.cpp \
 	core/sprite_manager.cpp \
 	enemies/bosses/turtle_boss.cpp \
@@ -40,6 +38,7 @@ smc_SOURCES = \
 	level/level.cpp \
 	level/level_editor.cpp \
 	level/level_settings.cpp \
+	level/level_manager.cpp \
 	objects/ball.cpp \
 	objects/bonusbox.cpp \
 	objects/box.cpp \

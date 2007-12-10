@@ -7,12 +7,54 @@
 </head>
 <body lang="en-US" dir="LTR">
 
-<table width="100%" cellpadding="0" cellspacing="0">
+<table width="100%" cellpadding="0" cellspacing="0" style="border: 2px solid #336633;">
 	<tr>
 		<h1>Secret Maryo Chronicles - Changelog</h1>
 		<br>
 	</tr>
-		<tr>
+	<tr>
+		<td class="version">
+			<p>1.3</p>
+		</td>
+		<td class="version">2007.12.01</td>
+	</tr>
+	<tr>
+		<td class="fixes" colspan="2">
+			<p>X savegame support for spinbox, all powerups and enemies with their state</p>
+			<p>X new big and small pipe sprites with collision rects</p>
+			<p>X new overworld maryo sprites (thanks Helios)</p>
+			<p>X implemented ground type patch (thanks segfault) and updated it (added earth, ice, stone and plastic type + affects running smoke and walking animation )</p>
+			<p>X applied patch for different joystick axis support ( thanks Toad King )</p>
+			<p>X level/world updates</p>
+			<p>X new sprites : green_2 hill, green_1 and light_blue_1 hill, green ground 3, default stone block </p>
+			<p>X turtle boss got his own hit sound</p>
+			<p>X implemented skeleton level manager</p>
+			<p>X level sprite manager is now handled over the level class</p>
+			<p>* fixed crash when invalid filename used with file_exists()</p>
+			<p>* fixed image settings rotation with an asynchron resolution</p>
+			<p>* fixed GL_Surface width and height are not the final values</p>
+			<p>* updated level settings screen (background gradient is previewed and auto scales to the selected background image)</p>
+			<p>* fixed editor_mouse_auto_hide doesn't show the mouse again</p>
+			<p>* fixed changing preferences ingame resets the sound/music setting</p>
+			<p>* some speed optimizations</p>
+			<p>* more precise mouse position</p>
+			<p>* correctly rendered cegui fonts</p>
+			<p>* optimized mouse scrolling</p>
+			<p>* fixed resolutions below 800x600 didn't work correctly</p>
+			<p>* fixed ground_3 right_bottom and right_top tile collision rect</p>
+			<p>* updated fonts</p>
+			<p>* updated preferences setting names</p>
+			<p>* updated image settings rotation handling</p>
+			<p>* fixed cegui.log file is in an invalid directory for Linux</p>
+			<p>* fixed position rotations aren't precise</p>
+			<p>* optimized sprite debug array color handling</p>
+			<p>* fixed sprite Set_PosY with new_startpos set did set the startposx</p>
+			<p>* editor item list items got a black shadow</p>
+			<p>* video initialization checks if resolution and bits per pixel are supported, if not falls back to supported settings</p>
+			<p>- removed remake levels</p>
+		</td>
+	</tr>
+	<tr>
 		<td class="version">
 			<p>1.2</p>
 		</td>

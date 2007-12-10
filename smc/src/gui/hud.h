@@ -108,7 +108,7 @@ public:
 	virtual ~cPlayerPoints( void );
 
 	void Set_Points( unsigned int points );
-	void Add_Points( unsigned int points, float x = 0, float y = 0, string strtext = "", Color color = (Uint8)255, bool allow_multiplier = 0 );
+	void Add_Points( unsigned int points, float x = 0, float y = 0, string strtext = "", Color color = static_cast<Uint8>(255), bool allow_multiplier = 0 );
 
 	// removes all point texts
 	void Clear( void );

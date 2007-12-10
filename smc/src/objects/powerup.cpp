@@ -21,6 +21,7 @@
 #include "../core/camera.h"
 #include "../video/animation.h"
 #include "../video/gl_surface.h"
+#include "../user/savegame.h"
 
 /* *** *** *** *** *** *** cPowerUp *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -38,6 +39,34 @@ cPowerUp :: cPowerUp( float x, float y )
 cPowerUp :: ~cPowerUp( void )
 {
 	//
+}
+
+void cPowerUp :: Load_from_Savegame( cSave_Level_Object *save_object )
+{
+	// visible
+	bool save_visible = string_to_int( save_object->Get_Value( "visible" ) ) > 0;
+	Set_Visible( save_visible );
+}
+
+cSave_Level_Object *cPowerUp :: Save_to_Savegame( void )
+{
+	// only save if needed
+	if( visible )
+	{
+		return NULL;
+	}
+
+	cSave_Level_Object *save_object = new cSave_Level_Object();
+
+	// default values
+	save_object->type = type;
+	save_object->properties.push_back( cSave_Level_Object_Property( "posx", int_to_string( static_cast<int>(startposx) ) ) );
+	save_object->properties.push_back( cSave_Level_Object_Property( "posy", int_to_string( static_cast<int>(startposy) ) ) );
+
+	// visible
+	save_object->properties.push_back( cSave_Level_Object_Property( "visible", int_to_string( visible ) ) );
+
+	return save_object;
 }
 
 void cPowerUp :: Draw( cSurfaceRequest *request /* = NULL */ )
@@ -165,7 +194,7 @@ cMushroom *cMushroom :: Copy( void )
 void cMushroom :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ) );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )) );
 	// type
 	Set_Type( (SpriteType)attributes.getValueAsInteger( "mushroom_type", TYPE_MUSHROOM_DEFAULT ) );
 }
@@ -180,8 +209,8 @@ void cMushroom :: Save_to_Stream( ofstream &file )
 	// mushroom type
 	file << "\t\t<Property name=\"mushroom_type\" value=\"" << type << "\" />" << std::endl;
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 
 	// end item
 	file << "\t</item>" << std::endl;
@@ -306,21 +335,21 @@ void cMushroom :: Update( void )
 			// randomly generated
 			if( ( rand() % 3 ) == 0 )
 			{
-				cParticleAnimation *anim = new cParticleAnimation( col_rect.x + ( rand() % (int)col_rect.w ), col_rect.y + ( rand() % (int)col_rect.h ) );
+				cParticleAnimation *anim = new cParticleAnimation( col_rect.x + ( rand() % static_cast<int>(col_rect.w) ), col_rect.y + ( rand() % static_cast<int>(col_rect.h) ) );
 				anim->Set_DirectionRange( 180, 180 );
 				anim->Set_Time_to_Live( 0.3f );
 				anim->Set_Scale( 0.6f, 0.1f );
 				// 1-UP
 				if( type ==  TYPE_MUSHROOM_LIVE_1 )
 				{
-					anim->Set_Color( Color( (Uint8)(rand() % 30), 100 + ( rand() % 150 ), rand() % 30 ) );
+					anim->Set_Color( Color( static_cast<Uint8>(rand() % 30), 100 + ( rand() % 150 ), rand() % 30 ) );
 					anim->Set_Speed( 0.5f, 0.5f );
 					anim->Set_Blending( BLEND_ADD );
 				}
 				// Poison
 				else if( type == TYPE_MUSHROOM_POISON )
 				{
-					anim->Set_Color( Color( (Uint8)( 120 + rand() % 30 ), 80 + ( rand() % 150 ), rand() % 30 ) );
+					anim->Set_Color( Color( static_cast<Uint8>( 120 + rand() % 30 ), 80 + ( rand() % 150 ), rand() % 30 ) );
 					anim->Set_Speed( 0.7f, 0.5f );
 				}
 				
@@ -345,10 +374,10 @@ void cMushroom :: Update( void )
 				// randomly generated
 				if( ( rand() % 3 ) == 0 )
 				{
-					cParticleAnimation *anim = new cParticleAnimation( col_rect.x + col_rect.w * 0.3f + ( rand() % (int)col_rect.w * 0.4f ), col_rect.y + col_rect.h * 0.72f +  ( rand() % (int)( col_rect.h * 0.1f ) ) );
+					cParticleAnimation *anim = new cParticleAnimation( col_rect.x + col_rect.w * 0.3f + ( rand() % static_cast<int>(col_rect.w) * 0.4f ), col_rect.y + col_rect.h * 0.72f +  ( rand() % static_cast<int>( col_rect.h * 0.1f ) ) );
 					anim->Set_Time_to_Live( 1.4f, 1 );
 					anim->Set_Scale( 0.3f, 0.1f );
-					anim->Set_Color( Color( (Uint8)100, 100, 255 ) );
+					anim->Set_Color( Color( static_cast<Uint8>(100), 100, 255 ) );
 					anim->Set_Blending( BLEND_ADD );
 					anim->Set_Speed( 0, 0.01f );
 					
@@ -432,9 +461,9 @@ cFirePlant :: cFirePlant( float x, float y )
 {
 	type = TYPE_FIREPLANT;
 
-	images.push_back( pVideo->Get_Surface( "game/items/fire_flower.png" ) );
-	images.push_back( pVideo->Get_Surface( "game/items/fire_flower_left.png" ) );
-	images.push_back( pVideo->Get_Surface( "game/items/fire_flower_right.png" ) );
+	images.push_back( pVideo->Get_Surface( "game/items/fireplant.png" ) );
+	images.push_back( pVideo->Get_Surface( "game/items/fireplant_left.png" ) );
+	images.push_back( pVideo->Get_Surface( "game/items/fireplant_right.png" ) );
 
 	Set_Image( 0, 1, 0 );
 }
@@ -538,7 +567,7 @@ cMoon *cMoon :: Copy( void )
 void cMoon :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ) );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )) );
 }
 
 void cMoon :: Save_to_Stream( ofstream &file )
@@ -549,8 +578,8 @@ void cMoon :: Save_to_Stream( ofstream &file )
 	// type
 	file << "\t\t<Property name=\"type\" value=\"moon\" />" << std::endl;
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 
 	// end item
 	file << "\t</item>" << std::endl;
@@ -608,7 +637,7 @@ void cMoon :: Update( void )
 			anim->Set_Speed( 0.2f, 0.2f );
 			anim->Set_Scale( 0.2f );
 			anim->Set_Time_to_Live( 0.3f );
-			anim->Set_Color( Color( (Uint8)200, 200, 0 ) );
+			anim->Set_Color( Color( static_cast<Uint8>(200), 200, 0 ) );
 			anim->Set_Blending( BLEND_ADD );
 			anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
 			pAnimationManager->Add( anim );

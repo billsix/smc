@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.5" />
-		<Property name="engine_version" value="2" />
-		<Property name="save_time" value="1174591662" />
+		<Property name="game_version" value="1.2" />
+		<Property name="engine_version" value="2.1" />
+		<Property name="save_time" value="1192865122" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Flippa" />
@@ -13,6 +13,7 @@
 		<Property name="cam_limit_y" value="0" />
 		<Property name="cam_limit_w" value="6540" />
 		<Property name="cam_limit_h" value="-2220" />
+		<Property name="cam_fixed_hor_vel" value="0" />
 	</settings>
 	<background>
 		<Property name="type" value="103" />
@@ -24,8 +25,8 @@
 		<Property name="bg_color_2_blue" value="10" />
 	</background>
 	<player>
-		<Property name="posx" value="41" />
-		<Property name="posy" value="247" />
+		<Property name="posx" value="34" />
+		<Property name="posy" value="243" />
 		<Property name="direction" value="right" />
 	</player>
 	<sprite>
@@ -19884,6 +19885,9 @@
 		<Property name="posy" value="76" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="100" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="red" />
 	</enemy>
 	<enemystopper>
@@ -19906,14 +19910,14 @@
 		<Property name="type" value="gumba" />
 		<Property name="posx" value="5754" />
 		<Property name="posy" value="180" />
-		<Property name="color" value="red" />
+		<Property name="color" value="blue" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="gumba" />
 		<Property name="posx" value="5306" />
 		<Property name="posy" value="340" />
-		<Property name="color" value="red" />
+		<Property name="color" value="blue" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<box>
@@ -20013,6 +20017,9 @@
 		<Property name="posy" value="176" />
 		<Property name="direction" value="horizontal" />
 		<Property name="max_distance" value="50" />
+		<Property name="always_fly" value="0" />
+		<Property name="wait_time" value="2" />
+		<Property name="fly_distance" value="400" />
 		<Property name="color" value="red" />
 	</enemy>
 	<enemy>

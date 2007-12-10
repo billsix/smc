@@ -20,6 +20,8 @@
 #include "../input/mouse.h"
 #include "../core/obj_manager.h"
 #include "../overworld/worlds.h"
+#include "../level/level.h"
+#include "../overworld/overworld.h"
 
 /* *** *** *** *** *** *** *** cCamera *** *** *** *** *** *** *** *** *** *** */
 
@@ -296,7 +298,7 @@ void cCamera :: Update_Position( void )
 
 	if( Game_Mode == MODE_LEVEL )
 	{
-		sprite_manager = pSprite_Manager;
+		sprite_manager = pLevel->pSprite_Manager;
 
 		// player
 		pPlayer->Update_valid_draw();

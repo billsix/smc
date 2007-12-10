@@ -55,10 +55,10 @@ public:
 	void Set_Button( unsigned int button, bool pressed );
 
 	// check if the analog direction is pressed
-	bool Left( int nThreshold = 3000 );
-	bool Right( int nThreshold = 3000 );
-	bool Up( int nThreshold = 3000 );
-	bool Down( int nThreshold = 3000 );
+	bool Left( void );
+	bool Right( void );
+	bool Up( void );
+	bool Down( void );
 	// check if the given button is pushed
 	bool Button( unsigned int button );
 
@@ -74,8 +74,6 @@ public:
 	// analog directions
 	bool left, right, up, down;
 
-	// analog threshold
-	int Threshold;
 	// current opened joystick
 	int cur_stick;
 	// if true the current joystick is available/loaded

@@ -20,23 +20,10 @@
 #include "../level/global_effect.h"
 #include "../level/level_background.h"
 #include "../core/file_parser.h"
+#include "../level/level_manager.h"
+#include "../core/sprite_manager.h"
 
-// engine version
-#define LEVEL_ENGINE_VERSION 2.1f
-// default files for levels
-#define LEVEL_DEFAULT_MUSIC "land/land_5.ogg"
-#define LEVEL_DEFAULT_BACKGROUND "game/background/green_junglehills.png"
-
-/* *** *** *** *** *** Level drawing Types *** *** *** *** *** *** *** *** *** *** *** *** */
-
-enum LevelDrawType
-{
-	LVL_DRAW		= 0,	// only draw
-	LVL_DRAW_NO_BG	= 1,	// only draws and without background gradient and image
-	LVL_DRAW_BG		= 2		// only draws the background gradient and image
-};
-
-/* *** *** *** *** *** cLevel  *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cLevel *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cLevel : public cFile_parser, public XMLHandler
 {
@@ -64,24 +51,30 @@ public:
 	// update level changes
 	void Update( void );
 
-	// Draw all Layer 1 Level Objects ( Passive/Massive Sprites, Enemies, Animations )
-	// and updates them if update is true
+	// Draw Layer 1 ( Backgrounds, Level Objects and Animations )
 	void Draw_Layer1( LevelDrawType type = LVL_DRAW );
-	// Draw all Layer 2 Level Objects ( Front Passive Sprites, Editor Objects, Editor Hud )
-	// and updates them if update is true
+	// Draw Layer 2 ( Global Effects )
 	void Draw_Layer2( LevelDrawType type = LVL_DRAW );
 
 	// Function : Process_Input
 	// static input handler
 	void Process_Input( void );
 	/* handle key down event
-	 * returns true if the key was processed
+	 * returns true processed
 	*/
 	bool Key_Down( SDLKey key );
 	/* handle key up event
-	 * returns true if the key was processed
+	 * returns true if processed
 	*/
 	bool Key_Up( SDLKey key );
+	/* handle mouse button down event
+	 * returns true if processed
+	*/
+	bool Mouse_Down( Uint8 button );
+	/* handle mouse button up event
+	 * returns true if processed
+	*/
+	bool Mouse_Up( Uint8 button );
 
 	// Return the number of Backgrounds
 	unsigned int Get_Backgroundlayers( void );
@@ -142,8 +135,11 @@ public:
 
 	// global effect
 	cGlobal_effect *pGlobal_effect;
+	
+	// Sprites
+	cSprite_Manager *pSprite_Manager;
 private:
-	// Handles the old level format command
+	// Handles the old txt level format command
 	virtual bool HandleMessage( string *parts, unsigned int count, unsigned int line );
 	bool read_color_info( string *parts, unsigned int count, unsigned int line, Color &read_color );
 

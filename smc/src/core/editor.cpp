@@ -24,11 +24,14 @@
 #include "../input/keyboard.h"
 #include "../input/mouse.h"
 #include "../input/joystick.h"
+#include "../user/preferences.h"
 #include "../level/level.h"
 #include "../player/player.h"
 #include "../overworld/worlds.h"
 #include "../video/renderer.h"
 #include "../video/gl_surface.h"
+#include "../core/sprite_manager.h"
+#include "../overworld/overworld.h"
 // boost filesystem
 #include "boost/filesystem/operations.hpp"
 #include "boost/filesystem/path.hpp"
@@ -63,14 +66,26 @@ void cEditor_Item_Object :: Init( void )
 	list_text->setSelectionBrushImage( "TaharezLook", "ListboxSelectionBrush" );
 
 	// image dimension text
-	// string size_text = int_to_string( (int)image->w ) + "x" + int_to_string( (int)image->h );
-	preview_scale = pVideo->Get_scale( sprite_obj->image, 50, 50 );
+	// string size_text = int_to_string( static_cast<int>(image->w) ) + "x" + int_to_string( static_cast<int>(image->h) );
+
+	// get scale
+	preview_scale = pVideo->Get_scale( sprite_obj->start_image, 100, 50 );
+
+	// check if name is fitting
+	if( sprite_obj->name.length() > 25 )
+	{
+		sprite_obj->name.erase( 25 );
+		sprite_obj->name += "|";
+	}
+
+	// set position
+	sprite_obj->Set_PosX( 20, 1 );
 }
 
 Size cEditor_Item_Object :: getPixelSize( void ) const
 {
 	Size tmp = list_text->getPixelSize();
-	tmp.d_height += 60;
+	tmp.d_height += 60 * global_upscaley;
 
 	return tmp;
 }
@@ -103,16 +118,25 @@ void cEditor_Item_Object :: Draw_Image( void )
 		return;
 	}
 
+	// force valid draw
+	sprite_obj->valid_draw = 1;
+
 	// create request
 	cSurfaceRequest *request = new cSurfaceRequest();
-	sprite_obj->start_image->Blit( sprite_obj->posx, sprite_obj->posy, 0.9f, request );
+	sprite_obj->Draw_Image( request );
 
+	// ignore camera
+	request->no_camera = 1;
+	// position z
+	request->pos_z = 0.9f;
+
+	// scale
 	request->scale_x = preview_scale;
 	request->scale_y = preview_scale;
 
-	request->rotx += sprite_obj->start_rotx;
-	request->roty += sprite_obj->start_roty;
-	request->rotz += sprite_obj->start_rotz;
+	// set shadow
+	request->shadow_color = blackalpha128;
+	request->shadow_pos = 2;
 
 	// add request
 	pRenderer_GUI->Add( request );
@@ -283,7 +307,7 @@ void cEditor :: Enable( void )
 
 	if( Game_Mode == MODE_LEVEL )
 	{
-		sprite_manager = pSprite_Manager;
+		sprite_manager = pLevel->pSprite_Manager;
 
 		// player
 		pPlayer->Update_Position_Rect();
@@ -328,7 +352,7 @@ void cEditor :: Disable( bool native_mode /* = 1 */ )
 
 		if( Game_Mode == MODE_LEVEL )
 		{
-			sprite_manager = pSprite_Manager;
+			sprite_manager = pLevel->pSprite_Manager;
 
 			// player
 			pPlayer->Update_Position_Rect();
@@ -436,11 +460,11 @@ void cEditor :: Draw( void )
 
 		if( pCamera->x < 0 )
 		{
-			start_x = -(int)pCamera->x;
+			start_x = -static_cast<int>(pCamera->x);
 		}
 
-		Color color = Color( (Uint8)0, 0, 100, 192 );
-		pVideo->DrawLine( (float)start_x, (float)(GAME_RES_H - (int)pCamera->y), (float)GAME_RES_W, (float)( GAME_RES_H - (int)pCamera->y ), 0.124f, &color );
+		Color color = Color( static_cast<Uint8>(0), 0, 100, 192 );
+		pVideo->DrawLine( static_cast<float>(start_x), static_cast<float>(GAME_RES_H - static_cast<int>(pCamera->y)), static_cast<float>(GAME_RES_W), static_cast<float>( GAME_RES_H - static_cast<int>(pCamera->y) ), 0.124f, &color );
 	}
 	// Camera limit top line
 	if( pCamera->y + GAME_RES_H > pCamera->limit_rect.y + pCamera->limit_rect.h && pCamera->y < pCamera->limit_rect.y + pCamera->limit_rect.h )
@@ -449,11 +473,11 @@ void cEditor :: Draw( void )
 
 		if( pCamera->x < pCamera->limit_rect.x )
 		{
-			start_x = -(int)pCamera->x;
+			start_x = -static_cast<int>(pCamera->x);
 		}
 
-		Color color = Color( (Uint8)20, 20, 150, 192 );
-		pVideo->DrawLine( (float)start_x, ( pCamera->limit_rect.y + pCamera->limit_rect.h ) - pCamera->y, (float)GAME_RES_W, ( pCamera->limit_rect.y + pCamera->limit_rect.h ) - pCamera->y, 0.124f, &color );
+		Color color = Color( static_cast<Uint8>(20), 20, 150, 192 );
+		pVideo->DrawLine( static_cast<float>(start_x), ( pCamera->limit_rect.y + pCamera->limit_rect.h ) - pCamera->y, static_cast<float>(GAME_RES_W), ( pCamera->limit_rect.y + pCamera->limit_rect.h ) - pCamera->y, 0.124f, &color );
 	}
 
 	// Camera limit left line
@@ -463,11 +487,11 @@ void cEditor :: Draw( void )
 
 		if( pCamera->y < GAME_RES_H )
 		{
-			start_y = GAME_RES_H - (int)pCamera->y;
+			start_y = GAME_RES_H - static_cast<int>(pCamera->y);
 		}
 
-		Color color = Color( (Uint8)0, 100, 0, 192 );
-		pVideo->DrawLine( (float)( 0 - pCamera->x ), (float)start_y, (float)( -pCamera->x ), 0, 0.124f, &color );
+		Color color = Color( static_cast<Uint8>(0), 100, 0, 192 );
+		pVideo->DrawLine( static_cast<float>( 0 - pCamera->x ), static_cast<float>(start_y), static_cast<float>( -pCamera->x ), 0, 0.124f, &color );
 	}
 	// Camera limit right line
 	if( pCamera->x < pCamera->limit_rect.x + pCamera->limit_rect.w && pCamera->x > -GAME_RES_W + pCamera->limit_rect.x + pCamera->limit_rect.w )
@@ -476,36 +500,46 @@ void cEditor :: Draw( void )
 
 		if( pCamera->y < GAME_RES_H )
 		{
-			start_y = GAME_RES_H - (int)pCamera->y;
+			start_y = GAME_RES_H - static_cast<int>(pCamera->y);
 		}
 
-		Color color = Color( (Uint8)20, 150, 20, 192 );
-		pVideo->DrawLine( (float)( pCamera->limit_rect.x + pCamera->limit_rect.w - pCamera->x ), (float)start_y, (float)( pCamera->limit_rect.x + pCamera->limit_rect.w - pCamera->x ), 0, 0.124f, &color );
+		Color color = Color( static_cast<Uint8>(20), 150, 20, 192 );
+		pVideo->DrawLine( static_cast<float>( pCamera->limit_rect.x + pCamera->limit_rect.w - pCamera->x ), static_cast<float>(start_y), static_cast<float>( pCamera->limit_rect.x + pCamera->limit_rect.w - pCamera->x ), 0, 0.124f, &color );
 	}
 
 	// Get Items Listbox
 	Listbox *listbox_items = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "editor_items" ));
 
-	// Vertical ScrollBar Position
-	float scroll_pos = listbox_items->getVertScrollbar()->getScrollPosition();
-
 	// if editor window is active
 	if( editor_window->getXPosition().asRelative( 1 ) >= 0 )
 	{
-		// draw the visible items
+		// Listbox dimension
+		float list_posy = listbox_items->getUnclippedPixelRect().d_top * global_downscaley;
+		float list_posx = listbox_items->getUnclippedPixelRect().d_left * global_downscalex;
+		float list_height = listbox_items->getUnclippedPixelRect().getHeight() * global_downscaley;
+		// Vertical ScrollBar Position
+		float scroll_pos = listbox_items->getVertScrollbar()->getScrollPosition() * global_downscaley;
+		// font height
+		float font_height = FontManager::getSingleton().getFont( "bluebold_medium" )->getFontHeight() * global_downscaley;
+
+		// draw items
 		for( unsigned int i = 0; i < listbox_items->getItemCount(); i++ )
 		{
+			// Get item
 			cEditor_Item_Object *item = static_cast<cEditor_Item_Object *>( listbox_items->getListboxItemFromIndex( i ) );
-
-			float item_pos = item->getPixelSize().d_height * ( i + 1 );
+			// Item height
+			float item_height = item->getPixelSize().d_height * global_downscaley;
+			// Item position
+			float item_posy = list_posy + ( item_height * i );
+			float item_image_posy = item_posy + ( font_height * 2 );
 
 			// not visible
-			if( item_pos > listbox_items->getListRenderArea().getHeight() + scroll_pos || item_pos - scroll_pos < 50 )
+			if( item_posy + item_height > list_posy + list_height + scroll_pos || item_image_posy < list_posy + scroll_pos )
 			{
 				continue;
 			}
 
-			item->sprite_obj->Set_PosY( item_pos - 20 - scroll_pos );
+			item->sprite_obj->Set_PosY( item_image_posy - scroll_pos, 1 );
 			item->Draw_Image();
 		}
 	}
@@ -592,55 +626,6 @@ bool cEditor :: Handle_Event( SDL_Event *ev )
 			pMouseCursor->Mover_Update( input_event.motion.xrel, input_event.motion.yrel );
 		}
 
-		break;
-	}
-	case SDL_MOUSEBUTTONDOWN:
-	{
-		// left
-		if( ev->button.button == 1 )
-		{
-			pMouseCursor->Click();
-		}
-		// middle
-		else if( ev->button.button == 2 )
-		{
-			// Activate fast copy mode
-			if( pMouseCursor->mouse_object->obj )
-			{
-				pMouseCursor->mode_fastcopy = 1;
-				return 1;
-			}
-			// Mover mode
-			else
-			{
-				pMouseCursor->Toggle_Mover_mode();
-				return 1;
-			}
-		}
-		// right
-		else if( ev->button.button == 3 )
-		{
-			if( !pMouseCursor->left )
-			{
-				pMouseCursor->Delete( pMouseCursor->mouse_object->obj );
-				return 1;
-			}
-		}
-
-		break;
-	}
-	case SDL_MOUSEBUTTONUP:
-	{
-		// left
-		if( ev->button.button == 1 )
-		{
-			pMouseCursor->End_selection();
-		}
-		// middle
-		else if( ev->button.button == 2 )
-		{
-			pMouseCursor->mode_fastcopy = 0;
-		}
 		break;
 	}
 	default: // other events
@@ -781,7 +766,7 @@ bool cEditor :: Key_Down( SDLKey key )
 
 		if( editor_level_enabled )
 		{
-			sprite_manager = pSprite_Manager;
+			sprite_manager = pLevel->pSprite_Manager;
 
 			// player
 			pMouseCursor->Add_selected_object( pPlayer, 1 );
@@ -805,7 +790,7 @@ bool cEditor :: Key_Down( SDLKey key )
 	// Paste copy buffer objects
 	else if( key == SDLK_INSERT || ( key == SDLK_v && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) ) )
 	{
-		pMouseCursor->Paste_copy_objects( (int)pMouseCursor->posx, (int)pMouseCursor->posy );
+		pMouseCursor->Paste_copy_objects( static_cast<float>(static_cast<int>(pMouseCursor->posx)), static_cast<float>(static_cast<int>(pMouseCursor->posy)) );
 	}
 	// Cut selected Sprites to the copy buffer
 	else if( key == SDLK_x && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
@@ -855,6 +840,92 @@ bool cEditor :: Key_Down( SDLKey key )
 	}
 
 	// key got processed
+	return 1;
+}
+
+bool cEditor :: Mouse_Down( Uint8 button )
+{
+	if( !enabled )
+	{
+		return 0;
+	}
+
+	// left
+	if( button == SDL_BUTTON_LEFT )
+	{
+		pMouseCursor->Click();
+		
+		// auto hide if enabled
+		if( pMouseCursor->mouse_object->obj && pPreferences->editor_mouse_auto_hide )
+		{
+			pMouseCursor->Set_Visible( 0 );
+		}
+	}
+	// middle
+	else if( button == SDL_BUTTON_MIDDLE )
+	{
+		// Activate fast copy mode
+		if( pMouseCursor->mouse_object->obj )
+		{
+			pMouseCursor->mode_fastcopy = 1;
+			return 1;
+		}
+		// Mover mode
+		else
+		{
+			pMouseCursor->Toggle_Mover_mode();
+			return 1;
+		}
+	}
+	// right
+	else if( button == SDL_BUTTON_RIGHT )
+	{
+		if( !pMouseCursor->left )
+		{
+			pMouseCursor->Delete( pMouseCursor->mouse_object->obj );
+			return 1;
+		}
+	}
+	else
+	{
+		// not processed
+		return 0;
+	}
+
+	// button got processed
+	return 1;
+}
+
+bool cEditor :: Mouse_Up( Uint8 button )
+{
+	if( !enabled )
+	{
+		return 0;
+	}
+
+	// left
+	if( button == SDL_BUTTON_LEFT )
+	{
+		pMouseCursor->End_selection();
+
+		// unhide
+		if( pPreferences->editor_mouse_auto_hide )
+		{
+			pMouseCursor->Set_Visible( 1 );
+		}
+	}
+	// middle
+	else if( button == SDL_BUTTON_MIDDLE )
+	{
+		pMouseCursor->mode_fastcopy = 0;
+	}
+	else
+	{
+		// not processed
+		return 0;
+	}
+
+	// button got processed
 	return 1;
 }
 
@@ -1139,16 +1210,6 @@ void cEditor :: Add_Item_Object( cSprite *sprite, string new_name /* = "" */, GL
 		printf( "Warning : editor object %s with no name given\n", obj_name.c_str() );
 	}
 
-	// check if name is fitting
-	if( obj_name.length() > 25 )
-	{
-		obj_name.erase( 25 );
-		obj_name += "|";
-	}
-
-	// set position
-	sprite->Set_PosX( 50 );
-
 	cEditor_Item_Object *new_item = new cEditor_Item_Object( obj_name );
 
 	// object pointer
@@ -1246,8 +1307,8 @@ void cEditor :: Activate_Item( cEditor_Item_Object *entry )
 
 	// Set Mouse Objects
 	pMouseCursor->left = 1;
-	pMouseCursor->mouse_object->mouse_h = (int)( new_sprite->col_rect.h / 2 );
-	pMouseCursor->mouse_object->mouse_w = (int)( new_sprite->col_rect.w / 2 );
+	pMouseCursor->mouse_object->mouse_h = static_cast<int>( new_sprite->col_rect.h / 2 );
+	pMouseCursor->mouse_object->mouse_w = static_cast<int>( new_sprite->col_rect.w / 2 );
 	pMouseCursor->Set_mouse_object( new_sprite );
 }
 
@@ -1399,7 +1460,7 @@ void cEditor :: Change_DrawPosition( cSprite *obj, bool push_back )
 
 	if( editor_level_enabled )
 	{
-		sprite_manager = pSprite_Manager;
+		sprite_manager = pLevel->pSprite_Manager;
 	}
 	else
 	{
@@ -1475,7 +1536,7 @@ SpriteList cEditor :: Copy_Direction( SpriteList objects, ObjectDirection dir )
 		}
 
 		// Set X offset
-		offset = (int)( last->startposx - first->startposx + last->start_rect.w );
+		offset = static_cast<int>( last->startposx - first->startposx + last->start_rect.w );
 	}
 	else if( dir == DIR_UP || dir == DIR_DOWN )
 	{
@@ -1502,7 +1563,7 @@ SpriteList cEditor :: Copy_Direction( SpriteList objects, ObjectDirection dir )
 		}
 
 		// Set Y offset
-		offset = (int)( last->startposy - first->startposy + last->start_rect.h );
+		offset = static_cast<int>( last->startposy - first->startposy + last->start_rect.h );
 	}
 
 	// new copied objects
@@ -1527,7 +1588,7 @@ cSprite *cEditor :: Copy_Direction( cSprite *obj, ObjectDirection dir, int offse
 	{
 		if( offset )
 		{
-			w = -(float)offset;
+			w = -static_cast<float>(offset);
 		}
 		else
 		{
@@ -1538,7 +1599,7 @@ cSprite *cEditor :: Copy_Direction( cSprite *obj, ObjectDirection dir, int offse
 	{
 		if( offset )
 		{
-			w = (float)offset;
+			w = static_cast<float>(offset);
 		}
 		else
 		{
@@ -1549,7 +1610,7 @@ cSprite *cEditor :: Copy_Direction( cSprite *obj, ObjectDirection dir, int offse
 	{
 		if( offset )
 		{
-			h = -(float)offset;
+			h = -static_cast<float>(offset);
 		}
 		else
 		{
@@ -1560,7 +1621,7 @@ cSprite *cEditor :: Copy_Direction( cSprite *obj, ObjectDirection dir, int offse
 	{
 		if( offset )
 		{
-			h = (float)offset;
+			h = static_cast<float>(offset);
 		}
 		else
 		{

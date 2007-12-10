@@ -73,7 +73,13 @@ cLevel :: cLevel( void )
 	version.clear();
 	delayed_unload = 0;
 
+	// default gradient layer
+	backgrounds.push_back( new cBackground() );
+	backgrounds[0]->Set_type( BG_GR_VER );
+	backgrounds[0]->posz = 0.0001f;
+
 	pGlobal_effect = new cGlobal_effect();
+	pSprite_Manager = new cSprite_Manager();
 }
 
 cLevel :: ~cLevel( void )
@@ -88,6 +94,8 @@ cLevel :: ~cLevel( void )
 	{
 		delete pGlobal_effect;
 	}
+
+	delete pSprite_Manager;
 }
 
 bool cLevel :: New( string filename )
@@ -240,6 +248,66 @@ bool cLevel :: Load( string filename, bool delayed /* = 0 */ )
 	return 1;
 }
 
+void cLevel :: Unload( bool delayed /* = 0 */ )
+{
+	if( delayed )
+	{
+		delayed_unload = 1;
+		return;
+	}
+	else
+	{
+		delayed_unload = 0;
+	}
+
+	// not loaded
+	if( !is_Loaded() )
+	{
+		return;
+	}
+
+	pSprite_Manager->Delete_All();
+
+	// backgrounds
+	for( BackgroundList::iterator itr = backgrounds.begin(), itr_end = backgrounds.end(); itr != itr_end; ++itr )
+	{
+		delete *itr;
+	}
+	backgrounds.clear();
+
+	// default gradient layer
+	backgrounds.push_back( new cBackground() );
+	backgrounds[0]->Set_type( BG_GR_VER );
+	backgrounds[0]->posz = 0.0001f;
+
+	// reset music
+	musicfile.clear();
+	valid_music = 0;
+
+	author.clear();
+	version.clear();
+
+	// reset camera limits
+	pCamera->Reset_Limits();
+
+	// clear global effect
+	pGlobal_effect->Clear();
+
+	// reset time display
+	if( timedisplay )
+	{
+		timedisplay->counter = -1;
+	}
+	// reset mouse
+	pMouseCursor->Reset( 0 );
+	// reset player
+	pPlayer->Reset( 0 );
+
+	engine_version = -1; // no version
+
+	levelfile.clear();
+}
+
 void cLevel :: Save( void )
 {
 	pAudio->PlaySound( "editor/save.ogg" );
@@ -294,10 +362,10 @@ void cLevel :: Save( void )
 		string music_file = Get_Musicfile( 1 );
 		file << "\t\t<Property name=\"lvl_music\" value=\"" << string_to_xml_string( music_file ) << "\" />" << std::endl;
 		// camera limits
-		file << "\t\t<Property name=\"cam_limit_x\" value=\"" << (int)pCamera->limit_rect.x << "\" />" << std::endl;
-		file << "\t\t<Property name=\"cam_limit_y\" value=\"" << (int)pCamera->limit_rect.y << "\" />" << std::endl;
-		file << "\t\t<Property name=\"cam_limit_w\" value=\"" << (int)pCamera->limit_rect.w << "\" />" << std::endl;
-		file << "\t\t<Property name=\"cam_limit_h\" value=\"" << (int)pCamera->limit_rect.h << "\" />" << std::endl;
+		file << "\t\t<Property name=\"cam_limit_x\" value=\"" << static_cast<int>(pCamera->limit_rect.x) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"cam_limit_y\" value=\"" << static_cast<int>(pCamera->limit_rect.y) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"cam_limit_w\" value=\"" << static_cast<int>(pCamera->limit_rect.w) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"cam_limit_h\" value=\"" << static_cast<int>(pCamera->limit_rect.h) << "\" />" << std::endl;
 		// fixed camera horizontal velocity
 		file << "\t\t<Property name=\"cam_fixed_hor_vel\" value=\"" << pCamera->fixed_hor_vel << "\" />" << std::endl;
 	// end settings
@@ -339,175 +407,6 @@ void cLevel :: Delete( void )
 	Delete_file( levelfile );
 
 	Unload();
-}
-
-void cLevel :: Process_Input( void )
-{
-	// only non editor
-	if( !editor_level_enabled )
-	{
-		// none
-	}
-}
-
-bool cLevel :: Key_Down( SDLKey key )
-{
-	// debug key F2
-	if( key == SDLK_F2 && Game_debug && !editor_level_enabled )
-	{
-		pPlayer->Set_Type( MARYO_CAPE, 0 );
-	}
-	// debug key F3
-	else if( key == SDLK_F3 && !editor_level_enabled )
-	{
-		//pPlayer->GotoNextLevel();
-		//DrawEffect( HORIZONTAL_VERTICAL_FADE );
-		//pPlayer->Draw_Animation( MARYO_FIRE );
-
-		cParticleAnimation *anim = new cParticleAnimation();
-		anim->Set_Emitter_Rect( pPlayer->posx + (float)( pPlayer->col_rect.w / 2 ), pPlayer->posy - 100, 10, 10 );
-		anim->Set_Emitter_Time_to_Live( -1 );
-		anim->Set_Emitter_Iteration_Interval( 5 );
-		anim->Set_Quota( 200 );
-		anim->Set_Image( pVideo->Get_Surface( "animation/particles/star.png" ) );
-		anim->Set_Time_to_Live( 3, 3 );
-		anim->Set_Fading_Alpha( 1 );
-		anim->Set_Speed( 1, 4 );
-		anim->Set_Scale( 0.5f );
-		anim->Set_ConstRotationZ( 0.5f, 15 );
-		pAnimationManager->Add( anim );
-	}
-	// debug key F4
-	else if( key == SDLK_F4 )
-	{
-		Draw_Effect_out();
-		//pPlayer->Get_Item( TYPE_MUSHROOM_DEFAULT );
-
-		/*if( pGlobal_effect->type != GL_EFF_FALLING )
-		{
-			pGlobal_effect->Set_image( "animation/particles/rain.png" );
-			pGlobal_effect->Set_type( GL_EFF_FALLING );
-			pGlobal_effect->Set_Lifetime_mod( 4 );
-			pGlobal_effect->Set_Scale( 0.5f, 0.5f );
-			pGlobal_effect->Set_Creation_Speed( 2 );
-			pGlobal_effect->Set_Speed( 13, 5 );
-			pGlobal_effect->Set_Direction( 90, 0 );
-			pGlobal_effect->Set_ConstRotationZ( 0, 0 );
-			pGlobal_effect->Init();
-		}*/
-	}
-	// Toggle leveleditor
-	else if( key == SDLK_F8 )
-	{
-		pLevel_Editor->Toggle();
-	}
-	// ## Game
-	// Shoot
-	else if( key == pPreferences->key_shoot && !editor_enabled )
-	{
-		pPlayer->Action_Shoot();
-	}
-	// Jump
-	else if( key == pPreferences->key_jump && !editor_enabled )
-	{
-		pPlayer->Action_Jump();
-	}
-	// Interaction keys
-	else if( ( key == pPreferences->key_action || key == pPreferences->key_up || key == pPreferences->key_down || key == pPreferences->key_left || key == pPreferences->key_right ) && !editor_enabled )
-	{
-		pPlayer->Action_Interact( key );
-	}
-	// Request Itembox Item
-	else if( key == SDLK_RETURN && !editor_enabled )
-	{
-		Itembox->Request_Item();
-	}
-	// God Mode
-	else if( pKeyboard->keys[SDLK_g] && pKeyboard->keys[SDLK_o] && pKeyboard->keys[SDLK_d] && !editor_enabled )
-	{
-		if( pPlayer->godmode )
-		{
-			debugdisplay->Set_Text( "Funky God Mode disabled" );
-		}
-		else
-		{
-			debugdisplay->Set_Text( "Funky God Mode enabled" );
-		}
-
-		pPlayer->godmode = !pPlayer->godmode;
-	}
-	// Set Small state
-	else if( pKeyboard->keys[SDLK_k] && pKeyboard->keys[SDLK_i] && pKeyboard->keys[SDLK_d] && !editor_enabled )
-	{
-		pPlayer->Set_Type( MARYO_SMALL, 0 );
-	}
-	// Enter menu
-	else if( key == SDLK_ESCAPE )
-	{
-		Game_Action = GA_ENTER_MENU;
-	}
-	// ## editor
-	else if( pLevel_Editor->Key_Down( key )  )
-	{
-		// processed by the editor
-		return 1;
-	}
-	else
-	{
-		// not processed
-		return 0;
-	}
-
-	// key got processed
-	return 1;
-}
-
-bool cLevel :: Key_Up( SDLKey key )
-{
-	// only non Leveleditor
-	if( !editor_level_enabled )
-	{
-		if( key == pPreferences->key_right || key == pPreferences->key_left )
-		{
-			pPlayer->Hold();
-		}
-		else if( key == pPreferences->key_down )
-		{
-			pPlayer->Stop_ducking();
-		}
-		else if( key == pPreferences->key_jump )
-		{
-			pPlayer->Stop_flying();
-			pPlayer->UpKeytime = 0;
-		}
-		else if( key == pPreferences->key_action )
-		{
-			pPlayer->Release_item();
-		}
-		else
-		{
-			// not processed
-			return 0;
-		}
-	}
-
-	// key got processed
-	return 1;
-}
-
-unsigned int cLevel :: Get_Backgroundlayers( void )
-{
-	return backgrounds.size();
-}
-
-cBackground *cLevel :: Get_background( unsigned int num )
-{
-	if( num >= backgrounds.size() )
-	{
-		return NULL;
-	}
-
-	return backgrounds[num];
 }
 
 void cLevel :: Update( void )
@@ -595,62 +494,209 @@ void cLevel :: Draw_Layer2( LevelDrawType type /* = LVL_DRAW */ )
 	}
 }
 
-void cLevel :: Unload( bool delayed /* = 0 */ )
+void cLevel :: Process_Input( void )
 {
-	if( delayed )
+	// only non editor
+	if( !editor_level_enabled )
 	{
-		delayed_unload = 1;
-		return;
+		// none
+	}
+}
+
+bool cLevel :: Key_Down( SDLKey key )
+{
+	// debug key F2
+	if( key == SDLK_F2 && Game_debug && !editor_level_enabled )
+	{
+		pPlayer->Set_Type( MARYO_CAPE, 0 );
+	}
+	// debug key F3
+	else if( key == SDLK_F3 && !editor_level_enabled )
+	{
+		//pPlayer->GotoNextLevel();
+		//DrawEffect( HORIZONTAL_VERTICAL_FADE );
+		//pPlayer->Draw_Animation( MARYO_FIRE );
+
+		cParticleAnimation *anim = new cParticleAnimation();
+		anim->Set_Emitter_Rect( pPlayer->posx + static_cast<float>( pPlayer->col_rect.w / 2 ), pPlayer->posy - 100, 10, 10 );
+		anim->Set_Emitter_Time_to_Live( -1 );
+		anim->Set_Emitter_Iteration_Interval( 5 );
+		anim->Set_Quota( 200 );
+		anim->Set_Image( pVideo->Get_Surface( "animation/particles/star.png" ) );
+		anim->Set_Time_to_Live( 3, 3 );
+		anim->Set_Fading_Alpha( 1 );
+		anim->Set_Speed( 1, 4 );
+		anim->Set_Scale( 0.5f );
+		anim->Set_ConstRotationZ( 0.5f, 15 );
+		pAnimationManager->Add( anim );
+	}
+	// debug key F4
+	else if( key == SDLK_F4 )
+	{
+		Draw_Effect_out();
+		//pPlayer->Get_Item( TYPE_MUSHROOM_DEFAULT );
+
+		/*if( pGlobal_effect->type != GL_EFF_FALLING )
+		{
+			pGlobal_effect->Set_image( "animation/particles/rain.png" );
+			pGlobal_effect->Set_type( GL_EFF_FALLING );
+			pGlobal_effect->Set_Lifetime_mod( 4 );
+			pGlobal_effect->Set_Scale( 0.5f, 0.5f );
+			pGlobal_effect->Set_Creation_Speed( 2 );
+			pGlobal_effect->Set_Speed( 13, 5 );
+			pGlobal_effect->Set_Direction( 90, 0 );
+			pGlobal_effect->Set_ConstRotationZ( 0, 0 );
+			pGlobal_effect->Init();
+		}*/
+	}
+	// Toggle leveleditor
+	else if( key == SDLK_F8 )
+	{
+		pLevel_Editor->Toggle();
+	}
+	// ## Game
+	// Shoot
+	else if( key == pPreferences->key_shoot && !editor_enabled )
+	{
+		pPlayer->Action_Shoot();
+	}
+	// Jump
+	else if( key == pPreferences->key_jump && !editor_enabled )
+	{
+		pPlayer->Action_Jump();
+	}
+	// Interaction keys
+	else if( ( key == pPreferences->key_action || key == pPreferences->key_up || key == pPreferences->key_down || key == pPreferences->key_left || key == pPreferences->key_right ) && !editor_enabled )
+	{
+		pPlayer->Action_Interact( key );
+	}
+	// Request Itembox Item
+	else if( key == SDLK_RETURN && !editor_enabled )
+	{
+		Itembox->Request_Item();
+	}
+	// God Mode
+	else if( pKeyboard->keys[SDLK_g] && pKeyboard->keys[SDLK_o] && pKeyboard->keys[SDLK_d] && !editor_enabled )
+	{
+		if( pPlayer->godmode )
+		{
+			debugdisplay->Set_Text( "Funky God Mode disabled" );
+		}
+		else
+		{
+			debugdisplay->Set_Text( "Funky God Mode enabled" );
+		}
+
+		pPlayer->godmode = !pPlayer->godmode;
+	}
+	// Set Small state
+	else if( pKeyboard->keys[SDLK_k] && pKeyboard->keys[SDLK_i] && pKeyboard->keys[SDLK_d] && !editor_enabled )
+	{
+		pPlayer->Set_Type( MARYO_SMALL, 0 );
+	}
+	// Enter menu
+	else if( key == SDLK_ESCAPE )
+	{
+		Game_Action = GA_ENTER_MENU;
+	}
+	// ## editor
+	else if( pLevel_Editor->Key_Down( key ) )
+	{
+		// processed by the editor
+		return 1;
 	}
 	else
 	{
-		delayed_unload = 0;
+		// not processed
+		return 0;
 	}
 
-	pSprite_Manager->Delete_All();
-	pAnimationManager->Delete_All();
+	// key got processed
+	return 1;
+}
 
-	pHudManager->Update();
-	pJoystick->Reset_keys();
-
-	// backgrounds
-	for( BackgroundList::iterator itr = backgrounds.begin(), itr_end = backgrounds.end(); itr != itr_end; ++itr )
+bool cLevel :: Key_Up( SDLKey key )
+{
+	// only non Leveleditor
+	if( !editor_level_enabled )
 	{
-		delete *itr;
+		if( key == pPreferences->key_right || key == pPreferences->key_left )
+		{
+			pPlayer->Hold();
+		}
+		else if( key == pPreferences->key_down )
+		{
+			pPlayer->Stop_ducking();
+		}
+		else if( key == pPreferences->key_jump )
+		{
+			pPlayer->Stop_flying();
+			pPlayer->UpKeytime = 0;
+		}
+		else if( key == pPreferences->key_action )
+		{
+			pPlayer->Release_item();
+		}
+		else
+		{
+			// not processed
+			return 0;
+		}
 	}
-	backgrounds.clear();
 
-	// default gradient layer
-	backgrounds.push_back( new cBackground() );
-	backgrounds[0]->Set_type( BG_GR_VER );
-	backgrounds[0]->posz = 0.0001f;
+	// key got processed
+	return 1;
+}
 
-	// reset music
-	musicfile.clear();
-	valid_music = 0;
-
-	author.clear();
-	version.clear();
-
-	// reset camera limits
-	pCamera->Reset_Limits();
-
-	// clear global effect
-	pGlobal_effect->Clear();
-
-	// reset time display
-	if( timedisplay )
+bool cLevel :: Mouse_Down( Uint8 button )
+{
+	// ## editor
+	if( pLevel_Editor->Mouse_Down( button ) )
 	{
-		timedisplay->counter = -1;
+		// processed by the editor
+		return 1;
 	}
-	// reset mouse
-	pMouseCursor->Reset( 0 );
-	// reset player
-	pPlayer->Reset( 0 );
+	else
+	{
+		// not processed
+		return 0;
+	}
 
-	engine_version = -1; // no version
+	// button got processed
+	return 1;
+}
 
-	levelfile.clear();
+bool cLevel :: Mouse_Up( Uint8 button )
+{
+	// ## editor
+	if( pLevel_Editor->Mouse_Up( button ) )
+	{
+		// processed by the editor
+		return 1;
+	}
+	else
+	{
+		// not processed
+		return 0;
+	}
+
+	// button got processed
+	return 1;
+}
+
+unsigned int cLevel :: Get_Backgroundlayers( void )
+{
+	return backgrounds.size();
+}
+
+cBackground *cLevel :: Get_background( unsigned int num )
+{
+	if( num >= backgrounds.size() )
+	{
+		return NULL;
+	}
+
+	return backgrounds[num];
 }
 
 string cLevel :: Get_Musicfile( int with_dir /* = 2 */, bool with_end /* = 1 */ )
@@ -844,7 +890,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			return 0; // error
 		}
 
-		pPlayer->Set_Pos( (float)string_to_int( parts[1] ), (float)GAME_RES_H - (float)( string_to_int( parts[2] ) + pPlayer->start_image->h ), 1 );
+		pPlayer->Set_Pos( static_cast<float>(string_to_int( parts[1] )), static_cast<float>(GAME_RES_H) - static_cast<float>( string_to_int( parts[2] ) + pPlayer->start_image->h ), 1 );
 	}
 	else if( parts[0].compare( "author" ) == 0 )
 	{
@@ -1115,7 +1161,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			return 0; // error
 		}
 
-		engine_version = (float)string_to_int( parts[1] );
+		engine_version = static_cast<float>(string_to_int( parts[1] ));
 	}
 	/***************************************************************************/
 	else if( parts[0].compare( "Sprite" ) == 0 || parts[0].compare( "ClimbSprite" ) == 0 )
@@ -1184,7 +1230,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			printf( "using obsolete image : %s\nAt position x : %d, y : %d\n", getimage_path.c_str(), posx, posy );
 		}
 
-		cSprite *temp = new cSprite( surface, (float)posx, (float)posy );
+		cSprite *temp = new cSprite( surface, static_cast<float>(posx), static_cast<float>(posy) );
 
 		if( parts[4].compare( "MASSIVE" ) == 0 )
 		{
@@ -2042,7 +2088,7 @@ void cLevel :: elementEnd( const String &element )
 			// Music
 			Set_Musicfile( xml_attributes.getValueAsString( "lvl_music" ).c_str() );
 			// Camera Limits
-			pCamera->Set_Limits( GL_rect( (float)xml_attributes.getValueAsInteger( "cam_limit_x" ), (float)xml_attributes.getValueAsInteger( "cam_limit_y" ), (float)xml_attributes.getValueAsInteger( "cam_limit_w" ), (float)xml_attributes.getValueAsInteger( "cam_limit_h" ) ) );
+			pCamera->Set_Limits( GL_rect( static_cast<float>(xml_attributes.getValueAsInteger( "cam_limit_x" )), static_cast<float>(xml_attributes.getValueAsInteger( "cam_limit_y" )), static_cast<float>(xml_attributes.getValueAsInteger( "cam_limit_w" )), static_cast<float>(xml_attributes.getValueAsInteger( "cam_limit_h" )) ) );
 			// fixed camera horizontal velocity
 			pCamera->fixed_hor_vel = xml_attributes.getValueAsFloat( "cam_fixed_hor_vel" );
 		}
@@ -2054,8 +2100,8 @@ void cLevel :: elementEnd( const String &element )
 			if( bg_type == BG_GR_HOR || bg_type == BG_GR_VER )
 			{
 				backgrounds[0]->Set_type( bg_type );
-				backgrounds[0]->Set_color_1( Color( (Uint8)xml_attributes.getValueAsInteger( "bg_color_1_red" ), xml_attributes.getValueAsInteger( "bg_color_1_green" ), xml_attributes.getValueAsInteger( "bg_color_1_blue" ) ) );
-				backgrounds[0]->Set_color_2( Color( (Uint8)xml_attributes.getValueAsInteger( "bg_color_2_red" ), xml_attributes.getValueAsInteger( "bg_color_2_green" ), xml_attributes.getValueAsInteger( "bg_color_2_blue" ) ) );
+				backgrounds[0]->Set_color_1( Color( static_cast<Uint8>(xml_attributes.getValueAsInteger( "bg_color_1_red" )), xml_attributes.getValueAsInteger( "bg_color_1_green" ), xml_attributes.getValueAsInteger( "bg_color_1_blue" ) ) );
+				backgrounds[0]->Set_color_2( Color( static_cast<Uint8>(xml_attributes.getValueAsInteger( "bg_color_2_red" )), xml_attributes.getValueAsInteger( "bg_color_2_green" ), xml_attributes.getValueAsInteger( "bg_color_2_blue" ) ) );
 			}
 			// default background
 			else
@@ -2079,6 +2125,54 @@ void cLevel :: elementEnd( const String &element )
 			// valid
 			if( object )
 			{
+				// V.1.2 and lower : change pipe position
+				if( engine_version < 2.2f && object->image )
+				{
+					if( object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/green/up.png" ) == 0 ||
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/green/ver.png" ) == 0 || 
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/green/down.png" ) == 0 || 
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/blue/up.png" ) == 0 ||
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/blue/ver.png" ) == 0 || 
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/blue/down.png" ) == 0 ||
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/yellow/up.png" ) == 0 ||
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/yellow/ver.png" ) == 0 || 
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/yellow/down.png" ) == 0 ||
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/grey/up.png" ) == 0 ||
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/grey/ver.png" ) == 0 || 
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/grey/down.png" ) == 0 )
+					{
+						object->Move( -6, 0, 1 );
+						object->startposx = object->posx;
+					}
+					else if( object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/green/right.png" ) == 0 ||
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/green/hor.png" ) == 0 || 
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/green/left.png" ) == 0 ||
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/blue/right.png" ) == 0 ||
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/blue/hor.png" ) == 0 || 
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/blue/left.png" ) == 0 ||
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/yellow/right.png" ) == 0 ||
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/yellow/hor.png" ) == 0 || 
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/yellow/left.png" ) == 0 ||
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/grey/right.png" ) == 0 ||
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/grey/hor.png" ) == 0 || 
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "pipes/grey/left.png" ) == 0 )
+					{
+						object->Move( 0, -6, 1 );
+						object->startposy = object->posy;
+					}
+				}
+
+				// V.1.2 and lower : change some hill positions
+				if( engine_version < 2.3f && object->image )
+				{
+					if( object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "hills/green_1/head.png" ) == 0 ||
+						object->image->filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "hills/light_blue_1/head.png" ) == 0 )
+					{
+						object->Move( 0, -6, 1 );
+						object->startposy = object->posy;
+					}
+				}
+
 				pSprite_Manager->Add( object );
 			}
 			else if( element == "level" )

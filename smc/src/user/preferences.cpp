@@ -133,16 +133,16 @@ void cPreferences :: Save( void )
 	file << "\t<Item Name=\"camera_hor_speed\" Value=\"" << camera_hor_speed << "\" />" << std::endl;
 	file << "\t<Item Name=\"camera_ver_speed\" Value=\"" << camera_ver_speed << "\" />" << std::endl;
 	// Video
-	file << "\t<Item Name=\"Fullscreen\" Value=\"" << Fullscreen << "\" />" << std::endl;
-	file << "\t<Item Name=\"Screen_W\" Value=\"" << Screen_W << "\" />" << std::endl;
-	file << "\t<Item Name=\"Screen_H\" Value=\"" << Screen_H << "\" />" << std::endl;
-	file << "\t<Item Name=\"Screen_Bpp\" Value=\"" << (int)Screen_Bpp << "\" />" << std::endl;
-	file << "\t<Item Name=\"vsync\" Value=\"" << vsync << "\" />" << std::endl;
+	file << "\t<Item Name=\"video_fullscreen\" Value=\"" << video_fullscreen << "\" />" << std::endl;
+	file << "\t<Item Name=\"video_screen_w\" Value=\"" << video_screen_w << "\" />" << std::endl;
+	file << "\t<Item Name=\"video_screen_h\" Value=\"" << video_screen_h << "\" />" << std::endl;
+	file << "\t<Item Name=\"video_screen_bpp\" Value=\"" << static_cast<int>(video_screen_bpp) << "\" />" << std::endl;
+	file << "\t<Item Name=\"video_vsync\" Value=\"" << video_vsync << "\" />" << std::endl;
 	// Audio
-	file << "\t<Item Name=\"Music\" Value=\"" << Music << "\" />" << std::endl;
-	file << "\t<Item Name=\"Sounds\" Value=\"" << Sounds << "\" />" << std::endl;
-	file << "\t<Item Name=\"music_volume\" Value=\"" << (int)music_volume << "\" />" << std::endl;
-	file << "\t<Item Name=\"sound_volume\" Value=\"" << (int)sound_volume << "\" />" << std::endl;
+	file << "\t<Item Name=\"audio_music\" Value=\"" << audio_music << "\" />" << std::endl;
+	file << "\t<Item Name=\"audio_sound\" Value=\"" << audio_sound << "\" />" << std::endl;
+	file << "\t<Item Name=\"audio_music_volume\" Value=\"" << static_cast<int>(audio_music_volume) << "\" />" << std::endl;
+	file << "\t<Item Name=\"audio_sound_volume\" Value=\"" << static_cast<int>(audio_sound_volume) << "\" />" << std::endl;
 	file << "\t<Item Name=\"audio_hz\" Value=\"" << audio_hz << "\" />" << std::endl;
 	// Keyboard
 	file << "\t<Item Name=\"Key_up\" Value=\"" << key_up << "\" />" << std::endl;
@@ -152,18 +152,21 @@ void cPreferences :: Save( void )
 	file << "\t<Item Name=\"Key_jump\" Value=\"" << key_jump << "\" />" << std::endl;
 	file << "\t<Item Name=\"Key_shoot\" Value=\"" << key_shoot << "\" />" << std::endl;
 	file << "\t<Item Name=\"Key_action\" Value=\"" << key_action << "\" />" << std::endl;
-	// Joystick
-	file << "\t<Item Name=\"Joypad_enabled\" Value=\"" << joy_enabled << "\" />" << std::endl;
-	file << "\t<Item Name=\"Joypad_jump\" Value=\"" << joy_jump << "\" />" << std::endl;
-	file << "\t<Item Name=\"Joypad_item\" Value=\"" << joy_item << "\" />" << std::endl;
-	file << "\t<Item Name=\"Joypad_shoot\" Value=\"" << joy_shoot << "\" />" << std::endl;
-	file << "\t<Item Name=\"Joypad_action\" Value=\"" << joy_action << "\" />" << std::endl;
-	file << "\t<Item Name=\"Joypad_exit\" Value=\"" << joy_exit << "\" />" << std::endl;
-	// Special
-	file << "\t<Item Name=\"always_run\" Value=\"" << always_run << "\" />" << std::endl;
+	// Joystick/Gamepad
+	file << "\t<Item Name=\"joy_enabled\" Value=\"" << joy_enabled << "\" />" << std::endl;
 	file << "\t<Item Name=\"joy_name\" Value=\"" << joy_name << "\" />" << std::endl;
 	file << "\t<Item Name=\"joy_analog_jump\" Value=\"" << joy_analog_jump << "\" />" << std::endl;
-	file << "\t<Item Name=\"background_images\" Value=\"" << background_images << "\" />" << std::endl;
+	file << "\t<Item Name=\"joy_axis_hor\" Value=\"" << joy_axis_hor << "\" />" << std::endl;
+	file << "\t<Item Name=\"joy_axis_ver\" Value=\"" << joy_axis_ver << "\" />" << std::endl;
+	file << "\t<Item Name=\"joy_axis_threshold\" Value=\"" << joy_axis_threshold << "\" />" << std::endl;
+	file << "\t<Item Name=\"joy_button_jump\" Value=\"" << joy_button_jump << "\" />" << std::endl;
+	file << "\t<Item Name=\"joy_button_item\" Value=\"" << joy_button_item << "\" />" << std::endl;
+	file << "\t<Item Name=\"joy_button_shoot\" Value=\"" << joy_button_shoot << "\" />" << std::endl;
+	file << "\t<Item Name=\"joy_button_action\" Value=\"" << joy_button_action << "\" />" << std::endl;
+	file << "\t<Item Name=\"joy_button_exit\" Value=\"" << joy_button_exit << "\" />" << std::endl;
+	// Special
+	file << "\t<Item Name=\"always_run\" Value=\"" << always_run << "\" />" << std::endl;
+	file << "\t<Item Name=\"level_background_images\" Value=\"" << level_background_images << "\" />" << std::endl;
 	// Leveleditor
 	file << "\t<Item Name=\"editor_mouse_auto_hide\" Value=\"" << editor_mouse_auto_hide << "\" />" << std::endl;
 	// end preferences
@@ -179,25 +182,25 @@ void cPreferences :: Default( void )
 	camera_ver_speed = 0.2f;
 
 	// Video
-	Screen_W = 1024;
-	Screen_H = 768;
-	Screen_Bpp = 32;
+	video_screen_w = 1024;
+	video_screen_h = 768;
+	video_screen_bpp = 32;
 	/* disable by default because of possible bad drivers
 	 * which can't handle visual sync
 	*/
-	vsync = 0;
+	video_vsync = 0;
 
 #ifdef _DEBUG
-	Fullscreen = 0;
+	video_fullscreen = 0;
 #else
-	Fullscreen = 1;
+	video_fullscreen = 1;
 #endif
 
 	// Audio
-	Music = 1;
-	Sounds = 1;
-	music_volume = 100;
-	sound_volume = 120;
+	audio_music = 1;
+	audio_sound = 1;
+	audio_music_volume = 100;
+	audio_sound_volume = 120;
 	audio_hz = 44100;
 
 	// Keyboard
@@ -211,18 +214,23 @@ void cPreferences :: Default( void )
 
 	// Joypad
 	joy_enabled = 1;
+	// axes
+	joy_axis_hor = 0;
+	joy_axis_ver = 1;
+	// axis threshold
+	joy_axis_threshold = 10000;
 	// buttons
-	joy_jump = 0;
-	joy_shoot = 1;
-	joy_item = 3;
-	joy_action = 2;
-	joy_exit = 4;
+	joy_button_jump = 0;
+	joy_button_shoot = 1;
+	joy_button_item = 3;
+	joy_button_action = 2;
+	joy_button_exit = 4;
 
 	// Special
 	always_run = 0;
 	joy_name.clear();
 	joy_analog_jump = 0;
-	background_images = 1;
+	level_background_images = 1;
 
 	// editor
 	editor_mouse_auto_hide = 0;
@@ -235,10 +243,10 @@ void cPreferences :: Update( void )
 	camera_hor_speed = pCamera->hor_offset_speed;
 	camera_ver_speed = pCamera->ver_offset_speed;
 
-	Music = pAudio->music_enabled;
-	Sounds = pAudio->sound_enabled;
-	music_volume = pAudio->music_volume;
-	sound_volume = pAudio->sound_volume;
+	audio_music = pAudio->music_enabled;
+	audio_sound = pAudio->sound_enabled;
+	audio_music_volume = pAudio->music_volume;
+	audio_sound_volume = pAudio->sound_volume;
 
 	// if not default joy used
 	if( pJoystick->cur_stick > 0 )
@@ -257,14 +265,14 @@ void cPreferences :: Apply( void )
 	pCamera->hor_offset_speed = camera_hor_speed;
 	pCamera->ver_offset_speed = camera_ver_speed;
 
-	pAudio->music_volume = music_volume;
-	pAudio->sound_volume = sound_volume;
+	pAudio->music_volume = audio_music_volume;
+	pAudio->sound_volume = audio_sound_volume;
 
 	// disable sound and music if the audio initialization failed
 	if( pVideo->audio_init_failed )
 	{
-		Sounds = 0;
-		Music = 0;
+		audio_sound = 0;
+		audio_music = 0;
 	}
 	
 	// disable joystick if the joystick initialization failed
@@ -274,7 +282,7 @@ void cPreferences :: Apply( void )
 	}
 
 	// init audio settings
-	pAudio->Init( Sounds, Music );
+	pAudio->Init( audio_sound, audio_music );
 
 	// reinit video
 	pVideo->Init_Video();
@@ -294,66 +302,66 @@ void cPreferences :: handle_item( const XMLAttributes& attributes )
 		camera_ver_speed = attributes.getValueAsFloat( "Value" );
 	}
 	// Video
-	else if( name.compare( "Screen_H" ) == 0 )
+	else if( name.compare( "Screen_H" ) == 0 || name.compare( "video_screen_h" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
 		if( val >= 200 || val <= 2560 )
 		{
-			Screen_H = val;
+			video_screen_h = val;
 		}
 	}
-	else if( name.compare( "Screen_W" ) == 0 )
+	else if( name.compare( "Screen_W" ) == 0 || name.compare( "video_screen_w" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
 		if( val >= 200 && val <= 2560 )
 		{
-			Screen_W = val;
+			video_screen_w = val;
 		}
 	}
-	else if( name.compare( "Screen_Bpp" ) == 0 )
+	else if( name.compare( "Screen_Bpp" ) == 0 || name.compare( "video_screen_bpp" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
 		if( val >= 8 && val <= 32 )
 		{
-			Screen_Bpp = val;
+			video_screen_bpp = val;
 		}
 	}
-	else if( name.compare( "vsync" ) == 0 )
+	else if( name.compare( "vsync" ) == 0 || name.compare( "video_vsync" ) == 0 )
 	{
-		vsync = attributes.getValueAsBool( "Value" );
+		video_vsync = attributes.getValueAsBool( "Value" );
 	}
-	else if( name.compare( "Fullscreen" ) == 0 )
+	else if( name.compare( "Fullscreen" ) == 0 || name.compare( "video_fullscreen" ) == 0 )
 	{
-		Fullscreen = attributes.getValueAsBool( "Value" );
+		video_fullscreen = attributes.getValueAsBool( "Value" );
 	}
 	// Audio
-	else if( name.compare( "Music" ) == 0 )
+	else if( name.compare( "Music" ) == 0 || name.compare( "audio_music" ) == 0 )
 	{
-		Music = attributes.getValueAsBool( "Value" );
+		audio_music = attributes.getValueAsBool( "Value" );
 	}
-	else if( name.compare( "Sounds" ) == 0 )
+	else if( name.compare( "Sounds" ) == 0 || name.compare( "audio_sound" ) == 0 )
 	{
-		Sounds = attributes.getValueAsBool( "Value" );
+		audio_sound = attributes.getValueAsBool( "Value" );
 	}
-	if( name.compare( "music_volume" ) == 0 )
+	if( name.compare( "music_volume" ) == 0 || name.compare( "audio_music_volume" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
 		if( val >= 0 && val <= MIX_MAX_VOLUME )
 		{
-			music_volume =  val;
+			audio_music_volume =  val;
 		}
 	}
-	else if( name.compare( "sound_volume" ) == 0 )
+	else if( name.compare( "sound_volume" ) == 0 || name.compare( "audio_sound_volume" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
 		if( val >= 0 && val <= MIX_MAX_VOLUME )
 		{
-			sound_volume = val;
+			audio_sound_volume = val;
 		}
 	}
 	else if( name.compare( "audio_hz" ) == 0 )
@@ -430,59 +438,9 @@ void cPreferences :: handle_item( const XMLAttributes& attributes )
 		}
 	}
 	// Joypad
-	else if( name.compare( "Joypad_enabled" ) == 0 )
+	else if( name.compare( "Joypad_enabled" ) == 0 || name.compare( "joy_enabled" ) == 0 )
 	{
 		joy_enabled = attributes.getValueAsBool( "Value" );
-	}
-	else if( name.compare( "Joypad_jump" ) == 0 )
-	{
-		int val = attributes.getValueAsInteger( "Value" );
-
-		if( val >= 0 && val <= 50 )
-		{
-			joy_jump = val;
-		}
-	}
-	else if( name.compare( "Joypad_item" ) == 0 )
-	{
-		int val = attributes.getValueAsInteger( "Value" );
-
-		if( val >= 0 && val <= 50 )
-		{
-			joy_item = val;
-		}
-	}
-	else if( name.compare( "Joypad_shoot" ) == 0 )
-	{
-		int val = attributes.getValueAsInteger( "Value" );
-
-		if( val >= 0 && val <= 50 )
-		{
-			joy_shoot = val;
-		}
-	}
-	else if( name.compare( "Joypad_action" ) == 0 )
-	{
-		int val = attributes.getValueAsInteger( "Value" );
-
-		if( val >= 0 && val <= 50 )
-		{
-			joy_action = val;
-		}
-	}
-	else if( name.compare( "Joypad_exit" ) == 0 )
-	{
-		int val = attributes.getValueAsInteger( "Value" );
-
-		if( val >= 0 && val <= 50 )
-		{
-			joy_exit = val;
-		}
-	}
-	// Special
-	else if( name.compare( "always_run" ) == 0 )
-	{
-		always_run = attributes.getValueAsBool( "Value" );
 	}
 	else if( name.compare( "joy_name" ) == 0 )
 	{
@@ -492,9 +450,86 @@ void cPreferences :: handle_item( const XMLAttributes& attributes )
 	{
 		joy_analog_jump = attributes.getValueAsBool( "Value" );
 	}
-	else if( name.compare( "background_images" ) == 0 )
+	else if( name.compare( "joy_axis_hor" ) == 0 )
 	{
-		background_images = attributes.getValueAsBool( "Value" );
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= 15 )
+		{
+			joy_axis_hor = val;
+		}
+	}
+	else if( name.compare( "joy_axis_ver" ) == 0 )
+	{
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= 15 )
+		{
+			joy_axis_ver = val;
+		}
+	}
+	else if( name.compare( "joy_axis_threshold" ) == 0 )
+	{
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= 32000 )
+		{
+			joy_axis_threshold = val;
+		}
+	}
+	else if( name.compare( "Joypad_jump" ) == 0 || name.compare( "joy_button_jump" ) == 0 )
+	{
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= 50 )
+		{
+			joy_button_jump = val;
+		}
+	}
+	else if( name.compare( "Joypad_item" ) == 0 || name.compare( "joy_button_item" ) == 0 )
+	{
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= 50 )
+		{
+			joy_button_item = val;
+		}
+	}
+	else if( name.compare( "Joypad_shoot" ) == 0 || name.compare( "joy_button_shoot" ) == 0 )
+	{
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= 50 )
+		{
+			joy_button_shoot = val;
+		}
+	}
+	else if( name.compare( "Joypad_action" ) == 0 || name.compare( "joy_button_action" ) == 0 )
+	{
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= 50 )
+		{
+			joy_button_action = val;
+		}
+	}
+	else if( name.compare( "Joypad_exit" ) == 0 || name.compare( "joy_button_exit" ) == 0 )
+	{
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= 50 )
+		{
+			joy_button_exit = val;
+		}
+	}
+	// Special
+	else if( name.compare( "always_run" ) == 0 )
+	{
+		always_run = attributes.getValueAsBool( "Value" );
+	}
+	else if( name.compare( "background_images" ) == 0 || name.compare( "level_background_images" ) == 0 )
+	{
+		level_background_images = attributes.getValueAsBool( "Value" );
 	}
 	else if( name.compare( "editor_mouse_auto_hide" ) == 0 )
 	{

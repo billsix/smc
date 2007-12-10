@@ -16,7 +16,7 @@
 #include "../objects/sprite.h"
 #include "../objects/movingsprite.h"
 #include "../core/game_core.h"
-#include "../core/sprite_manager.h"
+#include "../level/level.h"
 #include "../core/camera.h"
 #include "../core/framerate.h"
 #include "../player/player.h"
@@ -190,7 +190,7 @@ cObjectCollision *cCollidingSprite :: Collision_Get_last( bool only_blocking /* 
 			// get object pointer
 			cObjectCollision *col = (*itr);
 
-			cSprite *col_obj = pSprite_Manager->Get_Pointer( col->number );
+			cSprite *col_obj = pLevel->pSprite_Manager->Get_Pointer( col->number );
 
 			// ignore passive
 			if( col_obj->massivetype == MASS_PASSIVE )
@@ -327,7 +327,7 @@ void cSprite :: Init( void )
 	shadow_color = black;
 	no_camera = 0;
 
-	color = (Uint8)255;
+	color = static_cast<Uint8>(255);
 
 	combine_type = 0;
 	combine_col[0] = 0;
@@ -380,7 +380,7 @@ cSprite *cSprite :: Copy( void )
 void cSprite :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// image
 	Set_Image( pVideo->Get_Surface( attributes.getValueAsString( "image" ).c_str() ), 1 ) ;
 	// type
@@ -393,8 +393,8 @@ void cSprite :: Save_to_Stream( ofstream &file )
 	file << "\t<sprite>" << std::endl;
 
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// image
 	string img_filename;
 
@@ -408,7 +408,7 @@ void cSprite :: Save_to_Stream( ofstream &file )
 	}
 	else
 	{
-		img_filename = "No Image from type : " + int_to_string( type );
+		printf( "Warning: cSprite::Save_to_Stream no image from type %d\n", type );
 	}
 
 	// remove pixmaps directory from string
@@ -422,6 +422,16 @@ void cSprite :: Save_to_Stream( ofstream &file )
 
 	// end sprite
 	file << "\t</sprite>" << std::endl;
+}
+
+void cSprite :: Load_from_Savegame( cSave_Level_Object *save_object )
+{
+	// virtual
+}
+
+cSave_Level_Object *cSprite :: Save_to_Savegame( void )
+{
+	return NULL;
 }
 
 void cSprite :: Set_Image( GL_Surface *new_image, bool new_start_image /* = 0 */, bool del_img /* = 0 */ )
@@ -618,7 +628,7 @@ void cSprite :: Set_PosY( float y, bool new_startpos /* = 0 */ )
 
 	if( new_startpos )
 	{
-		startposx = y;
+		startposy = y;
 	}
 
 	Update_Position_Rect();
@@ -762,20 +772,36 @@ void cSprite :: Add_Rotation( float x, float y, float z )
 	Set_RotationZ( rotz + z );
 }
 
-void cSprite :: Set_ScaleX( float scale )
+void cSprite :: Set_ScaleX( float scale, bool new_startscale /* = 0 */ )
 {
 	scalex = scale;
+
+	if( new_startscale )
+	{
+		start_scalex = scalex;
+	}
 }
 
-void cSprite :: Set_ScaleY( float scale )
+void cSprite :: Set_ScaleY( float scale, bool new_startscale /* = 0 */ )
 {
 	scaley = scale;
+
+	if( new_startscale )
+	{
+		start_scaley = scaley;
+	}
 }
 
-void cSprite :: Set_Scale( float scale )
+void cSprite :: Set_Scale( float scale, bool new_startscale /* = 0 */ )
 {
 	scalex = scale;
 	scaley = scale;
+
+	if( new_startscale )
+	{
+		start_scalex = scalex;
+		start_scaley = scaley;
+	}
 }
 
 void cSprite :: Add_ScaleX( float val )
@@ -853,7 +879,7 @@ void cSprite :: Update_Position_Rect( void )
 		rect.y = startposy;
 		start_rect.x = startposx;
 		start_rect.y = startposy;
-		// Use not startposx/startposy because col_rect is not the editor/start rect
+		// Don't use startposx/startposy because col_rect is not the editor/start rect
 		col_rect.x = posx + col_pos.x; // todo : startcol_pos ?
 		col_rect.y = posy + col_pos.y;
 	}
@@ -885,57 +911,46 @@ void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 
 	Draw_Image( request );
 
+	// draw debugging collision rects
+	if( Game_debug )
+	{
+		// create request
+		cRectRequest *rect_request = new cRectRequest();
+		// draw image rect
+		pVideo->Draw_Rect( &rect, posz + 0.000002f, &lightgrey, rect_request );
+		rect_request->no_camera = no_camera;
+		rect_request->filled = 0;
+		rect_request->blend_sfactor = GL_SRC_COLOR;
+		rect_request->blend_dfactor = GL_DST_ALPHA;
+		// todo : rotation
+		/*rect_request->rotx += rotx;
+		rect_request->roty += roty;
+		rect_request->rotz += rotz;*/
+		// todo : scale
+		/*rect_request->scale_x = scalex;
+		rect_request->scale_y = scaley;*/
+		// add request
+		pRenderer->Add( rect_request );
+
+		// create request
+		rect_request = new cRectRequest();
+		// draw collision rect
+		pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &Get_Sprite_Color( this ), rect_request );
+		rect_request->no_camera = no_camera;
+		// blend it
+		rect_request->blend_sfactor = GL_SRC_COLOR;
+		rect_request->blend_dfactor = GL_DST_ALPHA;
+
+		// add request
+		pRenderer->Add( rect_request );
+	}
+
 	// no editor drawing
 	if( !editor_enabled )
 	{
-		// draw debugging collision rects
+		// draw debug rect
 		if( Game_debug )
 		{
-			// create request
-			cRectRequest *rect_request = new cRectRequest();
-
-			if( type == TYPE_PLAYER )
-			{
-				pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &lila, rect_request );
-				rect_request->no_camera = 0;
-			}
-			else if( sprite_array == ARRAY_ENEMY )
-			{
-				pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &red, rect_request );
-				rect_request->no_camera = 0;
-			}
-			else if( sprite_array == ARRAY_ACTIVE )
-			{
-				pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &blue, rect_request );
-				rect_request->no_camera = 0;
-			}
-			else if( sprite_array == ARRAY_MASSIVE )
-			{
-				pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &orange, rect_request );
-				rect_request->no_camera = 0;
-			}
-			else if( sprite_array == ARRAY_PASSIVE )
-			{
-				pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &green, rect_request );
-				rect_request->no_camera = 0;
-			}
-			else if( sprite_array == ARRAY_FRONT_PASSIVE )
-			{
-				pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &greenyellow, rect_request );
-				rect_request->no_camera = 0;
-			}
-			else
-			{
-				pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &lightgreyalpha64, rect_request );
-				rect_request->no_camera = no_camera;
-			}
-
-			rect_request->blend_sfactor = GL_SRC_COLOR;
-			rect_request->blend_dfactor = GL_DST_ALPHA;
-
-			// add request
-			pRenderer->Add( rect_request );
-
 			if( type == TYPE_PLAYER )
 			{
 				// Get Moving Sprite
@@ -945,7 +960,7 @@ void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 				if( moving_sprite->ground_object )
 				{
 					// create request
-					rect_request = new cRectRequest();
+					cRectRequest *rect_request = new cRectRequest();
 
 					pVideo->Draw_Rect( &moving_sprite->ground_object->col_rect, posz + 0.000002f, &grey, rect_request );
 					rect_request->no_camera = 0;
@@ -996,16 +1011,16 @@ void cSprite :: Draw_Image( cSurfaceRequest *request /* = NULL */ )
 	if( editor_enabled )
 	{
 		start_image->Blit( startposx, startposy, posz, request );
+
+		// if editor z position is given
+		if( editor_posz > 0 )
+		{
+			request->pos_z = editor_posz;
+		}
 	}
 	else
 	{
 		image->Blit( posx, posy, posz, request );
-	}
-
-	// if editor z position is given
-	if( editor_enabled && editor_posz > 0 )
-	{
-		request->pos_z = editor_posz;
 	}
 
 	request->no_camera = no_camera;
@@ -1027,7 +1042,6 @@ void cSprite :: Draw_Image( cSurfaceRequest *request /* = NULL */ )
 		request->shadow_pos = shadow_pos;
 		request->shadow_color = shadow_color;
 	}
-
 
 	if( editor_enabled )
 	{
@@ -1083,7 +1097,7 @@ void cSprite :: Set_Massivetype( MassiveType mtype )
 	massivetype = mtype;
 
 	// set correct Z position
-	pSprite_Manager->Set_Z( this );
+	pLevel->pSprite_Manager->Set_Z( this );
 }
 
 bool cSprite :: is_onTop( cSprite *obj )
@@ -1208,8 +1222,8 @@ void cSprite :: Editor_Add( Window *obj, float obj_width, float obj_height )
 	// needs to be always selectable
 	obj->setAlwaysOnTop( 1 );
 	// set size
-	obj->setWidth( UDim( 0, obj_width ) );
-	obj->setHeight( UDim( 0, obj_height ) );
+	obj->setWidth( UDim( 0, obj_width * global_upscalex ) );
+	obj->setHeight( UDim( 0, obj_height * global_upscaley ) );
 	// mouse hover events
 	// if combobox use the editbox
 	if( obj->getType() == "TaharezLook/Combobox" )
@@ -1256,22 +1270,22 @@ void cSprite :: Editor_pos_update( void )
 	{
 		Window *obj = (*itr);
 
-		obj->setXPosition( UDim( 0, posx + rect.w + 5 - pCamera->x ) );
-		obj->setYPosition( UDim( 0, posy + 5 + obj_posy - pCamera->y ) );
+		obj->setXPosition( UDim( 0, ( posx + rect.w + 5 - pCamera->x ) * global_upscalex ) );
+		obj->setYPosition( UDim( 0, ( posy + 5 + obj_posy - pCamera->y ) * global_upscaley ) );
 
 		// if combobox get the editbox height
 		if( obj->getType() == "TaharezLook/Combobox" )
 		{
-			obj_posy += static_cast<Combobox *>(obj)->getEditbox()->getHeight().asAbsolute( GAME_RES_H );
+			obj_posy += static_cast<Combobox *>(obj)->getEditbox()->getHeight().asAbsolute( GAME_RES_H ) * global_downscaley;
 		}
 		// get default height
 		else
 		{
-			obj_posy += obj->getHeight().asAbsolute( GAME_RES_H );
+			obj_posy += obj->getHeight().asAbsolute( GAME_RES_H ) * global_downscaley;
 		}
 
 		// some space between objects
-		obj_posy += 1;
+		obj_posy += 0.5f;
 	}
 }
 

@@ -18,9 +18,10 @@
 #include "../core/camera.h"
 #include "../video/animation.h"
 #include "../player/player.h"
-#include "../core/sprite_manager.h"
+#include "../level/level.h"
 #include "../gui/hud.h"
 #include "../video/gl_surface.h"
+#include "../user/savegame.h"
 
 /* *** *** *** *** *** *** cThromp *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -79,7 +80,7 @@ cThromp *cThromp :: Copy( void )
 void cThromp :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// direction
 	Set_Direction( Get_Direction_id( attributes.getValueAsString( "direction", Get_Direction_name( start_direction ) ).c_str() ) );
 	// max distance
@@ -96,17 +97,47 @@ void cThromp :: Save_to_Stream( ofstream &file )
 	// name
 	file << "\t\t<Property name=\"type\" value=\"thromp\" />" << std::endl;
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// direction
 	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_name( start_direction ) << "\" />" << std::endl;
 	// max distance
-	file << "\t\t<Property name=\"max_distance\" value=\"" << (int)max_distance << "\" />" << std::endl;
+	file << "\t\t<Property name=\"max_distance\" value=\"" << static_cast<int>(max_distance) << "\" />" << std::endl;
 	// speed
 	file << "\t\t<Property name=\"speed\" value=\"" << speed << "\" />" << std::endl;
 
 	// end enemy
 	file << "\t</enemy>" << std::endl;
+}
+
+void cThromp :: Load_from_Savegame( cSave_Level_Object *save_object )
+{
+	cEnemy::Load_from_Savegame( save_object );
+
+	// Don't activate if dead
+	if( dead )
+	{
+		return;
+	}
+
+	// move_back
+	if( save_object->exists( "move_back" ) )
+	{
+		move_back = string_to_int( save_object->Get_Value( "move_back" ) ) > 0;
+	}
+}
+
+cSave_Level_Object *cThromp :: Save_to_Savegame( void )
+{
+	cSave_Level_Object *save_object = cEnemy::Save_to_Savegame();
+
+	// move_back ( only save if needed )
+	if( move_back )
+	{
+		save_object->properties.push_back( cSave_Level_Object_Property( "move_back", int_to_string( move_back ) ) );
+	}
+
+	return save_object;
 }
 
 void cThromp :: Set_Direction( ObjectDirection dir )
@@ -437,21 +468,21 @@ GL_rect cThromp :: Get_Distance_rect( void )
 
 	if( start_direction == DIR_UP )
 	{
-		rect_distance.y = (float)-max_distance;
-		rect_distance.h = (float)max_distance;
+		rect_distance.y = static_cast<float>(-max_distance);
+		rect_distance.h = static_cast<float>(max_distance);
 	}
 	else if( start_direction == DIR_DOWN )
 	{
-		rect_distance.h = (float)max_distance;
+		rect_distance.h = static_cast<float>(max_distance);
 	}
 	else if( start_direction == DIR_LEFT )
 	{
-		rect_distance.x = (float)-max_distance;
-		rect_distance.w = (float)max_distance;
+		rect_distance.x = static_cast<float>(-max_distance);
+		rect_distance.w = static_cast<float>(max_distance);
 	}
 	else if( start_direction == DIR_RIGHT )
 	{
-		rect_distance.w = (float)max_distance;
+		rect_distance.w = static_cast<float>(max_distance);
 	}
 
 	return rect_distance;
@@ -511,7 +542,7 @@ void cThromp :: Generate_Smoke( unsigned int power /* = 10 */ )
 	for( unsigned int i = 0 ; i < power; i++ )
 	{
 		// animation
-		cParticleAnimation *anim = new cParticleAnimation( smoke_x + ( rand() % (int)smoke_width ), smoke_y + ( rand() % (int)smoke_height ) );
+		cParticleAnimation *anim = new cParticleAnimation( smoke_x + ( rand() % static_cast<int>(smoke_width) ), smoke_y + ( rand() % static_cast<int>(smoke_height) ) );
 
 		anim->Set_ZPos( posz + 0.000001f );
 		anim->Set_Time_to_Live( 1, 1 );
@@ -608,11 +639,11 @@ void cThromp :: Handle_Collision_Enemy( cObjectCollision *collision )
 	// if active
 	if( state == STA_FLY )
 	{
-		cEnemy *enemy = static_cast<cEnemy *>(pSprite_Manager->Get_Pointer( collision->number ));
+		cEnemy *enemy = static_cast<cEnemy *>(pLevel->pSprite_Manager->Get_Pointer( collision->number ));
 
 		// kill enemy
 		pAudio->PlaySound( enemy->kill_sound );
-		pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", (Uint8)255, 1 );
+		pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", static_cast<Uint8>(255), 1 );
 		enemy->DownGrade( 1 );
 
 		if( !move_back )

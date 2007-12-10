@@ -42,8 +42,8 @@ cMenu_Base :: cMenu_Base( void )
 	guiwindow = NULL;
 	action = 0;
 	menu_posy = 140;
-	text_color = Color( (Uint8)255, 251, 98 );
-	text_color_value = Color( (Uint8)255, 190, 30 );
+	text_color = Color( static_cast<Uint8>(255), 251, 98 );
+	text_color_value = Color( static_cast<Uint8>(255), 190, 30 );
 }
 
 cMenu_Base :: ~cMenu_Base( void )
@@ -178,7 +178,7 @@ void cMenu_Main :: Init( void )
 	temp_item->Set_Pos( GAME_RES_W * 0.45f, GAME_RES_H - 30 );
 	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
 
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/logo_sdl.png" ), 10, (float)GAME_RES_H * 0.935f ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/logo_sdl.png" ), 10, static_cast<float>(GAME_RES_H) * 0.935f ) );
 	drawlist.push_back( new cHudSprite( credits, -200, 0, 1 ) );
 
 	Init_GUI();
@@ -310,7 +310,7 @@ void cMenu_Start :: Init_GUI( void )
 	Listbox *listbox_worlds = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_worlds" ));
 	
 	// overworld names
-	for( OverworldList::iterator itr = pOverworld_manager->objects.begin(), itr_end = pOverworld_manager->objects.end(); itr != itr_end; ++itr )
+	for( vector<cOverworld *>::iterator itr = pOverworld_manager->objects.begin(), itr_end = pOverworld_manager->objects.end(); itr != itr_end; ++itr )
 	{
 		cOverworld_description *world = (*itr)->description;
 
@@ -491,7 +491,7 @@ bool cMenu_Start :: Load_Level( string level_name )
 	// enter level
 	Game_Action = GA_ENTER_LEVEL;
 	Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
-	Game_Action_Data = level_name;
+	Game_Action_Data.add( "level", level_name.c_str() );
 
 	return 1;
 }
@@ -568,6 +568,7 @@ bool cMenu_Start :: window_keydown( const EventArgs &e )
 			listbox = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
 		}
 
+		
 		ListboxItem *new_selected = NULL;
 
 		// if none selected
@@ -575,27 +576,32 @@ bool cMenu_Start :: window_keydown( const EventArgs &e )
 		{
 			new_selected = listbox->getListboxItemFromIndex( 0 );
 		}
-		// last item selected
-		else if( ke.scancode == Key::ArrowDown && listbox->getFirstSelectedItem() == listbox->getListboxItemFromIndex( listbox->getItemCount() - 1 ) )
-		{
-			new_selected = listbox->getListboxItemFromIndex( 0 );
-		}
-		// first item selected
-		else if( ke.scancode == Key::ArrowUp && listbox->getFirstSelectedItem() == listbox->getListboxItemFromIndex( 0 ) )
-		{
-			new_selected = listbox->getListboxItemFromIndex( listbox->getItemCount() - 1 );
-		}
-		// select next item
 		else
 		{
-			if( ke.scancode == Key::ArrowDown )
+			unsigned int selected = listbox->getItemIndex( listbox->getFirstSelectedItem() );
+
+			// last item selected
+			if( ke.scancode == Key::ArrowDown && selected == listbox->getItemCount() - 1 )
 			{
-				new_selected = listbox->getListboxItemFromIndex( listbox->getItemIndex( listbox->getFirstSelectedItem() ) + 1 );
+				new_selected = listbox->getListboxItemFromIndex( 0 );
 			}
-			// up
+			// first item selected
+			else if( ke.scancode == Key::ArrowUp && selected == 0 )
+			{
+				new_selected = listbox->getListboxItemFromIndex( listbox->getItemCount() - 1 );
+			}
+			// select next item
 			else
 			{
-				new_selected = listbox->getListboxItemFromIndex( listbox->getItemIndex( listbox->getFirstSelectedItem() ) - 1 );
+				if( ke.scancode == Key::ArrowDown )
+				{
+					new_selected = listbox->getListboxItemFromIndex( selected + 1 );
+				}
+				// up
+				else
+				{
+					new_selected = listbox->getListboxItemFromIndex( selected - 1 );
+				}
 			}
 		}
 		
@@ -1145,11 +1151,11 @@ void cMenu_Options_Video :: Init( void )
 	drawlist.push_back( new cHudSprite( video_apply, -200, 0, 1 ) );
 
 	// Video Info
-	vid_w = pPreferences->Screen_W;
-	vid_h = pPreferences->Screen_H;
-	vid_bpp = pPreferences->Screen_Bpp;
-	vid_fullscreen = pPreferences->Fullscreen;
-	vid_vsync = pPreferences->vsync;
+	vid_w = pPreferences->video_screen_w;
+	vid_h = pPreferences->video_screen_h;
+	vid_bpp = pPreferences->video_screen_bpp;
+	vid_fullscreen = pPreferences->video_fullscreen;
+	vid_vsync = pPreferences->video_vsync;
 
 	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/video.png" ), GAME_RES_W * 0.47f, 140 ) );
 	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/video.png" ), GAME_RES_W / 2.6f, 140 ) );
@@ -1166,7 +1172,10 @@ void cMenu_Options_Video :: Init_GUI( void )
 	// Resolution
 	Combobox *combo_resolution = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_resolution" ));
 
-	ListboxTextItem *item = new ListboxTextItem( "800x600", 1 );
+	ListboxTextItem *item = new ListboxTextItem( "640x480", 1 );
+	item->setTextColours( colour( 1, 0, 0 ) );
+	combo_resolution->addItem( item );
+	item = new ListboxTextItem( "800x600", 2 );
 	item->setTextColours( colour( 1, 1, 0 ) );
 	combo_resolution->addItem( item );
 	item = new ListboxTextItem( "1024x768", 2 );
@@ -1182,12 +1191,12 @@ void cMenu_Options_Video :: Init_GUI( void )
 	item->setTextColours( colour( 0.8f, 0.2f, 0.9f ) );
 	combo_resolution->addItem( item );
 
-	string temp = int_to_string( pPreferences->Screen_W ) + "x" + int_to_string( pPreferences->Screen_H );
+	string temp = int_to_string( pPreferences->video_screen_w ) + "x" + int_to_string( pPreferences->video_screen_h );
 	combo_resolution->setText( temp.c_str() );
 
 	combo_resolution->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cMenu_Options_Video::res_Select, this ) );
 
-	// BPP
+	// Bpp
 	Combobox *combo_bpp = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_bpp" ));
 
 	item = new ListboxTextItem( "16", 0 );
@@ -1197,7 +1206,7 @@ void cMenu_Options_Video :: Init_GUI( void )
 	item->setTextColours( colour( 0, 1, 0 ) );
 	combo_bpp->addItem( item );
 
-	combo_bpp->setText( int_to_string( pPreferences->Screen_Bpp ).c_str() );
+	combo_bpp->setText( int_to_string( pPreferences->video_screen_bpp ).c_str() );
 
 	combo_bpp->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cMenu_Options_Video::bpp_Select, this ) );
 
@@ -1211,7 +1220,7 @@ void cMenu_Options_Video :: Init_GUI( void )
 	item->setTextColours( colour( 0, 0, 1 ) );
 	combo_fullscreen->addItem( item );
 
-	if( pPreferences->Fullscreen )
+	if( pPreferences->video_fullscreen )
 	{
 		combo_fullscreen->setText( "On" );
 	}
@@ -1232,7 +1241,7 @@ void cMenu_Options_Video :: Init_GUI( void )
 	item->setTextColours( colour( 0, 0, 1 ) );
 	combo_vsync->addItem( item );
 
-	if( pPreferences->vsync )
+	if( pPreferences->video_vsync )
 	{
 		combo_vsync->setText( "On" );
 	}
@@ -1266,34 +1275,26 @@ void cMenu_Options_Video :: Update( void )
 	// Resolution
 	if( pMenuCore->handler->active == 5 )
 	{
-		if( vid_w <= 800 && vid_h <= 600 )
-		{
-			vid_w = 1024;
-			vid_h = 768;
-		}
-		else if( vid_w == 1024 && vid_h == 768 )
-		{
-			vid_w = 1280;
-			vid_h = 1024;
-		}
-		else if( vid_w == 1280 && vid_h == 1024 )
-		{
-			vid_w = 1600;
-			vid_h = 1200;
-		}
-		else if( vid_w == 1600 && vid_h == 1200 )
-		{
-			vid_w = 2048;
-			vid_h = 1536;
-		}
-		else if( vid_w >= 2048 && vid_h >= 1536 )
-		{
-			vid_w = 800;
-			vid_h = 600;
-		}
+		// Resolution
+		Combobox *combo_resolution = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_resolution" ));
+		unsigned int selected = combo_resolution->getItemIndex( combo_resolution->findItemWithText( combo_resolution->getText(), NULL ) );
 
-		string temp = int_to_string( vid_w ) + "x" + int_to_string( vid_h );
-		WindowManager::getSingleton().getWindow( "combo_resolution" )->setText( temp.c_str() );
+		ListboxItem *new_selected = NULL;
+
+		// last item selected
+		if( selected == combo_resolution->getItemCount() - 1 )
+		{
+			new_selected = combo_resolution->getListboxItemFromIndex( 0 );
+		}
+		// select next item
+		else
+		{
+			new_selected = combo_resolution->getListboxItemFromIndex( selected + 1 );
+		}
+		
+		combo_resolution->setText( new_selected->getText() );
+		combo_resolution->setItemSelectState( new_selected, 1 );
+		res_Select( WindowEventArgs( combo_resolution ) );
 	}
 	// BPP
 	else if( pMenuCore->handler->active == 6 )
@@ -1348,10 +1349,10 @@ void cMenu_Options_Video :: Update( void )
 		SDL_GL_SwapBuffers();
 
 		// if no resolution, vsync or bpp changed
-		if( pPreferences->Screen_W == vid_w && pPreferences->Screen_H == vid_h && pPreferences->Screen_Bpp == vid_bpp && pPreferences->vsync == vid_vsync )
+		if( pPreferences->video_screen_w == vid_w && pPreferences->video_screen_h == vid_h && pPreferences->video_screen_bpp == vid_bpp && pPreferences->video_vsync == vid_vsync )
 		{
 			// if only fullscreen changed
-			if( pPreferences->Fullscreen != vid_fullscreen )
+			if( pPreferences->video_fullscreen != vid_fullscreen )
 			{
 				pVideo->Toggle_Fullscreen();
 			}
@@ -1359,11 +1360,11 @@ void cMenu_Options_Video :: Update( void )
 		else
 		{
 			// new settings
-			pPreferences->Screen_W = vid_w;
-			pPreferences->Screen_H = vid_h;
-			pPreferences->Screen_Bpp = vid_bpp;
-			pPreferences->Fullscreen = vid_fullscreen;
-			pPreferences->vsync = vid_vsync;
+			pPreferences->video_screen_w = vid_w;
+			pPreferences->video_screen_h = vid_h;
+			pPreferences->video_screen_bpp = vid_bpp;
+			pPreferences->video_fullscreen = vid_fullscreen;
+			pPreferences->video_vsync = vid_vsync;
 
 			// apply new settings
 			pPreferences->Apply();
@@ -1570,7 +1571,7 @@ void cMenu_Options_Audio :: Init_GUI( void )
 
 	// music volume slider
 	Slider *slider_music = (Slider *)WindowManager::getSingleton().getWindow( "slider_music_volume" );
-	slider_music->setCurrentValue( (float)pAudio->music_volume );
+	slider_music->setCurrentValue( static_cast<float>(pAudio->music_volume) );
 	slider_music->subscribeEvent( Slider::EventValueChanged, Event::Subscriber( &cMenu_Options_Audio::music_vol_changed, this ) );
 	
 
@@ -1597,7 +1598,7 @@ void cMenu_Options_Audio :: Init_GUI( void )
 
 	// sound volume slider
 	Slider *slider_sound = (Slider *)WindowManager::getSingleton().getWindow( "slider_sound_volume" );
-	slider_sound->setCurrentValue( (float)pAudio->sound_volume );
+	slider_sound->setCurrentValue( static_cast<float>(pAudio->sound_volume) );
 	slider_sound->subscribeEvent( Slider::EventValueChanged, Event::Subscriber( &cMenu_Options_Audio::sound_vol_changed, this ) );
 }
 
@@ -1704,7 +1705,7 @@ bool cMenu_Options_Audio :: music_Select( const EventArgs &event )
 bool cMenu_Options_Audio :: music_vol_changed( const EventArgs &event )
 {
 	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	Uint8 val = (Uint8)static_cast<Slider *>( windowEventArgs.window )->getCurrentValue();
+	Uint8 val = static_cast<Uint8>(static_cast<Slider *>( windowEventArgs.window )->getCurrentValue());
 
 	pAudio->SetMusicVolume( val );
 
@@ -1734,7 +1735,7 @@ bool cMenu_Options_Audio :: sound_Select( const EventArgs &event )
 bool cMenu_Options_Audio :: sound_vol_changed( const EventArgs &event )
 {
 	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	Uint8 val = (Uint8)static_cast<Slider *>( windowEventArgs.window )->getCurrentValue();
+	Uint8 val = static_cast<Uint8>(static_cast<Slider *>( windowEventArgs.window )->getCurrentValue());
 
 	pAudio->SetSoundVolume( val );
 
@@ -1797,12 +1798,12 @@ void cMenu_Options_Controls :: Init( void )
 	keyboard_jump_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_jump ), text_color_value ), 1, 1 );
 	keyboard_shoot_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_shoot ), text_color_value ), 1, 1 );
 	keyboard_action_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_action ), text_color_value ), 1, 1 );
-	// Joypad
-	joypad_jump_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_jump ), text_color_value ), 1, 1 );
-	joypad_item_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_item ), text_color_value ), 1, 1 );
-	joypad_shoot_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_shoot ), text_color_value ), 1, 1 );
-	joypad_action_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_action ), text_color_value ), 1, 1 );
-	joypad_exit_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_exit ), text_color_value ), 1, 1 );
+	// Joystick/Gamepad
+	joypad_jump_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_jump ), text_color_value ), 1, 1 );
+	joypad_item_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_item ), text_color_value ), 1, 1 );
+	joypad_shoot_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_shoot ), text_color_value ), 1, 1 );
+	joypad_action_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_action ), text_color_value ), 1, 1 );
+	joypad_exit_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_exit ), text_color_value ), 1, 1 );
 
 	cMenu_Item *temp_item = NULL;
 
@@ -2188,36 +2189,36 @@ void cMenu_Options_Controls :: Update( void )
 		// joy jump
 		case 12:
 		{
-			pPreferences->joy_jump = input_event.jbutton.button; 
-			joypad_jump_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_jump ), black ), 1, 1 );
+			pPreferences->joy_button_jump = input_event.jbutton.button; 
+			joypad_jump_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_jump ), black ), 1, 1 );
 			break;
 		}
 		// joy item
 		case 13:
 		{
-			pPreferences->joy_item = input_event.jbutton.button; 
-			joypad_item_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_item ), black ), 1, 1 );
+			pPreferences->joy_button_item = input_event.jbutton.button; 
+			joypad_item_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_item ), black ), 1, 1 );
 			break;
 		}
 		// joy shoot
 		case 14:
 		{
-			pPreferences->joy_shoot = input_event.jbutton.button; 
-			joypad_shoot_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_shoot ), black ), 1, 1 );
+			pPreferences->joy_button_shoot = input_event.jbutton.button; 
+			joypad_shoot_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_shoot ), black ), 1, 1 );
 			break;
 		}
 		// joy action
 		case 15:
 		{
-			pPreferences->joy_action = input_event.jbutton.button; 
-			joypad_action_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_action ), black ), 1, 1 );
+			pPreferences->joy_button_action = input_event.jbutton.button; 
+			joypad_action_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_action ), black ), 1, 1 );
 			break;
 		}
 		// joy exit
 		case 16:
 		{
-			pPreferences->joy_exit = input_event.jbutton.button; 
-			joypad_exit_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_exit ), black ), 1, 1 );
+			pPreferences->joy_button_exit = input_event.jbutton.button; 
+			joypad_exit_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_exit ), black ), 1, 1 );
 			break;
 		}
 		default:
@@ -2558,7 +2559,7 @@ void cMenu_Credits :: Init( void )
 
 	for( float i = 0; i < 180; i += 4.5f * pFramerate->speedfactor )
 	{
-		color.alpha = (Uint8)i;
+		color.alpha = static_cast<Uint8>(i);
 
 		// create request
 		cRectRequest *request = new cRectRequest();
@@ -2577,8 +2578,8 @@ void cMenu_Credits :: Init( void )
 		pVideo->Render();
 
 		pFramerate->Update();
-		// maximum 90 fps
-		CorrectFrameTime( 90 );
+		// maximum fps
+		CorrectFrameTime( 100 );
 	}
 
 	// black background
@@ -2742,7 +2743,7 @@ void cMenu_Credits :: Update( void )
 			}
 
 			obj->Set_Color_Combine( new_value, new_value, new_value, GL_MODULATE );
-			obj->color.alpha = (Uint8)( new_value * 255 );
+			obj->color.alpha = static_cast<Uint8>( new_value * 255 );
 			obj->shadow_color.alpha = obj->color.alpha;
 		}
 		// fading in
@@ -2757,14 +2758,14 @@ void cMenu_Credits :: Update( void )
 				// add particles
 				if( obj->combine_col[0] < 1 )
 				{
-					cParticleAnimation *anim = new cParticleAnimation( (float)( rand() % GAME_RES_W ), (float)( rand() % 200 ) );
+					cParticleAnimation *anim = new cParticleAnimation( static_cast<float>( rand() % GAME_RES_W ), static_cast<float>( rand() % 200 ) );
 					anim->Set_Quota( rand() % 25 );
 					anim->Set_Image( pVideo->Get_Surface( "animation/particles/star.png" ) );
 					anim->Set_DirectionRange( 0, 360 );
 					anim->Set_Time_to_Live( 1.2f, 1 );
 					anim->Set_Fading_Size( 1 );
 					anim->Set_Scale( 0.2f, 0.1f );
-					anim->Set_Color( Color( (Uint8)( 100 + ( rand() % 155 ) ), 100 + ( rand() % 155 ), 100 + ( rand() % 155 ) ) );
+					anim->Set_Color( Color( static_cast<Uint8>( 100 + ( rand() % 155 ) ), 100 + ( rand() % 155 ), 100 + ( rand() % 155 ) ) );
 					anim->Set_Speed( 2, 1 );
 					anim->Set_ConstRotationZ( 1, 8 );
 					anim->Set_ZPos( 0.16f );
@@ -2773,7 +2774,7 @@ void cMenu_Credits :: Update( void )
 			}
 
 			obj->Set_Color_Combine( new_value, new_value, new_value, GL_MODULATE );
-			obj->color.alpha = (Uint8)( new_value * 255 );
+			obj->color.alpha = static_cast<Uint8>( new_value * 255 );
 			obj->shadow_color.alpha = obj->color.alpha;
 		}
 

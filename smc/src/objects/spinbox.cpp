@@ -99,7 +99,7 @@ void cSpinBox :: Activate( void )
 	// passive box for spinning
 	massivetype = MASS_PASSIVE;
 
-	counter = (float)anim_counter_min;
+	counter = static_cast<float>(anim_counter_min);
 	spin_counter = 0;
 	// set the BaseBox maximum animation image
 	anim_counter_max = 6;
@@ -126,7 +126,7 @@ void cSpinBox :: Stop( void )
 	// reset
 	spin = 0;
 	Update_valid_update();
-	counter = (float)anim_counter_min;
+	counter = static_cast<float>(anim_counter_min);
 	spin_counter = 0;
 
 	// back to a massive box

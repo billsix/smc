@@ -17,13 +17,11 @@
 #define __WORLDS_H__
 
 #include "../core/globals.h"
-#include "../overworld/overworld.h"
 #include "../core/obj_manager.h"
 
 /* *** *** *** *** *** *** *** *** cOverworld_manager *** *** *** *** *** *** *** *** *** */
 
 class cOverworld;
-typedef vector<cOverworld *> OverworldList;
 
 class cOverworld_manager : public XMLHandler, public cObject_Manager<cOverworld>
 {
@@ -54,7 +52,7 @@ public:
 	cOverworld *Get( string path );
 	cOverworld *Get_from_Name( string name );
 
-	// Return Overworld array num
+	// Return Overworld array number
 	int Get_Array_num( string path );
 
 	// worlds descriptor filename

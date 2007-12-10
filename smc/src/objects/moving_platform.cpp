@@ -82,7 +82,7 @@ cMoving_Platform *cMoving_Platform :: Copy( void )
 void cMoving_Platform :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// massive type
 	Set_Massivetype( Get_Massivetype_id( attributes.getValueAsString( "massive_type", Get_Massivetype_name( massivetype ) ).c_str() ) );
 	// direction
@@ -107,8 +107,8 @@ void cMoving_Platform :: Save_to_Stream( ofstream &file )
 	file << "\t<moving_platform>" << std::endl;
 
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// massive type
 	file << "\t\t<Property name=\"massive_type\" value=\"" << Get_Massivetype_name( massivetype ) << "\" />" << std::endl;
 	// direction

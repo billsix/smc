@@ -109,9 +109,17 @@ public:
 	// Handle Input event
 	virtual bool Handle_Event( SDL_Event *ev );
 	/* handle key down event
-	 * returns true if the key was processed
+	 * returns true if processed
 	*/
 	virtual bool Key_Down( SDLKey key );
+	/* handle mouse button down event
+	 * returns true if processed
+	*/
+	virtual bool Mouse_Down( Uint8 button );
+	/* handle mouse button up event
+	 * returns true if processed
+	*/
+	virtual bool Mouse_Up( Uint8 button );
 
 	// Add Object to Object Manager
 	virtual void Add_Object( cSprite *object );

@@ -27,6 +27,7 @@
 #include "../video/gl_surface.h"
 #include "../level/level.h"
 #include "../overworld/overworld.h"
+#include "../user/preferences.h"
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -140,7 +141,7 @@ cMenuHandler :: ~cMenuHandler( void )
 	delete cloud;
 }
 
-void cMenuHandler :: Add_MenuItem( cMenu_Item *item, float shadow_pos /* = 0 */, Color shadow_color /* = (Uint8)0 */ )
+void cMenuHandler :: Add_MenuItem( cMenu_Item *item, float shadow_pos /* = 0 */, Color shadow_color /* = static_cast<Uint8>(0) */ )
 {
 	if( !item )
 	{
@@ -181,14 +182,14 @@ void cMenuHandler :: Reset( void )
 void cMenuHandler :: Set_Active( int num )
 {
 	// if not already active and exists
-	if( num == (int)active || num >= (int)items.size() || ( num >= 0 && !items[num] ) )
+	if( num == static_cast<int>(active) || num >= static_cast<int>(items.size()) || ( num >= 0 && !items[num] ) )
 	{
 		return;
 	}
 
-	if( num >= 0 && (unsigned int)num < items.size() )
+	if( num >= 0 && static_cast<unsigned int>(num) < items.size() )
 	{
-		if( active >= 0 && (unsigned int)active < items.size() ) // set last active item un-active
+		if( active >= 0 && static_cast<unsigned int>(active) < items.size() ) // set last active item un-active
 		{
 			items[active]->Set_Active( 0 );
 		}
@@ -266,7 +267,7 @@ void cMenuHandler :: Draw( void )
 
 cMenu_Item *cMenuHandler :: Get_Active_Item( void )
 {
-	if( active < 0 || (unsigned int)active > items.size() )
+	if( active < 0 || static_cast<unsigned int>(active) > items.size() )
 	{
 		return NULL;
 	}
@@ -276,7 +277,7 @@ cMenu_Item *cMenuHandler :: Get_Active_Item( void )
 
 unsigned int cMenuHandler :: Get_Size( void )
 {
-	return (unsigned int)items.size();
+	return static_cast<unsigned int>(items.size());
 }
 
 /* *** *** *** *** *** *** *** cMenuCore *** *** *** *** *** *** *** *** *** *** */
@@ -303,7 +304,7 @@ cMenuCore :: cMenuCore( void )
 	anim->Set_Fading_Alpha( 0 );
 	anim->Set_Fading_Size( 1 );
 	anim->Set_Scale( 0.4f, 0.15f );
-	anim->Set_Color( Color( (Uint8)220, 240, 255 ), Color( (Uint8)25, 5, 0 ) );
+	anim->Set_Color( Color( static_cast<Uint8>(220), 240, 255 ), Color( static_cast<Uint8>(25), 5, 0 ) );
 	anim->Set_Speed( 0.1f, 0.01f );
 	anim->Set_ZPos( 0.105f );
 
@@ -319,7 +320,7 @@ cMenuCore :: cMenuCore( void )
 	anim->Set_Fading_Alpha( 0 );
 	anim->Set_Fading_Size( 1 );
 	anim->Set_Scale( 0.4f, 0.15f );
-	anim->Set_Color( Color( (Uint8)220, 240, 255 ), Color( (Uint8)25, 5, 0 ) );
+	anim->Set_Color( Color( static_cast<Uint8>(220), 240, 255 ), Color( static_cast<Uint8>(25), 5, 0 ) );
 	anim->Set_Speed( 0.1f, 0.01f );
 	anim->Set_ZPos( 0.105f );
 
@@ -343,17 +344,6 @@ bool cMenuCore :: Handle_Event( SDL_Event *ev )
 		handler->Update_Mouse();
 		break;
 	}
-	case SDL_MOUSEBUTTONDOWN:
-	{
-		cMenu_Item *item = handler->Get_Active_Item();
-
-		if( item && pMouseCursor->Collsion_Check( &item->col_rect ) )
-		{
-			pMenu_Data->action = 1;
-			return 1;
-		}
-		break;
-	}
 	default: // other events
 	{
 		break;
@@ -368,7 +358,7 @@ bool cMenuCore :: Key_Down( SDLKey key )
 	// Down
 	if( key == SDLK_DOWN )
 	{
-		if( handler->Get_Size() <= (unsigned int)( handler->active + 1 ) )
+		if( handler->Get_Size() <= static_cast<unsigned int>( handler->active + 1 ) )
 		{
 			handler->Set_Active( 0 );
 		}
@@ -429,7 +419,7 @@ bool cMenuCore :: Key_Down( SDLKey key )
 		}
 
 		Game_Action = GA_ENTER_LEVEL;
-		Game_Action_Data = lvl_name;
+		Game_Action_Data.add( "level", lvl_name.c_str() );
 	}
 	// exit
 	else if( key == SDLK_ESCAPE )
@@ -460,6 +450,46 @@ bool cMenuCore :: Key_Up( SDLKey key )
 	}
 
 	// key got processed
+	return 1;
+}
+
+bool cMenuCore :: Mouse_Down( Uint8 button )
+{
+	// nothing yet
+	if( button == SDL_BUTTON_LEFT )
+	{
+		cMenu_Item *item = handler->Get_Active_Item();
+
+		if( item && pMouseCursor->Collsion_Check( &item->col_rect ) )
+		{
+			pMenu_Data->action = 1;
+			return 1;
+		}
+	}
+	else
+	{
+		// not processed
+		return 0;
+	}
+
+	// button got processed
+	return 1;
+}
+
+bool cMenuCore :: Mouse_Up( Uint8 button )
+{
+	// nothing yet
+	if( 0 )
+	{
+		//
+	}
+	else
+	{
+		// not processed
+		return 0;
+	}
+
+	// button got processed
 	return 1;
 }
 
@@ -610,8 +640,11 @@ void cMenuCore :: Draw( void )
 
 	pMenu_Data->Draw();
 
-	// limit frames for no full CPU usage
-	CorrectFrameTime( 90 );
+	// if no vsync limit the fps for not stressing CPU usage
+	if( !pPreferences->video_vsync )
+	{
+		CorrectFrameTime( 100 );
+	}
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

@@ -30,6 +30,18 @@ public:
 	void Init( void );
 	// Enter the Level Settings
 	void Enter( void );
+	// Unload
+	void Unload( void );
+
+	// Update
+	void Update( void );
+	// Draw
+	void Draw( void );
+
+	/* handle key down event
+	 * returns true if the key was processed
+	*/
+	bool Key_Down( SDLKey key );
 
 	// Adds a Background image
 	bool Add_Background_image( const EventArgs &event );
@@ -76,5 +88,7 @@ public:
 	// global effect image preview
 	cHudSprite *global_effect_preview;
 };
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 #endif

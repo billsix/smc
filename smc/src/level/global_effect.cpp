@@ -111,7 +111,7 @@ void cGlobal_effect :: Create_from_Stream( XMLAttributes &attributes )
 	// Image
 	Set_image( attributes.getValueAsString( "image" ).c_str() );
 	// Creation Rect
-	Set_Emitter_Rect( (float)attributes.getValueAsInteger( "rect_x", 0 ), (float)attributes.getValueAsInteger( "rect_y", 0 ), (float)attributes.getValueAsInteger( "rect_w", GAME_RES_W ), (float)attributes.getValueAsInteger( "rect_h", 0 ) );
+	Set_Emitter_Rect( static_cast<float>(attributes.getValueAsInteger( "rect_x", 0 )), static_cast<float>(attributes.getValueAsInteger( "rect_y", 0 )), static_cast<float>(attributes.getValueAsInteger( "rect_w", GAME_RES_W )), static_cast<float>(attributes.getValueAsInteger( "rect_h", 0 )) );
 	// if start position is 0 change it
 	if( startposx == 0 && startposy == 0 )
 	{

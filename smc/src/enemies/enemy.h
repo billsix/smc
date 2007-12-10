@@ -30,6 +30,11 @@ public:
 	// destructor
 	virtual ~cEnemy( void );
 
+	// load from savegame
+	virtual void Load_from_Savegame( cSave_Level_Object *save_object );
+	// save to savegame
+	virtual cSave_Level_Object *Save_to_Savegame( void );
+
 	// Set Dead
 	virtual void Set_Dead( bool enable = 1 );
 

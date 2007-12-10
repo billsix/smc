@@ -31,7 +31,7 @@ cRenderRequest :: cRenderRequest( void )
 	blend_dfactor = GL_ONE_MINUS_SRC_ALPHA;
 
 	shadow_pos = 0;
-	shadow_color = (Uint8)0;
+	shadow_color = static_cast<Uint8>(0);
 
 	combine_type = 0;
 	combine_col[0] = 0;
@@ -56,9 +56,9 @@ void cRenderRequest :: Begin_render( void )
 	glLoadIdentity();
 
 	// global scale
-	if( globalscale && ( global_scalex != 1 || global_scaley != 1 ) )
+	if( globalscale && ( global_upscalex != 1 || global_upscaley != 1 ) )
 	{
-		glScalef( global_scalex, global_scaley, 1 );
+		glScalef( global_upscalex, global_upscaley, 1 );
 	}
 
 	// blend factor
@@ -119,8 +119,8 @@ cGradientRequest :: cGradientRequest( void )
 	type = REND_GRADIENT;
 	rect = GL_rect( 0, 0, 0, 0 );
 	dir = DIR_UNDEFINED;
-	color_1 = (Uint8)0;
-	color_2 = (Uint8)0;
+	color_1 = static_cast<Uint8>(0);
+	color_2 = static_cast<Uint8>(0);
 }
 
 cGradientRequest :: ~cGradientRequest( void )
@@ -194,7 +194,7 @@ cLineRequest :: cLineRequest( void )
 : cRenderRequest()
 {
 	type = REND_LINE;
-	color = (Uint8)0;
+	color = static_cast<Uint8>(0);
 	line = GL_line( 0, 0, 0, 0 );
 	line_width = 1;
 }
@@ -276,7 +276,7 @@ cRectRequest :: cRectRequest( void )
 : cRenderRequest()
 {
 	type = REND_RECT;
-	color = (Uint8)0;
+	color = static_cast<Uint8>(0);
 	rect = GL_rect( 0, 0, 0, 0 );
 	filled = 1;
 }
@@ -369,7 +369,7 @@ cSurfaceRequest :: cSurfaceRequest( void )
 	scale_y = 1;
 	scale_z = 1;
 
-	color = (Uint8)255;
+	color = static_cast<Uint8>(255);
 
 	delete_texture = 0;
 }
@@ -414,9 +414,9 @@ void cSurfaceRequest :: Draw( void )
 		color.alpha = shadow_color.alpha;
 		// combine color
 		combine_type = GL_REPLACE;
-		combine_col[0] = (float)shadow_color.red / 260;
-		combine_col[1] = (float)shadow_color.green / 260;
-		combine_col[2] = (float)shadow_color.blue / 260;
+		combine_col[0] = static_cast<float>(shadow_color.red) / 260;
+		combine_col[1] = static_cast<float>(shadow_color.green) / 260;
+		combine_col[2] = static_cast<float>(shadow_color.blue) / 260;
 
 		// draw shadow
 		Draw();
@@ -483,7 +483,7 @@ void cSurfaceRequest :: Draw( void )
 	GLint last_bind_texture = 0;
 	glGetIntegerv( GL_TEXTURE_BINDING_2D, &last_bind_texture );
 	// only bind if not the same texture
-	if( (GLuint)last_bind_texture != texture_id )
+	if( static_cast<GLuint>(last_bind_texture) != texture_id )
 	{
 		glBindTexture( GL_TEXTURE_2D, texture_id );
 	}

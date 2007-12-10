@@ -21,8 +21,9 @@
 #include "../core/obj_manager.h"
 #include "../level/level.h"
 #include "../overworld/worlds.h"
-#include "../objects/bonusbox.h"
-#include "../objects/goldpiece.h"
+#include "../player/player.h"
+#include "../overworld/overworld.h"
+
 
 /* *** *** *** *** *** *** *** cSave_Overworld_Waypoint *** *** *** *** *** *** *** *** *** *** */
 
@@ -71,6 +72,21 @@ cSave_Level_Object :: cSave_Level_Object( void )
 cSave_Level_Object :: ~cSave_Level_Object( void )
 {
 	properties.clear();
+}
+
+bool cSave_Level_Object :: exists( string val_name )
+{
+	for( unsigned int i = 0; i < properties.size(); i++ )
+	{
+		if( properties[i].Name.compare( val_name ) == 0 )
+		{
+			// found
+			return 1;
+		}
+	}
+
+	// not found
+	return 0;
 }
 
 string cSave_Level_Object :: Get_Value( string val_name )
@@ -259,7 +275,7 @@ int cSavegame :: Load_Game( unsigned int save_slot )
 		if( pLevel->Load( savegame->level_name ) )
 		{
 			// position
-			pPlayer->Set_Pos( savegame->level_posx, savegame->level_posy - (float)GAME_RES_H );
+			pPlayer->Set_Pos( savegame->level_posx, savegame->level_posy - static_cast<float>(GAME_RES_H) );
 
 			// Level Objects
 			for( Save_Level_ObjectList::iterator itr = savegame->level_objects.begin(), itr_end = savegame->level_objects.end(); itr != itr_end; ++itr )
@@ -272,7 +288,7 @@ int cSavegame :: Load_Game( unsigned int save_slot )
 				int posy = string_to_int( save_object->Get_Value( "posy" ) );
 
 				// get level object
-				cSprite *level_object = pSprite_Manager->Get_from_Position( posx, posy, save_object->type );
+				cSprite *level_object = pLevel->pSprite_Manager->Get_from_Position( posx, posy, save_object->type );
 
 				// if not anymore available
 				if( !level_object )
@@ -281,30 +297,7 @@ int cSavegame :: Load_Game( unsigned int save_slot )
 					continue;
 				}
 
-				if( level_object->type == TYPE_BONUSBOX )
-				{
-					cBonusBox *bonusbox = static_cast<cBonusBox *>(level_object);
-
-					// useable count
-					int useable_count = string_to_int( save_object->Get_Value( "useable_count" ) );
-					bonusbox->Set_UseableCount( useable_count );
-				}
-				else if( level_object->type == TYPE_GOLDPIECE )
-				{
-					cGoldpiece *goldpiece = static_cast<cGoldpiece *>(level_object);
-
-					// visible
-					bool visible = string_to_int( save_object->Get_Value( "visible" ) ) > 0;
-					goldpiece->Set_Visible( visible );
-				}
-				else if( level_object->type == TYPE_MOON )
-				{
-					cMoon *moon = static_cast<cMoon *>(level_object);
-
-					// visible
-					bool visible = string_to_int( save_object->Get_Value( "visible" ) ) > 0;
-					moon->Set_Visible( visible );
-				}
+				level_object->Load_from_Savegame( save_object );
 			}
 
 			// invincible for a second
@@ -366,71 +359,19 @@ bool cSavegame :: Save_Game( unsigned int save_slot, string description )
 		savegame->level_posy = pPlayer->posy + GAME_RES_H - 5;
 
 		// Level Objects
-		for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *object = (*itr);
-			// savegame object;
-			cSave_Level_Object *save_object = NULL;
 
-			// Bonusbox
-			if( object->type == TYPE_BONUSBOX )
-			{
-				cBonusBox *bonusbox = static_cast<cBonusBox *>(object);
+			// get save data
+			cSave_Level_Object *save_object = object->Save_to_Savegame();
 
-				// only save if needed
-				if( bonusbox->useable_count == bonusbox->start_useable_count )
-				{
-					continue;
-				}
-
-				save_object = new cSave_Level_Object();
-
-				// Bonusbox Useable Count
-				save_object->properties.push_back( cSave_Level_Object_Property( "useable_count", int_to_string( bonusbox->useable_count ) ) );
-			}
-			// Goldpiece
-			else if( object->type == TYPE_GOLDPIECE )
-			{
-				cGoldpiece *goldpiece = static_cast<cGoldpiece *>(object);
-
-				// only save if needed
-				if( goldpiece->visible == 1 )
-				{
-					continue;
-				}
-
-				save_object = new cSave_Level_Object();
-
-				// Goldpiece visible
-				save_object->properties.push_back( cSave_Level_Object_Property( "visible", int_to_string( goldpiece->visible ) ) );
-			}
-			// Moon
-			else if( object->type == TYPE_MOON )
-			{
-				cMoon *moon = static_cast<cMoon *>(object);
-
-				// only save if needed
-				if( moon->visible == 1 )
-				{
-					continue;
-				}
-
-				save_object = new cSave_Level_Object();
-
-				// Moon visible
-				save_object->properties.push_back( cSave_Level_Object_Property( "visible", int_to_string( moon->visible ) ) );
-			}
-			// other object
-			else
+			// nothing to save
+			if( !save_object )
 			{
 				continue;
 			}
-
-			// save default values
-			save_object->type = object->type;
-			save_object->properties.push_back( cSave_Level_Object_Property( "posx", int_to_string( (int)object->startposx ) ) );
-			save_object->properties.push_back( cSave_Level_Object_Property( "posy", int_to_string( (int)object->startposy ) ) );
 
 			// add
 			savegame->level_objects.push_back( save_object );
@@ -448,7 +389,7 @@ bool cSavegame :: Save_Game( unsigned int save_slot, string description )
 	savegame->itembox_item = Itembox->item_id;
 
 	// save overworld progress
-	for( OverworldList::iterator itr = pOverworld_manager->objects.begin(), itr_end = pOverworld_manager->objects.end(); itr != itr_end; ++itr )
+	for( vector<cOverworld *>::iterator itr = pOverworld_manager->objects.begin(), itr_end = pOverworld_manager->objects.end(); itr != itr_end; ++itr )
 	{
 		// Get Overworld
 		cOverworld *overworld = (*itr);
@@ -857,35 +798,35 @@ void cSavegame :: Handle_Level_Object( const XMLAttributes &attributes )
 
 	// type
 	object->type = (SpriteType)type;
+	xml_attributes.remove( "type" );
 
-	// position
-	object->properties.push_back( cSave_Level_Object_Property( "posx", xml_attributes.getValueAsString( "posx" ).c_str() ) );
-	object->properties.push_back( cSave_Level_Object_Property( "posy", xml_attributes.getValueAsString( "posy" ).c_str() ) );
 
-	if( type == TYPE_BONUSBOX )
+	// Get Properties
+	for( unsigned int i = 0; i < xml_attributes.getCount(); i++ )
 	{
-		// useable count
-		object->properties.push_back( cSave_Level_Object_Property( "useable_count", xml_attributes.getValueAsString( "useable_count" ).c_str() ) );
+		// get property
+		string property_name = xml_attributes.getName( i ).c_str();
 
-		// clear
-		xml_attributes.remove( "useable_count" );
+		// ignore level attributes
+		if( property_name.compare( "level_name" ) == 0 || property_name.compare( "player_posx" ) == 0 || property_name.compare( "player_posy" ) == 0 )
+		{
+			continue;
+		}
+
+		object->properties.push_back( cSave_Level_Object_Property( property_name, xml_attributes.getValue( i ).c_str() ) );
 	}
-	else if( type == TYPE_GOLDPIECE || type == TYPE_MOON )
-	{
-		// visible
-		object->properties.push_back( cSave_Level_Object_Property( "visible", xml_attributes.getValueAsString( "visible" ).c_str() ) );
 
-		// clear
-		xml_attributes.remove( "visible" );
+	// remove used Properties
+	for( Save_Level_Object_ProprtyList::iterator prop_itr = object->properties.begin(), prop_itr_end = object->properties.end(); prop_itr != prop_itr_end; ++prop_itr )
+	{
+		// get property pointer
+		cSave_Level_Object_Property Property = (*prop_itr);
+
+		xml_attributes.remove( Property.Name );
 	}
 
 	// add object
 	level_objects.push_back( object );
-
-	// clear
-	xml_attributes.remove( "type" );
-	xml_attributes.remove( "posx" );
-	xml_attributes.remove( "posy" );
 }
 
 void cSavegame :: Handle_Player( const XMLAttributes &attributes )

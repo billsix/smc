@@ -18,9 +18,10 @@
 #include "../objects/box.h"
 #include "../video/animation.h"
 #include "../player/player.h"
-#include "../core/sprite_manager.h"
+#include "../level/level.h"
 #include "../gui/hud.h"
 #include "../video/gl_surface.h"
+#include "../user/savegame.h"
 
 /* *** *** *** *** *** *** cTurtle *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -70,7 +71,7 @@ cTurtle *cTurtle :: Copy( void )
 void cTurtle :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// direction
 	Set_Direction( Get_Direction_id( attributes.getValueAsString( "direction", Get_Direction_name( start_direction ) ).c_str() ), 1 );
 	// color
@@ -85,8 +86,8 @@ void cTurtle :: Save_to_Stream( ofstream &file )
 	// name
 	file << "\t\t<Property name=\"type\" value=\"turtle\" />" << std::endl;
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// color
 	file << "\t\t<Property name=\"color\" value=\"" << Get_Color_name( color_type ) << "\" />" << std::endl;
 	// direction
@@ -94,6 +95,39 @@ void cTurtle :: Save_to_Stream( ofstream &file )
 
 	// end enemy
 	file << "\t</enemy>" << std::endl;
+}
+
+void cTurtle :: Load_from_Savegame( cSave_Level_Object *save_object )
+{
+	cEnemy::Load_from_Savegame( save_object );
+
+	// turtle_state
+	if( save_object->exists( "turtle_state" ) )
+	{
+		turtle_state = (Turtle_state)string_to_int( save_object->Get_Value( "turtle_state" ) );
+
+		if( turtle_state == TURTLE_SHELL_STAND || turtle_state == TURTLE_SHELL_RUN )
+		{
+			// todo : create a Set_State function
+			// set shell image without position changes
+			cSprite::Set_Image( images[5] );
+		}
+	}
+	
+	Update_Rotation_velx();
+}
+
+cSave_Level_Object *cTurtle :: Save_to_Savegame( void )
+{
+	cSave_Level_Object *save_object = cEnemy::Save_to_Savegame();
+
+	// turtle_state ( only save if needed )
+	if( turtle_state != TURTLE_WALK )
+	{
+		save_object->properties.push_back( cSave_Level_Object_Property( "turtle_state", int_to_string( turtle_state ) ) );
+	}
+
+	return save_object;
 }
 
 void cTurtle :: Set_Direction( ObjectDirection dir, bool new_start_direction /* = 0 */ )
@@ -324,7 +358,7 @@ void cTurtle :: Update( void )
 			// if turn around image force the new
 			if( curr_img == 4 )
 			{
-				Set_Image( (int)walk_count );
+				Set_Image( static_cast<int>(walk_count) );
 				Update_Rotation_velx();
 			}
 		}
@@ -332,7 +366,7 @@ void cTurtle :: Update( void )
 		// if not turn around image
 		if( curr_img != 4 )
 		{
-			Set_Image( (int)walk_count );
+			Set_Image( static_cast<int>(walk_count) );
 		}
 		else
 		{
@@ -365,7 +399,7 @@ void cTurtle :: Update( void )
 			// animation
 			if( counter < 192 )
 			{
-				if( (int)counter % 5 == 1 )
+				if( static_cast<int>(counter) % 5 == 1 )
 				{
 					Set_Image( 9 ); // active
 				}
@@ -421,14 +455,12 @@ void cTurtle :: Update( void )
 	{
 		walk_count += pFramerate->speedfactor * 0.4f;
 
-
-
 		if( walk_count >= 3 )
 		{
 			walk_count = 0;
 		}
 
-		Set_Image( 6 + (int)walk_count );
+		Set_Image( 6 + static_cast<int>(walk_count) );
 	}
 
 	if( playercounter > 0 )
@@ -656,7 +688,7 @@ void cTurtle :: Handle_Collision_Player( cObjectCollision *collision )
 			anim->Set_Speed( 4, 0.5f );
 			anim->Set_Scale( 0.6f );
 			anim->Set_Fading_Size( 1 );
-			anim->Set_Color( Color( (Uint8)254, 200, 100 ) );
+			anim->Set_Color( Color( static_cast<Uint8>(254), 200, 100 ) );
 			pAnimationManager->Add( anim );
 
 			Update_Direction();
@@ -694,7 +726,7 @@ void cTurtle :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
 	if( turtle_state == TURTLE_SHELL_STAND )
 	{
-		cEnemy *enemy = static_cast<cEnemy *>(pSprite_Manager->Get_Pointer( collision->number ));
+		cEnemy *enemy = static_cast<cEnemy *>(pLevel->pSprite_Manager->Get_Pointer( collision->number ));
 
 		// if able to collide
 		if( state == STA_OBJ_LINKED || vely < -5 )
@@ -707,7 +739,7 @@ void cTurtle :: Handle_Collision_Enemy( cObjectCollision *collision )
 			
 			// hit enemy
 			pAudio->PlaySound( enemy->kill_sound );
-			pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", (Uint8)255, 1 );
+			pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", static_cast<Uint8>(255), 1 );
 			enemy->DownGrade( 1 );
 
 			DownGrade( 1 );
@@ -716,7 +748,7 @@ void cTurtle :: Handle_Collision_Enemy( cObjectCollision *collision )
 	}
 	else if( turtle_state == TURTLE_SHELL_RUN )
 	{
-		cEnemy *enemy = static_cast<cEnemy *>(pSprite_Manager->Get_Pointer( collision->number ));
+		cEnemy *enemy = static_cast<cEnemy *>(pLevel->pSprite_Manager->Get_Pointer( collision->number ));
 
 		
 		// don't collide with already dead enemies
@@ -745,7 +777,7 @@ void cTurtle :: Handle_Collision_Enemy( cObjectCollision *collision )
 
 		// hit enemy
 		pAudio->PlaySound( enemy->kill_sound );
-		pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", (Uint8)255, 1 );
+		pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", static_cast<Uint8>(255), 1 );
 		enemy->DownGrade( 1 );
 
 		// create animation
@@ -799,7 +831,7 @@ void cTurtle :: Handle_Collision_Massive( cObjectCollision *collision )
 	{
 		if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
 		{
-			cSprite *col_object = pSprite_Manager->Get_Pointer( collision->number );
+			cSprite *col_object = pLevel->pSprite_Manager->Get_Pointer( collision->number );
 
 			// animation
 			cParticleAnimation *anim = NULL;
@@ -837,7 +869,7 @@ void cTurtle :: Handle_Collision_Massive( cObjectCollision *collision )
 			if( collision->type == CO_ACTIVE )
 			{
 				// get colliding object
-				cSprite *col_object = pSprite_Manager->Get_Pointer( collision->number );
+				cSprite *col_object = pLevel->pSprite_Manager->Get_Pointer( collision->number );
 
 				if( col_object->type == TYPE_BONUSBOX || col_object->type == TYPE_SPINBOX )
 				{

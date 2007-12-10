@@ -102,6 +102,11 @@ public:
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file );
 
+	// load from savegame
+	virtual void Load_from_Savegame( cSave_Level_Object *save_object );
+	// save to savegame
+	virtual cSave_Level_Object *Save_to_Savegame( void );
+
 	/* Sets the image for drawing
 	 * if new_start_image is set the default start_image will be set to the given image
 	 * if del_img is set the given image will be deleted
@@ -166,9 +171,9 @@ public:
 	void Add_Rotation( float x, float y, float z );
 
 	// Set the scale
-	void Set_ScaleX( float scale );
-	void Set_ScaleY( float scale );
-	void Set_Scale( float scale );
+	void Set_ScaleX( float scale, bool new_startscale = 0 );
+	void Set_ScaleY( float scale, bool new_startscale = 0 );
+	void Set_Scale( float scale, bool new_startscale = 0 );
 
 	// Add scale
 	void Add_ScaleX( float val );

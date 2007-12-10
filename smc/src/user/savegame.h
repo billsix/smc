@@ -83,6 +83,9 @@ public:
 	cSave_Level_Object( void );
 	~cSave_Level_Object( void );
 
+	// Check if property exists
+	bool exists( string val_name );
+
 	// Returns the Value
 	string Get_Value( string val_name );
 

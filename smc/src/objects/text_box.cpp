@@ -101,11 +101,11 @@ void cText_Box :: Activate( void )
 	// set on top
 	editbox->setAlwaysOnTop( 1 );
 	// set position
-	editbox->setXPosition( UDim( 0, posx - 150 + ( rect.w * 0.5f ) - pCamera->x ) );
-	editbox->setYPosition( UDim( 0, posy - 5 - 200 - pCamera->y ) );
+	editbox->setXPosition( UDim( 0, ( posx - 150 + ( rect.w * 0.5f ) - pCamera->x ) * global_upscalex ) );
+	editbox->setYPosition( UDim( 0, ( posy - 5 - 200 - pCamera->y ) * global_upscaley ) );
 	// set size
-	editbox->setWidth( UDim( 0, 300 ) );
-	editbox->setHeight( UDim( 0, 200 ) );
+	editbox->setWidth( UDim( 0, 300 * global_upscalex ) );
+	editbox->setHeight( UDim( 0, 200 * global_upscaley ) );
 
 	// set text
 	editbox->setText( text.c_str() );
@@ -133,7 +133,7 @@ void cText_Box :: Activate( void )
 			{
 				pJoystick->Set_Button( input_event.jbutton.button, 1 );
 
-				if( input_event.jbutton.button == pPreferences->joy_action || input_event.jbutton.button == pPreferences->joy_exit )
+				if( input_event.jbutton.button == pPreferences->joy_button_action || input_event.jbutton.button == pPreferences->joy_button_exit )
 				{
 					display = 0;
 					break;
@@ -155,16 +155,16 @@ void cText_Box :: Activate( void )
 		// if joystick enabled
 		if( pPreferences->joy_enabled )
 		{
-			joy_ver_axis = SDL_JoystickGetAxis( pJoystick->joystick, 1 );
+			joy_ver_axis = SDL_JoystickGetAxis( pJoystick->joystick, pPreferences->joy_axis_ver );
 		}
 
 		// down
-		if( keys[pPreferences->key_down] || joy_ver_axis > pJoystick->Threshold )
+		if( keys[pPreferences->key_down] || joy_ver_axis > pPreferences->joy_axis_threshold )
 		{
 			editbox->getVertScrollbar()->setScrollPosition( editbox->getVertScrollbar()->getScrollPosition() + ( editbox->getVertScrollbar()->getStepSize() * 0.25f * pFramerate->speedfactor ) );
 		}
 		// up
-		if( keys[pPreferences->key_up] || joy_ver_axis < -pJoystick->Threshold )
+		if( keys[pPreferences->key_up] || joy_ver_axis < -pPreferences->joy_axis_threshold )
 		{
 			editbox->getVertScrollbar()->setScrollPosition( editbox->getVertScrollbar()->getScrollPosition() - ( editbox->getVertScrollbar()->getStepSize() * 0.25f * pFramerate->speedfactor ) );
 		}

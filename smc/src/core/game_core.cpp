@@ -47,7 +47,7 @@ bool done = 0;
 GameMode Game_Mode = MODE_NOTHING;
 GameModeType Game_Mode_Type = MODE_TYPE_DEFAULT;
 GameAction Game_Action = GA_NONE;
-string Game_Action_Data;
+XMLAttributes Game_Action_Data;
 void *Game_Action_ptr = NULL;
 bool Game_debug = 0;
 
@@ -55,7 +55,8 @@ bool editor_enabled = 0;
 bool editor_level_enabled = 0;
 bool editor_world_enabled = 0;
 
-float global_scalex = 1, global_scaley = 1;
+float global_upscalex = 1, global_upscaley = 1;
+float global_downscalex = 1, global_downscaley = 1;
 
 SDL_Event input_event;
 
@@ -363,6 +364,10 @@ void Change_Game_Mode( GameMode new_mode )
 	// mode was level
 	if( old_mode == MODE_LEVEL )
 	{
+		pAnimationManager->Delete_All();
+
+		pJoystick->Reset_keys();
+
 		// hide editor window if visible
 		if( pLevel_Editor->enabled )
 		{
@@ -382,6 +387,8 @@ void Change_Game_Mode( GameMode new_mode )
 	// mode was overworld
 	else if( old_mode == MODE_OVERWORLD )
 	{
+		pAnimationManager->Delete_All();
+
 		// hide editor window if visible
 		if( pWorld_Editor->enabled )
 		{
@@ -429,6 +436,11 @@ void Change_Game_Mode( GameMode new_mode )
 		{
 			pHudManager->Update_Text();
 		}
+	}
+	// mode was settings
+	else if( old_mode == MODE_LEVEL_SETTINGS )
+	{
+		//pMouseCursor->Reset( 0 );
 	}
 
 
@@ -780,6 +792,46 @@ SpriteType Get_Sprite_Type_id( string str_type )
 	return TYPE_UNDEFINED;
 }
 
+Color Get_Sprite_Color( cSprite *sprite )
+{
+	switch( sprite->sprite_array )
+	{
+	case ARRAY_ENEMY:
+	{
+		return red;
+	}
+	case ARRAY_ACTIVE:
+	{
+		return blue;
+	}
+	case ARRAY_MASSIVE:
+	{
+		if( sprite->type == TYPE_PLAYER )
+		{
+			return lila;
+		}
+
+		return orange;
+	}
+	case ARRAY_PASSIVE:
+	{
+		return green;
+	}
+	case ARRAY_FRONT_PASSIVE:
+	{
+		return greenyellow;
+	}
+	case ARRAY_HUD:
+	{
+		return blackalpha128;
+	}
+	default:
+	    break;
+	}
+
+	return lightgreyalpha64;
+}
+
 string Get_Massivetype_name( MassiveType mtype )
 {
 	switch( mtype )
@@ -854,6 +906,71 @@ Color Get_Massivetype_Color( MassiveType mtype )
 	}
 
 	return white;
+}
+
+string Get_Groundtype_name( GroundType gtype )
+{
+	switch( gtype )
+	{
+	case GROUND_NORMAL:
+	{
+		return "normal";
+	}
+	case GROUND_EARTH:
+	{
+		return "earth";
+	}
+	case GROUND_ICE:
+	{
+		return "ice";
+	}
+	case GROUND_SAND:
+	{
+		return "sand";
+	}
+	case GROUND_STONE:
+	{
+		return "stone";
+	}
+	case GROUND_PLASTIC:
+	{
+		return "plastic";
+	}
+	default:
+	    break;
+	}
+
+	return "";
+}
+
+GroundType Get_Groundtype_id( string str_groundtype )
+{
+	if( str_groundtype.compare( "normal" ) == 0 )
+	{
+		return GROUND_NORMAL;
+	}
+	else if( str_groundtype.compare( "earth" ) == 0 )
+	{
+		return GROUND_EARTH;
+	}
+	else if( str_groundtype.compare( "ice" ) == 0 )
+	{
+		return GROUND_ICE;
+	}
+	else if( str_groundtype.compare( "sand" ) == 0 )
+	{
+		return GROUND_SAND;
+	}
+	else if( str_groundtype.compare( "stone" ) == 0 )
+	{
+		return GROUND_STONE;
+	}
+	else if( str_groundtype.compare( "plastic" ) == 0 )
+	{
+		return GROUND_PLASTIC;
+	}
+
+	return GROUND_NORMAL;
 }
 
 string Get_Color_name( DefaultColor color )
@@ -957,7 +1074,7 @@ void Gui_handle_Time( void )
 	float t = 0.001f * SDL_GetTicks();
 
 	// inject the time that passed since the last call
-	System::getSingleton().injectTimePulse( float( t - last_time_pulse ) );
+	System::getSingleton().injectTimePulse( static_cast<float>( t - last_time_pulse ) );
 
 	// store the new time as the last time
 	last_time_pulse = t;
@@ -965,6 +1082,7 @@ void Gui_handle_Time( void )
 
 void Draw_StaticText( string text, Color *color_text /* = &white */, Color *color_bg /* = NULL */, bool wait_for_input /* = 1 */ )
 {
+	// todo : Can't handle multiple lines. Change to MultiLineEditbox or use HorzFormatting=WordWrapLeftAligned property.
 	bool draw = 1;
 
 	// Statictext window
@@ -974,18 +1092,19 @@ void Draw_StaticText( string text, Color *color_text /* = &white */, Color *colo
 	Window *text_default = static_cast<Window *>(WindowManager::getSingleton().getWindow( "text_default" ));
 
 	// set text
-	text_default->setProperty( "TextColours", PropertyHelper::colourToString( colour( (float)color_text->red / 255, (float)color_text->green / 255, (float)color_text->blue / 255, 1 ) ) );
+	text_default->setProperty( "TextColours", PropertyHelper::colourToString( colour( static_cast<float>(color_text->red) / 255, static_cast<float>(color_text->green) / 255, static_cast<float>(color_text->blue) / 255, 1 ) ) );
 	text_default->setText( text.c_str() );
 
 	// align text
 	Font *font = FontManager::getSingleton().getFont( "bluebold_medium" );
-	float text_width = font->getTextExtent( text.c_str() );
-	text_default->setWidth( UDim( 0, text_width + 10 ) );
-	text_default->setXPosition( UDim( 0, GAME_RES_W / 2 - text_width / 2 ) );
+	float text_width = font->getTextExtent( text.c_str() ) * global_downscalex;
+
+	text_default->setWidth( UDim( 0, ( text_width + 15 ) * global_upscalex ) );
+	text_default->setXPosition( UDim( 0, ( GAME_RES_W / 2 - text_width / 2 ) * global_upscalex ) );
 	text_default->moveToFront();
 
-	// set window size
-	text_default->setHeight( UDim( 0, 12 + font->getFontHeight() * font->getFormattedLineCount( text.c_str(), text_default->getUnclippedInnerRect(), LeftAligned ) ) );
+	// set window height
+	text_default->setHeight( UDim( 0, font->getFontHeight() * font->getFormattedLineCount( text.c_str(), text_default->getUnclippedInnerRect(), LeftAligned ) + ( 12 * global_upscaley ) ) );
 
 	while( draw )
 	{
@@ -1114,10 +1233,10 @@ void Preload_images( void )
 	pVideo->Get_Surface( "game/items/mushroom_green.png" );
 	pVideo->Get_Surface( "game/items/mushroom_blue.png" );
 	pVideo->Get_Surface( "game/items/mushroom_ghost.png" );
-	// Flower
-	pVideo->Get_Surface( "game/items/fire_flower.png" );
-	pVideo->Get_Surface( "game/items/fire_flower_left.png" );
-	pVideo->Get_Surface( "game/items/fire_flower_right.png" );
+	// Fireplant
+	pVideo->Get_Surface( "game/items/fireplant.png" );
+	pVideo->Get_Surface( "game/items/fireplant_left.png" );
+	pVideo->Get_Surface( "game/items/fireplant_right.png" );
 	// Star
 	pVideo->Get_Surface( "game/items/star.png" );
 	// Feather
@@ -1147,24 +1266,6 @@ void Preload_images( void )
 
 	// Brown Box
 	pVideo->Get_Surface( "game/box/brown1_1.png" );	
-	// Bonus Box
-	pVideo->Get_Surface( "game/box/yellow/bonus/1.png" );
-	pVideo->Get_Surface( "game/box/yellow/bonus/2.png" );
-	pVideo->Get_Surface( "game/box/yellow/bonus/3.png" );
-	pVideo->Get_Surface( "game/box/yellow/bonus/4.png" );
-	pVideo->Get_Surface( "game/box/yellow/bonus/5.png" );
-	pVideo->Get_Surface( "game/box/yellow/bonus/6.png" );
-	// Default Box
-	pVideo->Get_Surface( "game/box/yellow/default.png" );
-	// Power Box
-	pVideo->Get_Surface( "game/box/yellow/power_1.png" );
-	// Spin Box
-	pVideo->Get_Surface( "game/box/yellow/spin/1.png" );
-	pVideo->Get_Surface( "game/box/yellow/spin/2.png" );
-	pVideo->Get_Surface( "game/box/yellow/spin/3.png" );
-	pVideo->Get_Surface( "game/box/yellow/spin/4.png" );
-	pVideo->Get_Surface( "game/box/yellow/spin/5.png" );
-	pVideo->Get_Surface( "game/box/yellow/spin/disabled.png" );
 
 	// Goldpiece animation
 	pVideo->Get_Surface( "animation/light_1/1.png" );
@@ -1274,7 +1375,16 @@ bool Delete_file( const string &filename )
 
 bool file_exists( const string &filename )
 {
-	return fs::exists( fs::path( filename, fs::native ) );
+	try
+	{
+		return fs::exists( fs::path( filename, fs::native ) );
+	}
+	catch( const std::exception &ex )
+	{
+		printf( "Warning : file %s exists error : %s\n", filename.c_str(), ex.what() );
+	}
+
+	return 0;
 }
 
 bool is_valid_number( string num, bool accept_floating_point /* = 1 */ )

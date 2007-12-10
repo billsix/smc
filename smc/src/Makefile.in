@@ -49,17 +49,18 @@ PROGRAMS = $(bin_PROGRAMS)
 am_smc_OBJECTS = audio.$(OBJEXT) sound_manager.$(OBJEXT) \
 	camera.$(OBJEXT) collision.$(OBJEXT) editor.$(OBJEXT) \
 	file_parser.$(OBJEXT) framerate.$(OBJEXT) game_core.$(OBJEXT) \
-	globals.$(OBJEXT) main.$(OBJEXT) point.$(OBJEXT) \
-	rect.$(OBJEXT) vector.$(OBJEXT) sprite_manager.$(OBJEXT) \
-	turtle_boss.$(OBJEXT) eato.$(OBJEXT) enemy.$(OBJEXT) \
-	gee.$(OBJEXT) gumba.$(OBJEXT) jpiranha.$(OBJEXT) rex.$(OBJEXT) \
-	rokko.$(OBJEXT) spika.$(OBJEXT) static.$(OBJEXT) \
-	thromp.$(OBJEXT) turtle.$(OBJEXT) hud.$(OBJEXT) menu.$(OBJEXT) \
+	globals.$(OBJEXT) main.$(OBJEXT) vector.$(OBJEXT) \
+	sprite_manager.$(OBJEXT) turtle_boss.$(OBJEXT) eato.$(OBJEXT) \
+	enemy.$(OBJEXT) gee.$(OBJEXT) gumba.$(OBJEXT) \
+	jpiranha.$(OBJEXT) rex.$(OBJEXT) rokko.$(OBJEXT) \
+	spika.$(OBJEXT) static.$(OBJEXT) thromp.$(OBJEXT) \
+	turtle.$(OBJEXT) hud.$(OBJEXT) menu.$(OBJEXT) \
 	menu_data.$(OBJEXT) joystick.$(OBJEXT) keyboard.$(OBJEXT) \
 	mouse.$(OBJEXT) global_effect.$(OBJEXT) \
 	level_background.$(OBJEXT) level.$(OBJEXT) \
-	level_editor.$(OBJEXT) level_settings.$(OBJEXT) ball.$(OBJEXT) \
-	bonusbox.$(OBJEXT) box.$(OBJEXT) enemystopper.$(OBJEXT) \
+	level_editor.$(OBJEXT) level_settings.$(OBJEXT) \
+	level_manager.$(OBJEXT) ball.$(OBJEXT) bonusbox.$(OBJEXT) \
+	box.$(OBJEXT) enemystopper.$(OBJEXT) \
 	falling_platform.$(OBJEXT) goldpiece.$(OBJEXT) \
 	level_entry.$(OBJEXT) levelexit.$(OBJEXT) \
 	moving_platform.$(OBJEXT) movingsprite.$(OBJEXT) \
@@ -197,8 +198,6 @@ smc_SOURCES = \
 	core/game_core.cpp \
 	core/globals.cpp \
 	core/main.cpp \
-	core/math/point.cpp \
-	core/math/rect.cpp \
 	core/math/vector.cpp \
 	core/sprite_manager.cpp \
 	enemies/bosses/turtle_boss.cpp \
@@ -224,6 +223,7 @@ smc_SOURCES = \
 	level/level.cpp \
 	level/level_editor.cpp \
 	level/level_settings.cpp \
+	level/level_manager.cpp \
 	objects/ball.cpp \
 	objects/bonusbox.cpp \
 	objects/box.cpp \
@@ -356,6 +356,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/level_background.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/level_editor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/level_entry.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/level_manager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/level_settings.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/levelexit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
@@ -368,10 +369,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/overworld.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ow_player.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/player.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/point.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/powerup.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/preferences.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rect.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/renderer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rokko.Po@am__quote@
@@ -546,34 +545,6 @@ main.obj: core/main.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='core/main.cpp' object='main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o main.obj `if test -f 'core/main.cpp'; then $(CYGPATH_W) 'core/main.cpp'; else $(CYGPATH_W) '$(srcdir)/core/main.cpp'; fi`
-
-point.o: core/math/point.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT point.o -MD -MP -MF $(DEPDIR)/point.Tpo -c -o point.o `test -f 'core/math/point.cpp' || echo '$(srcdir)/'`core/math/point.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/point.Tpo $(DEPDIR)/point.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='core/math/point.cpp' object='point.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o point.o `test -f 'core/math/point.cpp' || echo '$(srcdir)/'`core/math/point.cpp
-
-point.obj: core/math/point.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT point.obj -MD -MP -MF $(DEPDIR)/point.Tpo -c -o point.obj `if test -f 'core/math/point.cpp'; then $(CYGPATH_W) 'core/math/point.cpp'; else $(CYGPATH_W) '$(srcdir)/core/math/point.cpp'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/point.Tpo $(DEPDIR)/point.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='core/math/point.cpp' object='point.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o point.obj `if test -f 'core/math/point.cpp'; then $(CYGPATH_W) 'core/math/point.cpp'; else $(CYGPATH_W) '$(srcdir)/core/math/point.cpp'; fi`
-
-rect.o: core/math/rect.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT rect.o -MD -MP -MF $(DEPDIR)/rect.Tpo -c -o rect.o `test -f 'core/math/rect.cpp' || echo '$(srcdir)/'`core/math/rect.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/rect.Tpo $(DEPDIR)/rect.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='core/math/rect.cpp' object='rect.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o rect.o `test -f 'core/math/rect.cpp' || echo '$(srcdir)/'`core/math/rect.cpp
-
-rect.obj: core/math/rect.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT rect.obj -MD -MP -MF $(DEPDIR)/rect.Tpo -c -o rect.obj `if test -f 'core/math/rect.cpp'; then $(CYGPATH_W) 'core/math/rect.cpp'; else $(CYGPATH_W) '$(srcdir)/core/math/rect.cpp'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/rect.Tpo $(DEPDIR)/rect.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='core/math/rect.cpp' object='rect.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o rect.obj `if test -f 'core/math/rect.cpp'; then $(CYGPATH_W) 'core/math/rect.cpp'; else $(CYGPATH_W) '$(srcdir)/core/math/rect.cpp'; fi`
 
 vector.o: core/math/vector.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT vector.o -MD -MP -MF $(DEPDIR)/vector.Tpo -c -o vector.o `test -f 'core/math/vector.cpp' || echo '$(srcdir)/'`core/math/vector.cpp
@@ -924,6 +895,20 @@ level_settings.obj: level/level_settings.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='level/level_settings.cpp' object='level_settings.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o level_settings.obj `if test -f 'level/level_settings.cpp'; then $(CYGPATH_W) 'level/level_settings.cpp'; else $(CYGPATH_W) '$(srcdir)/level/level_settings.cpp'; fi`
+
+level_manager.o: level/level_manager.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT level_manager.o -MD -MP -MF $(DEPDIR)/level_manager.Tpo -c -o level_manager.o `test -f 'level/level_manager.cpp' || echo '$(srcdir)/'`level/level_manager.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/level_manager.Tpo $(DEPDIR)/level_manager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='level/level_manager.cpp' object='level_manager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o level_manager.o `test -f 'level/level_manager.cpp' || echo '$(srcdir)/'`level/level_manager.cpp
+
+level_manager.obj: level/level_manager.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT level_manager.obj -MD -MP -MF $(DEPDIR)/level_manager.Tpo -c -o level_manager.obj `if test -f 'level/level_manager.cpp'; then $(CYGPATH_W) 'level/level_manager.cpp'; else $(CYGPATH_W) '$(srcdir)/level/level_manager.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/level_manager.Tpo $(DEPDIR)/level_manager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='level/level_manager.cpp' object='level_manager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o level_manager.obj `if test -f 'level/level_manager.cpp'; then $(CYGPATH_W) 'level/level_manager.cpp'; else $(CYGPATH_W) '$(srcdir)/level/level_manager.cpp'; fi`
 
 ball.o: objects/ball.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ball.o -MD -MP -MF $(DEPDIR)/ball.Tpo -c -o ball.o `test -f 'objects/ball.cpp' || echo '$(srcdir)/'`objects/ball.cpp

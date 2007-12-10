@@ -30,15 +30,13 @@
 cLevel_Settings :: cLevel_Settings( void )
 {
 	// Main
-	background_preview = new cHudSprite( NULL, GAME_RES_W * 0.73f, GAME_RES_H * 0.33f );
-	background_preview->Set_Shadow( lightgrey, 2 );
+	background_preview = new cHudSprite( NULL, GAME_RES_W * 0.74f, GAME_RES_H * 0.33f );
 	// Global Effects
 	global_effect_preview = new cHudSprite( NULL, GAME_RES_W * 0.75f, GAME_RES_H * 0.15f );
 	global_effect_preview->Set_Shadow( lightgrey, 2 );
 	
+	guiwindow = NULL;
 	tabcontrol = NULL;
-
-	Init();
 
 	active = 0;
 }
@@ -47,9 +45,6 @@ cLevel_Settings :: ~cLevel_Settings( void )
 {
 	delete background_preview;
 	delete global_effect_preview;
-
-	pGuiSystem->getGUISheet()->removeChildWindow( guiwindow );
-	WindowManager::getSingleton().destroyWindow( guiwindow );
 }
 
 void cLevel_Settings :: Init( void )
@@ -217,78 +212,17 @@ void cLevel_Settings :: Init( void )
 
 void cLevel_Settings :: Enter( void )
 {
+	// Initialize level data
+	Init();
+	// change mode
 	Change_Game_Mode( MODE_LEVEL_SETTINGS );
-
+	// set active
 	active = 1;
+}
 
-	while( active )
-	{
-		// input
-		while( SDL_PollEvent( &input_event ) )
-		{
-			// was handled
-			if( Handle_Input_Global( &input_event ) )
-			{
-				continue;
-			}
-
-			switch( input_event.type )
-			{
-				case SDL_QUIT:
-				{
-					done = 1;
-					active = 0;
-					break;
-				}
-				case SDL_KEYDOWN:
-				{
-					if( input_event.key.keysym.sym == SDLK_ESCAPE )
-					{
-						active = 0;
-					}
-					break;
-				}
-				default:
-				{
-					break;
-				}
-			}
-		}
-
-		// Clear Screen
-		pVideo->Clear_Screen();
-		// Mouse Position update
-		pMouseCursor->Update_Position();
-
-		// background Tab
-		if( tabcontrol->getSelectedTabIndex() == 1 )
-		{
-			// create request
-			cSurfaceRequest *request = new cSurfaceRequest();
-			// draw background image preview
-			background_preview->Draw( request );
-			// add request
-			pRenderer_GUI->Add( request );
-		}
-		// Global Effect Tab
-		else if( tabcontrol->getSelectedTabIndex() == 2 )
-		{
-			// create request
-			cSurfaceRequest *request = new cSurfaceRequest();
-			// draw global effect preview
-			global_effect_preview->Draw( request );
-			// add request
-			pRenderer_GUI->Add( request );
-		}
-
-		// draw
-		pVideo->Render();
-
-		// gui
-		Gui_handle_Time();
-	}
-
-	// ### Save Changes
+void cLevel_Settings :: Unload( void )
+{
+	// ## Save Changes
 
 	// # Main
 	// filename
@@ -310,7 +244,7 @@ void cLevel_Settings :: Enter( void )
 	// fixed camera horizontal velocity
 	pCamera->fixed_hor_vel = (static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_camera_hor_vel" )))->getCurrentValue();
 
-	// # background
+	// # Background
 	// Gradient
 	pLevel->backgrounds[0]->Set_color_1( bg_color_1 );
 	pLevel->backgrounds[0]->Set_color_2( bg_color_2 );
@@ -349,9 +283,89 @@ void cLevel_Settings :: Enter( void )
 	Spinner *spinner_const_rot_z_rand = static_cast<Spinner *>(WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z_rand" ));
 	pLevel->pGlobal_effect->Set_ConstRotationZ( spinner_const_rot_z->getCurrentValue(), spinner_const_rot_z_rand->getCurrentValue() );
 
-	// back to level mode
-	Change_Game_Mode( MODE_LEVEL );
-	pMouseCursor->Reset( 0 );
+	// destroy CEGUI window
+	pGuiSystem->getGUISheet()->removeChildWindow( guiwindow );
+	WindowManager::getSingleton().destroyWindow( guiwindow );
+
+	// clear preview images
+	background_preview->Set_Image( NULL, 1 );
+	global_effect_preview->Set_Image( NULL, 1 );
+
+	active = 0;
+}
+
+void cLevel_Settings :: Update( void )
+{
+
+}
+
+void cLevel_Settings :: Draw( void )
+{
+	pVideo->Clear_Screen();
+	pVideo->Draw_Rect( NULL, 0.00001f, &black );
+
+	// background Tab
+	if( tabcontrol->getSelectedTabIndex() == 1 )
+	{
+		// create request
+		cGradientRequest *gradient_request = new cGradientRequest();
+		// always show the gradient
+		if( !background_preview->image )
+		{
+			background_preview->rect.w = 100;
+			background_preview->rect.h = 100;
+		}
+		// draw background gradient
+		pVideo->Draw_Gradient( &background_preview->rect, 0.0001f, &bg_color_1, &bg_color_2, DIR_HORIZONTAL, gradient_request );
+		// scale with image
+		if( background_preview->image )
+		{
+			// set scale
+			gradient_request->rect.w *= background_preview->scalex;
+			gradient_request->rect.h *= background_preview->scaley;
+		}
+		// add request
+		pRenderer_GUI->Add( gradient_request );
+
+		// create request
+		cSurfaceRequest *request = new cSurfaceRequest();
+		// draw background image preview
+		background_preview->Draw( request );
+		// add request
+		pRenderer_GUI->Add( request );
+	}
+	// Global Effect Tab
+	else if( tabcontrol->getSelectedTabIndex() == 2 )
+	{
+		// create request
+		cSurfaceRequest *request = new cSurfaceRequest();
+		// draw global effect preview
+		global_effect_preview->Draw( request );
+		// add request
+		pRenderer_GUI->Add( request );
+	}
+}
+
+bool cLevel_Settings :: Key_Down( SDLKey key )
+{
+	if( !active )
+	{
+		return 0;
+	}
+
+	if( key == SDLK_ESCAPE )
+	{
+		// back to level mode
+		Game_Action = GA_ENTER_LEVEL;
+	}
+	else
+	{
+		// not processed
+		return 0;
+	}
+
+	// key got processed
+	return 1;
 }
 
 bool cLevel_Settings :: Add_Background_image( const EventArgs &event )
@@ -382,9 +396,9 @@ bool cLevel_Settings :: Delete_Background_image( const EventArgs &event )
 	delete pLevel->backgrounds[bg_num];
 	pLevel->backgrounds.erase( pLevel->backgrounds.begin() + bg_num );
 
-	// uddate list
+	// update list
 	Load_BG_imageList();
-	// clear bg image gui
+	// clear background image gui
 	Update_BG_image( EventArgs() );
 
 	return 1;
@@ -394,8 +408,9 @@ bool cLevel_Settings :: Set_Background_image( const EventArgs &event )
 {
 	Listbox *listbox = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_backgrounds" ));
 	ListboxItem *item = listbox->getFirstSelectedItem();
-
-	if( item ) // selected
+	
+	// selected
+	if( item )
 	{
 		cBackground *background = pLevel->Get_background( string_to_int( item->getText().c_str() ) );
 		string background_filename = background->img_file_1;
@@ -429,7 +444,8 @@ bool cLevel_Settings :: Set_Background_image( const EventArgs &event )
 
 bool cLevel_Settings :: Button_Save( const EventArgs &event )
 {
-	active = 0;
+	// back to level mode
+	Game_Action = GA_ENTER_LEVEL;
 	return 1;
 }
 
@@ -445,18 +461,18 @@ bool cLevel_Settings :: Update_BG_Colors( const EventArgs &event )
 
 	// color 1
 	Window *statictext = WindowManager::getSingleton().getWindow( "text_bg_color_1_red" );
-	statictext->setProperty( "TextColours", PropertyHelper::colourToString( colour( 1, 1 - ( (float)bg_color_1.red / 255 ), 1 - ( (float)bg_color_1.red / 255 ), 1 ) ) );
+	statictext->setProperty( "TextColours", PropertyHelper::colourToString( colour( 1, 1 - ( static_cast<float>(bg_color_1.red) / 255 ), 1 - ( static_cast<float>(bg_color_1.red) / 255 ), 1 ) ) );
 	statictext = WindowManager::getSingleton().getWindow( "text_bg_color_1_green" );
-	statictext->setProperty( "TextColours", PropertyHelper::colourToString( colour( 1 - ( (float)bg_color_1.green / 255 ), 1, 1 - ( (float)bg_color_1.green / 255 ), 1 ) ) );
+	statictext->setProperty( "TextColours", PropertyHelper::colourToString( colour( 1 - ( static_cast<float>(bg_color_1.green) / 255 ), 1, 1 - ( static_cast<float>(bg_color_1.green) / 255 ), 1 ) ) );
 	statictext = WindowManager::getSingleton().getWindow( "text_bg_color_1_blue" );
-	statictext->setProperty( "TextColours", PropertyHelper::colourToString( colour( 1 - ( (float)bg_color_1.blue / 255 ), 1 - ( (float)bg_color_1.blue / 255 ), 1, 1 ) ) );
+	statictext->setProperty( "TextColours", PropertyHelper::colourToString( colour( 1 - ( static_cast<float>(bg_color_1.blue) / 255 ), 1 - ( static_cast<float>(bg_color_1.blue) / 255 ), 1, 1 ) ) );
 	// color 2
 	statictext = WindowManager::getSingleton().getWindow( "text_bg_color_2_red" );
-	statictext->setProperty( "TextColours", PropertyHelper::colourToString( colour( 1, 1 - ( (float)bg_color_2.red / 255 ), 1 - ( (float)bg_color_2.red / 255 ), 1 ) ) );
+	statictext->setProperty( "TextColours", PropertyHelper::colourToString( colour( 1, 1 - ( static_cast<float>(bg_color_2.red) / 255 ), 1 - ( static_cast<float>(bg_color_2.red) / 255 ), 1 ) ) );
 	statictext = WindowManager::getSingleton().getWindow( "text_bg_color_2_green" );
-	statictext->setProperty( "TextColours", PropertyHelper::colourToString( colour( 1 - ( (float)bg_color_2.green / 255 ), 1, 1 - ( (float)bg_color_2.green / 255 ), 1 ) ) );
+	statictext->setProperty( "TextColours", PropertyHelper::colourToString( colour( 1 - ( static_cast<float>(bg_color_2.green) / 255 ), 1, 1 - ( static_cast<float>(bg_color_2.green) / 255 ), 1 ) ) );
 	statictext = WindowManager::getSingleton().getWindow( "text_bg_color_2_blue" );
-	statictext->setProperty( "TextColours", PropertyHelper::colourToString( colour( 1 - ( (float)bg_color_2.blue / 255 ), 1 - ( (float)bg_color_2.blue / 255 ), 1, 1 ) ) );
+	statictext->setProperty( "TextColours", PropertyHelper::colourToString( colour( 1 - ( static_cast<float>(bg_color_2.blue) / 255 ), 1 - ( static_cast<float>(bg_color_2.blue) / 255 ), 1, 1 ) ) );
 
 	statictext = WindowManager::getSingleton().getWindow( "rect_color_1" );
 	statictext->setProperty( "TextColours", PropertyHelper::colourToString( bg_color_1.Get_cegui_colour() ) );
@@ -478,8 +494,9 @@ void cLevel_Settings :: Load_BG_imageList( void )
 	}
 
 	PushButton *button_add = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_add_background_image" ));
-
-	if( pLevel->Get_Backgroundlayers() >= 4 ) // 3 layers + default background maximum
+	
+	// 9 layers + default background maximum
+	if( pLevel->Get_Backgroundlayers() >= 10 )
 	{
 		button_add->disable();
 	}
@@ -499,19 +516,22 @@ void cLevel_Settings :: Set_Background_image_Preview( string filename )
 		return;
 	}
 
-	GL_Surface *temp = pVideo->Load_Surface( filename );
+	GL_Surface *temp = pVideo->Get_Surface( filename );
 	
 	if( !temp )
 	{
-		printf( "Warning : Couldn't open Background preview : %s\n", filename.c_str() );
+		return;
 	}
-	else
-	{
-		float zoom = pVideo->Get_scale( temp, 100, 100 );
-		temp->w *= zoom;
-		temp->h *= zoom;
-		background_preview->Set_Image( temp, 0, 1 );
-	}
+
+	// reset scale
+	background_preview->scalex = 1;
+	background_preview->scaley = 1;
+	// Set image
+	background_preview->Set_Image( temp );
+	// Set Zoom
+	float zoom = pVideo->Get_scale( temp, 100, 100 );
+	background_preview->scalex *= zoom;
+	background_preview->scaley *= zoom;
 }
 
 bool cLevel_Settings :: Update_BG_image( const EventArgs &event )
@@ -587,19 +607,22 @@ void cLevel_Settings :: Set_global_effect_image_Preview( string filename )
 		return;
 	}
 
-	GL_Surface *temp = pVideo->Load_Surface( filename );
+	GL_Surface *temp = pVideo->Get_Surface( filename );
 	
 	if( !temp )
 	{
-		printf( "Warning : Couldn't open global effect preview : %s\n", filename.c_str() );
+		return;
 	}
-	else
-	{
-		float zoom = pVideo->Get_scale( temp, 100, 100 );
-		temp->w *= zoom;
-		temp->h *= zoom;
-		global_effect_preview->Set_Image( temp, 0, 1 );
-	}
+
+	// reset scale
+	global_effect_preview->scalex = 1;
+	global_effect_preview->scaley = 1;
+	// Set image
+	global_effect_preview->Set_Image( temp );
+	// Set Zoom
+	float zoom = pVideo->Get_scale( temp, 100, 100 );
+	global_effect_preview->scalex *= zoom;
+	global_effect_preview->scaley *= zoom;
 }
 
 bool cLevel_Settings :: Update_global_effect_image( const EventArgs &event )

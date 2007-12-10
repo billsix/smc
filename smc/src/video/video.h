@@ -103,11 +103,15 @@ public:
 	void Init_OpenGL( void );
 	// Initializes the Basic color set
 	void Init_BasicColors( void );
-	// initializes the scaling value for all images for the current resolution
-	void Init_ImageScale( void );
+	// initializes the up/down scaling value  for the current resolution ( image/mouse scale )
+	void Init_Resolution_Scale( void );
 
-	// Tests if the given resolution and bits per pixel are working/valid
-	bool Test_Video( int width, int height, int bpp );
+	/* Test if the given resolution and bits per pixel are valid
+	 * if flags aren't set they are auto set from the preferences
+	 * returns 0 if the requested mode is not supported under any bit depth,
+	 * or returns the bits-per-pixel of the closest available mode
+	*/
+	int Test_Video( int width, int height, int bpp, int flags = 0 );
 
 	// Resets and clears the screen
 	void Clear_Screen( void );
@@ -161,7 +165,7 @@ public:
 	/* returns the scale size if the image is bigger as the given size
 	 * - also upscales if only_downscale is set to 0
 	*/
-	float Get_scale( GL_Surface *image, float height, float width, bool only_downscale = 1 );
+	float Get_scale( GL_Surface *image, float width, float height, bool only_downscale = 1 );
 
 	// Function: Save_Screenshot
 	// Save bitmap of current screen.

@@ -33,11 +33,13 @@ cEditor_Level :: cEditor_Level( void )
 	items_filename = DATA_DIR "/" GAME_EDITOR_DIR "/level_items.xml";
 
 	editor_item_tag = "level";
+
+	pSettings = new cLevel_Settings();
 }
 
 cEditor_Level :: ~cEditor_Level( void )
 {
-	//
+	delete pSettings;
 }
 
 void cEditor_Level :: Init( void )
@@ -116,7 +118,7 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 		float new_cameraposx = 0;
 		float new_cameraposy = 0;
 
-		for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			cSprite *obj = (*itr);
 
@@ -189,7 +191,7 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 void cEditor_Level :: Add_Object( cSprite *object )
 {
 	// add to level object manager
-	pSprite_Manager->Add( object );
+	pLevel->pSprite_Manager->Add( object );
 }
 
 void cEditor_Level :: Activate_Menu( cEditor_Menu_Object *entry )
@@ -403,14 +405,12 @@ void cEditor_Level :: Function_Clear( void )
 		return;
 	}
 
-	pSprite_Manager->Delete_All();
+	pLevel->pSprite_Manager->Delete_All();
 }
 
 void cEditor_Level :: Function_Settings( void )
 {
-	cLevel_Settings *settings = new cLevel_Settings();
-	settings->Enter();
-	delete settings;
+	Game_Action = GA_ENTER_LEVEL_SETTINGS;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

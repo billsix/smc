@@ -201,7 +201,7 @@ public:
 	// Set image scale ( 0.01 - 100 )
 	virtual void Set_Scale( float nscale, float scale_random = 0 );
 	// Set the Color
-	virtual void Set_Color( Color col, Color col_rand = Color( (Uint8)0 ) );
+	virtual void Set_Color( Color col, Color col_rand = Color( static_cast<Uint8>(0) ) );
 	// Set fading type
 	void Set_Fading_Size( bool enable );
 	void Set_Fading_Alpha( bool enable );

@@ -37,7 +37,7 @@ GL_Vector :: GL_Vector( const GL_Vector &v )
 
 float GL_Vector :: norm( void ) const
 {
-	return (float)sqrt( x * x + y * y + z * z );
+	return static_cast<float>(sqrt( x * x + y * y + z * z ));
 }
 
 void GL_Vector :: normalize( void )
@@ -73,8 +73,8 @@ GL_Vector GL_Vector :: rotate( float angle, const GL_Vector& a ) const
 {
 	GL_Vector tmp = GL_Vector();
 
-	float s = (float)sin( angle );
-	float c = (float)cos( angle );
+	float s = static_cast<float>(sin( angle ));
+	float c = static_cast<float>(cos( angle ));
 
 	tmp.x = x*(a.x*a.x*(1-c)+c)     + y*(a.x*a.y*(1-c)-a.z*s) + z*(a.x*a.z*(1-c)+a.y*s);
 	tmp.y = x*(a.y*a.x*(1-c)+a.z*s) + y*(a.y*a.y*(1-c)+c)     + z*(a.y*a.z*(1-c)-a.x*s);
@@ -85,10 +85,10 @@ GL_Vector GL_Vector :: rotate( float angle, const GL_Vector& a ) const
 
 void GL_Vector :: round( void )
 {
-	x = (float)int( x + 0.5f );
-	y = (float)int( y + 0.5f );
-	z = (float)int( z + 0.5f );
-	w = (float)int( w + 0.5f );
+	x = static_cast<float>(int( x + 0.5f ));
+	y = static_cast<float>(int( y + 0.5f ));
+	z = static_cast<float>(int( z + 0.5f ));
+	w = static_cast<float>(int( w + 0.5f ));
 }
 
 GL_Vector GL_Vector :: operator * ( float s ) const

@@ -48,10 +48,10 @@ Color :: Color( Uint8 r, Uint8 g, Uint8 b, Uint8 a /* = 255 */ )
 
 Color :: Color( float r, float g, float b, float a /* = 1 */ )
 {
-	red = (Uint8)(r * 255);
-	green = (Uint8)(g * 255);
-	blue = (Uint8)(b * 255);
-	alpha = (Uint8)(a * 255);
+	red = static_cast<Uint8>(r * 255);
+	green = static_cast<Uint8>(g * 255);
+	blue = static_cast<Uint8>(b * 255);
+	alpha = static_cast<Uint8>(a * 255);
 }
 
 Color :: Color( Uint8 grey )
@@ -86,7 +86,7 @@ SDL_Color Color :: Get_SDL_Color( void )
 
 colour Color :: Get_cegui_colour( void )
 {
-	return colour( (float)red / 255, (float)green / 255, (float)blue / 255, (float)alpha / 255 );
+	return colour( static_cast<float>(red) / 255, static_cast<float>(green) / 255, static_cast<float>(blue) / 255, static_cast<float>(alpha) / 255 );
 }
 
 bool Color :: Compare( const Color color )
@@ -134,7 +134,7 @@ void cVideo :: Init_CEGUI( void )
 	try
 	{
 		pGuiRenderer = new OpenGLRenderer( 0, GAME_RES_W, GAME_RES_H );
-		pGuiSystem = new System( pGuiRenderer, NULL, NULL, NULL, "", user_data_dir + "/cegui.log" );
+		pGuiSystem = new System( pGuiRenderer, NULL, NULL, NULL, "", user_data_dir + "cegui.log" );
 	}
 	// catch CEGUI Exceptions
 	catch( Exception &ex )
@@ -191,22 +191,8 @@ void cVideo :: Init_CEGUI_data( void )
 	// first font loaded automatically becomes the default font
 	try
 	{
-		// load best fitting texture font
-		if( pPreferences->Screen_W >= 1024 )
-		{
-			FontManager::getSingleton().createFont( "bluebold1024_medium.font" );
-			FontManager::getSingleton().createFont( "bluebold1024_big.font" );
-		}
-		else if( pPreferences->Screen_W >= 800 )
-		{
-			FontManager::getSingleton().createFont( "bluebold800_medium.font" );
-			FontManager::getSingleton().createFont( "bluebold800_big.font" );
-		}
-		else
-		{
-			FontManager::getSingleton().createFont( "bluebold640_medium.font" );
-			FontManager::getSingleton().createFont( "bluebold640_big.font" );
-		}
+		FontManager::getSingleton().createFont( "bluebold1024_medium.font" );
+		FontManager::getSingleton().createFont( "bluebold1024_big.font" );
 	}
 	// catch CEGUI Exceptions
 	catch( Exception &ex )
@@ -219,7 +205,7 @@ void cVideo :: Init_CEGUI_data( void )
 	pGuiSystem->setDefaultMouseCursor( "TaharezLook", "MouseArrow" );
 	// force new mouse image
 	MouseCursor::getSingleton().setImage( &ImagesetManager::getSingleton().getImageset( "TaharezLook" )->getImage( "MouseArrow" ) );
-	// hide CEGUI mouse always because we render the mouse manually
+	// hide CEGUI mouse always because we render it manually
 	MouseCursor::getSingleton().hide();
 	// default tooltip
 	pGuiSystem->setDefaultTooltip( "TaharezLook/Tooltip" );
@@ -269,22 +255,26 @@ void cVideo :: Init_Video( void )
 	int flags = SDL_OPENGL | SDL_SWSURFACE;
 
 	// only enter fullscreen if already initialized
-	if( initialised && pPreferences->Fullscreen )
+	if( initialised && pPreferences->video_fullscreen )
 	{
 		flags |= SDL_FULLSCREEN;
 	}
 
-	int screen_w = pPreferences->Screen_W;
-	int screen_h = pPreferences->Screen_H;
-	int screen_bpp = pPreferences->Screen_Bpp;
-	int screen_rgb_size[3];
+	int screen_w, screen_h, screen_bpp;
 
+	// final initialization
+	if( initialised )
+	{
+		screen_w = pPreferences->video_screen_w;
+		screen_h = pPreferences->video_screen_h;
+		screen_bpp = pPreferences->video_screen_bpp;
+	}
 	// first initialization with SDL defaults
-	if( !initialised )
+	else
 	{
 		screen_w = 800;
 		screen_h = 600;
-		screen_bpp = 0;
+		screen_bpp = 16;
 
 		// Set Caption
 		SDL_WM_SetCaption( CAPTION, NULL );
@@ -293,6 +283,42 @@ void cVideo :: Init_Video( void )
 		SDL_WM_SetIcon( icon, NULL );
 		SDL_FreeSurface( icon );
 	}
+
+	// test screen mode
+	int screen_test = Test_Video( screen_w, screen_h, screen_bpp, flags );
+
+	// failed
+	if( screen_test == 0 )
+	{
+		printf( "Warning : Video Resolution %dx%d is not supported\n", screen_w, screen_h );
+
+		// set lowest available settings
+		screen_w = 640;
+		screen_h = 480;
+		screen_bpp = 0;
+
+		// overwrite user settings
+		if( initialised )
+		{
+			pPreferences->video_screen_w = screen_w;
+			pPreferences->video_screen_h = screen_h;
+		}
+	}
+	// Can't handle bits per pixel
+	else if( screen_test > 1 && screen_bpp > 0 && screen_test < screen_bpp )
+	{
+		printf( "Warning : Video Bpp %d is not supported but %d is\n", screen_bpp, screen_test );
+		// set closest supported bpp
+		screen_bpp = screen_test;
+
+		// overwrite user settings
+		if( initialised )
+		{
+			pPreferences->video_screen_bpp = screen_bpp;
+		}
+	}
+
+	int screen_rgb_size[3];
 
 	// set bits per pixel sizes
 	if( screen_bpp == 8 )
@@ -330,7 +356,7 @@ void cVideo :: Init_Video( void )
 	//SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 16 );
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 	// if VSync is enabled
-	if( initialised && pPreferences->vsync )
+	if( initialised && pPreferences->video_vsync )
 	{
 		SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, 1 );
 	}
@@ -355,36 +381,31 @@ void cVideo :: Init_Video( void )
 	}
 
 	// check fullscreen
-	if( initialised && pPreferences->Fullscreen )
+	if( initialised && pPreferences->video_fullscreen )
 	{
 		int is_fullscreen = ( ( screen->flags & SDL_FULLSCREEN ) == SDL_FULLSCREEN );
 
 		if( !is_fullscreen )
 		{
-			printf( "Warning : Fullscreen mode not set\n" );
+			printf( "Warning : Fullscreen mode couldn't be set\n" );
 		}
 	}
 
 	// check Double Buffering
 	int is_double_buffer;
 	SDL_GL_GetAttribute( SDL_GL_DOUBLEBUFFER, &is_double_buffer );
+	double_buffer = is_double_buffer > 0;
 
-	if( is_double_buffer )
+	if( !double_buffer )
 	{
-		double_buffer = 1;
-	}
-	else
-	{
-		double_buffer = 0;
-
 		if( initialised )
 		{
-			printf( "Warning : not using Double Buffering\n" );
+			printf( "Warning : Double Buffering couldn't be set\n" );
 		}
 	}
 
 	// check VSync
-	if( pPreferences->vsync && initialised )
+	if( pPreferences->video_vsync && initialised )
 	{
 		int is_vsync;
 		// seems to return always true even if not available
@@ -392,7 +413,7 @@ void cVideo :: Init_Video( void )
 
 		if( !is_vsync )
 		{
-			printf( "Warning : not using VSync\n" );
+			printf( "Warning : VSync couldn't be set\n" );
 		}
 	}
 
@@ -439,6 +460,7 @@ void cVideo :: Init_Video( void )
 
 		// restore textures
 		pGuiRenderer->restoreTextures();
+		pGuiRenderer->setDisplaySize( CEGUI::Size( static_cast<float>(screen_w), static_cast<float>(screen_h) ) );
 		pImageManager->Restore_Textures();
 		pFont->Restore_Textures();
 	}
@@ -446,7 +468,7 @@ void cVideo :: Init_Video( void )
 	else
 	{
 		// get opengl version
-		opengl_version = (float)atof( reinterpret_cast<const char*>(glGetString( GL_VERSION )) );
+		opengl_version = static_cast<float>(atof( reinterpret_cast<const char*>(glGetString( GL_VERSION )) ));
 
 		if( opengl_version < 1.4f )
 		{
@@ -460,13 +482,13 @@ void cVideo :: Init_Video( void )
 void cVideo :: Init_OpenGL( void )
 {
     // viewport should cover the whole screen
-    glViewport( 0, 0, pPreferences->Screen_W, pPreferences->Screen_H );
+    glViewport( 0, 0, pPreferences->video_screen_w, pPreferences->video_screen_h );
 
     // Camera projection matrix
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
 	// Set up an Ortho Screen
-	glOrtho( 0, (float)pPreferences->Screen_W, (float)pPreferences->Screen_H, 0, -1, 1 );
+	glOrtho( 0, static_cast<float>(pPreferences->video_screen_w), static_cast<float>(pPreferences->video_screen_h), 0, -1, 1 );
 	
     // matrix operations
     glMatrixMode( GL_MODELVIEW );
@@ -504,58 +526,60 @@ void cVideo :: Init_OpenGL( void )
     // back-facing polygons
     //glDisable( GL_CULL_FACE );
 
-	Init_ImageScale();
+	Init_Resolution_Scale();
 }
 
 void cVideo :: Init_BasicColors( void )
 {
-	blue = Color( (Uint8)150, 200, 225 );
-	darkblue = Color( (Uint8)0, 0, 128 );
-	lightblue = Color( (Uint8)41, 167, 255 );
-	black = Color( (Uint8)0, 0, 0 );
-	blackalpha128 = Color( (Uint8)0, 0, 0, 128 );
-	blackalpha192 = Color( (Uint8)0, 0, 0, 192 );
-	white = Color( (Uint8)255, 255, 255 );
-	whitealpha128 = Color( (Uint8)255, 255, 255, 128 );
-	grey = Color( (Uint8)128, 128, 128 );
-	lightgrey = Color( (Uint8)64, 64, 64 );
-	lightgreyalpha64 = Color( (Uint8)64, 64, 64, 64 );
-	green = Color( (Uint8)0, 230, 0 );
-	lightgreen = Color( (Uint8)20, 253, 20 );
-	lightgreenalpha64 = Color( (Uint8)30, 230, 30, 64 );
-	yellow = Color( (Uint8)255, 245, 10 );
-	greenyellow = Color( (Uint8)154, 205, 50 );
-	darkgreen = Color( (Uint8)1, 119, 34 );
-	red = Color( (Uint8)250, 0, 0 );
-	lightred = Color( (Uint8)255, 40, 20 );
-	lila = Color( (Uint8)200, 0, 255 );
-	orange = Color( (Uint8)248, 191, 38 );
-	lightorange = Color( (Uint8)255, 220, 100 );
+	blue = Color( static_cast<Uint8>(150), 200, 225 );
+	darkblue = Color( static_cast<Uint8>(0), 0, 128 );
+	lightblue = Color( static_cast<Uint8>(41), 167, 255 );
+	black = Color( static_cast<Uint8>(0), 0, 0 );
+	blackalpha128 = Color( static_cast<Uint8>(0), 0, 0, 128 );
+	blackalpha192 = Color( static_cast<Uint8>(0), 0, 0, 192 );
+	white = Color( static_cast<Uint8>(255), 255, 255 );
+	whitealpha128 = Color( static_cast<Uint8>(255), 255, 255, 128 );
+	grey = Color( static_cast<Uint8>(128), 128, 128 );
+	lightgrey = Color( static_cast<Uint8>(64), 64, 64 );
+	lightgreyalpha64 = Color( static_cast<Uint8>(64), 64, 64, 64 );
+	green = Color( static_cast<Uint8>(0), 230, 0 );
+	lightgreen = Color( static_cast<Uint8>(20), 253, 20 );
+	lightgreenalpha64 = Color( static_cast<Uint8>(30), 230, 30, 64 );
+	yellow = Color( static_cast<Uint8>(255), 245, 10 );
+	greenyellow = Color( static_cast<Uint8>(154), 205, 50 );
+	darkgreen = Color( static_cast<Uint8>(1), 119, 34 );
+	red = Color( static_cast<Uint8>(250), 0, 0 );
+	lightred = Color( static_cast<Uint8>(255), 40, 20 );
+	lila = Color( static_cast<Uint8>(200), 0, 255 );
+	orange = Color( static_cast<Uint8>(248), 191, 38 );
+	lightorange = Color( static_cast<Uint8>(255), 220, 100 );
 }
 
-void cVideo :: Init_ImageScale( void )
+void cVideo :: Init_Resolution_Scale( void )
 {
-	global_scalex = (float)pPreferences->Screen_W / (float)GAME_RES_W;
-	global_scaley = (float)pPreferences->Screen_H / (float)GAME_RES_H;
+	// up scale
+	global_upscalex = static_cast<float>(pPreferences->video_screen_w) / static_cast<float>(GAME_RES_W);
+	global_upscaley = static_cast<float>(pPreferences->video_screen_h) / static_cast<float>(GAME_RES_H);
+	// down scale
+	global_downscalex = static_cast<float>(GAME_RES_W) / static_cast<float>(pPreferences->video_screen_w);
+	global_downscaley = static_cast<float>(GAME_RES_H) / static_cast<float>(pPreferences->video_screen_h);
 }
 
-bool cVideo :: Test_Video( int width, int height, int bpp )
+int cVideo :: Test_Video( int width, int height, int bpp, int flags /* = 0 */ )
 {
-	// set the video flags
-	int flags = SDL_OPENGL;
-
-	// only in fullscreen if already initialized
-	if( pPreferences->Fullscreen )
+	// auto set the video flags
+	if( !flags )
 	{
-		flags |= SDL_FULLSCREEN;
+		flags = SDL_OPENGL | SDL_SWSURFACE;
+
+		// only in fullscreen if already initialized
+		if( pPreferences->video_fullscreen )
+		{
+			flags |= SDL_FULLSCREEN;
+		}
 	}
 
-	if( SDL_VideoModeOK( width, height, bpp, flags ) == 0 )
-	{
-		return 0;
-	}
-
-	return 1;
+	return SDL_VideoModeOK( width, height, bpp, flags );
 }
 
 void cVideo :: Clear_Screen( void )
@@ -576,7 +600,7 @@ void cVideo :: Render( void )
 void cVideo :: Toggle_Fullscreen( void )
 {
 	// toggle fullscreen
-	pPreferences->Fullscreen = !pPreferences->Fullscreen;
+	pPreferences->video_fullscreen = !pPreferences->video_fullscreen;
 
 	// save clear color
 	GLclampf clear_color[4];
@@ -703,7 +727,7 @@ GL_Surface *cVideo :: Load_Surface( string filename, bool use_settings /* = 1 */
 	if( settings )
 	{
 		// check if texture needs to get downscaled
-		float new_w = (float)Get_GLsize( sdl_surface->w ), new_h = (float)Get_GLsize( sdl_surface->h );
+		float new_w = static_cast<float>(Get_GLsize( sdl_surface->w )), new_h = static_cast<float>(Get_GLsize( sdl_surface->h ));
 
 		// if image settings dimension
 		if( settings->width > 0 && settings->height > 0 )
@@ -711,14 +735,14 @@ GL_Surface *cVideo :: Load_Surface( string filename, bool use_settings /* = 1 */
 			/* downscale to fit best for the current resolution
 			 * uses the first dimension which is not smaller as the default scale
 			*/
-			while( new_w * 0.5f > settings->width * global_scalex && new_h * 0.5f > settings->height * global_scaley )
+			while( new_w * 0.5f > settings->width * global_upscalex && new_h * 0.5f > settings->height * global_upscaley )
 			{
 				new_w *= 0.5f;
 				new_h *= 0.5f;
 			}
 		}
 
-		image = Create_Texture( sdl_surface, settings->mipmap, (unsigned int)new_w, (unsigned int)new_h );
+		image = Create_Texture( sdl_surface, settings->mipmap, static_cast<unsigned int>(new_w), static_cast<unsigned int>(new_h) );
 
 		// apply settings
 		settings->Apply( image );
@@ -827,8 +851,10 @@ GL_Surface *cVideo :: Create_Texture( SDL_Surface *surface, bool mipmap /* = 0 *
 	image->image = image_num;
 	image->tex_w = width;
 	image->tex_h = height;
-	image->w = (float)width;
-	image->h = (float)height;
+	image->start_w = static_cast<float>(width);
+	image->start_h = static_cast<float>(height);
+	image->w = image->start_w;
+	image->h = image->start_h;
 	image->col_w = image->w;
 	image->col_h = image->h;
 
@@ -1034,7 +1060,7 @@ void cVideo :: Draw_Gradient( float x, float y, float width, float height, float
 	}
 }
 
-float cVideo :: Get_scale( GL_Surface *image, float height, float width, bool only_downscale /* = 1 */ )
+float cVideo :: Get_scale( GL_Surface *image, float width, float height, bool only_downscale /* = 1 */ )
 {
 	if( !image )
 	{
@@ -1070,13 +1096,13 @@ void cVideo :: Save_Screenshot( void )
 			// Todo : save it as png
 
 			// create RGB image data
-			GLubyte *data = new GLubyte[pPreferences->Screen_W * pPreferences->Screen_H * 3];
+			GLubyte *data = new GLubyte[pPreferences->video_screen_w * pPreferences->video_screen_h * 3];
 
 			// read gl screen
-			glReadPixels( 0, 0, pPreferences->Screen_W, pPreferences->Screen_H, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid *)data );
+			glReadPixels( 0, 0, pPreferences->video_screen_w, pPreferences->video_screen_h, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid *)data );
 
 			// create SDL surface
-			SDL_Surface *temp = SDL_CreateRGBSurface( SDL_SWSURFACE, pPreferences->Screen_W, pPreferences->Screen_H, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000 );
+			SDL_Surface *temp = SDL_CreateRGBSurface( SDL_SWSURFACE, pPreferences->video_screen_w, pPreferences->video_screen_h, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000 );
 
 			if( SDL_MUSTLOCK( temp ) )
 			{
@@ -1086,15 +1112,15 @@ void cVideo :: Save_Screenshot( void )
 			Uint32 *pdata = (Uint32 *)temp->pixels;
 
 			// copy into SDL surface
-			for( int y = temp->h - 1, y2 = 0; y >= 0 && y2 < pPreferences->Screen_H; --y, ++y2 )
+			for( int y = temp->h - 1, y2 = 0; y >= 0 && y2 < pPreferences->video_screen_h; --y, ++y2 )
 			{
 				for( int x = temp->w -1; x >= 0; --x )
 				{
 					pdata[y * temp->pitch/4 + x] =
 						SDL_MapRGBA( temp->format,
-							data[ y2 * pPreferences->Screen_W * 3 + x * 3 + 0 ],
-							data[ y2 * pPreferences->Screen_W * 3 + x * 3 + 1 ],
-							data[ y2 * pPreferences->Screen_W * 3 + x * 3 + 2 ],
+							data[ y2 * pPreferences->video_screen_w * 3 + x * 3 + 0 ],
+							data[ y2 * pPreferences->video_screen_w * 3 + x * 3 + 1 ],
+							data[ y2 * pPreferences->video_screen_w * 3 + x * 3 + 2 ],
 							255 );
 				}
 			}
@@ -1136,18 +1162,18 @@ void Draw_Effect_out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 {
 	if( effect == EFFECT_OUT_RANDOM )
 	{
-		effect = (Effect_Fadeout)( ( rand() % (EFFECT_OUT_AMOUNT - 1) ) + 1 );
+		effect = static_cast<Effect_Fadeout>( ( rand() % (EFFECT_OUT_AMOUNT - 1) ) + 1 );
 	}
 
 	switch( effect )
 	{
 	case EFFECT_OUT_BLACK:
 	{
-		Color color = (Uint8)0;
+		Color color = static_cast<Uint8>(0);
 
 		for( float i = 1; i > 0; i -= ( speed / 30 ) * pFramerate->speedfactor )
 		{
-			color.alpha = (Uint8)( 45 - ( 45 * i ) );
+			color.alpha = static_cast<Uint8>( 45 - ( 45 * i ) );
 
 			// create request
 			cRectRequest *request = new cRectRequest();
@@ -1161,8 +1187,8 @@ void Draw_Effect_out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 			pVideo->Render();
 
 			pFramerate->Update();
-			// maximum 90 fps
-			CorrectFrameTime( 90 );
+			// maximum fps
+			CorrectFrameTime( 100 );
 		}
 		
 		break;
@@ -1172,7 +1198,7 @@ void Draw_Effect_out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 		float pos = 0;
 		float size = 1;
 		int hor = ( rand() % 2 ) - 1;
-		Color color = Color( (Uint8)( rand() % 100 ), rand() % 100, rand() % 100, 150 );
+		Color color = Color( static_cast<Uint8>( rand() % 100 ), rand() % 100, rand() % 100, 150 );
 
 		if( hor ) // horizontal
 		{
@@ -1229,8 +1255,8 @@ void Draw_Effect_out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 			pVideo->Render();
 
 			pFramerate->Update();
-			// maximum 90 fps
-			CorrectFrameTime( 90 );
+			// maximum fps
+			CorrectFrameTime( 100 );
 		}
 		break;
 	}
@@ -1246,7 +1272,7 @@ void Draw_Effect_out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 		}
 		else if( pCamera->x < 5000 )
 		{
-			image = pVideo->Get_Surface( "game/items/fire_flower.png" );
+			image = pVideo->Get_Surface( "game/items/fireplant.png" );
 		}
 		else if( pCamera->x < 10000 )
 		{
@@ -1269,7 +1295,7 @@ void Draw_Effect_out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 
 			f += 0.9f * pFramerate->speedfactor * speed * ( f / 7 );
 
-			color = Color( (Uint8)( 255 - ( f * 4 ) ), 255 - (Uint8)( f * 4 ), 255 - (Uint8)( f * 4 ), 200 - (Uint8)( f * 4 ) );
+			color = Color( static_cast<Uint8>( 255 - ( f * 4 ) ), 255 - static_cast<Uint8>( f * 4 ), 255 - static_cast<Uint8>( f * 4 ), 200 - static_cast<Uint8>( f * 4 ) );
 
 			// ## item
 			// create request
@@ -1290,7 +1316,7 @@ void Draw_Effect_out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 			
 
 			// ## additional black fadeout
-			color = Color( 0, 0, 0, (Uint8)( 50 + ( f * 4 ) ) );
+			color = Color( 0, 0, 0, static_cast<Uint8>( 50 + ( f * 4 ) ) );
 
 			// create request
 			cRectRequest *rect_request = new cRectRequest();
@@ -1320,8 +1346,8 @@ void Draw_Effect_out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 
 			for( unsigned int g = 0; g < 50; g++ )
 			{
-				rect.x = (float)( rand() % ( GAME_RES_W ) );
-				rect.y = (float)( rand() % ( GAME_RES_H ) );
+				rect.x = static_cast<float>( rand() % ( GAME_RES_W ) );
+				rect.y = static_cast<float>( rand() % ( GAME_RES_H ) );
 				
 				rect.w = xwidth;
 				rect.h = xwidth;
@@ -1331,22 +1357,22 @@ void Draw_Effect_out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 				// red
 				if( rand_color == 0 )
 				{
-					pixel = Color( 1, (Uint8)( rect.y / 4 ), (Uint8)( rect.x / 4 ), (Uint8)( 5 * pFramerate->speedfactor ) );
+					pixel = Color( 1, static_cast<Uint8>( rect.y / 4 ), static_cast<Uint8>( rect.x / 4 ), static_cast<Uint8>( 5 * pFramerate->speedfactor ) );
 				}
 				// green
 				else if( rand_color == 1 )
 				{
-					pixel = Color( (Uint8)( rect.x / 4 ), 1, (Uint8)( rect.y / 4 ), (Uint8)( 5 * pFramerate->speedfactor ) );
+					pixel = Color( static_cast<Uint8>( rect.x / 4 ), 1, static_cast<Uint8>( rect.y / 4 ), static_cast<Uint8>( 5 * pFramerate->speedfactor ) );
 				}
 				// blue
 				else if( rand_color == 2 )
 				{
-					pixel = Color( (Uint8)( rect.x / 4 ), (Uint8)( rect.y / 4 ), 1, (Uint8)( 5 * pFramerate->speedfactor ) );
+					pixel = Color( static_cast<Uint8>( rect.x / 4 ), static_cast<Uint8>( rect.y / 4 ), 1, static_cast<Uint8>( 5 * pFramerate->speedfactor ) );
 				}
 				// yellow
 				else
 				{
-					pixel = Color( 1, 1, (Uint8)( rect.y / 4 ), (Uint8)( 6 * pFramerate->speedfactor ) );
+					pixel = Color( 1, 1, static_cast<Uint8>( rect.y / 4 ), static_cast<Uint8>( 6 * pFramerate->speedfactor ) );
 				}
 
 				// fix alpha
@@ -1445,17 +1471,17 @@ void Draw_Effect_out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 		// green
 		if( rand_color == 0 )
 		{
-			color = Color( (Uint8)10, 55, 10 );
+			color = Color( static_cast<Uint8>(10), 55, 10 );
 		}
 		// blue
 		else if( rand_color == 1 )
 		{
-			color = Color( (Uint8)10, 10, 55 );
+			color = Color( static_cast<Uint8>(10), 10, 55 );
 		}
 		// yellow
 		else
 		{
-			color = Color( (Uint8)55, 55, 10 );
+			color = Color( static_cast<Uint8>(55), 55, 10 );
 		}
 
 		color.alpha = 1;
@@ -1464,7 +1490,7 @@ void Draw_Effect_out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 		{
 			xsize += 0.3f * pFramerate->speedfactor;
 
-			if( xtemp < (int)xsize )
+			if( xtemp < static_cast<int>(xsize) )
 			{
 				if( xtemp < 10 && xsize > 10 )
 				{
@@ -1474,22 +1500,22 @@ void Draw_Effect_out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 					color.blue *= 0.1f;
 				}
 
-				xpos = (Uint16)( rand() % (unsigned int)xsize ) + 2;
-				ypos = (Uint16)( rand() % (unsigned int)xsize ) + 2;
-				xtemp = (int)xsize + 2;
+				xpos = static_cast<Uint16>( rand() % static_cast<unsigned int>(xsize) ) + 2;
+				ypos = static_cast<Uint16>( rand() % static_cast<unsigned int>(xsize) ) + 2;
+				xtemp = static_cast<unsigned int>(xsize) + 2;
 			}
 
-			for( unsigned int g = xpos; g < GAME_RES_W; g += (unsigned int)xtemp + 5 )
+			for( unsigned int g = xpos; g < GAME_RES_W; g += static_cast<unsigned int>(xtemp) + 5 )
 			{
-				for( unsigned int y = ypos; y < GAME_RES_H; y += (unsigned int)xtemp + 5 )
+				for( unsigned int y = ypos; y < GAME_RES_H; y += static_cast<unsigned int>(xtemp) + 5 )
 				{
-					rect.x = (float)g;
-					rect.y = (float)y;
+					rect.x = static_cast<float>(g);
+					rect.y = static_cast<float>(y);
 					
-					rect.w = (float)( 5 + ( rand() % ( (unsigned int)xsize + ( xtemp / 2 ) ) ) );
-					rect.h = (float)( 5 + ( rand() % ( (unsigned int)xsize + ( xtemp / 2 ) ) ) );
+					rect.w = static_cast<float>( 5 + ( rand() % ( static_cast<unsigned int>(xsize) + ( xtemp / 2 ) ) ) );
+					rect.h = static_cast<float>( 5 + ( rand() % ( static_cast<unsigned int>(xsize) + ( xtemp / 2 ) ) ) );
 
-					Color pixel = Color( ( rand() % color.red ) + 5, ( rand() % color.green ) + 5, ( rand() % color.blue ) + 5, (Uint8)color.alpha );
+					Color pixel = Color( ( rand() % color.red ) + 5, ( rand() % color.green ) + 5, ( rand() % color.blue ) + 5, static_cast<Uint8>(color.alpha) );
 					
 					rect.x -= 2 + ( xtemp / 2 );
 					rect.y -= 2 + ( xtemp / 2 );
@@ -1552,18 +1578,18 @@ void Draw_Effect_in( Effect_Fadein effect /* = EFFECT_IN_RANDOM */, float speed 
 
 	if( effect == EFFECT_IN_RANDOM )
 	{
-		effect = (Effect_Fadein)( ( rand() % (EFFECT_IN_AMOUNT - 1) ) + 1 );
+		effect = static_cast<Effect_Fadein>( ( rand() % (EFFECT_IN_AMOUNT - 1) ) + 1 );
 	}
 
 	switch( effect )
 	{
 	case EFFECT_IN_BLACK:
 	{
-		Color color = (Uint8)0;
+		Color color = static_cast<Uint8>(0);
 
 		for( float i = 1; i > 0; i -= ( speed / 30 ) * pFramerate->speedfactor )
 		{
-			color.alpha = (Uint8)( 255 * i );
+			color.alpha = static_cast<Uint8>( 255 * i );
 
 			// create request
 			cRectRequest *request = new cRectRequest();
@@ -1577,8 +1603,8 @@ void Draw_Effect_in( Effect_Fadein effect /* = EFFECT_IN_RANDOM */, float speed 
 			pVideo->Render();
 
 			pFramerate->Update();
-			// maximum 90 fps
-			CorrectFrameTime( 90 );
+			// maximum fps
+			CorrectFrameTime( 100 );
 		}
 		
 		break;

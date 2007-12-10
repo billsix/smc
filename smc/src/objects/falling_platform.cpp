@@ -88,7 +88,7 @@ cFalling_Platform *cFalling_Platform :: Copy( void )
 void cFalling_Platform :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// speed
 	Set_Time_Fall( attributes.getValueAsFloat( "time_fall", time_fall ) );
 	// middle image count
@@ -107,8 +107,8 @@ void cFalling_Platform :: Save_to_Stream( ofstream &file )
 	file << "\t<falling_platform>" << std::endl;
 
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// fall time
 	file << "\t\t<Property name=\"time_fall\" value=\"" << time_fall << "\" />" << std::endl;
 	// middle image count
@@ -227,11 +227,11 @@ void cFalling_Platform :: Update( void )
 			float move_x = 0;
 			if( posx > startposx )
 			{
-				move_x = -(float)(rand() % 5);
+				move_x = -static_cast<float>(rand() % 5);
 			}
 			else
 			{
-				move_x = (float)(rand() % 5);
+				move_x = static_cast<float>(rand() % 5);
 			}
 
 			// move

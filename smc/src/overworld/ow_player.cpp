@@ -118,7 +118,7 @@ void cOverworld_Player :: Load_Images( void )
 	}
 	else
 	{
-		printf( "Unsupported Maryo state : %d\n", (unsigned int)maryo_state );
+		printf( "Unsupported Maryo state : %d\n", static_cast<unsigned int>(maryo_state) );
 		maryo_state = MARYO_SMALL;
 		return;
 	}
@@ -164,7 +164,7 @@ void cOverworld_Player :: Update( void )
 	}
 	else
 	{
-		printf( "Error : Unknown Overworld Animation state %d\n", (unsigned int)maryo_state );
+		printf( "Error : Unknown Overworld Animation state %d\n", static_cast<unsigned int>(maryo_state) );
 	}
 
 	if( direction == DIR_UNDEFINED )
@@ -223,7 +223,7 @@ void cOverworld_Player :: Draw_Debugtext( void )
 	}
 
 	// Update Lines Texts
-	if( (int)pActive_Overworld->pLayer->size() != debug_lines_last )
+	if( static_cast<int>(pActive_Overworld->pLayer->size()) != debug_lines_last )
 	{
 		debug_lines->Set_Image( pFont->RenderText( pFont->font_small, "Lines : " + int_to_string( pActive_Overworld->pLayer->size() ), blue ), 1, 1 );
 	}
@@ -551,7 +551,7 @@ void cOverworld_Player :: Update_Walk( void )
 	for( unsigned int i = 0; i < pActive_Overworld->waypoints.size(); i++ )
 	{
 		// skip the start waypoint
-		if( (int)i == current_waypoint )
+		if( static_cast<int>(i) == current_waypoint )
 		{
 			continue;
 		}
@@ -777,7 +777,7 @@ void cOverworld_Player :: Change_Direction( void )
 	}
 	else
 	{
-		printf( "Warning : Unknown Maryo direction %d\n", (int)direction );
+		printf( "Warning : Unknown Maryo direction %d\n", static_cast<int>(direction) );
 		direction = DIR_DOWN;
 	}
 

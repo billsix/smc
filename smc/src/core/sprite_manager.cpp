@@ -163,7 +163,7 @@ cSprite *cSprite_Manager :: Get_from_Position( int posx, int posy, SpriteType ty
 		// get object pointer
 		cSprite *obj = (*itr);
 
-		if( (int)obj->startposx != posx || (int)obj->startposy != posy )
+		if( static_cast<int>(obj->startposx) != posx || static_cast<int>(obj->startposy) != posy )
 		{
 			continue;
 		}
@@ -295,7 +295,3 @@ void cSprite_Manager :: Set_Z( cSprite *sprite )
 		}
 	}
 }
-
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
-
-cSprite_Manager *pSprite_Manager = NULL;

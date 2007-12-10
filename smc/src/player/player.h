@@ -89,7 +89,8 @@ public:
 
 	// moves in the current direction
 	void Move_Player( float velocity, float vel_wrongway );
-
+	// generate foot clouds
+	void Generate_feet_clouds( cParticleAnimation *anim = NULL );
 	// Update the walking
 	void Update_walking( void );
 	// Update the running

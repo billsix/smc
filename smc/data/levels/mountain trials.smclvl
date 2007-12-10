@@ -39,7 +39,7 @@
 	</background>
 	<global_effect>
 		<Property name="type" value="1" />
-		<Property name="image" value="/animation/particles/dirt.png" />
+		<Property name="image" value="animation/particles/dirt.png" />
 		<Property name="rect_x" value="0" />
 		<Property name="rect_y" value="-1" />
 		<Property name="rect_w" value="0" />

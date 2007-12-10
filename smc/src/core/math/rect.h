@@ -1,7 +1,7 @@
 /***************************************************************************
      rect.h  -  header for the corresponding cpp file
                              -------------------
-    copyright            : (C) 2005 - 2007 by Florian Richter
+    copyright            : (C) 2006 - 2007 by Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify

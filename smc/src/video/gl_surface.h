@@ -36,6 +36,9 @@ public:
 	*/
 	GL_Surface *Copy( void );
 
+	// Set the ground type
+	void Set_Ground_type( GroundType gtype );
+
 	// returns a software texture copy
 	cSoftware_texture *Get_Software_Texture( void );
 	// loads a software texture
@@ -50,7 +53,9 @@ public:
 	GLuint image;
 	// internal drawing offset
 	float int_x, int_y;
-	// drawing dimension
+	// starting drawing dimension without modifications like rotation and scaling
+	float start_w, start_h;
+	// final drawing dimension
 	float w, h;
 	// texture dimension
 	unsigned int tex_w, tex_h;
@@ -73,6 +78,8 @@ public:
 	string name;
 	// default sprite type
 	unsigned int type;
+	// ground type
+	GroundType ground_type;
 private:
 	// function called on destruction
 	void ( *destruction_function )( GL_Surface * );

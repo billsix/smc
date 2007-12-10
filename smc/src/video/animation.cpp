@@ -94,7 +94,7 @@ cBlinkAnimation :: cBlinkAnimation( float posx, float posy, unsigned int height 
 
 	for( unsigned int i = 0; i < 4; i++ )
 	{
-		cSprite *obj = new cSprite( NULL, (float)( rand() % ( width ) ), (float)( rand() % ( height ) ) );
+		cSprite *obj = new cSprite( NULL, static_cast<float>( rand() % ( width ) ), static_cast<float>( rand() % ( height ) ) );
 		objects.push_back( obj );
 	}
 }
@@ -287,19 +287,19 @@ void cFireAnimation :: Init( void )
 		obj->images.push_back( pVideo->Get_Surface( "animation/fire_1/1.png" ) );
 		obj->Set_Image( 0 );
 
-		// position
-		obj->velx = ( (float)( rand() % ( 50 ) - 25 ) ) / 10;
-		obj->vely = ( (float)( rand() % ( 50 ) - 25 ) ) / 10;
+		// velocity
+		obj->velx = static_cast<float>( rand() % ( 50 ) - 25 ) / 10;
+		obj->vely = static_cast<float>( rand() % ( 50 ) - 25 ) / 10;
 
 		// Z position
 		obj->posz = posz;
 		if( posz_rand > 0.001f )
 		{
-			obj->posz += (float)( rand() % (int)( posz_rand * 1000 ) ) / 1000;
+			obj->posz += static_cast<float>( rand() % static_cast<int>( posz_rand * 1000 ) ) / 1000;
 		}
 
 		// lifetime
-		obj->counter = (float)( 8 + rand() % ( 5 ) );
+		obj->counter = static_cast<float>( 8 + rand() % ( 5 ) );
 	}
 }
 
@@ -395,7 +395,7 @@ cParticle :: ~cParticle( void )
 void cParticle :: Update( void )
 {
 	// update fade modifier
-	fade_pos -= ( pFramerate->speedfactor * ( (float)DESIRED_FPS * 0.001f ) ) / time_to_live;
+	fade_pos -= ( pFramerate->speedfactor * ( static_cast<float>(DESIRED_FPS) * 0.001f ) ) / time_to_live;
 
 	// finished fading
 	if( fade_pos <= 0 )
@@ -503,11 +503,14 @@ cParticleAnimation :: cParticleAnimation( float x /* = 0 */, float y /* = 0 */, 
 	const_rotx_rand = 0;
 	const_roty_rand = 0;
 	const_rotz_rand = 0;
+	// angle
 	angle_start = 0;
 	angle_range = 360;
+	// scale
 	size_scale = 1;
 	size_scale_rand = 0;
-	color_rand = Color( (Uint8)0, 0, 0, 0 );
+	// color
+	color_rand = Color( static_cast<Uint8>(0), 0, 0, 0 );
 	// default 1 second
 	time_to_live = 1;
 	// default fading is alpha
@@ -545,13 +548,13 @@ void cParticleAnimation :: Emit( void )
 		float x = posx;
 		if( rect.w > 0 )
 		{
-			x += ( rand() % (int)rect.w );
+			x += ( rand() % static_cast<int>(rect.w) );
 		}
 		// Y Position
 		float y = posy;
 		if( rect.h > 0 )
 		{
-			y += ( rand() % (int)rect.h );
+			y += ( rand() % static_cast<int>(rect.h) );
 		}
 		// Set Position
 		particle->Set_Pos( x, y, 1 );
@@ -563,7 +566,7 @@ void cParticleAnimation :: Emit( void )
 		particle->posz = posz;
 		if( posz_rand > 0.001f )
 		{
-			particle->posz += (float)( rand() % (int)( posz_rand * 1000 ) ) / 1000;
+			particle->posz += static_cast<float>( rand() % static_cast<int>( posz_rand * 1000 ) ) / 1000;
 		}
 
 		// angle range
@@ -571,14 +574,14 @@ void cParticleAnimation :: Emit( void )
 		// start angle
 		if( angle_range > 0.001f )
 		{
-			dir_angle += (float)( rand() % (int)( angle_range * 10 ) ) / 10;
+			dir_angle += static_cast<float>( rand() % static_cast<int>( angle_range * 10 ) ) / 10;
 		}
 
 		// Velocity
 		float speed = vel;
 		if( vel_rand > 0.001f )
 		{
-			speed += (float)( rand() % (int)( vel_rand * 1000 ) ) / 1000;
+			speed += static_cast<float>( rand() % static_cast<int>( vel_rand * 1000 ) ) / 1000;
 		}
 		// set Velocity
 		particle->Set_Direction( dir_angle, speed, 1 );
@@ -594,22 +597,22 @@ void cParticleAnimation :: Emit( void )
 		particle->const_rotz = const_rotz;
 		if( const_rotx_rand > 0.001f )
 		{
-			particle->const_rotx += (float)( rand() % (int)( const_rotx_rand * 100 ) ) / 100;
+			particle->const_rotx += static_cast<float>( rand() % static_cast<int>( const_rotx_rand * 100 ) ) / 100;
 		}
 		if( const_roty_rand > 0.001f )
 		{
-			particle->const_roty += (float)( rand() % (int)( const_roty_rand * 100 ) ) / 100;
+			particle->const_roty += static_cast<float>( rand() % static_cast<int>( const_roty_rand * 100 ) ) / 100;
 		}
 		if( const_rotz_rand > 0.001f )
 		{
-			particle->const_rotz += (float)( rand() % (int)( const_rotz_rand * 100 ) ) / 100;
+			particle->const_rotz += static_cast<float>( rand() % static_cast<int>( const_rotz_rand * 100 ) ) / 100;
 		}
 
 		// Scale
 		particle->Set_Scale( size_scale );
 		if( size_scale_rand > 0.001f )
 		{
-			particle->Add_Scale( (float)( rand() % (int)( size_scale_rand * 100 ) ) / 100 );
+			particle->Add_Scale( static_cast<float>( rand() % static_cast<int>( size_scale_rand * 100 ) ) / 100 );
 		}
 
 		// Color
@@ -635,7 +638,7 @@ void cParticleAnimation :: Emit( void )
 		particle->time_to_live = time_to_live;
 		if( time_to_live_rand > 0.001f )
 		{
-			particle->time_to_live += (float)( rand() % (int)( time_to_live_rand * 1000 ) ) / 1000;
+			particle->time_to_live += static_cast<float>( rand() % static_cast<int>( time_to_live_rand * 1000 ) ) / 1000;
 		}
 
 		objects.push_back( particle );
@@ -664,7 +667,7 @@ void cParticleAnimation :: Update( void )
 		return;
 	}
 	
-	emitter_living_time += pFramerate->speedfactor * ( (float)DESIRED_FPS * 0.001f );
+	emitter_living_time += pFramerate->speedfactor * ( static_cast<float>(DESIRED_FPS) * 0.001f );
 
 	// update objects
 	for( ParticleList::iterator itr = objects.begin(); itr != objects.end(); )
@@ -698,7 +701,7 @@ void cParticleAnimation :: Update( void )
 			emit_counter -= emitter_iteration_interval;
 		}
 
-		emit_counter += pFramerate->speedfactor * ( (float)DESIRED_FPS * 0.001f );
+		emit_counter += pFramerate->speedfactor * ( static_cast<float>(DESIRED_FPS) * 0.001f );
 	}
 	// no particles are active
 	else if( !objects.size() )
@@ -794,7 +797,7 @@ void cParticleAnimation :: Set_Scale( float nscale, float scale_random /* = 0 */
 	size_scale_rand = scale_random;
 }
 
-void cParticleAnimation :: Set_Color( Color col, Color col_rand /* = Color( (Uint8)0 ) */ )
+void cParticleAnimation :: Set_Color( Color col, Color col_rand /* = Color( static_cast<Uint8>(0) ) */ )
 {
 	color = col;
 	color_rand = col_rand;

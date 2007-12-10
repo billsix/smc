@@ -24,7 +24,7 @@
 #include "../overworld/ow_player.h"
 #include "../gui/menu.h"
 #include "../core/camera.h"
-#include "../core/sprite_manager.h"
+#include "../level/level.h"
 #include "../player/player.h"
 #include "../user/preferences.h"
 #include "../core/framerate.h"
@@ -90,6 +90,9 @@ cMouseCursor :: cMouseCursor( void )
 	Reset_keys();
 
 	SDL_GetMouseState( &x, &y );
+	// scale to the virtual game size
+	x = static_cast<int>( static_cast<float>(x) * global_downscalex );
+	y = static_cast<int>( static_cast<float>(y) * global_downscaley );
 }
 
 cMouseCursor :: ~cMouseCursor( void )
@@ -142,27 +145,16 @@ bool cMouseCursor :: Handle_Event( SDL_Event *ev )
 	{
 		case SDL_MOUSEMOTION:
 		{
-			pGuiSystem->injectMousePosition( (float)ev->motion.x, (float)ev->motion.y );
+			pGuiSystem->injectMousePosition( static_cast<float>(ev->motion.x), static_cast<float>(ev->motion.y) );
+			Update_Position();
 			break;
 		}
 		case SDL_MOUSEBUTTONUP:
 		{
 			if( Handle_Mouse_up( ev->button.button ) )
 			{
-				// GUI handled
+				// processed
 				return 1;
-			}
-			else if( ev->button.button == SDL_BUTTON_LEFT )
-			{
-				left = 0;
-			}
-			else if( ev->button.button == SDL_BUTTON_MIDDLE )
-			{
-				middle = 0;
-			}
-			else if( ev->button.button == SDL_BUTTON_RIGHT )
-			{
-				right = 0;
 			}
 
 			break;
@@ -171,21 +163,10 @@ bool cMouseCursor :: Handle_Event( SDL_Event *ev )
 		{
 			if( Handle_Mouse_down( ev->button.button ) )
 			{
-				// GUI handled
+				// processed
 				return 1;
 			}
-			else if( ev->button.button == SDL_BUTTON_LEFT )
-			{
-				left = 1;
-			}
-			else if( ev->button.button == SDL_BUTTON_MIDDLE )
-			{
-				middle = 1;
-			}
-			else if( ev->button.button == SDL_BUTTON_RIGHT )
-			{
-				right = 1;
-			}
+
 			break;
 		}
 		default:
@@ -204,33 +185,77 @@ bool cMouseCursor :: Handle_Mouse_down( Uint8 button )
 		// mouse buttons
 		case SDL_BUTTON_LEFT:
 		{
-			return System::getSingleton().injectMouseButtonDown( LeftButton );
+			left = 1;
+			if( System::getSingleton().injectMouseButtonDown( LeftButton ) )
+			{
+				return 1;
+			}
 			break;
 		}
 		case SDL_BUTTON_MIDDLE:
 		{
-			return System::getSingleton().injectMouseButtonDown( MiddleButton );
+			middle = 1;
+			if( System::getSingleton().injectMouseButtonDown( MiddleButton ) )
+			{
+				return 1;
+			}
 			break;
 		}
 		case SDL_BUTTON_RIGHT:
 		{
-			return System::getSingleton().injectMouseButtonDown( RightButton );
+			right = 1;
+			if( System::getSingleton().injectMouseButtonDown( RightButton ) )
+			{
+				return 1;
+			}
 			break;
 		}
 		// mouse wheel
 		case SDL_BUTTON_WHEELDOWN:
 		{
-			return System::getSingleton().injectMouseWheelChange( -1 );
+			if( System::getSingleton().injectMouseWheelChange( -1 ) )
+			{
+				return 1;
+			}
 			break;
 		}
 		case SDL_BUTTON_WHEELUP:
 		{
-			return System::getSingleton().injectMouseWheelChange( +1 );
+			if( System::getSingleton().injectMouseWheelChange( +1 ) )
+			{
+				return 1;
+			}
 			break;
 		}
 		default:
 		{
 			break;
+		}
+	}
+
+	// handle button in the current mode
+	if( Game_Mode == MODE_LEVEL )
+	{
+		// processed by the level
+		if( pLevel->Mouse_Down( button ) )
+		{
+			return 1;
+		}
+	}
+	else if( Game_Mode == MODE_OVERWORLD )
+	{
+		// processed by the overworld
+		if( pActive_Overworld->Mouse_Down( button ) )
+		{
+			return 1;
+		}
+	}
+	else if( Game_Mode == MODE_MENU )
+	{
+		// processed by the menu
+		if( pMenuCore->Mouse_Down( button ) )
+		{
+			return 1;
 		}
 	}
 
@@ -243,22 +268,60 @@ bool cMouseCursor :: Handle_Mouse_up( Uint8 button )
 	{
 		case SDL_BUTTON_LEFT:
 		{
-			return System::getSingleton().injectMouseButtonUp( LeftButton );
+			left = 0;
+			if( System::getSingleton().injectMouseButtonUp( LeftButton ) )
+			{
+				return 1;
+			}
 		}
 		break;
 		case SDL_BUTTON_MIDDLE:
 		{
-			return System::getSingleton().injectMouseButtonUp( MiddleButton );
+			middle = 0;
+			if( System::getSingleton().injectMouseButtonUp( MiddleButton ) )
+			{
+				return 1;
+			}
 		}
 		break;
 		case SDL_BUTTON_RIGHT:
 		{
-			return System::getSingleton().injectMouseButtonUp( RightButton );
+			right = 0;
+			if( System::getSingleton().injectMouseButtonUp( RightButton ) )
+			{
+				return 1;
+			}
 		}
 		break;
 		default:
 		{
 			break;
+		}
+	}
+
+	// handle button in the current mode
+	if( Game_Mode == MODE_LEVEL )
+	{
+		// processed by the level
+		if( pLevel->Mouse_Up( button ) )
+		{
+			return 1;
+		}
+	}
+	else if( Game_Mode == MODE_OVERWORLD )
+	{
+		// processed by the overworld
+		if( pActive_Overworld->Mouse_Up( button ) )
+		{
+			return 1;
+		}
+	}
+	else if( Game_Mode == MODE_MENU )
+	{
+		// processed by the menu
+		if( pMenuCore->Mouse_Up( button ) )
+		{
+			return 1;
 		}
 	}
 
@@ -360,7 +423,7 @@ bool cMouseCursor :: Editor_Collsion_Check( float px /* = 0 */, float py /* = 0 
 bool cMouseCursor :: Get_Collision_Level( GL_rect *mouse_rect )
 {
 	SpriteList level_objects;
-	pSprite_Manager->Get_Objects_sorted( level_objects, 1, 1 );
+	pLevel->pSprite_Manager->Get_Objects_sorted( level_objects, 1, 1 );
 
 	// objects before player
 	for( SpriteList::reverse_iterator itr = level_objects.rbegin(), itr_end = level_objects.rend(); itr != itr_end; ++itr )
@@ -381,7 +444,7 @@ bool cMouseCursor :: Get_Collision_Level( GL_rect *mouse_rect )
 			}
 			else
 			{
-				Collision_Add( this, obj, pSprite_Manager->Get_Array_num( obj ), Get_CollisionType( obj->sprite_array ) );
+				Collision_Add( this, obj, pLevel->pSprite_Manager->Get_Array_num( obj ), Get_CollisionType( obj->sprite_array ) );
 			}
 
 			return 1;
@@ -434,7 +497,7 @@ void cMouseCursor :: Update( void )
 		return;
 	}
 
-	// o.0
+	Update_Doubleclick();
 }
 
 void cMouseCursor :: Draw( void )
@@ -454,12 +517,6 @@ void cMouseCursor :: Draw( void )
 		if( !mover_mode )
 		{
 			Draw_object_rects();
-
-			// auto hide on selection if enabled
-			if( left && mouse_object->obj && pPreferences->editor_mouse_auto_hide )
-			{
-				Set_Visible( 0 );
-			}
 		}
 	}
 }
@@ -481,7 +538,13 @@ void cMouseCursor :: Render( void )
 
 void cMouseCursor :: Update_Position( void )
 {
-	SDL_GetMouseState( &x, &y );
+	if( !mover_mode )
+	{
+		SDL_GetMouseState( &x, &y );
+		// scale to the virtual game size
+		x = static_cast<int>( static_cast<float>(x) * global_downscalex );
+		y = static_cast<int>( static_cast<float>(y) * global_downscaley );
+	}
 
 	if( editor_enabled )
 	{
@@ -495,7 +558,7 @@ void cMouseCursor :: Update_Position( void )
 	}
 	else
 	{
-		Set_Pos( (float)x, (float)y, 1 );
+		Set_Pos( static_cast<float>(x), static_cast<float>(y), 1 );
 	}
 }
 
@@ -516,6 +579,11 @@ void cMouseCursor :: Click( void )
 {
 	Editor_Collsion_Check();
 
+	if( mover_mode )
+	{
+		return;
+	}
+
 	// no colliding sprite
 	if( !mouse_object->obj )
 	{
@@ -534,7 +602,7 @@ void cMouseCursor :: Click( void )
 				}
 				else
 				{
-					col_obj = pSprite_Manager->objects[col->number];
+					col_obj = pLevel->pSprite_Manager->objects[col->number];
 				}
 			}
 			// World
@@ -631,7 +699,7 @@ void cMouseCursor :: Update_mouse_object( void )
 	if( left )
 	{
 		// set new position
-		mouse_object->obj->Set_Pos( (float)( (int)posx - mouse_object->mouse_w ), (float)( (int)posy - mouse_object->mouse_h ), 1 );
+		mouse_object->obj->Set_Pos( static_cast<float>( static_cast<int>(posx) - mouse_object->mouse_w ), static_cast<float>( static_cast<int>(posy) - mouse_object->mouse_h ), 1 );
 
 		// update object settings position
 		if( active_object && active_object == mouse_object->obj )
@@ -643,8 +711,8 @@ void cMouseCursor :: Update_mouse_object( void )
 	else
 	{
 		// update mouse object positioning mouse width and height
-		mouse_object->mouse_w = (int)posx - (int)mouse_object->obj->startposx;
-		mouse_object->mouse_h = (int)posy - (int)mouse_object->obj->startposy;
+		mouse_object->mouse_w = static_cast<int>(posx) - static_cast<int>(mouse_object->obj->startposx);
+		mouse_object->mouse_h = static_cast<int>(posy) - static_cast<int>(mouse_object->obj->startposy);
 	}
 }
 
@@ -790,8 +858,8 @@ void cMouseCursor :: Paste_copy_objects( float px, float py )
 
 	if( copy_objects.size() )
 	{
-		mouse_object->mouse_h = (int)( copy_objects[0]->obj->col_rect.h / 2 );
-		mouse_object->mouse_w = (int)( copy_objects[0]->obj->col_rect.w / 2 );
+		mouse_object->mouse_h = static_cast<int>( copy_objects[0]->obj->col_rect.h / 2 );
+		mouse_object->mouse_w = static_cast<int>( copy_objects[0]->obj->col_rect.w / 2 );
 	}
 
 	// pasted objects are selected
@@ -882,9 +950,11 @@ SpriteList cMouseCursor :: Get_selected_objects( void )
 {
 	SpriteList spritelist;
 
-	for( unsigned int i = 0; i < selected_objects.size(); i++ )
+	for( SelectedObjectList::iterator itr = selected_objects.begin(), itr_end = selected_objects.end(); itr != itr_end; ++itr )
 	{
-		spritelist.push_back( selected_objects[i]->obj );
+		cSelectedObject *object = (*itr);
+
+		spritelist.push_back( object->obj );
 	}
 
 	return spritelist;
@@ -914,8 +984,8 @@ void cMouseCursor :: Update_selected_objects( void )
 
 		if( !left || mode_selection )
 		{
-			sel_obj->mouse_w = (int)posx - (int)sel_obj->obj->startposx;
-			sel_obj->mouse_h = (int)posy - (int)sel_obj->obj->startposy;
+			sel_obj->mouse_w = static_cast<int>(posx) - static_cast<int>(sel_obj->obj->startposx);
+			sel_obj->mouse_h = static_cast<int>(posy) - static_cast<int>(sel_obj->obj->startposy);
 		}
 	}
 
@@ -933,7 +1003,7 @@ void cMouseCursor :: Update_selected_objects( void )
 		if( left )
 		{
 			// set new position
-			sel_obj->obj->Set_Pos( (int)posx - sel_obj->mouse_w, (int)posy - sel_obj->mouse_h, 1 );
+			sel_obj->obj->Set_Pos( static_cast<float>(static_cast<int>(posx) - sel_obj->mouse_w), static_cast<float>(static_cast<int>(posy) - sel_obj->mouse_h), 1 );
 
 			// update object settings position
 			if( active_object && active_object == sel_obj->obj )
@@ -1028,7 +1098,7 @@ cSprite *cMouseCursor :: Copy( cSprite *ncopy_object, float px, float py )
 	{
 		if( editor_level_enabled )
 		{
-			pSprite_Manager->Add( new_sprite );
+			pLevel->pSprite_Manager->Add( new_sprite );
 		}
 		else if( editor_world_enabled )
 		{
@@ -1080,7 +1150,7 @@ void cMouseCursor :: Delete( cSprite *sprite )
 		// delete object
 		if( editor_level_enabled )
 		{
-			pSprite_Manager->Delete( sprite );
+			pLevel->pSprite_Manager->Delete( sprite );
 		}
 		else if( editor_world_enabled )
 		{
@@ -1238,7 +1308,7 @@ void cMouseCursor :: Update_selection( void )
 
 	if( editor_level_enabled )
 	{
-		sprite_manager = pSprite_Manager;
+		sprite_manager = pLevel->pSprite_Manager;
 	}
 	else
 	{
@@ -1306,9 +1376,10 @@ void cMouseCursor :: Mover_Update( Sint16 move_x, Sint16 move_y )
 		return;
 	}
 
+	// mouse moves the camera
 	pCamera->Move( move_x, move_y );
-
-	SDL_WarpMouse( x - move_x, y - move_y );
+	// keep mouse at it's position
+	SDL_WarpMouse( static_cast<Uint16>(x * global_upscalex), static_cast<Uint16>(y * global_upscaley) );
 
 	SDL_Event inEvent;
 	SDL_PeepEvents( &inEvent, 1, SDL_GETEVENT, SDL_MOUSEMOTIONMASK );
@@ -1367,7 +1438,7 @@ void cMouseCursor :: Editor_Update( void )
 			// object manager object
 			else
 			{
-				obj = pSprite_Manager->Get_Pointer( col->number );
+				obj = pLevel->pSprite_Manager->Get_Pointer( col->number );
 			}
 		}
 		// World
@@ -1443,7 +1514,7 @@ void cMouseCursor :: Editor_Update( void )
 		if( col->type > CO_NOTHING && col->type <= CO_PASSIVE && mouse_object->obj )
 		{
 			// position text
-			string info = "X : " + int_to_string( (int)mouse_object->obj->posx ) + "  Y : " + int_to_string( (int)mouse_object->obj->posy );
+			string info = "X : " + int_to_string( static_cast<int>(mouse_object->obj->posx) ) + "  Y : " + int_to_string( static_cast<int>(mouse_object->obj->posy) );
 
 			// if in debug mode draw editor Z position
 			if( Game_debug )
@@ -1461,7 +1532,7 @@ void cMouseCursor :: Editor_Update( void )
 
 			// create request
 			cSurfaceRequest *request = new cSurfaceRequest();
-			position_info->Blit( (float)( x + 20 ), (float)( y + 35 ), 0.52f, request );
+			position_info->Blit( static_cast<float>( x + 20 ), static_cast<float>( y + 35 ), 0.52f, request );
 			request->delete_texture = 1;
 
 			// shadow

@@ -30,7 +30,7 @@ extern GameModeType Game_Mode_Type;
 // next global Game Action
 extern GameAction Game_Action;
 // Game Action data
-extern string Game_Action_Data;
+extern XMLAttributes Game_Action_Data;
 // Game Action pointer
 extern void *Game_Action_ptr;
 // global debugging
@@ -44,8 +44,10 @@ extern bool editor_level_enabled;
 // if world editor is active
 extern bool editor_world_enabled;
 
-// global image scale
-extern float global_scalex, global_scaley;
+// global up scale ( image scale )
+extern float global_upscalex, global_upscaley;
+// global down scale ( mouse scale )
+extern float global_downscalex, global_downscaley;
 
 // Game Input event
 extern SDL_Event input_event;
@@ -149,6 +151,10 @@ ObjectDirection Get_Direction_id( string str_direction );
 
 // Returns the SpriteType identifier
 SpriteType Get_Sprite_Type_id( string str_type );
+/* Returns the Color of the given Sprite
+ * based mostly on sprite array
+*/
+Color Get_Sprite_Color( cSprite *sprite );
 
 // Returns the Massivetype Name
 string Get_Massivetype_name( MassiveType mtype );
@@ -156,6 +162,11 @@ string Get_Massivetype_name( MassiveType mtype );
 MassiveType Get_Massivetype_id( string str_massivetype );
 // Returns the Color of the given Massivetype
 Color Get_Massivetype_Color( MassiveType mtype );
+
+// Returns the Groundtype name
+string Get_Groundtype_name( GroundType gtype );
+// Returns the Groundtype identifier
+GroundType Get_Groundtype_id( string str_groundtype );
 
 // Returns the Color Name
 string Get_Color_name( DefaultColor color );

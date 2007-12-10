@@ -19,6 +19,7 @@
 #include "../player/player.h"
 #include "../core/obj_manager.h"
 #include "../video/animation.h"
+#include "../user/savegame.h"
 
 /* *** *** *** *** *** *** cjPiranha *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -55,8 +56,8 @@ void cjPiranha :: Init( void  )
 	kill_sound = "enemy/jpiranha/die.ogg";
 	kill_points = 100;
 
-	walk_count = (float)( rand() % 4 );
-	wait_time = (float)( rand() % 70 );
+	walk_count = static_cast<float>( rand() % 4 );
+	wait_time = static_cast<float>( rand() % 70 );
 	move_back = 0;
 }
 
@@ -72,7 +73,7 @@ cjPiranha *cjPiranha :: Copy( void )
 void cjPiranha :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// direction
 	Set_Direction( Get_Direction_id( attributes.getValueAsString( "direction", Get_Direction_name( start_direction ) ).c_str() ) );
 	// max distance
@@ -89,17 +90,41 @@ void cjPiranha :: Save_to_Stream( ofstream &file )
 	// name
 	file << "\t\t<Property name=\"type\" value=\"jpiranha\" />" << std::endl;
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// direction
 	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_name( start_direction ) << "\" />" << std::endl;
 	// max distance
-	file << "\t\t<Property name=\"max_distance\" value=\"" << (int)max_distance << "\" />" << std::endl;
+	file << "\t\t<Property name=\"max_distance\" value=\"" << static_cast<int>(max_distance) << "\" />" << std::endl;
 	// speed
 	file << "\t\t<Property name=\"speed\" value=\"" << speed << "\" />" << std::endl;
 
 	// end enemy
 	file << "\t</enemy>" << std::endl;
+}
+
+void cjPiranha :: Load_from_Savegame( cSave_Level_Object *save_object )
+{
+	cEnemy::Load_from_Savegame( save_object );
+
+	// move_back
+	if( save_object->exists( "move_back" ) )
+	{
+		move_back = string_to_int( save_object->Get_Value( "move_back" ) ) > 0;
+	}
+}
+
+cSave_Level_Object *cjPiranha :: Save_to_Savegame( void )
+{
+	cSave_Level_Object *save_object = cEnemy::Save_to_Savegame();
+
+	// move_back ( only save if needed )
+	if( move_back )
+	{
+		save_object->properties.push_back( cSave_Level_Object_Property( "move_back", int_to_string( move_back ) ) );
+	}
+
+	return save_object;
 }
 
 void cjPiranha :: Set_Direction( ObjectDirection dir )
@@ -381,7 +406,7 @@ void cjPiranha :: Update( void )
 			walk_count = 0;
 		}
 
-		Set_Image( (int)walk_count );
+		Set_Image( static_cast<int>(walk_count) );
 
 		// moving forward
 		if( !move_back )
@@ -555,7 +580,7 @@ void cjPiranha :: Editor_Activate( void )
 	editbox->setTooltipText( "Max Distance" );
 	Editor_Add( editbox, 90 );
 
-	editbox->setText( int_to_string( (int)max_distance ) );
+	editbox->setText( int_to_string( static_cast<int>(max_distance) ) );
 	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cjPiranha::Editor_Max_Distance_Key, this ) );
 
 	// speed
@@ -575,7 +600,7 @@ bool cjPiranha :: Editor_Max_Distance_Key( const EventArgs &event )
 	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
 	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
 
-	Set_Max_Distance( (float)string_to_int( str_text ) );
+	Set_Max_Distance( static_cast<float>(string_to_int( str_text )) );
 
 	return 1;
 }

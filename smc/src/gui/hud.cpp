@@ -377,7 +377,7 @@ void cPlayerPoints :: Draw( cSurfaceRequest *request /* = NULL */ )
 			// out in right
 			else if( x > GAME_RES_W )
 			{
-				x = (float)GAME_RES_W - obj->col_rect.w - 2; 
+				x = static_cast<float>(GAME_RES_W) - obj->col_rect.w - 2; 
 			}
 
 			// out on bottom
@@ -388,7 +388,7 @@ void cPlayerPoints :: Draw( cSurfaceRequest *request /* = NULL */ )
 			// out on top
 			else if( y > GAME_RES_H )
 			{
-				y = (float)GAME_RES_H - obj->col_rect.h - 20;
+				y = static_cast<float>(GAME_RES_H) - obj->col_rect.h - 20;
 			}
 
 			// create request
@@ -400,7 +400,7 @@ void cPlayerPoints :: Draw( cSurfaceRequest *request /* = NULL */ )
 			request->shadow_pos = 1;
 
 			// color
-			request->color = Color( (Uint8)( 255 - ( obj->points / 150 ) ), (Uint8)( 255 - ( obj->points / 150 ) ), (Uint8)( 255 - ( obj->points / 30 ) ) );
+			request->color = Color( static_cast<Uint8>( 255 - ( obj->points / 150 ) ), static_cast<Uint8>( 255 - ( obj->points / 150 ) ), static_cast<Uint8>( 255 - ( obj->points / 30 ) ) );
 
 			// add request
 			pRenderer->Add( request );
@@ -415,11 +415,11 @@ void cPlayerPoints :: Set_Points( unsigned int points )
 	pPlayer->points = points;
 	
 	char text[70];
-	sprintf( text, "Points %08d", (int)pPlayer->points );
+	sprintf( text, "Points %08d", static_cast<int>(pPlayer->points) );
 	Set_Image( pFont->RenderText( pFont->font_normal, text, white ), 0, 1 );
 }
 
-void cPlayerPoints :: Add_Points( unsigned int points, float x /* = 0 */, float y /* = 0 */, string strtext /* = "" */, Color color /* = (Uint8)255 */, bool allow_multiplier /* = 0 */ )
+void cPlayerPoints :: Add_Points( unsigned int points, float x /* = 0 */, float y /* = 0 */, string strtext /* = "" */, Color color /* = static_cast<Uint8>(255) */, bool allow_multiplier /* = 0 */ )
 {
 	if( !pPlayer )
 	{
@@ -428,7 +428,7 @@ void cPlayerPoints :: Add_Points( unsigned int points, float x /* = 0 */, float 
 	
 	if( allow_multiplier )
 	{
-		points = (unsigned int)( pPlayer->kill_multiplier * (float)points );
+		points = static_cast<unsigned int>( pPlayer->kill_multiplier * static_cast<float>(points) );
 	}
 
 	Set_Points( pPlayer->points + points );
@@ -503,7 +503,7 @@ void cTimeDisplay :: Update( void )
 	counter += pFramerate->speedfactor;
 
 	// get seconds since start
-	unsigned int seconds = (unsigned int)( counter / DESIRED_FPS );
+	unsigned int seconds = static_cast<unsigned int>( counter / DESIRED_FPS );
 
 	// no change
 	if( seconds == old_seconds )
@@ -614,7 +614,7 @@ void cItemBox :: Draw( cSurfaceRequest *request /* = NULL */ )
 		// with alpha
 		if( item_counter )
 		{
-			item->Set_Color( 255, 255, 255, 100 + (Uint8)item_counter );
+			item->Set_Color( 255, 255, 255, 100 + static_cast<Uint8>(item_counter) );
 		}
 		
 		item->Draw();
@@ -641,17 +641,17 @@ void cItemBox :: Set_Item( SpriteType item_type, bool sound /* = 1 */ )
 
 	if( item_type == TYPE_MUSHROOM_DEFAULT )
 	{
-		box_color = Color( (Uint8)250, 50, 50 );
+		box_color = Color( static_cast<Uint8>(250), 50, 50 );
 		item->Set_Image( pVideo->Get_Surface( "game/items/mushroom_red.png" ) );
 	}
 	else if( item_type == TYPE_FIREPLANT )
 	{
-		box_color = Color( (Uint8)250, 200, 150 );
+		box_color = Color( static_cast<Uint8>(250), 200, 150 );
 		item->Set_Image( pVideo->Get_Surface( "game/items/fire_flower.png" ) );
 	}
 	else if( item_type == TYPE_MUSHROOM_BLUE )
 	{
-		box_color = Color( (Uint8)100, 100, 250 );
+		box_color = Color( static_cast<Uint8>(100), 100, 250 );
 		item->Set_Image( pVideo->Get_Surface( "game/items/mushroom_blue.png" ) );
 	}
 
@@ -809,10 +809,10 @@ void cDebugDisplay :: Update( void )
 
 		// update position
 		Font *font = FontManager::getSingleton().getFont( "bluebold_medium" );
-		float text_width = font->getTextExtent( text.c_str() );
+		float text_width = font->getTextExtent( text.c_str() ) * global_downscalex;
 
-		text_debugtext->setWidth( UDim( 0, text_width + 15 ) );
-		text_debugtext->setXPosition( UDim( 0, GAME_RES_W / 2 - text_width / 2 ) );
+		text_debugtext->setWidth( UDim( 0, ( text_width + 15 ) * global_upscalex ) );
+		text_debugtext->setXPosition( UDim( 0, ( GAME_RES_W / 2 - text_width / 2 ) * global_upscalex ) );
 	}
 }
 
@@ -868,17 +868,17 @@ void cDebugDisplay :: DebugBox_Draw( void )
 	pRenderer->Add( request );
 
 	// ### Frames per Second
-	temp_text = "FPS : best " + int_to_string( (int)pFramerate->fps_best ) + ", worst " + int_to_string( (int)pFramerate->fps_worst ) + ", current " + int_to_string( (int)pFramerate->fps );
+	temp_text = "FPS : best " + int_to_string( static_cast<int>(pFramerate->fps_best) ) + ", worst " + int_to_string( static_cast<int>(pFramerate->fps_worst) ) + ", current " + int_to_string( static_cast<int>(pFramerate->fps) );
 	sprites[0]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	// average
-	temp_text = "average " + int_to_string( (int)pFramerate->fps_average );
+	temp_text = "average " + int_to_string( static_cast<int>(pFramerate->fps_average) );
 	sprites[1]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	// speedfactor
 	temp_text = "Speedfactor " + float_to_string( pFramerate->speedfactor );
 	sprites[2]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 
 	// ### Camera position
-	temp_text = "Camera : X " + int_to_string( (int)pCamera->x ) + ", Y " + int_to_string( (int)pCamera->y );
+	temp_text = "Camera : X " + int_to_string( static_cast<int>(pCamera->x) ) + ", Y " + int_to_string( static_cast<int>(pCamera->y) );
 	sprites[3]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 
 	// ### Level informations
@@ -892,41 +892,41 @@ void cDebugDisplay :: DebugBox_Draw( void )
 
 	// ### Level Objects
 	// All
-	if( obj_counter != (int)pSprite_Manager->size() )
+	if( obj_counter != static_cast<int>(pLevel->pSprite_Manager->size()) )
 	{
-		obj_counter = pSprite_Manager->size();
+		obj_counter = pLevel->pSprite_Manager->size();
 
 		temp_text = "Objects : " + int_to_string( obj_counter );
 		sprites[6]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
 	// Passive
-	if( pass_counter != (int)(pSprite_Manager->Get_Size_array( ARRAY_PASSIVE ) + pSprite_Manager->Get_Size_array( ARRAY_FRONT_PASSIVE )) )
+	if( pass_counter != static_cast<int>(pLevel->pSprite_Manager->Get_Size_array( ARRAY_PASSIVE ) + pLevel->pSprite_Manager->Get_Size_array( ARRAY_FRONT_PASSIVE )) )
 	{
-		pass_counter = pSprite_Manager->Get_Size_array( ARRAY_PASSIVE ) + pSprite_Manager->Get_Size_array( ARRAY_FRONT_PASSIVE );
+		pass_counter = pLevel->pSprite_Manager->Get_Size_array( ARRAY_PASSIVE ) + pLevel->pSprite_Manager->Get_Size_array( ARRAY_FRONT_PASSIVE );
 
 		temp_text = "Passive : " + int_to_string( pass_counter );
 		sprites[7]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
 	// Massive
-	if( mass_counter != (int)pSprite_Manager->Get_Size_array( ARRAY_MASSIVE ) )
+	if( mass_counter != static_cast<int>(pLevel->pSprite_Manager->Get_Size_array( ARRAY_MASSIVE )) )
 	{
-		mass_counter = pSprite_Manager->Get_Size_array( ARRAY_MASSIVE );
+		mass_counter = pLevel->pSprite_Manager->Get_Size_array( ARRAY_MASSIVE );
 
 		temp_text = "Massive : " + int_to_string( mass_counter );
 		sprites[8]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
 	// Enemy
-	if( enemy_counter != (int)pSprite_Manager->Get_Size_array( ARRAY_ENEMY ) ) 
+	if( enemy_counter != static_cast<int>(pLevel->pSprite_Manager->Get_Size_array( ARRAY_ENEMY )) ) 
 	{
-		enemy_counter = pSprite_Manager->Get_Size_array( ARRAY_ENEMY );
+		enemy_counter = pLevel->pSprite_Manager->Get_Size_array( ARRAY_ENEMY );
 
 		temp_text ="Enemy : " + int_to_string( enemy_counter );
 		sprites[9]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
 	// Active
-	if( active_counter != (int)pSprite_Manager->Get_Size_array( ARRAY_ACTIVE ) )
+	if( active_counter != static_cast<int>(pLevel->pSprite_Manager->Get_Size_array( ARRAY_ACTIVE )) )
 	{
-		active_counter = pSprite_Manager->Get_Size_array( ARRAY_ACTIVE );
+		active_counter = pLevel->pSprite_Manager->Get_Size_array( ARRAY_ACTIVE );
 
 		temp_text = "Active : " + int_to_string( active_counter );
 		sprites[10]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
@@ -934,7 +934,7 @@ void cDebugDisplay :: DebugBox_Draw( void )
 		// Halfmassive
 		unsigned int halfmassive = 0;
 
-		for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *obj = (*itr);
@@ -951,7 +951,7 @@ void cDebugDisplay :: DebugBox_Draw( void )
 		// Moving Platform
 		unsigned int moving_platform = 0;
 
-		for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *obj = (*itr);
@@ -968,7 +968,7 @@ void cDebugDisplay :: DebugBox_Draw( void )
 		// Goldbox
 		unsigned int goldbox = 0;
 
-		for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *obj = (*itr);
@@ -990,7 +990,7 @@ void cDebugDisplay :: DebugBox_Draw( void )
 		// Bonusbox
 		unsigned int bonusbox = 0;
 
-		for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *obj = (*itr);
@@ -1025,10 +1025,10 @@ void cDebugDisplay :: DebugBox_Draw( void )
 	temp_text = "Y1 " + float_to_string( pPlayer->posy ) + "  Y2 " + float_to_string( pPlayer->col_rect.y + pPlayer->col_rect.h );
 	sprites[18]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	// velocity
-	temp_text = "Velocity X " + int_to_string( (int)pPlayer->velx ) + " ,Y " + int_to_string( (int)pPlayer->vely );
+	temp_text = "Velocity X " + int_to_string( static_cast<int>(pPlayer->velx) ) + " ,Y " + int_to_string( (int)pPlayer->vely );
 	sprites[19]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	// state
-	temp_text = "Moving State " + int_to_string( (int)pPlayer->state );
+	temp_text = "Moving State " + int_to_string( static_cast<int>(pPlayer->state) );
 	sprites[20]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
 	// ground type
 	string ground_type;
@@ -1091,7 +1091,7 @@ void cGoldDisplay :: SetGold( int gold )
 	pPlayer->goldpieces = gold;
 	string text = int_to_string( pPlayer->goldpieces );
 
-	Color color = Color( (Uint8)255, 255, 255 - ( gold * 2 ) );
+	Color color = Color( static_cast<Uint8>(255), 255, 255 - ( gold * 2 ) );
 
 	Set_Image( pFont->RenderText( pFont->font_normal, text, color ), 0, 1 );
 }

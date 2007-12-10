@@ -42,7 +42,7 @@ void cImageObjectSprite :: Set_Image( int num, bool new_startimage /* = 0 */, bo
 	{
 		cMovingSprite::Set_Image( NULL, new_startimage, del_img );
 	}
-	else if( curr_img < (int)images.size() )
+	else if( curr_img < static_cast<int>(images.size()) )
 	{
 		cMovingSprite::Set_Image( images[curr_img], new_startimage, del_img );
 	}

@@ -43,6 +43,9 @@ public:
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file );
 
+	// load from savegame
+	virtual void Load_from_Savegame( cSave_Level_Object *save_object );
+
 	// Set Direction
 	void Set_Direction( ObjectDirection dir );
 	// Set Max Distance

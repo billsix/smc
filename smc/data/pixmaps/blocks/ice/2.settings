@@ -3,3 +3,4 @@ height 43
 editor_tags level;ice;block
 name Ice_2
 type massive
+ground_type ice

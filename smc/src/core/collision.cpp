@@ -17,7 +17,7 @@
 #include "../core/globals.h"
 #include "../core/collision.h"
 #include "../objects/movingsprite.h"
-#include "../core/sprite_manager.h"
+#include "../level/level.h"
 #include "../player/player.h"
 #include "../video/gl_surface.h"
 
@@ -114,7 +114,7 @@ GL_rect cObjectCollision :: Get_ColObject_rect( void )
 {
 	if( type == CO_MASSIVE || type == CO_ACTIVE || type == CO_ENEMY )
 	{
-		return pSprite_Manager->objects[number]->col_rect;
+		return pLevel->pSprite_Manager->objects[number]->col_rect;
 	}
 	else if( type == CO_PLAYER )
 	{

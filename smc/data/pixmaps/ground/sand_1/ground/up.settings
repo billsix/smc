@@ -3,3 +3,4 @@ height 55
 editor_tags level;sand;ground
 name Up
 type halfmassive
+ground_type sand

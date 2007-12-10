@@ -1,3 +1,4 @@
 editor_tags level;desert;ground
 name Top_Left
 type halfmassive
+ground_type sand

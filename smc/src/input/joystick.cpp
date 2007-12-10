@@ -29,7 +29,6 @@ cJoystick :: cJoystick( void )
 	joystick = NULL;
 
 	stick_open = 0;
-	Threshold = 3000;
 
 	cur_stick = 0;
 	num_buttons = 0;
@@ -245,124 +244,122 @@ bool cJoystick :: Handle_Event( SDL_Event *ev )
 
 void cJoystick :: Handle_Motion( SDL_Event *ev )
 {
-	// handle motion
-	switch( ev->jaxis.axis )
+	// Vertical Axis
+	if( ev->jaxis.axis == pPreferences->joy_axis_ver )
 	{
-		case 1: /* Up/Down */
+		// Up
+		if( ev->jaxis.value < -pPreferences->joy_axis_threshold )
 		{
-			if( ev->jaxis.value < -Threshold ) // Up
+			if( debug )
 			{
-				if( debug )
-				{
-					printf( "Joystick %d : Up Button pressed\n", cur_stick );
-				}
-
-				if( !up )
-				{
-					pKeyboard->Key_Down( pPreferences->key_up );
-					up = 1;
-				}
-
-				if( down )
-				{
-					pKeyboard->Key_Up( pPreferences->key_down );
-					down = 0;
-				}
+				printf( "Joystick %d : Up Button pressed\n", cur_stick );
 			}
-			else if( ev->jaxis.value > Threshold * 2 ) // Down ( 2 times harder )
+
+			if( !up )
 			{
-				if( debug )
-				{
-					printf( "Joystick %d : Down Button pressed\n", cur_stick );
-				}
-
-				if( !down )
-				{
-					pKeyboard->Key_Down( pPreferences->key_down );
-					down = 1;
-				}
-
-				if( up )
-				{
-					pKeyboard->Key_Up( pPreferences->key_up );
-					up = 0;
-				}
+				pKeyboard->Key_Down( pPreferences->key_up );
+				up = 1;
 			}
-			else // No Down/Left
+
+			if( down )
 			{
-				if( down )
-				{
-					pKeyboard->Key_Up( pPreferences->key_down );
-					down = 0;
-				}
-				
-				if( up )
-				{
-					pKeyboard->Key_Up( pPreferences->key_up );
-					up = 0;
-				}
+				pKeyboard->Key_Up( pPreferences->key_down );
+				down = 0;
 			}
-			break;
 		}
-		case 0: /* Left/Right */
+		// Down
+		else if( ev->jaxis.value > pPreferences->joy_axis_threshold )
 		{
-			if( ev->jaxis.value < -Threshold ) // Left
+			if( debug )
 			{
-				if( debug )
-				{
-					printf( "Joystick %d : Left Button pressed\n", cur_stick );
-				}
-
-				if( !left )
-				{
-					pKeyboard->Key_Down( pPreferences->key_left );
-					left = 1;
-				}
-
-				if( right )
-				{
-					pKeyboard->Key_Up( pPreferences->key_right );
-					right = 0; 
-				}
+				printf( "Joystick %d : Down Button pressed\n", cur_stick );
 			}
-			else if( ev->jaxis.value > Threshold ) // Right
+
+			if( !down )
 			{
-				if( debug )
-				{
-					printf( "Joystick %d : Right Button pressed\n", cur_stick );
-				}
-
-				if( !right )
-				{
-					pKeyboard->Key_Down( pPreferences->key_right );
-					right = 1;
-				}
-
-				if( left )
-				{
-					pKeyboard->Key_Up( pPreferences->key_left );
-					left = 0;
-				}
+				pKeyboard->Key_Down( pPreferences->key_down );
+				down = 1;
 			}
-			else // No Left/Right
+
+			if( up )
 			{
-				if( left )
-				{
-					pKeyboard->Key_Up( pPreferences->key_left );
-					left = 0;
-				}
-				
-				if( right )
-				{
-					pKeyboard->Key_Up( pPreferences->key_right );
-					right = 0; 
-				}
+				pKeyboard->Key_Up( pPreferences->key_up );
+				up = 0;
 			}
-			break;
 		}
-		default:
+		// No Down/Left
+		else
 		{
-			break;
+			if( down )
+			{
+				pKeyboard->Key_Up( pPreferences->key_down );
+				down = 0;
+			}
+
+			if( up )
+			{
+				pKeyboard->Key_Up( pPreferences->key_up );
+				up = 0;
+			}
+		}
+	}
+	// Horizontal Axis
+	else if( ev->jaxis.axis == pPreferences->joy_axis_hor )
+	{
+		// Left
+		if( ev->jaxis.value < -pPreferences->joy_axis_threshold )
+		{
+			if( debug )
+			{
+				printf( "Joystick %d : Left Button pressed\n", cur_stick );
+			}
+
+			if( !left )
+			{
+				pKeyboard->Key_Down( pPreferences->key_left );
+				left = 1;
+			}
+
+			if( right )
+			{
+				pKeyboard->Key_Up( pPreferences->key_right );
+				right = 0;
+			}
+		}
+		// Right
+		else if( ev->jaxis.value > pPreferences->joy_axis_threshold )
+		{
+			if( debug )
+			{
+				printf( "Joystick %d : Right Button pressed\n", cur_stick );
+			}
+
+			if( !right )
+			{
+				pKeyboard->Key_Down( pPreferences->key_right );
+				right = 1;
+			}
+
+			if( left )
+			{
+				pKeyboard->Key_Up( pPreferences->key_left );
+				left = 0;
+			}
+		}
+		// No Left/Right
+		else
+		{
+			if( left )
+			{
+				pKeyboard->Key_Up( pPreferences->key_left );
+				left = 0;
+			}
+
+			if( right )
+			{
+				pKeyboard->Key_Up( pPreferences->key_right );
+				right = 0;
+			}
 		}
 	}
 }
@@ -385,7 +382,7 @@ bool cJoystick :: Handle_Button_Event( SDL_Event *ev )
 		if( ev->jbutton.button < buttons.size() )
 		{
 			// Jump
-			if( ev->jbutton.button == pPreferences->joy_jump )
+			if( ev->jbutton.button == pPreferences->joy_button_jump )
 			{
 				if( Game_Mode == MODE_LEVEL )
 				{
@@ -394,7 +391,7 @@ bool cJoystick :: Handle_Button_Event( SDL_Event *ev )
 				}
 			}
 			// Shoot
-			else if( ev->jbutton.button == pPreferences->joy_shoot )
+			else if( ev->jbutton.button == pPreferences->joy_button_shoot )
 			{
 				if( Game_Mode == MODE_LEVEL )
 				{
@@ -408,7 +405,7 @@ bool cJoystick :: Handle_Button_Event( SDL_Event *ev )
 				return 1;
 			}
 			// Request Itembox Item
-			else if( ev->jbutton.button == pPreferences->joy_item )
+			else if( ev->jbutton.button == pPreferences->joy_button_item )
 			{
 				if( Game_Mode == MODE_LEVEL )
 				{
@@ -422,7 +419,7 @@ bool cJoystick :: Handle_Button_Event( SDL_Event *ev )
 				return 1;
 			}
 			// Interaction
-			else if( ev->jbutton.button == pPreferences->joy_action )
+			else if( ev->jbutton.button == pPreferences->joy_button_action )
 			{
 				if( Game_Mode == MODE_LEVEL )
 				{
@@ -436,7 +433,7 @@ bool cJoystick :: Handle_Button_Event( SDL_Event *ev )
 				return 1;
 			}
 			// Exit
-			else if( ev->jbutton.button == pPreferences->joy_exit )
+			else if( ev->jbutton.button == pPreferences->joy_button_exit )
 			{
 				if( Game_Mode == MODE_LEVEL )
 				{
@@ -463,7 +460,7 @@ bool cJoystick :: Handle_Button_Event( SDL_Event *ev )
 
 		if( ev->jbutton.button < buttons.size() )
 		{
-			if( ev->jbutton.button == pPreferences->joy_jump )
+			if( ev->jbutton.button == pPreferences->joy_button_jump )
 			{
 				if( Game_Mode == MODE_LEVEL )
 				{
@@ -477,17 +474,17 @@ bool cJoystick :: Handle_Button_Event( SDL_Event *ev )
 
 				return 1;
 			}
-			else if( ev->jbutton.button == pPreferences->joy_shoot )
+			else if( ev->jbutton.button == pPreferences->joy_button_shoot )
 			{
 				pKeyboard->Key_Up( pPreferences->key_shoot );
 				return 1;
 			}
-			else if( ev->jbutton.button == pPreferences->joy_item )
+			else if( ev->jbutton.button == pPreferences->joy_button_item )
 			{
 				pKeyboard->Key_Up( SDLK_RETURN );
 				return 1;
 			}
-			else if( ev->jbutton.button == pPreferences->joy_action )
+			else if( ev->jbutton.button == pPreferences->joy_button_action )
 			{
 				if( Game_Mode == MODE_LEVEL )
 				{
@@ -500,7 +497,7 @@ bool cJoystick :: Handle_Button_Event( SDL_Event *ev )
 
 				return 1;
 			}
-			else if( ev->jbutton.button == pPreferences->joy_exit )
+			else if( ev->jbutton.button == pPreferences->joy_button_exit )
 			{
 				pKeyboard->Key_Up( SDLK_ESCAPE );
 				return 1;
@@ -560,10 +557,10 @@ void cJoystick :: Set_Button( unsigned int num, bool pressed )
 	buttons[num] = pressed;
 }
 
-bool cJoystick :: Left( int nThreshold )
+bool cJoystick :: Left( void )
 {
-	if( pPreferences->joy_enabled && input_event.type == SDL_JOYAXISMOTION && input_event.jaxis.value < -nThreshold && 
-		input_event.jaxis.axis == 0 )
+	if( pPreferences->joy_enabled && input_event.type == SDL_JOYAXISMOTION && input_event.jaxis.value < -pPreferences->joy_axis_threshold && 
+		input_event.jaxis.axis == pPreferences->joy_axis_hor )
 	{
 		return 1;
 	}
@@ -571,21 +568,10 @@ bool cJoystick :: Left( int nThreshold )
 	return 0;
 }
 
-bool cJoystick :: Right( int nThreshold )
+bool cJoystick :: Right( void )
 {
-	if( pPreferences->joy_enabled && input_event.type == SDL_JOYAXISMOTION && input_event.jaxis.value > nThreshold && 
-		input_event.jaxis.axis == 0 )
-	{
-		return 1;
-	}
-	
-	return 0;
-}
-
-bool cJoystick :: Up( int nThreshold )
-{
-	if( pPreferences->joy_enabled && input_event.type == SDL_JOYAXISMOTION && input_event.jaxis.value < -nThreshold && 
-		input_event.jaxis.axis == 1 )
+	if( pPreferences->joy_enabled && input_event.type == SDL_JOYAXISMOTION && input_event.jaxis.value > pPreferences->joy_axis_threshold && 
+		input_event.jaxis.axis == pPreferences->joy_axis_hor )
 	{
 		return 1;
 	}
@@ -593,10 +579,21 @@ bool cJoystick :: Up( int nThreshold )
 	return 0;
 }
 
-bool cJoystick :: Down( int nThreshold )
+bool cJoystick :: Up( void )
 {
-	if( pPreferences->joy_enabled && input_event.type == SDL_JOYAXISMOTION && input_event.jaxis.value > nThreshold 
-			&& input_event.jaxis.axis == 1 )
+	if( pPreferences->joy_enabled && input_event.type == SDL_JOYAXISMOTION && input_event.jaxis.value < -pPreferences->joy_axis_threshold && 
+		input_event.jaxis.axis == pPreferences->joy_axis_ver )
+	{
+		return 1;
+	}
+	
+	return 0;
+}
+
+bool cJoystick :: Down( void )
+{
+	if( pPreferences->joy_enabled && input_event.type == SDL_JOYAXISMOTION && input_event.jaxis.value > pPreferences->joy_axis_threshold && 
+		input_event.jaxis.axis == pPreferences->joy_axis_ver )
 	{
 		return 1;
 	}

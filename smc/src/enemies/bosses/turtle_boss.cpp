@@ -19,7 +19,7 @@
 #include "../../objects/box.h"
 #include "../../video/animation.h"
 #include "../../player/player.h"
-#include "../../core/sprite_manager.h"
+#include "../../level/level.h"
 #include "../../gui/hud.h"
 #include "../../video/gl_surface.h"
 
@@ -85,7 +85,7 @@ cTurtleBoss *cTurtleBoss :: Copy( void )
 void cTurtleBoss :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// direction
 	Set_Direction( Get_Direction_id( attributes.getValueAsString( "direction", Get_Direction_name( start_direction ) ).c_str() ), 1 );
 	// color
@@ -105,8 +105,8 @@ void cTurtleBoss :: Save_to_Stream( ofstream &file )
 	// name
 	file << "\t\t<Property name=\"type\" value=\"turtleboss\" />" << std::endl;
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// color
 	file << "\t\t<Property name=\"color\" value=\"" << Get_Color_name( color_type ) << "\" />" << std::endl;
 	// direction
@@ -377,7 +377,7 @@ void cTurtleBoss :: DieStep( void )
 				anim->Set_Time_to_Live( 1 );
 				anim->Set_Speed( 1, 4 );
 				anim->Set_Scale( 0.4f, 0.3f );
-				anim->Set_Color( orange, Color( (Uint8)6, 60, 20 ) );
+				anim->Set_Color( orange, Color( static_cast<Uint8>(6), 60, 20 ) );
 				anim->Set_Blending( BLEND_ADD );
 				pAnimationManager->Add( anim );
 
@@ -431,7 +431,7 @@ void cTurtleBoss :: Update( void )
 			// if turn around image force the new
 			if( curr_img == 4 )
 			{
-				Set_Image( (int)walk_count );
+				Set_Image( static_cast<int>(walk_count) );
 				Update_Rotation_velx();
 			}
 		}
@@ -439,7 +439,7 @@ void cTurtleBoss :: Update( void )
 		// if turn around image
 		if( curr_img != 4 )
 		{
-			Set_Image( (int)walk_count );
+			Set_Image( static_cast<int>(walk_count) );
 		}
 		else
 		{
@@ -472,7 +472,7 @@ void cTurtleBoss :: Update( void )
 			// animation
 			if( counter < 192 )
 			{
-				if( (int)counter % 5 == 1 )
+				if( static_cast<int>(counter) % 5 == 1 )
 				{
 					Set_Image( 9 ); // active
 				}
@@ -540,17 +540,17 @@ void cTurtleBoss :: Update( void )
 			walk_count = 0;
 		}
 
-		Set_Image( 6 + (int)walk_count );
+		Set_Image( 6 + static_cast<int>(walk_count) );
 	}
 	else if( turtle_state == TURTLEBOSS_STAND_ANGRY )
 	{
 		counter += pFramerate->speedfactor;
 
 		// angry
-	    if( (int)counter % 2 == 1 )
+	    if( static_cast<int>(counter) % 2 == 1 )
         {
 			// slowly fade to the color
-			cMovingSprite::Set_Color( Color( (Uint8)255, 250 - (Uint8)( counter * 1.5f ), 250 - (Uint8)( counter * 4 ) ) );
+			cMovingSprite::Set_Color( Color( static_cast<Uint8>(255), 250 - static_cast<Uint8>( counter * 1.5f ), 250 - static_cast<Uint8>( counter * 4 ) ) );
         }
 		// default
         else
@@ -559,7 +559,7 @@ void cTurtleBoss :: Update( void )
         }
 
 		// randomize direction
-		if( ( (int)counter / 10 ) % 2 == 1 )
+		if( ( static_cast<int>(counter) / 10 ) % 2 == 1 )
 		{
 			if( direction == DIR_RIGHT )
 			{
@@ -619,7 +619,7 @@ void cTurtleBoss :: Throw_Fireballs( unsigned int amount /* = 6 */ )
 		ball->Set_Direction( ball_angle, 15 );
 		ball->Col_Move( ball->velx * 2, ball->vely * 2, 1 );
 
-		pSprite_Manager->Add( ball );
+		pLevel->pSprite_Manager->Add( ball );
 	}
 
 	cFireAnimation *anim = new cFireAnimation( posx + ( col_rect.w / 2 ), posy + ( col_rect.h / 3 ), 10 );
@@ -751,7 +751,7 @@ void cTurtleBoss :: Handle_Collision_Player( cObjectCollision *collision )
 			}
 			else
 			{
-				pAudio->PlaySound( "enemy/turtle/hit.ogg" );
+				pAudio->PlaySound( "enemy/boss/turtle/hit.ogg" );
 			}
 		}
 		else if( turtle_state == TURTLEBOSS_SHELL_STAND )
@@ -845,7 +845,7 @@ void cTurtleBoss :: Handle_Collision_Player( cObjectCollision *collision )
 			anim->Set_Speed( 4, 0.5f );
 			anim->Set_Scale( 0.8f );
 			anim->Set_Fading_Size( 1 );
-			anim->Set_Color( Color( (Uint8)254, 200, 100 ) );
+			anim->Set_Color( Color( static_cast<Uint8>(254), 200, 100 ) );
 			pAnimationManager->Add( anim );
 			
 			Update_Direction();
@@ -881,7 +881,7 @@ void cTurtleBoss :: Handle_Collision_Player( cObjectCollision *collision )
 
 void cTurtleBoss :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
-	cEnemy *enemy = static_cast<cEnemy *>(pSprite_Manager->Get_Pointer( collision->number ));
+	cEnemy *enemy = static_cast<cEnemy *>(pLevel->pSprite_Manager->Get_Pointer( collision->number ));
 
 	if( turtle_state == TURTLEBOSS_SHELL_STAND )
 	{
@@ -896,7 +896,7 @@ void cTurtleBoss :: Handle_Collision_Enemy( cObjectCollision *collision )
 
 			// hit enemy
 			pAudio->PlaySound( enemy->kill_sound );
-			pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", (Uint8)255, 1 );
+			pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", static_cast<Uint8>(255), 1 );
 			enemy->DownGrade( 1 );
 
 			DownGrade( 1 );
@@ -913,7 +913,7 @@ void cTurtleBoss :: Handle_Collision_Enemy( cObjectCollision *collision )
 
 		// hit enemy
 		pAudio->PlaySound( enemy->kill_sound );
-		pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", (Uint8)255, 1 );
+		pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", static_cast<Uint8>(255), 1 );
 		enemy->DownGrade( 1 );
 
 		pPlayer->Add_Kill_Multiplier();
@@ -931,7 +931,7 @@ void cTurtleBoss :: Handle_Collision_Enemy( cObjectCollision *collision )
 
 			// hit enemy
 			pAudio->PlaySound( enemy->kill_sound );
-			pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", (Uint8)255, 1 );
+			pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", static_cast<Uint8>(255), 1 );
 			enemy->DownGrade( 1 );
 		}
 		else
@@ -959,7 +959,7 @@ void cTurtleBoss :: Handle_Collision_Massive( cObjectCollision *collision )
 	{
 		if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
 		{
-			cSprite *col_object = pSprite_Manager->Get_Pointer( collision->number );
+			cSprite *col_object = pLevel->pSprite_Manager->Get_Pointer( collision->number );
 
 			// animation
 			cParticleAnimation *anim = NULL;
@@ -998,7 +998,7 @@ void cTurtleBoss :: Handle_Collision_Massive( cObjectCollision *collision )
 			if( collision->type == CO_ACTIVE )
 			{
 				// get colliding object
-				cSprite *col_object = pSprite_Manager->Get_Pointer( collision->number );
+				cSprite *col_object = pLevel->pSprite_Manager->Get_Pointer( collision->number );
 
 				if( col_object->type == TYPE_BONUSBOX || col_object->type == TYPE_SPINBOX )
 				{
@@ -1123,7 +1123,7 @@ void cTurtleBoss :: Activate_Turtle( void )
 		Col_Move( 0, images[5]->col_h - images[0]->col_h, 1, 1 );
 	}
 
-	Set_Image( (int)walk_count );
+	Set_Image( static_cast<int>(walk_count) );
 }
 
 void cTurtleBoss :: Create_Name( void )

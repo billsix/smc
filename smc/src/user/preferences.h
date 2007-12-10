@@ -44,26 +44,35 @@ public:
 	float camera_hor_speed, camera_ver_speed;
 
 	// Audio
-	bool Music, Sounds;
-	Uint8 music_volume, sound_volume;
+	bool audio_music, audio_sound;
+	Uint8 audio_music_volume, audio_sound_volume;
 	unsigned int audio_hz;
 
 	// Video
-	bool Fullscreen, joy_enabled;
-	Uint16 Screen_W, Screen_H;
-	Uint8 Screen_Bpp;
-	bool vsync;
+	bool video_fullscreen;
+	Uint16 video_screen_w, video_screen_h;
+	Uint8 video_screen_bpp;
+	bool video_vsync;
 
 	// Keyboard key definitions
 	SDLKey key_up, key_down, key_left, key_right, key_jump, key_shoot, key_action;
-	// Joypad key definitions
-	int joy_jump, joy_shoot, joy_item, joy_action, joy_exit;
+	// Joypad
+	bool joy_enabled;
+	// active joy name
+	string joy_name;
+	// jump with upwards
+	bool joy_analog_jump;
+	// hor/ver axis used
+	int joy_axis_hor, joy_axis_ver;
+	// axis threshold
+	Sint16 joy_axis_threshold;
+	// button definitions
+	int joy_button_jump, joy_button_shoot, joy_button_item, joy_button_action, joy_button_exit;
+
 
 	// Special
 	bool always_run;
-	string joy_name;
-	bool joy_analog_jump;
-	bool editor_mouse_auto_hide, background_images;
+	bool editor_mouse_auto_hide, level_background_images;
 
 	/* *** *** *** *** *** *** *** */
 

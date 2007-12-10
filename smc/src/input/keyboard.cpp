@@ -25,6 +25,8 @@
 #include "../audio/audio.h"
 #include "../level/level.h"
 #include "../user/preferences.h"
+#include "../level/level_editor.h"
+#include "../level/level_settings.h"
 
 /* *** *** *** *** *** *** *** *** Functions  *** *** *** *** *** *** *** *** *** */
 
@@ -67,6 +69,7 @@ bool cKeyboard :: Key_Up( SDLKey key )
 		return 1;
 	}
 
+	// handle key in the current mode
 	if( Game_Mode == MODE_LEVEL )
 	{
 		// got processed
@@ -135,7 +138,7 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		return 1;
 	}
 
-	// test if the key is handled in the current mode
+	// handle key in the current mode
 	if( Game_Mode == MODE_LEVEL )
 	{
 		// processed by the level
@@ -160,7 +163,14 @@ bool cKeyboard :: Key_Down( SDLKey key )
 			return 1;
 		}
 	}
-
+	else if( Game_Mode == MODE_LEVEL_SETTINGS )
+	{
+		// processed by the level settings
+		if( pLevel_Editor->pSettings->Key_Down( key ) )
+		{
+			return 1;
+		}
+	}
 
 	// set fixed speedfactor mode
 	if( key == SDLK_F6 )
@@ -212,7 +222,7 @@ bool cKeyboard :: Key_Down( SDLKey key )
 			{
 				Game_Action = GA_ENTER_LEVEL;
 				Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
-				Game_Action_Data = level_name;
+				Game_Action_Data.add( "level", level_name.c_str() );
 
 				debugdisplay->Set_Text( "Loaded " + Get_filename( level_name, 0, 0 ) );
 

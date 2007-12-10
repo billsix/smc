@@ -281,11 +281,11 @@ bool cLayer :: Save( string filename )
 		// begin line
 		file << "\t<line>" << std::endl;
 			// start
-			file << "\t\t<Property name=\"X1\" value=\"" << (int)line->start->Get_Line_posx() << "\" />" << std::endl;
-			file << "\t\t<Property name=\"Y1\" value=\"" << (int)line->start->Get_Line_posy() << "\" />" << std::endl;
+			file << "\t\t<Property name=\"X1\" value=\"" << static_cast<int>(line->start->Get_Line_posx()) << "\" />" << std::endl;
+			file << "\t\t<Property name=\"Y1\" value=\"" << static_cast<int>(line->start->Get_Line_posy()) << "\" />" << std::endl;
 			// end
-			file << "\t\t<Property name=\"X2\" value=\"" << (int)line->end->Get_Line_posx() << "\" />" << std::endl;
-			file << "\t\t<Property name=\"Y2\" value=\"" << (int)line->end->Get_Line_posy() << "\" />" << std::endl;
+			file << "\t\t<Property name=\"X2\" value=\"" << static_cast<int>(line->end->Get_Line_posx()) << "\" />" << std::endl;
+			file << "\t\t<Property name=\"Y2\" value=\"" << static_cast<int>(line->end->Get_Line_posy()) << "\" />" << std::endl;
 			// origin
 			file << "\t\t<Property name=\"origin\" value=\"" << line->origin << "\" />" << std::endl;
 		// end line
@@ -330,7 +330,7 @@ cLayer_Line *cLayer :: Get_Line_Collision_Start( GL_rect *line_rect )
 	return NULL;
 }
 
-cLine_collision cLayer :: Get_Line_Collision_Direction( float x, float y, ObjectDirection dir, float dir_size /* = 10 */, float check_size /* = 10 */ )
+cLine_collision cLayer :: Get_Line_Collision_Direction( float x, float y, ObjectDirection dir, float dir_size /* = 10 */, unsigned int check_size /* = 10 */ )
 {
 	if( dir == DIR_UP )
 	{
@@ -506,9 +506,9 @@ void cLayer :: handle_line( const XMLAttributes &attributes )
 	cLayer_Line *item = new cLayer_Line();
 	
 	// Start
-	item->start->Set_Pos( (float)attributes.getValueAsInteger( "X1" ) - 2, (float)attributes.getValueAsInteger( "Y1" ) - 2, 1 );
+	item->start->Set_Pos( static_cast<float>(attributes.getValueAsInteger( "X1" )) - 2, static_cast<float>(attributes.getValueAsInteger( "Y1" )) - 2, 1 );
 	// End
-	item->end->Set_Pos( (float)attributes.getValueAsInteger( "X2" ) - 2, (float)attributes.getValueAsInteger( "Y2" ) - 2, 1 );
+	item->end->Set_Pos( static_cast<float>(attributes.getValueAsInteger( "X2" )) - 2, static_cast<float>(attributes.getValueAsInteger( "Y2" )) - 2, 1 );
 	// origin
 	item->origin = attributes.getValueAsInteger( "origin" );
 

@@ -55,7 +55,7 @@ void cWaypoint :: Init( void )
 	waypoint_type = WAYPOINT_NORMAL;
 	name = "Waypoint";
 
-	gcolor = (float)( rand() % 100 );
+	gcolor = static_cast<float>( rand() % 100 );
 	glim = 1;
 	
 	access = 0;
@@ -95,7 +95,7 @@ cWaypoint *cWaypoint :: Copy( void )
 void cWaypoint :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "x" ), (float)attributes.getValueAsInteger( "y" ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "x" )), static_cast<float>(attributes.getValueAsInteger( "y" )), 1 );
 	// image
 	/*if( attributes.exists( "image" ) )
 	{
@@ -133,8 +133,8 @@ void cWaypoint :: Save_to_Stream( ofstream &file )
 	file << "\t<waypoint>" << std::endl;
 
 	// position
-	file << "\t\t<Property name=\"x\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"y\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"x\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"y\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// image
 	/*if( start_image )
 	{
@@ -149,7 +149,7 @@ void cWaypoint :: Save_to_Stream( ofstream &file )
 		file << "\t\t<Property name=\"image\" value=\"" << img_filename << "\" />" << std::endl;
 	}*/
 	// type
-	file << "\t\t<Property name=\"type\" value=\"" << (int)waypoint_type << "\" />" << std::endl;
+	file << "\t\t<Property name=\"type\" value=\"" << static_cast<int>(waypoint_type) << "\" />" << std::endl;
 	// destination
 	file << "\t\t<Property name=\"destination\" value=\"" << destination << "\" />" << std::endl;
 	// direction backward
@@ -327,18 +327,18 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 		// default color
 		if( !pOverworld_manager->debugmode )
 		{
-			request->color = Color( (Uint8)255, 100 + (Uint8)gcolor, 10 );
+			request->color = Color( static_cast<Uint8>(255), 100 + static_cast<Uint8>(gcolor), 10 );
 		}
 		// change to debug color
 		else
 		{
 			if( access )
 			{
-				request->color = Color( (Uint8)255, 100 + (Uint8)gcolor, 200 );
+				request->color = Color( static_cast<Uint8>(255), 100 + static_cast<Uint8>(gcolor), 200 );
 			}
 			else
 			{
-				request->color =  Color( (Uint8)20, 100 + (Uint8)gcolor, 10 );
+				request->color =  Color( static_cast<Uint8>(20), 100 + static_cast<Uint8>(gcolor), 10 );
 			}
 		}
 

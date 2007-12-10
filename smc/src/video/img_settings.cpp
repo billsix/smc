@@ -34,6 +34,7 @@ cImage_settings_data :: cImage_settings_data( void )
 	mipmap = 0;
 
 	type = -1;
+	ground_type = GROUND_NORMAL;
 	obsolete = 0;
 }
 
@@ -52,19 +53,21 @@ void cImage_settings_data :: Apply( GL_Surface *image )
 	}
 
 	// ## int_x/int_y
-	image->int_x = (float)int_x;
-	image->int_y = (float)int_y;
+	image->int_x = static_cast<float>(int_x);
+	image->int_y = static_cast<float>(int_y);
 
 	// ## width
 	if( width > 0 )
 	{
-		image->w = (float)width;
+		image->start_w = static_cast<float>(width);
+		image->w = image->start_w;
 		image->col_w = image->w;
 	}
 	// ## height
 	if( height > 0 )
 	{
-		image->h = (float)height;
+		image->start_h = static_cast<float>(height);
+		image->h = image->start_h;
 		image->col_h = image->h;
 	}
 
@@ -82,13 +85,16 @@ void cImage_settings_data :: Apply( GL_Surface *image )
 	// ## rotation x
 	if( rotation_x != 0 )
 	{
-		image->base_rotx = (float)rotation_x;
+		image->base_rotx = static_cast<float>(rotation_x);
+
+		//image->col_pos = image->col_pos.rotate3d( image->base_rotx, 1, 0, 0 );
 	}
 	// ## rotation y
 	if( rotation_y != 0 )
 	{
-		image->base_roty = (float)rotation_y;
+		image->base_roty = static_cast<float>(rotation_y);
 
+		//image->col_pos = image->col_pos.rotate3d( image->base_roty, 0, 1, 0 );
 		// mirror
 		if( image->base_roty == 180 )
 		{
@@ -98,17 +104,30 @@ void cImage_settings_data :: Apply( GL_Surface *image )
 	// ## rotation z
 	if( rotation_z != 0 )
 	{
-		image->base_rotz = (float)rotation_z;
+		image->base_rotz = static_cast<float>(rotation_z);
+
+		//image->col_pos = image->col_pos.rotate3d( image->base_rotz, 0, 0, 1 );
 
 		if( image->base_rotz == 90 )
 		{
+			// rotate position
+			GL_point pos( image->int_x, image->int_y );
+			pos = pos.rotate( GL_point( image->w * 0.5f, image->h * 0.5f ), image->base_rotz );
+			image->int_x = pos.y;
+			image->int_y = pos.x - image->h;
+			// rotate collision position
+			float orig_x = image->col_pos.x;
+			image->col_pos.x = image->h - ( image->col_h + image->col_pos.y );
+			image->col_pos.y = orig_x;
+
+			// switch width and height
+			float orig_w = image->w;
+			image->w = image->h;
+			image->h = orig_w;
+			// switch collision width and height
 			float col_w = image->col_w;
 			image->col_w = image->col_h;
 			image->col_h = col_w;
-
-
-			image->col_pos = image->col_pos.rotate( GL_point( image->w * 0.5f, image->h * 0.5f ), image->base_rotz );
-			image->col_pos.x -= image->col_w;
 		}
 		// mirror
 		else if( image->base_rotz == 180 )
@@ -117,12 +136,24 @@ void cImage_settings_data :: Apply( GL_Surface *image )
 		}
 		else if( image->base_rotz == 270 )
 		{
+			// rotate position
+			GL_point pos( image->int_x, image->int_y );
+			pos = pos.rotate( GL_point( image->w * 0.5f, image->h * 0.5f ), image->base_rotz );
+			image->int_x = pos.y - image->w;
+			image->int_y = pos.x;
+			// rotate collision position
+			float orig_x = image->col_pos.x;
+			image->col_pos.x = image->col_pos.y;
+			image->col_pos.y = orig_x;
+
+			// switch width and height
+			float orig_w = image->w;
+			image->w = image->h;
+			image->h = orig_w;
+			// switch collision width and height
 			float col_w = image->col_w;
 			image->col_w = image->col_h;
 			image->col_h = col_w;
-
-			image->col_pos = image->col_pos.rotate( GL_point( image->w * 0.5f, image->h * 0.5f ), image->base_rotz );
-			image->col_pos.y -= image->col_h;
 		}
 	}
 
@@ -153,6 +184,9 @@ void cImage_settings_data :: Apply( GL_Surface *image )
 	{
 		image->type = type;
 	}
+
+	// ## ground type
+	image->ground_type = ground_type;
 
 	// ## obsolete
 	image->obsolete = obsolete;
@@ -335,7 +369,7 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 		}
 
 		// position and dimension
-		settings->col_rect = GL_rect( (float)string_to_int( parts[1] ), (float)string_to_int( parts[2] ), (float)string_to_int( parts[3] ), (float)string_to_int( parts[4] ) );
+		settings->col_rect = GL_rect( static_cast<float>(string_to_int( parts[1] )), static_cast<float>(string_to_int( parts[2] )), static_cast<float>(string_to_int( parts[3] )), static_cast<float>(string_to_int( parts[4] )) );
 	}
 	else if( parts[0].compare( "width" ) == 0 )
 	{
@@ -471,6 +505,17 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 		}
 
 		settings->type = Get_Sprite_Type_id( parts[1] );
+	}
+	else if( parts[0].compare( "ground_type" ) == 0 )
+	{
+		if( count != 2 )
+		{
+			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
+			return 0; // error
+		}
+
+		settings->ground_type = Get_Groundtype_id( parts[1] );
 	}
 	else if( parts[0].compare( "obsolete" ) == 0 )
 	{

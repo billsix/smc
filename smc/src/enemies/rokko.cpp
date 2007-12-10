@@ -55,7 +55,7 @@ void cRokko :: Init( void  )
 
 	speed = 8.5f;
 	Set_Direction( DIR_LEFT );
-	state = STA_FLY;
+	state = STA_STAY;
 
 	player_range = 4000;
 	smoke_counter = 0;
@@ -76,7 +76,7 @@ cRokko *cRokko :: Copy( void )
 void cRokko :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// direction
 	Set_Direction( Get_Direction_id( attributes.getValueAsString( "direction", Get_Direction_name( start_direction ) ).c_str() ) );
 	// speed
@@ -91,8 +91,8 @@ void cRokko :: Save_to_Stream( ofstream &file )
 	// name
 	file << "\t\t<Property name=\"type\" value=\"rokko\" />" << std::endl;
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// direction
 	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_name( start_direction ) << "\" />" << std::endl;
 	// speed
@@ -100,6 +100,23 @@ void cRokko :: Save_to_Stream( ofstream &file )
 
 	// end enemy
 	file << "\t</enemy>" << std::endl;
+}
+
+void cRokko :: Load_from_Savegame( cSave_Level_Object *save_object )
+{
+	cEnemy::Load_from_Savegame( save_object );
+
+	// Don't activate if dead
+	if( dead )
+	{
+		return;
+	}
+
+	// activate
+	if( state == STA_FLY )
+	{
+		Activate();
+	}
 }
 
 void cRokko :: Set_Direction( ObjectDirection dir )
@@ -143,17 +160,18 @@ void cRokko :: Activate( void )
 {
 	pAudio->PlaySound( "enemy/rokko/activate.ogg" );
 
+	state = STA_FLY;
 	walk_count = 1;
 	massivetype = MASS_MASSIVE;
 	Set_Visible( 1 );
 
 	if( direction == DIR_LEFT )
 	{
-		Add_Velocity( -speed, 0, 1 );
+		Set_Velocity( -speed, 0 );
 	}
 	else
 	{
-		Add_Velocity( speed, 0, 1 );
+		Set_Velocity( speed, 0 );
 	}
 }
 
@@ -191,8 +209,8 @@ void cRokko :: DieStep( void )
 
 	// generate smoke
 	smoke_counter += pFramerate->speedfactor * 10;
-	Generate_Smoke( (int)smoke_counter );
-	smoke_counter -= (int)smoke_counter;
+	Generate_Smoke( static_cast<int>(smoke_counter) );
+	smoke_counter -= static_cast<int>(smoke_counter);
 
 	if( posy > 600 )
 	{
@@ -212,8 +230,8 @@ void cRokko :: Update( void )
 		return;
 	}
 
-	// not active
-	if( massivetype == MASS_PASSIVE )
+	// if not active
+	if( state != STA_FLY )
 	{
 		// player is ghost
 		if( pPlayer->maryo_type == MARYO_GHOST )
@@ -258,8 +276,8 @@ void cRokko :: Update( void )
 
 	// generate smoke
 	smoke_counter += pFramerate->speedfactor * 10;
-	Generate_Smoke( (int)smoke_counter );
-	smoke_counter -= (int)smoke_counter;
+	Generate_Smoke( static_cast<int>(smoke_counter) );
+	smoke_counter -= static_cast<int>(smoke_counter);
 }
 
 void cRokko :: Draw( cSurfaceRequest *request /* = NULL */ )
@@ -305,20 +323,20 @@ void cRokko :: Generate_Smoke( unsigned int quota /*= 10 */ )
 		{
 			if( direction == DIR_LEFT )
 			{
-				anim = new cParticleAnimation( posx + col_rect.w - 5 - ( rand() % 3 ), posy + ( rand() % (int)( rect.h - 15 ) ) );
+				anim = new cParticleAnimation( posx + col_rect.w - 5 - ( rand() % 3 ), posy + ( rand() % static_cast<int>( rect.h - 15 ) ) );
 				
 				anim->Set_DirectionRange( 320, 100 );
 			}
 			else
 			{
-				anim = new cParticleAnimation( posx - 5 - ( rand() % 3 ), posy + ( rand() % (int)( rect.h - 15 ) ) );
+				anim = new cParticleAnimation( posx - 5 - ( rand() % 3 ), posy + ( rand() % static_cast<int>( rect.h - 15 ) ) );
 				anim->Set_DirectionRange( 140, 100 );
 			}
 		}
 		// dead
 		else
 		{
-			anim = new cParticleAnimation( posx + ( rand() % + (int)col_rect.w ), posy + ( rand() % (int)rect.h ) );
+			anim = new cParticleAnimation( posx + ( rand() % + static_cast<int>(col_rect.w) ), posy + ( rand() % static_cast<int>(rect.h) ) );
 		}
 
 		anim->Set_Image( pVideo->Get_Surface( "animation/particles/smoke_black.png" ) );
@@ -326,7 +344,7 @@ void cRokko :: Generate_Smoke( unsigned int quota /*= 10 */ )
 		anim->Set_Speed( 1, 1 );
 		anim->Set_Scale( 1.3f );
 		anim->Set_ConstRotationZ( -1, 2 );
-		anim->Set_Color( Color( (Uint8)155, 150, 130 ) );
+		anim->Set_Color( Color( static_cast<Uint8>(155), 150, 130 ) );
 		anim->Set_Fading_Alpha( 1 );
 		
 		// add animation
@@ -338,13 +356,13 @@ void cRokko :: Generate_Smoke( unsigned int quota /*= 10 */ )
 			if( ( rand() % 25 ) == 0 )
 			{
 				// animation
-				anim = new cParticleAnimation( posx + col_rect.w * 0.2f + ( rand() % + (int)( col_rect.w * 0.6f ) ), posy + rect.h * 0.2f + ( rand() % (int)( rect.h * 0.6f ) ) );
+				anim = new cParticleAnimation( posx + col_rect.w * 0.2f + ( rand() % + static_cast<int>( col_rect.w * 0.6f ) ), posy + rect.h * 0.2f + ( rand() % static_cast<int>( rect.h * 0.6f ) ) );
 
 				anim->Set_Quota( 8 );
 				anim->Set_Time_to_Live( 0.3f, 0.1f );
 				anim->Set_Speed( 4, 1.5f );
 				anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
-				anim->Set_Color( Color( (Uint8)255, 245, 0 ), Color( (Uint8)0, rand() % 10, 0 ) );
+				anim->Set_Color( Color( static_cast<Uint8>(255), 245, 0 ), Color( static_cast<Uint8>(0), rand() % 10, 0 ) );
 				anim->Set_Scale( 0.5f );
 				anim->Set_Fading_Size( 1 );
 				anim->Set_Fading_Alpha( 0 );
@@ -391,7 +409,7 @@ void cRokko :: Handle_Collision_Player( cObjectCollision *collision )
 
 	if( collision->direction == DIR_TOP && pPlayer->state != STA_FLY )
 	{
-		pointsdisplay->Add_Points( kill_points, pPlayer->posx + pPlayer->image->w / 3, pPlayer->posy - 5, "", (Uint8)255, 1 );
+		pointsdisplay->Add_Points( kill_points, pPlayer->posx + pPlayer->image->w / 3, pPlayer->posy - 5, "", static_cast<Uint8>(255), 1 );
 		pAudio->PlaySound( kill_sound );
 		pPlayer->start_enemyjump = 1;
 

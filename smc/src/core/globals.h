@@ -26,7 +26,7 @@
 #define CAPTION "Secret Maryo Chronicles"
 // Version
 #ifndef VERSION
-#define VERSION "1.2"
+#define VERSION "1.3"
 #endif
 
 // framerate speedfactor calculation is based on this
@@ -124,7 +124,8 @@ enum GameAction
 	GA_ENTER_MENU_CREDITS = 3,
 	GA_ENTER_WORLD		= 4,
 	GA_ENTER_LEVEL		= 5,
-	GA_ACTIVATE_LEVEL_EXIT	= 6
+	GA_ACTIVATE_LEVEL_EXIT	= 6,
+	GA_ENTER_LEVEL_SETTINGS	= 7
 };
 
 /* *** *** *** *** *** *** *** Debugging *** *** *** *** *** *** *** *** *** *** */
@@ -316,6 +317,18 @@ enum MassiveType
 	MASS_CLIMBABLE = 3
 };
 
+/* *** Ground Types *** */
+
+enum GroundType
+{
+	GROUND_NORMAL = 0,
+	GROUND_EARTH = 1,
+	GROUND_ICE = 2,
+	GROUND_SAND = 3,
+	GROUND_STONE = 4,
+	GROUND_PLASTIC = 5
+};
+
 /* *** Array Types *** */
 
 enum ArrayType
@@ -347,11 +360,13 @@ enum ball_effect
 
 class cGradientRequest;
 class cLineRequest;
+class cLevel_Settings;
 class cMenu_Base;
 class cObjectCollisionType;
 class cObjectCollision;
 class cParticleAnimation;
 class cRectRequest;
+class cSave_Level_Object;
 class cSoftware_texture;
 class cSurfaceRequest;
 class Color;

@@ -64,7 +64,7 @@ void cFramerate :: Update( void )
 		else
 		{
 			// frame speedfactor calculation
-			speedfactor = (float)( currentticks - framedelay ) / ( 1000 / targetfps );
+			speedfactor = static_cast<float>(( currentticks - framedelay ) / ( 1000 / targetfps ));
 		}
 
 		if( speedfactor <= 0 )
@@ -85,7 +85,7 @@ void cFramerate :: Update( void )
 	{
 		fps_average = fps_average_counter / fps_average_times_counted;
 
-		fps_average_framedelay = (float)currentticks;
+		fps_average_framedelay = static_cast<float>(currentticks);
 		fps_average_times_counted = 0;
 		fps_average_counter = 0;
 	}

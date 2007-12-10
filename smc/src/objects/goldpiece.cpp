@@ -20,6 +20,7 @@
 #include "../core/framerate.h"
 #include "../video/animation.h"
 #include "../gui/hud.h"
+#include "../user/savegame.h"
 
 /* *** *** *** *** *** *** cGoldpiece *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -51,7 +52,7 @@ void cGoldpiece :: Init( void )
 	Set_Goldcolor( COL_YELLOW );
 
 	// small random counter
-	counter = (float)(rand() % 5);
+	counter = static_cast<float>(rand() % 5);
 }
 
 cGoldpiece *cGoldpiece :: Copy( void )
@@ -65,7 +66,7 @@ cGoldpiece *cGoldpiece :: Copy( void )
 void cGoldpiece :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// gold color
 	Set_Goldcolor( Get_Color_id( attributes.getValueAsString( "color", Get_Color_name( color_type ) ).c_str() ) );
 }
@@ -78,13 +79,41 @@ void cGoldpiece :: Save_to_Stream( ofstream &file )
 	// type
 	file << "\t\t<Property name=\"type\" value=\"goldpiece\" />" << std::endl;
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// color
 	file << "\t\t<Property name=\"color\" value=\"" << Get_Color_name( color_type ) << "\" />" << std::endl;
 
 	// end item
 	file << "\t</item>" << std::endl;
+}
+
+void cGoldpiece :: Load_from_Savegame( cSave_Level_Object *save_object )
+{
+	// visible
+	bool save_visible = string_to_int( save_object->Get_Value( "visible" ) ) > 0;
+	Set_Visible( save_visible );
+}
+
+cSave_Level_Object *cGoldpiece :: Save_to_Savegame( void )
+{
+	// only save if needed
+	if( visible )
+	{
+		return NULL;
+	}
+
+	cSave_Level_Object *save_object = new cSave_Level_Object();
+
+	// default values
+	save_object->type = type;
+	save_object->properties.push_back( cSave_Level_Object_Property( "posx", int_to_string( static_cast<int>(startposx) ) ) );
+	save_object->properties.push_back( cSave_Level_Object_Property( "posy", int_to_string( static_cast<int>(startposy) ) ) );
+
+	// visible
+	save_object->properties.push_back( cSave_Level_Object_Property( "visible", int_to_string( visible ) ) );
+
+	return save_object;
 }
 
 void cGoldpiece :: Set_Goldcolor( DefaultColor ncolor )
@@ -141,7 +170,7 @@ void cGoldpiece :: Activate( void )
 	{
 		golddisplay->AddGold( 5 );
 		points = 100;
-		anim->Set_Color( Color( (Uint8)255, 240, 20, 200 ) );
+		anim->Set_Color( Color( static_cast<Uint8>(255), 240, 20, 200 ) );
 	}
 	else
 	{
@@ -193,7 +222,7 @@ void cGoldpiece :: Update( void )
 		counter = 0;
 	}
 
-	Set_Image( (int)counter );
+	Set_Image( static_cast<int>(counter) );
 }
 
 void cGoldpiece :: Draw( cSurfaceRequest *request /* = NULL */ )
@@ -242,7 +271,7 @@ cJGoldpiece :: cJGoldpiece( float x, float y )
 
 	Set_Goldcolor( COL_YELLOW );
 
-	counter = (float)( rand() % 5 );
+	counter = static_cast<float>( rand() % 5 );
 
 	vely = -18;
 }
@@ -277,7 +306,7 @@ void cJGoldpiece :: Update( void )
 		counter = 0;
 	}
 
-	Set_Image( (int)counter );
+	Set_Image( static_cast<int>(counter) );
 }
 
 unsigned int cJGoldpiece :: Validate_Collision( cSprite *obj )
@@ -293,7 +322,7 @@ cFGoldpiece :: cFGoldpiece( float x, float y, ObjectDirection dir /* = DIR_NOTHI
 	type = TYPE_FGOLDPIECE;
 	spawned = 1;
 	player_range = 2000;
-	counter = (float)( rand() % 5 );
+	counter = static_cast<float>( rand() % 5 );
 
 	// set a random direction
 	if( dir != DIR_LEFT && dir != DIR_RIGHT )
@@ -392,7 +421,7 @@ void cFGoldpiece :: Update( void )
 		counter = 0;
 	}
 
-	Set_Image( (int)counter );
+	Set_Image( static_cast<int>(counter) );
 }
 
 unsigned int cFGoldpiece :: Validate_Collision( cSprite *obj )

@@ -233,7 +233,7 @@ void cOverworld :: Enter( bool delayed /* = 0 */ )
 	}
 
 	// if on start waypoint
-	if( pOverworld_Player->current_waypoint == (int)player_start_waypoint )
+	if( pOverworld_Player->current_waypoint == static_cast<int>(player_start_waypoint) )
 	{
 		// if player state is walk
 		if( player_moving_state == STA_WALK )
@@ -323,7 +323,7 @@ bool cOverworld :: Key_Down( SDLKey key )
 		ClearInputEvents();
 	}
 	// ## editor
-	else if( pWorld_Editor->Key_Down( key )  )
+	else if( pWorld_Editor->Key_Down( key ) )
 	{
 		// processed by the editor
 		return 1;
@@ -335,6 +335,42 @@ bool cOverworld :: Key_Down( SDLKey key )
 	}
 
 	// key got processed
+	return 1;
+}
+
+bool cOverworld :: Mouse_Down( Uint8 button )
+{
+	// ## editor
+	if( pWorld_Editor->Mouse_Down( button ) )
+	{
+		// processed by the editor
+		return 1;
+	}
+	else
+	{
+		// not processed
+		return 0;
+	}
+
+	// button got processed
+	return 1;
+}
+
+bool cOverworld :: Mouse_Up( Uint8 button )
+{
+	// ## editor
+	if( pWorld_Editor->Mouse_Up( button ) )
+	{
+		// processed by the editor
+		return 1;
+	}
+	else
+	{
+		// not processed
+		return 0;
+	}
+
+	// button got processed
 	return 1;
 }
 
@@ -447,9 +483,9 @@ void cOverworld :: Save( void )
 	// begin background
 	file << "\t<background>" << std::endl;
 		// color
-		file << "\t\t<Property name=\"color_red\" value=\"" << (int)background_color.red << "\" />" << std::endl;
-		file << "\t\t<Property name=\"color_green\" value=\"" << (int)background_color.green << "\" />" << std::endl;
-		file << "\t\t<Property name=\"color_blue\" value=\"" << (int)background_color.blue << "\" />" << std::endl;
+		file << "\t\t<Property name=\"color_red\" value=\"" << static_cast<int>(background_color.red) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"color_green\" value=\"" << static_cast<int>(background_color.green) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"color_blue\" value=\"" << static_cast<int>(background_color.blue) << "\" />" << std::endl;
 	// end background
 	file << "\t</background>" << std::endl;
 
@@ -458,7 +494,7 @@ void cOverworld :: Save( void )
 		// start waypoint
 		file << "\t\t<Property name=\"waypoint\" value=\"" << player_start_waypoint << "\" />" << std::endl;
 		// moving state
-		file << "\t\t<Property name=\"moving_state\" value=\"" << (int)player_moving_state << "\" />" << std::endl;
+		file << "\t\t<Property name=\"moving_state\" value=\"" << static_cast<int>(player_moving_state) << "\" />" << std::endl;
 	// end player
 	file << "\t</player>" << std::endl;
 
@@ -591,7 +627,7 @@ void cOverworld :: Update_Waypoint_text( void )
 	cWaypoint *waypoint = waypoints[pOverworld_Player->current_waypoint];
 
 	// set color
-	Color color = (Uint8)0;
+	Color color = static_cast<Uint8>(0);
 
 	if( waypoint->waypoint_type == WAYPOINT_NORMAL )
 	{
@@ -667,11 +703,11 @@ bool cOverworld :: Goto_next_Level( void )
 		// World Waypoint
 		if( next_waypoint->waypoint_type == WAYPOINT_WORLD_LINK )
 		{
-			anim->Set_Color( lightgreen, Color( (Uint8)60, 0, 60 ) );
+			anim->Set_Color( lightgreen, Color( static_cast<Uint8>(60), 0, 60 ) );
 		}
 		else
 		{
-			anim->Set_Color( orange, Color( (Uint8)6, 60, 20 ) );
+			anim->Set_Color( orange, Color( static_cast<Uint8>(6), 60, 20 ) );
 		}
 
 		// add animation
@@ -722,18 +758,18 @@ void cOverworld :: elementEnd( const String &element )
 			// Music
 			musicfile = xml_attributes.getValueAsString( "music" ).c_str();
 			// Camera Limits
-			//pCamera->Set_Limits( GL_rect( (float)xml_attributes.getValueAsInteger( "cam_limit_x" ), (float)(float)xml_attributes.getValueAsInteger( "cam_limit_y" ), (float)(float)xml_attributes.getValueAsInteger( "cam_limit_w" ), (float)(float)xml_attributes.getValueAsInteger( "cam_limit_h" ) ) );
+			//pCamera->Set_Limits( GL_rect( static_cast<float>(xml_attributes.getValueAsInteger( "cam_limit_x" )), static_cast<float>(xml_attributes.getValueAsInteger( "cam_limit_y" )), static_cast<float>(xml_attributes.getValueAsInteger( "cam_limit_w" )), static_cast<float>(xml_attributes.getValueAsInteger( "cam_limit_h" )) ) );
 		}
 		else if( element == "player" )
 		{
 			// Start Waypoint
 			player_start_waypoint = xml_attributes.getValueAsInteger( "waypoint" );
 			// Moving State
-			player_moving_state = (Moving_state)xml_attributes.getValueAsInteger( "moving_state" );
+			player_moving_state = static_cast<Moving_state>(xml_attributes.getValueAsInteger( "moving_state" ));
 		}
 		else if( element == "background" )
 		{
-			background_color = Color( (Uint8)xml_attributes.getValueAsInteger( "color_red" ), xml_attributes.getValueAsInteger( "color_green" ), xml_attributes.getValueAsInteger( "color_blue" ) );
+			background_color = Color( static_cast<Uint8>(xml_attributes.getValueAsInteger( "color_red" )), xml_attributes.getValueAsInteger( "color_green" ), xml_attributes.getValueAsInteger( "color_blue" ) );
 		}
 		else
 		{
@@ -787,10 +823,10 @@ void cOverworld :: Draw_HUD( void )
 	if( !editor_world_enabled )
 	{
 		// Background
-		Color color = Color( (Uint8)230, 170, 0, 128 );
+		Color color = Color( static_cast<Uint8>(230), 170, 0, 128 );
 		pVideo->Draw_Rect( 0, 0, GAME_RES_W, 30, 0.12f, &color );
 		// Line
-		color = Color( (Uint8)200, 150, 0, 128 );
+		color = Color( static_cast<Uint8>(200), 150, 0, 128 );
 		pVideo->Draw_Rect( 0, 30, GAME_RES_W, 5, 0.121f, &color );
 
 		// Overworld name and level

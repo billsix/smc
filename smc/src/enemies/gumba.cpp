@@ -61,7 +61,7 @@ cGumba *cGumba :: Copy( void )
 void cGumba :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// color
 	Set_Color( (DefaultColor)Get_Color_id( attributes.getValueAsString( "color", Get_Color_name( color_type ) ).c_str() ) );
 	// direction
@@ -76,8 +76,8 @@ void cGumba :: Save_to_Stream( ofstream &file )
 	// name
 	file << "\t\t<Property name=\"type\" value=\"gumba\" />" << std::endl;
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// color
 	file << "\t\t<Property name=\"color\" value=\"" << Get_Color_name( color_type ) << "\" />" << std::endl;
 	// direction
@@ -85,6 +85,13 @@ void cGumba :: Save_to_Stream( ofstream &file )
 
 	// end enemy
 	file << "\t</enemy>" << std::endl;
+}
+
+void cGumba :: Load_from_Savegame( cSave_Level_Object *save_object )
+{
+	cEnemy::Load_from_Savegame( save_object );
+
+	Update_Rotation_velx();
 }
 
 void cGumba :: Set_Direction( ObjectDirection dir )
@@ -243,7 +250,7 @@ void cGumba :: Update( void )
 		walk_count = 0;
 	}
 
-	Set_Image( (int)walk_count );
+	Set_Image( static_cast<int>(walk_count) );
 
 	// gravity
 	Update_Gravity();
@@ -320,7 +327,7 @@ void cGumba :: Handle_Collision_Player( cObjectCollision *collision )
 		DownGrade();
 		pPlayer->start_enemyjump = 1;
 
-		pointsdisplay->Add_Points( kill_points, pPlayer->posx, pPlayer->posy, "", (Uint8)255, 1 );
+		pointsdisplay->Add_Points( kill_points, pPlayer->posx, pPlayer->posy, "", static_cast<Uint8>(255), 1 );
 		pPlayer->Add_Kill_Multiplier();
 	}
 	else

@@ -54,7 +54,7 @@ void cjStar :: Activate( void )
 {
 	// animation
 	cBlinkAnimation *anim = new cBlinkAnimation( posx + ( col_rect.w / 10 ), posy + ( col_rect.h / 10 ) );
-	anim->Set_Color( Color( (Uint8)255, 240, 20, 200 ) );
+	anim->Set_Color( Color( static_cast<Uint8>(255), 240, 20, 200 ) );
 	pAnimationManager->Add( anim );
 
 	// activate star
@@ -157,18 +157,18 @@ void cjStar :: Generate_Particles( float x /* = 0 */, float y /* = 0 */, unsigne
 {
 	if( x == 0 )
 	{
-		x = posx + (float)( rand() % (int)( col_rect.w * 0.9f ) );
+		x = posx + static_cast<float>( rand() % static_cast<int>( col_rect.w * 0.9f ) );
 	}
 
 	if( y == 0 )
 	{
-		y = posy + (float)( rand() % (int)( col_rect.h * 0.9f ) );
+		y = posy + static_cast<float>( rand() % static_cast<int>( col_rect.h * 0.9f ) );
 	}
 
 	// set particle color
 	Color particle_color = orange;
-	particle_color.green += (Uint8)( glim_counter / 5 );
-	particle_color.blue += (Uint8)( glim_counter / 1.5f );
+	particle_color.green += static_cast<Uint8>( glim_counter / 5 );
+	particle_color.blue += static_cast<Uint8>( glim_counter / 1.5f );
 
 	// create particles
 	cParticleAnimation *anim = new cParticleAnimation( x, y );

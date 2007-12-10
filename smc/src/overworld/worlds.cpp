@@ -1,5 +1,5 @@
 /***************************************************************************
-				worlds.cpp  -  class for the worlds data
+				worlds.cpp  -  class for handling worlds data
                              -------------------
     copyright            : (C) 2004 - 2007 by Florian Richter
  ***************************************************************************/
@@ -15,6 +15,7 @@
  
 #include "../overworld/worlds.h"
 #include "../core/game_core.h"
+#include "../overworld/overworld.h"
 // boost filesystem
 #include "boost/filesystem/operations.hpp"
 #include "boost/filesystem/path.hpp"
@@ -175,7 +176,7 @@ void cOverworld_manager :: Reset( void )
 	pOverworld_Player->Set_Waypoint( pActive_Overworld->player_start_waypoint );
 
 	// Reset all Waypoints
-	for( OverworldList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( vector<cOverworld *>::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		(*itr)->Reset_Waypoints();
 	}
@@ -183,7 +184,7 @@ void cOverworld_manager :: Reset( void )
 
 cOverworld *cOverworld_manager :: Get( string path )
 {
-	for( OverworldList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( vector<cOverworld *>::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		cOverworld *obj = (*itr);
 
@@ -198,7 +199,7 @@ cOverworld *cOverworld_manager :: Get( string path )
 
 cOverworld *cOverworld_manager :: Get_from_Name( string name )
 {
-	for( OverworldList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( vector<cOverworld *>::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		cOverworld *obj = (*itr);
 

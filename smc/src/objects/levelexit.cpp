@@ -88,7 +88,7 @@ cLevel_Exit *cLevel_Exit :: Copy( void )
 void cLevel_Exit :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// type
 	Set_Type( (Level_Exit_type)attributes.getValueAsInteger( "type", exit_type ) );
 	// destination level
@@ -108,8 +108,8 @@ void cLevel_Exit :: Save_to_Stream( ofstream &file )
 	file << "\t<levelexit>" << std::endl;
 
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// type
 	file << "\t\t<Property name=\"type\" value=\"" << exit_type << "\" />" << std::endl;
 

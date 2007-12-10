@@ -1,3 +1,4 @@
 editor_tags level;ground;underground
 name Top_Left
 type massive
+ground_type stone

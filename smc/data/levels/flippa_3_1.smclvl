@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.4" />
-		<Property name="engine_version" value="2" />
-		<Property name="save_time" value="1171033812" />
+		<Property name="game_version" value="1.3" />
+		<Property name="engine_version" value="2.1" />
+		<Property name="save_time" value="1193085371" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Flippa" />
@@ -13,6 +13,7 @@
 		<Property name="cam_limit_y" value="0" />
 		<Property name="cam_limit_w" value="11050" />
 		<Property name="cam_limit_h" value="-4000" />
+		<Property name="cam_fixed_hor_vel" value="0" />
 	</settings>
 	<background>
 		<Property name="type" value="103" />
@@ -34,11 +35,13 @@
 		<Property name="type" value="1" />
 		<Property name="image" value="animation/particles/rain.png" />
 		<Property name="rect_x" value="0" />
-		<Property name="rect_y" value="0" />
+		<Property name="rect_y" value="-1" />
 		<Property name="rect_w" value="800" />
 		<Property name="rect_h" value="1" />
-		<Property name="lifetime_mod" value="5" />
-		<Property name="creation_speed" value="1.5" />
+		<Property name="z" value="0.12" />
+		<Property name="z_rand" value="0" />
+		<Property name="time_to_live" value="1.5" />
+		<Property name="emitter_iteration_interval" value="0.0213333" />
 		<Property name="scale" value="0.3" />
 		<Property name="scale_rand" value="0.1" />
 		<Property name="speed" value="20" />
@@ -49,8 +52,8 @@
 		<Property name="const_rotz_rand" value="0" />
 	</global_effect>
 	<player>
-		<Property name="posx" value="2877" />
-		<Property name="posy" value="-440" />
+		<Property name="posx" value="2866" />
+		<Property name="posy" value="-499" />
 		<Property name="direction" value="right" />
 	</player>
 	<sprite>
@@ -458,6 +461,7 @@
 	<moving_platform>
 		<Property name="posx" value="903" />
 		<Property name="posy" value="201" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="400" />
 		<Property name="speed" value="3" />
@@ -675,6 +679,7 @@
 	<moving_platform>
 		<Property name="posx" value="2471" />
 		<Property name="posy" value="95" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="300" />
 		<Property name="speed" value="1" />
@@ -686,6 +691,7 @@
 	<moving_platform>
 		<Property name="posx" value="2471" />
 		<Property name="posy" value="159" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="300" />
 		<Property name="speed" value="1" />
@@ -697,6 +703,7 @@
 	<moving_platform>
 		<Property name="posx" value="2471" />
 		<Property name="posy" value="223" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="300" />
 		<Property name="speed" value="1" />
@@ -708,6 +715,7 @@
 	<moving_platform>
 		<Property name="posx" value="2471" />
 		<Property name="posy" value="287" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="300" />
 		<Property name="speed" value="1" />
@@ -719,6 +727,7 @@
 	<moving_platform>
 		<Property name="posx" value="2471" />
 		<Property name="posy" value="351" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="300" />
 		<Property name="speed" value="1" />
@@ -730,6 +739,7 @@
 	<moving_platform>
 		<Property name="posx" value="2471" />
 		<Property name="posy" value="415" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="300" />
 		<Property name="speed" value="1" />
@@ -741,6 +751,7 @@
 	<moving_platform>
 		<Property name="posx" value="2471" />
 		<Property name="posy" value="479" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="300" />
 		<Property name="speed" value="1" />
@@ -752,6 +763,7 @@
 	<moving_platform>
 		<Property name="posx" value="2471" />
 		<Property name="posy" value="543" />
+		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="300" />
 		<Property name="speed" value="1" />

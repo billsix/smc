@@ -40,8 +40,8 @@ void cBackground :: Init( void )
 {
 	type = BG_NONE;
 
-	color_1 = (Uint8)0;
-	color_2 = (Uint8)0;
+	color_1 = static_cast<Uint8>(0);
+	color_2 = static_cast<Uint8>(0);
 
 	img_file_1.reserve( 120 );
 	img_1 = NULL;
@@ -79,13 +79,13 @@ void cBackground :: Save_to_Stream( ofstream &file )
 	if( type == BG_GR_HOR || type == BG_GR_VER )
 	{
 		// background color 1
-		file << "\t\t<Property name=\"bg_color_1_red\" value=\"" << (int)color_1.red << "\" />" << std::endl;
-		file << "\t\t<Property name=\"bg_color_1_green\" value=\"" << (int)color_1.green << "\" />" << std::endl;
-		file << "\t\t<Property name=\"bg_color_1_blue\" value=\"" << (int)color_1.blue << "\" />" << std::endl;
+		file << "\t\t<Property name=\"bg_color_1_red\" value=\"" << static_cast<int>(color_1.red) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"bg_color_1_green\" value=\"" << static_cast<int>(color_1.green) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"bg_color_1_blue\" value=\"" << static_cast<int>(color_1.blue) << "\" />" << std::endl;
 		// background color 2
-		file << "\t\t<Property name=\"bg_color_2_red\" value=\"" << (int)color_2.red << "\" />" << std::endl;
-		file << "\t\t<Property name=\"bg_color_2_green\" value=\"" << (int)color_2.green << "\" />" << std::endl;
-		file << "\t\t<Property name=\"bg_color_2_blue\" value=\"" << (int)color_2.blue << "\" />" << std::endl;
+		file << "\t\t<Property name=\"bg_color_2_red\" value=\"" << static_cast<int>(color_2.red) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"bg_color_2_green\" value=\"" << static_cast<int>(color_2.green) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"bg_color_2_blue\" value=\"" << static_cast<int>(color_2.blue) << "\" />" << std::endl;
 	}
 	else if( type == BG_IMG_LEFTRIGHT || type == BG_IMG_TOP || type == BG_IMG_ALL )
 	{
@@ -177,7 +177,7 @@ void cBackground :: Draw( void )
 	// image
 	else if( type == BG_IMG_LEFTRIGHT && img_1 ) 
 	{
-		if( !pPreferences->background_images )
+		if( !pPreferences->level_background_images )
 		{
 			return;
 		}
@@ -227,9 +227,9 @@ void cBackground :: DrawGradient( void )
 				power = 1;
 			}
 
-			color_start.red += (Uint8)( (float)( color_2.red - color_1.red ) * power );
-			color_start.green += (Uint8)( (float)( color_2.green - color_1.green ) * power );
-			color_start.blue += (Uint8)( (float)( color_2.blue - color_1.blue ) * power );
+			color_start.red += static_cast<Uint8>( static_cast<float>( color_2.red - color_1.red ) * power );
+			color_start.green += static_cast<Uint8>( static_cast<float>( color_2.green - color_1.green ) * power );
+			color_start.blue += static_cast<Uint8>( static_cast<float>( color_2.blue - color_1.blue ) * power );
 		}
 
 		if( type == BG_GR_VER )

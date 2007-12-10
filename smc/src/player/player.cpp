@@ -109,7 +109,7 @@ cPlayer *cPlayer :: Copy( void )
 void cPlayer :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx", 50 ), (float)attributes.getValueAsInteger( "posy", 300 ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx", 50 )), static_cast<float>(attributes.getValueAsInteger( "posy", 300 )), 1 );
 	// direction
 	ObjectDirection dir = Get_Direction_id( attributes.getValueAsString( "direction" ).c_str() );
 
@@ -139,8 +139,8 @@ void cPlayer :: Save_to_Stream( ofstream &file )
 	file << "\t<player>" << std::endl;
 
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// direction
 	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_name( start_direction ) << "\" />" << std::endl;
 
@@ -212,11 +212,11 @@ void cPlayer :: DownGrade( bool delayed /* = 1 */, bool force /* = 0 */ )
 	if( delayed )
 	{
 		Game_Action = GA_DOWNGRADE_PLAYER;
-		Game_Action_Data = int_to_string( force );
+		Game_Action_Data.add( "force", CEGUI::PropertyHelper::boolToString( force ) );
 		return;
 	}
 
-	// if on weakest state or not forced 
+	// if not weakest state or not forced 
 	if( maryo_type != MARYO_SMALL && !force )
 	{
 		pAudio->PlaySound( "player/powerdown.ogg", RID_MARYO_POWERDOWN );
@@ -324,7 +324,7 @@ void cPlayer :: DownGrade( bool delayed /* = 1 */, bool force /* = 0 */ )
 		sprite->posz = 0.8f;
 		sprite->spawned = 1;
 		sprite->Set_Ignore_Camera( 1 );
-		pSprite_Manager->Add( sprite );
+		pLevel->pSprite_Manager->Add( sprite );
 
 		cParticleAnimation *anim = new cParticleAnimation();
 		anim->Set_Emitter_Rect( sprite->rect.x + pCamera->x, sprite->rect.y + pCamera->y, sprite->rect.w ,sprite->rect.h );
@@ -337,7 +337,7 @@ void cPlayer :: DownGrade( bool delayed /* = 1 */, bool force /* = 0 */ )
 		anim->Set_Fading_Alpha( 1 );
 		anim->Set_Speed( 2, 0.5f );
 		anim->Set_Scale( 0.9f );
-		anim->Set_Color( Color( (Uint8)250, 140, 90 ), Color( (Uint8)5, 100, 0 ) );
+		anim->Set_Color( Color( static_cast<Uint8>(250), 140, 90 ), Color( static_cast<Uint8>(5), 100, 0 ) );
 		anim->Set_ConstRotationZ( 0.1f, 5 );
 
 		anim->Init();
@@ -354,7 +354,7 @@ void cPlayer :: DownGrade( bool delayed /* = 1 */, bool force /* = 0 */ )
 			}
 
 			// if joystick enabled and exit pressed
-			if( pPreferences->joy_enabled && SDL_JoystickGetButton( pJoystick->joystick, pPreferences->joy_exit ) )
+			if( pPreferences->joy_enabled && SDL_JoystickGetButton( pJoystick->joystick, pPreferences->joy_button_exit ) )
 			{
 				 break;
 			}
@@ -423,7 +423,7 @@ void cPlayer :: Move_Player( float velocity, float vel_wrongway )
 		// special enemies
 		else if( collision->type == CO_ENEMY )
 		{
-			cEnemy *enemy = static_cast<cEnemy *>(pSprite_Manager->Get_Pointer( collision->number ));
+			cEnemy *enemy = static_cast<cEnemy *>(pLevel->pSprite_Manager->Get_Pointer( collision->number ));
 
 			// blocking enemies
 			if( enemy->type == TYPE_EATO )
@@ -461,14 +461,9 @@ void cPlayer :: Move_Player( float velocity, float vel_wrongway )
 		else
 		{
 			// small smoke clouds under foots
-			if( ground_object && ground_object->massivetype == MASS_MASSIVE && velx < 0 )
+			if( velx < 0 )
 			{
-				cParticleAnimation *anim = new cParticleAnimation( col_rect.x, col_rect.y + col_rect.h - 5, col_rect.w );
-				anim->Set_Image( pVideo->Get_Surface( "animation/particles/smoke.png" ) );
-				anim->Set_DirectionRange( 170, 30 );
-				anim->Set_Time_to_Live( 0.3f );
-				anim->Set_Speed( -velx / 5, -velx / 5 );
-				pAnimationManager->Add( anim );
+				Generate_feet_clouds();
 			}
 
 			// slow down
@@ -490,14 +485,9 @@ void cPlayer :: Move_Player( float velocity, float vel_wrongway )
 		else
 		{
 			// small smoke clouds under foots
-			if( ground_object && ground_object->massivetype == MASS_MASSIVE && velx > 0 )
+			if( velx > 0 )
 			{
-				cParticleAnimation *anim = new cParticleAnimation( col_rect.x, col_rect.y + col_rect.h - 5, col_rect.w );
-				anim->Set_Image( pVideo->Get_Surface( "animation/particles/smoke.png" ) );
-				anim->Set_DirectionRange( 330, 30 );
-				anim->Set_Time_to_Live( 0.3f );
-				anim->Set_Speed( velx / 5, velx / 5 );
-				pAnimationManager->Add( anim );
+				Generate_feet_clouds();
 			}
 
 			// slow down
@@ -509,6 +499,99 @@ void cPlayer :: Move_Player( float velocity, float vel_wrongway )
 	if( state == STA_STAY )
 	{
 		Set_MovingState( STA_WALK );
+	}
+}
+
+void cPlayer :: Generate_feet_clouds( cParticleAnimation *anim /* = NULL */ )
+{
+	// check if valid
+	if( !ground_object || !ground_object->image || ground_object->image->ground_type == GROUND_NORMAL )
+	{
+		return;
+	}
+
+	bool create_anim = 0;
+
+	if( !anim )
+	{
+		create_anim = 1;
+		// create animation
+		anim = new cParticleAnimation();
+	}
+
+	anim->Set_Emitter_Rect( col_rect.x, col_rect.y + col_rect.h - 2, col_rect.w );
+	anim->Set_ZPos( posz - 0.000001f );
+
+	float vel = ( velx > 0 ? velx : -velx );
+
+	// ground type
+	switch( ground_object->image->ground_type )
+	{
+		case GROUND_EARTH:
+		{
+			anim->Set_Image( pVideo->Get_Surface( "animation/particles/dirt.png" ) );
+			anim->Set_Time_to_Live( 0.3f );
+			anim->Set_Scale( 0.5f );
+			anim->Set_Speed( 0.08f + vel * 0.1f, vel * 0.05f );
+			break;
+		}
+		case GROUND_ICE:
+		{
+			anim->Set_Image( pVideo->Get_Surface( "animation/particles/ice_1.png" ) );
+			anim->Set_Time_to_Live( 0.6f );
+			anim->Set_Scale( 0.3f );
+			anim->Set_Speed( 0.1f + vel * 0.05f, vel * 0.04f );
+			break;
+		}
+		case GROUND_SAND:
+		{
+			anim->Set_Emitter_Iteration_Interval( 4 );
+			anim->Set_Image( pVideo->Get_Surface( "animation/particles/cloud.png" ) );
+			anim->Set_Time_to_Live( 0.3f );
+			anim->Set_Scale( 0.2f );
+			anim->Set_Color( lightorange );
+			anim->Set_Speed( 0.2f + vel * 0.15f, vel * 0.15f );
+			break;
+		}
+		case GROUND_STONE:
+		{
+			anim->Set_Image( pVideo->Get_Surface( "animation/particles/smoke_black.png" ) );
+			anim->Set_Time_to_Live( 0.3f );
+			anim->Set_Scale( 0.3f );
+			anim->Set_Speed( vel * 0.08f, 0.1f + vel * 0.1f );
+			break;
+		}
+		case GROUND_PLASTIC:
+		{
+			anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
+			anim->Set_Time_to_Live( 0.2f );
+			anim->Set_Scale( 0.2f );
+			anim->Set_Color( lightgrey );
+			anim->Set_Speed( 0.05f, vel * 0.05f );
+			break;
+		}
+		default:
+		{
+			anim->Set_Image( pVideo->Get_Surface( "animation/particles/smoke.png" ) );
+			anim->Set_Time_to_Live( 0.3f );
+			anim->Set_Speed( 0.1f + vel * 0.1f, vel * 0.1f );
+			break;
+		}
+	}
+
+	if( direction == DIR_RIGHT )
+	{
+		anim->Set_DirectionRange( 180, 90 );
+	}
+	else
+	{
+		anim->Set_DirectionRange( 270, 90 );
+	}
+
+	if( create_anim )
+	{
+		// add animation
+		pAnimationManager->Add( anim );
 	}
 }
 
@@ -528,7 +611,36 @@ void cPlayer :: Update_walking( void )
 	// only if left or right is pressed
 	if( pKeyboard->keys[pPreferences->key_left] || pKeyboard->keys[pPreferences->key_right] || pJoystick->left || pJoystick->right )
 	{
-		Move_Player( ( 0.6f * Get_Vel_mod() ), ( 1.2f * Get_Vel_mod() ) );
+		float ground_mod = 1;
+
+		if( ground_object && ground_object->image )
+		{
+			// ground type
+			switch( ground_object->image->ground_type )
+			{
+				case GROUND_ICE:
+				{
+					ground_mod = 0.5f;
+					break;
+				}
+				case GROUND_SAND:
+				{
+					ground_mod = 0.7f;
+					break;
+				}
+				case GROUND_PLASTIC:
+				{
+					ground_mod = 0.85f;
+					break;
+				}
+				default:
+				{
+					break;
+				}
+			}
+		}
+
+		Move_Player( ( 0.6f * ground_mod * Get_Vel_mod() ), ( 1.2f * ground_mod * Get_Vel_mod() ) );
 	}
 
 	// update walking time
@@ -594,15 +706,7 @@ void cPlayer :: Update_running( void )
 		}
 
 		// smoke clouds under foots
-		if( ground_object->massivetype == MASS_MASSIVE )
-		{
-			cParticleAnimation *anim = new cParticleAnimation( col_rect.x, col_rect.y + col_rect.h - 5, col_rect.w );
-			anim->Set_Image( pVideo->Get_Surface( "animation/particles/smoke.png" ) );
-			anim->Set_DirectionRange( 330, 30 );
-			anim->Set_Time_to_Live( 0.4f + vel * 0.05f );
-			anim->Set_Speed( 0, 3 );
-			pAnimationManager->Add( anim );
-		}
+		Generate_feet_clouds();
 
 		running_particle_counter--;
 	}
@@ -622,7 +726,14 @@ void cPlayer :: Update_staying( void )
 		// walking
 		if( velx )
 		{
-			Auto_SlowDown( 1.1f );
+			if( ground_object->image && ground_object->image->ground_type == GROUND_ICE )
+			{
+				Auto_SlowDown( 1.1f / 5.0f );
+			}
+			else
+			{
+				Auto_SlowDown( 1.1f );
+			}
 
 			// stopped walking
 			if( !velx )
@@ -911,7 +1022,7 @@ void cPlayer :: Update_climbing( void )
 		cObjectCollision *col = (*itr);
 
 		// collides with the climbable object
-		if( col && col->type == CO_ACTIVE && pSprite_Manager->Get_Pointer( col->number )->massivetype == MASS_CLIMBABLE )
+		if( col && col->type == CO_ACTIVE && pLevel->pSprite_Manager->Get_Pointer( col->number )->massivetype == MASS_CLIMBABLE )
 		{
 			Collisions_Clear();
 
@@ -939,7 +1050,7 @@ void cPlayer :: Update_climbing( void )
 			col = Collision_Get_first();
 
 			// do not climb further upwards if maryo will loose contact
-			if( !( col && col->type == CO_ACTIVE && pSprite_Manager->Get_Pointer( col->number )->massivetype == MASS_CLIMBABLE ) )
+			if( !( col && col->type == CO_ACTIVE && pLevel->pSprite_Manager->Get_Pointer( col->number )->massivetype == MASS_CLIMBABLE ) )
 			{
 				// only stop if loosing contact upwards
 				if( vely < 0 )
@@ -1004,7 +1115,7 @@ void cPlayer :: Start_jump( float power /* = 17 */, float accel /* = 4 */, float
 	bool jump_key = 0;
 
 	// if jump key pressed
-	if( pKeyboard->keys[pPreferences->key_jump] || ( pJoystick->up && pPreferences->joy_analog_jump ) || pJoystick->Button( pPreferences->joy_jump ) )
+	if( pKeyboard->keys[pPreferences->key_jump] || ( pJoystick->up && pPreferences->joy_analog_jump ) || pJoystick->Button( pPreferences->joy_button_jump ) )
 	{
 		jump_key = 1;
 	}
@@ -1075,7 +1186,7 @@ void cPlayer :: Update_jump( void )
 	}
 
 	// jumping physics
-	if( pKeyboard->keys[pPreferences->key_jump] || ( pPreferences->joy_analog_jump && pJoystick->up ) || pJoystick->Button( pPreferences->joy_jump ) )
+	if( pKeyboard->keys[pPreferences->key_jump] || ( pPreferences->joy_analog_jump && pJoystick->up ) || pJoystick->Button( pPreferences->joy_button_jump ) )
 	{
 		Add_Velocity( 0, -( jump_accel_up + ( vely * jump_vel_deaccel ) / Get_Vel_mod() ) );
 		jump_power -= pFramerate->speedfactor;
@@ -1167,7 +1278,7 @@ void cPlayer :: Update_item( void )
 	}
 
 	// if control is pressed search for items in front of the player
-	if( ( pKeyboard->keys[pPreferences->key_action] || pJoystick->Button( pPreferences->joy_action ) ) && !ducked && state != STA_CLIMB )
+	if( ( pKeyboard->keys[pPreferences->key_action] || pJoystick->Button( pPreferences->joy_button_action ) ) && !ducked && state != STA_CLIMB )
 	{
 		// next position velocity with extra size
 		float check_x = ( velx > 0 ) ? (velx + 5) : ( velx - 5);
@@ -1198,7 +1309,7 @@ void cPlayer :: Update_item( void )
 				// enemy item
 				if( collision->type == CO_ENEMY )
 				{
-					cEnemy *enemy = static_cast<cEnemy *>(pSprite_Manager->Get_Pointer( collision->number ));
+					cEnemy *enemy = static_cast<cEnemy *>(pLevel->pSprite_Manager->Get_Pointer( collision->number ));
 
 					if( enemy->type == TYPE_TURTLE && enemy->state == STA_STAY )
 					{
@@ -1264,7 +1375,7 @@ void cPlayer :: Release_item( bool set_position /* = 1 */, bool no_action /* = 0
 			// small direction acceleration if no object action
 			if( kick_direction != DIR_UP && no_action )
 			{
-				active_object->velx = ( kick_direction == DIR_LEFT ) ? ((float)-5) : ((float)5);
+				active_object->velx = ( kick_direction == DIR_LEFT ) ? (static_cast<float>(-5)) : (static_cast<float>(5));
 			}
 			// if jumping kick the object upwards
 			else if( kick_direction == DIR_UP && !no_action )
@@ -1781,7 +1892,7 @@ void cPlayer :: Goto_SubLevel( string str_level, string str_entry )
 		if( !str_entry.empty() )
 		{
 			// Search for the entry
-			for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+			for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 			{
 				cSprite *obj = (*itr);
 
@@ -1841,7 +1952,7 @@ void cPlayer :: Goto_SubLevel( string str_level, string str_entry )
 	else
 	{
 		Game_Action = GA_ENTER_LEVEL;
-		Game_Action_Data = str_level;
+		Game_Action_Data.add( "level", str_level.c_str() );
 	}
 }
 
@@ -1947,11 +2058,11 @@ void cPlayer :: Update( void )
 			{
 				// set particle color
 				Color particle_color = orange;
-				particle_color.green += (Uint8)( invincible_mod / 5 );
-				particle_color.blue += (Uint8)( invincible_mod / 1.5f );
+				particle_color.green += static_cast<Uint8>( invincible_mod / 5 );
+				particle_color.blue += static_cast<Uint8>( invincible_mod / 1.5f );
 
 				// create particle
-				cParticleAnimation *anim = new cParticleAnimation( posx + (float)( rand() % (int)( col_rect.w * 0.9f ) ), posy + (float)( rand() % (int)( col_rect.h * 0.9f ) ) );
+				cParticleAnimation *anim = new cParticleAnimation( posx + static_cast<float>( rand() % static_cast<int>( col_rect.w * 0.9f ) ), posy + static_cast<float>( rand() % static_cast<int>( col_rect.h * 0.9f ) ) );
 				anim->Set_Image( pVideo->Get_Surface( "animation/particles/star.png" ) );
 				anim->Set_ZPos( posz - 0.000001f );
 				anim->Set_Time_to_Live( 0.3f );
@@ -2003,6 +2114,42 @@ void cPlayer :: Update( void )
 		else
 		{
 			walk_count += pFramerate->speedfactor * 0.3f;
+		}
+
+		// ground type modification
+		float vel = ( velx > 0 ? velx : -velx );
+
+		if( vel && ground_object && ground_object->image)
+		{
+			float ground_mod = 0;
+
+			switch( ground_object->image->ground_type )
+			{
+				case GROUND_ICE:
+				{
+					ground_mod = 0.125f;
+					break;
+				}
+				case GROUND_SAND:
+				{
+					ground_mod = 0.075f;
+					break;
+				}
+				case GROUND_PLASTIC:
+				{
+					ground_mod = 0.03f;
+					break;
+				}
+				default:
+				{
+					break;
+				}
+			}
+
+			if( ground_mod )
+			{
+				walk_count += ground_mod * ( 5 / vel ) * pFramerate->speedfactor;
+			}
 		}
 	}
 	else if( state == STA_RUN )
@@ -2222,14 +2369,14 @@ void cPlayer :: Draw( cSurfaceRequest *request /* = NULL */ )
 		// default invincible
 		else
 		{
-			Set_Color( 255, 255, 255, 255 - (Uint8)invincible_mod );
+			Set_Color( 255, 255, 255, 255 - static_cast<Uint8>(invincible_mod) );
 		}
 	}
 	// ghost
 	if( ghost_time > 0 )
 	{
 		// ghost shadows
-		color.alpha = 32 + (int)ghost_time_mod;
+		color.alpha = 32 + static_cast<int>(ghost_time_mod);
 		float old_posx = posx, old_posy = posy, old_posz = posz;
 
 		for( unsigned int i = 0; i < 5; i++ )
@@ -2246,7 +2393,7 @@ void cPlayer :: Draw( cSurfaceRequest *request /* = NULL */ )
 		posx = old_posx;
 		posy = old_posy;
 		posz = old_posz;
-		color.alpha = 48 + (int)ghost_time_mod;
+		color.alpha = 48 + static_cast<int>(ghost_time_mod);
 	}
 
 	cMovingSprite::Draw( request );
@@ -2356,7 +2503,7 @@ unsigned int cPlayer :: Get_Image( void )
 
 	if( state == STA_STAY || state == STA_WALK || ( maryo_type != MARYO_CAPE && state == STA_RUN ) )
 	{
-		unsigned int imgnum = (unsigned int)walk_count;
+		unsigned int imgnum = static_cast<unsigned int>(walk_count);
 
 		for( unsigned int i = 0; i < imgnum; i++ )
 		{
@@ -2370,7 +2517,7 @@ unsigned int cPlayer :: Get_Image( void )
 	}
 	else if( state == STA_RUN )
 	{
-		unsigned int imgnum = (unsigned int)walk_count;
+		unsigned int imgnum = static_cast<unsigned int>(walk_count);
 
 		for( unsigned int i = 0; i < imgnum; i++ )
 		{
@@ -2384,7 +2531,7 @@ unsigned int cPlayer :: Get_Image( void )
 	}
 	else if( state == STA_FALL )
 	{
-		/*unsigned int imgnum = (unsigned int)walk_count;
+		/*unsigned int imgnum = static_cast<unsigned int>(walk_count);
 
 		for( unsigned int i = 0; i < imgnum; i++ )
 		{
@@ -2403,7 +2550,7 @@ unsigned int cPlayer :: Get_Image( void )
 	}*/
 	else if( state == STA_JUMP )
 	{
-		/*unsigned int imgnum = (unsigned int)walk_count;
+		/*unsigned int imgnum = static_cast<unsigned int>(walk_count);
 
 		for( unsigned int i = 0; i < imgnum; i++ )
 		{
@@ -2418,7 +2565,7 @@ unsigned int cPlayer :: Get_Image( void )
 	}
 	else if( state == STA_FLY )
 	{
-		unsigned int imgnum = (unsigned int)walk_count;
+		unsigned int imgnum = static_cast<unsigned int>(walk_count);
 
 		for( unsigned int i = 0; i < imgnum; i++ )
 		{
@@ -2892,7 +3039,7 @@ float cPlayer :: Get_Vel_mod( void )
 	float vel_mod = 1;
 
 	// if running key is pressed or always run
-	if( pPreferences->always_run || pKeyboard->keys[pPreferences->key_action] || pJoystick->Button( pPreferences->joy_action ) )
+	if( pPreferences->always_run || pKeyboard->keys[pPreferences->key_action] || pJoystick->Button( pPreferences->joy_button_action ) )
 	{
 		vel_mod = 1.5f;
 	}
@@ -2939,7 +3086,7 @@ void cPlayer :: Action_Interact( SDLKey key_type )
 	if( key_type == pPreferences->key_up )
 	{
 		// Search for colliding level exit Objects
-		for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			cSprite *obj = (*itr);
 
@@ -2979,7 +3126,7 @@ void cPlayer :: Action_Interact( SDLKey key_type )
 	else if( key_type == pPreferences->key_down )
 	{
 		// Search for colliding Levelexit Objects
-		for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			cSprite *obj = (*itr);
 
@@ -3025,7 +3172,7 @@ void cPlayer :: Action_Interact( SDLKey key_type )
 	else if( key_type == pPreferences->key_left )
 	{
 		// Search for colliding Levelexit Objects
-		for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			cSprite *obj = (*itr);
 
@@ -3069,7 +3216,7 @@ void cPlayer :: Action_Interact( SDLKey key_type )
 	else if( key_type == pPreferences->key_right )
 	{
 		// Search for colliding Levelexit Objects
-		for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			cSprite *obj = (*itr);
 
@@ -3153,7 +3300,7 @@ bool cPlayer :: Ball_add( ball_effect effect_type /* = FIREBALL_DEFAULT */ )
 		}
 		// add ball
 		cBall *ball = new cBall( (direction == DIR_RIGHT) ? (posx + 20) : (posx + 8), posy + 45, (direction == DIR_RIGHT) ? (speed) : (-speed), 0, this, effect_type );
-		pSprite_Manager->Add( ball );
+		pLevel->pSprite_Manager->Add( ball );
 
 		// play sound
 		if( effect_type == FIREBALL_DEFAULT )
@@ -3179,7 +3326,7 @@ bool cPlayer :: Ball_add( ball_effect effect_type /* = FIREBALL_DEFAULT */ )
 			cBall *ball = new cBall( posx + col_rect.w / 2, posy + col_rect.h / 2, 0, 0, this, effect_type );
 			ball->Set_Direction( ball_angle, 15 );
 			ball->Col_Move( ball->velx * 2, ball->vely * 2, 1 );
-			pSprite_Manager->Add( ball );
+			pLevel->pSprite_Manager->Add( ball );
 		}
 
 		// explosion animation and sound
@@ -3199,7 +3346,7 @@ bool cPlayer :: Ball_add( ball_effect effect_type /* = FIREBALL_DEFAULT */ )
 			anim->Set_Quota( 10 );
 			anim->Set_Time_to_Live( 1.5f );
 			anim->Set_ZPos( posz + 0.0001f );
-			anim->Set_Color( Color( (Uint8)50, 50, 250 ) );
+			anim->Set_Color( Color( static_cast<Uint8>(50), 50, 250 ) );
 			anim->Set_Blending( BLEND_ADD );
 			anim->Set_Speed( 0.8f, 0.7f );
 			anim->Set_Scale( 0.4f, 0.2f );
@@ -3221,7 +3368,7 @@ bool cPlayer :: Ball_add( ball_effect effect_type /* = FIREBALL_DEFAULT */ )
 void cPlayer :: Ball_clear( void )
 {
 	// destroy all fireballs from the player
-	for( SpriteList::iterator itr = pSprite_Manager->objects.begin(), itr_end = pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
 	{
 		cSprite *obj = (*itr);
 
@@ -3246,7 +3393,7 @@ void cPlayer :: Add_Kill_Multiplier( void )
 	if( kill_multiplier >= 2 )
 	{
 		// only every fifth kill
-		if( (int)( kill_multiplier * 10 ) % 5 == 0 )
+		if( static_cast<int>( kill_multiplier * 10 ) % 5 == 0 )
 		{
 			// add 1 live
 			golddisplay->AddGold( 100 );
@@ -3477,7 +3624,7 @@ void cPlayer :: Handle_Collision_Enemy( cObjectCollision *collision )
 		return;
 	}
 
-	cEnemy *enemy = static_cast<cEnemy *>(pSprite_Manager->Get_Pointer( collision->number ));
+	cEnemy *enemy = static_cast<cEnemy *>(pLevel->pSprite_Manager->Get_Pointer( collision->number ));
 
 	// if enemy already dead
 	if( enemy->dead )
@@ -3510,7 +3657,7 @@ void cPlayer :: Handle_Collision_Enemy( cObjectCollision *collision )
 		if( hit_enemy )
 		{
 			pAudio->PlaySound( "item/star_kill.ogg" );
-			pointsdisplay->Add_Points( (unsigned int)( enemy->kill_points * 1.2f ), posx, posy, "", yellow, 1 );
+			pointsdisplay->Add_Points( static_cast<unsigned int>( enemy->kill_points * 1.2f ), posx, posy, "", yellow, 1 );
 			// force complete downgrade
 			enemy->DownGrade( 1 );
 			Add_Kill_Multiplier();
@@ -3547,7 +3694,7 @@ void cPlayer :: Handle_Collision_Enemy( cObjectCollision *collision )
 
 				anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
 				anim->Set_Time_to_Live( 0.6f, 0.4f );
-				anim->Set_Color( Color( (Uint8)160, 160, 240 ), Color( (Uint8)( rand() % 80 ), rand() % 80, rand() % 10 ) );
+				anim->Set_Color( Color( static_cast<Uint8>(160), 160, 240 ), Color( static_cast<Uint8>( rand() % 80 ), rand() % 80, rand() % 10 ) );
 				anim->Set_Fading_Alpha( 1 );
 				anim->Set_Fading_Size( 1 );
 				anim->Set_Speed( 0.5f, 0.2f );
@@ -3561,7 +3708,7 @@ void cPlayer :: Handle_Collision_Enemy( cObjectCollision *collision )
 		pAudio->PlaySound( "item/ice_kill.ogg" );
 
 		// get points
-		pointsdisplay->Add_Points( enemy->kill_points, enemy->posx, enemy->posy, "", (Uint8)255, 1 );
+		pointsdisplay->Add_Points( enemy->kill_points, enemy->posx, enemy->posy, "", static_cast<Uint8>(255), 1 );
 		
 		// kill enemy
 		enemy->DownGrade( 1 );
@@ -3600,7 +3747,7 @@ void cPlayer :: Handle_Collision_Massive( cObjectCollision *collision )
 		return;
 	}
 
-	cSprite *col_obj = pSprite_Manager->Get_Pointer( collision->number );
+	cSprite *col_obj = pLevel->pSprite_Manager->Get_Pointer( collision->number );
 
 	// ignore climbable
 	if( col_obj->massivetype == MASS_CLIMBABLE )

@@ -98,7 +98,7 @@ bool cFile_parser :: Parse_Line( string command, int line )
 
 	while( count > 0 )
 	{
-		len = (int)tempstr.find_first_of( ' ' );
+		len = static_cast<int>(tempstr.find_first_of( ' ' ));
 		parts[i] = tempstr.substr( 0, len );
 		tempstr.erase( 0, len + 1 );
 		i++;

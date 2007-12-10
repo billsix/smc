@@ -54,7 +54,7 @@ void cEato :: Init( void )
 	images.push_back( pVideo->Get_Surface( "enemy/eato/3.png" ) );
 	images.push_back( pVideo->Get_Surface( "enemy/eato/2.png" ) );
 
-	walk_count = (float)( rand() % 4 );
+	walk_count = static_cast<float>( rand() % 4 );
 
 	kill_sound = "enemy/eato/die.ogg";
 	kill_points = 150;
@@ -73,7 +73,7 @@ cEato *cEato :: Copy( void )
 void cEato :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// direction
 	Set_Direction( Get_Direction_id( attributes.getValueAsString( "direction", Get_Direction_name( start_direction ) ).c_str() ) );
 }
@@ -86,8 +86,8 @@ void cEato :: Save_to_Stream( ofstream &file )
 	// name
 	file << "\t\t<Property name=\"type\" value=\"eato\" />" << std::endl;
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// direction
 	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_name( start_direction ) << "\" />" << std::endl;
 
@@ -218,7 +218,7 @@ void cEato :: Update( void )
 		walk_count = 0;
 	}
 
-	Set_Image( (int)walk_count );
+	Set_Image( static_cast<int>(walk_count) );
 }
 
 bool cEato :: is_Update_valid( void )

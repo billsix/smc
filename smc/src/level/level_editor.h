@@ -62,6 +62,9 @@ public:
 	virtual void Function_Reload( void );
 	virtual void Function_Clear( void );
 	virtual void Function_Settings( void );
+
+	// Level Settings
+	cLevel_Settings *pSettings;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

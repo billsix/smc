@@ -16,7 +16,7 @@
 #include "../enemies/static.h"
 #include "../core/game_core.h"
 #include "../player/player.h"
-#include "../core/sprite_manager.h"
+#include "../level/level.h"
 #include "../gui/hud.h"
 #include "../video/gl_surface.h"
 
@@ -62,7 +62,7 @@ cStaticEnemy *cStaticEnemy :: Copy( void )
 void cStaticEnemy :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 }
 
 void cStaticEnemy :: Save_to_Stream( ofstream &file )
@@ -73,8 +73,8 @@ void cStaticEnemy :: Save_to_Stream( ofstream &file )
 	// name
 	file << "\t\t<Property name=\"type\" value=\"static\" />" << std::endl;
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 
 	// end enemy
 	file << "\t</enemy>" << std::endl;
@@ -184,7 +184,7 @@ void cStaticEnemy :: Handle_Collision_Enemy( cObjectCollision *collision )
 		return;
 	}
 
-	cEnemy *enemy = static_cast<cEnemy *>(pSprite_Manager->Get_Pointer( collision->number ));
+	cEnemy *enemy = static_cast<cEnemy *>(pLevel->pSprite_Manager->Get_Pointer( collision->number ));
 
 	// already dead
 	if( enemy->dead )
@@ -194,6 +194,6 @@ void cStaticEnemy :: Handle_Collision_Enemy( cObjectCollision *collision )
 
 	// kill enemy
 	pAudio->PlaySound( enemy->kill_sound );
-	pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", (Uint8)255, 1 );
+	pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", static_cast<Uint8>(255), 1 );
 	enemy->DownGrade( 1 );
 }

@@ -38,6 +38,7 @@
 #include "../video/renderer.h"
 #include "../video/img_settings.h"
 #include "../objects/levelexit.h"
+#include "../level/level_settings.h"
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -75,7 +76,14 @@ int main( int argc, char **argv )
 		pMenuCore->Load( MENU_START );
 		// enter level
 		Game_Action = GA_ENTER_LEVEL;
-		Game_Action_Data = argv[1];
+		Game_Action_Data.add( "level", argv[1] );
+	}
+	// enter main menu
+	else
+	{
+		Draw_Effect_out( EFFECT_OUT_BLACK, 1.5f );
+		pMenuCore->Load();
+		Draw_Effect_in( EFFECT_IN_BLACK, 1.5f );
 	}
 
 	// Game Loop
@@ -100,7 +108,7 @@ int main( int argc, char **argv )
 
 void InitGame( void )
 {
-	srand( (unsigned int)time( NULL ) );
+	srand( static_cast<unsigned int>(time( NULL )) );
 
 	// Init Stage 1
 	pCamera = new cCamera();
@@ -130,7 +138,7 @@ void InitGame( void )
 	// Init Stage 2
 	pPreferences->Load();
 
-	pSprite_Manager = new cSprite_Manager();
+	pLevel_manager = new cLevel_manager();
 	pAudio = new cAudio();
 
 	pPreferences->Apply();
@@ -147,17 +155,15 @@ void InitGame( void )
 	pMouseCursor = new cMouseCursor();
 	pKeyboard = new cKeyboard();
 	pJoystick = new cJoystick();
+	pLevel_manager->Init();
 	pOverworld_Player = new cOverworld_Player();
 	pOverworld_manager = new cOverworld_manager();
 	
-	pLevel = new cLevel();
 	pHudManager = new cHudManager();
 	pAnimationManager = new cAnimationManager();
 	pMenuCore = new cMenuCore();
 
 	pSavegame = new cSavegame();
-
-	pMenuCore->Load();
 
 	// only precache in release builds
 #ifndef _DEBUG
@@ -174,16 +180,12 @@ void ExitGame( void )
 		pPreferences->Save();
 	}
 
+	pLevel_manager->Unload();
+
 	if( pAudio )
 	{
 		delete pAudio;
 		pAudio = NULL;
-	}
-
-	if( pLevel )
-	{
-		delete pLevel;
-		pLevel = NULL;
 	}
 
 	if( pPlayer )
@@ -264,6 +266,12 @@ void ExitGame( void )
 		pOverworld_Player = NULL;
 	}
 
+	if( pLevel_manager )
+	{
+		delete pLevel_manager;
+		pLevel_manager = NULL;
+	}
+
 	if( pMenuCore )
 	{
 		delete pMenuCore;
@@ -341,8 +349,13 @@ bool Handle_Input_Global( SDL_Event *ev )
 			done = 1;
 			ClearInputEvents();
 
-			// handle on all handlers
+			// handle on all handlers ?
 			return 0;
+			break;
+		}
+		case SDL_VIDEORESIZE:
+		{
+			pGuiRenderer->setDisplaySize( CEGUI::Size( static_cast<float>(ev->resize.w), static_cast<float>(ev->resize.h) ) );
 			break;
 		}
 		case SDL_KEYDOWN:
@@ -426,17 +439,19 @@ void Update_Game( void )
 		// if Game Action set
 		while( Game_Action != GA_NONE )
 		{
+			// get current data
 			GameAction Current_Game_Action = Game_Action;
-			string Current_Game_Action_Data = Game_Action_Data;
+			XMLAttributes Current_Game_Action_Data = Game_Action_Data;
 			void *Current_Game_Action_ptr = Game_Action_ptr;
+			// clear
 			Game_Action = GA_NONE;
-			Game_Action_Data.clear();
+			Game_Action_Data = XMLAttributes();
 			Game_Action_ptr = NULL;
 
 			// handle player downgrade
 			if( Current_Game_Action == GA_DOWNGRADE_PLAYER )
 			{
-				pPlayer->DownGrade( 0, string_to_int( Current_Game_Action_Data ) > 0 );
+				pPlayer->DownGrade( 0, CEGUI::PropertyHelper::stringToBool( Current_Game_Action_Data.getValueAsString( "force" ) ) );
 			}
 			// activate level exit
 			else if( Current_Game_Action == GA_ACTIVATE_LEVEL_EXIT )
@@ -457,7 +472,7 @@ void Update_Game( void )
 					Draw_Effect_out();
 				}
 				// load new level
-				pLevel->Load( Current_Game_Action_Data );
+				pLevel->Load( Current_Game_Action_Data.getValueAsString( "level" ).c_str() );
 				// reset player
 				pPlayer->Reset();
 				pCamera->Center();
@@ -481,7 +496,7 @@ void Update_Game( void )
 			// Enter World
 			else if( Current_Game_Action == GA_ENTER_WORLD )
 			{
-				// Random fade effect
+				// Random fade out effect
 				Draw_Effect_out();
 				// delay unload level
 				pLevel->Unload( 1 );
@@ -491,6 +506,7 @@ void Update_Game( void )
 			// Enter Menu
 			else if( Current_Game_Action == GA_ENTER_MENU )
 			{
+				// fade out
 				Draw_Effect_out( EFFECT_OUT_BLACK, 3 );
 
 				// custom level
@@ -521,7 +537,18 @@ void Update_Game( void )
 				{
 					pMenuCore->Load();
 				}
-
+				
+				// fade int
+				Draw_Effect_in( EFFECT_IN_BLACK, 3 );
+			}
+			// Enter Settings
+			else if( Current_Game_Action == GA_ENTER_LEVEL_SETTINGS )
+			{
+				// fade out
+				Draw_Effect_out( EFFECT_OUT_BLACK, 3 );
+				// enter
+				pLevel_Editor->pSettings->Enter();
+				// fade in
 				Draw_Effect_in( EFFECT_IN_BLACK, 3 );
 			}
 		}
@@ -531,11 +558,13 @@ void Update_Game( void )
 		// if Game Action set
 		while( Game_Action != GA_NONE )
 		{
+			// get current data
 			GameAction Current_Game_Action = Game_Action;
-			string Current_Game_Action_Data = Game_Action_Data;
+			XMLAttributes Current_Game_Action_Data = Game_Action_Data;
 			void *Current_Game_Action_ptr = Game_Action_ptr;
+			// clear
 			Game_Action = GA_NONE;
-			Game_Action_Data.clear();
+			Game_Action_Data = XMLAttributes();
 			Game_Action_ptr = NULL;
 
 			// Enter Level
@@ -545,10 +574,10 @@ void Update_Game( void )
 				Draw_Effect_out( EFFECT_OUT_FIXED_COLORBOX );
 				// change game mode
 				Change_Game_Mode( MODE_LEVEL );
-				if( !Current_Game_Action_Data.empty() )
+				if( Current_Game_Action_Data.exists( "level" ) )
 				{
 					// load new level
-					pLevel->Load( Current_Game_Action_Data );
+					pLevel->Load( Current_Game_Action_Data.getValueAsString( "level" ).c_str() );
 					// play new music
 					if( pLevel->valid_music )
 					{
@@ -577,11 +606,13 @@ void Update_Game( void )
 		// if Game Action set
 		while( Game_Action != GA_NONE )
 		{
+			// get current data
 			GameAction Current_Game_Action = Game_Action;
-			string Current_Game_Action_Data = Game_Action_Data;
+			XMLAttributes Current_Game_Action_Data = Game_Action_Data;
 			void *Current_Game_Action_ptr = Game_Action_ptr;
+			// clear
 			Game_Action = GA_NONE;
-			Game_Action_Data.clear();
+			Game_Action_Data = XMLAttributes();
 			Game_Action_ptr = NULL;
 
 			// Enter World
@@ -597,7 +628,7 @@ void Update_Game( void )
 			if( Current_Game_Action == GA_ENTER_LEVEL )
 			{
 				// if level not loaded or entering custom level
-				if( !pLevel->is_Loaded() || !Current_Game_Action_Data.empty() )
+				if( !pLevel->is_Loaded() || Current_Game_Action_Data.exists( "level" ) )
 				{
 					// fade music out
 					pAudio->FadeOutMusic( 1000 );
@@ -605,10 +636,10 @@ void Update_Game( void )
 				// fade out
 				Draw_Effect_out( EFFECT_OUT_BLACK, 3 );
 				// load custom level
-				if( !Current_Game_Action_Data.empty() )
+				if( Current_Game_Action_Data.exists( "level" ) )
 				{
 					// load new level
-					pLevel->Load( Current_Game_Action_Data );
+					pLevel->Load( Current_Game_Action_Data.getValueAsString( "level" ).c_str() );
 					// reset player
 					pPlayer->Reset();
 				}
@@ -636,19 +667,42 @@ void Update_Game( void )
 			}
 		}
 	}
+	else if( Game_Mode == MODE_LEVEL_SETTINGS )
+	{
+		// if Game Action set
+		while( Game_Action != GA_NONE )
+		{
+			// get current data
+			GameAction Current_Game_Action = Game_Action;
+			XMLAttributes Current_Game_Action_Data = Game_Action_Data;
+			void *Current_Game_Action_ptr = Game_Action_ptr;
+			// clear
+			Game_Action = GA_NONE;
+			Game_Action_Data = XMLAttributes();
+			Game_Action_ptr = NULL;
+
+			// Enter Level
+			if( Current_Game_Action == GA_ENTER_LEVEL )
+			{
+				// fade out
+				Draw_Effect_out( EFFECT_OUT_BLACK, 3 );
+				// change mode
+				pLevel_Editor->pSettings->Unload();
+				Change_Game_Mode( MODE_LEVEL );
+				// fade in
+				Draw_Effect_in( EFFECT_IN_BLACK, 3 );
+			}
+		}
+	}
 
 	// ## input
-	// todo : move Update_Position() back to SDL_MOUSEMOTION with disabled mover_mode ? ( also to camera move() )
-	pMouseCursor->Update_Position();
-	pMouseCursor->Update_Doubleclick();
-	pMouseCursor->Update();
-
 	while( SDL_PollEvent( &input_event ) )
 	{
 		// handle
 		Handle_Input_Global( &input_event );
 	}
 
+	pMouseCursor->Update();
 
 	// ## audio
 	pAudio->Resume_Music();
@@ -674,7 +728,7 @@ void Update_Game( void )
 		{
 			pPlayer->Collide_Move();
 			pPlayer->Handle_Collisions();
-			pSprite_Manager->Handle_Collision_items();
+			pLevel->pSprite_Manager->Handle_Collision_items();
 		}
 		// Camera ( update after new player position was set )
 		pPlayer->Update_Camera();
@@ -686,6 +740,10 @@ void Update_Game( void )
 	else if( Game_Mode == MODE_MENU )
 	{
 		pMenuCore->Update();
+	}
+	else if( Game_Mode == MODE_LEVEL_SETTINGS )
+	{
+		pLevel_Editor->pSettings->Update();
 	}
 
 	// gui
@@ -712,20 +770,21 @@ void Draw_Game( void )
 		pHudManager->Draw();
 		// level editor
 		pLevel_Editor->Draw();
-		// mouse
-		pMouseCursor->Draw();
 	}
 	else if( Game_Mode == MODE_OVERWORLD )
 	{
 		// world
 		pActive_Overworld->Draw();
-		// Mouse
-		pMouseCursor->Draw();
 	}
 	else if( Game_Mode == MODE_MENU )
 	{
 		pMenuCore->Draw();
-		// mouse
-		pMouseCursor->Draw();
 	}
+	else if( Game_Mode == MODE_LEVEL_SETTINGS )
+	{
+		pLevel_Editor->pSettings->Draw();
+	}
+
+	// Mouse
+	pMouseCursor->Draw();
 }

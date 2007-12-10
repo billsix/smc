@@ -59,6 +59,8 @@ public:
 	string name;
 	// sprite type
 	int type;
+	// ground type
+	GroundType ground_type;
 	// obsolete
 	bool obsolete;
 };

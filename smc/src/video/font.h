@@ -39,7 +39,7 @@ public:
 	void Delete_Ref( GL_Surface *surface );
 
 	// Renders the given text into a new surface
-	GL_Surface *RenderText( TTF_Font *font, string text, Color color = (Uint8)0 );
+	GL_Surface *RenderText( TTF_Font *font, string text, Color color = static_cast<Uint8>(0) );
 
 	/* Saves hardware textures in software memory
 	*/

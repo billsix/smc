@@ -19,6 +19,7 @@
 #include "../gui/hud.h"
 #include "../player/player.h"
 #include "../video/gl_surface.h"
+#include "../user/savegame.h"
 
 /* *** *** *** *** *** cRex *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -75,7 +76,7 @@ cRex *cRex :: Copy( void )
 void cRex :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// direction
 	Set_Direction( Get_Direction_id( attributes.getValueAsString( "direction", Get_Direction_name( start_direction ) ).c_str() ) );
 }
@@ -88,8 +89,8 @@ void cRex :: Save_to_Stream( ofstream &file )
 	// name
 	file << "\t\t<Property name=\"type\" value=\"rex\" />" << std::endl;
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// direction
 	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_name( start_direction ) << "\" />" << std::endl;
 
@@ -97,17 +98,51 @@ void cRex :: Save_to_Stream( ofstream &file )
 	file << "\t</enemy>" << std::endl;
 }
 
+void cRex :: Load_from_Savegame( cSave_Level_Object *save_object )
+{
+	cEnemy::Load_from_Savegame( save_object );
+
+	// rex_state
+	if( save_object->exists( "rex_state" ) )
+	{
+		rex_state = (Rex_state)string_to_int( save_object->Get_Value( "rex_state" ) );
+
+		if( rex_state == REX_MINI )
+		{
+			// todo : create a Set_State function
+			// set mini image without position changes
+			cSprite::Set_Image( images[2] );
+			kill_points = 40;
+		}
+	}
+
+	Update_Rotation_velx();
+}
+
+cSave_Level_Object *cRex :: Save_to_Savegame( void )
+{
+	cSave_Level_Object *save_object = cEnemy::Save_to_Savegame();
+
+	// rex_state ( only save if needed )
+	if( rex_state != REX_WALK )
+	{
+		save_object->properties.push_back( cSave_Level_Object_Property( "rex_state", int_to_string( rex_state ) ) );
+	}
+
+	return save_object;
+}
+
 void cRex :: Set_Direction( ObjectDirection dir )
 {
 	// already set
-	if( direction == dir )
+	if( start_direction == dir )
 	{
 		return;
 	}
 
 	cEnemy::Set_Direction( dir, 1 );
 
-	if( direction == DIR_RIGHT )
+	if( start_direction == DIR_RIGHT )
 	{
 		velx = 2.5f;
 		name = "Rex Right";
@@ -135,7 +170,7 @@ void cRex :: DownGrade( bool force /* = 0 */ )
 			counter = 2;
 			kill_points = 40;
 
-			Set_Image( (int)counter );
+			Set_Image( static_cast<int>(counter) );
 			Col_Move( 0, images[1]->col_h - images[2]->col_h, 1, 1 );
 			Update_Direction();
 
@@ -250,7 +285,7 @@ void cRex :: Update( void )
 		}
 	}
 
-	Set_Image( (int)counter );
+	Set_Image( static_cast<int>(counter) );
 
 	// gravity
 	Update_Gravity();
@@ -322,7 +357,7 @@ void cRex :: Handle_Collision_Player( cObjectCollision *collision )
 
 	if( collision->direction == DIR_TOP && pPlayer->state != STA_FLY )
 	{
-		pointsdisplay->Add_Points( kill_points, pPlayer->posx, pPlayer->posy, "", (Uint8)255, 1 );
+		pointsdisplay->Add_Points( kill_points, pPlayer->posx, pPlayer->posy, "", static_cast<Uint8>(255), 1 );
 		pAudio->PlaySound( kill_sound );
 
 

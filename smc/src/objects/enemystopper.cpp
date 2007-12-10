@@ -61,12 +61,12 @@ void cEnemyStopper :: Init( void )
 	start_rect.w = 15;
 	start_rect.h = 15;
 
-	editor_color = Color( (Uint8)0, 0, 255, 128 );
+	editor_color = Color( static_cast<Uint8>(0), 0, 255, 128 );
 }
 
 void cEnemyStopper :: Create_from_Stream( XMLAttributes &attributes )
 {
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 }
 
 void cEnemyStopper :: Save_to_Stream( ofstream &file )
@@ -75,8 +75,8 @@ void cEnemyStopper :: Save_to_Stream( ofstream &file )
 	file << "\t<enemystopper>" << std::endl;
 
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 
 	// end enemystopper
 	file << "\t</enemystopper>" << std::endl;

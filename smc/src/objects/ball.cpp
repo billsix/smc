@@ -21,7 +21,7 @@
 #include "../enemies/spika.h"
 #include "../player/player.h"
 #include "../video/animation.h"
-#include "../core/sprite_manager.h"
+#include "../level/level.h"
 #include "../gui/hud.h"
 
 /* *** *** *** *** *** *** cBall *** *** *** *** *** *** *** *** *** *** *** */
@@ -224,12 +224,12 @@ void cBall :: Generate_Particles( cParticleAnimation *anim /* = NULL */ )
 	if( ball_type == FIREBALL_DEFAULT )
 	{
 		anim->Set_Time_to_Live( 0.2f );
-		anim->Set_Color( Color( (Uint8)250, 140, 90 ) );
+		anim->Set_Color( Color( static_cast<Uint8>(250), 140, 90 ) );
 	}
 	else if( ball_type == ICEBALL_DEFAULT )
 	{
 		anim->Set_Time_to_Live( 0.5f );
-		anim->Set_Color( Color( (Uint8)90, 90, 255 ) );
+		anim->Set_Color( Color( static_cast<Uint8>(90), 90, 255 ) );
 	}
 	anim->Set_Blending( BLEND_ADD );
 	anim->Set_Speed( 0.35f, 0.3f );
@@ -325,7 +325,7 @@ void cBall :: Handle_Collision_Player( cObjectCollision *collision )
 
 void cBall :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
-	cEnemy *enemy = static_cast<cEnemy *>(pSprite_Manager->Get_Pointer( collision->number ));
+	cEnemy *enemy = static_cast<cEnemy *>(pLevel->pSprite_Manager->Get_Pointer( collision->number ));
 
 	// if enemy is not destroyable
 	if( ( ball_type == FIREBALL_DEFAULT && enemy->fire_resistant ) || ( ball_type == ICEBALL_DEFAULT && enemy->ice_resistance >= 1 ) )
@@ -348,13 +348,13 @@ void cBall :: Handle_Collision_Enemy( cObjectCollision *collision )
 				Color anim_color, anim_color_rand;
 				if( ball_type == FIREBALL_DEFAULT )
 				{
-					anim_color = Color( (Uint8)250, 170, 150 );
-					anim_color_rand = Color( (Uint8)( rand() % 5 ), rand() % 85, rand() % 25 );
+					anim_color = Color( static_cast<Uint8>(250), 170, 150 );
+					anim_color_rand = Color( static_cast<Uint8>( rand() % 5 ), rand() % 85, rand() % 25 );
 				}
 				else
 				{
-					anim_color = Color( (Uint8)150, 150, 240 );
-					anim_color_rand = Color( (Uint8)( rand() % 80 ), rand() % 80, rand() % 10 );
+					anim_color = Color( static_cast<Uint8>(150), 150, 240 );
+					anim_color_rand = Color( static_cast<Uint8>( rand() % 80 ), rand() % 80, rand() % 10 );
 				}
 				anim->Set_Color( anim_color, anim_color_rand );
 				anim->Set_Fading_Alpha( 1 );
@@ -372,14 +372,14 @@ void cBall :: Handle_Collision_Enemy( cObjectCollision *collision )
 		if( ball_type == FIREBALL_DEFAULT )
 		{
 			// get points
-			pointsdisplay->Add_Points( enemy->kill_points, posx, posy, "", (Uint8)255, 1 );
+			pointsdisplay->Add_Points( enemy->kill_points, posx, posy, "", static_cast<Uint8>(255), 1 );
 
 			// create goldpiece
 			cMovingSprite *goldpiece = new cFGoldpiece( enemy->col_rect.x, enemy->col_rect.y + enemy->col_rect.h, collision->direction );
 			// set optimal position
 			goldpiece->Col_Move( -( ( goldpiece->col_rect.w - enemy->col_rect.w ) / 2 ), -( goldpiece->col_pos.y + goldpiece->col_rect.h ), 1, 1 );
 			// add goldpiece
-			pSprite_Manager->Add( goldpiece );
+			pLevel->pSprite_Manager->Add( goldpiece );
 
 			enemy->Set_Visible( 0 );
 			enemy->DownGrade( 1 );
@@ -425,7 +425,7 @@ void cBall :: Handle_Collision_Massive( cObjectCollision *collision )
 			anim->Set_Quota( 3 );
 			anim->Set_Time_to_Live( 0.8f );
 			anim->Set_ZPos( posz + 0.0001f );
-			anim->Set_Color( Color( (Uint8)50, 50, 250 ) );
+			anim->Set_Color( Color( static_cast<Uint8>(50), 50, 250 ) );
 			anim->Set_Blending( BLEND_ADD );
 			anim->Set_Speed( 0.5f, 0.4f );
 			anim->Set_Scale( 0.3f, 0.4f );

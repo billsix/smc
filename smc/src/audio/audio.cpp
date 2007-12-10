@@ -560,6 +560,7 @@ bool cAudio :: PlayMusic( string filename, int loops /* = 0 */, bool force /* = 
 void cAudio :: ToggleMusic( void )
 {
 	Init( sound_enabled, !music_enabled );
+	pPreferences->audio_music = music_enabled;
 
 	// play music
 	if( music_enabled )
@@ -591,6 +592,7 @@ void cAudio :: ToggleMusic( void )
 void cAudio :: ToggleSounds( void )
 {
 	Init( !sound_enabled, music_enabled );
+	pPreferences->audio_sound = sound_enabled;
 
 	// play a test sound
 	if( sound_enabled )

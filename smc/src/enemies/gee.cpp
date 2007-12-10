@@ -60,7 +60,7 @@ void cGee :: Init( void  )
 
 	kill_sound = "enemy/gee/die.ogg";
 
-	walk_count = (float)( rand() % 4 );
+	walk_count = static_cast<float>( rand() % 4 );
 
 	wait_time_counter = 0;
 	fly_distance_counter = 0;
@@ -83,7 +83,7 @@ cGee *cGee :: Copy( void )
 void cGee :: Create_from_Stream( XMLAttributes &attributes )
 {
 	// position
-	Set_Pos( (float)attributes.getValueAsInteger( "posx" ), (float)attributes.getValueAsInteger( "posy" ), 1 );
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// direction
 	Set_Direction( Get_Direction_id( attributes.getValueAsString( "direction", Get_Direction_name( start_direction ) ).c_str() ) );
 	// max distance
@@ -106,23 +106,30 @@ void cGee :: Save_to_Stream( ofstream &file )
 	// name
 	file << "\t\t<Property name=\"type\" value=\"gee\" />" << std::endl;
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << (int)startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << (int)startposy << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// direction
 	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_name( start_direction ) << "\" />" << std::endl;
 	// max distance
-	file << "\t\t<Property name=\"max_distance\" value=\"" << (int)max_distance << "\" />" << std::endl;
+	file << "\t\t<Property name=\"max_distance\" value=\"" << static_cast<int>(max_distance) << "\" />" << std::endl;
 	// always fly
 	file << "\t\t<Property name=\"always_fly\" value=\"" << always_fly << "\" />" << std::endl;
 	// wait time
 	file << "\t\t<Property name=\"wait_time\" value=\"" << wait_time << "\" />" << std::endl;
 	// fly distance
-	file << "\t\t<Property name=\"fly_distance\" value=\"" << (int)fly_distance << "\" />" << std::endl;
+	file << "\t\t<Property name=\"fly_distance\" value=\"" << static_cast<int>(fly_distance) << "\" />" << std::endl;
 	// color
 	file << "\t\t<Property name=\"color\" value=\"" << Get_Color_name( color_type ) << "\" />" << std::endl;
 
 	// end enemy
 	file << "\t</enemy>" << std::endl;
+}
+
+void cGee :: Load_from_Savegame( cSave_Level_Object *save_object )
+{
+	cEnemy::Load_from_Savegame( save_object );
+
+	Update_Rotation_velx();
 }
 
 void cGee :: Set_Direction( ObjectDirection dir )
@@ -370,7 +377,7 @@ void cGee :: Update( void )
 		walk_count = 0;
 	}
 
-	Set_Image( (int)walk_count );
+	Set_Image( static_cast<int>(walk_count) );
 }
 
 void cGee :: Draw( cSurfaceRequest *request /* = NULL */ )
@@ -442,7 +449,7 @@ void cGee :: Stop( void )
 
 void cGee :: Generate_Particles( void )
 {
-	cParticleAnimation *anim = new cParticleAnimation( posx + 15 + ( rand() % (int)( col_rect.w / 2 ) ), posy + ( ( rand() % (int)( col_rect.h / 2 ) ) ) );
+	cParticleAnimation *anim = new cParticleAnimation( posx + 15 + ( rand() % static_cast<int>( col_rect.w / 2 ) ), posy + ( ( rand() % static_cast<int>( col_rect.h / 2 ) ) ) );
 	anim->Set_Quota( 4 );
 	anim->Set_Image( pVideo->Get_Surface( "animation/particles/cloud.png" ) );
 
@@ -559,7 +566,7 @@ void cGee :: Handle_Collision_Player( cObjectCollision *collision )
 		DownGrade();
 		pPlayer->start_enemyjump = 1;
 
-		pointsdisplay->Add_Points( kill_points, pPlayer->posx, pPlayer->posy, "", (Uint8)255, 1 );
+		pointsdisplay->Add_Points( kill_points, pPlayer->posx, pPlayer->posy, "", static_cast<Uint8>(255), 1 );
 		pPlayer->Add_Kill_Multiplier();
 	}
 	else if( !pPlayer->invincible )

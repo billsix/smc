@@ -79,9 +79,17 @@ public:
 	void Enter( bool delayed = 0 );
 
 	/* handle key down event
-	 * returns true if the key was processed
+	 * returns true if processed
 	*/
 	bool Key_Down( SDLKey key );
+	/* handle mouse button down event
+	 * returns true if processed
+	*/
+	bool Mouse_Down( Uint8 button );
+	/* handle mouse button up event
+	 * returns true if processed
+	*/
+	bool Mouse_Up( Uint8 button );
 
 	// Load
 	bool Load( void );

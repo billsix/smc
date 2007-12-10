@@ -1,7 +1,7 @@
 /***************************************************************************
      point.h  -  header for the corresponding cpp file
                              -------------------
-    copyright            : (C) 2005 - 2007 by Florian Richter
+    copyright            : (C) 2006 - 2007 by Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -40,19 +40,36 @@ public:
 	: x( p.x ), y( p.y ) {}
 
 	// Return a rotated version of this point.
-	//param hotspot: The point around which to rotate.
-	//param angle: The amount of degrees to rotate by, clockwise.
+	// hotspot: The point around which to rotate.
+	// angle: The amount of degrees to rotate by, clockwise.
 	GL_point rotate( const GL_point &hotspot, float angle) const
 	{
 		//Move the hotspot to 0,0
 		GL_point r(x - hotspot.x, y - hotspot.y);
 		
-		const float c = (float) sqrt((float)r.x*(float)r.x + (float)r.y*(float)r.y);
-		const float nw = (float)(atan2((float)r.y, (float)r.x) + ((angle + 180) * M_PI / 180));
-		r.x = (int)((sin(1.5 * M_PI - nw) * c) + 0.5) + hotspot.x;
-		r.y = -(int)((sin(nw) * c) + 0.5) + hotspot.y;
+		const float c = static_cast<float>(sqrt(r.x*r.x + r.y*r.y));
+		const float nw = static_cast<float>(atan2(r.y, r.x) + ((angle + 180) * M_PI / 180));
+		r.x = static_cast<float>((sin(1.5 * M_PI - nw) * c) /*+ 0.5*/) + hotspot.x;
+		r.y = -static_cast<float>((sin(nw) * c) /*+ 0.5*/) + hotspot.y;
 
 		return r;
+	}
+
+	// Return a point rotated around the given axis in 3D.
+	// angle : Rotation amount
+	// a_: Axis to rotate around.
+	GL_point rotate3d( float angle, const float &a_x, const float &a_y, const float &a_z )
+	{
+		GL_point tmp;
+
+		float s = static_cast<float>(sin(angle));
+		float c = static_cast<float>(cos(angle));
+
+		tmp.x = x*(a_x*a_x*(1-c)+c)     + y*(a_x*a_y*(1-c)-a_z*s) + /*z**/(a_x*a_z*(1-c)+a_y*s);
+		tmp.y = x*(a_y*a_x*(1-c)+a_z*s) + y*(a_y*a_y*(1-c)+c)     + /*z**/(a_y*a_z*(1-c)-a_x*s);
+		//tmp.z = x*(a_x*a_z*(1-c)-a_y*s) + y*(a_y*a_z*(1-c)+a_x*s) + z*(a_z*a_z*(1-c)+c);
+
+		return tmp;
 	}
 
 	// Returns the distance to another point

@@ -27,6 +27,8 @@ GL_Surface :: GL_Surface( void )
 
 	int_x = 0;
 	int_y = 0;
+	start_w = 0;
+	start_h = 0;
 	w = 0;
 	h = 0;
 	tex_w = 0;
@@ -48,6 +50,8 @@ GL_Surface :: GL_Surface( void )
 
 	// default type is passive
 	type = TYPE_PASSIVE;
+
+	ground_type = GROUND_NORMAL;
 
 	destruction_function = NULL;
 }
@@ -81,6 +85,39 @@ GL_Surface :: ~GL_Surface( void )
 	}
 }
 
+GL_Surface *GL_Surface :: Copy( void )
+{
+	// create copy image
+	GL_Surface *new_surface = new GL_Surface();
+
+	// data
+	new_surface->image = image;
+	new_surface->int_x = int_x;
+	new_surface->int_y = int_y;
+	new_surface->start_w = start_w;
+	new_surface->start_h = start_h;
+	new_surface->w = w;
+	new_surface->h = h;
+	new_surface->tex_h = tex_h;
+	new_surface->tex_w = tex_w;
+	new_surface->base_rotx = base_rotx;
+	new_surface->base_roty = base_roty;
+	new_surface->base_rotz = base_rotz;
+	new_surface->col_pos = col_pos;
+	new_surface->col_w = col_w;
+	new_surface->col_h = col_h;
+	new_surface->filename = filename;
+
+	// settings
+	new_surface->obsolete = obsolete;
+	new_surface->editor_tags = editor_tags;
+	new_surface->name = name;
+	new_surface->type = type;
+	new_surface->Set_Ground_type( ground_type );
+
+	return new_surface;
+}
+
 void GL_Surface :: Blit( float x, float y, float z, cSurfaceRequest *request /* = NULL */ )
 {
 	bool create_request = 0;
@@ -101,8 +138,8 @@ void GL_Surface :: Blit( float x, float y, float z, cSurfaceRequest *request /* 
 	request->pos_z = z;
 
 	// size
-	request->w = w;
-	request->h = h;
+	request->w = start_w;
+	request->h = start_h;
 	
 	// rotation
 	request->rotx += base_rotx;
@@ -116,34 +153,9 @@ void GL_Surface :: Blit( float x, float y, float z, cSurfaceRequest *request /* 
 	}
 }
 
-GL_Surface *GL_Surface :: Copy( void )
+void GL_Surface :: Set_Ground_type( GroundType gtype )
 {
-	// create copy image
-	GL_Surface *new_surface = new GL_Surface();
-
-	// data
-	new_surface->image = image;
-	new_surface->int_x = int_x;
-	new_surface->int_y = int_y;
-	new_surface->w = w;
-	new_surface->h = h;
-	new_surface->tex_h = tex_h;
-	new_surface->tex_w = tex_w;
-	new_surface->base_rotx = base_rotx;
-	new_surface->base_roty = base_roty;
-	new_surface->base_rotz = base_rotz;
-	new_surface->col_pos = col_pos;
-	new_surface->col_w = col_w;
-	new_surface->col_h = col_h;
-	new_surface->filename = filename;
-
-	// settings
-	new_surface->obsolete = obsolete;
-	new_surface->editor_tags = editor_tags;
-	new_surface->name = name;
-	new_surface->type = type;
-
-	return new_surface;
+	ground_type = gtype;
 }
 
 cSoftware_texture *GL_Surface :: Get_Software_Texture( void )
@@ -205,7 +217,7 @@ void GL_Surface :: Load_Software_Texture( cSoftware_texture *soft_tex )
 	image = tex_id;
 }
 
-string GL_Surface :: Get_filename( int with_dir /*= 2*/, bool with_end /*= 1 */ ) 
+string GL_Surface :: Get_filename( int with_dir /* = 2 */, bool with_end /* = 1 */ ) 
 {
 	string name = filename;
 

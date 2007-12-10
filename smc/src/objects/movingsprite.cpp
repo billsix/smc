@@ -19,7 +19,7 @@
 #include "../core/framerate.h"
 #include "../core/game_core.h"
 #include "../core/camera.h"
-#include "../core/sprite_manager.h"
+#include "../level/level.h"
 #include "../user/preferences.h"
 #include "../input/joystick.h"
 #include "../audio/audio.h"
@@ -609,7 +609,7 @@ cObjectCollisionType cMovingSprite :: Collision_Check( GL_rect *new_rect, ColChe
 	// if no object list is given get all objects available
 	if( !objects )
 	{
-		objects = &pSprite_Manager->objects;
+		objects = &pLevel->pSprite_Manager->objects;
 	}
 
 	// Check Objects
@@ -677,7 +677,7 @@ cObjectCollisionType cMovingSprite :: Collision_Check( GL_rect *new_rect, ColChe
 		}
 
 		// add collision
-		Collision_Add( this, level_object, pSprite_Manager->Get_Array_num( level_object ), Get_CollisionType( level_object->sprite_array ), ( col_valid == 1 ) ? (1) : (0) );
+		Collision_Add( this, level_object, pLevel->pSprite_Manager->Get_Array_num( level_object ), Get_CollisionType( level_object->sprite_array ), ( col_valid == 1 ) ? (1) : (0) );
 	}
 
 	// Player
@@ -852,7 +852,7 @@ void cMovingSprite :: Update_antistuck( void )
 			continue;
 		}
 
-		cSprite *col_obj = pSprite_Manager->objects[collision->number];
+		cSprite *col_obj = pLevel->pSprite_Manager->objects[collision->number];
 
 		if( collision->type != CO_ENEMY && !( collision->type == CO_ACTIVE && ( col_obj->massivetype == MASS_HALFMASSIVE || col_obj->massivetype == MASS_CLIMBABLE ) ) )
 		{
@@ -1041,7 +1041,7 @@ void cMovingSprite :: Send_Collision( cObjectCollision *collision )
 	// set object manager id
 	if( type != TYPE_PLAYER )
 	{
-		ncollision->number = pSprite_Manager->Get_Array_num( this );
+		ncollision->number = pLevel->pSprite_Manager->Get_Array_num( this );
 
 		// object not available
 		if( ncollision->number < 0 )
@@ -1076,7 +1076,7 @@ void cMovingSprite :: Send_Collision( cObjectCollision *collision )
 	}
 	else
 	{
-		pSprite_Manager->Get_Pointer( collision->number )->Collision_Add( ncollision, 1 );
+		pLevel->pSprite_Manager->Get_Pointer( collision->number )->Collision_Add( ncollision, 1 );
 	}
 }
 
