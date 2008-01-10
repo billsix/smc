@@ -82,6 +82,10 @@ public:
 	 * returns true if processed
 	*/
 	bool Key_Down( SDLKey key );
+	/* handle key up event
+	 * returns true if processed
+	*/
+	bool Key_Up( SDLKey key );
 	/* handle mouse button down event
 	 * returns true if processed
 	*/
@@ -90,6 +94,14 @@ public:
 	 * returns true if processed
 	*/
 	bool Mouse_Up( Uint8 button );
+	/* handle joystick button down event
+	 * returns true if processed
+	*/
+	bool Joy_Button_Down( Uint8 button );
+	/* handle joystick button up event
+	 * returns true if processed
+	*/
+	bool Joy_Button_Up( Uint8 button );
 
 	// Load
 	bool Load( void );

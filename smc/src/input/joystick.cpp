@@ -21,6 +21,8 @@
 #include "../player/player.h"
 #include "../gui/hud.h"
 #include "../gui/menu.h"
+#include "../level/level.h"
+#include "../overworld/overworld.h"
 
 /* *** *** *** *** *** *** cJoystick *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -128,6 +130,7 @@ bool cJoystick :: Stick_Open( unsigned int index )
 	num_axes = SDL_JoystickNumAxes( joystick );
 	num_balls = SDL_JoystickNumBalls( joystick );
 
+	// todo : replace with STL fill
 	// setup available button
 	for( unsigned int i = 0; i < num_buttons; i++ )
 	{
@@ -187,59 +190,6 @@ void cJoystick :: Reset_keys( void )
 	right = 0;
 	up = 0;
 	down = 0;
-}
-
-bool cJoystick :: Handle_Event( SDL_Event *ev )
-{
-	// not enabled
-	if( !pPreferences->joy_enabled )
-	{
-		return 0;
-	}
-
-	// not opened
-	if( !stick_open )
-	{
-		if( debug )
-		{
-			printf( "No Joysticks opened : Joypad is now Disabled\n" );
-		}
-
-		pPreferences->joy_enabled = 0;
-		return 0;
-	}
-
-	// handle events
-	switch( ev->type )
-	{
-		case SDL_JOYBUTTONDOWN:
-		{
-			if( Handle_Button_Event( ev ) )
-			{
-				return 1;
-			}
-			break;
-		}
-		case SDL_JOYBUTTONUP:
-		{
-			if( Handle_Button_Event( ev ) )
-			{
-				return 1;
-			}
-			break;
-		}
-		case SDL_JOYAXISMOTION:
-		{
-			Handle_Motion( ev );
-			break;
-		}
-		default:
-		{
-			break;
-		}
-	}
-
-	return 0;
 }
 
 void cJoystick :: Handle_Motion( SDL_Event *ev )
@@ -364,7 +314,7 @@ void cJoystick :: Handle_Motion( SDL_Event *ev )
 	}
 }
 
-bool cJoystick :: Handle_Button_Event( SDL_Event *ev )
+bool cJoystick :: Handle_Button_Down_Event( SDL_Event *ev )
 {
 	// not enabled or opened
 	if( !pPreferences->joy_enabled || !stick_open )
@@ -372,143 +322,137 @@ bool cJoystick :: Handle_Button_Event( SDL_Event *ev )
 		return 0;
 	}
 
-	// handle button events
-	switch( ev->type )
-	{
-	case SDL_JOYBUTTONDOWN:
-	{
-		Set_Button( ev->jbutton.button, 1 );
+	Set_Button( ev->jbutton.button, 1 );
 
-		if( ev->jbutton.button < buttons.size() )
+	// handle button in the current mode
+	if( Game_Mode == MODE_LEVEL )
+	{
+		// processed by the level
+		if( pLevel->Joy_Button_Down( ev->jbutton.button ) )
 		{
-			// Jump
-			if( ev->jbutton.button == pPreferences->joy_button_jump )
-			{
-				if( Game_Mode == MODE_LEVEL )
-				{
-					pPlayer->Action_Jump();
-					return 1;
-				}
-			}
-			// Shoot
-			else if( ev->jbutton.button == pPreferences->joy_button_shoot )
-			{
-				if( Game_Mode == MODE_LEVEL )
-				{
-					pPlayer->Action_Shoot();
-				}
-				else
-				{
-					pKeyboard->Key_Down( pPreferences->key_shoot );
-				}
-
-				return 1;
-			}
-			// Request Itembox Item
-			else if( ev->jbutton.button == pPreferences->joy_button_item )
-			{
-				if( Game_Mode == MODE_LEVEL )
-				{
-					Itembox->Request_Item();
-				}
-				else
-				{
-					pKeyboard->Key_Down( SDLK_RETURN );
-				}
-
-				return 1;
-			}
-			// Interaction
-			else if( ev->jbutton.button == pPreferences->joy_button_action )
-			{
-				if( Game_Mode == MODE_LEVEL )
-				{
-					pPlayer->Action_Interact( pPreferences->key_action );
-				}
-				else
-				{
-					pKeyboard->Key_Down( pPreferences->key_action );
-				}
-
-				return 1;
-			}
-			// Exit
-			else if( ev->jbutton.button == pPreferences->joy_button_exit )
-			{
-				if( Game_Mode == MODE_LEVEL )
-				{
-					Game_Action = GA_ENTER_MENU;
-				}
-				else
-				{
-					pKeyboard->Key_Down( SDLK_ESCAPE );
-				}
-
-				return 1;
-			}
-			else if( ev->jbutton.button == 9 )
-			{
-				pKeyboard->Key_Down( SDLK_PAUSE );
-				return 1;
-			}
+			return 1;
 		}
-		break;
 	}
-	case SDL_JOYBUTTONUP:
+	else if( Game_Mode == MODE_OVERWORLD )
 	{
-		Set_Button( ev->jbutton.button, 0 );
-
-		if( ev->jbutton.button < buttons.size() )
+		// processed by the overworld
+		if( pActive_Overworld->Joy_Button_Down( ev->jbutton.button ) )
 		{
-			if( ev->jbutton.button == pPreferences->joy_button_jump )
-			{
-				if( Game_Mode == MODE_LEVEL )
-				{
-					pPlayer->Stop_flying();
-					pPlayer->UpKeytime = 0;
-				}
-				else
-				{
-					pKeyboard->Key_Up( pPreferences->key_jump );
-				}
-
-				return 1;
-			}
-			else if( ev->jbutton.button == pPreferences->joy_button_shoot )
-			{
-				pKeyboard->Key_Up( pPreferences->key_shoot );
-				return 1;
-			}
-			else if( ev->jbutton.button == pPreferences->joy_button_item )
-			{
-				pKeyboard->Key_Up( SDLK_RETURN );
-				return 1;
-			}
-			else if( ev->jbutton.button == pPreferences->joy_button_action )
-			{
-				if( Game_Mode == MODE_LEVEL )
-				{
-					pPlayer->Release_item();
-				}
-				else
-				{
-					pKeyboard->Key_Up( pPreferences->key_action );
-				}
-
-				return 1;
-			}
-			else if( ev->jbutton.button == pPreferences->joy_button_exit )
-			{
-				pKeyboard->Key_Up( SDLK_ESCAPE );
-				return 1;
-			}
+			return 1;
 		}
-		break;
 	}
-	default:
+	else if( Game_Mode == MODE_MENU )
 	{
-		break;
+		// processed by the menu
+		if( pMenuCore->Joy_Button_Down( ev->jbutton.button ) )
+		{
+			return 1;
+		}
 	}
+
+	if( ev->jbutton.button < buttons.size() )
+	{
+		// Jump
+		if( ev->jbutton.button == pPreferences->joy_button_jump )
+		{
+			//
+		}
+		// Shoot
+		else if( ev->jbutton.button == pPreferences->joy_button_shoot )
+		{
+			pKeyboard->Key_Down( pPreferences->key_shoot );
+			return 1;
+		}
+		// Request Itembox Item
+		else if( ev->jbutton.button == pPreferences->joy_button_item )
+		{
+			// not handled
+			return 1;
+		}
+		// Interaction
+		else if( ev->jbutton.button == pPreferences->joy_button_action )
+		{
+			pKeyboard->Key_Down( pPreferences->key_action );
+			return 1;
+		}
+		// Exit
+		else if( ev->jbutton.button == pPreferences->joy_button_exit )
+		{
+			pKeyboard->Key_Down( SDLK_ESCAPE );
+			return 1;
+		}
+		else if( ev->jbutton.button == 9 )
+		{
+			pKeyboard->Key_Down( SDLK_PAUSE );
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+bool cJoystick :: Handle_Button_Up_Event( SDL_Event *ev )
+{
+	// not enabled or opened
+	if( !pPreferences->joy_enabled || !stick_open )
+	{
+		return 0;
+	}
+
+	Set_Button( ev->jbutton.button, 0 );
+
+	// handle button in the current mode
+	if( Game_Mode == MODE_LEVEL )
+	{
+		// processed by the level
+		if( pLevel->Joy_Button_Up( ev->jbutton.button ) )
+		{
+			return 1;
+		}
+	}
+	else if( Game_Mode == MODE_OVERWORLD )
+	{
+		// processed by the overworld
+		if( pActive_Overworld->Joy_Button_Up( ev->jbutton.button ) )
+		{
+			return 1;
+		}
+	}
+	else if( Game_Mode == MODE_MENU )
+	{
+		// processed by the menu
+		if( pMenuCore->Joy_Button_Up( ev->jbutton.button ) )
+		{
+			return 1;
+		}
+	}
+
+	if( ev->jbutton.button < buttons.size() )
+	{
+		if( ev->jbutton.button == pPreferences->joy_button_jump )
+		{
+			pKeyboard->Key_Up( pPreferences->key_jump );
+			return 1;
+		}
+		else if( ev->jbutton.button == pPreferences->joy_button_shoot )
+		{
+			pKeyboard->Key_Up( pPreferences->key_shoot );
+			return 1;
+		}
+		else if( ev->jbutton.button == pPreferences->joy_button_item )
+		{
+			// not handled
+		}
+		else if( ev->jbutton.button == pPreferences->joy_button_action )
+		{
+			pKeyboard->Key_Up( pPreferences->key_action );
+			return 1;
+		}
+		else if( ev->jbutton.button == pPreferences->joy_button_exit )
+		{
+			pKeyboard->Key_Up( SDLK_ESCAPE );
+			return 1;
+		}
 	}
 
 	return 0;
@@ -534,7 +478,7 @@ vector<string> cJoystick :: Get_Names( void )
 	return names;
 }
 
-void cJoystick :: Set_Button( unsigned int num, bool pressed )
+void cJoystick :: Set_Button( Uint8 num, bool pressed )
 {
 	// not available
 	if( num >= buttons.size() )
@@ -601,7 +545,7 @@ bool cJoystick :: Down( void )
 	return 0;
 }
 
-bool cJoystick :: Button( unsigned int num )
+bool cJoystick :: Button( Uint8 num )
 {
 	// if available and pressed
 	if( num < buttons.size() && buttons[num] )

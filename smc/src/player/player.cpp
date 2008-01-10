@@ -1245,7 +1245,7 @@ void cPlayer :: Update_item( void )
 			{
 				if( direction == DIR_LEFT )
 				{
-					pos_hor = rect.w * 0.1f - active_object->col_rect.w;
+					pos_hor = rect.w * 0.13f - active_object->col_rect.w;
 				}
 				else
 				{
@@ -1257,11 +1257,11 @@ void cPlayer :: Update_item( void )
 			{
 				if( direction == DIR_LEFT )
 				{
-					pos_hor = rect.w * 0.03f - active_object->col_rect.w;
+					pos_hor = rect.w * 0.15f - active_object->col_rect.w;
 				}
 				else
 				{
-					pos_hor = rect.w * 0.77f;
+					pos_hor = rect.w * 0.70f;
 				}
 			}
 
@@ -3274,6 +3274,25 @@ void cPlayer :: Action_Shoot( void )
 	}
 }
 
+void cPlayer :: Action_Stop_Jump( void )
+{
+	Stop_flying();
+	UpKeytime = 0;
+}
+
+void cPlayer :: Action_Stop_Interact( SDLKey key_type )
+{
+	if( key_type == pPreferences->key_action )
+	{
+		Release_item();
+	}
+}
+
+void cPlayer :: Action_Stop_Shoot( void )
+{
+	// nothing
+}
+
 bool cPlayer :: Ball_add( ball_effect effect_type /* = FIREBALL_DEFAULT */ )
 {
 	if( ( maryo_type != MARYO_FIRE && maryo_type != MARYO_ICE ) || ducked )
@@ -3419,6 +3438,12 @@ void cPlayer :: Update_Kill_Multiplier( void )
 
 unsigned int cPlayer :: Validate_Collision( cSprite *obj )
 {
+	// don't collide with anything if dead
+	if( maryo_type == MARYO_DEAD )
+	{
+		return 0;
+	}
+
 	if( obj->massivetype == MASS_MASSIVE )
 	{
 		if( obj->sprite_array == ARRAY_ENEMY )

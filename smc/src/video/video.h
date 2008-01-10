@@ -105,6 +105,10 @@ public:
 	void Init_BasicColors( void );
 	// initializes the up/down scaling value  for the current resolution ( image/mouse scale )
 	void Init_Resolution_Scale( void );
+	/* Initializes the image cache
+	 * recreates cache if game version changed
+	*/
+	void Init_Image_Cache( void );
 
 	/* Test if the given resolution and bits per pixel are valid
 	 * if flags aren't set they are auto set from the preferences
@@ -119,7 +123,7 @@ public:
 	// Renders the Queue, GUI and Swaps Buffers
 	void Render( void );
 
-	// Toggle fullscreen video mode with windowed
+	// Toggle fullscreen video mode ( new mode is set to preferences )
 	void Toggle_Fullscreen( void );
 
 	/* Checks if the image was already loaded and returns a pointer to it else it will be loaded
@@ -148,7 +152,7 @@ public:
 	// Gets the Pixel color of a GL image
 	Color GetPixel( int x, int y, GL_Surface *source = NULL );
 
-	// Draws a line
+	// Draw a line
 	void DrawLine( GL_line *line, float z, Color *color, cLineRequest *request = NULL );
 	void DrawLine( float x1, float y1, float x2, float y2, float z, Color *color, cLineRequest *request = NULL );
 	/* Draw a rectangle
@@ -167,9 +171,10 @@ public:
 	*/
 	float Get_scale( GL_Surface *image, float width, float height, bool only_downscale = 1 );
 
-	// Function: Save_Screenshot
-	// Save bitmap of current screen.
+	// Save an image of the current screen
 	void Save_Screenshot( void );
+	// Save data as png image
+	void Save_Surface( string filename, GLubyte *data, GLsizei width, GLsizei height, GLenum format = GL_RGBA, bool reverse_data = 0 );
 
 	// available OpenGL version
 	float opengl_version;
@@ -190,6 +195,9 @@ public:
 	// if joystick initialization failed
 	bool joy_init_failed;
 
+	// active image cache directory
+	string imgcache_dir;
+
 private:
 	bool initialised;
 };
@@ -207,8 +215,8 @@ void Draw_Effect_out( Effect_Fadeout effect = EFFECT_OUT_RANDOM, float speed = 1
 */
 void Draw_Effect_in( Effect_Fadein effect = EFFECT_IN_RANDOM, float speed = 1 );
 
-// draws the loading screen
-void Draw_Loading_Screen( void );
+// draw the loading screen with the given string as info
+void Draw_Loading_Screen( string str_info = "Loading" );
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

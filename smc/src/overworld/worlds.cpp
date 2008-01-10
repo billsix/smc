@@ -17,8 +17,7 @@
 #include "../core/game_core.h"
 #include "../overworld/overworld.h"
 // boost filesystem
-#include "boost/filesystem/operations.hpp"
-#include "boost/filesystem/path.hpp"
+#include "boost/filesystem/convenience.hpp"
 namespace fs = boost::filesystem;
 
 /* *** *** *** *** *** *** *** *** cOverworld_manager *** *** *** *** *** *** *** *** *** */
@@ -108,11 +107,13 @@ void cOverworld_manager :: Load_dir( string dir, bool user_dir /* = 0 */ )
 	{
 		try
 		{
+			string current_dir = dir_itr->leaf();
+
 			// only directories with an existing description
-			if( fs::is_directory( *dir_itr ) && file_exists( dir + "/" + dir_itr->leaf() + "/description.xml" ) )
+			if( fs::is_directory( *dir_itr ) && file_exists( dir + "/" + current_dir + "/description.xml" ) )
 			{
 				// already available
-				if( Get( dir_itr->leaf() ) )
+				if( Get( current_dir ) )
 				{
 					continue;
 				}
@@ -120,9 +121,9 @@ void cOverworld_manager :: Load_dir( string dir, bool user_dir /* = 0 */ )
 				cOverworld *overworld = new cOverworld();
 
 				// set path
-				overworld->description->path = dir_itr->leaf();
+				overworld->description->path = current_dir;
 				// default name is the path
-				overworld->description->name = dir_itr->leaf();
+				overworld->description->name = current_dir;
 				// set user
 				overworld->description->user = user_dir;
 

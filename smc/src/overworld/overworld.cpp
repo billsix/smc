@@ -30,8 +30,7 @@
 #include "../input/keyboard.h"
 #include "../level/level.h"
 // boost filesystem
-#include "boost/filesystem/operations.hpp"
-#include "boost/filesystem/path.hpp"
+#include "boost/filesystem/convenience.hpp"
 namespace fs = boost::filesystem;
 
 
@@ -338,6 +337,23 @@ bool cOverworld :: Key_Down( SDLKey key )
 	return 1;
 }
 
+bool cOverworld :: Key_Up( SDLKey key )
+{
+	// nothing yet
+	if( 0 )
+	{
+		//
+	}
+	else
+	{
+		// not processed
+		return 0;
+	}
+
+	// key got processed
+	return 1;
+}
+
 bool cOverworld :: Mouse_Down( Uint8 button )
 {
 	// ## editor
@@ -371,6 +387,46 @@ bool cOverworld :: Mouse_Up( Uint8 button )
 	}
 
 	// button got processed
+	return 1;
+}
+
+bool cOverworld :: Joy_Button_Down( Uint8 button )
+{
+	if( button == pPreferences->joy_button_exit )
+	{
+		// exit
+		Game_Action = GA_ENTER_MENU;
+	}
+	else if( button == pPreferences->joy_button_action )
+	{
+		// enter
+		pOverworld_Player->Activate_Waypoint();
+		ClearInputEvents();
+	}
+	else
+	{
+		// not processed
+		return 0;
+	}
+
+	// key got processed
+	return 1;
+}
+
+bool cOverworld :: Joy_Button_Up( Uint8 button )
+{
+	// nothing yet
+	if( 0 )
+	{
+		//
+	}
+	else
+	{
+		// not processed
+		return 0;
+	}
+
+	// key got processed
 	return 1;
 }
 
@@ -412,7 +468,7 @@ bool cOverworld :: Load( void )
 	// catch CEGUI Exceptions
 	catch( Exception &ex )
 	{
-		printf( "Overworld Loading CEGUI Exception %s\n", ex.getMessage().c_str() );
+		printf( "Loading Overworld %s CEGUI Exception %s\n", world_filename.c_str(), ex.getMessage().c_str() );
 		debugdisplay->Set_Text( "Overworld Loading failed : " + (string)ex.getMessage().c_str() );
 	}
 

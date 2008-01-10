@@ -109,12 +109,10 @@ public:
 	GL_Surface *image_ground_quit;
 	// Logo Sprite
 	cHudSprite *logo;
-	// Ground Sprite
+	// background Sprites
 	cHudSprite *ground;
-	// Moon Sprite
 	cHudSprite *moon;
-	// Cloud Sprite
-	cHudSprite *cloud;
+	cHudSprite *background;
 	// Gradient Colors
 	Color color_start;
 	Color color_end;
@@ -156,6 +154,15 @@ public:
 	 * returns true if processed
 	*/
 	bool Mouse_Up( Uint8 button );
+	/* handle joystick button down event
+	 * returns true if processed
+	*/
+	bool Joy_Button_Down( Uint8 button );
+	/* handle joystick button up event
+	 * returns true if processed
+	*/
+	bool Joy_Button_Up( Uint8 button );
+
 
 	// Returns a Menu with the common image filenames
 	cMenu_Item *Auto_Menu( string imagename, string imagename_menu, float ypos = 0, bool is_quit = 0 );

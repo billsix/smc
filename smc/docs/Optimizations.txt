@@ -1,0 +1,11 @@
+#= Possible optimizations =#
+
+GRAPHICAL
+===========
+Batching Textures 10 ( Boder )
+  would have to change texture size and level item storage? should offer performance increase
+
+GAME LOGIC
+============
+Level Item Storage 8 ( Boder )
+  quad-tree like structure could greatly improve the amount of searching for collision detection

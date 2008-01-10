@@ -33,8 +33,7 @@
 #include "../core/sprite_manager.h"
 #include "../overworld/overworld.h"
 // boost filesystem
-#include "boost/filesystem/operations.hpp"
-#include "boost/filesystem/path.hpp"
+#include "boost/filesystem/convenience.hpp"
 namespace fs = boost::filesystem;
 
 /* *** *** *** *** *** *** *** *** cEditor_Item_Object *** *** *** *** *** *** *** *** *** */
@@ -80,6 +79,10 @@ void cEditor_Item_Object :: Init( void )
 
 	// set position
 	sprite_obj->Set_PosX( 20, 1 );
+
+	/* Don't set sprite settings which could get copied
+	 * into the level if selected like sahdow and z position
+	*/
 }
 
 Size cEditor_Item_Object :: getPixelSize( void ) const
@@ -123,16 +126,20 @@ void cEditor_Item_Object :: Draw_Image( void )
 
 	// create request
 	cSurfaceRequest *request = new cSurfaceRequest();
+
+	// scale
+	sprite_obj->start_scalex = preview_scale;
+	sprite_obj->start_scaley = preview_scale;
+	// draw image
 	sprite_obj->Draw_Image( request );
+	// reset scale
+	sprite_obj->start_scalex = 1;
+	sprite_obj->start_scaley = 1;
 
 	// ignore camera
 	request->no_camera = 1;
 	// position z
 	request->pos_z = 0.9f;
-
-	// scale
-	request->scale_x = preview_scale;
-	request->scale_y = preview_scale;
 
 	// set shadow
 	request->shadow_color = blackalpha128;
@@ -1226,50 +1233,28 @@ void cEditor :: Add_Item_Object( cSprite *sprite, string new_name /* = "" */, GL
 
 void cEditor :: Load_Image_Items( string dir )
 {
-	fs::path full_path( dir );
-	fs::directory_iterator end_iter;
+	vector<string> image_files = Get_Directory_files( dir, ".settings" );
 
 	// load all available objects
-	for( fs::directory_iterator dir_itr( full_path ); dir_itr != end_iter; ++dir_itr )
+	for( vector<string>::iterator itr = image_files.begin(), itr_end = image_files.end(); itr != itr_end; ++itr )
 	{
-		try
-		{
-			// if directory
-			if( fs::is_directory( *dir_itr ) )
-			{
-				// ignore hidden directories
-				if( dir_itr->leaf().find( "." ) == 0 )
-				{
-					continue;
-				}
+		// get filename
+		string filename = (*itr);
 
-				// load all items from the sub-directory
-				Load_Image_Items( dir + "/" + dir_itr->leaf() );
-			}
-			// valid file
-			else if( dir_itr->leaf().rfind( ".settings" ) != string::npos )
-			{
-				// load settings
-				string settings_filename = dir + "/" + dir_itr->leaf();
-				cImage_settings_data *settings = pSettingsParser->Get( settings_filename );
+		// load settings
+		cImage_settings_data *settings = pSettingsParser->Get( filename );
 
-				// if settings are available
-				if( settings )
-				{
-					// if required editor tag is available
-					if( settings->editor_tags.find( editor_item_tag ) != string::npos )
-					{
-						// set base to the filename
-						settings->base = dir + "/" + dir_itr->leaf();
-						// add real image
-						tagged_item_images.push_back( settings );
-					}
-				}
-			}
-		}
-		catch( const std::exception &ex )
+		// if settings are available
+		if( settings )
 		{
-			printf( "%s %s\n", dir_itr->leaf().c_str(), ex.what() );
+			// if required editor tag is available
+			if( settings->editor_tags.find( editor_item_tag ) != string::npos )
+			{
+				// set base to the filename
+				settings->base = filename;
+				// add real image
+				tagged_item_images.push_back( settings );
+			}
 		}
 	}
 }

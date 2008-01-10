@@ -26,10 +26,10 @@
 #define CAPTION "Secret Maryo Chronicles"
 // Version
 #ifndef VERSION
-#define VERSION "1.3"
+#define VERSION "1.4"
 #endif
 
-// framerate speedfactor calculation is based on this
+// framerate speedfactor calculation is based on it
 #define DESIRED_FPS 32
 // game resolution for global scaling
 #define GAME_RES_W 800
@@ -209,6 +209,7 @@ extern string user_data_dir;
 #define USER_SCREENSHOT_DIR "screenshots"
 #define USER_LEVEL_DIR "levels"
 #define USER_WORLD_DIR "worlds"
+#define USER_IMGCACHE_DIR "cache"
 
 /* *** *** *** *** *** *** *** *** SDL *** *** *** *** *** *** *** *** *** */
 

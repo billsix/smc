@@ -29,8 +29,7 @@
 #include "../video/renderer.h"
 #include "../level/level.h"
 // boost filesystem
-#include "boost/filesystem/operations.hpp"
-#include "boost/filesystem/path.hpp"
+#include "boost/filesystem/convenience.hpp"
 namespace fs = boost::filesystem;
 
 // needed to get the user directory
@@ -1176,6 +1175,8 @@ int Box_Question( string text, bool with_cancel /* = 0 */ )
 
 void Preload_images( void )
 {
+	Draw_Loading_Screen( "Preloading Images" );
+
 	// Maryo
 	Maryo_type old_maryo_type = pPlayer->maryo_type;
 
@@ -1292,6 +1293,8 @@ void Preload_images( void )
 
 void Preload_sounds( void )
 {
+	Draw_Loading_Screen( "Preloading Sounds" );
+
 	// player
 	pAudio->Get_Sound( "tock.ogg" );
 	pAudio->Get_Sound( "player/dead.ogg" );
@@ -1363,6 +1366,28 @@ void Preload_sounds( void )
 	pAudio->Get_Sound( "waypoint_reached.ogg" );
 }
 
+bool is_valid_number( string num, bool accept_floating_point /* = 1 */ )
+{
+	// accept negative numbers
+	if( num.find( '-' ) == 0 )
+	{
+		num.erase( 0, 1 );
+	}
+
+	// accept numbers with a point if given
+	if( accept_floating_point && num.find( '.' ) != string::npos )
+	{
+		num.erase( num.find( '.' ), 1 );
+	}
+
+	if( std::find_if( num.begin(), num.end(), nondigit() ) == num.end() )
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
 bool Delete_file( const string &filename )
 {
 	if( remove( filename.c_str() ) == 0 )
@@ -1387,28 +1412,6 @@ bool file_exists( const string &filename )
 	return 0;
 }
 
-bool is_valid_number( string num, bool accept_floating_point /* = 1 */ )
-{
-	// accept negative numbers
-	if( num.find( '-' ) == 0 )
-	{
-		num.erase( 0, 1 );
-	}
-
-	// accept numbers with a point if given
-	if( accept_floating_point && num.find( '.' ) != string::npos )
-	{
-		num.erase( num.find( '.' ), 1 );
-	}
-
-	if( std::find_if( num.begin(), num.end(), nondigit() ) == num.end() )
-	{
-		return 1;
-	}
-
-	return 0;
-}
-
 void Convert_path_separators( string &str )
 {
 	for( string::iterator itr = str.begin(); itr != str.end(); ++itr )
@@ -1419,6 +1422,51 @@ void Convert_path_separators( string &str )
 			*itr = '/';
 		}
 	}
+}
+
+vector<string> Get_Directory_files( string dir, string file_type /* = "" */, bool with_directories /* = 0 */ )
+{
+	vector<string> valid_files;
+
+	fs::path full_path( dir, fs::native );
+	fs::directory_iterator end_iter;
+
+	// load all available objects
+	for( fs::directory_iterator dir_itr( full_path ); dir_itr != end_iter; ++dir_itr )
+	{
+		try
+		{
+			// if directory
+			if( fs::is_directory( *dir_itr ) )
+			{
+				// ignore hidden directories
+				if( dir_itr->leaf().find( "." ) == 0 )
+				{
+					continue;
+				}
+
+				if( with_directories )
+				{
+					valid_files.push_back( dir + "/" + dir_itr->leaf() );
+				}
+
+				// load all items from the sub-directory
+				vector<string> new_valid_files = Get_Directory_files( dir + "/" + dir_itr->leaf(), file_type, with_directories );
+				valid_files.insert( valid_files.end(), new_valid_files.begin(), new_valid_files.end() );
+			}
+			// valid file
+			else if( file_type.empty() || dir_itr->leaf().rfind( file_type ) != string::npos )
+			{
+				valid_files.push_back( dir + "/" + dir_itr->leaf() );
+			}
+		}
+		catch( const std::exception &ex )
+		{
+			printf( "%s %s\n", dir_itr->leaf().c_str(), ex.what() );
+		}
+	}
+
+	return valid_files;
 }
 
 string Get_User_Directory( void )

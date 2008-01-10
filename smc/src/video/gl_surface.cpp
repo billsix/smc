@@ -129,13 +129,28 @@ void GL_Surface :: Blit( float x, float y, float z, cSurfaceRequest *request /* 
 		request = new cSurfaceRequest();
 	}
 
+	Blit_data( request );
+
+	// position
+	request->pos_x += x;
+	request->pos_y += y;
+	request->pos_z = z;
+
+	if( create_request )
+	{
+		// add request
+		pRenderer->Add( request );
+	}
+}
+
+void GL_Surface :: Blit_data( cSurfaceRequest *request )
+{
 	// texture id
 	request->texture_id = image;
 
 	// position
-	request->pos_x = x + int_x;
-	request->pos_y = y + int_y;
-	request->pos_z = z;
+	request->pos_x += int_x;
+	request->pos_y += int_y;
 
 	// size
 	request->w = start_w;
@@ -145,12 +160,27 @@ void GL_Surface :: Blit( float x, float y, float z, cSurfaceRequest *request /* 
 	request->rotx += base_rotx;
 	request->roty += base_roty;
 	request->rotz += base_rotz;
+}
 
-	if( create_request )
+void GL_Surface :: Save( string filename )
+{
+	if( !image )
 	{
-		// add request
-		pRenderer->Add( request );
+		printf( "Couldn't save GL_Surface : No Image Texture ID set\n" );
+		return;
 	}
+
+	// bind the texture
+	glBindTexture( GL_TEXTURE_2D, image );
+
+	// create image data
+	GLubyte *data = new GLubyte[tex_w * tex_h * 4];
+	// read texture
+	glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid *)data );
+	// save
+	pVideo->Save_Surface( filename, data, tex_w, tex_h );
+	// clear data
+	delete[] data;
 }
 
 void GL_Surface :: Set_Ground_type( GroundType gtype )

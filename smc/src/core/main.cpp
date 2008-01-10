@@ -144,11 +144,12 @@ void InitGame( void )
 	pPreferences->Apply();
 	pVideo->Init_CEGUI_data();
 	pVideo->Init_BasicColors();
-	
+	pFont->Init();
+	pVideo->Init_Image_Cache();
+	// draw generic loading screen
 	Draw_Loading_Screen();
 
 	// Init Stage 3
-	pFont->Init();
 	pPlayer = new cPlayer();
 	pLevel_Editor = new cEditor_Level();
 	pWorld_Editor = new cEditor_World();
@@ -167,7 +168,6 @@ void InitGame( void )
 
 	// only precache in release builds
 #ifndef _DEBUG
-	// load data into the memory
 	Preload_images();
 	Preload_sounds();
 #endif
@@ -374,17 +374,33 @@ bool Handle_Input_Global( SDL_Event *ev )
 			}
 			break;
 		}
+		case SDL_JOYBUTTONDOWN:
+		{
+			if( pJoystick->Handle_Button_Down_Event( ev ) )
+			{
+				return 1;
+			}
+			break;
+		}
+		case SDL_JOYBUTTONUP:
+		{
+			if( pJoystick->Handle_Button_Up_Event( ev ) )
+			{
+				return 1;
+			}
+			break;
+		}
+		case SDL_JOYAXISMOTION:
+		{
+			pJoystick->Handle_Motion( ev );
+			break;
+		}
 		default: // other events
 		{
 			// mouse
 			if( pMouseCursor->Handle_Event( ev ) )
 			{
 				return 1; 
-			}
-			// joystick
-			if( pJoystick->Handle_Event( ev ) )
-			{
-				return 1;
 			}
 
 			// send events

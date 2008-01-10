@@ -75,6 +75,14 @@ public:
 	 * returns true if processed
 	*/
 	bool Mouse_Up( Uint8 button );
+	/* handle joystick button down event
+	 * returns true if processed
+	*/
+	bool Joy_Button_Down( Uint8 button );
+	/* handle joystick button up event
+	 * returns true if processed
+	*/
+	bool Joy_Button_Up( Uint8 button );
 
 	// Return the number of Backgrounds
 	unsigned int Get_Backgroundlayers( void );

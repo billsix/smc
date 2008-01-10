@@ -21,8 +21,7 @@
 #include "../input/joystick.h"
 #include "../gui/hud.h"
 // boost filesystem
-#include "boost/filesystem/operations.hpp"
-#include "boost/filesystem/path.hpp"
+#include "boost/filesystem/convenience.hpp"
 namespace fs = boost::filesystem;
 
 
@@ -58,6 +57,11 @@ cPreferences :: cPreferences( void )
 	if( !fs::exists( fs::path( user_data_dir + USER_WORLD_DIR, fs::native ) ) )
 	{
 		fs::create_directory( fs::path( user_data_dir + USER_WORLD_DIR, fs::native ) );
+	}
+	// Create cache directory
+	if( !fs::exists( fs::path( user_data_dir + USER_IMGCACHE_DIR, fs::native ) ) )
+	{
+		fs::create_directory( fs::path( user_data_dir + USER_IMGCACHE_DIR, fs::native ) );
 	}
 
 	Default();
@@ -165,6 +169,7 @@ void cPreferences :: Save( void )
 	file << "\t<Item Name=\"joy_button_action\" Value=\"" << joy_button_action << "\" />" << std::endl;
 	file << "\t<Item Name=\"joy_button_exit\" Value=\"" << joy_button_exit << "\" />" << std::endl;
 	// Special
+	file << "\t<Item Name=\"game_version\" Value=\"" << VERSION << "\" />" << std::endl;
 	file << "\t<Item Name=\"always_run\" Value=\"" << always_run << "\" />" << std::endl;
 	file << "\t<Item Name=\"level_background_images\" Value=\"" << level_background_images << "\" />" << std::endl;
 	// Leveleditor
@@ -227,6 +232,7 @@ void cPreferences :: Default( void )
 	joy_button_exit = 4;
 
 	// Special
+	game_version = VERSION;
 	always_run = 0;
 	joy_name.clear();
 	joy_analog_jump = 0;
@@ -523,6 +529,10 @@ void cPreferences :: handle_item( const XMLAttributes& attributes )
 		}
 	}
 	// Special
+	else if( name.compare( "game_version" ) == 0 )
+	{
+		game_version = attributes.getValueAsString( "Value" ).c_str();
+	}
 	else if( name.compare( "always_run" ) == 0 )
 	{
 		always_run = attributes.getValueAsBool( "Value" );

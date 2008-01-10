@@ -492,7 +492,7 @@ void cSurfaceRequest :: Draw( void )
 	glBegin( GL_QUADS );
 		// top left
 		glTexCoord2f( 0, 0 );
-		glVertex2f( -w / 2, -h / 2);
+		glVertex2f( -w / 2, -h / 2 );
 		// top right
 		glTexCoord2f( 1, 0 );
 		glVertex2f( w / 2, -h / 2 );

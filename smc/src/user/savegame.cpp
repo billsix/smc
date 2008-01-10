@@ -127,6 +127,7 @@ void cSave :: Clear( void )
 	lives = 0;
 	points = 0;
 	goldpieces = 0;
+	player_type = 0;
 	player_state = 0;
 	itembox_item = 0;
 	
@@ -266,7 +267,20 @@ int cSavegame :: Load_Game( unsigned int save_slot )
 
 	// #### Player ####
 
-	pPlayer->Set_Type( (Maryo_type)savegame->player_state, 0, 0 );
+	// below version 8 the sate was the type
+	if( savegame->version < 8 )
+	{
+		// type
+		pPlayer->Set_Type( (Maryo_type)savegame->player_state, 0, 0 );
+	}
+	else
+	{
+		// type
+		pPlayer->Set_Type( (Maryo_type)savegame->player_type, 0, 0 );
+		// state
+		pPlayer->state = (Moving_state)savegame->player_state;
+	}
+
 
 	// in a level
 	if( !savegame->level_name.empty() )
@@ -383,8 +397,10 @@ bool cSavegame :: Save_Game( unsigned int save_slot, string description )
 	// Points
 	savegame->points = pPlayer->points;
 
-	// Player State
-	savegame->player_state = pPlayer->maryo_type;
+	// Player type
+	savegame->player_type = pPlayer->maryo_type;
+	// Player state
+	savegame->player_state = pPlayer->state;
 	// Itembox Item
 	savegame->itembox_item = Itembox->item_id;
 
@@ -481,7 +497,7 @@ cSave *cSavegame :: Load( unsigned int save_slot )
 	// catch CEGUI Exceptions
 	catch( Exception &ex )
 	{
-		printf( "Savegame Loading CEGUI Exception %s\n", ex.getMessage().c_str() );
+		printf( "Loading Savegame %s CEGUI Exception %s\n", filename.c_str(), ex.getMessage().c_str() );
 		debugdisplay->Set_Text( "Savegame Loading failed : " + (string)ex.getMessage().c_str() );
 	}
 
@@ -591,6 +607,8 @@ int cSavegame :: Save( unsigned int save_slot, cSave *savegame )
 		file << "\t\t<Property Name=\"points\" Value=\"" << savegame->points << "\" />" << std::endl;
 		// Goldpieces
 		file << "\t\t<Property Name=\"goldpieces\" Value=\"" << savegame->goldpieces << "\" />" << std::endl;
+		// type
+		file << "\t\t<Property Name=\"type\" Value=\"" << savegame->player_type << "\" />" << std::endl;
 		// state
 		file << "\t\t<Property Name=\"state\" Value=\"" << savegame->player_state << "\" />" << std::endl;
 		// Itembox item
@@ -834,6 +852,7 @@ void cSavegame :: Handle_Player( const XMLAttributes &attributes )
 	save_temp->lives = xml_attributes.getValueAsInteger( "lives" );
 	save_temp->points = xml_attributes.getValueAsInteger( "points" );
 	save_temp->goldpieces = xml_attributes.getValueAsInteger( "goldpieces" );
+	save_temp->player_type = xml_attributes.getValueAsInteger( "type" );
 	save_temp->player_state = xml_attributes.getValueAsInteger( "state" );
 	save_temp->itembox_item = xml_attributes.getValueAsInteger( "itembox_item" );
 }

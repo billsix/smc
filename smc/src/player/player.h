@@ -185,6 +185,13 @@ public:
 	// Shoot if available
 	void Action_Shoot();
 
+	// Stop jump
+	void Action_Stop_Jump( void );
+	// Stop Interacting with items
+	void Action_Stop_Interact( SDLKey key_type );
+	// Stop Shoot action
+	void Action_Stop_Shoot();
+
 	/* Adds a Fire/Ice-ball
 	 * Returns 1 if successful
 	*/

@@ -21,7 +21,7 @@
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-#define SAVEGAME_VERSION 7
+#define SAVEGAME_VERSION 8
 #define SAVEGAME_VERSION_UNSUPPORTED 5
 
 /* *** *** *** *** *** *** *** cSave_Overworld_Waypoint *** *** *** *** *** *** *** *** *** *** */
@@ -125,6 +125,8 @@ public:
 	unsigned int points;
 	// goldpieces
 	unsigned int goldpieces;
+	// player type
+	unsigned int player_type;
 	// player state
 	unsigned int player_state;
 	// item in the itembox
@@ -132,7 +134,7 @@ public:
 
 	// ## Level Information
 	/* level name
-	 * only saved if Player is in a Level
+	 * only saved if player is in a level
 	*/
 	string level_name;
 	// level position

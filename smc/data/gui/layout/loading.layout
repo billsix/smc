@@ -8,7 +8,6 @@
         <Property Name="MousePassThroughEnabled" Value="True" />
         <Window Type="TaharezLook/StaticText" Name="text_loading" >
             <Property Name="Text" Value="Loading..." />
-		<Property Name="Font" Value="bluebold_big" />
             <Property Name="TextColours" Value="tl:FFFFAA66 tr:FFFFAA66 bl:FFFF9944 br:FFFF9944" />
             <Property Name="FrameEnabled" Value="False" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
@@ -17,7 +16,7 @@
         </Window>
         <Window Type="TaharezLook/StaticText" Name="text_gpl" >
             <Property Name="Text" Value="This program is distributed under the terms of the GPL 3" />
-            <Property Name="TextColours" Value="tl:FF0000AA tr:FF0000AA bl:FF0000DD br:FF0000DD" />
+            <Property Name="TextColours" Value="tl:FF2222AA tr:FF2222AA bl:FF2222DD br:FF2222DD" />
             <Property Name="FrameEnabled" Value="False" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
             <Property Name="ClippedByParent" Value="False" />

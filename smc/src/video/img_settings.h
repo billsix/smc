@@ -30,6 +30,8 @@ public:
 	cImage_settings_data( void );
 	~cImage_settings_data( void );
 
+	// returns the surface with mipmap and size set
+	GL_Surface *Get_Surface( SDL_Surface *sdl_surface );
 	// Apply settings to an image
 	void Apply( GL_Surface *image );
 	// Apply base settings

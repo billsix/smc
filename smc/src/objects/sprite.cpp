@@ -459,11 +459,11 @@ void cSprite :: Set_Image( GL_Surface *new_image, bool new_start_image /* = 0 */
 	{
 		// collision data
 		col_pos = image->col_pos;
-		col_rect.w = image->col_w;
-		col_rect.h = image->col_h;
+		col_rect.w = image->col_w * scalex;
+		col_rect.h = image->col_h * scaley;
 		// image data
-		rect.w = image->w;
-		rect.h = image->h;
+		rect.w = image->w * scalex;
+		rect.h = image->h * scaley;
 
 		delete_image = del_img;
 
@@ -774,7 +774,27 @@ void cSprite :: Add_Rotation( float x, float y, float z )
 
 void cSprite :: Set_ScaleX( float scale, bool new_startscale /* = 0 */ )
 {
+	// invalid value
+	if( scale == 0 )
+	{
+		return;
+	}
+
+	// undo previous scale from rect
+	if( scalex != 1 )
+	{
+		col_rect.w /= scalex;
+		rect.w /= scalex;
+	}
+
 	scalex = scale;
+
+	// set new scale to rect
+	if( scalex != 1 )
+	{
+		col_rect.w *= scalex;
+		rect.w *= scalex;
+	}
 
 	if( new_startscale )
 	{
@@ -784,7 +804,27 @@ void cSprite :: Set_ScaleX( float scale, bool new_startscale /* = 0 */ )
 
 void cSprite :: Set_ScaleY( float scale, bool new_startscale /* = 0 */ )
 {
+	// invalid value
+	if( scale == 0 )
+	{
+		return;
+	}
+
+	// undo previous scale from rect
+	if( scaley != 1 )
+	{
+		col_rect.h /= scaley;
+		rect.h /= scaley;
+	}
+
 	scaley = scale;
+
+	// set new scale to rect
+	if( scaley != 1 )
+	{
+		col_rect.h *= scaley;
+		rect.h *= scaley;
+	}
 
 	if( new_startscale )
 	{
@@ -794,14 +834,8 @@ void cSprite :: Set_ScaleY( float scale, bool new_startscale /* = 0 */ )
 
 void cSprite :: Set_Scale( float scale, bool new_startscale /* = 0 */ )
 {
-	scalex = scale;
-	scaley = scale;
-
-	if( new_startscale )
-	{
-		start_scalex = scalex;
-		start_scaley = scaley;
-	}
+	Set_ScaleX( scale, new_startscale );
+	Set_ScaleY( scale, new_startscale );
 }
 
 void cSprite :: Add_ScaleX( float val )
@@ -926,9 +960,12 @@ void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 		/*rect_request->rotx += rotx;
 		rect_request->roty += roty;
 		rect_request->rotz += rotz;*/
-		// todo : scale
-		/*rect_request->scale_x = scalex;
-		rect_request->scale_y = scaley;*/
+		// scale
+		float scale_diff_width = rect_request->rect.w - (rect_request->rect.w * scalex);
+		float scale_diff_height = rect_request->rect.h - (rect_request->rect.h * scaley);
+		// todo : sprite scaling should also set the position
+		rect_request->rect.x += scale_diff_width * 0.5f;
+		rect_request->rect.y += scale_diff_height * 0.5f;
 		// add request
 		pRenderer->Add( rect_request );
 
@@ -937,6 +974,12 @@ void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 		// draw collision rect
 		pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &Get_Sprite_Color( this ), rect_request );
 		rect_request->no_camera = no_camera;
+		// scale
+		scale_diff_width = rect_request->rect.w - (rect_request->rect.w * scalex);
+		scale_diff_height = rect_request->rect.h - (rect_request->rect.h * scaley);
+		// todo : sprite scaling should also set the position
+		rect_request->rect.x += scale_diff_width * 0.5f;
+		rect_request->rect.y += scale_diff_height * 0.5f;
 		// blend it
 		rect_request->blend_sfactor = GL_SRC_COLOR;
 		rect_request->blend_dfactor = GL_DST_ALPHA;
@@ -1007,22 +1050,92 @@ void cSprite :: Draw_Image( cSurfaceRequest *request /* = NULL */ )
 		request = new cSurfaceRequest();
 	}
 
-	// blit surface
+	// editor
 	if( editor_enabled )
 	{
-		start_image->Blit( startposx, startposy, posz, request );
+		// blit surface
+		start_image->Blit_data( request );
 
+		// rotation
+		request->rotx += start_rotx;
+		request->roty += start_roty;
+		request->rotz += start_rotz;
+		// position x and
+		// scalex
+		if( start_scalex != 1 )
+		{
+			request->scale_x = start_scalex;
+			request->pos_x = startposx + ( start_image->int_x * start_scalex );
+		}
+		// no scalex
+		else
+		{
+			request->pos_x = startposx + start_image->int_x;
+		}
+		// position y and
+		// scaley
+		if( start_scaley != 1 )
+		{
+			request->scale_y = start_scaley;
+			request->pos_y = startposy + ( start_image->int_y * start_scaley );
+		}
+		// no scaley
+		else
+		{
+			request->pos_y = startposy + start_image->int_y;
+		}
+	
 		// if editor z position is given
 		if( editor_posz > 0 )
 		{
 			request->pos_z = editor_posz;
 		}
+		// normal position z
+		else
+		{
+			request->pos_z = posz;
+		}
 	}
+	// no editor
 	else
 	{
-		image->Blit( posx, posy, posz, request );
+		// blit surface
+		image->Blit_data( request );
+
+		// rotation
+		request->rotx += rotx;
+		request->roty += roty;
+		request->rotz += rotz;
+		// position x and
+		// scalex
+		if( scalex != 1 )
+		{
+			request->scale_x = scalex;
+			request->pos_x = posx + ( image->int_x * scalex );
+		}
+		// no scalex
+		else
+		{
+			request->pos_x = posx + image->int_x;
+		}
+		// position y and
+		// scaley
+		if( scaley != 1 )
+		{
+			request->scale_y = scaley;
+			request->pos_y = posy + ( image->int_y * scaley );
+		}
+		// no scaley
+		else
+		{
+			request->pos_y = posy + image->int_y;
+		}
+	
+		// position z
+		request->pos_z = posz;
 	}
 
+	// no camera setting
 	request->no_camera = no_camera;
 
 	// color
@@ -1041,27 +1154,6 @@ void cSprite :: Draw_Image( cSurfaceRequest *request /* = NULL */ )
 	{
 		request->shadow_pos = shadow_pos;
 		request->shadow_color = shadow_color;
-	}
-
-	if( editor_enabled )
-	{
-		// rotation
-		request->rotx += start_rotx;
-		request->roty += start_roty;
-		request->rotz += start_rotz;
-		// scale
-		request->scale_x = start_scalex;
-		request->scale_y = start_scaley;
-	}
-	else
-	{
-		// rotation
-		request->rotx += rotx;
-		request->roty += roty;
-		request->rotz += rotz;
-		// scale
-		request->scale_x = scalex;
-		request->scale_y = scaley;
 	}
 
 	if( create_request )
@@ -1236,7 +1328,6 @@ void cSprite :: Editor_Add( Window *obj, float obj_width, float obj_height )
 		obj->subscribeEvent( Window::EventMouseEnters, Event::Subscriber( &cSprite::Editor_Mouse_Enter, this ) );
 		obj->subscribeEvent( Window::EventMouseLeaves, Event::Subscriber( &cSprite::Editor_Mouse_Leave, this ) );
 	}
-
 
 	editor_windows.push_back( obj );
 }

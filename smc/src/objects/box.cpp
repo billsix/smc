@@ -332,11 +332,14 @@ void cBaseBox :: Update_collision( void )
 		return;
 	}
 
+	// speed mod
+	float mod = pFramerate->speedfactor * 0.05f;
+	// counter
+	move_counter += pFramerate->speedfactor * 0.2f;
+
 	// move into the given direction
 	if( !move_back )
 	{
-		// speed mod
-		float mod = pFramerate->speedfactor * 0.05f;
 		// final move value
 		float move_x = ( xcheck * pFramerate->speedfactor ) - ( ( rect.w * x_scale ) * mod );
 		float move_y = ( ycheck * pFramerate->speedfactor ) - ( ( rect.h * y_scale ) * mod );
@@ -348,8 +351,7 @@ void cBaseBox :: Update_collision( void )
 		Move( move_x, move_y, 1 );
 		// scale
 		Add_Scale( mod );
-		// counter
-		move_counter += pFramerate->speedfactor * 0.2f;
+
 		// Particles
 		Generate_active_Particles();
 
@@ -363,8 +365,6 @@ void cBaseBox :: Update_collision( void )
 	// move back to the original position
 	else
 	{
-		// speed mod
-		float mod = pFramerate->speedfactor * 0.05f;
 		// final move value
 		float move_x = ( -xcheck * pFramerate->speedfactor ) + ( ( rect.w * x_scale ) * mod );
 		float move_y = ( -ycheck * pFramerate->speedfactor ) + ( ( rect.h * y_scale ) * mod );
@@ -376,8 +376,6 @@ void cBaseBox :: Update_collision( void )
 		Move( move_x, move_y, 1 );
 		// scale
 		Add_Scale( -mod );
-		// counter
-		move_counter += pFramerate->speedfactor * 0.2f;
 
 		// check if reached original position
 		if(	move_counter > 1 )
@@ -744,6 +742,12 @@ void cBaseBox :: Editor_Activate( void )
 	}
 
 	combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cBaseBox::Editor_Invisible_Select, this ) );
+
+	if( type == TYPE_SPINBOX )
+	{
+		// set position
+		Editor_pos_update();
+	}
 }
 
 bool cBaseBox :: Editor_Useable_Count_Key( const EventArgs &event )

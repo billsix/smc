@@ -31,10 +31,17 @@ public:
 	* if request is NULL automatically creates the request
 	*/
 	void Blit( float x, float y, float z, cSurfaceRequest *request = NULL );
+	/* Blit only the surface data on the given request
+	*/
+	void Blit_data( cSurfaceRequest *request );
 
 	/* copy this image and returns it
 	*/
 	GL_Surface *Copy( void );
+
+	/* save this image texture to a file
+	*/
+	void Save( string filename );
 
 	// Set the ground type
 	void Set_Ground_type( GroundType gtype );

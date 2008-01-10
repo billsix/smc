@@ -202,7 +202,7 @@ void cGoldpiece :: Activate( void )
 
 void cGoldpiece :: Update( void )
 {
-	if( !valid_update || !is_Visible_onScreen() )
+	if( !valid_update )
 	{
 		return;
 	}
@@ -243,7 +243,7 @@ void cGoldpiece :: Draw( cSurfaceRequest *request /* = NULL */ )
 
 bool cGoldpiece :: is_Update_valid( void )
 {
-	if( !visible )
+	if( !visible || !is_Visible_onScreen() )
 	{
 		return 0;
 	}

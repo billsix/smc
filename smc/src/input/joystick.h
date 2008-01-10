@@ -39,12 +39,12 @@ public:
 	// Resets all Buttons and modifiers
 	void Reset_keys( void );
 
-	// Handles the Joystick events
-	bool Handle_Event( SDL_Event *ev );
 	// Handles the Joystick motion
 	void Handle_Motion( SDL_Event *ev );
-	// Handles the Joystick Button Events
-	bool Handle_Button_Event( SDL_Event *ev );
+	// Handle Joystick Button down event
+	bool Handle_Button_Down_Event( SDL_Event *ev );
+	// Handle Joystick Button up event
+	bool Handle_Button_Up_Event( SDL_Event *ev );
 
 	// Returns the current Joystick name
 	string Get_Name( void );
@@ -52,7 +52,7 @@ public:
 	vector<string> Get_Names( void );
 
 	// Sets the given button state
-	void Set_Button( unsigned int button, bool pressed );
+	void Set_Button( Uint8 button, bool pressed );
 
 	// check if the analog direction is pressed
 	bool Left( void );
@@ -60,7 +60,7 @@ public:
 	bool Up( void );
 	bool Down( void );
 	// check if the given button is pushed
-	bool Button( unsigned int button );
+	bool Button( Uint8 button );
 
 	// current joystick pointer
 	SDL_Joystick *joystick;
@@ -68,7 +68,7 @@ public:
 	string joy_name;
 
 	// button state array
-	typedef vector<int> ButtonList;
+	typedef vector<bool> ButtonList;
 	ButtonList buttons;
 	
 	// analog directions

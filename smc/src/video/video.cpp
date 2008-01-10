@@ -25,8 +25,16 @@
 #include "../video/gl_surface.h"
 #include "../video/renderer.h"
 #include "../core/main.h"
-
+// CEGUI
 #include "CEGUIDefaultResourceProvider.h"
+// boost filesystem
+#include "boost/filesystem/convenience.hpp"
+namespace fs = boost::filesystem;
+// png
+#include <png.h>
+#ifndef PNG_COLOR_TYPE_RGBA
+	#define PNG_COLOR_TYPE_RGBA PNG_COLOR_TYPE_RGB_ALPHA
+#endif
 
 /* *** *** *** *** *** *** *** *** Color struct *** *** *** *** *** *** *** *** *** */
 
@@ -139,7 +147,7 @@ void cVideo :: Init_CEGUI( void )
 	// catch CEGUI Exceptions
 	catch( Exception &ex )
 	{
-		fprintf( stderr, "CEGUI Exception occurred : %s", ex.getMessage().c_str() );
+		fprintf( stderr, "CEGUI Exception occurred : %s\n", ex.getMessage().c_str() );
 		exit( 0 );
 	}
 }
@@ -153,7 +161,7 @@ void cVideo :: Init_CEGUI_data( void )
 #endif
 
 	// initialise the required Resource Provider directories
-	DefaultResourceProvider *rp = (DefaultResourceProvider *)System::getSingleton().getResourceProvider();
+	DefaultResourceProvider *rp = static_cast<DefaultResourceProvider *>(System::getSingleton().getResourceProvider());
 
 	rp->setResourceGroupDirectory( "schemes", DATA_DIR "/" GUI_SCHEME_DIR "/" );
 	rp->setResourceGroupDirectory( "imagesets", DATA_DIR "/" GUI_IMAGESET_DIR "/" );
@@ -184,7 +192,7 @@ void cVideo :: Init_CEGUI_data( void )
 	// catch CEGUI Exceptions
 	catch( Exception &ex )
 	{
-		fprintf( stderr, "CEGUI Exception occurred : %s", ex.getMessage().c_str() );
+		fprintf( stderr, "CEGUI Scheme Exception occurred : %s\n", ex.getMessage().c_str() );
 		exit( 0 );
 	}
 
@@ -192,12 +200,12 @@ void cVideo :: Init_CEGUI_data( void )
 	try
 	{
 		FontManager::getSingleton().createFont( "bluebold1024_medium.font" );
-		FontManager::getSingleton().createFont( "bluebold1024_big.font" );
+		//FontManager::getSingleton().createFont( "bluebold1024_big.font" );
 	}
 	// catch CEGUI Exceptions
 	catch( Exception &ex )
 	{
-		fprintf( stderr, "CEGUI Exception occurred : %s", ex.getMessage().c_str() );
+		fprintf( stderr, "CEGUI Font Exception occurred : %s\n", ex.getMessage().c_str() );
 		exit( 0 );
 	}
 
@@ -527,6 +535,11 @@ void cVideo :: Init_OpenGL( void )
     //glDisable( GL_CULL_FACE );
 
 	Init_Resolution_Scale();
+
+	// Clear Screen
+	Clear_Screen();
+
+	SDL_GL_SwapBuffers();
 }
 
 void cVideo :: Init_BasicColors( void )
@@ -563,6 +576,110 @@ void cVideo :: Init_Resolution_Scale( void )
 	// down scale
 	global_downscalex = static_cast<float>(GAME_RES_W) / static_cast<float>(pPreferences->video_screen_w);
 	global_downscaley = static_cast<float>(GAME_RES_H) / static_cast<float>(pPreferences->video_screen_h);
+}
+
+void cVideo :: Init_Image_Cache( void )
+{
+	imgcache_dir = user_data_dir + USER_IMGCACHE_DIR;
+	string imgcache_dir_active = imgcache_dir + "/" + int_to_string( pPreferences->video_screen_w ) + "x" + int_to_string( pPreferences->video_screen_h );
+
+	// if not the same game version
+	if( pPreferences->game_version.compare( VERSION ) != 0 )
+	{
+		// delete all caches
+		if( fs::exists( fs::path( imgcache_dir, fs::native ) ) )
+		{
+			fs::remove_all( fs::path( imgcache_dir, fs::native ) );
+		}
+		
+		fs::create_directory( fs::path( imgcache_dir, fs::native ) );
+	}
+
+	// no cache available
+	if( !fs::exists( fs::path( imgcache_dir_active, fs::native ) ) )
+	{
+		fs::create_directories( fs::path( imgcache_dir_active + "/" GAME_PIXMAPS_DIR, fs::native ) );
+	}
+	// cache available
+	else
+	{
+		imgcache_dir = imgcache_dir_active;
+		return;
+	}
+
+	// Create cache text surface
+	GL_Surface *surface_caching = pFont->RenderText( pFont->font_normal, "Caching Images", white );
+	// get all files
+	vector<string> image_files = Get_Directory_files( DATA_DIR "/" GAME_PIXMAPS_DIR, ".settings",  1 );
+
+	// create directories, load images and save to cache
+	for( vector<string>::iterator itr = image_files.begin(), itr_end = image_files.end(); itr != itr_end; ++itr )
+	{
+		// get filename
+		string filename = (*itr);
+
+		// remove data dir
+		string cache_filename = filename.substr( strlen( DATA_DIR "/" ) );
+
+		// if directory
+		if( filename.rfind( "." ) == string::npos )
+		{
+			if( !fs::exists( fs::path( imgcache_dir_active + "/" + cache_filename, fs::native ) ) )
+			{
+				fs::create_directory( fs::path( imgcache_dir_active + "/" + cache_filename, fs::native ) );
+			}
+
+			continue;
+		}
+
+		bool settings_file = 0;
+
+		// Don't use .settings file type directly for loading
+		if( filename.rfind( ".settings" ) != string::npos )
+		{
+			settings_file = 1;
+			filename.erase( filename.rfind( ".settings" ) );
+			filename.insert( filename.length(), ".png" );
+		}
+
+		GL_Surface *image = Load_Surface( filename );
+
+		// if image is available
+		if( image )
+		{
+			// save as png
+			if( settings_file )
+			{
+				cache_filename.insert( cache_filename.length(), ".png" );
+			}
+
+			// save image
+			image->Save( imgcache_dir_active + "/" + cache_filename );
+			delete image;
+		}
+
+		// update visual counter
+		GL_Surface *surface_filename = pFont->RenderText( pFont->font_small, filename, white );
+
+		// clear screen
+		pVideo->Clear_Screen();
+
+		// draw
+		surface_caching->Blit( GAME_RES_W * 0.4f, GAME_RES_H * 0.7f, 0.11f );
+		surface_filename->Blit( GAME_RES_W * 0.2f, GAME_RES_H * 0.8f, 0.1f );
+
+		// Render
+		pRenderer->Render();
+		SDL_GL_SwapBuffers();
+		
+		// delete
+		delete surface_filename;
+	}
+
+	delete surface_caching;
+
+	// set directory after surfaces got loaded from Load_Surface()
+	imgcache_dir = imgcache_dir_active;
 }
 
 int cVideo :: Test_Video( int width, int height, int bpp, int flags /* = 0 */ )
@@ -680,8 +797,16 @@ GL_Surface *cVideo :: Load_Surface( string filename, bool use_settings /* = 1 */
 		{
 			settings = pSettingsParser->Get( settings_file );
 
+			// add cache dir and remove data dir
+			string img_filename_cache = imgcache_dir + "/" + settings_file.substr( strlen( DATA_DIR "/" ) ) + ".png";
+
+			// check if image cache file exists
+			if( file_exists( img_filename_cache ) )
+			{
+				sdl_surface = IMG_Load( img_filename_cache.c_str() );
+			}
 			// image given in base settings
-			if( !settings->base.empty() )
+			else if( !settings->base.empty() )
 			{
 				// use current directory
 				string img_filename = filename.substr( 0, filename.rfind( "/" ) + 1 ) + settings->base;
@@ -705,7 +830,7 @@ GL_Surface *cVideo :: Load_Surface( string filename, bool use_settings /* = 1 */
 	}
 
 	// if not set in image settings and file exists
-	if( ( !settings || settings->base.empty() ) && file_exists( filename ) )
+	if( ( !settings || settings->base.empty() ) && file_exists( filename ) && !sdl_surface )
 	{
 		sdl_surface = IMG_Load( filename.c_str() );
 	}
@@ -726,25 +851,9 @@ GL_Surface *cVideo :: Load_Surface( string filename, bool use_settings /* = 1 */
 	// with settings
 	if( settings )
 	{
-		// check if texture needs to get downscaled
-		float new_w = static_cast<float>(Get_GLsize( sdl_surface->w )), new_h = static_cast<float>(Get_GLsize( sdl_surface->h ));
-
-		// if image settings dimension
-		if( settings->width > 0 && settings->height > 0 )
-		{
-			/* downscale to fit best for the current resolution
-			 * uses the first dimension which is not smaller as the default scale
-			*/
-			while( new_w * 0.5f > settings->width * global_upscalex && new_h * 0.5f > settings->height * global_upscaley )
-			{
-				new_w *= 0.5f;
-				new_h *= 0.5f;
-			}
-		}
-
-		image = Create_Texture( sdl_surface, settings->mipmap, static_cast<unsigned int>(new_w), static_cast<unsigned int>(new_h) );
-
-		// apply settings
+		// Get basic settings Surface
+		image = settings->Get_Surface( sdl_surface );
+		// Apply settings
 		settings->Apply( image );
 		delete settings;
 	}
@@ -907,12 +1016,12 @@ Color cVideo :: GetPixel( int x, int y, GL_Surface *source /* = NULL */ )
 {
 	//glReadBuffer( GL_FRONT );
 
-	Color color;
-	float pixel[3];
+	float *pixel = new float[3];
 	glLoadIdentity();
-	glReadPixels( x, y, 1, 1, GL_RGB, GL_FLOAT, &pixel );
+	glReadPixels( x, y, 1, 1, GL_RGB, GL_FLOAT, pixel );
 
-	color = Color( pixel[0], pixel[1], pixel[2] );
+	Color color = Color( pixel[0], pixel[1], pixel[2] );
+	delete[] pixel;
 
 	return color;
 }
@@ -1089,59 +1198,92 @@ void cVideo :: Save_Screenshot( void )
 	
 	for( unsigned int i = 1; i < 1000; i++ )
 	{
-		filename = user_data_dir + USER_SCREENSHOT_DIR "/" + int_to_string( i ) + ".bmp";
+		filename = user_data_dir + USER_SCREENSHOT_DIR "/" + int_to_string( i ) + ".png";
 
 		if( !file_exists( filename ) )
 		{
-			// Todo : save it as png
-
-			// create RGB image data
-			GLubyte *data = new GLubyte[pPreferences->video_screen_w * pPreferences->video_screen_h * 3];
-
-			// read gl screen
-			glReadPixels( 0, 0, pPreferences->video_screen_w, pPreferences->video_screen_h, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid *)data );
-
-			// create SDL surface
-			SDL_Surface *temp = SDL_CreateRGBSurface( SDL_SWSURFACE, pPreferences->video_screen_w, pPreferences->video_screen_h, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000 );
-
-			if( SDL_MUSTLOCK( temp ) )
-			{
-				SDL_LockSurface( temp );
-			}
-
-			Uint32 *pdata = (Uint32 *)temp->pixels;
-
-			// copy into SDL surface
-			for( int y = temp->h - 1, y2 = 0; y >= 0 && y2 < pPreferences->video_screen_h; --y, ++y2 )
-			{
-				for( int x = temp->w -1; x >= 0; --x )
-				{
-					pdata[y * temp->pitch/4 + x] =
-						SDL_MapRGBA( temp->format,
-							data[ y2 * pPreferences->video_screen_w * 3 + x * 3 + 0 ],
-							data[ y2 * pPreferences->video_screen_w * 3 + x * 3 + 1 ],
-							data[ y2 * pPreferences->video_screen_w * 3 + x * 3 + 2 ],
-							255 );
-				}
-			}
-
-			if( SDL_MUSTLOCK( temp ) )
-			{
-				SDL_UnlockSurface( temp );
-			}
-
-			// save the surface
-			SDL_SaveBMP( temp, filename.c_str() );
-			
-			// delete screen data
-			SDL_FreeSurface( temp );
+			// create image data
+			GLubyte *data = new GLubyte[pPreferences->video_screen_w * pPreferences->video_screen_h * 4];
+			// read opengl screen
+			glReadPixels( 0, 0, pPreferences->video_screen_w, pPreferences->video_screen_h, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid *)data );
+			// save
+			Save_Surface( filename, data, pPreferences->video_screen_w, pPreferences->video_screen_h, GL_RGBA, 1 );
+			// clear data
 			delete[] data;
 
-			debugdisplay->Set_Text( "Screenshot " + int_to_string( i ) + " saved", DESIRED_FPS * 2.5 );
+			// show info
+			debugdisplay->Set_Text( "Screenshot " + int_to_string( i ) + " saved", DESIRED_FPS * 2.5f );
 
+			// finished
 			return;
 		}
 	}
+}
+
+void cVideo :: Save_Surface( string filename, GLubyte *data, GLsizei width, GLsizei height, GLenum format /* = GL_RGBA */, bool reverse_data /* = 0 */ )
+{
+	FILE *fp = NULL;
+
+	fp = fopen( filename.c_str(), "wb" );
+
+	if( !fp )
+	{
+		printf( "Couldn't save Surface\n" );
+	}
+
+	png_structp png_ptr = png_create_write_struct( PNG_LIBPNG_VER_STRING, NULL, NULL, NULL );
+	png_infop info_ptr = png_create_info_struct( png_ptr );
+
+	png_init_io( png_ptr, fp );
+
+	png_set_IHDR(
+		png_ptr, info_ptr,
+		width, height, 8 /* bitdepth */,
+		PNG_COLOR_TYPE_RGBA,
+		PNG_INTERLACE_NONE,
+		PNG_COMPRESSION_TYPE_DEFAULT,
+		PNG_FILTER_TYPE_DEFAULT );
+
+	png_write_info( png_ptr, info_ptr );
+
+	png_uint_32 png_height = height;
+	png_uint_32 row_bytes = width * 4;
+
+	png_byte *image = new png_byte[png_height * row_bytes];
+	png_bytep *row_pointers = new png_bytep[png_height];
+
+	// create image data
+	int img_size = png_height * row_bytes;
+	for( int i = 0; i < img_size; ++i )
+	{
+		image[i] = static_cast<unsigned char*>(data)[i];
+	}
+
+	// create row pointers
+	if( reverse_data )
+	{
+		for( unsigned int i = 0; i < png_height; i++ )
+		{
+			// reverse direction because of opengl glReadPixels
+			row_pointers[png_height - 1 - i] = image + (i * row_bytes);
+		}
+	}
+	else
+	{
+		for( unsigned int i = 0; i < png_height; i++ )
+		{
+			row_pointers[i] = image + (i * row_bytes);
+		}
+	}
+
+
+	png_write_image( png_ptr, row_pointers );
+	png_write_end( png_ptr, info_ptr );
+
+	delete image;
+	delete row_pointers;
+
+	fclose( fp );
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -1616,37 +1758,25 @@ void Draw_Effect_in( Effect_Fadein effect /* = EFFECT_IN_RANDOM */, float speed 
 	pFramerate->Update();
 }
 
-void Draw_Loading_Screen( void )
+void Draw_Loading_Screen( string str_info /* = "Loading" */ )
 {
-	bool mouse_hide = 0;
-
-	// get loading window
+	// Create loading window
 	Window *window_1 = WindowManager::getSingleton().loadWindowLayout( "loading.layout" );
 	pGuiSystem->getGUISheet()->addChildWindow( window_1 );
-	// loading images
-	cHudSprite *loading_img_1 = new cHudSprite( pVideo->Get_Surface( "menu/extra_1.png" ), GAME_RES_W * 0.08f, GAME_RES_H * 0.75f );
-	cHudSprite *loading_img_2 = new cHudSprite( pVideo->Get_Surface( "menu/extra_2.png" ), GAME_RES_W * 0.6f, GAME_RES_H * 0.1f );
 
-	// white background
-	glClearColor( 1, 1, 1, 1 );
+	// set info text
+	Window *text_default = static_cast<Window *>(WindowManager::getSingleton().getWindow( "text_loading" ));
+	text_default->setText( str_info.c_str() );
+
+	// clear screen
 	pVideo->Clear_Screen();
 
-	// Gradient
-	Color col1 = Color( 0.7f, 0.93f, 1 );
-	Color col2 = Color( 0.26f, 0.8f, 1 );
-	pVideo->Draw_Gradient( NULL, 0.08f, &col1, &col2, DIR_VERTICAL );
-	// Loading Images
-	loading_img_1->Draw();
-	loading_img_2->Draw();
-
+	// Render
 	pRenderer->Render();
 	pGuiSystem->renderGUI();
 	pRenderer_GUI->Render();
 	SDL_GL_SwapBuffers();
 
-	// delete
-	delete loading_img_1;
-	delete loading_img_2;
 	pGuiSystem->getGUISheet()->removeChildWindow( window_1 );
 	WindowManager::getSingleton().destroyWindow( window_1 );
 }

@@ -43,6 +43,32 @@ cImage_settings_data :: ~cImage_settings_data( void )
 
 }
 
+GL_Surface *cImage_settings_data :: Get_Surface( SDL_Surface *sdl_surface )
+{
+	if( !sdl_surface )
+	{
+		return NULL;
+	}
+
+	// check if texture needs to get downscaled
+	float new_w = static_cast<float>(Get_GLsize( sdl_surface->w )), new_h = static_cast<float>(Get_GLsize( sdl_surface->h ));
+
+	// if image settings dimension
+	if( width > 0 && height > 0 )
+	{
+		/* downscale to fit best for the current resolution
+		 * uses the first dimension which is not smaller as the default scale
+		*/
+		while( new_w * 0.5f > width * global_upscalex && new_h * 0.5f > height * global_upscaley )
+		{
+			new_w *= 0.5f;
+			new_h *= 0.5f;
+		}
+	}
+
+	return pVideo->Create_Texture( sdl_surface, mipmap, static_cast<unsigned int>(new_w), static_cast<unsigned int>(new_h) );
+}
+
 void cImage_settings_data :: Apply( GL_Surface *image )
 {
 	// empty image

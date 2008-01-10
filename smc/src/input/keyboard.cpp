@@ -28,7 +28,7 @@
 #include "../level/level_editor.h"
 #include "../level/level_settings.h"
 
-/* *** *** *** *** *** *** *** *** Functions  *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** *** cKeyboard *** *** *** *** *** *** *** *** *** */
 
 cKeyboard :: cKeyboard( void )
 {

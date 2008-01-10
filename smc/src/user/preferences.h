@@ -71,6 +71,7 @@ public:
 
 
 	// Special
+	string game_version;
 	bool always_run;
 	bool editor_mouse_auto_hide, level_background_images;
 

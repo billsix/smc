@@ -93,6 +93,11 @@ public:
 	// Get all levels from the given directory
 	void Get_Levels( string dir, colour color );
 
+	/* Load the Selected Listbox item
+	 * and exits if successful
+	*/
+	void Load_Selected( void );
+
 	/* Load the Selected World
 	 * and exits if successful
 	*/
@@ -104,15 +109,18 @@ public:
 
 	// CEGUI events
 	bool window_keydown( const EventArgs &event ); // key down
+
 	bool world_Select( const EventArgs &event ); // world selected
 	bool world_Select_final_list( const EventArgs &event ); // world selected for entering
-	bool Button_world_Select_final( const EventArgs &event ); // button for world entering
+
 	bool level_Select( const EventArgs &event ); // level selected
 	bool level_Select_final_list( const EventArgs &event ); // level selected for entering
-	bool Button_level_Select_final( const EventArgs &event ); // button for level entering 
+
 	bool Button_level_new_clicked( const EventArgs &event ); // level new button
 	bool Button_level_edit_clicked( const EventArgs &event ); // level edit button
 	bool Button_level_delete_clicked( const EventArgs &event ); // level delete button
+	bool Button_enter_clicked( const EventArgs &event ); // enter button
+	bool Button_back_clicked( const EventArgs &event ); // back button
 };
 
 /* *** *** *** *** *** *** *** cMenu_Options *** *** *** *** *** *** *** *** *** *** */

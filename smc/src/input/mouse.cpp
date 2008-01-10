@@ -180,34 +180,34 @@ bool cMouseCursor :: Handle_Event( SDL_Event *ev )
 
 bool cMouseCursor :: Handle_Mouse_down( Uint8 button )
 {
-	switch ( button )
+	switch( button )
 	{
 		// mouse buttons
 		case SDL_BUTTON_LEFT:
 		{
-			left = 1;
 			if( System::getSingleton().injectMouseButtonDown( LeftButton ) )
 			{
 				return 1;
 			}
+			left = 1;
 			break;
 		}
 		case SDL_BUTTON_MIDDLE:
 		{
-			middle = 1;
 			if( System::getSingleton().injectMouseButtonDown( MiddleButton ) )
 			{
 				return 1;
 			}
+			middle = 1;
 			break;
 		}
 		case SDL_BUTTON_RIGHT:
 		{
-			right = 1;
 			if( System::getSingleton().injectMouseButtonDown( RightButton ) )
 			{
 				return 1;
 			}
+			right = 1;
 			break;
 		}
 		// mouse wheel

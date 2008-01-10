@@ -207,6 +207,11 @@ void Preload_images( void );
  */
 void Preload_sounds( void );
 
+/* accept_floating_point: if is set also accept floating point values
+ * Returns true if the number is valid
+*/
+bool is_valid_number( string num, bool accept_floating_point = 1 );
+
 /* Deletes the given file
  * Use with Caution
  *
@@ -217,13 +222,15 @@ bool Delete_file( const string &filename );
 // Check if the file exists
 bool file_exists( const string &filename );
 
-/* accept_floating_point: if is set also accept floating point values
- * Returns true if the number is valid
-*/
-bool is_valid_number( string num, bool accept_floating_point = 1 );
-
 // Converts "\" and "!" to "/"
 void Convert_path_separators( string &str );
+
+/* Get all files from the directory and sub-directories
+ * dir : the directory to scan
+ * file_type : if set only this file type is returned
+ * with_directories : if set adds directories to the returned objects
+*/
+vector<string> Get_Directory_files( string dir, string file_type = "", bool with_directories = 0 );
 
 // Returns the current smc user directory
 string Get_User_Directory( void );

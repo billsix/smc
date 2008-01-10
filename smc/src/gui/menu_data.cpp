@@ -31,8 +31,7 @@
 #include "../input/keyboard.h"
 #include "../level/level_editor.h"
 // boost filesystem
-#include "boost/filesystem/operations.hpp"
-#include "boost/filesystem/path.hpp"
+#include "boost/filesystem/convenience.hpp"
 namespace fs = boost::filesystem;
 
 /* *** *** *** *** *** *** *** *** cMenu_Base *** *** *** *** *** *** *** *** *** */
@@ -277,20 +276,10 @@ void cMenu_Start :: Init( void )
 
 	cMenu_Item *temp_item = NULL;
 
-	GL_Surface *back1 = pFont->RenderText( pFont->font_normal, "Back", text_color );
-
 	layout_file = "menu_start.layout";
- 
-	// back
-	temp_item = new cMenu_Item();
-	temp_item->image_default->Set_Image( back1 );
-	temp_item->Set_Pos( GAME_RES_W / 18, 450 );
-	temp_item->isquit = 1;
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
 
 	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/start.png" ), GAME_RES_W * 0.02f, 140 ) );
 	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/overworld.png" ), GAME_RES_W / 20, 210 ) );
-	drawlist.push_back( new cHudSprite( back1, -200, 0, 1 ) );
 
 	Init_GUI();
 }
@@ -365,14 +354,14 @@ void cMenu_Start :: Init_GUI( void )
 	// select first Item
 	listbox_worlds->setItemSelectState( (size_t)0, 1 );
 
-	// Button Enter World
-	PushButton *button_world_enter = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_world_enter" ));
-	// Button Enter Level
-	PushButton *button_level_enter = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_level_enter" ));
+	// Button Enter 
+	PushButton *button_enter = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_enter" ));
+	// Button back
+	PushButton *button_back = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_back" ));
 
 	// events
-	button_world_enter->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cMenu_Start::Button_world_Select_final, this ) );
-	button_level_enter->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cMenu_Start::Button_level_Select_final, this ) );
+	button_enter->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cMenu_Start::Button_enter_clicked, this ) );
+	button_back->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cMenu_Start::Button_back_clicked, this ) );
 }
 
 void cMenu_Start :: Update( void )
@@ -386,11 +375,8 @@ void cMenu_Start :: Update( void )
 
 	action = 0;
 
-	// back
-	if( pMenuCore->handler->active == 0 )
-	{
-		Exit();
-	}
+	// enter
+	Load_Selected();
 }
 
 void cMenu_Start :: Draw( void )
@@ -410,53 +396,77 @@ void cMenu_Start :: Get_Levels( string dir, colour color )
 	// Level Listbox
 	Listbox *listbox_levels = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
 
-	// get all level names
-	fs::path full_path( dir, fs::native );
+	// get directory length for erasing
+	int dir_length = dir.length() + 1;
+	// get all files
+	vector<string> lvl_files = Get_Directory_files( dir );
 
-	for( fs::directory_iterator dir_itr( full_path ), end_iter; dir_itr != end_iter; ++dir_itr )
+	// list all available levels
+	for( vector<string>::iterator itr = lvl_files.begin(), itr_end = lvl_files.end(); itr != itr_end; ++itr )
 	{
-		try
+		// get filename
+		string lvl_name = (*itr);
+		// remove base directory
+		lvl_name.erase( 0, dir_length );
+
+		// erase file type only if smclvl
+		if( lvl_name.rfind( ".smclvl" ) != string::npos )
 		{
-			// only files
-			if( !fs::is_directory( *dir_itr ) )
-			{
-				string lvl_name = dir_itr->leaf();
-
-				// erase file type only if smclvl
-				if( lvl_name.rfind( ".smclvl" ) != string::npos )
-				{
-					lvl_name.erase( lvl_name.rfind( ".smclvl" ) );
-				}
-
-				// check if item with the same name already exists
-				ListboxItem *old_item = listbox_levels->findItemWithText( lvl_name, NULL );
-				// remove old item
-				if( old_item )
-				{
-					listbox_levels->removeItem( old_item );
-				}
-
-				ListboxTextItem *item = new ListboxTextItem( lvl_name, 0 );
-
-				// smclvl
-				if( dir_itr->leaf().rfind( ".smclvl" ) != string::npos )
-				{
-					item->setTextColours( color );
-				}
-				// grey out txt/unknown levels
-				else
-				{
-					item->setTextColours( colour( 0.6f, 0.6f, 0.6f ) );
-				}
-
-				item->setSelectionColours( colour( 0.33f, 0.33f, 0.33f ) );
-				item->setSelectionBrushImage( "TaharezLook", "ListboxSelectionBrush" );
-				listbox_levels->addItem( item );
-			}
+			lvl_name.erase( lvl_name.rfind( ".smclvl" ) );
 		}
-		catch( const std::exception &ex )
+
+		// check if item with the same name already exists
+		ListboxItem *old_item = listbox_levels->findItemWithText( lvl_name, NULL );
+		// remove old item
+		if( old_item )
 		{
-			printf( "%s %s\n", dir_itr->leaf().c_str(), ex.what() );
+			listbox_levels->removeItem( old_item );
+		}
+
+		ListboxTextItem *item = new ListboxTextItem( lvl_name, 0 );
+
+		// smclvl
+		if( lvl_name.rfind( ".txt" ) == string::npos )
+		{
+			item->setTextColours( color );
+		}
+		// grey out old txt levels
+		else
+		{
+			item->setTextColours( colour( 0.6f, 0.6f, 0.6f ) );
+		}
+
+		item->setSelectionColours( colour( 0.33f, 0.33f, 0.33f ) );
+		item->setSelectionBrushImage( "TaharezLook", "ListboxSelectionBrush" );
+		listbox_levels->addItem( item );
+	}
+}
+
+void cMenu_Start :: Load_Selected( void )
+{
+	// Get Tab Control
+	TabControl *tabcontrol = static_cast<TabControl *>(WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
+
+	// World
+	if( tabcontrol->getSelectedTabIndex() == 0 )
+	{
+		ListboxItem *item = (static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_worlds" )))->getFirstSelectedItem();
+
+		// load world
+		if( item )
+		{
+			Load_World( item->getText().c_str() );
+		}
+	}
+	// Level
+	else
+	{
+		ListboxItem *item = (static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" )))->getFirstSelectedItem();
+
+		// load level
+		if( item )
+		{
+			Load_Level( item->getText().c_str() );
 		}
 	}
 }
@@ -503,31 +513,7 @@ bool cMenu_Start :: window_keydown( const EventArgs &e )
 	// Return
 	if( ke.scancode == Key::Return || ke.scancode == Key::NumpadEnter )
 	{
-		// Get Tab Control
-		TabControl *tabcontrol = static_cast<TabControl *>(WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
-
-		// World
-		if( tabcontrol->getSelectedTabIndex() == 0 )
-		{
-			ListboxItem *item = (static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_worlds" )))->getFirstSelectedItem();
-
-			// load world
-			if( item )
-			{
-				Load_World( item->getText().c_str() );
-			}
-		}
-		// Level
-		else
-		{
-			ListboxItem *item = (static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" )))->getFirstSelectedItem();
-
-			// load level
-			if( item )
-			{
-				Load_Level( item->getText().c_str() );
-			}
-		}
+		Load_Selected();
 
 		return 1;
 	}
@@ -648,22 +634,6 @@ bool cMenu_Start :: world_Select_final_list( const EventArgs &event )
 	return 1;
 }
 
-bool cMenu_Start :: Button_world_Select_final( const EventArgs &event )
-{
-	// Get Selected World
-	Listbox *listbox_worlds = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_worlds" ));
-	ListboxItem *item = listbox_worlds->getFirstSelectedItem();
-
-	// load world
-	if( item )
-	{
-		Load_World( item->getText().c_str() );
-	}
-
-	return 1;
-}
-
-
 bool cMenu_Start :: level_Select( const EventArgs &event )
 {
 	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
@@ -697,20 +667,6 @@ bool cMenu_Start :: level_Select_final_list( const EventArgs &event )
 	return 1;
 }
 
-bool cMenu_Start :: Button_level_Select_final( const EventArgs &event )
-{
-	// Get Selected Level
-	Listbox *listbox_levels = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
-	ListboxItem *item = listbox_levels->getFirstSelectedItem();
-
-	// load level
-	if( item )
-	{
-		Load_Level( item->getText().c_str() );
-	}
-
-	return 1;
-}
 
 bool cMenu_Start :: Button_level_new_clicked( const EventArgs &event )
 {
@@ -768,6 +724,18 @@ bool cMenu_Start :: Button_level_delete_clicked( const EventArgs &event )
 		}
 	}
 
+	return 1;
+}
+
+bool cMenu_Start :: Button_enter_clicked( const EventArgs &event )
+{
+	Load_Selected();
+	return 1;
+}
+
+bool cMenu_Start :: Button_back_clicked( const EventArgs &event )
+{
+	Exit();
 	return 1;
 }
 
@@ -2035,7 +2003,7 @@ void cMenu_Options_Controls :: Update( void )
 	action = 0;
 
 	// Joystick name
-	if( pMenuCore->handler->active == 16 )
+	if( pMenuCore->handler->active == 17 )
 	{
 		// Get Joy Combo
 		Combobox *combo_joy = static_cast<Combobox *>( WindowManager::getSingleton().getWindow( "combo_joy" ) );
@@ -2092,7 +2060,7 @@ void cMenu_Options_Controls :: Update( void )
 	}
 
 	// Joystick analog jump
-	if( pMenuCore->handler->active == 17 )
+	if( pMenuCore->handler->active == 18 )
 	{
 		pPreferences->joy_analog_jump = !pPreferences->joy_analog_jump;
 
@@ -2554,24 +2522,25 @@ void cMenu_Credits :: Init( void )
 	cMenu_Item *temp_item = NULL;
 	menu_posy = GAME_RES_H * 1.1f;
 
-	// fade out
-	Color color = black;
+	// black background
+	glClearColor( 0, 0, 0, 1 );
 
+	// fade out
 	for( float i = 0; i < 180; i += 4.5f * pFramerate->speedfactor )
 	{
-		color.alpha = static_cast<Uint8>(i);
+		// clear
+		pVideo->Clear_Screen();
+
+		// Draw	
+		pMenuCore->handler->Draw();
+		pMenuCore->pMenu_AnimManager->Draw();
 
 		// create request
 		cRectRequest *request = new cRectRequest();
-		
-		// Draw
-		pVideo->Clear_Screen();
-		pVideo->Draw_Rect( NULL, 0.09f, &color, request );
-		pMenuCore->handler->Draw();
-		pMenuCore->pMenu_AnimManager->Draw();
-		
-		request->render_count = 2;
-
+		pVideo->Draw_Rect( NULL, 0.108f, &black, request );
+		request->color.alpha = static_cast<Uint8>(i);
+		request->color.green = 20;
+		request->color.blue = 32;
 		// add request
 		pRenderer->Add( request );
 
@@ -2580,13 +2549,11 @@ void cMenu_Credits :: Init( void )
 		pFramerate->Update();
 		// maximum fps
 		CorrectFrameTime( 100 );
-	}
 
-	// black background
-	glClearColor( 0, 0, 0, 1 );
-	// set menu gradient colors
-	pMenuCore->handler->color_start = Color( 0, 0, 0.01f );
-	pMenuCore->handler->color_end = Color( 0, 0.1f, 0.2f );
+		// set menu gradient colors
+		pMenuCore->handler->color_start.alpha = 255 - static_cast<Uint8>(i);
+		pMenuCore->handler->color_end.alpha = pMenuCore->handler->color_start.alpha;
+	}
 
 	GL_Surface *back1 = pFont->RenderText( pFont->font_normal, "Back", text_color );
 
@@ -2595,105 +2562,122 @@ void cMenu_Credits :: Init( void )
 
 	// add credits texts
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Florian Richter (FluXy)", white ), 0, 20, 1 ) );
-	drawlist.back()->Set_Shadow( orange, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Dedicated Programmer, Organizer, and Leader", white ), 0, -3, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
+	drawlist.back()->Set_Shadow( black, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Dedicated Developer", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Organizer and Project Leader", white ), 0, -3, 1 ) );
 
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Holger Fey (Nemo)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( lila, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Torrent Packager, Quality Assurance", white ), 0, -3, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Game Tester", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - German Publicity", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Torrent Packager", white ), 0, -3, 1 ) );
 
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Grant ... (youngheart80)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( green, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Graphics", white ), 0, -3, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
-
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Tristan Heaven (nyhm)", white ), 0, 20, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Gentoo eBuild Maintainer", white ), 0, -3, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
-
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Mario Fink (maYO)", white ), 0, 20, 1 ) );
-	drawlist.back()->Set_Shadow( blue, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Graphics, Website Images, Other Support", white ), 0, -3, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
 
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Mark Richards (dteck)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( blue, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Graphics", white ), 0, -3, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
 
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Ursula ... (Pipgirl)", white ), 0, 20, 1 ) );
-	drawlist.back()->Set_Shadow( Color( 0.2f, 0.9f, 0.2f ), 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Graphics", white ), 0, -3, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
+	// Most Valued Persons (MVP)
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "-- Most Valued Persons (MVP) --", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( lightgrey, 1 );
+
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Tristan Heaven (nyhm)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( lightblue, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Gentoo eBuild Maintainer", white ), 0, -3, 1 ) );
+
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Muammar El Khatib (muammar)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( lightred, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Debian Package Maintainer", white ), 0, -3, 1 ) );
+
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Robert W... (BowserJr)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( lightgreen, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Forum and Wiki Moderator", white ), 0, -3, 1 ) );
 
 	// Retired
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "-- Retired --", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( lightgrey, 1 );
 
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Mario Fink (maYO)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( blue, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Website Graphic Designer", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Other Support", white ), 0, -3, 1 ) );
+
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Ursula ... (Pipgirl)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( Color( 0.2f, 0.9f, 0.2f ), 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
+
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Tobias Maasland (Weirdnose)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( Color( 0.9f, 0.7f, 0.2f ), 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Level and World Contributor, Assistant Developer", white ), 0, -3, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Level and World Contributor", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Assistant Developer", white ), 0, -3, 1 ) );
 
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Markus Hiebl (Frostbringer)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( Color( 0.9f, 0.1f, 0.8f ), 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Graphic Designer and Level Contributor", white ), 0, -3, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Level Contributor", white ), 0, -3, 1 ) );
 
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Robert ... (Consonance)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( lightred, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Sound and Music Artist", white ), 0, -3, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Sound and Music Artist", white ), 0, -3, 1 ) );
 
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Justin ... (LoXodonte)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( lightblue, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Music Artist", white ), 0, -3, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Music Artist", white ), 0, -3, 1 ) );
 
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Matt J... (mattwj)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( red, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   eDonkey Packager, Quality Assurance", white ), 0, -3, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - eDonkey Packager", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Quality Assurance", white ), 0, -3, 1 ) );
 
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Bodhi Crandall-Rus (Boder)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( green, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Assistant Graphic Designer", white ), 0, -3, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - All Hands Person", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Game Tester", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Assistant Graphic Designer", white ), 0, -3, 1 ) );
 
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "John Daly (Johnlein)", white ), 0, 20, 1 ) );
-	drawlist.back()->Set_Shadow( greenyellow, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Graphic Designer", white ), 0, -3, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
+	drawlist.back()->Set_Shadow( yellow, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
 
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Gustavo Gutierrez (Enzakun)", white ), 0, 20, 1 ) );
-	drawlist.back()->Set_Shadow( greenyellow, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Maryo Graphic Designer", white ), 0, -3, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
+	drawlist.back()->Set_Shadow( lightred, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Maryo Graphic Designer", white ), 0, -3, 1 ) );
 
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Thomas Huth (Thothy)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( greenyellow, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "   Linux Maintainer", white ), 0, -3, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Linux Maintainer", white ), 0, -3, 1 ) );
 
 	// Thanks
 	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "-- Thanks --", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( lightblue, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " Jason Cox (XOC), Ricardo Cruz, Devendra (Yuki),", white ), 0, 0, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Hans de Goede (Hans), xPatrickx, rolosworld", white ), 0, 0, 1 ) );
-	drawlist.back()->Set_Shadow( grey, 1 );
+
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Jason Cox (XOC)", white ), 0, 0, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Ricardo Cruz", white ), 0, 0, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Devendra (Yuki),", white ), 0, 0, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Hans de Goede (Hans)", white ), 0, 0, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "... (xPatrickx)", white ), 0, 0, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "... (rolosworld)", white ), 0, 0, 1 ) );
 
 	// set credits position
 	for( HudSpriteList::iterator itr = drawlist.begin(), itr_end = drawlist.end(); itr != itr_end; ++itr )
 	{
+		// get object
 		cHudSprite *obj = (*itr);
+
+		// set shadow if not set
+		if( obj->shadow_pos == 0 )
+		{
+			obj->Set_Shadow( grey, 1 );
+		}
+		// set position
 		obj->posx += GAME_RES_W / 5;
 		obj->posy += menu_posy;
-		// behind ground
-		obj->posz = 0.09f;
+		// set posz behind ground
+		obj->posz = 0.109f;
 		// set color combine
 		obj->Set_Color_Combine( 0, 0, 0, GL_MODULATE );
 		obj->color.alpha = 0;
@@ -2728,7 +2712,7 @@ void cMenu_Credits :: Update( void )
 		cHudSprite *obj = (*itr);
 
 		// long inactive reset
-		if( obj->posy < -1000 )
+		if( obj->posy < -1800 )
 		{
 			obj->Set_PosY( GAME_RES_H * 1.1 );
 		}
@@ -2799,6 +2783,15 @@ void cMenu_Credits :: Update( void )
 void cMenu_Credits :: Draw( void )
 {
 	cMenu_Base::Draw();
+
+	// darken background
+	cRectRequest *request = new cRectRequest();
+	pVideo->Draw_Rect( NULL, 0.108f, &black, request );
+	request->color.green = 20;
+	request->color.blue = 32;
+	request->color.alpha = 180;
+	pRenderer->Add( request );
+
 	Draw_End();
 }
 

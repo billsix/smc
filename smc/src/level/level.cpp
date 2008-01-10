@@ -209,7 +209,7 @@ bool cLevel :: Load( string filename, bool delayed /* = 0 */ )
 		// catch CEGUI Exceptions
 		catch( Exception &ex )
 		{
-			printf( "Level Loading CEGUI Exception %s\n", ex.getMessage().c_str() );
+			printf( "Loading Level %s CEGUI Exception %s\n", filename.c_str(), ex.getMessage().c_str() );
 			debugdisplay->Set_Text( "Level Loading failed : " + (string)ex.getMessage().c_str() );
 			return 0;
 		}
@@ -617,32 +617,38 @@ bool cLevel :: Key_Down( SDLKey key )
 
 bool cLevel :: Key_Up( SDLKey key )
 {
-	// only non Leveleditor
-	if( !editor_level_enabled )
+	// only if not in Editor
+	if( editor_level_enabled )
 	{
-		if( key == pPreferences->key_right || key == pPreferences->key_left )
-		{
-			pPlayer->Hold();
-		}
-		else if( key == pPreferences->key_down )
-		{
-			pPlayer->Stop_ducking();
-		}
-		else if( key == pPreferences->key_jump )
-		{
-			pPlayer->Stop_flying();
-			pPlayer->UpKeytime = 0;
-		}
-		else if( key == pPreferences->key_action )
-		{
-			pPlayer->Release_item();
-		}
-		else
-		{
-			// not processed
-			return 0;
-		}
+		return 0;
 	}
+
+	if( key == pPreferences->key_right || key == pPreferences->key_left )
+	{
+		pPlayer->Hold();
+	}
+	else if( key == pPreferences->key_down )
+	{
+		pPlayer->Stop_ducking();
+	}
+	else if( key == pPreferences->key_jump )
+	{
+		pPlayer->Action_Stop_Jump();
+	}
+	else if( key == pPreferences->key_shoot )
+	{
+		pPlayer->Action_Stop_Shoot();
+	}
+	else if( key == pPreferences->key_action )
+	{
+		pPlayer->Action_Stop_Interact( key );
+	}
+	else
+	{
+		// not processed
+		return 0;
+	}
+
 
 	// key got processed
 	return 1;
@@ -681,6 +687,74 @@ bool cLevel :: Mouse_Up( Uint8 button )
 	}
 
 	// button got processed
+	return 1;
+}
+
+bool cLevel :: Joy_Button_Down( Uint8 button )
+{
+	// Shoot
+	if( button == pPreferences->joy_button_shoot && !editor_enabled )
+	{
+		pPlayer->Action_Shoot();
+	}
+	// Jump
+	else if( button == pPreferences->joy_button_jump && !editor_enabled )
+	{
+		pPlayer->Action_Jump();
+	}
+	// Interaction keys
+	else if( button == pPreferences->joy_button_action && !editor_enabled )
+	{
+		pPlayer->Action_Interact( pPreferences->key_action );
+	}
+	// Request Itembox Item
+	else if( button == pPreferences->joy_button_item && !editor_enabled )
+	{
+		Itembox->Request_Item();
+	}
+	// Enter menu
+	else if( button == pPreferences->joy_button_exit )
+	{
+		Game_Action = GA_ENTER_MENU;
+	}
+	else
+	{
+		// not processed
+		return 0;
+	}
+
+	// key got processed
+	return 1;
+}
+
+bool cLevel :: Joy_Button_Up( Uint8 button )
+{
+	// only if not in Editor
+	if( editor_level_enabled )
+	{
+		return 0;
+	}
+
+	if( button == pPreferences->joy_button_jump )
+	{
+		pPlayer->Action_Stop_Jump();
+	}
+	else if( button == pPreferences->joy_button_shoot )
+	{
+		pPlayer->Action_Stop_Shoot();
+	}
+	else if( button == pPreferences->joy_button_action )
+	{
+		pPlayer->Action_Stop_Interact( pPreferences->key_action );
+	}
+	else
+	{
+		// not processed
+		return 0;
+	}
+
+
+	// key got processed
 	return 1;
 }
 

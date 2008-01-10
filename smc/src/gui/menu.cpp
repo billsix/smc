@@ -89,8 +89,10 @@ void cMenu_Item :: Draw( cSurfaceRequest *request /* = NULL */ )
 			rotz = 0;
 		}
 
+		// todo : sprite scaling should also set the position
 		// set correct position
 		posx -= ( image->w / 2 ) * ( scalex - 1 );
+		posy -= ( image->h / 2 ) * ( scaley - 1 );
 	}
 
 	cHudSprite::Draw( request );
@@ -103,6 +105,7 @@ void cMenu_Item :: Draw( cSurfaceRequest *request /* = NULL */ )
 		Set_Color_Combine( strength / 40, strength / 40, 0, GL_ADD );
 
 		posx = startposx;
+		posy = startposy;
 
 		image_menu->Draw();
 	}
@@ -122,13 +125,13 @@ cMenuHandler :: cMenuHandler( void )
 	logo->posz = 0.16f;
 	// Ground Image
 	ground = new cHudSprite( image_ground, 0, 400 );
-	ground->posz = 0.10f;
+	ground->posz = 0.11f;
 	// Moon Image
 	moon = new cHudSprite( pVideo->Get_Surface( "game/items/moon_1.png" ), 702, 39 );
 	moon->posz = 0.16f;
 	// Cloud Image
-	cloud = new cHudSprite( pVideo->Get_Surface( "clouds/default_1/1_middle.png" ), 250, 15 );
-	cloud->posz = 0.15f;
+	background = new cHudSprite( pVideo->Get_Surface( "game/background/blue_hills_1.png" ), 0, 88 );
+	background->posz = 0.09f;
 }
 
 cMenuHandler :: ~cMenuHandler( void )
@@ -138,7 +141,7 @@ cMenuHandler :: ~cMenuHandler( void )
 	delete logo;
 	delete ground;
 	delete moon;
-	delete cloud;
+	delete background;
 }
 
 void cMenuHandler :: Add_MenuItem( cMenu_Item *item, float shadow_pos /* = 0 */, Color shadow_color /* = static_cast<Uint8>(0) */ )
@@ -189,7 +192,8 @@ void cMenuHandler :: Set_Active( int num )
 
 	if( num >= 0 && static_cast<unsigned int>(num) < items.size() )
 	{
-		if( active >= 0 && static_cast<unsigned int>(active) < items.size() ) // set last active item un-active
+		// set last active item un-active
+		if( active >= 0 && static_cast<unsigned int>(active) < items.size() )
 		{
 			items[active]->Set_Active( 0 );
 		}
@@ -255,8 +259,8 @@ void cMenuHandler :: Draw( void )
 	ground->Draw();
 	// Moon Image
 	moon->Draw();
-	// Cloud Image
-	cloud->Draw();
+	// Background Image
+	background->Draw();
 
 	// menu items
 	for( MenuList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
@@ -437,6 +441,48 @@ bool cMenuCore :: Key_Down( SDLKey key )
 }
 
 bool cMenuCore :: Key_Up( SDLKey key )
+{
+	// nothing yet
+	if( 0 )
+	{
+		//
+	}
+	else
+	{
+		// not processed
+		return 0;
+	}
+
+	// key got processed
+	return 1;
+}
+
+bool cMenuCore :: Joy_Button_Down( Uint8 button )
+{
+	// Activate Button
+	if( button == pPreferences->joy_button_action )
+	{
+		if( pMenu_Data )
+		{
+			pMenu_Data->action = 1;
+		}
+	}
+	// exit
+	else if( button == pPreferences->joy_button_exit )
+	{
+		pMenu_Data->Exit();
+	}
+	else
+	{
+		// not processed
+		return 0;
+	}
+
+	// key got processed
+	return 1;
+}
+
+bool cMenuCore :: Joy_Button_Up( Uint8 button )
 {
 	// nothing yet
 	if( 0 )

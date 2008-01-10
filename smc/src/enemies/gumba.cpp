@@ -198,10 +198,10 @@ void cGumba :: DieStep( void )
 
 		Add_ScaleX( -speed * 0.5f );
 		Add_ScaleY( -speed );
-		posx += ( image->w / 2 ) * ( speed * 0.5f );
-		posy += ( image->h ) * speed;
+		// todo : sprite scaling should also set the position
+		Move( ( image->w * 0.5f ) * ( speed * 0.5f ), ( image->h ) * speed, 1 );
 
-		if( scaley < 0.1f )
+		if( scaley < 0.01f )
 		{
 			Set_Scale( 1 );
 			Set_Visible( 0 );

@@ -362,7 +362,7 @@ void cOverworld_Player :: Activate_Waypoint( void )
 		}
 		else
 		{
-			printf( "Error : Overworld world not found %s\n", str_world.c_str() );
+			printf( "Error : Overworld not found %s\n", str_world.c_str() );
 		}
 	}
 }

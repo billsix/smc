@@ -55,7 +55,6 @@ void cRex :: Init( void  )
 	images.push_back( pVideo->Get_Surface( "enemy/rex/big_2.png" ) );
 	images.push_back( pVideo->Get_Surface( "enemy/rex/small_1.png" ) );
 	images.push_back( pVideo->Get_Surface( "enemy/rex/small_2.png" ) );
-	images.push_back( pVideo->Get_Surface( "enemy/rex/dead.png" ) );
 
 	Set_Direction( DIR_RIGHT );
 
@@ -185,8 +184,6 @@ void cRex :: DownGrade( bool force /* = 0 */ )
 		}
 		else if( rex_state == REX_MINI )
 		{
-			Col_Move( 0, images[3]->col_h - images[4]->col_h, 1, 1, 0 );
-			Set_Image( 4, 0, 0 );
 			Set_Dead( 1 );
 
 			// animation
@@ -226,10 +223,12 @@ void cRex :: DieStep( void )
 	{
 		float speed = pFramerate->speedfactor * 0.05f;
 
-		Add_Scale( -speed );
-		Move( ( image->w / 2 ) * speed, ( image->h ) * speed, 1 );
+		Add_ScaleX( -speed * 0.5f );
+		Add_ScaleY( -speed );
+		// todo : sprite scaling should also set the position
+		Move( ( image->w * 0.5f ) * ( speed * 0.5f ), ( image->h ) * speed, 1 );
 
-		if( scalex < 0.1f )
+		if( scaley < 0.01f )
 		{
 			Set_Scale( 1 );
 			Set_Visible( 0 );
