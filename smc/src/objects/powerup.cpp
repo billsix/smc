@@ -1,7 +1,7 @@
 /***************************************************************************
-       powerup.cpp  -  powerup classes
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * powerup.cpp  -  powerup classes
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -22,6 +22,8 @@
 #include "../video/animation.h"
 #include "../video/gl_surface.h"
 #include "../user/savegame.h"
+#include "../core/math/utilities.h"
+#include "../core/i18n.h"
 
 /* *** *** *** *** *** *** cPowerUp *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -85,8 +87,9 @@ void cPowerUp :: Draw( cSurfaceRequest *request /* = NULL */ )
 	cImageObjectSprite::Draw( request );
 }
 
-bool cPowerUp :: is_Update_valid( void )
+bool cPowerUp :: Is_Update_Valid( void )
 {
+	// if not visible
 	if( !visible )
 	{
 		return 0;
@@ -127,7 +130,7 @@ unsigned int cPowerUp :: Validate_Collision( cSprite *obj )
 	if( obj->massivetype == MASS_HALFMASSIVE )
 	{
 		// if moving downwards and object is on top
-		if( vely >= 0 && is_onTop( obj ) )
+		if( vely >= 0 && Is_on_Top( obj ) )
 		{
 			return 2;
 		}
@@ -136,15 +139,15 @@ unsigned int cPowerUp :: Validate_Collision( cSprite *obj )
 	return 0;
 }
 
-void cPowerUp :: Handle_OutofLevel( ObjectDirection dir )
+void cPowerUp :: Handle_out_of_Level( ObjectDirection dir )
 {
 	if( dir == DIR_LEFT )
 	{
-		posx = pCamera->limit_rect.x;
+		posx = pActive_Camera->limit_rect.x;
 	}
 	else if( dir == DIR_RIGHT )
 	{
-		posx = pCamera->limit_rect.x + pCamera->limit_rect.w - col_pos.x - col_rect.w - 0.01f;
+		posx = pActive_Camera->limit_rect.x + pActive_Camera->limit_rect.w - col_pos.x - col_rect.w - 0.01f;
 	}
 
 	Turn_Around( dir );
@@ -158,7 +161,7 @@ cMushroom :: cMushroom( float x, float y )
 	Init();
 }
 
-cMushroom :: cMushroom( XMLAttributes &attributes )
+cMushroom :: cMushroom( CEGUI::XMLAttributes &attributes )
 : cPowerUp()
 {
 	Init();
@@ -191,7 +194,7 @@ cMushroom *cMushroom :: Copy( void )
 	return mushroom;
 }
 
-void cMushroom :: Create_from_Stream( XMLAttributes &attributes )
+void cMushroom :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )) );
@@ -230,27 +233,27 @@ void cMushroom :: Set_Type( SpriteType ntype )
 	if( ntype == TYPE_MUSHROOM_DEFAULT )
 	{
 		images.push_back( pVideo->Get_Surface( "game/items/mushroom_red.png" ) );
-		name = "Mushroom Red";
+		name = _("Mushroom Red");
 	}
 	else if( ntype == TYPE_MUSHROOM_LIVE_1 )
 	{
 		images.push_back( pVideo->Get_Surface( "game/items/mushroom_green.png" ) );
-		name = "Mushroom 1-UP";
+		name = _("Mushroom 1-UP");
 	}
 	else if( ntype == TYPE_MUSHROOM_POISON )
 	{
 		images.push_back( pVideo->Get_Surface( "game/items/mushroom_poison.png" ) );
-		name = "Mushroom Poison";
+		name = _("Mushroom Poison");
 	}
 	else if( ntype == TYPE_MUSHROOM_BLUE )
 	{
 		images.push_back( pVideo->Get_Surface( "game/items/mushroom_blue.png" ) );
-		name = "Mushroom Blue";
+		name = _("Mushroom Blue");
 	}
 	else if( ntype == TYPE_MUSHROOM_GHOST )
 	{
 		images.push_back( pVideo->Get_Surface( "game/items/mushroom_ghost.png" ) );
-		name = "Mushroom Ghost";
+		name = _("Mushroom Ghost");
 	}
 	else
 	{
@@ -335,8 +338,9 @@ void cMushroom :: Update( void )
 			// randomly generated
 			if( ( rand() % 3 ) == 0 )
 			{
-				cParticleAnimation *anim = new cParticleAnimation( col_rect.x + ( rand() % static_cast<int>(col_rect.w) ), col_rect.y + ( rand() % static_cast<int>(col_rect.h) ) );
-				anim->Set_DirectionRange( 180, 180 );
+				cParticle_Emitter *anim = new cParticle_Emitter();
+				anim->Set_Pos( col_rect.x + Get_Random_Float( 0, col_rect.w ), col_rect.y + Get_Random_Float( 0, col_rect.h ) );
+				anim->Set_Direction_Range( 180, 180 );
 				anim->Set_Time_to_Live( 0.3f );
 				anim->Set_Scale( 0.6f, 0.1f );
 				// 1-UP
@@ -355,7 +359,7 @@ void cMushroom :: Update( void )
 				
 				anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
 
-				pAnimationManager->Add( anim );
+				pAnimation_Manager->Add( anim );
 			}
 
 			counter--;
@@ -374,16 +378,16 @@ void cMushroom :: Update( void )
 				// randomly generated
 				if( ( rand() % 3 ) == 0 )
 				{
-					cParticleAnimation *anim = new cParticleAnimation( col_rect.x + col_rect.w * 0.3f + ( rand() % static_cast<int>(col_rect.w) * 0.4f ), col_rect.y + col_rect.h * 0.72f +  ( rand() % static_cast<int>( col_rect.h * 0.1f ) ) );
+					cParticle_Emitter *anim = new cParticle_Emitter();
+					anim->Set_Pos( col_rect.x + col_rect.w * 0.3f + Get_Random_Float( 0, col_rect.w * 0.4f ), col_rect.y + col_rect.h * 0.72f + Get_Random_Float( 0, col_rect.h * 0.1f ) );
 					anim->Set_Time_to_Live( 1.4f, 1 );
 					anim->Set_Scale( 0.3f, 0.1f );
 					anim->Set_Color( Color( static_cast<Uint8>(100), 100, 255 ) );
 					anim->Set_Blending( BLEND_ADD );
 					anim->Set_Speed( 0, 0.01f );
-					
 					anim->Set_Image( pVideo->Get_Surface( "animation/particles/ice_1.png" ) );
 
-					pAnimationManager->Add( anim );
+					pAnimation_Manager->Add( anim );
 				}
 
 				counter--;
@@ -451,7 +455,7 @@ void cMushroom :: Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 
 		return;
 	}
 
-	Reset_onGround();
+	Reset_on_Ground();
 }
 
 /* *** *** *** *** *** *** cFirePlant *** *** *** *** *** *** *** *** *** *** *** */
@@ -466,6 +470,8 @@ cFirePlant :: cFirePlant( float x, float y )
 	images.push_back( pVideo->Get_Surface( "game/items/fireplant_right.png" ) );
 
 	Set_Image( 0, 1, 0 );
+
+	name = _("Fireplant");
 }
 
 cFirePlant :: ~cFirePlant( void )
@@ -482,14 +488,14 @@ cFirePlant *cFirePlant :: Copy( void )
 
 void cFirePlant :: Update( void )
 {
-	if( !valid_update || !is_Visible_onScreen() )
+	if( !valid_update || !Is_Visible_on_Screen() )
 	{
 		return;
 	}
 
 	counter += pFramerate->speedfactor;
 
-	if( counter > DESIRED_FPS * 2.5f )
+	if( counter > speedfactor_fps * 2.5f )
 	{
 		// if no direction image set
 		if( curr_img == 0 )
@@ -533,7 +539,7 @@ cMoon :: cMoon( float x, float y )
 	Init();
 }
 
-cMoon :: cMoon( XMLAttributes &attributes )
+cMoon :: cMoon( CEGUI::XMLAttributes &attributes )
 : cPowerUp()
 {
 	Init();
@@ -554,7 +560,7 @@ void cMoon :: Init( void )
 
 	Set_Image( 0, 1, 0 );
 
-	name = "Moon (3-UP)";
+	name = _("Moon (3-UP)");
 }
 
 cMoon *cMoon :: Copy( void )
@@ -564,7 +570,7 @@ cMoon *cMoon :: Copy( void )
 	return moon;
 }
 
-void cMoon :: Create_from_Stream( XMLAttributes &attributes )
+void cMoon :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )) );
@@ -587,14 +593,14 @@ void cMoon :: Save_to_Stream( ofstream &file )
 
 void cMoon :: Update( void )
 {
-	if( !valid_update || !is_Visible_onScreen() )
+	if( !valid_update || !Is_Visible_on_Screen() )
 	{
 		return;
 	}
 
 	counter += pFramerate->speedfactor;
 
-	if( counter > DESIRED_FPS * 2.8f )
+	if( counter > speedfactor_fps * 2.8f )
 	{
 		Set_Image( 1, 0, 0 );
 	}
@@ -603,7 +609,7 @@ void cMoon :: Update( void )
 		Set_Image( 0, 0, 0 );
 	}
 
-	if( counter > DESIRED_FPS * 3.3f )
+	if( counter > speedfactor_fps * 3.3f )
 	{
 		counter = 0;
 	}
@@ -633,14 +639,15 @@ void cMoon :: Update( void )
 	{
 		if( ( rand() % 5 ) == 0 )
 		{
-			cParticleAnimation *anim = new cParticleAnimation( posx + 12 + ( rand() % 30 ), posy + 10 + ( rand() % 20 ) );
+			cParticle_Emitter *anim = new cParticle_Emitter();
+			anim->Set_Pos( posx + 12 + ( rand() % 30 ), posy + 10 + ( rand() % 20 ) );
 			anim->Set_Speed( 0.2f, 0.2f );
 			anim->Set_Scale( 0.2f );
 			anim->Set_Time_to_Live( 0.3f );
 			anim->Set_Color( Color( static_cast<Uint8>(200), 200, 0 ) );
 			anim->Set_Blending( BLEND_ADD );
 			anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
-			pAnimationManager->Add( anim );
+			pAnimation_Manager->Add( anim );
 		}
 
 		particle_counter = 0;

@@ -1,7 +1,7 @@
 /***************************************************************************
-	framerate.h  -  Framerate independant class and a time correcting function
-	                             -------------------
-	copyright       : (C) 2003 - 2007 by Florian Richter
+ * framerate.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,19 +13,38 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
-	The Speedfactor is the heart of this class.
-	It's a float with that you multiply all your motions. For instance, if the targetfps is 100,
-	and the actual fps is 85, the speedfactor will be set to 100/85, or about 1.2.
+#ifndef SMC_FRAMERATE_H
+#define SMC_FRAMERATE_H
+
+// counts milliseconds for 100 frames and sets them to ms
+class cPerformance_Timer
+{
+public:
+	cPerformance_Timer( void );
+	~cPerformance_Timer( void );
+
+	// reset
+	void Reset( void );
+
+	// Update and set new framerate ticks
+	void Update( void );
+
+	// current frame counter
+	Uint32 frame_counter;
+	// current milliseconds per frames counted
+	Uint32 ms_counter;
+	// milliseconds per 100 frames
+	Uint32 ms;
+};
+
+/* The Speedfactor is the heart of this class.
+ * It's a float with that you multiply all your motions. For instance, if the targetfps is 100,
+ * and the actual fps is 80, the speedfactor will be set to 100/80, or 1.25.
 */
-
-#ifndef __FRAMERATE_H__
-#define __FRAMERATE_H__
-
 class cFramerate
 {
 public:
-	cFramerate( float tfps = DESIRED_FPS );
+	cFramerate( float tfps = speedfactor_fps );
 	~cFramerate ( void );
 	
 	// Initialize with the given target fps
@@ -36,7 +55,7 @@ public:
 	void Reset( void );
 	
 	// set maximum allowed speedfactor
-	void SetMaxSpeedFactor( float maximum );
+	void Set_Max_Speed_Factor( float maximum );
 
 	/* Set the given fixed speedfactor
 	 * if value is 0 no fixed speedfactor will be used
@@ -44,7 +63,7 @@ public:
 	void Set_Fixed_Speedfacor( float val );
 
 	// target fps for speedfactor calculations
-	float targetfps;
+	float fps_target;
 	// current fps
 	float fps;
 	// best fps
@@ -52,13 +71,11 @@ public:
 	// worst fps
 	float fps_worst;
 	// average fps in the last second
-	float fps_average;
-	// delay since last calculation
-	float fps_average_framedelay;
-	// fps counted
-	float fps_average_counter;
-	// times fps were counted
-	int fps_average_times_counted;
+	unsigned int fps_average;
+	// delay since last average fps calculation
+	Uint32 fps_average_framedelay;
+	// amount of frames counted
+	unsigned int frames_counted;
 
 	// last updated ticks
 	Uint32 currentticks;
@@ -72,10 +89,18 @@ public:
 
 	// fixed speedfactor value
 	float force_speedfactor;
+
+
+	// ## performance values ##
+	// ticks since last section
+	Uint32 perf_last_ticks;
+
+	typedef vector<cPerformance_Timer *> Performance_Timer_List;
+	Performance_Timer_List perf_timer;
 };
 
 /* Fixed framerate method */
-void CorrectFrameTime( unsigned int fps = DESIRED_FPS );
+void Correct_Frame_Time( unsigned int fps = speedfactor_fps );
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

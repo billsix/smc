@@ -1,7 +1,7 @@
 /***************************************************************************
-                menu.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * menu.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,15 +13,19 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __MENU_H__
-#define __MENU_H__
+#ifndef SMC_MENU_H
+#define SMC_MENU_H
 
 #include "../core/globals.h"
 #include "../video/animation.h"
 #include "../video/video.h"
 #include "../gui/hud.h"
+#include "../core/camera.h"
 
 /* *** *** *** *** *** *** *** Menu Types *** *** *** *** *** *** *** *** *** *** */
+
+namespace SMC
+{ // work around conflicts caused by lack of namespace use in smc
 
 enum MenuID
 {
@@ -41,6 +45,8 @@ enum OptionMenuID
 	MENU_AUDIO = 2,
 	MENU_CONTROLS = 3
 };
+}
+using namespace SMC;
 
 /* *** *** *** *** *** *** cMenu_Item *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -81,7 +87,7 @@ public:
 	~cMenuHandler( void );
 
 	// Adds a Menu
-	void Add_MenuItem( cMenu_Item *item, float shadow_pos = 0, Color shadow_color = static_cast<Uint8>(0) );
+	void Add_Menu_Item( cMenu_Item *item, float shadow_pos = 0, Color shadow_color = static_cast<Uint8>(0) );
 
 	// Unloads all items
 	void Reset( void );
@@ -104,9 +110,8 @@ public:
 	// Returns the number of loaded Menus
 	unsigned int Get_Size( void );
 
-	// Logo images
+	// Logo image
 	GL_Surface *image_ground;
-	GL_Surface *image_ground_quit;
 	// Logo Sprite
 	cHudSprite *logo;
 	// background Sprites
@@ -184,13 +189,15 @@ public:
 	// the current option menu
 	OptionMenuID options_menu_id;
 
+	// menu camera
+	cCamera *camera;
 	// Menu class
 	cMenu_Base *pMenu_Data;
 
 	// Menu handler
 	cMenuHandler *handler;
 	// Menu Animation Manager
-	cAnimationManager *pMenu_AnimManager;
+	cAnimation_Manager *pMenu_AnimManager;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

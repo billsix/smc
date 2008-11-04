@@ -1,7 +1,7 @@
 /***************************************************************************
-                ball.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2006 - 2007 by Florian Richter
+ * ball.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __BALL_H__
-#define __BALL_H__
+#ifndef SMC_BALL_H
+#define SMC_BALL_H
 
 #include "../core/globals.h"
 #include "../video/video.h"
@@ -26,7 +26,7 @@
 class cBall : public cMovingSprite
 {
 public:
-	cBall( float x, float y, float nvelx, float nvely = 0, cMovingSprite *norigin = NULL, ball_effect btype = FIREBALL_DEFAULT );
+	cBall( float x, float y, cSprite *origin_object = NULL, ball_effect btype = FIREBALL_DEFAULT );
 	virtual ~cBall( void );
 
 	// delete on the next frame start
@@ -38,7 +38,7 @@ public:
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
 	// Generate the default animation Particles
-	void Generate_Particles( cParticleAnimation *anim = NULL );
+	void Generate_Particles( cParticle_Emitter *anim = NULL );
 
 	/* Validate the given collision object
 	 * returns 1 if an internal collision with this object is valid
@@ -54,10 +54,11 @@ public:
 	// collision with massive
 	virtual void Handle_Collision_Massive( cObjectCollision *collision );
 	// handle moved out of Level
-	virtual void Handle_OutofLevel( ObjectDirection dir );
+	virtual void Handle_out_of_Level( ObjectDirection dir );
 
 	// ball origin
-	cMovingSprite *origin;
+	ArrayType origin_array;
+	SpriteType origin_type;
 	// ball type
 	ball_effect ball_type;
 

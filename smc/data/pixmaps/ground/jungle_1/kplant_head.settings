@@ -4,3 +4,4 @@ col_rect 15 0 20 42
 editor_tags level;jungle;plant
 name Jungle_Climbing_Plant_Head
 type passive
+author Johnlein

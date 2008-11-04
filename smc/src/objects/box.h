@@ -1,7 +1,7 @@
 /***************************************************************************
-                box.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * box.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __BOX_H__
-#define __BOX_H__
+#ifndef SMC_BOX_H
+#define SMC_BOX_H
 
 #include "../core/globals.h"
 #include "../objects/objectsprite.h"
@@ -28,7 +28,7 @@ public:
 	virtual ~cBaseBox( void );
 
 	// create from stream
-	virtual void Create_from_Stream( XMLAttributes &attributes );
+	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file );
 
@@ -42,7 +42,7 @@ public:
 	*/
 	void Set_Animation( string new_anim_type );
 	// sets the count this object can be activated
-	virtual void Set_UseableCount( int count, bool new_startcount = 0 );
+	virtual void Set_Useable_Count( int count, bool new_startcount = 0 );
 	/* Set invisible type
 	 * 1 : invisible until activation
 	 * 2 : ghost box
@@ -50,9 +50,9 @@ public:
 	void Set_Invisible( unsigned int type );
 
 	// activates collision movement
-	void Activate_collision( ObjectDirection cdirection );
+	void Activate_Collision( ObjectDirection cdirection );
 	// updates the collision movement
-	void Update_collision( void );
+	void Update_Collision( void );
 
 	// check for collision with objects
 	void Check_Collision( ObjectDirection cdirection );
@@ -68,12 +68,12 @@ public:
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
 	// Generate activation Particles
-	void Generate_active_Particles( void );
+	void Generate_Activation_Particles( void );
 
 	// if update is valid for the current state
-	virtual bool is_Update_valid( void );
+	virtual bool Is_Update_Valid( void );
 	// if draw is valid for the current state and position
-	virtual bool is_Draw_valid( void );
+	virtual bool Is_Draw_Valid( void );
 
 	/* Validate the given collision object
 	 * returns 1 if an internal collision with this object is valid
@@ -87,8 +87,8 @@ public:
 
 	// leveleditor activation
 	virtual void Editor_Activate( void );
-	bool Editor_Useable_Count_Key( const EventArgs &event ); // editor useable count key up
-	bool Editor_Invisible_Select( const EventArgs &event ); // editor invisible option selected
+	bool Editor_Useable_Count_Key( const CEGUI::EventArgs &event ); // editor useable count key up
+	bool Editor_Invisible_Select( const CEGUI::EventArgs &event ); // editor invisible option selected
 
 	// animation type
 	string anim_type;

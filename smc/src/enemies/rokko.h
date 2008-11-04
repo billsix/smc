@@ -1,7 +1,7 @@
 /***************************************************************************
-              rokko.h  -  headers for the corresponding cpp file
-                             -------------------
-    copyright            : (C) 2003 - 2007 by Florian Richter
+ * rokko.h  -  headers for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ROKKO_H__
-#define __ROKKO_H__
+#ifndef SMC_ROKKO_H
+#define SMC_ROKKO_H
 
 #include "../enemies/enemy.h"
 
@@ -28,7 +28,7 @@ public:
 	// constructor
 	cRokko( float x, float y );
 	// create from stream
-	cRokko( XMLAttributes &attributes );
+	cRokko( CEGUI::XMLAttributes &attributes );
 	// destructor
 	virtual ~cRokko( void );
 
@@ -38,7 +38,7 @@ public:
 	virtual cRokko *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( XMLAttributes &attributes );
+	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file );
 
@@ -49,6 +49,10 @@ public:
 	void Set_Direction( ObjectDirection dir );
 	// set flying speed
 	void Set_Speed( float nspeed );
+	// Set max detection distance for the front
+	void Set_Max_Distance_Front( float distance );
+	// Set max detection distance for the sides
+	void Set_Max_Distance_Sides( float distance );
 	// activate
 	void Activate( void );
 
@@ -63,14 +67,21 @@ public:
 	// draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
+	// update the distance rect
+	void Update_Distance_rect( void );
+	// Get the final distance rect
+	GL_rect Get_Final_Distance_Rect( void );
+
 	// Generates Smoke Particles
 	void Generate_Smoke( unsigned int quota = 10 );
 
 	// if update is valid for the current state
-	virtual bool is_Update_valid( void );
+	virtual bool Is_Update_Valid( void );
+	// if draw is valid for the current state and position
+	virtual bool Is_Draw_Valid( void );
 
 	// ignore onground check
-	virtual void Check_onGround( void ) {};
+	virtual void Check_on_Ground( void ) {};
 	/* Validate the given collision object
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
@@ -79,17 +90,23 @@ public:
 	// collision from player
 	virtual void Handle_Collision_Player( cObjectCollision *collision );
 	// handle moved out of Level
-	virtual void Handle_OutofLevel( ObjectDirection dir );
+	virtual void Handle_out_of_Level( ObjectDirection dir );
 
 	// leveleditor activation
 	virtual void Editor_Activate( void );
 	// leveleditor events
-	bool Editor_Speed_Key( const EventArgs &event );  // editor speed key up
+	bool Editor_Speed_Key( const CEGUI::EventArgs &event );  // editor speed key up
 
 	// smoke particle counter
 	float smoke_counter;
 	// flying speed
 	float speed;
+	// maximum detection distance for the front
+	float max_distance_front;
+	// maximum detection distance for the sides
+	float max_distance_sides;
+	// detection distance rect
+	GL_rect distance_rect;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

@@ -1,7 +1,7 @@
 /***************************************************************************
-           text_box.cpp  -  box speaking to you
-                             -------------------
-    copyright            :	(C) 2007 by Florian Richter
+ * text_box.cpp  -  box speaking to you
+ *
+ * Copyright (C) 2007 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -22,20 +22,21 @@
 #include "../input/joystick.h"
 #include "../core/main.h"
 #include "../input/keyboard.h"
+#include "../core/i18n.h"
 
 /* *** *** *** *** *** *** *** *** cText_Box *** *** *** *** *** *** *** *** *** */
 
 cText_Box :: cText_Box( float x, float y )
 : cBaseBox( x, y )
 {
-	Init();
+	cText_Box::Init();
 }
 
-cText_Box :: cText_Box( XMLAttributes &attributes )
+cText_Box :: cText_Box( CEGUI::XMLAttributes &attributes )
 : cBaseBox()
 {
-	Init();
-	Create_from_Stream( attributes );
+	cText_Box::Init();
+	cText_Box::Create_from_Stream( attributes );
 }
 
 cText_Box :: ~cText_Box( void )
@@ -49,7 +50,7 @@ void cText_Box :: Init( void )
 	box_type = type;
 
 	// default is infinite times activate-able
-	Set_UseableCount( -1, 1 );
+	Set_Useable_Count( -1, 1 );
 	// Spinbox Animation
 	Set_Animation( "Default" );
 
@@ -62,12 +63,13 @@ void cText_Box :: Init( void )
 cText_Box *cText_Box :: Copy( void )
 {
 	cText_Box *text_box = new cText_Box( startposx, startposy );
+	text_box->Set_Text( text );
 	text_box->Set_Invisible( box_invisible );
 
 	return text_box;
 }
 
-void cText_Box :: Create_from_Stream( XMLAttributes &attributes )
+void cText_Box :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 {
 	cBaseBox::Create_from_Stream( attributes );
 
@@ -91,8 +93,8 @@ void cText_Box :: Save_to_Stream( ofstream &file )
 
 void cText_Box :: Activate( void )
 {
-	WindowManager &wmgr = WindowManager::getSingleton();
-	MultiLineEditbox *editbox = static_cast<MultiLineEditbox *>(wmgr.createWindow( "TaharezLook/MultiLineEditbox", "text_box_text" ));
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+	CEGUI::MultiLineEditbox *editbox = static_cast<CEGUI::MultiLineEditbox *>(wmgr.createWindow( "TaharezLook/MultiLineEditbox", "text_box_text" ));
 
 	// add to main window
 	pGuiSystem->getGUISheet()->addChildWindow( editbox );
@@ -101,14 +103,16 @@ void cText_Box :: Activate( void )
 	// set on top
 	editbox->setAlwaysOnTop( 1 );
 	// set position
-	editbox->setXPosition( UDim( 0, ( posx - 150 + ( rect.w * 0.5f ) - pCamera->x ) * global_upscalex ) );
-	editbox->setYPosition( UDim( 0, ( posy - 5 - 200 - pCamera->y ) * global_upscaley ) );
+	float text_pos_x = posx - 150 + ( rect.w * 0.5f );
+	float text_pos_y = posy - 5 - 200;
+	editbox->setXPosition( CEGUI::UDim( 0, ( text_pos_x - pActive_Camera->x ) * global_upscalex ) );
+	editbox->setYPosition( CEGUI::UDim( 0, ( text_pos_y - pActive_Camera->y ) * global_upscaley ) );
 	// set size
-	editbox->setWidth( UDim( 0, 300 * global_upscalex ) );
-	editbox->setHeight( UDim( 0, 200 * global_upscaley ) );
+	editbox->setWidth( CEGUI::UDim( 0, 300 * global_upscalex ) );
+	editbox->setHeight( CEGUI::UDim( 0, 200 * global_upscaley ) );
 
 	// set text
-	editbox->setText( text.c_str() );
+	editbox->setText( reinterpret_cast<const CEGUI::utf8*>(text.c_str()) );
 	// always hide horizontal scrollbar
 	editbox->getHorzScrollbar()->hide();
 
@@ -169,6 +173,18 @@ void cText_Box :: Activate( void )
 			editbox->getVertScrollbar()->setScrollPosition( editbox->getVertScrollbar()->getScrollPosition() - ( editbox->getVertScrollbar()->getStepSize() * 0.25f * pFramerate->speedfactor ) );
 		}
 
+		// move camera because text could not be completely visible
+		if( pActive_Camera->y_offset > 0 )
+		{
+			pActive_Camera->y_offset -= 2;
+			// set position
+			pActive_Camera->Center();
+
+			// set position
+			editbox->setXPosition( CEGUI::UDim( 0, ( text_pos_x - pActive_Camera->x ) * global_upscalex ) );
+			editbox->setYPosition( CEGUI::UDim( 0, ( text_pos_y - pActive_Camera->y ) * global_upscaley ) );
+		}
+
 		// update animation
 		Update();
 		
@@ -199,24 +215,26 @@ void cText_Box :: Set_Text( string str_text )
 
 void cText_Box :: Editor_Activate( void )
 {
-	WindowManager &wmgr = WindowManager::getSingleton();
+	// BaseBox Settings first
+	cBaseBox::Editor_Activate();
+
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
 	// text
-	MultiLineEditbox *editbox = static_cast<MultiLineEditbox *>(wmgr.createWindow( "TaharezLook/MultiLineEditbox", "text_box_text" ));
-	editbox->setTooltipText( "Text" );
-	Editor_Add( editbox, 300, 200 );
+	CEGUI::MultiLineEditbox *editbox = static_cast<CEGUI::MultiLineEditbox *>(wmgr.createWindow( "TaharezLook/MultiLineEditbox", "text_box_text" ));
+	Editor_Add( UTF8_("Text"), UTF8_("Text to display when activated"), editbox, 300, 200 );
 
-	editbox->setText( text.c_str() );
-	editbox->subscribeEvent( MultiLineEditbox::EventKeyUp, Event::Subscriber( &cText_Box::Editor_Text_Key, this ) );
+	editbox->setText( reinterpret_cast<const CEGUI::utf8*>(text.c_str()) );
+	editbox->subscribeEvent( CEGUI::MultiLineEditbox::EventKeyUp, CEGUI::Event::Subscriber( &cText_Box::Editor_Text_Key, this ) );
 
-	// set position
-	Editor_pos_update();
+	// init
+	Editor_Init();
 }
 
-bool cText_Box :: Editor_Text_Key( const EventArgs &event )
+bool cText_Box :: Editor_Text_Key( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	string str_text = static_cast<MultiLineEditbox *>( windowEventArgs.window )->getText().c_str();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::MultiLineEditbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Text( str_text );
 

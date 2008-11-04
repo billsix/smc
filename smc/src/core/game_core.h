@@ -1,7 +1,7 @@
 /***************************************************************************
-			game_core.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :  (C) 2005 - 2007 by Florian Richter
+ * game_core.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2005 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,16 +13,17 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __GAME_CORE_H__
-#define __GAME_CORE_H__
+#ifndef SMC_GAME_CORE_H
+#define SMC_GAME_CORE_H
 
 #include "../core/globals.h"
 #include "../objects/movingsprite.h"
+#include "../core/camera.h"
 
 /* *** *** *** *** *** *** *** *** Variables *** *** *** *** *** *** *** *** *** */
 
 // quit game if true
-extern bool done;
+extern bool game_exit;
 // current Game Mode
 extern GameMode Game_Mode;
 // current Game Mode Type
@@ -30,13 +31,29 @@ extern GameModeType Game_Mode_Type;
 // next global Game Action
 extern GameAction Game_Action;
 // Game Action data
-extern XMLAttributes Game_Action_Data;
+extern CEGUI::XMLAttributes Game_Action_Data;
 // Game Action pointer
 extern void *Game_Action_ptr;
-// global debugging
-extern bool Game_debug;
 
-// The global editor enabled variables prevent including additional editor headers
+// internal game resolution and is used for global scaling
+extern int game_res_w;
+extern int game_res_h;
+
+// user data directory
+extern std::string user_data_dir;
+
+// global debugging
+extern bool game_debug, game_debug_performance;
+
+// Game Input event
+extern SDL_Event input_event;
+
+// global up scale ( f.e. default image scale )
+extern float global_upscalex, global_upscaley;
+// global down scale ( f.e. mouse/CEGUI scale )
+extern float global_downscalex, global_downscaley;
+
+// The global editor enabled variables prevent including additional editor header files
 // if editor is enabled for the current game mode
 extern bool editor_enabled;
 // if level editor is active
@@ -44,13 +61,13 @@ extern bool editor_level_enabled;
 // if world editor is active
 extern bool editor_world_enabled;
 
-// global up scale ( image scale )
-extern float global_upscalex, global_upscaley;
-// global down scale ( mouse scale )
-extern float global_downscalex, global_downscaley;
+// Active sprite manager
+extern cSprite_Manager *pActive_Sprite_Manager;
+// Active camera class
+extern cCamera *pActive_Camera;
+// Active player
+extern cSprite *pActive_Player;
 
-// Game Input event
-extern SDL_Event input_event;
 
 /* *** *** *** *** *** *** *** *** DialogBox *** *** *** *** *** *** *** *** *** */
 
@@ -73,7 +90,7 @@ public:
 	// if finished
 	bool finished;
 	// base window
-	Window *window;
+	CEGUI::Window *window;
 	// layout filename
 	string layout_file;
 
@@ -89,16 +106,16 @@ public:
 	virtual ~cDialogBox_Text( void );
 
 	// initialize
-	void Init( string title_text );
+	void Init( std::string title_text );
 
 	// enter
-	string Enter( string default_text, string title_text, bool auto_no_text = 1 );
+	string Enter( std::string default_text, std::string title_text, bool auto_no_text = 1 );
 
 	// CEGUI events
-	bool Button_window_quit_clicked( const EventArgs &event ); // window quit button
+	bool Button_window_quit_clicked( const CEGUI::EventArgs &event ); // window quit button
 
 	// editbox
-	Editbox *box_editbox;
+	CEGUI::Editbox *box_editbox;
 };
 
 // Button Question Box
@@ -112,12 +129,12 @@ public:
 	void Init( bool with_cancel );
 
 	// enter
-	int Enter( string text, bool with_cancel = 0 );
+	int Enter( std::string text, bool with_cancel = 0 );
 
 	// CEGUI events
-	bool Button_yes_clicked( const EventArgs &event ); // yes button
-	bool Button_no_clicked( const EventArgs &event ); // no button
-	bool Button_cancel_clicked( const EventArgs &event ); // cancel button
+	bool Button_yes_clicked( const CEGUI::EventArgs &event ); // yes button
+	bool Button_no_clicked( const CEGUI::EventArgs &event ); // no button
+	bool Button_cancel_clicked( const CEGUI::EventArgs &event ); // cancel button
 
 	// return value
 	int return_value;
@@ -125,62 +142,58 @@ public:
 
 /* *** *** *** *** *** *** *** Functions *** *** *** *** *** *** *** *** *** *** */
 
-/* Changes the Game Mode to the given mode
+/* Change the Game Mode to the given mode
  * and disables or enables game mode specific objects
 */
 void Change_Game_Mode( GameMode new_mode );
 
-// Function: Time_to_String
-// Returns the given time as string
-string Time_to_String( time_t t, const char *format );
+// Return the given time as string
+std::string Time_to_String( time_t t, const char *format );
 
-// Function: Get_filename
-// Returns the filename with the given options
-string Get_filename( string filename, bool with_dir = 1, bool with_end = 1 );
+// Return the filename with the given options
+std::string Get_Filename( std::string filename, bool with_dir = 1, bool with_end = 1 );
 
-// Function: ClearInputEvents
-// Clears the complete input event queue
-void ClearInputEvents( void ); 
+// Clear the complete input event queue
+void Clear_Input_Events( void ); 
 
-// returns the opposite Direction
-ObjectDirection Get_OppositeDirection( ObjectDirection direction );
-// Returns the Direction Name
-string Get_Direction_name( ObjectDirection dir );
-// Returns the Direction identifier
-ObjectDirection Get_Direction_id( string str_direction );
+// Return the opposite Direction
+ObjectDirection Get_Opposite_Direction( ObjectDirection direction );
+// Return the Direction Name
+std::string Get_Direction_Name( ObjectDirection dir );
+// Return the Direction identifier
+ObjectDirection Get_Direction_Id( std::string str_direction );
 
-// Returns the SpriteType identifier
-SpriteType Get_Sprite_Type_id( string str_type );
-/* Returns the Color of the given Sprite
+// Return the SpriteType identifier
+SpriteType Get_Sprite_Type_Id( std::string str_type );
+/* Return the Color of the given Sprite
  * based mostly on sprite array
 */
 Color Get_Sprite_Color( cSprite *sprite );
 
-// Returns the Massivetype Name
-string Get_Massivetype_name( MassiveType mtype );
-// Returns the Massivetype identifier
-MassiveType Get_Massivetype_id( string str_massivetype );
-// Returns the Color of the given Massivetype
-Color Get_Massivetype_Color( MassiveType mtype );
+// Return the massive type Name
+std::string Get_Massive_Type_Name( MassiveType mtype );
+// Return the massive type identifier
+MassiveType Get_Massive_Type_Id( std::string str_massivetype );
+// Return the Color of the given Massivetype
+Color Get_Massive_Type_Color( MassiveType mtype );
 
-// Returns the Groundtype name
-string Get_Groundtype_name( GroundType gtype );
-// Returns the Groundtype identifier
-GroundType Get_Groundtype_id( string str_groundtype );
+// Return the ground type name
+std::string Get_Ground_Type_Name( GroundType gtype );
+// Return the ground type identifier
+GroundType Get_Ground_Type_Id( std::string str_groundtype );
 
-// Returns the Color Name
-string Get_Color_name( DefaultColor color );
-// Returns the Color identifier
-DefaultColor Get_Color_id( string str_color );
+// Return the Color Name
+std::string Get_Color_Name( DefaultColor color );
+// Return the Color identifier
+DefaultColor Get_Color_Id( std::string str_color );
 
-// Function: Gui_handle_Time
-// GUI generic function
-void Gui_handle_Time( void );
+// Update The GUI time handler
+void Gui_Handle_Time( void );
 
 /* Draw a Statictext
  * if wait_for_input is given draws the text until the user pressed a key
  */
-void Draw_StaticText( string text, Color *color_text = &white, Color *color_bg = NULL, bool wait_for_input = 1 );
+void Draw_Static_Text( std::string text, const Color *color_text = &white, const Color *color_bg = NULL, bool wait_for_input = 1 );
 
 /* CEGUI EditBox with header
  *
@@ -189,7 +202,7 @@ void Draw_StaticText( string text, Color *color_text = &white, Color *color_bg =
  * title_text : box header text
  * auto_no_text : if true and any key is pressed the default text is cleared
  */
-string Box_Text_Input( string default_text, string title_text, bool auto_no_text = 1 );
+std::string Box_Text_Input( std::string default_text, std::string title_text, bool auto_no_text = 1 );
 
 /* Button Question Box
  * returns 1 for Yes, 0 for No and -1 if canceled
@@ -197,20 +210,17 @@ string Box_Text_Input( string default_text, string title_text, bool auto_no_text
  * text : box question text
  * with_cancel : add the cancel button
 */
-int Box_Question( string text, bool with_cancel = 0 );
+int Box_Question( std::string text, bool with_cancel = 0 );
 
-/* Preloads the common images into the image manager
+/* Preload the common images into the image manager
+ * draw_gui : if set use the loading screen gui for drawing
  */
-void Preload_images( void );
+void Preload_Images( bool draw_gui = 0 );
 
-/* Preloads the common sounds into the sound manager
+/* Preload the common sounds into the sound manager
+ * draw_gui : if set use the loading screen gui for drawing
  */
-void Preload_sounds( void );
-
-/* accept_floating_point: if is set also accept floating point values
- * Returns true if the number is valid
-*/
-bool is_valid_number( string num, bool accept_floating_point = 1 );
+void Preload_Sounds( bool draw_gui = 0 );
 
 /* Deletes the given file
  * Use with Caution
@@ -218,37 +228,58 @@ bool is_valid_number( string num, bool accept_floating_point = 1 );
  * Returns:
  * true on success
 */
-bool Delete_file( const string &filename );
+bool Delete_File( const std::string &filename );
 // Check if the file exists
-bool file_exists( const string &filename );
+bool File_Exists( const std::string &filename );
 
 // Converts "\" and "!" to "/"
-void Convert_path_separators( string &str );
+void Convert_Path_Separators( std::string &str );
 
-/* Get all files from the directory and sub-directories
+// Changes the image path in the given xml attributes to the new one
+void Relocate_Image( CEGUI::XMLAttributes &xml_attributes, std::string filename_old, std::string filename_new );
+
+/* Get all files from the directory
  * dir : the directory to scan
  * file_type : if set only this file type is returned
  * with_directories : if set adds directories to the returned objects
+ * search_in_sub_directories : searches in every sub-directory
 */
-vector<string> Get_Directory_files( string dir, string file_type = "", bool with_directories = 0 );
+vector<std::string> Get_Directory_Files( std::string dir, std::string file_type = "", bool with_directories = 0, bool search_in_sub_directories = 1 );
 
-// Returns the current smc user directory
+// Return the operating system temporary files directory
+std::string Get_Temp_Directory( void );
+// Return the default smc user directory in the operating system application/home directory
 string Get_User_Directory( void );
-
-// Returns the number as a string
-string int_to_string( int number );
-// Returns the number as a string
-string float_to_string( const float number );
-// Returns the string as a float
-float string_to_float( const string &str );
-// Returns the string as a number
-int string_to_int( const string &str );
-// Returns the string as a double
-double string_to_double( const string &str );
-// Returns a valid XML string
-string string_to_xml_string( const string &str );
-// Returns the real string
-string xml_string_to_string( string str );
+// Create the necessary folders in the user directory
+void Init_User_Directory( void );
+// Return the clipboard content
+std::string Get_Clipboard_Content( void );
+// Set the clipboard content
+void Set_Clipboard_Content( std::string str );
+/* Copy selected GUI text to the Clipboard
+ * cut: if set cut the text
+*/
+bool GUI_Copy_To_Clipboard( bool cut = 0 );
+// Paste text from the clipboard to the GUI
+bool GUI_Paste_From_Clipboard( void );
+// Trim the string from the end with the given character
+std::string string_trim_from_end( std::string str, const char c );
+// Return the number as a string
+std::string int_to_string( const int number );
+/* Return the float as a string
+ * prec: the precision after the decimal point
+*/
+std::string float_to_string( const float number, int prec = 6 );
+// Return the string as a float
+float string_to_float( const std::string &str );
+// Return the string as a number
+int string_to_int( const std::string &str );
+// Return the string as a double
+double string_to_double( const std::string &str );
+// Return a valid XML string
+std::string string_to_xml_string( const std::string &str );
+// Return the real string
+std::string xml_string_to_string( std::string str );
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

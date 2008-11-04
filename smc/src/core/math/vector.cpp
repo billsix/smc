@@ -1,8 +1,8 @@
 /***************************************************************************
-           vector.cpp  -  vector class
-                             -------------------
-    copyright            :	(C) 2006 - 2007 Florian Richter
-							(C) Clanlib Team
+ * vector.cpp  -  vector class
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2007 Clanlib Team ( original Vector class )
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify

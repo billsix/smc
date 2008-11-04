@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.5" />
-		<Property name="engine_version" value="2" />
-		<Property name="save_time" value="1172054544" />
+		<Property name="game_version" value="1.4" />
+		<Property name="engine_version" value="2.3" />
+		<Property name="save_time" value="1199027394" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="" />
@@ -13,6 +13,7 @@
 		<Property name="cam_limit_y" value="0" />
 		<Property name="cam_limit_w" value="20000" />
 		<Property name="cam_limit_h" value="-4000" />
+		<Property name="cam_fixed_hor_vel" value="0" />
 	</settings>
 	<background>
 		<Property name="type" value="103" />
@@ -25,7 +26,7 @@
 	</background>
 	<player>
 		<Property name="posx" value="640" />
-		<Property name="posy" value="-1367" />
+		<Property name="posy" value="-1427" />
 		<Property name="direction" value="right" />
 	</player>
 	<sprite>
@@ -1859,13 +1860,13 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="625" />
+		<Property name="posx" value="619" />
 		<Property name="posy" value="8" />
 		<Property name="image" value="pipes/blue/up.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="627" />
+		<Property name="posx" value="621" />
 		<Property name="posy" value="-1514" />
 		<Property name="image" value="pipes/blue/down.png" />
 		<Property name="type" value="massive" />
@@ -1925,13 +1926,13 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="627" />
+		<Property name="posx" value="621" />
 		<Property name="posy" value="-1614" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="627" />
+		<Property name="posx" value="621" />
 		<Property name="posy" value="-1564" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="passive" />
@@ -2010,7 +2011,7 @@
 		<Property name="posx" value="1419" />
 		<Property name="posy" value="-865" />
 		<Property name="type" value="bonus" />
-		<Property name="animation" value="Default" />
+		<Property name="animation" value="Bonus" />
 		<Property name="item" value="8" />
 		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
@@ -2021,7 +2022,7 @@
 		<Property name="posx" value="848" />
 		<Property name="posy" value="-249" />
 		<Property name="type" value="bonus" />
-		<Property name="animation" value="Default" />
+		<Property name="animation" value="Bonus" />
 		<Property name="item" value="8" />
 		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="10" />
@@ -2032,7 +2033,7 @@
 		<Property name="posx" value="1023" />
 		<Property name="posy" value="-249" />
 		<Property name="type" value="bonus" />
-		<Property name="animation" value="Default" />
+		<Property name="animation" value="Bonus" />
 		<Property name="item" value="8" />
 		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="8" />

@@ -1,7 +1,7 @@
 /***************************************************************************
-			renderer.h  -  header for the corresponding cpp file
-                         -------------------
-    copyright            : (C) 2006 - 2007 by Florian Richter
+ * renderer.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __RENDERER_H__
-#define __RENDERER_H__
+#ifndef SMC_RENDERER_H
+#define SMC_RENDERER_H
 
 #include "../core/globals.h"
 #include "../video/video.h"
@@ -29,7 +29,8 @@ enum RenderType
 	REND_GRADIENT = 2,
 	REND_SURFACE = 3,
 	REND_TEXT = 4, // todo
-	REND_LINE = 5
+	REND_LINE = 5,
+	REND_CIRCLE = 6
 };
 
 /* *** *** *** *** *** *** cRenderRequest *** *** *** *** *** *** *** *** *** *** *** */
@@ -44,14 +45,14 @@ public:
 	virtual void Draw( void );
 
 	// start Rendering
-	void Begin_render( void );
+	void Begin_Render( void );
 	// end Rendering
-	void End_render( void );
+	void End_Render( void );
 
 	// add color combine
-	void Begin_color_combine( void );
+	void Begin_Color_Combine( void );
 	// remove color combine
-	void End_color_combine( void );
+	void End_Color_Combine( void );
 
 	// render type
 	RenderType type;
@@ -81,26 +82,6 @@ public:
 };
 
 typedef vector<cRenderRequest *> RenderList;
-
-/* *** *** *** *** *** *** cGradientRequest *** *** *** *** *** *** *** *** *** *** *** */
-
-class cGradientRequest : public cRenderRequest
-{
-public:
-	cGradientRequest( void );
-	virtual ~cGradientRequest( void );
-
-	// draw
-	virtual void Draw( void );
-
-	// rect
-	GL_rect rect;
-	// direction
-	ObjectDirection dir;
-	// colors
-	Color color_1;
-	Color color_2;
-};
 
 /* *** *** *** *** *** *** cLineRequest *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -137,6 +118,46 @@ public:
 	GL_rect rect;
 	// rect is filled
 	bool filled;
+};
+
+/* *** *** *** *** *** *** cGradientRequest *** *** *** *** *** *** *** *** *** *** *** */
+
+class cGradientRequest : public cRenderRequest
+{
+public:
+	cGradientRequest( void );
+	virtual ~cGradientRequest( void );
+
+	// draw
+	virtual void Draw( void );
+
+	// rect
+	GL_rect rect;
+	// direction
+	ObjectDirection dir;
+	// colors
+	Color color_1;
+	Color color_2;
+};
+
+/* *** *** *** *** *** *** cCircleRequest *** *** *** *** *** *** *** *** *** *** *** */
+
+class cCircleRequest : public cRenderRequest
+{
+public:
+	cCircleRequest( void );
+	virtual ~cCircleRequest( void );
+
+	// draw
+	virtual void Draw( void );
+	// color
+	Color color;
+	// position
+	GL_point pos;
+	// radius
+	float radius;
+	// if set circle is not filled
+	float line_width;
 };
 
 /* *** *** *** *** *** *** cSurfaceRequest *** *** *** *** *** *** *** *** *** *** *** */

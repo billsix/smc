@@ -1,7 +1,7 @@
 /***************************************************************************
-                powerup.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * powerup.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __POWERUP_H__
-#define __POWERUP_H__
+#ifndef SMC_POWERUP_H
+#define SMC_POWERUP_H
 
 #include "../core/globals.h"
 #include "../objects/objectsprite.h"
@@ -40,7 +40,7 @@ public:
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
 	// if update is valid for the current state
-	virtual bool is_Update_valid( void );
+	virtual bool Is_Update_Valid( void );
 
 	/* Validate the given collision object
 	 * returns 1 if an internal collision with this object is valid
@@ -48,7 +48,7 @@ public:
 	*/
 	virtual unsigned int Validate_Collision( cSprite *obj );
 	// handle moved out of Level
-	virtual void Handle_OutofLevel( ObjectDirection dir );
+	virtual void Handle_out_of_Level( ObjectDirection dir );
 
 	float counter;
 };
@@ -61,7 +61,7 @@ public:
 	// constructor
 	cMushroom( float x, float y );
 	// create from stream
-	cMushroom( XMLAttributes &attributes );
+	cMushroom( CEGUI::XMLAttributes &attributes );
 	// destructor
 	virtual ~cMushroom( void );
 
@@ -72,7 +72,7 @@ public:
 	virtual cMushroom *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( XMLAttributes &attributes );
+	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file );
 
@@ -111,7 +111,7 @@ public:
 	virtual void Update( void );
 
 	// ignore onground check
-	virtual void Check_onGround( void ) {};
+	virtual void Check_on_Ground( void ) {};
 };
 
 /* *** *** *** *** *** cMoon *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -122,7 +122,7 @@ public:
 	// constructor
 	cMoon( float x, float y );
 	// create from stream
-	cMoon( XMLAttributes &attributes );
+	cMoon( CEGUI::XMLAttributes &attributes );
 	// destructor
 	virtual ~cMoon( void );
 
@@ -133,7 +133,7 @@ public:
 	virtual cMoon *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( XMLAttributes &attributes );
+	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file );
 
@@ -141,7 +141,7 @@ public:
 	virtual void Update( void );
 
 	// ignore onground check
-	virtual void Check_onGround( void ) {};
+	virtual void Check_on_Ground( void ) {};
 
 	float particle_counter;
 };

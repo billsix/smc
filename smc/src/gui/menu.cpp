@@ -1,7 +1,7 @@
 /***************************************************************************
-				menu.cpp  -  nice menu visible at the beginning of the game :)
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * menu.cpp  -  menu handler
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -34,6 +34,7 @@
 cMenu_Item :: cMenu_Item( void )
 : cHudSprite()
 {
+	Set_Scale_Directions( 1, 1, 1, 1 );
 	active = 0;
 	isquit = 0;
 
@@ -88,11 +89,6 @@ void cMenu_Item :: Draw( cSurfaceRequest *request /* = NULL */ )
 		{
 			rotz = 0;
 		}
-
-		// todo : sprite scaling should also set the position
-		// set correct position
-		posx -= ( image->w / 2 ) * ( scalex - 1 );
-		posy -= ( image->h / 2 ) * ( scaley - 1 );
 	}
 
 	cHudSprite::Draw( request );
@@ -118,7 +114,6 @@ cMenuHandler :: cMenuHandler( void )
 	Reset();
 
 	image_ground = pVideo->Get_Surface( "menu/ground.png" );
-	image_ground_quit = pVideo->Get_Surface( "menu/ground_quit.png" );
 
 	// Logo Image
 	logo = new cHudSprite( pVideo->Get_Surface( "game/logo/lmario1.png" ), 50, 20 );
@@ -144,7 +139,7 @@ cMenuHandler :: ~cMenuHandler( void )
 	delete background;
 }
 
-void cMenuHandler :: Add_MenuItem( cMenu_Item *item, float shadow_pos /* = 0 */, Color shadow_color /* = static_cast<Uint8>(0) */ )
+void cMenuHandler :: Add_Menu_Item( cMenu_Item *item, float shadow_pos /* = 0 */, Color shadow_color /* = static_cast<Uint8>(0) */ )
 {
 	if( !item )
 	{
@@ -204,7 +199,7 @@ void cMenuHandler :: Set_Active( int num )
 		}
 		if( items[num]->isquit && use_quit_image )
 		{
-			ground->Set_Image( image_ground_quit );
+			// todo : not an image but a fade out ?
 		}
 	}
 	else if( num == -1 )
@@ -288,21 +283,23 @@ unsigned int cMenuHandler :: Get_Size( void )
 
 cMenuCore :: cMenuCore( void )
 {
+	menu_id = MENU_NOTHING;
 	next_menu = MENU_NOTHING;
 	options_menu_id = MENU_GAME;
 
+	camera = new cCamera();
 	pMenu_Data = NULL;
-	
 	handler = new cMenuHandler();
 
 	// particle animation
-	pMenu_AnimManager = new cAnimationManager();
+	pMenu_AnimManager = new cAnimation_Manager();
 
 	// left side
-	cParticleAnimation *anim = new cParticleAnimation( -100, 0, 0, GAME_RES_H * 0.5f );
+	cParticle_Emitter *anim = new cParticle_Emitter();
+	anim->Set_Emitter_Rect( -100, 0, 0, game_res_h * 0.5f );
 	anim->Set_Emitter_Time_to_Live( -1 );
 	anim->Set_Emitter_Iteration_Interval( 6 );
-	anim->Set_DirectionRange( 350, 20 );
+	anim->Set_Direction_Range( 350, 20 );
 	anim->Set_Image( pVideo->Get_Surface( "clouds/default_1/1_middle.png" ) );
 	anim->Set_Time_to_Live( 400 );
 	anim->Set_Fading_Alpha( 0 );
@@ -310,15 +307,16 @@ cMenuCore :: cMenuCore( void )
 	anim->Set_Scale( 0.4f, 0.15f );
 	anim->Set_Color( Color( static_cast<Uint8>(220), 240, 255 ), Color( static_cast<Uint8>(25), 5, 0 ) );
 	anim->Set_Speed( 0.1f, 0.01f );
-	anim->Set_ZPos( 0.105f );
+	anim->Set_Pos_Z( 0.105f );
 
 	pMenu_AnimManager->Add( anim );
 
 	// right side
-	anim = new cParticleAnimation( GAME_RES_W + 100, 0, 0, GAME_RES_H * 0.5f );
+	anim = new cParticle_Emitter();
+	anim->Set_Emitter_Rect( static_cast<float>(game_res_w) + 100, 0, 0, static_cast<float>(game_res_h) * 0.5f );
 	anim->Set_Emitter_Time_to_Live( -1 );
 	anim->Set_Emitter_Iteration_Interval( 6 );
-	anim->Set_DirectionRange( 170, 20 );
+	anim->Set_Direction_Range( 170, 20 );
 	anim->Set_Image( pVideo->Get_Surface( "clouds/default_1/1_middle.png" ) );
 	anim->Set_Time_to_Live( 400 );
 	anim->Set_Fading_Alpha( 0 );
@@ -326,7 +324,7 @@ cMenuCore :: cMenuCore( void )
 	anim->Set_Scale( 0.4f, 0.15f );
 	anim->Set_Color( Color( static_cast<Uint8>(220), 240, 255 ), Color( static_cast<Uint8>(25), 5, 0 ) );
 	anim->Set_Speed( 0.1f, 0.01f );
-	anim->Set_ZPos( 0.105f );
+	anim->Set_Pos_Z( 0.105f );
 
 	pMenu_AnimManager->Add( anim );
 }
@@ -335,6 +333,7 @@ cMenuCore :: ~cMenuCore( void )
 {
 	Unload();
 
+	delete camera;
 	delete handler;
 	delete pMenu_AnimManager;
 }
@@ -397,14 +396,14 @@ bool cMenuCore :: Key_Down( SDLKey key )
 		// random level name
 		string lvl_name;
 
-		if( !WindowManager::getSingleton().isWindowPresent( "listbox_levels" ) )
+		if( !CEGUI::WindowManager::getSingleton().isWindowPresent( "listbox_levels" ) )
 		{
 			// Create virtual start menu
 			cMenu_Start *menu_start = new cMenu_Start();
 
 			menu_start->Init();
 			// Get Levels Listbox
-			Listbox *listbox_levels = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
+			CEGUI::Listbox *listbox_levels = static_cast<CEGUI::Listbox *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_levels" ));
 			// select random level
 			listbox_levels->setItemSelectState( rand() % listbox_levels->getItemCount(), 1 );
 			// get level name
@@ -415,7 +414,7 @@ bool cMenuCore :: Key_Down( SDLKey key )
 		else
 		{
 			// Get Levels Listbox
-			Listbox *listbox_levels = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
+			CEGUI::Listbox *listbox_levels = static_cast<CEGUI::Listbox *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_levels" ));
 			// select random level
 			listbox_levels->setItemSelectState( rand() % listbox_levels->getItemCount(), 1 );
 			// get level name
@@ -556,7 +555,7 @@ cMenu_Item *cMenuCore :: Auto_Menu( string imagename, string imagefilename_menu,
 	}
 
 	// Position and initialization
-	temp_item->Set_Pos( ( GAME_RES_W / 2 ) - ( temp_item->image_default->col_rect.w / 2 ), ypos );
+	temp_item->Set_Pos( ( game_res_w / 2 ) - ( temp_item->image_default->col_rect.w / 2 ), ypos );
 	temp_item->isquit = is_quit;
 
 	return temp_item;
@@ -567,9 +566,9 @@ void cMenuCore :: Load( MenuID menu /* = MENU_MAIN */ )
 	Unload();
 
 	// unload level if possible
-	if( pLevel->delayed_unload )
+	if( pActive_Level->delayed_unload )
 	{
-		pLevel->Unload();
+		pActive_Level->Unload();
 	}
 
 	// Set ID
@@ -579,12 +578,15 @@ void cMenuCore :: Load( MenuID menu /* = MENU_MAIN */ )
 	if( next_menu == MENU_NOTHING )
 	{
 		// clear animations
-		static_cast<cParticleAnimation *>(pMenu_AnimManager->objects[0])->Clear();
+		static_cast<cParticle_Emitter *>(pMenu_AnimManager->objects[0])->Clear();
+
+		// set camera position
+		camera->Set_Pos( 0, 0 );
 
 		// pre render
 		pFramerate->speedfactor = 2;
 
-		for( unsigned int i = 0; i < DESIRED_FPS * 100; i++ )
+		for( unsigned int i = 0; i < speedfactor_fps * 100; i++ )
 		{
 			pMenu_AnimManager->Update();
 		}
@@ -689,7 +691,7 @@ void cMenuCore :: Draw( void )
 	// if no vsync limit the fps for not stressing CPU usage
 	if( !pPreferences->video_vsync )
 	{
-		CorrectFrameTime( 100 );
+		Correct_Frame_Time( 100 );
 	}
 }
 

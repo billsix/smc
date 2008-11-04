@@ -1,7 +1,7 @@
 /***************************************************************************
-                sprite_manager.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :  (C) 2005 - 2007 by Florian Richter
+ * sprite_manager.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2005 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SPRITE_MANAGER_H__
-#define __SPRITE_MANAGER_H__
+#ifndef SMC_SPRITE_MANAGER_H
+#define SMC_SPRITE_MANAGER_H
 
 #include "../core/globals.h"
 #include "../core/obj_manager.h"
@@ -56,19 +56,19 @@ public:
 	void Get_Objects_sorted( SpriteList &new_objects, bool editor_sort = 0, bool with_player = 0 );
 
 	// Update items drawing validation
-	void Update_items_valid_draw( void );
+	void Update_Items_Valid_Draw( void );
 	// Update items
-	void Update_items( void );
+	void Update_Items( void );
 	// Draw items
-	void Draw_items( void );
+	void Draw_Items( void );
 	// Create Collision data and Handle the collisions
-	void Handle_Collision_items( void );
+	void Handle_Collision_Items( void );
 
 
 	/* Return the current size
 	 * of the specified sprite array
 	 */
-	unsigned int Get_Size_array( ArrayType sprite_array );
+	unsigned int Get_Size_Array( ArrayType sprite_array );
 
 	// Return object pointer if found
 	cSprite *operator [] ( unsigned int identifier )

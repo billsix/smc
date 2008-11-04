@@ -1,7 +1,7 @@
 /***************************************************************************
-           bonusbox.cpp  -  class for bonusbox
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * bonusbox.cpp  -  class for bonusbox
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -25,20 +25,22 @@
 #include "../core/game_core.h"
 #include "../objects/goldpiece.h"
 #include "../video/gl_surface.h"
+#include "../core/sprite_manager.h"
+#include "../core/i18n.h"
 
 /* *** *** *** *** *** *** *** *** cBonusBox *** *** *** *** *** *** *** *** *** */
 
 cBonusBox :: cBonusBox( float x, float y )
 : cBaseBox( x, y )
 {
-	Init();
+	cBonusBox::Init();
 }
 
-cBonusBox :: cBonusBox( XMLAttributes &attributes )
+cBonusBox :: cBonusBox( CEGUI::XMLAttributes &attributes )
 : cBaseBox()
 {
-	Init();
-	Create_from_Stream( attributes );
+	cBonusBox::Init();
+	cBonusBox::Create_from_Stream( attributes );
 }
 
 cBonusBox :: ~cBonusBox( void )
@@ -71,25 +73,25 @@ cBonusBox *cBonusBox :: Copy( void )
 	bonusbox->Set_Animation( anim_type );
 	bonusbox->Set_Bonus_Type( box_type );
 	bonusbox->Set_Invisible( box_invisible );
-	bonusbox->Set_Force_best_item( force_best_item );
+	bonusbox->Set_Force_Best_Item( force_best_item );
 	bonusbox->Set_Goldcolor( gold_color );
-	bonusbox->Set_UseableCount( start_useable_count, 1 );
+	bonusbox->Set_Useable_Count( start_useable_count, 1 );
 
 	return bonusbox;
 }
 
-void cBonusBox :: Create_from_Stream( XMLAttributes &attributes )
+void cBonusBox :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 {
 	cBaseBox::Create_from_Stream( attributes );
 
 	// item
-	Set_Bonus_Type( (SpriteType)attributes.getValueAsInteger( "item" ) );
+	Set_Bonus_Type( static_cast<SpriteType>(attributes.getValueAsInteger( "item" )) );
 	// force best possible item
-	Set_Force_best_item( attributes.getValueAsBool( "force_best_item" ) );
+	Set_Force_Best_Item( attributes.getValueAsBool( "force_best_item" ) );
 	// gold color
 	if( box_type == TYPE_GOLDPIECE )
 	{
-		Set_Goldcolor( Get_Color_id( attributes.getValueAsString( "gold_color", Get_Color_name( gold_color ) ).c_str() ) );
+		Set_Goldcolor( Get_Color_Id( attributes.getValueAsString( "gold_color", Get_Color_Name( gold_color ) ).c_str() ) );
 	}
 }
 
@@ -105,16 +107,16 @@ void cBonusBox :: Save_to_Stream( ofstream &file )
 	// gold color
 	if( box_type == TYPE_GOLDPIECE )
 	{
-		file << "\t\t<Property name=\"gold_color\" value=\"" << Get_Color_name( gold_color ) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"gold_color\" value=\"" << Get_Color_Name( gold_color ) << "\" />" << std::endl;
 	}
 
 	// end box
 	file << "\t</box>" << std::endl;
 }
 
-void cBonusBox :: Set_UseableCount( int count, bool new_startcount /* = 0 */ )
+void cBonusBox :: Set_Useable_Count( int count, bool new_startcount /* = 0 */ )
 {
-	cBaseBox::Set_UseableCount( count, new_startcount );
+	cBaseBox::Set_Useable_Count( count, new_startcount );
 
 	// disable
 	if( !useable_count )
@@ -129,7 +131,7 @@ void cBonusBox :: Set_UseableCount( int count, bool new_startcount /* = 0 */ )
 		}
 	}
 
-	Update_valid_update();
+	Update_Valid_Update();
 }
 
 void cBonusBox :: Set_Bonus_Type( SpriteType nbonus_type )
@@ -202,7 +204,7 @@ void cBonusBox :: Set_Bonus_Type( SpriteType nbonus_type )
 	Create_Name();
 }
 
-void cBonusBox :: Set_Force_best_item( bool enable )
+void cBonusBox :: Set_Force_Best_Item( bool enable )
 {
 	// can't be set if random 
 	if( box_type == TYPE_POWERUP )
@@ -236,12 +238,12 @@ void cBonusBox :: Set_Goldcolor( DefaultColor ncolor )
 	if( gold_color == COL_YELLOW )
 	{
 		item_image = pVideo->Get_Surface( "game/items/goldpiece/yellow/1.png" );
-		name = "Box Goldpiece Yellow";
+		name = _("Box Goldpiece Yellow");
 	}
 	else if( gold_color == COL_RED )
 	{
 		item_image = pVideo->Get_Surface( "game/items/goldpiece/red/1.png" );
-		name = "Box Goldpiece Red";
+		name = _("Box Goldpiece Red");
 	}
 	else
 	{
@@ -288,25 +290,25 @@ void cBonusBox :: Activate( void )
 	// no item
 	if( box_type == TYPE_UNDEFINED )
 	{
-		pAudio->PlaySound( "item/death_box.ogg" );
+		pAudio->Play_Sound( "item/death_box.ogg" );
 	}
 	// check if lower item should be used if no force best item
 	else if( !force_best_item && ( box_type == TYPE_FIREPLANT || box_type == TYPE_MUSHROOM_BLUE ) && 
 		( pPlayer->maryo_type == MARYO_SMALL || ( ( pPlayer->maryo_type == MARYO_FIRE || pPlayer->maryo_type == MARYO_ICE ) && !Itembox->item_id ) ) )
 	{
-		pAudio->PlaySound( "sprout_1.ogg" );
+		pAudio->Play_Sound( "sprout_1.ogg" );
 
 		cMushroom *mushroom = new cMushroom( startposx - ( ( item_image->w - rect.w ) / 2 ), startposy - ( ( item_image->h - rect.h ) / 2 ) );
 		box_item = static_cast<cMovingSprite *>(mushroom);
 	}
 	else if( box_type == TYPE_FIREPLANT )
 	{
-		pAudio->PlaySound( "sprout_1.ogg" );
+		pAudio->Play_Sound( "sprout_1.ogg" );
 		box_item = static_cast<cMovingSprite *>(new cFirePlant( startposx - ( ( item_image->w - rect.w ) / 2 ), startposy ));
 	}
 	else if( box_type == TYPE_MUSHROOM_DEFAULT || box_type == TYPE_MUSHROOM_LIVE_1 || box_type == TYPE_MUSHROOM_POISON || box_type == TYPE_MUSHROOM_BLUE || box_type == TYPE_MUSHROOM_GHOST )
 	{
-		pAudio->PlaySound( "sprout_1.ogg" );
+		pAudio->Play_Sound( "sprout_1.ogg" );
 
 		cMushroom *mushroom = new cMushroom( startposx - ( ( item_image->w - rect.w ) / 2 ), startposy - ( ( item_image->h - rect.h ) / 2 ) );
 		mushroom->Set_Type( box_type );
@@ -314,21 +316,21 @@ void cBonusBox :: Activate( void )
 	}
 	else if( box_type == TYPE_JSTAR )
 	{
-		pAudio->PlaySound( "sprout_1.ogg" );
+		pAudio->Play_Sound( "sprout_1.ogg" );
 		cjStar *star = new cjStar( startposx - ( ( item_image->w - rect.w ) / 2 ), startposy );
-		star->Set_onTop( this );
+		star->Set_on_Top( this );
 		star->spawned = 1;
 		// add to global objects
-		pLevel->pSprite_Manager->Add( star );
+		pActive_Sprite_Manager->Add( star );
 	}
 	else if( box_type == TYPE_GOLDPIECE )
 	{
-		pAudio->PlaySound( "item/goldpiece_1.ogg" );
+		pAudio->Play_Sound( "item/goldpiece_1.ogg" );
 
 		cJGoldpiece *goldpiece = new cJGoldpiece( startposx - ( ( item_image->w - rect.w ) / 2 ), posy );
-		goldpiece->Set_Goldcolor( gold_color );
+		goldpiece->Set_Gold_Color( gold_color );
 		// add to global objects
-		pLevel->pSprite_Manager->Add( goldpiece );
+		pActive_Sprite_Manager->Add( goldpiece );
 	}
 	else
 	{
@@ -351,7 +353,7 @@ void cBonusBox :: Activate( void )
 
 		// add to item list
 		active_items.push_back( box_item );
-		Update_valid_update();
+		Update_Valid_Update();
 	}
 }
 
@@ -383,13 +385,13 @@ void cBonusBox :: Update( void )
 			powerup->posz = 0.05f;
 
 			// set the item on top
-			powerup->Set_onTop( this, 0 );
+			powerup->Set_on_Top( this, 0 );
 			// add the item to the level objects
-			pLevel->pSprite_Manager->Add( powerup );
+			pActive_Sprite_Manager->Add( powerup );
 
 			// remove from array
 			itr = active_items.erase( itr );
-			Update_valid_update();
+			Update_Valid_Update();
 		}
 		// move upwards
 		else
@@ -426,14 +428,15 @@ void cBonusBox :: Draw( cSurfaceRequest *request /* = NULL */ )
 	cBaseBox::Draw( request );
 }
 
-bool cBonusBox :: is_Update_valid( void )
+bool cBonusBox :: Is_Update_Valid( void )
 {
+	// if item is in animation
 	if( active_items.size() )
 	{
 		return 1;
 	}
 
-	return cBaseBox::is_Update_valid();
+	return cBaseBox::Is_Update_Valid();
 }
 
 void cBonusBox :: Editor_Activate( void )
@@ -441,123 +444,117 @@ void cBonusBox :: Editor_Activate( void )
 	// BaseBox Settings first
 	cBaseBox::Editor_Activate();
 
-	WindowManager &wmgr = WindowManager::getSingleton();
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
 	// Animation
-	Combobox *combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_bonusbox_animation" ));
-	combobox->getEditbox()->setTooltipText( "Animation" );
-	Editor_Add( combobox, 120, 100 );
+	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_bonusbox_animation" ));
+	Editor_Add( UTF8_("Animation"), UTF8_("Use the Power animation if the box has a good or needed item for this level"), combobox, 120, 100 );
 
-	combobox->addItem( new ListboxTextItem( "Default" ) );
-	combobox->addItem( new ListboxTextItem( "Bonus" ) );
-	combobox->addItem( new ListboxTextItem( "Power" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "Default" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "Bonus" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "Power" ) );
 
-	combobox->setText( anim_type.c_str() );
+	combobox->setText( reinterpret_cast<const CEGUI::utf8*>(anim_type.c_str()) );
 
-	combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cBonusBox::Editor_Animation_Select, this ) );
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cBonusBox::Editor_Animation_Select, this ) );
 
 	// Item
-	combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_bonusbox_item" ));
-	combobox->getEditbox()->setTooltipText( "Item" );
-	Editor_Add( combobox, 160, 140 );
+	combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_bonusbox_item" ));
+	Editor_Add( UTF8_("Item"), UTF8_("The item that gets spawned"), combobox, 160, 140 );
 
-	combobox->addItem( new ListboxTextItem( "Empty" ) );
-	combobox->addItem( new ListboxTextItem( "Random" ) );
-	combobox->addItem( new ListboxTextItem( "Mushroom" ) );
-	combobox->addItem( new ListboxTextItem( "Fireplant" ) );
-	combobox->addItem( new ListboxTextItem( "Mushroom Blue" ) );
-	combobox->addItem( new ListboxTextItem( "Mushroom Ghost" ) );
-	combobox->addItem( new ListboxTextItem( "Mushroom 1-UP" ) );
-	combobox->addItem( new ListboxTextItem( "Star" ) );
-	combobox->addItem( new ListboxTextItem( "Goldpiece" ) );
-	combobox->addItem( new ListboxTextItem( "Mushroom Poison" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Empty") ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Random") ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Mushroom") ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Fireplant") ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Mushroom Blue") ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Mushroom Ghost") ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Mushroom 1-UP") ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Star") ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Goldpiece") ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Mushroom Poison") ) );
 
 	if( box_type == TYPE_MUSHROOM_DEFAULT )
 	{
-		combobox->setText( "Mushroom" );
+		combobox->setText( UTF8_("Mushroom") );
 	}
 	else if( box_type == TYPE_FIREPLANT )
 	{
-		combobox->setText( "Fireplant" );
+		combobox->setText( UTF8_("Fireplant") );
 	}
 	else if( box_type == TYPE_MUSHROOM_BLUE )
 	{
-		combobox->setText( "Mushroom Blue" );
+		combobox->setText( UTF8_("Mushroom Blue") );
 	}
 	else if( box_type == TYPE_MUSHROOM_GHOST )
 	{
-		combobox->setText( "Mushroom Ghost" );
+		combobox->setText( UTF8_("Mushroom Ghost") );
 	}
 	else if( box_type == TYPE_MUSHROOM_LIVE_1 )
 	{
-		combobox->setText( "Mushroom 1-UP" );
+		combobox->setText( UTF8_("Mushroom 1-UP") );
 	}
 	else if( box_type == TYPE_JSTAR )
 	{
-		combobox->setText( "Star" );
+		combobox->setText( UTF8_("Star") );
 	}
 	else if( box_type == TYPE_GOLDPIECE )
 	{
-		combobox->setText( "Goldpiece" );
+		combobox->setText( UTF8_("Goldpiece") );
 	}
 	else if( box_type == TYPE_MUSHROOM_POISON )
 	{
-		combobox->setText( "Mushroom Poison" );
+		combobox->setText( UTF8_("Mushroom Poison") );
 	}
 	else if( box_type == TYPE_POWERUP )
 	{
-		combobox->setText( "Random" );
+		combobox->setText( UTF8_("Random") );
 	}
 	else
 	{
-		combobox->setText( "Empty" );
+		combobox->setText( UTF8_("Empty") );
 	}
 
-	combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cBonusBox::Editor_Item_Select, this ) );
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cBonusBox::Editor_Item_Select, this ) );
 
 	// Force best item
-	combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_bonusbox_force_best_item" ));
-	combobox->getEditbox()->setTooltipText( "Force best Item" );
-	Editor_Add( combobox, 120, 80 );
+	combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_bonusbox_force_best_item" ));
+	Editor_Add( UTF8_("Force item"), UTF8_("Force best available item when activated"), combobox, 120, 80 );
 
-	combobox->addItem( new ListboxTextItem( "Enabled" ) );
-	combobox->addItem( new ListboxTextItem( "Disabled" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Enabled") ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Disabled") ) );
 
 	if( force_best_item )
 	{
-		combobox->setText( "Enabled" );
+		combobox->setText( UTF8_("Enabled") );
 	}
 	else
 	{
-		combobox->setText( "Disabled" );
+		combobox->setText( UTF8_("Disabled") );
 	}
 
 
-	combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cBonusBox::Editor_Force_best_item_Select, this ) );
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cBonusBox::Editor_Force_best_item_Select, this ) );
 
 	// gold color
-	combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_bonusbox_gold_color" ));
-	combobox->getEditbox()->setTooltipText( "Gold Color" );
-	Editor_Add( combobox, 100, 80 );
+	combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_bonusbox_gold_color" ));
+	Editor_Add( UTF8_("Gold color"), UTF8_("Gold color if the item is a goldpiece"), combobox, 100, 80 );
 
-	combobox->addItem( new ListboxTextItem( "yellow" ) );
-	combobox->addItem( new ListboxTextItem( "red" ) );
-	combobox->setText( Get_Color_name( gold_color ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "yellow" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "red" ) );
+	combobox->setText( Get_Color_Name( gold_color ) );
 
-	combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cBonusBox::Editor_Gold_Color_Select, this ) );
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cBonusBox::Editor_Gold_Color_Select, this ) );
 
-	// set state
-	Editor_state_update();
-	// set position
-	Editor_pos_update();
+	// init
+	Editor_Init();
 }
 
-void cBonusBox :: Editor_state_update( void )
+void cBonusBox :: Editor_State_Update( void )
 {
-	WindowManager &wmgr = WindowManager::getSingleton();
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
 	// Force best item
-	Combobox *combobox = static_cast<Combobox *>(wmgr.getWindow( "editor_bonusbox_force_best_item" ));
+	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.getWindow( "editor_bonusbox_force_best_item" ));
 
 	if( box_type == TYPE_UNDEFINED || box_type == TYPE_POWERUP || box_type == TYPE_MUSHROOM_DEFAULT || box_type == TYPE_MUSHROOM_LIVE_1 || box_type == TYPE_MUSHROOM_POISON || 
 		box_type == TYPE_MUSHROOM_GHOST || box_type == TYPE_JSTAR || box_type == TYPE_GOLDPIECE )
@@ -570,7 +567,7 @@ void cBonusBox :: Editor_state_update( void )
 	}
 
 	// gold color
-	combobox = static_cast<Combobox *>(wmgr.getWindow( "editor_bonusbox_gold_color" ));
+	combobox = static_cast<CEGUI::Combobox *>(wmgr.getWindow( "editor_bonusbox_gold_color" ));
 
 	if( box_type != TYPE_GOLDPIECE )
 	{
@@ -582,54 +579,54 @@ void cBonusBox :: Editor_state_update( void )
 	}
 }
 
-bool cBonusBox :: Editor_Animation_Select( const EventArgs &event )
+bool cBonusBox :: Editor_Animation_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
 
 	Set_Animation( item->getText().c_str() );
 
 	return 1;
 }
 
-bool cBonusBox :: Editor_Item_Select( const EventArgs &event )
+bool cBonusBox :: Editor_Item_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
 
-	if( item->getText().compare( "Mushroom" ) == 0 )
+	if( item->getText().compare( UTF8_("Mushroom") ) == 0 )
 	{
 		Set_Bonus_Type( TYPE_MUSHROOM_DEFAULT );
 	}
-	else if( item->getText().compare( "Fireplant" ) == 0 )
+	else if( item->getText().compare( UTF8_("Fireplant") ) == 0 )
 	{
 		Set_Bonus_Type( TYPE_FIREPLANT );
 	}
-	else if( item->getText().compare( "Mushroom Blue" ) == 0 )
+	else if( item->getText().compare( UTF8_("Mushroom Blue") ) == 0 )
 	{
 		Set_Bonus_Type( TYPE_MUSHROOM_BLUE );
 	}
-	else if( item->getText().compare( "Mushroom Ghost" ) == 0 )
+	else if( item->getText().compare( UTF8_("Mushroom Ghost") ) == 0 )
 	{
 		Set_Bonus_Type( TYPE_MUSHROOM_GHOST );
 	}
-	else if( item->getText().compare( "Mushroom 1-UP" ) == 0 )
+	else if( item->getText().compare( UTF8_("Mushroom 1-UP") ) == 0 )
 	{
 		Set_Bonus_Type( TYPE_MUSHROOM_LIVE_1 );
 	}
-	else if( item->getText().compare( "Star" ) == 0 )
+	else if( item->getText().compare( UTF8_("Star") ) == 0 )
 	{
 		Set_Bonus_Type( TYPE_JSTAR );
 	}
-	else if( item->getText().compare( "Goldpiece" ) == 0 )
+	else if( item->getText().compare( UTF8_("Goldpiece") ) == 0 )
 	{
 		Set_Bonus_Type( TYPE_GOLDPIECE );
 	}
-	else if( item->getText().compare( "Mushroom Poison" ) == 0 )
+	else if( item->getText().compare( UTF8_("Mushroom Poison") ) == 0 )
 	{
 		Set_Bonus_Type( TYPE_MUSHROOM_POISON );
 	}
-	else if( item->getText().compare( "Random" ) == 0 )
+	else if( item->getText().compare( UTF8_("Random") ) == 0 )
 	{
 		Set_Bonus_Type( TYPE_POWERUP );
 	}
@@ -638,34 +635,34 @@ bool cBonusBox :: Editor_Item_Select( const EventArgs &event )
 		Set_Bonus_Type( TYPE_UNDEFINED );
 	}
 
-	Editor_state_update();
+	Editor_State_Update();
 
 	return 1;
 }
 
-bool cBonusBox :: Editor_Force_best_item_Select( const EventArgs &event )
+bool cBonusBox :: Editor_Force_best_item_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
 
-	if( item->getText().compare( "Enabled" ) == 0 )
+	if( item->getText().compare( UTF8_("Enabled") ) == 0 )
 	{
-		Set_Force_best_item( 1 );
+		Set_Force_Best_Item( 1 );
 	}
 	else
 	{
-		Set_Force_best_item( 0 );
+		Set_Force_Best_Item( 0 );
 	}
 
 	return 1;
 }
 
-bool cBonusBox :: Editor_Gold_Color_Select( const EventArgs &event )
+bool cBonusBox :: Editor_Gold_Color_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
 
-	Set_Goldcolor( Get_Color_id( item->getText().c_str() ) );
+	Set_Goldcolor( Get_Color_Id( item->getText().c_str() ) );
 
 	return 1;
 }

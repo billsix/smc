@@ -1,7 +1,7 @@
 /***************************************************************************
-           savegame.h  -  Savegame Engine Header
-                             -------------------
-    copyright            : (C) 2003 - 2007 by Florian Richter
+ * savegame.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SAVEGAME_H__
-#define __SAVEGAME_H__
+#ifndef SMC_SAVEGAME_H
+#define SMC_SAVEGAME_H
 
 #include "../core/globals.h"
 #include "../objects/sprite.h"
@@ -154,7 +154,7 @@ public:
 
 /* *** *** *** *** *** *** *** cSavegame *** *** *** *** *** *** *** *** *** *** */
 
-class cSavegame : public XMLHandler
+class cSavegame : public CEGUI::XMLHandler
 {
 public:
 	cSavegame( void );
@@ -178,7 +178,7 @@ public:
 	string Get_Description( unsigned int save_slot, bool only_description = 0 );
 
 	// Returns true if the Savegame is valid
-	bool is_valid( unsigned int save_slot );
+	bool Is_Valid( unsigned int save_slot );
 
 	// debug messages enabled
 	bool debug;
@@ -190,19 +190,19 @@ public:
 	string savegame_dir;
 private:
 	// XML element start
-    virtual void elementStart( const String &element, const XMLAttributes &attributes );
+    virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
 	// XML element end
-    virtual void elementEnd( const String &element );
+    virtual void elementEnd( const CEGUI::String &element );
 
-	void Handle_Level( const XMLAttributes &attributes );
-	void Handle_Level_Object( const XMLAttributes &attributes );
-	void Handle_Player( const XMLAttributes &attributes );
-	void Handle_Overworld_Data( const XMLAttributes &attributes );
-	void Handle_Overworld( const XMLAttributes &attributes );
-	void Handle_Overworld_Level( const XMLAttributes &attributes );
+	void Handle_Level( const CEGUI::XMLAttributes &attributes );
+	void Handle_Level_Object( const CEGUI::XMLAttributes &attributes );
+	void Handle_Player( const CEGUI::XMLAttributes &attributes );
+	void Handle_Overworld_Data( const CEGUI::XMLAttributes &attributes );
+	void Handle_Overworld( const CEGUI::XMLAttributes &attributes );
+	void Handle_Overworld_Level( const CEGUI::XMLAttributes &attributes );
 
 	// XML element Item Tag list
-	XMLAttributes xml_attributes;
+	CEGUI::XMLAttributes xml_attributes;
 
 	// current savegame overworld waypoints for overworld parsing
 	Save_Overworld_WaypointList active_waypoints;

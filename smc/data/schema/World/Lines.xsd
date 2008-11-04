@@ -4,9 +4,9 @@
 	<xsd:element name="layer" type="LayerType" />
 	
 	<xsd:complexType name="LayerType">
-		<xsd:sequence>
-			<xsd:element name="line" type="LineType" maxOccurs="unbounded"/>
-		</xsd:sequence>
+		<xsd:choice minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="line" type="LineType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:choice>
 	</xsd:complexType>
 
 	<xsd:complexType name="LineType">

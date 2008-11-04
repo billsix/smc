@@ -41,6 +41,10 @@
 		<Property Name="tags" Value="lake" />
 	</Item>
 	<Item>
+		<Property Name="name" Value="Bridges" />
+		<Property Name="tags" Value="bridge" />
+	</Item>
+	<Item>
 		<Property Name="name" Value="Blocks" />
 		<Property Name="tags" Value="block" />
 	</Item>

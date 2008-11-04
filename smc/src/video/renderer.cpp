@@ -1,7 +1,7 @@
 /***************************************************************************
-           renderer.cpp  -  Render Queueing
-                             -------------------
-    copyright            :	(C) 2006 - 2007 Florian Richter
+ * renderer.cpp  -  Render Queueing
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -17,6 +17,15 @@
 #include "../core/globals.h"
 #include "../core/game_core.h"
 #include "../core/camera.h"
+
+#include <math.h>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+const float doubled_pi = static_cast<float>(M_PI * 2);
+const float hundred_of_double_pi = doubled_pi / 100;
 
 /* *** *** *** *** *** *** cRenderRequest *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -51,8 +60,9 @@ void cRenderRequest :: Draw( void )
 	// virtual
 }
 
-void cRenderRequest :: Begin_render( void )
+void cRenderRequest :: Begin_Render( void )
 {
+	// todo: is there a way to do this once and not for every render request
 	glLoadIdentity();
 
 	// global scale
@@ -68,7 +78,7 @@ void cRenderRequest :: Begin_render( void )
 	}
 }
 
-void cRenderRequest :: End_render( void )
+void cRenderRequest :: End_Render( void )
 {
 	// clear blend factor
 	if( blend_sfactor != GL_SRC_ALPHA || blend_dfactor != GL_ONE_MINUS_SRC_ALPHA )
@@ -86,7 +96,7 @@ void cRenderRequest :: End_render( void )
 #endif
 }
 
-void cRenderRequest :: Begin_color_combine( void )
+void cRenderRequest :: Begin_Color_Combine( void )
 {
 	// Color Combine
 	if( combine_type != 0 && ( combine_col[0] != 0 || combine_col[1] != 0 || combine_col[2] != 0 ) )
@@ -99,7 +109,7 @@ void cRenderRequest :: Begin_color_combine( void )
 	}
 }
 
-void cRenderRequest :: End_color_combine( void )
+void cRenderRequest :: End_Color_Combine( void )
 {
 	// clear color modifications
 	if( combine_type != 0 && ( combine_col[0] != 0 || combine_col[1] != 0 || combine_col[2] != 0 ) )
@@ -109,83 +119,6 @@ void cRenderRequest :: End_color_combine( void )
 		glTexEnvi( GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE );
 		glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 	}
-}
-
-/* *** *** *** *** *** *** cGradientRequest *** *** *** *** *** *** *** *** *** *** *** */
-
-cGradientRequest :: cGradientRequest( void )
-: cRenderRequest()
-{
-	type = REND_GRADIENT;
-	rect = GL_rect( 0, 0, 0, 0 );
-	dir = DIR_UNDEFINED;
-	color_1 = static_cast<Uint8>(0);
-	color_2 = static_cast<Uint8>(0);
-}
-
-cGradientRequest :: ~cGradientRequest( void )
-{
-
-}
-
-void cGradientRequest :: Draw( void )
-{
-	Begin_render();
-
-	if( !no_camera )
-	{
-		rect.x -= pCamera->x;
-		rect.y -= pCamera->y;
-	}
-
-	// z position
-	if( pos_z != 0 )
-	{
-		glTranslatef( 0, 0, pos_z );
-	}
-
-	if( glIsEnabled( GL_TEXTURE_2D ) )
-	{
-		glDisable( GL_TEXTURE_2D );
-	}
-
-	Begin_color_combine();
-
-	if( dir == DIR_VERTICAL )
-	{
-		glBegin( GL_POLYGON );
-			glColor4ub( color_1.red, color_1.green, color_1.blue, color_1.alpha );
-			glVertex2f( rect.x, rect.y );
-			glVertex2f( rect.x + rect.w, rect.y );
-			glColor4ub( color_2.red, color_2.green, color_2.blue, color_2.alpha );
-			glVertex2f( rect.x + rect.w, rect.y + rect.h );
-			glVertex2f( rect.x, rect.y + rect.h );
-		glEnd();
-	}
-	else if( dir == DIR_HORIZONTAL )
-	{
-		glBegin( GL_POLYGON );
-			glColor4ub( color_1.red, color_1.green, color_1.blue, color_1.alpha );
-			glVertex2f( rect.x , rect.y );
-			glVertex2f( rect.x + rect.w, rect.y );
-			glColor4ub( color_2.red, color_2.green, color_2.blue, color_2.alpha );
-			glVertex2f( rect.x + rect.w, rect.y + rect.h );
-			glVertex2f( rect.x, rect.y + rect.h );
-		glEnd();
-	}
-
-	// clear color
-	glColor4ub( 255, 255, 255, 255 );
-
-	// set back position
-	if( render_count > 1 && !no_camera )
-	{
-		rect.x += pCamera->x;
-		rect.y += pCamera->y;
-	}
-
-	End_color_combine();
-	End_render();
 }
 
 /* *** *** *** *** *** *** cLineRequest *** *** *** *** *** *** *** *** *** *** *** */
@@ -206,23 +139,21 @@ cLineRequest :: ~cLineRequest( void )
 
 void cLineRequest :: Draw( void )
 {
-	Begin_render();
+	Begin_Render();
 
+	// ## position ##
+	// set camera position
 	if( !no_camera )
 	{
-		line.x1 -= pCamera->x;
-		line.y1 -= pCamera->y;
-		line.x2 -= pCamera->x;
-		line.y2 -= pCamera->y;
+		glTranslatef( -pActive_Camera->x, -pActive_Camera->y, pos_z );
 	}
-
-	// z position
-	if( pos_z != 0 )
+	else
 	{
+		// only z position
 		glTranslatef( 0, 0, pos_z );
 	}
 
-	Begin_color_combine();
+	Begin_Color_Combine();
 
 	// color
 	if( color.red != 255 || color.green != 255 || color.blue != 255 || color.alpha != 255 )
@@ -257,17 +188,8 @@ void cLineRequest :: Draw( void )
 		glColor4ub( 255, 255, 255, 255 );
 	}
 
-	// set back position
-	if( render_count > 1 && !no_camera )
-	{
-		line.x1 += pCamera->x;
-		line.y1 += pCamera->y;
-		line.x2 += pCamera->x;
-		line.y2 += pCamera->y;
-	}
-
-	End_color_combine();
-	End_render();
+	End_Color_Combine();
+	End_Render();
 }
 
 /* *** *** *** *** *** *** cRectRequest *** *** *** *** *** *** *** *** *** *** *** */
@@ -288,21 +210,20 @@ cRectRequest :: ~cRectRequest( void )
 
 void cRectRequest :: Draw( void )
 {
-	Begin_render();
+	Begin_Render();
 
+	// set camera position
 	if( !no_camera )
 	{
-		rect.x -= pCamera->x;
-		rect.y -= pCamera->y;
+		glTranslatef( rect.x - pActive_Camera->x, rect.y - pActive_Camera->y, pos_z );
 	}
-
-	// z position
-	if( pos_z != 0 )
+	// ignore camera position
+	else
 	{
-		glTranslatef( 0, 0, pos_z );
+		glTranslatef( rect.x, rect.y, pos_z );
 	}
 
-	Begin_color_combine();
+	Begin_Color_Combine();
 
 	// color
 	if( color.red != 255 || color.green != 255 || color.blue != 255 || color.alpha != 255 )
@@ -323,10 +244,10 @@ void cRectRequest :: Draw( void )
 	{
 		glBegin( GL_LINE_LOOP );
 	}
-		glVertex2f( rect.x, rect.y );
-		glVertex2f( rect.x + rect.w, rect.y );
-		glVertex2f( rect.x + rect.w, rect.y + rect.h );
-		glVertex2f( rect.x, rect.y + rect.h );
+		glVertex2f( 0, 0 );
+		glVertex2f( rect.w, 0 );
+		glVertex2f( rect.w, rect.h );
+		glVertex2f( 0, rect.h );
 	glEnd();
 
 	
@@ -336,15 +257,180 @@ void cRectRequest :: Draw( void )
 		glColor4ub( 255, 255, 255, 255 );
 	}
 
-	// set back position
-	if( render_count > 1 && !no_camera )
+	End_Color_Combine();
+	End_Render();
+}
+
+/* *** *** *** *** *** *** cGradientRequest *** *** *** *** *** *** *** *** *** *** *** */
+
+cGradientRequest :: cGradientRequest( void )
+: cRenderRequest()
+{
+	type = REND_GRADIENT;
+	rect = GL_rect( 0, 0, 0, 0 );
+	dir = DIR_UNDEFINED;
+	color_1 = static_cast<Uint8>(0);
+	color_2 = static_cast<Uint8>(0);
+}
+
+cGradientRequest :: ~cGradientRequest( void )
+{
+
+}
+
+void cGradientRequest :: Draw( void )
+{
+	Begin_Render();
+
+	// set camera position
+	if( !no_camera )
 	{
-		rect.x += pCamera->x;
-		rect.y += pCamera->y;
+		glTranslatef( rect.x - pActive_Camera->x, rect.y - pActive_Camera->y, pos_z );
+	}
+	// ignore camera position
+	else
+	{
+		glTranslatef( rect.x, rect.y, pos_z );
 	}
 
-	End_color_combine();
-	End_render();
+	if( glIsEnabled( GL_TEXTURE_2D ) )
+	{
+		glDisable( GL_TEXTURE_2D );
+	}
+
+	Begin_Color_Combine();
+
+	if( dir == DIR_VERTICAL )
+	{
+		glBegin( GL_POLYGON );
+			glColor4ub( color_1.red, color_1.green, color_1.blue, color_1.alpha );
+			glVertex2f( 0, 0 );
+			glVertex2f( rect.w, 0 );
+			glColor4ub( color_2.red, color_2.green, color_2.blue, color_2.alpha );
+			glVertex2f( rect.w, rect.h );
+			glVertex2f( 0, rect.h );
+		glEnd();
+
+	}
+	else if( dir == DIR_HORIZONTAL )
+	{
+		glBegin( GL_POLYGON );
+			glColor4ub( color_1.red, color_1.green, color_1.blue, color_1.alpha );
+			glVertex2f( 0, rect.h );
+			glVertex2f( 0, 0 );
+			glColor4ub( color_2.red, color_2.green, color_2.blue, color_2.alpha );
+			glVertex2f( rect.w, 0 );
+			glVertex2f( rect.w, rect.h );
+		glEnd();
+	}
+
+	// clear color
+	glColor4ub( 255, 255, 255, 255 );
+
+	End_Color_Combine();
+	End_Render();
+}
+
+/* *** *** *** *** *** *** cCircleRequest *** *** *** *** *** *** *** *** *** *** *** */
+
+cCircleRequest :: cCircleRequest( void )
+: cRenderRequest()
+{
+	type = REND_CIRCLE;
+	color = static_cast<Uint8>(0);
+	pos = GL_point( 0, 0 );
+	radius = 0.1f;
+	// default is filled
+	line_width = 0;
+}
+
+cCircleRequest :: ~cCircleRequest( void )
+{
+
+}
+
+void cCircleRequest :: Draw( void )
+{
+	Begin_Render();
+
+	// set camera position
+	if( !no_camera )
+	{
+		glTranslatef( pos.x - pActive_Camera->x, pos.y - pActive_Camera->y, pos_z );
+	}
+	// ignore camera position
+	else
+	{
+		glTranslatef( pos.x, pos.y, pos_z );
+	}
+
+	Begin_Color_Combine();
+
+	// color
+	if( color.red != 255 || color.green != 255 || color.blue != 255 || color.alpha != 255 )
+	{
+		glColor4ub( color.red, color.green, color.blue, color.alpha );
+	}
+
+	if( glIsEnabled( GL_TEXTURE_2D ) )
+	{
+		glDisable( GL_TEXTURE_2D );
+	}
+
+	// set step size based on radius
+	float step_size = 1 / ( radius * 0.05f );
+
+	// minimum step size
+	if( step_size > 0.2f )
+	{
+		step_size = 0.2f;
+	}
+
+	float angle = 0;
+
+	// not filled
+	if( line_width )
+	{
+		// set line width
+		glLineWidth( line_width );
+
+		glBegin( GL_LINE_STRIP );
+	}
+	// filled
+	else
+	{
+		glBegin( GL_TRIANGLE_FAN );
+
+		// start with center
+		glVertex2f( 0, 0 );
+	}
+
+		while( angle < doubled_pi )
+		{
+			glVertex2f( radius * sin( angle ), radius * cos( angle ) );
+			angle += step_size;
+		}
+
+		// draw to end
+		angle = doubled_pi;
+		glVertex2f( radius * sin( angle ), radius * cos( angle ) );
+
+	glEnd();
+
+	// clear line width
+	if( line_width != 1 )
+	{
+		glLineWidth( 1 );
+	}
+
+	// clear color
+	if( color.red != 255 || color.green != 255 || color.blue != 255 || color.alpha != 255 )
+	{
+		glColor4ub( 255, 255, 255, 255 );
+	}
+
+	End_Color_Combine();
+	End_Render();
 }
 
 /* *** *** *** *** *** *** cSurfaceRequest *** *** *** *** *** *** *** *** *** *** *** */
@@ -384,12 +470,6 @@ cSurfaceRequest :: ~cSurfaceRequest( void )
 
 void cSurfaceRequest :: Draw( void )
 {
-	if( !no_camera )
-	{
-		pos_x -= pCamera->x;
-		pos_y -= pCamera->y;
-	}
-
 	// draw shadow
 	if( shadow_pos )
 	{
@@ -407,6 +487,7 @@ void cSurfaceRequest :: Draw( void )
 		temp_combine_col[1] = combine_col[1];
 		temp_combine_col[2] = combine_col[2];
 
+		// temporarily unset to prevent endless loop
 		shadow_pos = 0;
 		// shadow as a white texture
 		color = black;
@@ -435,16 +516,20 @@ void cSurfaceRequest :: Draw( void )
 		pos_y -= shadow_pos;
 	}
 
-	Begin_render();
+	Begin_Render();
 
 	// position
-	if( pos_x != 0 || pos_y != 0 || pos_z != 0 )
-	{
-		float final_pos_x = pos_x + ( ( w / 2 ) * scale_x );
-		float final_pos_y = pos_y + ( ( h / 2 ) * scale_y );
+	float final_pos_x = pos_x + ( ( w / 2 ) * scale_x );
+	float final_pos_y = pos_y + ( ( h / 2 ) * scale_y );
 
-		glTranslatef( final_pos_x, final_pos_y, pos_z );
+	// set camera position
+	if( !no_camera )
+	{
+		final_pos_x -= pActive_Camera->x;
+		final_pos_y -= pActive_Camera->y;
 	}
+
+	glTranslatef( final_pos_x, final_pos_y, pos_z );
 
 	// scale
 	if( scale_x != 1 || scale_y != 1 || scale_z != 1 )
@@ -466,7 +551,7 @@ void cSurfaceRequest :: Draw( void )
 		glRotatef( rotz, 0, 0, 1 );
 	}
 
-	Begin_color_combine();
+	Begin_Color_Combine();
 
 	// color
 	if( color.red != 255 || color.green != 255 || color.blue != 255 || color.alpha != 255 )
@@ -511,15 +596,8 @@ void cSurfaceRequest :: Draw( void )
 		glColor4ub( 255, 255, 255, 255 );
 	}
 
-	// set back position
-	if( render_count > 1 && !no_camera )
-	{
-		pos_x += pCamera->x;
-		pos_y += pCamera->y;
-	}
-
-	End_color_combine();
-	End_render();
+	End_Color_Combine();
+	End_Render();
 }
 
 /* *** *** *** *** *** *** cRenderQueue *** *** *** *** *** *** *** *** *** *** *** */

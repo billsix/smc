@@ -67,5 +67,5 @@ to start SMC. Run it with the parameter "--help" to see the possible options.
 5.) Please Contribute
 
 If you get SMC compiled on a distribution or Operating System which SMC doesn't support
-please send your modifications or prebuild installation packages.
+please send your modifications and a link to the prebuild installation packages.
 

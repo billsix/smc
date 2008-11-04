@@ -1,7 +1,7 @@
 /***************************************************************************
-                global_effect.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2006 - 2007 by Florian Richter
+ * global_effect.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __GLOBAL_EFFECT_H__
-#define __GLOBAL_EFFECT_H__
+#ifndef SMC_GLOBAL_EFFECT_H
+#define SMC_GLOBAL_EFFECT_H
 
 #include "../core/globals.h"
 #include "../core/math/rect.h"
@@ -24,50 +24,47 @@
 
 enum  GlobalEffectType
 {
-	GL_EFF_NONE = 0,	// no global effect
-	GL_EFF_FALLING = 1,	// falling down images ( leafs or rain )
-	GL_EFF_FLYING = 2	// moving upwards images ( heat points or dust )
+	GL_EFF_NONE = 0,	// disabled
+	GL_EFF_FALLING = 1
 };
 
 /* *** *** *** *** *** *** *** Global effect class *** *** *** *** *** *** *** *** *** *** */
 
-class cGlobal_effect : public cParticleAnimation
+class cGlobal_effect : public cParticle_Emitter
 {
 public:
 	// default constructor
 	cGlobal_effect( void );
 	// create from stream
-	cGlobal_effect( XMLAttributes &attributes );
+	cGlobal_effect( CEGUI::XMLAttributes &attributes );
 	// destructor
 	virtual ~cGlobal_effect( void );
 
-	// init defaults
-	void Init_default( void );
 	// initialise
-	void Init( void );
+	virtual void Init_Anim( void );
 	// clear
 	virtual void Clear( void );
 
 	// create from stream
-	void Create_from_Stream( XMLAttributes &attributes );
+	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	void Save_to_Stream( ofstream &file );
+	virtual void Save_to_Stream( ofstream &file );
 
 	// update
-	void Update( void );
-	// update animation
-	void Update_anim( void );
+	virtual void Update( void );
+	// find out of camera particles and move them to the opposite screen side
+	void Update_Particles( void );
 	// draw
-	void Draw( void );
+	virtual void Draw( void );
 
 	// Sets global effect type
-	void Set_type( GlobalEffectType ntype );
-	void Set_type( string ntype );
+	void Set_Type( GlobalEffectType ntype );
+	void Set_Type( string ntype );
 	// Set image
-	void Set_image( string nimg_file );
+	void Set_Image( string nimg_file );
 
 	// Return the type name
-	string Get_Typename( void );
+	string Get_Type_Name( void );
 
 	// type
 	GlobalEffectType ge_type;

@@ -1,7 +1,7 @@
 /***************************************************************************
-           spinbox.cpp  -  spinning box
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * spinbox.cpp  -  spinning box
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -23,14 +23,14 @@
 cSpinBox :: cSpinBox( float x, float y )
 : cBaseBox( x, y )
 {
-	Init();
+	cSpinBox::Init();
 }
 
-cSpinBox :: cSpinBox( XMLAttributes &attributes )
+cSpinBox :: cSpinBox( CEGUI::XMLAttributes &attributes )
 : cBaseBox()
 {
-	Init();
-	Create_from_Stream( attributes );
+	cSpinBox::Init();
+	cSpinBox::Create_from_Stream( attributes );
 }
 
 cSpinBox :: ~cSpinBox( void )
@@ -48,7 +48,7 @@ void cSpinBox :: Init( void )
 	spin = 0;
 
 	// default is infinite times activate-able
-	Set_UseableCount( -1, 1 );
+	Set_Useable_Count( -1, 1 );
 	// Spinbox Animation
 	Set_Animation( "Spin" );
 
@@ -65,12 +65,12 @@ cSpinBox *cSpinBox :: Copy( void )
 {
 	cSpinBox *spinbox = new cSpinBox( startposx, startposy );
 	spinbox->Set_Invisible( box_invisible );
-	spinbox->Set_UseableCount( start_useable_count, 1 );
+	spinbox->Set_Useable_Count( start_useable_count, 1 );
 
 	return spinbox;
 }
 
-void cSpinBox :: Create_from_Stream( XMLAttributes &attributes )
+void cSpinBox :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 {
 	cBaseBox::Create_from_Stream( attributes );
 }
@@ -95,7 +95,7 @@ void cSpinBox :: Activate( void )
 	}
 
 	spin = 1;
-	Update_valid_update();
+	Update_Valid_Update();
 	// passive box for spinning
 	massivetype = MASS_PASSIVE;
 
@@ -125,7 +125,7 @@ void cSpinBox :: Stop( void )
 	}
 	// reset
 	spin = 0;
-	Update_valid_update();
+	Update_Valid_Update();
 	counter = static_cast<float>(anim_counter_min);
 	spin_counter = 0;
 
@@ -152,7 +152,7 @@ void cSpinBox :: Update( void )
 		if( counter == 1 )
 		{
 			// spinning time finished
-			if( spin_counter > DESIRED_FPS * 5 )
+			if( spin_counter > speedfactor_fps * 5 )
 			{
 				// reset spin counter
 				spin_counter = 0;
@@ -188,7 +188,7 @@ void cSpinBox :: Update( void )
 				if( spin_again )
 				{
 					// spin some time again
-					spin_counter = DESIRED_FPS * 2;
+					spin_counter = speedfactor_fps * 2;
 					// passive for spinning
 					massivetype = MASS_PASSIVE;
 				}
@@ -202,12 +202,12 @@ void cSpinBox :: Update( void )
 	}
 }
 
-bool cSpinBox :: is_Update_valid( void )
+bool cSpinBox :: Is_Update_Valid( void )
 {
 	if( spin )
 	{
 		return 1;
 	}
 
-	return cBaseBox::is_Update_valid();
+	return cBaseBox::Is_Update_Valid();
 }

@@ -1,7 +1,7 @@
 /***************************************************************************
-    font.cpp  -  internal font functions
-                             -------------------
-    copyright            : (C) 2006 - 2007 Florian Richter
+ * font.cpp  -  internal font functions
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -23,16 +23,16 @@ void Font_Delete_Ref( GL_Surface *surface )
 	pFont->Delete_Ref( surface );
 }
 
-/* *** *** *** *** *** *** *** Font class *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** Font Manager class *** *** *** *** *** *** *** *** *** *** */
 
-cFont :: cFont( void )
+cFont_Manager :: cFont_Manager( void )
 {
 	font_normal = NULL;
 	font_small = NULL;
 	font_very_small = NULL;
 }
 
-cFont :: ~cFont( void )
+cFont_Manager :: ~cFont_Manager( void )
 {
 	if( TTF_WasInit() )
 	{
@@ -58,7 +58,7 @@ cFont :: ~cFont( void )
 	}
 }
 
-void cFont :: Init( void )
+void cFont_Manager :: Init( void )
 {
 	// if already initialised
 	if( TTF_WasInit() )
@@ -70,7 +70,7 @@ void cFont :: Init( void )
 	if( TTF_Init() == -1 )
 	{
 		printf( "Error : SDL_TTF initialization failed\nReason : %s\n", SDL_GetError() );
-		exit( 0 );
+		exit( EXIT_FAILURE );
 	}
 
 	// open fonts
@@ -82,11 +82,11 @@ void cFont :: Init( void )
 	if( !font_normal || !font_small || !font_very_small )
 	{
 		printf( "Error : Font loading failed from directory %s\n", GUI_FONT_DIR );
-		exit( 0 );
+		exit( EXIT_FAILURE );
 	}
 }
 
-void cFont :: Add_Ref( GL_Surface *surface )
+void cFont_Manager :: Add_Ref( GL_Surface *surface )
 {
 	if( !surface )
 	{
@@ -96,7 +96,7 @@ void cFont :: Add_Ref( GL_Surface *surface )
 	active_fonts.push_back( surface );
 }
 
-void cFont :: Delete_Ref( GL_Surface *surface )
+void cFont_Manager :: Delete_Ref( GL_Surface *surface )
 {
 	for( unsigned int i = 0; i < active_fonts.size(); i++ )
 	{
@@ -109,12 +109,12 @@ void cFont :: Delete_Ref( GL_Surface *surface )
 	}
 }
 
-GL_Surface *cFont :: RenderText( TTF_Font *font, string text, Color color )
+GL_Surface *cFont_Manager :: Render_Text( TTF_Font *font, string text, Color color )
 {
 	// get SDL Color
 	SDL_Color sdlcolor = color.Get_SDL_Color();
 	// create text surface
-	GL_Surface *surface = pVideo->Create_Texture( TTF_RenderText_Blended( font, text.c_str(), sdlcolor ) );
+	GL_Surface *surface = pVideo->Create_Texture( TTF_RenderUTF8_Blended( font, text.c_str(), sdlcolor ) );
 
 	if( !surface )
 	{
@@ -124,14 +124,14 @@ GL_Surface *cFont :: RenderText( TTF_Font *font, string text, Color color )
 	surface->filename = text;
 
 	// set function if font gets deleted
-	surface->Set_destruction_function( &Font_Delete_Ref );
+	surface->Set_Destruction_Function( &Font_Delete_Ref );
 	// add font to active fonts
 	Add_Ref( surface );
 	
 	return surface;
 }
 
-void cFont :: Grab_Textures( void )
+void cFont_Manager :: Grab_Textures( void )
 {
 	// save to software memory
 	for( ActiveFontList::iterator itr = active_fonts.begin(), itr_end = active_fonts.end(); itr != itr_end; ++itr )
@@ -149,19 +149,19 @@ void cFont :: Grab_Textures( void )
 	}
 }
 
-void cFont :: Restore_Textures( void )
+void cFont_Manager :: Restore_Textures( void )
 {
 	// load back into hardware textures
-	for( SoftwareTextureList::iterator itr = software_textures.begin(), itr_end = software_textures.end(); itr != itr_end; ++itr )
+	for( Saved_Texture_List::iterator itr = software_textures.begin(), itr_end = software_textures.end(); itr != itr_end; ++itr )
 	{
 		// get saved texture
-		cSoftware_texture *soft_tex = (*itr);
+		cSaved_Texture *soft_tex = (*itr);
 		// load it
 		soft_tex->base->Load_Software_Texture( soft_tex );
 	}
 
-	// delete software surfaces
-	for( SoftwareTextureList::iterator itr = software_textures.begin(), itr_end = software_textures.end(); itr != itr_end; ++itr )
+	// delete software textures
+	for( Saved_Texture_List::iterator itr = software_textures.begin(), itr_end = software_textures.end(); itr != itr_end; ++itr )
 	{
 		delete *itr;
 	}
@@ -170,5 +170,7 @@ void cFont :: Restore_Textures( void )
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
-
-cFont *pFont = NULL;
+namespace SMC
+{ // work around conflicts caused by lack of namespace use in smc
+cFont_Manager *pFont = NULL;
+}

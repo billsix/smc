@@ -1,7 +1,7 @@
 /***************************************************************************
-           moving_platform.cpp  -  default moving platforms handler
-                             -------------------
-    copyright            :	(C) 2005 - 2007 by Florian Richter
+ * moving_platform.cpp  -  default moving platforms handler
+ *
+ * Copyright (C) 2005 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -17,20 +17,24 @@
 #include "../core/camera.h"
 #include "../core/game_core.h"
 #include "../video/gl_surface.h"
+#include "../core/framerate.h"
+#include "../video/renderer.h"
+#include "../user/savegame.h"
+#include "../core/i18n.h"
 
 /* *** *** *** *** *** *** *** cMoving_Platform *** *** *** *** *** *** *** *** *** *** */
 
 cMoving_Platform :: cMoving_Platform( float x, float y )
 : cImageObjectSprite( x, y )
 {
-	Init();
+	cMoving_Platform::Init();
 }
 
-cMoving_Platform :: cMoving_Platform( XMLAttributes &attributes )
+cMoving_Platform :: cMoving_Platform( CEGUI::XMLAttributes &attributes )
 : cImageObjectSprite()
 {
-	Init();
-	Create_from_Stream( attributes );
+	cMoving_Platform::Init();
+	cMoving_Platform::Create_from_Stream( attributes );
 }
 
 cMoving_Platform :: ~cMoving_Platform( void )
@@ -45,21 +49,30 @@ void cMoving_Platform :: Init( void )
 	posz = 0.085f;
 
 	player_range = 2000;
+	can_be_ground = 1;
 
-	Set_Massivetype( MASS_HALFMASSIVE );
+	platform_state = PLATFORM_STAY;
+	touch_counter = 0;
+	shake_dir_counter = 0;
+	shake_counter = 0;
+
+	Set_Massive_Type( MASS_HALFMASSIVE );
 	Set_Max_Distance( 150 );
 	Set_Speed( 3 );
+	Set_Touch_Time( 0 );
+	Set_Shake_Time( 16 );
+	Set_Touch_Move_Time( 0 );
+
+	Set_Direction( DIR_RIGHT, 1 );
+
 	Set_Middle_Count( 2 );
-
-	Set_Direction( DIR_RIGHT );
-
 	// create default images
 	images.push_back( pVideo->Get_Surface( "slider/grey_1/slider_left.png" ) );
 	images.push_back( pVideo->Get_Surface( "slider/grey_1/slider_middle.png" ) );
 	images.push_back( pVideo->Get_Surface( "slider/grey_1/slider_right.png" ) );
 	Set_Image( 1, 1 );
 
-	Update_rect();
+	Update_Rect();
 
 	Create_Name();
 }
@@ -67,38 +80,47 @@ void cMoving_Platform :: Init( void )
 cMoving_Platform *cMoving_Platform :: Copy( void )
 {
 	cMoving_Platform *moving_platform = new cMoving_Platform( startposx, startposy );
-	moving_platform->Set_Massivetype( massivetype );
-	moving_platform->Set_Direction( start_direction );
+	moving_platform->Set_Massive_Type( massivetype );
+	moving_platform->Set_Direction( start_direction, 1 );
 	moving_platform->Set_Max_Distance( max_distance );
 	moving_platform->Set_Speed( speed );
+	moving_platform->Set_Touch_Time( touch_time );
+	moving_platform->Set_Shake_Time( shake_time );
+	moving_platform->Set_Touch_Move_Time( touch_move_time );
 	moving_platform->Set_Middle_Count( middle_count );
-	moving_platform->Set_image_top_left( images[0] );
-	moving_platform->Set_image_top_middle( images[1] );
-	moving_platform->Set_image_top_right( images[2] );
+	moving_platform->Set_Image_Top_Left( images[0] );
+	moving_platform->Set_Image_Top_Middle( images[1] );
+	moving_platform->Set_Image_Top_Right( images[2] );
 
 	return moving_platform;
 }
 
-void cMoving_Platform :: Create_from_Stream( XMLAttributes &attributes )
+void cMoving_Platform :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// massive type
-	Set_Massivetype( Get_Massivetype_id( attributes.getValueAsString( "massive_type", Get_Massivetype_name( massivetype ) ).c_str() ) );
+	Set_Massive_Type( Get_Massive_Type_Id( attributes.getValueAsString( "massive_type", Get_Massive_Type_Name( massivetype ) ).c_str() ) );
 	// direction
-	Set_Direction( Get_Direction_id( attributes.getValueAsString( "direction", Get_Direction_name( start_direction ) ).c_str() ) );
+	Set_Direction( Get_Direction_Id( attributes.getValueAsString( "direction", Get_Direction_Name( start_direction ) ).c_str() ), 1 );
 	// max distance
 	Set_Max_Distance( attributes.getValueAsInteger( "max_distance", max_distance ) );
 	// speed
 	Set_Speed( attributes.getValueAsFloat( "speed", speed ) );
+	// touch_time
+	Set_Touch_Time( attributes.getValueAsFloat( "touch_time", touch_time ) );
+	// shake time
+	Set_Shake_Time( attributes.getValueAsFloat( "shake_time", shake_time ) );
+	// touch move time
+	Set_Touch_Move_Time( attributes.getValueAsFloat( "touch_move_time", touch_move_time ) );
 	// middle image count
 	Set_Middle_Count( attributes.getValueAsInteger( "middle_img_count", middle_count ) );
-	// Image Top Left
-	Set_image_top_left( pVideo->Get_Surface( attributes.getValueAsString( "image_top_left", images[0]->Get_filename() ).c_str() ) );
-	// Image Top Middle
-	Set_image_top_middle( pVideo->Get_Surface( attributes.getValueAsString( "image_top_middle", images[1]->Get_filename() ).c_str() ) );
-	// Image Top Right
-	Set_image_top_right( pVideo->Get_Surface( attributes.getValueAsString( "image_top_right", images[2]->Get_filename() ).c_str() ) );
+	// image top left
+	Set_Image_Top_Left( pVideo->Get_Surface( attributes.getValueAsString( "image_top_left", images[0]->Get_Filename() ).c_str() ) );
+	// image top middle
+	Set_Image_Top_Middle( pVideo->Get_Surface( attributes.getValueAsString( "image_top_middle", images[1]->Get_Filename() ).c_str() ) );
+	// image top right
+	Set_Image_Top_Right( pVideo->Get_Surface( attributes.getValueAsString( "image_top_right", images[2]->Get_Filename() ).c_str() ) );
 }
 
 void cMoving_Platform :: Save_to_Stream( ofstream &file )
@@ -110,27 +132,113 @@ void cMoving_Platform :: Save_to_Stream( ofstream &file )
 	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
 	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// massive type
-	file << "\t\t<Property name=\"massive_type\" value=\"" << Get_Massivetype_name( massivetype ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"massive_type\" value=\"" << Get_Massive_Type_Name( massivetype ) << "\" />" << std::endl;
 	// direction
-	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_name( start_direction ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( start_direction ) << "\" />" << std::endl;
 	// max distance
 	file << "\t\t<Property name=\"max_distance\" value=\"" << max_distance << "\" />" << std::endl;
 	// speed
 	file << "\t\t<Property name=\"speed\" value=\"" << speed << "\" />" << std::endl;
+	// touch time
+	file << "\t\t<Property name=\"touch_time\" value=\"" << touch_time << "\" />" << std::endl;
+	// shake time
+	file << "\t\t<Property name=\"shake_time\" value=\"" << shake_time << "\" />" << std::endl;
+	// touch move time
+	file << "\t\t<Property name=\"touch_move_time\" value=\"" << touch_move_time << "\" />" << std::endl;
 	// middle image count
 	file << "\t\t<Property name=\"middle_img_count\" value=\"" << middle_count << "\" />" << std::endl;
 	// image top left
-	file << "\t\t<Property name=\"image_top_left\" value=\"" << images[0]->Get_filename( 1 ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"image_top_left\" value=\"" << images[0]->Get_Filename( 1 ) << "\" />" << std::endl;
 	// image top middle
-	file << "\t\t<Property name=\"image_top_middle\" value=\"" << images[1]->Get_filename( 1 ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"image_top_middle\" value=\"" << images[1]->Get_Filename( 1 ) << "\" />" << std::endl;
 	// image top right
-	file << "\t\t<Property name=\"image_top_right\" value=\"" << images[2]->Get_filename( 1 ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"image_top_right\" value=\"" << images[2]->Get_Filename( 1 ) << "\" />" << std::endl;
 
 	// end moving_platform
 	file << "\t</moving_platform>" << std::endl;
 }
 
-void cMoving_Platform :: Set_Massivetype( MassiveType mtype )
+void cMoving_Platform :: Load_from_Savegame( cSave_Level_Object *save_object )
+{
+	// direction
+	if( save_object->exists( "direction" ) )
+	{
+		direction = static_cast<ObjectDirection>(string_to_int( save_object->Get_Value( "direction" ) ));
+	}
+
+	// platform state
+	if( save_object->exists( "platform_state" ) )
+	{
+		platform_state = static_cast<Moving_Platform_State>(string_to_int( save_object->Get_Value( "platform_state" ) ));
+	}
+
+	// new position x
+	if( save_object->exists( "new_posx" ) )
+	{
+		Set_Pos_X( string_to_float( save_object->Get_Value( "new_posx" ) ) );
+	}
+
+	// new position y
+	if( save_object->exists( "new_posy" ) )
+	{
+		Set_Pos_Y( string_to_float( save_object->Get_Value( "new_posy" ) ) );
+	}
+
+	// velocity x
+	if( save_object->exists( "velx" ) )
+	{
+		velx = string_to_float( save_object->Get_Value( "velx" ) );
+	}
+
+	// velocity y
+	if( save_object->exists( "vely" ) )
+	{
+		vely = string_to_float( save_object->Get_Value( "vely" ) );
+	}
+
+	// visible
+	if( save_object->exists( "visible" ) )
+	{
+		Set_Visible( string_to_int( save_object->Get_Value( "visible" ) ) > 0 );
+	}
+}
+
+cSave_Level_Object *cMoving_Platform :: Save_to_Savegame( void )
+{
+	cSave_Level_Object *save_object = new cSave_Level_Object();
+
+	// default values
+	save_object->type = type;
+	save_object->properties.push_back( cSave_Level_Object_Property( "posx", int_to_string( static_cast<int>(startposx) ) ) );
+	save_object->properties.push_back( cSave_Level_Object_Property( "posy", int_to_string( static_cast<int>(startposy) ) ) );
+
+	// direction
+	save_object->properties.push_back( cSave_Level_Object_Property( "direction", int_to_string( direction ) ) );
+
+	// platform state
+	save_object->properties.push_back( cSave_Level_Object_Property( "platform_state", int_to_string( platform_state ) ) );
+
+	// new position ( only save if needed )
+	if( startposx != posx || startposy != posy )
+	{
+		save_object->properties.push_back( cSave_Level_Object_Property( "new_posx", int_to_string( static_cast<int>(posx) ) ) );
+		save_object->properties.push_back( cSave_Level_Object_Property( "new_posy", int_to_string( static_cast<int>(posy) ) ) );
+	}
+
+	// velocity
+	save_object->properties.push_back( cSave_Level_Object_Property( "velx", float_to_string( velx ) ) );
+	save_object->properties.push_back( cSave_Level_Object_Property( "vely", float_to_string( vely ) ) );
+
+	// visible ( only save if needed )
+	if( !visible )
+	{
+		save_object->properties.push_back( cSave_Level_Object_Property( "visible", int_to_string( visible ) ) );
+	}
+
+	return save_object;
+}
+
+void cMoving_Platform :: Set_Massive_Type( MassiveType mtype )
 {
 	massivetype = mtype;
 
@@ -154,16 +262,27 @@ void cMoving_Platform :: Set_Massivetype( MassiveType mtype )
 	Create_Name();
 }
 
-void cMoving_Platform :: Set_Direction( ObjectDirection dir )
+void cMoving_Platform :: Set_Direction( ObjectDirection dir, bool new_start_direction /* = 0 */ )
 {
-	// already set
-	if( start_direction == dir )
+	cImageObjectSprite::Set_Direction( dir, new_start_direction );
+
+	if( new_start_direction )
 	{
-		return;
+		// changed direction
+		if( dir != start_direction )
+		{
+			// set back start position
+			Set_Pos( startposx, startposy );
+			// reset velocity
+			Set_Velocity( 0, 0 );
+		}
+
+		// update name
+		Create_Name();
 	}
 
-	cImageObjectSprite::Set_Direction( dir, 1 );
-	Create_Name();
+	// Set new velocity
+	Update_Velocity();
 }
 
 void cMoving_Platform :: Set_Max_Distance( int nmax_distance )
@@ -180,10 +299,49 @@ void cMoving_Platform :: Set_Speed( float val )
 {
 	speed = val;
 
-	if( speed < 0 )
+	// set velocity
+	Update_Velocity();
+
+	Create_Name();
+}
+
+void cMoving_Platform :: Set_Touch_Time( float val )
+{
+	touch_time = val;
+
+	if( touch_time < 0 )
 	{
-		speed = 0;
+		touch_time = 0;
 	}
+
+	Create_Name();
+}
+
+void cMoving_Platform :: Set_Shake_Time( float val )
+{
+	shake_time = val;
+
+	if( shake_time < 0 )
+	{
+		shake_time = 0;
+	}
+}
+
+void cMoving_Platform :: Set_Touch_Move_Time( float val )
+{
+	touch_move_time = val;
+
+	if( touch_move_time < 0 )
+	{
+		touch_move_time = 0;
+	}
+
+	// set back start position
+	Set_Pos( startposx, startposy );
+	// reset velocity
+	Set_Velocity( 0, 0 );
+
+	Create_Name();
 }
 
 void cMoving_Platform :: Set_Middle_Count( int val )
@@ -196,7 +354,7 @@ void cMoving_Platform :: Set_Middle_Count( int val )
 	}
 }
 
-void cMoving_Platform :: Set_image_top_left( GL_Surface *surface )
+void cMoving_Platform :: Set_Image_Top_Left( GL_Surface *surface )
 {
 	if( !surface )
 	{
@@ -204,10 +362,10 @@ void cMoving_Platform :: Set_image_top_left( GL_Surface *surface )
 	}
 
 	images[0] = surface;
-	Update_rect();
+	Update_Rect();
 }
 
-void cMoving_Platform :: Set_image_top_middle( GL_Surface *surface )
+void cMoving_Platform :: Set_Image_Top_Middle( GL_Surface *surface )
 {
 	if( !surface )
 	{
@@ -215,10 +373,14 @@ void cMoving_Platform :: Set_image_top_middle( GL_Surface *surface )
 	}
 
 	images[1] = surface;
-	Update_rect();
+
+	// middle image sets main image
+	curr_img = -1;
+	Set_Image( 1, 1 );
+	Update_Rect();
 }
 
-void cMoving_Platform :: Set_image_top_right( GL_Surface *surface )
+void cMoving_Platform :: Set_Image_Top_Right( GL_Surface *surface )
 {
 	if( !surface )
 	{
@@ -226,7 +388,7 @@ void cMoving_Platform :: Set_image_top_right( GL_Surface *surface )
 	}
 
 	images[2] = surface;
-	Update_rect();
+	Update_Rect();
 }
 
 void cMoving_Platform :: Update( void )
@@ -236,44 +398,220 @@ void cMoving_Platform :: Update( void )
 		return;
 	}
 
-	if( direction == DIR_UP )
+	// move time should be smaller than touch time because it should
+	// start moving (if it is moving) before shaking starts.
+	// if larger than touch time then the platform state will change 
+	// and touch_counter will never be more than move_time
+	if( touch_time || touch_move_time )
 	{
-		velx = 0;
-		vely = -speed;
-
-		if( posy - startposy < 0 )
+		if( platform_state == PLATFORM_TOUCHED )
 		{
-			direction = DIR_DOWN;
+			touch_counter += pFramerate->speedfactor;
 		}
 	}
-	else if( direction == DIR_DOWN )
-	{
-		velx = 0;
-		vely = speed;
 
-		if( posy - startposy > max_distance )
+	// if able to fall
+	if( touch_time )
+	{
+		if( platform_state == PLATFORM_TOUCHED && touch_counter > touch_time )
 		{
-			direction = DIR_UP;
+			platform_state = PLATFORM_SHAKE;
+		}
+		else if( platform_state == PLATFORM_SHAKE )
+		{
+			shake_dir_counter += pFramerate->speedfactor;
+
+			// move into opposite direction
+			if( shake_dir_counter > 0.8f )
+			{
+				float move_x = 0;
+				if( posx > startposx )
+				{
+					move_x = -3;
+				}
+				else
+				{
+					move_x = 3;
+				}
+
+				// move
+				col_pos.x -= move_x;
+				Move( move_x, 0, 1 );
+
+				shake_dir_counter = 0;
+			}
+
+			shake_counter += pFramerate->speedfactor;
+
+			if( shake_counter > shake_time )
+			{
+				platform_state = PLATFORM_FALL;
+			}
+		}
+		else if( platform_state == PLATFORM_FALL )
+		{
+			if( vely < 25 )
+			{
+				vely += 2.1f * pFramerate->speedfactor;
+
+				// limit falling velocity
+				if( vely > 25 )
+				{
+					vely = 25;
+				}
+			}
+
+			// drop objects when falling fast
+			if( can_be_ground && vely > 15 )
+			{
+				can_be_ground = 0;
+			}
+
+			if( posx > startposx )
+			{
+				Add_Rotation_Z( 1.5f );
+			}
+			else
+			{
+				Add_Rotation_Z( -1.5f );
+			}
+
+			// below screen
+			if( col_rect.y + col_rect.h > pActive_Camera->limit_rect.y + game_res_h )
+			{
+				platform_state = PLATFORM_STAY;
+				Set_Visible( 0 );
+			}
 		}
 	}
-	else if( direction == DIR_LEFT )
-	{
-		velx = -speed;
-		vely = 0;
 
-		if( posx - startposx < 0 )
+	// if moving
+	if( speed && platform_state != PLATFORM_FALL && ( !touch_move_time || touch_counter > touch_move_time ) )
+	{
+		// distance to final position
+		float dist_to_final_pos = 0;
+
+		if( direction == DIR_LEFT )
 		{
-			direction = DIR_RIGHT;
+			dist_to_final_pos = 0 - ( startposx - posx );
 		}
-	}
-	else if( direction == DIR_RIGHT )
-	{
-		velx = speed;
-		vely = 0;
-
-		if( posx - startposx > max_distance )
+		else if( direction == DIR_RIGHT )
 		{
-			direction = DIR_LEFT;
+			dist_to_final_pos = max_distance + ( startposx - posx );
+		}
+		else if( direction == DIR_UP )
+		{
+			dist_to_final_pos = 0 - ( startposy - posy );
+		}
+		else if( direction == DIR_DOWN )
+		{
+			dist_to_final_pos = max_distance + ( startposy - posy );
+		}
+
+		// reached final position
+		if( dist_to_final_pos <= 0 )
+		{
+			// unset velocity
+			Set_Velocity( 0, 0 );
+			// set new direction
+			Set_Direction( Get_Opposite_Direction( direction ) );
+		}
+		// slow down near final position
+		else if( dist_to_final_pos < max_distance * 0.2f )
+		{
+			if( direction == DIR_DOWN )
+			{
+				if( vely > 0 )
+				{
+					// slow down
+					if( vely > speed * 0.3f )
+					{
+						vely *= 1 - ( 0.05f * pFramerate->speedfactor );
+
+						// reached lowest value
+						if( vely <= speed * 0.3f )
+						{
+							vely = speed * 0.3f;
+						}
+					}
+				}
+				else
+				{
+					// set lowest value
+					vely = speed * 0.3f;
+				}
+			}
+			else if( direction == DIR_UP )
+			{
+				if( vely < 0 )
+				{
+					// slow down
+					if( vely < -speed * 0.3f )
+					{
+						vely *= 1 - ( 0.05f * pFramerate->speedfactor );
+
+						// reached lowest value
+						if( vely >= -speed * 0.3f )
+						{
+							vely = -speed * 0.3f;
+						}
+					}
+				}
+				else
+				{
+					// set lowest value
+					vely = -speed * 0.3f;
+				}
+			}
+			else if( direction == DIR_LEFT )
+			{
+				if( velx < 0 )
+				{
+					// slow down
+					if( velx < -speed * 0.3f )
+					{
+						velx *= 1 - ( 0.05f * pFramerate->speedfactor );
+
+						// reached lowest value
+						if( velx >= -speed * 0.3f )
+						{
+							velx = -speed * 0.3f;
+						}
+					}
+				}
+				else
+				{
+					// set lowest value
+					velx = -speed * 0.3f;
+				}
+			}
+			else if( direction == DIR_RIGHT )
+			{
+				if( velx > 0 )
+				{
+					// slow down
+					if( velx > speed * 0.3f )
+					{
+						velx *= 1 - ( 0.05f * pFramerate->speedfactor );
+
+						// reached lowest value
+						if( velx <= speed * 0.3f )
+						{
+							velx = speed * 0.3f;
+						}
+					}
+				}
+				else
+				{
+					// set lowest value
+					velx = speed * 0.3f;
+				}
+			}
+		}
+		// not near final position
+		else
+		{
+			Update_Velocity();
 		}
 	}
 }
@@ -285,76 +623,145 @@ void cMoving_Platform :: Draw( cSurfaceRequest *request /* = NULL */ )
 		return;
 	}
 
-	// todo : update & optimize
-	float x = posx;
-	float startx = startposx;
+	cSurfaceRequest *surface_request;
+	float x = 0;
 
-	// Start
-	Set_Image( 0, 1, 0 );
-	cImageObjectSprite::Draw( request );
-	posx += Get_Image( 0 )->w;
-	startposx += Get_Image( 0 )->w;
-	Update_Position_Rect();
-
-	// Middle
-	Set_Image( 1, 1, 0 );
-	for( unsigned int i = 0; i < middle_count; i++ )
+	// top left
+	if( images[0] )
 	{
-		cImageObjectSprite::Draw();
-		posx += Get_Image( 1 )->w;
-		startposx += Get_Image( 1 )->w;
-		Update_Position_Rect();
+		// Start
+		image = images[0];
+		start_image = images[0];
+		// create request
+
+		surface_request = new cSurfaceRequest();
+		// draw only first image complete
+		cImageObjectSprite::Draw( surface_request );
+		surface_request->pos_x += x;
+		x += images[0]->w;
+		// add request
+		pRenderer->Add( surface_request );
 	}
 
-	// End
-	Set_Image( 2, 1, 0 );
-	cImageObjectSprite::Draw();
+	// top middle
+	if( images[1] )
+	{
+		// Middle
+		image = images[1];
+		start_image = images[1];
+		for( unsigned int i = 0; i < middle_count; i++ )
+		{
+			// create request
+			surface_request = new cSurfaceRequest();
+			cImageObjectSprite::Draw_Image( surface_request);
+			surface_request->pos_x += x;
+			x += images[1]->w;
+			// add request
+			pRenderer->Add( surface_request );
+		}
+	}
 
-	posx = x;
-	startposx = startx;
+	// top right
+	if( images[2] )
+	{
+		// End
+		image = images[2];
+		start_image = images[2];
+		// create request
+		surface_request = new cSurfaceRequest();
+		cImageObjectSprite::Draw_Image( surface_request );
+		surface_request->pos_x += x;
+		//x += images[2]->w;
+		// add request
+		pRenderer->Add( surface_request );
+	}
 
-	Update_rect();
+	Update_Rect();
 	Update_Position_Rect();
 
 	// draw distance rect
-	if( editor_level_enabled )
+	if( editor_level_enabled && speed )
 	{
-		if( direction == DIR_RIGHT || direction == DIR_LEFT )
-	    {
-            pVideo->Draw_Rect( startposx - pCamera->x, startposy - pCamera->y, max_distance + col_rect.w, 15, posz - 0.000001f, &whitealpha128 );
-	    }
-		else if( direction == DIR_DOWN || direction == DIR_UP )
-	    {
-            pVideo->Draw_Rect( startposx - pCamera->x, startposy - pCamera->y, 15, max_distance + col_rect.h, posz - 0.000001f, &whitealpha128 );
-	    }
+		if( start_direction == DIR_RIGHT || start_direction == DIR_LEFT )
+		{
+			pVideo->Draw_Rect( startposx - pActive_Camera->x, startposy - pActive_Camera->y, max_distance + col_rect.w, 15, posz - 0.000001f, &whitealpha128 );
+		}
+		else if( start_direction == DIR_DOWN || start_direction == DIR_UP )
+		{
+			pVideo->Draw_Rect( startposx - pActive_Camera->x, startposy - pActive_Camera->y, 15, max_distance + col_rect.h, posz - 0.000001f, &whitealpha128 );
+		}
 	}
 }
 
-void cMoving_Platform :: Update_rect( void )
+void cMoving_Platform :: Update_Rect( void )
 {
+	// clear
 	col_rect.w = 0;
 	rect.w = 0;
+
+	// get width
 	if( images[0] )
 	{
-		col_rect.w += images[0]->col_w;
 		rect.w += images[0]->w;
 	}
 	if( images[1] )
 	{
-		col_rect.w += images[1]->col_w * middle_count;
 		rect.w += images[1]->w * middle_count;
 	}
 	if( images[2] )
 	{
-		col_rect.w += images[2]->col_w;
 		rect.w += images[2]->w;
 	}
 
+	// set width
+	col_rect.w = rect.w;
 	start_rect.w = rect.w;
 }
 
-bool cMoving_Platform :: is_Update_valid( void )
+void cMoving_Platform :: Update_Velocity( void )
 {
+	// set velocity
+	if( speed > 0 && ( !touch_move_time || touch_counter > touch_move_time ) )
+	{
+		if( direction == DIR_UP )
+		{
+			if( vely > -speed )
+			{
+				vely += -speed * 0.1f * pFramerate->speedfactor;
+			}
+		}
+		else if( direction == DIR_DOWN )
+		{
+			if( vely < speed )
+			{
+				vely += speed * 0.1f * pFramerate->speedfactor;
+			}
+		}
+		else if( direction == DIR_LEFT )
+		{
+			if( velx > -speed )
+			{
+				velx += -speed * 0.1f * pFramerate->speedfactor;
+			}
+		}
+		else if( direction == DIR_RIGHT )
+		{
+			if( velx < speed )
+			{
+				velx += speed * 0.1f * pFramerate->speedfactor;
+			}
+		}
+	}
+	else
+	{
+		// unset velocity
+		Set_Velocity( 0, 0 );
+	}
+}
+
+bool cMoving_Platform :: Is_Update_Valid( void )
+{
+	// if not visible
 	if( !visible )
 	{
 		return 0;
@@ -370,13 +777,26 @@ unsigned int cMoving_Platform :: Validate_Collision( cSprite *obj )
 		cMovingSprite *moving_sprite = static_cast<cMovingSprite *>(obj);
 
 		// don't handle if not moving upwards or slower
-		if( moving_sprite->is_onTop( this ) && direction == DIR_UP && moving_sprite->vely > vely )
+		if( moving_sprite->Is_on_Top( this ) && direction == DIR_UP && moving_sprite->vely > vely )
 		{
-			// halfmassive only if no ground but massive always picks you up
-			if( ( massivetype == MASS_HALFMASSIVE && !moving_sprite->ground_object ) ||
-				 ( massivetype == MASS_MASSIVE && moving_sprite->ground_object != this ) )
+			// halfmassive
+			if( massivetype == MASS_HALFMASSIVE )
 			{
-				return 1;
+				// only if no ground
+				if( !moving_sprite->ground_object )
+				{
+					return 2;
+				}
+			}
+			// massive
+			else if( massivetype == MASS_MASSIVE )
+			{
+				// always pick up
+				if( moving_sprite->ground_object != this )
+				{
+					moving_sprite->ground_object = this;
+					return 0;
+				}
 			}
 		}
 
@@ -384,9 +804,9 @@ unsigned int cMoving_Platform :: Validate_Collision( cSprite *obj )
 	}
 	if( obj->type == TYPE_BALL )
 	{
-		if( obj->is_onTop( this ) )
+		if( obj->Is_on_Top( this ) )
 		{
-			obj->Set_onTop( this, 0 );
+			obj->Set_on_Top( this, 0 );
 
 			return 1;
 		}
@@ -404,126 +824,194 @@ void cMoving_Platform :: Handle_Collision_Player( cObjectCollision *collision )
 		// send collision
 		Send_Collision( collision );
 	}
+
+	if( collision->direction == DIR_TOP )
+	{
+		if( ( touch_time || touch_move_time ) && platform_state == PLATFORM_STAY )
+		{
+			platform_state = PLATFORM_TOUCHED;
+		}
+
+	}
 }
 
 void cMoving_Platform :: Editor_Activate( void )
 {
-	WindowManager &wmgr = WindowManager::getSingleton();
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
 	// max distance
-	Editbox *editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_max_distance" ));
+	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_max_distance" ));
+	Editor_Add( UTF8_("Distance"), UTF8_("Movable distance into its direction"), editbox, 120 );
 
-	Editor_Add( editbox, 120 );
-	editbox->setTooltipText( "Max Distance" );
 	editbox->setText( int_to_string( max_distance ) );
-	editbox->subscribeEvent( Editbox::EventTextChanged, Event::Subscriber( &cMoving_Platform::Editor_Max_Distance_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Max_Distance_Key, this ) );
 
 	// speed
-	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_speed" ));
-	editbox->setTooltipText( "Speed" );
-	Editor_Add( editbox, 120 );
+	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_speed" ));
+	Editor_Add( UTF8_("Speed"), UTF8_("Maximum speed"), editbox, 120 );
 
 	editbox->setText( float_to_string( speed ) );
-	editbox->subscribeEvent( Editbox::EventTextChanged, Event::Subscriber( &cMoving_Platform::Editor_Speed_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Speed_Key, this ) );
+
+	// touch time
+	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_touch_time" ));
+	Editor_Add( UTF8_("Touch time"), UTF8_("Time when touched until shaking starts"), editbox, 120 );
+
+	editbox->setText( float_to_string( touch_time ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Touch_Time_Key, this ) );
+
+	// shake time
+	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_shake_time" ));
+	Editor_Add( UTF8_("Shake time"), UTF8_("Time it's shaking until falling"), editbox, 120 );
+
+	editbox->setText( float_to_string( shake_time ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Shake_Time_Key, this ) );
+
+	// touch move time
+	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_move_time" ));
+	Editor_Add( UTF8_("Touch move time"), UTF8_("If set does not move until this time has elapsed after touched"), editbox, 120 );
+
+	editbox->setText( float_to_string( touch_move_time ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Touch_Move_Time_Key, this ) );
 
 	// horizontal middle image count
-	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_hor_middle_count" ));
-	editbox->setTooltipText( "Horizontal Middle Image Count" );
-	Editor_Add( editbox, 120 );
+	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_hor_middle_count" ));
+	Editor_Add( UTF8_("Hor image count"), UTF8_("Horizontal middle image count"), editbox, 120 );
 
 	editbox->setText( int_to_string( middle_count ) );
-	editbox->subscribeEvent( Editbox::EventTextChanged, Event::Subscriber( &cMoving_Platform::Editor_Hor_Middle_Count_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Hor_Middle_Count_Key, this ) );
 
 	// image top left
-	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_image_top_left" ));
-	editbox->setTooltipText( "Image Top Left" );
-	Editor_Add( editbox, 200 );
+	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_image_top_left" ));
+	Editor_Add( UTF8_("Image top left"), UTF8_("Image top left"), editbox, 200 );
 
-	editbox->setText( images[0]->Get_filename( 1 ) );
-	editbox->subscribeEvent( Editbox::EventTextChanged, Event::Subscriber( &cMoving_Platform::Editor_Image_Top_Left_Key, this ) );
+	editbox->setText( images[0]->Get_Filename( 1 ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Image_Top_Left_Key, this ) );
 
 	// image top middle
-	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_image_top_middle" ));
-	editbox->setTooltipText( "Image Top Middle" );
-	Editor_Add( editbox, 200 );
+	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_image_top_middle" ));
+	Editor_Add( UTF8_("Image top middle"), UTF8_("Image top middle"), editbox, 200 );
 
-	editbox->setText( images[1]->Get_filename( 1 ) );
-	editbox->subscribeEvent( Editbox::EventTextChanged, Event::Subscriber( &cMoving_Platform::Editor_Image_Top_Middle_Key, this ) );
+	editbox->setText( images[1]->Get_Filename( 1 ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Image_Top_Middle_Key, this ) );
 
 	// image top right
-	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_image_top_right" ));
-	editbox->setTooltipText( "Image Top Right" );
-	Editor_Add( editbox, 200 );
+	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_image_top_right" ));
+	Editor_Add( UTF8_("Image top right"), UTF8_("Image top right"), editbox, 200 );
 
-	editbox->setText( images[2]->Get_filename( 1 ) );
-	editbox->subscribeEvent( Editbox::EventTextChanged, Event::Subscriber( &cMoving_Platform::Editor_Image_Top_Right_Key, this ) );
+	editbox->setText( images[2]->Get_Filename( 1 ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Image_Top_Right_Key, this ) );
 
-
-	// set position
-	Editor_pos_update();
+	// init
+	Editor_Init();
 }
 
-bool cMoving_Platform :: Editor_Max_Distance_Key( const EventArgs &event )
+bool cMoving_Platform :: Editor_Max_Distance_Key( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Max_Distance( string_to_int( str_text ) );
 
 	return 1;
 }
 
-bool cMoving_Platform :: Editor_Speed_Key( const EventArgs &event )
+bool cMoving_Platform :: Editor_Speed_Key( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Speed( string_to_float( str_text ) );
 
 	return 1;
 }
 
-bool cMoving_Platform :: Editor_Hor_Middle_Count_Key( const EventArgs &event )
+bool cMoving_Platform :: Editor_Touch_Time_Key( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+
+	Set_Touch_Time( string_to_float( str_text ) );
+
+	return 1;
+}
+
+bool cMoving_Platform :: Editor_Shake_Time_Key( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+
+	Set_Shake_Time( string_to_float( str_text ) );
+
+	return 1;
+}
+
+bool cMoving_Platform :: Editor_Touch_Move_Time_Key( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+
+	Set_Touch_Move_Time( string_to_float( str_text ) );
+
+	return 1;
+}
+
+bool cMoving_Platform :: Editor_Hor_Middle_Count_Key( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Middle_Count( string_to_int( str_text ) );
 
 	return 1;
 }
 
-bool cMoving_Platform :: Editor_Image_Top_Left_Key( const EventArgs &event )
+bool cMoving_Platform :: Editor_Image_Top_Left_Key( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
-	Set_image_top_left( pVideo->Get_Surface( str_text ) );
+	Set_Image_Top_Left( pVideo->Get_Surface( str_text ) );
 
 	return 1;
 }
 
-bool cMoving_Platform :: Editor_Image_Top_Middle_Key( const EventArgs &event )
+bool cMoving_Platform :: Editor_Image_Top_Middle_Key( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
-	Set_image_top_middle( pVideo->Get_Surface( str_text ) );
+	Set_Image_Top_Middle( pVideo->Get_Surface( str_text ) );
 
 	return 1;
 }
 
-bool cMoving_Platform :: Editor_Image_Top_Right_Key( const EventArgs &event )
+bool cMoving_Platform :: Editor_Image_Top_Right_Key( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
-	Set_image_top_right( pVideo->Get_Surface( str_text ) );
+	Set_Image_Top_Right( pVideo->Get_Surface( str_text ) );
 
 	return 1;
 }
 
 void cMoving_Platform :: Create_Name( void )
 {
-	name = "Moving Platform - " + Get_Direction_name( start_direction ) + " - " + Get_Massivetype_name( massivetype );
+	name.clear();
+
+	if( touch_time )
+	{
+		name = _("Falling ");
+	}
+	if( touch_move_time )
+	{
+		name += _("Delayed ");
+	}
+	if( speed )
+	{
+		name += _("Moving ");
+	}
+
+	name += _("Platform - ") + Get_Direction_Name( start_direction ) + " - " + Get_Massive_Type_Name( massivetype );
 }

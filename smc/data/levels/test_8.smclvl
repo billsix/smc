@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.3" />
-		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1193112973" />
+		<Property name="game_version" value="1.6" />
+		<Property name="engine_version" value="2.8" />
+		<Property name="save_time" value="1220262933" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="WeirdNose" />
@@ -37,7 +37,7 @@
 		<Property name="direction" value="right" />
 	</player>
 	<sprite>
-		<Property name="posx" value="900" />
+		<Property name="posx" value="894" />
 		<Property name="posy" value="189" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
@@ -242,12 +242,15 @@
 		<Property name="gold_color" value="yellow" />
 	</box>
 	<moving_platform>
-		<Property name="posx" value="558" />
-		<Property name="posy" value="158" />
+		<Property name="posx" value="570" />
+		<Property name="posy" value="57" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="down" />
-		<Property name="max_distance" value="350" />
+		<Property name="max_distance" value="250" />
 		<Property name="speed" value="3" />
+		<Property name="touch_time" value="0" />
+		<Property name="shake_time" value="16" />
+		<Property name="touch_move_time" value="0" />
 		<Property name="middle_img_count" value="2" />
 		<Property name="image_top_left" value="slider/grey_1/slider_left.png" />
 		<Property name="image_top_middle" value="slider/grey_1/slider_middle.png" />
@@ -267,15 +270,21 @@
 		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="-1" />
 	</box>
-	<falling_platform>
+	<moving_platform>
 		<Property name="posx" value="948" />
 		<Property name="posy" value="-6" />
-		<Property name="time_fall" value="1.5" />
+		<Property name="massive_type" value="halfmassive" />
+		<Property name="direction" value="right" />
+		<Property name="max_distance" value="150" />
+		<Property name="speed" value="0" />
+		<Property name="touch_time" value="48" />
+		<Property name="shake_time" value="12" />
+		<Property name="touch_move_time" value="0" />
 		<Property name="middle_img_count" value="2" />
 		<Property name="image_top_left" value="slider/grey_1/slider_left.png" />
 		<Property name="image_top_middle" value="slider/grey_1/slider_middle.png" />
 		<Property name="image_top_right" value="slider/grey_1/slider_right.png" />
-	</falling_platform>
+	</moving_platform>
 	<sprite>
 		<Property name="posx" value="1577" />
 		<Property name="posy" value="536" />
@@ -295,7 +304,7 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="2153" />
+		<Property name="posx" value="2281" />
 		<Property name="posy" value="536" />
 		<Property name="image" value="ground/desert_1/ground/top/right.png" />
 		<Property name="type" value="massive" />
@@ -341,11 +350,11 @@
 		<Property name="posy" value="511" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="2231" />
-		<Property name="posy" value="503" />
+		<Property name="posx" value="2346" />
+		<Property name="posy" value="521" />
 	</enemystopper>
 	<sprite>
-		<Property name="posx" value="996" />
+		<Property name="posx" value="991" />
 		<Property name="posy" value="487" />
 		<Property name="image" value="pipes/blue/up.png" />
 		<Property name="type" value="massive" />
@@ -354,7 +363,6 @@
 		<Property name="posx" value="1035" />
 		<Property name="posy" value="484" />
 		<Property name="type" value="1" />
-		<Property name="level_name" value="test_8" />
 		<Property name="entry" value="one" />
 		<Property name="direction" value="down" />
 	</levelexit>
@@ -365,37 +373,37 @@
 		<Property name="name" value="one" />
 	</level_entry>
 	<sprite>
-		<Property name="posx" value="2050" />
+		<Property name="posx" value="2044" />
 		<Property name="posy" value="-364" />
 		<Property name="image" value="pipes/blue/up.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="725" />
-		<Property name="posy" value="316" />
+		<Property name="posy" value="310" />
 		<Property name="image" value="pipes/blue/right.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="675" />
-		<Property name="posy" value="316" />
+		<Property name="posy" value="310" />
 		<Property name="image" value="pipes/blue/hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1245" />
-		<Property name="posy" value="201" />
+		<Property name="posy" value="195" />
 		<Property name="image" value="pipes/blue/hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1195" />
-		<Property name="posy" value="201" />
+		<Property name="posy" value="195" />
 		<Property name="image" value="pipes/blue/left.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="900" />
+		<Property name="posx" value="894" />
 		<Property name="posy" value="239" />
 		<Property name="image" value="pipes/blue/down.png" />
 		<Property name="type" value="massive" />
@@ -427,103 +435,103 @@
 		<Property name="text" value="             --  New Text Box --&lt;br/&gt;&lt;br/&gt;Bla blabla  BLA!&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;with word wrap : blabalabalalabaabababallaaaaaa ... bla ?&lt;br/&gt; BLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA o.0&lt;br/&gt;&lt;br/&gt;1234567890 #+.,?!&lt;&gt;|;:&apos;*&lt;br/&gt;&lt;br/&gt;text1&lt;br/&gt;&lt;br/&gt;text2&lt;br/&gt;&lt;br/&gt;text3&lt;br/&gt;&lt;br/&gt;text 2007 DX&lt;br/&gt;&lt;br/&gt;&lt;br/&gt;SMC 1.0 !!!!!!!!!!!!!!111one!2!!!!&lt;br/&gt;" />
 	</box>
 	<sprite>
-		<Property name="posx" value="2050" />
+		<Property name="posx" value="2044" />
 		<Property name="posy" value="-314" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="2050" />
+		<Property name="posx" value="2044" />
 		<Property name="posy" value="-264" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="2050" />
+		<Property name="posx" value="2044" />
 		<Property name="posy" value="-214" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="2050" />
+		<Property name="posx" value="2044" />
 		<Property name="posy" value="-164" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="2050" />
+		<Property name="posx" value="2044" />
 		<Property name="posy" value="-114" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="2050" />
+		<Property name="posx" value="2044" />
 		<Property name="posy" value="-64" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="2050" />
+		<Property name="posx" value="2044" />
 		<Property name="posy" value="-14" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="2050" />
+		<Property name="posx" value="2044" />
 		<Property name="posy" value="36" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="2050" />
+		<Property name="posx" value="2044" />
 		<Property name="posy" value="86" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="2050" />
+		<Property name="posx" value="2044" />
 		<Property name="posy" value="136" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="2050" />
+		<Property name="posx" value="2044" />
 		<Property name="posy" value="186" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="2050" />
+		<Property name="posx" value="2044" />
 		<Property name="posy" value="236" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="2050" />
+		<Property name="posx" value="2044" />
 		<Property name="posy" value="286" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="2050" />
+		<Property name="posx" value="2044" />
 		<Property name="posy" value="336" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="2050" />
+		<Property name="posx" value="2044" />
 		<Property name="posy" value="386" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="2050" />
+		<Property name="posx" value="2044" />
 		<Property name="posy" value="436" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="2050" />
+		<Property name="posx" value="2044" />
 		<Property name="posy" value="486" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
@@ -540,50 +548,147 @@
 	</box>
 	<sprite>
 		<Property name="posx" value="670" />
-		<Property name="posy" value="477" />
+		<Property name="posy" value="438" />
 		<Property name="image" value="pipes/green/right.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="620" />
-		<Property name="posy" value="477" />
+		<Property name="posy" value="438" />
 		<Property name="image" value="pipes/green/hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="570" />
-		<Property name="posy" value="477" />
+		<Property name="posy" value="438" />
 		<Property name="image" value="pipes/green/hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="488" />
+		<Property name="posx" value="482" />
 		<Property name="posy" value="513" />
 		<Property name="image" value="pipes/green/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="488" />
+		<Property name="posx" value="482" />
 		<Property name="posy" value="463" />
 		<Property name="image" value="pipes/green/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="488" />
+		<Property name="posx" value="482" />
 		<Property name="posy" value="413" />
 		<Property name="image" value="pipes/green/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="488" />
+		<Property name="posx" value="482" />
 		<Property name="posy" value="563" />
 		<Property name="image" value="pipes/green/ver.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="488" />
+		<Property name="posx" value="482" />
 		<Property name="posy" value="363" />
 		<Property name="image" value="pipes/green/up.png" />
 		<Property name="type" value="massive" />
 	</sprite>
+	<enemy>
+		<Property name="type" value="static" />
+		<Property name="posx" value="986" />
+		<Property name="posy" value="190" />
+		<Property name="rotation_speed" value="2.5" />
+		<Property name="image" value="enemy/static/blocks/spike_1/1_grey.png" />
+	</enemy>
+	<moving_platform>
+		<Property name="posx" value="1411" />
+		<Property name="posy" value="267" />
+		<Property name="massive_type" value="halfmassive" />
+		<Property name="direction" value="down" />
+		<Property name="max_distance" value="300" />
+		<Property name="speed" value="3" />
+		<Property name="touch_time" value="0" />
+		<Property name="shake_time" value="16" />
+		<Property name="touch_move_time" value="20" />
+		<Property name="middle_img_count" value="3" />
+		<Property name="image_top_left" value="slider/grey_1/slider_left.png" />
+		<Property name="image_top_middle" value="slider/grey_1/slider_middle.png" />
+		<Property name="image_top_right" value="slider/grey_1/slider_right.png" />
+	</moving_platform>
+	<particle_emitter>
+		<Property name="file" value="animation/particles/light.png" />
+		<Property name="pos_z" value="0.07" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="1010" />
+		<Property name="pos_y" value="495" />
+		<Property name="size_x" value="60" />
+		<Property name="size_y" value="10" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="1" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="4" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="2" />
+		<Property name="angle_start" value="260" />
+		<Property name="angle_range" value="20" />
+		<Property name="size_scale" value="0.2" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<sprite>
+		<Property name="posx" value="2155" />
+		<Property name="posy" value="486" />
+		<Property name="image" value="pipes/blue/up.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="2153" />
+		<Property name="posy" value="536" />
+		<Property name="image" value="ground/desert_1/ground/top/1.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="2217" />
+		<Property name="posy" value="536" />
+		<Property name="image" value="ground/desert_1/ground/top/2.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<levelexit>
+		<Property name="posx" value="2200" />
+		<Property name="posy" value="483" />
+		<Property name="type" value="1" />
+		<Property name="level_name" value="test_7" />
+		<Property name="entry" value="one" />
+		<Property name="direction" value="down" />
+	</levelexit>
+	<levelexit>
+		<Property name="posx" value="713" />
+		<Property name="posy" value="477" />
+		<Property name="type" value="1" />
+		<Property name="entry" value="one" />
+		<Property name="direction" value="left" />
+	</levelexit>
+	<box>
+		<Property name="posx" value="1154" />
+		<Property name="posy" value="296" />
+		<Property name="type" value="text" />
+		<Property name="invisible" value="1" />
+		<Property name="useable_count" value="-1" />
+		<Property name="text" value="invisible test&lt;br/&gt;" />
+	</box>
 </level>

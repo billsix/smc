@@ -11,6 +11,8 @@
 			<xsd:element name="waypoint" type="PropertyType" maxOccurs="unbounded"/>
 			<xsd:element name="player" type="PropertyType" minOccurs="0" maxOccurs="1"/>
 			<xsd:element name="background" type="PropertyType" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="sound" type="PropertyType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="particle_emitter" type="PropertyType" minOccurs="0" maxOccurs="unbounded"/>
 		</xsd:choice>
 	</xsd:complexType>
 

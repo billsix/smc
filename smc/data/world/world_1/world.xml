@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <overworld>
 	<information>
-		<Property name="game_version" value="1.3" />
+		<Property name="game_version" value="1.5" />
 		<Property name="engine_version" value="1" />
-		<Property name="save_time" value="1194275237" />
+		<Property name="save_time" value="1203181264" />
 	</information>
 	<settings>
 		<Property name="music" value="overworld/land_1.ogg" />
@@ -17,6 +17,42 @@
 		<Property name="waypoint" value="0" />
 		<Property name="moving_state" value="0" />
 	</player>
+	<sprite>
+		<Property name="posx" value="534" />
+		<Property name="posy" value="132" />
+		<Property name="image" value="world/way/yellow_1/leftright.png" />
+		<Property name="type" value="passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="650" />
+		<Property name="posy" value="132" />
+		<Property name="image" value="world/way/yellow_1/leftright.png" />
+		<Property name="type" value="passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="592" />
+		<Property name="posy" value="132" />
+		<Property name="image" value="world/way/yellow_1/point.png" />
+		<Property name="type" value="passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="632" />
+		<Property name="posy" value="-49" />
+		<Property name="image" value="world/way/yellow_1/leftright.png" />
+		<Property name="type" value="passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="422" />
+		<Property name="posy" value="-46" />
+		<Property name="image" value="world/way/yellow_1/leftright.png" />
+		<Property name="type" value="passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="485" />
+		<Property name="posy" value="-46" />
+		<Property name="image" value="world/way/yellow_1/leftright.png" />
+		<Property name="type" value="passive" />
+	</sprite>
 	<sprite>
 		<Property name="posx" value="800" />
 		<Property name="posy" value="177" />
@@ -32,12 +68,6 @@
 	<sprite>
 		<Property name="posx" value="450" />
 		<Property name="posy" value="130" />
-		<Property name="image" value="world/way/yellow_1/leftright.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="534" />
-		<Property name="posy" value="132" />
 		<Property name="image" value="world/way/yellow_1/leftright.png" />
 		<Property name="type" value="passive" />
 	</sprite>
@@ -72,12 +102,6 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="592" />
-		<Property name="posy" value="132" />
-		<Property name="image" value="world/way/yellow_1/point.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
 		<Property name="posx" value="523" />
 		<Property name="posy" value="23" />
 		<Property name="image" value="world/objects/plants/green_1.png" />
@@ -90,20 +114,8 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="650" />
-		<Property name="posy" value="132" />
-		<Property name="image" value="world/way/yellow_1/leftright.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
 		<Property name="posx" value="435" />
 		<Property name="posy" value="418" />
-		<Property name="image" value="world/way/yellow_1/point.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="739" />
-		<Property name="posy" value="129" />
 		<Property name="image" value="world/way/yellow_1/point.png" />
 		<Property name="type" value="passive" />
 	</sprite>
@@ -379,12 +391,6 @@
 	</sprite>
 	<sprite>
 		<Property name="posx" value="639" />
-		<Property name="posy" value="416" />
-		<Property name="image" value="world/way/yellow_1/point.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="639" />
 		<Property name="posy" value="317" />
 		<Property name="image" value="world/way/yellow_1/point.png" />
 		<Property name="type" value="passive" />
@@ -639,12 +645,6 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="422" />
-		<Property name="posy" value="-46" />
-		<Property name="image" value="world/way/yellow_1/leftright.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
 		<Property name="posx" value="568" />
 		<Property name="posy" value="-49" />
 		<Property name="image" value="world/way/yellow_1/leftright.png" />
@@ -660,18 +660,6 @@
 		<Property name="posx" value="660" />
 		<Property name="posy" value="-48" />
 		<Property name="image" value="world/way/yellow_1/point.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="485" />
-		<Property name="posy" value="-46" />
-		<Property name="image" value="world/way/yellow_1/leftright.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="632" />
-		<Property name="posy" value="-49" />
-		<Property name="image" value="world/way/yellow_1/leftright.png" />
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
@@ -792,6 +780,18 @@
 		<Property name="posx" value="741" />
 		<Property name="posy" value="-55" />
 		<Property name="image" value="world/objects/stone/stone.png" />
+		<Property name="type" value="passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="639" />
+		<Property name="posy" value="416" />
+		<Property name="image" value="world/way/yellow_1/point.png" />
+		<Property name="type" value="passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="739" />
+		<Property name="posy" value="129" />
+		<Property name="image" value="world/way/yellow_1/point.png" />
 		<Property name="type" value="passive" />
 	</sprite>
 </overworld>

@@ -1,7 +1,7 @@
 /***************************************************************************
-                level_entry.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2007 by Florian Richter
+ * level_entry.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2007 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __LEVEL_ENTRY_H__
-#define __LEVEL_ENTRY_H__
+#ifndef SMC_LEVEL_ENTRY_H
+#define SMC_LEVEL_ENTRY_H
 
 #include "../core/globals.h"
 #include "../objects/objectsprite.h"
@@ -30,7 +30,7 @@ public:
 	// constructor
 	cLevel_Entry( float x, float y );
 	// create from stream
-	cLevel_Entry( XMLAttributes &attributes );
+	cLevel_Entry( CEGUI::XMLAttributes &attributes );
 	// destructor
 	virtual ~cLevel_Entry( void );
 
@@ -40,7 +40,7 @@ public:
 	virtual cLevel_Entry *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( XMLAttributes &attributes );
+	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file );
     // Set direction
@@ -49,6 +49,11 @@ public:
 	// draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
+	// Get centered player position y
+	float Get_Player_Pos_X( void );
+	// Get centered player position y
+	float Get_Player_Pos_Y( void );
+
 	// Activate
 	void Activate( void );
 
@@ -56,13 +61,13 @@ public:
 	void Set_Name( string str_name );
 
 	// if draw is valid for the current state and position
-	virtual bool is_Draw_valid( void );
+	virtual bool Is_Draw_Valid( void );
 
 	// level editor activation
 	virtual void Editor_Activate( void );
 	// level editor events
-	bool Editor_Direction_Select( const EventArgs &event ); // editor direction option selected
-	bool Editor_Name_Key( const EventArgs &event );  // editor name key up
+	bool Editor_Direction_Select( const CEGUI::EventArgs &event ); // editor direction option selected
+	bool Editor_Name_Key( const CEGUI::EventArgs &event );  // editor name key up
 
 	// identification name
 	string entry_name;

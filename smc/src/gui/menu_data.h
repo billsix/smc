@@ -1,7 +1,7 @@
 /***************************************************************************
-                menu_data.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2004 - 2007 by Florian Richter
+ * menu_data.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2004 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __MENU_DATA_H__
-#define __MENU_DATA_H__
+#ifndef SMC_MENU_DATA_H
+#define SMC_MENU_DATA_H
 
 #include "../core/globals.h"
 #include "../gui/menu.h"
@@ -26,7 +26,7 @@ class cMenu_Base
 {
 public:
 	cMenu_Base( void );
-	~cMenu_Base( void );
+	virtual ~cMenu_Base( void );
 
 	virtual void Init( void );
 	virtual void Init_GUI( void );
@@ -40,7 +40,7 @@ public:
 	// gui layout filename
 	string layout_file;
 	// CEGUI window
-	Window *guiwindow;
+	CEGUI::Window *guiwindow;
 
 	// if button/key action
 	bool action;
@@ -91,36 +91,45 @@ public:
 	virtual void Exit( void );
 
 	// Get all levels from the given directory
-	void Get_Levels( string dir, colour color );
+	void Get_Levels( string dir, CEGUI::colour color );
 
 	/* Load the Selected Listbox item
-	 * and exits if successful
+	 * and exit if successful
 	*/
 	void Load_Selected( void );
 
 	/* Load the Selected World
-	 * and exits if successful
+	 * and exit if successful
 	*/
 	void Load_World( string level_name );
 	/* Load the Selected Level
-	 * and exits if successful
+	 * and exit if successful
 	*/
 	bool Load_Level( string name );
 
-	// CEGUI events
-	bool window_keydown( const EventArgs &event ); // key down
+	// key down event
+	bool Window_Keydown( const CEGUI::EventArgs &event );
 
-	bool world_Select( const EventArgs &event ); // world selected
-	bool world_Select_final_list( const EventArgs &event ); // world selected for entering
+	// world selected event
+	bool World_Select( const CEGUI::EventArgs &event );
+	// world selected for entering event
+	bool World_Select_final_list( const CEGUI::EventArgs &event );
 
-	bool level_Select( const EventArgs &event ); // level selected
-	bool level_Select_final_list( const EventArgs &event ); // level selected for entering
+	// level selected event
+	bool Level_Select( const CEGUI::EventArgs &event );
+	// level selected for entering event
+	bool Level_Select_Final_List( const CEGUI::EventArgs &event );
 
-	bool Button_level_new_clicked( const EventArgs &event ); // level new button
-	bool Button_level_edit_clicked( const EventArgs &event ); // level edit button
-	bool Button_level_delete_clicked( const EventArgs &event ); // level delete button
-	bool Button_enter_clicked( const EventArgs &event ); // enter button
-	bool Button_back_clicked( const EventArgs &event ); // back button
+	// level new button event
+	bool Button_Level_New_Clicked( const CEGUI::EventArgs &event );
+	// level edit button event
+	bool Button_Level_Edit_Clicked( const CEGUI::EventArgs &event );
+	// level delete button event
+	bool Button_Level_Delete_Clicked( const CEGUI::EventArgs &event );
+	// enter button event
+	bool Button_Enter_Clicked( const CEGUI::EventArgs &event );
+	// back button event
+	bool Button_Back_Clicked( const CEGUI::EventArgs &event );
 };
 
 /* *** *** *** *** *** *** *** cMenu_Options *** *** *** *** *** *** *** *** *** *** */
@@ -153,10 +162,14 @@ public:
 	virtual void Update( void );
 	virtual void Draw( void );
 
-	// CEGUI events
-	bool always_run_Select( const EventArgs &event ); // always run option selected
-	bool camera_hor_Select( const EventArgs &event ); // Camera Horizontal Value changed
-	bool camera_ver_Select( const EventArgs &event ); // Camera Vertical Value changed
+	// always run option selected event
+	bool Always_Run_Select( const CEGUI::EventArgs &event );
+	// Camera Horizontal Value changed event
+	bool Camera_Hor_Select( const CEGUI::EventArgs &event );
+	// Camera Vertical Value changed event
+	bool Camera_Ver_Select( const CEGUI::EventArgs &event );
+	// language option selected event
+	bool Language_Select( const CEGUI::EventArgs &event );
 };
 
 /* *** *** *** *** *** *** *** cMenu_Options_Video *** *** *** *** *** *** *** *** *** *** */
@@ -172,14 +185,22 @@ public:
 	virtual void Update( void );
 	virtual void Draw( void );
 
-	// CEGUI events
-	bool res_Select( const EventArgs &event ); // resolution option selected
-	bool bpp_Select( const EventArgs &event ); // bpp option selected
-	bool fullscreen_Select( const EventArgs &event ); // fullscreen option selected
-	bool vsync_Select( const EventArgs &event ); // vsync option selected
-
-	// Fullscreen Image
-	cHudSprite *fullscreen;
+	// Resolution option selected event
+	bool Res_Select( const CEGUI::EventArgs &event );
+	// Bpp option selected event
+	bool Bpp_Select( const CEGUI::EventArgs &event );
+	// Fullscreen option selected event
+	bool Fullscreen_Select( const CEGUI::EventArgs &event );
+	// Vsync option selected event
+	bool Vsync_Select( const CEGUI::EventArgs &event );
+	// Geometry detail value changed event
+	bool Slider_Geometry_Detail_Changed( const CEGUI::EventArgs &event );
+	// Texture detail value changed event
+	bool Slider_Texture_Detail_Changed( const CEGUI::EventArgs &event );
+	// Button apply clicked event
+	bool Button_Apply_Clicked( const CEGUI::EventArgs &event );
+	// Button recreate cache clicked event
+	bool Button_Recreate_Cache_Clicked( const CEGUI::EventArgs &event );
 
 	// video settings
 	unsigned int vid_w;
@@ -187,6 +208,8 @@ public:
 	unsigned int vid_bpp;
 	bool vid_fullscreen;
 	bool vid_vsync;
+	float vid_geometry_detail;
+	float vid_texture_detail;
 };
 
 /* *** *** *** *** *** *** *** cMenu_Options_Audio *** *** *** *** *** *** *** *** *** *** */
@@ -202,16 +225,16 @@ public:
 	virtual void Update( void );
 	virtual void Draw( void );
 
-	// CEGUI events
-	bool Audio_Hz_Select( const EventArgs &event ); // Audio Hz option selected
-	bool music_Select( const EventArgs &event ); // music option selected
-	bool music_vol_changed( const EventArgs &event ); // music volume changed
-	bool sound_Select( const EventArgs &event ); // sound option selected
-	bool sound_vol_changed( const EventArgs &event ); // sound volume changed
-
-	// Audio
-	cHudSprite *music;
-	cHudSprite *sounds;
+	// Audio Hz option selected event
+	bool Audio_Hz_Select( const CEGUI::EventArgs &event );
+	// music option selected event
+	bool Music_Select( const CEGUI::EventArgs &event );
+	// music volume changed event
+	bool Music_Vol_Changed( const CEGUI::EventArgs &event );
+	// sound option selected event
+	bool Sound_Select( const CEGUI::EventArgs &event );
+	// sound volume changed event
+	bool Sound_Vol_Changed( const CEGUI::EventArgs &event );
 };
 
 /* *** *** *** *** *** *** *** cMenu_Options_Controls *** *** *** *** *** *** *** *** *** *** */
@@ -227,30 +250,57 @@ public:
 	virtual void Update( void );
 	virtual void Draw( void );
 
+	/* Build the shortcut list
+	 * joystick : if true build it for joystick
+	*/
+	void Build_Shortcut_List( bool joystick = 0 );
+	/* Set the given Shortcut
+	 * and exit if successful
+	 * joystick : if true set it for joystick
+	*/
+	void Set_Shortcut( string shortcut_name, input_identifier shortcut_id, bool joystick = 0 );
+
+	// Select given Joystick
 	void Joy_Default( unsigned int index );
+	// Disable Joystick
 	void Joy_Disable( void );
 
-	// CEGUI events
-	bool joy_name_Select( const EventArgs &event ); // joystick name option selected
-	bool joy_analog_jump_Select( const EventArgs &event ); // joystick analog jump option selected
+	// keyboard listbox item double clicked event
+	bool Keyboard_List_Double_Click( const CEGUI::EventArgs &event );
+	// keyboard scroll speed value changed event
+	bool Keyboard_Slider_Scroll_Speed_Changed( const CEGUI::EventArgs &event );
+	// joystick name click event
+	bool Joystick_Name_Click( const CEGUI::EventArgs &event );
+	// joystick analog jump click event
+	bool Joystick_Analog_Jump_Click( const CEGUI::EventArgs &event );
+	// joystick name option selected event
+	bool Joystick_Name_Select( const CEGUI::EventArgs &event );
+	// joystick analog jump option selected event
+	bool Joystick_Analog_Jump_Select( const CEGUI::EventArgs &event );
+	// joystick axis horizontal changed event
+	bool Joystick_Spinner_Axis_Hor_Changed( const CEGUI::EventArgs &event );
+	// joystick axis vertical changed event
+	bool Joystick_Spinner_Axis_Ver_Changed( const CEGUI::EventArgs &event );
+	// joystick listbox item double clicked event
+	bool Joystick_List_Double_Click( const CEGUI::EventArgs &event );
+
 
 	// Gamepad Image
 	cHudSprite *gamepad;
-	// input names
-	// Keyboard
-	cHudSprite *keyboard_up_keyname;
-	cHudSprite *keyboard_down_keyname;
-	cHudSprite *keyboard_left_keyname;
-	cHudSprite *keyboard_right_keyname;
-	cHudSprite *keyboard_jump_keyname;
-	cHudSprite *keyboard_shoot_keyname;
-	cHudSprite *keyboard_action_keyname;
-	// Joypad
-	cHudSprite *joypad_jump_keyname;
-	cHudSprite *joypad_item_keyname;
-	cHudSprite *joypad_shoot_keyname;
-	cHudSprite *joypad_action_keyname;
-	cHudSprite *joypad_exit_keyname;
+
+	// Shortcut item
+	class cShortcut_item
+	{
+	public:
+		cShortcut_item( string name, input_identifier id )
+		{
+			m_name = name;
+			m_id = id;
+		}
+
+		string m_name;
+		input_identifier m_id;
+	};
 };
 
 /* *** *** *** *** *** *** *** cMenu_Savegames *** *** *** *** *** *** *** *** *** *** */
@@ -273,9 +323,9 @@ public:
 	void Update_Save( void );
 
 	// Set Savegame Description
-	string Set_SaveDescription( unsigned int save_slot );
+	string Set_Save_Description( unsigned int save_slot );
 	// Update Savegame Descriptions
-	void Update_SavedGames_Text( void );
+	void Update_Saved_Games_Text( void );
 
 	// Savegame images
 	HudSpriteList savegame_temp;

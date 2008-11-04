@@ -1,8 +1,8 @@
 /***************************************************************************
-     vector.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright				: (C) 2006 - 2007 by Florian Richter
-							  (C) Clanlib Team
+ * vector.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2007 Clanlib Team ( original Vector class )
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -14,8 +14,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __GL_VECTOR_H__
-#define __GL_VECTOR_H__
+#ifndef SMC_VECTOR_H
+#define SMC_VECTOR_H
 
 #include "../../core/globals.h"
 

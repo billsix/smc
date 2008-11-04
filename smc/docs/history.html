@@ -1,30 +1,267 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html>
-<head>
-	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-	<title>Secret Maryo Chronicles Version History</title>
-	<link rel="stylesheet" type="text/css" href="style.css" />
-</head>
-<body lang="en-US" dir="LTR">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
+	<head>
+		<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" />
+		<meta http-equiv="Content-Style-Type" content="text/css" />
+		<title>Secret Maryo Chronicles Version History</title>
+		<meta name="author" content="Florian Richter" />
+		<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+	</head>
+<body>
+
+<h1>Secret Maryo Chronicles - Changelog</h1>
 
 <table width="100%" cellpadding="0" cellspacing="0" style="border: 2px solid #336633;">
 	<tr>
-		<h1>Secret Maryo Chronicles - Changelog</h1>
-		<br>
+		<td class="version_header">
+			<p>Version</p>
+		</td>
+		<td class="version_header">
+			<p>Release Date</p>
+		</td>
+	</tr>
+	<tr>
+		<td class="version">
+			<p>1.6</p>
+		</td>
+		<td class="version">
+			2008.09.29
+		</td>
+	</tr>
+	<tr>
+		<td class="fixes" colspan="2">
+			<p>X basic translation support without support for some cegui objects, levels, images and credits text yet</p>
+			<p>X added german translation</p>
+			<p>X mac support patch ( from auria )</p>
+			<p>X implemented geometry and texture detail setting</p>
+			<p>X implemented clipboard text handling for copy, cut and paste</p>
+			<p>X updated options menu</p>
+			<p>X plastic_1 ground recreated</p>
+			<p>X sprites updated : ghost mushroom, arrow image, beanstalk_2 ( from youngheart80 ), green climbing plant ( from youngheart80 ), green_2 hedges, furball, spika, green_1 and light_blue_1 hills</p>
+			<p>X implemented background image type for all directions !</p>
+			<p>X implemented background image position and constant velocity</p>
+			<p>X image cache resize is now done in software and only caches images who need to</p>
+			<p>X updated ambient wind sound and removed the old one ( from consonance )</p>
+			<p>X new ambient sounds ( from consonance )</p>
+			<p>X updated and fixed audio engine</p>
+			<p>X install VC 2005 SP1 runtime (vcredist_x86.exe) on windows (this removes the need for the Microsoft.VC80.CRT directory)</p>
+			<p>X implement continuous ambient sound</p>
+			<p>X added heightsticks for the level editor ( from BowserJr and small update from me )</p>
+			<p>X pipe connection blocks in blue, green and red</p>
+			<p>X new furball turn around image</p>
+			<p>X handle page up/down and home/end keys in the world/level listbox</p>
+			<p>X new level sauer2_nolin ( from sauer2 ) and ita_1 ( from italian )</p>
+			<p>X updated levels ( some updates from sauer2 )</p>
+			<p>X text box can be set invisible</p>
+			<p>X updated command line handling and added world and debug arguments</p>
+			<p>X changed gui slider style from vertical to horizontal</p>
+			<p>X new big maryo and power jump sounds</p>
+			<p>X add particle emitter iteration interval and quota limits</p>
+			<p>X added a debug printf macro</p>
+			<p>* get supported resolutions from SDL and display the good ones in green and bad ones in red</p>
+			<p>* fixed destroyed objects got saved</p>
+			<p>* fixed invisible state was ignored on box, level entry, level exit and particle emitter</p>
+			<p>* fixed destroyed state was ignored on sprite and ambient sound</p>
+			<p>* copying a text box also copies the text</p>
+			<p>* configure.ac updated : added check for header files and check for gettext library</p>
+			<p>* ducking small maryo should not be bigger than big maryo ducking ( thanks bowserjr )</p>
+			<p>* fixed deleting ground object of an moving object crashed if exiting editor</p>
+			<p>* updated overworld and level input system</p>
+			<p>* fixed pressing left and right defaults to wrong key</p>
+			<p>* fade ambient sound out if camera gets out of range</p>
+			<p>* fixed an editor item menu endless loop because std::string::size_type is not used ( thanks nyhm )</p>
+			<p>* updated editor object settings tooltips</p>
+			<p>* move some txt author files to image settings data</p>
+			<p>* updated float_to_string function (with a function from stringencoders)</p>
+			<p>* renamed rex to krush</p>
+			<p>* updated level loading</p>
+			<p>* stop playing ambient sounds if a new one is set</p>
+			<p>* fixed gee fly_distance_counter was framerate dependent</p>
+			<p>* fixed could not cancel set joystick button dialog</p>
+			<p>* changed shooting to be time interval based</p>
+			<p>* rokko, thromp, gee and jpiranha always show the distance rect if the object settings are active</p>
+			<p>* fixed moving platform height is not set if using a non default image</p>
+			<p>* fixed world 4 first line is not always detected</p>
+			<p>* fixed crash if creating cache failed</p>
+			<p>* updates for cegui 0.6 support</p>
+			<p>* fixed thromp did collide with massive objects if not moving</p>
+			<p>* fixed frozen thromp is still used as ground object if hit</p>
+			<p>* fixed furball turn around image is set if colliding with an object on top or bottom</p>
+			<p>* fixed rokko death animation smoke z position</p>
+			<p>* movingsprite col_move performance improved</p>
+			<p>* updated the fixed colorbox effect</p>
+			<p>* updated rokko and now shows the distance if in editor mode</p>
+			<p>* fixed ostringstream openmode was wrong in float_to_string</p>
+			<p>* fixed power jump is always set if ducking</p>
+			<p>* updated furball and turtle collision rect</p>
+			<p>* fixed green turtle color is displayed wrong in editor</p>
+			<p>* fixed spika killed turtle boss on contact so it now only causes a state change</p>
+			<p>* updated fonts</p>
+			<p>* updated many tooltip help messages</p>
+			<p>* removed the global cegui namespace</p>
+			<p>* renamed all header include check defines</p>
+			<p>* changed naming of pipe connections</p>
+			<p>* correct direction rotation for gee</p>
+			<p>* only convert to a new software image if needed</p>
+			<p>* pixel removed in underground ground ( from sauer2 )</p>
+			<p>* changed banzai bill to rokko in history</p>
+			<p>* added check if the the window icon does exist</p>
+			<p>* reset player animation if walking against a massive object</p>
+			<p>* fixed endless loop if entering a not existing level with level entry set</p>
+			<p>- removed old and unused image settings</p>
+			<p>- removed some very old and unused images</p>
+		</td>
+	</tr>
+	<tr>
+		<td class="version">
+			<p>1.5</p>
+		</td>
+		<td class="version">
+			2008.05.03
+		</td>
+	</tr>
+	<tr>
+		<td class="fixes" colspan="2">
+			<p>X new game icon ( very important !!!!1!oneone )</p>
+			<p>X added world 4</p>
+			<p>X extended world 2</p>
+			<p>X new sprite snowflake_1 particle ( from youngheart80 )</p>
+			<p>X new sprites block toy ball, static enemy blocks and desert thromp ( from frostbringer )</p>
+			<p>X new sprite star_2 and windtrail_1 ( updated from me ) particle ( from bowserjr )</p>
+			<p>X new sprites ghost_hills_1 ( updated from me ), overworld bridge_1, cactus 3 and 4, overworld stone 2, ghost light, stone_2 set ( updated from me ) and jungle plants ( updated from me ) ( from sauer2 )</p>
+			<p>X new sprites small_green_ballhills_1 and big hill 3 ( fluxy )</p>
+			<p>X updated sprite for eato ( from helios )</p>
+			<p>X updated sprite for mushrooms ( from youngheart80 )</p>
+			<p>X updated sprites for tendril, thromp, rokko ( updated from me ) and gee ( from frostbringer )</p>
+			<p>X updated sprites for stalagtites background, ice/screw block, small hedge 1 and 2 and rokko ( fluxy )</p>
+			<p>X gumba is replaced with the new furball ( from helios )</p>
+			<p>X rex is replaced with the new krunch ( small update from me ) ( from helios )</p>
+			<p>X optimized and updated plentiful images</p>
+			<p>X added many levels ( from sauer2 )</p>
+			<p>X implemented ambient sounds ( from simpletoon with many updates and some fixes from me )</p>
+			<p>X plentiful level and world updates and adjusted difficult</p>
+			<p>X implemented renderer circle drawing</p>
+			<p>X implemented performance timers ( visible with CTRL + P )</p>
+			<p>X static enemy image and rotation speed can be changed</p>
+			<p>X optimized moving platform</p>
+			<p>X moving platform slows down near the end position</p>
+			<p>X added touch_time to new moving_platform</p>
+			<p>X merged falling platform with moving platform</p>
+			<p>X implemented delayed moving platform ( from simpletoon )</p>
+			<p>X moving platform data is now saved in savegames</p>
+			<p>X implemented author for image settings</p>
+			<p>X overworld camera now handles level limits</p>
+			<p>X small hud update</p>
+			<p>X stephan and other old levels brought back ( from nemo )</p>
+			<p>X thromp can use different image directories</p>
+			<p>X thromp uses different image when active</p>
+			<p>X audio hz is now applied immediately</p>
+			<p>X keyboard/joystick shortcut handling and gui update</p>
+			<p>X implemented keyboard scroll speed and the gui</p>
+			<p>X implemented joystick horizontal and vertical axis gui</p>
+			<p>X cache can now be recreated in game</p>
+			<p>X implemented texture reloading from file</p>
+			<p>X on resolution change cache and textures are reloaded from file ( displayed with the loading screen )</p>
+			<p>X software texture reloading saves and restores format and bpp</p>
+			<p>X loading screen updated ( shows a progress bar )</p>
+			<p>X updated gui skin</p>
+			<p>X image cache can be disabled via config.xml</p>
+			<p>X implemented sprite image rotation can affect the collision rect ( fixed eato collision rect )</p>
+			<p>X updated credits and credit screen particle animation</p>
+			<p>X updated level settings gui</p>
+			<p>X implemented particle emitter as editor object ( from simpletoon and many changes from me )</p>
+			<p>X added collision rect to all blocks and boxes</p>
+			<p>X new world 4 music bonus_1.ogg ( from vencabot_teppoo )</p>
+			<p>X power jump if ducking for some time ( from rolo with changes and particle animation from me )</p>
+			<p>X allow negative global effect constant rotation z</p>
+			<p>X added start rotation particle animation support and fixed negative constant rotation</p>
+			<p>X particle animation gravity patch ( from simpletoon )</p>
+			<p>X implemented editor object settings row ( from simpletoon and updated from me )</p>
+			<p>X eato image directory can be set</p>
+			<p>X implemented level entries can be entered in a different level ( from simpletoon and many changes from me )</p>
+			<p>* fixed transparent color of many images is wrong</p>
+			<p>* much cleaner way of defining DATA_DIR ( from nyhm )</p>
+			<p>* fixed overworld layer lines file crashes game if empty</p>
+			<p>* enabled anti-aliasing for points</p>
+			<p>* updated pipe connector image settings</p>
+			<p>* updated menu ground image and removed menu_quit ground image</p>
+			<p>* fixed crash if started with unknown argument</p>
+			<p>* fixed massive moving platform didn't always pick objects up</p>
+			<p>* fixed new music isn't played on certain game mode changes</p>
+			<p>* fixed world editor waypoint settings default start access isn't set</p>
+			<p>* fixed overworld hud isn't updated if editor enabled</p>
+			<p>* fixed editor mouse object position text didn't display editor/start position</p>
+			<p>* fixed player sometimes falls through the moving platform</p>
+			<p>* fixed overworld camera stutters 1 pixel</p>
+			<p>* optimized turtle and eato collision rect</p>
+			<p>* fixed the editor load function doesn't do anything</p>
+			<p>* fixed player could fall through vertical level limit if hitting the horizontal level limit at the same time</p>
+			<p>* fixed turtle boss can be hit with a shell when linked to the player</p>
+			<p>* fixed static enemy rotation is not framerate independent</p>
+			<p>* small rendering optimizations</p>
+			<p>* update man page and add .desktop file</p>
+			<p>* fixed screenshot is saved with the alpha channel</p>
+			<p>* moved todo-code.txt to the wiki http://www.secretmaryo.org/wiki/index.php?title=Todo_Code</p>
+			<p>* fixed moving platform drops player off when falling</p>
+			<p>* fixed overworld camera used smart camera offset</p>
+			<p>* fixed audio options buttons did affect the wrong item</p>
+			<p>* fixed camera position if player changed size</p>
+			<p>* fixed camera y centering didn't use bottom position</p>
+			<p>* fixed cAudio :: PlaySound volume is used even if invalid</p>
+			<p>* catch initialization exceptions</p>
+			<p>* updated makefile</p>
+			<p>* fixed thromp distance rectangle didn't use image size</p>
+			<p>* fixed thromp distance rectangle size is displayed shorter</p>
+			<p>* fixed thromp distance rectangle is collision checked in thromb</p>
+			<p>* fixed thromp position isn't updated correctly if reached start position after activation</p>
+			<p>* updated preferences handling audio and video</p>
+			<p>* fixed global effect/particle animation emitter rect x/y normal position could be overwritten</p>
+			<p>* fixed global effect emitter rect x/y start position is not used</p>
+			<p>* fixed image settings x rotation 180° did nothing</p>
+			<p>* fixed crash if exiting game with activated editor object</p>
+			<p>* fixed goldpiece and moving platform update handling</p>
+			<p>* fixed level camera position is not set back on level settings exit</p>
+			<p>* fixed editor object settings are positioned using the game position not the start position</p>
+			<p>* fixed entering custom level did not resets progress</p>
+			<p>* fixed global effect particle animation image is loaded before final screen initialization</p>
+			<p>* particle animation updates</p>
+			<p>* local config is preferred over the the user data dir if available</p>
+			<p>* fixed renderer vertical gradient drawing</p>
+			<p>* fixed joystick name is not saved as xml string</p>
+			<p>* disable rendering while inactive ( from rolosworld and small update from me )</p>
+			<p>* fixed fullscreen is not changed if it is the only change</p>
+			<p>* fixed camera horizontal and vertical offset is not set to preferences and is set in options from the wrong camera</p>
+			<p>* preferences loading uses a fake cegui system and renderer for the xml parser so a fake videomode is not needed anymore see the new startup direct video initialization</p>
+			<p>* preload 2 more sounds</p>
+			<p>* fixed entering world from a world did not play new music</p>
+			<p>* rokko smoke behind rokko</p>
+			<p>* fixed dying with active fire/ice balls could crash</p>
+			<p>* fixed crash if object selected in editor when disabling editor</p>
+			<p>* script for running optipng on the data files ( from nyhm )</p>
+			<p>* moved some images and handle it in level loader</p>
+			<p>* updated camera moving to new position when entered level entry</p>
+			<p>* if level exit destination level is empty use the same level</p>
+			<p>* fixed text box text can be not completely visible</p>
+			<p>* particles are now scaled from the center</p>
+			<p>* fixed directly loaded gl_surface images ingame did not delete the opengl texture because it could think the texture is still in use by wrongly checking the managed images</p>
+			<p>* fixed immense memory leak when caching images caused by not destroying the png write and info struct</p>
+			<p>* fixed slowly moving to camera is not completely smooth</p>
+			<p>* fixed camera moving to new level entry did not keep global effect particles on screen</p>
+		</td>
 	</tr>
 	<tr>
 		<td class="version">
 			<p>1.4</p>
 		</td>
 		<td class="version">
-		2007.12.23
+			2007.12.23
 		</td>
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
 			<p>X implemented image cache which saves the resolution scaled images in the user directory for faster loading</p>
 			<p>X new perfect jungle plant and grass sprites ( from needcoffee )</p>
-			<p>X new saw sprite ( from Inky )</p>
+			<p>X new saw sprite ( from inky )</p>
 			<p>X added climbable vine explanation text box to lvl_2</p>
 			<p>X added ability to save images to png</p>
 			<p>X screenshots are now saved as png</p>
@@ -33,12 +270,12 @@
 			<p>X start menu and loading screen updated</p>
 			<p>X updated credits</p>
 			<p>X sprites now set the rect and col_rect width and height</p>
-			<p>X implemented GL_Surface int_x and int_y scaled from sprite</p>
+			<p>X implemented gl_surface int_x and int_y scaled from sprite</p>
 			<p>X updated rex and gumba death animation</p>
-			<p>* fixed mouse did set internal button state of events processed by CEGUI (editor settings crash)</p>
+			<p>* fixed mouse did set internal button state of events processed by cegui (editor settings crash)</p>
 			<p>* fixed itembox fireplant image is not displayed</p>
 			<p>* fixed spinbox editor settings are not positioned initially</p>
-			<p>* fixed world compass shows an "O" instead of an "E" for East</p>
+			<p>* fixed world compass shows an "O" instead of an "E" for east</p>
 			<p>* removed empty pixmaps/extra folder</p>
 			<p>* fixed some joystick menu options are handled from the wrong id</p>
 			<p>* player moving state is now saved in savegames (fixes saving when climbing)</p>
@@ -52,7 +289,7 @@
 			<p>1.3</p>
 		</td>
 		<td class="version">
-		2007.12.01
+			2007.12.01
 		</td>
 	</tr>
 	<tr>
@@ -96,7 +333,7 @@
 			<p>1.2</p>
 		</td>
 		<td class="version">
-		2007.10.18
+			2007.10.18
 		</td>
 	</tr>
 	<tr>
@@ -136,7 +373,7 @@
 			<p>1.1</p>
 		</td>
 		<td class="version">
-		2007.9.21
+			2007.9.21
 		</td>
 	</tr>
 	<tr>
@@ -180,7 +417,7 @@
 			<p>1.0</p>
 		</td>
 		<td class="version">
-		2007.7.28
+			2007.7.28
 		</td>
 	</tr>
 	<tr>
@@ -253,7 +490,7 @@
 			<p>0.99.7</p>
 		</td>
 		<td class="version">
-		2007.6.15
+			2007.6.15
 		</td>
 	</tr>
 	<tr>
@@ -293,7 +530,9 @@
 		<td class="version">
 			<p>0.99.6.1</p>
 		</td>
-		<td class="version">2007.4.19</td>
+		<td class="version">
+			2007.4.19
+		</td>
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
@@ -305,7 +544,7 @@
 			<p>0.99.6</p>
 		</td>
 		<td class="version">
-		2007.4.18
+			2007.4.18
 		</td>
 	</tr>
 	<tr>
@@ -351,7 +590,7 @@
 			<p>0.99.5</p>
 		</td>
 		<td class="version">
-		2007.2.28
+			2007.2.28
 		</td>
 	</tr>
 	<tr>
@@ -389,7 +628,7 @@
 			<p>0.99.4</p>
 		</td>
 		<td class="version">
-		2007.1.4
+			2007.1.4
 		</td>
 	</tr>
 	<tr>
@@ -428,7 +667,7 @@
 			<p>0.99.3</p>
 		</td>
 		<td class="version">
-		2006.11.11
+			2006.11.11
 		</td>
 	</tr>
 	<tr>
@@ -459,7 +698,7 @@
 			<p>0.99.2</p>
 		</td>
 		<td class="version">
-		2006.9.14
+			2006.9.14
 		</td>
 	</tr>
 	<tr>
@@ -483,7 +722,7 @@
 			<p>0.99.1</p>
 		</td>
 		<td class="version">
-		2006.8.8
+			2006.8.8
 		</td>
 	</tr>
 	<tr>
@@ -510,7 +749,7 @@
 			<p>0.99</p>
 		</td>
 		<td class="version">
-		2006.7.17
+			2006.7.17
 		</td>
 	</tr>
 	<tr>
@@ -542,7 +781,7 @@
 			<p>0.98.1</p>
 		</td>
 		<td class="version">
-		2006.6.14
+			2006.6.14
 		</td>
 	</tr>
 	<tr>
@@ -564,7 +803,7 @@
 			<p>0.98</p>
 		</td>
 		<td class="version">
-		2006.5.17
+			2006.5.17
 		</td>
 	</tr>
 	<tr>
@@ -594,7 +833,7 @@
 			<p>0.97</p>
 		</td>
 		<td class="version">
-		2005.7.4
+			2005.7.4
 		</td>
 	</tr>
 	<tr>
@@ -623,7 +862,7 @@
 			<p>0.96</p>
 		</td>
 		<td class="version">
-		2005.5.9
+			2005.5.9
 		</td>
 	</tr>
 	<tr>
@@ -652,7 +891,7 @@
 			<p>0.95</p>
 		</td>
 		<td class="version">
-		2005.3.28
+			2005.3.28
 		</td>
 	</tr>
 	<tr>
@@ -732,12 +971,9 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>*
-			Fixed a jumping Piranha collision detection bug</p>
-			<p>*
-			Fixed rex animation when colliding with a shell</p>
-			<p>* Fixed collision detection between
-			enemies and items</p>
+			<p>* Fixed a jumping Piranha collision detection bug</p>
+			<p>* Fixed rex animation when colliding with a shell</p>
+			<p>* Fixed collision detection between enemies and items</p>
 		</td>
 	</tr>
 	<tr>
@@ -750,14 +986,10 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X
-			New improved Collision detection changes</p>
-			<p>*
-			Leveleditor : the Goldpieces weren't saved</p>
-			<p>*
-			Fixed some turtle collision detection bugs</p>
-			<p>* Leveleditor :
-			fixed the wrong saving of &quot;/&quot;</p>
+			<p>X New improved Collision detection changes</p>
+			<p>* Leveleditor : the Goldpieces weren't saved</p>
+			<p>* Fixed some turtle collision detection bugs</p>
+			<p>* Leveleditor : fixed the wrong saving of &quot;/&quot;</p>
 		</td>
 	</tr>
 	<tr>
@@ -770,12 +1002,9 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X
-			New Enemy : Rex</p>
-			<p>X
-			New Item : Moon ( 3 Level UP )</p>
-			<p>* Improved the
-			collision detection for Mushrooms and the Turtle</p>
+			<p>X New Enemy : Rex</p>
+			<p>X New Item : Moon ( 3 Level UP )</p>
+			<p>* Improved the collision detection for Mushrooms and the Turtle</p>
 		</td>
 	</tr>
 	<tr>
@@ -792,16 +1021,14 @@
 			<p>X The Pointinfo Text will get more yellow the higher the points you got</p>
 			<p>* Fixed rare Turtle collision bugs</p>
 			<p>* The animation when Maryo dies in higher areas takes now the correct time</p>
-			<p>* Fixed : If a save was loaded with an earlier progress or the game
-			gots a reset and you won an earlier level than before you cannot
-			enter the next level</p>
+			<p>* Fixed : If a save was loaded with an earlier progress or the game gots a reset and you won an earlier level than before you cannot enter the next level</p>
 			<p>* Fixed if maryo dies with 0 lives the statustext displayed -1 lives</p>
 			<p>* Fixed many Mushroom Collisions</p>
 			<p>* Fixed jumping piranha only comes out if the player is near</p>
 			<p>* Fixed Mushroom &lt;-&gt; ActiveObjects Collision detection</p>
 			<p>* Leveleditor : Fixed if the mousecursor moved an Object over a Leveleditor Menu the Menu got activated</p>
 			<p>* Improved the Collision detection</p>
-			<p>* Fixed an banzai bill crash</p>
+			<p>* Fixed an rokko crash</p>
 			<p>* Optimised the Turtle &lt;-&gt; Player Collision detection</p>
 			<p>* Optimised the Active Object movement</p>
 		</td>
@@ -816,26 +1043,15 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X
-			Leveleditor : New Main Menu's</p>
-			<p>X
-			Leveleditor : has now the ability to scroll with the mouse ( with
-			the middle mouse key )</p>
-			<p>*
-			Fixed fastcopy with Enemystopper</p>
-			<p>*
-			Many Levels Improved</p>
-			<p>*
-			The camera is now set correctly back when leaving the Leveleditor</p>
-			<p>*
-			Improved the Enemy &lt;-&gt; Enemy Collision detection</p>
-			<p>*
-			Jumping Pranha and Banzai Bill are now drawn correctly if maryo
-			dies</p>
-			<p>*
-			Unified Framerate correction for better non-Windows support</p>
-			<p>*
-			Improved the complete Collision detection</p>
+			<p>X Leveleditor : New Main Menu's</p>
+			<p>X Leveleditor : has now the ability to scroll with the mouse ( with the middle mouse key )</p>
+			<p>* Fixed fastcopy with Enemystopper</p>
+			<p>* Many Levels Improved</p>
+			<p>* The camera is now set correctly back when leaving the Leveleditor</p>
+			<p>* Improved the Enemy &lt;-&gt; Enemy Collision detection</p>
+			<p>* Jumping Pranha and Rokko are now drawn correctly if maryo dies</p>
+			<p>* Unified Framerate correction for better non-Windows support</p>
+			<p>* Improved the complete Collision detection</p>
 		</td>
 	</tr>
 	<tr>
@@ -859,8 +1075,8 @@
 			<p>* Fixed Shell Collisions with Maryo on specific situations</p>
 			<p>* Little speedup</p>
 			<p>* Fixed a Game-exit bug</p>
-			<p>* Fixed Banzai-Bill stops moving if colliding with Enemies or Player</p>
-			<p>* Fixed Enemies stops moving if colliding with Banzai-Bill ( OO' )</p>
+			<p>* Fixed Rokko stops moving if colliding with Enemies or Player</p>
+			<p>* Fixed Enemies stops moving if colliding with Rokko ( OO' )</p>
 			<p>* Halfmassive Objects are now drawn properly</p>
 			<p>* Menu alignment is now correct in both Resolutions</p>
 			<p>* Fixed long Level loading times could cause wrong movement</p>
@@ -1041,14 +1257,14 @@
 	<tr>
 		<td class="fixes" colspan="2">
 			<p>* Graphical Text fixes/changes</p>
-			<p>* Rare Banzai Bill collision fix</p>
+			<p>* Rare Rokko collision fix</p>
 			<p>* Leveleditor fixes</p>
 			<p>* Level Limit changed from 16 to 32</p>
 			<p>* Enemy Jumping changed</p>
 			<p>* Player fixes</p>
 			<p>* Leveleditor now draws dead Enemies properly</p>
 			<p>X New Enemy : Red Goomba</p>
-			<p>* Banzai Bill images </p>
+			<p>* Rokko images </p>
 			<p>* other fixes/changes</p>
 		</td>
 	</tr>
@@ -1216,7 +1432,7 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X New Enemy : Banzai Bill</p>
+			<p>X New Enemy : Rokko</p>
 			<p>* Piranhas arent jumping out if Maryo is in front</p>
 		</td>
 	</tr>
@@ -1457,28 +1673,27 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* Audio Menu auswahl bug behoben</p>
-			<p>X Savegame funktion hinzugef&uuml;gt</p>
-			<p>* beim Level Editor die Tile auswahl von 0 auf F1 gelegt</p>
-			<p>* Wenn man im Spiel oder im Leveleditor ist wird im Hauptmen&uuml; mit ESC nicht das Spiel beendet</p>
-			<p>* Screenshot Bug fixed</p>
-			<p>* Lade Savegame Bug behoben</p>
-			<p>* lvl 1 very small optimizations ^^</p>
-			<p>* Beim sterben wird das Level nicht neu geladen (Spiel schwerer !)</p>
-			<p>* Savegames sind nun mit genauer Spieler position</p>
-			<p>X Savegames zeigen nun abgespeicherte Zeit</p>
-			<p>* Sprites optimized ( Wolken, Maryo, Turtle, Pipes, Goldpieces, Yoshi, Grauer Stein, Sign )</p>
-			<p>X Leveleditor Sprite Copy &amp; Paste Funktion hinzugef&uuml;gt</p>
-			<p>X Positions anzeige im Leveleditor</p>
-			<p>* Genaue Objektverschiebung im Leveleditor</p>
-			<p>* Enemystopper wurde manchmal nicht angezeigt im Leveleditor</p>
-			<p>* Audio Qualit&auml;t verbessert</p>
-			<p>* Im Leveditor Men&uuml; werden die ausgew&auml;hlten Objekte beim Mauszeiger abgelegt</p>
-			<p>* Leveleditor Men&uuml;s erweitert</p>
-			<p>* Beim abspeichern kann nun die Beschreibung des Spielstandes ver&auml;ndert werden</p>
-			<p>* Leveleditor Maryo Positions bug behoben</p>
-			<p>* Leveleditor bug behoben mit manchen neu erstellten objekten durchs Men&uuml; die danach &ouml;fter
-			verschoben wurden</p>
+			<p>X Savegame function added</p>
+			<p>X Savegames now show the save time</p>
+			<p>X Leveleditor Sprite Copy &amp; Paste function added</p>
+			<p>X Position display in the Leveleditor</p>
+			<p>* Audio menu selection bug fixed</p>
+			<p>* Leveleditor tile selection key changed from 0 to F1</p>
+			<p>* If you are ingame or in the Leveleditor the game is not quit if you press ESC in the main menu</p>
+			<p>* Screenshot bug fixed</p>
+			<p>* Savegame loading bug fixed</p>
+			<p>* very small optimizations in lvl 1 ^^</p>
+			<p>* If you die the level does not get reloaded (makes it harder !)</p>
+			<p>* Savegames are now saved with the exact player position</p>
+			<p>* Sprites optimized ( clouds, maryo, turtle, pipes, goldpieces, yoshi, grey stone, sign )</p>
+			<p>* Exact object movement in the Leveleditor</p>
+			<p>* Enemystopper was sometimes not shown in the Leveleditor</p>
+			<p>* Audio quality optimized</p>
+			<p>* If you select an object in the Leveditor menu it is placed at the mouse pointer position</p>
+			<p>* Leveleditor menu advanced</p>
+			<p>* Fixed the savegame description could change on saving</p>
+			<p>* Leveleditor maryo position bug fixed</p>
+			<p>* Leveleditor bug fixed with some newly created objekts from the menu which thereafter got moved</p>
 		</td>
 	</tr>
 	<tr>
@@ -1508,15 +1723,14 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X added a main menu with the points 
-			</p>
+			<p>X added SDL_ttf libary</p>
+			<p>X added a main menu with the points </p>
 			<p>1. Start</p>
 			<p>2. Options -&gt; 1. Controls, 2. Audio 3. (video)</p>
 			<p>3. (Save)</p>
 			<p>4. (Load)</p>
 			<p>5. Quit</p>
 			<p>* fixed a bug for falling into the ground</p>
-			<p>X added SDL_ttf libary</p>
 		</td>
 	</tr>
 	<tr>
@@ -1529,8 +1743,7 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X added command line switches for resolution change
-			(--res=[resolution])</p>
+			<p>X added command line switches for resolution change (--res=[resolution])</p>
 			<p>X added command line switch for no fullscreen (--nofullscreen)</p>
 			<p>* reduced the size of each image by factor 0.7, now better overview</p>
 			<p>* modified the control feelings, especially for jump behavior</p>
@@ -1548,7 +1761,7 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* bugfixes, there were some problems with the boxes and with big Maryo</p>
+			<p>* bugfixes, there were some problems with the boxes and with big maryo</p>
 		</td>
 	</tr>
 	<tr>
@@ -1573,14 +1786,14 @@
 			<p>0.47</p>
 		</td>
 		<td class="version">
-			<p>not released</p>
+			<p>never released</p>
 		</td>
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X gold box</p>
-			<p>X bonus box</p>
-			<p>X spin box</p>
+			<p>X added gold box</p>
+			<p>X added bonus box</p>
+			<p>X added spin box</p>
 		</td>
 	</tr>
 	<tr>
@@ -1593,8 +1806,8 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* speed improvments</p>
-			<p>* fixed my halfmassive objects (had problems with enemies)</p>
+			<p>* speed improvements</p>
+			<p>* fixed halfmassive objects (had problems with enemies)</p>
 			<p>* bugfixes</p>
 		</td>
 	</tr>
@@ -1652,13 +1865,13 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* leveleditor: bugfixes</p>
-			<p>* game: bugfixes</p>
 			<p>X now player has lifes and gold</p>
-			<p>X if player gets 100 gold, he gets one life.</p>
-			<p>X gold and life are displayed.</p>
-			<p>* game does not always die when player dies.</p>
-			<p>* very much done with dynamic memory allocation and such things.</p>
+			<p>X if player gets 100 gold, he gets one life</p>
+			<p>X gold and life are displayed</p>
+			<p>* some bugfixes</p>
+			<p>* leveleditor bugfixes</p>
+			<p>* game does not always die when player dies</p>
+			<p>* very much done with dynamic memory allocation and these things</p>
 		</td>
 	</tr>
 	<tr>
@@ -1671,7 +1884,7 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* leveleditor: extended</p>
+			<p>* leveleditor extended</p>
 		</td>
 	</tr>
 	<tr>
@@ -1684,7 +1897,7 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>- Leveleditor</p>
+			<p>- added leveleditor</p>
 		</td>
 	</tr>
 	<tr>
@@ -1712,9 +1925,9 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* speed improvements (pictures are now only loaded one times) </p>
-			<p>* extended level (not much) </p>
-			<p>* error messages when an error occurs in the lvl_1.txt </p>
+			<p>* speed improvements (images are now only loaded once)</p>
+			<p>* extended level (not much)</p>
+			<p>* error messages when an error occurs in the lvl_1.txt</p>
 		</td>
 	</tr>
 	<tr>
@@ -1742,7 +1955,7 @@
 	<tr>
 		<td class="fixes" colspan="2">
 			<p>* bugfixes</p>
-			<p>* speed improvment</p>
+			<p>* speed improvement</p>
 			<p>* smaller changes</p>
 		</td>
 	</tr>
@@ -1771,7 +1984,7 @@
 	<tr>
 		<td class="fixes" colspan="2">
 			<p>X cool new clouds (you can jump on them), and they move.</p>
-			<p>X very much new images</p>
+			<p>X many new images</p>
 			<p>X new level</p>
 			<p>* smoother graphics, looks great !</p>
 			<p>* many bugfixes</p>
@@ -1801,7 +2014,7 @@
 	<tr>
 		<td class="fixes" colspan="2">
 			<p>X start of history</p>
-			<p>X Goomba as a new enemy type.</p>
+			<p>X Goomba as a new enemy type</p>
 			<p>X new images</p>
 			<p>* bugfixes</p>
 		</td>

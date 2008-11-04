@@ -1,7 +1,7 @@
 /***************************************************************************
-           star.cpp  -  jumping star class
-                             -------------------
-    copyright            :	(C) 2006 - 2007 Florian Richter
+ * star.cpp  -  jumping star class
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -17,6 +17,8 @@
 #include "../player/player.h"
 #include "../core/framerate.h"
 #include "../video/animation.h"
+#include "../core/math/utilities.h"
+#include "../core/i18n.h"
 
 /* *** *** *** *** *** *** cjStar *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -36,6 +38,8 @@ cjStar :: cjStar( float x, float y )
 	velx = 5;
 
 	Set_Image( 0, 1, 0 );
+
+	name = _("Star");
 }
 
 cjStar :: ~cjStar( void )
@@ -53,9 +57,7 @@ cjStar *cjStar :: Copy( void )
 void cjStar :: Activate( void )
 {
 	// animation
-	cBlinkAnimation *anim = new cBlinkAnimation( posx + ( col_rect.w / 10 ), posy + ( col_rect.h / 10 ) );
-	anim->Set_Color( Color( static_cast<Uint8>(255), 240, 20, 200 ) );
-	pAnimationManager->Add( anim );
+	Generate_Particles( posx + col_rect.w * 0.5f, posy + col_rect.h * 0.5f, 20 );
 
 	// activate star
 	pPlayer->Get_Item( TYPE_JSTAR );
@@ -94,18 +96,18 @@ void cjStar :: Update( void )
 	// rotate
 	if( vely < 0 )
 	{
-		Add_RotationZ( ( 5 - ( vely / 2.5f ) ) * pFramerate->speedfactor );
+		Add_Rotation_Z( ( 5 - ( vely / 2.5f ) ) * pFramerate->speedfactor );
 	}
 	// rotate back to 0 if falling
 	else
 	{
 		if( rotz > 5 && rotz <= 175 )
 		{
-			Add_RotationZ( ( 5 - ( vely / 1.2f ) ) * pFramerate->speedfactor );
+			Add_Rotation_Z( ( 5 - ( vely / 1.2f ) ) * pFramerate->speedfactor );
 		}
 		else if( rotz < 355 && rotz > 185 )
 		{
-			Add_RotationZ( ( -5 + ( vely / 1.2f ) ) * pFramerate->speedfactor );
+			Add_Rotation_Z( ( -5 + ( vely / 1.2f ) ) * pFramerate->speedfactor );
 		}
 	}
 
@@ -157,12 +159,12 @@ void cjStar :: Generate_Particles( float x /* = 0 */, float y /* = 0 */, unsigne
 {
 	if( x == 0 )
 	{
-		x = posx + static_cast<float>( rand() % static_cast<int>( col_rect.w * 0.9f ) );
+		x = posx + Get_Random_Float( 0, col_rect.w * 0.9f );
 	}
 
 	if( y == 0 )
 	{
-		y = posy + static_cast<float>( rand() % static_cast<int>( col_rect.h * 0.9f ) );
+		y = posy + Get_Random_Float( 0, col_rect.h * 0.9f );
 	}
 
 	// set particle color
@@ -171,7 +173,8 @@ void cjStar :: Generate_Particles( float x /* = 0 */, float y /* = 0 */, unsigne
 	particle_color.blue += static_cast<Uint8>( glim_counter / 1.5f );
 
 	// create particles
-	cParticleAnimation *anim = new cParticleAnimation( x, y );
+	cParticle_Emitter *anim = new cParticle_Emitter();
+	anim->Set_Pos( x, y );
 	anim->Set_Quota( quota );
 	anim->Set_Image( pVideo->Get_Surface( "animation/particles/star.png" ) );
 	anim->Set_Time_to_Live( 0.4f );
@@ -181,8 +184,8 @@ void cjStar :: Generate_Particles( float x /* = 0 */, float y /* = 0 */, unsigne
 	anim->Set_Scale( 0.15f );
 	anim->Set_Color( particle_color );
 	anim->Set_Blending( BLEND_ADD );
-	anim->Set_ConstRotationZ( 1, 10 );
-	pAnimationManager->Add( anim );
+	anim->Set_Const_Rotation_Z( -5, 10 );
+	pAnimation_Manager->Add( anim );
 }
 
 void cjStar :: Handle_Collision_Massive( cObjectCollision *collision )

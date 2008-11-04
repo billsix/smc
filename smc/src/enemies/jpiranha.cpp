@@ -1,7 +1,7 @@
 /***************************************************************************
-              jpiranha.cpp  -  jumping piranha plant
-                             -------------------
-    copyright            : (C) 2003 - 2007 by Florian Richter
+ * jpiranha.cpp  -  jumping piranha plant
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -20,20 +20,23 @@
 #include "../core/obj_manager.h"
 #include "../video/animation.h"
 #include "../user/savegame.h"
+#include "../core/math/utilities.h"
+#include "../input/mouse.h"
+#include "../core/i18n.h"
 
 /* *** *** *** *** *** *** cjPiranha *** *** *** *** *** *** *** *** *** *** *** */
 
 cjPiranha :: cjPiranha( float x, float y )
 : cEnemy( x, y )
 {
-	Init();
+	cjPiranha::Init();
 }
 
-cjPiranha :: cjPiranha( XMLAttributes &attributes )
+cjPiranha :: cjPiranha( CEGUI::XMLAttributes &attributes )
 : cEnemy()
 {
-	Init();
-	Create_from_Stream( attributes );
+	cjPiranha::Init();
+	cjPiranha::Create_from_Stream( attributes );
 }
 
 cjPiranha :: ~cjPiranha( void )
@@ -56,8 +59,8 @@ void cjPiranha :: Init( void  )
 	kill_sound = "enemy/jpiranha/die.ogg";
 	kill_points = 100;
 
-	walk_count = static_cast<float>( rand() % 4 );
-	wait_time = static_cast<float>( rand() % 70 );
+	walk_count = Get_Random_Float( 0, 4 );
+	wait_time = Get_Random_Float( 0, 70 );
 	move_back = 0;
 }
 
@@ -70,12 +73,12 @@ cjPiranha *cjPiranha :: Copy( void )
 	return jpiranha;
 }
 
-void cjPiranha :: Create_from_Stream( XMLAttributes &attributes )
+void cjPiranha :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// direction
-	Set_Direction( Get_Direction_id( attributes.getValueAsString( "direction", Get_Direction_name( start_direction ) ).c_str() ) );
+	Set_Direction( Get_Direction_Id( attributes.getValueAsString( "direction", Get_Direction_Name( start_direction ) ).c_str() ) );
 	// max distance
 	Set_Max_Distance( attributes.getValueAsFloat( "max_distance", max_distance ) );
 	// speed
@@ -93,7 +96,7 @@ void cjPiranha :: Save_to_Stream( ofstream &file )
 	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
 	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// direction
-	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_name( start_direction ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( start_direction ) << "\" />" << std::endl;
 	// max distance
 	file << "\t\t<Property name=\"max_distance\" value=\"" << static_cast<int>(max_distance) << "\" />" << std::endl;
 	// speed
@@ -140,30 +143,11 @@ void cjPiranha :: Set_Direction( ObjectDirection dir )
 
 	cEnemy::Set_Direction( dir, 1 );
 
-	string filename_dir;
-	name = "jPiranha";
+	string filename_dir = Get_Direction_Name( start_direction );
+	name = "jPiranha ";
+	name += _(filename_dir.c_str());
 
-	if( direction == DIR_UP )
-	{
-		filename_dir = "up";
-		name += " Up";
-	}
-	else if( direction == DIR_DOWN )
-	{
-		filename_dir = "down";
-		name += " Down";
-	}
-	else if( direction == DIR_LEFT )
-	{
-		filename_dir = "left";
-		name += " Left";
-	}
-	else if( direction == DIR_RIGHT )
-	{
-		filename_dir = "right";
-		name += " Right";
-	}
-	else
+	if( direction != DIR_UP && direction != DIR_DOWN && direction != DIR_LEFT && direction != DIR_RIGHT )
 	{
 		Set_Dead( 1 );
 		Set_Visible( 0 );
@@ -199,7 +183,7 @@ void cjPiranha :: Set_Speed( float val )
 
 	speed = val;
 
-	Update_dest_vel();
+	Update_Dest_Vel();
 }
 
 void cjPiranha :: DownGrade( bool force /* = 0 */ )
@@ -213,17 +197,18 @@ void cjPiranha :: DownGrade( bool force /* = 0 */ )
 	if( !force )
 	{
 		// animation
-		cParticleAnimation *anim = new cParticleAnimation( posx + ( col_rect.w / 2 ), posy + ( col_rect.h / 2 ) );
+		cParticle_Emitter *anim = new cParticle_Emitter();
+		anim->Set_Pos( posx + ( col_rect.w / 2 ), posy + ( col_rect.h / 2 ) );
 		Generate_Hit_Animation( anim );
 
 		anim->Set_Speed( 5, 0.6f );
 		anim->Set_Scale( 0.8f );
 		// add animation
-		pAnimationManager->Add( anim );
+		pAnimation_Manager->Add( anim );
 	}
 	else
 	{
-		Set_RotationZ( 180 );
+		Set_Rotation_Z( 180 );
 	}
 }
 
@@ -245,7 +230,7 @@ void cjPiranha :: DieStep( void )
 			Move( 0, -5 );
 		}
 		// if not below the screen fall
-		else if( posy < GAME_RES_H + col_rect.h )
+		else if( posy < game_res_h + col_rect.h )
 		{
 			Move( 0, 20 );
 		}
@@ -309,7 +294,7 @@ void cjPiranha :: Update( void )
 			// if player is in front wait again
 			if( pPlayer->maryo_type != MARYO_GHOST && Col_Box( &pPlayer->col_rect, &rect1 ) )
 			{
-				wait_time = DESIRED_FPS * 2;
+				wait_time = speedfactor_fps * 2;
 			}
 			// if not jump out
 			else
@@ -353,6 +338,7 @@ void cjPiranha :: Update( void )
 			{
 				velx = -dest_velx * vel_mod_min;
 			}
+			break;
 		}
 		case DIR_RIGHT:
 		{
@@ -366,6 +352,7 @@ void cjPiranha :: Update( void )
 			{
 				velx = -dest_velx * vel_mod_min;
 			}
+			break;
 		}
 		case DIR_UP:
 		{
@@ -379,6 +366,7 @@ void cjPiranha :: Update( void )
 			{
 				vely = -dest_vely * vel_mod_min;
 			}
+			break;
 		}
 		case DIR_DOWN:
 		{
@@ -392,6 +380,7 @@ void cjPiranha :: Update( void )
 			{
 				vely = -dest_vely * vel_mod_min;
 			}
+			break;
 		}
 		default:
 		{
@@ -433,7 +422,7 @@ void cjPiranha :: Update( void )
 				vely = 0;
 
 				move_back = 0;
-				wait_time = DESIRED_FPS * 2;
+				wait_time = speedfactor_fps * 2;
 				Set_Image( 0 );
 			}
 		}
@@ -452,19 +441,19 @@ void cjPiranha :: Draw( cSurfaceRequest *request /* = NULL */ )
 	{
 		if( start_direction == DIR_RIGHT )
 		{
-			pVideo->Draw_Rect( startposx - pCamera->x, startposy + ( rect.h * 0.5f ) - 5 - pCamera->y, max_distance + rect.w, 10, editor_posz - 0.000001f, &whitealpha128 );
+			pVideo->Draw_Rect( startposx - pActive_Camera->x, startposy + ( rect.h * 0.5f ) - 5 - pActive_Camera->y, max_distance + rect.w, 10, editor_posz - 0.000001f, &whitealpha128 );
 		}
 		else if( start_direction == DIR_LEFT )
 		{
-			pVideo->Draw_Rect( startposx - pCamera->x + rect.w, startposy + ( rect.h * 0.5f ) - 5 - pCamera->y, -( rect.w + max_distance ), 10, editor_posz - 0.000001f, &whitealpha128 );
+			pVideo->Draw_Rect( startposx - pActive_Camera->x + rect.w, startposy + ( rect.h * 0.5f ) - 5 - pActive_Camera->y, -( rect.w + max_distance ), 10, editor_posz - 0.000001f, &whitealpha128 );
 		}
 		else if( start_direction == DIR_DOWN )
 		{
-			pVideo->Draw_Rect( startposx + ( rect.w * 0.5f ) - 5 - pCamera->x, startposy - pCamera->y, 10, max_distance + rect.h, editor_posz - 0.000001f, &whitealpha128 );
+			pVideo->Draw_Rect( startposx + ( rect.w * 0.5f ) - 5 - pActive_Camera->x, startposy - pActive_Camera->y, 10, max_distance + rect.h, editor_posz - 0.000001f, &whitealpha128 );
 		}
 		else if( start_direction == DIR_UP )
 		{
-			pVideo->Draw_Rect( startposx + ( rect.w * 0.5f ) - 5 - pCamera->x, startposy - pCamera->y + rect.h, 10, -( rect.h + max_distance ), editor_posz - 0.000001f, &whitealpha128 );
+			pVideo->Draw_Rect( startposx + ( rect.w * 0.5f ) - 5 - pActive_Camera->x, startposy - pActive_Camera->y + rect.h, 10, -( rect.h + max_distance ), editor_posz - 0.000001f, &whitealpha128 );
 		}
 	}
 
@@ -500,7 +489,7 @@ float cjPiranha :: Get_End_Distance(void )
 	return 0;
 }
 
-void cjPiranha :: Update_dest_vel( void )
+void cjPiranha :: Update_Dest_Vel( void )
 {
 	if( direction == DIR_UP )
 	{
@@ -529,9 +518,25 @@ void cjPiranha :: Update_dest_vel( void )
 	}
 }
 
-bool cjPiranha :: is_Update_valid( void )
+bool cjPiranha :: Is_Update_Valid( void )
 {
 	if( dead || freeze_counter )
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+bool cjPiranha :: Is_Draw_Valid( void )
+{
+	if( cEnemy::Is_Draw_Valid() == 1 )
+	{
+		return 1;
+	}
+
+	// if not editor enabled or not active mouse object
+	if( !editor_enabled || pMouseCursor->active_object != this )
 	{
 		return 0;
 	}
@@ -565,7 +570,7 @@ void cjPiranha :: Handle_Collision_Player( cObjectCollision *collision )
 	{
 		// todo : create again
 		//pAudio->PlaySound( "player/maryo_au.ogg", RID_MARYO_AU );
-		pPlayer->start_enemyjump = 1;
+		pPlayer->Action_Jump( 1 );
 	}
 
 	pPlayer->DownGrade();
@@ -573,42 +578,40 @@ void cjPiranha :: Handle_Collision_Player( cObjectCollision *collision )
 
 void cjPiranha :: Editor_Activate( void )
 {
-	WindowManager &wmgr = WindowManager::getSingleton();
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
 	// max distance
-	Editbox *editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_jpiranha_max_distance" ));
-	editbox->setTooltipText( "Max Distance" );
-	Editor_Add( editbox, 90 );
+	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_jpiranha_max_distance" ));
+	Editor_Add( UTF8_("Distance"), _("Movable Distance into its direction"), editbox, 90 );
 
 	editbox->setText( int_to_string( static_cast<int>(max_distance) ) );
-	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cjPiranha::Editor_Max_Distance_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cjPiranha::Editor_Max_Distance_Key, this ) );
 
 	// speed
-	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_jpiranha_speed" ));
-	editbox->setTooltipText( "Speed" );
-	Editor_Add( editbox, 120 );
+	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_jpiranha_speed" ));
+	Editor_Add( UTF8_("Speed"), UTF8_("Initial speed when jumping out"), editbox, 120 );
 
 	editbox->setText( float_to_string( speed ) );
-	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cjPiranha::Editor_Speed_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cjPiranha::Editor_Speed_Key, this ) );
 
-	// set position
-	Editor_pos_update();
+	// init
+	Editor_Init();
 }
 
-bool cjPiranha :: Editor_Max_Distance_Key( const EventArgs &event )
+bool cjPiranha :: Editor_Max_Distance_Key( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Max_Distance( static_cast<float>(string_to_int( str_text )) );
 
 	return 1;
 }
 
-bool cjPiranha :: Editor_Speed_Key( const EventArgs &event )
+bool cjPiranha :: Editor_Speed_Key( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Speed( string_to_float( str_text ) );
 

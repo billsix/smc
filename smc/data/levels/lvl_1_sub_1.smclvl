@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.8" />
-		<Property name="engine_version" value="2.1" />
-		<Property name="save_time" value="1184146455" />
+		<Property name="game_version" value="1.5" />
+		<Property name="engine_version" value="2.4" />
+		<Property name="save_time" value="1208750576" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="FluXy" />
@@ -13,6 +13,7 @@
 		<Property name="cam_limit_y" value="0" />
 		<Property name="cam_limit_w" value="1215" />
 		<Property name="cam_limit_h" value="-230" />
+		<Property name="cam_fixed_hor_vel" value="0" />
 	</settings>
 	<background>
 		<Property name="type" value="103" />
@@ -26,13 +27,14 @@
 	<global_effect>
 		<Property name="type" value="1" />
 		<Property name="image" value="animation/particles/star.png" />
-		<Property name="rect_x" value="80.3918" />
-		<Property name="rect_y" value="0" />
+		<Property name="rect_x" value="0" />
+		<Property name="rect_y" value="-20" />
 		<Property name="rect_w" value="800" />
 		<Property name="rect_h" value="0" />
 		<Property name="z" value="0.001" />
 		<Property name="z_rand" value="0" />
 		<Property name="time_to_live" value="14" />
+		<Property name="time_to_live_rand" value="0" />
 		<Property name="emitter_iteration_interval" value="0.266667" />
 		<Property name="scale" value="0.2" />
 		<Property name="scale_rand" value="0.1" />
@@ -40,8 +42,11 @@
 		<Property name="speed_rand" value="4" />
 		<Property name="dir_range_start" value="270" />
 		<Property name="dir_range_size" value="0" />
-		<Property name="const_rotz" value="0" />
-		<Property name="const_rotz_rand" value="5" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="const_rotz" value="-3" />
+		<Property name="const_rotz_rand" value="6" />
 	</global_effect>
 	<player>
 		<Property name="posx" value="233" />
@@ -56,7 +61,7 @@
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1107" />
-		<Property name="posy" value="448" />
+		<Property name="posy" value="442" />
 		<Property name="image" value="pipes/grey/left.png" />
 		<Property name="type" value="massive" />
 	</sprite>
@@ -469,13 +474,13 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="214" />
+		<Property name="posx" value="208" />
 		<Property name="posy" value="-131" />
 		<Property name="image" value="pipes/yellow/down.png" />
 		<Property name="type" value="front_passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="214" />
+		<Property name="posx" value="208" />
 		<Property name="posy" value="-231" />
 		<Property name="image" value="pipes/yellow/ver.png" />
 		<Property name="type" value="massive" />
@@ -967,7 +972,7 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="214" />
+		<Property name="posx" value="208" />
 		<Property name="posy" value="-181" />
 		<Property name="image" value="pipes/yellow/ver.png" />
 		<Property name="type" value="massive" />

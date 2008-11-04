@@ -1,7 +1,7 @@
 /***************************************************************************
-                sound_manager.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :  (C) 2006 - 2007 by Florian Richter
+ * sound_manager.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,49 +13,69 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SOUND_MANAGER_H__
-#define __SOUND_MANAGER_H__
+#ifndef SMC_SOUND_MANAGER_H
+#define SMC_SOUND_MANAGER_H
 
-#include "../audio/audio.h"
+#include "../core/globals.h"
 #include "../core/obj_manager.h"
 
-/* *** *** *** *** *** *** cSoundManager *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** Sound object *** *** *** *** *** *** *** *** *** *** */
 
-/*  Keeps track of all the sounds in memory
- *
- * Operators:
- * - cSoundManager [path]
- * - cSoundManager [ID]
-*/
-class cSoundManager : public cObject_Manager<cAudio_Sound>
+class cSound
 {
 public:
-	cSoundManager( void );
-	virtual ~cSoundManager( void );
+	cSound( void );
+	virtual ~cSound( void );
+	
+	// Load the data
+	bool Load( string filename );
+	// Free the data
+	void Free( void );
 
-	// Return the Sound by Path
-	virtual cAudio_Sound *Get_Pointer( string path );
+	// filename
+	string m_filename;
+	// data if loaded else null
+	Mix_Chunk *m_chunk;
+};
 
-	// Return the Sound Path in a string
+typedef vector<cSound *> SoundList;
+
+/* *** *** *** *** *** *** cSound_Manager *** *** *** *** *** *** *** *** *** *** *** */
+
+/*  Keeps track of all sounds in memory
+ *
+ * Operators:
+ * - cSound_Manager [path]
+ * - cSound_Manager [ID]
+*/
+class cSound_Manager : public cObject_Manager<cSound>
+{
+public:
+	cSound_Manager( void );
+	virtual ~cSound_Manager( void );
+
+	// Return the Sound from Path
+	virtual cSound *Get_Pointer( string path );
+
+	// Return the Sound Path as string
 	string Get_Path( unsigned int identifier );
 
 	/* Add a Sound
 	 * Should always have the path set
 	 */
-	void Add( cAudio_Sound *item );
+	void Add( cSound *item );
 
-	cAudio_Sound *operator [] ( unsigned int identifier )
+	cSound *operator [] ( unsigned int identifier )
 	{
-		return cObject_Manager<cAudio_Sound>::Get_Pointer( identifier );
+		return cObject_Manager<cSound>::Get_Pointer( identifier );
 	}
 	
-	cAudio_Sound *operator [] ( string path )
+	cSound *operator [] ( string path )
 	{
 		return Get_Pointer( path );
 	}
 
-	/* Free all Sounds, but keep object vector entries
-	*/
+	// Delete all Sounds, but keep object vector entries
 	void Delete_Sounds( void );
 
 private:
@@ -66,7 +86,7 @@ private:
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // Sound Manager
-extern cSoundManager *pSoundManager;
+extern cSound_Manager *pSound_Manager;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

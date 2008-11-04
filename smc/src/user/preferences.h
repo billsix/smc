@@ -1,7 +1,7 @@
 /***************************************************************************
-           preferences.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            : (C) 2003 - 2007 by Florian Richter
+ * preferences.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,14 +13,14 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PREFERENCES_H__
-#define __PREFERENCES_H__
+#ifndef SMC_PREFERENCES_H
+#define SMC_PREFERENCES_H
 
 #include "../core/globals.h"
 
 /* *** *** *** *** *** cPreferences *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cPreferences : public XMLHandler
+class cPreferences : public CEGUI::XMLHandler
 {
 public:
 	cPreferences( void );
@@ -33,19 +33,29 @@ public:
 
 	// Reset the settings
 	void Default( void );
-	 // Gets the settings from current in-game settings
+	 // Get settings from current game settings
 	void Update( void );
-	// Sets the settings to current in-game settings
+	// Set settings to current game settings
 	void Apply( void );
+	// Set new video settings
+	void Apply_Video( Uint16 screen_w, Uint16 screen_h, Uint8 screen_bpp, bool fullscreen, bool vsync, float geometry_detail, float texture_detail );
+	// Set new audio settings
+	void Apply_Audio( bool sound, bool music );
 
 	/* *** *** *** Game Settings *** *** *** *** */
 
 	// Game
+	// default language
+	string language;
+	// last version of smc which saved the preferences file
+	float game_version;
+	// force the given user data directory
+	string force_user_data_dir;
+	// smart camera speed
 	float camera_hor_speed, camera_ver_speed;
 
 	// Audio
 	bool audio_music, audio_sound;
-	Uint8 audio_music_volume, audio_sound_volume;
 	unsigned int audio_hz;
 
 	// Video
@@ -54,9 +64,12 @@ public:
 	Uint8 video_screen_bpp;
 	bool video_vsync;
 
-	// Keyboard key definitions
+	// Keyboard
+	// key definitions
 	SDLKey key_up, key_down, key_left, key_right, key_jump, key_shoot, key_action;
-	// Joypad
+	// scroll speed
+	float scroll_speed;
+	// Joystick
 	bool joy_enabled;
 	// active joy name
 	string joy_name;
@@ -67,25 +80,31 @@ public:
 	// axis threshold
 	Sint16 joy_axis_threshold;
 	// button definitions
-	int joy_button_jump, joy_button_shoot, joy_button_item, joy_button_action, joy_button_exit;
+	Uint8 joy_button_jump, joy_button_shoot, joy_button_item, joy_button_action, joy_button_exit;
 
 
 	// Special
-	string game_version;
+	// player always runs
 	bool always_run;
-	bool editor_mouse_auto_hide, level_background_images;
+	// hide mouse if clicked on an object
+	bool editor_mouse_auto_hide;
+	// level background images enabled
+	bool level_background_images;
+	// image cache enabled
+	bool image_cache_enabled;
 
 	/* *** *** *** *** *** *** *** */
 
+	// configuration filename
 	string config_filename;
 
 private:
 	// XML element start
-    virtual void elementStart( const String &element, const XMLAttributes &attributes );
+    virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
 	// XML element end
-    virtual void elementEnd( const String &element );
+    virtual void elementEnd( const CEGUI::String &element );
 	// handles an item
-    void handle_item( const XMLAttributes& attributes );
+    void handle_item( const CEGUI::XMLAttributes& attributes );
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

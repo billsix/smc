@@ -1,7 +1,7 @@
 /***************************************************************************
-				menu_data.cpp  -  menu data/handling classes
-                             -------------------
-    copyright            :	(C) 2004 - 2007 by Florian Richter
+ * menu_data.cpp  -  menu data and handling classes
+ *
+ * Copyright (C) 2004 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -30,6 +30,10 @@
 #include "../level/level.h"
 #include "../input/keyboard.h"
 #include "../level/level_editor.h"
+#include "../audio/sound_manager.h"
+#include "../core/math/utilities.h"
+#include "../core/i18n.h"
+#include "../core/math/size.h"
 // boost filesystem
 #include "boost/filesystem/convenience.hpp"
 namespace fs = boost::filesystem;
@@ -50,7 +54,7 @@ cMenu_Base :: ~cMenu_Base( void )
 	if( guiwindow )
 	{
 		pGuiSystem->getGUISheet()->removeChildWindow( guiwindow );
-		WindowManager::getSingleton().destroyWindow( guiwindow );
+		CEGUI::WindowManager::getSingleton().destroyWindow( guiwindow );
 	}
 
 	for( HudSpriteList::iterator itr = drawlist.begin(), itr_end = drawlist.end(); itr != itr_end; ++itr )
@@ -64,9 +68,9 @@ cMenu_Base :: ~cMenu_Base( void )
 void cMenu_Base :: Init( void )
 {
 	// continue playing level/world music but not if finished level 
-	if( !pAudio->isMusicPlaying() || ( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM && !pLevel->is_Loaded() ) )
+	if( !pAudio->Is_Music_Playing() || ( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM && !pActive_Level->Is_Loaded() ) )
 	{
-		pAudio->PlayMusic( "game/menu.ogg", -1, 0, 1500 );
+		pAudio->Play_Music( "game/menu.ogg", -1, 0, 1500 );
 	}
 
 	// init
@@ -82,7 +86,7 @@ void cMenu_Base :: Init_GUI( void )
 		return;
 	}
 
-	guiwindow = WindowManager::getSingleton().loadWindowLayout( layout_file.c_str() );
+	guiwindow = CEGUI::WindowManager::getSingleton().loadWindowLayout( layout_file.c_str() );
 	pGuiSystem->getGUISheet()->addChildWindow( guiwindow );
 }
 
@@ -91,7 +95,7 @@ void cMenu_Base :: Update( void )
 	// animation
 	pMenuCore->pMenu_AnimManager->Update();
 	// hud
-	pHudManager->Update();
+	pHud_Manager->Update();
 }
 
 void cMenu_Base :: Draw( void )
@@ -112,7 +116,7 @@ void cMenu_Base :: Draw( void )
 void cMenu_Base :: Draw_End( void )
 {
 	// hud
-	pHudManager->Draw();
+	pHud_Manager->Draw();
 }
 
 void cMenu_Base :: Exit( void )
@@ -144,40 +148,40 @@ void cMenu_Main :: Init( void )
 
 	layout_file = "menu_main.layout";
 
-	GL_Surface *credits = pFont->RenderText( pFont->font_normal, "Credits", yellow );
+	GL_Surface *credits = pFont->Render_Text( pFont->font_normal, _("Credits"), yellow );
 
 	// Start
 	temp_item = pMenuCore->Auto_Menu( "start.png", "start.png", menu_posy );
 	temp_item->image_menu->Set_Pos( temp_item->posx + ( temp_item->image_default->col_rect.w + 16 ), temp_item->posy );
-	pMenuCore->handler->Add_MenuItem( temp_item );
+	pMenuCore->handler->Add_Menu_Item( temp_item );
 	// Options
 	menu_posy += 60;
 	temp_item = pMenuCore->Auto_Menu( "options.png", "options.png", menu_posy );
 	temp_item->image_menu->Set_Pos( temp_item->posx - temp_item->image_menu->col_rect.w - 16, temp_item->posy );
-	pMenuCore->handler->Add_MenuItem( temp_item );
+	pMenuCore->handler->Add_Menu_Item( temp_item );
 	// Load
 	menu_posy += 60;
 	temp_item = pMenuCore->Auto_Menu( "load.png", "load.png", menu_posy );
 	temp_item->image_menu->Set_Pos( temp_item->posx + ( temp_item->image_default->col_rect.w + 16 ), temp_item->posy );
-	pMenuCore->handler->Add_MenuItem( temp_item );
+	pMenuCore->handler->Add_Menu_Item( temp_item );
 	// Save
 	menu_posy += 60;
 	temp_item = pMenuCore->Auto_Menu( "save.png", "save.png", menu_posy );
 	temp_item->image_menu->Set_Pos( temp_item->posx - temp_item->image_menu->col_rect.w - 16, temp_item->posy );
-	pMenuCore->handler->Add_MenuItem( temp_item );
+	pMenuCore->handler->Add_Menu_Item( temp_item );
 	// Quit
 	menu_posy += 60;
 	temp_item = pMenuCore->Auto_Menu( "quit.png", "", menu_posy, 1 );
 	temp_item->image_menu->Set_Pos( temp_item->posx + temp_item->col_rect.w + 16, temp_item->posy );
-	pMenuCore->handler->Add_MenuItem( temp_item );
+	pMenuCore->handler->Add_Menu_Item( temp_item );
 
 	// Credits
 	temp_item = new cMenu_Item();
 	temp_item->image_default->Set_Image( credits );
-	temp_item->Set_Pos( GAME_RES_W * 0.45f, GAME_RES_H - 30 );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
+	temp_item->Set_Pos( static_cast<float>(game_res_w) * 0.45f, static_cast<float>(game_res_h) - 30 );
+	pMenuCore->handler->Add_Menu_Item( temp_item, 1.5f, grey );
 
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/logo_sdl.png" ), 10, static_cast<float>(GAME_RES_H) * 0.935f ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/logo_sdl.png" ), 10, static_cast<float>(game_res_h) * 0.935f ) );
 	drawlist.push_back( new cHudSprite( credits, -200, 0, 1 ) );
 
 	Init_GUI();
@@ -187,8 +191,8 @@ void cMenu_Main :: Init_GUI( void )
 {
 	cMenu_Base::Init_GUI();
 
-	Window *text_version = WindowManager::getSingleton().getWindow( "text_version" );
-	text_version->setProperty( "Text", "Version " VERSION );
+	CEGUI::Window *text_version = CEGUI::WindowManager::getSingleton().getWindow( "text_version" );
+	text_version->setProperty( "Text", _("Version ") + string_trim_from_end( float_to_string( smc_version, 6 ), '0' ) );
 }
 
 void cMenu_Main :: Update( void )
@@ -229,7 +233,7 @@ void cMenu_Main :: Update( void )
 	// Quit
 	else if( pMenuCore->handler->active == 4 )
 	{
-		done = 1;
+		game_exit = 1;
 	}
 	// Credits
 	else if( pMenuCore->handler->active == 5 )
@@ -247,7 +251,7 @@ void cMenu_Main :: Draw( void )
 
 void cMenu_Main :: Exit( void )
 {
-	if( pLevel->is_Loaded() )
+	if( pActive_Level->Is_Loaded() )
 	{
 		Game_Action = GA_ENTER_LEVEL;
 	}
@@ -278,8 +282,8 @@ void cMenu_Start :: Init( void )
 
 	layout_file = "menu_start.layout";
 
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/start.png" ), GAME_RES_W * 0.02f, 140 ) );
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/overworld.png" ), GAME_RES_W / 20, 210 ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/start.png" ), static_cast<float>(game_res_w) * 0.02f, 140 ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/overworld.png" ), static_cast<float>(game_res_w) / 20, 210 ) );
 
 	Init_GUI();
 }
@@ -289,17 +293,17 @@ void cMenu_Start :: Init_GUI( void )
 	cMenu_Base::Init_GUI();
 
 	// Tab Control
-	TabControl *tabcontrol = static_cast<TabControl *>(WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
+	CEGUI::TabControl *tabcontrol = static_cast<CEGUI::TabControl *>(CEGUI::WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
 	tabcontrol->activate();
 
 	// events
-	tabcontrol->subscribeEvent( Window::EventKeyDown, Event::Subscriber( &cMenu_Start::window_keydown, this ) );
+	tabcontrol->subscribeEvent( CEGUI::Window::EventKeyDown, CEGUI::Event::Subscriber( &cMenu_Start::Window_Keydown, this ) );
 
 	// Worlds
-	Listbox *listbox_worlds = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_worlds" ));
+	CEGUI::Listbox *listbox_worlds = static_cast<CEGUI::Listbox *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_worlds" ));
 	
 	// overworld names
-	for( vector<cOverworld *>::iterator itr = pOverworld_manager->objects.begin(), itr_end = pOverworld_manager->objects.end(); itr != itr_end; ++itr )
+	for( vector<cOverworld *>::iterator itr = pOverworld_Manager->objects.begin(), itr_end = pOverworld_Manager->objects.end(); itr != itr_end; ++itr )
 	{
 		cOverworld_description *world = (*itr)->description;
 
@@ -311,57 +315,57 @@ void cMenu_Start :: Init_GUI( void )
 		}
 #endif
 		
-		ListboxTextItem *item = new ListboxTextItem( world->name, 0 );
+		CEGUI::ListboxTextItem *item = new CEGUI::ListboxTextItem( reinterpret_cast<const CEGUI::utf8*>(world->name.c_str()), 0 );
 		// game world
 		if( !world->user )
 		{
-			item->setTextColours( colour( 1, 0.8f, 0.6f ) );
+			item->setTextColours( CEGUI::colour( 1, 0.8f, 0.6f ) );
 		}
 		// user world
 		else
 		{
-			item->setTextColours( colour( 0.8f, 1, 0.6f ) );
+			item->setTextColours( CEGUI::colour( 0.8f, 1, 0.6f ) );
 		}
 
-		item->setSelectionColours( colour( 0.33f, 0.33f, 0.33f ) );
+		item->setSelectionColours( CEGUI::colour( 0.33f, 0.33f, 0.33f ) );
 		item->setSelectionBrushImage( "TaharezLook", "ListboxSelectionBrush" );
 		listbox_worlds->addItem( item );
 	}
 
 	// Level Listbox
-	Listbox *listbox_levels = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
+	CEGUI::Listbox *listbox_levels = static_cast<CEGUI::Listbox *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_levels" ));
 	listbox_levels->setSortingEnabled( 1 );
 
 	// get game level
-	Get_Levels( DATA_DIR "/" GAME_LEVEL_DIR, colour( 1, 0.8f, 0.6f ) );
+	Get_Levels( DATA_DIR "/" GAME_LEVEL_DIR, CEGUI::colour( 1, 0.8f, 0.6f ) );
 	// get user level
-	Get_Levels( user_data_dir + USER_LEVEL_DIR, colour( 0.8f, 1, 0.6f ) );
+	Get_Levels( user_data_dir + USER_LEVEL_DIR, CEGUI::colour( 0.8f, 1, 0.6f ) );
 
 	// World Listbox events
-	listbox_worlds->subscribeEvent( Listbox::EventSelectionChanged, Event::Subscriber( &cMenu_Start::world_Select, this ) );
-	listbox_worlds->subscribeEvent( Listbox::EventMouseDoubleClick, Event::Subscriber( &cMenu_Start::world_Select_final_list, this ) );
+	listbox_worlds->subscribeEvent( CEGUI::Listbox::EventSelectionChanged, CEGUI::Event::Subscriber( &cMenu_Start::World_Select, this ) );
+	listbox_worlds->subscribeEvent( CEGUI::Listbox::EventMouseDoubleClick, CEGUI::Event::Subscriber( &cMenu_Start::World_Select_final_list, this ) );
 	// Level Listbox events
-	listbox_levels->subscribeEvent( Listbox::EventSelectionChanged, Event::Subscriber( &cMenu_Start::level_Select, this ) );
-	listbox_levels->subscribeEvent( Listbox::EventMouseDoubleClick, Event::Subscriber( &cMenu_Start::level_Select_final_list, this ) );
+	listbox_levels->subscribeEvent( CEGUI::Listbox::EventSelectionChanged, CEGUI::Event::Subscriber( &cMenu_Start::Level_Select, this ) );
+	listbox_levels->subscribeEvent( CEGUI::Listbox::EventMouseDoubleClick, CEGUI::Event::Subscriber( &cMenu_Start::Level_Select_Final_List, this ) );
 	// Level Buttons
-	PushButton *button_new = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_level_new" ));
-	button_new->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cMenu_Start::Button_level_new_clicked, this ) );
-	PushButton *button_edit = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_level_edit" ));
-	button_edit->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cMenu_Start::Button_level_edit_clicked, this ) );
-	PushButton *button_delete = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_level_delete" ));
-	button_delete->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cMenu_Start::Button_level_delete_clicked, this ) );
+	CEGUI::PushButton *button_new = static_cast<CEGUI::PushButton *>(CEGUI::WindowManager::getSingleton().getWindow( "button_level_new" ));
+	button_new->subscribeEvent( CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber( &cMenu_Start::Button_Level_New_Clicked, this ) );
+	CEGUI::PushButton *button_edit = static_cast<CEGUI::PushButton *>(CEGUI::WindowManager::getSingleton().getWindow( "button_level_edit" ));
+	button_edit->subscribeEvent( CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber( &cMenu_Start::Button_Level_Edit_Clicked, this ) );
+	CEGUI::PushButton *button_delete = static_cast<CEGUI::PushButton *>(CEGUI::WindowManager::getSingleton().getWindow( "button_level_delete" ));
+	button_delete->subscribeEvent( CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber( &cMenu_Start::Button_Level_Delete_Clicked, this ) );
 
 	// select first Item
 	listbox_worlds->setItemSelectState( (size_t)0, 1 );
 
 	// Button Enter 
-	PushButton *button_enter = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_enter" ));
+	CEGUI::PushButton *button_enter = static_cast<CEGUI::PushButton *>(CEGUI::WindowManager::getSingleton().getWindow( "button_enter" ));
 	// Button back
-	PushButton *button_back = static_cast<PushButton *>(WindowManager::getSingleton().getWindow( "button_back" ));
+	CEGUI::PushButton *button_back = static_cast<CEGUI::PushButton *>(CEGUI::WindowManager::getSingleton().getWindow( "button_back" ));
 
 	// events
-	button_enter->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cMenu_Start::Button_enter_clicked, this ) );
-	button_back->subscribeEvent( PushButton::EventClicked, Event::Subscriber( &cMenu_Start::Button_back_clicked, this ) );
+	button_enter->subscribeEvent( CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber( &cMenu_Start::Button_Enter_Clicked, this ) );
+	button_back->subscribeEvent( CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber( &cMenu_Start::Button_Back_Clicked, this ) );
 }
 
 void cMenu_Start :: Update( void )
@@ -391,15 +395,15 @@ void cMenu_Start :: Exit( void )
 	Game_Action = GA_ENTER_MENU;
 }
 
-void cMenu_Start :: Get_Levels( string dir, colour color )
+void cMenu_Start :: Get_Levels( string dir, CEGUI::colour color )
 {
 	// Level Listbox
-	Listbox *listbox_levels = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
+	CEGUI::Listbox *listbox_levels = static_cast<CEGUI::Listbox *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_levels" ));
 
 	// get directory length for erasing
 	int dir_length = dir.length() + 1;
 	// get all files
-	vector<string> lvl_files = Get_Directory_files( dir );
+	vector<string> lvl_files = Get_Directory_Files( dir, "", 0, 0 );
 
 	// list all available levels
 	for( vector<string>::iterator itr = lvl_files.begin(), itr_end = lvl_files.end(); itr != itr_end; ++itr )
@@ -416,14 +420,14 @@ void cMenu_Start :: Get_Levels( string dir, colour color )
 		}
 
 		// check if item with the same name already exists
-		ListboxItem *old_item = listbox_levels->findItemWithText( lvl_name, NULL );
+		CEGUI::ListboxItem *old_item = listbox_levels->findItemWithText( lvl_name, NULL );
 		// remove old item
 		if( old_item )
 		{
 			listbox_levels->removeItem( old_item );
 		}
 
-		ListboxTextItem *item = new ListboxTextItem( lvl_name, 0 );
+		CEGUI::ListboxTextItem *item = new CEGUI::ListboxTextItem( reinterpret_cast<const CEGUI::utf8*>(lvl_name.c_str()), 0 );
 
 		// smclvl
 		if( lvl_name.rfind( ".txt" ) == string::npos )
@@ -433,10 +437,10 @@ void cMenu_Start :: Get_Levels( string dir, colour color )
 		// grey out old txt levels
 		else
 		{
-			item->setTextColours( colour( 0.6f, 0.6f, 0.6f ) );
+			item->setTextColours( CEGUI::colour( 0.6f, 0.6f, 0.6f ) );
 		}
 
-		item->setSelectionColours( colour( 0.33f, 0.33f, 0.33f ) );
+		item->setSelectionColours( CEGUI::colour( 0.33f, 0.33f, 0.33f ) );
 		item->setSelectionBrushImage( "TaharezLook", "ListboxSelectionBrush" );
 		listbox_levels->addItem( item );
 	}
@@ -445,12 +449,12 @@ void cMenu_Start :: Get_Levels( string dir, colour color )
 void cMenu_Start :: Load_Selected( void )
 {
 	// Get Tab Control
-	TabControl *tabcontrol = static_cast<TabControl *>(WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
+	CEGUI::TabControl *tabcontrol = static_cast<CEGUI::TabControl *>(CEGUI::WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
 
 	// World
 	if( tabcontrol->getSelectedTabIndex() == 0 )
 	{
-		ListboxItem *item = (static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_worlds" )))->getFirstSelectedItem();
+		CEGUI::ListboxItem *item = (static_cast<CEGUI::Listbox *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_worlds" )))->getFirstSelectedItem();
 
 		// load world
 		if( item )
@@ -461,7 +465,7 @@ void cMenu_Start :: Load_Selected( void )
 	// Level
 	else
 	{
-		ListboxItem *item = (static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" )))->getFirstSelectedItem();
+		CEGUI::ListboxItem *item = (static_cast<CEGUI::Listbox *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_levels" )))->getFirstSelectedItem();
 
 		// load level
 		if( item )
@@ -473,28 +477,31 @@ void cMenu_Start :: Load_Selected( void )
 
 void cMenu_Start :: Load_World( string name )
 {
-	// if not successful
-	if( !pOverworld_manager->Set_Active( name ) )
+	cOverworld *new_world = pOverworld_Manager->Get_from_Name( name );
+
+	// if not available
+	if( !new_world )
 	{
-		debugdisplay->Set_Text( "Could not set Overworld active " + name, DESIRED_FPS );
+		debugdisplay->Set_Text( _("Couldn't load overworld ") + name, static_cast<float>(speedfactor_fps) );
 	}
 	// if successfully set active
 	else
 	{
 		// unload possible loaded level
-		pLevel->Unload();
+		pActive_Level->Unload();
 		// enter world
 		Game_Action = GA_ENTER_WORLD;
+		Game_Action_Data.add( "world", name.c_str() );
 	}
 }
 
 bool cMenu_Start :: Load_Level( string level_name )
 {
 	// if not available
-	if( !pLevel->Get_path( level_name ) )
+	if( !pActive_Level->Get_Path( level_name ) )
 	{
-		pAudio->PlaySound( "error.ogg" );
-		debugdisplay->Set_Text( "Couldn't load level " + level_name, DESIRED_FPS );
+		pAudio->Play_Sound( "error.ogg" );
+		debugdisplay->Set_Text( _("Couldn't load level ") + level_name, static_cast<float>(speedfactor_fps) );
 		return 0;
 	}
 
@@ -506,22 +513,22 @@ bool cMenu_Start :: Load_Level( string level_name )
 	return 1;
 }
 
-bool cMenu_Start :: window_keydown( const EventArgs &e )
+bool cMenu_Start :: Window_Keydown( const CEGUI::EventArgs &e )
 {
-	const KeyEventArgs &ke = static_cast<const KeyEventArgs &>(e);
+	const CEGUI::KeyEventArgs &ke = static_cast<const CEGUI::KeyEventArgs &>(e);
 
 	// Return
-	if( ke.scancode == Key::Return || ke.scancode == Key::NumpadEnter )
+	if( ke.scancode == CEGUI::Key::Return || ke.scancode == CEGUI::Key::NumpadEnter )
 	{
 		Load_Selected();
 
 		return 1;
 	}
 	// Shift Tab
-	else if( ( pKeyboard->keys[SDLK_LSHIFT] || pKeyboard->keys[SDLK_RSHIFT] ) && ke.scancode == Key::Tab )
+	else if( ( pKeyboard->keys[SDLK_LSHIFT] || pKeyboard->keys[SDLK_RSHIFT] ) && ke.scancode == CEGUI::Key::Tab )
 	{
 		// Get Tab Control
-		TabControl *tabcontrol = static_cast<TabControl *>(WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
+		CEGUI::TabControl *tabcontrol = static_cast<CEGUI::TabControl *>(CEGUI::WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
 
 		// if last tab
 		if( tabcontrol->getSelectedTabIndex() + 1 == tabcontrol->getTabCount() )
@@ -533,83 +540,126 @@ bool cMenu_Start :: window_keydown( const EventArgs &e )
 		{
 			tabcontrol->setSelectedTabAtIndex( tabcontrol->getSelectedTabIndex() + 1 );
 		}
+
+		return 1;
 	}
-	// Tab
-	else if( ke.scancode == Key::ArrowDown || ke.scancode == Key::ArrowUp )
+	// Down/Up
+	else if( ke.scancode == CEGUI::Key::ArrowDown || ke.scancode == CEGUI::Key::ArrowUp || ke.scancode == CEGUI::Key::PageDown || ke.scancode == CEGUI::Key::PageUp ||
+			 ke.scancode == CEGUI::Key::Home || ke.scancode == CEGUI::Key::End )
 	{
 		// Get Tab Control
-		TabControl *tabcontrol = static_cast<TabControl *>(WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
+		CEGUI::TabControl *tabcontrol = static_cast<CEGUI::TabControl *>(CEGUI::WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
 
 		// Items Listbox
-		Listbox *listbox;
+		CEGUI::Listbox *listbox;
 
 		// World
 		if( tabcontrol->getSelectedTabIndex() == 0 )
 		{
-			listbox = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_worlds" ));
+			listbox = static_cast<CEGUI::Listbox *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_worlds" ));
 		}
 		// Level
 		else
 		{
-			listbox = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
+			listbox = static_cast<CEGUI::Listbox *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_levels" ));
 		}
 
 		
-		ListboxItem *new_selected = NULL;
+		int new_selected = 0;
+		int last_selected = 0;
 
-		// if none selected
-		if( listbox->getSelectedCount() == 0 )
+		// get selected item
+		CEGUI::ListboxItem *last_selected_item = listbox->getFirstSelectedItem();
+
+		// if something is selected
+		if( last_selected_item != NULL )
 		{
-			new_selected = listbox->getListboxItemFromIndex( 0 );
+			last_selected = listbox->getItemIndex( last_selected_item );
 		}
-		else
-		{
-			unsigned int selected = listbox->getItemIndex( listbox->getFirstSelectedItem() );
 
-			// last item selected
-			if( ke.scancode == Key::ArrowDown && selected == listbox->getItemCount() - 1 )
+		// down
+		if( ke.scancode == CEGUI::Key::ArrowDown )
+		{
+			new_selected = last_selected + 1;
+		}
+		// up
+		else if( ke.scancode == CEGUI::Key::ArrowUp )
+		{
+			new_selected = last_selected - 1;
+		}
+		// page down
+		else if( ke.scancode == CEGUI::Key::PageDown )
+		{
+			// todo : should skip all visible items
+			new_selected = last_selected + 10;
+		}
+		// page up
+		else if( ke.scancode == CEGUI::Key::PageUp )
+		{
+			// todo : should skip all visible items
+			new_selected = last_selected - 10;
+		}
+		// home
+		else if( ke.scancode == CEGUI::Key::Home )
+		{
+			new_selected = 0;
+		}
+		// end
+		else if( ke.scancode == CEGUI::Key::End )
+		{
+			new_selected = listbox->getItemCount() - 1;
+		}
+
+		// if after last item
+		if( new_selected >= static_cast<int>(listbox->getItemCount()) )
+		{
+			// select first
+			if( last_selected == static_cast<int>(listbox->getItemCount()) - 1 )
 			{
-				new_selected = listbox->getListboxItemFromIndex( 0 );
+				new_selected = 0;
 			}
-			// first item selected
-			else if( ke.scancode == Key::ArrowUp && selected == 0 )
-			{
-				new_selected = listbox->getListboxItemFromIndex( listbox->getItemCount() - 1 );
-			}
-			// select next item
+			// select last
 			else
 			{
-				if( ke.scancode == Key::ArrowDown )
-				{
-					new_selected = listbox->getListboxItemFromIndex( selected + 1 );
-				}
-				// up
-				else
-				{
-					new_selected = listbox->getListboxItemFromIndex( selected - 1 );
-				}
+				new_selected = listbox->getItemCount() - 1;
 			}
 		}
-		
+		// if before first item
+		else if( new_selected < 0 )
+		{
+			// select last
+			if( last_selected == 0 )
+			{
+				new_selected = listbox->getItemCount() - 1;
+			}
+			// select first
+			else
+			{
+				new_selected = 0;
+			}
+		}
+
 		listbox->setItemSelectState( new_selected, 1 );
 		listbox->ensureItemIsVisible( new_selected );
+
+		return 1;
 	}
 
 	return 0;
 }
 
-bool cMenu_Start :: world_Select( const EventArgs &event )
+bool cMenu_Start :: World_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Listbox *>( windowEventArgs.window )->getFirstSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Listbox *>( windowEventArgs.window )->getFirstSelectedItem();
 
 	// World Comment
-	Editbox *editbox_world_comment = static_cast<Editbox *>(WindowManager::getSingleton().getWindow( "editbox_world_comment" ));
+	CEGUI::Editbox *editbox_world_comment = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_world_comment" ));
 
 	// set world comment
 	if( item )
 	{
-		editbox_world_comment->setText( pOverworld_manager->Get_from_Name( item->getText().c_str() )->description->comment );
+		editbox_world_comment->setText( reinterpret_cast<const CEGUI::utf8*>(pOverworld_Manager->Get_from_Name( item->getText().c_str() )->description->comment.c_str()) );
 	}
 	// clear
 	else
@@ -620,10 +670,10 @@ bool cMenu_Start :: world_Select( const EventArgs &event )
 	return 1;
 }
 
-bool cMenu_Start :: world_Select_final_list( const EventArgs &event )
+bool cMenu_Start :: World_Select_final_list( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Listbox *>( windowEventArgs.window )->getFirstSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Listbox *>( windowEventArgs.window )->getFirstSelectedItem();
 
 	// load world
 	if( item )
@@ -634,10 +684,10 @@ bool cMenu_Start :: world_Select_final_list( const EventArgs &event )
 	return 1;
 }
 
-bool cMenu_Start :: level_Select( const EventArgs &event )
+bool cMenu_Start :: Level_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Listbox *>( windowEventArgs.window )->getFirstSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Listbox *>( windowEventArgs.window )->getFirstSelectedItem();
 
 	// set level something
 	if( item )
@@ -653,10 +703,10 @@ bool cMenu_Start :: level_Select( const EventArgs &event )
 	return 1;
 }
 
-bool cMenu_Start :: level_Select_final_list( const EventArgs &event )
+bool cMenu_Start :: Level_Select_Final_List( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Listbox *>( windowEventArgs.window )->getFirstSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Listbox *>( windowEventArgs.window )->getFirstSelectedItem();
 
 	// load level
 	if( item )
@@ -668,7 +718,7 @@ bool cMenu_Start :: level_Select_final_list( const EventArgs &event )
 }
 
 
-bool cMenu_Start :: Button_level_new_clicked( const EventArgs &event )
+bool cMenu_Start :: Button_Level_New_Clicked( const CEGUI::EventArgs &event )
 {
 	// Create level
 	if( !pLevel_Editor->Function_New() )
@@ -684,11 +734,11 @@ bool cMenu_Start :: Button_level_new_clicked( const EventArgs &event )
 	return 1;
 }
 
-bool cMenu_Start :: Button_level_edit_clicked( const EventArgs &event )
+bool cMenu_Start :: Button_Level_Edit_Clicked( const CEGUI::EventArgs &event )
 {
 	// Get Selected Level
-	Listbox *listbox_levels = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
-	ListboxItem *item = listbox_levels->getFirstSelectedItem();
+	CEGUI::Listbox *listbox_levels = static_cast<CEGUI::Listbox *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_levels" ));
+	CEGUI::ListboxItem *item = listbox_levels->getFirstSelectedItem();
 
 	// load level
 	if( item && Load_Level( item->getText().c_str() ) )
@@ -699,11 +749,11 @@ bool cMenu_Start :: Button_level_edit_clicked( const EventArgs &event )
 	return 1;
 }
 
-bool cMenu_Start :: Button_level_delete_clicked( const EventArgs &event )
+bool cMenu_Start :: Button_Level_Delete_Clicked( const CEGUI::EventArgs &event )
 {
 	// Get Selected Level
-	Listbox *listbox_levels = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
-	ListboxItem *item = listbox_levels->getFirstSelectedItem();
+	CEGUI::Listbox *listbox_levels = static_cast<CEGUI::Listbox *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_levels" ));
+	CEGUI::ListboxItem *item = listbox_levels->getFirstSelectedItem();
 
 	// load level
 	if( item )
@@ -711,15 +761,15 @@ bool cMenu_Start :: Button_level_delete_clicked( const EventArgs &event )
 		string filename = item->getText().c_str();
 
 		// if denied
-		if( !Box_Question( "Delete " + filename + " ?" ) )
+		if( !Box_Question( _("Delete ") + filename + " ?" ) )
 		{
 			return 1;
 		}
 
 		// only user directory
-		if( pLevel->Get_path( filename, 1 ) )
+		if( pActive_Level->Get_Path( filename, 1 ) )
 		{
-			Delete_file( filename );
+			Delete_File( filename );
 			listbox_levels->removeItem( item );
 		}
 	}
@@ -727,13 +777,13 @@ bool cMenu_Start :: Button_level_delete_clicked( const EventArgs &event )
 	return 1;
 }
 
-bool cMenu_Start :: Button_enter_clicked( const EventArgs &event )
+bool cMenu_Start :: Button_Enter_Clicked( const CEGUI::EventArgs &event )
 {
 	Load_Selected();
 	return 1;
 }
 
-bool cMenu_Start :: Button_back_clicked( const EventArgs &event )
+bool cMenu_Start :: Button_Back_Clicked( const CEGUI::EventArgs &event )
 {
 	Exit();
 	return 1;
@@ -759,40 +809,40 @@ void cMenu_Options :: Init( void )
 	cMenu_Item *temp_item = NULL;
 	menu_posy = 210;
 
-	GL_Surface *back1 = pFont->RenderText( pFont->font_normal, "Back", text_color );
+	GL_Surface *back1 = pFont->Render_Text( pFont->font_normal, _("Back"), text_color );
 
 	// Game
 	temp_item = new cMenu_Item();
 	temp_item = pMenuCore->Auto_Menu( "game.png", "", menu_posy );
 	temp_item->Set_Scale( 0.7f );
-	temp_item->Set_PosX( GAME_RES_W / 20, 1 );
-	pMenuCore->handler->Add_MenuItem( temp_item );
+	temp_item->Set_Pos_X( game_res_w * 0.05f, 1 );
+	pMenuCore->handler->Add_Menu_Item( temp_item );
 	// Video
 	menu_posy += 60;
 	temp_item = new cMenu_Item();
 	temp_item = pMenuCore->Auto_Menu( "video.png", "", menu_posy );
-	temp_item->Set_PosX( GAME_RES_W / 20, 1 );
-	pMenuCore->handler->Add_MenuItem( temp_item );
+	temp_item->Set_Pos_X( game_res_w * 0.05f, 1 );
+	pMenuCore->handler->Add_Menu_Item( temp_item );
 	// Audio
 	menu_posy += 60;
 	temp_item = new cMenu_Item();
 	temp_item = pMenuCore->Auto_Menu( "audio.png", "", menu_posy );
-	temp_item->Set_PosX( GAME_RES_W / 20, 1 );
-	pMenuCore->handler->Add_MenuItem( temp_item );
+	temp_item->Set_Pos_X( game_res_w * 0.05f, 1 );
+	pMenuCore->handler->Add_Menu_Item( temp_item );
 	// Controls
 	menu_posy += 60;
 	temp_item = new cMenu_Item();
 	temp_item = pMenuCore->Auto_Menu( "controls.png", "", menu_posy );
-	temp_item->Set_PosX( GAME_RES_W / 20, 1 );
-	pMenuCore->handler->Add_MenuItem( temp_item );
+	temp_item->Set_Pos_X( game_res_w * 0.05f, 1 );
+	pMenuCore->handler->Add_Menu_Item( temp_item );
 	// back
 	temp_item = new cMenu_Item();
 	temp_item->image_default->Set_Image( back1 );
-	temp_item->Set_Pos( GAME_RES_W / 20 + 25, 450 );
+	temp_item->Set_Pos( game_res_w * 0.11f, 450 );
 	temp_item->isquit = 1;
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
+	pMenuCore->handler->Add_Menu_Item( temp_item, 1.5f, grey );
 
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/options.png" ), GAME_RES_W / 20, 140, 0 ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/options.png" ), game_res_w * 0.01f, 140, 0 ) );
 	drawlist.push_back( new cHudSprite( back1, -200, 0, 1 ) );
 }
 
@@ -885,36 +935,9 @@ void cMenu_Options_Game :: Init( void )
 	cMenu_Item *temp_item = NULL;
 
 	layout_file = "menu_game.layout";
-	menu_posy = 220;
 
-	GL_Surface *controls_always_run = pFont->RenderText( pFont->font_normal, "Always Run", text_color );
-	GL_Surface *game_camera_hor_speed = pFont->RenderText( pFont->font_normal, "Camera Hor Speed", text_color );
-	GL_Surface *game_camera_ver_speed = pFont->RenderText( pFont->font_normal, "Camera Ver Speed", text_color );
-
-	// always run
-	temp_item = new cMenu_Item();
-	temp_item->image_default->Set_Image( controls_always_run );
-	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	drawlist.push_back( new cHudSprite( controls_always_run, -200, 0, 1 ) );
-
-	// Camera Horizontal Speed
-	menu_posy += 40;
-	temp_item = new cMenu_Item();
-	temp_item->image_default->Set_Image( game_camera_hor_speed );
-	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	drawlist.push_back( new cHudSprite( game_camera_hor_speed, -200, 0, 1 ) );
-	// Camera Vertical Speed
-	menu_posy += 30;
-	temp_item = new cMenu_Item();
-	temp_item->image_default->Set_Image( game_camera_ver_speed );
-	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	drawlist.push_back( new cHudSprite( game_camera_ver_speed, -200, 0, 1 ) );
-
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/game.png" ), GAME_RES_W * 0.47f, 140 ) );
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/game.png" ), GAME_RES_W / 2.6f, 140 ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/game.png" ), game_res_w * 0.5f, game_res_h * 0.1f ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/game.png" ), game_res_w * 0.4f, game_res_h * 0.1f ) );
 
 	pMenuCore->handler->Set_Active( MENU_GAME );
 
@@ -926,40 +949,82 @@ void cMenu_Options_Game :: Init_GUI( void )
 	cMenu_Options::Init_GUI();
 
 	// get the CEGUI window manager
-	WindowManager &windowmanager = WindowManager::getSingleton();
+	CEGUI::WindowManager &windowmanager = CEGUI::WindowManager::getSingleton();
 
 	// always run
-	Combobox *combo_always_run = static_cast<Combobox *>(windowmanager.getWindow( "combo_always_run" ));
+	CEGUI::Combobox *combo_always_run = static_cast<CEGUI::Combobox *>(windowmanager.getWindow( "combo_always_run" ));
 
-	ListboxTextItem *item = new ListboxTextItem( "On", 0 );
-	item->setTextColours( colour( 0, 1, 0 ) );
+	CEGUI::ListboxTextItem *item = new CEGUI::ListboxTextItem( UTF8_("On"), 0 );
+	item->setTextColours( CEGUI::colour( 0, 1, 0 ) );
 	combo_always_run->addItem( item );
-	item = new ListboxTextItem( "Off", 1 );
-	item->setTextColours( colour( 0, 0, 1 ) );
+	item = new CEGUI::ListboxTextItem( UTF8_("Off"), 1 );
+	item->setTextColours( CEGUI::colour( 0, 0, 1 ) );
 	combo_always_run->addItem( item );
 
 	if( pPreferences->always_run )
 	{
-		combo_always_run->setText( "On" );
+		combo_always_run->setText( UTF8_("On") );
 	}
 	else
 	{
-		combo_always_run->setText( "Off" );
+		combo_always_run->setText( UTF8_("Off") );
 	}
 
-	combo_always_run->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cMenu_Options_Game::always_run_Select, this ) );
+	combo_always_run->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cMenu_Options_Game::Always_Run_Select, this ) );
 
 	// Camera Horizontal Speed
-	Spinner *spinner_camera_hor_speed = static_cast<Spinner *>(windowmanager.getWindow( "spinner_camera_hor_speed" ));
-	spinner_camera_hor_speed->setCurrentValue( pCamera->hor_offset_speed );
+	CEGUI::Spinner *spinner_camera_hor_speed = static_cast<CEGUI::Spinner *>(windowmanager.getWindow( "spinner_camera_hor_speed" ));
+	spinner_camera_hor_speed->setCurrentValue( pLevel_Manager->camera->hor_offset_speed );
 
-	spinner_camera_hor_speed->subscribeEvent( Spinner::EventValueChanged, Event::Subscriber( &cMenu_Options_Game::camera_hor_Select, this ) );
+	spinner_camera_hor_speed->subscribeEvent( CEGUI::Spinner::EventValueChanged, CEGUI::Event::Subscriber( &cMenu_Options_Game::Camera_Hor_Select, this ) );
 
 	// Camera Vertical Speed
-	Spinner *spinner_camera_ver_speed = static_cast<Spinner *>(windowmanager.getWindow( "spinner_camera_ver_speed" ));
-	spinner_camera_ver_speed->setCurrentValue( pCamera->ver_offset_speed );
+	CEGUI::Spinner *spinner_camera_ver_speed = static_cast<CEGUI::Spinner *>(windowmanager.getWindow( "spinner_camera_ver_speed" ));
+	spinner_camera_ver_speed->setCurrentValue( pLevel_Manager->camera->ver_offset_speed );
 
-	spinner_camera_ver_speed->subscribeEvent( Spinner::EventValueChanged, Event::Subscriber( &cMenu_Options_Game::camera_ver_Select, this ) );
+	spinner_camera_ver_speed->subscribeEvent( CEGUI::Spinner::EventValueChanged, CEGUI::Event::Subscriber( &cMenu_Options_Game::Camera_Ver_Select, this ) );
+
+	// language
+	CEGUI::Combobox *combo_language = static_cast<CEGUI::Combobox *>(windowmanager.getWindow( "combo_language" ));
+
+	item = new CEGUI::ListboxTextItem( UTF8_("default"), 0 );
+	item->setTextColours( CEGUI::colour( 0, 1, 0 ) );
+	combo_language->addItem( item );
+
+	// get available languages
+	vector<string> language_files = Get_Directory_Files( DATA_DIR "/" GAME_TRANSLATION_DIR, ".none", 1, 0 );
+	// add english as it is the base language and not in the translation directory
+	language_files.push_back( DATA_DIR "/" GAME_TRANSLATION_DIR "/" "en" );
+
+	for( vector<string>::iterator itr = language_files.begin(), itr_end = language_files.end(); itr != itr_end; ++itr )
+	{
+		// get filename
+		string filename = (*itr);
+
+		// if not directory
+		if( filename.rfind( "." ) != string::npos )
+		{
+			continue;
+		}
+
+		// remove data dir
+		filename.erase( 0, strlen( DATA_DIR "/" GAME_TRANSLATION_DIR "/" ) );
+
+		item = new CEGUI::ListboxTextItem( filename, 1 );
+		item->setTextColours( CEGUI::colour( 0, 0, 1 ) );
+		combo_language->addItem( item );
+	}
+
+	if( pPreferences->language.empty() )
+	{
+		combo_language->setText( UTF8_("default") );
+	}
+	else
+	{
+		combo_language->setText( pPreferences->language );
+	}
+
+	combo_language->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cMenu_Options_Game::Language_Select, this ) );
 }
 
 void cMenu_Options_Game :: Update( void )
@@ -984,16 +1049,15 @@ void cMenu_Options_Game :: Update( void )
 	// always run
 	if( pMenuCore->handler->active == 5 )
 	{
-		// todo : handle joy init failed
 		pPreferences->always_run = !pPreferences->always_run;
 
 		if( pPreferences->always_run )
 		{
-			WindowManager::getSingleton().getWindow( "combo_always_run" )->setText( "On" );
+			CEGUI::WindowManager::getSingleton().getWindow( "combo_always_run" )->setText( UTF8_("On") );
 		}
 		else
 		{
-			WindowManager::getSingleton().getWindow( "combo_always_run" )->setText( "Off" );
+			CEGUI::WindowManager::getSingleton().getWindow( "combo_always_run" )->setText( UTF8_("Off") );
 		}
 	}
 	// Camera Horizontal
@@ -1006,6 +1070,29 @@ void cMenu_Options_Game :: Update( void )
 	{
 		// nothing
 	}
+	// language
+	if( pMenuCore->handler->active == 8 )
+	{
+		CEGUI::Combobox *combo_language = static_cast<CEGUI::Combobox *>(CEGUI::WindowManager::getSingleton().getWindow( "combo_language" ));
+		unsigned int selected = combo_language->getItemIndex( combo_language->findItemWithText( combo_language->getText(), NULL ) );
+
+		CEGUI::ListboxItem *new_selected = NULL;
+
+		// last item selected
+		if( selected == combo_language->getItemCount() - 1 )
+		{
+			new_selected = combo_language->getListboxItemFromIndex( 0 );
+		}
+		// select next item
+		else
+		{
+			new_selected = combo_language->getListboxItemFromIndex( selected + 1 );
+		}
+		
+		combo_language->setText( new_selected->getText() );
+		combo_language->setItemSelectState( new_selected, 1 );
+		Language_Select( CEGUI::WindowEventArgs( combo_language ) );
+	}
 }
 
 void cMenu_Options_Game :: Draw( void )
@@ -1014,14 +1101,14 @@ void cMenu_Options_Game :: Draw( void )
 	Draw_End();
 }
 
-bool cMenu_Options_Game :: always_run_Select( const EventArgs &event )
+bool cMenu_Options_Game :: Always_Run_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Combobox*>( windowEventArgs.window )->getSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox*>( windowEventArgs.window )->getSelectedItem();
 
 	bool always_run = 0;
 
-	if( item->getText().compare( "On" ) == 0 )
+	if( item->getText().compare( UTF8_("On") ) == 0 )
 	{
 		always_run = 1;
 	}
@@ -1031,22 +1118,43 @@ bool cMenu_Options_Game :: always_run_Select( const EventArgs &event )
 	return 1;
 }
 
-bool cMenu_Options_Game :: camera_hor_Select( const EventArgs &event )
+bool cMenu_Options_Game :: Camera_Hor_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	Spinner *spinner_camera_hor = static_cast<Spinner*>( windowEventArgs.window );
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::Spinner *spinner_camera_hor = static_cast<CEGUI::Spinner *>( windowEventArgs.window );
 	
-	pCamera->hor_offset_speed = spinner_camera_hor->getCurrentValue();
+	pLevel_Manager->camera->hor_offset_speed = spinner_camera_hor->getCurrentValue();
+	pPreferences->camera_hor_speed = spinner_camera_hor->getCurrentValue();
 
 	return 1;
 }
 
-bool cMenu_Options_Game :: camera_ver_Select( const EventArgs &event )
+bool cMenu_Options_Game :: Camera_Ver_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	Spinner *spinner_camera_ver = static_cast<Spinner*>( windowEventArgs.window );
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::Spinner *spinner_camera_ver = static_cast<CEGUI::Spinner *>( windowEventArgs.window );
 	
-	pCamera->ver_offset_speed = spinner_camera_ver->getCurrentValue();
+	pLevel_Manager->camera->ver_offset_speed = spinner_camera_ver->getCurrentValue();
+	pPreferences->camera_ver_speed = spinner_camera_ver->getCurrentValue();
+
+	return 1;
+}
+
+bool cMenu_Options_Game :: Language_Select( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox*>( windowEventArgs.window )->getSelectedItem();
+
+	// default
+	if( item->getText().compare( UTF8_("default") ) == 0 )
+	{
+		pPreferences->language = "";
+	}
+	// force
+	else
+	{
+		pPreferences->language = item->getText().c_str();
+	}
 
 	return 1;
 }
@@ -1056,67 +1164,20 @@ bool cMenu_Options_Game :: camera_ver_Select( const EventArgs &event )
 cMenu_Options_Video :: cMenu_Options_Video( void )
 : cMenu_Options()
 {
-	fullscreen = new cHudSprite();
+
 }
 
 cMenu_Options_Video :: ~cMenu_Options_Video( void )
 {
-	delete fullscreen;
+
 }
 
 void cMenu_Options_Video :: Init( void )
 {
 	cMenu_Options::Init();
 
-	// Fullscreen
-	fullscreen->Set_Image( pVideo->Get_Surface( "menu/items/fullscreen.png" ), 1 );
-
-	cMenu_Item *temp_item = NULL;
-
 	layout_file = "menu_video.layout";
-	menu_posy = 220;
 
-	GL_Surface *video_resolution = pFont->RenderText( pFont->font_normal, "Resolution", text_color );
-	GL_Surface *video_bpp = pFont->RenderText( pFont->font_normal, "Bpp", text_color );
-	GL_Surface *video_fullscreen = pFont->RenderText( pFont->font_normal, "Fullscreen", text_color );
-	GL_Surface *video_vsync = pFont->RenderText( pFont->font_normal, "VSync", text_color );
-	GL_Surface *video_apply = pFont->RenderText( pFont->font_normal, "Apply", text_color );
-
-	// Resolution
-	temp_item = new cMenu_Item();
-	temp_item->image_default->Set_Image( video_resolution );
-	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5, grey );
-	drawlist.push_back( new cHudSprite( video_resolution, -200, 0, 1 ) );
-	// Bpp
-	temp_item = new cMenu_Item();
-	menu_posy += 50;
-	temp_item->image_default->Set_Image( video_bpp );
-	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5, grey );
-	drawlist.push_back( new cHudSprite( video_bpp, -200, 0, 1 ) );
-	// Fullscreen
-	temp_item = new cMenu_Item();
-	menu_posy += 50;
-	temp_item->image_default->Set_Image( video_fullscreen );
-	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
-	fullscreen->Set_Pos( GAME_RES_W / 1.8f + fullscreen->col_rect.w + 50, menu_posy - 5 );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5, grey );
-	drawlist.push_back( new cHudSprite( video_fullscreen, -200, 0, 1 ) );
-	// VSync
-	temp_item = new cMenu_Item();
-	menu_posy += 50;
-	temp_item->image_default->Set_Image( video_vsync );
-	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5, grey );
-	drawlist.push_back( new cHudSprite( video_vsync, -200, 0, 1 ) );
-	// Apply
-	temp_item = new cMenu_Item();
-	menu_posy += 50;
-	temp_item->image_default->Set_Image( video_apply );
-	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5, grey );
-	drawlist.push_back( new cHudSprite( video_apply, -200, 0, 1 ) );
 
 	// Video Info
 	vid_w = pPreferences->video_screen_w;
@@ -1124,9 +1185,11 @@ void cMenu_Options_Video :: Init( void )
 	vid_bpp = pPreferences->video_screen_bpp;
 	vid_fullscreen = pPreferences->video_fullscreen;
 	vid_vsync = pPreferences->video_vsync;
+	vid_geometry_detail = pVideo->geometry_detail;
+	vid_texture_detail = pVideo->texture_detail;
 
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/video.png" ), GAME_RES_W * 0.47f, 140 ) );
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/video.png" ), GAME_RES_W / 2.6f, 140 ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/video.png" ), game_res_w * 0.5f, game_res_h * 0.1f ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/video.png" ), game_res_w * 0.4f, game_res_h * 0.1f ) );
 
 	pMenuCore->handler->Set_Active( MENU_VIDEO );
 
@@ -1138,87 +1201,135 @@ void cMenu_Options_Video :: Init_GUI( void )
 	cMenu_Options::Init_GUI();
 
 	// Resolution
-	Combobox *combo_resolution = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_resolution" ));
+	CEGUI::Combobox *combo_resolution = static_cast<CEGUI::Combobox *>(CEGUI::WindowManager::getSingleton().getWindow( "combo_resolution" ));
 
-	ListboxTextItem *item = new ListboxTextItem( "640x480", 1 );
-	item->setTextColours( colour( 1, 0, 0 ) );
-	combo_resolution->addItem( item );
-	item = new ListboxTextItem( "800x600", 2 );
-	item->setTextColours( colour( 1, 1, 0 ) );
-	combo_resolution->addItem( item );
-	item = new ListboxTextItem( "1024x768", 2 );
-	item->setTextColours( colour( 0, 1, 0 ) );
-	combo_resolution->addItem( item );
-	item = new ListboxTextItem( "1280x1024", 3 );
-	item->setTextColours( colour( 0.1f, 0.5f, 0.9f ) );
-	combo_resolution->addItem( item );
-	item = new ListboxTextItem( "1600x1200", 4 );
-	item->setTextColours( colour( 0.5f, 0.8f, 1 ) );
-	combo_resolution->addItem( item );
-	item = new ListboxTextItem( "2048x1536", 5 );
-	item->setTextColours( colour( 0.8f, 0.2f, 0.9f ) );
-	combo_resolution->addItem( item );
+	vector<cSize_Int> valid_resolutions = pVideo->Get_Supported_Resolutions();
+
+	CEGUI::ListboxTextItem *item;
+
+	// add to listbox
+	for( vector<cSize_Int>::iterator itr = valid_resolutions.begin(), itr_end = valid_resolutions.end(); itr != itr_end; ++itr )
+	{
+		// get resolution
+		cSize_Int res = (*itr);
+
+		if( res.m_width <= 0 || res.m_height <= 0 )
+		{
+			continue;
+		}
+
+		// calculate aspect ratio
+		float ar = static_cast<float>(res.m_width) / static_cast<float>(res.m_height);
+
+		item = new CEGUI::ListboxTextItem( int_to_string( res.m_width ) + "x" + int_to_string( res.m_height ), 3 );
+		CEGUI::colour color( 0, 0, 0 );
+		// if badly stretched resolution display it in red
+		if( ar < 1.1f || ar > 1.5f )
+		{
+			color.setGreen( 0 );
+			color.setRed( 1 );
+		}
+		// good resolution
+		else
+		{
+			// calculate difference from a default 1.333 resolution
+			float diff_from_default;
+
+			if( ar > 1.333f )
+			{
+				diff_from_default = ( ar - 1.333f ) * 4;
+			}
+			else
+			{
+				diff_from_default = -( ar - 1.333f ) * 4;
+			}
+
+			color.setGreen( 1 - diff_from_default );
+			color.setRed( diff_from_default );
+		}
+		item->setTextColours( color );
+		combo_resolution->addItem( item );
+	}
 
 	string temp = int_to_string( pPreferences->video_screen_w ) + "x" + int_to_string( pPreferences->video_screen_h );
 	combo_resolution->setText( temp.c_str() );
 
-	combo_resolution->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cMenu_Options_Video::res_Select, this ) );
+	combo_resolution->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cMenu_Options_Video::Res_Select, this ) );
 
 	// Bpp
-	Combobox *combo_bpp = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_bpp" ));
+	CEGUI::Combobox *combo_bpp = static_cast<CEGUI::Combobox *>(CEGUI::WindowManager::getSingleton().getWindow( "combo_bpp" ));
 
-	item = new ListboxTextItem( "16", 0 );
-	item->setTextColours( colour( 1, 0.6f, 0.3f ) );
+	item = new CEGUI::ListboxTextItem( "16", 0 );
+	item->setTextColours( CEGUI::colour( 1, 0.6f, 0.3f ) );
 	combo_bpp->addItem( item );
-	item = new ListboxTextItem( "32", 1 );
-	item->setTextColours( colour( 0, 1, 0 ) );
+	item = new CEGUI::ListboxTextItem( "32", 1 );
+	item->setTextColours( CEGUI::colour( 0, 1, 0 ) );
 	combo_bpp->addItem( item );
 
 	combo_bpp->setText( int_to_string( pPreferences->video_screen_bpp ).c_str() );
 
-	combo_bpp->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cMenu_Options_Video::bpp_Select, this ) );
+	combo_bpp->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cMenu_Options_Video::Bpp_Select, this ) );
 
 	// Fullscreen
-	Combobox *combo_fullscreen = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_fullscreen" ));
+	CEGUI::Combobox *combo_fullscreen = static_cast<CEGUI::Combobox *>(CEGUI::WindowManager::getSingleton().getWindow( "combo_fullscreen" ));
 
-	item = new ListboxTextItem( "On", 0 );
-	item->setTextColours( colour( 0, 1, 0 ) );
+	item = new CEGUI::ListboxTextItem( UTF8_("On"), 0 );
+	item->setTextColours( CEGUI::colour( 0, 1, 0 ) );
 	combo_fullscreen->addItem( item );
-	item = new ListboxTextItem( "Off", 1 );
-	item->setTextColours( colour( 0, 0, 1 ) );
+	item = new CEGUI::ListboxTextItem( UTF8_("Off"), 1 );
+	item->setTextColours( CEGUI::colour( 0, 0, 1 ) );
 	combo_fullscreen->addItem( item );
 
 	if( pPreferences->video_fullscreen )
 	{
-		combo_fullscreen->setText( "On" );
+		combo_fullscreen->setText( UTF8_("On") );
 	}
 	else
 	{
-		combo_fullscreen->setText( "Off" );
+		combo_fullscreen->setText( UTF8_("Off") );
 	}
 
-	combo_fullscreen->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cMenu_Options_Video::fullscreen_Select, this ) );
+	combo_fullscreen->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cMenu_Options_Video::Fullscreen_Select, this ) );
 
 	// VSync
-	Combobox *combo_vsync = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_vsync" ));
+	CEGUI::Combobox *combo_vsync = static_cast<CEGUI::Combobox *>(CEGUI::WindowManager::getSingleton().getWindow( "combo_vsync" ));
 
-	item = new ListboxTextItem( "On", 0 );
-	item->setTextColours( colour( 0, 1, 0 ) );
+	item = new CEGUI::ListboxTextItem( UTF8_("On"), 0 );
+	item->setTextColours( CEGUI::colour( 0, 1, 0 ) );
 	combo_vsync->addItem( item );
-	item = new ListboxTextItem( "Off", 1 );
-	item->setTextColours( colour( 0, 0, 1 ) );
+	item = new CEGUI::ListboxTextItem( UTF8_("Off"), 1 );
+	item->setTextColours( CEGUI::colour( 0, 0, 1 ) );
 	combo_vsync->addItem( item );
 
 	if( pPreferences->video_vsync )
 	{
-		combo_vsync->setText( "On" );
+		combo_vsync->setText( UTF8_("On") );
 	}
 	else
 	{
-		combo_vsync->setText( "Off" );
+		combo_vsync->setText( UTF8_("Off") );
 	}
 
-	combo_vsync->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cMenu_Options_Video::vsync_Select, this ) );
+	combo_vsync->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cMenu_Options_Video::Vsync_Select, this ) );
+
+	// Geometry detail
+	CEGUI::Slider *slider_geometry_detail = static_cast<CEGUI::Slider *>(CEGUI::WindowManager::getSingleton().getWindow( "slider_geometry_detail" ));
+	slider_geometry_detail->setCurrentValue( pVideo->geometry_detail );
+	slider_geometry_detail->subscribeEvent( CEGUI::Slider::EventValueChanged, CEGUI::Event::Subscriber( &cMenu_Options_Video::Slider_Geometry_Detail_Changed, this ) );
+
+	// Texture detail
+	CEGUI::Slider *slider_texture_detail = static_cast<CEGUI::Slider *>(CEGUI::WindowManager::getSingleton().getWindow( "slider_texture_detail" ));
+	slider_texture_detail->setCurrentValue( pVideo->texture_detail );
+	slider_texture_detail->subscribeEvent( CEGUI::Slider::EventValueChanged, CEGUI::Event::Subscriber( &cMenu_Options_Video::Slider_Texture_Detail_Changed, this ) );
+
+
+	// Apply
+	CEGUI::PushButton *button_apply = static_cast<CEGUI::PushButton *>(CEGUI::WindowManager::getSingleton().getWindow( "button_apply" ));
+	button_apply->subscribeEvent( CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber( &cMenu_Options_Video::Button_Apply_Clicked, this ) );
+
+	// Recreate Cache
+	CEGUI::PushButton *button_recreate_cache = static_cast<CEGUI::PushButton *>(CEGUI::WindowManager::getSingleton().getWindow( "button_recreate_cache" ));
+	button_recreate_cache->subscribeEvent( CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber( &cMenu_Options_Video::Button_Recreate_Cache_Clicked, this ) );
 }
 
 void cMenu_Options_Video :: Update( void )
@@ -1244,10 +1355,10 @@ void cMenu_Options_Video :: Update( void )
 	if( pMenuCore->handler->active == 5 )
 	{
 		// Resolution
-		Combobox *combo_resolution = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_resolution" ));
+		CEGUI::Combobox *combo_resolution = static_cast<CEGUI::Combobox *>(CEGUI::WindowManager::getSingleton().getWindow( "combo_resolution" ));
 		unsigned int selected = combo_resolution->getItemIndex( combo_resolution->findItemWithText( combo_resolution->getText(), NULL ) );
 
-		ListboxItem *new_selected = NULL;
+		CEGUI::ListboxItem *new_selected = NULL;
 
 		// last item selected
 		if( selected == combo_resolution->getItemCount() - 1 )
@@ -1262,7 +1373,7 @@ void cMenu_Options_Video :: Update( void )
 		
 		combo_resolution->setText( new_selected->getText() );
 		combo_resolution->setItemSelectState( new_selected, 1 );
-		res_Select( WindowEventArgs( combo_resolution ) );
+		Res_Select( CEGUI::WindowEventArgs( combo_resolution ) );
 	}
 	// BPP
 	else if( pMenuCore->handler->active == 6 )
@@ -1276,7 +1387,7 @@ void cMenu_Options_Video :: Update( void )
 			vid_bpp = 16;
 		}
 
-		WindowManager::getSingleton().getWindow( "combo_bpp" )->setText( int_to_string( vid_bpp ).c_str() );	
+		CEGUI::WindowManager::getSingleton().getWindow( "combo_bpp" )->setText( int_to_string( vid_bpp ).c_str() );	
 	}
 	// Fullscreen
 	else if( pMenuCore->handler->active == 7 )
@@ -1285,11 +1396,11 @@ void cMenu_Options_Video :: Update( void )
 
 		if( vid_fullscreen )
 		{
-			WindowManager::getSingleton().getWindow( "combo_fullscreen" )->setText( "On" );	
+			CEGUI::WindowManager::getSingleton().getWindow( "combo_fullscreen" )->setText( UTF8_("On") );	
 		}
 		else
 		{
-			WindowManager::getSingleton().getWindow( "combo_fullscreen" )->setText( "Off" );
+			CEGUI::WindowManager::getSingleton().getWindow( "combo_fullscreen" )->setText( UTF8_("Off") );
 		}
 	}
 	// VSync
@@ -1299,48 +1410,12 @@ void cMenu_Options_Video :: Update( void )
 
 		if( vid_vsync )
 		{
-			WindowManager::getSingleton().getWindow( "combo_vsync" )->setText( "On" );	
+			CEGUI::WindowManager::getSingleton().getWindow( "combo_vsync" )->setText( UTF8_("On") );	
 		}
 		else
 		{
-			WindowManager::getSingleton().getWindow( "combo_vsync" )->setText( "Off" );
+			CEGUI::WindowManager::getSingleton().getWindow( "combo_vsync" )->setText( UTF8_("Off") );
 		}
-	}
-	// Apply
-	else if( pMenuCore->handler->active == 9 )
-	{
-		// draw reinitialization text
-		Draw_StaticText( "Reinitialization", &green, NULL, 0 );
-
-		pGuiSystem->renderGUI();
-		pRenderer->Render();
-		SDL_GL_SwapBuffers();
-
-		// if no resolution, vsync or bpp changed
-		if( pPreferences->video_screen_w == vid_w && pPreferences->video_screen_h == vid_h && pPreferences->video_screen_bpp == vid_bpp && pPreferences->video_vsync == vid_vsync )
-		{
-			// if only fullscreen changed
-			if( pPreferences->video_fullscreen != vid_fullscreen )
-			{
-				pVideo->Toggle_Fullscreen();
-			}
-		}
-		else
-		{
-			// new settings
-			pPreferences->video_screen_w = vid_w;
-			pPreferences->video_screen_h = vid_h;
-			pPreferences->video_screen_bpp = vid_bpp;
-			pPreferences->video_fullscreen = vid_fullscreen;
-			pPreferences->video_vsync = vid_vsync;
-
-			// apply new settings
-			pPreferences->Apply();
-		}
-
-		// clear
-		pMenuCore->next_menu = MENU_OPTIONS;
-		Game_Action = GA_ENTER_MENU;
 	}
 }
 
@@ -1348,39 +1423,45 @@ void cMenu_Options_Video :: Draw( void )
 {
 	cMenu_Options::Draw();
 
-	if( vid_fullscreen )
-	{
-		fullscreen->Draw();
-	}
-
 	Draw_End();
 }
 
-bool cMenu_Options_Video :: res_Select( const EventArgs &event )
+bool cMenu_Options_Video :: Res_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
 
-	string temp = item->getText().c_str();
+	std::string temp = item->getText().c_str();
 
+	// get end of height value if text is after resolution string
+	std::string::size_type height_end = temp.find( " " );
+
+	if( height_end == std::string::npos )
+	{
+		height_end = temp.length();
+	}
+
+	// get resolution
 	unsigned int w = string_to_int( temp.substr( 0, temp.find( "x" ) ) );
-	unsigned int h = string_to_int( temp.substr( temp.find( "x" ) + 1, temp.length() ) );
+	unsigned int h = string_to_int( temp.substr( temp.find( "x" ) + 1, height_end ) );
 
+	// is it supported
 	if( !pVideo->Test_Video( w, h, vid_bpp ) )
 	{
 		return 0;
 	}
 
+	// set new selected resolution
 	vid_w = w;
 	vid_h = h;
 
 	return 1;
 }
 
-bool cMenu_Options_Video :: bpp_Select( const EventArgs &event )
+bool cMenu_Options_Video :: Bpp_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
 
 	unsigned int bpp = string_to_int( item->getText().c_str() );
 
@@ -1394,14 +1475,14 @@ bool cMenu_Options_Video :: bpp_Select( const EventArgs &event )
 	return 1;
 }
 
-bool cMenu_Options_Video :: fullscreen_Select( const EventArgs &event )
+bool cMenu_Options_Video :: Fullscreen_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
 
 	bool bfullscreen = 0;
 
-	if( item->getText().compare( "On" ) == 0 )
+	if( item->getText().compare( UTF8_("On") ) == 0 )
 	{
 		bfullscreen = 1;
 	}
@@ -1411,14 +1492,14 @@ bool cMenu_Options_Video :: fullscreen_Select( const EventArgs &event )
 	return 1;
 }
 
-bool cMenu_Options_Video :: vsync_Select( const EventArgs &event )
+bool cMenu_Options_Video :: Vsync_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
 
 	bool bvsync = 0;
 
-	if( item->getText().compare( "On" ) == 0 )
+	if( item->getText().compare( UTF8_("On") ) == 0 )
 	{
 		bvsync = 1;
 	}
@@ -1428,65 +1509,82 @@ bool cMenu_Options_Video :: vsync_Select( const EventArgs &event )
 	return 1;
 }
 
+bool cMenu_Options_Video :: Slider_Geometry_Detail_Changed( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	// set new value
+	vid_geometry_detail = static_cast<CEGUI::Slider *>( windowEventArgs.window )->getCurrentValue();
+
+	return 1;
+}
+
+bool cMenu_Options_Video :: Slider_Texture_Detail_Changed( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	// set new value
+	vid_texture_detail = static_cast<CEGUI::Slider *>( windowEventArgs.window )->getCurrentValue();
+
+	return 1;
+}
+
+bool cMenu_Options_Video :: Button_Apply_Clicked( const CEGUI::EventArgs &event )
+{
+	// draw reinitialization text
+	Draw_Static_Text( _("Reinitialization"), &green, NULL, 0 );
+
+	pGuiSystem->renderGUI();
+	pRenderer->Render();
+	SDL_GL_SwapBuffers();
+
+	// apply new settings
+	pPreferences->Apply_Video( vid_w, vid_h, vid_bpp, vid_fullscreen, vid_vsync, vid_geometry_detail, vid_texture_detail );
+
+	// clear
+	pMenuCore->next_menu = MENU_OPTIONS;
+	Game_Action = GA_ENTER_MENU;
+
+	return 1;
+}
+
+bool cMenu_Options_Video :: Button_Recreate_Cache_Clicked( const CEGUI::EventArgs &event )
+{
+	Loading_Screen_Init();
+
+	// save textures for reloading from file
+	pImage_Manager->Grab_Textures( 1, 1 );
+
+	// recreate cache
+	pVideo->Init_Image_Cache( 1, 1 );
+
+	// restore textures
+	pImage_Manager->Restore_Textures( 1 );
+
+	Loading_Screen_Exit();
+
+	return 1;
+}
+
 /* *** *** *** *** *** *** *** *** cMenu_Options_Audio *** *** *** *** *** *** *** *** *** */
 
 cMenu_Options_Audio :: cMenu_Options_Audio( void )
 : cMenu_Options()
 {
-	music = new cHudSprite();
-	sounds = new cHudSprite();
+
 }
 
 cMenu_Options_Audio :: ~cMenu_Options_Audio( void )
 {
-	delete music;
-	delete sounds;
+
 }
 
 void cMenu_Options_Audio :: Init( void )
 {
 	cMenu_Options::Init();
 
-	// Audio
-	music->Set_Image( pVideo->Get_Surface( "menu/items/music.png" ), 1 );
-	sounds->Set_Image( pVideo->Get_Surface( "menu/items/sounds.png" ), 1 );
-
-	cMenu_Item *temp_item = NULL;
-
-	GL_Surface *audio_hz = pFont->RenderText( pFont->font_normal, "Hz", text_color );
-	GL_Surface *audio_music = pFont->RenderText( pFont->font_normal, "Music", text_color );
-	GL_Surface *audio_sounds = pFont->RenderText( pFont->font_normal, "Sounds", text_color );
-
 	layout_file = "menu_audio.layout";
-	menu_posy = 220;
 
-
-	// Audio Hz
-	temp_item = new cMenu_Item();
-	temp_item->image_default->Set_Image( audio_hz );
-	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5, grey );
-	drawlist.push_back( new cHudSprite( audio_hz, -200, 0, 1 ) );
-
-	// Music
-	temp_item = new cMenu_Item();
-	menu_posy += 85;
-	temp_item->image_default->Set_Image( audio_music );
-	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
-	music->Set_Pos( GAME_RES_W / 1.8f + music->col_rect.w + 50, menu_posy - 5 );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5, grey );
-	drawlist.push_back( new cHudSprite( audio_music, -200, 0, 1 ) );
-	// Sounds
-	temp_item = new cMenu_Item();
-	menu_posy += 55;
-	temp_item->image_default->Set_Image( audio_sounds );
-	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
-	sounds->Set_Pos( GAME_RES_W / 1.8f + sounds->col_rect.w + 50, menu_posy - 5 );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5, grey );
-	drawlist.push_back( new cHudSprite( audio_sounds, -200, 0, 1 ) );
-
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/audio.png" ), GAME_RES_W * 0.47f, 140 ) );
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/audio.png" ), GAME_RES_W / 2.6f, 140 ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/audio.png" ), game_res_w * 0.5f, game_res_h * 0.1f ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/audio.png" ), game_res_w * 0.4f, game_res_h * 0.1f ) );
 	
 	pMenuCore->handler->Set_Active( MENU_AUDIO );
 
@@ -1498,76 +1596,76 @@ void cMenu_Options_Audio :: Init_GUI( void )
 	cMenu_Options::Init_GUI();
 
 	// Audio Hz
-	Combobox *combo_audio_hz = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_audio_hz" ));
+	CEGUI::Combobox *combo_audio_hz = static_cast<CEGUI::Combobox *>(CEGUI::WindowManager::getSingleton().getWindow( "combo_audio_hz" ));
 
-	ListboxTextItem *item = new ListboxTextItem( "44800", 0 );
-	item->setTextColours( colour( 0, 0, 1 ) );
+	CEGUI::ListboxTextItem *item = new CEGUI::ListboxTextItem( "22050", 0 );
+	item->setTextColours( CEGUI::colour( 1, 0, 0 ) );
 	combo_audio_hz->addItem( item );
-	item = new ListboxTextItem( "44100", 1 );
-	item->setTextColours( colour( 0, 1, 0 ) );
+	item = new CEGUI::ListboxTextItem( "44100", 1 );
+	item->setTextColours( CEGUI::colour( 0, 1, 0 ) );
 	combo_audio_hz->addItem( item );
-	item = new ListboxTextItem( "22050", 1 );
-	item->setTextColours( colour( 1, 0, 0 ) );
+	item = new CEGUI::ListboxTextItem( "44800", 2 );
+	item->setTextColours( CEGUI::colour( 0, 0, 1 ) );
 	combo_audio_hz->addItem( item );
 
 	// Set current value
 	combo_audio_hz->setText( int_to_string( pPreferences->audio_hz ) );
 
-	combo_audio_hz->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cMenu_Options_Audio::Audio_Hz_Select, this ) );
+	combo_audio_hz->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cMenu_Options_Audio::Audio_Hz_Select, this ) );
 
 
 	// Music
-	Combobox *combo_music = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_music" ));
+	CEGUI::Combobox *combo_music = static_cast<CEGUI::Combobox *>(CEGUI::WindowManager::getSingleton().getWindow( "combo_music" ));
 
-	item = new ListboxTextItem( "On", 0 );
-	item->setTextColours( colour( 0, 1, 0 ) );
+	item = new CEGUI::ListboxTextItem( UTF8_("On"), 0 );
+	item->setTextColours( CEGUI::colour( 0, 1, 0 ) );
 	combo_music->addItem( item );
-	item = new ListboxTextItem( "Off", 1 );
-	item->setTextColours( colour( 0, 0, 1 ) );
+	item = new CEGUI::ListboxTextItem( UTF8_("Off"), 1 );
+	item->setTextColours( CEGUI::colour( 0, 0, 1 ) );
 	combo_music->addItem( item );
 
 	if( pAudio->music_enabled )
 	{
-		combo_music->setText( "On" );
+		combo_music->setText( UTF8_("On") );
 	}
 	else
 	{
-		combo_music->setText( "Off" );
+		combo_music->setText( UTF8_("Off") );
 	}
 
-	combo_music->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cMenu_Options_Audio::music_Select, this ) );
+	combo_music->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cMenu_Options_Audio::Music_Select, this ) );
 
 	// music volume slider
-	Slider *slider_music = (Slider *)WindowManager::getSingleton().getWindow( "slider_music_volume" );
+	CEGUI::Slider *slider_music = static_cast<CEGUI::Slider *>(CEGUI::WindowManager::getSingleton().getWindow( "slider_music_volume" ));
 	slider_music->setCurrentValue( static_cast<float>(pAudio->music_volume) );
-	slider_music->subscribeEvent( Slider::EventValueChanged, Event::Subscriber( &cMenu_Options_Audio::music_vol_changed, this ) );
+	slider_music->subscribeEvent( CEGUI::Slider::EventValueChanged, CEGUI::Event::Subscriber( &cMenu_Options_Audio::Music_Vol_Changed, this ) );
 	
 
 	// Sounds
-	Combobox *combo_sounds = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_sounds" ));
+	CEGUI::Combobox *combo_sounds = static_cast<CEGUI::Combobox *>(CEGUI::WindowManager::getSingleton().getWindow( "combo_sounds" ));
 
-	item = new ListboxTextItem( "On", 0 );
-	item->setTextColours( colour( 0, 1, 0 ) );
+	item = new CEGUI::ListboxTextItem( UTF8_("On"), 0 );
+	item->setTextColours( CEGUI::colour( 0, 1, 0 ) );
 	combo_sounds->addItem( item );
-	item = new ListboxTextItem( "Off", 1 );
-	item->setTextColours( colour( 1, 0.6f, 0.3f ) );
+	item = new CEGUI::ListboxTextItem( UTF8_("Off"), 1 );
+	item->setTextColours( CEGUI::colour( 1, 0.6f, 0.3f ) );
 	combo_sounds->addItem( item );
 
 	if( pAudio->sound_enabled )
 	{
-		combo_sounds->setText( "On" );
+		combo_sounds->setText( UTF8_("On") );
 	}
 	else
 	{
-		combo_sounds->setText( "Off" );
+		combo_sounds->setText( UTF8_("Off") );
 	}
 
-	combo_sounds->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cMenu_Options_Audio::sound_Select, this ) );
+	combo_sounds->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cMenu_Options_Audio::Sound_Select, this ) );
 
 	// sound volume slider
-	Slider *slider_sound = (Slider *)WindowManager::getSingleton().getWindow( "slider_sound_volume" );
+	CEGUI::Slider *slider_sound = static_cast<CEGUI::Slider *>(CEGUI::WindowManager::getSingleton().getWindow( "slider_sound_volume" ));
 	slider_sound->setCurrentValue( static_cast<float>(pAudio->sound_volume) );
-	slider_sound->subscribeEvent( Slider::EventValueChanged, Event::Subscriber( &cMenu_Options_Audio::sound_vol_changed, this ) );
+	slider_sound->subscribeEvent( CEGUI::Slider::EventValueChanged, CEGUI::Event::Subscriber( &cMenu_Options_Audio::Sound_Vol_Changed, this ) );
 }
 
 void cMenu_Options_Audio :: Update( void )
@@ -1589,32 +1687,55 @@ void cMenu_Options_Audio :: Update( void )
 
 	action = 0;
 
-	// Music
+	// Hz
 	if( pMenuCore->handler->active == 5 )
 	{
-		pAudio->ToggleMusic();
+		CEGUI::Combobox *combo_hz = static_cast<CEGUI::Combobox *>(CEGUI::WindowManager::getSingleton().getWindow( "combo_audio_hz" ));
+		unsigned int selected = combo_hz->getItemIndex( combo_hz->findItemWithText( combo_hz->getText(), NULL ) );
+
+		CEGUI::ListboxItem *new_selected = NULL;
+
+		// last item selected
+		if( selected == combo_hz->getItemCount() - 1 )
+		{
+			new_selected = combo_hz->getListboxItemFromIndex( 0 );
+		}
+		// select next item
+		else
+		{
+			new_selected = combo_hz->getListboxItemFromIndex( selected + 1 );
+		}
+		
+		combo_hz->setText( new_selected->getText() );
+		combo_hz->setItemSelectState( new_selected, 1 );
+		Audio_Hz_Select( CEGUI::WindowEventArgs( combo_hz ) );
+	}
+	// Music
+	else if( pMenuCore->handler->active == 6 )
+	{
+		pAudio->Toggle_Music();
 
 		if( pAudio->music_enabled )
 		{
-			WindowManager::getSingleton().getWindow( "combo_music" )->setText( "On" );
+			CEGUI::WindowManager::getSingleton().getWindow( "combo_music" )->setText( UTF8_("On") );
 		}
 		else
 		{
-			WindowManager::getSingleton().getWindow( "combo_music" )->setText( "Off" );
+			CEGUI::WindowManager::getSingleton().getWindow( "combo_music" )->setText( UTF8_("Off") );
 		}
 	}
 	// Sounds
-	else if( pMenuCore->handler->active == 6 )
+	else if( pMenuCore->handler->active == 7 )
 	{
-		pAudio->ToggleSounds();
+		pAudio->Toggle_Sounds();
 
 		if( pAudio->sound_enabled )
 		{
-			WindowManager::getSingleton().getWindow( "combo_sounds" )->setText( "On" );
+			CEGUI::WindowManager::getSingleton().getWindow( "combo_sounds" )->setText( UTF8_("On") );
 		}
 		else
 		{
-			WindowManager::getSingleton().getWindow( "combo_sounds" )->setText( "Off" );
+			CEGUI::WindowManager::getSingleton().getWindow( "combo_sounds" )->setText( UTF8_("Off") );
 		}
 	}
 }
@@ -1623,89 +1744,84 @@ void cMenu_Options_Audio :: Draw( void )
 {
 	cMenu_Options::Draw();
 
-	// Music image
-	if( pAudio->music_enabled )
-	{
-		music->Draw();
-	}
-	// Sounds image
-	if( pAudio->sound_enabled )
-	{
-		sounds->Draw();
-	}
-
 	Draw_End();
 }
 
-bool cMenu_Options_Audio :: Audio_Hz_Select( const EventArgs &event )
+bool cMenu_Options_Audio :: Audio_Hz_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
 
 	pPreferences->audio_hz = string_to_int( item->getText().c_str() );
-	// todo : add Audio function to reload sounds and music when needed
-	//pAudio->Init( pPreferences->Sounds, pPreferences->Music );
-	Draw_StaticText( "You need to restart for the change to take effect.", &white, &lightgreyalpha64 );
+
+	// draw reloading text
+	Draw_Static_Text( _("Reloading"), &green, NULL, 0 );
+	// reload
+	pAudio->Close();
+	pSound_Manager->Delete_All();
+	pAudio->Init();
+	// todo : add sound manager function to reload sounds and music when needed
+	Preload_Sounds();
 
 	return 1;
 }
 
-bool cMenu_Options_Audio :: music_Select( const EventArgs &event )
+bool cMenu_Options_Audio :: Music_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
 
 	bool bmusic = 0;
 
-	if( item->getText().compare( "On" ) == 0 )
+	if( item->getText().compare( UTF8_("On") ) == 0 )
 	{
 		bmusic = 1;
 	}
 
 	if( pAudio->music_enabled != bmusic )
 	{
-		pAudio->ToggleMusic();
+		pAudio->Toggle_Music();
 	}
 
 	return 1;
 }
 
-bool cMenu_Options_Audio :: music_vol_changed( const EventArgs &event )
+bool cMenu_Options_Audio :: Music_Vol_Changed( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	Uint8 val = static_cast<Uint8>(static_cast<Slider *>( windowEventArgs.window )->getCurrentValue());
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	Uint8 val = static_cast<Uint8>(static_cast<CEGUI::Slider *>( windowEventArgs.window )->getCurrentValue());
 
-	pAudio->SetMusicVolume( val );
+	pAudio->Set_Music_Volume( val );
 
 	return 1;
 }
 
-bool cMenu_Options_Audio :: sound_Select( const EventArgs &event )
+bool cMenu_Options_Audio :: Sound_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
 
 	bool bsound = 0;
 
-	if( item->getText().compare( "On" ) == 0 )
+	if( item->getText().compare( UTF8_("On") ) == 0 )
 	{
 		bsound= 1;
 	}
 
 	if( pAudio->sound_enabled != bsound )
 	{
-		pAudio->ToggleSounds();
+		pAudio->Toggle_Sounds();
 	}
 
 	return 1;
 }
 
-bool cMenu_Options_Audio :: sound_vol_changed( const EventArgs &event )
+bool cMenu_Options_Audio :: Sound_Vol_Changed( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	Uint8 val = static_cast<Uint8>(static_cast<Slider *>( windowEventArgs.window )->getCurrentValue());
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	Uint8 val = static_cast<Uint8>(static_cast<CEGUI::Slider *>( windowEventArgs.window )->getCurrentValue());
 
-	pAudio->SetSoundVolume( val );
+	pAudio->Set_Sound_Volume( val );
 
 	return 1;
 }
@@ -1717,204 +1833,28 @@ cMenu_Options_Controls :: cMenu_Options_Controls( void )
 {
 	// Keyboard
 	gamepad = new cHudSprite();
-	keyboard_up_keyname = new cHudSprite( NULL, 0, -200, 0 );
-	keyboard_up_keyname->Set_Shadow( grey, 1.5f );
-	keyboard_down_keyname = keyboard_up_keyname->Copy();
-	keyboard_left_keyname = keyboard_up_keyname->Copy();
-	keyboard_right_keyname = keyboard_up_keyname->Copy();
-	keyboard_jump_keyname = keyboard_up_keyname->Copy();
-	keyboard_shoot_keyname = keyboard_up_keyname->Copy();
-	keyboard_action_keyname = keyboard_up_keyname->Copy();
-	// Joypad
-	joypad_jump_keyname = keyboard_up_keyname->Copy();
-	joypad_item_keyname = keyboard_up_keyname->Copy();
-	joypad_shoot_keyname = keyboard_up_keyname->Copy();
-	joypad_action_keyname = keyboard_up_keyname->Copy();
-	joypad_exit_keyname = keyboard_up_keyname->Copy();
 }
 
 cMenu_Options_Controls :: ~cMenu_Options_Controls( void )
 {
 	delete gamepad;
-	// Keyboard
-	delete keyboard_up_keyname;
-	delete keyboard_down_keyname;
-	delete keyboard_left_keyname;
-	delete keyboard_right_keyname;
-	delete keyboard_jump_keyname;
-	delete keyboard_shoot_keyname;
-	delete keyboard_action_keyname;
-	// Joypad
-	delete joypad_jump_keyname;
-	delete joypad_item_keyname;
-	delete joypad_shoot_keyname;
-	delete joypad_action_keyname;
-	delete joypad_exit_keyname;
 }
 
 void cMenu_Options_Controls :: Init( void )
 {
 	cMenu_Options::Init();
 
-	// gamepad
-	gamepad->Set_Image( pVideo->Get_Surface( "menu/items/gamepad.png" ), 1 );
-	// Keyboard
-	keyboard_up_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_up ), text_color_value ), 1, 1 );
-	keyboard_down_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_down ), text_color_value ), 1, 1 );
-	keyboard_left_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_left ), text_color_value ), 1, 1 );
-	keyboard_right_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_right ), text_color_value ), 1, 1 );
-	keyboard_jump_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_jump ), text_color_value ), 1, 1 );
-	keyboard_shoot_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_shoot ), text_color_value ), 1, 1 );
-	keyboard_action_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_action ), text_color_value ), 1, 1 );
-	// Joystick/Gamepad
-	joypad_jump_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_jump ), text_color_value ), 1, 1 );
-	joypad_item_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_item ), text_color_value ), 1, 1 );
-	joypad_shoot_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_shoot ), text_color_value ), 1, 1 );
-	joypad_action_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_action ), text_color_value ), 1, 1 );
-	joypad_exit_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_exit ), text_color_value ), 1, 1 );
-
 	cMenu_Item *temp_item = NULL;
-
-	GL_Surface *keyboard_up = pFont->RenderText( pFont->font_normal, "Up", text_color );
-	GL_Surface *keyboard_down = pFont->RenderText( pFont->font_normal, "Down", text_color );
-	GL_Surface *keyboard_left = pFont->RenderText( pFont->font_normal, "Left", text_color );
-	GL_Surface *keyboard_right = pFont->RenderText( pFont->font_normal, "Right", text_color );
-	GL_Surface *keyboard_jump = pFont->RenderText( pFont->font_normal, "Jump", text_color );
-	GL_Surface *keyboard_shoot = pFont->RenderText( pFont->font_normal, "Shoot", text_color );
-	GL_Surface *keyboard_action = pFont->RenderText( pFont->font_normal, "Action/Run", text_color );
-
-	GL_Surface *joypad_jump = pFont->RenderText( pFont->font_normal, "Jump", text_color );
-	GL_Surface *joypad_item = pFont->RenderText( pFont->font_normal, "Item", text_color );
-	GL_Surface *joypad_shoot = pFont->RenderText( pFont->font_normal, "Shoot", text_color );
-	GL_Surface *joypad_action = pFont->RenderText( pFont->font_normal, "Action/Run", text_color );
-	GL_Surface *joypad_exit = pFont->RenderText( pFont->font_normal, "Exit", text_color );
-
-	GL_Surface *controls_joy_enabled = pFont->RenderText( pFont->font_normal, "Joystick", text_color );
-	GL_Surface *controls_joy_analog_jump = pFont->RenderText( pFont->font_normal, "Analog Jump", text_color );
 
 	layout_file = "menu_controls.layout";
 	menu_posy = 220;
-
-	// ## Keyboard
-	// Up
-	temp_item = new cMenu_Item();
-	temp_item->image_default->Set_Image( keyboard_up );
-	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	keyboard_up_keyname->Set_Pos( GAME_RES_W / 2, menu_posy );
-	drawlist.push_back( new cHudSprite( keyboard_up, -200, 0, 1 ) );
-	// Down
-	temp_item = new cMenu_Item();
-	menu_posy += 30;
-	temp_item->image_default->Set_Image( keyboard_down );
-	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	keyboard_down_keyname->Set_Pos( GAME_RES_W / 2, menu_posy );
-	drawlist.push_back( new cHudSprite( keyboard_down, -200, 0, 1 ) );
-	// Left
-	temp_item = new cMenu_Item();
-	menu_posy += 30;
-	temp_item->image_default->Set_Image( keyboard_left );
-	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	keyboard_left_keyname->Set_Pos( GAME_RES_W / 2, menu_posy );
-	drawlist.push_back( new cHudSprite( keyboard_left, -200, 0, 1 ) );
-	// Right
-	temp_item = new cMenu_Item();
-	menu_posy += 30;
-	temp_item->image_default->Set_Image( keyboard_right );
-	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	keyboard_right_keyname->Set_Pos( GAME_RES_W / 2, menu_posy );
-	drawlist.push_back( new cHudSprite( keyboard_right, -200, 0, 1 ) );
-	// Jump
-	temp_item = new cMenu_Item();
-	menu_posy += 30;
-	temp_item->image_default->Set_Image( keyboard_jump );
-	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	keyboard_jump_keyname->Set_Pos( GAME_RES_W / 2, menu_posy );
-	drawlist.push_back( new cHudSprite( keyboard_jump, -200, 0, 1 ) );
-	// Shoot
-	temp_item = new cMenu_Item();
-	menu_posy += 30;
-	temp_item->image_default->Set_Image( keyboard_shoot );
-	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	keyboard_shoot_keyname->Set_Pos( GAME_RES_W / 2, menu_posy );
-	drawlist.push_back( new cHudSprite( keyboard_shoot, -200, 0, 1 ) );
-	// Action
-	temp_item = new cMenu_Item();
-	menu_posy += 30;
-	temp_item->image_default->Set_Image( keyboard_action );
-	temp_item->Set_Pos( GAME_RES_W / 3, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	keyboard_action_keyname->Set_Pos( GAME_RES_W / 2, menu_posy );
-	drawlist.push_back( new cHudSprite( keyboard_action, -200, 0, 1 ) );
-
-	// ## right side
-	menu_posy = 220;
-
-	// ## Joypad
-	// Jump
-	temp_item = new cMenu_Item();
-	temp_item->image_default->Set_Image( joypad_jump );
-	temp_item->Set_Pos( GAME_RES_W / 1.6f, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	joypad_jump_keyname->Set_Pos( GAME_RES_W / 1.25f, menu_posy );
-	drawlist.push_back( new cHudSprite( joypad_jump, -200, 0, 1 ) );
-	// Item
-	temp_item = new cMenu_Item();
-	menu_posy += 30;
-	temp_item->image_default->Set_Image( joypad_item );
-	temp_item->Set_Pos( GAME_RES_W / 1.6f, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	joypad_item_keyname->Set_Pos( GAME_RES_W / 1.25f, menu_posy );
-	drawlist.push_back( new cHudSprite( joypad_item, -200, 0, 1 ) );
-	// Shoot
-	temp_item = new cMenu_Item();
-	menu_posy += 30;
-	temp_item->image_default->Set_Image( joypad_shoot );
-	temp_item->Set_Pos( GAME_RES_W / 1.6f, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	joypad_shoot_keyname->Set_Pos( GAME_RES_W / 1.25f, menu_posy );
-	drawlist.push_back( new cHudSprite( joypad_shoot, -200, 0, 1 ) );
-	// Action
-	temp_item = new cMenu_Item();
-	menu_posy += 30;
-	temp_item->image_default->Set_Image( joypad_action );
-	temp_item->Set_Pos( GAME_RES_W / 1.6f, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	joypad_action_keyname->Set_Pos( GAME_RES_W / 1.25f, menu_posy );
-	drawlist.push_back( new cHudSprite( joypad_action, -200, 0, 1 ) );
-	// Exit
-	temp_item = new cMenu_Item();
-	menu_posy += 30;
-	temp_item->image_default->Set_Image( joypad_exit );
-	temp_item->Set_Pos( GAME_RES_W / 1.6f, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	joypad_exit_keyname->Set_Pos( GAME_RES_W / 1.25f, menu_posy );
-	drawlist.push_back( new cHudSprite( joypad_exit, -200, 0, 1 ) );
 	
-	// use joystick
-	temp_item = new cMenu_Item();
-	menu_posy += 30;
-	temp_item->image_default->Set_Image( controls_joy_enabled );
-	temp_item->Set_Pos( GAME_RES_W / 1.6f, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	gamepad->Set_Pos( GAME_RES_W * 0.74f, menu_posy - gamepad->col_rect.h * 0.2f );
-	drawlist.push_back( new cHudSprite( controls_joy_enabled, -200, 0, 1 ) );
-	// allow analog jump
-	temp_item = new cMenu_Item();
-	menu_posy += 30;
-	temp_item->image_default->Set_Image( controls_joy_analog_jump );
-	temp_item->Set_Pos( GAME_RES_W / 1.6f, menu_posy );
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
-	drawlist.push_back( new cHudSprite( controls_joy_analog_jump, -200, 0, 1 ) );
+	// gamepad
+	gamepad->Set_Image( pVideo->Get_Surface( "menu/items/gamepad.png" ), 1 );
+	gamepad->Set_Pos( game_res_w * 0.7f, game_res_h * 0.1f );
 
-
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/controls.png" ), GAME_RES_W * 0.47f, 140 ) );
-	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/controls.png" ), GAME_RES_W / 2.6f, 140 ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/controls.png" ), game_res_w * 0.5f, game_res_h * 0.1f ) );
+	drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/controls.png" ), game_res_w * 0.4f, game_res_h * 0.1f ) );
 
 	pMenuCore->handler->Set_Active( MENU_CONTROLS );
 
@@ -1925,12 +1865,34 @@ void cMenu_Options_Controls :: Init_GUI( void )
 {
 	cMenu_Options::Init_GUI();
 
+	// Keyboard listbox
+	CEGUI::MultiColumnList *listbox_keyboard = static_cast<CEGUI::MultiColumnList *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_keyboard" ));
+
+	listbox_keyboard->addColumn( _("Name"), 0, CEGUI::UDim( 0.47f, 0 ) );
+	listbox_keyboard->addColumn( _("Key"), 1, CEGUI::UDim( 0.47f, 0 ) );
+	Build_Shortcut_List();
+
+	listbox_keyboard->subscribeEvent( CEGUI::MultiColumnList::EventMouseDoubleClick, CEGUI::Event::Subscriber( &cMenu_Options_Controls::Keyboard_List_Double_Click, this ) );
+
+	// Keyboard scroll speed
+	CEGUI::Slider *slider_scoll_speed = static_cast<CEGUI::Slider *>(CEGUI::WindowManager::getSingleton().getWindow( "slider_keyboard_scroll_speed" ));
+	slider_scoll_speed->setCurrentValue( pPreferences->scroll_speed );
+	slider_scoll_speed->subscribeEvent( CEGUI::Slider::EventValueChanged, CEGUI::Event::Subscriber( &cMenu_Options_Controls::Keyboard_Slider_Scroll_Speed_Changed, this ) );
+
+	// Joystick name text
+	CEGUI::Window *text_joystick_name = CEGUI::WindowManager::getSingleton().getWindow( "text_joystick_name" );
+	text_joystick_name->subscribeEvent( CEGUI::Window::EventMouseClick, CEGUI::Event::Subscriber( &cMenu_Options_Controls::Joystick_Name_Click, this ) );
+
+	// Joystick analog jump text
+	CEGUI::Window *text_joystick_analog_jump = CEGUI::WindowManager::getSingleton().getWindow( "text_joystick_analog_jump" );
+	text_joystick_analog_jump->subscribeEvent( CEGUI::Window::EventMouseClick, CEGUI::Event::Subscriber( &cMenu_Options_Controls::Joystick_Analog_Jump_Click, this ) );
+
 	// Joystick enabled
-	Combobox *combo_joy = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_joy" ));
+	CEGUI::Combobox *combo_joy = static_cast<CEGUI::Combobox *>(CEGUI::WindowManager::getSingleton().getWindow( "combo_joy" ));
 
 	// Add None
-	ListboxTextItem *item = new ListboxTextItem( "None", 0 );
-	item->setTextColours( colour( 0, 0, 1 ) );
+	CEGUI::ListboxTextItem *item = new CEGUI::ListboxTextItem( UTF8_("None"), 0 );
+	item->setTextColours( CEGUI::colour( 0, 0, 1 ) );
 	combo_joy->addItem( item );
 
 	// Add all Joy names
@@ -1938,49 +1900,68 @@ void cMenu_Options_Controls :: Init_GUI( void )
 
 	for( unsigned int i = 0; i < joy_names.size(); i++ )
 	{
-		item = new ListboxTextItem( joy_names[i], 1 );
-		item->setTextColours( colour( 0.3f, 1, 0.3f ) );
+		item = new CEGUI::ListboxTextItem( joy_names[i], 1 );
+		item->setTextColours( CEGUI::colour( 0.3f, 1, 0.3f ) );
 		combo_joy->addItem( item );
 	}
 
 	// Selected Item
-	ListboxTextItem *selected_item = NULL;
+	CEGUI::ListboxTextItem *selected_item = NULL;
 
 	// Set current Joy name
 	if( pPreferences->joy_enabled )
 	{
-		selected_item = static_cast<ListboxTextItem *>( combo_joy->findItemWithText( pJoystick->Get_Name(), NULL ) );
+		selected_item = static_cast<CEGUI::ListboxTextItem *>( combo_joy->findItemWithText( pJoystick->Get_Name(), NULL ) );
 	}
 	// disabled
 	else
 	{
-		selected_item = static_cast<ListboxTextItem *>( combo_joy->getListboxItemFromIndex( 0 ) );
+		selected_item = static_cast<CEGUI::ListboxTextItem *>( combo_joy->getListboxItemFromIndex( 0 ) );
 	}
 	// set Item
 	combo_joy->setText( selected_item->getText() );
 
-	combo_joy->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cMenu_Options_Controls::joy_name_Select, this ) );
+	combo_joy->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cMenu_Options_Controls::Joystick_Name_Select, this ) );
 
 	// Joystick analog jump
-	Combobox *combo_joy_analog_jump = static_cast<Combobox *>(WindowManager::getSingleton().getWindow( "combo_joy_analog_jump" ));
+	CEGUI::Combobox *combo_joy_analog_jump = static_cast<CEGUI::Combobox *>(CEGUI::WindowManager::getSingleton().getWindow( "combo_joy_analog_jump" ));
 
-	item = new ListboxTextItem( "On", 0 );
-	item->setTextColours( colour( 0, 1, 0 ) );
+	item = new CEGUI::ListboxTextItem( _("On"), 0 );
+	item->setTextColours( CEGUI::colour( 0, 0, 1 ) );
 	combo_joy_analog_jump->addItem( item );
-	item = new ListboxTextItem( "Off", 1 );
-	item->setTextColours( colour( 0, 0, 1 ) );
+	item = new CEGUI::ListboxTextItem( _("Off"), 1 );
+	item->setTextColours( CEGUI::colour( 0, 1, 0 ) );
 	combo_joy_analog_jump->addItem( item );
 
 	if( pPreferences->joy_analog_jump )
 	{
-		combo_joy_analog_jump->setText( "On" );
+		combo_joy_analog_jump->setText( _("On") );
 	}
 	else
 	{
-		combo_joy_analog_jump->setText( "Off" );
+		combo_joy_analog_jump->setText( _("Off") );
 	}
 
-	combo_joy_analog_jump->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cMenu_Options_Controls::joy_analog_jump_Select, this ) );
+	combo_joy_analog_jump->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cMenu_Options_Controls::Joystick_Analog_Jump_Select, this ) );
+
+	// Joystick axis horizontal
+	CEGUI::Spinner *spinner_joystick_axis_hor = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_joystick_axis_hor" ));
+	spinner_joystick_axis_hor->setCurrentValue( static_cast<float>(pPreferences->joy_axis_hor) );
+	spinner_joystick_axis_hor->subscribeEvent( CEGUI::Spinner::EventValueChanged, CEGUI::Event::Subscriber( &cMenu_Options_Controls::Joystick_Spinner_Axis_Hor_Changed, this ) );
+
+	// Joystick axis vertical
+	CEGUI::Spinner *spinner_joystick_axis_ver = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_joystick_axis_ver" ));
+	spinner_joystick_axis_ver->setCurrentValue( static_cast<float>(pPreferences->joy_axis_ver) );
+	spinner_joystick_axis_ver->subscribeEvent( CEGUI::Spinner::EventValueChanged, CEGUI::Event::Subscriber( &cMenu_Options_Controls::Joystick_Spinner_Axis_Ver_Changed, this ) );
+
+	// Joystick listbox
+	CEGUI::MultiColumnList *listbox_joystick = static_cast<CEGUI::MultiColumnList *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_joystick" ));
+
+	listbox_joystick->addColumn( UTF8_("Name"), 0, CEGUI::UDim( 0.47f, 0 ) );
+	listbox_joystick->addColumn( UTF8_("Button"), 1, CEGUI::UDim( 0.47f, 0 ) );
+	Build_Shortcut_List( 1 );
+
+	listbox_joystick->subscribeEvent( CEGUI::MultiColumnList::EventMouseDoubleClick, CEGUI::Event::Subscriber( &cMenu_Options_Controls::Joystick_List_Double_Click, this ) );
 }
 
 void cMenu_Options_Controls :: Update( void )
@@ -2001,86 +1982,109 @@ void cMenu_Options_Controls :: Update( void )
 	}
 
 	action = 0;
+}
 
-	// Joystick name
-	if( pMenuCore->handler->active == 17 )
+void cMenu_Options_Controls :: Draw( void )
+{
+	cMenu_Options::Draw();
+
+	if( pPreferences->joy_enabled )
 	{
-		// Get Joy Combo
-		Combobox *combo_joy = static_cast<Combobox *>( WindowManager::getSingleton().getWindow( "combo_joy" ) );
+		gamepad->Draw();
+	}
+
+	Draw_End();
+}
+
+void cMenu_Options_Controls :: Build_Shortcut_List( bool joystick /* = 0 */ )
+{
+	// Get Listbox
+	CEGUI::MultiColumnList *listbox = NULL;
+
+	// Keyboard
+	if( !joystick )
+	{
+		listbox = static_cast<CEGUI::MultiColumnList *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_keyboard" ));
+	}
+	// Joystick
+	else
+	{
+		listbox = static_cast<CEGUI::MultiColumnList *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_joystick" ));
+	}
+
+	listbox->resetList();
+
+	// build shortcut list
+	vector<cShortcut_item> shortcuts;
+
+	// only keyboard
+	if( !joystick )
+	{
+		shortcuts.push_back( cShortcut_item( _("Up"), INP_UP ) );
+		shortcuts.push_back( cShortcut_item( _("Down"), INP_DOWN ) );
+		shortcuts.push_back( cShortcut_item( _("Left"), INP_LEFT ) );
+		shortcuts.push_back( cShortcut_item( _("Right"), INP_RIGHT ) );
+	}
+
+	shortcuts.push_back( cShortcut_item( _("Jump"), INP_JUMP ) );
+	shortcuts.push_back( cShortcut_item( _("Shoot"), INP_SHOOT ) );
+	shortcuts.push_back( cShortcut_item( _("Action"), INP_ACTION ) );
+
+	// only joystick
+	if( joystick )
+	{
+		shortcuts.push_back( cShortcut_item( _("Item"), INP_ITEM ) );
+		shortcuts.push_back( cShortcut_item( _("Exit"), INP_EXIT ) );
+	}
+
+	// add all available shortcuts
+	for( vector<cShortcut_item>::iterator itr = shortcuts.begin(), itr_end = shortcuts.end(); itr != itr_end; ++itr )
+	{
+		cShortcut_item shortcut_item = (*itr);
 		
-		// selected item id
-		int selected_item = 0;
-		// current list item
-		ListboxTextItem *list_item = static_cast<ListboxTextItem *>( combo_joy->findItemWithText( combo_joy->getText(), NULL ) );
+		CEGUI::ListboxTextItem *item = new CEGUI::ListboxTextItem( shortcut_item.m_name, shortcut_item.m_id );
+		//item->setTextColours( colour( 0.6f, 0.6f, 0.6f ) );
+		item->setSelectionColours( CEGUI::colour( 0.33f, 0.33f, 0.33f ) );
+		item->setSelectionBrushImage( "TaharezLook", "ListboxSelectionBrush" );
+		unsigned int row_id = listbox->addRow( item, 0 );
 
-		// if selected
-		if( list_item )
+		// Get shortcut key name
+		string shortcut_key;
+		// Keyboard
+		if( !joystick )
 		{
-			selected_item = combo_joy->getItemIndex( list_item );
+			SDLKey *key = pKeyboard->Get_Shortcut( shortcut_item.m_id );
+			shortcut_key = SDL_GetKeyName( *key );
 		}
-
-		// select first
-		if( selected_item >= SDL_NumJoysticks() )
-		{
-			selected_item = 0;
-		}
-		// select next item
+		// Joystick
 		else
 		{
-			selected_item++;
+			Uint8 *button = pJoystick->Get_Shortcut( shortcut_item.m_id );
+			shortcut_key = int_to_string( *button );
 		}
 
-		// Disable Joy
-		if( selected_item == 0 )
-		{
-			Joy_Disable();
-		}
-		// Select Joy
-		else
-		{
-			Joy_Default( selected_item - 1 );
-		}
-
-		// check if initialization succeeded
-		if( selected_item )
-		{
-			// initialised
-			if( pPreferences->joy_enabled )
-			{
-				Draw_StaticText( "Enabled : " + pJoystick->Get_Name(), &yellow );
-			}
-			// failed
-			else
-			{
-				selected_item = 0;
-			}
-		}
-
-		combo_joy->setText( combo_joy->getListboxItemFromIndex( selected_item )->getText() );
+		item = new CEGUI::ListboxTextItem( shortcut_key, 0 );
+		//item->setTextColours( colour( 0.6f, 0.6f, 0.6f ) );
+		item->setSelectionColours( CEGUI::colour( 0.33f, 0.33f, 0.33f ) );
+		item->setSelectionBrushImage( "TaharezLook", "ListboxSelectionBrush" );
+		listbox->setItem( item, 1, row_id );
 	}
+}
 
-	// Joystick analog jump
-	if( pMenuCore->handler->active == 18 )
+void cMenu_Options_Controls :: Set_Shortcut( string shortcut_name, input_identifier shortcut_id, bool joystick /* = 0 */ )
+{
+	string info_text;
+
+	if( !joystick )
 	{
-		pPreferences->joy_analog_jump = !pPreferences->joy_analog_jump;
-
-		if( pPreferences->joy_analog_jump )
-		{
-			WindowManager::getSingleton().getWindow( "combo_joy_analog_jump" )->setText( "On" );
-		}
-		else
-		{
-			WindowManager::getSingleton().getWindow( "combo_joy_analog_jump" )->setText( "Off" );
-		}
+		info_text += _("Press a key");
 	}
-
-	// Keys / Joy Buttons
-	if( pMenuCore->handler->active > 16 )
+	else
 	{
-		return;
+		info_text += _("Press a button");
 	}
 
-	Draw_StaticText( "Press a key. ( ESC to cancel )", &orange, NULL, 0 );
+	Draw_Static_Text( info_text + _(" for ") + shortcut_name + _(". Press ESC to cancel."), &orange, NULL, 0 );
 
 	bool sub_done = 0;
 
@@ -2092,138 +2096,36 @@ void cMenu_Options_Controls :: Update( void )
 			continue;
 		}
 
-		if( input_event.type != SDL_KEYDOWN && input_event.type != SDL_JOYBUTTONDOWN )
-		{
-			continue;
-		}
-
 		if( input_event.key.keysym.sym == SDLK_ESCAPE || input_event.key.keysym.sym == SDLK_BACKSPACE )
 		{
 			sub_done = 1;
 			break;
 		}
 
-		switch( pMenuCore->handler->active )
+		if( !joystick && input_event.type != SDL_KEYDOWN )
 		{
-		// up
-		case 5:
-		{
-			pPreferences->key_up = input_event.key.keysym.sym; 
-			keyboard_up_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_up ), black ), 1, 1 );
-			break;
+			continue;
 		}
-		// down
-		case 6:
+		else if( joystick && input_event.type != SDL_JOYBUTTONDOWN )
 		{
-			pPreferences->key_down = input_event.key.keysym.sym; 
-			keyboard_down_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_down ), black ), 1, 1 );
-			break;
+			continue;
 		}
-		// left
-		case 7:
+
+		// Keyboard
+		if( !joystick )
 		{
-			pPreferences->key_left = input_event.key.keysym.sym; 
-			keyboard_left_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_left ), black ), 1, 1 );
-			break;
+			pKeyboard->Assign_Shortcut( shortcut_id, input_event.key.keysym.sym );
 		}
-		// right
-		case 8:
+		// Joystick
+		else
 		{
-			pPreferences->key_right = input_event.key.keysym.sym; 
-			keyboard_right_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_right ), black ), 1, 1 );
-			break;
-		}
-		// jump
-		case 9:
-		{
-			pPreferences->key_jump = input_event.key.keysym.sym; 
-			keyboard_jump_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_jump ), black ), 1, 1 );
-			break;
-		}
-		// shoot
-		case 10:
-		{
-			pPreferences->key_shoot = input_event.key.keysym.sym; 
-			keyboard_shoot_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_shoot ), black ), 1, 1 );
-			break;
-		}
-		// action
-		case 11:
-		{
-			pPreferences->key_action = input_event.key.keysym.sym; 
-			keyboard_action_keyname->Set_Image( pFont->RenderText( pFont->font_normal, SDL_GetKeyName( pPreferences->key_action ), black ), 1, 1 );
-			break;
-		}
-		// joy jump
-		case 12:
-		{
-			pPreferences->joy_button_jump = input_event.jbutton.button; 
-			joypad_jump_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_jump ), black ), 1, 1 );
-			break;
-		}
-		// joy item
-		case 13:
-		{
-			pPreferences->joy_button_item = input_event.jbutton.button; 
-			joypad_item_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_item ), black ), 1, 1 );
-			break;
-		}
-		// joy shoot
-		case 14:
-		{
-			pPreferences->joy_button_shoot = input_event.jbutton.button; 
-			joypad_shoot_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_shoot ), black ), 1, 1 );
-			break;
-		}
-		// joy action
-		case 15:
-		{
-			pPreferences->joy_button_action = input_event.jbutton.button; 
-			joypad_action_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_action ), black ), 1, 1 );
-			break;
-		}
-		// joy exit
-		case 16:
-		{
-			pPreferences->joy_button_exit = input_event.jbutton.button; 
-			joypad_exit_keyname->Set_Image( pFont->RenderText( pFont->font_normal, int_to_string( pPreferences->joy_button_exit ), black ), 1, 1 );
-			break;
-		}
-		default:
-		{
-			break;
-		}
+			pJoystick->Assign_Shortcut( shortcut_id, input_event.jbutton.button );
 		}
 
 		sub_done = 1;
 	}
-}
 
-void cMenu_Options_Controls :: Draw( void )
-{
-	cMenu_Options::Draw();
-
-	// Keyboard
-	keyboard_up_keyname->Draw();
-	keyboard_down_keyname->Draw();
-	keyboard_left_keyname->Draw();
-	keyboard_right_keyname->Draw();
-	keyboard_jump_keyname->Draw();
-	keyboard_shoot_keyname->Draw();
-	keyboard_action_keyname->Draw();
-	// Joypad
-	joypad_jump_keyname->Draw();
-	joypad_item_keyname->Draw();
-	joypad_shoot_keyname->Draw();
-	joypad_action_keyname->Draw();
-	joypad_exit_keyname->Draw();
-
-	if( pPreferences->joy_enabled )
-	{
-		gamepad->Draw();
-	}
-
-	Draw_End();
+	Build_Shortcut_List( joystick );
 }
 
 void cMenu_Options_Controls :: Joy_Default( unsigned int index )
@@ -2244,13 +2146,110 @@ void cMenu_Options_Controls :: Joy_Disable( void )
 	pJoystick->Stick_Close();
 }
 
-bool cMenu_Options_Controls :: joy_name_Select( const EventArgs &event )
+bool cMenu_Options_Controls :: Keyboard_List_Double_Click( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	Combobox *combo = static_cast<Combobox*>( windowEventArgs.window );
-	ListboxItem *item = combo->getSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::MultiColumnList *>( windowEventArgs.window )->getFirstSelectedItem();
 
-	if( item->getText().compare( "None" ) == 0 )
+	// set shortcut
+	if( item )
+	{
+		Set_Shortcut( item->getText().c_str(), static_cast<input_identifier>(item->getID()) );
+	}
+
+	return 1;
+}
+
+bool cMenu_Options_Controls :: Keyboard_Slider_Scroll_Speed_Changed( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	// set new value
+	pPreferences->scroll_speed = static_cast<CEGUI::Slider *>( windowEventArgs.window )->getCurrentValue();
+
+	return 1;
+}
+
+bool cMenu_Options_Controls :: Joystick_Name_Click( const CEGUI::EventArgs &event )
+{
+	// Get Joystick Combo
+	CEGUI::Combobox *combo_joy = static_cast<CEGUI::Combobox *>( CEGUI::WindowManager::getSingleton().getWindow( "combo_joy" ) );
+	
+	// selected item id
+	int selected_item = 0;
+	// current list item
+	CEGUI::ListboxTextItem *list_item = static_cast<CEGUI::ListboxTextItem *>( combo_joy->findItemWithText( combo_joy->getText(), NULL ) );
+
+	// if selected
+	if( list_item )
+	{
+		selected_item = combo_joy->getItemIndex( list_item );
+	}
+
+	// select first
+	if( selected_item >= SDL_NumJoysticks() )
+	{
+		selected_item = 0;
+	}
+	// select next item
+	else
+	{
+		selected_item++;
+	}
+
+	// Disable Joy
+	if( selected_item == 0 )
+	{
+		Joy_Disable();
+	}
+	// Select Joy
+	else
+	{
+		Joy_Default( selected_item - 1 );
+	}
+
+	// check if initialization succeeded
+	if( selected_item )
+	{
+		// initialised
+		if( pPreferences->joy_enabled )
+		{
+			Draw_Static_Text( _("Enabled : ") + pJoystick->Get_Name(), &yellow );
+		}
+		// failed
+		else
+		{
+			selected_item = 0;
+		}
+	}
+
+	combo_joy->setText( combo_joy->getListboxItemFromIndex( selected_item )->getText() );
+
+	return 1;
+}
+
+bool cMenu_Options_Controls :: Joystick_Analog_Jump_Click( const CEGUI::EventArgs &event )
+{
+	pPreferences->joy_analog_jump = !pPreferences->joy_analog_jump;
+
+	if( pPreferences->joy_analog_jump )
+	{
+		CEGUI::WindowManager::getSingleton().getWindow( "combo_joy_analog_jump" )->setText( _("On") );
+	}
+	else
+	{
+		CEGUI::WindowManager::getSingleton().getWindow( "combo_joy_analog_jump" )->setText( _("Off") );
+	}
+
+	return 1;
+}
+
+bool cMenu_Options_Controls :: Joystick_Name_Select( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::Combobox *combo = static_cast<CEGUI::Combobox*>( windowEventArgs.window );
+	CEGUI::ListboxItem *item = combo->getSelectedItem();
+
+	if( item->getText().compare( _("None") ) == 0 )
 	{
 		Joy_Disable();
 	}
@@ -2262,19 +2261,51 @@ bool cMenu_Options_Controls :: joy_name_Select( const EventArgs &event )
 	return 1;
 }
 
-bool cMenu_Options_Controls :: joy_analog_jump_Select( const EventArgs &event )
+bool cMenu_Options_Controls :: Joystick_Analog_Jump_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Combobox*>( windowEventArgs.window )->getSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox*>( windowEventArgs.window )->getSelectedItem();
 
 	bool analog_jump = 0;
 
-	if( item->getText().compare( "On" ) == 0 )
+	if( item->getText().compare( _("On") ) == 0 )
 	{
 		analog_jump = 1;
 	}
 
 	pPreferences->joy_analog_jump = analog_jump;
+
+	return 1;
+}
+
+bool cMenu_Options_Controls :: Joystick_Spinner_Axis_Hor_Changed( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	// set new value
+	pPreferences->joy_axis_hor = static_cast<int>(static_cast<CEGUI::Spinner *>( windowEventArgs.window )->getCurrentValue());
+
+	return 1;
+}
+
+bool cMenu_Options_Controls :: Joystick_Spinner_Axis_Ver_Changed( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	// set new value
+	pPreferences->joy_axis_ver = static_cast<int>(static_cast<CEGUI::Spinner *>( windowEventArgs.window )->getCurrentValue());
+
+	return 1;
+}
+
+bool cMenu_Options_Controls :: Joystick_List_Double_Click( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::MultiColumnList *>( windowEventArgs.window )->getFirstSelectedItem();
+
+	// set shortcut
+	if( item )
+	{
+		Set_Shortcut( item->getText().c_str(), static_cast<input_identifier>(item->getID()), 1 );
+	}
 
 	return 1;
 }
@@ -2308,17 +2339,17 @@ void cMenu_Savegames :: Init( void )
 
 	cMenu_Item *temp_item = NULL;
 
-	GL_Surface *back1 = pFont->RenderText( pFont->font_normal, "Back", text_color );
+	GL_Surface *back1 = pFont->Render_Text( pFont->font_normal, _("Back"), text_color );
 
-	Update_SavedGames_Text();
+	Update_Saved_Games_Text();
 
 	// savegame descriptions
 	for( HudSpriteList::iterator itr = savegame_temp.begin(), itr_end = savegame_temp.end(); itr != itr_end; ++itr )
 	{
 		temp_item = new cMenu_Item();
 		temp_item->image_default->Set_Image( (*itr)->image );
-		temp_item->Set_Pos( GAME_RES_W / 5, menu_posy );
-		pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
+		temp_item->Set_Pos( static_cast<float>(game_res_w) / 5, menu_posy );
+		pMenuCore->handler->Add_Menu_Item( temp_item, 1.5f, grey );
 		
 		menu_posy += temp_item->image_default->col_rect.h;
 	}
@@ -2326,19 +2357,19 @@ void cMenu_Savegames :: Init( void )
 	// back
 	temp_item = new cMenu_Item();
 	temp_item->image_default->Set_Image( back1 );
-	temp_item->Set_Pos( GAME_RES_W / 18, 450 );
+	temp_item->Set_Pos( static_cast<float>(game_res_w) / 18, 450 );
 	temp_item->isquit = 1;
-	pMenuCore->handler->Add_MenuItem( temp_item, 1.5f, grey );
+	pMenuCore->handler->Add_Menu_Item( temp_item, 1.5f, grey );
 
 	if( type_save )
 	{
-		drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/save.png" ), GAME_RES_W * 0.5f, GAME_RES_H * 0.1f ) );
-		drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/save.png" ), GAME_RES_W * 0.07f, GAME_RES_H * 0.24f ) );
+		drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/save.png" ), game_res_w * 0.5f, game_res_h * 0.1f ) );
+		drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/save.png" ), game_res_w * 0.07f, game_res_h * 0.24f ) );
 	}
 	else
 	{
-		drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/load.png" ), GAME_RES_W * 0.5f, GAME_RES_H * 0.1f ) );
-		drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/load.png" ), GAME_RES_W * 0.07f, GAME_RES_H * 0.24f ) );
+		drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/load.png" ), game_res_w * 0.5f, game_res_h * 0.1f ) );
+		drawlist.push_back( new cHudSprite( pVideo->Get_Surface( "menu/items/load.png" ), game_res_w * 0.07f, game_res_h * 0.24f ) );
 	}
 	drawlist.push_back( new cHudSprite( back1, -200, 0, 1 ) );
 
@@ -2393,10 +2424,10 @@ void cMenu_Savegames :: Exit( void )
 void cMenu_Savegames :: Update_Load( void )
 {
 	// savegame
-	if( pSavegame->is_valid( pMenuCore->handler->active + 1 ) )
+	if( pSavegame->Is_Valid( pMenuCore->handler->active + 1 ) )
 	{
-		pAudio->FadeOutMusic( 1000 );
-		pAudio->PlaySound( "savegame_load.ogg" );
+		pAudio->Fadeout_Music( 1000 );
+		pAudio->Play_Sound( "savegame_load.ogg" );
 
 		int save_type = pSavegame->Load_Game( pMenuCore->handler->active + 1 );
 
@@ -2416,9 +2447,9 @@ void cMenu_Savegames :: Update_Load( void )
 void cMenu_Savegames :: Update_Save( void )
 {
 	// savegame
-	if( pOverworld_Player->current_waypoint >= 0 || pLevel->is_Loaded() )
+	if( pOverworld_Player->current_waypoint >= 0 || pActive_Level->Is_Loaded() )
 	{
-		string descripion = Set_SaveDescription( pMenuCore->handler->active + 1 );
+		string descripion = Set_Save_Description( pMenuCore->handler->active + 1 );
 		
 		pFramerate->Reset();
 
@@ -2434,11 +2465,11 @@ void cMenu_Savegames :: Update_Save( void )
 			return;
 		}
 
-		pAudio->PlaySound( "savegame_save.ogg" );
+		pAudio->Play_Sound( "savegame_save.ogg" );
 
 		// no costs in debug builds
 #ifndef _DEBUG
-		if( pLevel->is_Loaded() )
+		if( pActive_Level->Is_Loaded() )
 		{
 			pointsdisplay->Set_Points( pPlayer->points - 3000 );
 		}
@@ -2450,7 +2481,7 @@ void cMenu_Savegames :: Update_Save( void )
 		pMenuCore->next_menu = MENU_MAIN;
 	}
 }
-string cMenu_Savegames :: Set_SaveDescription( unsigned int save_slot )
+string cMenu_Savegames :: Set_Save_Description( unsigned int save_slot )
 {
 	if( save_slot == 0 || save_slot > 9 )
 	{
@@ -2458,10 +2489,10 @@ string cMenu_Savegames :: Set_SaveDescription( unsigned int save_slot )
 	}
 // save always in debug builds
 #ifndef _DEBUG
-	if( pLevel->is_Loaded() && pPlayer->points < 3000 )
+	if( pActive_Level->Is_Loaded() && pPlayer->points < 3000 )
 	{
-		ClearInputEvents();
-		Draw_StaticText( "3000 Points needed for saving in a level.\nSaving on the Overworld is free." );
+		Clear_Input_Events();
+		Draw_Static_Text( _("3000 Points needed for saving in a level.\nSaving on the Overworld is free.") );
 
 		return "Not enough Points";
 	}
@@ -2471,7 +2502,7 @@ string cMenu_Savegames :: Set_SaveDescription( unsigned int save_slot )
 	bool auto_erase_description = 0;
 
 	// if Savegame exists use old description
-	if( pSavegame->is_valid( save_slot ) )
+	if( pSavegame->Is_Valid( save_slot ) )
 	{
 		save_description.clear();
 		// get only the description
@@ -2480,21 +2511,21 @@ string cMenu_Savegames :: Set_SaveDescription( unsigned int save_slot )
 	else
 	{
 		// use default description
-		save_description = "No Description";
+		save_description = _("No Description");
 		auto_erase_description = 1;
 	}
 
-	return Box_Text_Input( save_description, "Enter Description", auto_erase_description );
+	return Box_Text_Input( save_description, _("Enter Description"), auto_erase_description );
 }
 
-void cMenu_Savegames :: Update_SavedGames_Text( void )
+void cMenu_Savegames :: Update_Saved_Games_Text( void )
 {
 	unsigned int save_slot = 0;
 
 	for( HudSpriteList::iterator itr = savegame_temp.begin(), itr_end = savegame_temp.end(); itr != itr_end; ++itr )
 	{
 		save_slot++;
-		(*itr)->Set_Image( pFont->RenderText( pFont->font_normal, pSavegame->Get_Description( save_slot ), text_color_value ), 1, 1 );
+		(*itr)->Set_Image( pFont->Render_Text( pFont->font_normal, pSavegame->Get_Description( save_slot ), text_color_value ), 1, 1 );
 	}
 }
 
@@ -2513,14 +2544,14 @@ cMenu_Credits :: ~cMenu_Credits( void )
 
 void cMenu_Credits :: Init( void )
 {
-	pAudio->PlayMusic( "land/hyper_1.ogg", -1, 1, 1500 );
+	pAudio->Play_Music( "land/hyper_1.ogg", -1, 1, 1500 );
 
 	cMenu_Base::Init();
 
-	pAudio->FadeOutMusic( 1500 );
+	pAudio->Fadeout_Music( 1500 );
 
 	cMenu_Item *temp_item = NULL;
-	menu_posy = GAME_RES_H * 1.1f;
+	menu_posy = game_res_h * 1.1f;
 
 	// black background
 	glClearColor( 0, 0, 0, 1 );
@@ -2548,119 +2579,139 @@ void cMenu_Credits :: Init( void )
 
 		pFramerate->Update();
 		// maximum fps
-		CorrectFrameTime( 100 );
+		Correct_Frame_Time( 100 );
 
 		// set menu gradient colors
 		pMenuCore->handler->color_start.alpha = 255 - static_cast<Uint8>(i);
 		pMenuCore->handler->color_end.alpha = pMenuCore->handler->color_start.alpha;
 	}
 
-	GL_Surface *back1 = pFont->RenderText( pFont->font_normal, "Back", text_color );
+	GL_Surface *back1 = pFont->Render_Text( pFont->font_normal, _("Back"), text_color );
 
 	// clear credits
 	drawlist.clear();
 
 	// add credits texts
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Florian Richter (FluXy)", white ), 0, 20, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Florian Richter (FluXy)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( black, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Dedicated Developer", white ), 0, -3, 1 ) );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Organizer and Project Leader", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Dedicated Developer", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Organizer and Project Leader", white ), 0, -3, 1 ) );
 
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Holger Fey (Nemo)", white ), 0, 20, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Holger Fey (Nemo)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( lila, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Game Tester", white ), 0, -3, 1 ) );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - German Publicity", white ), 0, -3, 1 ) );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Torrent Packager", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Game Tester", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - German Publicity", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Torrent Packager", white ), 0, -3, 1 ) );
 
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Grant ... (youngheart80)", white ), 0, 20, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Grant ... (youngheart80)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( green, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
-
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Mark Richards (dteck)", white ), 0, 20, 1 ) );
-	drawlist.back()->Set_Shadow( blue, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
 
 	// Most Valued Persons (MVP)
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "-- Most Valued Persons (MVP) --", white ), 0, 20, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "-- Most Valued Persons (MVP) --", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( lightgrey, 1 );
 
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Tristan Heaven (nyhm)", white ), 0, 20, 1 ) );
-	drawlist.back()->Set_Shadow( lightblue, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Gentoo eBuild Maintainer", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "... (Helios)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( Color( 0.8f, 0.8f, 0.1f ), 1 );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
 
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Muammar El Khatib (muammar)", white ), 0, 20, 1 ) );
-	drawlist.back()->Set_Shadow( lightred, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Debian Package Maintainer", white ), 0, -3, 1 ) );
-
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Robert W... (BowserJr)", white ), 0, 20, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Robert W... (BowserJr)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( lightgreen, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Forum and Wiki Moderator", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Forum and Wiki Moderator", white ), 0, -3, 1 ) );
+
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "... (Sauer2)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( Color( 0.1f, 0.6f, 0.1f ), 1 );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Level Contributor", white ), 0, -3, 1 ) );
+
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "... (Simpletoon)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( Color( 0.2f, 0.2f, 0.8f ), 1 );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Developer", white ), 0, -3, 1 ) );
+
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Markus Hiebl (Frostbringer)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( Color( 0.9f, 0.1f, 0.8f ), 1 );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Level Contributor", white ), 0, -3, 1 ) );
+
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Tristan Heaven (nyhm)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( lightblue, 1 );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Gentoo eBuild Maintainer", white ), 0, -3, 1 ) );
+
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Muammar El Khatib (muammar)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( lightred, 1 );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Debian Package Maintainer", white ), 0, -3, 1 ) );
+
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "David Hernandez (vencabot_teppoo)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( Color( 0.8f, 0.6f, 0.2f ), 1 );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Music Artist", white ), 0, -3, 1 ) );
 
 	// Retired
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "-- Retired --", white ), 0, 20, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "-- Retired --", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( lightgrey, 1 );
 
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Mario Fink (maYO)", white ), 0, 20, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Mark Richards (dteck)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( blue, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Website Graphic Designer", white ), 0, -3, 1 ) );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Other Support", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
 
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Ursula ... (Pipgirl)", white ), 0, 20, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Mario Fink (maYO)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( blue, 1 );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Website Graphic Designer", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Other Support", white ), 0, -3, 1 ) );
+
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "... (Polilla86)", white ), 0, 20, 1 ) );
+	drawlist.back()->Set_Shadow( Color( 0.7f, 0.1f, 0.2f ), 1 );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
+
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Ursula ... (Pipgirl)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( Color( 0.2f, 0.9f, 0.2f ), 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
 
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Tobias Maasland (Weirdnose)", white ), 0, 20, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Tobias Maasland (Weirdnose)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( Color( 0.9f, 0.7f, 0.2f ), 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Level and World Contributor", white ), 0, -3, 1 ) );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Assistant Developer", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Level and World Contributor", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Assistant Developer", white ), 0, -3, 1 ) );
 
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Markus Hiebl (Frostbringer)", white ), 0, 20, 1 ) );
-	drawlist.back()->Set_Shadow( Color( 0.9f, 0.1f, 0.8f ), 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Level Contributor", white ), 0, -3, 1 ) );
-
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Robert ... (Consonance)", white ), 0, 20, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Robert ... (Consonance)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( lightred, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Sound and Music Artist", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Sound and Music Artist", white ), 0, -3, 1 ) );
 
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Justin ... (LoXodonte)", white ), 0, 20, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Justin ... (LoXodonte)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( lightblue, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Music Artist", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Music Artist", white ), 0, -3, 1 ) );
 
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Matt J... (mattwj)", white ), 0, 20, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Matt J... (mattwj)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( red, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - eDonkey Packager", white ), 0, -3, 1 ) );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Quality Assurance", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - eDonkey Packager", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Quality Assurance", white ), 0, -3, 1 ) );
 
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Bodhi Crandall-Rus (Boder)", white ), 0, 20, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Bodhi Crandall-Rus (Boder)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( green, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - All Hands Person", white ), 0, -3, 1 ) );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Game Tester", white ), 0, -3, 1 ) );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Assistant Graphic Designer", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - All Hands Person", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Game Tester", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Assistant Graphic Designer", white ), 0, -3, 1 ) );
 
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "John Daly (Johnlein)", white ), 0, 20, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "John Daly (Johnlein)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( yellow, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Graphic Designer", white ), 0, -3, 1 ) );
 
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Gustavo Gutierrez (Enzakun)", white ), 0, 20, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Gustavo Gutierrez (Enzakun)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( lightred, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Maryo Graphic Designer", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Maryo Graphic Designer", white ), 0, -3, 1 ) );
 
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Thomas Huth (Thothy)", white ), 0, 20, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Thomas Huth (Thothy)", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( greenyellow, 1 );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, " - Linux Maintainer", white ), 0, -3, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, " - Linux Maintainer", white ), 0, -3, 1 ) );
 
 	// Thanks
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "-- Thanks --", white ), 0, 20, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "-- Thanks --", white ), 0, 20, 1 ) );
 	drawlist.back()->Set_Shadow( lightblue, 1 );
 
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Jason Cox (XOC)", white ), 0, 0, 1 ) );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Ricardo Cruz", white ), 0, 0, 1 ) );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Devendra (Yuki),", white ), 0, 0, 1 ) );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "Hans de Goede (Hans)", white ), 0, 0, 1 ) );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "... (xPatrickx)", white ), 0, 0, 1 ) );
-	drawlist.push_back( new cHudSprite( pFont->RenderText( pFont->font_normal, "... (rolosworld)", white ), 0, 0, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Jason Cox (XOC)", white ), 0, 0, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Ricardo Cruz", white ), 0, 0, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Devendra (Yuki),", white ), 0, 0, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Hans de Goede (Hans)", white ), 0, 0, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "... (xPatrickx)", white ), 0, 0, 1 ) );
+	drawlist.push_back( new cHudSprite( pFont->Render_Text( pFont->font_normal, "Rolando Gonzalez (rolosworld)", white ), 0, 0, 1 ) );
 
 	// set credits position
 	for( HudSpriteList::iterator itr = drawlist.begin(), itr_end = drawlist.end(); itr != itr_end; ++itr )
@@ -2674,7 +2725,7 @@ void cMenu_Credits :: Init( void )
 			obj->Set_Shadow( grey, 1 );
 		}
 		// set position
-		obj->posx += GAME_RES_W / 5;
+		obj->posx += game_res_w / 5;
 		obj->posy += menu_posy;
 		// set posz behind ground
 		obj->posz = 0.109f;
@@ -2689,9 +2740,9 @@ void cMenu_Credits :: Init( void )
 	// back
 	temp_item = new cMenu_Item();
 	temp_item->image_default->Set_Image( back1 );
-	temp_item->Set_Pos( GAME_RES_W / 18, 250 );
+	temp_item->Set_Pos( static_cast<float>(game_res_w) / 18, 250 );
 	temp_item->isquit = 1;
-	pMenuCore->handler->Add_MenuItem( temp_item, 2, grey );
+	pMenuCore->handler->Add_Menu_Item( temp_item, 2, grey );
 	
 	drawlist.push_back( new cHudSprite( back1, -200, 0, 1 ) );
 
@@ -2712,12 +2763,12 @@ void cMenu_Credits :: Update( void )
 		cHudSprite *obj = (*itr);
 
 		// long inactive reset
-		if( obj->posy < -1800 )
+		if( obj->posy < -2400 )
 		{
-			obj->Set_PosY( GAME_RES_H * 1.1 );
+			obj->Set_Pos_Y( static_cast<float>(game_res_h) * 1.1f );
 		}
 		// fading out
-		else if( obj->posy < GAME_RES_H * 0.3f )
+		else if( obj->posy < game_res_h * 0.3f )
 		{
 			float new_value = obj->combine_col[0] - ( pFramerate->speedfactor * 0.01f );
 
@@ -2731,7 +2782,7 @@ void cMenu_Credits :: Update( void )
 			obj->shadow_color.alpha = obj->color.alpha;
 		}
 		// fading in
-		else if( obj->posy < GAME_RES_H * 0.9f )
+		else if( obj->posy < game_res_h * 0.9f )
 		{
 			float new_value = obj->combine_col[0] + ( pFramerate->speedfactor * 0.01f );
 
@@ -2742,17 +2793,29 @@ void cMenu_Credits :: Update( void )
 				// add particles
 				if( obj->combine_col[0] < 1 )
 				{
-					cParticleAnimation *anim = new cParticleAnimation( static_cast<float>( rand() % GAME_RES_W ), static_cast<float>( rand() % 200 ) );
-					anim->Set_Quota( rand() % 25 );
-					anim->Set_Image( pVideo->Get_Surface( "animation/particles/star.png" ) );
-					anim->Set_DirectionRange( 0, 360 );
-					anim->Set_Time_to_Live( 1.2f, 1 );
+					cParticle_Emitter *anim = new cParticle_Emitter();
+					anim->Set_Pos( Get_Random_Float( game_res_w * 0.1f, game_res_w * 0.8f ), Get_Random_Float( game_res_h * 0.1f, game_res_h * 0.2f ) );
+					anim->Set_Quota( 5 + (rand() % 25) );
+					if( rand() % 2 )
+					{
+						anim->Set_Image( pVideo->Get_Surface( "animation/particles/snowflake_1.png" ) );
+						anim->Set_Direction_Range( Get_Random_Float( 30, 70 ), 80 );
+						anim->Set_Scale( 0.3f, 0.2f );
+						anim->Set_Blending( BLEND_ADD );
+					}
+					else
+					{
+						anim->Set_Image( pVideo->Get_Surface( "animation/particles/star.png" ) );
+						anim->Set_Direction_Range( 0, 360 );
+						anim->Set_Scale( 0.2f, 0.1f );
+					}
+					anim->Set_Time_to_Live( 1.4f, 0.5f );
 					anim->Set_Fading_Size( 1 );
-					anim->Set_Scale( 0.2f, 0.1f );
 					anim->Set_Color( Color( static_cast<Uint8>( 100 + ( rand() % 155 ) ), 100 + ( rand() % 155 ), 100 + ( rand() % 155 ) ) );
-					anim->Set_Speed( 2, 1 );
-					anim->Set_ConstRotationZ( 1, 8 );
-					anim->Set_ZPos( 0.16f );
+					anim->Set_Speed( 1.6f, 0.7f );
+					anim->Set_Const_Rotation_Z( -5, 10 );
+					anim->Set_Vertical_Gravity( 0.02f );
+					anim->Set_Pos_Z( 0.16f );
 					pMenuCore->pMenu_AnimManager->Add( anim );
 				}
 			}
@@ -2798,8 +2861,8 @@ void cMenu_Credits :: Draw( void )
 void cMenu_Credits :: Exit( void )
 {
 	// stop credits music
-	pAudio->FadeOutMusic();
-	pAudio->PlayMusic( "game/menu.ogg", -1, 0, 1500 );
+	pAudio->Fadeout_Music();
+	pAudio->Play_Music( "game/menu.ogg", -1, 0, 1500 );
 
 	pMenuCore->next_menu = MENU_MAIN;
 	Game_Action = GA_ENTER_MENU;

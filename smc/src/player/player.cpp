@@ -1,7 +1,7 @@
 /***************************************************************************
-           player.cpp  -  Level Maryo class
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * player.cpp  -  Level player class
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -33,6 +33,12 @@
 #include "../objects/box.h"
 #include "../input/keyboard.h"
 #include "../video/gl_surface.h"
+#include "../core/math/utilities.h"
+#include "../core/i18n.h"
+
+// Milliseconds to enable power jump when ducking
+const int power_jump_delta = 1000;
+
 
 /* *** *** *** *** *** *** *** *** cPlayer *** *** *** *** *** *** *** *** *** */
 
@@ -50,6 +56,7 @@ cPlayer :: cPlayer( float x /* = 120 */, float y /* = 0 */ )
 	images.reserve( 20 );
 	posz = 0.0999f;
 	ducked = 0;
+	ducked_animation_counter = 0;
 	parachute = 0;
 	throwing_counter = 0;
 
@@ -77,7 +84,10 @@ cPlayer :: cPlayer( float x /* = 120 */, float y /* = 0 */ )
 
 	// jump data
 	UpKeytime = 0;
-	start_enemyjump = 0;
+	force_jump = 0;
+	next_jump_sound = 1;
+	next_jump_power = 17;
+	next_jump_accel = 4;
 	jump_power = 0;
 	jump_accel_up = 4.5f;
 	jump_vel_deaccel = 0.06f;
@@ -86,18 +96,13 @@ cPlayer :: cPlayer( float x /* = 120 */, float y /* = 0 */ )
 	no_velx_counter = 0;
 	no_vely_counter = 0;
 
-	fireball_count = 0;
-	iceball_count = 0;
+	shoot_counter = 0;
 	active_object = NULL;
-
-	Load_Images();
-	// default direction : right
-	Set_Direction( DIR_RIGHT, 1 );
 }
 
 cPlayer :: ~cPlayer( void )
 {
-	Ball_clear();
+	Ball_Clear();
 }
 
 cPlayer *cPlayer :: Copy( void )
@@ -106,12 +111,19 @@ cPlayer *cPlayer :: Copy( void )
 	return NULL;
 }
 
-void cPlayer :: Create_from_Stream( XMLAttributes &attributes )
+void cPlayer :: Init( void )
+{
+	Load_Images();
+	// default direction : right
+	Set_Direction( DIR_RIGHT, 1 );
+}
+
+void cPlayer :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx", 50 )), static_cast<float>(attributes.getValueAsInteger( "posy", 300 )), 1 );
 	// direction
-	ObjectDirection dir = Get_Direction_id( attributes.getValueAsString( "direction" ).c_str() );
+	ObjectDirection dir = Get_Direction_Id( attributes.getValueAsString( "direction" ).c_str() );
 
 	// if invalid set default
 	if( dir != DIR_LEFT && dir != DIR_RIGHT )
@@ -122,7 +134,7 @@ void cPlayer :: Create_from_Stream( XMLAttributes &attributes )
 
 	// ## change position to the current state height
 	// level engine version 2 and lower
-	if( pLevel->engine_version <= 2 )
+	if( pActive_Level->engine_version <= 2 )
 	{
 		Set_Pos( posx, posy - col_rect.h, 1 );
 	}
@@ -142,7 +154,7 @@ void cPlayer :: Save_to_Stream( ofstream &file )
 	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
 	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// direction
-	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_name( start_direction ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( start_direction ) << "\" />" << std::endl;
 
 	// end player
 	file << "\t</player>" << std::endl;
@@ -155,7 +167,7 @@ void cPlayer :: Hold( void )
 		return;
 	}
 	
-	Set_MovingState( STA_STAY );
+	Set_Moving_State( STA_STAY );
 }
 
 void cPlayer :: Set_Direction( ObjectDirection dir, bool new_start_direction /* = 0 */ )
@@ -163,7 +175,7 @@ void cPlayer :: Set_Direction( ObjectDirection dir, bool new_start_direction /* 
 	// set start image
 	if( new_start_direction )
 	{
-		cMovingSprite::Set_Image( pVideo->Get_Surface( "maryo/small/stand_" + Get_Direction_name( dir ) + ".png" ), 1 );
+		cMovingSprite::Set_Image( pVideo->Get_Surface( "maryo/small/stand_" + Get_Direction_Name( dir ) + ".png" ), 1 );
 
 		// set back current image
 		curr_img = -1;
@@ -173,9 +185,9 @@ void cPlayer :: Set_Direction( ObjectDirection dir, bool new_start_direction /* 
 	cImageObjectSprite::Set_Direction( dir, new_start_direction );
 }
 
-void cPlayer :: Set_onGround( cSprite *obj )
+void cPlayer :: Set_on_Ground( cSprite *obj )
 {
-	cMovingSprite::Set_onGround( obj );
+	cMovingSprite::Set_on_Ground( obj );
 
 	// if valid ground
 	if( ground_object )
@@ -185,19 +197,19 @@ void cPlayer :: Set_onGround( cSprite *obj )
 		{
 			if( state != STA_STAY && state != STA_RUN )
 			{
-				Set_MovingState( STA_WALK );
+				Set_Moving_State( STA_WALK );
 			}
 		}
 		// not moving
 		else if( !velx )
 		{
-			Set_MovingState( STA_STAY );
+			Set_Moving_State( STA_STAY );
 		}
 
 		// if massive ground and ducking key is pressed
 		if( ground_object->massivetype == MASS_MASSIVE && pKeyboard->keys[pPreferences->key_down] )
 		{
-			Start_ducking();
+			Start_Ducking();
 		}
 	}
 }
@@ -219,12 +231,12 @@ void cPlayer :: DownGrade( bool delayed /* = 1 */, bool force /* = 0 */ )
 	// if not weakest state or not forced 
 	if( maryo_type != MARYO_SMALL && !force )
 	{
-		pAudio->PlaySound( "player/powerdown.ogg", RID_MARYO_POWERDOWN );
+		pAudio->Play_Sound( "player/powerdown.ogg", RID_MARYO_POWERDOWN );
 
 		// power down
 		Set_Type( MARYO_SMALL );
 
-		invincible = DESIRED_FPS * 2.5f;
+		invincible = speedfactor_fps * 2.5f;
 		invincible_mod = 0;
 
 		Itembox->Request_Item();
@@ -234,19 +246,19 @@ void cPlayer :: DownGrade( bool delayed /* = 1 */, bool force /* = 0 */ )
 
 	Set_Type( MARYO_DEAD, 0, 0 );
 	pointsdisplay->Clear();
-	Ball_clear();
-	livedisplay->AddLives( -1 );
-	pAudio->FadeOutMusic( 1700 );
+	Ball_Clear();
+	livedisplay->Add_Lives( -1 );
+	pAudio->Fadeout_Music( 1700 );
 
 	// lost a live
 	if( lives >= 0 )
 	{
-		pAudio->PlaySound( "player/dead.ogg", RID_MARYO_DEATH );
+		pAudio->Play_Sound( "player/dead.ogg", RID_MARYO_DEATH );
 	}
 	// game over
 	else
 	{
-		pAudio->PlaySound( DATA_DIR "/" GAME_MUSIC_DIR "/game/lost_1.ogg", RID_MARYO_DEATH );
+		pAudio->Play_Sound( DATA_DIR "/" GAME_MUSIC_DIR "/game/lost_1.ogg", RID_MARYO_DEATH );
 	}
 	
 	// dying animation
@@ -282,7 +294,7 @@ void cPlayer :: DownGrade( bool delayed /* = 1 */, bool force /* = 0 */ )
 	pFramerate->Reset();
 	walk_count = 0;
 	
-	for( i = 0; posy < GAME_RES_H + pCamera->y + col_rect.h; i++ )
+	for( i = 0; posy < game_res_h + pActive_Camera->y + col_rect.h; i++ )
 	{
 		walk_count += pFramerate->speedfactor * 0.75f;
 
@@ -314,31 +326,31 @@ void cPlayer :: DownGrade( bool delayed /* = 1 */, bool force /* = 0 */ )
 	if( lives >= 0 )
 	{
 		// unload level
-		pLevel->Unload( 1 );
+		pActive_Level->Unload( 1 );
 	}
 	// game over
 	else
 	{
 		GL_Surface *game_over = pVideo->Get_Surface( "game/game_over.png" );
-		cSprite *sprite = new cSprite( game_over, ( GAME_RES_W * 0.5f ) - ( game_over->w * 0.5f ), ( GAME_RES_H * 0.5f ) - ( game_over->h * 0.5f ) );
+		cSprite *sprite = new cSprite( game_over, ( game_res_w * 0.5f ) - ( game_over->w * 0.5f ), ( game_res_h * 0.5f ) - ( game_over->h * 0.5f ) );
 		sprite->posz = 0.8f;
 		sprite->spawned = 1;
 		sprite->Set_Ignore_Camera( 1 );
-		pLevel->pSprite_Manager->Add( sprite );
+		pActive_Sprite_Manager->Add( sprite );
 
-		cParticleAnimation *anim = new cParticleAnimation();
-		anim->Set_Emitter_Rect( sprite->rect.x + pCamera->x, sprite->rect.y + pCamera->y, sprite->rect.w ,sprite->rect.h );
+		cParticle_Emitter *anim = new cParticle_Emitter();
+		anim->Set_Emitter_Rect( sprite->rect.x + pActive_Camera->x, sprite->rect.y + pActive_Camera->y, sprite->rect.w ,sprite->rect.h );
 		anim->Set_Emitter_Time_to_Live( 24 );
 		anim->Set_Emitter_Iteration_Interval( 0.1f );
 		anim->Set_Quota( 1 );
-		anim->Set_ZPos( 0.79f );
+		anim->Set_Pos_Z( 0.79f );
 		anim->Set_Image( pVideo->Get_Surface( "animation/particles/axis.png" ) );
 		anim->Set_Time_to_Live( 10 );
 		anim->Set_Fading_Alpha( 1 );
 		anim->Set_Speed( 2, 0.5f );
 		anim->Set_Scale( 0.9f );
 		anim->Set_Color( Color( static_cast<Uint8>(250), 140, 90 ), Color( static_cast<Uint8>(5), 100, 0 ) );
-		anim->Set_ConstRotationZ( 0.1f, 5 );
+		anim->Set_Const_Rotation_Z( -2, 4 );
 
 		anim->Init();
 
@@ -371,18 +383,18 @@ void cPlayer :: DownGrade( bool delayed /* = 1 */, bool force /* = 0 */ )
 		}
 
 		delete anim;
-		pAudio->StopSounds();
+		pAudio->Stop_Sounds();
 	}
 	
 	// clear
 	Set_Type( MARYO_SMALL, 0, 0 );
-	ClearInputEvents();
+	Clear_Input_Events();
 	pFramerate->Reset();
 
 	// game over - reset
 	if( lives < 0 )
 	{
-		ResetSave();
+		Reset_Save();
 		Game_Action = GA_ENTER_MENU;
 	}
 	// custom level
@@ -423,7 +435,7 @@ void cPlayer :: Move_Player( float velocity, float vel_wrongway )
 		// special enemies
 		else if( collision->type == CO_ENEMY )
 		{
-			cEnemy *enemy = static_cast<cEnemy *>(pLevel->pSprite_Manager->Get_Pointer( collision->number ));
+			cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
 
 			// blocking enemies
 			if( enemy->type == TYPE_EATO )
@@ -440,7 +452,7 @@ void cPlayer :: Move_Player( float velocity, float vel_wrongway )
 	{
 		if( !velx )
 		{
-			Set_MovingState( STA_STAY );
+			Set_Moving_State( STA_STAY );
 		}
 
 		return;
@@ -453,9 +465,9 @@ void cPlayer :: Move_Player( float velocity, float vel_wrongway )
 		{
 			Add_Velocity( velocity, 0 );
 
-			if( velx > 10 * Get_Vel_mod() )
+			if( velx > 10 * Get_Vel_Modifier() )
 			{
-				velx = 10 * Get_Vel_mod();
+				velx = 10 * Get_Vel_Modifier();
 			}
 		}
 		else
@@ -463,7 +475,7 @@ void cPlayer :: Move_Player( float velocity, float vel_wrongway )
 			// small smoke clouds under foots
 			if( velx < 0 )
 			{
-				Generate_feet_clouds();
+				Generate_Feet_Clouds();
 			}
 
 			// slow down
@@ -477,9 +489,9 @@ void cPlayer :: Move_Player( float velocity, float vel_wrongway )
 		{
 			Add_Velocity( velocity, 0 );
 
-			if( velx < -10 * Get_Vel_mod() )
+			if( velx < -10 * Get_Vel_Modifier() )
 			{
-				velx = -10 * Get_Vel_mod();
+				velx = -10 * Get_Vel_Modifier();
 			}
 		}
 		else
@@ -487,7 +499,7 @@ void cPlayer :: Move_Player( float velocity, float vel_wrongway )
 			// small smoke clouds under foots
 			if( velx > 0 )
 			{
-				Generate_feet_clouds();
+				Generate_Feet_Clouds();
 			}
 
 			// slow down
@@ -498,11 +510,11 @@ void cPlayer :: Move_Player( float velocity, float vel_wrongway )
 	// start walking
 	if( state == STA_STAY )
 	{
-		Set_MovingState( STA_WALK );
+		Set_Moving_State( STA_WALK );
 	}
 }
 
-void cPlayer :: Generate_feet_clouds( cParticleAnimation *anim /* = NULL */ )
+void cPlayer :: Generate_Feet_Clouds( cParticle_Emitter *anim /* = NULL */ )
 {
 	// check if valid
 	if( !ground_object || !ground_object->image || ground_object->image->ground_type == GROUND_NORMAL )
@@ -516,11 +528,11 @@ void cPlayer :: Generate_feet_clouds( cParticleAnimation *anim /* = NULL */ )
 	{
 		create_anim = 1;
 		// create animation
-		anim = new cParticleAnimation();
+		anim = new cParticle_Emitter();
 	}
 
 	anim->Set_Emitter_Rect( col_rect.x, col_rect.y + col_rect.h - 2, col_rect.w );
-	anim->Set_ZPos( posz - 0.000001f );
+	anim->Set_Pos_Z( posz - 0.000001f );
 
 	float vel = ( velx > 0 ? velx : -velx );
 
@@ -581,21 +593,21 @@ void cPlayer :: Generate_feet_clouds( cParticleAnimation *anim /* = NULL */ )
 
 	if( direction == DIR_RIGHT )
 	{
-		anim->Set_DirectionRange( 180, 90 );
+		anim->Set_Direction_Range( 180, 90 );
 	}
 	else
 	{
-		anim->Set_DirectionRange( 270, 90 );
+		anim->Set_Direction_Range( 270, 90 );
 	}
 
 	if( create_anim )
 	{
 		// add animation
-		pAnimationManager->Add( anim );
+		pAnimation_Manager->Add( anim );
 	}
 }
 
-void cPlayer :: Update_walking( void )
+void cPlayer :: Update_Walking( void )
 {
 	if( ducked || !ground_object || ( state != STA_STAY && state != STA_WALK && state != STA_RUN ) )
 	{
@@ -605,7 +617,7 @@ void cPlayer :: Update_walking( void )
 	// validate ground object
 	if( ( ground_object->type == TYPE_EATO || ground_object->type == TYPE_SPIKA || ground_object->type == TYPE_ROKKO ) && invincible <= 0 )
 	{
-		Reset_onGround();
+		Reset_on_Ground();
 	}
 
 	// only if left or right is pressed
@@ -640,7 +652,7 @@ void cPlayer :: Update_walking( void )
 			}
 		}
 
-		Move_Player( ( 0.6f * ground_mod * Get_Vel_mod() ), ( 1.2f * ground_mod * Get_Vel_mod() ) );
+		Move_Player( ( 0.6f * ground_mod * Get_Vel_Modifier() ), ( 1.2f * ground_mod * Get_Vel_Modifier() ) );
 	}
 
 	// update walking time
@@ -651,9 +663,9 @@ void cPlayer :: Update_walking( void )
 		{
 			walk_time += pFramerate->speedfactor;
 
-			if( walk_time > DESIRED_FPS )
+			if( walk_time > speedfactor_fps )
 			{
-				Set_MovingState( STA_RUN );
+				Set_Moving_State( STA_RUN );
 			}
 		}
 		// reset
@@ -664,7 +676,7 @@ void cPlayer :: Update_walking( void )
 	}
 }
 
-void cPlayer :: Update_running( void )
+void cPlayer :: Update_Running( void )
 {
 	if( ducked || !ground_object || state != STA_RUN )
 	{
@@ -682,9 +694,10 @@ void cPlayer :: Update_running( void )
 		if( vel > 17 )
 		{
 			// light particles
-			cParticleAnimation *anim = new cParticleAnimation( col_rect.x + col_rect.w * 0.25f, col_rect.y + col_rect.h * 0.1f, col_rect.w * 0.5f, col_rect.h * 0.8f );
+			cParticle_Emitter *anim = new cParticle_Emitter();
+			anim->Set_Emitter_Rect( col_rect.x + col_rect.w * 0.25f, col_rect.y + col_rect.h * 0.1f, col_rect.w * 0.5f, col_rect.h * 0.8f );
 			anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
-			anim->Set_ZPos( posz + 0.000001f );
+			anim->Set_Pos_Z( posz + 0.000001f );
 			anim->Set_Time_to_Live( 0.1f + vel * 0.03f );
 			anim->Set_Fading_Alpha( 1 );
 			anim->Set_Fading_Size( 1 );
@@ -692,27 +705,27 @@ void cPlayer :: Update_running( void )
 			// right
 			if( velx > 0 )
 			{
-				anim->Set_DirectionRange( 0, 0 );
+				anim->Set_Direction_Range( 0, 0 );
 			}
 			// left
 			else
 			{
-				anim->Set_DirectionRange( 180, 0 );
+				anim->Set_Direction_Range( 180, 0 );
 			}
 			anim->Set_Scale( 0.15f );
 
 			anim->Set_Blending( BLEND_ADD );
-			pAnimationManager->Add( anim );
+			pAnimation_Manager->Add( anim );
 		}
 
 		// smoke clouds under foots
-		Generate_feet_clouds();
+		Generate_Feet_Clouds();
 
 		running_particle_counter--;
 	}
 }
 
-void cPlayer :: Update_staying( void )
+void cPlayer :: Update_Staying( void )
 {
 	// only if player is onground
 	if( !ground_object || ducked || state == STA_JUMP )
@@ -728,17 +741,17 @@ void cPlayer :: Update_staying( void )
 		{
 			if( ground_object->image && ground_object->image->ground_type == GROUND_ICE )
 			{
-				Auto_SlowDown( 1.1f / 5.0f );
+				Auto_Slow_Down( 1.1f / 5.0f );
 			}
 			else
 			{
-				Auto_SlowDown( 1.1f );
+				Auto_Slow_Down( 1.1f );
 			}
 
 			// stopped walking
 			if( !velx )
 			{
-				Set_MovingState( STA_STAY );
+				Set_Moving_State( STA_STAY );
 			}
 		}
 
@@ -770,7 +783,7 @@ void cPlayer :: Update_staying( void )
 	}
 }
 
-void cPlayer :: Update_flying( void )
+void cPlayer :: Update_Flying( void )
 {
 	/* only if not onground
 	 * if jumping update jump is already used
@@ -785,14 +798,14 @@ void cPlayer :: Update_flying( void )
 	{
 		if( direction == DIR_LEFT )
 		{
-			if( velx > -15 * Get_Vel_mod() )
+			if( velx > -15 * Get_Vel_Modifier() )
 			{
 				Add_Velocity( -1.1f, 0 );
 			}
 		}
 		else
 		{
-			if( velx < 15 * Get_Vel_mod() )
+			if( velx < 15 * Get_Vel_Modifier() )
 			{
 				Add_Velocity( 1.1f, 0 );
 			}
@@ -801,7 +814,7 @@ void cPlayer :: Update_flying( void )
 		// move down 
 		if( pKeyboard->keys[pPreferences->key_down] || pJoystick->down )
 		{
-			if( vely < 5 * Get_Vel_mod() )
+			if( vely < 5 * Get_Vel_Modifier() )
 			{
 				Add_Velocity( 0, 0.6f );
 			}
@@ -809,7 +822,7 @@ void cPlayer :: Update_flying( void )
 		// move up
 		else if( pKeyboard->keys[pPreferences->key_up] || pJoystick->up )
 		{
-			if( vely > -5 * Get_Vel_mod() )
+			if( vely > -5 * Get_Vel_Modifier() )
 			{
 				Add_Velocity( 0, -0.6f );
 			}
@@ -817,7 +830,7 @@ void cPlayer :: Update_flying( void )
 		// slow down if not pressed
 		else
 		{
-			Auto_SlowDown( 0, 0.4f );
+			Auto_Slow_Down( 0, 0.4f );
 		}
 
 		// set flying rotation
@@ -833,7 +846,7 @@ void cPlayer :: Update_flying( void )
 			fly_rot = -70;
 		}
 
-		Set_RotationZ( fly_rot );
+		Set_Rotation_Z( fly_rot );
 	}
 	// falling
 	else
@@ -843,7 +856,7 @@ void cPlayer :: Update_flying( void )
 		{
 			if( !parachute )
 			{
-				if( velx > -10 * Get_Vel_mod() )
+				if( velx > -10 * Get_Vel_Modifier() )
 				{
 					Add_Velocity( -1.2f, 0 );
 				}
@@ -851,7 +864,7 @@ void cPlayer :: Update_flying( void )
 			// slow fall/parachute
 			else
 			{
-				if( velx > -5 * Get_Vel_mod() )
+				if( velx > -5 * Get_Vel_Modifier() )
 				{
 					Add_Velocity( -0.6f, 0 );
 				}
@@ -863,7 +876,7 @@ void cPlayer :: Update_flying( void )
 		{
 			if( !parachute )
 			{
-				if( velx < 10 * Get_Vel_mod() )
+				if( velx < 10 * Get_Vel_Modifier() )
 				{
 					Add_Velocity( 1.2f, 0 );
 				}
@@ -871,7 +884,7 @@ void cPlayer :: Update_flying( void )
 			// slow fall/parachute
 			else
 			{
-				if( velx < 5 * Get_Vel_mod() )
+				if( velx < 5 * Get_Vel_Modifier() )
 				{
 					Add_Velocity( 0.6f, 0 );
 				}
@@ -880,12 +893,12 @@ void cPlayer :: Update_flying( void )
 		// slow down if not pressed
 		else
 		{
-			Auto_SlowDown( 0.4f );
+			Auto_Slow_Down( 0.4f );
 		}
 	}
 }
 
-void cPlayer :: Stop_flying( bool nparachute /* = 1 */ )
+void cPlayer :: Stop_Flying( bool nparachute /* = 1 */ )
 {
 	if( state != STA_FLY )
 	{
@@ -897,16 +910,16 @@ void cPlayer :: Stop_flying( bool nparachute /* = 1 */ )
 		parachute = 1;
 	}
 
-	Set_MovingState( STA_FALL );
+	Set_Moving_State( STA_FALL );
 }
 
-void cPlayer :: Start_falling( void )
+void cPlayer :: Start_Falling( void )
 {
 	Move( 0, 1.9f, 1 );
-	Set_MovingState( STA_FALL );
+	Set_Moving_State( STA_FALL );
 }
 
-void cPlayer :: Update_falling( void )
+void cPlayer :: Update_Falling( void )
 {
 	// only if not on ground
 	if( ground_object || state == STA_CLIMB || state == STA_FLY )
@@ -934,11 +947,11 @@ void cPlayer :: Update_falling( void )
 
 	if( state != STA_JUMP && state != STA_FALL )
 	{
-		Set_MovingState( STA_FALL );
+		Set_Moving_State( STA_FALL );
 	}
 }
 
-void cPlayer :: Start_ducking( void )
+void cPlayer :: Start_Ducking( void )
 { 
 	// only if massive ground
 	if( ( state != STA_STAY && state != STA_WALK && state != STA_RUN ) || state == STA_CLIMB || !ground_object || ground_object->massivetype == MASS_HALFMASSIVE || ducked )
@@ -946,17 +959,17 @@ void cPlayer :: Start_ducking( void )
 		return;
 	}
 
-	Release_item( 1, 1 );
+	Release_Item( 1, 1 );
 
 	// set ducking image ( without Check_OutofLevel from cMovingSprite )
 	cSprite::Move( 0, image->col_h - images[MARYO_IMG_DUCK]->col_h, 1 );
 	Set_Image( MARYO_IMG_DUCK + direction );
 
-	ducked = 1;
-	Set_MovingState( STA_STAY );
+	ducked = SDL_GetTicks();
+	Set_Moving_State( STA_STAY );
 }
 
-void cPlayer :: Stop_ducking( void )
+void cPlayer :: Stop_Ducking( void )
 {
 	if( !ducked )
 	{
@@ -968,10 +981,11 @@ void cPlayer :: Stop_ducking( void )
 	Set_Image( MARYO_IMG_STAND + direction );
 
 	ducked = 0;
-	Set_MovingState( STA_STAY );
+	ducked_animation_counter = 0;
+	Set_Moving_State( STA_STAY );
 }
 
-void cPlayer :: Update_ducking( void )
+void cPlayer :: Update_Ducking( void )
 {
 	if( !ducked )
 	{
@@ -981,29 +995,56 @@ void cPlayer :: Update_ducking( void )
 	// lost ground object
 	if( !ground_object )
 	{
-		Stop_ducking();
+		Stop_Ducking();
 		return;
+	}
+
+	if( SDL_GetTicks() - ducked > power_jump_delta )
+	{
+		// particle animation
+		ducked_animation_counter += pFramerate->speedfactor * 2;
+
+		while( ducked_animation_counter > 1 )
+		{
+			// create particle
+			cParticle_Emitter *anim = new cParticle_Emitter();
+			anim->Set_Pos( col_rect.x + Get_Random_Float( 0, col_rect.w * 0.9f ), col_rect.y + ( col_rect.h * 0.6f ) + Get_Random_Float( 0, col_rect.h * 0.1f ) );
+			anim->Set_Image( pVideo->Get_Surface( "animation/particles/star_2.png" ) );
+			anim->Set_Pos_Z( posz - 0.000001f, 0.000002f );
+			anim->Set_Time_to_Live( 0.3f );
+			anim->Set_Fading_Alpha( 1 );
+			anim->Set_Fading_Size( 1 );
+			anim->Set_Const_Rotation_Z( -5, 10 );
+			anim->Set_Direction_Range( 90, 20 );
+			anim->Set_Speed( 1.5f, 0.5f );
+			anim->Set_Scale( 0.2f );
+			anim->Set_Color( whitealpha128 );
+			anim->Set_Blending( BLEND_ADD );
+			pAnimation_Manager->Add( anim );
+
+			ducked_animation_counter--;
+		}
 	}
 
 	// slow down
 	if( velx )
 	{
-		Auto_SlowDown( 0.6f );
+		Auto_Slow_Down( 0.6f );
 	}
 }
 
-void cPlayer :: Start_climbing( void )
+void cPlayer :: Start_Climbing( void )
 {
 	if( ducked || state == STA_CLIMB )
 	{
 		return;
 	}
 
-	Release_item( 1, 1 );
-	Set_MovingState( STA_CLIMB );
+	Release_Item( 1, 1 );
+	Set_Moving_State( STA_CLIMB );
 }
 
-void cPlayer :: Update_climbing( void )
+void cPlayer :: Update_Climbing( void )
 {
 	if( state != STA_CLIMB )
 	{
@@ -1022,27 +1063,27 @@ void cPlayer :: Update_climbing( void )
 		cObjectCollision *col = (*itr);
 
 		// collides with the climbable object
-		if( col && col->type == CO_ACTIVE && pLevel->pSprite_Manager->Get_Pointer( col->number )->massivetype == MASS_CLIMBABLE )
+		if( col && col->type == CO_ACTIVE && pActive_Sprite_Manager->Get_Pointer( col->number )->massivetype == MASS_CLIMBABLE )
 		{
 			Collisions_Clear();
 
 			// set velocity
 			if( pKeyboard->keys[pPreferences->key_left] || pJoystick->left )
 			{
-				velx = -2 * Get_Vel_mod();
+				velx = -2 * Get_Vel_Modifier();
 			}
 			else if( pKeyboard->keys[pPreferences->key_right] || pJoystick->right )
 			{
-				velx = 2 * Get_Vel_mod();
+				velx = 2 * Get_Vel_Modifier();
 			}
 
 			if( pKeyboard->keys[pPreferences->key_up] || pJoystick->up )
 			{
-				vely = -4 * Get_Vel_mod();
+				vely = -4 * Get_Vel_Modifier();
 			}
 			else if( pKeyboard->keys[pPreferences->key_down] || pJoystick->down )
 			{
-				vely = 4 * Get_Vel_mod();
+				vely = 4 * Get_Vel_Modifier();
 			}
 
 			// in contact testing
@@ -1050,7 +1091,7 @@ void cPlayer :: Update_climbing( void )
 			col = Collision_Get_first();
 
 			// do not climb further upwards if maryo will loose contact
-			if( !( col && col->type == CO_ACTIVE && pLevel->pSprite_Manager->Get_Pointer( col->number )->massivetype == MASS_CLIMBABLE ) )
+			if( !( col && col->type == CO_ACTIVE && pActive_Sprite_Manager->Get_Pointer( col->number )->massivetype == MASS_CLIMBABLE ) )
 			{
 				// only stop if loosing contact upwards
 				if( vely < 0 )
@@ -1065,57 +1106,67 @@ void cPlayer :: Update_climbing( void )
 	}
 
 	// lost contact
-	Set_MovingState( STA_FALL );
+	Set_Moving_State( STA_FALL );
 	Collisions_Clear();
 }
 
-void cPlayer :: Start_jump_keytime( void )
+void cPlayer :: Start_Jump_Keytime( void )
 {
 	if( godmode || state == STA_STAY || state == STA_WALK || state == STA_RUN || state == STA_FALL || state == STA_FLY || state == STA_JUMP || ( state == STA_CLIMB && !pKeyboard->keys[pPreferences->key_up] ) )
 	{
-		UpKeytime = DESIRED_FPS / 4;
+		UpKeytime = speedfactor_fps / 4;
 	}
 }
 
-void cPlayer :: Update_jump_keytime( void )
+void cPlayer :: Update_Jump_Keytime( void )
 {
 	// handle jumping start
-	if( UpKeytime && ( ground_object || godmode || state == STA_CLIMB ) )
+	if( force_jump || ( UpKeytime && ( ground_object || godmode || state == STA_CLIMB ) ) )
 	{
-		Start_jump();
-	}
-	else if( start_enemyjump )
-	{
-		Start_jump( 18, 4.1f );
+		Start_Jump();
 	}
 }
 
-void cPlayer :: Start_jump( float power /* = 17 */, float accel /* = 4 */, float deaccel /* = 0.08f */ )
+void cPlayer :: Start_Jump( float deaccel /* = 0.08f */ )
 {
 	// play sound
-	if( !start_enemyjump )
+	if( next_jump_sound )
 	{
 		// small
 		if( maryo_type == MARYO_SMALL )
 		{
-			pAudio->PlaySound( "player/jump_small.ogg", RID_MARYO_JUMP );
+			if( force_jump )
+			{
+				pAudio->Play_Sound( "player/jump_small_power.ogg", RID_MARYO_JUMP );
+			}
+			else
+			{
+				pAudio->Play_Sound( "player/jump_small.ogg", RID_MARYO_JUMP );
+			}
 		}
 		// ghost
 		else if( maryo_type == MARYO_GHOST )
 		{
-			pAudio->PlaySound( "player/jump_ghost.ogg", RID_MARYO_JUMP );
+			pAudio->Play_Sound( "player/jump_ghost.ogg", RID_MARYO_JUMP );
 		}
 		// big
 		else
 		{
-			pAudio->PlaySound( "player/jump_big.ogg", RID_MARYO_JUMP );
+			if( force_jump )
+			{
+				pAudio->Play_Sound( "player/jump_big_power.ogg", RID_MARYO_JUMP );
+			}
+			else
+			{
+				pAudio->Play_Sound( "player/jump_big.ogg", RID_MARYO_JUMP );
+			}
 		}
 	}
 
 	bool jump_key = 0;
 
 	// if jump key pressed
-	if( pKeyboard->keys[pPreferences->key_jump] || ( pJoystick->up && pPreferences->joy_analog_jump ) || pJoystick->Button( pPreferences->joy_button_jump ) )
+	if( pKeyboard->keys[pPreferences->key_jump] || ( pPreferences->joy_analog_jump && pJoystick->up ) || pJoystick->Button( pPreferences->joy_button_jump ) )
 	{
 		jump_key = 1;
 	}
@@ -1124,33 +1175,29 @@ void cPlayer :: Start_jump( float power /* = 17 */, float accel /* = 4 */, float
 	Col_Move( 0, -1, 1, 1 );
 
 	// fly
-	if( maryo_type == MARYO_CAPE && !start_enemyjump && state == STA_RUN && jump_key && ( ( direction == DIR_RIGHT && velx > 14 ) || ( direction == DIR_LEFT && velx < -14 ) ) )
+	if( maryo_type == MARYO_CAPE && !force_jump && state == STA_RUN && jump_key && ( ( direction == DIR_RIGHT && velx > 14 ) || ( direction == DIR_LEFT && velx < -14 ) ) )
 	{
-		Set_MovingState( STA_FLY );
-		power *= 0.5f;
+		vely = -next_jump_power * 0.5f;
+		Set_Moving_State( STA_FLY );
 	}
 	// jump
 	else
 	{
-		jump_accel_up = accel;
+		jump_accel_up = next_jump_accel;
 		jump_vel_deaccel = deaccel;
 
 		if( jump_key )
 		{
-			jump_power = 10;
+			jump_power = next_jump_power * 0.59f;
 		}
 		else
 		{
-			jump_power = 2;
+			jump_power = next_jump_power * 0.12f;
 		}
 		
-		Set_MovingState( STA_JUMP );
+		vely = -next_jump_power;
+		Set_Moving_State( STA_JUMP );
 	}
-
-	UpKeytime = 0;
-	start_enemyjump = 0;
-
-	vely = -power;
 
 	// jump higher when running
 	if( velx < 0 )
@@ -1164,9 +1211,16 @@ void cPlayer :: Start_jump( float power /* = 17 */, float accel /* = 4 */, float
 
 	// slow down if running
 	velx = velx * 0.9f;
+
+	// reset variables
+	UpKeytime = 0;
+	force_jump = 0;
+	next_jump_sound = 1;
+	next_jump_power = 17;
+	next_jump_accel = 4;
 }
 
-void cPlayer :: Update_jump( void )
+void cPlayer :: Update_Jump( void )
 {
 	// jumping keytime
 	if( UpKeytime )
@@ -1188,7 +1242,7 @@ void cPlayer :: Update_jump( void )
 	// jumping physics
 	if( pKeyboard->keys[pPreferences->key_jump] || ( pPreferences->joy_analog_jump && pJoystick->up ) || pJoystick->Button( pPreferences->joy_button_jump ) )
 	{
-		Add_Velocity( 0, -( jump_accel_up + ( vely * jump_vel_deaccel ) / Get_Vel_mod() ) );
+		Add_Velocity( 0, -( jump_accel_up + ( vely * jump_vel_deaccel ) / Get_Vel_Modifier() ) );
 		jump_power -= pFramerate->speedfactor;
 	}
 	else
@@ -1200,33 +1254,33 @@ void cPlayer :: Update_jump( void )
 	// left right physics
 	if( ( pKeyboard->keys[pPreferences->key_left] || pJoystick->left ) && !ducked )
 	{
-		if( velx > -10 * Get_Vel_mod() )
+		if( velx > -10 * Get_Vel_Modifier() )
 		{
-			Add_Velocity( ( -1.1f * Get_Vel_mod() ) - ( velx / 100 ), 0 );
+			Add_Velocity( ( -1.1f * Get_Vel_Modifier() ) - ( velx / 100 ), 0 );
 		}
 		
 	}	
 	else if( ( pKeyboard->keys[pPreferences->key_right] || pJoystick->right ) && !ducked && state != STA_STAY )
 	{
-		if( velx < 10 * Get_Vel_mod() )
+		if( velx < 10 * Get_Vel_Modifier() )
 		{
-			Add_Velocity( ( 1.1f * Get_Vel_mod() ) + ( velx / 100 ), 0 );
+			Add_Velocity( ( 1.1f * Get_Vel_Modifier() ) + ( velx / 100 ), 0 );
 		}
 	}
 	// slow down
 	else 
 	{
-		Auto_SlowDown( 0.2f );
+		Auto_Slow_Down( 0.2f );
 	}
 
 	// if no more jump power set to falling
 	if( jump_power <= 0 )
 	{
-		Set_MovingState( STA_FALL );
+		Set_Moving_State( STA_FALL );
 	}
 }
 
-void cPlayer :: Update_item( void )
+void cPlayer :: Update_Item( void )
 {
 	// if active object item is available
 	if( active_object )
@@ -1234,7 +1288,7 @@ void cPlayer :: Update_item( void )
 		// collision with something or activated
 		if( active_object->type == TYPE_TURTLE && static_cast<cTurtle *>(active_object)->dead )
 		{
-			Release_item( 0 );
+			Release_Item( 0 );
 		}
 		else
 		{
@@ -1309,7 +1363,7 @@ void cPlayer :: Update_item( void )
 				// enemy item
 				if( collision->type == CO_ENEMY )
 				{
-					cEnemy *enemy = static_cast<cEnemy *>(pLevel->pSprite_Manager->Get_Pointer( collision->number ));
+					cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
 
 					if( enemy->type == TYPE_TURTLE && enemy->state == STA_STAY )
 					{
@@ -1324,7 +1378,7 @@ void cPlayer :: Update_item( void )
 	}
 }
 
-void cPlayer :: Release_item( bool set_position /* = 1 */, bool no_action /* = 0 */ )
+void cPlayer :: Release_Item( bool set_position /* = 1 */, bool no_action /* = 0 */ )
 {
 	if( !active_object )
 	{
@@ -1336,7 +1390,7 @@ void cPlayer :: Release_item( bool set_position /* = 1 */, bool no_action /* = 0
 	// if flying : opposite direction
 	if( state == STA_FLY )
 	{
-		kick_direction = Get_OppositeDirection( direction );
+		kick_direction = Get_Opposite_Direction( direction );
 	}
 	// if jumping : upwards
 	else if( jump_power > 0 )
@@ -1363,7 +1417,7 @@ void cPlayer :: Release_item( bool set_position /* = 1 */, bool no_action /* = 0
 		// play kick sound if not dead
 		if( !turtle->dead )
 		{
-			pAudio->PlaySound( "enemy/turtle/shell/hit.ogg" );
+			pAudio->Play_Sound( "enemy/turtle/shell/hit.ogg" );
 		}
 
 		// if object got kicked upwards use Stay
@@ -1398,11 +1452,11 @@ void cPlayer :: Release_item( bool set_position /* = 1 */, bool no_action /* = 0
 
 			if( !turtle->freeze_counter )
 			{
-				turtle->playercounter = DESIRED_FPS * 0.5f;
+				turtle->playercounter = speedfactor_fps * 0.5f;
 			}
 		}
 
-		turtle->Update_valid_update();
+		turtle->Update_Valid_Update();
 	}
 
 	// if the new object position is in the player ( e.g. add velx to move slowly out of the player position )
@@ -1524,7 +1578,7 @@ void cPlayer :: Release_item( bool set_position /* = 1 */, bool no_action /* = 0
 	}
 
 	active_object->Collisions_Clear();
-	active_object->Reset_onGround();
+	active_object->Reset_on_Ground();
 	active_object->Update_Direction();
 
 	// unset link
@@ -1562,30 +1616,30 @@ void cPlayer :: Set_Type( Maryo_type new_type, bool animation /* = 1 */, bool so
 	{
 		if( new_type == MARYO_BIG )
 		{
-			pAudio->PlaySound( "item/mushroom.ogg", RID_MUSHROOM );
+			pAudio->Play_Sound( "item/mushroom.ogg", RID_MUSHROOM );
 		}
 		else if( new_type == MARYO_FIRE )
 		{
-			pAudio->PlaySound( "item/fireplant.ogg", RID_FIREPLANT );
+			pAudio->Play_Sound( "item/fireplant.ogg", RID_FIREPLANT );
 		}
 		else if( new_type == MARYO_ICE )
 		{
-			pAudio->PlaySound( "item/mushroom_blue.ogg", RID_MUSHROOM_BLUE );
+			pAudio->Play_Sound( "item/mushroom_blue.ogg", RID_MUSHROOM_BLUE );
 		}
 		else if( new_type == MARYO_CAPE )
 		{
-			pAudio->PlaySound( "item/feather.ogg", RID_FEATHER );
+			pAudio->Play_Sound( "item/feather.ogg", RID_FEATHER );
 		}
 		else if( new_type == MARYO_GHOST )
 		{
-			pAudio->PlaySound( "item/mushroom_ghost.ogg", RID_MUSHROOM_GHOST );
+			pAudio->Play_Sound( "item/mushroom_ghost.ogg", RID_MUSHROOM_GHOST );
 		}
 	}
 
 	// was flying
 	if( maryo_type == MARYO_CAPE )
 	{
-		Stop_flying( 0 );
+		Stop_Flying( 0 );
 	}
 
 	// remember old type
@@ -1606,7 +1660,7 @@ void cPlayer :: Set_Type( Maryo_type new_type, bool animation /* = 1 */, bool so
 	// to ghost
 	if( maryo_type == MARYO_GHOST )
 	{
-		ghost_time = DESIRED_FPS * 10;
+		ghost_time = speedfactor_fps * 10;
 		maryo_type_temp_power = old_type;
 	}
 	// was ghost
@@ -1626,34 +1680,46 @@ void cPlayer :: Set_Type( Maryo_type new_type, bool animation /* = 1 */, bool so
 				// ghost box
 				if( box->box_invisible == 2 )
 				{
-					Reset_onGround();
+					Reset_on_Ground();
 				}
 			}
 		}
 	}
 }
 
-void cPlayer :: Set_MovingState( Moving_state new_state )
+void cPlayer :: Set_Moving_State( Moving_state new_state )
 {
 	if( new_state == state )
 	{
 		return;
 	}
 
-	// was flying
-	if( state == STA_FLY )
+
+	// was falling
+	if( state == STA_FALL )
 	{
-		ChangeSize( 0, -( images[MARYO_IMG_FALL]->h - images[MARYO_IMG_FLY]->h ) );
+		// reset slow fall/parachute
+		parachute = 0;
+	}
+	// was flying
+	else if( state == STA_FLY )
+	{
+		Change_Size( 0, -( images[MARYO_IMG_FALL]->h - images[MARYO_IMG_FLY]->h ) );
 		Set_Image( MARYO_IMG_FALL + direction );
 
 		// reset flying rotation
 		rotz = 0;
 	}
-	// was falling
-	else if( state == STA_FALL )
+	// was jumping
+	else if( state == STA_JUMP )
 	{
-		// reset slow fall/parachute
-		parachute = 0;
+		// reset variables
+		UpKeytime = 0;
+		jump_power = 0;
+		force_jump = 0;
+		next_jump_sound = 1;
+		next_jump_power = 17;
+		next_jump_accel = 4;
 	}
 	// was running
 	else if( state == STA_RUN )
@@ -1672,21 +1738,21 @@ void cPlayer :: Set_MovingState( Moving_state new_state )
 	}
 	else if( new_state == STA_FALL )
 	{
-		Reset_onGround();
+		Reset_on_Ground();
 		walk_count = 0;
 		jump_power = 0;
 	}
 	else if( new_state == STA_FLY )
 	{
-		Reset_onGround();
+		Reset_on_Ground();
 	}
 	else if( new_state == STA_JUMP )
 	{
-		Reset_onGround();
+		Reset_on_Ground();
 	}
 	else if( new_state == STA_CLIMB )
 	{
-		Reset_onGround();
+		Reset_on_Ground();
 		velx = 0;
 		vely = 0;
 	}
@@ -1696,11 +1762,11 @@ void cPlayer :: Set_MovingState( Moving_state new_state )
 	// # after new state is set
 	if( state == STA_FLY )
 	{
-		Release_item( 1 );
+		Release_Item( 1 );
 	}
 }
 
-bool cPlayer :: ChangeSize( float x, float y, bool only_check /* = 0 */ )
+bool cPlayer :: Change_Size( float x, float y, bool only_check /* = 0 */ )
 {
 	bool valid_hor = 0;
 	float check_pos = x;
@@ -1800,19 +1866,19 @@ bool cPlayer :: ChangeSize( float x, float y, bool only_check /* = 0 */ )
 	return 0;
 }
 
-void cPlayer :: ResetSave( void )
+void cPlayer :: Reset_Save( void )
 {
-	pOverworld_manager->Reset();
+	pOverworld_Manager->Reset();
 
-	pLevel->Unload();
+	pActive_Level->Unload();
 	Reset();
-	Ball_clear();
+	Ball_Clear();
 
 	lives = 3;
 	goldpieces = 0;
 	points = 0;
-
 	timedisplay->counter = 0;
+	pHud_Manager->Update_Text();
 
 	Set_Type( MARYO_SMALL, 0, 0 );
 
@@ -1826,10 +1892,9 @@ void cPlayer :: Reset( bool full /* = 1 */ )
 	Set_Pos( startposx, startposy + start_image->col_h - col_rect.h );
 	Set_Direction( start_direction );
 	ducked = 0;
-	Set_MovingState( STA_FALL );
+	Set_Moving_State( STA_FALL );
 	Set_Image( Get_Image() + direction );
 	jump_power = 0;
-	start_enemyjump = 0;
 	jump_accel_up = 0;
 	jump_vel_deaccel = 0;
 	no_velx_counter = 0;
@@ -1839,7 +1904,7 @@ void cPlayer :: Reset( bool full /* = 1 */ )
 	vely = 0;
 	Collisions_Clear();
 	walk_count = 0;
-	Reset_onGround();
+	Reset_on_Ground();
 	if( active_object )
 	{
 		active_object = NULL;
@@ -1851,7 +1916,7 @@ void cPlayer :: Reset( bool full /* = 1 */ )
 	// reset item and camera
 	if( full )
 	{
-		pCamera->Center();
+		pActive_Camera->Center();
 		invincible = 0;
 		invincible_mod = 0;
 		invincible_star = 0;
@@ -1860,63 +1925,44 @@ void cPlayer :: Reset( bool full /* = 1 */ )
 	}
 }
 
-void cPlayer :: Goto_next_Level( void )
+void cPlayer :: Goto_Next_Level( void )
 {
 	// custom level
 	if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM )
 	{
 		// delay unload level
-		pLevel->Unload( 1 );
+		pActive_Level->Unload( 1 );
 		// Enter Menu
 		Game_Action = GA_ENTER_MENU;
 	}
 	else
 	{
 		// Finish level
-		pActive_Overworld->Goto_next_Level();
+		pActive_Overworld->Goto_Next_Level();
 		// Enter World
 		Game_Action = GA_ENTER_WORLD;
 	}
 }
 
-void cPlayer :: Goto_SubLevel( string str_level, string str_entry )
+void cPlayer :: Goto_Sub_Level( string str_level, string str_entry, bool move_camera /* = 1 */ )
 {
+	// if empty use same level
+	if( str_level.empty() )
+	{
+		str_level = Get_Filename( pActive_Level->data_file, 0, 0 );
+	}
+
 	// same level - scroll to the position
-	if( str_level.compare( Get_filename( pLevel->data_file, 0, 0 ) ) == 0 )
+	if( str_level.compare( Get_Filename( pActive_Level->data_file, 0, 0 ) ) == 0 )
 	{
 		Reset( 0 );
 		
-		cLevel_Entry *entry = NULL;
-
-		// entry position
-		if( !str_entry.empty() )
-		{
-			// Search for the entry
-			for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
-			{
-				cSprite *obj = (*itr);
-
-				// only level entry
-				if( obj->type != TYPE_LEVEL_ENTRY )
-				{
-					continue;
-				}
-				
-				cLevel_Entry *level_entry = static_cast<cLevel_Entry *>(obj);
-
-				// found
-				if( level_entry->entry_name.compare( str_entry ) == 0 )
-				{
-					entry = level_entry;
-					break;
-				}
-			}
-		}
+		cLevel_Entry *entry = pActive_Level->Get_Entry( str_entry );
 
 		// use entry position
 		if( entry )
 		{
-			Set_Pos( entry->posx, entry->posy );
+			Set_Pos( entry->Get_Player_Pos_X(), entry->Get_Player_Pos_Y() );
 			// set invisible for warp animation
 			Set_Visible( 0 );
 		}
@@ -1929,14 +1975,24 @@ void cPlayer :: Goto_SubLevel( string str_level, string str_entry )
 		pFramerate->speedfactor = 1;
 
 		// move camera to new position
-		for( unsigned int i = 0; i < 200; i++ )
+		if( move_camera )
 		{
-			Update_Camera( 1 );
+			for( float i = 0; i < 200; i += pFramerate->speedfactor )
+			{
+				if( pActive_Camera->Move_to_Position_Gradually( pActive_Camera->Get_Center_Pos_X() , pActive_Camera->Get_Center_Pos_Y() ) == 0 )
+				{
+					break;
+				}
 
-			// draw
-			Draw_Game();
+				// keep global effect particles on screen
+				pActive_Level->pGlobal_effect->Update_Particles();
 
-			pVideo->Render();
+				// draw
+				Draw_Game();
+
+				pVideo->Render();
+				pFramerate->Update();
+			}
 		}
 
 		// warp animation
@@ -1953,6 +2009,7 @@ void cPlayer :: Goto_SubLevel( string str_level, string str_entry )
 	{
 		Game_Action = GA_ENTER_LEVEL;
 		Game_Action_Data.add( "level", str_level.c_str() );
+		Game_Action_Data.add( "entry", str_entry.c_str() );
 	}
 }
 
@@ -1966,22 +2023,22 @@ void cPlayer :: Update( void )
 	// check if got stuck
 	if( !ducked )
 	{
-		Update_antistuck();
+		Update_Anti_Stuck();
 	}
 
 	// check if starting a jump is possible
-	Update_jump_keytime();
+	Update_Jump_Keytime();
 
 	// update states
-	Update_jump();
-	Update_climbing();
-	Update_falling();
-	Update_walking();
-	Update_running();
-	Update_ducking();
-	Update_staying();
-	Update_flying();
-	// throwing
+	Update_Jump();
+	Update_Climbing();
+	Update_Falling();
+	Update_Walking();
+	Update_Running();
+	Update_Ducking();
+	Update_Staying();
+	Update_Flying();
+	// throw animation counter
 	if( throwing_counter > 0 )
 	{
 		throwing_counter -= pFramerate->speedfactor;
@@ -1989,6 +2046,16 @@ void cPlayer :: Update( void )
 		if( throwing_counter < 0 )
 		{
 			throwing_counter = 0;
+		}
+	}
+	// shoot counter
+	if( shoot_counter > 0 )
+	{
+		shoot_counter -= pFramerate->speedfactor;
+
+		if( shoot_counter < 0 )
+		{
+			shoot_counter = 0;
 		}
 	}
 	// ghost
@@ -1999,13 +2066,13 @@ void cPlayer :: Update( void )
 		// ended
 		if( ghost_time <= 0 )
 		{
-			pAudio->PlaySound( "player/ghost_end.ogg", RID_MUSHROOM_GHOST );
+			pAudio->Play_Sound( "player/ghost_end.ogg", RID_MUSHROOM_GHOST );
 			Set_Type( maryo_type_temp_power, 1, 0 );
 		}
 		// near end
-		else if( ghost_time * 0.5f < DESIRED_FPS * 3 )
+		else if( ghost_time * 0.5f < speedfactor_fps * 3 )
 		{
-			ghost_time_mod = ( DESIRED_FPS * 3 ) - ( ghost_time * 0.5f );
+			ghost_time_mod = ( speedfactor_fps * 3 ) - ( ghost_time * 0.5f );
 		}
 	}
 	// invincible
@@ -2050,7 +2117,7 @@ void cPlayer :: Update( void )
 				{
 					Set_Color_Combine( 0, 0, 0, 0 );
 					invincible_star = 0;
-					pAudio->FadeOutMusic( 500 );
+					pAudio->Fadeout_Music( 500 );
 				}
 			}
 
@@ -2062,17 +2129,18 @@ void cPlayer :: Update( void )
 				particle_color.blue += static_cast<Uint8>( invincible_mod / 1.5f );
 
 				// create particle
-				cParticleAnimation *anim = new cParticleAnimation( posx + static_cast<float>( rand() % static_cast<int>( col_rect.w * 0.9f ) ), posy + static_cast<float>( rand() % static_cast<int>( col_rect.h * 0.9f ) ) );
+				cParticle_Emitter *anim = new cParticle_Emitter();
+				anim->Set_Pos( posx + Get_Random_Float( 0, col_rect.w * 0.9f ), posy + Get_Random_Float( 0, col_rect.h * 0.9f ) );
 				anim->Set_Image( pVideo->Get_Surface( "animation/particles/star.png" ) );
-				anim->Set_ZPos( posz - 0.000001f );
+				anim->Set_Pos_Z( posz - 0.000001f );
 				anim->Set_Time_to_Live( 0.3f );
 				anim->Set_Fading_Alpha( 1 );
 				anim->Set_Fading_Size( 1 );
-				anim->Set_ConstRotationZ( 0.9f, 10 );
+				anim->Set_Const_Rotation_Z( -5, 10 );
 				// godmode stars
 				if( godmode )
 				{
-					anim->Set_DirectionRange( 180, 180 );
+					anim->Set_Direction_Range( 180, 180 );
 					anim->Set_Speed( 3.5f, 2.5f );
 					anim->Set_Scale( 0.3f );
 					anim->Set_Color( lightblue );
@@ -2087,7 +2155,7 @@ void cPlayer :: Update( void )
 				}
 
 				anim->Set_Blending( BLEND_ADD );
-				pAnimationManager->Add( anim );
+				pAnimation_Manager->Add( anim );
 
 				invincible_starcounter--;
 			}
@@ -2095,7 +2163,7 @@ void cPlayer :: Update( void )
 	}
 
 	// update active item
-	Update_item();
+	Update_Item();
 
 	// image counter
 	if( state == STA_WALK || ( maryo_type != MARYO_CAPE && state == STA_RUN ) )
@@ -2292,65 +2360,6 @@ void cPlayer :: Update( void )
 	Update_Kill_Multiplier();
 }
 
-void cPlayer :: Update_Camera( bool smooth /* = 0 */ )
-{
-	// if smooth scrolling
-	if( smooth )
-	{
-		float vel = 0;
-
-		if( posx - pCamera->x > ( GAME_RES_W / 6 ) * 3 )
-		{
-			vel = ( ( posx - pCamera->x - ( GAME_RES_W / 6 ) * 3 ) / 30 );
-
-			if( vel < 2 )
-			{
-				vel = 2;
-			}
-
-			pCamera->Move( vel * pFramerate->speedfactor, 0 );
-		}
-		else if( posx - pCamera->x < ( GAME_RES_W / 6 ) * 2.5f )
-		{
-			vel = ( ( posx - pCamera->x - ( GAME_RES_W / 6 ) * 3 ) / 20 );
-
-			if( vel > -2 )
-			{
-				vel = -2;
-			}
-
-			pCamera->Move( vel * pFramerate->speedfactor, 0 );
-		}
-
-		if( posy - pCamera->y > ( GAME_RES_H / 6 ) * 3 )
-		{
-			vel = ( ( posy - pCamera->y - ( GAME_RES_H / 6 ) * 3 ) / 30 );
-
-			if( vel < 2 )
-			{
-				vel = 2;
-			}
-
-			pCamera->Move( 0, vel * pFramerate->speedfactor );
-		}
-		else if( posy - pCamera->y < ( GAME_RES_H / 6 ) * 2.5f )
-		{
-			vel = ( ( posy - pCamera->y - ( GAME_RES_H / 6 ) * 3 ) / 20 );
-
-			if( vel > -2 )
-			{
-				vel = -2;
-			}
-
-			pCamera->Move( 0, vel * pFramerate->speedfactor );
-		}
-	}
-	else
-	{
-		pCamera->Update();
-	}
-}
-
 void cPlayer :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
 	if( !valid_draw )
@@ -2382,8 +2391,8 @@ void cPlayer :: Draw( cSurfaceRequest *request /* = NULL */ )
 		for( unsigned int i = 0; i < 5; i++ )
 		{
 			color.alpha -= 5;
-			posx -= velx * 0.2f + ( ( rand() % 1000 ) * 0.001f );
-			posy -= vely * 0.2f + ( ( rand() % 1000 ) * 0.001f );
+			posx -= velx * 0.2f + Get_Random_Float( 0, 1 );
+			posy -= vely * 0.2f + Get_Random_Float( 0, 1 );
 			posz -= 0.000001f;
 
 			cMovingSprite::Draw( request );
@@ -2418,7 +2427,7 @@ void cPlayer :: Draw_Animation( Maryo_type new_mtype )
 	float posx_old = posx;
 	float posy_old = posy;
 
-	// ChangeSize needs new state size
+	// Change_Size needs new state size
 	maryo_type = maryo_type_old;
 	parachute = parachute_old;
 	Load_Images();
@@ -2426,13 +2435,13 @@ void cPlayer :: Draw_Animation( Maryo_type new_mtype )
 	// correct position for bigger maryo
 	if( maryo_type_old == MARYO_SMALL && ( new_mtype == MARYO_BIG || new_mtype == MARYO_FIRE || new_mtype == MARYO_ICE || new_mtype == MARYO_CAPE || new_mtype == MARYO_GHOST ) )
 	{
-		ChangeSize( -5, -12 );
+		Change_Size( -5, -12 );
 		//Col_Move( 0, 12, 1, 1 );
 	}
 	// correct position for small maryo
 	else if( ( maryo_type_old == MARYO_BIG || maryo_type_old == MARYO_FIRE || maryo_type_old == MARYO_ICE || new_mtype == MARYO_CAPE || maryo_type_old == MARYO_GHOST ) && new_mtype == MARYO_SMALL )
 	{
-		ChangeSize( 5, 12 );
+		Change_Size( 5, 12 );
 		//Col_Move( 0, -12, 1, 1 );
 	}
 
@@ -2481,7 +2490,7 @@ unsigned int cPlayer :: Get_Image( void )
 	{
 		int imgnum = 0;
 
-		if( throwing_counter < DESIRED_FPS * 0.2f )
+		if( throwing_counter < speedfactor_fps * 0.2f )
 		{
 			imgnum = 2;
 		}
@@ -2867,7 +2876,7 @@ void cPlayer :: Get_Item( SpriteType item_type, bool force /* = 0 */, cMovingSpr
 	// Default Mushroom
 	if( item_type == TYPE_MUSHROOM_DEFAULT ) 
 	{
-		if( ( maryo_type == MARYO_SMALL || force ) && ChangeSize( -5, -12, 1 ) ) 
+		if( ( maryo_type == MARYO_SMALL || force ) && Change_Size( -5, -12, 1 ) ) 
 		{
 			// change to big
 			if( maryo_type == MARYO_SMALL )
@@ -2899,7 +2908,7 @@ void cPlayer :: Get_Item( SpriteType item_type, bool force /* = 0 */, cMovingSpr
 	// Fireplant
 	else if( item_type == TYPE_FIREPLANT ) 
 	{
-		if( ( ( maryo_type == MARYO_SMALL || force ) && ChangeSize( -5, -12, 1 ) ) || 
+		if( ( ( maryo_type == MARYO_SMALL || force ) && Change_Size( -5, -12, 1 ) ) || 
 			( ( maryo_type == MARYO_BIG || maryo_type == MARYO_ICE || force ) ) )
 		{
 			// move item to itembox
@@ -2918,7 +2927,7 @@ void cPlayer :: Get_Item( SpriteType item_type, bool force /* = 0 */, cMovingSpr
 		// fire explosion
 		else if( maryo_type == MARYO_FIRE && Itembox->item_id == TYPE_FIREPLANT )
 		{
-			Ball_add( FIREBALL_EXPLOSION );
+			Ball_Add( FIREBALL_EXPLOSION );
 			pointsdisplay->Add_Points( 1000, posx + ( col_rect.w / 2 ), posy + 2 );	
 		}
 		// move item to itembox
@@ -2930,7 +2939,7 @@ void cPlayer :: Get_Item( SpriteType item_type, bool force /* = 0 */, cMovingSpr
 	// Blue Mushroom
 	else if( item_type == TYPE_MUSHROOM_BLUE ) 
 	{
-		if( ( ( maryo_type == MARYO_SMALL || force ) && ChangeSize( -5, -20, 1 ) ) || 
+		if( ( ( maryo_type == MARYO_SMALL || force ) && Change_Size( -5, -20, 1 ) ) || 
 			( ( maryo_type == MARYO_BIG || maryo_type == MARYO_FIRE || force ) ) )
 		{
 			// move item to itembox
@@ -2949,7 +2958,7 @@ void cPlayer :: Get_Item( SpriteType item_type, bool force /* = 0 */, cMovingSpr
 		// ice explosion
 		else if( maryo_type == MARYO_ICE && Itembox->item_id == TYPE_MUSHROOM_BLUE )
 		{
-			Ball_add( ICEBALL_EXPLOSION );
+			Ball_Add( ICEBALL_EXPLOSION );
 			pointsdisplay->Add_Points( 1000, posx + ( col_rect.w / 2 ), posy + 2 );	
 		}
 		// move item to itembox
@@ -2961,13 +2970,13 @@ void cPlayer :: Get_Item( SpriteType item_type, bool force /* = 0 */, cMovingSpr
 	// Ghost Mushroom
 	else if( item_type == TYPE_MUSHROOM_GHOST ) 
 	{
-		if( ( ( maryo_type == MARYO_SMALL || force ) && ChangeSize( -5, -20, 1 ) ) || 
+		if( ( ( maryo_type == MARYO_SMALL || force ) && Change_Size( -5, -20, 1 ) ) || 
 			maryo_type != MARYO_SMALL )
 		{
 			// set back ghost time
 			if( maryo_type == MARYO_GHOST )
 			{
-				ghost_time = DESIRED_FPS * 10;
+				ghost_time = speedfactor_fps * 10;
 				ghost_time_mod = 0;
 			}
 			// change to ghost
@@ -2986,8 +2995,8 @@ void cPlayer :: Get_Item( SpriteType item_type, bool force /* = 0 */, cMovingSpr
 	// Mushroom 1-UP
 	else if( item_type == TYPE_MUSHROOM_LIVE_1 ) 
 	{
-		pAudio->PlaySound( "item/live_up.ogg", RID_1UP_MUSHROOM );
-		livedisplay->AddLives( 1 );
+		pAudio->Play_Sound( "item/live_up.ogg", RID_1UP_MUSHROOM );
+		livedisplay->Add_Lives( 1 );
 	}
 	// Mushroom Poison
 	else if( item_type == TYPE_MUSHROOM_POISON ) 
@@ -2997,18 +3006,18 @@ void cPlayer :: Get_Item( SpriteType item_type, bool force /* = 0 */, cMovingSpr
 	// Moon
 	else if( item_type == TYPE_MOON ) 
 	{
-		pAudio->PlaySound( "item/moon.ogg", RID_MOON );
-		livedisplay->AddLives( 3 );
+		pAudio->Play_Sound( "item/moon.ogg", RID_MOON );
+		livedisplay->Add_Lives( 3 );
 	}
 	// Jumping Star
 	else if( item_type == TYPE_JSTAR ) 
 	{
 		// todo : check if music is already playing
-		pAudio->PlayMusic( "game/star.ogg", 0, 1, 500 );
-		pAudio->PlayMusic( pLevel->musicfile, -1, 0 );
+		pAudio->Play_Music( "game/star.ogg", 0, 1, 500 );
+		pAudio->Play_Music( pActive_Level->musicfile, -1, 0 );
 		pointsdisplay->Add_Points( 1000, posx + ( col_rect.w / 2 ), posy + 2 );
-		invincible = DESIRED_FPS * 16;
-		invincible_star = DESIRED_FPS * 15;
+		invincible = speedfactor_fps * 16;
+		invincible_star = speedfactor_fps * 15;
 	}
 	// Turtle Shell
 	else if( item_type == TYPE_TURTLE ) 
@@ -3016,8 +3025,8 @@ void cPlayer :: Get_Item( SpriteType item_type, bool force /* = 0 */, cMovingSpr
 		active_object = base;
 		active_object->massivetype = MASS_PASSIVE;
 		active_object->state = STA_OBJ_LINKED;
-		active_object->Update_valid_update();
-		active_object->Reset_onGround();
+		active_object->Update_Valid_Update();
+		active_object->Reset_on_Ground();
 		active_object->velx = 0;
 		active_object->vely = 0;
 		
@@ -3034,7 +3043,7 @@ void cPlayer :: Get_Item( SpriteType item_type, bool force /* = 0 */, cMovingSpr
 	}
 }
 
-float cPlayer :: Get_Vel_mod( void )
+float cPlayer :: Get_Vel_Modifier( void )
 {
 	float vel_mod = 1;
 
@@ -3061,37 +3070,44 @@ void cPlayer :: Action_Jump( bool enemy_jump /* = 0 */ )
 {
 	if( ducked )
 	{
-		return;
+		// power jump
+		if( SDL_GetTicks() - ducked > power_jump_delta )
+		{
+			force_jump = 1;
+			next_jump_power += 2;
+			next_jump_accel += 0.2f;
+		}
+		// stop ducking after setting power jump
+		Stop_Ducking();
 	}
 
 	// enemy jump
 	if( enemy_jump )
 	{
-		start_enemyjump = 1;
-	}
-	// default jump
-	else
-	{
-		// start keytime
-		Start_jump_keytime();
+		force_jump = 1;
+		next_jump_sound = 0;
+		next_jump_power += 1;
+		next_jump_accel += 0.1f;
 	}
 
+	// start keytime
+	Start_Jump_Keytime();
 	// check if starting a jump is possible
-	Update_jump_keytime();
+	Update_Jump_Keytime();
 }
 
-void cPlayer :: Action_Interact( SDLKey key_type )
+void cPlayer :: Action_Interact( input_identifier key_type )
 {
 	// Up
-	if( key_type == pPreferences->key_up )
+	if( key_type == INP_UP )
 	{
 		// Search for colliding level exit Objects
-		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			cSprite *obj = (*itr);
 
 			// levelexit
-			if( obj->type == TYPE_LEVELEXIT && Col_Box( &col_rect, &obj->col_rect ) )
+			if( obj->type == TYPE_LEVEL_EXIT && Col_Box( &col_rect, &obj->col_rect ) )
 			{
 				cLevel_Exit *level_exit = static_cast<cLevel_Exit *>(obj);
 
@@ -3123,15 +3139,15 @@ void cPlayer :: Action_Interact( SDLKey key_type )
 		}
 	}
 	// Down
-	else if( key_type == pPreferences->key_down )
+	else if( key_type == INP_DOWN )
 	{
 		// Search for colliding Levelexit Objects
-		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			cSprite *obj = (*itr);
 
 			// levelexit
-			if( obj->type == TYPE_LEVELEXIT && Col_Box( &col_rect, &obj->col_rect ) )
+			if( obj->type == TYPE_LEVEL_EXIT && Col_Box( &col_rect, &obj->col_rect ) )
 			{
 				cLevel_Exit *level_exit = static_cast<cLevel_Exit *>(obj);
 
@@ -3159,25 +3175,25 @@ void cPlayer :: Action_Interact( SDLKey key_type )
 			{
 				if( ground_object->massivetype == MASS_MASSIVE )
 				{
-					Start_ducking();
+					Start_Ducking();
 				}
 				else if( ground_object->massivetype == MASS_HALFMASSIVE )
 				{
-					Start_falling();
+					Start_Falling();
 				}
 			}
 		}
 	}
 	// Left
-	else if( key_type == pPreferences->key_left )
+	else if( key_type == INP_LEFT )
 	{
 		// Search for colliding Levelexit Objects
-		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			cSprite *obj = (*itr);
 
 			// levelexit
-			if( obj->type == TYPE_LEVELEXIT && Col_Box( &col_rect, &obj->col_rect ) )
+			if( obj->type == TYPE_LEVEL_EXIT && Col_Box( &col_rect, &obj->col_rect ) )
 			{
 				cLevel_Exit *level_exit = static_cast<cLevel_Exit *>(obj);
 
@@ -3205,7 +3221,7 @@ void cPlayer :: Action_Interact( SDLKey key_type )
 				// play stop sound if already running
 				if( velx > 12 && ground_object )
 				{
-					pAudio->PlaySound( "player/maryo_stop.ogg", RID_MARYO_STOP );
+					pAudio->Play_Sound( "player/maryo_stop.ogg", RID_MARYO_STOP );
 				}
 
 				direction = DIR_LEFT;
@@ -3213,15 +3229,15 @@ void cPlayer :: Action_Interact( SDLKey key_type )
 		}
 	}
 	// Right
-	else if( key_type == pPreferences->key_right )
+	else if( key_type == INP_RIGHT )
 	{
 		// Search for colliding Levelexit Objects
-		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			cSprite *obj = (*itr);
 
 			// levelexit
-			if( obj->type == TYPE_LEVELEXIT && Col_Box( &col_rect, &obj->col_rect ) )
+			if( obj->type == TYPE_LEVEL_EXIT && Col_Box( &col_rect, &obj->col_rect ) )
 			{
 				cLevel_Exit *level_exit = static_cast<cLevel_Exit *>(obj);
 
@@ -3249,12 +3265,32 @@ void cPlayer :: Action_Interact( SDLKey key_type )
 				// play stop sound if already running
 				if( velx < -12 && ground_object )
 				{
-					pAudio->PlaySound( "player/maryo_stop.ogg", RID_MARYO_STOP );
+					pAudio->Play_Sound( "player/maryo_stop.ogg", RID_MARYO_STOP );
 				}
 
 				direction = DIR_RIGHT;
 			}
 		}
+	}
+	// Shoot
+	else if( key_type == INP_SHOOT )
+	{
+		Action_Shoot();
+	}
+	// Jump
+	else if( key_type == INP_JUMP )
+	{
+		Action_Jump();
+	}
+	// Request Item
+	else if( key_type == INP_ITEM )
+	{
+		Itembox->Request_Item();
+	}
+	// Exit
+	else if( key_type == INP_EXIT )
+	{
+		Game_Action = GA_ENTER_MENU;
 	}
 }
 
@@ -3268,23 +3304,65 @@ void cPlayer :: Action_Shoot( void )
 		ball_type = ICEBALL_DEFAULT;
 	}
 	// if added ball
-	if( Ball_add( ball_type ) )
+	if( Ball_Add( ball_type ) )
 	{
-		throwing_counter = DESIRED_FPS * 0.3f;
+		throwing_counter = speedfactor_fps * 0.3f;
 	}
 }
 
 void cPlayer :: Action_Stop_Jump( void )
 {
-	Stop_flying();
+	Stop_Flying();
 	UpKeytime = 0;
 }
 
-void cPlayer :: Action_Stop_Interact( SDLKey key_type )
+void cPlayer :: Action_Stop_Interact( input_identifier key_type )
 {
-	if( key_type == pPreferences->key_action )
+	// Action
+	if( key_type == INP_ACTION )
 	{
-		Release_item();
+		Release_Item();
+	}
+	// Down
+	else if( key_type == INP_DOWN )
+	{
+		Stop_Ducking();
+	}
+	// Left
+	else if( key_type == INP_LEFT )
+	{
+		// if key in opposite direction is still pressed only change direction
+		if( pKeyboard->keys[pPreferences->key_right] || pJoystick->right )
+		{
+			direction = DIR_RIGHT;
+		}
+		else
+		{
+			Hold();
+		}
+	}
+	// Right
+	else if( key_type == INP_RIGHT )
+	{
+		// if key in opposite direction is still pressed only change direction
+		if( pKeyboard->keys[pPreferences->key_left] || pJoystick->left )
+		{
+			direction = DIR_LEFT;
+		}
+		else
+		{
+			Hold();
+		}
+	}
+	// Jump
+	else if( key_type == INP_JUMP )
+	{
+		Action_Stop_Jump();
+	}
+	// Shoot
+	else if( key_type == INP_SHOOT )
+	{
+		Action_Stop_Shoot();
 	}
 }
 
@@ -3293,7 +3371,7 @@ void cPlayer :: Action_Stop_Shoot( void )
 	// nothing
 }
 
-bool cPlayer :: Ball_add( ball_effect effect_type /* = FIREBALL_DEFAULT */ )
+bool cPlayer :: Ball_Add( ball_effect effect_type /* = FIREBALL_DEFAULT */ )
 {
 	if( ( maryo_type != MARYO_FIRE && maryo_type != MARYO_ICE ) || ducked )
 	{
@@ -3303,76 +3381,96 @@ bool cPlayer :: Ball_add( ball_effect effect_type /* = FIREBALL_DEFAULT */ )
 	// default fire/ice-ball
 	if( effect_type == FIREBALL_DEFAULT || effect_type == ICEBALL_DEFAULT )
 	{
-		// if maximum allowed balls
-		if( ( effect_type == FIREBALL_DEFAULT && fireball_count >= 2 ) || ( effect_type == ICEBALL_DEFAULT && iceball_count >= 2 ) )
+		// if time not passed between last shot
+		if( ( effect_type == FIREBALL_DEFAULT || effect_type == ICEBALL_DEFAULT ) && shoot_counter > 0 )
 		{
 			return 0;
 		}
 
-		// horizontal speed
-		float speed = 17;
+		// add ball
+		cBall *ball = new cBall( (direction == DIR_RIGHT) ? (posx + 20) : (posx + 8), posy + 45, this, effect_type );
+		pActive_Sprite_Manager->Add( ball );
 
-		// iceball is slower
 		if( effect_type == ICEBALL_DEFAULT )
 		{
-			speed = 12;
+			// iceball has slow horizontal speed
+			float ball_vel_x = 12;
+			// set speed
+			if( direction == DIR_RIGHT )
+			{
+				ball->Set_Velocity( ball_vel_x, 0 );
+			}
+			// left
+			else
+			{
+				ball->Set_Velocity( -ball_vel_x, 0 );
+			}
+			// sound
+			pAudio->Play_Sound( "item/iceball.ogg", RID_MARYO_BALL );
 		}
-		// add ball
-		cBall *ball = new cBall( (direction == DIR_RIGHT) ? (posx + 20) : (posx + 8), posy + 45, (direction == DIR_RIGHT) ? (speed) : (-speed), 0, this, effect_type );
-		pLevel->pSprite_Manager->Add( ball );
-
-		// play sound
-		if( effect_type == FIREBALL_DEFAULT )
-		{
-			pAudio->PlaySound( "item/fireball.ogg", RID_MARYO_BALL );
-		}
+		// fireball
 		else
 		{
-			pAudio->PlaySound( "item/iceball.ogg", RID_MARYO_BALL );
+			// horizontal speed
+			float ball_vel_x = 17;
+			// set speed
+			if( direction == DIR_RIGHT )
+			{
+				ball->Set_Velocity( ball_vel_x, 0 );
+			}
+			// left
+			else
+			{
+				ball->Set_Velocity( -ball_vel_x, 0 );
+			}
+			// sound
+			pAudio->Play_Sound( "item/fireball.ogg", RID_MARYO_BALL );
 		}
-
 	}
 	// half circle fire/ice-ball explosion
 	else if( effect_type == FIREBALL_EXPLOSION || effect_type == ICEBALL_EXPLOSION )
 	{
+		// start angle
 		float ball_angle = -180;
 
 		for( unsigned int i = 0; i < 10; i++ )
 		{
-			ball_angle += 18; // 10 * 18 = 180 degrees
+			// 10 * 18 = 180 degrees
+			ball_angle += 18;
 
 			// add ball
-			cBall *ball = new cBall( posx + col_rect.w / 2, posy + col_rect.h / 2, 0, 0, this, effect_type );
+			cBall *ball = new cBall( posx + col_rect.w / 2, posy + col_rect.h / 2, this, effect_type );
 			ball->Set_Direction( ball_angle, 15 );
 			ball->Col_Move( ball->velx * 2, ball->vely * 2, 1 );
-			pLevel->pSprite_Manager->Add( ball );
+			pActive_Sprite_Manager->Add( ball );
 		}
 
 		// explosion animation and sound
 		if( effect_type == FIREBALL_EXPLOSION )
 		{
-			cFireAnimation *anim = new cFireAnimation( posx + ( col_rect.w / 2 ), posy + ( col_rect.h / 3 ), 10 );
-			anim->Set_FadingSpeed( 0.3f );
-			pAnimationManager->Add( anim );
+			cAnimation_Fireball *anim = new cAnimation_Fireball( posx + ( col_rect.w / 2 ), posy + ( col_rect.h / 3 ), 10 );
+			anim->Set_Fading_Speed( 0.3f );
+			pAnimation_Manager->Add( anim );
 
-			pAudio->PlaySound( "item/fireball_2.ogg", RID_MARYO_BALL );
+			pAudio->Play_Sound( "item/fireball_2.ogg", RID_MARYO_BALL );
 		}
 		else
 		{
 			// create animation
-			cParticleAnimation *anim = new cParticleAnimation( posx + col_rect.w / 2, posy + col_rect.h / 2 );
+			cParticle_Emitter *anim = new cParticle_Emitter();
+			anim->Set_Pos( posx + col_rect.w / 2, posy + col_rect.h / 2 );
 			anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
 			anim->Set_Quota( 10 );
 			anim->Set_Time_to_Live( 1.5f );
-			anim->Set_ZPos( posz + 0.0001f );
+			anim->Set_Pos_Z( posz + 0.0001f );
 			anim->Set_Color( Color( static_cast<Uint8>(50), 50, 250 ) );
 			anim->Set_Blending( BLEND_ADD );
 			anim->Set_Speed( 0.8f, 0.7f );
 			anim->Set_Scale( 0.4f, 0.2f );
 			// add animation
-			pAnimationManager->Add( anim );
+			pAnimation_Manager->Add( anim );
 
-			pAudio->PlaySound( "item/iceball_2.ogg", RID_MARYO_BALL );
+			pAudio->Play_Sound( "item/iceball_2.ogg", RID_MARYO_BALL );
 		}
 	}
 	// unknown type
@@ -3384,10 +3482,10 @@ bool cPlayer :: Ball_add( ball_effect effect_type /* = FIREBALL_DEFAULT */ )
 	return 1;
 }
 
-void cPlayer :: Ball_clear( void )
+void cPlayer :: Ball_Clear( void )
 {
 	// destroy all fireballs from the player
-	for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+	for( SpriteList::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
 	{
 		cSprite *obj = (*itr);
 
@@ -3396,7 +3494,7 @@ void cPlayer :: Ball_clear( void )
 			cBall *ball = static_cast<cBall *>(obj);
 
 			// if from player
-			if( ball->origin->type == TYPE_PLAYER )
+			if( ball->origin_type == TYPE_PLAYER )
 			{
 				obj->Destroy();
 			}
@@ -3415,7 +3513,7 @@ void cPlayer :: Add_Kill_Multiplier( void )
 		if( static_cast<int>( kill_multiplier * 10 ) % 5 == 0 )
 		{
 			// add 1 live
-			golddisplay->AddGold( 100 );
+			golddisplay->Add_Gold( 100 );
 		}
 	}
 
@@ -3429,7 +3527,7 @@ void cPlayer :: Update_Kill_Multiplier( void )
 	if( kill_multiplier > 1 )
 	{
 		// if longer than a second reset the multiplier
-		if( last_kill_counter > DESIRED_FPS )
+		if( last_kill_counter > speedfactor_fps )
 		{
 			kill_multiplier = 1;
 		}
@@ -3470,7 +3568,7 @@ unsigned int cPlayer :: Validate_Collision( cSprite *obj )
 					}
 
 					// block if on top
-					if( vely >= 0 && is_onTop( obj ) )
+					if( vely >= 0 && Is_on_Top( obj ) )
 					{
 						return 2;
 					}
@@ -3481,7 +3579,7 @@ unsigned int cPlayer :: Validate_Collision( cSprite *obj )
 				else if( obj->type == TYPE_SPIKA || obj->type == TYPE_ROKKO )
 				{
 					// block if on top
-					if( vely >= 0 && is_onTop( obj ) )
+					if( vely >= 0 && Is_on_Top( obj ) )
 					{
 						return 2;
 					}
@@ -3497,7 +3595,7 @@ unsigned int cPlayer :: Validate_Collision( cSprite *obj )
 				else if( obj->type == TYPE_EATO )
 				{
 					// block if on top
-					if( vely >= 0 && is_onTop( obj ) )
+					if( vely >= 0 && Is_on_Top( obj ) )
 					{
 						return 2;
 					}
@@ -3511,7 +3609,7 @@ unsigned int cPlayer :: Validate_Collision( cSprite *obj )
 				else if( obj->type == TYPE_TURTLE )
 				{
 					// block if on top
-					if( vely >= 0 && is_onTop( obj ) )
+					if( vely >= 0 && Is_on_Top( obj ) )
 					{
 						return 2;
 					}
@@ -3529,7 +3627,7 @@ unsigned int cPlayer :: Validate_Collision( cSprite *obj )
 				cTurtle *turtle = static_cast<cTurtle *>(obj);
 
 				// if not on top
-				if( !( vely >= 0 && is_onTop( obj ) ) )
+				if( !( vely >= 0 && Is_on_Top( obj ) ) )
 				{
 					// if player counter active or invincible
 					if( turtle->playercounter || invincible )
@@ -3575,7 +3673,7 @@ unsigned int cPlayer :: Validate_Collision( cSprite *obj )
 		}
 
 		// if moving downwards and object is on top
-		if( vely >= 0 && is_onTop( obj ) )
+		if( vely >= 0 && Is_on_Top( obj ) )
 		{
 			// don't collide with ground
 			if( ground_object == obj )
@@ -3604,34 +3702,35 @@ unsigned int cPlayer :: Validate_Collision( cSprite *obj )
 			if( Col_Box( &climb_rect, &col_rect ) )
 			{
 				// start climbing
-				Start_climbing();
+				Start_Climbing();
 			}
 		}
 
 		return 1;
 	}
 	// warp levelexit key check
-	if( obj->type == TYPE_LEVELEXIT )
+	if( obj->type == TYPE_LEVEL_EXIT )
 	{
 		cLevel_Exit *levelexit = static_cast<cLevel_Exit *>(obj);
 
 		if( levelexit->exit_type == LEVELEXIT_WARP )
 		{
+			// joystick events are sent as keyboard keys
 			if( pKeyboard->keys[pPreferences->key_up] && levelexit->start_direction == DIR_UP )
 			{
-				Action_Interact( pPreferences->key_up );
+				Action_Interact( INP_UP );
 			}
 			else if( pKeyboard->keys[pPreferences->key_down] && levelexit->start_direction == DIR_DOWN )
 			{
-				Action_Interact( pPreferences->key_down );
+				Action_Interact( INP_DOWN );
 			}
 			else if( pKeyboard->keys[pPreferences->key_right] && levelexit->start_direction == DIR_RIGHT )
 			{
-				Action_Interact( pPreferences->key_right );
+				Action_Interact( INP_RIGHT );
 			}
 			else if( pKeyboard->keys[pPreferences->key_left] && levelexit->start_direction == DIR_LEFT )
 			{
-				Action_Interact( pPreferences->key_left );
+				Action_Interact( INP_LEFT );
 			}
 		}
 
@@ -3649,7 +3748,7 @@ void cPlayer :: Handle_Collision_Enemy( cObjectCollision *collision )
 		return;
 	}
 
-	cEnemy *enemy = static_cast<cEnemy *>(pLevel->pSprite_Manager->Get_Pointer( collision->number ));
+	cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
 
 	// if enemy already dead
 	if( enemy->dead )
@@ -3681,7 +3780,7 @@ void cPlayer :: Handle_Collision_Enemy( cObjectCollision *collision )
 		// hit
 		if( hit_enemy )
 		{
-			pAudio->PlaySound( "item/star_kill.ogg" );
+			pAudio->Play_Sound( "item/star_kill.ogg" );
 			pointsdisplay->Add_Points( static_cast<unsigned int>( enemy->kill_points * 1.2f ), posx, posy, "", yellow, 1 );
 			// force complete downgrade
 			enemy->DownGrade( 1 );
@@ -3715,8 +3814,8 @@ void cPlayer :: Handle_Collision_Enemy( cObjectCollision *collision )
 			for( unsigned int h = 0; h < enemy->col_rect.h; h += 10 )
 			{
 				// animation
-				cParticleAnimation *anim = new cParticleAnimation( enemy->posx + w, enemy->posy + h );
-
+				cParticle_Emitter *anim = new cParticle_Emitter();
+				anim->Set_Pos( enemy->posx + w, enemy->posy + h );
 				anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
 				anim->Set_Time_to_Live( 0.6f, 0.4f );
 				anim->Set_Color( Color( static_cast<Uint8>(160), 160, 240 ), Color( static_cast<Uint8>( rand() % 80 ), rand() % 80, rand() % 10 ) );
@@ -3725,12 +3824,12 @@ void cPlayer :: Handle_Collision_Enemy( cObjectCollision *collision )
 				anim->Set_Speed( 0.5f, 0.2f );
 				anim->Set_Blending( BLEND_DRIVE );
 				// add animation
-				pAnimationManager->Add( anim );
+				pAnimation_Manager->Add( anim );
 			}
 		}
 
 		// ice sound
-		pAudio->PlaySound( "item/ice_kill.ogg" );
+		pAudio->Play_Sound( "item/ice_kill.ogg" );
 
 		// get points
 		pointsdisplay->Add_Points( enemy->kill_points, enemy->posx, enemy->posy, "", static_cast<Uint8>(255), 1 );
@@ -3742,6 +3841,13 @@ void cPlayer :: Handle_Collision_Enemy( cObjectCollision *collision )
 		// slow down
 		velx *= 0.7f;
 		vely *= 0.7f;
+
+		// if enemy was ground object
+		if( enemy == ground_object )
+		{
+			Reset_on_Ground();
+		}
+
 		return;
 	}
 
@@ -3753,7 +3859,7 @@ void cPlayer :: Handle_Collision_Enemy( cObjectCollision *collision )
 		{
 			if( state != STA_CLIMB )
 			{
-				Set_MovingState( STA_FALL );
+				Set_Moving_State( STA_FALL );
 				UpKeytime = 0;
 				jump_power = 0;
 			}
@@ -3772,7 +3878,7 @@ void cPlayer :: Handle_Collision_Massive( cObjectCollision *collision )
 		return;
 	}
 
-	cSprite *col_obj = pLevel->pSprite_Manager->Get_Pointer( collision->number );
+	cSprite *col_obj = pActive_Sprite_Manager->Get_Pointer( collision->number );
 
 	// ignore climbable
 	if( col_obj->massivetype == MASS_CLIMBABLE )
@@ -3788,7 +3894,7 @@ void cPlayer :: Handle_Collision_Massive( cObjectCollision *collision )
 		{
 			if( state != STA_CLIMB )
 			{
-				Set_MovingState( STA_FALL );
+				Set_Moving_State( STA_FALL );
 				UpKeytime = 0;
 				jump_power = 0;
 
@@ -3805,7 +3911,7 @@ void cPlayer :: Handle_Collision_Massive( cObjectCollision *collision )
 
 				if( collision->type == CO_MASSIVE )
 				{
-					pAudio->PlaySound( "tock.ogg", RID_MARYO_TOCK );
+					pAudio->Play_Sound( "tock.ogg", RID_MARYO_TOCK );
 				}
 			}
 		}
@@ -3817,7 +3923,7 @@ void cPlayer :: Handle_Collision_Massive( cObjectCollision *collision )
 			// too slow
 			if( velx > -5 && velx < 5 )
 			{
-				Stop_flying();
+				Stop_Flying();
 			}
 		}
 	}
@@ -3833,7 +3939,7 @@ void cPlayer :: Handle_Collision_Massive( cObjectCollision *collision )
 			// too slow
 			if( velx > -5 && velx < 5 )
 			{
-				Stop_flying();
+				Stop_Flying();
 			}
 		}
 	}
@@ -3842,28 +3948,44 @@ void cPlayer :: Handle_Collision_Massive( cObjectCollision *collision )
 		velx = 0;
 		vely -= vely * 0.01f * pFramerate->speedfactor;
 
-		// flying box collision
-		if( ( col_obj->type == TYPE_BONUSBOX || col_obj->type == TYPE_SPINBOX ) && state == STA_FLY )
+		if( state == STA_WALK || state == STA_RUN )
 		{
-			cBaseBox *box = static_cast<cBaseBox *>(col_obj);
-			box->Activate_collision( collision->direction );
+			walk_count = 0;
 		}
+		// flying
+		else if( state == STA_FLY )
+		{
+			// box collision
+			if( col_obj->type == TYPE_BONUSBOX || col_obj->type == TYPE_SPINBOX )
+			{
+				cBaseBox *box = static_cast<cBaseBox *>(col_obj);
+				box->Activate_Collision( collision->direction );
+			}
 
-		Stop_flying();
+			Stop_Flying();
+		}
 	}
 	else if( collision->direction == DIR_RIGHT )
 	{
 		velx = 0;
 		vely -= vely * 0.01f * pFramerate->speedfactor;
 
-		// flying box collision
-		if( ( col_obj->type == TYPE_BONUSBOX || col_obj->type == TYPE_SPINBOX ) && state == STA_FLY )
+		if( state == STA_WALK || state == STA_RUN )
 		{
-			cBaseBox *box = static_cast<cBaseBox *>(col_obj);
-			box->Activate_collision( collision->direction );
+			walk_count = 0;
 		}
+		// flying
+		else if( state == STA_FLY )
+		{
+			// box collision
+			if( col_obj->type == TYPE_BONUSBOX || col_obj->type == TYPE_SPINBOX )
+			{
+				cBaseBox *box = static_cast<cBaseBox *>(col_obj);
+				box->Activate_Collision( collision->direction );
+			}
 
-		Stop_flying();
+			Stop_Flying();
+		}
 	}
 
 	if( collision->type == CO_ACTIVE )
@@ -3873,25 +3995,25 @@ void cPlayer :: Handle_Collision_Massive( cObjectCollision *collision )
 	}
 }
 
-void cPlayer :: Handle_OutofLevel( ObjectDirection dir )
+void cPlayer :: Handle_out_of_Level( ObjectDirection dir )
 {
 	if( dir == DIR_LEFT )
 	{
-		Set_PosX( pCamera->limit_rect.x - col_pos.x );
+		Set_Pos_X( pActive_Camera->limit_rect.x - col_pos.x );
 		velx = 0;
-		Stop_flying();
+		Stop_Flying();
 	}
 	else if( dir == DIR_RIGHT )
 	{
-		Set_PosX( pCamera->limit_rect.x + pCamera->limit_rect.w - col_pos.x - col_rect.w - 0.01f );
+		Set_Pos_X( pActive_Camera->limit_rect.x + pActive_Camera->limit_rect.w - col_pos.x - col_rect.w - 0.01f );
 		velx = 0;
-		Stop_flying();
+		Stop_Flying();
 	}
 	else if( dir == DIR_TOP )
 	{
-		/*if( pLevel->limit_top_blocks )
+		/*if( pActive_Level->limit_top_blocks )
 		{
-			Set_PosY( pCamera->limit_rect.y + pCamera->limit_rect.h + 0.01f );
+			Set_PosY( pActive_Camera->limit_rect.y + pActive_Camera->limit_rect.h + 0.01f );
 			vely = 0;
 		}*/
 	}
@@ -3903,9 +4025,9 @@ void cPlayer :: Handle_OutofLevel( ObjectDirection dir )
 		}
 		else
 		{
-			/*if( pLevel->limit_bottom_blocks )
+			/*if( pActive_Level->limit_bottom_blocks )
 			{
-				Set_PosY( pCamera->limit_rect.y + GAME_RES_H - col_pos.x - col_rect.w + 0.01f );
+				Set_PosY( pActive_Camera->limit_rect.y + game_res_h - col_pos.x - col_rect.w + 0.01f );
 				vely = 0;
 			}
 			// falling below ground
@@ -3920,29 +4042,28 @@ void cPlayer :: Handle_OutofLevel( ObjectDirection dir )
 
 void cPlayer :: Editor_Activate( void )
 {
-	WindowManager &wmgr = WindowManager::getSingleton();
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
 	// direction
-	Combobox *combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_player_direction" ));
-	combobox->getEditbox()->setTooltipText( "Direction" );
-	Editor_Add( combobox, 100, 75 );
+	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_player_direction" ));
+	Editor_Add( UTF8_("Direction"), UTF8_("Initial direction"), combobox, 100, 75 );
 
-	combobox->addItem( new ListboxTextItem( "right" ) );
-	combobox->addItem( new ListboxTextItem( "left" ) );
-	combobox->setText( Get_Direction_name( start_direction ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "right" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "left" ) );
+	combobox->setText( Get_Direction_Name( start_direction ) );
 
-	combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cPlayer::Editor_Direction_Select, this ) );
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cPlayer::Editor_Direction_Select, this ) );
 
-	// set position
-	Editor_pos_update();
+	// init
+	Editor_Init();
 }
 
-bool cPlayer :: Editor_Direction_Select( const EventArgs &event )
+bool cPlayer :: Editor_Direction_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
 
-	Set_Direction( Get_Direction_id( item->getText().c_str() ), 1 );
+	Set_Direction( Get_Direction_Id( item->getText().c_str() ), 1 );
 
 	return 1;
 }

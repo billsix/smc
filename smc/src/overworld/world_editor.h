@@ -1,7 +1,7 @@
 /***************************************************************************
-			world_editor.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            : (C) 2007 by Florian Richter
+ * world_editor.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2007 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __WORLD_EDITOR_H__
-#define __WORLD_EDITOR_H__
+#ifndef SMC_WORLD_EDITOR_H
+#define SMC_WORLD_EDITOR_H
 
 #include "../core/editor.h"
 
@@ -40,9 +40,6 @@ public:
 	 * returns true if the key was processed
 	*/
 	virtual bool Key_Down( SDLKey key );
-
-	// Add object to World
-	virtual void Add_Object( cSprite *object );
 
 	// Set Active Menu Entry
 	virtual void Activate_Menu( cEditor_Menu_Object *entry );

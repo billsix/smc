@@ -1,7 +1,7 @@
 /***************************************************************************
-			world_editor.cpp  -  class for the World Editor
-                             -------------------
-    copyright            : (C) 2007 by Florian Richter
+ * world_editor.cpp  -  class for the World Editor
+ *
+ * Copyright (C) 2007 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -18,6 +18,9 @@
 #include "../core/game_core.h"
 #include "../overworld/overworld.h"
 #include "../input/keyboard.h"
+#include "../core/sprite_manager.h"
+#include "../audio/audio.h"
+#include "../core/i18n.h"
 
 /* *** *** *** *** *** *** *** cEditor_World *** *** *** *** *** *** *** *** *** *** */
 
@@ -58,7 +61,7 @@ void cEditor_World :: Enable( void )
 	}
 	
 	editor_world_enabled = 1;
-	pOverworld_manager->draw_layer = 1;
+	pOverworld_Manager->draw_layer = 1;
 
 	if( Game_Mode == MODE_OVERWORLD )
 	{
@@ -76,11 +79,11 @@ void cEditor_World :: Disable( bool native_mode /* = 0 */ )
 		return;
 	}
 
-	debugdisplay->Set_Text( "World Editor disabled" );
+	debugdisplay->Set_Text( _("World Editor disabled") );
 
 	editor_world_enabled = 0;
-	pOverworld_manager->draw_layer = 0;
-	pOverworld_manager->cameramode = 0;
+	pOverworld_Manager->draw_layer = 0;
+	pOverworld_Manager->cameramode = 0;
 
 	if( Game_Mode == MODE_OVERWORLD )
 	{
@@ -117,12 +120,6 @@ bool cEditor_World :: Key_Down( SDLKey key )
 
 	// key got processed
 	return 1;
-}
-
-void cEditor_World :: Add_Object( cSprite *object )
-{
-	// add to level object manager
-	pActive_Overworld->Add_Map_Object( object );
 }
 
 void cEditor_World :: Activate_Menu( cEditor_Menu_Object *entry )
@@ -173,7 +170,7 @@ void cEditor_World :: Activate_Menu( cEditor_Menu_Object *entry )
 
 bool cEditor_World :: Function_New( void )
 {
-	string world_name = Box_Text_Input( "Create a new World", "Name" );
+	string world_name = Box_Text_Input( _("Create a new World"), _("Name") );
 
 	// aborted/invalid
 	if( world_name.empty() )
@@ -181,14 +178,14 @@ bool cEditor_World :: Function_New( void )
 		return 0;
 	}
 
-	if( pOverworld_manager->New( world_name ) )
+	if( pOverworld_Manager->New( world_name ) )
 	{
-		debugdisplay->Set_Text( "Created " + world_name );
+		debugdisplay->Set_Text( _("Created ") + world_name );
 		return 1;
 	}
 	else
 	{
-		debugdisplay->Set_Text( "World " + world_name + " already exists" );
+		debugdisplay->Set_Text( _("World ") + world_name + _(" already exists") );
 	}
 
 	return 0;
@@ -196,13 +193,42 @@ bool cEditor_World :: Function_New( void )
 
 void cEditor_World :: Function_Load( void )
 {
-	pKeyboard->Key_Down( SDLK_w );
+	string world_name = _("Name");
+
+	// valid world
+	while( world_name.length() )
+	{
+		world_name = Box_Text_Input( world_name, _("Load an Overworld"), world_name.compare( _("Name") ) == 0 ? 1 : 0 );
+
+		// break if empty
+		if( world_name.empty() )
+		{
+			break;
+		}
+
+		cOverworld *new_world = pOverworld_Manager->Get( world_name );
+
+		// success
+		if( new_world )
+		{
+			Game_Action = GA_ENTER_WORLD;
+			Game_Action_Data.add( "world", world_name.c_str() );
+
+			debugdisplay->Set_Text( _("Loaded ") + world_name );
+			break;
+		}
+		// failed
+		else
+		{
+			pAudio->Play_Sound( "error.ogg" );
+		}
+	}
 }
 
 void cEditor_World :: Function_Save( bool with_dialog /* = 0 */ )
 {
 	// if denied
-	if( with_dialog && !Box_Question( "Save " + Get_filename( pActive_Overworld->description->name, 0, 0 ) + " ?" ) )
+	if( with_dialog && !Box_Question( _("Save ") + Get_Filename( pActive_Overworld->description->name, 0, 0 ) + " ?" ) )
 	{
 		return;
 	}
@@ -212,13 +238,25 @@ void cEditor_World :: Function_Save( bool with_dialog /* = 0 */ )
 
 void cEditor_World :: Function_Reload( void )
 {
+	// if denied
+	if( !Box_Question( _("Reload World ?") ) )
+	{
+		return;
+	}
+
 	pActive_Overworld->Save();
 	pActive_Overworld->Load();
 }
 
 void cEditor_World :: Function_Clear( void )
 {
-	pActive_Overworld->sprite_manager->Delete_All();
+	// if denied
+	if( !Box_Question( _("Clear World ?") ) )
+	{
+		return;
+	}
+
+	pActive_Sprite_Manager->Delete_All();
 	pActive_Overworld->waypoints.clear();
 	pOverworld_Player->Reset();
 }

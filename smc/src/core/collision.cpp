@@ -1,8 +1,8 @@
 /***************************************************************************
-    collison.cpp  -  internal collision functions
-                             -------------------
-    copyright            : (C) 2005 - 2007 Florian Richter
-						   (C) 2005 Amir Taaki
+ * collison.cpp  -  internal collision functions
+ *
+ * Copyright (C) 2005 - 2008 Florian Richter
+ * Copyright (C) 2005        Amir Taaki
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -14,12 +14,13 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../core/globals.h"
 #include "../core/collision.h"
+#include "../core/game_core.h"
 #include "../objects/movingsprite.h"
 #include "../level/level.h"
 #include "../player/player.h"
 #include "../video/gl_surface.h"
+#include "../core/sprite_manager.h"
 
 /* *** *** *** *** *** *** *** collision type class *** *** *** *** *** *** *** *** *** *** */
 
@@ -43,7 +44,7 @@ void cObjectCollisionType :: add( cSprite *obj )
 	list.push_back( obj );
 }
 
-bool cObjectCollisionType :: find( cSprite *obj )
+bool cObjectCollisionType :: find( const cSprite *obj )
 {
 	for( SpriteList::iterator itr = list.begin(), itr_end = list.end(); itr != itr_end; ++itr )
 	{
@@ -57,7 +58,7 @@ bool cObjectCollisionType :: find( cSprite *obj )
 	return 0;
 }
 
-cSprite *cObjectCollisionType :: find( ArrayType type )
+cSprite *cObjectCollisionType :: find( const ArrayType type )
 {
 	for( SpriteList::iterator itr = list.begin(), itr_end = list.end(); itr != itr_end; ++itr )
 	{
@@ -71,7 +72,7 @@ cSprite *cObjectCollisionType :: find( ArrayType type )
 	return 0;
 }
 
-cSprite *cObjectCollisionType :: find( SpriteType type )
+cSprite *cObjectCollisionType :: find( const SpriteType type )
 {
 	for( SpriteList::iterator itr = list.begin(), itr_end = list.end(); itr != itr_end; ++itr )
 	{
@@ -105,55 +106,52 @@ cObjectCollision :: ~cObjectCollision( void )
 	//
 }
 
-void cObjectCollision :: Set_direction( cSprite *base, cSprite *col )
+void cObjectCollision :: Set_Direction( cSprite *base, cSprite *col )
 {
-	direction = Get_col_direction( base, col );
+	direction = Get_Collision_Direction( base, col );
 }
 
-GL_rect cObjectCollision :: Get_ColObject_rect( void )
+GL_rect cObjectCollision :: Get_Collision_Object_Rect( void )
 {
-	if( type == CO_MASSIVE || type == CO_ACTIVE || type == CO_ENEMY )
+	// player
+	if( type == CO_PLAYER )
 	{
-		return pLevel->pSprite_Manager->objects[number]->col_rect;
-	}
-	else if( type == CO_PLAYER )
-	{
-		return pPlayer->col_rect;
+		return pActive_Player->col_rect;
 	}
 
-	// empty
-	return GL_rect();
+	// sprite manager
+	return pActive_Sprite_Manager->objects[number]->col_rect;
 }
 
 /* *** *** *** *** *** *** *** functions *** *** *** *** *** *** *** *** *** *** */
 
-ObjectDirection Get_col_direction( cSprite *base, cSprite *col )
+ObjectDirection Get_Collision_Direction( cSprite *base, cSprite *col )
 {
 	// if valid moving sprite
 	if( base->sprite_array == ARRAY_ENEMY || base->sprite_array == ARRAY_ACTIVE )
 	{
-		cMovingSprite *moving_base = static_cast<cMovingSprite *>(base);
+		const cMovingSprite *moving_base = static_cast<const cMovingSprite *>(base);
 
 		// ## velocity based detection
 		if( moving_base->velx != 0 || moving_base->vely != 0 )
 		{
 			// top
-			if( moving_base->vely < 0 && Is_collision_top( &base->col_rect, &col->col_rect ) )
+			if( moving_base->vely < 0 && Is_Collision_Top( &base->col_rect, &col->col_rect ) )
 			{
 				return DIR_TOP;
 			}
 			// bottom
-			else if( moving_base->vely > 0 && Is_collision_bottom( &base->col_rect, &col->col_rect ) )
+			else if( moving_base->vely > 0 && Is_Collision_Bottom( &base->col_rect, &col->col_rect ) )
 			{
 				return DIR_BOTTOM;
 			}
 			// left
-			else if( moving_base->velx < 0 && Is_collision_left( &base->col_rect, &col->col_rect ) )
+			else if( moving_base->velx < 0 && Is_Collision_Left( &base->col_rect, &col->col_rect ) )
 			{
 				return DIR_LEFT;
 			}
 			// right
-			else if( moving_base->velx > 0 && Is_collision_right( &base->col_rect, &col->col_rect ) )
+			else if( moving_base->velx > 0 && Is_Collision_Right( &base->col_rect, &col->col_rect ) )
 			{
 				return DIR_RIGHT;
 			}
@@ -164,22 +162,22 @@ ObjectDirection Get_col_direction( cSprite *base, cSprite *col )
 	// ## detection without velocity
 
 	// top
-	if( Is_collision_top( &base->col_rect, &col->col_rect ) )
+	if( Is_Collision_Top( &base->col_rect, &col->col_rect ) )
 	{
 		return DIR_TOP;
 	}
 	// bottom
-	else if( Is_collision_bottom( &base->col_rect, &col->col_rect ) )
+	else if( Is_Collision_Bottom( &base->col_rect, &col->col_rect ) )
 	{
 		return DIR_BOTTOM;
 	}
 	// left
-	else if( Is_collision_left( &base->col_rect, &col->col_rect ) )
+	else if( Is_Collision_Left( &base->col_rect, &col->col_rect ) )
 	{
 		return DIR_LEFT;
 	}
 	// right
-	else if( Is_collision_right( &base->col_rect, &col->col_rect ) )
+	else if( Is_Collision_Right( &base->col_rect, &col->col_rect ) )
 	{
 		return DIR_RIGHT;
 	}
@@ -224,7 +222,7 @@ ObjectDirection Get_col_direction( cSprite *base, cSprite *col )
 	}
 }
 
-bool Is_collision_top( GL_rect *base_rect, GL_rect *col_rect )
+bool Is_Collision_Top( const GL_rect *base_rect, const GL_rect *col_rect )
 {
 	if( base_rect->y + 1 >= col_rect->y + col_rect->h && base_rect->x < col_rect->x + col_rect->w && base_rect->x + base_rect->w > col_rect->x )
 	{
@@ -234,7 +232,7 @@ bool Is_collision_top( GL_rect *base_rect, GL_rect *col_rect )
 	return 0;
 }
 
-bool Is_collision_bottom( GL_rect *base_rect, GL_rect *col_rect )
+bool Is_Collision_Bottom( const GL_rect *base_rect, const GL_rect *col_rect )
 {
 	if( base_rect->y + base_rect->h - 1 <= col_rect->y && base_rect->x < col_rect->x + col_rect->w && base_rect->x + base_rect->w > col_rect->x )
 	{
@@ -244,7 +242,7 @@ bool Is_collision_bottom( GL_rect *base_rect, GL_rect *col_rect )
 	return 0;
 }
 
-bool Is_collision_left( GL_rect *base_rect, GL_rect *col_rect )
+bool Is_Collision_Left( const GL_rect *base_rect, const GL_rect *col_rect )
 {
 	if( base_rect->x + 1 >= col_rect->x + col_rect->w && base_rect->y < col_rect->y + col_rect->h && base_rect->y + base_rect->h > col_rect->y )
 	{
@@ -254,7 +252,7 @@ bool Is_collision_left( GL_rect *base_rect, GL_rect *col_rect )
 	return 0;
 }
 
-bool Is_collision_right( GL_rect *base_rect, GL_rect *col_rect )
+bool Is_Collision_Right( const GL_rect *base_rect, const GL_rect *col_rect )
 {
 	if( base_rect->x + base_rect->w - 1 <= col_rect->x && base_rect->y < col_rect->y + col_rect->h && base_rect->y + base_rect->h > col_rect->y )
 	{
@@ -264,7 +262,7 @@ bool Is_collision_right( GL_rect *base_rect, GL_rect *col_rect )
 	return 0;
 }
 
-ObjectCollisionType Get_CollisionType( ArrayType array_type )
+ObjectCollisionType Get_Collision_Type( ArrayType array_type )
 {
 	if( array_type == ARRAY_FRONT_PASSIVE || array_type == ARRAY_PASSIVE )
 	{
@@ -286,9 +284,9 @@ ObjectCollisionType Get_CollisionType( ArrayType array_type )
 	return CO_NOTHING;
 }
 
-bool Col_Box( GL_rect *a, GL_rect *b )
+bool Col_Box( const GL_rect *a, const GL_rect *b )
 {
-	// check if their bounding boxes even touch
+	// check if their bounding boxes touch
 	if( b->x + b->w < a->x )
 	{
 		return 0;
@@ -311,9 +309,9 @@ bool Col_Box( GL_rect *a, GL_rect *b )
 	return 1;
 }
 
-bool Col_Box( SDL_Rect *a, GL_rect *b )
+bool Col_Box( const SDL_Rect *a, const GL_rect *b )
 {
-	// check if their bounding boxes even touch
+	// check if their bounding boxes touch
 	if( b->x + b->w < a->x )
 	{
 		return 0;
@@ -336,7 +334,7 @@ bool Col_Box( SDL_Rect *a, GL_rect *b )
 	return 1;
 }
 
-bool Col_Box_full( SDL_Rect *a, SDL_Rect *b )
+bool Col_Box_full( const SDL_Rect *a, const SDL_Rect *b )
 {
 	if( a->x <= b->x )
 	{
@@ -401,7 +399,7 @@ template<typename T> inline T pow2( T value ) { return value * value; }
 template<typename T> inline T cl_min( T a, T b ) { if( a < b ) return a; return b; }
 
 // from ClanLib ( Copyright (C) 2005 Magnus Norddahl ) - BSD License
-float distance_to_line( float x, float y, GL_line *line )
+float Distance_to_Line( float x, float y, GL_line *line )
 {
 	float L = sqrt( pow2( line->x2 - line->x1 ) + pow2( line->y2 - line->y1 ) );
 	float r = ( ( x - line->x1 ) * ( line->x2 - line->x1 ) + ( y - line->y1 ) * ( line->y2 - line->y1 ) ) / pow2( L );
@@ -420,7 +418,7 @@ float distance_to_line( float x, float y, GL_line *line )
 }
 
 // from ClanLib ( Copyright (C) 2005 Magnus Norddahl ) - BSD License
-GL_point get_lineintersection( GL_line *line1, GL_line *line2 )
+GL_point Get_Line_Intersection( GL_line *line1, GL_line *line2 )
 {
 	float denominator = ( ( line1->x2 - line1->x1 ) * ( line2->y2 - line2->y1 ) - ( line1->y2 - line1->y1 ) * ( line2->x2 - line2->x1 ) );
 
@@ -439,11 +437,11 @@ GL_point get_lineintersection( GL_line *line1, GL_line *line2 )
 }
 
 // from ClanLib ( Copyright (C) 2005 Magnus Norddahl ) - BSD License
-bool Col_line( GL_line *line1, GL_line *line2, bool collinear_intersect )
+bool Col_Line( GL_line *line1, GL_line *line2, bool collinear_intersect )
 {
 	float denominator = ( ( line1->x2 - line1->x1 ) * ( line2->y2 - line2->y1 ) - ( line1->y2 - line1->y1 ) * ( line2->x2 - line2->x1 ) );	
 	
-	if( denominator == 0 ) // parallell
+	if( denominator == 0 ) // parallel
 	{
 		if( ( line1->y1 - line2->y1 ) * ( line2->x2 - line2->x1 ) - ( line1->x1 - line2->x1 ) * ( line2->y2 - line2->y1 ) == 0 ) // collinear
 		{
@@ -466,12 +464,16 @@ bool Col_line( GL_line *line1, GL_line *line2, bool collinear_intersect )
 	if( line2->y1 < line2->y2 )
 	{
 		if( (s >= 0.0f  && s < 1.0f) && ( r >= 0.0f && r <= 1.0f ) )
+		{
 			return 1;
+		}
 	}
 	else
 	{
 		if( (s > 0.0f  && s <= 1.0f) && ( r >= 0.0f && r <= 1.0f ) )
+		{
 			return 1;
+		}
 	}
 	
 	return 0;

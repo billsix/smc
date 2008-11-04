@@ -1,7 +1,7 @@
 /***************************************************************************
-			font.h  -  header for the corresponding cpp file
-                         -------------------
-    copyright            : (C) 2006 - 2007 by Florian Richter
+ * font.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,22 +13,22 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __FONT_H__
-#define __FONT_H__
+#ifndef SMC_FONT_H
+#define SMC_FONT_H
 
 #include "../core/globals.h"
 #include "../video/img_manager.h"
 
-/* *** *** *** *** *** *** *** Font class *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** Font Manager class *** *** *** *** *** *** *** *** *** *** */
 
 // Deletes an active Font Surface
 void Font_Delete_Ref( GL_Surface *surface );
 
-class cFont
+class cFont_Manager
 {
 public:
-	cFont( void );
-	~cFont( void );
+	cFont_Manager( void );
+	~cFont_Manager( void );
 
 	// initialization
 	void Init( void );
@@ -39,7 +39,7 @@ public:
 	void Delete_Ref( GL_Surface *surface );
 
 	// Renders the given text into a new surface
-	GL_Surface *RenderText( TTF_Font *font, string text, Color color = static_cast<Uint8>(0) );
+	GL_Surface *Render_Text( TTF_Font *font, string text, Color color = static_cast<Uint8>(0) );
 
 	/* Saves hardware textures in software memory
 	*/
@@ -56,15 +56,19 @@ public:
 	typedef vector<GL_Surface *> ActiveFontList;
 	ActiveFontList active_fonts;
 
-	// saved software textures for reloading
-	SoftwareTextureList software_textures;
+	// saved software textures only used for reloading
+	Saved_Texture_List software_textures;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // Font Handler
-extern cFont *pFont;
+namespace SMC
+{ // work around conflicts caused by lack of namespace use in smc
+extern cFont_Manager *pFont;
+}
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+using namespace SMC;
 
 #endif

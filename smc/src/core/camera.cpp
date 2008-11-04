@@ -1,7 +1,7 @@
 /***************************************************************************
-			camera.cpp  -  class for handling screen camera movement
-                             -------------------
-    copyright            : (C) 2006 - 2007 by Florian Richter
+ * camera.cpp  -  class for handling screen camera movement
+ *
+ * copyright (C) 2006 - 2008 by Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,9 +19,10 @@
 #include "../core/framerate.h"
 #include "../input/mouse.h"
 #include "../core/obj_manager.h"
-#include "../overworld/worlds.h"
+#include "../overworld/world_manager.h"
 #include "../level/level.h"
 #include "../overworld/overworld.h"
+#include "../core/sprite_manager.h"
 
 /* *** *** *** *** *** *** *** cCamera *** *** *** *** *** *** *** *** *** *** */
 
@@ -49,7 +50,7 @@ cCamera :: ~cCamera( void )
 void cCamera :: Set_Pos( float nx, float ny )
 {
 	// level mode
-	if( Game_Mode == MODE_LEVEL )
+	if( Game_Mode == MODE_LEVEL || Game_Mode == MODE_OVERWORLD )
 	{
 		if( !editor_enabled )
 		{
@@ -68,10 +69,10 @@ void cCamera :: Set_Pos( float nx, float ny )
 	Update_Position();
 }
 
-void cCamera :: Set_PosX( float nx )
+void cCamera :: Set_Pos_X( float nx )
 {
 	// level mode
-	if( Game_Mode == MODE_LEVEL )
+	if( Game_Mode == MODE_LEVEL || Game_Mode == MODE_OVERWORLD )
 	{
 		if( !editor_enabled )
 		{
@@ -79,7 +80,7 @@ void cCamera :: Set_PosX( float nx )
 			nx += x_offset;
 			
 			// camera limits
-			Update_LimitX( nx );
+			Update_Limit_X( nx );
 		}
 	}
 
@@ -88,10 +89,10 @@ void cCamera :: Set_PosX( float nx )
 	Update_Position();
 }
 
-void cCamera :: Set_PosY( float ny )
+void cCamera :: Set_Pos_Y( float ny )
 {
 	// level mode
-	if( Game_Mode == MODE_LEVEL )
+	if( Game_Mode == MODE_LEVEL || Game_Mode == MODE_OVERWORLD )
 	{
 		if( !editor_enabled )
 		{
@@ -99,7 +100,7 @@ void cCamera :: Set_PosY( float ny )
 			ny += y_offset;
 
 			// camera limits
-			Update_LimitY( ny );
+			Update_Limit_Y( ny );
 		}
 	}
 
@@ -110,7 +111,7 @@ void cCamera :: Set_PosY( float ny )
 
 void cCamera :: Move( float move_x, float move_y )
 {
-	if( Game_Mode == MODE_LEVEL && !editor_enabled )
+	if( ( Game_Mode == MODE_LEVEL || Game_Mode == MODE_OVERWORLD ) && !editor_enabled )
 	{
 		Set_Pos( x + move_x - x_offset, y + move_y - y_offset );
 	}
@@ -120,20 +121,105 @@ void cCamera :: Move( float move_x, float move_y )
 	}
 }
 
+bool cCamera :: Move_to_Position_Gradually( float px, float py )
+{
+	// limit to nearest possible position
+	float px_final = px + pActive_Camera->x_offset;
+	float py_final = py + pActive_Camera->y_offset;
+	Update_Limit( px_final, py_final );
+
+	// check distance to new position
+	float distance_x = px_final - pActive_Camera->x;
+	float distance_y = py_final - pActive_Camera->y;
+	// velocity
+	float vel_x = ( distance_x * 0.04f ) * pFramerate->speedfactor;
+	float vel_y = ( distance_y * 0.04f ) * pFramerate->speedfactor;
+	// true if reached position
+	bool reached_y = 0, reached_x = 0;
+
+	if( distance_x > 1 )
+	{
+		if( vel_x < 1 )
+		{
+			vel_x = 1;
+		}
+
+		pActive_Camera->Move( vel_x, 0 );
+	}
+	else if( distance_x < -1 )
+	{
+		if( vel_x > -1 )
+		{
+			vel_x = -1;
+		}
+
+		pActive_Camera->Move( vel_x, 0 );
+	}
+	// reached destination position x
+	else
+	{
+		reached_x = 1;
+	}
+
+	if( distance_y > 1 )
+	{
+		if( vel_y < 1 )
+		{
+			vel_y = 1;
+		}
+
+		pActive_Camera->Move( 0, vel_y );
+	}
+	else if( distance_y < -1 )
+	{
+		if( vel_y > -1 )
+		{
+			vel_y = -1;
+		}
+
+		pActive_Camera->Move( 0, vel_y );
+	}
+	// reached destination position y
+	else
+	{
+		reached_y = 1;
+	}
+
+	// reached position
+	if( reached_x && reached_y )
+	{
+		return 0;
+	}
+
+	// position not reached
+	return 1;
+}
+
 void cCamera :: Center( ObjectDirection direction /* = DIR_ALL */ )
 {
-	if( direction == DIR_HORIZONTAL )
+	// Center camera on a not changing player position
+	if( direction == DIR_VERTICAL )
 	{
-		Set_PosY( pPlayer->posy + pPlayer->col_pos.y + pPlayer->col_rect.h - ( GAME_RES_H / 2 ) );
+		Set_Pos_X( Get_Center_Pos_X() );
 	}
-	else if( direction == DIR_VERTICAL )
+	else if( direction == DIR_HORIZONTAL )
 	{
-		Set_PosX( pPlayer->posx + pPlayer->col_pos.x - ( GAME_RES_W / 2 ) );
+		Set_Pos_Y( Get_Center_Pos_Y() );
 	}
 	else if( direction == DIR_ALL )
 	{
-		Set_Pos( pPlayer->posx + pPlayer->col_pos.x - ( GAME_RES_W / 2 ), pPlayer->posy + pPlayer->col_pos.y + pPlayer->col_rect.h - ( GAME_RES_H / 2 ) );
+		Set_Pos( Get_Center_Pos_X(), Get_Center_Pos_Y() );
 	}
+}
+
+float cCamera :: Get_Center_Pos_X( void )
+{
+	return pActive_Player->col_rect.x + 5 - ( game_res_w / 2 );
+}
+
+float cCamera :: Get_Center_Pos_Y( void )
+{
+	return pActive_Player->col_rect.y + pActive_Player->col_rect.h - 5 - ( game_res_h / 2 );
 }
 
 void cCamera :: Reset_Limits( void )
@@ -168,11 +254,11 @@ void cCamera :: Set_Limit_H( float val )
 
 void cCamera :: Update_Limit( float &nx, float &ny )
 {
-	Update_LimitX( nx );
-	Update_LimitY( ny );
+	Update_Limit_X( nx );
+	Update_Limit_Y( ny );
 }
 
-void cCamera :: Update_LimitX( float &nx )
+void cCamera :: Update_Limit_X( float &nx )
 {
 	// left
 	if( nx < limit_rect.x )
@@ -180,13 +266,13 @@ void cCamera :: Update_LimitX( float &nx )
 		nx = limit_rect.x;
 	}
 	// right
-	else if( nx + GAME_RES_W > limit_rect.x + limit_rect.w )
+	else if( nx + game_res_w > limit_rect.x + limit_rect.w )
 	{
-		nx = limit_rect.x + limit_rect.w - GAME_RES_W;
+		nx = limit_rect.x + limit_rect.w - game_res_w;
 	}
 }
 
-void cCamera :: Update_LimitY( float &ny )
+void cCamera :: Update_Limit_Y( float &ny )
 {
 	// down
 	if( ny > limit_rect.y )
@@ -202,7 +288,7 @@ void cCamera :: Update_LimitY( float &ny )
 
 void cCamera :: Update( void ) 
 {
-	// level mode
+	// level
 	if( Game_Mode == MODE_LEVEL )
 	{
 		// no leveleditor mode
@@ -234,7 +320,7 @@ void cCamera :: Update( void )
 				// todo : remove hackiness
 				x += fixed_hor_vel * pFramerate->speedfactor;
 				// check limit
-				Update_LimitX( x );
+				Update_Limit_X( x );
 				// center one side
 				Center( DIR_HORIZONTAL );
 
@@ -242,7 +328,7 @@ void cCamera :: Update( void )
 				if( fixed_hor_vel > 0 )
 				{
 					// out of camera on the left side
-					if( pPlayer->col_rect.x + pPlayer->col_rect.w < pCamera->x )
+					if( pPlayer->col_rect.x + pPlayer->col_rect.w < x )
 					{
 						pPlayer->DownGrade( 1, 1 );
 					}
@@ -252,7 +338,7 @@ void cCamera :: Update( void )
 				else
 				{
 					// out of camera on the right side
-					if( pPlayer->col_rect.x - GAME_RES_W > pCamera->x )
+					if( pPlayer->col_rect.x - game_res_w > x )
 					{
 						pPlayer->DownGrade( 1, 1 );
 					}
@@ -286,6 +372,31 @@ void cCamera :: Update( void )
 			}
 		}
 	}
+	// world
+	else if( Game_Mode == MODE_OVERWORLD )
+	{
+		// Left
+		if( pActive_Player->posx - x < game_res_w * 0.4f )
+		{
+			Set_Pos_X( pActive_Player->posx - game_res_w * 0.4f );
+		}
+		// Right
+		else if( pActive_Player->posx - x > game_res_w * 0.6f )
+		{
+			Set_Pos_X( pActive_Player->posx - game_res_w * 0.6f );
+		}
+		
+		// Up
+		if( pActive_Player->posy - y < game_res_h * 0.4f )
+		{
+			Set_Pos_Y( pActive_Player->posy - game_res_h * 0.4f );
+		}
+		// Down
+		else if( pActive_Player->posy - y > game_res_h * 0.6f )
+		{
+			Set_Pos_Y( pActive_Player->posy - game_res_h * 0.6f );
+		}
+	}
 }
 
 void cCamera :: Update_Position( void )
@@ -293,25 +404,10 @@ void cCamera :: Update_Position( void )
 	// mouse
 	pMouseCursor->Update_Position();
 
-	// sprite manager
-	cSprite_Manager *sprite_manager = NULL;
-
-	if( Game_Mode == MODE_LEVEL )
-	{
-		sprite_manager = pLevel->pSprite_Manager;
-
-		// player
-		pPlayer->Update_valid_draw();
-	}
-	else
-	{
-		sprite_manager = pActive_Overworld->sprite_manager;
-
-		// player
-		pOverworld_Player->Update_valid_draw();
-	}
-
-	sprite_manager->Update_items_valid_draw();
+	// update player
+	pActive_Player->Update_Valid_Draw();
+	// update sprite manager
+	pActive_Sprite_Manager->Update_Items_Valid_Draw();
 
 	// editor
 	if( editor_enabled )
@@ -319,10 +415,10 @@ void cCamera :: Update_Position( void )
 		// update settings activated object position
 		if( pMouseCursor->active_object )
 		{
-			pMouseCursor->active_object->Editor_pos_update();
+			pMouseCursor->active_object->Editor_Position_Update();
 		}
 	}
 }
+
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cCamera *pCamera = NULL;

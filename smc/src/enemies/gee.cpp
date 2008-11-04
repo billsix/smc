@@ -1,7 +1,7 @@
 /***************************************************************************
-              gee.cpp  -  Electro, Lava or Gift monster
-                             -------------------
-    copyright            : (C) 2006 - 2007 by Florian Richter
+ * gee.cpp  -  Electro, Lava or Gift monster
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,20 +19,22 @@
 #include "../video/animation.h"
 #include "../player/player.h"
 #include "../gui/hud.h"
+#include "../input/mouse.h"
+#include "../core/i18n.h"
 
 /* *** *** *** *** *** *** cGee *** *** *** *** *** *** *** *** *** *** *** */
 
 cGee :: cGee( float x, float y )
 : cEnemy( x, y )
 {
-	Init();
+	cGee::Init();
 }
 
-cGee :: cGee( XMLAttributes &attributes )
+cGee :: cGee( CEGUI::XMLAttributes &attributes )
 : cEnemy()
 {
-	Init();
-	Create_from_Stream( attributes );
+	cGee::Init();
+	cGee::Create_from_Stream( attributes );
 }
 
 cGee :: ~cGee( void )
@@ -80,12 +82,12 @@ cGee *cGee :: Copy( void )
 	return gee;
 }
 
-void cGee :: Create_from_Stream( XMLAttributes &attributes )
+void cGee :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// direction
-	Set_Direction( Get_Direction_id( attributes.getValueAsString( "direction", Get_Direction_name( start_direction ) ).c_str() ) );
+	Set_Direction( Get_Direction_Id( attributes.getValueAsString( "direction", Get_Direction_Name( start_direction ) ).c_str() ) );
 	// max distance
 	Set_Max_Distance( attributes.getValueAsInteger( "max_distance", max_distance ) );
 	// always fly
@@ -95,7 +97,7 @@ void cGee :: Create_from_Stream( XMLAttributes &attributes )
 	// fly distance
 	fly_distance = attributes.getValueAsInteger( "fly_distance", fly_distance );
 	// color
-	Set_Color( (DefaultColor)Get_Color_id( attributes.getValueAsString( "color", Get_Color_name( color_type ) ).c_str() ) );
+	Set_Color( (DefaultColor)Get_Color_Id( attributes.getValueAsString( "color", Get_Color_Name( color_type ) ).c_str() ) );
 }
 
 void cGee :: Save_to_Stream( ofstream &file )
@@ -109,7 +111,7 @@ void cGee :: Save_to_Stream( ofstream &file )
 	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
 	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// direction
-	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_name( start_direction ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( start_direction ) << "\" />" << std::endl;
 	// max distance
 	file << "\t\t<Property name=\"max_distance\" value=\"" << static_cast<int>(max_distance) << "\" />" << std::endl;
 	// always fly
@@ -119,7 +121,7 @@ void cGee :: Save_to_Stream( ofstream &file )
 	// fly distance
 	file << "\t\t<Property name=\"fly_distance\" value=\"" << static_cast<int>(fly_distance) << "\" />" << std::endl;
 	// color
-	file << "\t\t<Property name=\"color\" value=\"" << Get_Color_name( color_type ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"color\" value=\"" << Get_Color_Name( color_type ) << "\" />" << std::endl;
 
 	// end enemy
 	file << "\t</enemy>" << std::endl;
@@ -129,7 +131,7 @@ void cGee :: Load_from_Savegame( cSave_Level_Object *save_object )
 {
 	cEnemy::Load_from_Savegame( save_object );
 
-	Update_Rotation_velx();
+	Update_Rotation_Hor_velx();
 }
 
 void cGee :: Set_Direction( ObjectDirection dir )
@@ -156,6 +158,15 @@ void cGee :: Set_Direction( ObjectDirection dir )
 	}
 
 	cEnemy::Set_Direction( dir, 1 );
+
+	if( velx )
+	{
+		Update_Rotation_Hor_velx( 1 );
+	}
+	else
+	{
+		Update_Rotation_Hor_vely( 1 );
+	}
 
 	Create_Name();
 }
@@ -260,7 +271,7 @@ void cGee :: DownGrade( bool force /* = 0 */ )
 	}
 	else
 	{
-		Set_RotationZ( 180 );
+		Set_Rotation_Z( 180 );
 	}
 }
 
@@ -282,7 +293,7 @@ void cGee :: DieStep( void )
 			Move( 0, -5 );
 		}
 		// if not below the screen fall
-		else if( posy < GAME_RES_H + col_rect.h )
+		else if( posy < game_res_h + col_rect.h )
 		{
 			Move( 0, 20 );
 		}
@@ -310,7 +321,7 @@ void cGee :: Update( void )
 		wait_time_counter += pFramerate->speedfactor;
 
 		// if wait time reached or always fly
-		if( wait_time_counter > wait_time * DESIRED_FPS || always_fly )
+		if( wait_time_counter > wait_time * speedfactor_fps || always_fly )
 		{
 			Activate();
 		}
@@ -323,26 +334,26 @@ void cGee :: Update( void )
 		// update fly distance counter
 		if( velx > 0 )
 		{
-			fly_distance_counter += velx;
+			fly_distance_counter += velx * pFramerate->speedfactor;
 		}
 		else if( velx < 0 )
 		{
-			fly_distance_counter -= velx;
+			fly_distance_counter -= velx * pFramerate->speedfactor;
 		}
 		if( vely > 0 )
 		{
-			fly_distance_counter += vely;
+			fly_distance_counter += vely * pFramerate->speedfactor;
 		}
 		else if( vely < 0 )
 		{
-			fly_distance_counter -= vely;
+			fly_distance_counter -= vely * pFramerate->speedfactor;
 		}
 
 		// check out of map screen
 		if( direction == DIR_DOWN )
 		{
 			// if below screen move back
-			if( rect.y + col_rect.h > GAME_RES_H )
+			if( rect.y + col_rect.h > game_res_h )
 			{
 				Turn_Around( DIR_DOWN );
 			}
@@ -392,11 +403,11 @@ void cGee :: Draw( cSurfaceRequest *request /* = NULL */ )
 	{
 		if( start_direction == DIR_HORIZONTAL )
 	    {
-            pVideo->Draw_Rect( startposx - pCamera->x - max_distance, startposy + ( rect.h * 0.5f ) - 5 - pCamera->y, col_rect.w + ( max_distance * 2 ), 10, posz - 0.000001f, &whitealpha128 );
+            pVideo->Draw_Rect( startposx - pActive_Camera->x - max_distance, startposy + ( rect.h * 0.5f ) - 5 - pActive_Camera->y, col_rect.w + ( max_distance * 2 ), 10, posz - 0.000001f, &whitealpha128 );
 	    }
 		else if( start_direction == DIR_VERTICAL )
 	    {
-            pVideo->Draw_Rect( startposx + ( rect.w * 0.5f ) - 5 - pCamera->x, startposy - pCamera->y - max_distance, 10, col_rect.h + ( max_distance * 2 ), posz - 0.000001f, &whitealpha128 );
+            pVideo->Draw_Rect( startposx + ( rect.w * 0.5f ) - 5 - pActive_Camera->x, startposy - pActive_Camera->y - max_distance, 10, col_rect.h + ( max_distance * 2 ), posz - 0.000001f, &whitealpha128 );
 	    }
 	}
 
@@ -434,9 +445,16 @@ void cGee :: Activate( void )
 	if( !Check_Max_Distance() )
 	{
 		Turn_Around();
-	}
 
-	Update_Rotation_velx();
+		if( velx )
+		{
+			Update_Rotation_Hor_velx();
+		}
+		else
+		{
+			Update_Rotation_Hor_vely();
+		}
+	}
 }
 
 void cGee :: Stop( void )
@@ -449,7 +467,8 @@ void cGee :: Stop( void )
 
 void cGee :: Generate_Particles( void )
 {
-	cParticleAnimation *anim = new cParticleAnimation( posx + 15 + ( rand() % static_cast<int>( col_rect.w / 2 ) ), posy + ( ( rand() % static_cast<int>( col_rect.h / 2 ) ) ) );
+	cParticle_Emitter *anim = new cParticle_Emitter();
+	anim->Set_Pos( posx + 15 + ( rand() % static_cast<int>( col_rect.w / 2 ) ), posy + ( ( rand() % static_cast<int>( col_rect.h / 2 ) ) ) );
 	anim->Set_Quota( 4 );
 	anim->Set_Image( pVideo->Get_Surface( "animation/particles/cloud.png" ) );
 
@@ -460,11 +479,11 @@ void cGee :: Generate_Particles( void )
 		// direction
 		if( direction == DIR_LEFT )
 		{
-			anim->Set_DirectionRange( 90, 180 );
+			anim->Set_Direction_Range( 90, 180 );
 		}
 		else
 		{
-			anim->Set_DirectionRange( 270, 180 );
+			anim->Set_Direction_Range( 270, 180 );
 		}
 	}
 	else
@@ -490,7 +509,7 @@ void cGee :: Generate_Particles( void )
 	anim->Set_Time_to_Live( 2 );
 	anim->Set_Fading_Alpha( 1 );
 	anim->Set_Blending( BLEND_ADD );
-	pAnimationManager->Add( anim );
+	pAnimation_Manager->Add( anim );
 }
 
 bool cGee :: Check_Max_Distance( void )
@@ -527,7 +546,7 @@ bool cGee :: Check_Max_Distance( void )
 	return 1;
 }
 
-bool cGee :: is_Update_valid( void )
+bool cGee :: Is_Update_Valid( void )
 {
 	if( dead || freeze_counter )
 	{
@@ -536,6 +555,23 @@ bool cGee :: is_Update_valid( void )
 
 	return 1;
 }
+
+bool cGee :: Is_Draw_Valid( void )
+{
+	if( cEnemy::Is_Draw_Valid() == 1 )
+	{
+		return 1;
+	}
+
+	// if not editor enabled or not active mouse object
+	if( !editor_enabled || pMouseCursor->active_object != this )
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
 
 unsigned int cGee :: Validate_Collision( cSprite *obj )
 {
@@ -561,10 +597,10 @@ void cGee :: Handle_Collision_Player( cObjectCollision *collision )
 
 	if( collision->direction == DIR_TOP && pPlayer->state != STA_FLY )
 	{
-		pAudio->PlaySound( kill_sound );
+		pAudio->Play_Sound( kill_sound );
 
 		DownGrade();
-		pPlayer->start_enemyjump = 1;
+		pPlayer->Action_Jump( 1 );
 
 		pointsdisplay->Add_Points( kill_points, pPlayer->posx, pPlayer->posy, "", static_cast<Uint8>(255), 1 );
 		pPlayer->Add_Kill_Multiplier();
@@ -578,7 +614,7 @@ void cGee :: Handle_Collision_Player( cObjectCollision *collision )
 
 			if( collision->direction == DIR_BOTTOM  )
 			{
-				pPlayer->start_enemyjump = 1;
+				pPlayer->Action_Jump( 1 );
 			}
 			else if( collision->direction == DIR_LEFT )
 			{
@@ -597,71 +633,67 @@ void cGee :: Handle_Collision_Player( cObjectCollision *collision )
 
 void cGee :: Editor_Activate( void )
 {
-	WindowManager &wmgr = WindowManager::getSingleton();
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
 	// max distance
-	Editbox *editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_gee_max_distance" ));
-	editbox->setTooltipText( "Max Distance" );
-	Editor_Add( editbox, 90 );
+	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_gee_max_distance" ));
+	Editor_Add( UTF8_("Distance"), UTF8_("Movable distance"), editbox, 90 );
 
 	editbox->setText( int_to_string( max_distance ) );
-	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cGee::Editor_Max_Distance_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cGee::Editor_Max_Distance_Key, this ) );
 
 	// always fly
-	Combobox *combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_gee_always_fly" ));
-	combobox->getEditbox()->setTooltipText( "Always Fly" );
-	Editor_Add( combobox, 120, 80 );
+	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_gee_always_fly" ));
+	Editor_Add( UTF8_("Always fly"), UTF8_("Move without stopping at the fly distance"), combobox, 120, 80 );
 
-	combobox->addItem( new ListboxTextItem( "Enabled" ) );
-	combobox->addItem( new ListboxTextItem( "Disabled" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Enabled") ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Disabled") ) );
 
 	if( always_fly )
 	{
-		combobox->setText( "Enabled" );
+		combobox->setText( UTF8_("Enabled") );
 	}
 	else
 	{
-		combobox->setText( "Disabled" );
+		combobox->setText( UTF8_("Disabled") );
 	}
 
-	combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cGee::Editor_Always_Fly_Select, this ) );
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cGee::Editor_Always_Fly_Select, this ) );
 
 	// wait time
-	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_gee_wait_time" ));
-	editbox->setTooltipText( "Wait Time" );
-	Editor_Add( editbox, 90 );
+	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_gee_wait_time" ));
+	Editor_Add( UTF8_("Wait time"), UTF8_("Time to wait until moving again after a stop"), editbox, 90 );
 
 	editbox->setText( float_to_string( wait_time ) );
-	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cGee::Editor_Wait_Time_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cGee::Editor_Wait_Time_Key, this ) );
 
 	// fly distance
-	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_gee_fly_distance" ));
-	editbox->setTooltipText( "Fly Distance" );
-	Editor_Add( editbox, 90 );
+	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_gee_fly_distance" ));
+	Editor_Add( UTF8_("Fly distance"), UTF8_("The distance to move each time"), editbox, 90 );
 
 	editbox->setText( int_to_string( fly_distance ) );
-	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cGee::Editor_Fly_Distance_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cGee::Editor_Fly_Distance_Key, this ) );
 
-	// set position
-	Editor_pos_update();
+	// init
+	Editor_Init();
 }
 
-bool cGee :: Editor_Max_Distance_Key( const EventArgs &event )
+bool cGee :: Editor_Max_Distance_Key( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Max_Distance( string_to_int( str_text ) );
 
 	return 1;
 }
 
-bool cGee :: Editor_Always_Fly_Select( const EventArgs &event )
+bool cGee :: Editor_Always_Fly_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
 
-	if( item->getText().compare( "Enabled" ) == 0 )
+	if( item->getText().compare( UTF8_("Enabled") ) == 0 )
 	{
 		always_fly = 1;
 	}
@@ -673,20 +705,20 @@ bool cGee :: Editor_Always_Fly_Select( const EventArgs &event )
 	return 1;
 }
 
-bool cGee :: Editor_Wait_Time_Key( const EventArgs &event )
+bool cGee :: Editor_Wait_Time_Key( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	wait_time = string_to_float( str_text );
 
 	return 1;
 }
 
-bool cGee :: Editor_Fly_Distance_Key( const EventArgs &event )
+bool cGee :: Editor_Fly_Distance_Key( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	fly_distance = string_to_int( str_text );
 

@@ -1,7 +1,7 @@
 /***************************************************************************
-				spinbox.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * spinbox.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SPINBOX_H__
-#define __SPINBOX_H__
+#ifndef SMC_SPINBOX_H
+#define SMC_SPINBOX_H
 
 #include "../core/globals.h"
 #include "../objects/box.h"
@@ -27,7 +27,7 @@ public:
 	// constructor
 	cSpinBox( float x, float y );
 	// create from stream
-	cSpinBox( XMLAttributes &attributes );
+	cSpinBox( CEGUI::XMLAttributes &attributes );
 	// destructor
 	virtual ~cSpinBox( void );
 
@@ -38,7 +38,7 @@ public:
 	virtual cSpinBox *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( XMLAttributes &attributes );
+	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file );
 
@@ -50,10 +50,10 @@ public:
 	virtual void Update( void );
 
 	// if update is valid for the current state
-	virtual bool is_Update_valid( void );
+	virtual bool Is_Update_Valid( void );
 
 	// ignore onground check
-	virtual void Check_onGround( void ) {};
+	virtual void Check_on_Ground( void ) {};
 
 	// spin counter
 	float spin_counter;

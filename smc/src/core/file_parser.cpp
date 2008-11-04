@@ -1,7 +1,7 @@
 /***************************************************************************
-			file_parser.cpp  -  Image Settings Handler
-                              -------------------
-    copyright                 :	(C) 2005 - 2007 by Florian Richter
+ * file_parser.cpp  -  Image Settings Handler
+ *
+ * Copyright (C) 2005 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -55,35 +55,42 @@ bool cFile_parser :: Parse( string &filename )
 
 bool cFile_parser :: Parse_Line( string command, int line )
 {
-	if( command.length() <= 5 || command.find_first_of( '#' ) == 0 )
-	{
-		return 1; // no error
-	}
-
-	while( command.find( '\r' ) != string::npos ) // Linux support
+	// linux support
+	while( command.find( '\r' ) != string::npos )
 	{
 		command.erase( command.find( '\r' ), 1 );
 	}
 
-	while( command.find( '\t' ) != string::npos ) // No Tabs
+	// no tabs
+	while( command.find( '\t' ) != string::npos )
 	{
 		command.replace( command.find( '\t' ), 1, " " );
 	}
 
-	while( command.find_last_of( ' ' ) == command.length() - 1  ) // No Spaces at the end
+	// remove trailing spaces
+	while( command.find_last_of( ' ' ) == command.length() - 1  )
 	{
 		command.erase( command.find_last_of( ' ' ), 1 );
 	}
 
-	while( command.find_first_of( ' ' ) == 0  ) // No Spaces at the beginning
+	// remove beginning spaces
+	while( command.find_first_of( ' ' ) == 0  )
 	{
 		command.erase( command.find_first_of( ' ' ), 1 );
+	}
+
+	// ignore comments and empty lines
+	if( command.find_first_of( '#' ) == 0 || command.empty() )
+	{
+		// no error
+		return 1;
 	}
 
 	string tempstr = command;
 	int count = 1;
 
-	while( tempstr.find( ' ' ) != string::npos  ) // Count Spaces
+	// Count spaces
+	while( tempstr.find( ' ' ) != string::npos  )
 	{
 		tempstr.erase( tempstr.find( ' ' ) , 1 );
 		count++;

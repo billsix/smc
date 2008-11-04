@@ -1,7 +1,7 @@
 /***************************************************************************
-     level_settings.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            : (C) 2006 - 2007 by Florian Richter
+ * level_settings.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __LEVEL_SETTINGS_H__
-#define __LEVEL_SETTINGS_H__
+#ifndef SMC_LEVEL_SETTINGS_H
+#define SMC_LEVEL_SETTINGS_H
 
 #include "../core/globals.h"
 #include "../gui/hud.h"
@@ -30,7 +30,7 @@ public:
 	void Init( void );
 	// Enter the Level Settings
 	void Enter( void );
-	// Unload
+	// Unload and save settings
 	void Unload( void );
 
 	// Update
@@ -44,33 +44,33 @@ public:
 	bool Key_Down( SDLKey key );
 
 	// Adds a Background image
-	bool Add_Background_image( const EventArgs &event );
+	bool Add_Background_Image( const CEGUI::EventArgs &event );
 	// Delete the currently selected Background image
-	bool Delete_Background_image( const EventArgs &event );
+	bool Delete_Background_Image( const CEGUI::EventArgs &event );
 	// Set the current Background image
-	bool Set_Background_image( const EventArgs &event );
+	bool Set_Background_Image( const CEGUI::EventArgs &event );
 
 	// Saves the Settings and exits
-	bool Button_Save( const EventArgs &event );
+	bool Button_Save( const CEGUI::EventArgs &event );
 
 	// Updates the Colors
-	bool Update_BG_Colors( const EventArgs &event );
+	bool Update_BG_Colors( const CEGUI::EventArgs &event );
 	// Loads the Background image List
-	void Load_BG_imageList( void );
+	void Load_BG_Image_List( void );
 
 	// Set the Background image preview
-	void Set_Background_image_Preview( string filename );
+	void Set_Background_Image_Preview( string filename );
 	// Updates the Background image
-	bool Update_BG_image( const EventArgs &event );
+	bool Update_BG_Image( const CEGUI::EventArgs &event );
 	// Clears the background Layer fields
-	void Clear_Layer_field( void );
+	void Clear_Layer_Field( void );
 
 	// Loads the global effect data
-	void Load_global_effect( void );
+	void Load_Global_Effect( void );
 	// Set the global effect image preview
-	void Set_global_effect_image_Preview( string filename );
+	void Set_Global_Effect_Image_Preview( string filename );
 	// Updates the global effect image
-	bool Update_global_effect_image( const EventArgs &event );
+	bool Update_Global_Effect_Image( const CEGUI::EventArgs &event );
 
 	// true if menu is active
 	bool active;
@@ -78,9 +78,11 @@ public:
 	// Background colors
 	Color bg_color_1, bg_color_2;
 
-	// Gui
-	Window *guiwindow;
-	TabControl *tabcontrol;
+	// settings camera
+	cCamera *camera;
+	// GUI
+	CEGUI::Window *guiwindow;
+	CEGUI::TabControl *tabcontrol;
 
 	// background image preview
 	cHudSprite *background_preview;

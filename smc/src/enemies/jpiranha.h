@@ -1,7 +1,7 @@
 /***************************************************************************
-              jpiranha.h  -  headers for the corresponding cpp file
-                             -------------------
-    copyright            : (C) 2003 - 2007 by Florian Richter
+ * jpiranha.h  -  headers for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __JPIRANHA_H__
-#define __JPIRANHA_H__
+#ifndef SMC_JPIRANHA_H
+#define SMC_JPIRANHA_H
 
 #include "../enemies/enemy.h"
 
@@ -29,17 +29,17 @@ public:
 	// constructor
 	cjPiranha( float x, float y );
 	// create from stream
-	cjPiranha( XMLAttributes &attributes );
+	cjPiranha( CEGUI::XMLAttributes &attributes );
 	// destructor
 	virtual ~cjPiranha( void );
 
-	// init defaults
+	// initialize defaults
 	void Init( void );
 	// copy
 	virtual cjPiranha *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( XMLAttributes &attributes );
+	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file );
 
@@ -69,13 +69,15 @@ public:
 	// Returns the distance to the end position
 	float Get_End_Distance( void );
 	// update destination velocity from the speed
-	void Update_dest_vel( void );
+	void Update_Dest_Vel( void );
 
 	// if update is valid for the current state
-	virtual bool is_Update_valid( void );
+	virtual bool Is_Update_Valid( void );
+	// if draw is valid for the current state and position
+	virtual bool Is_Draw_Valid( void );
 
 	// ignore onground check
-	virtual void Check_onGround( void ) {};
+	virtual void Check_on_Ground( void ) {};
 	/* Validate the given collision object
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
@@ -87,8 +89,8 @@ public:
 	// leveleditor activation
 	virtual void Editor_Activate( void );
 	// leveleditor events
-	bool Editor_Max_Distance_Key( const EventArgs &event );  // editor max distance key up
-	bool Editor_Speed_Key( const EventArgs &event );  // editor speed key up
+	bool Editor_Max_Distance_Key( const CEGUI::EventArgs &event );  // editor max distance key up
+	bool Editor_Speed_Key( const CEGUI::EventArgs &event );  // editor speed key up
 
 	// moving speed
 	float speed;

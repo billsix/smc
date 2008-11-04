@@ -50,8 +50,8 @@ Peach   : Mariko
 Toad    : Tydo
 
 - Enemies -
-Goomba 	: Gumba 	(done)
-Koopa 	: Doopy 	(not used)
+Goomba 	: was Gumba and since 1.5 Furball	(done)
+Koopa 	: Doopy 	(not used. change ?)
 Piranha 	: ? 	(keep ?)
 Thwomb 	: Thromp 	(done)
 Bowser  	: Bommer 	(not yet available)

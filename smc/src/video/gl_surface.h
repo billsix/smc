@@ -1,7 +1,7 @@
 /***************************************************************************
-			gl_surface.h  -  header for the corresponding cpp file
-                         -------------------
-    copyright            : (C) 2005 - 2007 by Florian Richter
+ * gl_surface.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2005 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __GL_SURFACE_H__
-#define __GL_SURFACE_H__
+#ifndef SMC_GL_SURFACE_H
+#define SMC_GL_SURFACE_H
 
 #include "../core/globals.h"
 #include "../core/math/point.h"
@@ -28,33 +28,35 @@ public:
 	~GL_Surface( void );
 
 	/* Blit the surface on the given position
-	* if request is NULL automatically creates the request
+	 * if request is NULL automatically creates the request
 	*/
 	void Blit( float x, float y, float z, cSurfaceRequest *request = NULL );
-	/* Blit only the surface data on the given request
-	*/
-	void Blit_data( cSurfaceRequest *request );
+	// Blit only the surface data on the given request
+	void Blit_Data( cSurfaceRequest *request );
 
-	/* copy this image and returns it
-	*/
+	// Copy GL_Surface and return it
 	GL_Surface *Copy( void );
 
-	/* save this image texture to a file
-	*/
+	// Save the texture to a file
 	void Save( string filename );
 
 	// Set the ground type
-	void Set_Ground_type( GroundType gtype );
+	void Set_Ground_Type( GroundType gtype );
 
-	// returns a software texture copy
-	cSoftware_texture *Get_Software_Texture( void );
-	// loads a software texture
-	void Load_Software_Texture( cSoftware_texture *soft_tex );
+	// Check if the OpenGL texture is used by another GL_Surface
+	bool Is_Texture_Use_Multiple( void );
 
-	// Returns the filename
-	string Get_filename( int with_dir = 2, bool with_end = 1 );
-	// set a function called on destruction
-	void Set_destruction_function( void ( *nfunction )( GL_Surface * ) );
+	/* Return a software texture copy
+	 * only_filename: if set doesn't save the software texture but only the filename
+	*/
+	cSaved_Texture *Get_Software_Texture( bool only_filename = 0 );
+	// Load a software texture
+	void Load_Software_Texture( cSaved_Texture *soft_tex );
+
+	// Return the filename
+	string Get_Filename( int with_dir = 2, bool with_end = 1 );
+	// Set a function called on destruction
+	void Set_Destruction_Function( void ( *nfunction )( GL_Surface * ) );
 
 	// GL texture number
 	GLuint image;
@@ -76,6 +78,8 @@ public:
 	string filename;
 	// should the image be deleted
 	bool auto_del_img;
+	// if managed over the image manager
+	bool managed;
 	// if the image is tagged as obsolete 
 	bool obsolete;
 

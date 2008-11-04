@@ -1,7 +1,7 @@
 /***************************************************************************
-                overworld.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            : (C) 2003 - 2007 by Florian Richter
+ * overworld.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,19 +13,19 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __OVERWORLD_H__
-#define __OVERWORLD_H__
+#ifndef SMC_OVERWORLD_H
+#define SMC_OVERWORLD_H
 
-#include "../overworld/worlds.h"
-#include "../overworld/waypoint.h"
-#include "../overworld/layer.h"
-#include "../overworld/ow_player.h"
-#include "../core/sprite_manager.h"
+#include "../overworld/world_manager.h"
+#include "../overworld/world_waypoint.h"
+#include "../overworld/world_layer.h"
+#include "../overworld/world_player.h"
 #include "../gui/hud.h"
+#include "../audio/random_sound.h"
 
 /* *** *** *** *** *** *** *** *** cOverworld_description *** *** *** *** *** *** *** *** *** */
 
-class cOverworld_description : public XMLHandler
+class cOverworld_description : public CEGUI::XMLHandler
 {
 public:
 	cOverworld_description( void );
@@ -38,7 +38,7 @@ public:
 	void Save( void );
 
 	// returns the full path
-	string Get_full_path( void );
+	string Get_Full_Path( void );
 
 	// directory name
 	string path;
@@ -53,21 +53,21 @@ public:
 	string comment;
 private:
 	// XML element start
-    virtual void elementStart( const String &element, const XMLAttributes &attributes );
+    virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
 	// XML element end
-    virtual void elementEnd( const String &element );
+    virtual void elementEnd( const CEGUI::String &element );
 	// handle world description
-    void handle_world( const XMLAttributes& attributes );
+    void handle_world( const CEGUI::XMLAttributes& attributes );
 
 	// XML element Property list
-	XMLAttributes xml_attributes;
+	CEGUI::XMLAttributes xml_attributes;
 };
 
 /* *** *** *** *** *** *** *** *** cOverworld *** *** *** *** *** *** *** *** *** */
 
 typedef vector<cWaypoint *> WaypointList;
 
-class cOverworld : public XMLHandler
+class cOverworld : public CEGUI::XMLHandler
 {
 public:
 	cOverworld( void );
@@ -131,27 +131,28 @@ public:
 	/* Returns a pointer to the Waypoint
 	 * if not found returns NULL
 	*/
+	cWaypoint *Get_Waypoint( string name );
 	cWaypoint *Get_Waypoint( unsigned int num );
 	/* Returns the Waypoint array number if the level name matches
 	 * if not found returns -1
 	*/
-	int Get_Level_Waypoint_num( string level_name );
+	int Get_Level_Waypoint_Num( string level_name );
 	/* Returns the Waypoint array number if the destination name matches
 	 * if not found returns -1
 	*/
-	int Get_Waypoint_num( string world_name );
+	int Get_Waypoint_Num( string world_name );
 
 	/* Check if the rect collides with a Waypoint
 	 * if no collision found returns -1
 	*/
 	int Get_Waypoint_Collision( GL_rect *rect_2 );
 	// returns the last accessible Waypoint
-	int Get_LastValidWaypoint( void );
+	int Get_Last_Valid_Waypoint( void );
 	// update the Waypoint text
 	void Update_Waypoint_text( void );
 
 	// Enable the next Level and walk into the forward direction
-	bool Goto_next_Level( void );
+	bool Goto_Next_Level( void );
 	// Resets the Waypoint access to the default
 	void Reset_Waypoints( void );
 
@@ -183,16 +184,16 @@ public:
 
 private:
 	// XML element start
-    virtual void elementStart( const String &element, const XMLAttributes &attributes );
+    virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
 	// XML element end
-    virtual void elementEnd( const String &element );
+    virtual void elementEnd( const CEGUI::String &element );
  
 	// XML element Property list
-	XMLAttributes xml_attributes;
+	CEGUI::XMLAttributes xml_attributes;
 };
 
 // Returns a World Object if element name is available else NULL
-cSprite *Get_World_Object( const String &element, XMLAttributes &attributes );
+cSprite *Get_World_Object( const CEGUI::String &element, CEGUI::XMLAttributes &attributes );
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

@@ -1,7 +1,7 @@
 /***************************************************************************
-     rect.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            : (C) 2006 - 2007 by Florian Richter
+ * rect.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __GL_RECT_H__
-#define __GL_RECT_H__
+#ifndef SMC_RECT_H
+#define SMC_RECT_H
 
 #include "../../core/globals.h"
 #include "../../core/math/point.h"
@@ -37,10 +37,10 @@ public:
 	SDL_Rect Get_Rect( void )
 	{
 		SDL_Rect rect;
-		rect.x = (Sint16)x;
-		rect.y = (Sint16)y;
-		rect.w = (Uint16)w;
-		rect.h = (Uint16)h;
+		rect.x = static_cast<Sint16>(x);
+		rect.y = static_cast<Sint16>(y);
+		rect.w = static_cast<Sint16>(w);
+		rect.h = static_cast<Sint16>(h);
 
 		return rect;
 	}
@@ -49,10 +49,10 @@ public:
 	SDL_Rect Get_Rect_pos( float posx, float posy )
 	{
 		SDL_Rect rect;
-		rect.x = (Sint16)( x + posx );
-		rect.y = (Sint16)( y + posy );
-		rect.w = (Uint16)w;
-		rect.h = (Uint16)h;
+		rect.x = static_cast<Sint16>(x + posx);
+		rect.y = static_cast<Sint16>(y + posy);
+		rect.w = static_cast<Sint16>(w);
+		rect.h = static_cast<Sint16>(h);
 
 		return rect;
 	}

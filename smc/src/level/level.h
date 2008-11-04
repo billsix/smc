@@ -1,7 +1,7 @@
 /***************************************************************************
-                level.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * level.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,19 +13,21 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __LEVEL_H__
-#define __LEVEL_H__
+#ifndef SMC_LEVEL_H
+#define SMC_LEVEL_H
 
 #include "../core/globals.h"
 #include "../level/global_effect.h"
 #include "../level/level_background.h"
 #include "../core/file_parser.h"
 #include "../level/level_manager.h"
-#include "../core/sprite_manager.h"
+#include "../objects/level_entry.h"
+#include "../audio/random_sound.h"
+
 
 /* *** *** *** *** *** cLevel *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cLevel : public cFile_parser, public XMLHandler
+class cLevel : public cFile_parser, public CEGUI::XMLHandler
 {
 public:
 	cLevel( void );
@@ -84,13 +86,6 @@ public:
 	*/
 	bool Joy_Button_Up( Uint8 button );
 
-	// Return the number of Backgrounds
-	unsigned int Get_Backgroundlayers( void );
-	/* Return a pointer to the requested Background
-	 * If it doesn't exists returns NULL
-	*/
-	cBackground *Get_background( unsigned int num );
-
 	/* Return the current Music filename with the given options
 	 * if with_dir is set to 0 the whole directory is cut
 	 * if set to 1 the music directory is cut out
@@ -106,14 +101,17 @@ public:
 	/* Return the level path if level is valid else empty
 	 * check_only_user_dir : only check user directory for the level
 	*/
-	bool Get_path( string &filename, bool check_only_user_dir = 0 );
+	bool Get_Path( string &filename, bool check_only_user_dir = 0 );
 	// Set the Level Author
 	void Set_Author( string name );
 	// Set the Level Version
 	void Set_Version( string level_version );
 
+	// Get entry with the given name
+	cLevel_Entry *Get_Entry( string name );
+
 	// Return true if a level is loaded
-	bool is_Loaded( void );
+	bool Is_Loaded( void );
 
 	// music filename
 	string musicfile;
@@ -137,36 +135,34 @@ public:
 	// level version
 	string version;
 
-	// background layers
-	typedef vector<cBackground *> BackgroundList;
-	BackgroundList backgrounds;
-
+	// background manager
+	cBackground_Manager *background_manager;
 	// global effect
 	cGlobal_effect *pGlobal_effect;
-	
-	// Sprites
+	// sprite manager
 	cSprite_Manager *pSprite_Manager;
+
 private:
 	// Handles the old txt level format command
 	virtual bool HandleMessage( string *parts, unsigned int count, unsigned int line );
-	bool read_color_info( string *parts, unsigned int count, unsigned int line, Color &read_color );
+	bool Read_Color_Data( string *parts, unsigned int count, unsigned int line, Color &read_color );
 
 	// XML element start
-    virtual void elementStart( const String &element, const XMLAttributes &attributes );
+    virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
 	// XML element end
-    virtual void elementEnd( const String &element );
+    virtual void elementEnd( const CEGUI::String &element );
 
 	// XML element Item Tag list
-	XMLAttributes xml_attributes;
+	CEGUI::XMLAttributes xml_attributes;
 };
 
-// Returns a Level Object if element name is available else NULL
-cSprite *Get_Level_Object( const String &element, XMLAttributes &attributes );
+// Return the Level Object if element name is available else NULL
+cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttributes &attributes, float engine_version = level_engine_version );
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // The Level
-extern cLevel *pLevel;
+extern cLevel *pActive_Level;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

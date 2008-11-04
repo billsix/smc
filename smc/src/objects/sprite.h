@@ -1,7 +1,7 @@
 /***************************************************************************
-                sprite.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * sprite.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,13 +13,29 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __SPRITE_H__
-#define __SPRITE_H__
+#ifndef SMC_SPRITE_H
+#define SMC_SPRITE_H
 
 #include "../core/globals.h"
 #include "../core/math/rect.h"
 #include "../video/video.h"
 #include "../core/collision.h"
+
+/* *** *** *** *** *** *** *** cEditor_Object_Settings_Item *** *** *** *** *** *** *** *** *** *** */
+
+class cEditor_Object_Settings_Item
+{
+public:
+	cEditor_Object_Settings_Item( void );
+	~cEditor_Object_Settings_Item( void );
+
+	// name
+	CEGUI::Window *window_name;
+	// settings
+	CEGUI::Window *window_setting;
+	// if set start new row
+	bool advance_row;
+};
 
 /* *** *** *** *** *** *** *** cCollidingSprite *** *** *** *** *** *** *** *** *** *** */
 
@@ -88,17 +104,17 @@ public:
 	// if del_img is set the given image will be deleted on change or class deletion
 	cSprite( GL_Surface *new_image = NULL, float x = 0, float y = 0, bool del_img = 0 );
 	// create from stream
-	cSprite( XMLAttributes &attributes );
+	cSprite( CEGUI::XMLAttributes &attributes );
 	// destructor
 	virtual ~cSprite( void );
 
 	// Init defaults
-	void Init( void );
+	virtual void Init( void );
 	// copy this sprite
 	virtual cSprite *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( XMLAttributes &attributes );
+	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file );
 
@@ -118,13 +134,15 @@ public:
 	// Returns the sprite type as string
 	string Get_Sprite_Type_String( void );
 
-	// Set if the camera should be ignored
+	/* Set if the camera should be ignored
+	 * default : disabled
+	*/
 	void Set_Ignore_Camera( bool enable = 0 );
 
 	// Sets the Position
 	void Set_Pos( float x, float y, bool new_startpos = 0 );
-	void Set_PosX( float x, bool new_startpos = 0 );
-	void Set_PosY( float y, bool new_startpos = 0 );
+	void Set_Pos_X( float x, bool new_startpos = 0 );
+	void Set_Pos_Y( float y, bool new_startpos = 0 );
 	// Set if visible
 	void Set_Visible( bool enabled );
 	/* Set the shadow
@@ -152,41 +170,69 @@ public:
 	 * 0.0 is the minimum and the given color has minimum value
 	*/
 	void Set_Color_Combine( float red, float green, float blue, GLint com_type );
+
+	/* Set if rotation affects the collision rect
+	 * only supports 90° steps currently
+	 * if enabled col_pos, col_rect and rect must be reset manually before changing rotation
+	*/
+	void Set_Rotation_affects_Rect( bool enable = 0 );
+	/* Set the rect rotation
+	 * does not reset col_pos, col_rect and rect before rotation
+	 * default : disabled
+	*/
+	void Update_Rect_Rotation( void );
+	// Set the X rect rotation
+	void Update_Rect_Rotation_X( void );
+	// Set the Y rect rotation
+	void Update_Rect_Rotation_Y( void );
+	// Set the Z rect rotation
+	void Update_Rect_Rotation_Z( void );
+
 	// Set the X rotation
-	void Set_RotationX( float rot, bool new_start_rot = 0 );
+	void Set_Rotation_X( float rot, bool new_start_rot = 0 );
 	// Set the Y rotation
-	void Set_RotationY( float rot, bool new_start_rot = 0 );
+	void Set_Rotation_Y( float rot, bool new_start_rot = 0 );
 	// Set the Z rotation
-	void Set_RotationZ( float rot, bool new_start_rot = 0 );
+	void Set_Rotation_Z( float rot, bool new_start_rot = 0 );
 	// Set the rotation
 	void Set_Rotation( float x, float y, float z, bool new_start_rot = 0 );
 
 	// Add X rotation
-	void Add_RotationX( float rot );
+	void Add_Rotation_X( float rot );
 	// Add Y rotation
-	void Add_RotationY( float rot );
+	void Add_Rotation_Y( float rot );
 	// Add Z rotation
-	void Add_RotationZ( float rot );
+	void Add_Rotation_Z( float rot );
 	// Add rotation
 	void Add_Rotation( float x, float y, float z );
 
+	/* Set if scale affects the collision rect
+	 * if enabled previous scale is always undone from rect before setting the new value
+	 * default : disabled
+	*/
+	void Set_Scale_affects_Rect( bool enable = 0 );
+	/* Set which directions of the image get scaled
+	 * if all are set scaling is centered and if all are not set scaling is disabled
+	 * todo : if enabled with scale_affects_rect it should also scale the rect position
+	*/
+	void Set_Scale_Directions( bool up = 0, bool down = 1, bool left = 0, bool right = 1 );
 	// Set the scale
-	void Set_ScaleX( float scale, bool new_startscale = 0 );
-	void Set_ScaleY( float scale, bool new_startscale = 0 );
-	void Set_Scale( float scale, bool new_startscale = 0 );
+	void Set_Scale_X( const float scale, const bool new_startscale = 0 );
+	void Set_Scale_Y( const float scale, const bool new_startscale = 0 );
+	void Set_Scale( const float scale, const bool new_startscale = 0 );
 
 	// Add scale
-	void Add_ScaleX( float val );
-	void Add_ScaleY( float val );
-	void Add_Scale( float val );
+	void Add_Scale_X( const float val );
+	void Add_Scale_Y( const float val );
+	void Add_Scale( const float val );
 
 	// Set this sprite on top of the given one
-	void Set_onTop( cSprite *sprite, bool optimize_hor_pos = 1 );
+	void Set_on_Top( const cSprite *sprite, bool optimize_hor_pos = 1 );
 
 	/* Move this object
 	 * real : if set the speedfactor is not used
 	*/
-	virtual void Move( float move_x, float move_y, bool real = 0 );
+	virtual void Move( float move_x, float move_y, const bool real = 0 );
 
 	// default collision and movement handling
 	virtual void Collide_Move( void );
@@ -196,9 +242,9 @@ public:
 	// default update
 	virtual void Update( void );
 	// update drawing validation
-	virtual void Update_valid_draw( void );
+	virtual void Update_Valid_Draw( void );
 	// update updating validation
-	virtual void Update_valid_update( void );
+	virtual void Update_Valid_Update( void );
 
 	/* Draw
 	* if request is NULL automatically creates the request
@@ -212,45 +258,44 @@ public:
 	/* Set the massive type
 	 * should be called after setting the new array
 	*/
-	virtual void Set_Massivetype( MassiveType mtype );
+	virtual void Set_Massive_Type( MassiveType mtype );
 
 	// Check if this sprite is on top of the given object
-	bool is_onTop( cSprite *obj );
+	bool Is_on_Top( const cSprite *obj );
 
 	// if the sprite is visible on the screen
-	bool is_Visible_onScreen( void );
+	bool Is_Visible_on_Screen( void );
 	// if the Object is in player range
 	bool is_Player_range( void );
 	// if update is valid for the current state
-	virtual bool is_Update_valid( void );
+	virtual bool Is_Update_Valid( void );
 	// if draw is valid for the current state and position
-	virtual bool is_Draw_valid( void );
+	virtual bool Is_Draw_Valid( void );
 
 	// deletes this sprite on the next frame start
 	virtual void Destroy( void );
 
 	// editor add window object
-	void Editor_Add( Window *obj, float obj_width, float obj_height = 25 );
+	void Editor_Add( const CEGUI::String name, const CEGUI::String tooltip, CEGUI::Window *window_setting, float obj_width, float obj_height = 28, bool advance_row = 1 );
 	// editor activation
 	virtual void Editor_Activate( void );
 	// editor deactivation
 	virtual void Editor_Deactivate( void );
+	// editor init
+	virtual void Editor_Init( void );
 	// editor position update
-	virtual void Editor_pos_update( void );
+	virtual void Editor_Position_Update( void );
 	// editor state update
-	virtual void Editor_state_update( void );
-	// editor mouse hover
-	bool Editor_Mouse_Enter( const EventArgs &event );
-	bool Editor_Mouse_Leave( const EventArgs &event );
+	virtual void Editor_State_Update( void );
 
 	// current image used for drawing
 	GL_Surface *image;
-	// editor/first image
+	// editor and first image
 	GL_Surface *start_image;
 
 	// complete image rect
 	GL_rect rect;
-	// editor/first image rect
+	// editor and first image rect
 	GL_rect start_rect;
 	// collision rect
 	GL_rect col_rect;
@@ -265,11 +310,20 @@ public:
 	 * will be only used if not 0
 	*/
 	float editor_posz;
-	// editor/start rotation
+
+	// if set rotation not only affects the image but also the rectangle
+	bool rotation_affects_rect;
+	// editor and start rotation
 	float start_rotx, start_roty, start_rotz;
 	// rotation
 	float rotx, roty, rotz;
-	// editor/start scale
+	// if set scale not only affects the image but also the rectangle
+	bool scale_affects_rect;
+	/* which parts of the image get scaled
+	 * if all are set scaling is centered
+	*/
+	bool scale_up, scale_down, scale_left, scale_right;
+	// editor and start scale
 	float start_scalex, start_scaley;
 	// scale
 	float scalex, scaley;
@@ -318,8 +372,10 @@ public:
 	bool valid_update;
 
 	// editor active window list
-	typedef vector<Window *> WindowList;
-	WindowList editor_windows;
+	typedef vector<cEditor_Object_Settings_Item *> Editor_Object_Settings_List;
+	Editor_Object_Settings_List editor_windows;
+	// width for all name windows based on largest name text width
+	float editor_window_name_width;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

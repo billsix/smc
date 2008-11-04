@@ -1,7 +1,7 @@
 /***************************************************************************
-                player.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * player.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __PLAYER_H__
-#define __PLAYER_H__
+#ifndef SMC_PLAYER_H
+#define SMC_PLAYER_H
 
 #include "../core/globals.h"
 #include "../objects/ball.h"
@@ -66,10 +66,12 @@ public:
 	virtual cPlayer *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( XMLAttributes &attributes );
+	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file );
 
+	// Init
+	virtual void Init( void );
 	// lets the Player hold in
 	void Hold( void );
 
@@ -79,7 +81,7 @@ public:
 	virtual void Set_Direction( ObjectDirection dir, bool new_start_direction = 0 );
 
 	// Set the ground object
-	virtual void Set_onGround( cSprite *obj );
+	virtual void Set_on_Ground( cSprite *obj );
 
 	/* downgrade state ( if small maryo : dies )
 	 * if delayed is set the downgrade is handled on the next game update
@@ -90,50 +92,50 @@ public:
 	// moves in the current direction
 	void Move_Player( float velocity, float vel_wrongway );
 	// generate foot clouds
-	void Generate_feet_clouds( cParticleAnimation *anim = NULL );
+	void Generate_Feet_Clouds( cParticle_Emitter *anim = NULL );
 	// Update the walking
-	void Update_walking( void );
+	void Update_Walking( void );
 	// Update the running
-	void Update_running( void );
+	void Update_Running( void );
 	// Update the staying
-	void Update_staying( void );
+	void Update_Staying( void );
 	// Update the flying
-	void Update_flying( void );
+	void Update_Flying( void );
 	/* Stop flying
 	 * parachute : if set fall slow with parachute
 	*/
-	void Stop_flying( bool nparachute = 1 );
+	void Stop_Flying( bool nparachute = 1 );
 	// Start falling
-	void Start_falling( void );
+	void Start_Falling( void );
 	// Update falling
-	void Update_falling();
+	void Update_Falling();
 	// Start ducking
-	void Start_ducking( void );
+	void Start_Ducking( void );
 	// Stop ducking
-	void Stop_ducking( void );
+	void Stop_Ducking( void );
 	// Update ducking
-	void Update_ducking( void );
+	void Update_Ducking( void );
 	// Start climbing
-	void Start_climbing( void );
+	void Start_Climbing( void );
 	// Update the climbing
-	void Update_climbing( void );
+	void Update_Climbing( void );
 	// Set up the upkeytime for better jumping detection
-	void Start_jump_keytime( void );
+	void Start_Jump_Keytime( void );
 	// Update the upkeytime and start a jump if possible
-	void Update_jump_keytime( void );
-	// Start a jump with the given values
-	void Start_jump( float power = 17, float accel = 4, float deaccel = 0.08f );
+	void Update_Jump_Keytime( void );
+	// Start a jump with the given de-acceleration
+	void Start_Jump( float deaccel = 0.08f );
 	// Update jump
-	void Update_jump( void );
+	void Update_Jump( void );
 
 	// Update the active item
-	void Update_item( void );
+	void Update_Item( void );
 
 	/* Release the Active Item
 	 * if set_position is set the active item will be set in front of the player
 	 * if no_action is set the item will just be released
 	*/
-	void Release_item( bool set_position = 1, bool no_action = 0 );
+	void Release_Item( bool set_position = 1, bool no_action = 0 );
 
 	/* Set the Type
 	 * animate : show type change animation
@@ -142,14 +144,10 @@ public:
 	void Set_Type( Maryo_type new_type, bool animation = 1, bool sound = 1 );
 	void Set_Type( SpriteType item_type, bool animation = 1, bool sound = 1 );
 	// sets the moving state
-	void Set_MovingState( Moving_state new_state );
+	void Set_Moving_State( Moving_state new_state );
 
 	// default update
 	virtual void Update( void );
-	/* Updates the Camera
-	 * set smooth for slow moving into the new position
-	*/
-	void Update_Camera( bool smooth = 0 );
 
 	// Draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
@@ -166,7 +164,7 @@ public:
 	/* Sets the best position to advance in size
 	 * if only_check is set position is unchanged
 	*/
-	bool ChangeSize( float x, float y, bool only_check = 0 );
+	bool Change_Size( float x, float y, bool only_check = 0 );
 
 	/* Player gets the given Item
 	 * force : if true the player will use the item immediately
@@ -176,40 +174,42 @@ public:
 	void Get_Item( SpriteType item_type, bool force = 0, cMovingSprite *base = NULL );
 	
 	// returns the current velocity modifier
-	float Get_Vel_mod( void );
+	float Get_Vel_Modifier( void );
 
 	// Start a jump
 	void Action_Jump( bool enemy_jump = 0 );
-	// Interact with items
-	void Action_Interact( SDLKey key_type );
+	// General input interact event
+	void Action_Interact( input_identifier key_type );
 	// Shoot if available
-	void Action_Shoot();
+	void Action_Shoot( void );
 
 	// Stop jump
 	void Action_Stop_Jump( void );
-	// Stop Interacting with items
-	void Action_Stop_Interact( SDLKey key_type );
+	// Stop Interacting event
+	void Action_Stop_Interact( input_identifier key_type );
 	// Stop Shoot action
-	void Action_Stop_Shoot();
+	void Action_Stop_Shoot( void );
 
 	/* Adds a Fire/Ice-ball
 	 * Returns 1 if successful
 	*/
-	bool Ball_add( ball_effect effect_type = FIREBALL_DEFAULT );
+	bool Ball_Add( ball_effect effect_type = FIREBALL_DEFAULT );
 	// Destroys all Fire/Ice-balls
-	void Ball_clear( void );
+	void Ball_Clear( void );
 	
 	// Resets the complete game state
-	void ResetSave( void );
+	void Reset_Save( void );
 	/* Reset state and status
 	 * if full is set reset item and camera state
 	*/
 	void Reset( bool full = 1 );
 
 	// Exits the level and walks to the next Overworld waypoint
-	void Goto_next_Level( void );
-	// Enters the given level and entry
-	void Goto_SubLevel( string str_level, string str_entry );
+	void Goto_Next_Level( void );
+	/* Enters the given level on the entry
+	 * move_camera: if set move camera slowly to the new position
+	*/
+	void Goto_Sub_Level( string str_level, string str_entry, bool move_camera = 1 );
 	
 	// Add an enemy to the kill multiplier
 	void Add_Kill_Multiplier( void );
@@ -227,12 +227,12 @@ public:
 	// collision with massive
 	virtual void Handle_Collision_Massive( cObjectCollision *collision );
 	// handle moved out of Level
-	virtual void Handle_OutofLevel( ObjectDirection dir );
+	virtual void Handle_out_of_Level( ObjectDirection dir );
 
 	// leveleditor activation
 	virtual void Editor_Activate( void );
 	// leveleditor events
-	bool Editor_Direction_Select( const EventArgs &event ); // editor direction option selected
+	bool Editor_Direction_Select( const CEGUI::EventArgs &event ); // editor direction option selected
 
 	// current Maryo type
 	Maryo_type maryo_type;
@@ -266,8 +266,14 @@ public:
 
 	// jumping keytime
 	float UpKeytime;
-	// enemy jump activator
-	bool start_enemyjump;
+	// force next jump
+	bool force_jump;
+	// next jump with sound
+	bool next_jump_sound;
+	// next jump power
+	float next_jump_power;
+	// next jump acceleration
+	float next_jump_accel;
 	// Acceleration if up key is pressed
 	float jump_accel_up;
 	// vely De-acceleration use 0.05 - 0.08
@@ -275,10 +281,12 @@ public:
 	// next jump power
 	float jump_power;
 
-	// throwing animation counter
+	// throw animation counter
 	float throwing_counter;
 	// if maryo is ducked
-	bool ducked;
+	Uint32 ducked;
+	// ducked animation counter
+	float ducked_animation_counter;
 	// if parachute falling
 	bool parachute;
 	// goldpiece amount collected
@@ -292,8 +300,8 @@ public:
 	// time player didn't move
 	float no_velx_counter, no_vely_counter;
 
-	// fire/ice-ball count
-	unsigned int fireball_count, iceball_count;
+	// fire/ice-ball shoot counter
+	float shoot_counter;
 	// active/holding object ( f.e. shell )
 	cMovingSprite *active_object;
 };

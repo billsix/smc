@@ -1,7 +1,7 @@
 /***************************************************************************
-              thromp.h  -  headers for the corresponding cpp file
-                             -------------------
-    copyright            : (C) 2006 - 2007 by Florian Richter
+ * thromp.h  -  headers for the corresponding cpp file
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __THROMP_H__
-#define __THROMP_H__
+#ifndef SMC_THROMP_H
+#define SMC_THROMP_H
 
 #include "../enemies/enemy.h"
 
@@ -29,7 +29,7 @@ public:
 	// constructor
 	cThromp( float x, float y );
 	// create from stream
-	cThromp( XMLAttributes &attributes );
+	cThromp( CEGUI::XMLAttributes &attributes );
 	// destructor
 	virtual ~cThromp( void );
 
@@ -39,7 +39,7 @@ public:
 	virtual cThromp *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( XMLAttributes &attributes );
+	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file );
 
@@ -48,19 +48,21 @@ public:
 	// save to savegame
 	virtual cSave_Level_Object *Save_to_Savegame( void );
 
+	// Set the image directory
+	void Set_Image_Dir( string filename );
 	// Set Direction
 	void Set_Direction( ObjectDirection dir );
 	// Set Max Distance
-	void Set_Max_Distance( int nmax_distance );
+	void Set_Max_Distance( float nmax_distance );
 	// Set the Speed
 	void Set_Speed( float val );
 
-	// Jump out
+	// Move to destination direction
 	void Activate( void );
-	// Moves back to the original position
+	// Move back to the original position
 	void Move_Back( void );
 
-	/* downgrade state ( if already weakest state : dies )
+	/* downgrade state ( if already the weakest state it dies )
 	 * force : usually dies or a complete downgrade
 	*/
 	virtual void DownGrade( bool force = 0 );
@@ -71,19 +73,25 @@ public:
 	// draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
+	// update images
+	void Update_Images( void );
 	// update destination velocity from the speed
 	void Update_dest_vel( void );
-	// returns the distance rect
-	GL_rect Get_Distance_rect( void );
+	// update the distance rect
+	void Update_Distance_rect( void );
+	// Get the final distance rect
+	GL_rect Get_Final_Distance_Rect( void );
 
 	// Generates Smoke Particles
 	void Generate_Smoke( unsigned int power = 10 );
 
 	// if update is valid for the current state
-	virtual bool is_Update_valid( void );
+	virtual bool Is_Update_Valid( void );
+	// if draw is valid for the current state and position
+	virtual bool Is_Draw_Valid( void );
 
 	// ignore onground check
-	virtual void Check_onGround( void ) {};
+	virtual void Check_on_Ground( void ) {};
 	/* Validate the given collision object
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
@@ -96,21 +104,32 @@ public:
 	// collision with massive
 	virtual void Handle_Collision_Massive( cObjectCollision *collision );
 
-	// leveleditor activation
+	// editor activation
 	virtual void Editor_Activate( void );
-	// leveleditor events
-	bool Editor_Max_Distance_Key( const EventArgs &event );  // editor max distance key up
-	bool Editor_Speed_Key( const EventArgs &event );  // editor speed key up
+	// editor image dir key up event
+	bool Editor_Image_Dir_Key( const CEGUI::EventArgs &event );
+	// editor max distance key up event
+	bool Editor_Max_Distance_Key( const CEGUI::EventArgs &event );
+	// editor speed key up event
+	bool Editor_Speed_Key( const CEGUI::EventArgs &event );
 
+	// image directory
+	string img_dir;
 	// speed
 	float speed;
 	// destination direction velocity
 	float dest_velx, dest_vely;
 	// maximum distance from the startposition
-	int max_distance;
+	float max_distance;
 
 	// moving back to the original position
 	bool move_back;
+	// distance rect to end position
+	GL_rect distance_rect;
+
+private:
+	// Create the Name from the current settings
+    void Create_Name( void );
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

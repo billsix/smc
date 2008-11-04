@@ -1,7 +1,7 @@
 /***************************************************************************
-                level_manager.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2007 by Florian Richter
+ * level_manager.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2007 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,54 +13,45 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __LEVEL_MANAGER_H__
-#define __LEVEL_MANAGER_H__
+#ifndef SMC_LEVEL_MANAGER_H
+#define SMC_LEVEL_MANAGER_H
 
 #include "../core/globals.h"
 #include "../core/obj_manager.h"
+#include "../core/camera.h"
+#include "../level/level.h"
 
-// engine version
-#define LEVEL_ENGINE_VERSION 2.3f
 // default files for levels
 #define LEVEL_DEFAULT_MUSIC "land/land_5.ogg"
 #define LEVEL_DEFAULT_BACKGROUND "game/background/green_junglehills.png"
 
-/* *** *** *** *** *** Level drawing Types *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cLevel_Manager  *** *** *** *** *** *** *** *** *** *** *** *** */
 
-enum LevelDrawType
-{
-	LVL_DRAW		= 0,	// only draw
-	LVL_DRAW_NO_BG	= 1,	// only draws and without background gradient and image
-	LVL_DRAW_BG		= 2		// only draws the background gradient and image
-};
-
-/* *** *** *** *** *** cLevel_manager  *** *** *** *** *** *** *** *** *** *** *** *** */
-
-class cLevel;
-
-class cLevel_manager : public cObject_Manager<cLevel>
+class cLevel_Manager : public cObject_Manager<cLevel>
 {
 public:
-	cLevel_manager( void );
-	virtual ~cLevel_manager( void );
+	cLevel_Manager( void );
+	virtual ~cLevel_Manager( void );
 
 	// Load level descriptions
 	void Init( void );
 	// Unload
 	void Unload( void );
 
-	/* Load new Level
+	/* Load level
 	 * delayed : if set the level will be loaded on the next update
 	 * sub_level : if set previous level isn't unloaded
 	*/
 	bool Load( string filename, bool delayed = 0, bool sub_level = 0 );
 
+	// level camera
+	cCamera *camera;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // The Level Manager
-extern cLevel_manager *pLevel_manager;
+extern cLevel_Manager *pLevel_Manager;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

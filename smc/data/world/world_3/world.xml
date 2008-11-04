@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <overworld>
 	<information>
-		<Property name="game_version" value="1.3" />
+		<Property name="game_version" value="1.5" />
 		<Property name="engine_version" value="1" />
-		<Property name="save_time" value="1193925029" />
+		<Property name="save_time" value="1204650101" />
 	</information>
 	<settings>
 		<Property name="music" value="overworld/land_1.ogg" />
@@ -177,7 +177,7 @@
 		<Property name="x" value="249" />
 		<Property name="y" value="129" />
 		<Property name="type" value="2" />
-		<Property name="destination" value="credits" />
+		<Property name="destination" value="world_4" />
 		<Property name="direction_backward" value="right" />
 		<Property name="direction_forward" value="last" />
 		<Property name="access" value="0" />

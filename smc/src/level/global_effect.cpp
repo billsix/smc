@@ -1,7 +1,7 @@
 /***************************************************************************
-    global_effect.cpp  -  class for handling level global effects
-                             -------------------
-    copyright            : (C) 2006 - 2007 by Florian Richter
+ * global_effect.cpp  -  class for handling level global effects
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -23,15 +23,15 @@
 /* *** *** *** *** *** cGlobal_effect *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cGlobal_effect :: cGlobal_effect( void )
-: cParticleAnimation()
+: cParticle_Emitter()
 {
-	Init_default();
+	Clear();
 }
 
-cGlobal_effect :: cGlobal_effect( XMLAttributes &attributes )
-: cParticleAnimation()
+cGlobal_effect :: cGlobal_effect( CEGUI::XMLAttributes &attributes )
+: cParticle_Emitter()
 {
-	Init_default();
+	Clear();
 	Create_from_Stream( attributes );
 }
 
@@ -40,29 +40,25 @@ cGlobal_effect :: ~cGlobal_effect( void )
 
 }
 
-void cGlobal_effect :: Init_default( void )
-{
-	Clear();
-}
-
-void cGlobal_effect :: Init( void )
+void cGlobal_effect :: Init_Anim( void )
 {
 	if( ge_type == GL_EFF_NONE )
 	{
 		return;
 	}
 
-	if( ge_type == GL_EFF_FALLING || ge_type == GL_EFF_FLYING )
+	if( ge_type == GL_EFF_FALLING )
 	{
-		// if the image doesn't exists
+		// image doesn't exist
 		if( !pVideo->Get_Surface( image_filename ) )
 		{
 			valid = 0;
 		}
-		// image exists valid effect
+		// image exists
 		else
 		{
 			image = pVideo->Get_Surface( image_filename );
+			// valid effect
 			valid = 1;
 		}
 	}
@@ -73,10 +69,9 @@ void cGlobal_effect :: Init( void )
 		float old_speedfactor = pFramerate->speedfactor;
 		pFramerate->speedfactor = 1;
 		// use time to live as seconds
-		for( float i = 0; i < DESIRED_FPS * time_to_live; i++ )
+		for( float i = 0; i < speedfactor_fps * time_to_live; i++ )
 		{
 			Update();
-			Update_anim();
 		}
 
 		pFramerate->speedfactor = old_speedfactor;
@@ -85,44 +80,40 @@ void cGlobal_effect :: Init( void )
 
 void cGlobal_effect :: Clear( void )
 {
-	cParticleAnimation::Clear();
+	cParticle_Emitter::Clear();
 
 	ge_type = GL_EFF_NONE;
 
 	image_filename.clear();
 	image = NULL;
-	Set_Emitter_Rect( GL_rect( 0, 0, GAME_RES_W, 0 ) );
+	Set_Emitter_Rect( 0, 0, static_cast<float>(game_res_w), 0 );
 	Set_Emitter_Time_to_Live( -1 );
-	Set_Emitter_Iteration_Interval( 1 * 0.3f );
-	Set_ZPos( 0.12f, 0 );
+	Set_Emitter_Iteration_Interval( 0.3f );
+	Set_Pos_Z( 0.12f, 0 );
 	Set_Time_to_Live( 7, 0 );
 	Set_Scale( 0.2f, 0.2f );
 	Set_Speed( 2, 8 );
-	Set_DirectionRange( 0, 90 );
-	Set_ConstRotationZ( 0.5f, 10 );
+	Set_Direction_Range( 0, 90 );
+	Set_Rotation( 0, 0, 0, 1 );
+	Set_Const_Rotation_Z( -5, 10 );
 
 	valid = 0;
 }
 
-void cGlobal_effect :: Create_from_Stream( XMLAttributes &attributes )
+void cGlobal_effect :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// Type
-	Set_type( (GlobalEffectType)attributes.getValueAsInteger( "type", GL_EFF_NONE ) );
+	Set_Type( (GlobalEffectType)attributes.getValueAsInteger( "type", ge_type ) );
 	// Image
-	Set_image( attributes.getValueAsString( "image" ).c_str() );
+	Set_Image( attributes.getValueAsString( "image", image_filename ).c_str() );
 	// Creation Rect
-	Set_Emitter_Rect( static_cast<float>(attributes.getValueAsInteger( "rect_x", 0 )), static_cast<float>(attributes.getValueAsInteger( "rect_y", 0 )), static_cast<float>(attributes.getValueAsInteger( "rect_w", GAME_RES_W )), static_cast<float>(attributes.getValueAsInteger( "rect_h", 0 )) );
-	// if start position is 0 change it
-	if( startposx == 0 && startposy == 0 )
-	{
-		Set_Emitter_Rect( startposx, -1, rect.w, rect.h );
-	}
+	Set_Emitter_Rect( static_cast<float>(attributes.getValueAsInteger( "rect_x", static_cast<int>(startposx) )), static_cast<float>(attributes.getValueAsInteger( "rect_y", static_cast<int>(startposy) )), static_cast<float>(attributes.getValueAsInteger( "rect_w", static_cast<int>(rect.w) )), static_cast<float>(attributes.getValueAsInteger( "rect_h", static_cast<int>(rect.h) )) );
 	// Z Position
-	Set_ZPos( attributes.getValueAsFloat( "z", 0.12f ), attributes.getValueAsFloat( "z_rand" ) );
+	Set_Pos_Z( attributes.getValueAsFloat( "z", posz ), attributes.getValueAsFloat( "z_rand", posz_rand ) );
 	// Time to Live
 	if( attributes.exists( "time_to_live" ) )
 	{
-		Set_Time_to_Live( attributes.getValueAsFloat( "time_to_live", 7 ) );
+		Set_Time_to_Live( attributes.getValueAsFloat( "time_to_live", time_to_live ), attributes.getValueAsFloat( "time_to_live_rand", time_to_live_rand ) );
 	}
 	// if not set uses old Lifetime mod
 	else
@@ -132,7 +123,7 @@ void cGlobal_effect :: Create_from_Stream( XMLAttributes &attributes )
 	// Emitter Iteration Interval
 	if( attributes.exists( "emitter_iteration_interval" ) )
 	{
-		Set_Emitter_Iteration_Interval( attributes.getValueAsFloat( "emitter_iteration_interval", 1.3f ) );
+		Set_Emitter_Iteration_Interval( attributes.getValueAsFloat( "emitter_iteration_interval", emitter_iteration_interval ) );
 	}
 	// if not set uses old Creation speed ( 0.99.7 and below )
 	else
@@ -140,13 +131,15 @@ void cGlobal_effect :: Create_from_Stream( XMLAttributes &attributes )
 		Set_Emitter_Iteration_Interval( ( 1 / attributes.getValueAsFloat( "creation_speed", 0.3f ) ) * 0.032f );
 	}
 	// Scale
-	Set_Scale( attributes.getValueAsFloat( "scale", 0.2f ), attributes.getValueAsFloat( "scale_rand", 0.2f ) );
+	Set_Scale( attributes.getValueAsFloat( "scale", size_scale ), attributes.getValueAsFloat( "scale_rand", size_scale_rand ) );
 	// Speed
-	Set_Speed( attributes.getValueAsFloat( "speed", 2 ), attributes.getValueAsFloat( "speed_rand", 8 ) );
+	Set_Speed( attributes.getValueAsFloat( "speed", vel ), attributes.getValueAsFloat( "speed_rand", vel_rand ) );
 	// Direction
-	Set_DirectionRange( attributes.getValueAsFloat( "dir_range_start", 0 ), attributes.getValueAsFloat( "dir_range_size", 90 ) );
+	Set_Direction_Range( attributes.getValueAsFloat( "dir_range_start", angle_start ), attributes.getValueAsFloat( "dir_range_size", angle_range ) );
+	// start rotation
+	Set_Rotation( attributes.getValueAsFloat( "rot_x", start_rotx ), attributes.getValueAsFloat( "rot_y", start_roty ), attributes.getValueAsFloat( "rot_z", start_rotz ), 1 );
 	// Constant Rotation Z
-	Set_ConstRotationZ( attributes.getValueAsFloat( "const_rotz", 0.5f ), attributes.getValueAsFloat( "const_rotz_rand", 10 ) );
+	Set_Const_Rotation_Z( attributes.getValueAsFloat( "const_rotz", const_rotz ), attributes.getValueAsFloat( "const_rotz_rand", const_rotz_rand ) );
 }
 
 void cGlobal_effect :: Save_to_Stream( ofstream &file )
@@ -180,6 +173,7 @@ void cGlobal_effect :: Save_to_Stream( ofstream &file )
 	file << "\t\t<Property name=\"z_rand\" value=\"" << posz_rand << "\" />" << std::endl;
 	// Time to Live
 	file << "\t\t<Property name=\"time_to_live\" value=\"" << time_to_live << "\" />" << std::endl;
+	file << "\t\t<Property name=\"time_to_live_rand\" value=\"" << time_to_live_rand << "\" />" << std::endl;
 	// Emitter Iteration Interval
 	file << "\t\t<Property name=\"emitter_iteration_interval\" value=\"" << emitter_iteration_interval << "\" />" << std::endl;
 	// scale
@@ -191,6 +185,10 @@ void cGlobal_effect :: Save_to_Stream( ofstream &file )
 	// direction range
 	file << "\t\t<Property name=\"dir_range_start\" value=\"" << angle_start << "\" />" << std::endl;
 	file << "\t\t<Property name=\"dir_range_size\" value=\"" << angle_range << "\" />" << std::endl;
+	// start rotation
+	file << "\t\t<Property name=\"rot_x\" value=\"" << start_rotx << "\" />" << std::endl;
+	file << "\t\t<Property name=\"rot_y\" value=\"" << start_roty << "\" />" << std::endl;
+	file << "\t\t<Property name=\"rot_z\" value=\"" << start_rotz << "\" />" << std::endl;
 	// constant rotation Z
 	file << "\t\t<Property name=\"const_rotz\" value=\"" << const_rotz << "\" />" << std::endl;
 	file << "\t\t<Property name=\"const_rotz_rand\" value=\"" << const_rotz_rand << "\" />" << std::endl;
@@ -212,78 +210,74 @@ void cGlobal_effect :: Update( void )
 		return;
 	}
 	
-	Set_Pos( pCamera->x, pCamera->y );
-	Update_anim();
+	Set_Pos( startposx + pActive_Camera->x, startposy + pActive_Camera->y );
+	// update particles
+	Update_Particles();
+	// update particle animation
+	cParticle_Emitter::Update();
 }
 
-void cGlobal_effect :: Update_anim( void )
+void cGlobal_effect :: Update_Particles( void )
 {
-	// find out of camera objects and move them to the opposite direction
-
-	GL_rect camera_rect = GL_rect( pCamera->x, pCamera->y, GAME_RES_W, GAME_RES_H );
+	GL_rect camera_rect = GL_rect( pActive_Camera->x, pActive_Camera->y, static_cast<float>(game_res_w), static_cast<float>(game_res_h) );
 
 	for( ParticleList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
-		// get  animation particle pointer
+		// get animation particle pointer
 		cParticle *obj = static_cast<cParticle *>(*itr);
 		
 		GL_rect anim_rect = GL_rect( obj->posx, obj->posy, obj->rect.w, obj->rect.h );
 		
 		// if not on screen
-		if( !Col_Box( &anim_rect, &camera_rect ) )
+		if( !Col_Box( &camera_rect, &anim_rect ) )
 		{
 			// out in left
-			if( obj->posx + image->w < pCamera->x )
+			if( anim_rect.x + anim_rect.w < camera_rect.x )
 			{
 				// move to right
-				obj->Set_PosX( pCamera->x + camera_rect.w );
+				obj->Set_Pos_X( camera_rect.x + camera_rect.w - 1 );
 			}
 			// out in right
-			else if( obj->posx > pCamera->x + camera_rect.w )
+			else if( anim_rect.x > camera_rect.x + camera_rect.w )
 			{
 				// move to left
-				obj->Set_PosX( pCamera->x - image->w );
+				obj->Set_Pos_X( camera_rect.x + 1 );
 			}
 			// out on top
-			else if( obj->posy < pCamera->y - image->h - 1 )
+			else if( anim_rect.y + anim_rect.h < camera_rect.y )
 			{
-				obj->Set_PosY( pCamera->y + camera_rect.h );
+				// move to bottom
+				obj->Set_Pos_Y( camera_rect.y + camera_rect.h - 1 );
 			}
 			// out on bottom
-			else if( obj->posy > pCamera->y + camera_rect.h + 1 )
+			else if( anim_rect.y > camera_rect.y + camera_rect.h )
 			{
-				obj->Set_PosY( pCamera->y - image->h );
+				// move to top
+				obj->Set_Pos_Y( camera_rect.y + 1 );
 			}
 		}
 	}
-
-	// update particle animation
-	cParticleAnimation::Update();
 }
 
 void cGlobal_effect :: Draw( void )
 {
-	cParticleAnimation::Draw();
+	cParticle_Emitter::Draw();
 }
 
-void cGlobal_effect :: Set_type( GlobalEffectType ntype )
+void cGlobal_effect :: Set_Type( GlobalEffectType ntype )
 {
 	ge_type = ntype;
 }
 
-void cGlobal_effect :: Set_type( string ntype )
+void cGlobal_effect :: Set_Type( string ntype )
 {
 	if( ntype.compare( "Disabled" ) == 0 )
 	{
 		ge_type = GL_EFF_NONE;
 	}
-	else if( ntype.compare( "Falling" ) == 0 )
+	else if( ntype.compare( "Falling" ) == 0 || ntype.compare( "Default" ) == 0 )
 	{
 		ge_type = GL_EFF_FALLING;
-	}
-	else if( ntype.compare( "Flying" ) == 0 )
-	{
-		ge_type = GL_EFF_FLYING;
 	}
 	else
 	{
@@ -291,12 +285,12 @@ void cGlobal_effect :: Set_type( string ntype )
 	}
 }
 
-void cGlobal_effect :: Set_image( string nimg_file )
+void cGlobal_effect :: Set_Image( string nimg_file )
 {
 	image_filename = nimg_file;
 }
 
-string cGlobal_effect :: Get_Typename( void )
+string cGlobal_effect :: Get_Type_Name( void )
 {
 	if( ge_type == GL_EFF_NONE )
 	{
@@ -306,14 +300,6 @@ string cGlobal_effect :: Get_Typename( void )
 	{
 		return "Falling";
 	}
-	else if( ge_type == GL_EFF_FLYING )
-	{
-		return "Flying";
-	}
-	else
-	{
-		return "Unknown";
-	}
 
-	return "";
+	return "Unknown";
 }

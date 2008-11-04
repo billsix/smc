@@ -1,7 +1,7 @@
 /***************************************************************************
-         goldpiece.cpp  -  goldpiece class
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * goldpiece.cpp  -  goldpiece class
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -21,20 +21,22 @@
 #include "../video/animation.h"
 #include "../gui/hud.h"
 #include "../user/savegame.h"
+#include "../core/math/utilities.h"
+#include "../core/i18n.h"
 
 /* *** *** *** *** *** *** cGoldpiece *** *** *** *** *** *** *** *** *** *** *** */
 
 cGoldpiece :: cGoldpiece( float x, float y )
 : cImageObjectSprite( x, y )
 {
-	Init();
+	cGoldpiece::Init();
 }
 
-cGoldpiece :: cGoldpiece( XMLAttributes &attributes )
+cGoldpiece :: cGoldpiece( CEGUI::XMLAttributes &attributes )
 : cImageObjectSprite()
 {
-	Init();
-	Create_from_Stream( attributes );
+	cGoldpiece::Init();
+	cGoldpiece::Create_from_Stream( attributes );
 }
 
 cGoldpiece :: ~cGoldpiece( void )
@@ -49,26 +51,26 @@ void cGoldpiece :: Init( void )
 	type = TYPE_GOLDPIECE;
 	posz = 0.041f;
 
-	Set_Goldcolor( COL_YELLOW );
+	Set_Gold_Color( COL_YELLOW );
 
 	// small random counter
-	counter = static_cast<float>(rand() % 5);
+	counter = Get_Random_Float( 0, 5 );
 }
 
 cGoldpiece *cGoldpiece :: Copy( void )
 {
 	cGoldpiece *goldpiece = new cGoldpiece( startposx, startposy );
-	goldpiece->Set_Goldcolor( color_type );
+	goldpiece->Set_Gold_Color( color_type );
 
 	return goldpiece;
 }
 
-void cGoldpiece :: Create_from_Stream( XMLAttributes &attributes )
+void cGoldpiece :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// gold color
-	Set_Goldcolor( Get_Color_id( attributes.getValueAsString( "color", Get_Color_name( color_type ) ).c_str() ) );
+	Set_Gold_Color( Get_Color_Id( attributes.getValueAsString( "color", Get_Color_Name( color_type ) ).c_str() ) );
 }
 
 void cGoldpiece :: Save_to_Stream( ofstream &file )
@@ -82,7 +84,7 @@ void cGoldpiece :: Save_to_Stream( ofstream &file )
 	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
 	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// color
-	file << "\t\t<Property name=\"color\" value=\"" << Get_Color_name( color_type ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"color\" value=\"" << Get_Color_Name( color_type ) << "\" />" << std::endl;
 
 	// end item
 	file << "\t</item>" << std::endl;
@@ -116,7 +118,7 @@ cSave_Level_Object *cGoldpiece :: Save_to_Savegame( void )
 	return save_object;
 }
 
-void cGoldpiece :: Set_Goldcolor( DefaultColor ncolor )
+void cGoldpiece :: Set_Gold_Color( DefaultColor ncolor )
 {
 	color_type = ncolor;
 
@@ -136,7 +138,7 @@ void cGoldpiece :: Set_Goldcolor( DefaultColor ncolor )
 		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/red/9.png" ) );
 		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/red/10.png" ) );
 
-		name = "Red Gold";
+		name = _("Red Goldpiece");
 	}
 	// default = yellow
 	else
@@ -152,7 +154,7 @@ void cGoldpiece :: Set_Goldcolor( DefaultColor ncolor )
 		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/yellow/9.png" ) );
 		images.push_back( pVideo->Get_Surface( "game/items/goldpiece/yellow/10.png" ) );
 
-		name = "Gold";
+		name = _("Goldpiece");
 	}
 
 	Set_Image( 0, 1 );
@@ -161,24 +163,24 @@ void cGoldpiece :: Set_Goldcolor( DefaultColor ncolor )
 void cGoldpiece :: Activate( void )
 {
 	// animation
-	cBlinkAnimation *anim = new cBlinkAnimation( posx + ( col_rect.w / 10 ), posy + ( col_rect.h / 10 ) );
+	cAnimation_Goldpiece *anim = new cAnimation_Goldpiece( posx + ( col_rect.w / 10 ), posy + ( col_rect.h / 10 ) );
 
 	// gold
 	unsigned int points = 0;
 
 	if( color_type == COL_RED )
 	{
-		golddisplay->AddGold( 5 );
+		golddisplay->Add_Gold( 5 );
 		points = 100;
 		anim->Set_Color( Color( static_cast<Uint8>(255), 240, 20, 200 ) );
 	}
 	else
 	{
-		golddisplay->AddGold( 1 );
+		golddisplay->Add_Gold( 1 );
 		points = 5;
 	}
 
-	pAnimationManager->Add( anim );
+	pAnimation_Manager->Add( anim );
 
 	// if jumping double the points
 	if( type == TYPE_JGOLDPIECE )
@@ -202,7 +204,7 @@ void cGoldpiece :: Activate( void )
 
 void cGoldpiece :: Update( void )
 {
-	if( !valid_update )
+	if( !valid_update || !Is_Visible_on_Screen() )
 	{
 		return;
 	}
@@ -210,7 +212,7 @@ void cGoldpiece :: Update( void )
 	// todo : move to internal collision
 	if( Col_Box( &col_rect, &pPlayer->col_rect ) )
 	{
-		pAudio->PlaySound( "item/goldpiece_1.ogg" );
+		pAudio->Play_Sound( "item/goldpiece_1.ogg" );
 		Activate();
 		return;
 	}
@@ -241,9 +243,10 @@ void cGoldpiece :: Draw( cSurfaceRequest *request /* = NULL */ )
 	cImageObjectSprite::Draw( request );
 }
 
-bool cGoldpiece :: is_Update_valid( void )
+bool cGoldpiece :: Is_Update_Valid( void )
 {
-	if( !visible || !is_Visible_onScreen() )
+	// if not visible
+	if( !visible )
 	{
 		return 0;
 	}
@@ -251,14 +254,14 @@ bool cGoldpiece :: is_Update_valid( void )
 	return 1;
 }
 
-void cGoldpiece :: Check_onGround( void )
+void cGoldpiece :: Check_on_Ground( void )
 {
 	if( type == TYPE_GOLDPIECE )
 	{
 		return;
 	}
 
-	cImageObjectSprite::Check_onGround();
+	cImageObjectSprite::Check_on_Ground();
 }
 
 /* *** *** *** *** *** *** cJGoldpiecee *** *** *** *** *** *** *** *** *** *** *** */
@@ -269,9 +272,7 @@ cJGoldpiece :: cJGoldpiece( float x, float y )
 	type = TYPE_JGOLDPIECE;
 	spawned = 1;
 
-	Set_Goldcolor( COL_YELLOW );
-
-	counter = static_cast<float>( rand() % 5 );
+	Set_Gold_Color( COL_YELLOW );
 
 	vely = -18;
 }
@@ -348,7 +349,7 @@ cFGoldpiece :: cFGoldpiece( float x, float y, ObjectDirection dir /* = DIR_NOTHI
 		velx = -5;
 	}
 
-	Set_Goldcolor( COL_YELLOW );
+	Set_Gold_Color( COL_YELLOW );
 }
 
 cFGoldpiece :: ~cFGoldpiece( void )
@@ -356,7 +357,7 @@ cFGoldpiece :: ~cFGoldpiece( void )
 	//
 }
 
-void cFGoldpiece :: Set_Goldcolor( DefaultColor ncolor )
+void cFGoldpiece :: Set_Gold_Color( DefaultColor ncolor )
 {
 	color_type = ncolor;
 
@@ -403,7 +404,7 @@ void cFGoldpiece :: Update( void )
 
 	if( Col_Box( &col_rect, &pPlayer->col_rect ) )
 	{
-		pAudio->PlaySound( "item/goldpiece_1.ogg" );
+		pAudio->Play_Sound( "item/goldpiece_1.ogg" );
 		Activate();
 		return;
 	}
@@ -458,7 +459,7 @@ unsigned int cFGoldpiece :: Validate_Collision( cSprite *obj )
 	if( obj->massivetype == MASS_HALFMASSIVE )
 	{
 		// if moving downwards and object is on top
-		if( vely >= 0 && is_onTop( obj ) )
+		if( vely >= 0 && Is_on_Top( obj ) )
 		{
 			return 2;
 		}
@@ -526,5 +527,5 @@ void cFGoldpiece :: Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r
 		Turn_Around( cdirection );
 	}
 
-	Reset_onGround();
+	Reset_on_Ground();
 }

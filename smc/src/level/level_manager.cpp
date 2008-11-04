@@ -1,7 +1,7 @@
 /***************************************************************************
-    level_manager.cpp  -  class for handling levels
-                             -------------------
-    copyright            : (C) 2007 by Florian Richter
+ * level_manager.cpp  -  class for handling levels
+ *
+ * Copyright (C) 2007 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -14,36 +14,37 @@
 */
 
 #include "../level/level_manager.h"
-#include "../level/level.h"
 
+/* *** *** *** *** *** cLevel_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
-/* *** *** *** *** *** cLevel_manager *** *** *** *** *** *** *** *** *** *** *** *** */
-
-cLevel_manager :: cLevel_manager( void )
+cLevel_Manager :: cLevel_Manager( void )
 {
-	pLevel = new cLevel();
+	pActive_Level = new cLevel();
+	camera = new cCamera();
 }
 
-cLevel_manager :: ~cLevel_manager( void )
+cLevel_Manager :: ~cLevel_Manager( void )
 {
-	if( pLevel )
+	if( pActive_Level )
 	{
-		delete pLevel;
-		pLevel = NULL;
+		delete pActive_Level;
+		pActive_Level = NULL;
 	}
+
+	delete camera;
 }
 
-void cLevel_manager :: Init( void )
+void cLevel_Manager :: Init( void )
 {
 
 }
 
-void cLevel_manager :: Unload( void )
+void cLevel_Manager :: Unload( void )
 {
-	pLevel->Unload();
+	pActive_Level->Unload();
 }
 
-bool cLevel_manager :: Load( string filename, bool delayed /* = 0 */, bool sub_level /* = 0 */ )
+bool cLevel_Manager :: Load( string filename, bool delayed /* = 0 */, bool sub_level /* = 0 */ )
 {
 	return 1;
 }
@@ -52,4 +53,4 @@ bool cLevel_manager :: Load( string filename, bool delayed /* = 0 */, bool sub_l
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // Level information handler
-cLevel_manager *pLevel_manager = NULL;
+cLevel_Manager *pLevel_Manager = NULL;

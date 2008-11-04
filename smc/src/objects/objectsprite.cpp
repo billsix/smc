@@ -1,7 +1,7 @@
 /***************************************************************************
-           objectsprite.cpp  - multi image object sprite class
-                             -------------------
-    copyright            :	(C) 2005 - 2007 Florian Richter
+ * objectsprite.cpp  - multi image object sprite class
+ *
+ * Copyright (C) 2005 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -48,7 +48,7 @@ void cImageObjectSprite :: Set_Image( int num, bool new_startimage /* = 0 */, bo
 	}
 	else
 	{
-		printf( "Warning : Object image number %d bigger as the array size %d, sprite type %d, name %s\n", curr_img, images.size(), type, name.c_str() );
+		printf( "Warning : Object image number %d bigger as the array size %u, sprite type %d, name %s\n", curr_img, static_cast<unsigned int>(images.size()), type, name.c_str() );
 	}
 }
 

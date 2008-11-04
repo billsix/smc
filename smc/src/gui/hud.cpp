@@ -1,7 +1,7 @@
 /***************************************************************************
-           hud.cpp  -  human user interfaces in the game
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * hud.cpp  -  human user interfaces in the game
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -25,6 +25,7 @@
 #include "../objects/bonusbox.h"
 #include "../video/gl_surface.h"
 #include "../video/renderer.h"
+#include "../core/i18n.h"
 
 /* *** *** *** *** *** *** *** cHudSprite *** *** *** *** *** *** *** *** *** *** */
 
@@ -56,9 +57,9 @@ cHudSprite *cHudSprite :: Copy( void )
 	return hud_sprite;
 }
 
-/* *** *** *** *** *** *** *** cHudManager *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** cHud_Manager *** *** *** *** *** *** *** *** *** *** */
 
-cHudManager :: cHudManager( void )
+cHud_Manager :: cHud_Manager( void )
 : cObject_Manager<cHudSprite>()
 {
 	loaded = 0;
@@ -66,12 +67,12 @@ cHudManager :: cHudManager( void )
 	Load();
 }
 
-cHudManager :: ~cHudManager( void )
+cHud_Manager :: ~cHud_Manager( void )
 {
 	Unload();
 }
 
-void cHudManager :: Load( void )
+void cHud_Manager :: Load( void )
 {
 	if( !loaded && objects.size() )
 	{
@@ -107,7 +108,7 @@ void cHudManager :: Load( void )
 	loaded = 1;
 }
 
-void cHudManager :: Unload( void )
+void cHud_Manager :: Unload( void )
 {
 	if( !objects.size() )
 	{
@@ -126,7 +127,7 @@ void cHudManager :: Unload( void )
 	loaded = 0;
 }
 
-void cHudManager :: Update_Text( void )
+void cHud_Manager :: Update_Text( void )
 {
 	// note : update the life display before you update the timedisplay
 	
@@ -150,14 +151,14 @@ void cHudManager :: Update_Text( void )
 	{
 		if( Game_Mode != MODE_OVERWORLD )
 		{
-			livedisplay->Set_Pos( GAME_RES_W - GAME_RES_W * 0.1f, 18 );
+			livedisplay->Set_Pos( game_res_w - game_res_w * 0.1f, 18 );
 		}
 		else
 		{
-			livedisplay->Set_Pos( GAME_RES_W - GAME_RES_W / 7.5f, 4 );
+			livedisplay->Set_Pos( game_res_w - game_res_w / 7.5f, 4 );
 		}
 
-		livedisplay->AddLives( 0 );
+		livedisplay->Add_Lives( 0 );
 	}
 
 	if( golddisplay )
@@ -171,7 +172,7 @@ void cHudManager :: Update_Text( void )
 			golddisplay->Set_Pos( 280, 4 );
 		}
 
-		golddisplay->AddGold( 0 );
+		golddisplay->Add_Gold( 0 );
 	}
 
 	if( pointsdisplay )
@@ -190,24 +191,24 @@ void cHudManager :: Update_Text( void )
 
 	if( timedisplay )
 	{
-		timedisplay->Set_Pos( GAME_RES_W * 0.70f, 18 );
+		timedisplay->Set_Pos( game_res_w * 0.70f, 18 );
 		timedisplay->Update();
 	}
 
 	if( debugdisplay )
 	{
-		debugdisplay->Set_Pos( GAME_RES_W * 0.45f, 80 );
+		debugdisplay->Set_Pos( game_res_w * 0.45f, 80 );
 		debugdisplay->Update();
 	}
 
 	if( Itembox ) 
 	{
-		Itembox->Set_Pos( GAME_RES_W * 0.49f, 10 );
+		Itembox->Set_Pos( game_res_w * 0.49f, 10 );
 		Itembox->Update();
 	}
 }
 
-void cHudManager :: Update( void )
+void cHud_Manager :: Update( void )
 {
 	// update HUD objects
 	for( HudSpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
@@ -216,7 +217,7 @@ void cHudManager :: Update( void )
 	}
 }
 
-void cHudManager :: Draw( void )
+void cHud_Manager :: Draw( void )
 {
 	// draw HUD objects
 	for( HudSpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
@@ -227,7 +228,7 @@ void cHudManager :: Draw( void )
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cHudManager *pHudManager = NULL;
+cHud_Manager *pHud_Manager = NULL;
 
 /* *** *** *** *** *** *** PointsText *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -261,7 +262,7 @@ cMenuBackground :: cMenuBackground( float x /* = 0 */, float y /* = 0 */ )
 	}
 
 	// maryo head
-	rect_maryo_head.x = GAME_RES_W - GAME_RES_W / 11 + 25;
+	rect_maryo_head.x = game_res_w - game_res_w / 11 + 25;
 	rect_maryo_head.y = 15;
 	// goldpiece
 	rect_goldpiece.x = 250;
@@ -366,8 +367,8 @@ void cPlayerPoints :: Draw( cSurfaceRequest *request /* = NULL */ )
 				continue;
 			}
 
-			float x = obj->posx - pCamera->x;
-			float y = obj->posy - pCamera->y;
+			float x = obj->posx - pActive_Camera->x;
+			float y = obj->posy - pActive_Camera->y;
 
 			// out in left
 			if( x < 0 )
@@ -375,9 +376,9 @@ void cPlayerPoints :: Draw( cSurfaceRequest *request /* = NULL */ )
 				x = 5;
 			}
 			// out in right
-			else if( x > GAME_RES_W )
+			else if( x > game_res_w )
 			{
-				x = static_cast<float>(GAME_RES_W) - obj->col_rect.w - 2; 
+				x = static_cast<float>(game_res_w) - obj->col_rect.w - 2; 
 			}
 
 			// out on bottom
@@ -386,9 +387,9 @@ void cPlayerPoints :: Draw( cSurfaceRequest *request /* = NULL */ )
 				y = 5;
 			}
 			// out on top
-			else if( y > GAME_RES_H )
+			else if( y > game_res_h )
 			{
-				y = static_cast<float>(GAME_RES_H) - obj->col_rect.h - 20;
+				y = static_cast<float>(game_res_h) - obj->col_rect.h - 20;
 			}
 
 			// create request
@@ -415,17 +416,12 @@ void cPlayerPoints :: Set_Points( unsigned int points )
 	pPlayer->points = points;
 	
 	char text[70];
-	sprintf( text, "Points %08d", static_cast<int>(pPlayer->points) );
-	Set_Image( pFont->RenderText( pFont->font_normal, text, white ), 0, 1 );
+	sprintf( text, _("Points %08d"), static_cast<int>(pPlayer->points) );
+	Set_Image( pFont->Render_Text( pFont->font_normal, text, white ), 0, 1 );
 }
 
 void cPlayerPoints :: Add_Points( unsigned int points, float x /* = 0 */, float y /* = 0 */, string strtext /* = "" */, Color color /* = static_cast<Uint8>(255) */, bool allow_multiplier /* = 0 */ )
 {
-	if( !pPlayer )
-	{
-		return;
-	}
-	
 	if( allow_multiplier )
 	{
 		points = static_cast<unsigned int>( pPlayer->kill_multiplier * static_cast<float>(points) );
@@ -445,7 +441,7 @@ void cPlayerPoints :: Add_Points( unsigned int points, float x /* = 0 */, float 
 	}
 
 	PointsText *new_obj = new PointsText();
-	new_obj->Set_Image( pFont->RenderText( pFont->font_small, strtext, color ), 1, 1 );
+	new_obj->Set_Image( pFont->Render_Text( pFont->font_small, strtext, color ), 1, 1 );
 
 	new_obj->Set_Pos( x, y );
 	new_obj->vely = -1.4f;
@@ -503,7 +499,7 @@ void cTimeDisplay :: Update( void )
 	counter += pFramerate->speedfactor;
 
 	// get seconds since start
-	unsigned int seconds = static_cast<unsigned int>( counter / DESIRED_FPS );
+	unsigned int seconds = static_cast<unsigned int>( counter / speedfactor_fps );
 
 	// no change
 	if( seconds == old_seconds )
@@ -514,8 +510,8 @@ void cTimeDisplay :: Update( void )
 	unsigned int minutes = seconds / 60;
 
 	// Set new time
-	sprintf( text, "Time %02d:%02d", minutes, seconds - ( minutes * 60 ) );
-	Set_Image( pFont->RenderText( pFont->font_normal, text, white ), 0, 1 );
+	sprintf( text, _("Time %02d:%02d"), minutes, seconds - ( minutes * 60 ) );
+	Set_Image( pFont->Render_Text( pFont->font_normal, text, white ), 0, 1 );
 }
 
 void cTimeDisplay :: Draw( cSurfaceRequest *request /* = NULL */ )
@@ -549,7 +545,7 @@ cItemBox :: cItemBox( float x /* = 0 */, float y /* = 0 */ )
 	item = new cMovingSprite();
 	item->Set_Ignore_Camera( 1 );
 	item->player_range = 0;
-	item->Set_Massivetype( MASS_MASSIVE );
+	item->Set_Massive_Type( MASS_MASSIVE );
 	item->posz = 0.1299f;
 }
 
@@ -585,7 +581,7 @@ void cItemBox :: Update( void )
 			}
 		}
 
-		if( item->posy > GAME_RES_H )
+		if( item->posy > game_res_h )
 		{
 			Reset();
 		}
@@ -629,7 +625,7 @@ void cItemBox :: Set_Item( SpriteType item_type, bool sound /* = 1 */ )
 	// play sound
 	if( sound )
 	{
-		pAudio->PlaySound( "itembox_set.ogg" );
+		pAudio->Play_Sound( "itembox_set.ogg" );
 	}
 	// reset data
 	Reset();
@@ -671,12 +667,12 @@ void cItemBox :: Request_Item( void )
 		return;
 	}
 
-	pAudio->PlaySound( "itembox_get.ogg" );
+	pAudio->Play_Sound( "itembox_get.ogg" );
 
 	item_counter = 255;
 	// draw item with camera
 	item->Set_Ignore_Camera( 0 );
-	item->Set_Pos( item->posx + pCamera->x, item->posy + pCamera->y );
+	item->Set_Pos( item->posx + pActive_Camera->x, item->posy + pActive_Camera->y );
 }
 
 void cItemBox :: Push_back( void )
@@ -720,16 +716,16 @@ cDebugDisplay :: cDebugDisplay( float x /* = 0 */, float y /* = 0 */ )
 	active_counter = -1;
 
 	// debug text window
-	window_debugtext = WindowManager::getSingleton().loadWindowLayout( "debugtext.layout" );
+	window_debugtext = CEGUI::WindowManager::getSingleton().loadWindowLayout( "debugtext.layout" );
 	pGuiSystem->getGUISheet()->addChildWindow( window_debugtext );
 	// debug text
-	text_debugtext = static_cast<Window *>(WindowManager::getSingleton().getWindow( "text_debugmessage" ));
+	text_debugtext = static_cast<CEGUI::Window *>(CEGUI::WindowManager::getSingleton().getWindow( "text_debugmessage" ));
 	// hide
 	text_debugtext->setVisible( 0 );
 
 	// debug box positions
-	float tempx = GAME_RES_W - 200;
-	float tempy = GAME_RES_H / 2 - 250;
+	float tempx = static_cast<float>(game_res_w) - 200;
+	float tempy = static_cast<float>(game_res_h) / 2 - 250;
 
 	for( unsigned int i = 0; i < 23; i++ )
 	{
@@ -746,7 +742,7 @@ cDebugDisplay :: cDebugDisplay( float x /* = 0 */, float y /* = 0 */ )
 		// active box
 		if( i > 10 && i < 16 )
 		{
-			sprites[i]->Set_PosX( sprites[i]->startposx += 5, 1 );
+			sprites[i]->Set_Pos_X( sprites[i]->startposx += 5, 1 );
 		}
 	}
 
@@ -758,8 +754,8 @@ cDebugDisplay :: cDebugDisplay( float x /* = 0 */, float y /* = 0 */ )
 	sprites[2]->Set_Pos( 480, 5, 1 );
 
 	// Debug type text
-	sprites[4]->Set_Image( pFont->RenderText( pFont->font_small, "Level", lightblue ), 0, 1 );
-	sprites[16]->Set_Image( pFont->RenderText( pFont->font_small, "Player", lightblue ), 0, 1 );
+	sprites[4]->Set_Image( pFont->Render_Text( pFont->font_small, _("Level"), lightblue ), 0, 1 );
+	sprites[16]->Set_Image( pFont->Render_Text( pFont->font_small, _("Player"), lightblue ), 0, 1 );
 
 	counter = 0;
 }
@@ -767,7 +763,7 @@ cDebugDisplay :: cDebugDisplay( float x /* = 0 */, float y /* = 0 */ )
 cDebugDisplay :: ~cDebugDisplay( void )
 {
 	pGuiSystem->getGUISheet()->removeChildWindow( window_debugtext );
-	WindowManager::getSingleton().destroyWindow( window_debugtext );
+	CEGUI::WindowManager::getSingleton().destroyWindow( window_debugtext );
 
 	for( HudSpriteList::iterator itr = sprites.begin(), itr_end = sprites.end(); itr != itr_end; ++itr )
 	{
@@ -802,27 +798,29 @@ void cDebugDisplay :: Update( void )
 	if( text.compare( text_old ) != 0 )
 	{
 		text_old = text;
+		CEGUI::String gui_text = reinterpret_cast<const CEGUI::utf8*>(text.c_str());
 
 		// display the new text
-		text_debugtext->setText( text );
+		text_debugtext->setText( gui_text );
 		text_debugtext->setVisible( 1 );
 
 		// update position
-		Font *font = FontManager::getSingleton().getFont( "bluebold_medium" );
-		float text_width = font->getTextExtent( text.c_str() ) * global_downscalex;
+		CEGUI::Font *font = CEGUI::FontManager::getSingleton().getFont( "bluebold_medium" );
+		float text_width = font->getTextExtent( gui_text ) * global_downscalex;
 
-		text_debugtext->setWidth( UDim( 0, ( text_width + 15 ) * global_upscalex ) );
-		text_debugtext->setXPosition( UDim( 0, ( GAME_RES_W / 2 - text_width / 2 ) * global_upscalex ) );
+		text_debugtext->setWidth( CEGUI::UDim( 0, ( text_width + 15 ) * global_upscalex ) );
+		text_debugtext->setXPosition( CEGUI::UDim( 0, ( game_res_w / 2 - text_width / 2 ) * global_upscalex ) );
 	}
 }
 
 void cDebugDisplay :: Draw( cSurfaceRequest *request /* = NULL */ )
 {
-	// debugbox info
-	DebugBox_Draw();
+	// debug mod info
+	Draw_Debug_Mode();
+	Draw_Performance_Debug_Mode();
 }
 
-void cDebugDisplay :: Set_Text( string ntext, float display_time /* = DESIRED_FPS * 2 */ )
+void cDebugDisplay :: Set_Text( string ntext, float display_time /* = speedfactor_fps * 2 */ )
 {
 	text = ntext;
 
@@ -838,14 +836,22 @@ void cDebugDisplay :: Set_Text( string ntext, float display_time /* = DESIRED_FP
 	counter = display_time;
 }
 
-void cDebugDisplay :: DebugBox_Draw( void )
+void cDebugDisplay :: Draw_fps( void )
 {
-	if( !Game_debug || ( Game_Mode == MODE_LEVEL && pPlayer->maryo_type == MARYO_DEAD ) ) 
+	// ### Frames per Second
+	sprites[0]->Set_Image( pFont->Render_Text( pFont->font_very_small, _("FPS : best ") + int_to_string( static_cast<int>(pFramerate->fps_best) ) + _(", worst ") + int_to_string( static_cast<int>(pFramerate->fps_worst) ) + _(", current ") + int_to_string( static_cast<int>(pFramerate->fps) ), white ), 0, 1 );
+	// average
+	sprites[1]->Set_Image( pFont->Render_Text( pFont->font_very_small, _("average ") + int_to_string( static_cast<int>(pFramerate->fps_average) ), white ), 0, 1 );
+	// speedfactor
+	sprites[2]->Set_Image( pFont->Render_Text( pFont->font_very_small, _("Speedfactor ") + float_to_string( pFramerate->speedfactor, 4 ), white ), 0, 1 );
+}
+
+void cDebugDisplay :: Draw_Debug_Mode( void )
+{
+	if( !game_debug || ( Game_Mode == MODE_LEVEL && pPlayer->maryo_type == MARYO_DEAD ) ) 
 	{
 		return;
 	}
-
-	string temp_text;
 
 	/* ### Extend
 	- Ground Object name, position and velocity
@@ -853,13 +859,13 @@ void cDebugDisplay :: DebugBox_Draw( void )
 
 	// black background
 	Color color = blackalpha128;
-	pVideo->Draw_Rect( GAME_RES_W - 205, GAME_RES_H * 0.08f, 190, 390, posz - 0.00001f, &color );
+	pVideo->Draw_Rect( static_cast<float>(game_res_w) - 205, static_cast<float>(game_res_h) * 0.08f, 190, 390, posz - 0.00001f, &color );
 
 	// Active objects rect
 
 	// create request
 	cRectRequest *request = new cRectRequest();
-	pVideo->Draw_Rect( sprites[11]->posx - 8, sprites[11]->posy - 4, 135, 95, posz, &white, request );
+	pVideo->Draw_Rect( sprites[11]->posx - 4, sprites[11]->posy - 4, 135, 95, posz, &white, request );
 
 	// not filled
 	request->filled = 0;
@@ -867,74 +873,68 @@ void cDebugDisplay :: DebugBox_Draw( void )
 	// add request
 	pRenderer->Add( request );
 
-	// ### Frames per Second
-	temp_text = "FPS : best " + int_to_string( static_cast<int>(pFramerate->fps_best) ) + ", worst " + int_to_string( static_cast<int>(pFramerate->fps_worst) ) + ", current " + int_to_string( static_cast<int>(pFramerate->fps) );
-	sprites[0]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
-	// average
-	temp_text = "average " + int_to_string( static_cast<int>(pFramerate->fps_average) );
-	sprites[1]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
-	// speedfactor
-	temp_text = "Speedfactor " + float_to_string( pFramerate->speedfactor );
-	sprites[2]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+	// fps
+	Draw_fps();
 
-	// ### Camera position
-	temp_text = "Camera : X " + int_to_string( static_cast<int>(pCamera->x) ) + ", Y " + int_to_string( static_cast<int>(pCamera->y) );
-	sprites[3]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+	string temp_text;
 
-	// ### Level informations
-	if( pLevel->levelfile.compare( level_old ) != 0 ) 
+	// Camera position
+	temp_text = _("Camera : X ") + int_to_string( static_cast<int>(pActive_Camera->x) ) + ", Y " + int_to_string( static_cast<int>(pActive_Camera->y) );
+	sprites[3]->Set_Image( pFont->Render_Text( pFont->font_very_small, temp_text, white ), 0, 1 );
+
+	// Level information
+	if( pActive_Level->levelfile.compare( level_old ) != 0 ) 
 	{
-		string lvl_text = "Name : " + Get_filename( pLevel->data_file, 0, 0 );
-		level_old = pLevel->levelfile;
-		
-		sprites[5]->Set_Image( pFont->RenderText( pFont->font_very_small, lvl_text, white ), 0, 1 );
+		string lvl_text = _("Name : ") + Get_Filename( pActive_Level->data_file, 0, 0 );
+		level_old = pActive_Level->levelfile;
+
+		sprites[5]->Set_Image( pFont->Render_Text( pFont->font_very_small, lvl_text, white ), 0, 1 );
 	}
 
-	// ### Level Objects
-	// All
-	if( obj_counter != static_cast<int>(pLevel->pSprite_Manager->size()) )
+	// Level objects
+	if( obj_counter != static_cast<int>(pActive_Sprite_Manager->size()) )
 	{
-		obj_counter = pLevel->pSprite_Manager->size();
+		obj_counter = pActive_Sprite_Manager->size();
 
-		temp_text = "Objects : " + int_to_string( obj_counter );
-		sprites[6]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+		temp_text = _("Objects : ") + int_to_string( obj_counter );
+		sprites[6]->Set_Image( pFont->Render_Text( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
 	// Passive
-	if( pass_counter != static_cast<int>(pLevel->pSprite_Manager->Get_Size_array( ARRAY_PASSIVE ) + pLevel->pSprite_Manager->Get_Size_array( ARRAY_FRONT_PASSIVE )) )
+	if( pass_counter != static_cast<int>(pActive_Sprite_Manager->Get_Size_Array( ARRAY_PASSIVE ) + pActive_Sprite_Manager->Get_Size_Array( ARRAY_FRONT_PASSIVE )) )
 	{
-		pass_counter = pLevel->pSprite_Manager->Get_Size_array( ARRAY_PASSIVE ) + pLevel->pSprite_Manager->Get_Size_array( ARRAY_FRONT_PASSIVE );
+		pass_counter = pActive_Sprite_Manager->Get_Size_Array( ARRAY_PASSIVE ) + pActive_Sprite_Manager->Get_Size_Array( ARRAY_FRONT_PASSIVE );
 
-		temp_text = "Passive : " + int_to_string( pass_counter );
-		sprites[7]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+		temp_text = _("Passive : ") + int_to_string( pass_counter );
+		sprites[7]->Set_Image( pFont->Render_Text( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
 	// Massive
-	if( mass_counter != static_cast<int>(pLevel->pSprite_Manager->Get_Size_array( ARRAY_MASSIVE )) )
+	if( mass_counter != static_cast<int>(pActive_Sprite_Manager->Get_Size_Array( ARRAY_MASSIVE )) )
 	{
-		mass_counter = pLevel->pSprite_Manager->Get_Size_array( ARRAY_MASSIVE );
+		mass_counter = pActive_Sprite_Manager->Get_Size_Array( ARRAY_MASSIVE );
 
-		temp_text = "Massive : " + int_to_string( mass_counter );
-		sprites[8]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+		temp_text = _("Massive : ") + int_to_string( mass_counter );
+		sprites[8]->Set_Image( pFont->Render_Text( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
 	// Enemy
-	if( enemy_counter != static_cast<int>(pLevel->pSprite_Manager->Get_Size_array( ARRAY_ENEMY )) ) 
+	if( enemy_counter != static_cast<int>(pActive_Sprite_Manager->Get_Size_Array( ARRAY_ENEMY )) ) 
 	{
-		enemy_counter = pLevel->pSprite_Manager->Get_Size_array( ARRAY_ENEMY );
+		enemy_counter = pActive_Sprite_Manager->Get_Size_Array( ARRAY_ENEMY );
 
-		temp_text ="Enemy : " + int_to_string( enemy_counter );
-		sprites[9]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+		temp_text = _("Enemy : ") + int_to_string( enemy_counter );
+		sprites[9]->Set_Image( pFont->Render_Text( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
 	// Active
-	if( active_counter != static_cast<int>(pLevel->pSprite_Manager->Get_Size_array( ARRAY_ACTIVE )) )
+	if( active_counter != static_cast<int>(pActive_Sprite_Manager->Get_Size_Array( ARRAY_ACTIVE )) )
 	{
-		active_counter = pLevel->pSprite_Manager->Get_Size_array( ARRAY_ACTIVE );
+		active_counter = pActive_Sprite_Manager->Get_Size_Array( ARRAY_ACTIVE );
 
-		temp_text = "Active : " + int_to_string( active_counter );
-		sprites[10]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+		temp_text = _("Active : ") + int_to_string( active_counter );
+		sprites[10]->Set_Image( pFont->Render_Text( pFont->font_very_small, temp_text, white ), 0, 1 );
 
 		// Halfmassive
 		unsigned int halfmassive = 0;
 
-		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *obj = (*itr);
@@ -945,13 +945,13 @@ void cDebugDisplay :: DebugBox_Draw( void )
 			}
 		}
 
-		temp_text = "Halfmassive : " + int_to_string( halfmassive );
-		sprites[11]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+		temp_text = _("Halfmassive : ") + int_to_string( halfmassive );
+		sprites[11]->Set_Image( pFont->Render_Text( pFont->font_very_small, temp_text, white ), 0, 1 );
 
 		// Moving Platform
 		unsigned int moving_platform = 0;
 
-		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *obj = (*itr);
@@ -962,13 +962,13 @@ void cDebugDisplay :: DebugBox_Draw( void )
 			}
 		}
 
-		temp_text = "Moving Platform : " + int_to_string( moving_platform );
-		sprites[12]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+		temp_text = _("Moving Platform : ") + int_to_string( moving_platform );
+		sprites[12]->Set_Image( pFont->Render_Text( pFont->font_very_small, temp_text, white ), 0, 1 );
 
 		// Goldbox
 		unsigned int goldbox = 0;
 
-		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *obj = (*itr);
@@ -984,13 +984,13 @@ void cDebugDisplay :: DebugBox_Draw( void )
 			}
 		}
 
-		temp_text = "Goldbox : " + int_to_string( goldbox );
-		sprites[13]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+		temp_text = _("Goldbox : ") + int_to_string( goldbox );
+		sprites[13]->Set_Image( pFont->Render_Text( pFont->font_very_small, temp_text, white ), 0, 1 );
 
 		// Bonusbox
 		unsigned int bonusbox = 0;
 
-		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *obj = (*itr);
@@ -1006,48 +1006,202 @@ void cDebugDisplay :: DebugBox_Draw( void )
 			}
 		}
 
-		temp_text = "Bonusbox : " + int_to_string( bonusbox );
-		sprites[14]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+		temp_text = _("Bonusbox : ") + int_to_string( bonusbox );
+		sprites[14]->Set_Image( pFont->Render_Text( pFont->font_very_small, temp_text, white ), 0, 1 );
 
 		// Other
 		unsigned int active_other = active_counter - halfmassive - moving_platform - goldbox - bonusbox;
 
-		temp_text = "Other : " + int_to_string( active_other );
-		sprites[15]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+		temp_text = _("Other : ") + int_to_string( active_other );
+		sprites[15]->Set_Image( pFont->Render_Text( pFont->font_very_small, temp_text, white ), 0, 1 );
 	}
 
-
-	// ### Player information
+	// Player information
 	// position x
-	temp_text = "X1 " + float_to_string( pPlayer->posx ) + "  X2 " + float_to_string( pPlayer->col_rect.x + pPlayer->col_rect.w );
-	sprites[17]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+	temp_text = "X1 " + float_to_string( pActive_Player->posx, 4 ) + "  X2 " + float_to_string( pPlayer->col_rect.x + pPlayer->col_rect.w, 4 );
+	sprites[17]->Set_Image( pFont->Render_Text( pFont->font_very_small, temp_text, white ), 0, 1 );
 	// position y
-	temp_text = "Y1 " + float_to_string( pPlayer->posy ) + "  Y2 " + float_to_string( pPlayer->col_rect.y + pPlayer->col_rect.h );
-	sprites[18]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+	temp_text = "Y1 " + float_to_string( pActive_Player->posy, 4 ) + "  Y2 " + float_to_string( pPlayer->col_rect.y + pPlayer->col_rect.h, 4 );
+	sprites[18]->Set_Image( pFont->Render_Text( pFont->font_very_small, temp_text, white ), 0, 1 );
 	// velocity
-	temp_text = "Velocity X " + int_to_string( static_cast<int>(pPlayer->velx) ) + " ,Y " + int_to_string( (int)pPlayer->vely );
-	sprites[19]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
-	// state
-	temp_text = "Moving State " + int_to_string( static_cast<int>(pPlayer->state) );
-	sprites[20]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+	temp_text = _("Velocity X ") + float_to_string( pPlayer->velx, 2 ) + " ,Y " + float_to_string( pPlayer->vely, 2 );
+	sprites[19]->Set_Image( pFont->Render_Text( pFont->font_very_small, temp_text, white ), 0, 1 );
+	// moving state
+	temp_text = _("Moving State ") + int_to_string( static_cast<int>(pPlayer->state) );
+	sprites[20]->Set_Image( pFont->Render_Text( pFont->font_very_small, temp_text, white ), 0, 1 );
 	// ground type
 	string ground_type;
 	if( pPlayer->ground_object )
 	{
-		ground_type = int_to_string( pPlayer->ground_object->massivetype ) + " (" + Get_Massivetype_name( pPlayer->ground_object->massivetype ) + ")";
+		ground_type = int_to_string( pPlayer->ground_object->massivetype ) + " (" + Get_Massive_Type_Name( pPlayer->ground_object->massivetype ) + ")";
 	}
-	temp_text = "Ground " + ground_type;
-	sprites[21]->Set_Image( pFont->RenderText( pFont->font_very_small, temp_text, white ), 0, 1 );
+	temp_text = _("Ground ") + ground_type;
+	sprites[21]->Set_Image( pFont->Render_Text( pFont->font_very_small, temp_text, white ), 0, 1 );
 	// game mode
 	if( Game_Mode != Game_Mode_last )
 	{
-		sprites[22]->Set_Image( pFont->RenderText( pFont->font_very_small, "Game Mode : " + int_to_string( Game_Mode ), white ), 0, 1 );
+		sprites[22]->Set_Image( pFont->Render_Text( pFont->font_very_small, _("Game Mode : ") + int_to_string( Game_Mode ), white ), 0, 1 );
 	}
 
 	// draw text
 	for( HudSpriteList::iterator itr = sprites.begin(), itr_end = sprites.end(); itr != itr_end; ++itr )
 	{
 		(*itr)->Draw();
+	}
+}
+
+void cDebugDisplay :: Draw_Performance_Debug_Mode( void )
+{
+	if( !game_debug_performance ) 
+	{
+		return;
+	}
+
+	string temp_text;
+	float ypos = game_res_h * 0.08f;
+
+	// black background
+	Color color = blackalpha128;
+	pVideo->Draw_Rect( 15, ypos, 190, 390, posz - 0.00001f, &color );
+
+	// don't draw it twice
+	if( !game_debug )
+	{
+		// fps
+		Draw_fps();
+		sprites[0]->Draw();
+		sprites[1]->Draw();
+		sprites[2]->Draw();
+	}
+
+	vector<string> text_strings;
+	// draw
+	text_strings.push_back( "Draw" );
+	// overworld
+	if( Game_Mode == MODE_OVERWORLD )
+	{
+		text_strings.push_back( _("World : ") + int_to_string( pFramerate->perf_timer[PERF_DRAW_OVERWORLD]->ms ) );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+	}
+	// menu
+	else if( Game_Mode == MODE_MENU )
+	{
+		text_strings.push_back( _("Menu : ") + int_to_string( pFramerate->perf_timer[PERF_DRAW_MENU]->ms ) );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+	}
+	// level settings
+	else if( Game_Mode == MODE_LEVEL_SETTINGS )
+	{
+		text_strings.push_back( _("Level Settings : ") + int_to_string( pFramerate->perf_timer[PERF_DRAW_LEVEL_SETTINGS]->ms ) );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+	}
+	// level (default)
+	else
+	{
+		text_strings.push_back( _("Level Layer 1 : ") + int_to_string( pFramerate->perf_timer[PERF_DRAW_LEVEL_LAYER1]->ms ) );
+		text_strings.push_back( _("Level Player : ") + int_to_string( pFramerate->perf_timer[PERF_DRAW_LEVEL_PLAYER]->ms ) );
+		text_strings.push_back( _("Level Layer 2 : ") + int_to_string( pFramerate->perf_timer[PERF_DRAW_LEVEL_LAYER2]->ms ) );
+		text_strings.push_back( _("Level Hud : ") + int_to_string( pFramerate->perf_timer[PERF_DRAW_LEVEL_HUD]->ms ) );
+		text_strings.push_back( _("Level Editor : ") + int_to_string( pFramerate->perf_timer[PERF_DRAW_LEVEL_EDITOR]->ms ) );
+	}
+	text_strings.push_back( _("Mouse : ") + int_to_string( pFramerate->perf_timer[PERF_DRAW_MOUSE]->ms ) );
+	// update
+	text_strings.push_back( _("Update") );
+	// overworld
+	if( Game_Mode == MODE_OVERWORLD )
+	{
+		text_strings.push_back( _("World : ") + int_to_string( pFramerate->perf_timer[PERF_UPDATE_OVERWORLD]->ms ) );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+	}
+	// menu
+	else if( Game_Mode == MODE_MENU )
+	{
+		text_strings.push_back( _("Menu : ") + int_to_string( pFramerate->perf_timer[PERF_UPDATE_MENU]->ms ) );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+	}
+	// level settings
+	else if( Game_Mode == MODE_LEVEL_SETTINGS )
+	{
+		text_strings.push_back( _("Level Settings : ") + int_to_string( pFramerate->perf_timer[PERF_UPDATE_LEVEL_SETTINGS]->ms ) );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+		text_strings.push_back( "- " );
+	}
+	// level (default)
+	else
+	{
+		text_strings.push_back( _("process input : ") + int_to_string( pFramerate->perf_timer[PERF_UPDATE_PROCESS_INPUT]->ms ) );
+		text_strings.push_back( _("level : ") + int_to_string( pFramerate->perf_timer[PERF_UPDATE_LEVEL]->ms ) );
+		text_strings.push_back( _("level editor : ") + int_to_string( pFramerate->perf_timer[PERF_UPDATE_LEVEL_EDITOR]->ms ) );
+		text_strings.push_back( _("hud : ") + int_to_string( pFramerate->perf_timer[PERF_UPDATE_HUD]->ms ) );
+		text_strings.push_back( _("player : ") + int_to_string( pFramerate->perf_timer[PERF_UPDATE_PLAYER]->ms ) );
+		text_strings.push_back( _("collisions : ") + int_to_string( pFramerate->perf_timer[PERF_UPDATE_COLLISIONS]->ms ) );
+		text_strings.push_back( _("camera : ") + int_to_string( pFramerate->perf_timer[PERF_UPDATE_CAMERA]->ms ) );
+	}
+
+	// render
+	text_strings.push_back( _("Rendering : ") + int_to_string( pFramerate->perf_timer[PERF_RENDERING]->ms ) );
+
+
+	unsigned int pos = 0;
+
+	for( vector<string>::iterator itr = text_strings.begin(), itr_end = text_strings.end(); itr != itr_end; ++itr )
+	{
+		// sections
+		float xpos = 20;
+		ypos += 12;
+
+		if( pos != 0 && pos != 7 )
+		{
+			xpos += 10;
+		}
+		if( pos == 7 || pos == 15 )
+		{
+			ypos += 10;
+		}
+
+		string current_text = (*itr);
+
+		GL_Surface *surface_temp = pFont->Render_Text( pFont->font_small, current_text, white );
+
+		// create request
+		cSurfaceRequest *request = new cSurfaceRequest();
+		surface_temp->Blit( xpos, ypos, posz, request );
+		request->delete_texture = 1;
+
+		// shadow
+		request->shadow_pos = 1;
+		request->shadow_color = black;
+
+		// add request
+		pRenderer->Add( request );
+
+		surface_temp->auto_del_img = 0;
+		delete surface_temp;
+		
+		pos++;
 	}
 }
 
@@ -1059,7 +1213,7 @@ cGoldDisplay :: cGoldDisplay( float x /* = 0 */, float y /* = 0 */ )
 	sprite_array = ARRAY_HUD;
 	type = TYPE_GOLDDISPLAY;
 
-	SetGold( pPlayer->goldpieces );
+	Set_Gold( pPlayer->goldpieces );
 }
 
 cGoldDisplay :: ~cGoldDisplay( void )
@@ -1077,13 +1231,13 @@ void cGoldDisplay :: Draw( cSurfaceRequest *request /* = NULL */ )
 	cHudSprite::Draw();
 }
 
-void cGoldDisplay :: SetGold( int gold )
+void cGoldDisplay :: Set_Gold( int gold )
 {
 	if( gold >= 100 )
 	{
 		gold -= 100;
-		pAudio->PlaySound( "item/live_up_2.ogg" );	
-		livedisplay->AddLives( 1 );
+		pAudio->Play_Sound( "item/live_up_2.ogg" );	
+		livedisplay->Add_Lives( 1 );
 
 		pointsdisplay->Add_Points( 0, pPlayer->posx + pPlayer->image->w/3, pPlayer->posy + 5, "1UP", lightred );
 	}
@@ -1093,12 +1247,12 @@ void cGoldDisplay :: SetGold( int gold )
 
 	Color color = Color( static_cast<Uint8>(255), 255, 255 - ( gold * 2 ) );
 
-	Set_Image( pFont->RenderText( pFont->font_normal, text, color ), 0, 1 );
+	Set_Image( pFont->Render_Text( pFont->font_normal, text, color ), 0, 1 );
 }
 
-void cGoldDisplay :: AddGold( int gold )
+void cGoldDisplay :: Add_Gold( int gold )
 {
-	SetGold( pPlayer->goldpieces + gold );
+	Set_Gold( pPlayer->goldpieces + gold );
 }
 
 
@@ -1110,7 +1264,7 @@ cLiveDisplay :: cLiveDisplay( float x /* = 0 */, float y /* = 0 */ )
 	sprite_array = ARRAY_HUD;
 	type = TYPE_LIFEDISPLAY;
 
-	SetLives( pPlayer->lives );
+	Set_Lives( pPlayer->lives );
 
 	Set_Image( NULL );
 }
@@ -1130,7 +1284,7 @@ void cLiveDisplay :: Draw( cSurfaceRequest *request /* = NULL */ )
 	cHudSprite::Draw();
 }
 
-void cLiveDisplay :: SetLives( int lives )
+void cLiveDisplay :: Set_Lives( int lives )
 {
 	pPlayer->lives = lives;
 	
@@ -1145,16 +1299,16 @@ void cLiveDisplay :: SetLives( int lives )
 		}
 		else
 		{
-			text = "Lives : " + int_to_string( pPlayer->lives );
+			text = _("Lives : ") + int_to_string( pPlayer->lives );
 		}
 	
-		Set_Image( pFont->RenderText( pFont->font_normal, text, green ), 0, 1 );
+		Set_Image( pFont->Render_Text( pFont->font_normal, text, green ), 0, 1 );
 	}
 }
 
-void cLiveDisplay :: AddLives( int lives )
+void cLiveDisplay :: Add_Lives( int lives )
 {
-	SetLives( pPlayer->lives + lives );
+	Set_Lives( pPlayer->lives + lives );
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

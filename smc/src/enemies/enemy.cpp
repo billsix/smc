@@ -1,7 +1,7 @@
 /***************************************************************************
-           enemy.cpp  -  base class for all enemies
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * enemy.cpp  -  base class for all enemies
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -36,7 +36,7 @@ cEnemy :: cEnemy( float x /* = 0 */, float y /* = 0 */ )
 	counter = 0;
 	walk_count = 0;
 
-	kill_sound = "enemy/gumba/die.ogg";
+	kill_sound = "enemy/furball/die.ogg";
 	kill_points = 10;
 
 	fire_resistant = 0;
@@ -64,13 +64,13 @@ void cEnemy :: Load_from_Savegame( cSave_Level_Object *save_object )
 	// new position x
 	if( save_object->exists( "new_posx" ) )
 	{
-		Set_PosX( string_to_float( save_object->Get_Value( "new_posx" ) ) );
+		Set_Pos_X( string_to_float( save_object->Get_Value( "new_posx" ) ) );
 	}
 
 	// new position y
 	if( save_object->exists( "new_posy" ) )
 	{
-		Set_PosY( string_to_float( save_object->Get_Value( "new_posy" ) ) );
+		Set_Pos_Y( string_to_float( save_object->Get_Value( "new_posy" ) ) );
 	}
 
 	// velocity x
@@ -143,7 +143,7 @@ void cEnemy :: Set_Dead( bool enable /* = 1 */ )
 {
 	dead = enable;
 
-	Update_valid_update();
+	Update_Valid_Update();
 }
 
 void cEnemy :: DieStep( void )
@@ -175,7 +175,7 @@ void cEnemy :: Update( void )
 	if( freeze_counter )
 	{
 		// update gravity
-		if( type == TYPE_GUMBA || type == TYPE_TURTLE || type == TYPE_REX || type == TYPE_SPIKA )
+		if( type == TYPE_FURBALL || type == TYPE_TURTLE || type == TYPE_KRUSH || type == TYPE_SPIKA )
 		{
 			Update_Gravity();
 			Col_Move( 0, vely );
@@ -195,7 +195,7 @@ void cEnemy :: Update_Gravity( void )
 	}
 }
 
-void cEnemy :: Generate_Hit_Animation( cParticleAnimation *anim /* = NULL */ )
+void cEnemy :: Generate_Hit_Animation( cParticle_Emitter *anim /* = NULL */ )
 {
 	bool create_anim = 0;
 
@@ -203,18 +203,18 @@ void cEnemy :: Generate_Hit_Animation( cParticleAnimation *anim /* = NULL */ )
 	{
 		create_anim = 1;
 		// create animation
-		anim = new cParticleAnimation();
+		anim = new cParticle_Emitter();
 	}
 
 	anim->Set_Emitter_Rect( col_rect.x, posy + ( col_rect.h / 3 ), col_rect.w );
 	anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
 	anim->Set_Quota( 4 );
-	anim->Set_ZPos( posz - 0.000001f );
+	anim->Set_Pos_Z( posz - 0.000001f );
 	anim->Set_Time_to_Live( 0.3f );
 	anim->Set_Color( Color( static_cast<Uint8>(150), 150, 150, 200 ), Color( static_cast<Uint8>( rand() % 155 ), rand() % 155, rand() % 155 ) );
 	anim->Set_Speed( 3, 0.6f );
 	anim->Set_Scale( 0.6f );
-	anim->Set_DirectionRange( 180, 180 );
+	anim->Set_Direction_Range( 180, 180 );
 	anim->Set_Fading_Alpha( 1 );
 	anim->Set_Fading_Size( 1 );
 	anim->Set_Blending( BLEND_DRIVE );
@@ -222,7 +222,7 @@ void cEnemy :: Generate_Hit_Animation( cParticleAnimation *anim /* = NULL */ )
 	if( create_anim )
 	{
 		// add animation
-		pAnimationManager->Add( anim );
+		pAnimation_Manager->Add( anim );
 	}
 }
 
@@ -236,15 +236,15 @@ void cEnemy :: Handle_Collision( cObjectCollision *collision )
 	cImageObjectSprite::Handle_Collision( collision );
 }
 
-void cEnemy :: Handle_OutofLevel( ObjectDirection dir )
+void cEnemy :: Handle_out_of_Level( ObjectDirection dir )
 {
 	if( dir == DIR_LEFT )
 	{
-		Set_PosX( pCamera->limit_rect.x - col_pos.x );
+		Set_Pos_X( pActive_Camera->limit_rect.x - col_pos.x );
 	}
 	else if( dir == DIR_RIGHT )
 	{
-		Set_PosX( pCamera->limit_rect.x + pCamera->limit_rect.w - col_pos.x - col_rect.w - 0.01f );
+		Set_Pos_X( pActive_Camera->limit_rect.x + pActive_Camera->limit_rect.w - col_pos.x - col_rect.w - 0.01f );
 	}
 
 	Turn_Around( dir );

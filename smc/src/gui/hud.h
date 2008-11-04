@@ -1,7 +1,7 @@
 /***************************************************************************
-                hud.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * hud.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __STATUSTEXT_H__
-#define __STATUSTEXT_H__
+#ifndef SMC_HUD_H
+#define SMC_HUD_H
 
 #include "../objects/movingsprite.h"
 #include "../core/obj_manager.h"
@@ -33,24 +33,24 @@ public:
 
 typedef vector<cHudSprite *> HudSpriteList;
 
-/* *** *** *** *** *** *** *** HudManager *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** cHud_Manager *** *** *** *** *** *** *** *** *** *** */
 
-class cHudManager : public cObject_Manager<cHudSprite>
+class cHud_Manager : public cObject_Manager<cHudSprite>
 {
 public:
-	cHudManager( void );
-	virtual ~cHudManager( void );
+	cHud_Manager( void );
+	virtual ~cHud_Manager( void );
 
-	// Loads the complete HUD
+	// Load the complete HUD
 	void Load( void );
-	// Unloads the complete HUD
+	// Unload the complete HUD
 	void Unload( void );
 
-	// Update and reload the Text Displays
+	// Update and reload text
 	void Update_Text( void );
-	// Update the Objects
+	// Update the objects
 	void Update( void );
-	// Draw the Objects
+	// Draw the objects
 	void Draw( void );
 
 	// is the HUD loaded
@@ -60,7 +60,7 @@ public:
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // The HUD Manager
-extern cHudManager *pHudManager;
+extern cHud_Manager *pHud_Manager;
 
 /* *** *** *** *** *** *** *** *** PointsText *** *** *** *** *** *** *** *** *** */
 
@@ -127,8 +127,8 @@ public:
 	cGoldDisplay( float x = 0, float y = 0 );
 	virtual ~cGoldDisplay( void );
 
-	void SetGold( int gold );
-	void AddGold( int gold );
+	void Set_Gold( int gold );
+	void Add_Gold( int gold );
 
 	virtual void Draw( cSurfaceRequest *request = NULL );
 };
@@ -141,8 +141,8 @@ public:
 	cLiveDisplay( float x = 0, float y = 0 );
 	virtual ~cLiveDisplay( void );
 
-	void SetLives( int lives );
-	void AddLives( int lives );
+	void Set_Lives( int lives );
+	void Add_Lives( int lives );
 
 	virtual void Draw( cSurfaceRequest *request = NULL );
 };
@@ -218,11 +218,15 @@ public:
 	virtual void Update( void );
 	// draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
-	// draw the debugging box
-	void DebugBox_Draw( void );
+	// draw the frames per second info
+	void Draw_fps( void );
+	// draw the debug mode info
+	void Draw_Debug_Mode( void );
+	// draw the performance debug mode info
+	void Draw_Performance_Debug_Mode( void );
 
 	// set the debug text to display
-	void Set_Text( string ntext, float display_time = DESIRED_FPS * 2 );
+	void Set_Text( string ntext, float display_time = speedfactor_fps * 2 );
 
 	// display text
 	string text, text_old;
@@ -230,7 +234,7 @@ public:
 	float counter;
 
 	// CEGUI debugtext
-	Window *window_debugtext, *text_debugtext;
+	CEGUI::Window *window_debugtext, *text_debugtext;
 
 	// last game mode
 	GameMode Game_Mode_last;

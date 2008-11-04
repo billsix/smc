@@ -1,7 +1,7 @@
 /***************************************************************************
-			img_settings.h  -  header for the corresponding cpp file
-                         -------------------
-    copyright            : (C) 2005 - 2007 by Florian Richter
+ * img_settings.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2005 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,14 +13,13 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __IMG_SETTINGS_H__
-#define __IMG_SETTINGS_H__
+#ifndef SMC_IMG_SETTINGS_H
+#define SMC_IMG_SETTINGS_H
 
 #include "../core/globals.h"
 #include "../core/file_parser.h"
 #include "../video/gl_surface.h"
 #include "../core/math/rect.h"
-
 
 /* *** *** *** *** *** *** cImage_settings_data *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -30,41 +29,43 @@ public:
 	cImage_settings_data( void );
 	~cImage_settings_data( void );
 
-	// returns the surface with mipmap and size set
-	GL_Surface *Get_Surface( SDL_Surface *sdl_surface );
+	// returns the best surface size for the current resolution
+	cSize_Float Get_Surface_Size( SDL_Surface *sdl_surface );
 	// Apply settings to an image
 	void Apply( GL_Surface *image );
 	// Apply base settings
-	void Apply_base( cImage_settings_data *base_settings_data );
+	void Apply_Base( cImage_settings_data *base_settings_data );
 
 	// base image/settings path
-	string base;
+	string m_base;
 	// inherit base settings
-	bool base_settings;
+	bool m_base_settings;
 
 	// internal drawing offset
-	int int_x, int_y;
+	int m_int_x, m_int_y;
 	// collision rect
-	GL_rect col_rect;
+	GL_rect m_col_rect;
 	// width
-	int width;
+	int m_width;
 	// height
-	int height;
+	int m_height;
 	// rotation
-	int rotation_x, rotation_y, rotation_z;
+	int m_rotation_x, m_rotation_y, m_rotation_z;
 	// texture mipmapping
-	bool mipmap;
+	bool m_mipmap;
 
 	// editor tags
-	string editor_tags;
+	string m_editor_tags;
 	// name
-	string name;
+	string m_name;
 	// sprite type
-	int type;
+	int m_type;
 	// ground type
-	GroundType ground_type;
+	GroundType m_ground_type;
+	// author
+	string m_author;
 	// obsolete
-	bool obsolete;
+	bool m_obsolete;
 };
 
 /* *** *** *** *** *** *** cImage_settings *** *** *** *** *** *** *** *** *** *** *** */
@@ -79,6 +80,7 @@ public:
 
 	/* Returns the settings from the given file
 	 * load_base_settings : if set will overwrite settings with all base settings if available
+	 * The returned settings data should be deleted if not used anymore
 	*/
 	cImage_settings_data *Get( string &filename, bool load_base_settings = 1 );
 

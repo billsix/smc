@@ -1,7 +1,7 @@
 /***************************************************************************
-			keyboard.cpp  -  keyboard functions
-                             -------------------
-    copyright            :	(C) 2006 - 2007 by Florian Richter
+ * keyboard.cpp  -  keyboard handling class
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -27,12 +27,13 @@
 #include "../user/preferences.h"
 #include "../level/level_editor.h"
 #include "../level/level_settings.h"
+#include "../overworld/world_editor.h"
 
 /* *** *** *** *** *** *** *** *** cKeyboard *** *** *** *** *** *** *** *** *** */
 
 cKeyboard :: cKeyboard( void )
 {
-	Reset_keys();
+	Reset_Keys();
 }
 
 cKeyboard :: ~cKeyboard( void )
@@ -40,7 +41,7 @@ cKeyboard :: ~cKeyboard( void )
 
 }
 
-void cKeyboard :: Reset_keys( void )
+void cKeyboard :: Reset_Keys( void )
 {
 	// set all keys to 0
 	memset( keys, 0, sizeof( keys ) );
@@ -73,7 +74,7 @@ bool cKeyboard :: Key_Up( SDLKey key )
 	if( Game_Mode == MODE_LEVEL )
 	{
 		// got processed
-		if( pLevel->Key_Up( key ) )
+		if( pActive_Level->Key_Up( key ) )
 		{
 			return 1;
 		}
@@ -100,9 +101,9 @@ bool cKeyboard :: CEGUI_Handle_Key_Down( SDLKey key )
 	}
 
 	// use for translated unicode value
-	if( ( input_event.key.keysym.unicode & 0xFF80 ) == 0 )
+	if( input_event.key.keysym.unicode != 0 )
 	{
-		if( pGuiSystem->injectChar( input_event.key.keysym.unicode & 0x7F ) )
+		if( pGuiSystem->injectChar( input_event.key.keysym.unicode ) )
 		{
 			// input got processed by the gui system
 			return 1;
@@ -128,7 +129,7 @@ bool cKeyboard :: Key_Down( SDLKey key )
 	// game exit
 	if( key == SDLK_F4 && input_event.key.keysym.mod & KMOD_ALT )
 	{
-		done = 1;
+		game_exit = 1;
 		return 1;
 	}
 	// fullscreen toggle
@@ -137,12 +138,36 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		pVideo->Toggle_Fullscreen();
 		return 1;
 	}
+	// GUI copy
+	else if( key == SDLK_c && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
+	{
+		if( GUI_Copy_To_Clipboard() )
+		{
+			return 1;
+		}
+	}
+	// GUI cut
+	else if( key == SDLK_x && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
+	{
+		if( GUI_Copy_To_Clipboard( 1 ) )
+		{
+			return 1;
+		}
+	}
+	// GUI paste
+	else if( key == SDLK_v && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
+	{
+		if( GUI_Paste_From_Clipboard() )
+		{
+			return 1;
+		}
+	}
 
 	// handle key in the current mode
 	if( Game_Mode == MODE_LEVEL )
 	{
 		// processed by the level
-		if( pLevel->Key_Down( key ) )
+		if( pActive_Level->Key_Down( key ) )
 		{
 			return 1;
 		}
@@ -175,7 +200,7 @@ bool cKeyboard :: Key_Down( SDLKey key )
 	// set fixed speedfactor mode
 	if( key == SDLK_F6 )
 	{
-		float fixed_speedfactor = string_to_float( Box_Text_Input( float_to_string( pFramerate->force_speedfactor ), "Set Fixed Speedfactor", 1 ) );
+		float fixed_speedfactor = string_to_float( Box_Text_Input( float_to_string( pFramerate->force_speedfactor, 4 ), "Set Fixed Speedfactor", 1 ) );
 
 		// disable fixed speedfactor mode
 		if( fixed_speedfactor <= 0 )
@@ -198,80 +223,24 @@ bool cKeyboard :: Key_Down( SDLKey key )
 	// pause the game
 	else if( key == SDLK_PAUSE )
 	{
-		Draw_StaticText( "Pause", &yellow, &lightgreyalpha64 );
+		Draw_Static_Text( "Pause", &yellow, &lightgreyalpha64 );
 	}
 	// load a level
 	else if( key == SDLK_l && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) &&
-			!( Game_Mode == MODE_OVERWORLD && pOverworld_manager->debugmode ) && Game_Mode != MODE_LEVEL_SETTINGS )
+			!( Game_Mode == MODE_OVERWORLD && pOverworld_Manager->debugmode ) && Game_Mode != MODE_LEVEL_SETTINGS )
 	{
-		string level_name = "Name";
-
-		// valid level
-		while( level_name.length() )
-		{
-			level_name = Box_Text_Input( level_name, "Load a Level", level_name.compare( "Name" ) == 0 ? 1 : 0 );
-
-			// break if empty
-			if( level_name.empty() )
-			{
-				break;
-			}
-
-			// if available
-			if( pLevel->Get_path( level_name ) )
-			{
-				Game_Action = GA_ENTER_LEVEL;
-				Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
-				Game_Action_Data.add( "level", level_name.c_str() );
-
-				debugdisplay->Set_Text( "Loaded " + Get_filename( level_name, 0, 0 ) );
-
-				break;
-			}
-			// not found
-			else
-			{
-				pAudio->PlaySound( "error.ogg" );
-			}
-		}
+		pLevel_Editor->Function_Load();
 	}
 	// load an overworld
 	else if( key == SDLK_w && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) &&
-			!( Game_Mode == MODE_OVERWORLD && pOverworld_manager->debugmode ) && Game_Mode != MODE_LEVEL_SETTINGS )
+			!( Game_Mode == MODE_OVERWORLD && pOverworld_Manager->debugmode ) && Game_Mode != MODE_LEVEL_SETTINGS )
 	{
-		string world_name = "Name";
-
-		// valid world
-		while( world_name.length() > 0 )
-		{
-			world_name = Box_Text_Input( world_name, "Load an Overworld", world_name.compare( "Name" ) == 0 ? 1 : 0 );
-
-			// break if empty
-			if( world_name.empty() )
-			{
-				break;
-			}
-
-			// success
-			if( pOverworld_manager->Set_Active( world_name ) )
-			{
-				Game_Action = GA_ENTER_WORLD;
-
-				debugdisplay->Set_Text( "Loaded " + world_name );
-
-				break;
-			}
-			// failed
-			else
-			{
-				pAudio->PlaySound( "error.ogg" );
-			}
-		}
+		pWorld_Editor->Function_Load();
 	}
 	// sound toggle
 	else if( key == SDLK_F10 )
 	{
-		pAudio->ToggleSounds();
+		pAudio->Toggle_Sounds();
 
 		if( !pAudio->sound_enabled )
 		{
@@ -285,7 +254,7 @@ bool cKeyboard :: Key_Down( SDLKey key )
 	// music toggle
 	else if( key == SDLK_F11 )
 	{
-		pAudio->ToggleMusic();
+		pAudio->Toggle_Music();
 
 		if( !pAudio->music_enabled )
 		{
@@ -299,137 +268,192 @@ bool cKeyboard :: Key_Down( SDLKey key )
 	// debug mode
 	else if( key == SDLK_d && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
 	{
-		if( Game_debug )
+		if( game_debug )
 		{
-			debugdisplay->Set_Text( "Debugmode disabled" );
+			debugdisplay->Set_Text( "Debug mode disabled" );
 		}
 		else
 		{
 			pFramerate->fps_worst = 1000;
 			pFramerate->fps_best = 0;
-			debugdisplay->Set_Text( "Debugmode enabled" );
+			debugdisplay->Set_Text( "Debug mode enabled" );
 		}
 
-		Game_debug = !Game_debug;
+		game_debug = !game_debug;
+	}
+	// performance mode
+	else if( key == SDLK_p && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
+	{
+		if( game_debug_performance )
+		{
+			debugdisplay->Set_Text( "Performance debug mode disabled" );
+		}
+		else
+		{
+			pFramerate->fps_worst = 1000;
+			pFramerate->fps_best = 0;
+			debugdisplay->Set_Text( "Performance debug mode  enabled" );
+		}
+
+		game_debug_performance = !game_debug_performance;
 	}
 
 	return 0;
+}
+
+SDLKey *cKeyboard :: Get_Shortcut( input_identifier shortcut_id )
+{
+	if( shortcut_id == INP_UP )
+	{
+		return &pPreferences->key_up;
+	}
+	else if( shortcut_id == INP_DOWN )
+	{
+		return &pPreferences->key_down;
+	}
+	else if( shortcut_id == INP_LEFT )
+	{
+		return &pPreferences->key_left;
+	}
+	else if( shortcut_id == INP_RIGHT )
+	{
+		return &pPreferences->key_right;
+	}
+	else if( shortcut_id == INP_JUMP )
+	{
+		return &pPreferences->key_jump;
+	}
+	else if( shortcut_id == INP_SHOOT )
+	{
+		return &pPreferences->key_shoot; 
+	}
+	else if( shortcut_id == INP_ACTION )
+	{
+		return &pPreferences->key_action; 
+	}
+
+	return NULL;
+}
+
+void cKeyboard :: Assign_Shortcut( input_identifier shortcut_id, SDLKey new_key )
+{
+	SDLKey *key = Get_Shortcut( shortcut_id );
+	*key = new_key;
 }
 
 unsigned int cKeyboard :: SDLKey_to_CEGUIKey( SDLKey key )
 {
     switch( key )
     {
-    case SDLK_BACKSPACE:    return Key::Backspace;
-    case SDLK_TAB:          return Key::Tab;
-    case SDLK_RETURN:       return Key::Return;
-    case SDLK_PAUSE:        return Key::Pause;
-    case SDLK_ESCAPE:       return Key::Escape;
-    case SDLK_SPACE:        return Key::Space;
-    case SDLK_COMMA:        return Key::Comma;
-    case SDLK_MINUS:        return Key::Minus;
-    case SDLK_PERIOD:       return Key::Period;
-    case SDLK_SLASH:        return Key::Slash;
-    case SDLK_0:            return Key::Zero;
-    case SDLK_1:            return Key::One;
-    case SDLK_2:            return Key::Two;
-    case SDLK_3:            return Key::Three;
-    case SDLK_4:            return Key::Four;
-    case SDLK_5:            return Key::Five;
-    case SDLK_6:            return Key::Six;
-    case SDLK_7:            return Key::Seven;
-    case SDLK_8:            return Key::Eight;
-    case SDLK_9:            return Key::Nine;
-    case SDLK_COLON:        return Key::Colon;
-    case SDLK_SEMICOLON:    return Key::Semicolon;
-    case SDLK_EQUALS:       return Key::Equals;
-    case SDLK_LEFTBRACKET:  return Key::LeftBracket;
-    case SDLK_BACKSLASH:    return Key::Backslash;
-    case SDLK_RIGHTBRACKET: return Key::RightBracket;
-    case SDLK_a:            return Key::A;
-    case SDLK_b:            return Key::B;
-    case SDLK_c:            return Key::C;
-    case SDLK_d:            return Key::D;
-    case SDLK_e:            return Key::E;
-    case SDLK_f:            return Key::F;
-    case SDLK_g:            return Key::G;
-    case SDLK_h:            return Key::H;
-    case SDLK_i:            return Key::I;
-    case SDLK_j:            return Key::J;
-    case SDLK_k:            return Key::K;
-    case SDLK_l:            return Key::L;
-    case SDLK_m:            return Key::M;
-    case SDLK_n:            return Key::N;
-    case SDLK_o:            return Key::O;
-    case SDLK_p:            return Key::P;
-    case SDLK_q:            return Key::Q;
-    case SDLK_r:            return Key::R;
-    case SDLK_s:            return Key::S;
-    case SDLK_t:            return Key::T;
-    case SDLK_u:            return Key::U;
-    case SDLK_v:            return Key::V;
-    case SDLK_w:            return Key::W;
-    case SDLK_x:            return Key::X;
-    case SDLK_y:            return Key::Y;
-    case SDLK_z:            return Key::Z;
-    case SDLK_DELETE:       return Key::Delete;
-    case SDLK_KP0:          return Key::Numpad0;
-    case SDLK_KP1:          return Key::Numpad1;
-    case SDLK_KP2:          return Key::Numpad2;
-    case SDLK_KP3:          return Key::Numpad3;
-    case SDLK_KP4:          return Key::Numpad4;
-    case SDLK_KP5:          return Key::Numpad5;
-    case SDLK_KP6:          return Key::Numpad6;
-    case SDLK_KP7:          return Key::Numpad7;
-    case SDLK_KP8:          return Key::Numpad8;
-    case SDLK_KP9:          return Key::Numpad9;
-    case SDLK_KP_PERIOD:    return Key::Decimal;
-    case SDLK_KP_DIVIDE:    return Key::Divide;
-    case SDLK_KP_MULTIPLY:  return Key::Multiply;
-    case SDLK_KP_MINUS:     return Key::Subtract;
-    case SDLK_KP_PLUS:      return Key::Add;
-    case SDLK_KP_ENTER:     return Key::NumpadEnter;
-    case SDLK_KP_EQUALS:    return Key::NumpadEquals;
-    case SDLK_UP:           return Key::ArrowUp;
-    case SDLK_DOWN:         return Key::ArrowDown;
-    case SDLK_RIGHT:        return Key::ArrowRight;
-    case SDLK_LEFT:         return Key::ArrowLeft;
-    case SDLK_INSERT:       return Key::Insert;
-    case SDLK_HOME:         return Key::Home;
-    case SDLK_END:          return Key::End;
-    case SDLK_PAGEUP:       return Key::PageUp;
-    case SDLK_PAGEDOWN:     return Key::PageDown;
-    case SDLK_F1:           return Key::F1;
-    case SDLK_F2:           return Key::F2;
-    case SDLK_F3:           return Key::F3;
-    case SDLK_F4:           return Key::F4;
-    case SDLK_F5:           return Key::F5;
-    case SDLK_F6:           return Key::F6;
-    case SDLK_F7:           return Key::F7;
-    case SDLK_F8:           return Key::F8;
-    case SDLK_F9:           return Key::F9;
-    case SDLK_F10:          return Key::F10;
-    case SDLK_F11:          return Key::F11;
-    case SDLK_F12:          return Key::F12;
-    case SDLK_F13:          return Key::F13;
-    case SDLK_F14:          return Key::F14;
-    case SDLK_F15:          return Key::F15;
-    case SDLK_NUMLOCK:      return Key::NumLock;
-    case SDLK_SCROLLOCK:    return Key::ScrollLock;
-    case SDLK_RSHIFT:       return Key::RightShift;
-    case SDLK_LSHIFT:       return Key::LeftShift;
-    case SDLK_RCTRL:        return Key::RightControl;
-    case SDLK_LCTRL:        return Key::LeftControl;
-    case SDLK_RALT:         return Key::RightAlt;
-    case SDLK_LALT:         return Key::LeftAlt;
-    case SDLK_LSUPER:       return Key::LeftWindows;
-    case SDLK_RSUPER:       return Key::RightWindows;
-    case SDLK_SYSREQ:       return Key::SysRq;
-    case SDLK_MENU:         return Key::AppMenu;
-    case SDLK_POWER:        return Key::Power;
+    case SDLK_BACKSPACE:    return CEGUI::Key::Backspace;
+    case SDLK_TAB:          return CEGUI::Key::Tab;
+    case SDLK_RETURN:       return CEGUI::Key::Return;
+    case SDLK_PAUSE:        return CEGUI::Key::Pause;
+    case SDLK_ESCAPE:       return CEGUI::Key::Escape;
+    case SDLK_SPACE:        return CEGUI::Key::Space;
+    case SDLK_COMMA:        return CEGUI::Key::Comma;
+    case SDLK_MINUS:        return CEGUI::Key::Minus;
+    case SDLK_PERIOD:       return CEGUI::Key::Period;
+    case SDLK_SLASH:        return CEGUI::Key::Slash;
+    case SDLK_0:            return CEGUI::Key::Zero;
+    case SDLK_1:            return CEGUI::Key::One;
+    case SDLK_2:            return CEGUI::Key::Two;
+    case SDLK_3:            return CEGUI::Key::Three;
+    case SDLK_4:            return CEGUI::Key::Four;
+    case SDLK_5:            return CEGUI::Key::Five;
+    case SDLK_6:            return CEGUI::Key::Six;
+    case SDLK_7:            return CEGUI::Key::Seven;
+    case SDLK_8:            return CEGUI::Key::Eight;
+    case SDLK_9:            return CEGUI::Key::Nine;
+    case SDLK_COLON:        return CEGUI::Key::Colon;
+    case SDLK_SEMICOLON:    return CEGUI::Key::Semicolon;
+    case SDLK_EQUALS:       return CEGUI::Key::Equals;
+    case SDLK_LEFTBRACKET:  return CEGUI::Key::LeftBracket;
+    case SDLK_BACKSLASH:    return CEGUI::Key::Backslash;
+    case SDLK_RIGHTBRACKET: return CEGUI::Key::RightBracket;
+    case SDLK_a:            return CEGUI::Key::A;
+    case SDLK_b:            return CEGUI::Key::B;
+    case SDLK_c:            return CEGUI::Key::C;
+    case SDLK_d:            return CEGUI::Key::D;
+    case SDLK_e:            return CEGUI::Key::E;
+    case SDLK_f:            return CEGUI::Key::F;
+    case SDLK_g:            return CEGUI::Key::G;
+    case SDLK_h:            return CEGUI::Key::H;
+    case SDLK_i:            return CEGUI::Key::I;
+    case SDLK_j:            return CEGUI::Key::J;
+    case SDLK_k:            return CEGUI::Key::K;
+    case SDLK_l:            return CEGUI::Key::L;
+    case SDLK_m:            return CEGUI::Key::M;
+    case SDLK_n:            return CEGUI::Key::N;
+    case SDLK_o:            return CEGUI::Key::O;
+    case SDLK_p:            return CEGUI::Key::P;
+    case SDLK_q:            return CEGUI::Key::Q;
+    case SDLK_r:            return CEGUI::Key::R;
+    case SDLK_s:            return CEGUI::Key::S;
+    case SDLK_t:            return CEGUI::Key::T;
+    case SDLK_u:            return CEGUI::Key::U;
+    case SDLK_v:            return CEGUI::Key::V;
+    case SDLK_w:            return CEGUI::Key::W;
+    case SDLK_x:            return CEGUI::Key::X;
+    case SDLK_y:            return CEGUI::Key::Y;
+    case SDLK_z:            return CEGUI::Key::Z;
+    case SDLK_DELETE:       return CEGUI::Key::Delete;
+    case SDLK_KP0:          return CEGUI::Key::Numpad0;
+    case SDLK_KP1:          return CEGUI::Key::Numpad1;
+    case SDLK_KP2:          return CEGUI::Key::Numpad2;
+    case SDLK_KP3:          return CEGUI::Key::Numpad3;
+    case SDLK_KP4:          return CEGUI::Key::Numpad4;
+    case SDLK_KP5:          return CEGUI::Key::Numpad5;
+    case SDLK_KP6:          return CEGUI::Key::Numpad6;
+    case SDLK_KP7:          return CEGUI::Key::Numpad7;
+    case SDLK_KP8:          return CEGUI::Key::Numpad8;
+    case SDLK_KP9:          return CEGUI::Key::Numpad9;
+    case SDLK_KP_PERIOD:    return CEGUI::Key::Decimal;
+    case SDLK_KP_DIVIDE:    return CEGUI::Key::Divide;
+    case SDLK_KP_MULTIPLY:  return CEGUI::Key::Multiply;
+    case SDLK_KP_MINUS:     return CEGUI::Key::Subtract;
+    case SDLK_KP_PLUS:      return CEGUI::Key::Add;
+    case SDLK_KP_ENTER:     return CEGUI::Key::NumpadEnter;
+    case SDLK_KP_EQUALS:    return CEGUI::Key::NumpadEquals;
+    case SDLK_UP:           return CEGUI::Key::ArrowUp;
+    case SDLK_DOWN:         return CEGUI::Key::ArrowDown;
+    case SDLK_RIGHT:        return CEGUI::Key::ArrowRight;
+    case SDLK_LEFT:         return CEGUI::Key::ArrowLeft;
+    case SDLK_INSERT:       return CEGUI::Key::Insert;
+    case SDLK_HOME:         return CEGUI::Key::Home;
+    case SDLK_END:          return CEGUI::Key::End;
+    case SDLK_PAGEUP:       return CEGUI::Key::PageUp;
+    case SDLK_PAGEDOWN:     return CEGUI::Key::PageDown;
+    case SDLK_F1:           return CEGUI::Key::F1;
+    case SDLK_F2:           return CEGUI::Key::F2;
+    case SDLK_F3:           return CEGUI::Key::F3;
+    case SDLK_F4:           return CEGUI::Key::F4;
+    case SDLK_F5:           return CEGUI::Key::F5;
+    case SDLK_F6:           return CEGUI::Key::F6;
+    case SDLK_F7:           return CEGUI::Key::F7;
+    case SDLK_F8:           return CEGUI::Key::F8;
+    case SDLK_F9:           return CEGUI::Key::F9;
+    case SDLK_F10:          return CEGUI::Key::F10;
+    case SDLK_F11:          return CEGUI::Key::F11;
+    case SDLK_F12:          return CEGUI::Key::F12;
+    case SDLK_F13:          return CEGUI::Key::F13;
+    case SDLK_F14:          return CEGUI::Key::F14;
+    case SDLK_F15:          return CEGUI::Key::F15;
+    case SDLK_NUMLOCK:      return CEGUI::Key::NumLock;
+    case SDLK_SCROLLOCK:    return CEGUI::Key::ScrollLock;
+    case SDLK_RSHIFT:       return CEGUI::Key::RightShift;
+    case SDLK_LSHIFT:       return CEGUI::Key::LeftShift;
+    case SDLK_RCTRL:        return CEGUI::Key::RightControl;
+    case SDLK_LCTRL:        return CEGUI::Key::LeftControl;
+    case SDLK_RALT:         return CEGUI::Key::RightAlt;
+    case SDLK_LALT:         return CEGUI::Key::LeftAlt;
+    case SDLK_LSUPER:       return CEGUI::Key::LeftWindows;
+    case SDLK_RSUPER:       return CEGUI::Key::RightWindows;
+    case SDLK_SYSREQ:       return CEGUI::Key::SysRq;
+    case SDLK_MENU:         return CEGUI::Key::AppMenu;
+    case SDLK_POWER:        return CEGUI::Key::Power;
     default:                return 0;
     }
-    return 0;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

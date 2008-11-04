@@ -84,30 +84,46 @@
 		<Property Name="object_name" Value="enemy" />
 		<Property Name="object_tags" Value="level;enemy" />
 		<Property Name="type" Value="static" />
+		<Property Name="rotation_speed" Value="-5.5" />
+		<Property Name="image" Value="enemy/static/saw/default.png" />
 	</Item>
 	<Item>
 		<Property Name="object_name" Value="enemy" />
 		<Property Name="object_tags" Value="level;enemy" />
-		<Property Name="type" Value="gumba" />
+		<Property Name="type" Value="static" />
+		<Property Name="rotation_speed" Value="2.5" />
+		<Property Name="image" Value="enemy/static/blocks/spike_1/1_grey.png" />
 	</Item>
 	<Item>
 		<Property Name="object_name" Value="enemy" />
 		<Property Name="object_tags" Value="level;enemy" />
-		<Property Name="type" Value="gumba" />
+		<Property Name="type" Value="static" />
+		<Property Name="rotation_speed" Value="0" />
+		<Property Name="image" Value="enemy/static/blocks/spike_1/2_grey.png" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="enemy" />
+		<Property Name="object_tags" Value="level;enemy" />
+		<Property Name="type" Value="furball" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="enemy" />
+		<Property Name="object_tags" Value="level;enemy" />
+		<Property Name="type" Value="furball" />
 		<Property Name="direction" Value="left" />
 	</Item>
 	<Item>
 		<Property Name="object_name" Value="enemy" />
 		<Property Name="object_tags" Value="level;enemy" />
-		<Property Name="type" Value="gumba" />
-		<Property Name="color" Value="red" />
+		<Property Name="type" Value="furball" />
+		<Property Name="color" Value="blue" />
 	</Item>
 	<Item>
 		<Property Name="object_name" Value="enemy" />
 		<Property Name="object_tags" Value="level;enemy" />
-		<Property Name="type" Value="gumba" />
+		<Property Name="type" Value="furball" />
 		<Property Name="direction" Value="left" />
-		<Property Name="color" Value="red" />
+		<Property Name="color" Value="blue" />
 	</Item>
 	<Item>
 		<Property Name="object_name" Value="enemy" />
@@ -136,12 +152,12 @@
 	<Item>
 		<Property Name="object_name" Value="enemy" />
 		<Property Name="object_tags" Value="level;enemy" />
-		<Property Name="type" Value="rex" />
+		<Property Name="type" Value="krush" />
 	</Item>
 	<Item>
 		<Property Name="object_name" Value="enemy" />
 		<Property Name="object_tags" Value="level;enemy" />
-		<Property Name="type" Value="rex" />
+		<Property Name="type" Value="krush" />
 		<Property Name="direction" Value="left" />
 	</Item>
 	<Item>
@@ -250,6 +266,34 @@
 		<Property Name="object_name" Value="enemy" />
 		<Property Name="object_tags" Value="level;enemy" />
 		<Property Name="type" Value="thromp" />
+		<Property Name="direction" Value="right" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="enemy" />
+		<Property Name="object_tags" Value="level;enemy" />
+		<Property Name="type" Value="thromp" />
+		<Property Name="image_dir" Value="enemy/thromp/desert_1/" />
+		<Property Name="direction" Value="up" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="enemy" />
+		<Property Name="object_tags" Value="level;enemy" />
+		<Property Name="type" Value="thromp" />
+		<Property Name="image_dir" Value="enemy/thromp/desert_1/" />
+		<Property Name="direction" Value="down" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="enemy" />
+		<Property Name="object_tags" Value="level;enemy" />
+		<Property Name="type" Value="thromp" />
+		<Property Name="image_dir" Value="enemy/thromp/desert_1/" />
+		<Property Name="direction" Value="left" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="enemy" />
+		<Property Name="object_tags" Value="level;enemy" />
+		<Property Name="type" Value="thromp" />
+		<Property Name="image_dir" Value="enemy/thromp/desert_1/" />
 		<Property Name="direction" Value="right" />
 	</Item>
 	<Item>
@@ -408,5 +452,24 @@
 	<Item>
 		<Property Name="object_name" Value="falling_platform" />
 		<Property Name="object_tags" Value="level;special" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="sound" />
+		<Property Name="object_tags" Value="level;special" />
+		<Property Name="file" Value="waterdrop_1.ogg" />
+		<Property Name="delay_min" Value="350" />
+		<Property Name="delay_max" Value="400" />
+		<Property Name="volume_min" Value="80" />
+		<Property Name="volume_max" Value="100" />
+		<Property Name="volume_distance_full" Value="400" />
+		<Property Name="volume_distance_zero" Value="1000" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="particle_emitter" />
+		<Property Name="object_tags" Value="level;special" />
+		<Property Name="file" Value="animation/particles/dirt.png" />
+		<Property Name="size_x" Value="10" />
+		<Property Name="size_y" Value="10" />
+		<Property Name="emitter_time_to_live" Value="-1" />
 	</Item>
 </Items>

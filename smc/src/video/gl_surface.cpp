@@ -1,7 +1,7 @@
 /***************************************************************************
-			gl_surface.cpp  -  GL_Surface class
-                             -------------------
-    copyright            : (C) 2005 - 2007 Florian Richter
+ * gl_surface.cpp  -  GL_Surface class
+ *
+ * Copyright (C) 2005 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -46,6 +46,7 @@ GL_Surface :: GL_Surface( void )
 	col_h = 0;
 
 	auto_del_img = 1;
+	managed = 0;
 	obsolete = 0;
 
 	// default type is passive
@@ -58,24 +59,9 @@ GL_Surface :: GL_Surface( void )
 
 GL_Surface :: ~GL_Surface( void )
 {
-	if( auto_del_img && glIsTexture( image ) )
+	// don't delete a managed OpenGL image if still in use by another managed GL_Surface
+	if( auto_del_img && glIsTexture( image ) && ( !managed || !Is_Texture_Use_Multiple() ) )
 	{
-		for( SurfaceList::iterator itr = pImageManager->objects.begin(), itr_end = pImageManager->objects.end(); itr != itr_end; ++itr )
-		{
-			GL_Surface *obj = (*itr);
-
-			if( obj == this )
-			{
-				continue;
-			}
-
-			// don't delete GL image if still in use
-			if( obj->image == image )
-			{
-				break;
-			}
-		}
-
 		glDeleteTextures( 1, &image );
 	}
 
@@ -113,7 +99,7 @@ GL_Surface *GL_Surface :: Copy( void )
 	new_surface->editor_tags = editor_tags;
 	new_surface->name = name;
 	new_surface->type = type;
-	new_surface->Set_Ground_type( ground_type );
+	new_surface->Set_Ground_Type( ground_type );
 
 	return new_surface;
 }
@@ -129,7 +115,7 @@ void GL_Surface :: Blit( float x, float y, float z, cSurfaceRequest *request /* 
 		request = new cSurfaceRequest();
 	}
 
-	Blit_data( request );
+	Blit_Data( request );
 
 	// position
 	request->pos_x += x;
@@ -143,7 +129,7 @@ void GL_Surface :: Blit( float x, float y, float z, cSurfaceRequest *request /* 
 	}
 }
 
-void GL_Surface :: Blit_data( cSurfaceRequest *request )
+void GL_Surface :: Blit_Data( cSurfaceRequest *request )
 {
 	// texture id
 	request->texture_id = image;
@@ -176,38 +162,79 @@ void GL_Surface :: Save( string filename )
 	// create image data
 	GLubyte *data = new GLubyte[tex_w * tex_h * 4];
 	// read texture
-	glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid *)data );
+	glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<GLvoid *>(data) );
 	// save
 	pVideo->Save_Surface( filename, data, tex_w, tex_h );
 	// clear data
 	delete[] data;
 }
 
-void GL_Surface :: Set_Ground_type( GroundType gtype )
+void GL_Surface :: Set_Ground_Type( GroundType gtype )
 {
 	ground_type = gtype;
 }
 
-cSoftware_texture *GL_Surface :: Get_Software_Texture( void )
+bool GL_Surface :: Is_Texture_Use_Multiple( void )
 {
-	cSoftware_texture *soft_tex = new cSoftware_texture();
+	for( GL_Surface_List::iterator itr = pImage_Manager->objects.begin(), itr_end = pImage_Manager->objects.end(); itr != itr_end; ++itr )
+	{
+		GL_Surface *obj = (*itr);
 
-	// bind the texture
-	glBindTexture( GL_TEXTURE_2D, image );
+		if( obj == this )
+		{
+			continue;
+		}
+		
+		if( obj->image == image )
+		{
+			return 1;
+		}
+	}
 
-	// texture settings
-	glGetTexLevelParameteriv( GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &soft_tex->width );
-	glGetTexLevelParameteriv( GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &soft_tex->height );
+	return 0;
+}
 
-	glGetTexParameteriv( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &soft_tex->wrap_s );
-	glGetTexParameteriv( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &soft_tex->wrap_t );
-	glGetTexParameteriv( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &soft_tex->min_filter );
-	glGetTexParameteriv( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &soft_tex->mag_filter );
+cSaved_Texture *GL_Surface :: Get_Software_Texture( bool only_filename /* = 0 */ )
+{
+	cSaved_Texture *soft_tex = new cSaved_Texture();
 
-	// texture data
-	soft_tex->pixels = new uint8[soft_tex->width * soft_tex->height * 4];
+	// hardware texture to software texture
+	if( !only_filename )
+	{
+		// bind the texture
+		glBindTexture( GL_TEXTURE_2D, image );
 
-	glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, soft_tex->pixels );
+		// texture settings
+		glGetTexLevelParameteriv( GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &soft_tex->width );
+		glGetTexLevelParameteriv( GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &soft_tex->height );
+		glGetTexLevelParameteriv( GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &soft_tex->format );
+
+		glGetTexParameteriv( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, &soft_tex->wrap_s );
+		glGetTexParameteriv( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, &soft_tex->wrap_t );
+		glGetTexParameteriv( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &soft_tex->min_filter );
+		glGetTexParameteriv( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &soft_tex->mag_filter );
+
+		unsigned int bpp;
+
+		if( soft_tex->format == GL_RGBA )
+		{
+			bpp = 4;
+		}
+		else if( soft_tex->format == GL_RGB )
+		{
+			bpp = 3;
+		}
+		else
+		{
+			bpp = 4;
+			printf( "Warning: GL_Surface :: Get_Software_Texture : Unknown format\n" );
+		}
+
+		// texture data
+		soft_tex->pixels = new GLubyte[soft_tex->width * soft_tex->height * bpp];
+
+		glGetTexImage( GL_TEXTURE_2D, 0, soft_tex->format, GL_UNSIGNED_BYTE, soft_tex->pixels );
+	}
 
 	// surface pointer
 	soft_tex->base = this;
@@ -215,39 +242,63 @@ cSoftware_texture *GL_Surface :: Get_Software_Texture( void )
 	return soft_tex;
 }
 
-void GL_Surface :: Load_Software_Texture( cSoftware_texture *soft_tex )
+void GL_Surface :: Load_Software_Texture( cSaved_Texture *soft_tex )
 {
 	if( !soft_tex )
 	{
 		return;
 	}
 	
-	GLuint tex_id;
-	glGenTextures( 1, &tex_id );
-
-	glBindTexture( GL_TEXTURE_2D, tex_id );
-
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, soft_tex->wrap_s );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, soft_tex->wrap_t );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, soft_tex->min_filter );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, soft_tex->mag_filter );
-
-	// check if mipmaps are enabled
-	bool mipmaps = 0;
-
-	// if mipmaps are enabled
-	if( soft_tex->min_filter == GL_LINEAR_MIPMAP_LINEAR )
+	// software texture
+	if( soft_tex->pixels )
 	{
-		mipmaps = 1;
+		GLuint tex_id;
+		glGenTextures( 1, &tex_id );
+
+		glBindTexture( GL_TEXTURE_2D, tex_id );
+
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, soft_tex->wrap_s );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, soft_tex->wrap_t );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, soft_tex->min_filter );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, soft_tex->mag_filter );
+
+		// check if mipmaps are enabled
+		bool mipmaps = 0;
+
+		// if mipmaps are enabled
+		if( soft_tex->min_filter == GL_LINEAR_MIPMAP_LINEAR )
+		{
+			mipmaps = 1;
+		}
+
+		// Create Hardware Texture
+		pVideo->Create_GL_Texture( soft_tex->width, soft_tex->height, soft_tex->pixels, mipmaps );
+
+		image = tex_id;
 	}
+	// load from file
+	else
+	{
+		GL_Surface *surface_copy = pVideo->Load_GL_Surface( filename );
 
-	// Create Hardware Texture
-	pVideo->Create_GL_Texture( soft_tex->width, soft_tex->height, soft_tex->pixels, mipmaps );
+		if( !surface_copy )
+		{
+			printf( "Warning: GL_Surface :: Load_Software_Texture %s loading failed\n", filename.c_str() );
+			return;
+		}
 
-	image = tex_id;
+		// get image
+		image = surface_copy->image;
+		tex_w = surface_copy->tex_w;
+		tex_h = surface_copy->tex_h;
+		// keep hardware texture
+		surface_copy->auto_del_img = 0;
+		// delete copy
+		delete surface_copy;
+	}
 }
 
-string GL_Surface :: Get_filename( int with_dir /* = 2 */, bool with_end /* = 1 */ ) 
+string GL_Surface :: Get_Filename( int with_dir /* = 2 */, bool with_end /* = 1 */ ) 
 {
 	string name = filename;
 
@@ -271,7 +322,7 @@ string GL_Surface :: Get_filename( int with_dir /* = 2 */, bool with_end /* = 1 
 	return name;
 }
 
-void GL_Surface :: Set_destruction_function( void ( *nfunction )( GL_Surface * ) )
+void GL_Surface :: Set_Destruction_Function( void ( *nfunction )( GL_Surface * ) )
 {
 	destruction_function = nfunction;
 }

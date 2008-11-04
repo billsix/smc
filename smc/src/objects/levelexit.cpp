@@ -1,7 +1,7 @@
 /***************************************************************************
-     levelexit.cpp  -  area to exit the current level
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * levelexit.cpp  -  area to exit the current level
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -25,20 +25,21 @@
 #include "../video/font.h"
 #include "../video/renderer.h"
 #include "../level/level.h"
+#include "../core/i18n.h"
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cLevel_Exit :: cLevel_Exit( float x, float y )
 : cImageObjectSprite( x, y )
 {
-	Init();
+	cLevel_Exit::Init();
 }
 
-cLevel_Exit :: cLevel_Exit( XMLAttributes &attributes )
+cLevel_Exit :: cLevel_Exit( CEGUI::XMLAttributes &attributes )
 : cImageObjectSprite()
 {
-	Init();
-	Create_from_Stream( attributes );
+	cLevel_Exit::Init();
+	cLevel_Exit::Create_from_Stream( attributes );
 }
 
 cLevel_Exit :: ~cLevel_Exit( void )
@@ -53,7 +54,7 @@ cLevel_Exit :: ~cLevel_Exit( void )
 void cLevel_Exit :: Init( void )
 {
 	sprite_array = ARRAY_ACTIVE;
-	type = TYPE_LEVELEXIT;
+	type = TYPE_LEVEL_EXIT;
 	massivetype = MASS_PASSIVE;
 	editor_posz = 0.111f;
 	player_range = 1000;
@@ -81,16 +82,17 @@ cLevel_Exit *cLevel_Exit :: Copy( void )
 	level_exit->Set_Type( exit_type );
 	level_exit->Set_Direction( start_direction );
 	level_exit->Set_Level( dest_level );
+	level_exit->Set_Entry( dest_entry );
 
 	return level_exit;
 }
 
-void cLevel_Exit :: Create_from_Stream( XMLAttributes &attributes )
+void cLevel_Exit :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// type
-	Set_Type( (Level_Exit_type)attributes.getValueAsInteger( "type", exit_type ) );
+	Set_Type( static_cast<Level_Exit_type>(attributes.getValueAsInteger( "type", exit_type )) );
 	// destination level
 	Set_Level( attributes.getValueAsString( "level_name" ).c_str() );
 	// destination entry
@@ -98,7 +100,7 @@ void cLevel_Exit :: Create_from_Stream( XMLAttributes &attributes )
 	// direction
 	if( exit_type == LEVELEXIT_WARP )
 	{
-		Set_Direction( Get_Direction_id( attributes.getValueAsString( "direction", Get_Direction_name( start_direction ) ).c_str() ) );
+		Set_Direction( Get_Direction_Id( attributes.getValueAsString( "direction", Get_Direction_Name( start_direction ) ).c_str() ) );
 	}
 }
 
@@ -129,7 +131,7 @@ void cLevel_Exit :: Save_to_Stream( ofstream &file )
 	if( exit_type == LEVELEXIT_WARP )
 	{
 		// direction
-		file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_name( start_direction ) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( start_direction ) << "\" />" << std::endl;
 	}
 
 	// end levelexit
@@ -151,15 +153,15 @@ void cLevel_Exit :: Set_Direction( ObjectDirection dir )
 
 void cLevel_Exit :: Create_Name( void )
 {
-    name = "Level";
+    name = _("Level");
 
     if( exit_type == LEVELEXIT_BEAM )
     {
-        name += " Beam";
+        name += _(" Beam");
     }
     else if( exit_type == LEVELEXIT_WARP )
     {
-		name += " Warp";
+		name += _(" Warp");
 
 		if( direction == DIR_UP )
 		{
@@ -187,14 +189,8 @@ void cLevel_Exit :: Draw( cSurfaceRequest *request /* = NULL */ )
 		return;
 	}
 
-	// editor enabled
-	if( !editor_level_enabled )
-	{
-		return;
-	}
-
 	// draw color rect
-	pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, editor_posz, &editor_color );
+	pVideo->Draw_Rect( col_rect.x - pActive_Camera->x, col_rect.y - pActive_Camera->y, col_rect.w, col_rect.h, editor_posz, &editor_color );
 
 	// draw destination entry name
 	if( editor_entry_name )
@@ -202,7 +198,7 @@ void cLevel_Exit :: Draw( cSurfaceRequest *request /* = NULL */ )
 		// create request
 		cSurfaceRequest *surface_request = new cSurfaceRequest();
 		// blit
-		editor_entry_name->Blit( col_rect.x + col_rect.w + 5 - pCamera->x, col_rect.y - pCamera->y, editor_posz, surface_request );
+		editor_entry_name->Blit( col_rect.x + col_rect.w + 5 - pActive_Camera->x, col_rect.y - pActive_Camera->y, editor_posz, surface_request );
 		surface_request->shadow_pos = 2;
 		surface_request->shadow_color = lightgreyalpha64;
 		// add request
@@ -212,42 +208,48 @@ void cLevel_Exit :: Draw( cSurfaceRequest *request /* = NULL */ )
 
 void cLevel_Exit :: Activate( void )
 {
-	pAudio->FadeOutMusic( 500 );
+	// if leaving level
+	if( dest_level.empty() && dest_entry.empty() )
+	{
+		// fade out music
+		pAudio->Fadeout_Music( 500 );
+	}
 
 	// warp player out
 	if( exit_type == LEVELEXIT_WARP )
 	{
-		pAudio->PlaySound( "enter_pipe.ogg" );
+		pAudio->Play_Sound( "enter_pipe.ogg" );
 
-		pPlayer->Set_MovingState( STA_FALL );
+		pPlayer->Set_Moving_State( STA_FALL );
 		pPlayer->Set_Image( pPlayer->Get_Image() + pPlayer->direction );
-		pPlayer->Stop_ducking();
-		pPlayer->Reset_onGround();
+		pPlayer->Stop_Ducking();
+		pPlayer->Reset_on_Ground();
 
 		// set position and image
 		if( direction == DIR_UP || direction == DIR_DOWN )
 		{
-			pPlayer->Set_PosX( col_rect.x - pPlayer->col_pos.x + ( col_rect.w * 0.5f ) - ( pPlayer->col_rect.w * 0.5f ) );
+			pPlayer->Set_Pos_X( col_rect.x - pPlayer->col_pos.x + ( col_rect.w * 0.5f ) - ( pPlayer->col_rect.w * 0.5f ) );
 		}
 		else if( direction == DIR_LEFT || direction == DIR_RIGHT )
 		{
-			pPlayer->Set_PosY( col_rect.y - pPlayer->col_pos.y + ( col_rect.h * 0.5f ) - ( pPlayer->col_rect.h * 0.5f ) );
+			pPlayer->Set_Pos_Y( col_rect.y - pPlayer->col_pos.y + ( col_rect.h * 0.5f ) - ( pPlayer->col_rect.h * 0.5f ) );
 
 			// set rotation
 			if( direction == DIR_RIGHT )
 			{
-				pPlayer->Set_RotationZ( 90 );
+				pPlayer->Set_Rotation_Z( 90 );
 			}
 			else if( direction == DIR_LEFT )
 			{
-				pPlayer->Set_RotationZ( 270 );
+				pPlayer->Set_Rotation_Z( 270 );
 			}
 		}
 
 		float player_posz = pPlayer->posz;
-		pPlayer->posz = 0.0799f; // just before massive
+		// posz just before massive
+		pPlayer->posz = 0.0799f;
 
-		for( float i = 0; i < ( DESIRED_FPS * 0.9f ); i += pFramerate->speedfactor )
+		for( float i = 0; i < ( speedfactor_fps * 0.9f ); i += pFramerate->speedfactor )
 		{
 			if( direction == DIR_DOWN )
 			{
@@ -280,20 +282,22 @@ void cLevel_Exit :: Activate( void )
 
 		if( direction == DIR_RIGHT || direction == DIR_LEFT )
 		{
-			pPlayer->Set_RotationZ( 0 );
+			pPlayer->Set_Rotation_Z( 0 );
 		}
 	}
 
 	pPlayer->Collisions_Clear();
 
-	if( dest_level.length() )
+	// exit level
+	if( dest_level.empty() && dest_entry.empty() )
 	{
-		pPlayer->Goto_SubLevel( dest_level, dest_entry );
+		pAudio->Play_Music( "game/courseclear.ogg" );
+		pPlayer->Goto_Next_Level();
 	}
+	// enter entry
 	else
 	{
-		pAudio->PlayMusic( "game/courseclear.ogg" );
-		pPlayer->Goto_next_Level();
+		pPlayer->Goto_Sub_Level( dest_level, dest_entry );
 	}
 }
 
@@ -306,7 +310,7 @@ void cLevel_Exit :: Set_Type( Level_Exit_type ltype )
 
 void cLevel_Exit :: Set_Level( string filename )
 {
-	if( filename.empty() )
+	if( filename.empty() && dest_entry.empty() )
 	{
 		dest_level.clear();
 		// red for no destination level
@@ -320,7 +324,7 @@ void cLevel_Exit :: Set_Level( string filename )
 	editor_color.alpha = 128;
 
 	// erase file type and directory if set
-	dest_level = Get_filename( filename, 0, 0 );
+	dest_level = Get_Filename( filename, 0, 0 );
 }
 
 void cLevel_Exit :: Set_Entry( string entry_name )
@@ -340,7 +344,7 @@ void cLevel_Exit :: Set_Entry( string entry_name )
 		return;
 	}
 
-	editor_entry_name = pFont->RenderText( pFont->font_small, dest_entry, white );
+	editor_entry_name = pFont->Render_Text( pFont->font_small, dest_entry, white );
 }
 
 string cLevel_Exit :: Get_Level( bool with_dir /* = 1 */, bool with_end /* = 1 */ )
@@ -348,26 +352,22 @@ string cLevel_Exit :: Get_Level( bool with_dir /* = 1 */, bool with_end /* = 1 *
 	string name = dest_level;
 
 	// Get level
-	pLevel->Get_path( name );
+	pActive_Level->Get_Path( name );
 
 	// return
-	return Get_filename( name, with_dir, with_end );
+	return Get_Filename( name, with_dir, with_end );
 }
 
-bool cLevel_Exit :: is_Draw_valid( void )
+bool cLevel_Exit :: Is_Draw_Valid( void )
 {
 	// if editor not enabled
 	if( !editor_enabled )
 	{
-		// not visible
-		if( !visible || !image )
-		{
-			return 0;
-		}
+		return 0;
 	}
 
-	// not visible on the screen
-	if( !is_Visible_onScreen() )
+	// if not visible on the screen
+	if( !visible || !Is_Visible_on_Screen() )
 	{
 		return 0;
 	}
@@ -377,69 +377,66 @@ bool cLevel_Exit :: is_Draw_valid( void )
 
 void cLevel_Exit :: Editor_Activate( void )
 {
-	WindowManager &wmgr = WindowManager::getSingleton();
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
 	// warp
 	if( exit_type == LEVELEXIT_WARP )
 	{
 		// direction
-		Combobox *combobox = static_cast<Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "level_exit_direction" ));
-		combobox->getEditbox()->setTooltipText( "Direction" );
-		Editor_Add( combobox, 100, 105 );
+		CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "level_exit_direction" ));
+		Editor_Add( UTF8_("Direction"), UTF8_("Direction to move in"), combobox, 100, 105 );
 
-		combobox->addItem( new ListboxTextItem( "up" ) );
-		combobox->addItem( new ListboxTextItem( "down" ) );
-		combobox->addItem( new ListboxTextItem( "right" ) );
-		combobox->addItem( new ListboxTextItem( "left" ) );
-		combobox->setText( Get_Direction_name( start_direction ) );
+		combobox->addItem( new CEGUI::ListboxTextItem( "up" ) );
+		combobox->addItem( new CEGUI::ListboxTextItem( "down" ) );
+		combobox->addItem( new CEGUI::ListboxTextItem( "right" ) );
+		combobox->addItem( new CEGUI::ListboxTextItem( "left" ) );
+		combobox->setText( Get_Direction_Name( start_direction ) );
 
-		combobox->subscribeEvent( Combobox::EventListSelectionAccepted, Event::Subscriber( &cLevel_Exit::Editor_Direction_Select, this ) );
+		combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cLevel_Exit::Editor_Direction_Select, this ) );
 	}
 
 	// destination level
-	Editbox *editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "level_exit_destination_level" ));
-	editbox->setTooltipText( "Destination Level" );
-	Editor_Add( editbox, 150 );
+	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "level_exit_destination_level" ));
+	Editor_Add( UTF8_("Destination Level"), UTF8_("Name of the level that should be entered. If empty uses the current level."), editbox, 150 );
 
 	editbox->setText( Get_Level( 0, 0 ) );
-	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Exit::Editor_Destination_Level_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cLevel_Exit::Editor_Destination_Level_Key, this ) );
 
 	// destination entry
-	editbox = static_cast<Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "level_exit_destination_entry" ));
-	editbox->setTooltipText( "Destination Entry" );
-	Editor_Add( editbox, 150 );
+	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "level_exit_destination_entry" ));
+	Editor_Add( UTF8_("Destination Entry"), UTF8_("Name of the Entry in the destination level. If empty the entry point is the player start position."), editbox, 150 );
 
 	editbox->setText( dest_entry.c_str() );
-	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cLevel_Exit::Editor_Destination_Entry_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cLevel_Exit::Editor_Destination_Entry_Key, this ) );
 
-	// set position
-	Editor_pos_update();
+	// init
+	Editor_Init();
 }
 
-bool cLevel_Exit :: Editor_Direction_Select( const EventArgs &event )
+bool cLevel_Exit :: Editor_Direction_Select( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	ListboxItem *item = static_cast<Combobox *>( windowEventArgs.window )->getSelectedItem();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
 
-	Set_Direction( Get_Direction_id( item->getText().c_str() ) );
+	Set_Direction( Get_Direction_Id( item->getText().c_str() ) );
 
 	return 1;
 }
 
-bool cLevel_Exit :: Editor_Destination_Level_Key( const EventArgs &event )
+bool cLevel_Exit :: Editor_Destination_Level_Key( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Level( str_text );
 
 	return 1;
 }
 
-bool cLevel_Exit :: Editor_Destination_Entry_Key( const EventArgs &event )
+bool cLevel_Exit :: Editor_Destination_Entry_Key( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Entry( str_text );
 

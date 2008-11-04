@@ -1,7 +1,7 @@
 /***************************************************************************
-			enemystopper.h  -  header for the corresponding cpp file
-                         -------------------
-    copyright            : (C) 2003 - 2007 by Florian Richter
+ * enemystopper.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ENEMYSTOPPER_H__
-#define __ENEMYSTOPPER_H__
+#ifndef SMC_ENEMYSTOPPER_H
+#define SMC_ENEMYSTOPPER_H
 
 #include "../core/globals.h"
 #include "../objects/objectsprite.h"
@@ -27,7 +27,7 @@ public:
 	// constructor
 	cEnemyStopper( float x, float y );
 	// create from stream
-	cEnemyStopper( XMLAttributes &attributes );
+	cEnemyStopper( CEGUI::XMLAttributes &attributes );
 	// destructor
 	virtual ~cEnemyStopper( void );
 	
@@ -37,7 +37,7 @@ public:
 	virtual cEnemyStopper *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( XMLAttributes &attributes );
+	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file );
 
@@ -45,7 +45,7 @@ public:
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
 	// if draw is valid for the current state and position
-	virtual bool is_Draw_valid( void );
+	virtual bool Is_Draw_Valid( void );
 
 	// editor color
 	Color editor_color;

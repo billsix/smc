@@ -1,9 +1,11 @@
 AM_CXXFLAGS = -Wall -Wpointer-arith
+AM_CPPFLAGS = -DDATA_DIR="\"$(pkgdatadir)\""
 
 bin_PROGRAMS = smc
 
 smc_SOURCES = \
 	audio/audio.cpp \
+	audio/random_sound.cpp \
 	audio/sound_manager.cpp \
 	core/camera.cpp \
 	core/collision.cpp \
@@ -11,17 +13,18 @@ smc_SOURCES = \
 	core/file_parser.cpp \
 	core/framerate.cpp \
 	core/game_core.cpp \
-	core/globals.cpp \
+	core/i18n.cpp \
 	core/main.cpp \
 	core/math/vector.cpp \
+	core/math/utilities.cpp \
 	core/sprite_manager.cpp \
 	enemies/bosses/turtle_boss.cpp \
 	enemies/eato.cpp \
 	enemies/enemy.cpp \
 	enemies/gee.cpp \
-	enemies/gumba.cpp \
+	enemies/furball.cpp \
 	enemies/jpiranha.cpp \
-	enemies/rex.cpp \
+	enemies/krush.cpp \
 	enemies/rokko.cpp \
 	enemies/spika.cpp \
 	enemies/static.cpp \
@@ -37,13 +40,12 @@ smc_SOURCES = \
 	level/level_background.cpp \
 	level/level.cpp \
 	level/level_editor.cpp \
-	level/level_settings.cpp \
 	level/level_manager.cpp \
+	level/level_settings.cpp \
 	objects/ball.cpp \
 	objects/bonusbox.cpp \
 	objects/box.cpp \
 	objects/enemystopper.cpp \
-	objects/falling_platform.cpp \
 	objects/goldpiece.cpp \
 	objects/level_entry.cpp \
 	objects/levelexit.cpp \
@@ -55,12 +57,12 @@ smc_SOURCES = \
 	objects/sprite.cpp \
 	objects/star.cpp \
 	objects/text_box.cpp \
-	overworld/layer.cpp \
+	overworld/world_layer.cpp \
 	overworld/overworld.cpp \
-	overworld/ow_player.cpp \
-	overworld/waypoint.cpp \
+	overworld/world_player.cpp \
+	overworld/world_waypoint.cpp \
 	overworld/world_editor.cpp \
-	overworld/worlds.cpp \
+	overworld/world_manager.cpp \
 	player/player.cpp \
 	user/preferences.cpp \
 	user/savegame.cpp \

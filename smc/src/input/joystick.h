@@ -1,7 +1,7 @@
 /***************************************************************************
-                joystick.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            : (C) 2003 - 2007 Florian Richter
+ * joystick.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __JOYSTICK_H__
-#define __JOYSTICK_H__
+#ifndef SMC_JOYSTICK_H
+#define SMC_JOYSTICK_H
 
 #include "../core/globals.h"
 
@@ -53,6 +53,11 @@ public:
 
 	// Sets the given button state
 	void Set_Button( Uint8 button, bool pressed );
+
+	// Get the assigned shortcut
+	Uint8 *Get_Shortcut( input_identifier shortcut_id );
+	// Assign a shortcut
+	void Assign_Shortcut( input_identifier shortcut_id, Uint8 new_button );
 
 	// check if the analog direction is pressed
 	bool Left( void );

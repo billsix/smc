@@ -1,7 +1,7 @@
 /***************************************************************************
-			img_manager.cpp  -  Image Handler/Manager
-                              -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * img_manager.cpp  -  Image Handler/Manager
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -14,17 +14,19 @@
 */
 
 #include "../video/img_manager.h"
-#include "../video/gl_surface.h"
+#include "../video/renderer.h"
+#include "../core/i18n.h"
 
-/* *** *** *** *** *** cSoftware_texture *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cSaved_Texture *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cSoftware_texture :: cSoftware_texture( void )
+cSaved_Texture :: cSaved_Texture( void )
 {
 	base = NULL;
 	pixels = NULL;
 
 	width = 0;
 	height = 0;
+	format = 0;
 
 	min_filter = 0;
 	mag_filter = 0;
@@ -32,7 +34,7 @@ cSoftware_texture :: cSoftware_texture( void )
 	wrap_t = 0;
 }
 
-cSoftware_texture :: ~cSoftware_texture( void )
+cSaved_Texture :: ~cSaved_Texture( void )
 {
 	if( pixels )
 	{
@@ -40,22 +42,36 @@ cSoftware_texture :: ~cSoftware_texture( void )
 	}
 }
 
-/* *** *** *** *** *** *** cImageManager *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** cImage_Manager *** *** *** *** *** *** *** *** *** *** *** */
 
-cImageManager :: cImageManager( void )
+cImage_Manager :: cImage_Manager( void )
 : cObject_Manager<GL_Surface>()
 {
 	high_texture_id = 0;
 }
 
-cImageManager :: ~cImageManager( void )
+cImage_Manager :: ~cImage_Manager( void )
 {
 	Delete_All();
 }
 
-GL_Surface *cImageManager :: Get_Pointer( string path )
+void cImage_Manager :: Add( GL_Surface *obj )
 {
-	for( SurfaceList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	if( !obj )
+	{
+		return;
+	}
+
+	// it is now managed
+	obj->managed = 1;
+
+	// Add
+	cObject_Manager<GL_Surface>::Add( obj );
+}
+
+GL_Surface *cImage_Manager :: Get_Pointer( string path )
+{
+	for( GL_Surface_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		GL_Surface *obj = (*itr);
 
@@ -70,9 +86,9 @@ GL_Surface *cImageManager :: Get_Pointer( string path )
 	return NULL;
 }
 
-GL_Surface *cImageManager :: Copy( string path )
+GL_Surface *cImage_Manager :: Copy( string path )
 {
-	for( SurfaceList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( GL_Surface_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		// get object
 		GL_Surface *obj = (*itr);
@@ -88,45 +104,120 @@ GL_Surface *cImageManager :: Copy( string path )
 	return NULL;
 }
 
-void cImageManager :: Grab_Textures( void )
+void cImage_Manager :: Grab_Textures( bool from_file /* = 0 */, bool draw_gui /* = 0 */ )
 {
-	// save to software memory
-	for( SurfaceList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	// progress bar
+	CEGUI::ProgressBar *progress_bar = NULL;
+
+	if( draw_gui )
+	{
+		// get progress bar
+		progress_bar = static_cast<CEGUI::ProgressBar *>(CEGUI::WindowManager::getSingleton().getWindow( "progress_bar" ));
+		progress_bar->setProgress( 0 );
+		// set loading screen text
+		Loading_Screen_Draw_Text( _("Saving Textures") );
+	}
+
+	unsigned int loaded_files = 0;
+	unsigned int file_count = objects.size();
+
+	// save all textures
+	for( GL_Surface_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		// get surface
 		GL_Surface *obj = (*itr);
 
-		// get software texture and save it
-		software_textures.push_back( obj->Get_Software_Texture() );
+		// skip surfaces with an already deleted texture
+		if( !glIsTexture( obj->image ) )
+		{
+			continue;
+		}
+
+		// get software texture and save it to software memory
+		saved_textures.push_back( obj->Get_Software_Texture( from_file ) );
 		// delete hardware texture
 		if( glIsTexture( obj->image ) )
 		{
 			glDeleteTextures( 1, &obj->image );
 		}
-		obj->image = 0;
+
+		// count files
+		loaded_files++;
+
+		// draw
+		if( draw_gui )
+		{
+			// update progress
+			progress_bar->setProgress( static_cast<float>(loaded_files) / static_cast<float>(file_count) );
+
+			// clear screen
+			pVideo->Clear_Screen();
+			pVideo->Draw_Rect( NULL, 0.01f, &black );
+
+			// Render
+			pRenderer->Render();
+			pGuiSystem->renderGUI();
+			pRenderer_GUI->Render();
+			SDL_GL_SwapBuffers();
+		}
 	}
 }
 
-void cImageManager :: Restore_Textures( void )
+void cImage_Manager :: Restore_Textures( bool draw_gui /* = 0 */ )
 {
+	// progress bar
+	CEGUI::ProgressBar *progress_bar = NULL;
+
+	if( draw_gui )
+	{
+		// get progress bar
+		progress_bar = static_cast<CEGUI::ProgressBar *>(CEGUI::WindowManager::getSingleton().getWindow( "progress_bar" ));
+		progress_bar->setProgress( 0 );
+		// set loading screen text
+		Loading_Screen_Draw_Text( _("Restoring Textures") );
+	}
+
+	unsigned int loaded_files = 0;
+	unsigned int file_count = saved_textures.size();
+
 	// load back into hardware textures
-	for( SoftwareTextureList::iterator itr = software_textures.begin(), itr_end = software_textures.end(); itr != itr_end; ++itr )
+	for( Saved_Texture_List::iterator itr = saved_textures.begin(), itr_end = saved_textures.end(); itr != itr_end; ++itr )
 	{
 		// get saved texture
-		cSoftware_texture *soft_tex = (*itr);
+		cSaved_Texture *soft_tex = (*itr);
 
 		// load it
 		soft_tex->base->Load_Software_Texture( soft_tex );
 		// delete
 		delete soft_tex;
+
+		// count files
+		loaded_files++;
+
+		// draw
+		if( draw_gui )
+		{
+			// update progress
+			progress_bar->setProgress( static_cast<float>(loaded_files) / static_cast<float>(file_count) );
+
+			// clear screen
+			pVideo->Clear_Screen();
+			pVideo->Draw_Rect( NULL, 0.01f, &black );
+
+			// Render
+			pRenderer->Render();
+			pGuiSystem->renderGUI();
+			pRenderer_GUI->Render();
+			SDL_GL_SwapBuffers();
+		}
 	}
 
-	software_textures.clear();
+	saved_textures.clear();
 }
 
-void cImageManager :: Delete_Image_Textures( void )
+void cImage_Manager :: Delete_Image_Textures( void )
 {
-	for( SurfaceList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr ) 
+	for( GL_Surface_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr ) 
 	{
 		// get object
 		GL_Surface *obj = (*itr);
@@ -138,10 +229,10 @@ void cImageManager :: Delete_Image_Textures( void )
 	}
 }
 
-void cImageManager :: Delete_Hardware_Textures( void )
+void cImage_Manager :: Delete_Hardware_Textures( void )
 {
 	// delete all hardware surfaces
-	for( unsigned int i = 0; i < high_texture_id; i++ )
+	for( GLuint i = 0; i < high_texture_id; i++ )
 	{
 		if( glIsTexture( i ) )
 		{
@@ -153,7 +244,7 @@ void cImageManager :: Delete_Hardware_Textures( void )
 	high_texture_id = 0;
 }
 
-void cImageManager :: Delete_All( void )
+void cImage_Manager :: Delete_All( void )
 {
 	// stops GL_Surface destructor from checking if GL texture id still in use
 	Delete_Image_Textures();
@@ -162,4 +253,4 @@ void cImageManager :: Delete_All( void )
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cImageManager *pImageManager = NULL;
+cImage_Manager *pImage_Manager = NULL;

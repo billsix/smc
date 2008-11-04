@@ -1,7 +1,7 @@
 /***************************************************************************
-           ball.cpp  -  ball class
-                             -------------------
-    copyright            :	(C) 2006 - 2007 by Florian Richter
+ * ball.cpp  -  ball class
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -23,10 +23,11 @@
 #include "../video/animation.h"
 #include "../level/level.h"
 #include "../gui/hud.h"
+#include "../core/sprite_manager.h"
 
 /* *** *** *** *** *** *** cBall *** *** *** *** *** *** *** *** *** *** *** */
 
-cBall :: cBall( float x, float y, float nvelx, float nvely /* = 0 */, cMovingSprite *norigin /* = NULL */, ball_effect btype /* = FIREBALL_DEFAULT */ )
+cBall :: cBall( float x, float y, cSprite *origin_object /* = NULL */, ball_effect btype /* = FIREBALL_DEFAULT */  )
 : cMovingSprite( NULL, x, y )
 {
 	sprite_array = ARRAY_ACTIVE;
@@ -41,18 +42,6 @@ cBall :: cBall( float x, float y, float nvelx, float nvely /* = 0 */, cMovingSpr
 
 	glim_mod = 1;
 	glim_counter = 0;
-
-	velx = nvelx;
-	vely = nvely;
-
-	origin = norigin;
-
-	// if not set
-	if( !origin )
-	{
-		printf( "Warning : Ball origin not set\n" );
-		origin = pPlayer;
-	}
 
 	if( btype == FIREBALL_DEFAULT || btype == FIREBALL_EXPLOSION )
 	{
@@ -71,16 +60,25 @@ cBall :: cBall( float x, float y, float nvelx, float nvely /* = 0 */, cMovingSpr
 		return;
 	}
 
-	if( origin->type == TYPE_PLAYER )
+	if( origin_object )
 	{
-		if( ball_type == FIREBALL_DEFAULT )
+		origin_array = origin_object->sprite_array;
+		origin_type = origin_object->type;
+
+		if( origin_type == TYPE_PLAYER )
 		{
-			pPlayer->fireball_count++;
+			if( ball_type == FIREBALL_DEFAULT || ball_type == ICEBALL_DEFAULT )
+			{
+				pPlayer->shoot_counter = speedfactor_fps;
+			}
 		}
-		else if( ball_type == ICEBALL_DEFAULT )
-		{
-			pPlayer->iceball_count++;
-		}
+	}
+	// if origin not set
+	else
+	{
+		printf( "Warning : Ball origin not set\n" );
+		origin_array = ARRAY_UNDEFINED;
+		origin_type = TYPE_UNDEFINED;
 	}
 }
 
@@ -89,7 +87,7 @@ cBall :: ~cBall( void )
 	// always destroy
 	if( !destroy )
 	{
-		Destroy();
+		cBall::Destroy();
 	}
 }
 
@@ -102,26 +100,16 @@ void cBall :: Destroy( void )
 
 	if( ball_type == FIREBALL_DEFAULT )
 	{
-		pAnimationManager->Add( new cFireAnimation( posx + col_rect.w / 2, posy + col_rect.h / 2 ) );
-
-		if( origin->type == TYPE_PLAYER )
-		{
-			pPlayer->fireball_count--;
-		}
+		pAnimation_Manager->Add( new cAnimation_Fireball( posx + col_rect.w / 2, posy + col_rect.h / 2 ) );
 	}
 	else if( ball_type == ICEBALL_DEFAULT )
 	{
 		// create animation
-		cParticleAnimation *anim = new cParticleAnimation();
+		cParticle_Emitter *anim = new cParticle_Emitter();
 		Generate_Particles( anim );
 		anim->Set_Quota( 15 );
 		// add animation
-		pAnimationManager->Add( anim );
-
-		if( origin->type == TYPE_PLAYER )
-		{
-			pPlayer->iceball_count--;
-		}
+		pAnimation_Manager->Add( anim );
 	}
 
 	cMovingSprite::Destroy();
@@ -207,7 +195,7 @@ void cBall :: Draw( cSurfaceRequest *request /* = NULL */ )
 	cMovingSprite::Draw( request );
 }
 
-void cBall :: Generate_Particles( cParticleAnimation *anim /* = NULL */ )
+void cBall :: Generate_Particles( cParticle_Emitter *anim /* = NULL */ )
 {
 	bool create_anim = 0;
 
@@ -215,12 +203,12 @@ void cBall :: Generate_Particles( cParticleAnimation *anim /* = NULL */ )
 	{
 		create_anim = 1;
 		// create animation
-		anim = new cParticleAnimation();
+		anim = new cParticle_Emitter();
 	}
 
 	anim->Set_Emitter_Rect( col_rect );
 	anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
-	anim->Set_ZPos( posz + 0.0001f );
+	anim->Set_Pos_Z( posz + 0.0001f );
 	if( ball_type == FIREBALL_DEFAULT )
 	{
 		anim->Set_Time_to_Live( 0.2f );
@@ -238,7 +226,7 @@ void cBall :: Generate_Particles( cParticleAnimation *anim /* = NULL */ )
 	if( create_anim )
 	{
 		// add animation
-		pAnimationManager->Add( anim );
+		pAnimation_Manager->Add( anim );
 	}
 }
 
@@ -256,7 +244,7 @@ unsigned int cBall :: Validate_Collision( cSprite *obj )
 	// player
 	if( obj->type == TYPE_PLAYER )
 	{
-		if( origin->type != TYPE_PLAYER )
+		if( origin_type != TYPE_PLAYER )
 		{
 			return 2;
 		}
@@ -270,7 +258,7 @@ unsigned int cBall :: Validate_Collision( cSprite *obj )
 		{
 			return 0;
 		}
-		else if( obj->sprite_array == ARRAY_ENEMY && origin->sprite_array == ARRAY_ENEMY )
+		else if( obj->sprite_array == ARRAY_ENEMY && origin_array == ARRAY_ENEMY )
 		{
 			return 0;
 		}
@@ -280,7 +268,7 @@ unsigned int cBall :: Validate_Collision( cSprite *obj )
 	else if( obj->massivetype == MASS_HALFMASSIVE )
 	{
 		// if moving downwards and object is on top
-		if( vely >= 0 && is_onTop( obj ) )
+		if( vely >= 0 && Is_on_Top( obj ) )
 		{
 			return 2;
 		}
@@ -325,12 +313,12 @@ void cBall :: Handle_Collision_Player( cObjectCollision *collision )
 
 void cBall :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
-	cEnemy *enemy = static_cast<cEnemy *>(pLevel->pSprite_Manager->Get_Pointer( collision->number ));
+	cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
 
 	// if enemy is not destroyable
 	if( ( ball_type == FIREBALL_DEFAULT && enemy->fire_resistant ) || ( ball_type == ICEBALL_DEFAULT && enemy->ice_resistance >= 1 ) )
 	{
-		pAudio->PlaySound( "tock.ogg" );
+		pAudio->Play_Sound( "tock.ogg" );
 	}
 	// destroy enemy
 	else
@@ -341,7 +329,8 @@ void cBall :: Handle_Collision_Enemy( cObjectCollision *collision )
 			for( unsigned int h = 0; h < enemy->col_rect.h; h += 15 )
 			{
 				// animation
-				cParticleAnimation *anim = new cParticleAnimation( enemy->posx + w, enemy->posy + h );
+				cParticle_Emitter *anim = new cParticle_Emitter();
+				anim->Set_Pos( enemy->posx + w, enemy->posy + h );
 
 				anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
 				anim->Set_Time_to_Live( 0.2f, 0.4f );
@@ -362,12 +351,12 @@ void cBall :: Handle_Collision_Enemy( cObjectCollision *collision )
 				anim->Set_Speed( 0.5f, 2.2f );
 				anim->Set_Blending( BLEND_DRIVE );
 				// add animation
-				pAnimationManager->Add( anim );
+				pAnimation_Manager->Add( anim );
 			}
 		}
 
 		// play enemy kill sound
-		pAudio->PlaySound( enemy->kill_sound );
+		pAudio->Play_Sound( enemy->kill_sound );
 
 		if( ball_type == FIREBALL_DEFAULT )
 		{
@@ -379,7 +368,7 @@ void cBall :: Handle_Collision_Enemy( cObjectCollision *collision )
 			// set optimal position
 			goldpiece->Col_Move( -( ( goldpiece->col_rect.w - enemy->col_rect.w ) / 2 ), -( goldpiece->col_pos.y + goldpiece->col_rect.h ), 1, 1 );
 			// add goldpiece
-			pLevel->pSprite_Manager->Add( goldpiece );
+			pActive_Sprite_Manager->Add( goldpiece );
 
 			enemy->Set_Visible( 0 );
 			enemy->DownGrade( 1 );
@@ -410,27 +399,28 @@ void cBall :: Handle_Collision_Massive( cObjectCollision *collision )
 			vely = -10;	
 			
 			// create animation
-			cFireAnimation *anim = new cFireAnimation( posx + col_rect.w / 2, posy + col_rect.h / 2 );
-			anim->Set_FadingSpeed( 3 );
-			pAnimationManager->Add( anim );
+			cAnimation_Fireball *anim = new cAnimation_Fireball( posx + col_rect.w / 2, posy + col_rect.h / 2 );
+			anim->Set_Fading_Speed( 3 );
+			pAnimation_Manager->Add( anim );
 		}
 		else if( ball_type == ICEBALL_DEFAULT )
 		{
 			vely = -5;
 
 			// create animation
-			cParticleAnimation *anim = new cParticleAnimation( posx + col_rect.w / 2, posy + col_rect.h / 2 );
+			cParticle_Emitter *anim = new cParticle_Emitter();
+			anim->Set_Pos( posx + col_rect.w / 2, posy + col_rect.h / 2 );
 			anim->Set_Image( pVideo->Get_Surface( "animation/particles/cloud.png" ) );
-			anim->Set_DirectionRange( 0, 180 );
+			anim->Set_Direction_Range( 0, 180 );
 			anim->Set_Quota( 3 );
 			anim->Set_Time_to_Live( 0.8f );
-			anim->Set_ZPos( posz + 0.0001f );
+			anim->Set_Pos_Z( posz + 0.0001f );
 			anim->Set_Color( Color( static_cast<Uint8>(50), 50, 250 ) );
 			anim->Set_Blending( BLEND_ADD );
 			anim->Set_Speed( 0.5f, 0.4f );
 			anim->Set_Scale( 0.3f, 0.4f );
 			// add animation
-			pAnimationManager->Add( anim );
+			pAnimation_Manager->Add( anim );
 		}
 	}
 	// other directions
@@ -440,7 +430,7 @@ void cBall :: Handle_Collision_Massive( cObjectCollision *collision )
 	}
 }
 
-void cBall :: Handle_OutofLevel( ObjectDirection dir )
+void cBall :: Handle_out_of_Level( ObjectDirection dir )
 {
 	// ignore top
 	if( dir == DIR_TOP )

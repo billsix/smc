@@ -1,7 +1,7 @@
 /***************************************************************************
-			img_settings.cpp  -  Image Settings Handler
-                              -------------------
-    copyright            :	(C) 2005 - 2007 by Florian Richter
+ * img_settings.cpp  -  Image Settings Handler
+ *
+ * Copyright (C) 2005 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -16,26 +16,28 @@
 #include "../video/img_settings.h"
 #include "../core/game_core.h"
 #include "../video/gl_surface.h"
+#include "../core/math/utilities.h"
+#include "../core/math/size.h"
 
 /* *** *** *** *** *** *** cImage_settings_data *** *** *** *** *** *** *** *** *** *** *** */
 
 cImage_settings_data :: cImage_settings_data( void )
 {
-	base_settings = 0;
+	m_base_settings = 0;
 
-	int_x = 0;
-	int_y = 0;
-	col_rect.clear();
-	width = 0;
-	height = 0;
-	rotation_x = 0;
-	rotation_y = 0;
-	rotation_z = 0;
-	mipmap = 0;
+	m_int_x = 0;
+	m_int_y = 0;
+	m_col_rect.clear();
+	m_width = 0;
+	m_height = 0;
+	m_rotation_x = 0;
+	m_rotation_y = 0;
+	m_rotation_z = 0;
+	m_mipmap = 0;
 
-	type = -1;
-	ground_type = GROUND_NORMAL;
-	obsolete = 0;
+	m_type = -1;
+	m_ground_type = GROUND_NORMAL;
+	m_obsolete = 0;
 }
 
 cImage_settings_data :: ~cImage_settings_data( void )
@@ -43,30 +45,43 @@ cImage_settings_data :: ~cImage_settings_data( void )
 
 }
 
-GL_Surface *cImage_settings_data :: Get_Surface( SDL_Surface *sdl_surface )
+cSize_Float cImage_settings_data :: Get_Surface_Size( SDL_Surface *sdl_surface )
 {
 	if( !sdl_surface )
 	{
-		return NULL;
+		return cSize_Float();
 	}
 
 	// check if texture needs to get downscaled
-	float new_w = static_cast<float>(Get_GLsize( sdl_surface->w )), new_h = static_cast<float>(Get_GLsize( sdl_surface->h ));
-
+	float new_w = static_cast<float>(Get_Power_of_2( sdl_surface->w ));
+	float new_h = static_cast<float>(Get_Power_of_2( sdl_surface->h ));
+	
+	// todo : add check for maximum opengl texture size
 	// if image settings dimension
-	if( width > 0 && height > 0 )
+	if( m_width > 0 && m_height > 0 )
 	{
 		/* downscale to fit best for the current resolution
 		 * uses the first dimension which is not smaller as the default scale
 		*/
-		while( new_w * 0.5f > width * global_upscalex && new_h * 0.5f > height * global_upscaley )
+		while( new_w * 0.5f > m_width * global_upscalex && new_h * 0.5f > m_height * global_upscaley )
 		{
 			new_w *= 0.5f;
 			new_h *= 0.5f;
 		}
+
+		// if texture detail below low
+		if( pVideo->texture_detail < 0.25f )
+		{
+			// half size only if texture size is high
+			if( new_w * 0.8f > m_width * global_upscalex && new_h * 0.8f > m_height * global_upscaley )
+			{
+				new_w *= 0.5f;
+				new_h *= 0.5f;
+			}
+		}
 	}
 
-	return pVideo->Create_Texture( sdl_surface, mipmap, static_cast<unsigned int>(new_w), static_cast<unsigned int>(new_h) );
+	return cSize_Float( new_w, new_h);
 }
 
 void cImage_settings_data :: Apply( GL_Surface *image )
@@ -74,51 +89,56 @@ void cImage_settings_data :: Apply( GL_Surface *image )
 	// empty image
 	if( !image )
 	{
-		printf( "Error : surface for base %s does not exist\n", base.c_str() );
+		printf( "Error : surface for base %s does not exist\n", m_base.c_str() );
 		return;
 	}
 
 	// ## int_x/int_y
-	image->int_x = static_cast<float>(int_x);
-	image->int_y = static_cast<float>(int_y);
+	image->int_x = static_cast<float>(m_int_x);
+	image->int_y = static_cast<float>(m_int_y);
 
 	// ## width
-	if( width > 0 )
+	if( m_width > 0 )
 	{
-		image->start_w = static_cast<float>(width);
+		image->start_w = static_cast<float>(m_width);
 		image->w = image->start_w;
 		image->col_w = image->w;
 	}
 	// ## height
-	if( height > 0 )
+	if( m_height > 0 )
 	{
-		image->start_h = static_cast<float>(height);
+		image->start_h = static_cast<float>(m_height);
 		image->h = image->start_h;
 		image->col_h = image->h;
 	}
 
-	// ## col_rect
-	if( col_rect.w > 0 && col_rect.h > 0 )
+	// ## collision rect
+	if( m_col_rect.w > 0 && m_col_rect.h > 0 )
 	{
 		// position
-		image->col_pos.x = col_rect.x;
-		image->col_pos.y = col_rect.y;
+		image->col_pos.x = m_col_rect.x;
+		image->col_pos.y = m_col_rect.y;
 		// dimension
-		image->col_w = col_rect.w;
-		image->col_h = col_rect.h;
+		image->col_w = m_col_rect.w;
+		image->col_h = m_col_rect.h;
 	}
 
 	// ## rotation x
-	if( rotation_x != 0 )
+	if( m_rotation_x != 0 )
 	{
-		image->base_rotx = static_cast<float>(rotation_x);
+		image->base_rotx = static_cast<float>(m_rotation_x);
 
 		//image->col_pos = image->col_pos.rotate3d( image->base_rotx, 1, 0, 0 );
+		// mirror
+		if( image->base_rotx == 180 )
+		{
+			image->col_pos.y = image->h - ( image->col_h + image->col_pos.y );
+		}
 	}
 	// ## rotation y
-	if( rotation_y != 0 )
+	if( m_rotation_y != 0 )
 	{
-		image->base_roty = static_cast<float>(rotation_y);
+		image->base_roty = static_cast<float>(m_rotation_y);
 
 		//image->col_pos = image->col_pos.rotate3d( image->base_roty, 0, 1, 0 );
 		// mirror
@@ -128,9 +148,9 @@ void cImage_settings_data :: Apply( GL_Surface *image )
 		}
 	}
 	// ## rotation z
-	if( rotation_z != 0 )
+	if( m_rotation_z != 0 )
 	{
-		image->base_rotz = static_cast<float>(rotation_z);
+		image->base_rotz = static_cast<float>(m_rotation_z);
 
 		//image->col_pos = image->col_pos.rotate3d( image->base_rotz, 0, 0, 1 );
 
@@ -151,9 +171,9 @@ void cImage_settings_data :: Apply( GL_Surface *image )
 			image->w = image->h;
 			image->h = orig_w;
 			// switch collision width and height
-			float col_w = image->col_w;
+			float orig_col_w = image->col_w;
 			image->col_w = image->col_h;
-			image->col_h = col_w;
+			image->col_h = orig_col_w;
 		}
 		// mirror
 		else if( image->base_rotz == 180 )
@@ -177,22 +197,22 @@ void cImage_settings_data :: Apply( GL_Surface *image )
 			image->w = image->h;
 			image->h = orig_w;
 			// switch collision width and height
-			float col_w = image->col_w;
+			float orig_col_w = image->col_w;
 			image->col_w = image->col_h;
-			image->col_h = col_w;
+			image->col_h = orig_col_w;
 		}
 	}
 
 	// ## editor_tags
-	if( !editor_tags.empty() )
+	if( !m_editor_tags.empty() )
 	{
-		image->editor_tags = editor_tags;
+		image->editor_tags = m_editor_tags;
 	}
 
 	// ## name
-	if( !name.empty() )
+	if( !m_name.empty() )
 	{
-		image->name = name;
+		image->name = m_name;
 
 		// finds all "_" and replaces them with " "
 		for( string::iterator itr = image->name.begin(); itr != image->name.end(); ++itr )
@@ -206,43 +226,44 @@ void cImage_settings_data :: Apply( GL_Surface *image )
 	}
 
 	// ## type
-	if( type > 0 )
+	if( m_type > 0 )
 	{
-		image->type = type;
+		image->type = m_type;
 	}
 
 	// ## ground type
-	image->ground_type = ground_type;
+	image->ground_type = m_ground_type;
 
 	// ## obsolete
-	image->obsolete = obsolete;
+	image->obsolete = m_obsolete;
 }
 
-void cImage_settings_data :: Apply_base( cImage_settings_data *base_settings_data )
+void cImage_settings_data :: Apply_Base( cImage_settings_data *base_settings_data )
 {
-	if( !base_settings_data->base.empty() )
+	if( !base_settings_data->m_base.empty() )
 	{
-		base = base_settings_data->base;
-		base_settings = base_settings_data->base_settings;
+		m_base = base_settings_data->m_base;
+		m_base_settings = base_settings_data->m_base_settings;
 	}
 
-	int_x = base_settings_data->int_x;
-	int_y = base_settings_data->int_y;
-	col_rect = base_settings_data->col_rect;
-	width = base_settings_data->width;
-	height = base_settings_data->height;
-	rotation_x = base_settings_data->rotation_x;
-	rotation_y = base_settings_data->rotation_y;
-	rotation_z = base_settings_data->rotation_z;
-	mipmap = base_settings_data->mipmap;
-	editor_tags = base_settings_data->editor_tags;
-	name = base_settings_data->name;
-	type = base_settings_data->type;
+	m_int_x = base_settings_data->m_int_x;
+	m_int_y = base_settings_data->m_int_y;
+	m_col_rect = base_settings_data->m_col_rect;
+	m_width = base_settings_data->m_width;
+	m_height = base_settings_data->m_height;
+	m_rotation_x = base_settings_data->m_rotation_x;
+	m_rotation_y = base_settings_data->m_rotation_y;
+	m_rotation_z = base_settings_data->m_rotation_z;
+	m_mipmap = base_settings_data->m_mipmap;
+	m_editor_tags = base_settings_data->m_editor_tags;
+	m_name = base_settings_data->m_name;
+	m_type = base_settings_data->m_type;
+	m_author = base_settings_data->m_author;
 
 	// only set if this isn't obsolete
-	if( !obsolete && base_settings_data->obsolete )
+	if( !m_obsolete && base_settings_data->m_obsolete )
 	{
-		obsolete = 1;
+		m_obsolete = 1;
 	}
 }
 
@@ -275,28 +296,28 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 	{
 		if( count < 2 || count > 3 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2-3 parameters" );
 			return 0; // error
 		}
 
 		if( !is_valid_number( parts[2] ) )
 		{
-			printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 
-		settings->base = data_file.substr( 0, data_file.rfind( "/" ) + 1 ) + parts[1];
+		settings->m_base = data_file.substr( 0, data_file.rfind( "/" ) + 1 ) + parts[1];
 
 		// with settings option
 		if( count == 3 && string_to_int( parts[2] ) )
 		{
-			settings->base_settings = 1;
+			settings->m_base_settings = 1;
 
 			if( load_base )
 			{
-				string settings_file = settings->base;
+				string settings_file = settings->m_base;
 
 				// if settings file exists
 				while( !settings_file.empty() )
@@ -309,7 +330,7 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 					}
 
 					// not found
-					if( !file_exists( settings_file ) )
+					if( !File_Exists( settings_file ) )
 					{
 						break;
 					}
@@ -325,12 +346,12 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 					if( base_settings )
 					{
 						// todo : apply settings in reverse order ( deepest settings should override first )
-						settings->Apply_base( base_settings );
+						settings->Apply_Base( base_settings );
 						
 						// if also based on settings
-						if( !base_settings->base.empty() && base_settings->base_settings )
+						if( !base_settings->m_base.empty() && base_settings->m_base_settings )
 						{
-							settings_file = base_settings->base;
+							settings_file = base_settings->m_base;
 						}
 						
 						delete base_settings;
@@ -343,43 +364,43 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 	{
 		if( count != 2 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
 			return 0; // error
 		}
 
 		if( !is_valid_number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 
-		settings->int_x = string_to_int( parts[1] );
+		settings->m_int_x = string_to_int( parts[1] );
 	}
 	else if( parts[0].compare( "int_y" ) == 0 )
 	{
 		if( count != 2 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
 			return 0; // error
 		}
 
 		if( !is_valid_number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 
-		settings->int_y = string_to_int( parts[1] );
+		settings->m_int_y = string_to_int( parts[1] );
 	}
 	else if( parts[0].compare( "col_rect" ) == 0 )
 	{
 		if( count != 5 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 5 parameters" );
 			return 0; // error
 		}
@@ -388,107 +409,107 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 		{
 			if( !is_valid_number( parts[i] ) )
 			{
-				printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[1].c_str() );
 				return 0; // error
 			}
 		}
 
 		// position and dimension
-		settings->col_rect = GL_rect( static_cast<float>(string_to_int( parts[1] )), static_cast<float>(string_to_int( parts[2] )), static_cast<float>(string_to_int( parts[3] )), static_cast<float>(string_to_int( parts[4] )) );
+		settings->m_col_rect = GL_rect( static_cast<float>(string_to_int( parts[1] )), static_cast<float>(string_to_int( parts[2] )), static_cast<float>(string_to_int( parts[3] )), static_cast<float>(string_to_int( parts[4] )) );
 	}
 	else if( parts[0].compare( "width" ) == 0 )
 	{
 		if( count != 2 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
 			return 0; // error
 		}
 
 		if( !is_valid_number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 
-		settings->width = string_to_int( parts[1] );
+		settings->m_width = string_to_int( parts[1] );
 	}
 	else if( parts[0].compare( "height" ) == 0 )
 	{
 		if( count != 2 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
 			return 0; // error
 		}
 
 		if( !is_valid_number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 
-		settings->height = string_to_int( parts[1] );
+		settings->m_height = string_to_int( parts[1] );
 	}
 	else if( parts[0].compare( "rotation" ) == 0 )
 	{
 		if( count < 2 || count > 5 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2-5 parameters" );
 			return 0; // error
 		}
 
 		if( !is_valid_number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 
 		// x
-		settings->rotation_x = string_to_int( parts[1] );
+		settings->m_rotation_x = string_to_int( parts[1] );
 
 		// y
 		if( count > 2 )
 		{
 			if( !is_valid_number( parts[2] ) )
 			{
-				printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[2].c_str() );
 				return 0; // error
 			}
 
-			settings->rotation_y = string_to_int( parts[2] );
+			settings->m_rotation_y = string_to_int( parts[2] );
 		}
 		// z
 		if( count > 3 )
 		{
 			if( !is_valid_number( parts[3] ) )
 			{
-				printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[3].c_str() );
 				return 0; // error
 			}
 
-			settings->rotation_z = string_to_int( parts[3] );
+			settings->m_rotation_z = string_to_int( parts[3] );
 		}
 	}
 	else if( parts[0].compare( "mipmap" ) == 0 )
 	{
 		if( count != 2 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
 			return 0; // error
 		}
 
 		if( !is_valid_number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
@@ -496,65 +517,76 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 		// if mipmaps enabled
 		if( string_to_int( parts[1] ) )
 		{
-			settings->mipmap = 1;
+			settings->m_mipmap = 1;
 		}
 	}
 	else if( parts[0].compare( "editor_tags" ) == 0 )
 	{
 		if( count != 2 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
 			return 0; // error
 		}
 
-		settings->editor_tags = parts[1];
+		settings->m_editor_tags = parts[1];
 	}
 	else if( parts[0].compare( "name" ) == 0 )
 	{
 		if( count != 2 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
 			return 0; // error
 		}
 
-		settings->name = parts[1];
+		settings->m_name = parts[1];
 	}
 	else if( parts[0].compare( "type" ) == 0 )
 	{
 		if( count != 2 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
 			return 0; // error
 		}
 
-		settings->type = Get_Sprite_Type_id( parts[1] );
+		settings->m_type = Get_Sprite_Type_Id( parts[1] );
 	}
 	else if( parts[0].compare( "ground_type" ) == 0 )
 	{
 		if( count != 2 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
 			return 0; // error
 		}
 
-		settings->ground_type = Get_Groundtype_id( parts[1] );
+		settings->m_ground_type = Get_Ground_Type_Id( parts[1] );
+	}
+	else if( parts[0].compare( "author" ) == 0 )
+	{
+		if( count != 2 )
+		{
+			printf( "%s : line %d Error :\n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
+			return 0; // error
+		}
+
+		settings->m_author = parts[1];
 	}
 	else if( parts[0].compare( "obsolete" ) == 0 )
 	{
 		if( count != 2 )
 		{
-			printf( "%s : line %d Error :\n", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error :\n", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
 			return 0; // error
 		}
 
 		if( !is_valid_number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
@@ -562,12 +594,12 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 		// if tagged obsolete
 		if( string_to_int( parts[1] ) )
 		{
-			settings->obsolete = 1;
+			settings->m_obsolete = 1;
 		}
 	}
 	else
 	{
-		printf( "%s : line %d Error : ", Get_filename( data_file, 0, 0 ).c_str(), line );
+		printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 		printf( "Unknown Command : %s\n", parts[0].c_str() );
 		return 0; // error
 	}

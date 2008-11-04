@@ -1,7 +1,7 @@
 /***************************************************************************
-           goldpiece.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * goldpiece.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,13 +13,13 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __GOLDPIECE_H__
-#define __GOLDPIECE_H__
+#ifndef SMC_GOLDPIECE_H
+#define SMC_GOLDPIECE_H
 
 #include "../core/globals.h"
 #include "../objects/objectsprite.h"
 
-/* *** *** *** *** *** cGoldPiece *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cGoldpiece *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cGoldpiece : public cImageObjectSprite
 {
@@ -27,20 +27,19 @@ public:
 	// constructor
 	cGoldpiece( float x, float y );
 	// create from stream
-	cGoldpiece( XMLAttributes &attributes );
+	cGoldpiece( CEGUI::XMLAttributes &attributes );
 	// destructor
 	virtual ~cGoldpiece( void );
-	
+
+	// create from stream
+	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	// save to stream
+	virtual void Save_to_Stream( ofstream &file );
 	// init defaults
 	void Init( void );
 
 	// copy
 	virtual cGoldpiece *Copy( void );
-
-	// create from stream
-	virtual void Create_from_Stream( XMLAttributes &attributes );
-	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
 
 	// load from savegame
 	virtual void Load_from_Savegame( cSave_Level_Object *save_object );
@@ -48,7 +47,7 @@ public:
 	virtual cSave_Level_Object *Save_to_Savegame( void );
 
 	// Set the gold color
-	virtual void Set_Goldcolor( DefaultColor ncolor );
+	virtual void Set_Gold_Color( DefaultColor ncolor );
 
 	// the player gets the goldpiece
 	void Activate( void );
@@ -59,10 +58,10 @@ public:
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
 	// if update is valid for the current state
-	virtual bool is_Update_valid( void );
+	virtual bool Is_Update_Valid( void );
 
 	// ignore onground check if goldpiece
-	virtual void Check_onGround( void );
+	virtual void Check_on_Ground( void );
 
 	// goldpiece rotation
 	float counter;
@@ -85,7 +84,7 @@ public:
 	virtual void Update( void );
 
 	// ignore ground check
-	virtual void Check_onGround( void ) {};
+	virtual void Check_on_Ground( void ) {};
 
 	/* Validate the given collision object
 	 * returns 1 if an internal collision with this object is valid
@@ -106,7 +105,7 @@ public:
 	virtual ~cFGoldpiece( void );
 	
 	// Set the gold color
-	virtual void Set_Goldcolor( DefaultColor ncolor );
+	virtual void Set_Gold_Color( DefaultColor ncolor );
 
 	// update
 	virtual void Update( void );

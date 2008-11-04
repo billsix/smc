@@ -1,7 +1,7 @@
 /***************************************************************************
-                moving_platform.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2005 - 2007 by Florian Richter
+ * moving_platform.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2005 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,28 +13,35 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __MOVING_PLATFORM_H__
-#define __MOVING_PLATFORM_H__
+#ifndef SMC_MOVING_PLATFORM_H
+#define SMC_MOVING_PLATFORM_H
 
 #include "../core/globals.h"
 #include "../objects/objectsprite.h"
 
 
-/* todo : 
- * - platform type : static(current) and rotating
- * - also add new bool falling
-*/
+/* *** *** *** *** *** *** *** *** Moving Platform states *** *** *** *** *** *** *** *** *** */
 
+enum Moving_Platform_State
+{
+    PLATFORM_STAY = 0,
+    PLATFORM_TOUCHED = 1,
+    PLATFORM_SHAKE = 2,
+    PLATFORM_FALL = 3
+};
 
 /* *** *** *** *** *** *** cMoving_Platform *** *** *** *** *** *** *** *** *** *** *** */
 
+/* todo : 
+ * - platform type : static(current) and rotating
+*/
 class cMoving_Platform : public cImageObjectSprite
 {
 public:
 	// constructor
 	cMoving_Platform( float x, float y );
 	// create from stream
-	cMoving_Platform( XMLAttributes &attributes );
+	cMoving_Platform( CEGUI::XMLAttributes &attributes );
 	// destructor
 	~cMoving_Platform( void );
 	
@@ -44,38 +51,54 @@ public:
 	virtual cMoving_Platform *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( XMLAttributes &attributes );
+	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file );
 
+	// load from savegame
+	virtual void Load_from_Savegame( cSave_Level_Object *save_object );
+	// save to savegame
+	virtual cSave_Level_Object *Save_to_Savegame( void );
+
 	// Set Massive Type
-	virtual void Set_Massivetype( MassiveType mtype );
+	virtual void Set_Massive_Type( MassiveType mtype );
 	// Set Direction
-	void Set_Direction( ObjectDirection dir );
+	void Set_Direction( ObjectDirection dir, bool new_start_direction = 0 );
 	// Set Max Distance
 	void Set_Max_Distance( int nmax_distance );
 	// Set the Speed
 	void Set_Speed( float val );
+	// Set time when touched until it starts shaking
+	void Set_Touch_Time( float val );
+	// Set time it's shaking until falling
+	void Set_Shake_Time( float val );
+	/* Set time when touched until it starts moving
+	 * if set to 0 automatically moves
+	*/
+	void Set_Touch_Move_Time( float val );
+
 	// Set the middle image count
 	void Set_Middle_Count( int val );
 	// set image
-	void Set_image_top_left( GL_Surface *surface );
-	void Set_image_top_middle( GL_Surface *surface );
-	void Set_image_top_right( GL_Surface *surface );
+	void Set_Image_Top_Left( GL_Surface *surface );
+	void Set_Image_Top_Middle( GL_Surface *surface );
+	void Set_Image_Top_Right( GL_Surface *surface );
 
 	// update
 	virtual void Update( void );
 	// draw
 	virtual void Draw( cSurfaceRequest *request /* = NULL */ );
 
-	// update rect
-	void Update_rect( void );
+	// Update rect
+	void Update_Rect( void );
+	// Update velocity
+	void Update_Velocity( void );
 
 	// ignore onground check
-	virtual void Check_onGround( void ) {};
+	virtual void Check_on_Ground( void ) {};
 
 	// if update is valid for the current state
-	virtual bool is_Update_valid( void );
+	virtual bool Is_Update_Valid( void );
 
 	/* Validate the given collision object
 	 * returns 1 if an internal collision with this object is valid
@@ -88,12 +111,15 @@ public:
 	// leveleditor activation
 	virtual void Editor_Activate( void );
 	// leveleditor events
-	bool Editor_Max_Distance_Key( const EventArgs &event );  // editor max distance key up
-	bool Editor_Speed_Key( const EventArgs &event );  // editor speed key up
-	bool Editor_Hor_Middle_Count_Key( const EventArgs &event );  // editor horizontal middle image count key up
-	bool Editor_Image_Top_Left_Key( const EventArgs &event );  // editor image top left key up
-	bool Editor_Image_Top_Middle_Key( const EventArgs &event );  // editor image top middle key up
-	bool Editor_Image_Top_Right_Key( const EventArgs &event );  // editor image top right key up
+	bool Editor_Max_Distance_Key( const CEGUI::EventArgs &event );  // editor max distance key up
+	bool Editor_Speed_Key( const CEGUI::EventArgs &event );  // editor speed key up
+	bool Editor_Hor_Middle_Count_Key( const CEGUI::EventArgs &event );  // editor horizontal middle image count key up
+	bool Editor_Image_Top_Left_Key( const CEGUI::EventArgs &event );  // editor image top left key up
+	bool Editor_Image_Top_Middle_Key( const CEGUI::EventArgs &event );  // editor image top middle key up
+	bool Editor_Image_Top_Right_Key( const CEGUI::EventArgs &event );  // editor image top right key up
+	bool Editor_Touch_Time_Key( const CEGUI::EventArgs &event );  // editor touch time key up
+	bool Editor_Shake_Time_Key( const CEGUI::EventArgs &event );  // editor shaking time key up
+	bool Editor_Touch_Move_Time_Key( const CEGUI::EventArgs &event );  // editor touch moving time key up
 
 	// current direction
 	ObjectDirection moving_direction;
@@ -103,6 +129,22 @@ public:
 	int max_distance;
 	// count the middle image is used
 	unsigned int middle_count;
+
+	// internal platform state
+    Moving_Platform_State platform_state;
+
+	// time when touched until it starts shaking
+	float touch_time;
+	// time since the platform got touched
+	float touch_counter;
+	// time it's shaking until falling
+	float shake_time;
+	// time since shaking started
+	float shake_counter;
+	// shaking direction counter
+	float shake_dir_counter;
+	// time when touched until it starts moving
+	float touch_move_time;
 
 private:
 	// Create the Name from the current settings

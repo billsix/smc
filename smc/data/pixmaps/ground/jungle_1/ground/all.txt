@@ -1,13 +1,12 @@
-Jungle Ground Tileset - for Levels
-Current Version: 1.1
-
-All tiles created by youngheart80 for Secret Maryo Chronicles, employing the tileset file structure 1.0.0.
+Jungle Level Ground Tileset
+Created by youngheart80, employing the tileset file structure 1.0.0.
 
 
 
 Versions
 
 1.1
+
 * New plain middle left_top and right_top tiles added; these are massive "wall" tiles.
 * Vertical tiling problem of tiles fixed for all tiles.
 * Gradients in middle of tiles unified.

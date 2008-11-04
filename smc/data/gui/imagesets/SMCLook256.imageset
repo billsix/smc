@@ -79,9 +79,12 @@
 	<Image Name="MiniVertScrollDownNormal" XPos="182" YPos="59" Width="10" Height="9" />
 	<Image Name="MiniVertScrollUpHover" XPos="194" YPos="70" Width="10" Height="9" />
 	<Image Name="MiniVertScrollDownHover" XPos="182" YPos="69" Width="10" Height="9" />
-	<Image Name="VertSliderBody" XPos="234" YPos="2" Width="9" Height="48" />
-	<Image Name="VertSliderThumbNormal" XPos="217" YPos="28" Width="15" Height="6" />
-	<Image Name="VertSliderThumbHover" XPos="217" YPos="36" Width="15" Height="6" />
+	<Image Name="SliderBody" XPos="234" YPos="2" Width="9" Height="48" />
+	<Image Name="SliderThumbNormal" XPos="217" YPos="28" Width="15" Height="6" />
+	<Image Name="SliderThumbHover" XPos="217" YPos="36" Width="15" Height="6" />
+	<Image Name="SliderTrackLeft" XPos="217" YPos="44" Width="3" Height="4" />
+	<Image Name="SlidertrackMiddle" XPos="220" YPos="44" Width="2" Height="4" />
+	<Image Name="SliderTrackRight" XPos="230" YPos="44" Width="3" Height="4" />
 	<Image Name="MiniHorzScrollBarSegment" XPos="244" YPos="80" Width="10" Height="4" />
 	<Image Name="MiniHorzScrollThumbNormal" XPos="233" YPos="87" Width="22" Height="7" />
 	<Image Name="MiniHorzScrollThumbLeftNormal" XPos="233" YPos="87" Width="5" Height="7" />

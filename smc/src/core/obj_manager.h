@@ -1,7 +1,7 @@
 /***************************************************************************
-                obj_manager.h  -  Generic object manager
-                             -------------------
-    copyright            :  (C) 2005 - 2007 by Florian Richter
+ * obj_manager.h  -  Generic object manager
+ *
+ * Copyright (C) 2005 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __OBJ_MANAGER_H__
-#define __OBJ_MANAGER_H__
+#ifndef SMC_OBJ_MANAGER_H
+#define SMC_OBJ_MANAGER_H
 
 /* *** *** *** *** *** cObject_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -24,15 +24,13 @@ public:
 	cObject_Manager( void ) {};
 	virtual ~cObject_Manager( void ) {};
 
-	/*	Add the given object
-	 */
+	//	Add the given object
 	virtual void Add( T *obj )
 	{
 		objects.push_back( obj );
 	}
 
-	/* Delete the object from given array number
-	 */
+	// Delete the object from given array number
 	virtual bool Delete( unsigned int array_num, bool delete_data = 1 )
 	{
 		// out of array
@@ -51,8 +49,7 @@ public:
 		return 1;
 	}
 
-	/* Delete the given object
-	 */
+	// Delete the given object
 	virtual bool Delete( T *obj, bool delete_data = 1 )
 	{
 		// empty object
@@ -61,11 +58,10 @@ public:
 			return 0;
 		}
 
-		return Delete( Get_Array_num( obj ), delete_data );
+		return Delete( Get_Array_Num( obj ), delete_data );
 	}
 
-	/* Delete all objects
-	 */
+	// Delete all objects
 	virtual void Delete_All( void )
 	{
 		for( typename vector<T *>::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
@@ -92,7 +88,7 @@ public:
 	}
 
 	// Switch objects array position
-	bool Switch_Array_num( T *obj1, T *obj2 )
+	bool Switch_Array_Num( T *obj1, T *obj2 )
 	{
 		// empty object
 		if( !obj1 || !obj2 )
@@ -106,8 +102,8 @@ public:
 			return 0;
 		}
 
-		int obj1_pos = Get_Array_num( obj1 );
-		int obj2_pos = Get_Array_num( obj2 );
+		int obj1_pos = Get_Array_Num( obj1 );
+		int obj2_pos = Get_Array_Num( obj2 );
 		
 		// not found
 		if( obj1_pos < 0 || obj2_pos < 0 )
@@ -124,7 +120,7 @@ public:
 	/* Return the object array number
 	 * if not found returns -1
 	*/
-	int Get_Array_num( T *obj )
+	int Get_Array_Num( T *obj )
 	{
 		// invalid
 		if( !obj )
@@ -146,8 +142,7 @@ public:
 		return -1;
 	}
 
-	/* Returns the object count
-	 */
+	// Return the object count
 	unsigned int size( void )
 	{
 		return objects.size();

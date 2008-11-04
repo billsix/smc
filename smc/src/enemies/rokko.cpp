@@ -1,7 +1,7 @@
 /***************************************************************************
-              rokko.cpp  -  giant, slow-moving bullet
-                             -------------------
-    copyright            : (C) 2003 - 2007 by Florian Richter
+ * rokko.cpp  -  giant, slow-moving bullet
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -20,20 +20,23 @@
 #include "../gui/hud.h"
 #include "../video/gl_surface.h"
 #include "../video/renderer.h"
+#include "../core/math/utilities.h"
+#include "../input/mouse.h"
+#include "../core/i18n.h"
 
 /* *** *** *** *** *** *** cRokko *** *** *** *** *** *** *** *** *** *** *** */
 
 cRokko :: cRokko( float x, float y )
 : cEnemy( x, y )
 {
-	Init();
+	cRokko::Init();
 }
 
-cRokko :: cRokko( XMLAttributes &attributes )
+cRokko :: cRokko( CEGUI::XMLAttributes &attributes )
 : cEnemy()
 {
-	Init();
-	Create_from_Stream( attributes );
+	cRokko::Init();
+	cRokko::Create_from_Stream( attributes );
 }
 
 cRokko :: ~cRokko( void )
@@ -53,8 +56,10 @@ void cRokko :: Init( void  )
 	fire_resistant = 1;
 	ice_resistance = 1;
 
-	speed = 8.5f;
 	Set_Direction( DIR_LEFT );
+	Set_Speed( 8.5f );
+	Set_Max_Distance_Front( 1000 );
+	Set_Max_Distance_Sides( 400 );
 	state = STA_STAY;
 
 	player_range = 4000;
@@ -73,12 +78,12 @@ cRokko *cRokko :: Copy( void )
 	return rokko;
 }
 
-void cRokko :: Create_from_Stream( XMLAttributes &attributes )
+void cRokko :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// direction
-	Set_Direction( Get_Direction_id( attributes.getValueAsString( "direction", Get_Direction_name( start_direction ) ).c_str() ) );
+	Set_Direction( Get_Direction_Id( attributes.getValueAsString( "direction", Get_Direction_Name( start_direction ) ).c_str() ) );
 	// speed
 	Set_Speed( attributes.getValueAsFloat( "speed", speed ) );
 }
@@ -94,7 +99,7 @@ void cRokko :: Save_to_Stream( ofstream &file )
 	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
 	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// direction
-	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_name( start_direction ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( start_direction ) << "\" />" << std::endl;
 	// speed
 	file << "\t\t<Property name=\"speed\" value=\"" << speed << "\" />" << std::endl;
 
@@ -131,34 +136,63 @@ void cRokko :: Set_Direction( ObjectDirection dir )
 	Clear_Images();
 
 	cEnemy::Set_Direction( dir, 1 );
+	name = "Rokko ";
+	name += _(Get_Direction_Name( start_direction).c_str());
 
 	if( direction == DIR_LEFT )
 	{
 		images.push_back( pVideo->Get_Surface( "enemy/rokko/l.png" ) );
-		name = "Rokko Left";
+	}
+	else if( direction == DIR_RIGHT )
+	{
+		images.push_back( pVideo->Get_Surface( "enemy/rokko/r.png" ) );
 	}
 	else
 	{
-		images.push_back( pVideo->Get_Surface( "enemy/rokko/r.png" ) );
-		name = "Rokko Right";
+		printf( "Warning: Unknown Rokko direction %s\n", Get_Direction_Name( dir ).c_str() );
 	}
 
+	Update_Distance_rect();
 	Set_Image( 0, 1 );
 }
 
 void cRokko :: Set_Speed( float nspeed )
 {
-	if( nspeed == 0 )
+	if( nspeed < 2 )
 	{
-		return;
+		nspeed = 2;
 	}
 
 	speed = nspeed;
 }
 
+void cRokko :: Set_Max_Distance_Front( float distance )
+{
+	if( distance < 200 )
+	{
+		distance = 200;
+	}
+
+	max_distance_front = distance;
+
+	Update_Distance_rect();
+}
+
+void cRokko :: Set_Max_Distance_Sides( float distance )
+{
+	if( distance < 50 )
+	{
+		distance = 50;
+	}
+
+	max_distance_sides = distance;
+
+	Update_Distance_rect();
+}
+
 void cRokko :: Activate( void )
 {
-	pAudio->PlaySound( "enemy/rokko/activate.ogg" );
+	pAudio->Play_Sound( "enemy/rokko/activate.ogg" );
 
 	state = STA_FLY;
 	walk_count = 1;
@@ -184,14 +218,15 @@ void cRokko :: DownGrade( bool force /* = 0 */ )
 	if( !force )
 	{
 		// animation
-		cParticleAnimation *anim = new cParticleAnimation( pPlayer->posx + ( pPlayer->col_rect.w / 2 ), posy + 5 );
+		cParticle_Emitter *anim = new cParticle_Emitter();
+		anim->Set_Pos( pPlayer->posx + ( pPlayer->col_rect.w / 2 ), posy + 5 );
 		Generate_Hit_Animation( anim );
 
 		anim->Set_Quota( 8 );
 		anim->Set_Speed( 4, 1 );
 		anim->Set_Scale( 0.9f );
 		// add animation
-		pAnimationManager->Add( anim );
+		pAnimation_Manager->Add( anim );
 	}
 }
 
@@ -203,14 +238,17 @@ void cRokko :: DieStep( void )
 	{
 		if( rotz < 90 )
 		{
-			Add_RotationZ( pFramerate->speedfactor );
+			Add_Rotation_Z( pFramerate->speedfactor );
 		}
 	}
 
 	// generate smoke
 	smoke_counter += pFramerate->speedfactor * 10;
-	Generate_Smoke( static_cast<int>(smoke_counter) );
-	smoke_counter -= static_cast<int>(smoke_counter);
+	if( smoke_counter >= 1 )
+	{
+		Generate_Smoke( static_cast<int>(smoke_counter) );
+		smoke_counter -= static_cast<int>(smoke_counter);
+	}
 
 	if( posy > 600 )
 	{
@@ -233,51 +271,26 @@ void cRokko :: Update( void )
 	// if not active
 	if( state != STA_FLY )
 	{
-		// player is ghost
-		if( pPlayer->maryo_type == MARYO_GHOST )
-		{
-			return;
-		}
+		GL_rect final_distance = Get_Final_Distance_Rect();
 
-		// not in vertical range
-		if( col_rect.y < pPlayer->col_rect.y - 100 || col_rect.y > pPlayer->col_rect.y + 100 )
+		// if player is in front then activate
+		if( pPlayer->maryo_type != MARYO_GHOST && Col_Box( &pPlayer->col_rect, &final_distance ) )
 		{
-			return;
+			Activate();
 		}
-
-		if( direction == DIR_LEFT )
-		{
-			// in range
-			if( pPlayer->col_rect.x + 1000 > col_rect.x && pPlayer->col_rect.x + 400 < col_rect.x )
-			{
-				Activate();
-			}
-			// not in range
-			else
-			{
-				return;
-			}
-		}
-		// right
 		else
 		{
-			// in range
-			if( pPlayer->col_rect.x - 1000 > col_rect.x && pPlayer->col_rect.x + 400 > col_rect.x + col_rect.w )
-			{
-				Activate();
-			}
-			// not in range
-			else
-			{
-				return;
-			}
+			return;
 		}
 	}
 
 	// generate smoke
 	smoke_counter += pFramerate->speedfactor * 10;
-	Generate_Smoke( static_cast<int>(smoke_counter) );
-	smoke_counter -= static_cast<int>(smoke_counter);
+	if( smoke_counter >= 1 )
+	{
+		Generate_Smoke( static_cast<int>(smoke_counter) );
+		smoke_counter -= static_cast<int>(smoke_counter);
+	}
 }
 
 void cRokko :: Draw( cSurfaceRequest *request /* = NULL */ )
@@ -285,6 +298,16 @@ void cRokko :: Draw( cSurfaceRequest *request /* = NULL */ )
 	if( !valid_draw )
 	{
 		return;
+	}
+
+	// draw distance rect
+	if( editor_level_enabled )
+	{
+		GL_rect final_distance = Get_Final_Distance_Rect();
+		final_distance.x -= pActive_Camera->x;
+		final_distance.y -= pActive_Camera->y;
+
+		pVideo->Draw_Rect( &final_distance, posz - 0.000001f, &whitealpha128 );
 	}
 
 	bool create_request = 0;
@@ -296,8 +319,9 @@ void cRokko :: Draw( cSurfaceRequest *request /* = NULL */ )
 		request = new cSurfaceRequest();
 	}
 
-	// Draw player
+	// Draw
 	cEnemy::Draw( request );
+
 	// alpha in debug mode
 	if( editor_level_enabled )
 	{
@@ -311,9 +335,62 @@ void cRokko :: Draw( cSurfaceRequest *request /* = NULL */ )
 	}
 }
 
+void cRokko :: Update_Distance_rect( void )
+{
+	if( start_direction == DIR_UP )
+	{
+		distance_rect.x = ((col_pos.x + col_rect.w) * 0.5f) - (max_distance_sides * 0.5f);
+		distance_rect.y = -max_distance_front;
+		distance_rect.w = max_distance_sides;
+		distance_rect.h = max_distance_front;
+	}
+	else if( start_direction == DIR_DOWN )
+	{
+		distance_rect.x = ((col_pos.x + col_rect.w) * 0.5f) - (max_distance_sides * 0.5f);
+		distance_rect.y = 0;
+		distance_rect.w = max_distance_sides;
+		distance_rect.h = max_distance_front;
+	}
+	else if( start_direction == DIR_LEFT )
+	{
+		distance_rect.x = -max_distance_front;
+		distance_rect.y = ((col_pos.y + col_rect.h) * 0.5f) - (max_distance_sides * 0.5f);
+		distance_rect.w = max_distance_front;
+		distance_rect.h = max_distance_sides;
+	}
+	else if( start_direction == DIR_RIGHT )
+	{
+		distance_rect.x = 0;
+		distance_rect.y = ((col_pos.y + col_rect.h) * 0.5f) - (max_distance_sides * 0.5f);
+		distance_rect.w = max_distance_front;
+		distance_rect.h = max_distance_sides;
+	}
+}
+
+GL_rect cRokko :: Get_Final_Distance_Rect( void )
+{
+	GL_rect final_distance = distance_rect;
+
+	final_distance.x += rect.x;
+	final_distance.y += rect.y;
+
+	if( start_direction == DIR_LEFT || start_direction == DIR_RIGHT )
+	{
+		final_distance.x += rect.w;
+		final_distance.w -= rect.w;
+	}
+	else if( start_direction == DIR_UP || start_direction == DIR_DOWN )
+	{
+		final_distance.y += rect.h;
+		final_distance.h -= rect.h;
+	}
+
+	return final_distance;
+}
+
 void cRokko :: Generate_Smoke( unsigned int quota /*= 10 */ )
 {
-	cParticleAnimation *anim = NULL;
+	cParticle_Emitter *anim = NULL;
 
 	// moving smoke particle animation
 	while( quota > 0 )
@@ -323,32 +400,36 @@ void cRokko :: Generate_Smoke( unsigned int quota /*= 10 */ )
 		{
 			if( direction == DIR_LEFT )
 			{
-				anim = new cParticleAnimation( posx + col_rect.w - 5 - ( rand() % 3 ), posy + ( rand() % static_cast<int>( rect.h - 15 ) ) );
-				
-				anim->Set_DirectionRange( 320, 100 );
+				anim = new cParticle_Emitter();
+				anim->Set_Pos( posx + col_rect.w - Get_Random_Float( 5, 8 ), posy + Get_Random_Float( 0, rect.h - 15 ) );
+				anim->Set_Direction_Range( 320, 100 );
 			}
 			else
 			{
-				anim = new cParticleAnimation( posx - 5 - ( rand() % 3 ), posy + ( rand() % static_cast<int>( rect.h - 15 ) ) );
-				anim->Set_DirectionRange( 140, 100 );
+				anim = new cParticle_Emitter();
+				anim->Set_Pos( posx + Get_Random_Float( 5, 8 ), posy + Get_Random_Float( 0, rect.h - 15 ) );
+				anim->Set_Direction_Range( 140, 100 );
 			}
 		}
 		// dead
 		else
 		{
-			anim = new cParticleAnimation( posx + ( rand() % + static_cast<int>(col_rect.w) ), posy + ( rand() % static_cast<int>(rect.h) ) );
+			anim = new cParticle_Emitter();
+			anim->Set_Pos( posx + Get_Random_Float( 0, col_rect.w ), posy + Get_Random_Float( 0, rect.h ) );
 		}
 
+		// - 0.000001f caused a weird graphical z pos bug with my ATI card
+		anim->Set_Pos_Z( posz - 0.000005f );
 		anim->Set_Image( pVideo->Get_Surface( "animation/particles/smoke_black.png" ) );
 		anim->Set_Time_to_Live( 0.3f, 1 );
 		anim->Set_Speed( 1, 1 );
 		anim->Set_Scale( 1.3f );
-		anim->Set_ConstRotationZ( -1, 2 );
+		anim->Set_Const_Rotation_Z( -1, 2 );
 		anim->Set_Color( Color( static_cast<Uint8>(155), 150, 130 ) );
 		anim->Set_Fading_Alpha( 1 );
 		
 		// add animation
-		pAnimationManager->Add( anim );
+		pAnimation_Manager->Add( anim );
 
 		if( dead )
 		{
@@ -356,8 +437,9 @@ void cRokko :: Generate_Smoke( unsigned int quota /*= 10 */ )
 			if( ( rand() % 25 ) == 0 )
 			{
 				// animation
-				anim = new cParticleAnimation( posx + col_rect.w * 0.2f + ( rand() % + static_cast<int>( col_rect.w * 0.6f ) ), posy + rect.h * 0.2f + ( rand() % static_cast<int>( rect.h * 0.6f ) ) );
-
+				anim = new cParticle_Emitter();
+				anim->Set_Pos( posx + col_rect.w * 0.2f + Get_Random_Float( 0,  col_rect.w * 0.6f ), posy + rect.h * 0.2f + Get_Random_Float( 0, rect.h * 0.6f ) );
+				anim->Set_Pos_Z( posz + 0.000001f );
 				anim->Set_Quota( 8 );
 				anim->Set_Time_to_Live( 0.3f, 0.1f );
 				anim->Set_Speed( 4, 1.5f );
@@ -367,7 +449,7 @@ void cRokko :: Generate_Smoke( unsigned int quota /*= 10 */ )
 				anim->Set_Fading_Size( 1 );
 				anim->Set_Fading_Alpha( 0 );
 				// add animation
-				pAnimationManager->Add( anim );
+				pAnimation_Manager->Add( anim );
 			}
 		}
 
@@ -375,9 +457,25 @@ void cRokko :: Generate_Smoke( unsigned int quota /*= 10 */ )
 	}
 }
 
-bool cRokko :: is_Update_valid( void )
+bool cRokko :: Is_Update_Valid( void )
 {
 	if( dead || freeze_counter )
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+bool cRokko :: Is_Draw_Valid( void )
+{
+	if( cEnemy::Is_Draw_Valid() == 1 )
+	{
+		return 1;
+	}
+
+	// if not editor enabled or not active mouse object
+	if( !editor_enabled || pMouseCursor->active_object != this )
 	{
 		return 0;
 	}
@@ -410,8 +508,8 @@ void cRokko :: Handle_Collision_Player( cObjectCollision *collision )
 	if( collision->direction == DIR_TOP && pPlayer->state != STA_FLY )
 	{
 		pointsdisplay->Add_Points( kill_points, pPlayer->posx + pPlayer->image->w / 3, pPlayer->posy - 5, "", static_cast<Uint8>(255), 1 );
-		pAudio->PlaySound( kill_sound );
-		pPlayer->start_enemyjump = 1;
+		pAudio->Play_Sound( kill_sound );
+		pPlayer->Action_Jump( 1 );
 
 		pPlayer->Add_Kill_Multiplier();
 		DownGrade();
@@ -422,31 +520,30 @@ void cRokko :: Handle_Collision_Player( cObjectCollision *collision )
 	}
 }
 
-void cRokko :: Handle_OutofLevel( ObjectDirection dir )
+void cRokko :: Handle_out_of_Level( ObjectDirection dir )
 {
 	// ignore
 }
 
 void cRokko :: Editor_Activate( void )
 {
-	WindowManager &wmgr = WindowManager::getSingleton();
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
 	// speed
-	Editbox *editbox = (Editbox *)wmgr.createWindow( "TaharezLook/Editbox", "editor_rokko_speed" );
-	editbox->setTooltipText( "Speed" );
-	Editor_Add( editbox, 120 );
+	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_rokko_speed" ));
+	Editor_Add( UTF8_("Speed"), UTF8_("Speed when activated"), editbox, 120 );
 
 	editbox->setText( float_to_string( speed ) );
-	editbox->subscribeEvent( Editbox::EventKeyUp, Event::Subscriber( &cRokko::Editor_Speed_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cRokko::Editor_Speed_Key, this ) );
 
-	// set position
-	Editor_pos_update();
+	// init
+	Editor_Init();
 }
 
-bool cRokko :: Editor_Speed_Key( const EventArgs &event )
+bool cRokko :: Editor_Speed_Key( const CEGUI::EventArgs &event )
 {
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	string str_text = static_cast<Editbox *>( windowEventArgs.window )->getText().c_str();
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Speed( string_to_float( str_text ) );
 

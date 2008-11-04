@@ -22,7 +22,7 @@
 	<Item>
 		<Property Name="name" Value="Castle Ground" />
 		<Property Name="tags" Value="castle;ground" />
-		<Property Name="color" Value="FFE9A24F" />
+		<Property Name="color" Value="FFA89469" />
 	</Item>
 	<Item>
 		<Property Name="name" Value="Underground" />
@@ -92,7 +92,7 @@
 	<Item>
 		<Property Name="name" Value="Ropes" />
 		<Property Name="tags" Value="rope" />
-		<Property Name="color" Value="FFE5E1CB" />
+		<Property Name="color" Value="FFFFD190" />
 	</Item>
 	<Item>
 		<Property Name="name" Value="Doors" />

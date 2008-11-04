@@ -1,4 +1,6 @@
 width 43
 height 43
-name Metal_Green
+col_rect 2 0 39 41
+name Metal_1_Green
 type massive
+author Frostbringer

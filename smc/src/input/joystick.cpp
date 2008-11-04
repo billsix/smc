@@ -1,7 +1,7 @@
 /***************************************************************************
-           joystick.cpp  -  Joystick class
-                             -------------------
-    copyright            : (C) 2003 - 2007 by Florian Richter
+ * joystick.cpp  -  Joystick handling class
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -328,7 +328,7 @@ bool cJoystick :: Handle_Button_Down_Event( SDL_Event *ev )
 	if( Game_Mode == MODE_LEVEL )
 	{
 		// processed by the level
-		if( pLevel->Joy_Button_Down( ev->jbutton.button ) )
+		if( pActive_Level->Joy_Button_Down( ev->jbutton.button ) )
 		{
 			return 1;
 		}
@@ -381,6 +381,7 @@ bool cJoystick :: Handle_Button_Down_Event( SDL_Event *ev )
 			pKeyboard->Key_Down( SDLK_ESCAPE );
 			return 1;
 		}
+		// Pause
 		else if( ev->jbutton.button == 9 )
 		{
 			pKeyboard->Key_Down( SDLK_PAUSE );
@@ -405,7 +406,7 @@ bool cJoystick :: Handle_Button_Up_Event( SDL_Event *ev )
 	if( Game_Mode == MODE_LEVEL )
 	{
 		// processed by the level
-		if( pLevel->Joy_Button_Up( ev->jbutton.button ) )
+		if( pActive_Level->Joy_Button_Up( ev->jbutton.button ) )
 		{
 			return 1;
 		}
@@ -499,6 +500,38 @@ void cJoystick :: Set_Button( Uint8 num, bool pressed )
 	}
 
 	buttons[num] = pressed;
+}
+
+Uint8 *cJoystick :: Get_Shortcut( input_identifier shortcut_id )
+{
+	if( shortcut_id == INP_JUMP )
+	{
+		return &pPreferences->joy_button_jump;
+	}
+	else if( shortcut_id == INP_ITEM )
+	{
+		return &pPreferences->joy_button_item;
+	}
+	else if( shortcut_id == INP_SHOOT )
+	{
+		return &pPreferences->joy_button_shoot;
+	}
+	else if( shortcut_id == INP_ACTION )
+	{
+		return &pPreferences->joy_button_action;
+	}
+	else if( shortcut_id == INP_EXIT )
+	{
+		return &pPreferences->joy_button_exit;
+	}
+
+	return NULL;
+}
+
+void cJoystick :: Assign_Shortcut( input_identifier shortcut_id, Uint8 new_button )
+{
+	Uint8 *button = Get_Shortcut( shortcut_id );
+	*button = new_button;
 }
 
 bool cJoystick :: Left( void )

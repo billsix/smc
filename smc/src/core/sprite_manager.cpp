@@ -1,7 +1,7 @@
 /***************************************************************************
-			sprite_manager.cpp  -  Sprite Manager
-                              -------------------
-    copyright            :	(C) 2005 - 2007 by Florian Richter
+ * sprite_manager.cpp  -  Sprite Manager
+ *
+ * Copyright (C) 2005 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 #include "../core/game_core.h"
 #include "../player/player.h"
 #include "../input/mouse.h"
-#include "../overworld/ow_player.h"
+#include "../overworld/world_player.h"
 
 /* *** *** *** *** *** *** cSprite_Manager *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -106,11 +106,12 @@ void cSprite_Manager :: Delete_All( bool delayed /* = 0 */ )
 		cObject_Manager<cSprite>::Delete_All();
 	}
 
+	// todo : this should be elsewhere...
 	// clear collision data
 	if( pPlayer )
 	{
 		pPlayer->Collisions_Clear();
-		pPlayer->Reset_onGround();
+		pPlayer->Reset_on_Ground();
 	}
 	if( pMouseCursor )
 	{
@@ -191,14 +192,7 @@ void cSprite_Manager :: Get_Objects_sorted( SpriteList &new_objects, bool editor
 
 	if( with_player )
 	{
-		if( Game_Mode == MODE_LEVEL )
-		{
-			new_objects.push_back( pPlayer );
-		}
-		else if( Game_Mode == MODE_OVERWORLD )
-		{
-			new_objects.push_back( pOverworld_Player );
-		}
+		new_objects.push_back( pActive_Player );
 	}
 
 	// z position sort
@@ -214,15 +208,15 @@ void cSprite_Manager :: Get_Objects_sorted( SpriteList &new_objects, bool editor
 	}
 }
 
-void cSprite_Manager :: Update_items_valid_draw( void )
+void cSprite_Manager :: Update_Items_Valid_Draw( void )
 {
 	for( SpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
-		(*itr)->Update_valid_draw();
+		(*itr)->Update_Valid_Draw();
 	}
 }
 
-void cSprite_Manager :: Update_items( void )
+void cSprite_Manager :: Update_Items( void )
 {
 	for( SpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
@@ -230,7 +224,7 @@ void cSprite_Manager :: Update_items( void )
 	}
 }
 
-void cSprite_Manager :: Draw_items( void )
+void cSprite_Manager :: Draw_Items( void )
 {
 	for( SpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
@@ -238,7 +232,7 @@ void cSprite_Manager :: Draw_items( void )
 	}
 }
 
-void cSprite_Manager :: Handle_Collision_items( void )
+void cSprite_Manager :: Handle_Collision_Items( void )
 {
 	for( SpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
@@ -249,7 +243,7 @@ void cSprite_Manager :: Handle_Collision_items( void )
 	}
 }
 
-unsigned int cSprite_Manager :: Get_Size_array( ArrayType sprite_array )
+unsigned int cSprite_Manager :: Get_Size_Array( ArrayType sprite_array )
 {
 	unsigned int count = 0;
 
@@ -266,6 +260,12 @@ unsigned int cSprite_Manager :: Get_Size_array( ArrayType sprite_array )
 
 void cSprite_Manager :: Set_Z( cSprite *sprite )
 {
+	// don't set animation z position
+	if( sprite->sprite_array == ARRAY_ANIM )
+	{
+		return;
+	}
+
 	// set new z position if unset
 	if( sprite->posz <= zposdata[sprite->type] )
 	{

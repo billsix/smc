@@ -1,7 +1,7 @@
 /***************************************************************************
-			keyboard.h  -  header for the corresponding cpp file
-                         -------------------
-    copyright            : (C) 2006 - 2007 by Florian Richter
+ * keyboard.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __KEYBOARD_H__
-#define __KEYBOARD_H__
+#ifndef SMC_KEYBOARD_H
+#define SMC_KEYBOARD_H
 
 #include "../core/globals.h"
 
@@ -27,7 +27,7 @@ public:
 	~cKeyboard( void );
 
 	// Reset all keys
-	void Reset_keys( void );
+	void Reset_Keys( void );
 
 	/* Function : CEGUI_Handle_KeyUp
 	 * CEGUI Key Up handler
@@ -52,6 +52,11 @@ public:
 	 * returns true if the event was processed
 	*/
 	bool Key_Down( SDLKey key );
+
+	// Get the assigned shortcut
+	SDLKey *Get_Shortcut( input_identifier shortcut_id );
+	// Assign a shortcut
+	void Assign_Shortcut( input_identifier shortcut_id, SDLKey new_key );
 
 	// Translate a SDLKey to the proper CEGUI::Key
 	unsigned int SDLKey_to_CEGUIKey( SDLKey key );

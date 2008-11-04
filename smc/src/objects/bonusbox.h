@@ -1,7 +1,7 @@
 /***************************************************************************
-				bonusbox.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * bonusbox.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __BONUSBOX_H__
-#define __BONUSBOX_H__
+#ifndef SMC_BONUSBOX_H
+#define SMC_BONUSBOX_H
 
 #include "../core/globals.h"
 #include "../objects/box.h"
@@ -28,7 +28,7 @@ public:
 	// constructor
 	cBonusBox( float x, float y );
 	// create from stream
-	cBonusBox( XMLAttributes &attributes );
+	cBonusBox( CEGUI::XMLAttributes &attributes );
 	// destructor
 	virtual ~cBonusBox( void );
 
@@ -39,12 +39,12 @@ public:
 	virtual cBonusBox *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( XMLAttributes &attributes );
+	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file );
 
 	// sets the count this object can be activated
-	virtual void Set_UseableCount( int count, bool new_startcount = 0 );
+	virtual void Set_Useable_Count( int count, bool new_startcount = 0 );
 	/* Set the bonus type
 	 * TYPE_UNDEFINED			for empty
 	 * TYPE_MUSHROOM_DEFAULT	for Mushroom
@@ -60,7 +60,7 @@ public:
 	/* Set if to force the best possible item
 	 * and not to use lower items automatically
 	*/
-	void Set_Force_best_item( bool enable );
+	void Set_Force_Best_Item( bool enable );
 	// Set the gold color
 	void Set_Goldcolor( DefaultColor ncolor );
 
@@ -73,20 +73,20 @@ public:
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
 	// if update is valid for the current state
-	virtual bool is_Update_valid( void );
+	virtual bool Is_Update_Valid( void );
 
 	// ignore onground check
-	virtual void Check_onGround( void ) {};
+	virtual void Check_on_Ground( void ) {};
 
 	// level editor activation
 	virtual void Editor_Activate( void );
 	// level editor state update
-	virtual void Editor_state_update( void );
+	virtual void Editor_State_Update( void );
 	// level editor events
-	bool Editor_Animation_Select( const EventArgs &event ); // editor animation option selected
-	bool Editor_Item_Select( const EventArgs &event ); // editor item option selected
-	bool Editor_Force_best_item_Select( const EventArgs &event ); // editor force best item option selected
-	bool Editor_Gold_Color_Select( const EventArgs &event ); // editor gold color option selected
+	bool Editor_Animation_Select( const CEGUI::EventArgs &event ); // editor animation option selected
+	bool Editor_Item_Select( const CEGUI::EventArgs &event ); // editor item option selected
+	bool Editor_Force_best_item_Select( const CEGUI::EventArgs &event ); // editor force best item option selected
+	bool Editor_Gold_Color_Select( const CEGUI::EventArgs &event ); // editor gold color option selected
 
 	// force best possible item
 	bool force_best_item;

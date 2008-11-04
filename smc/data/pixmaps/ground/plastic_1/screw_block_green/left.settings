@@ -1,6 +1,4 @@
-width 55
-height 55
-editor_tags level;plastic;ground
+base up.png 1
+rotation 0 0 270
 name Green_Left
 type passive
-ground_type plastic

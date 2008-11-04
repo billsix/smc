@@ -3,6 +3,7 @@
 <GUILayout >
     <Window Type="DefaultWindow" Name="menu_main" >
         <Property Name="InheritsAlpha" Value="False" />
+        <Property Name="MousePassThroughEnabled" Value="True" />
         <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
         <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
         <Window Type="TaharezLook/StaticText" Name="text_version" >
@@ -10,7 +11,7 @@
             <Property Name="Tooltip" Value="Current Game Version." />
             <Property Name="TextColours" Value="tl:FF00BB00 tr:FF00CC00 bl:FF00CC00 br:FF00FF00" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-            <Property Name="UnifiedAreaRect" Value="{{0.8,0},{0.95,0},{0.99,0},{0.99,0}}" />
+            <Property Name="UnifiedAreaRect" Value="{{0.8,0},{0.94,0},{0.99,0},{0.99,0}}" />
         </Window>
         <Window Type="TaharezLook/StaticText" Name="text_homepage" >
             <Property Name="Text" Value="www.secretmaryo.org" />

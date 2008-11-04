@@ -1,7 +1,7 @@
 /***************************************************************************
-				text_box.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2007 by Florian Richter
+ * text_box.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2007 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __TEXT_BOX_H__
-#define __TEXT_BOX_H__
+#ifndef SMC_TEXT_BOX_H
+#define SMC_TEXT_BOX_H
 
 #include "../core/globals.h"
 #include "../objects/box.h"
@@ -27,7 +27,7 @@ public:
 	// constructor
 	cText_Box( float x, float y );
 	// create from stream
-	cText_Box( XMLAttributes &attributes );
+	cText_Box( CEGUI::XMLAttributes &attributes );
 	// destructor
 	virtual ~cText_Box( void );
 
@@ -38,7 +38,7 @@ public:
 	virtual cText_Box *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( XMLAttributes &attributes );
+	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file );
 
@@ -52,12 +52,12 @@ public:
 	void Set_Text( string str_text );
 
 	// ignore onground check
-	virtual void Check_onGround( void ) {};
+	virtual void Check_on_Ground( void ) {};
 
 	// level editor activation
 	virtual void Editor_Activate( void );
 	// level editor events
-	bool Editor_Text_Key( const EventArgs &event );  // editor text key up
+	bool Editor_Text_Key( const CEGUI::EventArgs &event );  // editor text key up
 
 	// the text
 	string text;

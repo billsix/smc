@@ -1,7 +1,7 @@
 /***************************************************************************
-			mouse.h  -  header for the corresponding cpp file
-                         -------------------
-    copyright            : (C) 2003 - 2007 by Florian Richter
+ * mouse.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __MOUSE_H__
-#define __MOUSE_H__
+#ifndef SMC_MOUSE_H
+#define SMC_MOUSE_H
 
 #include "../core/globals.h"
 #include "../objects/movingsprite.h"
@@ -65,7 +65,7 @@ public:
 	// resets leveleditor features
 	void Reset( bool clear_copy_buffer = 1 );
 	// only reset buttons
-	void Reset_keys( void );
+	void Reset_Keys( void );
 
 	// Handles the Mouse events
 	bool Handle_Event( SDL_Event *ev );
@@ -73,12 +73,12 @@ public:
 	 * GUI handle mouse down function
 	 * Returns true if GUI handled the event
 	*/
-	bool Handle_Mouse_down( Uint8 button );
+	bool Handle_Mouse_Down( Uint8 button );
 	/* Function: Gui_handle_Mouse_up
 	 * GUI handle mouse up function
 	 * Returns true if GUI handled the event
 	*/
-	bool Handle_Mouse_up( Uint8 button );
+	bool Handle_Mouse_Up( Uint8 button );
 
 	// Checks if the Mousecursor is in the given rect
 	bool Collsion_Check ( GL_rect *crect );
@@ -88,8 +88,7 @@ public:
 	/* Get the Level/World Object Collision if available
 	 * returns 1 if collision found else 0
 	*/
-	bool Get_Collision_Level( GL_rect *mouse_rect );
-	bool Get_Collision_World( GL_rect *mouse_rect );
+	bool Get_Collision( GL_rect *mouse_rect );
 
 	// Update
 	virtual void Update( void );
@@ -111,59 +110,59 @@ public:
 
 	// ## Mouse Object
 	// Set new mouse object
-	void Set_mouse_object( cSprite *sprite );
+	void Set_Mouse_Object( cSprite *sprite );
 	// update the mouse object position
-	void Update_mouse_object( void );
+	void Update_Mouse_Object( void );
 	// clear mouse object
-	void Clear_mouse_object( void );
+	void Clear_Mouse_Object( void );
 
 	// ## Copy Objects
 	// Add new copy object
-	void Add_copy_object( cSprite *sprite );
-	void Add_copy_objects( SpriteList spritelist );
+	void Add_Copy_Object( cSprite *sprite );
+	void Add_Copy_Objects( SpriteList spritelist );
 	/* Remove a copy_object
 	 * returns true if removed
 	*/
-	bool Remove_copy_object( cSprite *sprite );
+	bool Remove_Copy_Object( cSprite *sprite );
 	// clear copy object list
-	void Clear_copy_objects( void );
+	void Clear_Copy_Objects( void );
 	/* returns the position of the first top left copy object
 	 * if no copy_objects returns 0, 0
 	*/
-	GL_Vector Get_copy_object_base( float px, float py );
+	GL_Vector Get_Copy_Object_Base( float px, float py );
 	// paste copy object list
-	void Paste_copy_objects( float px, float py );
+	void Paste_Copy_Objects( float px, float py );
 
 	// ## Selected Objects
 	/* Add new selected_object
 	 * Returns true if object got added or changed to user object
 	*/
-	bool Add_selected_object( cSprite *sprite, bool from_user = 0 );
-	void Add_selected_objects( SpriteList spritelist, bool from_user = 0 );
+	bool Add_Selected_Object( cSprite *sprite, bool from_user = 0 );
+	void Add_Selected_Objects( SpriteList spritelist, bool from_user = 0 );
 	/* Remove a selected_object
 	 * returns true if found and removed
 	*/
-	bool Remove_selected_object( cSprite *sprite, bool no_user = 0 );
+	bool Remove_Selected_Object( cSprite *sprite, bool no_user = 0 );
 	// Returns all selected objects
-	SpriteList Get_selected_objects( void );
+	SpriteList Get_Selected_Objects( void );
 	// clear selected object list
-	void Clear_selected_objects( void );
+	void Clear_Selected_Objects( void );
 	// updates the selected objects positions
-	void Update_selected_objects( void );
+	void Update_Selected_Objects( void );
 	/* returns true if the given object is a selected_object
 	 * if only_user is given only check user objects
 	*/
-	bool is_selected_object( cSprite *sprite, bool only_user = 0 );
+	bool Is_Selected_Object( cSprite *sprite, bool only_user = 0 );
 	// deletes the selected objects
-	void Delete_selected_objects( void );
+	void Delete_Selected_Objects( void );
 	// returns the selected objects size
-	unsigned int Get_selected_object_size( void );
+	unsigned int Get_Selected_Object_Size( void );
 
 	// ## Active Object
 	// Set new active object
-	void Set_active_object( cSprite *sprite );
+	void Set_Active_Object( cSprite *sprite );
 	// clear active object
-	void Clear_active_object( void );
+	void Clear_Active_Object( void );
 
 	/* Copies the given object to the given position
 	 * object is automatically added to the object manager
@@ -174,17 +173,17 @@ public:
 	void Delete( cSprite *sprite );
 
 	// Draws a rect around the mouse_object and selected objects
-	void Draw_object_rects( void );
+	void Draw_Object_Rects( void );
 
 	// Start selection mode
-	void Start_selection( void );
+	void Start_Selection( void );
 	// End selection mode
-	void End_selection( void );
+	void End_Selection( void );
 	// update selection mode
-	void Update_selection( void );
+	void Update_Selection( void );
 
 	// Toggle Mover mode
-	void Toggle_Mover_mode( void );
+	void Toggle_Mover_Mode( void );
 	// Updates the Mover Mode
 	void Mover_Update( Sint16 move_x, Sint16 move_y );
 	// Updates the Leveleditor Mouse

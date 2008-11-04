@@ -1,7 +1,7 @@
 /***************************************************************************
-			level_editor.cpp  -  class for the Level Editor
-                             -------------------
-    copyright            : (C) 2006 - 2007 by Florian Richter
+ * level_editor.cpp  -  Level Editor class
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -23,6 +23,8 @@
 #include "../user/preferences.h"
 #include "../input/mouse.h"
 #include "../input/keyboard.h"
+#include "../audio/audio.h"
+#include "../core/i18n.h"
 
 /* *** *** *** *** *** *** *** cEditor_Level *** *** *** *** *** *** *** *** *** *** */
 
@@ -81,7 +83,7 @@ void cEditor_Level :: Disable( bool native_mode /* = 0 */ )
 		return;
 	}
 
-	debugdisplay->Set_Text( "Level Editor disabled" );
+	debugdisplay->Set_Text( _("Level Editor disabled") );
 
 	editor_level_enabled = 0;
 
@@ -110,7 +112,7 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 	// save level
 	else if( key == SDLK_s && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
 	{
-		pLevel->Save();
+		pActive_Level->Save();
 	}
 	// focus last levelexit
 	else if( key == SDLK_END )
@@ -118,7 +120,7 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 		float new_cameraposx = 0;
 		float new_cameraposy = 0;
 
-		for( SpriteList::iterator itr = pLevel->pSprite_Manager->objects.begin(), itr_end = pLevel->pSprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( SpriteList::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
 		{
 			cSprite *obj = (*itr);
 
@@ -127,7 +129,7 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 				continue;
 			}
 
-			if( obj->type == TYPE_LEVELEXIT && new_cameraposx < obj->posx )
+			if( obj->type == TYPE_LEVEL_EXIT && new_cameraposx < obj->posx )
 			{
 				new_cameraposx = obj->posx;
 				new_cameraposy = obj->posy;
@@ -136,7 +138,7 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 
 		if( new_cameraposx != 0 || new_cameraposy != 0 )
 		{
-			pCamera->Set_Pos( new_cameraposx - ( GAME_RES_W / 2 ), new_cameraposy - ( GAME_RES_H / 2 ) );
+			pActive_Camera->Set_Pos( new_cameraposx - ( game_res_w / 2 ), new_cameraposy - ( game_res_h / 2 ) );
 		}
 	}
 	// modify selected objects state
@@ -145,7 +147,7 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 		if( pMouseCursor->selected_objects.size() )
 		{
 			// change state of the base object
-			if( pLevel_Editor->Switch_ObjectState( pMouseCursor->selected_objects[0]->obj ) )
+			if( pLevel_Editor->Switch_Object_State( pMouseCursor->selected_objects[0]->obj ) )
 			{
 				// change all object states to the base object state
 				for( SelectedObjectList::iterator itr = pMouseCursor->selected_objects.begin(), itr_end = pMouseCursor->selected_objects.end(); itr != itr_end; ++itr )
@@ -167,7 +169,7 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 					}
 					
 					// set state
-					obj->Set_Massivetype( pMouseCursor->selected_objects[0]->obj->massivetype );
+					obj->Set_Massive_Type( pMouseCursor->selected_objects[0]->obj->massivetype );
 				}
 			}
 		}
@@ -175,8 +177,8 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 	// modify mouse object state
 	else if( key == SDLK_m && pMouseCursor->mouse_object->obj )
 	{
-		Switch_ObjectState( pMouseCursor->mouse_object->obj );
-		pMouseCursor->Clear_mouse_object();
+		Switch_Object_State( pMouseCursor->mouse_object->obj );
+		pMouseCursor->Clear_Mouse_Object();
 	}
 	else
 	{
@@ -186,12 +188,6 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 
 	// key got processed
 	return 1;
-}
-
-void cEditor_Level :: Add_Object( cSprite *object )
-{
-	// add to level object manager
-	pLevel->pSprite_Manager->Add( object );
 }
 
 void cEditor_Level :: Activate_Menu( cEditor_Menu_Object *entry )
@@ -244,7 +240,7 @@ void cEditor_Level :: Activate_Menu( cEditor_Menu_Object *entry )
 	}
 }
 
-bool cEditor_Level :: Switch_ObjectState( cSprite *obj )
+bool cEditor_Level :: Switch_Object_State( cSprite *obj )
 {
 	// empty object
 	if( !obj )
@@ -282,19 +278,19 @@ bool cEditor_Level :: Switch_ObjectState( cSprite *obj )
 	{
 		if( obj->massivetype == MASS_PASSIVE )
 		{
-			obj->Set_Massivetype( MASS_MASSIVE );
+			obj->Set_Massive_Type( MASS_MASSIVE );
 		}
 		else if( obj->massivetype == MASS_MASSIVE )
 		{
-			obj->Set_Massivetype( MASS_HALFMASSIVE );
+			obj->Set_Massive_Type( MASS_HALFMASSIVE );
 		}
 		else if( obj->massivetype == MASS_HALFMASSIVE )
 		{
-			obj->Set_Massivetype( MASS_CLIMBABLE );
+			obj->Set_Massive_Type( MASS_CLIMBABLE );
 		}
 		else if( obj->massivetype == MASS_CLIMBABLE )
 		{
-			obj->Set_Massivetype( MASS_PASSIVE );
+			obj->Set_Massive_Type( MASS_PASSIVE );
 		}
 	}
 	// invalid object type
@@ -308,7 +304,7 @@ bool cEditor_Level :: Switch_ObjectState( cSprite *obj )
 
 bool cEditor_Level :: Function_New( void )
 {
-	string level_name = Box_Text_Input( "Create a new Level", "Name" );
+	string level_name = Box_Text_Input( _("Create a new Level"), _("Name") );
 
 	// aborted/invalid
 	if( level_name.empty() )
@@ -316,14 +312,14 @@ bool cEditor_Level :: Function_New( void )
 		return 0;
 	}
 
-	if( pLevel->New( level_name ) )
+	if( pActive_Level->New( level_name ) )
 	{
-		debugdisplay->Set_Text( "Created " + level_name );
+		debugdisplay->Set_Text( _("Created ") + level_name );
 		return 1;
 	}
 	else
 	{
-		debugdisplay->Set_Text( "Level " + level_name + " already exists" );
+		debugdisplay->Set_Text( _("Level ") + level_name + _(" already exists") );
 	}
 
 	return 0;
@@ -331,29 +327,58 @@ bool cEditor_Level :: Function_New( void )
 
 void cEditor_Level :: Function_Load( void )
 {
-	pKeyboard->Key_Down( SDLK_l );
+	string level_name = _("Name");
+
+	// valid level
+	while( level_name.length() )
+	{
+		level_name = Box_Text_Input( level_name, _("Load a Level"), level_name.compare( _("Name") ) == 0 ? 1 : 0 );
+
+		// break if empty
+		if( level_name.empty() )
+		{
+			break;
+		}
+
+		// if available
+		if( pActive_Level->Get_Path( level_name ) )
+		{
+			Game_Action = GA_ENTER_LEVEL;
+			Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
+			Game_Action_Data.add( "level", level_name.c_str() );
+
+			debugdisplay->Set_Text( _("Loaded ") + Get_Filename( level_name, 0, 0 ) );
+
+			break;
+		}
+		// not found
+		else
+		{
+			pAudio->Play_Sound( "error.ogg" );
+		}
+	}
 }
 
 void cEditor_Level :: Function_Save( bool with_dialog /* = 0 */ )
 {
 	// not loaded
-	if( !pLevel->is_Loaded() )
+	if( !pActive_Level->Is_Loaded() )
 	{
 		return;
 	}
 
 	// if denied
-	if( with_dialog && !Box_Question( "Save " + Get_filename( pLevel->levelfile, 0, 0 ) + " ?" ) )
+	if( with_dialog && !Box_Question( _("Save ") + Get_Filename( pActive_Level->levelfile, 0, 0 ) + " ?" ) )
 	{
 		return;
 	}
 
-	pLevel->Save();
+	pActive_Level->Save();
 }
 
 void cEditor_Level :: Function_Save_as( void )
 {
-	string levelname = Box_Text_Input( "Save Level as", "New name", 1 );
+	string levelname = Box_Text_Input( _("Save Level as"), _("New name"), 1 );
 
 	// aborted/invalid
 	if( levelname.empty() )
@@ -361,25 +386,25 @@ void cEditor_Level :: Function_Save_as( void )
 		return;
 	}
 
-	pLevel->Set_Levelfile( levelname, 0 );
-	pLevel->Save();
+	pActive_Level->Set_Levelfile( levelname, 0 );
+	pActive_Level->Save();
 }
 
 void cEditor_Level :: Function_Delete( void )
 {
-	string filename = pLevel->levelfile;
-	if( !pLevel->Get_path( filename, 1 ) )
+	string filename = pActive_Level->levelfile;
+	if( !pActive_Level->Get_Path( filename, 1 ) )
 	{
 		return;
 	}
 
 	// if denied
-	if( !Box_Question( "Delete and Unload " + Get_filename( filename, 0, 0 ) + " ?" ) )
+	if( !Box_Question( _("Delete and Unload ") + Get_Filename( filename, 0, 0 ) + " ?" ) )
 	{
 		return;
 	}
 
-	pLevel->Delete();
+	pActive_Level->Delete();
 	pLevel_Editor->Disable();
 
 	Game_Action = GA_ENTER_MENU;
@@ -388,24 +413,24 @@ void cEditor_Level :: Function_Delete( void )
 void cEditor_Level :: Function_Reload( void )
 {
 	// if denied
-	if( !Box_Question( "Reload Level ?" ) )
+	if( !Box_Question( _("Reload Level ?") ) )
 	{
 		return;
 	}
 
-	pLevel->Save();
-	pLevel->Load( Get_filename( pLevel->data_file, 0 ) );
+	pActive_Level->Save();
+	pActive_Level->Load( Get_Filename( pActive_Level->data_file, 0 ) );
 }
 
 void cEditor_Level :: Function_Clear( void )
 {
 	// if denied
-	if( !Box_Question( "Clear Level ?" ) )
+	if( !Box_Question( _("Clear Level ?") ) )
 	{
 		return;
 	}
 
-	pLevel->pSprite_Manager->Delete_All();
+	pActive_Sprite_Manager->Delete_All();
 }
 
 void cEditor_Level :: Function_Settings( void )

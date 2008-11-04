@@ -1,7 +1,7 @@
 /***************************************************************************
-              static.cpp  -  static enemy
-                             -------------------
-    copyright            :	(C) 2007 Florian Richter
+ * static.cpp  -  static enemy
+ *
+ * Copyright (C) 2007 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,20 +19,22 @@
 #include "../level/level.h"
 #include "../gui/hud.h"
 #include "../video/gl_surface.h"
+#include "../core/sprite_manager.h"
+#include "../core/i18n.h"
 
 /* *** *** *** *** *** *** cStaticEnemy *** *** *** *** *** *** *** *** *** *** *** */
 
 cStaticEnemy :: cStaticEnemy( float x, float y )
 : cEnemy( x, y )
 {
-	Init();
+	cStaticEnemy::Init();
 }
 
-cStaticEnemy :: cStaticEnemy( XMLAttributes &attributes )
+cStaticEnemy :: cStaticEnemy( CEGUI::XMLAttributes &attributes )
 : cEnemy()
 {
-	Init();
-	Create_from_Stream( attributes );
+	cStaticEnemy::Init();
+	cStaticEnemy::Create_from_Stream( attributes );
 }
 
 cStaticEnemy :: ~cStaticEnemy( void )
@@ -44,25 +46,28 @@ void cStaticEnemy :: Init( void )
 {
 	type = TYPE_STATIC_ENEMY;
 	posz = 0.094f;
-	speed = -1.5f;
 
-	images.push_back( pVideo->Get_Surface( "enemy/static/saw/default.png" ) );
-
-	Set_Image( 0, 1 );
-	name = "Static Enemy";
+	Set_Rotation_Speed( 0 );
+	Set_Static_Image( "enemy/static/blocks/spike_1/2_grey.png" );
+	Create_Name();
 }
 
 cStaticEnemy *cStaticEnemy :: Copy( void )
 {
 	cStaticEnemy *static_enemy = new cStaticEnemy( startposx, startposy );
-
+	static_enemy->Set_Static_Image( img_filename );
+	static_enemy->Set_Rotation_Speed( rotation_speed );
 	return static_enemy;
 }
 
-void cStaticEnemy :: Create_from_Stream( XMLAttributes &attributes )
+void cStaticEnemy :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
+	// rotation speed
+	Set_Rotation_Speed( static_cast<float>( attributes.getValueAsFloat( "rotation_speed", -7.5f ) ) );
+	// image
+	Set_Static_Image( attributes.getValueAsString( "image", "enemy/static/saw/default.png" ).c_str() );
 }
 
 void cStaticEnemy :: Save_to_Stream( ofstream &file )
@@ -75,9 +80,40 @@ void cStaticEnemy :: Save_to_Stream( ofstream &file )
 	// position
 	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
 	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
+	// rotation speed
+	file << "\t\t<Property name=\"rotation_speed\" value=\"" << rotation_speed << "\" />" << std::endl;
+	// image
+	file << "\t\t<Property name=\"image\" value=\"" << img_filename << "\" />" << std::endl;
 
 	// end enemy
 	file << "\t</enemy>" << std::endl;
+}
+
+void cStaticEnemy :: Set_Rotation_Speed( float speed )
+{
+	rotation_speed = speed;
+}
+
+void cStaticEnemy :: Set_Static_Image( string filename )
+{
+	if( filename.empty() )
+	{
+		return;
+	}
+
+	Clear_Images();
+
+	img_filename = filename;
+
+	// remove pixmaps dir
+	if( img_filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == 0 )
+	{
+		img_filename.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
+	}
+
+	images.push_back( pVideo->Get_Surface( filename ) );
+	Set_Image( 0, 1 );
+	Create_Name();
 }
 
 void cStaticEnemy :: DownGrade( bool force /* = 0 */ )
@@ -87,9 +123,10 @@ void cStaticEnemy :: DownGrade( bool force /* = 0 */ )
 	counter = 0;
 	velx = 0;
 	vely = 0;
+	Set_Scale_Directions( 1, 1, 1, 1 );
 
 	// falling death
-	Set_RotationZ( 180 );
+	Set_Rotation_Z( 180 );
 }
 
 void cStaticEnemy :: DieStep( void )
@@ -104,12 +141,11 @@ void cStaticEnemy :: DieStep( void )
 		Move( 0, -5 );
 	}
 	// if not below the screen fall
-	else if( posy < GAME_RES_H + col_rect.h )
+	else if( posy < game_res_h + col_rect.h )
 	{
 		Move( 0, 20 );
 
 		Add_Scale( -pFramerate->speedfactor * 0.01f );
-		Move( ( image->w / 2 ) * pFramerate->speedfactor * 0.01f, ( image->h ) * pFramerate->speedfactor * 0.01f, 1 );
 	}
 	// if below disable
 	else
@@ -129,11 +165,14 @@ void cStaticEnemy :: Update( void )
 		return;
 	}
 
-	// update rotation
-	Add_RotationZ( speed / ( image->w * 0.01f ) );
+	if( rotation_speed )
+	{
+		// update rotation
+		Add_Rotation_Z( rotation_speed * pFramerate->speedfactor );
+	}
 }
 
-bool cStaticEnemy :: is_Update_valid( void )
+bool cStaticEnemy :: Is_Update_Valid( void )
 {
 	if( dead || freeze_counter )
 	{
@@ -184,7 +223,7 @@ void cStaticEnemy :: Handle_Collision_Enemy( cObjectCollision *collision )
 		return;
 	}
 
-	cEnemy *enemy = static_cast<cEnemy *>(pLevel->pSprite_Manager->Get_Pointer( collision->number ));
+	cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
 
 	// already dead
 	if( enemy->dead )
@@ -193,7 +232,59 @@ void cStaticEnemy :: Handle_Collision_Enemy( cObjectCollision *collision )
 	}
 
 	// kill enemy
-	pAudio->PlaySound( enemy->kill_sound );
+	pAudio->Play_Sound( enemy->kill_sound );
 	pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", static_cast<Uint8>(255), 1 );
 	enemy->DownGrade( 1 );
+}
+
+void cStaticEnemy :: Editor_Activate( void )
+{
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+
+	// image
+	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_static_enemy_image" ));
+	Editor_Add( UTF8_("Image"), UTF8_("Image filename"), editbox, 200 );
+
+	editbox->setText( img_filename.c_str() );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cStaticEnemy::Editor_Image_Key, this ) );
+
+	// speed
+	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_static_enemy_rotation_speed" ));
+	Editor_Add( UTF8_("Rotation Speed"), UTF8_("Rotation Speed"), editbox, 120 );
+
+	editbox->setText( float_to_string( rotation_speed ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cStaticEnemy::Editor_Rotation_Speed_Key, this ) );
+
+	// init
+	Editor_Init();
+}
+
+bool cStaticEnemy :: Editor_Image_Key( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+
+	Set_Static_Image( str_text );
+
+	return 1;
+}
+
+bool cStaticEnemy :: Editor_Rotation_Speed_Key( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+
+	Set_Rotation_Speed( string_to_float( str_text ) );
+
+	return 1;
+}
+
+void cStaticEnemy :: Create_Name( void )
+{
+	name = "Static Enemy";
+
+	if( start_image && !start_image->name.empty() )
+	{
+		name += " " + start_image->name;
+	}
 }

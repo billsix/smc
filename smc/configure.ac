@@ -1,62 +1,82 @@
 AC_PREREQ(2.57)
-AC_INIT(smc, 1.4)
+AC_INIT(smc, 1.6)
 AC_CANONICAL_TARGET
 AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE(foreign)
 
-# Check for programs
+### Check for programs ###
+
 AC_PROG_CXX
 AC_LANG(C++)
 
-# Check for Boost Filesystem
+### Check for libraries ###
+
+# Check for the Boost Filesystem library
 AC_CHECK_LIB(boost_filesystem, main, ,
 	AC_MSG_ERROR([Unable to find Boost Filesystem library]))
 
-# Check for OpenGL, GLU
-AC_CHECK_LIB(GL, main, , has_gl=no)
-AC_CHECK_LIB(GLU, main, , has_glu=no)
-if test "x$has_gl" = "xno" -o "x$has_glu" = "xno"; then
-	AC_MSG_ERROR(Unable to find the OpenGL library)
-fi
+# Check for the OpenGL and GLU library
+case "${host}" in
+*darwin*|*macosx*)
+  # Mac OS X
+  LIBS="$LIBS -framework OpenGL -framework Carbon -lintl -lboost_system"
+  ;;
+*)
+  # Other Unix (Linux)
+  AC_CHECK_LIB(GL, main, , has_gl=no)
+  AC_CHECK_LIB(GLU, main, , has_glu=no)
+  if test "x$has_gl" = "xno" -o "x$has_glu" = "xno"; then
+	  AC_MSG_ERROR(Unable to find the OpenGL library)
+  fi
+  ;;
+esac
 
-# Check for SDL
+# Check for the SDL library
 SDL_VERSION=1.2.10
 AM_PATH_SDL($SDL_VERSION, ,
-	AC_MSG_ERROR([Unable to find SDL $SDL_VERSION]))
+	AC_MSG_ERROR([SDL library not found. Version $SDL_VERSION or later is needed]))
 CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
 LIBS="$LIBS $SDL_LIBS"
 
-# Check for SDL_image library
+# Check for the libpng library
+AC_CHECK_LIB(png, png_init_io, ,
+	AC_MSG_ERROR([libpng library not found]))
+
+# Check for the SDL_image library
 AC_CHECK_LIB(SDL_image, IMG_LoadPNG_RW, ,
-	AC_MSG_ERROR([Unable to find the SDL_image library with PNG support]))
+	AC_MSG_ERROR([SDL_image library with PNG support not found]))
 
-# Check for SDL_mixer library
+# Check for the SDL_mixer library
 AC_CHECK_LIB(SDL_mixer, Mix_OpenAudio, ,
-	AC_MSG_ERROR([Unable to find the SDL_mixer library]))
+	AC_MSG_ERROR([SDL_mixer library not found]))
 
-# Check for SDL_ttf library
+# Check for the SDL_ttf library
 AC_CHECK_LIB(SDL_ttf, TTF_Init, ,
-	AC_MSG_ERROR([Unable to find the SDL_ttf library]))
+	AC_MSG_ERROR([SDL_ttf library not found]))
 
-# Check for CEGUI
+# Check for the CEGUI library
 PKG_CHECK_MODULES(CEGUI, CEGUI-OPENGL >= 0.5.0)
 CPPFLAGS="$CPPFLAGS $CEGUI_CFLAGS"
 LIBS="$LIBS $CEGUI_LIBS"
 
-# Set paths
-test "x${prefix}" = "xNONE" && prefix=${ac_default_prefix}
-test "x${exec_prefix}" = "xNONE" && exec_prefix=${prefix}
-test "x${datadir}" = 'x${datarootdir}' && datadir=${prefix}/share
-packagedatadir=${datadir}/${PACKAGE}
+# Check for the gettext library
+AM_GNU_GETTEXT([external])
 
-AC_DEFINE_UNQUOTED(DATA_DIR, "${packagedatadir}", [data directory])
+### Check for header files ###
+
+AC_CHECK_HEADERS(SDL.h, ,
+		AC_MSG_ERROR([SDL include files not found. The SDL development package is needed.]))
+
+AC_CHECK_HEADERS(SDL_image.h, ,
+		AC_MSG_ERROR([SDL_image include files not found. The SDL_image development package is needed.]))
+
+AC_CHECK_HEADERS(SDL_mixer.h, ,
+		AC_MSG_ERROR([SDL_mixer include files not found. The SDL_mixer development package is needed.]))
+
+AC_CHECK_HEADERS(SDL_ttf.h, ,
+		AC_MSG_ERROR([SDL_ttf include files not found. The SDL_ttf development package is needed.]))
+
+### Create files ###
 
 AC_CONFIG_FILES([Makefile src/Makefile data/Makefile])
 AC_OUTPUT
-
-echo
-echo "Install paths:"
-echo "  prefix:  `eval echo ${prefix}`"
-echo "  bindir:  `eval echo ${bindir}`"
-echo "  datadir: `eval echo ${datadir}`"
-echo

@@ -1,7 +1,7 @@
 /***************************************************************************
-           enemystopper.cpp  -  enemystopper class
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * enemystopper.cpp  -  enemystopper class
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -17,20 +17,21 @@
 #include "../level/level_editor.h"
 #include "../core/game_core.h"
 #include "../core/camera.h"
+#include "../core/i18n.h"
 
 /* *** *** *** *** *** cEnemyStopper *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cEnemyStopper :: cEnemyStopper( float x, float y )
 : cImageObjectSprite( x, y )
 {
-	Init();
+	cEnemyStopper::Init();
 }
 
-cEnemyStopper :: cEnemyStopper( XMLAttributes &attributes )
+cEnemyStopper :: cEnemyStopper( CEGUI::XMLAttributes &attributes )
 : cImageObjectSprite()
 {
-	Init();
-	Create_from_Stream( attributes );
+	cEnemyStopper::Init();
+	cEnemyStopper::Create_from_Stream( attributes );
 }
 
 cEnemyStopper :: ~cEnemyStopper( void )
@@ -48,11 +49,11 @@ cEnemyStopper *cEnemyStopper :: Copy( void )
 void cEnemyStopper :: Init( void )
 {
 	sprite_array = ARRAY_ACTIVE;
-	type = TYPE_ENEMYSTOPPER;
+	type = TYPE_ENEMY_STOPPER;
 	massivetype = MASS_PASSIVE;
 	editor_posz = 0.11f;
 
-	name = "Enemystopper";
+	name = _("Enemystopper");
 
 	rect.w = 15;
 	rect.h = 15;
@@ -64,7 +65,7 @@ void cEnemyStopper :: Init( void )
 	editor_color = Color( static_cast<Uint8>(0), 0, 255, 128 );
 }
 
-void cEnemyStopper :: Create_from_Stream( XMLAttributes &attributes )
+void cEnemyStopper :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 {
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 }
@@ -89,28 +90,19 @@ void cEnemyStopper :: Draw( cSurfaceRequest *request /* = NULL */ )
 		return;
 	}
 
-	if( !editor_level_enabled )
-	{
-		return;
-	}
-
-	pVideo->Draw_Rect( col_rect.x - pCamera->x, col_rect.y - pCamera->y, col_rect.w, col_rect.h, editor_posz, &editor_color );
+	pVideo->Draw_Rect( col_rect.x - pActive_Camera->x, col_rect.y - pActive_Camera->y, col_rect.w, col_rect.h, editor_posz, &editor_color );
 }
 
-bool cEnemyStopper :: is_Draw_valid( void )
+bool cEnemyStopper :: Is_Draw_Valid( void )
 {
 	// if editor not enabled
 	if( !editor_enabled )
 	{
-		// not visible
-		if( !visible || !image )
-		{
-			return 0;
-		}
+		return 0;
 	}
 
-	// not visible on the screen
-	if( !is_Visible_onScreen() )
+	// if not visible on the screen
+	if( !visible || !Is_Visible_on_Screen() )
 	{
 		return 0;
 	}

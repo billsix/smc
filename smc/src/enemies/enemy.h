@@ -1,7 +1,7 @@
 /***************************************************************************
-                enemy.h  -  headers for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * enemy.h  -  headers for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __ENEMY_H__
-#define __ENEMY_H__
+#ifndef SMC_ENEMY_H
+#define SMC_ENEMY_H
 
 #include "../objects/objectsprite.h"
 #include "../core/framerate.h"
@@ -46,12 +46,12 @@ public:
 	virtual void Update_Gravity( void );
 	
 	// Generates the default Hit Animation Particles
-	void Generate_Hit_Animation( cParticleAnimation *anim = NULL );
+	void Generate_Hit_Animation( cParticle_Emitter *anim = NULL );
 
 	// default collision handler
 	virtual void Handle_Collision( cObjectCollision *collision );
 	// handle moved out of Level
-	virtual void Handle_OutofLevel( ObjectDirection dir );
+	virtual void Handle_out_of_Level( ObjectDirection dir );
 
 	// if dead
 	bool dead;
@@ -66,7 +66,7 @@ public:
 	// points if enemy got killed
 	unsigned int kill_points;
 
-    // is fire able to kill enemy
+    // is fire able to kill this enemy
     bool fire_resistant;
 };
 

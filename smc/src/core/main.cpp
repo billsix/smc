@@ -1,7 +1,7 @@
 /***************************************************************************
-           main.cpp  -  main routines and initialization
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
+ * main.cpp  -  main routines and initialization
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -25,11 +25,12 @@
 #include "../user/preferences.h"
 #include "../video/img_manager.h"
 #include "../audio/sound_manager.h"
+#include "../audio/audio.h"
 #include "../core/obj_manager.h"
 #include "../level/level_editor.h"
 #include "../overworld/world_editor.h"
 #include "../input/joystick.h"
-#include "../overworld/worlds.h"
+#include "../overworld/world_manager.h"
 #include "../overworld/overworld.h"
 #include "../player/player.h"
 #include "../input/mouse.h"
@@ -39,148 +40,297 @@
 #include "../video/img_settings.h"
 #include "../objects/levelexit.h"
 #include "../level/level_settings.h"
+#include "../core/sprite_manager.h"
+#include "../core/i18n.h"
+#ifdef __APPLE__
+// needed for datapath detection
+#include <CoreFoundation/CoreFoundation.h>
+#include <unistd.h>
+#endif
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 int main( int argc, char **argv )
 {
-	if( argc >= 2 )
+#ifdef __APPLE__
+	// dynamic datapath detection for OS X
+	// change CWD to point inside bundle so it finds its data (if necessary)
+	char path[1024];
+	CFBundleRef mainBundle = CFBundleGetMainBundle();
+	assert(mainBundle);
+	CFURLRef mainBundleURL = CFBundleCopyBundleURL(mainBundle);
+	assert(mainBundleURL);
+	CFStringRef cfStringRef = CFURLCopyFileSystemPath( mainBundleURL, kCFURLPOSIXPathStyle);
+	assert(cfStringRef);
+	CFStringGetCString(cfStringRef, path, 1024, kCFStringEncodingASCII);
+	CFRelease(mainBundleURL);
+	CFRelease(cfStringRef);
+
+	std::string contents = std::string(path) + std::string("/Contents");
+	std::string datapath;
+
+	if( contents.find(".app") != std::string::npos )
 	{
-		if( strcmp( argv[1], "--help" ) == 0 || strcmp( argv[1], "-h" ) == 0 )
+		// executable is inside an app bundle, use app bundle-relative paths
+		datapath = contents + std::string("/Resources/data/");
+	}
+	else if( contents.find("/bin") != std::string::npos )
+	{
+		// executable is installed Unix-way
+		datapath = contents.substr( 0, contents.find("/bin") ) + "/share/smc";
+	}
+	else
+	{
+		std::cerr << "Warning: Could not determine installation type\n";
+	}
+
+	if( !datapath.empty() )
+	{
+		std::cout << "setting CWD to " << datapath.c_str() << std::endl;
+		if( chdir( datapath.c_str() ) != 0 )
 		{
-			printf( "%s V.%s\n\n", CAPTION, VERSION );
-			printf( "Usage: %s [OPTIONS] [LEVELFILE]\n", argv[0] );
-			printf( "Where LEVELFILE is the name of the level to play or OPTIONS is one of the following.\n" );
-			printf( "-h, --help\tDisplay this message\n" );
-			printf( "-v, --version\tShow the version of this binary\n" );
-			return 0;
-		}
-		else if( strcmp( argv[1], "--version" ) == 0 || strcmp( argv[1], "-v" ) == 0 )
-		{
-			printf( "%s %s\n", CAPTION, VERSION );
-			return 0;
-		}
-		else
-		{
-			printf( "Unknown argument %s\n", argv[1] );
+			std::cerr << "Warning: Failed changing CWD\n";
 		}
 	}
 
-	// initialize everything
-	InitGame();
+#endif
+	// convert arguments to a vector string
+	vector<string> arguments( argv, argv + argc );
+
+	if( argc >= 2 )
+	{
+		for( unsigned int i = 1; i < arguments.size(); i++ )
+		{
+			// help
+			if( arguments[i] == "--help" || arguments[i] == "-h" )
+			{
+				printf( "Usage: %s [OPTIONS]\n", arguments[0].c_str() );
+				printf( "Where OPTIONS is one of the following:\n" );
+				printf( "-h, --help\tDisplay this message\n" );
+				printf( "-v, --version\tShow the version of %s\n", CAPTION );
+				printf( "-d, --debug\tEnable debug modes with the options : game performance\n" );
+				printf( "-l, --level\tLoad the given level\n" );
+				printf( "-w, --world\tLoad the given world\n" );
+				return EXIT_SUCCESS;
+			}
+			// version
+			else if( arguments[i] == "--version" || arguments[i] == "-v" )
+			{
+				printf( "%s %s\n", CAPTION, string_trim_from_end( float_to_string( smc_version, 6 ), '0' ).c_str() );
+				return EXIT_SUCCESS;
+			}
+			// debug
+			else if( arguments[i] == "--debug" || arguments[i] == "-d" )
+			{
+				// no value
+				if( i + 1 >= arguments.size() )
+				{
+					printf( "%s requires a value\n", arguments[i].c_str() );
+					return EXIT_FAILURE;
+				}
+				// with value
+				else
+				{
+					for( unsigned int option = i + i; i < arguments.size(); i++ )
+					{
+						string option_str = arguments[option];
+
+						if( option_str == "game" )
+						{
+							game_debug = 1;
+						}
+						else if( option_str == "performance" )
+						{
+							game_debug_performance = 1;
+						}
+						else
+						{
+							printf( "Unknown debug option %s\n", option_str.c_str() );
+							return EXIT_FAILURE;
+						}
+					}
+				}
+			}
+			// level loading is handled later
+			else if( arguments[i] == "--level" || arguments[i] == "-l" )
+			{
+				// skip
+			}
+			// world loading is handled later
+			else if( arguments[1] == "--world" || arguments[1] == "-w" )
+			{
+				// skip
+			}
+			// unknown argument
+			else if( arguments[i].substr( 0, 1 ) == "-" )
+			{
+				printf( "Unknown argument %s\nUse -h to list all possible arguments\n", arguments[i].c_str() );
+				return EXIT_FAILURE;
+			}
+		}
+	}
+
+	try
+	{
+		// initialize everything
+		Init_Game();
+	}
+	catch( const std::exception &e )
+	{
+		printf( "Initialization: Exception raised: %s\n", e.what() );
+		return EXIT_FAILURE;
+	}
 
 	// command line level loading
-	if( argc == 2 && strlen( argv[1] ) )
+	if( argc > 2 && ( arguments[1] == "--level" || arguments[1] == "-l" ) && !arguments[2].empty() )
 	{
 		// set start menu active
 		pMenuCore->Load( MENU_START );
 		// enter level
 		Game_Action = GA_ENTER_LEVEL;
-		Game_Action_Data.add( "level", argv[1] );
+		Game_Action_Data.add( "level", arguments[2] );
+	}
+	// command line world loading
+	else if( argc > 2 && ( arguments[1] == "--world" || arguments[1] == "-w" ) && !arguments[2].empty() )
+	{
+		// set start menu active
+		pMenuCore->Load( MENU_START );
+		// enter level
+		Game_Action = GA_ENTER_WORLD;
+		Game_Action_Data.add( "world", arguments[2] );
 	}
 	// enter main menu
 	else
 	{
-		Draw_Effect_out( EFFECT_OUT_BLACK, 1.5f );
+		Draw_Effect_Out( EFFECT_OUT_BLACK, 1.5f );
 		pMenuCore->Load();
-		Draw_Effect_in( EFFECT_IN_BLACK, 1.5f );
+		Draw_Effect_In( EFFECT_IN_BLACK, 1.5f );
 	}
 
-	// Game Loop
-	while( !done )
+	// game loop
+	while( !game_exit )
 	{
 		// update
 		Update_Game();
 		// draw
 		Draw_Game();
+
+		// performance measuring
+		pFramerate->perf_last_ticks = SDL_GetTicks();
+
 		// render
 		pVideo->Render();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_RENDERING]->Update();
 
 		// update speedfactor
 		pFramerate->Update();
 	}
 
 	// exit
-	ExitGame();
+	Exit_Game();
 	// no errors
-	return 0;
+	return EXIT_SUCCESS;
 }
 
-void InitGame( void )
+void Init_Game( void )
 {
+	// init random number generator
 	srand( static_cast<unsigned int>(time( NULL )) );
 
-	// Init Stage 1
-	pCamera = new cCamera();
+
+	// Init Stage 1 - core classes
 	pVideo = new cVideo();
-	pFont = new cFont();
+	pFont = new cFont_Manager();
 	pFramerate = new cFramerate();
 	pRenderer = new cRenderQueue( 200 );
 	pRenderer_GUI = new cRenderQueue( 5 );
 	pPreferences = new cPreferences();
-	pImageManager = new cImageManager();
-	pSoundManager = new cSoundManager();
+	pImage_Manager = new cImage_Manager();
+	pSound_Manager = new cSound_Manager();
 	pSettingsParser = new cImage_settings();
 
-	/* We need to initialise SDL and set the videomode before initializing
-	   CEGUI, because CEGUI creates and uses an OpenGL-renderer and OpenGL
-	   calls may only be made with a valid OpenGL-context, which we get by
-	   setting the videomode. This means that we cannot use pPreferences
-	   in Init_SDL and Init_Video to determine the videomode settings,
-	   because pPreferences needs the XMLParser from CEGUI. Thus we use
-	   a set of default video-settings in Init_Video and later apply the
-	   user preferences to the video-settings in pPreferences->Apply().
+	// Init Stage 2 - set preferences and init audio and video screen
+	pAudio = new cAudio();
+	/* Set default user directory
+	 * can get overridden later from the preferences
 	*/
+	user_data_dir = Get_User_Directory();
+	/* Initialize the fake CEGUI renderer and system for the pPreferences XMLParser,
+	 * because CEGUI creates the system normally with the OpenGL-Renderer and OpenGL calls may 
+	 * only be made with a valid OpenGL-context, which we would get only by setting 
+	 * the videomode first. That would mean we need to init the videomode twice.
+	*/
+	pVideo->Init_CEGUI_Fake();
+	// load user data
+	pPreferences->Load();
+	// set game language
+	I18N_Set_Language( pPreferences->language );
+	// init translation support
+	I18N_Init();
+	// delete CEGUI System fake
+	pVideo->Delete_CEGUI_Fake();
+
+	// init user dir directory
+	Init_User_Directory();
+	// video init
 	pVideo->Init_SDL();
 	pVideo->Init_Video();
 	pVideo->Init_CEGUI();
-
-	// Init Stage 2
-	pPreferences->Load();
-
-	pLevel_manager = new cLevel_manager();
-	pAudio = new cAudio();
-
-	pPreferences->Apply();
-	pVideo->Init_CEGUI_data();
-	pVideo->Init_BasicColors();
+	pVideo->Init_CEGUI_Data();
 	pFont->Init();
-	pVideo->Init_Image_Cache();
-	// draw generic loading screen
-	Draw_Loading_Screen();
+	// audio init
+	pAudio->Init();
 
-	// Init Stage 3
 	pPlayer = new cPlayer();
+	// set the first active player available
+	pActive_Player = pPlayer;
+	pLevel_Manager = new cLevel_Manager();
+	// set the first active sprite manager available
+	pActive_Sprite_Manager = pActive_Level->pSprite_Manager;
+	// set the first camera available
+	pActive_Camera = pLevel_Manager->camera;
+
+	// apply preferences
+	pPreferences->Apply();
+
+	// draw generic loading screen
+	Loading_Screen_Init();
+	// initialize image cache
+	pVideo->Init_Image_Cache( 0, 1 );
+
+	// Init Stage 3 - game classes
+	pPlayer->Init();
 	pLevel_Editor = new cEditor_Level();
 	pWorld_Editor = new cEditor_World();
 	pMouseCursor = new cMouseCursor();
 	pKeyboard = new cKeyboard();
 	pJoystick = new cJoystick();
-	pLevel_manager->Init();
+	pLevel_Manager->Init();
 	pOverworld_Player = new cOverworld_Player();
-	pOverworld_manager = new cOverworld_manager();
+	pOverworld_Manager = new cOverworld_Manager();
 	
-	pHudManager = new cHudManager();
-	pAnimationManager = new cAnimationManager();
+	pHud_Manager = new cHud_Manager();
+	pAnimation_Manager = new cAnimation_Manager();
 	pMenuCore = new cMenuCore();
 
 	pSavegame = new cSavegame();
 
-	// only precache in release builds
-#ifndef _DEBUG
-	Preload_images();
-	Preload_sounds();
-#endif
+	// cache
+	Preload_Images( 1 );
+	Preload_Sounds( 1 );
+	Loading_Screen_Exit();
 }
 
-void ExitGame( void )
+void Exit_Game( void )
 {
 	if( pPreferences )
 	{
 		pPreferences->Save();
 	}
 
-	pLevel_manager->Unload();
+	pLevel_Manager->Unload();
 
 	if( pAudio )
 	{
@@ -194,22 +344,22 @@ void ExitGame( void )
 		pPlayer = NULL;
 	}
 
-	if( pHudManager )
+	if( pHud_Manager )
 	{
-		delete pHudManager;
-		pHudManager = NULL;
+		delete pHud_Manager;
+		pHud_Manager = NULL;
 	}
 
-	if( pSoundManager )
+	if( pSound_Manager )
 	{
-		delete pSoundManager;
-		pSoundManager = NULL;
+		delete pSound_Manager;
+		pSound_Manager = NULL;
 	}
 
-	if( pAnimationManager )
+	if( pAnimation_Manager )
 	{
-		delete pAnimationManager;
-		pAnimationManager = NULL;
+		delete pAnimation_Manager;
+		pAnimation_Manager = NULL;
 	}
 
 	if( pLevel_Editor )
@@ -254,10 +404,10 @@ void ExitGame( void )
 		pKeyboard = NULL;
 	}
 
-	if( pOverworld_manager )
+	if( pOverworld_Manager )
 	{
-		delete pOverworld_manager;
-		pOverworld_manager = NULL;
+		delete pOverworld_Manager;
+		pOverworld_Manager = NULL;
 	}
 
 	if( pOverworld_Player )
@@ -266,10 +416,10 @@ void ExitGame( void )
 		pOverworld_Player = NULL;
 	}
 
-	if( pLevel_manager )
+	if( pLevel_Manager )
 	{
-		delete pLevel_manager;
-		pLevel_manager = NULL;
+		delete pLevel_Manager;
+		pLevel_Manager = NULL;
 	}
 
 	if( pMenuCore )
@@ -308,16 +458,10 @@ void ExitGame( void )
 		pVideo = NULL;
 	}
 
-	if( pCamera )
+	if( pImage_Manager )
 	{
-		delete pCamera;
-		pCamera = NULL;
-	}
-
-	if( pImageManager )
-	{
-		delete pImageManager;
-		pImageManager = NULL;
+		delete pImage_Manager;
+		pImage_Manager = NULL;
 	}
 
 	if( pSettingsParser )
@@ -346,12 +490,11 @@ bool Handle_Input_Global( SDL_Event *ev )
 	{
 		case SDL_QUIT:
 		{
-			done = 1;
-			ClearInputEvents();
+			game_exit = 1;
+			Clear_Input_Events();
 
 			// handle on all handlers ?
 			return 0;
-			break;
 		}
 		case SDL_VIDEORESIZE:
 		{
@@ -393,6 +536,28 @@ bool Handle_Input_Global( SDL_Event *ev )
 		case SDL_JOYAXISMOTION:
 		{
 			pJoystick->Handle_Motion( ev );
+			break;
+		}
+		case SDL_ACTIVEEVENT:
+		{
+			// lost visibility
+			if( ev->active.gain == 0 )
+			{
+				bool music_paused = 0;
+				// pause music
+				if( pAudio->Is_Music_Playing() )
+				{
+					pAudio->Pause_Music();
+					music_paused = 1;
+				}
+				SDL_WaitEvent( NULL );
+				// resume if music got paused
+				if( music_paused )
+				{
+					pAudio->Resume_Music();
+				}
+				return 1;
+			}
 			break;
 		}
 		default: // other events
@@ -442,14 +607,14 @@ bool Handle_Input_Global( SDL_Event *ev )
 
 void Update_Game( void )
 {
-	// don't update if exiting
-	if( done )
+	// do not update if exiting
+	if( game_exit )
 	{
 		return;
 	}
 
 	// ## game events
-	// if in level mode
+	// level mode
 	if( Game_Mode == MODE_LEVEL )
 	{
 		// if Game Action set
@@ -457,11 +622,11 @@ void Update_Game( void )
 		{
 			// get current data
 			GameAction Current_Game_Action = Game_Action;
-			XMLAttributes Current_Game_Action_Data = Game_Action_Data;
+			CEGUI::XMLAttributes Current_Game_Action_Data = Game_Action_Data;
 			void *Current_Game_Action_ptr = Game_Action_ptr;
 			// clear
 			Game_Action = GA_NONE;
-			Game_Action_Data = XMLAttributes();
+			Game_Action_Data = CEGUI::XMLAttributes();
 			Game_Action_ptr = NULL;
 
 			// handle player downgrade
@@ -481,49 +646,102 @@ void Update_Game( void )
 				// fade out
 				if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM )
 				{
-					Draw_Effect_out( EFFECT_OUT_BLACK, 3 );
+					Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
 				}
 				else
 				{
-					Draw_Effect_out();
+					Draw_Effect_Out();
 				}
+
+				string str_level = Current_Game_Action_Data.getValueAsString( "level" ).c_str();
 				// load new level
-				pLevel->Load( Current_Game_Action_Data.getValueAsString( "level" ).c_str() );
-				// reset player
-				pPlayer->Reset();
-				pCamera->Center();
+				if( !pActive_Level->Load( str_level ) )
+				{
+					// if failed to load exit level
+					pPlayer->Goto_Next_Level();
+					continue;
+				}
+
+				// load entry
+				string str_entry = Current_Game_Action_Data.getValueAsString( "entry" ).c_str();
+				cLevel_Entry *entry = pActive_Level->Get_Entry( str_entry );
+
+				if( !entry && !str_entry.empty() )
+				{
+					printf( "Warning : Level entry %s not found\n", str_entry.c_str() );
+				}
+
+				// change game mode
+				Change_Game_Mode( MODE_LEVEL );
+				// set camera position to the entry 
+				if( entry )
+				{
+					// set position
+					pPlayer->Set_Pos( entry->Get_Player_Pos_X(), entry->Get_Player_Pos_Y() );
+					// center camera position
+					pActive_Camera->Center();
+					// set invisible for warp animation
+					pPlayer->Set_Visible( 0 );
+				}
 
 				// play new music
-				if( pLevel->valid_music )
+				if( pActive_Level->valid_music )
 				{
-					pAudio->PlayMusic( pLevel->musicfile, -1, 0, 1000 );
+					pAudio->Play_Music( pActive_Level->musicfile, -1, 0, 1000 );
 				}
 
 				// fade in
 				if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM )
 				{
-					Draw_Effect_in( EFFECT_IN_BLACK, 3 );
+					Draw_Effect_In( EFFECT_IN_BLACK, 3 );
 				}
 				else
 				{
-					Draw_Effect_in();
+					Draw_Effect_In();
+				}
+
+				// activate entry
+				if( entry )
+				{
+					pPlayer->Goto_Sub_Level( str_level, str_entry, 0 );
 				}
 			}
 			// Enter World
 			else if( Current_Game_Action == GA_ENTER_WORLD )
 			{
 				// Random fade out effect
-				Draw_Effect_out();
+				Draw_Effect_Out();
 				// delay unload level
-				pLevel->Unload( 1 );
+				pActive_Level->Unload( 1 );
+				// set active world
+				if( Current_Game_Action_Data.exists( "world" ) )
+				{
+					pOverworld_Manager->Set_Active( Current_Game_Action_Data.getValueAsString( "world" ).c_str() );
+				}
+				// set player waypoint
+				if( Current_Game_Action_Data.exists( "player_waypoint" ) )
+				{
+					// get world waypoint
+					int waypoint_num = pActive_Overworld->Get_Waypoint_Num( Current_Game_Action_Data.getValueAsString( "player_waypoint" ).c_str() );
+
+					// waypoint available
+					if( waypoint_num >= 0 )
+					{
+						// set all levels accessible until the world link
+						pActive_Overworld->Set_Progress( waypoint_num, 0 );
+						pOverworld_Player->Set_Waypoint( waypoint_num );
+					}
+				}
 				// enter world
 				pActive_Overworld->Enter();
+				// draw fade in
+				Draw_Effect_In();
 			}
 			// Enter Menu
 			else if( Current_Game_Action == GA_ENTER_MENU )
 			{
 				// fade out
-				Draw_Effect_out( EFFECT_OUT_BLACK, 3 );
+				Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
 
 				// custom level
 				if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM )
@@ -531,14 +749,14 @@ void Update_Game( void )
 					pMenuCore->Load( MENU_START );
 
 					// Get Tab Control
-					TabControl *tabcontrol = static_cast<TabControl *>(WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
+					CEGUI::TabControl *tabcontrol = static_cast<CEGUI::TabControl *>(CEGUI::WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
 					// Select Level Tab
 					tabcontrol->setSelectedTab( "tab_level" );
 
 					// Get Levels Listbox
-					Listbox *listbox_levels = static_cast<Listbox *>(WindowManager::getSingleton().getWindow( "listbox_levels" ));
+					CEGUI::Listbox *listbox_levels = static_cast<CEGUI::Listbox *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_levels" ));
 					// Get Item
-					ListboxItem *list_item = listbox_levels->findItemWithText( Get_filename( pLevel->data_file, 0, 0 ).c_str(), NULL );
+					CEGUI::ListboxItem *list_item = listbox_levels->findItemWithText( Get_Filename( pActive_Level->data_file, 0, 0 ).c_str(), NULL );
 					// select level
 					if( list_item )
 					{
@@ -555,20 +773,21 @@ void Update_Game( void )
 				}
 				
 				// fade int
-				Draw_Effect_in( EFFECT_IN_BLACK, 3 );
+				Draw_Effect_In( EFFECT_IN_BLACK, 3 );
 			}
 			// Enter Settings
 			else if( Current_Game_Action == GA_ENTER_LEVEL_SETTINGS )
 			{
 				// fade out
-				Draw_Effect_out( EFFECT_OUT_BLACK, 3 );
+				Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
 				// enter
 				pLevel_Editor->pSettings->Enter();
 				// fade in
-				Draw_Effect_in( EFFECT_IN_BLACK, 3 );
+				Draw_Effect_In( EFFECT_IN_BLACK, 3 );
 			}
 		}
 	}
+	// world mode
 	else if( Game_Mode == MODE_OVERWORLD )
 	{
 		// if Game Action set
@@ -576,34 +795,64 @@ void Update_Game( void )
 		{
 			// get current data
 			GameAction Current_Game_Action = Game_Action;
-			XMLAttributes Current_Game_Action_Data = Game_Action_Data;
+			CEGUI::XMLAttributes Current_Game_Action_Data = Game_Action_Data;
 			void *Current_Game_Action_ptr = Game_Action_ptr;
 			// clear
 			Game_Action = GA_NONE;
-			Game_Action_Data = XMLAttributes();
+			Game_Action_Data = CEGUI::XMLAttributes();
 			Game_Action_ptr = NULL;
 
 			// Enter Level
 			if( Current_Game_Action == GA_ENTER_LEVEL )
 			{
 				// fade out
-				Draw_Effect_out( EFFECT_OUT_FIXED_COLORBOX );
-				// change game mode
-				Change_Game_Mode( MODE_LEVEL );
+				Draw_Effect_Out( EFFECT_OUT_FIXED_COLORBOX );
+				// load new level
 				if( Current_Game_Action_Data.exists( "level" ) )
 				{
-					// load new level
-					pLevel->Load( Current_Game_Action_Data.getValueAsString( "level" ).c_str() );
+					// load level
+					pActive_Level->Load( Current_Game_Action_Data.getValueAsString( "level" ).c_str() );
 					// play new music
-					if( pLevel->valid_music )
+					if( pActive_Level->valid_music )
 					{
-						pAudio->PlayMusic( pLevel->musicfile, -1, 0, 1000 );
+						pAudio->Play_Music( pActive_Level->musicfile, -1, 0, 1000 );
 					}
 				}
+				// change game mode
+				Change_Game_Mode( MODE_LEVEL );
 				// reset player
 				pPlayer->Reset();
 				// fade in
-				Draw_Effect_in();
+				Draw_Effect_In();
+			}
+			// Enter World
+			else if( Current_Game_Action == GA_ENTER_WORLD )
+			{
+				// Random fade out effect
+				Draw_Effect_Out( EFFECT_OUT_TILE_PIXELATION );
+				// set active world
+				if( Current_Game_Action_Data.exists( "world" ) )
+				{
+					pOverworld_Manager->Set_Active( Current_Game_Action_Data.getValueAsString( "world" ).c_str() );
+				}
+				// set player waypoint
+				if( Current_Game_Action_Data.exists( "player_waypoint" ) )
+				{
+					// get world waypoint
+					int waypoint_num = pActive_Overworld->Get_Waypoint_Num( Current_Game_Action_Data.getValueAsString( "player_waypoint" ).c_str() );
+
+					// waypoint available
+					if( waypoint_num >= 0 )
+					{
+						// set all levels accessible until the world link
+						pActive_Overworld->Set_Progress( waypoint_num, 0 );
+						pOverworld_Player->Set_Waypoint( waypoint_num );
+					}
+				}
+				// enter world
+				pActive_Overworld->Enter();
+				// draw fade in
+				Draw_Effect_In();
 			}
 			// Enter Menu
 			else if( Current_Game_Action == GA_ENTER_MENU )
@@ -617,6 +866,7 @@ void Update_Game( void )
 			}
 		}
 	}
+	// menu mode
 	else if( Game_Mode == MODE_MENU )
 	{
 		// if Game Action set
@@ -624,54 +874,92 @@ void Update_Game( void )
 		{
 			// get current data
 			GameAction Current_Game_Action = Game_Action;
-			XMLAttributes Current_Game_Action_Data = Game_Action_Data;
+			CEGUI::XMLAttributes Current_Game_Action_Data = Game_Action_Data;
 			void *Current_Game_Action_ptr = Game_Action_ptr;
 			// clear
 			Game_Action = GA_NONE;
-			Game_Action_Data = XMLAttributes();
+			Game_Action_Data = CEGUI::XMLAttributes();
 			Game_Action_ptr = NULL;
 
 			// Enter World
 			if( Current_Game_Action == GA_ENTER_WORLD )
 			{
+				// fade out
+				Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
+				// todo : fade only out if not same music
+				// if origin menu is start menu
+				if( pMenuCore->menu_id == MENU_START )
+				{
+					// fade music out
+					pAudio->Fadeout_Music( 1000 );
+				}
+				// unload menu
 				pMenuCore->Unload();
-				// fade music out
-				pAudio->FadeOutMusic( 1000 );
+				// set active world
+				if( Current_Game_Action_Data.exists( "world" ) )
+				{
+					pOverworld_Manager->Set_Active( Current_Game_Action_Data.getValueAsString( "world" ).c_str() );
+				}
+				// set player waypoint
+				if( Current_Game_Action_Data.exists( "player_waypoint" ) )
+				{
+					// get world waypoint
+					int waypoint_num = pActive_Overworld->Get_Waypoint_Num( Current_Game_Action_Data.getValueAsString( "player_waypoint" ).c_str() );
+
+					// waypoint available
+					if( waypoint_num >= 0 )
+					{
+						// set all levels accessible until the world link
+						pActive_Overworld->Set_Progress( waypoint_num, 0 );
+						pOverworld_Player->Set_Waypoint( waypoint_num );
+					}
+				}
 				// enter world
 				pActive_Overworld->Enter();
+				// fade in
+				Draw_Effect_In( EFFECT_IN_BLACK, 3 );
 			}
 			// Enter Level
 			if( Current_Game_Action == GA_ENTER_LEVEL )
 			{
 				// if level not loaded or entering custom level
-				if( !pLevel->is_Loaded() || Current_Game_Action_Data.exists( "level" ) )
+				if( !pActive_Level->Is_Loaded() || Current_Game_Action_Data.exists( "level" ) )
 				{
 					// fade music out
-					pAudio->FadeOutMusic( 1000 );
+					pAudio->Fadeout_Music( 1000 );
 				}
 				// fade out
-				Draw_Effect_out( EFFECT_OUT_BLACK, 3 );
+				Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
+				// check if custom level mode
+				bool custom_level_mode = 0;
+				// if origin menu is start menu
+				if( pMenuCore->menu_id == MENU_START )
+				{
+					custom_level_mode = 1;
+				}
+				// unload menu
+				pMenuCore->Unload();
 				// load custom level
 				if( Current_Game_Action_Data.exists( "level" ) )
 				{
+					if( custom_level_mode )
+					{
+						pPlayer->Reset_Save();
+					}
 					// load new level
-					pLevel->Load( Current_Game_Action_Data.getValueAsString( "level" ).c_str() );
+					pActive_Level->Load( Current_Game_Action_Data.getValueAsString( "level" ).c_str() );
 					// reset player
-					pPlayer->Reset();
+					pPlayer->Reset( custom_level_mode );
 				}
-				// remember origin menu
-				MenuID origin_menu = pMenuCore->menu_id;
-				// unload menu
-				pMenuCore->Unload();
 				// change mode
 				Change_Game_Mode( MODE_LEVEL );
 				// if custom level
-				if( origin_menu == MENU_START )
+				if( custom_level_mode )
 				{
 					Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
 				}
 				// fade in
-				Draw_Effect_in( EFFECT_IN_BLACK, 3 );
+				Draw_Effect_In( EFFECT_IN_BLACK, 3 );
 			}
 			// Enter Menu
 			else if( Current_Game_Action == GA_ENTER_MENU )
@@ -683,6 +971,7 @@ void Update_Game( void )
 			}
 		}
 	}
+	// level settings mode
 	else if( Game_Mode == MODE_LEVEL_SETTINGS )
 	{
 		// if Game Action set
@@ -690,23 +979,23 @@ void Update_Game( void )
 		{
 			// get current data
 			GameAction Current_Game_Action = Game_Action;
-			XMLAttributes Current_Game_Action_Data = Game_Action_Data;
+			CEGUI::XMLAttributes Current_Game_Action_Data = Game_Action_Data;
 			void *Current_Game_Action_ptr = Game_Action_ptr;
 			// clear
 			Game_Action = GA_NONE;
-			Game_Action_Data = XMLAttributes();
+			Game_Action_Data = CEGUI::XMLAttributes();
 			Game_Action_ptr = NULL;
 
 			// Enter Level
 			if( Current_Game_Action == GA_ENTER_LEVEL )
 			{
 				// fade out
-				Draw_Effect_out( EFFECT_OUT_BLACK, 3 );
+				Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
 				// change mode
 				pLevel_Editor->pSettings->Unload();
 				Change_Game_Mode( MODE_LEVEL );
 				// fade in
-				Draw_Effect_in( EFFECT_IN_BLACK, 3 );
+				Draw_Effect_In( EFFECT_IN_BLACK, 3 );
 			}
 		}
 	}
@@ -724,83 +1013,157 @@ void Update_Game( void )
 	pAudio->Resume_Music();
 	pAudio->Update();
 
+	// performance measuring
+	pFramerate->perf_last_ticks = SDL_GetTicks();
 
 	// ## update
 	if( Game_Mode == MODE_LEVEL )
 	{
 		// input
-		pLevel->Process_Input();
+		pActive_Level->Process_Input();
 		pLevel_Editor->Process_Input();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_UPDATE_PROCESS_INPUT]->Update();
+
 		// update
-		pLevel->Update();
+		pActive_Level->Update();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_UPDATE_LEVEL]->Update();
+
 		// editor
 		pLevel_Editor->Update();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_UPDATE_LEVEL_EDITOR]->Update();
+
 		// hud
-		pHudManager->Update();
+		pHud_Manager->Update();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_UPDATE_HUD]->Update();
+
 		// player
 		pPlayer->Update();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_UPDATE_PLAYER]->Update();
+
 		// collisions
 		if( !editor_enabled )
 		{
 			pPlayer->Collide_Move();
 			pPlayer->Handle_Collisions();
-			pLevel->pSprite_Manager->Handle_Collision_items();
+			pActive_Sprite_Manager->Handle_Collision_Items();
 		}
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_UPDATE_COLLISIONS]->Update();
+
 		// Camera ( update after new player position was set )
-		pPlayer->Update_Camera();
+		pActive_Camera->Update();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_UPDATE_CAMERA]->Update();
+
 	}
 	else if( Game_Mode == MODE_OVERWORLD )
 	{
 		pActive_Overworld->Update();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_UPDATE_OVERWORLD]->Update();
 	}
 	else if( Game_Mode == MODE_MENU )
 	{
 		pMenuCore->Update();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_UPDATE_MENU]->Update();
 	}
 	else if( Game_Mode == MODE_LEVEL_SETTINGS )
 	{
 		pLevel_Editor->pSettings->Update();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_UPDATE_LEVEL_SETTINGS]->Update();
 	}
 
 	// gui
-	Gui_handle_Time();
+	Gui_Handle_Time();
 }
 
 void Draw_Game( void )
 {
 	// don't draw if exiting
-	if( done )
+	if( game_exit )
 	{
 		return;
 	}
 
+	// performance measuring
+	pFramerate->perf_last_ticks = SDL_GetTicks();
+
 	if( Game_Mode == MODE_LEVEL )
 	{
 		// draw level layer 1
-		pLevel->Draw_Layer1();
+		pActive_Level->Draw_Layer1();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_DRAW_LEVEL_LAYER1]->Update();
+
 		// player draw
 		pPlayer->Draw();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_DRAW_LEVEL_PLAYER]->Update();
+
 		// draw level layer 2
-		pLevel->Draw_Layer2();
+		pActive_Level->Draw_Layer2();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_DRAW_LEVEL_LAYER2]->Update();
+
 		// hud
-		pHudManager->Draw();
+		pHud_Manager->Draw();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_DRAW_LEVEL_HUD]->Update();
+
 		// level editor
 		pLevel_Editor->Draw();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_DRAW_LEVEL_EDITOR]->Update();
+
 	}
 	else if( Game_Mode == MODE_OVERWORLD )
 	{
 		// world
 		pActive_Overworld->Draw();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_DRAW_OVERWORLD]->Update();
 	}
 	else if( Game_Mode == MODE_MENU )
 	{
 		pMenuCore->Draw();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_DRAW_MENU]->Update();
 	}
 	else if( Game_Mode == MODE_LEVEL_SETTINGS )
 	{
 		pLevel_Editor->pSettings->Draw();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_DRAW_LEVEL_SETTINGS]->Update();
 	}
 
 	// Mouse
 	pMouseCursor->Draw();
+
+	// update performance timer
+	pFramerate->perf_timer[PERF_DRAW_MOUSE]->Update();
 }

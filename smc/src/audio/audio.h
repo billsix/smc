@@ -1,7 +1,7 @@
 /***************************************************************************
-			audio.h  -  header for the corresponding cpp file
-                         -------------------
-    copyright            : (C) 2003 - 2007 Florian Richter
+ * audio.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,14 +13,15 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __AUDIO_H__
-#define __AUDIO_H__
+#ifndef SMC_AUDIO_H
+#define SMC_AUDIO_H
 
 #include "../core/globals.h"
+#include "../audio/sound_manager.h"
 
 /* *** *** *** *** *** *** *** Sound Resource ID's  *** *** *** *** *** *** *** *** *** *** */
 
-// ingame sounds which shouldn't be played twice at the same time
+// sounds which shouldn't be played multiple times at the same time
 enum AudioChannel
 {
 	RID_MARYO_JUMP		= 1,
@@ -40,7 +41,7 @@ enum AudioChannel
 	RID_MOON			= 7
 };
 
-/* *** *** *** *** *** *** *** Sound object *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** Audio Sound object *** *** *** *** *** *** *** *** *** *** */
 	
 // Callback for a sound finished playing 
 void Finished_Sound( int channel );
@@ -49,34 +50,33 @@ class cAudio_Sound
 {
 public:
 	cAudio_Sound( void );
-	~cAudio_Sound( void );
+	virtual ~cAudio_Sound( void );
 	
 	// Load the data
-	bool Load( string nfilename );
+	void Load( cSound *data );
 	// Free the data
 	void Free( void );
 	// Finished playing
 	void Finished( void );
 
 	/* Play the Sound
-	 * if resource id is given stops all sounds using the same resource id
+	 * use_res_id: if set stops all sounds using the same resource id.
+	 * loops : if set to -1 loops indefinitely or if greater than zero, loop the sound that many times.
 	*/
-	int Play( int use_res_id = -1 );
+	int Play( int use_res_id = -1, int loops = 0 );
 	// Stop the Sound if playing
 	void Stop( void );
 
-	// sound filename
-	string filename;
-	// sound data if loaded else null
-	Mix_Chunk *chunk;
-	// channel if playing else -1
-	int channel;
+	// sound object
+	cSound *m_data;
 
+	// channel if playing else -1
+	int m_channel;
 	// the last used resource id
-	int resource_id;
+	int m_resource_id;
 };
 
-typedef vector<cAudio_Sound *> SoundList;
+typedef vector<cAudio_Sound *> AudioSoundList;
 
 /* *** *** *** *** *** *** *** Audio class *** *** *** *** *** *** *** *** *** *** */
 
@@ -86,75 +86,93 @@ public:
 	cAudio( void );
 	~cAudio( void );
 
-	// Initializes the Audio Engine
-	bool Init( bool sound = 1, bool music = 1 );
-	// De-initializes the Audio Engine
+	// Initialize Audio Engine
+	bool Init( void );
+	// De-initializes Audio Engine
 	void Close( void );
 
-	// Sets the maximum of sounds at once playable
+	// Set the maximum number of sounds playable at once
 	void Set_Max_Sounds( unsigned int limit = 10 );
 
-	/* Checks if the sound was already loaded and returns a pointer to it else it will be loaded
+	/* Check if the sound was already loaded and returns a pointer to it else it will be loaded.
 	 * The returned sound should not be deleted or modified.
 	 */
-	cAudio_Sound *Get_Sound( string filename );
+	cSound *Get_Sound_File( string filename );
 
-	// Plays the given sound
-	bool PlaySound( string filename, int res_id = -1, int volume = -1 );
+	// Play the given sound
+	bool Play_Sound( string filename, int res_id = -1, int volume = -1, int loops = 0 );
 	// If no forcing it will be played after the current Music file
-	bool PlayMusic( string filename, int loops = 0, bool force = 1, unsigned int fadein_ms = 0 ); 
+	bool Play_Music( string filename, int loops = 0, bool force = 1, unsigned int fadein_ms = 0 ); 
 
+	/* Returns a pointer to the sound if it is active.
+	 * The returned sound should not be deleted or modified.
+	 */
+	cAudio_Sound *Get_Playing_Sound( string filename );
 
-	// Switches Music on and off
-	void ToggleMusic( void );
-	// Switches Sounds on and off
-	void ToggleSounds( void );
+	/* Returns true if a free channel for the sound is available
+	*/
+	cAudio_Sound *Create_Sound_Channel( void );
+
+	// Toggle Music on/off
+	void Toggle_Music( void );
+	// Toggle Sounds on/off
+	void Toggle_Sounds( void );
 
 	// Pause Music
-	void PauseMusic( void );
+	void Pause_Music( void );
 
 	/* Resume halted sound
 	 * if channel is -1 all halted sounds will be resumed
 	*/
 	void Resume_Sound( int channel = -1 );
-	// Resumes Music
+	// Resume Music
 	void Resume_Music( void );
 
+	/* Fade out Sound(s)
+	 * ms : the time to fade out
+	 * channel : if set only fade this channel out or if -1 all channels
+	 * overwrite_fading : overwrite an already existing fade out
+	*/
+	void Fadeout_Sounds( unsigned int ms = 200, int channel = -1, bool overwrite_fading = 0 );
+	/* Fade out Sound(s)
+	 * ms : the time to fade out
+	 * filename : fade all sounds with this filename out
+	 * overwrite_fading : overwrite an already existing fade out
+	*/
+	void Fadeout_Sounds( unsigned int ms, string filename, bool overwrite_fading = 0 );
+	/* Fade out Music
+	 * ms : the time to fade out
+	 * overwrite_fading : overwrite an already existing fade out
+	*/
+	void Fadeout_Music( unsigned int ms = 500, bool overwrite_fading = 0 );
 
-	// Fades the given Sound channels with the given time out
-	void FadeOutSounds( unsigned int ms  = 200, int channel = -1, bool overwrite_fading = 0 );
-	// Fades the Music with the given time out
-	void FadeOutMusic( unsigned int ms = 500, bool overwrite_fading = 0 );
-
-	// Sets the Music position ( if .ogg in seconds )
-	void SetMusicPosition( float position );
-
+	// Set the Music position ( if .ogg in seconds )
+	void Set_Music_Position( float position );
 
 	// Returns 1 if the Music is currently fading in and 2 if it's fading out else 0
-	Mix_Fading isMusicFading( void );
+	Mix_Fading Is_Music_Fading( void );
 	// Returns 1 if the Sound is currently fading in and 2 if it's fading out else 0
-	Mix_Fading isSoundFading( int sound_channel );
-
+	Mix_Fading Is_Sound_Fading( int sound_channel );
 
 	// Returns true if the Music is paused
-	bool isMusicPaused( void );
+	bool Is_Music_Paused( void );
 	// Returns true if the Music is playing
-	bool isMusicPlaying( void );
+	bool Is_Music_Playing( void );
 
-	// Halts the given sounds
-	void HaltSounds( int channel = -1 );
-	// halts the Music
-	void HaltMusic( void );
+	// Halt the given sounds
+	void Halt_Sounds( int channel = -1 );
+	// Halt the Music
+	void Halt_Music( void );
 
-	// Stops all sounds
-	void StopSounds( void ); 
+	// Stop all sounds
+	void Stop_Sounds( void ); 
 
-	// Sets the Sound Volume
-	void SetSoundVolume( Uint8 volume, int channel = -1 );
-	// Sets the Music Volume
-	void SetMusicVolume( Uint8 volume );
+	// Set the Sound Volume
+	void Set_Sound_Volume( Uint8 volume, int channel = -1 );
+	// Set the Music Volume
+	void Set_Music_Volume( Uint8 volume );
 
-	// Updates the Audio Engine
+	// Update the Audio Engine
 	void Update( void );
 
 	// is the audio engine initialized
@@ -175,7 +193,7 @@ public:
 	Mix_Music *music_old;
 
 	// The current sounds pointer array
-	SoundList sounds;
+	AudioSoundList sounds;
 
 	// maximum sounds allowed at once
 	unsigned int max_sounds;

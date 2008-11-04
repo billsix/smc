@@ -1,7 +1,7 @@
 /***************************************************************************
-			editor.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            : (C) 2006 - 2007 by Florian Richter
+ * editor.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __EDITOR_H__
-#define __EDITOR_H__
+#ifndef SMC_EDITOR_H
+#define SMC_EDITOR_H
 
 #include "../core/globals.h"
 #include "../objects/sprite.h"
@@ -23,7 +23,7 @@
 
 /* *** *** *** *** *** *** *** *** cEditor_Item_Object *** *** *** *** *** *** *** *** *** */
 
-class cEditor_Item_Object : public ListboxItem
+class cEditor_Item_Object : public CEGUI::ListboxItem
 {
 public:
 	cEditor_Item_Object( string text );
@@ -38,15 +38,15 @@ public:
 	\return
 		Size object describing the size of the list box item in pixels.
 	*/
-	virtual	Size getPixelSize( void ) const;
+	virtual	CEGUI::Size getPixelSize( void ) const;
 	// draw
-	void draw( const Vector3 &position, float alpha, const Rect &clipper ) const;
-	void draw( RenderCache &cache,const Rect &targetRect, float zBase, float alpha, const Rect *clipper) const;
+	void draw( const CEGUI::Vector3 &position, float alpha, const CEGUI::Rect &clipper ) const;
+	void draw( CEGUI::RenderCache &cache, const CEGUI::Rect &targetRect, float zBase, float alpha, const CEGUI::Rect *clipper) const;
 	// draw image
 	void Draw_Image( void );
 
 	// Text
-	ListboxTextItem *list_text;
+	CEGUI::ListboxTextItem *list_text;
 	// sprite
 	cSprite *sprite_obj;
 	// preview image scale
@@ -55,7 +55,7 @@ public:
 
 /* *** *** *** *** *** *** *** *** cEditor_Menu_Object *** *** *** *** *** *** *** *** *** */
 
-class cEditor_Menu_Object : public ListboxTextItem
+class cEditor_Menu_Object : public CEGUI::ListboxTextItem
 {
 public:
 	cEditor_Menu_Object( string text );
@@ -78,7 +78,7 @@ public:
 
 /* *** *** *** *** *** *** *** cEditor *** *** *** *** *** *** *** *** *** *** */
 
-class cEditor : public XMLHandler
+class cEditor : public CEGUI::XMLHandler
 {
 public:
 	cEditor( void );
@@ -121,13 +121,10 @@ public:
 	*/
 	virtual bool Mouse_Up( Uint8 button );
 
-	// Add Object to Object Manager
-	virtual void Add_Object( cSprite *object );
-
 	// ##### Main Menu
 
 	// Add Menu Entry
-	void Add_Menu_Object( string name, string tags, colour normal_color = white.Get_cegui_colour() );
+	void Add_Menu_Object( string name, string tags, CEGUI::colour normal_color = CEGUI::colour( 1, 1, 1 ) );
 	// Set Active Menu Entry
 	virtual void Activate_Menu( cEditor_Menu_Object *entry );
 
@@ -148,7 +145,7 @@ public:
 
 	// #### Editor Functions
 	// push the object into the front or back
-	void Change_DrawPosition( cSprite *obj, bool push_back );
+	void Change_Draw_Position( cSprite *obj, bool push_back );
 	/* copy the given object(s) next to itself into the given direction
 	 * if offset is given it will be used instead of the auto calculated direction size
 	 * returns the new object(s)
@@ -157,9 +154,9 @@ public:
 	cSprite *Copy_Direction( cSprite *obj, ObjectDirection dir, int offset = 0 );
 
 	// CEGUI events
-	bool Editor_Mouse_Enter( const EventArgs &event ); // Mouse entered Window
-	bool Menu_Select( const EventArgs &event ); // Menu selected item
-	bool Item_Select( const EventArgs &event ); // Item selected item
+	bool Editor_Mouse_Enter( const CEGUI::EventArgs &event ); // Mouse entered Window
+	bool Menu_Select( const CEGUI::EventArgs &event ); // Menu selected item
+	bool Item_Select( const CEGUI::EventArgs &event ); // Item selected item
 
 	// Menu functions
 	void Function_Exit( void );
@@ -195,11 +192,11 @@ public:
 	TaggedItemObjectsList tagged_item_objects;
 
 	// CEGUI window
-	Window *editor_window;
+	CEGUI::Window *editor_window;
 
 protected:
 	// Check if the given tag is available in the string
-	bool is_tag_available( string str, string tag, unsigned int search_pos = 0 );
+	bool Is_Tag_Available( string str, string tag, unsigned int search_pos = 0 );
 
 	// Draw Editor Help Box
     void Draw_Editor_Help( void );
@@ -215,15 +212,15 @@ protected:
 	HudSpriteList help_sprites;
 private:
 	// XML element start
-    virtual void elementStart( const String &element, const XMLAttributes &attributes );
+    virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
 	// XML element end
-    virtual void elementEnd( const String &element );
+    virtual void elementEnd( const CEGUI::String &element );
 
-	void Handle_Item( const XMLAttributes &attributes );
-	void Handle_Menu( const XMLAttributes &attributes );
+	void Handle_Item( const CEGUI::XMLAttributes &attributes );
+	void Handle_Menu( const CEGUI::XMLAttributes &attributes );
 
 	// XML element Item Tag list
-	XMLAttributes xml_attributes;
+	CEGUI::XMLAttributes xml_attributes;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

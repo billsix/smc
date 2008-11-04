@@ -1,7 +1,7 @@
 /***************************************************************************
-			sound_manager.cpp  -  Sound Handler/Manager
-                              -------------------
-    copyright            :	(C) 2006 - 2007 by Florian Richter
+ * sound_manager.cpp  -  Sound Handler/Manager
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -15,45 +15,86 @@
 
 #include "../audio/sound_manager.h"
 
-/* *** *** *** *** *** *** cSoundManager *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** *** Sound *** *** *** *** *** *** *** *** *** */
 
-cSoundManager :: cSoundManager( void )
-: cObject_Manager<cAudio_Sound>()
+cSound :: cSound( void )
+{
+	m_chunk = NULL;
+}
+
+cSound :: ~cSound( void )
+{
+	Free();
+}
+
+bool cSound :: Load( string filename )
+{
+	Free();
+	
+	m_chunk = Mix_LoadWAV( filename.c_str() );
+
+	if( m_chunk )
+	{
+		m_filename = filename;
+		return 1;
+	}
+	
+	return 0;
+}
+
+void cSound :: Free( void )
+{
+	if( m_chunk )
+	{
+		Mix_FreeChunk( m_chunk );
+		m_chunk = NULL;
+	}
+	
+	m_filename.clear();
+}
+
+
+/* *** *** *** *** *** *** cSound_Manager *** *** *** *** *** *** *** *** *** *** *** */
+
+cSound_Manager :: cSound_Manager( void )
+: cObject_Manager<cSound>()
 {
 	load_count = 0;
 }
 
-cSoundManager :: ~cSoundManager( void )
+cSound_Manager :: ~cSound_Manager( void )
 {
 	Delete_All();
 }
 
-cAudio_Sound *cSoundManager :: Get_Pointer( string path )
+cSound *cSound_Manager :: Get_Pointer( string path )
 {
 	for( SoundList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
-		cAudio_Sound *obj = (*itr);
+		cSound *obj = (*itr);
 
-		if( obj->filename.compare( path ) == 0 )
+		if( obj->m_filename.compare( path ) == 0 )
 		{
-			return obj;	// return first found
+			// return first found
+			return obj;
 		}
 	}
 
-	return NULL; // not found
+	// not found
+	return NULL;
 }
 
-void cSoundManager :: Add( cAudio_Sound *sound )
+void cSound_Manager :: Add( cSound *sound )
 {
 	load_count++;
-	cObject_Manager<cAudio_Sound>::Add( sound );
+	cObject_Manager<cSound>::Add( sound );
 }
 
-void cSoundManager :: Delete_Sounds( void )
+void cSound_Manager :: Delete_Sounds( void )
 {
 	for( SoundList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
-		cAudio_Sound *obj = (*itr);
+		cSound *obj = (*itr);
 
 		delete obj;
 		obj = NULL;
@@ -62,4 +103,4 @@ void cSoundManager :: Delete_Sounds( void )
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cSoundManager *pSoundManager = NULL;
+cSound_Manager *pSound_Manager = NULL;

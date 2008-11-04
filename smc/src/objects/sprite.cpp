@@ -1,7 +1,7 @@
 /***************************************************************************
-           sprite.cpp  -  sprite class
-                             -------------------
-    copyright            :	(C) 2003 - 2007 Florian Richter
+ * sprite.cpp  -  basic sprite class
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -23,6 +23,23 @@
 #include "../gui/hud.h"
 #include "../video/gl_surface.h"
 #include "../video/renderer.h"
+#include "../core/sprite_manager.h"
+
+cEditor_Object_Settings_Item :: cEditor_Object_Settings_Item( void )
+{
+	window_name = NULL;
+	window_setting = NULL;
+	advance_row = 1;
+}
+
+cEditor_Object_Settings_Item :: ~cEditor_Object_Settings_Item( void )
+{
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+
+	wmgr.destroyWindow( window_name );
+	wmgr.destroyWindow( window_setting );
+}
+
 
 /* *** *** *** *** *** *** *** *** cCollidingSprite *** *** *** *** *** *** *** *** *** */
 
@@ -81,7 +98,7 @@ bool cCollidingSprite :: Collision_Add( cSprite *base, cSprite *col, unsigned in
 	if( col )
 	{
 		// direction 
-		collision->Set_direction( base, col );
+		collision->Set_Direction( base, col );
 	}
 
 	// add
@@ -190,7 +207,7 @@ cObjectCollision *cCollidingSprite :: Collision_Get_last( bool only_blocking /* 
 			// get object pointer
 			cObjectCollision *col = (*itr);
 
-			cSprite *col_obj = pLevel->pSprite_Manager->Get_Pointer( col->number );
+			cSprite *col_obj = pActive_Sprite_Manager->Get_Pointer( col->number );
 
 			// ignore passive
 			if( col_obj->massivetype == MASS_PASSIVE )
@@ -272,7 +289,7 @@ void cCollidingSprite :: Handle_Collision_Box( ObjectDirection direction, GL_rec
 
 cSprite :: cSprite( GL_Surface *new_image /* = NULL */, float x /* = 0 */, float y /* = 0 */, bool del_img /* = 0 */ )
 {
-	Init();
+	cSprite::Init();
 
 	if( new_image )
 	{
@@ -282,10 +299,10 @@ cSprite :: cSprite( GL_Surface *new_image /* = NULL */, float x /* = 0 */, float
 	Set_Pos( x, y );
 }
 
-cSprite :: cSprite( XMLAttributes &attributes )
+cSprite :: cSprite( CEGUI::XMLAttributes &attributes )
 {
-	Init();
-	Create_from_Stream( attributes );
+	cSprite::Init();
+	cSprite::Create_from_Stream( attributes );
 }
 
 cSprite :: ~cSprite( void )
@@ -346,6 +363,7 @@ void cSprite :: Init( void )
 	can_be_ground = 0;
 
 	// rotation
+	rotation_affects_rect = 0;
 	start_rotx = 0;
 	start_roty = 0;
 	start_rotz = 0;
@@ -353,6 +371,11 @@ void cSprite :: Init( void )
 	roty = 0;
 	rotz = 0;
 	// scale
+	scale_affects_rect = 0;
+	scale_up = 0;
+	scale_down = 1;
+	scale_left = 0;
+	scale_right = 1;
 	start_scalex = 1;
 	start_scaley = 1;
 	scalex = 1;
@@ -360,6 +383,8 @@ void cSprite :: Init( void )
 
 	valid_draw = 1;
 	valid_update = 1;
+
+	editor_window_name_width = 0;
 }
 
 cSprite *cSprite :: Copy( void )
@@ -368,23 +393,27 @@ cSprite *cSprite :: Copy( void )
 
 	basic_sprite->type = type;
 	basic_sprite->sprite_array = sprite_array;
-	basic_sprite->Set_Massivetype( massivetype );
+	basic_sprite->Set_Massive_Type( massivetype );
 	basic_sprite->can_be_ground = can_be_ground;
+	basic_sprite->Set_Rotation_affects_Rect( rotation_affects_rect );
+	basic_sprite->Set_Scale_affects_Rect( scale_affects_rect );
+	basic_sprite->Set_Scale_Directions( scale_up, scale_down, scale_left, scale_right );
 	basic_sprite->Set_Ignore_Camera( no_camera );
 	basic_sprite->Set_Shadow_Pos( shadow_pos );
 	basic_sprite->Set_Shadow_Color( shadow_color );
+	basic_sprite->spawned = spawned;
 
 	return basic_sprite;
 }
 
-void cSprite :: Create_from_Stream( XMLAttributes &attributes )
+void cSprite :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// image
 	Set_Image( pVideo->Get_Surface( attributes.getValueAsString( "image" ).c_str() ), 1 ) ;
 	// type
-	Set_Sprite_Type( Get_Sprite_Type_id( attributes.getValueAsString( "type" ).c_str() ) );
+	Set_Sprite_Type( Get_Sprite_Type_Id( attributes.getValueAsString( "type" ).c_str() ) );
 }
 
 void cSprite :: Save_to_Stream( ofstream &file )
@@ -459,11 +488,29 @@ void cSprite :: Set_Image( GL_Surface *new_image, bool new_start_image /* = 0 */
 	{
 		// collision data
 		col_pos = image->col_pos;
-		col_rect.w = image->col_w * scalex;
-		col_rect.h = image->col_h * scaley;
-		// image data
-		rect.w = image->w * scalex;
-		rect.h = image->h * scaley;
+		// scale affects the rect
+		if( scale_affects_rect )
+		{
+			col_rect.w = image->col_w * scalex;
+			col_rect.h = image->col_h * scaley;
+			// image data
+			rect.w = image->w * scalex;
+			rect.h = image->h * scaley;
+		}
+		// scale does not affect the rect
+		else
+		{
+			col_rect.w = image->col_w;
+			col_rect.h = image->col_h;
+			// image data
+			rect.w = image->w;
+			rect.h = image->h;
+		}
+		// rotation affects the rect
+		if( rotation_affects_rect )
+		{
+			Update_Rect_Rotation();
+		}
 
 		delete_image = del_img;
 
@@ -517,31 +564,31 @@ void cSprite :: Set_Sprite_Type( SpriteType ntype )
 	if( ntype == TYPE_MASSIVE )
 	{
 		sprite_array = ARRAY_MASSIVE;
-		Set_Massivetype( MASS_MASSIVE );
+		Set_Massive_Type( MASS_MASSIVE );
 		can_be_ground = 1;
 	}
 	else if( ntype == TYPE_PASSIVE )
 	{
 		sprite_array = ARRAY_PASSIVE;
-		Set_Massivetype( MASS_PASSIVE );
+		Set_Massive_Type( MASS_PASSIVE );
 		can_be_ground = 0;
 	}
 	else if( ntype == TYPE_FRONT_PASSIVE )
 	{
 		sprite_array = ARRAY_FRONT_PASSIVE;
-		Set_Massivetype( MASS_PASSIVE );
+		Set_Massive_Type( MASS_PASSIVE );
 		can_be_ground = 0;
 	}
 	else if( ntype == TYPE_HALFMASSIVE )
 	{
 		sprite_array = ARRAY_ACTIVE;
-		Set_Massivetype( MASS_HALFMASSIVE );
+		Set_Massive_Type( MASS_HALFMASSIVE );
 		can_be_ground = 1;
 	}
 	else if( ntype == TYPE_CLIMBABLE )
 	{
 		sprite_array = ARRAY_ACTIVE;
-		Set_Massivetype( MASS_CLIMBABLE );
+		Set_Massive_Type( MASS_CLIMBABLE );
 		can_be_ground = 0;
 	}
 }
@@ -593,7 +640,7 @@ void cSprite :: Set_Ignore_Camera( bool enable /* = 0 */ )
 
 	no_camera = enable;
 
-	Update_valid_draw();
+	Update_Valid_Draw();
 }
 
 void cSprite :: Set_Pos( float x, float y, bool new_startpos /* = 0 */ )
@@ -610,7 +657,7 @@ void cSprite :: Set_Pos( float x, float y, bool new_startpos /* = 0 */ )
 	Update_Position_Rect();
 }
 
-void cSprite :: Set_PosX( float x, bool new_startpos /* = 0 */ )
+void cSprite :: Set_Pos_X( float x, bool new_startpos /* = 0 */ )
 {
 	posx = x;
 
@@ -622,7 +669,7 @@ void cSprite :: Set_PosX( float x, bool new_startpos /* = 0 */ )
 	Update_Position_Rect();
 }
 
-void cSprite :: Set_PosY( float y, bool new_startpos /* = 0 */ )
+void cSprite :: Set_Pos_Y( float y, bool new_startpos /* = 0 */ )
 {
 	posy = y;
 
@@ -644,8 +691,8 @@ void cSprite :: Set_Visible( bool enabled )
 
 	visible = enabled;
 
-	Update_valid_draw();
-	Update_valid_update();
+	Update_Valid_Draw();
+	Update_Valid_Update();
 }
 
 void cSprite :: Set_Shadow( Color shadow, float pos )
@@ -713,7 +760,81 @@ void cSprite :: Set_Color_Combine( float red, float green, float blue, GLint com
 	}
 }
 
-void cSprite :: Set_RotationX( float rot, bool new_start_rot /* = 0 */ )
+void cSprite :: Set_Rotation_affects_Rect( bool enable /* = 0 */ )
+{
+	rotation_affects_rect = enable;
+}
+
+void cSprite :: Update_Rect_Rotation( void )
+{
+	// Z must be first for correct rotation ( see Eato )
+	Update_Rect_Rotation_Z();
+	Update_Rect_Rotation_X();
+	Update_Rect_Rotation_Y();
+}
+
+void cSprite :: Update_Rect_Rotation_X( void )
+{
+	// mirror
+	if( rotx >= 180 )
+	{
+		col_pos.y = rect.h - ( col_rect.h + col_pos.y );
+	}
+}
+
+void cSprite :: Update_Rect_Rotation_Y( void )
+{
+	// mirror
+	if( roty >= 180 )
+	{
+		col_pos.x = rect.w - ( col_rect.w + col_pos.x );
+	}
+}
+
+void cSprite :: Update_Rect_Rotation_Z( void )
+{
+	// rotate 270°
+	if( rotz >= 270 )
+	{
+		// rotate collision position
+		float orig_x = col_pos.x;
+		col_pos.x = col_pos.y;
+		col_pos.y = orig_x;
+
+		// switch width and height
+		float orig_w = rect.w;
+		rect.w = rect.h;
+		rect.h = orig_w;
+		// switch collision width and height
+		float orig_col_w = col_rect.w;
+		col_rect.w = col_rect.h;
+		col_rect.h = orig_col_w;
+	}
+	// mirror
+	else if( rotz >= 180 )
+	{
+		col_pos.y = rect.h - ( col_rect.h + col_pos.y );
+	}
+	// rotate 90°
+	else if( rotz >= 0.00001f )
+	{
+		// rotate collision position
+		float orig_x = col_pos.x;
+		col_pos.x = rect.h - ( col_rect.h + col_pos.y );
+		col_pos.y = orig_x;
+
+		// switch width and height
+		float orig_w = rect.w;
+		rect.w = rect.h;
+		rect.h = orig_w;
+		// switch collision width and height
+		float orig_col_w = col_rect.w;
+		col_rect.w = col_rect.h;
+		col_rect.h = orig_col_w;
+	}
+}
+
+void cSprite :: Set_Rotation_X( float rot, bool new_start_rot /* = 0 */ )
 {
 	rotx = fmod( rot, 360 );
 
@@ -721,9 +842,14 @@ void cSprite :: Set_RotationX( float rot, bool new_start_rot /* = 0 */ )
 	{
 		start_rotx = rotx;
 	}
+
+	if( rotation_affects_rect )
+	{
+		Update_Rect_Rotation_X();
+	}
 }
 
-void cSprite :: Set_RotationY( float rot, bool new_start_rot /* = 0 */ )
+void cSprite :: Set_Rotation_Y( float rot, bool new_start_rot /* = 0 */ )
 {
 	roty = fmod( rot, 360 );
 
@@ -731,9 +857,14 @@ void cSprite :: Set_RotationY( float rot, bool new_start_rot /* = 0 */ )
 	{
 		start_roty = roty;
 	}
+
+	if( rotation_affects_rect )
+	{
+		Update_Rect_Rotation_Y();
+	}
 }
 
-void cSprite :: Set_RotationZ( float rot, bool new_start_rot /* = 0 */ )
+void cSprite :: Set_Rotation_Z( float rot, bool new_start_rot /* = 0 */ )
 {
 	rotz = fmod( rot, 360 );
 
@@ -741,38 +872,56 @@ void cSprite :: Set_RotationZ( float rot, bool new_start_rot /* = 0 */ )
 	{
 		start_rotz = rotz;
 	}
+
+	if( rotation_affects_rect )
+	{
+		Update_Rect_Rotation_Z();
+	}
 }
 
 void cSprite :: Set_Rotation( float x, float y, float z, bool new_start_rot /* = 0 */ )
 {
-	Set_RotationX( x, new_start_rot );
-	Set_RotationY( y, new_start_rot );
-	Set_RotationZ( z, new_start_rot );
+	Set_Rotation_X( x, new_start_rot );
+	Set_Rotation_Y( y, new_start_rot );
+	Set_Rotation_Z( z, new_start_rot );
 }
 
-void cSprite :: Add_RotationX( float rot )
+void cSprite :: Add_Rotation_X( float rot )
 {
-	Set_RotationX( rotx + rot );
+	Set_Rotation_X( rotx + rot );
 }
 
-void cSprite :: Add_RotationY( float rot )
+void cSprite :: Add_Rotation_Y( float rot )
 {
-	Set_RotationY( roty + rot );
+	Set_Rotation_Y( roty + rot );
 }
 
-void cSprite :: Add_RotationZ( float rot )
+void cSprite :: Add_Rotation_Z( float rot )
 {
-	Set_RotationZ( rotz + rot );
+	Set_Rotation_Z( rotz + rot );
 }
 
 void cSprite :: Add_Rotation( float x, float y, float z )
 {
-	Set_RotationX( rotx + x );
-	Set_RotationY( roty + y );
-	Set_RotationZ( rotz + z );
+	Set_Rotation_X( rotx + x );
+	Set_Rotation_Y( roty + y );
+	Set_Rotation_Z( rotz + z );
 }
 
-void cSprite :: Set_ScaleX( float scale, bool new_startscale /* = 0 */ )
+void cSprite :: Set_Scale_affects_Rect( bool enable /* = 0 */ )
+{
+	scale_affects_rect = enable;
+}
+
+void cSprite :: Set_Scale_Directions( bool up /* = 1 */, bool down /* = 0 */, bool left /* = 1 */, bool right /* = 0 */ )
+{
+	scale_up = up;
+	scale_down = down;
+	scale_left = left;
+	scale_right = right;
+}
+
+void cSprite :: Set_Scale_X( const float scale, const bool new_startscale /* = 0 */ )
 {
 	// invalid value
 	if( scale == 0 )
@@ -781,7 +930,7 @@ void cSprite :: Set_ScaleX( float scale, bool new_startscale /* = 0 */ )
 	}
 
 	// undo previous scale from rect
-	if( scalex != 1 )
+	if( scale_affects_rect && scalex != 1 )
 	{
 		col_rect.w /= scalex;
 		rect.w /= scalex;
@@ -790,7 +939,7 @@ void cSprite :: Set_ScaleX( float scale, bool new_startscale /* = 0 */ )
 	scalex = scale;
 
 	// set new scale to rect
-	if( scalex != 1 )
+	if( scale_affects_rect && scalex != 1 )
 	{
 		col_rect.w *= scalex;
 		rect.w *= scalex;
@@ -802,7 +951,7 @@ void cSprite :: Set_ScaleX( float scale, bool new_startscale /* = 0 */ )
 	}
 }
 
-void cSprite :: Set_ScaleY( float scale, bool new_startscale /* = 0 */ )
+void cSprite :: Set_Scale_Y( const float scale, const bool new_startscale /* = 0 */ )
 {
 	// invalid value
 	if( scale == 0 )
@@ -811,7 +960,7 @@ void cSprite :: Set_ScaleY( float scale, bool new_startscale /* = 0 */ )
 	}
 
 	// undo previous scale from rect
-	if( scaley != 1 )
+	if( scale_affects_rect && scaley != 1 )
 	{
 		col_rect.h /= scaley;
 		rect.h /= scaley;
@@ -820,7 +969,7 @@ void cSprite :: Set_ScaleY( float scale, bool new_startscale /* = 0 */ )
 	scaley = scale;
 
 	// set new scale to rect
-	if( scaley != 1 )
+	if( scale_affects_rect && scaley != 1 )
 	{
 		col_rect.h *= scaley;
 		rect.h *= scaley;
@@ -832,29 +981,29 @@ void cSprite :: Set_ScaleY( float scale, bool new_startscale /* = 0 */ )
 	}
 }
 
-void cSprite :: Set_Scale( float scale, bool new_startscale /* = 0 */ )
+void cSprite :: Set_Scale( const float scale, const bool new_startscale /* = 0 */ )
 {
-	Set_ScaleX( scale, new_startscale );
-	Set_ScaleY( scale, new_startscale );
+	Set_Scale_X( scale, new_startscale );
+	Set_Scale_Y( scale, new_startscale );
 }
 
-void cSprite :: Add_ScaleX( float val )
+void cSprite :: Add_Scale_X( const float val )
 {
-	Set_ScaleX( scalex + val );
+	Set_Scale_X( scalex + val );
 }
 
-void cSprite :: Add_ScaleY( float val )
+void cSprite :: Add_Scale_Y( const float val )
 {
-	Set_ScaleY( scaley + val );
+	Set_Scale_Y( scaley + val );
 }
 
-void cSprite :: Add_Scale( float val )
+void cSprite :: Add_Scale( const float val )
 {
-	Set_ScaleX( scalex + val );
-	Set_ScaleY( scaley + val );
+	Set_Scale_X( scalex + val );
+	Set_Scale_Y( scaley + val );
 }
 
-void cSprite :: Set_onTop( cSprite *sprite, bool optimize_hor_pos /* = 1 */ )
+void cSprite :: Set_on_Top( const cSprite *sprite, bool optimize_hor_pos /* = 1 */ )
 {
 	// set ground position 0.1f over it
 	posy = sprite->col_rect.y - col_pos.y - col_rect.h - 0.1f;
@@ -868,7 +1017,7 @@ void cSprite :: Set_onTop( cSprite *sprite, bool optimize_hor_pos /* = 1 */ )
 	Update_Position_Rect();
 }
 
-void cSprite :: Move( float move_x, float move_y, bool real /* = 0 */ )
+void cSprite :: Move( float move_x, float move_y, const bool real /* = 0 */ )
 {
 	if( move_x == 0 && move_y == 0 )
 	{
@@ -918,7 +1067,7 @@ void cSprite :: Update_Position_Rect( void )
 		col_rect.y = posy + col_pos.y;
 	}
 
-	Update_valid_draw();
+	Update_Valid_Draw();
 }
 
 void cSprite :: Update( void )
@@ -926,14 +1075,14 @@ void cSprite :: Update( void )
 	// virtual
 }
 
-void cSprite :: Update_valid_draw( void )
+void cSprite :: Update_Valid_Draw( void )
 {
-	valid_draw = is_Draw_valid();
+	valid_draw = Is_Draw_Valid();
 }
 
-void cSprite :: Update_valid_update( void )
+void cSprite :: Update_Valid_Update( void )
 {
-	valid_update = is_Update_valid();
+	valid_update = Is_Update_Valid();
 }
 
 void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
@@ -946,41 +1095,55 @@ void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 	Draw_Image( request );
 
 	// draw debugging collision rects
-	if( Game_debug )
+	if( game_debug )
 	{
+		// - image rect
 		// create request
 		cRectRequest *rect_request = new cRectRequest();
-		// draw image rect
+		// draw
 		pVideo->Draw_Rect( &rect, posz + 0.000002f, &lightgrey, rect_request );
 		rect_request->no_camera = no_camera;
 		rect_request->filled = 0;
 		rect_request->blend_sfactor = GL_SRC_COLOR;
 		rect_request->blend_dfactor = GL_DST_ALPHA;
-		// todo : rotation
-		/*rect_request->rotx += rotx;
-		rect_request->roty += roty;
-		rect_request->rotz += rotz;*/
 		// scale
-		float scale_diff_width = rect_request->rect.w - (rect_request->rect.w * scalex);
-		float scale_diff_height = rect_request->rect.h - (rect_request->rect.h * scaley);
-		// todo : sprite scaling should also set the position
-		rect_request->rect.x += scale_diff_width * 0.5f;
-		rect_request->rect.y += scale_diff_height * 0.5f;
+		if( !scale_affects_rect )
+		{
+			// scale position y
+			if( scale_up )
+			{
+				rect_request->rect.y += ( image->int_y * scaley ) - ( ( image->h * 0.5f ) * ( scaley - 1 ) );
+			}
+
+			// scale height
+			if( scale_down )
+			{
+				rect_request->rect.h += image->h * ( scaley - 1 );
+			}
+
+			// scale position x
+			if( scale_left )
+			{
+				rect_request->rect.x += ( image->int_x * scalex ) - ( ( image->w * 0.5f ) * ( scalex - 1 ) );
+			}
+
+			// scale width
+			if( scale_right )
+			{
+				rect_request->rect.w += image->w * ( scalex - 1 );
+			}
+		}
 		// add request
 		pRenderer->Add( rect_request );
 
+		// - collision rect
 		// create request
 		rect_request = new cRectRequest();
-		// draw collision rect
-		pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &Get_Sprite_Color( this ), rect_request );
+		// draw
+		Color sprite_color = Get_Sprite_Color( this );
+		pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &sprite_color, rect_request );
 		rect_request->no_camera = no_camera;
-		// scale
-		scale_diff_width = rect_request->rect.w - (rect_request->rect.w * scalex);
-		scale_diff_height = rect_request->rect.h - (rect_request->rect.h * scaley);
-		// todo : sprite scaling should also set the position
-		rect_request->rect.x += scale_diff_width * 0.5f;
-		rect_request->rect.y += scale_diff_height * 0.5f;
-		// blend it
+		// blending
 		rect_request->blend_sfactor = GL_SRC_COLOR;
 		rect_request->blend_dfactor = GL_DST_ALPHA;
 
@@ -992,7 +1155,7 @@ void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 	if( !editor_enabled )
 	{
 		// draw debug rect
-		if( Game_debug )
+		if( game_debug )
 		{
 			if( type == TYPE_PLAYER )
 			{
@@ -1004,10 +1167,10 @@ void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 				{
 					// create request
 					cRectRequest *rect_request = new cRectRequest();
-
+					// draw
 					pVideo->Draw_Rect( &moving_sprite->ground_object->col_rect, posz + 0.000002f, &grey, rect_request );
 					rect_request->no_camera = 0;
-
+					// blending
 					rect_request->blend_sfactor = GL_SRC_COLOR;
 					rect_request->blend_dfactor = GL_DST_ALPHA;
 
@@ -1022,10 +1185,11 @@ void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 	{
 		// create request
 		cRectRequest *rect_request = new cRectRequest();
-
+		// draw
 		pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &red, rect_request );
 		rect_request->no_camera = 0;
 
+		// blending
 		rect_request->blend_sfactor = GL_SRC_COLOR;
 		rect_request->blend_dfactor = GL_DST_ALPHA;
 
@@ -1054,7 +1218,7 @@ void cSprite :: Draw_Image( cSurfaceRequest *request /* = NULL */ )
 	if( editor_enabled )
 	{
 		// blit surface
-		start_image->Blit_data( request );
+		start_image->Blit_Data( request );
 
 		// rotation
 		request->rotx += start_rotx;
@@ -1064,8 +1228,29 @@ void cSprite :: Draw_Image( cSurfaceRequest *request /* = NULL */ )
 		// scalex
 		if( start_scalex != 1 )
 		{
-			request->scale_x = start_scalex;
-			request->pos_x = startposx + ( start_image->int_x * start_scalex );
+			// scale to the right and left
+			if( scale_right && scale_left )
+			{
+				request->scale_x = start_scalex;
+				request->pos_x = startposx + ( start_image->int_x * start_scalex ) - ( ( start_image->w * 0.5f ) * ( start_scalex - 1 ) );
+			}
+			// scale to the right only
+			else if( scale_right )
+			{
+				request->scale_x = start_scalex;
+				request->pos_x = startposx + ( start_image->int_x * start_scalex );
+			}
+			// scale to the left only
+			else if( scale_left )
+			{
+				request->scale_x = start_scalex;
+				request->pos_x = startposx + ( start_image->int_x * start_scalex ) - ( ( start_image->w ) * ( start_scalex - 1 ) );
+			}
+			// no scaling
+			else
+			{
+				request->pos_x = startposx + start_image->int_x;
+			}
 		}
 		// no scalex
 		else
@@ -1076,8 +1261,29 @@ void cSprite :: Draw_Image( cSurfaceRequest *request /* = NULL */ )
 		// scaley
 		if( start_scaley != 1 )
 		{
-			request->scale_y = start_scaley;
-			request->pos_y = startposy + ( start_image->int_y * start_scaley );
+			// scale down and up
+			if( scale_down && scale_up )
+			{
+				request->scale_y = start_scaley;
+				request->pos_y = startposy + ( start_image->int_y * start_scaley ) - ( ( start_image->h * 0.5f ) * ( start_scaley - 1 ) );
+			}
+			// scale down only
+			else if( scale_down )
+			{
+				request->scale_y = start_scaley;
+				request->pos_y = startposy + ( start_image->int_y * start_scaley );
+			}
+			// scale up only
+			else if( scale_up )
+			{
+				request->scale_y = start_scaley;
+				request->pos_y = startposy + ( start_image->int_y * start_scaley ) - ( ( start_image->h ) * ( start_scaley - 1 ) );
+			}
+			// no scaling
+			else
+			{
+				request->pos_y = startposy + start_image->int_y;
+			}
 		}
 		// no scaley
 		else
@@ -1100,7 +1306,7 @@ void cSprite :: Draw_Image( cSurfaceRequest *request /* = NULL */ )
 	else
 	{
 		// blit surface
-		image->Blit_data( request );
+		image->Blit_Data( request );
 
 		// rotation
 		request->rotx += rotx;
@@ -1110,8 +1316,29 @@ void cSprite :: Draw_Image( cSurfaceRequest *request /* = NULL */ )
 		// scalex
 		if( scalex != 1 )
 		{
-			request->scale_x = scalex;
-			request->pos_x = posx + ( image->int_x * scalex );
+			// scale to the right and left
+			if( scale_right && scale_left )
+			{
+				request->scale_x = scalex;
+				request->pos_x = posx + ( image->int_x * scalex ) - ( ( image->w * 0.5f ) * ( scalex - 1 ) );
+			}
+			// scale to the right only
+			else if( scale_right )
+			{
+				request->scale_x = scalex;
+				request->pos_x = posx + ( image->int_x * scalex );
+			}
+			// scale to the left only
+			else if( scale_left )
+			{
+				request->scale_x = scalex;
+				request->pos_x = posx + ( image->int_x * scalex ) - ( ( image->w ) * ( scalex - 1 ) );
+			}
+			// no scaling
+			else
+			{
+				request->pos_x = posx + image->int_x;
+			}
 		}
 		// no scalex
 		else
@@ -1122,8 +1349,29 @@ void cSprite :: Draw_Image( cSurfaceRequest *request /* = NULL */ )
 		// scaley
 		if( scaley != 1 )
 		{
-			request->scale_y = scaley;
-			request->pos_y = posy + ( image->int_y * scaley );
+			// scale down and up
+			if( scale_down && scale_up )
+			{
+				request->scale_y = scaley;
+				request->pos_y = posy + ( image->int_y * scaley ) - ( ( image->h * 0.5f ) * ( scaley - 1 ) );
+			}
+			// scale down only
+			else if( scale_down )
+			{
+				request->scale_y = scaley;
+				request->pos_y = posy + ( image->int_y * scaley );
+			}
+			// scale up only
+			else if( scale_up )
+			{
+				request->scale_y = scaley;
+				request->pos_y = posy + ( image->int_y * scaley ) - ( ( image->h ) * ( scaley - 1 ) );
+			}
+			// no scaling
+			else
+			{
+				request->pos_y = posy + image->int_y;
+			}
 		}
 		// no scaley
 		else
@@ -1163,7 +1411,7 @@ void cSprite :: Draw_Image( cSurfaceRequest *request /* = NULL */ )
 	}
 }
 
-void cSprite :: Set_Massivetype( MassiveType mtype )
+void cSprite :: Set_Massive_Type( MassiveType mtype )
 {
 	// set massivetype z position
 	if( mtype == MASS_MASSIVE )
@@ -1189,10 +1437,10 @@ void cSprite :: Set_Massivetype( MassiveType mtype )
 	massivetype = mtype;
 
 	// set correct Z position
-	pLevel->pSprite_Manager->Set_Z( this );
+	pActive_Sprite_Manager->Set_Z( this );
 }
 
-bool cSprite :: is_onTop( cSprite *obj )
+bool cSprite :: Is_on_Top( const cSprite *obj )
 {
 	// invalid
 	if( !obj )
@@ -1210,15 +1458,15 @@ bool cSprite :: is_onTop( cSprite *obj )
 	return 0;
 }
 
-bool cSprite :: is_Visible_onScreen( void )
+bool cSprite :: Is_Visible_on_Screen( void )
 {
 	// camera position
 	float cam_x = 0, cam_y = 0;
 
 	if( !no_camera )
 	{
-		cam_x = pCamera->x;
-		cam_y = pCamera->y;
+		cam_x = pActive_Camera->x;
+		cam_y = pActive_Camera->y;
 	}
 
 	// not visible left
@@ -1227,7 +1475,7 @@ bool cSprite :: is_Visible_onScreen( void )
 		return 0;
 	}
 	// not visible right
-	else if( rect.x > cam_x + GAME_RES_W )
+	else if( rect.x > cam_x + game_res_w )
 	{
 		return 0;
 	}
@@ -1237,7 +1485,7 @@ bool cSprite :: is_Visible_onScreen( void )
 		return 0;
 	}
 	// not visible up
-	else if( rect.y > cam_y + GAME_RES_H )
+	else if( rect.y > cam_y + game_res_h )
 	{
 		return 0;
 	}
@@ -1250,7 +1498,7 @@ bool cSprite :: is_Player_range( void )
 	// no player range set
 	if( player_range < 300 )
 	{
-		return is_Visible_onScreen();
+		return Is_Visible_on_Screen();
 	}
 	// check if not in range
 	else if( posx < pPlayer->posx - player_range || posy < pPlayer->posy - player_range ||
@@ -1263,12 +1511,18 @@ bool cSprite :: is_Player_range( void )
 	return 1;
 }
 
-bool cSprite :: is_Update_valid( void )
+bool cSprite :: Is_Update_Valid( void )
 {
+	// if destroyed
+	if( destroy )
+	{
+		return 0;
+	}
+
 	return 1;
 }
 
-bool cSprite :: is_Draw_valid( void )
+bool cSprite :: Is_Draw_Valid( void )
 {
 	// if editor not enabled
 	if( !editor_enabled )
@@ -1290,7 +1544,7 @@ bool cSprite :: is_Draw_valid( void )
 	}
 
 	// not visible on the screen
-	if( !is_Visible_onScreen() )
+	if( !Is_Visible_on_Screen() )
 	{
 		return 0;
 	}
@@ -1304,32 +1558,53 @@ void cSprite :: Destroy( void )
 	visible = 0;
 	valid_draw = 0;
 	valid_update = 0;
+	Set_Image( NULL, 1 );
 }
 
-void cSprite :: Editor_Add( Window *obj, float obj_width, float obj_height )
+void cSprite :: Editor_Add( const CEGUI::String name, const CEGUI::String tooltip, CEGUI::Window *window_setting, float obj_width, float obj_height /* = 28 */, bool advance_row /* = 1 */ )
 {
-	// add to main window
-	pGuiSystem->getGUISheet()->addChildWindow( obj );
+	if( obj_height < 28 )
+	{
+		obj_height = 28;
+	}
 
-	// needs to be always selectable
-	obj->setAlwaysOnTop( 1 );
+	// get gui sheet
+	CEGUI::Window *guisheet = pGuiSystem->getGUISheet();
+	// get window manager
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+
+	// create name window
+	CEGUI::Window *window_name = wmgr.createWindow( "TaharezLook/StaticText", "text_" + window_setting->getName() );
+	window_name->setText( name );
+	window_name->setTooltipText( tooltip );
+	// get text width
+	CEGUI::Font *font = CEGUI::FontManager::getSingleton().getFont( "bluebold_medium" );
+	float text_width = 12 + font->getTextExtent( name ) * global_downscalex;
+	// all names should have the same width
+	if( text_width > editor_window_name_width )
+	{
+		editor_window_name_width = text_width;
+	}
 	// set size
-	obj->setWidth( UDim( 0, obj_width * global_upscalex ) );
-	obj->setHeight( UDim( 0, obj_height * global_upscaley ) );
-	// mouse hover events
-	// if combobox use the editbox
-	if( obj->getType() == "TaharezLook/Combobox" )
-	{
-		static_cast<Combobox *>(obj)->getEditbox()->subscribeEvent( Window::EventMouseEnters, Event::Subscriber( &cSprite::Editor_Mouse_Enter, this ) );
-		static_cast<Combobox *>(obj)->getEditbox()->subscribeEvent( Window::EventMouseLeaves, Event::Subscriber( &cSprite::Editor_Mouse_Leave, this ) );
-	}
-	else
-	{
-		obj->subscribeEvent( Window::EventMouseEnters, Event::Subscriber( &cSprite::Editor_Mouse_Enter, this ) );
-		obj->subscribeEvent( Window::EventMouseLeaves, Event::Subscriber( &cSprite::Editor_Mouse_Leave, this ) );
-	}
+	window_name->setWidth( CEGUI::UDim( 0, text_width * global_upscalex ) );
+	window_name->setHeight( CEGUI::UDim( 0, 28 * global_upscaley ) );
 
-	editor_windows.push_back( obj );
+	// create settings window
+	cEditor_Object_Settings_Item *settings_item = new cEditor_Object_Settings_Item();
+
+	// set size
+	window_setting->setWidth( CEGUI::UDim( 0, obj_width * global_upscalex ) );
+	window_setting->setHeight( CEGUI::UDim( 0, obj_height * global_upscaley ) );
+
+	settings_item->window_name = window_name;
+	settings_item->window_setting = window_setting;
+	settings_item->advance_row = advance_row;
+
+	editor_windows.push_back( settings_item );
+
+	// add to main window
+	guisheet->addChildWindow( window_name );
+	guisheet->addChildWindow( window_setting );
 }
 
 void cSprite :: Editor_Activate( void )
@@ -1340,76 +1615,108 @@ void cSprite :: Editor_Activate( void )
 void cSprite :: Editor_Deactivate( void )
 {
 	// remove editor controls
-	WindowManager &wmgr = WindowManager::getSingleton();
 
-	for( WindowList::iterator itr = editor_windows.begin(), itr_end = editor_windows.end(); itr != itr_end; ++itr )
+	for( Editor_Object_Settings_List::iterator itr = editor_windows.begin(), itr_end = editor_windows.end(); itr != itr_end; ++itr )
 	{
-		Window *obj = (*itr);
+		cEditor_Object_Settings_Item *obj = (*itr);
 
-		wmgr.destroyWindow( obj );
+		delete obj;
 	}
 
 	editor_windows.clear();
 }
 
-void cSprite :: Editor_pos_update( void )
+void cSprite :: Editor_Position_Update( void )
 {
+	float obj_posx = 0;
 	float obj_posy = 0;
+	float row_height = 0;
 
 	// set all positions
-	for( WindowList::iterator itr = editor_windows.begin(), itr_end = editor_windows.end(); itr != itr_end; ++itr )
+	for( Editor_Object_Settings_List::iterator itr = editor_windows.begin(), itr_end = editor_windows.end(); itr != itr_end; ++itr )
 	{
-		Window *obj = (*itr);
+		cEditor_Object_Settings_Item *obj = (*itr);
+		CEGUI::Window *window_name = obj->window_name;
+		CEGUI::Window *window_setting = obj->window_setting;
 
-		obj->setXPosition( UDim( 0, ( posx + rect.w + 5 - pCamera->x ) * global_upscalex ) );
-		obj->setYPosition( UDim( 0, ( posy + 5 + obj_posy - pCamera->y ) * global_upscaley ) );
-
-		// if combobox get the editbox height
-		if( obj->getType() == "TaharezLook/Combobox" )
+		// start a new row
+		if( obj->advance_row )
 		{
-			obj_posy += static_cast<Combobox *>(obj)->getEditbox()->getHeight().asAbsolute( GAME_RES_H ) * global_downscaley;
+			obj_posx = 0;
+			obj_posy += row_height;
+			row_height = 0;
 		}
-		// get default height
+
+		// get window text width
+		float window_name_width = window_name->getWidth().asAbsolute( static_cast<float>(game_res_w) ) * global_downscalex;
+		float window_name_height = window_name->getHeight().asAbsolute( static_cast<float>(game_res_h) ) * global_downscaley;
+
+		// get window setting width
+		float window_setting_width;
+		float window_setting_height;
+
+		// if combobox get the editbox dimension
+		if( window_setting->getType() == "TaharezLook/Combobox" )
+		{
+			window_setting_width = static_cast<CEGUI::Combobox *>(window_setting)->getEditbox()->getWidth().asAbsolute( static_cast<float>(game_res_w) ) * global_downscalex;
+			window_setting_height = static_cast<CEGUI::Combobox *>(window_setting)->getEditbox()->getHeight().asAbsolute( static_cast<float>(game_res_h) ) * global_downscaley;
+		}
+		// get default dimension
 		else
 		{
-			obj_posy += obj->getHeight().asAbsolute( GAME_RES_H ) * global_downscaley;
+			window_setting_width = window_setting->getWidth().asAbsolute( static_cast<float>(game_res_w) ) * global_downscalex;
+			window_setting_height = window_setting->getHeight().asAbsolute( static_cast<float>(game_res_h) ) * global_downscaley;
 		}
 
-		// some space between objects
-		obj_posy += 0.5f;
+		// update row height
+		if( window_setting_height > row_height )
+		{
+			row_height = window_setting_height;
+		}
+		if( window_name_height > row_height )
+		{
+			row_height = window_name_height;
+		}
+
+		// current position
+		float object_final_pos_x = startposx + rect.w + 5 + obj_posx - pActive_Camera->x;
+		float object_final_pos_y = startposy + 5 + obj_posy - pActive_Camera->y;
+
+		// set name position
+		window_name->setXPosition( CEGUI::UDim( 0, object_final_pos_x * global_upscalex ) );
+		window_name->setYPosition( CEGUI::UDim( 0, object_final_pos_y * global_upscaley ) );
+		// set setting position
+		window_setting->setXPosition( CEGUI::UDim( 0, ( window_name_width + object_final_pos_x ) * global_upscalex ) );
+		window_setting->setYPosition( CEGUI::UDim( 0, object_final_pos_y * global_upscaley ) );
+		
+		// set new position x
+		obj_posx += window_name_width + window_setting_width + 0.05f;
 	}
 }
 
-void cSprite :: Editor_state_update( void )
+void cSprite :: Editor_Init( void )
+{
+	// set state
+	Editor_State_Update();
+
+	// init
+	for( Editor_Object_Settings_List::iterator itr = editor_windows.begin(), itr_end = editor_windows.end(); itr != itr_end; ++itr )
+	{
+		cEditor_Object_Settings_Item *obj = (*itr);
+		CEGUI::Window *window_name = obj->window_name;
+
+		// set first row width
+		if( obj->advance_row )
+		{
+			window_name->setWidth( CEGUI::UDim( 0, editor_window_name_width * global_upscalex ) );
+		}
+	}
+
+	// set position
+	Editor_Position_Update();
+}
+
+void cSprite :: Editor_State_Update( void )
 {
 	// virtual
-}
-
-bool cSprite :: Editor_Mouse_Enter( const EventArgs &event )
-{
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	string str_text = windowEventArgs.window->getTooltipText().c_str();
-
-	// if no tooltip defined
-	if( str_text.empty() )
-	{
-		// use the CEGUI window name
-		debugdisplay->Set_Text( windowEventArgs.window->getName().c_str(), 100000 );
-	}
-	else
-	{
-		debugdisplay->Set_Text( str_text, 100000 );
-	}
-
-	return 1;
-}
-
-bool cSprite :: Editor_Mouse_Leave( const EventArgs &event )
-{
-	const WindowEventArgs &windowEventArgs = static_cast<const WindowEventArgs&>( event );
-	string str_text = windowEventArgs.window->getTooltipText().c_str();
-
-	debugdisplay->Set_Text( "" );
-
-	return 1;
 }

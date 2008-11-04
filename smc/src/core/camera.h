@@ -1,7 +1,7 @@
 /***************************************************************************
-                camera.h  -  header for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2006 - 2007 by Florian Richter
+ * camera.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __CAMERA_H__
-#define __CAMERA_H__
+#ifndef SMC_CAMERA_H
+#define SMC_CAMERA_H
 
 #include "../core/globals.h"
 #include "../core/math/rect.h"
@@ -29,16 +29,24 @@ public:
 
 	// set camera position
 	void Set_Pos( float nx, float ny );
-	void Set_PosX( float nx );
-	void Set_PosY( float ny );
+	void Set_Pos_X( float nx );
+	void Set_Pos_Y( float ny );
 	// move the camera
 	void Move( float move_x, float move_y );
+	/* moves to the given position gradually
+	 * returns 0 if reached nearest the possible position
+	*/
+	bool Move_to_Position_Gradually( float px, float py );
 
 	// update
 	void Update( void );
 
 	// center on the player with the given direction ( DIR_HORIZONTAL, DIR_VERTICAL and DIR_ALL )
 	void Center( ObjectDirection direction = DIR_ALL );
+	// get centered player position x
+	float Get_Center_Pos_X( void );
+	// get centered player position y
+	float Get_Center_Pos_Y( void );
 
 	// reset limits
 	void Reset_Limits( void );
@@ -50,8 +58,8 @@ public:
 	void Set_Limit_H( float val );
 	// update limit with the given position
 	void Update_Limit( float &nx, float &ny );
-	void Update_LimitX( float &nx );
-	void Update_LimitY( float &ny );
+	void Update_Limit_X( float &nx );
+	void Update_Limit_Y( float &ny );
 	// update if position changed
 	void Update_Position( void );
 
@@ -67,11 +75,6 @@ public:
 	// fixed horizontal scrolling velocity
 	float fixed_hor_vel;
 };
-
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
-
-// Camera class
-extern cCamera *pCamera;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

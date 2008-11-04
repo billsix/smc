@@ -1,8 +1,7 @@
 /***************************************************************************
-                turtle_boss.h  -  headers for the corresponding cpp file
-                             -------------------
-    copyright            :	(C) 2003 - 2007 by Florian Richter
-							(C) 2006 Tobias Maasland
+ * turtle_boss.h  -  headers for the corresponding cpp file
+ *
+ * Copyright (C) 2003 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -14,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __TURTLEBOSS_H__
-#define __TURTLEBOSS_H__
+#ifndef SMC_TURTLEBOSS_H
+#define SMC_TURTLEBOSS_H
 
 #include "../../enemies/enemy.h"
 
@@ -38,7 +37,7 @@ public:
 	// constructor
 	cTurtleBoss( float x, float y );
 	// create from stream
-	cTurtleBoss( XMLAttributes &attributes );
+	cTurtleBoss( CEGUI::XMLAttributes &attributes );
 	// destructor
 	virtual ~cTurtleBoss( void );
 
@@ -49,13 +48,16 @@ public:
 	virtual cTurtleBoss *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( XMLAttributes &attributes );
+	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file );
 
+	// maximum hits until downgrade
 	void Set_Max_Hits( int nmax_hits );
+	// maximum downgrades until death
 	void Set_Max_Downgrade_Counts( int nmax_downgrade_count );
-	void Set_Max_Downgrade_Time( float nmax_downgrade_time );
+	// time running as shell until staying up
+	void Set_Shell_Time( float nmax_downgrade_time );
 
 	// Set Direction
 	void Set_Direction( ObjectDirection dir, bool new_start_direction = 0 );
@@ -80,7 +82,7 @@ public:
     void Throw_Fireballs( unsigned int amount = 6 );
 
 	// if update is valid for the current state
-	virtual bool is_Update_valid( void );
+	virtual bool Is_Update_Valid( void );
 
 	/* Validate the given collision object
 	 * returns 1 if an internal collision with this object is valid
@@ -97,15 +99,20 @@ public:
 	// leveleditor activation
 	virtual void Editor_Activate( void );
 	// leveleditor events
-	bool Editor_Max_Hits_Key( const EventArgs &event );  // editor max hits key up
-	bool Editor_Max_Downgrade_Counts_Key( const EventArgs &event );  // editor max downgrades key up
-	bool Editor_Max_Downgrade_Time_Key( const EventArgs &event );  // editor max downgrades time key up
+	bool Editor_Max_Hits_Key( const CEGUI::EventArgs &event );  // editor max hits key up
+	bool Editor_Max_Downgrade_Counts_Key( const CEGUI::EventArgs &event );  // editor max downgrades key up
+	bool Editor_Shell_Time_Key( const CEGUI::EventArgs &event );  // editor max downgrades time key up
 
 	// internal turtle state
 	TurtleBoss_state turtle_state;
 
 	// default speed
 	float speed_walk, speed_shell;
+
+    // times hit since the start or downgrade
+    int hits;
+	// maximum hits until downgrade
+    int max_hits;
 
 	/* If the player kicked the shell this counter starts.
 	 * if this counter is higher than 0
@@ -116,24 +123,20 @@ public:
 	// Color
 	DefaultColor color_type;
 
-private:
+protected:
 	// Activates walking Turtle
     void Activate_Turtle( void );
 	// Create the Name from the current settings
     void Create_Name( void );
 
-    // How many times has the turtle boss been hit since the last count / downgrade?
-    int hits;
-    // How many times did the turtle downgrade?
+    // times downgraded
     int downgrade_counts;
-	// maximum times hit-able
-    int max_hits;
-	// maximum times downgrade-able
+	// maximum downgrades until death
     int max_downgrade_counts;
-	
-    float max_downgrade_time;
-
-    float run_time;
+	// time running as shell until staying up
+    float shell_time;
+	// time running as shell counter
+    float run_time_counter;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

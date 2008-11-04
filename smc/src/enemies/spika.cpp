@@ -1,7 +1,7 @@
 /***************************************************************************
-              spika.cpp  -  spika, spiked waiting enemy
-                             -------------------
-    copyright            :	(C) 2006 - 2007 Florian Richter
+ * spika.cpp  -  spika, spiked waiting enemy
+ *
+ * Copyright (C) 2006 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,20 +19,23 @@
 #include "../level/level.h"
 #include "../gui/hud.h"
 #include "../video/gl_surface.h"
+#include "../core/sprite_manager.h"
+#include "../core/i18n.h"
+#include "../enemies/bosses/turtle_boss.h"
 
 /* *** *** *** *** *** *** cSpika *** *** *** *** *** *** *** *** *** *** *** */
 
 cSpika :: cSpika( float x, float y )
 : cEnemy( x, y )
 {
-	Init();
+	cSpika::Init();
 }
 
-cSpika :: cSpika( XMLAttributes &attributes )
+cSpika :: cSpika( CEGUI::XMLAttributes &attributes )
 : cEnemy()
 {
-	Init();
-	Create_from_Stream( attributes );
+	cSpika::Init();
+	cSpika::Create_from_Stream( attributes );
 }
 
 cSpika :: ~cSpika( void )
@@ -61,12 +64,12 @@ cSpika *cSpika :: Copy( void )
 	return spika;
 }
 
-void cSpika :: Create_from_Stream( XMLAttributes &attributes )
+void cSpika :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// color
-	Set_Color( (DefaultColor)Get_Color_id( attributes.getValueAsString( "color", Get_Color_name( color_type ) ).c_str() ) );
+	Set_Color( static_cast<DefaultColor>(Get_Color_Id( attributes.getValueAsString( "color", Get_Color_Name( color_type ) ).c_str() )) );
 }
 
 void cSpika :: Save_to_Stream( ofstream &file )
@@ -80,7 +83,7 @@ void cSpika :: Save_to_Stream( ofstream &file )
 	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
 	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// color
-	file << "\t\t<Property name=\"color\" value=\"" << Get_Color_name( color_type ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"color\" value=\"" << Get_Color_Name( color_type ) << "\" />" << std::endl;
 
 	// end enemy
 	file << "\t</enemy>" << std::endl;
@@ -136,8 +139,8 @@ void cSpika :: Set_Color( DefaultColor col )
 
 	Set_Image( 0, 1 );
 
-	name = "Spika";
-	name += " " + Get_Color_name( color_type );
+	name = "Spika ";
+	name += _(Get_Color_Name( color_type ).c_str());
 }
 
 void cSpika :: DownGrade( bool force /* = 0 */ )
@@ -147,6 +150,7 @@ void cSpika :: DownGrade( bool force /* = 0 */ )
 	counter = 0;
 	velx = 0;
 	vely = 0;
+	Set_Scale_Directions( 1, 1, 1, 1 );
 
 	// default stomp death
 	if( !force )
@@ -156,7 +160,7 @@ void cSpika :: DownGrade( bool force /* = 0 */ )
 	// falling death
 	else
 	{
-		Set_RotationZ( 180 );
+		Set_Rotation_Z( 180 );
 	}
 }
 
@@ -172,12 +176,11 @@ void cSpika :: DieStep( void )
 		Move( 0, -5 );
 	}
 	// if not below the screen fall
-	else if( posy < GAME_RES_H + col_rect.h )
+	else if( posy < game_res_h + col_rect.h )
 	{
 		Move( 0, 20 );
 
 		Add_Scale( -pFramerate->speedfactor * 0.01f );
-		Move( ( image->w / 2 ) * pFramerate->speedfactor * 0.01f, ( image->h ) * pFramerate->speedfactor * 0.01f, 1 );
 	}
 	// if below disable
 	else
@@ -198,7 +201,10 @@ void cSpika :: Update( void )
 	}
 
 	// update rotation
-	Add_RotationZ( ( velx / ( image->w * 0.01f ) ) * pFramerate->speedfactor );
+	if( velx != 0 )
+	{
+		Add_Rotation_Z( ( velx / ( image->w * 0.01f ) ) * pFramerate->speedfactor );
+	}
 
 	// check for player
 	GL_rect player_rect = pPlayer->col_rect;
@@ -255,7 +261,7 @@ void cSpika :: Update( void )
 	// play walking sound based on speed
 	if( walk_count < rotz - 30 || walk_count > rotz + 30 )
 	{
-		pAudio->PlaySound( "enemy/spika/move.ogg" );
+		pAudio->Play_Sound( "enemy/spika/move.ogg" );
 
 		walk_count = rotz;
 	}
@@ -264,7 +270,7 @@ void cSpika :: Update( void )
 	Update_Gravity();
 }
 
-bool cSpika :: is_Update_valid( void )
+bool cSpika :: Is_Update_Valid( void )
 {
 	if( dead || freeze_counter )
 	{
@@ -326,7 +332,7 @@ unsigned int cSpika :: Validate_Collision( cSprite *obj )
 	if( obj->massivetype == MASS_HALFMASSIVE )
 	{
 		// if moving downwards and object is on top
-		if( vely >= 0 && is_onTop( obj ) )
+		if( vely >= 0 && Is_on_Top( obj ) )
 		{
 			return 2;
 		}
@@ -359,7 +365,7 @@ void cSpika :: Handle_Collision_Enemy( cObjectCollision *collision )
 		return;
 	}
 
-	cEnemy *enemy = static_cast<cEnemy *>(pLevel->pSprite_Manager->Get_Pointer( collision->number ));
+	cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
 
 	// already dead
 	if( enemy->dead )
@@ -380,10 +386,28 @@ void cSpika :: Handle_Collision_Enemy( cObjectCollision *collision )
 		}
 	}
 
+	// state change for turtle boss
+	if( enemy->type == TYPE_TURTLE_BOSS )
+	{
+		// todo : remove hackiness and implement a better generic downgrade handler
+		cTurtleBoss *turtle_boss = static_cast<cTurtleBoss *>(enemy);
+
+		// downgrade until state change
+		for( int i = turtle_boss->hits; i < turtle_boss->max_hits; i++ )
+		{
+			turtle_boss->DownGrade();
+		}
+
+		// turtle kills spika
+		DownGrade( 1 );
+	}
 	// kill enemy
-	pAudio->PlaySound( enemy->kill_sound );
-	pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", static_cast<Uint8>(255), 1 );
-	enemy->DownGrade( 1 );
+	else
+	{
+		pAudio->Play_Sound( enemy->kill_sound );
+		pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", static_cast<Uint8>(255), 1 );
+		enemy->DownGrade( 1 );
+	}
 }
 
 void cSpika :: Handle_Collision_Massive( cObjectCollision *collision )
@@ -417,5 +441,5 @@ void cSpika :: Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 )
 		return;
 	}
 
-	Reset_onGround();
+	Reset_on_Ground();
 }

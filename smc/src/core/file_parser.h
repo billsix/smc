@@ -1,7 +1,7 @@
 /***************************************************************************
-			file_parser.h  -  header for the corresponding cpp file
-                         -------------------
-    copyright            : (C) 2005 - 2007 by Florian Richter
+ * file_parser.h  -  header for the corresponding cpp file
+ *
+ * Copyright (C) 2005 - 2008 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef __FILE_PARSER_H__
-#define __FILE_PARSER_H__
+#ifndef SMC_FILE_PARSER_H
+#define SMC_FILE_PARSER_H
 
 #include "../core/globals.h"
 
