@@ -912,7 +912,7 @@ void cVideo :: Init_Image_Cache( bool recreate /* = 0 */, bool draw_gui /* = 0 *
 		if( draw_gui )
 		{
 			// update filename
-			GL_Surface *surface_filename = pFont->Render_Text( pFont->font_small, filename, white );
+			cGL_Surface *surface_filename = pFont->Render_Text( pFont->font_small, filename, white );
 
 			// update progress
 			progress_bar->setProgress( static_cast<float>(loaded_files) / static_cast<float>(file_count) );
@@ -1039,7 +1039,7 @@ void cVideo :: Toggle_Fullscreen( void )
 	glClearColor( clear_color[0], clear_color[1], clear_color[2], clear_color[3] );
 }
 
-GL_Surface *cVideo :: Get_Surface( string filename, bool print_errors /* = 1 */ )
+cGL_Surface *cVideo :: Get_Surface( string filename, bool print_errors /* = 1 */ )
 {
 	// .settings file type can't be used directly
 	if( filename.find( ".settings" ) != string::npos )
@@ -1055,7 +1055,7 @@ GL_Surface *cVideo :: Get_Surface( string filename, bool print_errors /* = 1 */ 
 	}
 
 	// check if already loaded
-	GL_Surface *image = pImage_Manager->Get_Pointer( filename );
+	cGL_Surface *image = pImage_Manager->Get_Pointer( filename );
 	// already loaded
 	if( image )
 	{
@@ -1161,7 +1161,7 @@ cVideo::cSoftware_Image cVideo :: Load_Image( string filename, bool load_setting
 	return software_image;
 }
 
-GL_Surface *cVideo :: Load_GL_Surface( string filename, bool use_settings /* = 1 */, bool print_errors /* = 1 */ )
+cGL_Surface *cVideo :: Load_GL_Surface( string filename, bool use_settings /* = 1 */, bool print_errors /* = 1 */ )
 {
 	// pixmaps dir must be given
 	if( filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == string::npos ) 
@@ -1175,7 +1175,7 @@ GL_Surface *cVideo :: Load_GL_Surface( string filename, bool use_settings /* = 1
 	cImage_settings_data *settings = software_image.settings;
 
 	// final surface
-	GL_Surface *image = NULL;
+	cGL_Surface *image = NULL;
 
 	// with settings
 	if( settings )
@@ -1238,7 +1238,7 @@ SDL_Surface *cVideo :: Convert_To_Final_Software_Image( SDL_Surface *surface )
 	return surface;
 }
 
-GL_Surface *cVideo :: Create_Texture( SDL_Surface *surface, bool mipmap /* = 0 */, unsigned int force_width /* = 0 */, unsigned int force_height /* = 0 */ )
+cGL_Surface *cVideo :: Create_Texture( SDL_Surface *surface, bool mipmap /* = 0 */, unsigned int force_width /* = 0 */, unsigned int force_height /* = 0 */ )
 {
 	if( !surface )
 	{
@@ -1312,7 +1312,7 @@ GL_Surface *cVideo :: Create_Texture( SDL_Surface *surface, bool mipmap /* = 0 *
 	SDL_FreeSurface( surface );
 
 	// create OpenGL surface class
-	GL_Surface *image = new GL_Surface();
+	cGL_Surface *image = new cGL_Surface();
 	image->image = image_num;
 	image->tex_w = width;
 	image->tex_h = height;
@@ -1368,7 +1368,7 @@ void cVideo :: Create_GL_Texture( unsigned int width, unsigned int height, void 
     }
 }
 
-Color cVideo :: Get_Pixel( int x, int y, GL_Surface *source /* = NULL */ )
+Color cVideo :: Get_Pixel( int x, int y, cGL_Surface *source /* = NULL */ )
 {
 	//glReadBuffer( GL_FRONT );
 
@@ -1560,7 +1560,7 @@ void cVideo :: Draw_Circle( float x, float y, float radius, float z, Color *colo
 	}
 }
 
-float cVideo :: Get_Scale( GL_Surface *image, float width, float height, bool only_downscale /* = 1 */ )
+float cVideo :: Get_Scale( cGL_Surface *image, float width, float height, bool only_downscale /* = 1 */ )
 {
 	if( !image )
 	{
@@ -1874,7 +1874,7 @@ void Draw_Effect_Out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 	case EFFECT_OUT_BIG_ITEM:
 	{
 		float f = 0.1f;
-		GL_Surface *image = NULL;
+		cGL_Surface *image = NULL;
 
 		// item based on the camera x position
 		if( pActive_Camera->x < 2000 )

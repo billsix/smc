@@ -84,7 +84,7 @@ cSize_Float cImage_settings_data :: Get_Surface_Size( SDL_Surface *sdl_surface )
 	return cSize_Float( new_w, new_h);
 }
 
-void cImage_settings_data :: Apply( GL_Surface *image )
+void cImage_settings_data :: Apply( cGL_Surface *image )
 {
 	// empty image
 	if( !image )

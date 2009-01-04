@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.4" />
-		<Property name="engine_version" value="2.3" />
-		<Property name="save_time" value="1199026855" />
+		<Property name="game_version" value="1.7" />
+		<Property name="engine_version" value="2.8" />
+		<Property name="save_time" value="1229237837" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="" />
@@ -26,10 +26,14 @@
 	</background>
 	<background>
 		<Property name="type" value="1" />
+		<Property name="posx" value="0" />
+		<Property name="posy" value="0" />
+		<Property name="posz" value="0.00011" />
 		<Property name="image" value="game/background/green_junglehills.png" />
 		<Property name="speedx" value="1" />
 		<Property name="speedy" value="1" />
-		<Property name="posz" value="0.00011" />
+		<Property name="const_velx" value="0" />
+		<Property name="const_vely" value="0" />
 	</background>
 	<player>
 		<Property name="posx" value="153" />
@@ -97,38 +101,38 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="839" />
-		<Property name="posy" value="463" />
+		<Property name="posx" value="840" />
+		<Property name="posy" value="464" />
 		<Property name="image" value="blocks/stone/1.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="883" />
-		<Property name="posy" value="463" />
+		<Property name="posy" value="464" />
 		<Property name="image" value="blocks/stone/1.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="883" />
-		<Property name="posy" value="419" />
+		<Property name="posy" value="421" />
 		<Property name="image" value="blocks/stone/1.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1202" />
-		<Property name="posy" value="463" />
+		<Property name="posy" value="464" />
 		<Property name="image" value="blocks/stone/1.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1202" />
-		<Property name="posy" value="419" />
+		<Property name="posy" value="421" />
 		<Property name="image" value="blocks/stone/1.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1202" />
-		<Property name="posy" value="375" />
+		<Property name="posy" value="378" />
 		<Property name="image" value="blocks/stone/1.png" />
 		<Property name="type" value="massive" />
 	</sprite>
@@ -145,68 +149,68 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="4618" />
-		<Property name="posy" value="330" />
-		<Property name="image" value="blocks/stone/1.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="4618" />
-		<Property name="posy" value="286" />
-		<Property name="image" value="blocks/stone/1.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="4662" />
-		<Property name="posy" value="286" />
-		<Property name="image" value="blocks/stone/1.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="4706" />
-		<Property name="posy" value="286" />
-		<Property name="image" value="blocks/stone/1.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="4750" />
-		<Property name="posy" value="286" />
-		<Property name="image" value="blocks/stone/1.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="4794" />
-		<Property name="posy" value="286" />
-		<Property name="image" value="blocks/stone/1.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="4838" />
-		<Property name="posy" value="286" />
+		<Property name="posx" value="4624" />
+		<Property name="posy" value="333" />
 		<Property name="image" value="blocks/stone/1.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="4882" />
-		<Property name="posy" value="286" />
+		<Property name="posy" value="290" />
+		<Property name="image" value="blocks/stone/1.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="4839" />
+		<Property name="posy" value="290" />
+		<Property name="image" value="blocks/stone/1.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="4796" />
+		<Property name="posy" value="290" />
+		<Property name="image" value="blocks/stone/1.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="4753" />
+		<Property name="posy" value="290" />
+		<Property name="image" value="blocks/stone/1.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="4710" />
+		<Property name="posy" value="290" />
+		<Property name="image" value="blocks/stone/1.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="4667" />
+		<Property name="posy" value="290" />
+		<Property name="image" value="blocks/stone/1.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="4624" />
+		<Property name="posy" value="290" />
 		<Property name="image" value="blocks/stone/1.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="4882" />
-		<Property name="posy" value="330" />
+		<Property name="posy" value="376" />
 		<Property name="image" value="blocks/stone/1.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="4882" />
-		<Property name="posy" value="374" />
+		<Property name="posy" value="333" />
 		<Property name="image" value="blocks/stone/1.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="4882" />
-		<Property name="posy" value="418" />
+		<Property name="posy" value="419" />
 		<Property name="image" value="blocks/stone/1.png" />
 		<Property name="type" value="massive" />
 	</sprite>
@@ -565,16 +569,16 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="5035" />
-		<Property name="posy" value="351" />
-		<Property name="image" value="ground/jungle_1/berry_1.png" />
+		<Property name="posx" value="2427" />
+		<Property name="posy" value="266" />
+		<Property name="image" value="ground/green_3/ground/middle/1.png" />
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="5083" />
-		<Property name="posy" value="387" />
-		<Property name="image" value="ground/jungle_1/berry_1.png" />
-		<Property name="type" value="passive" />
+		<Property name="posx" value="4624" />
+		<Property name="posy" value="376" />
+		<Property name="image" value="blocks/stone/1.png" />
+		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="7074" />
@@ -823,114 +827,116 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<enemy>
-		<Property name="type" value="gumba" />
-		<Property name="posx" value="955" />
-		<Property name="posy" value="465" />
+		<Property name="type" value="furball" />
+		<Property name="posx" value="969" />
+		<Property name="posy" value="458" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
-		<Property name="posx" value="1024" />
-		<Property name="posy" value="465" />
+		<Property name="type" value="furball" />
+		<Property name="posx" value="1038" />
+		<Property name="posy" value="458" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="2415" />
 		<Property name="posy" value="93" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="2471" />
 		<Property name="posy" value="93" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
+	<sprite>
+		<Property name="posx" value="4624" />
+		<Property name="posy" value="419" />
+		<Property name="image" value="blocks/stone/1.png" />
+		<Property name="type" value="passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="7194" />
+		<Property name="posy" value="463" />
+		<Property name="image" value="signs/default_1/1_ending.png" />
+		<Property name="type" value="passive" />
+	</sprite>
 	<enemy>
-		<Property name="type" value="gumba" />
-		<Property name="posx" value="1481" />
-		<Property name="posy" value="406" />
-		<Property name="color" value="brown" />
-		<Property name="direction" value="right" />
-	</enemy>
-	<enemy>
-		<Property name="type" value="gumba" />
-		<Property name="posx" value="1707" />
-		<Property name="posy" value="406" />
-		<Property name="color" value="brown" />
-		<Property name="direction" value="right" />
-	</enemy>
-	<enemy>
-		<Property name="type" value="gumba" />
-		<Property name="posx" value="1925" />
-		<Property name="posy" value="356" />
-		<Property name="color" value="brown" />
-		<Property name="direction" value="right" />
+		<Property name="type" value="jpiranha" />
+		<Property name="posx" value="1705" />
+		<Property name="posy" value="460" />
+		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="max_distance" value="200" />
+		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="turtle" />
-		<Property name="posx" value="2417" />
-		<Property name="posy" value="433" />
+		<Property name="posx" value="2407" />
+		<Property name="posy" value="420" />
 		<Property name="color" value="red" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="turtle" />
-		<Property name="posx" value="4075" />
-		<Property name="posy" value="435" />
+		<Property name="posx" value="4086" />
+		<Property name="posy" value="432" />
 		<Property name="color" value="red" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
-		<Property name="posx" value="5184" />
-		<Property name="posy" value="418" />
+		<Property name="type" value="furball" />
+		<Property name="posx" value="5187" />
+		<Property name="posy" value="413" />
 		<Property name="color" value="blue" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
-		<Property name="posx" value="5020" />
-		<Property name="posy" value="418" />
+		<Property name="type" value="furball" />
+		<Property name="posx" value="5026" />
+		<Property name="posy" value="415" />
 		<Property name="color" value="blue" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
-		<Property name="posx" value="4360" />
-		<Property name="posy" value="418" />
+		<Property name="type" value="furball" />
+		<Property name="posx" value="4420" />
+		<Property name="posy" value="409" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
-		<Property name="posx" value="4403" />
-		<Property name="posy" value="418" />
+		<Property name="type" value="furball" />
+		<Property name="posx" value="4470" />
+		<Property name="posy" value="408" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="jpiranha" />
-		<Property name="posx" value="5661" />
-		<Property name="posy" value="406" />
+		<Property name="posx" value="5665" />
+		<Property name="posy" value="413" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="jpiranha" />
-		<Property name="posx" value="4944" />
-		<Property name="posy" value="215" />
+		<Property name="posx" value="4949" />
+		<Property name="posy" value="222" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="3461" />
 		<Property name="posy" value="508" />
 		<Property name="color" value="brown" />
@@ -945,28 +951,29 @@
 	</enemy>
 	<enemy>
 		<Property name="type" value="jpiranha" />
-		<Property name="posx" value="6191" />
-		<Property name="posy" value="404" />
+		<Property name="posx" value="6194" />
+		<Property name="posy" value="407" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="6712" />
 		<Property name="posy" value="482" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="6798" />
 		<Property name="posy" value="482" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="6884" />
 		<Property name="posy" value="482" />
 		<Property name="color" value="brown" />
@@ -1114,7 +1121,7 @@
 	</box>
 	<box>
 		<Property name="posx" value="1159" />
-		<Property name="posy" value="375" />
+		<Property name="posy" value="378" />
 		<Property name="type" value="bonus" />
 		<Property name="animation" value="Default" />
 		<Property name="item" value="8" />
@@ -1125,7 +1132,7 @@
 	</box>
 	<box>
 		<Property name="posx" value="1116" />
-		<Property name="posy" value="375" />
+		<Property name="posy" value="378" />
 		<Property name="type" value="bonus" />
 		<Property name="animation" value="Default" />
 		<Property name="item" value="8" />
@@ -1136,7 +1143,7 @@
 	</box>
 	<box>
 		<Property name="posx" value="1073" />
-		<Property name="posy" value="375" />
+		<Property name="posy" value="378" />
 		<Property name="type" value="bonus" />
 		<Property name="animation" value="Default" />
 		<Property name="item" value="8" />
@@ -1158,302 +1165,38 @@
 	</box>
 	<item>
 		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="334" />
-		<Property name="posy" value="221" />
+		<Property name="posx" value="1471" />
+		<Property name="posy" value="408" />
 		<Property name="color" value="yellow" />
 	</item>
 	<item>
 		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="410" />
-		<Property name="posy" value="221" />
+		<Property name="posx" value="1509" />
+		<Property name="posy" value="408" />
 		<Property name="color" value="yellow" />
 	</item>
 	<item>
 		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="448" />
-		<Property name="posy" value="265" />
+		<Property name="posx" value="1687" />
+		<Property name="posy" value="404" />
 		<Property name="color" value="yellow" />
 	</item>
 	<item>
 		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="372" />
-		<Property name="posy" value="265" />
+		<Property name="posx" value="1725" />
+		<Property name="posy" value="404" />
 		<Property name="color" value="yellow" />
 	</item>
 	<item>
 		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="296" />
-		<Property name="posy" value="265" />
+		<Property name="posx" value="1904" />
+		<Property name="posy" value="358" />
 		<Property name="color" value="yellow" />
 	</item>
 	<item>
 		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="1202" />
-		<Property name="posy" value="212" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="1126" />
-		<Property name="posy" value="212" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="1050" />
-		<Property name="posy" value="212" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="974" />
-		<Property name="posy" value="212" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="898" />
-		<Property name="posy" value="212" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="860" />
-		<Property name="posy" value="256" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="936" />
-		<Property name="posy" value="256" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="1012" />
-		<Property name="posy" value="256" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="1088" />
-		<Property name="posy" value="256" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="1164" />
-		<Property name="posy" value="256" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="1459" />
-		<Property name="posy" value="399" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="1497" />
-		<Property name="posy" value="399" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="1675" />
-		<Property name="posy" value="399" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="1713" />
-		<Property name="posy" value="399" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="1891" />
-		<Property name="posy" value="348" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="1929" />
-		<Property name="posy" value="348" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2401" />
-		<Property name="posy" value="359" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2439" />
-		<Property name="posy" value="359" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2477" />
-		<Property name="posy" value="359" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2515" />
-		<Property name="posy" value="359" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2591" />
-		<Property name="posy" value="359" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2591" />
-		<Property name="posy" value="315" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2553" />
-		<Property name="posy" value="315" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2515" />
-		<Property name="posy" value="315" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2477" />
-		<Property name="posy" value="315" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2439" />
-		<Property name="posy" value="315" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2401" />
-		<Property name="posy" value="315" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2401" />
-		<Property name="posy" value="271" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2439" />
-		<Property name="posy" value="271" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2477" />
-		<Property name="posy" value="271" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2515" />
-		<Property name="posy" value="271" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2553" />
-		<Property name="posy" value="271" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2591" />
-		<Property name="posy" value="271" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2591" />
-		<Property name="posy" value="227" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2553" />
-		<Property name="posy" value="227" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2515" />
-		<Property name="posy" value="227" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2477" />
-		<Property name="posy" value="227" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2439" />
-		<Property name="posy" value="227" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2401" />
-		<Property name="posy" value="227" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2401" />
-		<Property name="posy" value="183" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2439" />
-		<Property name="posy" value="183" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2477" />
-		<Property name="posy" value="183" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2515" />
-		<Property name="posy" value="183" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2553" />
-		<Property name="posy" value="183" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2591" />
-		<Property name="posy" value="183" />
+		<Property name="posx" value="1942" />
+		<Property name="posy" value="358" />
 		<Property name="color" value="yellow" />
 	</item>
 	<item>
@@ -1854,37 +1597,19 @@
 	</item>
 	<item>
 		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="3134" />
-		<Property name="posy" value="345" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="3172" />
-		<Property name="posy" value="345" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
 		<Property name="posx" value="3210" />
 		<Property name="posy" value="345" />
 		<Property name="color" value="yellow" />
 	</item>
 	<item>
 		<Property name="type" value="goldpiece" />
+		<Property name="posx" value="3248" />
+		<Property name="posy" value="345" />
+		<Property name="color" value="yellow" />
+	</item>
+	<item>
+		<Property name="type" value="goldpiece" />
 		<Property name="posx" value="3286" />
-		<Property name="posy" value="345" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="3324" />
-		<Property name="posy" value="345" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="3362" />
 		<Property name="posy" value="345" />
 		<Property name="color" value="yellow" />
 	</item>
@@ -1933,38 +1658,20 @@
 		<Property name="force_best_item" value="0" />
 	</box>
 	<enemystopper>
-		<Property name="posx" value="2358" />
-		<Property name="posy" value="115" />
+		<Property name="posx" value="2351" />
+		<Property name="posy" value="123" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="2675" />
-		<Property name="posy" value="115" />
+		<Property name="posx" value="2680" />
+		<Property name="posy" value="124" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="1494" />
-		<Property name="posy" value="435" />
+		<Property name="posx" value="2104" />
+		<Property name="posy" value="492" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="1709" />
-		<Property name="posy" value="432" />
-	</enemystopper>
-	<enemystopper>
-		<Property name="posx" value="1942" />
-		<Property name="posy" value="382" />
-	</enemystopper>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2553" />
-		<Property name="posy" value="359" />
-		<Property name="color" value="yellow" />
-	</item>
-	<enemystopper>
-		<Property name="posx" value="2110" />
-		<Property name="posy" value="481" />
-	</enemystopper>
-	<enemystopper>
-		<Property name="posx" value="2874" />
-		<Property name="posy" value="481" />
+		<Property name="posx" value="2882" />
+		<Property name="posy" value="493" />
 	</enemystopper>
 	<sprite>
 		<Property name="posx" value="3007" />
@@ -2133,20 +1840,20 @@
 		<Property name="type" value="climbable" />
 	</sprite>
 	<enemystopper>
-		<Property name="posx" value="4052" />
-		<Property name="posy" value="477" />
+		<Property name="posx" value="4056" />
+		<Property name="posy" value="495" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="4194" />
-		<Property name="posy" value="470" />
+		<Property name="posx" value="4192" />
+		<Property name="posy" value="496" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="4342" />
-		<Property name="posy" value="429" />
+		<Property name="posx" value="4320" />
+		<Property name="posy" value="449" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="5419" />
-		<Property name="posy" value="429" />
+		<Property name="posx" value="5421" />
+		<Property name="posy" value="446" />
 	</enemystopper>
 	<sprite>
 		<Property name="posx" value="6661" />
@@ -2209,30 +1916,30 @@
 		<Property name="type" value="halfmassive" />
 	</sprite>
 	<levelexit>
-		<Property name="posx" value="7087" />
-		<Property name="posy" value="486" />
+		<Property name="posx" value="7092" />
+		<Property name="posy" value="506" />
 		<Property name="type" value="0" />
 		<Property name="level_name" value="stephan_2" />
 	</levelexit>
 	<enemystopper>
-		<Property name="posx" value="3393" />
-		<Property name="posy" value="524" />
+		<Property name="posx" value="3398" />
+		<Property name="posy" value="539" />
 	</enemystopper>
 	<enemystopper>
 		<Property name="posx" value="3537" />
-		<Property name="posy" value="529" />
+		<Property name="posy" value="541" />
 	</enemystopper>
 	<enemystopper>
 		<Property name="posx" value="4610" />
-		<Property name="posy" value="252" />
+		<Property name="posy" value="278" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="7543" />
-		<Property name="posy" value="498" />
+		<Property name="posx" value="7555" />
+		<Property name="posy" value="511" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="6613" />
-		<Property name="posy" value="498" />
+		<Property name="posx" value="6612" />
+		<Property name="posy" value="513" />
 	</enemystopper>
 	<sprite>
 		<Property name="posx" value="5232" />
@@ -2465,18 +2172,6 @@
 		<Property name="image" value="clouds/default_1/2_big.png" />
 		<Property name="type" value="halfmassive" />
 	</sprite>
-	<sprite>
-		<Property name="posx" value="4618" />
-		<Property name="posy" value="374" />
-		<Property name="image" value="blocks/stone/1.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="4618" />
-		<Property name="posy" value="418" />
-		<Property name="image" value="blocks/stone/1.png" />
-		<Property name="type" value="passive" />
-	</sprite>
 	<item>
 		<Property name="type" value="goldpiece" />
 		<Property name="posx" value="4834" />
@@ -2495,12 +2190,12 @@
 		<Property name="gold_color" value="red" />
 	</box>
 	<box>
-		<Property name="posx" value="77" />
-		<Property name="posy" value="355" />
+		<Property name="posx" value="152" />
+		<Property name="posy" value="353" />
 		<Property name="type" value="text" />
 		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="-1" />
-		<Property name="text" value="Find the five red coins to get a bonus live!&lt;br/&gt;&lt;br/&gt;Its not very hard ;)&lt;br/&gt;" />
+		<Property name="text" value="Find the five red coins to get a bonus live!&lt;br/&gt;&lt;br/&gt;It is not very hard ;)&lt;br/&gt;" />
 	</box>
 	<sprite>
 		<Property name="posx" value="1558" />
@@ -2749,14 +2444,14 @@
 		<Property name="type" value="halfmassive" />
 	</sprite>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="2763" />
 		<Property name="posy" value="459" />
 		<Property name="color" value="blue" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="2641" />
 		<Property name="posy" value="460" />
 		<Property name="color" value="blue" />
@@ -3257,12 +2952,6 @@
 	<sprite>
 		<Property name="posx" value="2555" />
 		<Property name="posy" value="202" />
-		<Property name="image" value="ground/green_3/ground/middle/1.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="2427" />
-		<Property name="posy" value="266" />
 		<Property name="image" value="ground/green_3/ground/middle/1.png" />
 		<Property name="type" value="passive" />
 	</sprite>

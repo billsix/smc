@@ -51,13 +51,10 @@ public:
 	// Set Text
 	void Set_Text( string str_text );
 
-	// ignore onground check
-	virtual void Check_on_Ground( void ) {};
-
-	// level editor activation
+	// editor activation
 	virtual void Editor_Activate( void );
-	// level editor events
-	bool Editor_Text_Key( const CEGUI::EventArgs &event );  // editor text key up
+	// editor text key up event
+	bool Editor_Text_Key( const CEGUI::EventArgs &event );
 
 	// the text
 	string text;

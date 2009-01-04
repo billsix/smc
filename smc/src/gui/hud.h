@@ -24,7 +24,7 @@
 class cHudSprite : public cSprite
 {
 public:
-	cHudSprite( GL_Surface *new_image = NULL, float x = 0, float y = 0, bool del_img = 0 );
+	cHudSprite( cGL_Surface *new_image = NULL, float x = 0, float y = 0, bool del_img = 0 );
 	virtual ~cHudSprite( void );
 	
 	// copy this sprite
@@ -84,7 +84,7 @@ public:
 
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
-	GL_Surface *maryo_head, *goldpiece;
+	cGL_Surface *maryo_head, *goldpiece;
 	SDL_Rect rect_maryo_head, rect_goldpiece;
 };
 

@@ -86,6 +86,11 @@ public:
 	// collision with massive
 	virtual void Handle_Collision_Massive( cObjectCollision *collision );
 
+	// editor activation
+	virtual void Editor_Activate( void );
+	// editor direction option selected event
+	bool Editor_Direction_Select( const CEGUI::EventArgs &event );
+
 	// Krush state
 	Krush_state krush_state;
 

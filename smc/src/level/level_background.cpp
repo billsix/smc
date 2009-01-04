@@ -249,15 +249,15 @@ void cBackground :: Draw( void )
 		}
 
 		// align start position x
-		// to right
-		while( posx_final < -img_1->w )
-		{
-			posx_final += img_1->w;
-		}
 		// to left
 		while( posx_final > 0 )
 		{
 			posx_final -= img_1->w;
+		}
+		// to right
+		while( posx_final < -img_1->w )
+		{
+			posx_final += img_1->w;
 		}
 		// align start position y
 		if( type == BG_IMG_ALL )
@@ -268,13 +268,13 @@ void cBackground :: Draw( void )
 				posy_final -= img_1->h;
 			}
 			// to bottom
-			while( posy_final < game_res_h - img_1->h )
+			while( posy_final < -img_1->h )
 			{
 				posy_final += img_1->h;
 			}
 		}
 
-		// draw
+		// draw  until width is filled
 		while( posx_final < game_res_w )
 		{
 			// draw horizontal
@@ -285,11 +285,13 @@ void cBackground :: Draw( void )
 			{
 				float posy_temp = posy_final;
 
-				while( posy_temp > -game_res_h )
+				// draw until height is filled
+				while( posy_temp < game_res_h - img_1->h )
 				{
-					img_1->Blit( posx_final, posy_temp, posz );
+					// change position first as this position y is already drawn
+					posy_temp += img_1->h;
 
-					posy_temp -= img_1->h;
+					img_1->Blit( posx_final, posy_temp, posz );
 				}
 			}
 

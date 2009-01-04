@@ -47,7 +47,6 @@ void cSpika :: Init( void )
 {
 	type = TYPE_SPIKA;
 	posz = 0.09f;
-	can_be_ground = 1;
 
 	color_type = COL_DEFAULT;
 	speed = 0;
@@ -331,7 +330,7 @@ unsigned int cSpika :: Validate_Collision( cSprite *obj )
 	}
 	if( obj->massivetype == MASS_HALFMASSIVE )
 	{
-		// if moving downwards and object is on top
+		// if moving downwards and the object is on bottom
 		if( vely >= 0 && Is_on_Top( obj ) )
 		{
 			return 2;
@@ -343,7 +342,7 @@ unsigned int cSpika :: Validate_Collision( cSprite *obj )
 
 void cSpika :: Handle_Collision_Player( cObjectCollision *collision )
 {
-	pPlayer->DownGrade();
+	pPlayer->DownGrade_Player();
 
 	if( collision->direction == DIR_LEFT || collision->direction == DIR_RIGHT )
 	{
@@ -416,6 +415,8 @@ void cSpika :: Handle_Collision_Massive( cObjectCollision *collision )
 	{
 		velx = 0;
 	}
+
+	Send_Collision( collision );
 }
 
 void cSpika :: Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 )

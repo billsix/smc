@@ -48,7 +48,7 @@ bool cPreferences :: Load( string filename /* = "" */ )
 	{
 		config_filename = filename;
 	}
-	
+
 	// prefer local config file
 	if( File_Exists( config_filename ) )
 	{
@@ -58,6 +58,8 @@ bool cPreferences :: Load( string filename /* = "" */ )
 	else
 	{
 		config_filename.insert( 0, user_data_dir );
+		// fixme : this crashes in CEGUI::DefaultResourceProvider::loadRawDataContainer because of the é
+		//config_filename.insert( 0, "N:/Dokumente und Einstellungen/smc_Invité/Anwendungsdaten/smc/" );
 
 		// does not exist in user dir
 		if( !File_Exists( config_filename ) )
@@ -73,7 +75,7 @@ bool cPreferences :: Load( string filename /* = "" */ )
 
 	try
 	{
-		CEGUI::System::getSingleton().getXMLParser()->parseXMLFile( *this, config_filename.c_str(), DATA_DIR "/" GAME_SCHEMA_DIR "/Config.xsd", "" );
+		CEGUI::System::getSingleton().getXMLParser()->parseXMLFile( *this, config_filename, DATA_DIR "/" GAME_SCHEMA_DIR "/Config.xsd", "" );
 	}
 	// catch CEGUI Exceptions
 	catch( CEGUI::Exception &ex )
@@ -152,8 +154,10 @@ void cPreferences :: Save( void )
 	file << "\t<Item Name=\"always_run\" Value=\"" << always_run << "\" />" << std::endl;
 	file << "\t<Item Name=\"level_background_images\" Value=\"" << level_background_images << "\" />" << std::endl;
 	file << "\t<Item Name=\"image_cache_enabled\" Value=\"" << image_cache_enabled << "\" />" << std::endl;
-	// Leveleditor
+	// Editor
 	file << "\t<Item Name=\"editor_mouse_auto_hide\" Value=\"" << editor_mouse_auto_hide << "\" />" << std::endl;
+	file << "\t<Item Name=\"editor_show_item_images\" Value=\"" << editor_show_item_images << "\" />" << std::endl;
+	file << "\t<Item Name=\"editor_item_image_size\" Value=\"" << editor_item_image_size << "\" />" << std::endl;
 	// end preferences
 	file << "</Preferences>" << std::endl;
 
@@ -222,6 +226,8 @@ void cPreferences :: Default( void )
 
 	// editor
 	editor_mouse_auto_hide = 0;
+	editor_show_item_images = 1;
+	editor_item_image_size = 50;
 
 	// filename
 	config_filename = "config.xml";
@@ -627,13 +633,22 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 	{
 		level_background_images = attributes.getValueAsBool( "Value" );
 	}
+	else if( name.compare( "image_cache_enabled" ) == 0 )
+	{
+		image_cache_enabled = attributes.getValueAsBool( "Value" );
+	}
+	// Editor
 	else if( name.compare( "editor_mouse_auto_hide" ) == 0 )
 	{
 		editor_mouse_auto_hide = attributes.getValueAsBool( "Value" );
 	}
-	else if( name.compare( "image_cache_enabled" ) == 0 )
+	else if( name.compare( "editor_show_item_images" ) == 0 )
 	{
-		image_cache_enabled = attributes.getValueAsBool( "Value" );
+		editor_show_item_images = attributes.getValueAsBool( "Value" );
+	}
+	else if( name.compare( "editor_item_image_size" ) == 0 )
+	{
+		editor_item_image_size = attributes.getValueAsInteger( "Value" );
 	}
 }
 

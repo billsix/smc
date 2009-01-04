@@ -53,10 +53,10 @@ public:
 	// update level changes
 	void Update( void );
 
-	// Draw Layer 1 ( Backgrounds, Level Objects and Animations )
-	void Draw_Layer1( LevelDrawType type = LVL_DRAW );
+	// Draw Layer 1 ( Backgrounds, Level objects and Animations )
+	void Draw_Layer_1( LevelDrawType type = LVL_DRAW );
 	// Draw Layer 2 ( Global Effects )
-	void Draw_Layer2( LevelDrawType type = LVL_DRAW );
+	void Draw_Layer_2( LevelDrawType type = LVL_DRAW );
 
 	// Function : Process_Input
 	// static input handler

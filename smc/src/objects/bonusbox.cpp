@@ -58,6 +58,7 @@ void cBonusBox :: Init( void )
 	type = TYPE_BONUSBOX;
 	force_best_item = 0;
 	player_range = 5000;
+	can_be_on_ground = 0;
 	counter = 1;
 
 	Set_Animation( "Bonus" );

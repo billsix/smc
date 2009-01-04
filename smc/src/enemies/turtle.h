@@ -57,7 +57,7 @@ public:
 	virtual cSave_Level_Object *Save_to_Savegame( void );
 
 	// Set Direction
-	void Set_Direction( ObjectDirection dir, bool new_start_direction = 0 );
+	virtual void Set_Direction( ObjectDirection dir, bool new_start_direction = 0 );
 	// set color
 	void Set_Color( DefaultColor col );
 
@@ -89,6 +89,11 @@ public:
 	virtual void Handle_Collision_Enemy( cObjectCollision *collision );
 	// collision with massive
 	virtual void Handle_Collision_Massive( cObjectCollision *collision );
+
+	// editor activation
+	virtual void Editor_Activate( void );
+	// editor direction option selected event
+	bool Editor_Direction_Select( const CEGUI::EventArgs &event );
 
 	// internal turtle state
 	Turtle_state turtle_state;

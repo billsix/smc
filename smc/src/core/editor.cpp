@@ -37,6 +37,23 @@
 #include "boost/filesystem/convenience.hpp"
 namespace fs = boost::filesystem;
 
+/* *** *** *** *** *** *** *** cEditor_Object_Settings_Item *** *** *** *** *** *** *** *** *** *** */
+
+cEditor_Object_Settings_Item :: cEditor_Object_Settings_Item( void )
+{
+	window_name = NULL;
+	window_setting = NULL;
+	advance_row = 1;
+}
+
+cEditor_Object_Settings_Item :: ~cEditor_Object_Settings_Item( void )
+{
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+
+	wmgr.destroyWindow( window_name );
+	wmgr.destroyWindow( window_setting );
+}
+
 /* *** *** *** *** *** *** *** *** cEditor_Item_Object *** *** *** *** *** *** *** *** *** */
 
 cEditor_Item_Object :: cEditor_Item_Object( string text )
@@ -69,7 +86,7 @@ void cEditor_Item_Object :: Init( void )
 	// string size_text = int_to_string( static_cast<int>(image->w) ) + "x" + int_to_string( static_cast<int>(image->h) );
 
 	// get scale
-	preview_scale = pVideo->Get_Scale( sprite_obj->start_image, 100, 50 );
+	preview_scale = pVideo->Get_Scale( sprite_obj->start_image, static_cast<float>(pPreferences->editor_item_image_size) * 2, static_cast<float>(pPreferences->editor_item_image_size) );
 
 	// check if name is fitting
 	if( sprite_obj->name.length() > 25 )
@@ -89,7 +106,11 @@ void cEditor_Item_Object :: Init( void )
 CEGUI::Size cEditor_Item_Object :: getPixelSize( void ) const
 {
 	CEGUI::Size tmp = list_text->getPixelSize();
-	tmp.d_height += 60 * global_upscaley;
+
+	if( pPreferences->editor_show_item_images )
+	{
+		tmp.d_height += (pPreferences->editor_item_image_size + 10) * global_upscaley;
+	}
 
 	return tmp;
 }
@@ -109,7 +130,7 @@ void cEditor_Item_Object :: draw( CEGUI::RenderCache &cache, const CEGUI::Rect &
 void cEditor_Item_Object :: Draw_Image( void )
 {
 	// no image available to blit
-	if( !sprite_obj->start_image )
+	if( !sprite_obj->start_image || !pPreferences->editor_show_item_images )
 	{
 		return;
 	}
@@ -941,7 +962,7 @@ void cEditor :: Add_Menu_Object( string name, string tags, CEGUI::colour normal_
 	listbox_editor_menu->addItem( new_menu );
 }
 
-void cEditor :: Activate_Menu( cEditor_Menu_Object *entry )
+void cEditor :: Activate_Menu_Item( cEditor_Menu_Object *entry )
 {
 	// Function
 	if( entry->bfunction )
@@ -1024,7 +1045,7 @@ bool cEditor :: Load_Item_Menu( string item_tags )
 			// found all tags
 			if( tag_pos >= array_tags.size() )
 			{
-				GL_Surface *image = pVideo->Get_Surface( settings->m_base );
+				cGL_Surface *image = pVideo->Get_Surface( settings->m_base );
 				// Create sprite
 				cSprite *new_sprite = new cSprite( image );
 				// default massivetype
@@ -1080,7 +1101,7 @@ void cEditor :: Unload_Item_Menu( void )
 }
 
 
-void cEditor :: Add_Item_Object( cSprite *sprite, string new_name /* = "" */, GL_Surface *image /* = NULL */ )
+void cEditor :: Add_Item_Object( cSprite *sprite, string new_name /* = "" */, cGL_Surface *image /* = NULL */ )
 {
 	// if invalid
 	if( !sprite )
@@ -1602,7 +1623,7 @@ bool cEditor :: Menu_Select( const CEGUI::EventArgs &event )
 	// set item
 	if( item )
 	{
-		Activate_Menu( static_cast<cEditor_Menu_Object *>(item) );
+		Activate_Menu_Item( static_cast<cEditor_Menu_Object *>(item) );
 	}
 	// clear ?
 	else

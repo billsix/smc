@@ -26,7 +26,7 @@
 // Caption
 #define CAPTION "Secret Maryo Chronicles"
 // Version
-static const float smc_version = 1.6f;
+static const float smc_version = 1.7f;
 
 /* *** *** *** *** *** *** *** Object Direction *** *** *** *** *** *** *** *** *** *** */
 
@@ -354,14 +354,19 @@ enum performance_timer_type
 
 class cCamera;
 class cCircleRequest;
+class cEditor_Object_Settings_Item;
 class cGradientRequest;
 class cImage_settings_data;
+class cLayer_Line_Point_Start;
 class cLevel;
+class cLine_collision;
 class cLineRequest;
 class cLevel_Settings;
 class cMenu_Base;
 class cObjectCollisionType;
 class cObjectCollision;
+class cOverworld;
+class cOverworld_Player;
 class cParticle_Emitter;
 class cRectRequest;
 class cSave_Level_Object;
@@ -371,9 +376,10 @@ class cSize_Int;
 class cSprite_Manager;
 class cSurfaceRequest;
 class cSprite;
+class cWorld_Sprite_Manager;
 class Color;
 class GL_rect;
-class GL_Surface;
+class cGL_Surface;
 class GL_line;
 class GL_point;
 

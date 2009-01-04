@@ -27,7 +27,7 @@
 #include "../player/player.h"
 #include "../core/obj_manager.h"
 #include "../objects/goldpiece.h"
-#include "../objects/levelexit.h"
+#include "../objects/level_exit.h"
 #include "../objects/level_entry.h"
 #include "../video/font.h"
 #include "../input/keyboard.h"
@@ -442,7 +442,7 @@ void cLevel :: Update( void )
 	}
 }
 
-void cLevel :: Draw_Layer1( LevelDrawType type /* = LVL_DRAW */ )
+void cLevel :: Draw_Layer_1( LevelDrawType type /* = LVL_DRAW */ )
 {
 	// with background
 	if( type != LVL_DRAW_NO_BG )
@@ -465,7 +465,7 @@ void cLevel :: Draw_Layer1( LevelDrawType type /* = LVL_DRAW */ )
 	pAnimation_Manager->Draw();
 }
 
-void cLevel :: Draw_Layer2( LevelDrawType type /* = LVL_DRAW */ )
+void cLevel :: Draw_Layer_2( LevelDrawType type /* = LVL_DRAW */ )
 {
 	// only background
 	if( type == LVL_DRAW_BG )
@@ -1338,7 +1338,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 		string getimage_path = filename;
 		getimage_path.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
 
-		GL_Surface *surface = pVideo->Get_Surface( getimage_path );
+		cGL_Surface *surface = pVideo->Get_Surface( getimage_path );
 		int posx = string_to_int( parts[2] );
 		int posy = game_res_h - string_to_int( parts[3] );
 
@@ -1418,7 +1418,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 			if( count >= 5 ) // color support
 			{
 				cFurball *temp = NULL;
-				DefaultColor color = (DefaultColor)string_to_int( parts[4] );
+				DefaultColor color = static_cast<DefaultColor>(string_to_int( parts[4] ));
 
 				// correct old color types
 				if( count == 5 )
@@ -1761,7 +1761,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 				return 0; // error
 			}
 
-			color = (DefaultColor)string_to_int( parts[3] );
+			color = static_cast<DefaultColor>(string_to_int( parts[3] ));
 		}
 
 		cGoldpiece *temp = new cGoldpiece( (float)string_to_int( parts[1] ), (float)( game_res_h - string_to_int( parts[2] ) ) );
@@ -1969,7 +1969,7 @@ bool cLevel :: HandleMessage( string *parts, unsigned int count, unsigned int li
 				return 0; // error
 			}
 
-			color = (DefaultColor)string_to_int( parts[3] );
+			color = static_cast<DefaultColor>(string_to_int( parts[3] ));
 		}
 
 		cBonusBox *temp = new cBonusBox( (float)string_to_int( parts[1] ), (float)( game_res_h - string_to_int( parts[2] ) ) );
@@ -2300,6 +2300,26 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 		}
 
 		cSprite *sprite = new cSprite( attributes );
+
+		// if image not available display its filename
+		if( !sprite->start_image )
+		{
+			string text = attributes.getValueAsString( "image" ).c_str();
+
+			if( text.empty() )
+			{
+				text = "Invalid image here";
+			}
+
+			cGL_Surface *text_image = pFont->Render_Text( pFont->font_small, text );
+			text_image->filename = text;
+			// set text image
+			sprite->Set_Image( text_image, 1, 1 );
+			// display it as front passive
+			sprite->Set_Sprite_Type( TYPE_FRONT_PASSIVE );
+			// only display it in the editor
+			sprite->Set_Visible( 0 );
+		}
 
 		// if V.1.2 and lower : change pipe position
 		if( engine_version < 2.2f && sprite->image )

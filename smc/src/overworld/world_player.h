@@ -77,7 +77,7 @@ public:
 	cWaypoint *Get_Waypoint( void );
 
 	// Returns the current Waypoint front line
-	cLayer_Line *Get_Front_Line( ObjectDirection dir );
+	cLayer_Line_Point_Start *Get_Front_Line( ObjectDirection dir );
 
 	/* Checks how much Maryo can walk into all directions
 	 * and sets the size into the path directions

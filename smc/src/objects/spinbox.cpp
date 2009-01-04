@@ -43,6 +43,7 @@ void cSpinBox :: Init( void )
 	type = TYPE_SPINBOX;
 	box_type = type;
 	player_range = 5000;
+	can_be_on_ground = 0;
 
 	spin_counter = 0;
 	spin = 0;

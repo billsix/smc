@@ -72,8 +72,6 @@ public:
 	// generate small cloud particles ( for moving )
 	void Generate_Particles( void );
 
-	// ignore onground check
-	virtual void Check_on_Ground( void ) {};
 	// Check if out of max distance
 	bool Check_Max_Distance( void );
 
@@ -89,14 +87,21 @@ public:
 	virtual unsigned int Validate_Collision( cSprite *obj );
 	// collision from player
 	virtual void Handle_Collision_Player( cObjectCollision *collision );
+	// collision with massive
+	virtual void Handle_Collision_Massive( cObjectCollision *collision );
 
-	// leveleditor activation
+	// editor activation
 	virtual void Editor_Activate( void );
-	// leveleditor events
-	bool Editor_Max_Distance_Key( const CEGUI::EventArgs &event );  // editor max distance key up
-	bool Editor_Always_Fly_Select( const CEGUI::EventArgs &event ); // editor always fly option selected
-	bool Editor_Wait_Time_Key( const CEGUI::EventArgs &event );  // editor wait time key up
-	bool Editor_Fly_Distance_Key( const CEGUI::EventArgs &event );  // editor fly distance key up
+	// editor direction option selected event
+	bool Editor_Direction_Select( const CEGUI::EventArgs &event );
+	// editor max distance key up event
+	bool Editor_Max_Distance_Key( const CEGUI::EventArgs &event );
+	// editor always fly option selected event
+	bool Editor_Always_Fly_Select( const CEGUI::EventArgs &event );
+	// editor wait time key up event
+	bool Editor_Wait_Time_Key( const CEGUI::EventArgs &event );
+	// editor fly distance key up event
+	bool Editor_Fly_Distance_Key( const CEGUI::EventArgs &event );
 
 	// color
 	DefaultColor color_type;

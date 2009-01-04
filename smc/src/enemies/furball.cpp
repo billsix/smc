@@ -64,7 +64,7 @@ void cFurball :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// color
-	Set_Color( (DefaultColor)Get_Color_Id( attributes.getValueAsString( "color", Get_Color_Name( color_type ) ).c_str() ) );
+	Set_Color( static_cast<DefaultColor>(Get_Color_Id( attributes.getValueAsString( "color", Get_Color_Name( color_type ) ).c_str() )) );
 	// direction
 	Set_Direction( Get_Direction_Id( attributes.getValueAsString( "direction", Get_Direction_Name( start_direction ) ).c_str() ) );
 }
@@ -98,7 +98,7 @@ void cFurball :: Load_from_Savegame( cSave_Level_Object *save_object )
 void cFurball :: Set_Direction( ObjectDirection dir )
 {
 	// already set
-	if( direction == dir )
+	if( start_direction == dir )
 	{
 		return;
 	}
@@ -334,7 +334,7 @@ unsigned int cFurball :: Validate_Collision( cSprite *obj )
 	}
 	if( obj->massivetype == MASS_HALFMASSIVE )
 	{
-		// if moving downwards and object is on top
+		// if moving downwards and the object is on bottom
 		if( vely >= 0 && Is_on_Top( obj ) )
 		{
 			return 2;
@@ -364,7 +364,7 @@ void cFurball :: Handle_Collision_Player( cObjectCollision *collision )
 	}
 	else
 	{
-		pPlayer->DownGrade();
+		pPlayer->DownGrade_Player();
 		Turn_Around( collision->direction );
 	}
 }
@@ -381,8 +381,37 @@ void cFurball :: Handle_Collision_Massive( cObjectCollision *collision )
 	{
 		return;
 	}
-	
+
 	Turn_Around( collision->direction );
+	Send_Collision( collision );
+}
+
+void cFurball :: Editor_Activate( void )
+{
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+
+	// direction
+	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_furball_direction" ));
+	Editor_Add( UTF8_("Direction"), UTF8_("Direction"), combobox, 100, 75 );
+
+	combobox->addItem( new CEGUI::ListboxTextItem( "left" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "right" ) );
+
+	combobox->setText( Get_Direction_Name( start_direction ) );
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cFurball::Editor_Direction_Select, this ) );
+
+	// init
+	Editor_Init();
+}
+
+bool cFurball :: Editor_Direction_Select( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
+
+	Set_Direction( Get_Direction_Id( item->getText().c_str() ) );
+
+	return 1;
 }
 
 void cFurball :: Create_Name( void )

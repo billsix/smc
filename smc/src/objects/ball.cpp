@@ -246,7 +246,7 @@ unsigned int cBall :: Validate_Collision( cSprite *obj )
 	{
 		if( origin_type != TYPE_PLAYER )
 		{
-			return 2;
+			return 1;
 		}
 
 		return 0;
@@ -267,7 +267,7 @@ unsigned int cBall :: Validate_Collision( cSprite *obj )
 	}
 	else if( obj->massivetype == MASS_HALFMASSIVE )
 	{
-		// if moving downwards and object is on top
+		// if moving downwards and the object is on bottom
 		if( vely >= 0 && Is_on_Top( obj ) )
 		{
 			return 2;
@@ -290,22 +290,36 @@ void cBall :: Handle_Collision( cObjectCollision *collision )
 
 void cBall :: Handle_Collision_Player( cObjectCollision *collision )
 {
+	printf( "reduction for dir : %s\n", Get_Direction_Name( collision->direction ).c_str() );
+
 	// velocity hit
-	if( direction == DIR_LEFT )
+	if( collision->direction == DIR_LEFT )
 	{
-		pPlayer->velx -= 5;
+		if( pPlayer->velx > 0 )
+		{
+			pPlayer->velx *= 0.3f;
+		}
 	}
-	else if( direction == DIR_RIGHT )
+	else if( collision->direction == DIR_RIGHT )
 	{
-		pPlayer->velx += 5;
+		if( pPlayer->velx < 0 )
+		{
+			pPlayer->velx *= 0.3f;
+		}
 	}
-	else if( direction == DIR_UP )
+	else if( collision->direction == DIR_UP )
 	{
-		pPlayer->vely -= 5;
+		if( pPlayer->vely > 0 )
+		{
+			pPlayer->vely *= 0.2f;
+		}
 	}
-	else if( direction == DIR_DOWN )
+	else if( collision->direction == DIR_DOWN )
 	{
-		pPlayer->vely += 5;
+		if( pPlayer->vely < 0 )
+		{
+			pPlayer->vely *= 0.4f;
+		}
 	}
 
 	Destroy();

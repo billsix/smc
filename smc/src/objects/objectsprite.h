@@ -32,14 +32,14 @@ public:
 	*/
 	virtual void Set_Image( int num, bool new_startimage = 0, bool del_img = 0 );
 	// Get an array image
-	GL_Surface *Get_Image( unsigned int num );
+	cGL_Surface *Get_Image( unsigned int num );
 	// Clears images list
 	void Clear_Images( void );
 
 	// Current image array number for drawing
 	int curr_img;
 	// Image list
-	typedef vector<GL_Surface *> ObjectImageList;
+	typedef vector<cGL_Surface *> ObjectImageList;
 	ObjectImageList images;
 };
 

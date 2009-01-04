@@ -18,7 +18,7 @@
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-void Font_Delete_Ref( GL_Surface *surface )
+void Font_Delete_Ref( cGL_Surface *surface )
 {
 	pFont->Delete_Ref( surface );
 }
@@ -86,7 +86,7 @@ void cFont_Manager :: Init( void )
 	}
 }
 
-void cFont_Manager :: Add_Ref( GL_Surface *surface )
+void cFont_Manager :: Add_Ref( cGL_Surface *surface )
 {
 	if( !surface )
 	{
@@ -96,7 +96,7 @@ void cFont_Manager :: Add_Ref( GL_Surface *surface )
 	active_fonts.push_back( surface );
 }
 
-void cFont_Manager :: Delete_Ref( GL_Surface *surface )
+void cFont_Manager :: Delete_Ref( cGL_Surface *surface )
 {
 	for( unsigned int i = 0; i < active_fonts.size(); i++ )
 	{
@@ -109,12 +109,12 @@ void cFont_Manager :: Delete_Ref( GL_Surface *surface )
 	}
 }
 
-GL_Surface *cFont_Manager :: Render_Text( TTF_Font *font, string text, Color color )
+cGL_Surface *cFont_Manager :: Render_Text( TTF_Font *font, string text, Color color )
 {
 	// get SDL Color
 	SDL_Color sdlcolor = color.Get_SDL_Color();
 	// create text surface
-	GL_Surface *surface = pVideo->Create_Texture( TTF_RenderUTF8_Blended( font, text.c_str(), sdlcolor ) );
+	cGL_Surface *surface = pVideo->Create_Texture( TTF_RenderUTF8_Blended( font, text.c_str(), sdlcolor ) );
 
 	if( !surface )
 	{
@@ -136,7 +136,7 @@ void cFont_Manager :: Grab_Textures( void )
 	// save to software memory
 	for( ActiveFontList::iterator itr = active_fonts.begin(), itr_end = active_fonts.end(); itr != itr_end; ++itr )
 	{
-		GL_Surface *obj = (*itr);
+		cGL_Surface *obj = (*itr);
 
 		// get software texture and save it
 		software_textures.push_back( obj->Get_Software_Texture() );

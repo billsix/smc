@@ -186,7 +186,7 @@ string cDialogBox_Text :: Enter( std::string default_text, std::string title_tex
 				if( auto_no_text && default_text.compare( box_editbox->getText().c_str() ) == 0 )
 				{
 					box_editbox->setText( "" );
-					// only 1 time
+					// only the first time
 					auto_no_text = 0;
 				}
 
@@ -237,6 +237,7 @@ cDialogBox_Question :: cDialogBox_Question( void )
 : cDialogBox()
 {
 	layout_file = "box_question.layout";
+	box_window = NULL;
 	return_value = -1;
 }
 
@@ -250,8 +251,9 @@ void cDialogBox_Question :: Init( bool with_cancel )
 	cDialogBox::Init();
 
 	// get window
-	CEGUI::FrameWindow *box_window = static_cast<CEGUI::FrameWindow *>(CEGUI::WindowManager::getSingleton().getWindow( "box_question_window" ));
-	box_window->setSizingEnabled( 0 );
+	box_window = static_cast<CEGUI::FrameWindow *>(CEGUI::WindowManager::getSingleton().getWindow( "box_question_window" ));
+	box_window->moveToFront();
+
 	// subscribe close button
 	if( with_cancel )
 	{
@@ -270,6 +272,18 @@ int cDialogBox_Question :: Enter( std::string text, bool with_cancel /* = 0 */ )
 	// get text
 	CEGUI::Editbox *box_text = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "box_question_text" ));
 	box_text->setText( reinterpret_cast<const CEGUI::utf8*>(text.c_str()) );
+
+
+	// align text
+	CEGUI::Font *font = CEGUI::FontManager::getSingleton().getFont( "bluebold_medium" );
+	// fixme : Can't handle multiple lines of text
+	float text_width = font->getTextExtent( text ) * global_downscalex;
+
+	if( text_width > 250 )
+	{
+		box_window->setWidth( CEGUI::UDim( 0, ( text_width + 15 ) * global_upscalex ) );
+		box_window->setXPosition( CEGUI::UDim( 0, ( game_res_w * 0.5f - text_width * 0.5f ) * global_upscalex ) );
+	}
 
 	// Button Yes
 	CEGUI::PushButton *button_yes = static_cast<CEGUI::PushButton *>(CEGUI::WindowManager::getSingleton().getWindow( "box_question_button_yes" ));
@@ -1170,7 +1184,7 @@ void Gui_Handle_Time( void )
 
 void Draw_Static_Text( std::string text, const Color *color_text /* = &white */, const Color *color_bg /* = NULL */, bool wait_for_input /* = 1 */ )
 {
-	// todo : Can't handle multiple lines. Change to MultiLineEditbox or use HorzFormatting=WordWrapLeftAligned property.
+	// fixme : Can't handle multiple lines of text. Change to MultiLineEditbox or use HorzFormatting=WordWrapLeftAligned property.
 	bool draw = 1;
 
 	// Statictext window
@@ -1636,15 +1650,15 @@ std::string Get_Temp_Directory( void )
 std::string Get_User_Directory( void )
 {
 #ifdef _WIN32
-	char path[MAX_PATH + 1];
+	TCHAR path_appdata[MAX_PATH + 1];
 
-	if( FAILED( SHGetFolderPath( NULL, CSIDL_APPDATA, NULL, 0, path ) ) )
+	if( FAILED( SHGetFolderPath( NULL, CSIDL_APPDATA, NULL, 0 /*SHGFP_TYPE_CURRENT*/, path_appdata ) ) )
 	{
-		printf( "Error : Couldn't get Windows user directory. Using Application directory.\n" );
+		printf( "Error : Couldn't get Windows user data directory. Now using the Application directory.\n" );
 		return "";
 	}
 
-	std::string str_path = path;
+	std::string str_path = path_appdata;
 	Convert_Path_Separators( str_path );
 
 	return str_path + "/smc/";

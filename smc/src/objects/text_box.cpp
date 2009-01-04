@@ -48,6 +48,7 @@ void cText_Box :: Init( void )
 {
 	type = TYPE_TEXT_BOX;
 	box_type = type;
+	can_be_on_ground = 0;
 
 	// default is infinite times activate-able
 	Set_Useable_Count( -1, 1 );

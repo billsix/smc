@@ -22,7 +22,7 @@
 /* *** *** *** *** *** *** *** Font Manager class *** *** *** *** *** *** *** *** *** *** */
 
 // Deletes an active Font Surface
-void Font_Delete_Ref( GL_Surface *surface );
+void Font_Delete_Ref( cGL_Surface *surface );
 
 class cFont_Manager
 {
@@ -34,12 +34,12 @@ public:
 	void Init( void );
 
 	// Adds an allocated Font surface
-	void Add_Ref( GL_Surface *surface );
+	void Add_Ref( cGL_Surface *surface );
 	// Deletes an active Font Surface
-	void Delete_Ref( GL_Surface *surface );
+	void Delete_Ref( cGL_Surface *surface );
 
 	// Renders the given text into a new surface
-	GL_Surface *Render_Text( TTF_Font *font, string text, Color color = static_cast<Uint8>(0) );
+	cGL_Surface *Render_Text( TTF_Font *font, string text, Color color = static_cast<Uint8>(0) );
 
 	/* Saves hardware textures in software memory
 	*/
@@ -53,7 +53,7 @@ public:
 	TTF_Font *font_normal, *font_small, *font_very_small;
 
 	// current active loaded font list
-	typedef vector<GL_Surface *> ActiveFontList;
+	typedef vector<cGL_Surface *> ActiveFontList;
 	ActiveFontList active_fonts;
 
 	// saved software textures only used for reloading

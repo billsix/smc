@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.5" />
-		<Property name="engine_version" value="2.5" />
-		<Property name="save_time" value="1209646680" />
+		<Property name="game_version" value="1.6" />
+		<Property name="engine_version" value="2.8" />
+		<Property name="save_time" value="1222449409" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="" />
@@ -2167,18 +2167,6 @@
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1269" />
-		<Property name="posy" value="136" />
-		<Property name="image" value="blocks/brick/1_red.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="1269" />
-		<Property name="posy" value="93" />
-		<Property name="image" value="blocks/brick/1_red.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="1269" />
 		<Property name="posy" value="50" />
 		<Property name="image" value="blocks/brick/1_red.png" />
 		<Property name="type" value="massive" />
@@ -2419,18 +2407,6 @@
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1312" />
-		<Property name="posy" value="136" />
-		<Property name="image" value="blocks/brick/1_red.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="1312" />
-		<Property name="posy" value="93" />
-		<Property name="image" value="blocks/brick/1_red.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="1312" />
 		<Property name="posy" value="50" />
 		<Property name="image" value="blocks/brick/1_red.png" />
 		<Property name="type" value="massive" />
@@ -2666,18 +2642,6 @@
 	<sprite>
 		<Property name="posx" value="1355" />
 		<Property name="posy" value="308" />
-		<Property name="image" value="blocks/brick/1_red.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="1355" />
-		<Property name="posy" value="136" />
-		<Property name="image" value="blocks/brick/1_red.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="1355" />
-		<Property name="posy" value="93" />
 		<Property name="image" value="blocks/brick/1_red.png" />
 		<Property name="type" value="massive" />
 	</sprite>
@@ -6303,4 +6267,14 @@
 		<Property name="direction" value="up" />
 		<Property name="name" value="one" />
 	</level_entry>
+	<box>
+		<Property name="posx" value="1355" />
+		<Property name="posy" value="136" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Bonus" />
+		<Property name="item" value="51" />
+		<Property name="invisible" value="0" />
+		<Property name="useable_count" value="-1" />
+		<Property name="force_best_item" value="1" />
+	</box>
 </level>

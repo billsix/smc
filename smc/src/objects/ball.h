@@ -29,7 +29,9 @@ public:
 	cBall( float x, float y, cSprite *origin_object = NULL, ball_effect btype = FIREBALL_DEFAULT );
 	virtual ~cBall( void );
 
-	// delete on the next frame start
+	/* set this sprite to destroyed and completely disable it
+	 * sprite is still in the sprite manager but only to get possibly replaced
+	*/
 	virtual void Destroy( void );
 
 	// update

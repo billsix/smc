@@ -3,9 +3,9 @@
 <GUILayout >
     <Window Type="DefaultWindow" Name="menu_overworld" >
         <Property Name="InheritsAlpha" Value="False" />
-        <Property Name="MousePassThroughEnabled" Value="True" />
         <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
         <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
+        <Property Name="MousePassThroughEnabled" Value="True" />
         <Window Type="TaharezLook/TabControl" Name="tabcontrol_main" >
             <Property Name="TabHeight" Value="{0,22.4934}" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
@@ -66,11 +66,12 @@
 
 Orange : Game
 Green   : User
-Grey     : Deprecated</Property>
+Grey     : Deprecated
+Mixed   : See the colors</Property>
                     <Property Name="TextColours" Value="tl:FFF8BF26 tr:FFF8BF26 bl:FFF8BF26 br:FFF8BF26" />
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
                     <Property Name="VertFormatting" Value="TopAligned" />
-                    <Property Name="UnifiedAreaRect" Value="{{0.55,0},{0.105,0},{0.92,0},{0.54,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.55,0},{0.105,0},{0.940903,0},{0.488335,0}}" />
                 </Window>
                 <Window Type="TaharezLook/Button" Name="button_level_new" >
                     <Property Name="Text" Value="New" />

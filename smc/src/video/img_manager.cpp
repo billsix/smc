@@ -45,7 +45,7 @@ cSaved_Texture :: ~cSaved_Texture( void )
 /* *** *** *** *** *** *** cImage_Manager *** *** *** *** *** *** *** *** *** *** *** */
 
 cImage_Manager :: cImage_Manager( void )
-: cObject_Manager<GL_Surface>()
+: cObject_Manager<cGL_Surface>()
 {
 	high_texture_id = 0;
 }
@@ -55,7 +55,7 @@ cImage_Manager :: ~cImage_Manager( void )
 	Delete_All();
 }
 
-void cImage_Manager :: Add( GL_Surface *obj )
+void cImage_Manager :: Add( cGL_Surface *obj )
 {
 	if( !obj )
 	{
@@ -66,14 +66,14 @@ void cImage_Manager :: Add( GL_Surface *obj )
 	obj->managed = 1;
 
 	// Add
-	cObject_Manager<GL_Surface>::Add( obj );
+	cObject_Manager<cGL_Surface>::Add( obj );
 }
 
-GL_Surface *cImage_Manager :: Get_Pointer( string path )
+cGL_Surface *cImage_Manager :: Get_Pointer( string path )
 {
 	for( GL_Surface_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
-		GL_Surface *obj = (*itr);
+		cGL_Surface *obj = (*itr);
 
 		// return first match
 		if( obj->filename.compare( path ) == 0 )
@@ -86,12 +86,12 @@ GL_Surface *cImage_Manager :: Get_Pointer( string path )
 	return NULL;
 }
 
-GL_Surface *cImage_Manager :: Copy( string path )
+cGL_Surface *cImage_Manager :: Copy( string path )
 {
 	for( GL_Surface_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		// get object
-		GL_Surface *obj = (*itr);
+		cGL_Surface *obj = (*itr);
 
 		// first match
 		if( obj->filename.compare( path ) == 0 )
@@ -125,7 +125,7 @@ void cImage_Manager :: Grab_Textures( bool from_file /* = 0 */, bool draw_gui /*
 	for( GL_Surface_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		// get surface
-		GL_Surface *obj = (*itr);
+		cGL_Surface *obj = (*itr);
 
 		// skip surfaces with an already deleted texture
 		if( !glIsTexture( obj->image ) )
@@ -220,7 +220,7 @@ void cImage_Manager :: Delete_Image_Textures( void )
 	for( GL_Surface_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr ) 
 	{
 		// get object
-		GL_Surface *obj = (*itr);
+		cGL_Surface *obj = (*itr);
 
 		if( obj->auto_del_img && glIsTexture( obj->image ) )
 		{
@@ -246,9 +246,9 @@ void cImage_Manager :: Delete_Hardware_Textures( void )
 
 void cImage_Manager :: Delete_All( void )
 {
-	// stops GL_Surface destructor from checking if GL texture id still in use
+	// stops cGL_Surface destructor from checking if GL texture id still in use
 	Delete_Image_Textures();
-	cObject_Manager<GL_Surface>::Delete_All();
+	cObject_Manager<cGL_Surface>::Delete_All();
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

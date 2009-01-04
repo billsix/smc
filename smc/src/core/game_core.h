@@ -136,6 +136,9 @@ public:
 	bool Button_no_clicked( const CEGUI::EventArgs &event ); // no button
 	bool Button_cancel_clicked( const CEGUI::EventArgs &event ); // cancel button
 
+	// box window
+	CEGUI::FrameWindow *box_window;
+
 	// return value
 	int return_value;
 };

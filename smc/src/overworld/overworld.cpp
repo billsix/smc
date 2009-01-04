@@ -156,10 +156,10 @@ void cOverworld_description :: handle_world( const CEGUI::XMLAttributes &attribu
 
 cOverworld :: cOverworld( void )
 {
-	sprite_manager = new cSprite_Manager( 500 );
+	sprite_manager = new cWorld_Sprite_Manager( this );
 
 	description = new cOverworld_description();
-	pLayer = new cLayer();
+	pLayer = new cLayer( this );
 
 	background_color = Color();
 	musicfile = "overworld/land_1.ogg";
@@ -563,11 +563,14 @@ void cOverworld :: Save( void )
 	// save Layer
 	if( pLayer->Save( save_dir + "/layer.xml" ) )
 	{
-		debugdisplay->Set_Text( _("World ") + description->name + _(" saved") );
+		printf( "Saving World %s Layer failed\n", description->name.c_str() );
 	}
 
 	// save description
 	description->Save();
+
+	// show info
+	debugdisplay->Set_Text( _("World ") + description->name + _(" saved") );
 }
 
 void cOverworld :: Set_Progress( unsigned int normal_level, bool force /* = 1 */ )
@@ -726,7 +729,7 @@ bool cOverworld :: Goto_Next_Level( void )
 	}
 
 	// Get Layer Line in front
-	cLayer_Line *front_line = pOverworld_Player->Get_Front_Line( current_waypoint->direction_forward );
+	cLayer_Line_Point_Start *front_line = pOverworld_Player->Get_Front_Line( current_waypoint->direction_forward );
 
 	if( !front_line )
 	{
@@ -839,7 +842,7 @@ void cOverworld :: elementEnd( const CEGUI::String &element )
 			// valid
 			if( object )
 			{
-				Add_Map_Object( object );
+				sprite_manager->Add( object );
 			}
 			else if( element == "overworld" )
 			{
@@ -860,21 +863,25 @@ void cOverworld :: Draw( void )
 {
 	// Background
 	pVideo->Clear_Screen();
-	pVideo->Draw_Rect( NULL, 0.00001f, &background_color );
+	Draw_Layer_1();
 
-	// Map
-	sprite_manager->Draw_Items();
-	// Animations
-	pAnimation_Manager->Draw();
 	// Player
 	pOverworld_Player->Draw();
 	// Hud
 	Draw_HUD();
 
-	// Line Layer
-	pLayer->Draw();
 	// Editor
 	pWorld_Editor->Draw();
+}
+
+void cOverworld :: Draw_Layer_1( void )
+{
+	pVideo->Draw_Rect( NULL, 0.0001f, &background_color );
+
+	// Map
+	sprite_manager->Draw_Items();
+	// Animations
+	pAnimation_Manager->Draw();
 }
 
 void cOverworld :: Draw_HUD( void )
@@ -955,27 +962,6 @@ void cOverworld :: Update_Camera( void )
 	}
 }
 
-void cOverworld :: Add_Map_Object( cSprite *object )
-{
-	// invalid
-	if( !object )
-	{
-		return;
-	}
-
-	// no player range
-	object->player_range = 0;
-
-	// add
-	sprite_manager->Add( object );
-
-	// Add to Waypoints array
-	if( object->type == TYPE_OW_WAYPOINT )
-	{
-		waypoints.push_back( static_cast<cWaypoint *>(object) );
-	}
-}
-
 cSprite *Get_World_Object( const CEGUI::String &element, CEGUI::XMLAttributes &attributes )
 {
 	if( element == "sprite" )
@@ -1002,6 +988,10 @@ cSprite *Get_World_Object( const CEGUI::String &element, CEGUI::XMLAttributes &a
 	else if( element == "sound" )
 	{
 		return new cRandom_Sound( attributes );
+	}
+	else if( element == "line" )
+	{
+		return new cLayer_Line_Point_Start( attributes );
 	}
 
 	return NULL;

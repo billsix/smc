@@ -68,6 +68,7 @@ public:
 	
 	// if this item quits the menu
 	bool isquit;
+
 private:
 	// Is this Item active
 	bool active;
@@ -97,27 +98,20 @@ public:
 	*/
 	void Set_Active( int num );
 
-	// Set if quit ground image is used
-	void Use_Quit_Image( bool enabled = 1 );
-
 	// Updates the Menu Mouse Collision detection
 	void Update_Mouse( void );
-	// Draws the Menu
-	void Draw( void );
+	// Draw the Menu
+	void Draw( bool with_background = 1 );
 
 	// Returns the currently active Menu Item
 	cMenu_Item *Get_Active_Item( void );
 	// Returns the number of loaded Menus
 	unsigned int Get_Size( void );
 
-	// Logo image
-	GL_Surface *image_ground;
-	// Logo Sprite
-	cHudSprite *logo;
-	// background Sprites
-	cHudSprite *ground;
-	cHudSprite *moon;
-	cHudSprite *background;
+	// menu image sprites
+	typedef vector<cHudSprite *> HudSpriteList;
+	HudSpriteList images;
+
 	// Gradient Colors
 	Color color_start;
 	Color color_end;
@@ -126,11 +120,9 @@ public:
 	* if set to -1 nothing is active
 	*/
 	int active;
+
 private:
 	MenuList items;
-
-	// if quit ground image is allowed
-	bool use_quit_image;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -172,8 +164,10 @@ public:
 	// Returns a Menu with the common image filenames
 	cMenu_Item *Auto_Menu( string imagename, string imagename_menu, float ypos = 0, bool is_quit = 0 );
 
-	// Load the given Menu
-	void Load( MenuID menu = MENU_MAIN );
+	/* Load the given Menu
+	 * exit_gamemode : return to this game mode on exit
+	*/
+	void Load( MenuID menu = MENU_MAIN, GameMode exit_gamemode = MODE_NOTHING );
 	// Unload
 	void Unload( void );
 

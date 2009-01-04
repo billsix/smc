@@ -21,6 +21,22 @@
 #include "../gui/hud.h"
 #include "../video/img_settings.h"
 
+/* *** *** *** *** *** *** *** cEditor_Object_Settings_Item *** *** *** *** *** *** *** *** *** *** */
+
+class cEditor_Object_Settings_Item
+{
+public:
+	cEditor_Object_Settings_Item( void );
+	~cEditor_Object_Settings_Item( void );
+
+	// name
+	CEGUI::Window *window_name;
+	// settings
+	CEGUI::Window *window_setting;
+	// if set start new row
+	bool advance_row;
+};
+
 /* *** *** *** *** *** *** *** *** cEditor_Item_Object *** *** *** *** *** *** *** *** *** */
 
 class cEditor_Item_Object : public CEGUI::ListboxItem
@@ -126,7 +142,7 @@ public:
 	// Add Menu Entry
 	void Add_Menu_Object( string name, string tags, CEGUI::colour normal_color = CEGUI::colour( 1, 1, 1 ) );
 	// Set Active Menu Entry
-	virtual void Activate_Menu( cEditor_Menu_Object *entry );
+	virtual void Activate_Menu_Item( cEditor_Menu_Object *entry );
 
 	// ##### Item Menu
 	// Load an defined Menu
@@ -137,7 +153,7 @@ public:
 	 * if nName is set it will not use the object name
 	 * if image is set the default object image is not used
 	 */
-	void Add_Item_Object( cSprite *sprite, string new_name = "", GL_Surface *image = NULL );
+	void Add_Item_Object( cSprite *sprite, string new_name = "", cGL_Surface *image = NULL );
 	// Loads all Image Items
 	void Load_Image_Items( string dir );
 	// Active Item Entry

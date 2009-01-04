@@ -168,7 +168,7 @@ void cOverworld_Manager :: Reset( void )
 {
 	// default Overworld
 	Set_Active( "World 1" );
-	
+
 	// Set Player to first Waypoint
 	pOverworld_Player->Set_Waypoint( pActive_Overworld->player_start_waypoint );
 

@@ -50,6 +50,7 @@ void cGoldpiece :: Init( void )
 	massivetype = MASS_PASSIVE;
 	type = TYPE_GOLDPIECE;
 	posz = 0.041f;
+	can_be_on_ground = 0;
 
 	Set_Gold_Color( COL_YELLOW );
 
@@ -254,16 +255,6 @@ bool cGoldpiece :: Is_Update_Valid( void )
 	return 1;
 }
 
-void cGoldpiece :: Check_on_Ground( void )
-{
-	if( type == TYPE_GOLDPIECE )
-	{
-		return;
-	}
-
-	cImageObjectSprite::Check_on_Ground();
-}
-
 /* *** *** *** *** *** *** cJGoldpiecee *** *** *** *** *** *** *** *** *** *** *** */
 
 cJGoldpiece :: cJGoldpiece( float x, float y )
@@ -323,6 +314,7 @@ cFGoldpiece :: cFGoldpiece( float x, float y, ObjectDirection dir /* = DIR_NOTHI
 	type = TYPE_FGOLDPIECE;
 	spawned = 1;
 	player_range = 2000;
+	can_be_on_ground = 1;
 	counter = static_cast<float>( rand() % 5 );
 
 	// set a random direction
@@ -458,7 +450,7 @@ unsigned int cFGoldpiece :: Validate_Collision( cSprite *obj )
 	}
 	if( obj->massivetype == MASS_HALFMASSIVE )
 	{
-		// if moving downwards and object is on top
+		// if moving downwards and the object is on bottom
 		if( vely >= 0 && Is_on_Top( obj ) )
 		{
 			return 2;

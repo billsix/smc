@@ -52,7 +52,7 @@ void cImageObjectSprite :: Set_Image( int num, bool new_startimage /* = 0 */, bo
 	}
 }
 
-GL_Surface *cImageObjectSprite :: Get_Image( unsigned int num ) 
+cGL_Surface *cImageObjectSprite :: Get_Image( unsigned int num ) 
 {
 	if( num >= images.size() )
 	{

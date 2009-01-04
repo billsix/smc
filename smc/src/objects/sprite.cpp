@@ -24,22 +24,7 @@
 #include "../video/gl_surface.h"
 #include "../video/renderer.h"
 #include "../core/sprite_manager.h"
-
-cEditor_Object_Settings_Item :: cEditor_Object_Settings_Item( void )
-{
-	window_name = NULL;
-	window_setting = NULL;
-	advance_row = 1;
-}
-
-cEditor_Object_Settings_Item :: ~cEditor_Object_Settings_Item( void )
-{
-	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
-
-	wmgr.destroyWindow( window_name );
-	wmgr.destroyWindow( window_setting );
-}
-
+#include "../core/editor.h"
 
 /* *** *** *** *** *** *** *** *** cCollidingSprite *** *** *** *** *** *** *** *** *** */
 
@@ -287,7 +272,7 @@ void cCollidingSprite :: Handle_Collision_Box( ObjectDirection direction, GL_rec
 
 /* *** *** *** *** *** *** *** cSprite *** *** *** *** *** *** *** *** *** *** */
 
-cSprite :: cSprite( GL_Surface *new_image /* = NULL */, float x /* = 0 */, float y /* = 0 */, bool del_img /* = 0 */ )
+cSprite :: cSprite( cGL_Surface *new_image /* = NULL */, float x /* = 0 */, float y /* = 0 */, bool del_img /* = 0 */ )
 {
 	cSprite::Init();
 
@@ -463,7 +448,7 @@ cSave_Level_Object *cSprite :: Save_to_Savegame( void )
 	return NULL;
 }
 
-void cSprite :: Set_Image( GL_Surface *new_image, bool new_start_image /* = 0 */, bool del_img /* = 0 */ )
+void cSprite :: Set_Image( cGL_Surface *new_image, bool new_start_image /* = 0 */, bool del_img /* = 0 */ )
 {
 	if( delete_image )
 	{
@@ -1536,6 +1521,12 @@ bool cSprite :: Is_Draw_Valid( void )
 	// editor enabled
 	else
 	{
+		// if destroyed
+		if( destroy )
+		{
+			return 0;
+		}
+
 		// no image
 		if( !start_image )
 		{

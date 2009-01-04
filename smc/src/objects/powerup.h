@@ -109,9 +109,6 @@ public:
 
 	// update
 	virtual void Update( void );
-
-	// ignore onground check
-	virtual void Check_on_Ground( void ) {};
 };
 
 /* *** *** *** *** *** cMoon *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -139,9 +136,6 @@ public:
 
 	// update
 	virtual void Update( void );
-
-	// ignore onground check
-	virtual void Check_on_Ground( void ) {};
 
 	float particle_counter;
 };

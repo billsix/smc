@@ -20,6 +20,7 @@
 #include "../overworld/world_waypoint.h"
 #include "../overworld/world_layer.h"
 #include "../overworld/world_player.h"
+#include "../overworld/world_sprite_manager.h"
 #include "../gui/hud.h"
 #include "../audio/random_sound.h"
 
@@ -112,6 +113,8 @@ public:
 
 	// Draw
 	void Draw( void );
+	// Draw Layer 1 ( Backgrounds, World objects and Animations )
+	void Draw_Layer_1( void );
 	// Draws the HUD
 	void Draw_HUD( void );
 
@@ -119,9 +122,6 @@ public:
 	void Update( void );
 	// Updates the Camera
 	void Update_Camera( void );
-
-	// Add Map Object
-	void Add_Map_Object( cSprite *object );
 
 	/* Sets the current Waypoint progress
 	 * if force is set already accessible waypoints will be unset
@@ -160,7 +160,7 @@ public:
 	cOverworld_description *description;
 
 	// Map objects
-	cSprite_Manager *sprite_manager;
+	cWorld_Sprite_Manager *sprite_manager;
 	// Waypoints
 	WaypointList waypoints;
 

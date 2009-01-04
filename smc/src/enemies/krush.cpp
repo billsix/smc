@@ -343,7 +343,7 @@ unsigned int cKrush :: Validate_Collision( cSprite *obj )
 	}
 	if( obj->massivetype == MASS_HALFMASSIVE )
 	{
-		// if moving downwards and object is on top
+		// if moving downwards and the object is on bottom
 		if( vely >= 0 && Is_on_Top( obj ) )
 		{
 			return 2;
@@ -383,7 +383,7 @@ void cKrush :: Handle_Collision_Player( cObjectCollision *collision )
 	}
 	else
 	{
-		pPlayer->DownGrade();
+		pPlayer->DownGrade_Player();
 		Turn_Around( collision->direction );
 	}
 }
@@ -397,4 +397,34 @@ void cKrush :: Handle_Collision_Enemy( cObjectCollision *collision )
 void cKrush :: Handle_Collision_Massive( cObjectCollision *collision )
 {
 	Turn_Around( collision->direction );
+	Send_Collision( collision );
+}
+
+void cKrush :: Editor_Activate( void )
+{
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+
+	// direction
+	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_krush_direction" ));
+	Editor_Add( UTF8_("Direction"), UTF8_("Direction"), combobox, 100, 75 );
+
+	combobox->addItem( new CEGUI::ListboxTextItem( "left" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "right" ) );
+
+	combobox->setText( Get_Direction_Name( start_direction ) );
+
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cKrush::Editor_Direction_Select, this ) );
+
+	// init
+	Editor_Init();
+}
+
+bool cKrush :: Editor_Direction_Select( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
+
+	Set_Direction( Get_Direction_Id( item->getText().c_str() ) );
+
+	return 1;
 }

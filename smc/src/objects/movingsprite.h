@@ -53,7 +53,7 @@ class cMovingSprite : public cSprite
 {
 public:
 	// if del_img is set the given image will be deleted on change or class deletion
-	cMovingSprite( GL_Surface *new_image = NULL, float x = 0, float y = 0, bool del_img = 0 );
+	cMovingSprite( cGL_Surface *new_image = NULL, float x = 0, float y = 0, bool del_img = 0 );
 	// create from stream
 	cMovingSprite( CEGUI::XMLAttributes &attributes );
 	// destructor
@@ -68,7 +68,7 @@ public:
 	 * if new_start_image is set the default start_image will be set to the given image
 	 * if del_img is set the given image will be deleted
 	*/
-	virtual void Set_Image( GL_Surface *new_image, bool new_start_image = 0, bool del_img = 0 );
+	virtual void Set_Image( cGL_Surface *new_image, bool new_start_image = 0, bool del_img = 0 );
 
 	/* Set the direction
 	 * if new_start_direction is set also set the start/editor direction
@@ -127,7 +127,7 @@ public:
 	bool Check_out_of_Level_Hor( const float move_x, const bool handle = 0 );
 	bool Check_out_of_Level_Ver( const float move_y, const bool handle = 0 );
 	// Set the ground object
-	virtual void Set_on_Ground( cSprite *obj );
+	virtual void Set_on_Ground( cSprite *obj, bool set_on_top = 1 );
 	// Check if the Object is onground and sets the state to onground
 	virtual void Check_on_Ground( void );
 	// object looses onground state
@@ -157,14 +157,26 @@ public:
 	 * if start_rotation is set also set the start/editor rotation
 	*/
 	void Update_Rotation_Hor_vely( bool start_rotation = 0 );
+
+	/* handle collision with object that moves it with the current velocity
+	 * if moved object gets stuck it is downgraded
+	*/
+	void Handle_Move_Object_Collision( cObjectCollision *collision );
+
 	/* Validate the given collision object
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
 	virtual unsigned int Validate_Collision( cSprite *obj );
-	// returns -1 if nothing found
+	/* Check if colliding with ghost objects
+	 * returns -1 if nothing found
+	 */
 	virtual int Validate_Collision_Ghost( cSprite *obj );
-	// send a collision handler to an object based from the given collision
+	/* Validate the collision if this could be moving and the object could be on top
+	 * returns -1 if nothing found
+	*/
+	int Validate_Collision_Object_On_Top( cMovingSprite *moving_sprite );
+	// send a collision to an object based from the given collision
 	virtual void Send_Collision( cObjectCollision *collision );
 	// default collision handler
 	virtual void Handle_Collision( cObjectCollision *collision );
@@ -179,6 +191,8 @@ public:
 	// start direction
 	ObjectDirection start_direction;
 
+	// can be on a ground object
+	bool can_be_on_ground;
 	// colliding ground object
 	cSprite *ground_object;
 

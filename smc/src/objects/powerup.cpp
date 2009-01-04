@@ -129,7 +129,7 @@ unsigned int cPowerUp :: Validate_Collision( cSprite *obj )
 	}
 	if( obj->massivetype == MASS_HALFMASSIVE )
 	{
-		// if moving downwards and object is on top
+		// if moving downwards and the object is on bottom
 		if( vely >= 0 && Is_on_Top( obj ) )
 		{
 			return 2;
@@ -464,6 +464,7 @@ cFirePlant :: cFirePlant( float x, float y )
 : cPowerUp( x, y )
 {
 	type = TYPE_FIREPLANT;
+	can_be_on_ground = 0;
 
 	images.push_back( pVideo->Get_Surface( "game/items/fireplant.png" ) );
 	images.push_back( pVideo->Get_Surface( "game/items/fireplant_left.png" ) );
@@ -554,6 +555,7 @@ cMoon :: ~cMoon( void )
 void cMoon :: Init( void )
 {
 	type = TYPE_MOON;
+	can_be_on_ground = 0;
 
 	images.push_back( pVideo->Get_Surface( "game/items/moon_1.png" ) );
 	images.push_back( pVideo->Get_Surface( "game/items/moon_2.png" ) );

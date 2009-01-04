@@ -46,6 +46,8 @@ void cStaticEnemy :: Init( void )
 {
 	type = TYPE_STATIC_ENEMY;
 	posz = 0.094f;
+	can_be_ground = 0;
+	can_be_on_ground = 0;
 
 	Set_Rotation_Speed( 0 );
 	Set_Static_Image( "enemy/static/blocks/spike_1/2_grey.png" );
@@ -212,7 +214,7 @@ unsigned int cStaticEnemy :: Validate_Collision( cSprite *obj )
 
 void cStaticEnemy :: Handle_Collision_Player( cObjectCollision *collision )
 {
-	pPlayer->DownGrade();
+	pPlayer->DownGrade_Player();
 }
 
 void cStaticEnemy :: Handle_Collision_Enemy( cObjectCollision *collision )

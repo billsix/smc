@@ -167,6 +167,11 @@ void cWaypoint :: Save_to_Stream( ofstream &file )
 
 void cWaypoint :: Update( void )
 {
+	if( destroy )
+	{
+		return;
+	}
+
 	cSprite::Update();
 
 	if( glim )
@@ -189,7 +194,12 @@ void cWaypoint :: Update( void )
 }
 
 void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
-{	
+{
+	if( destroy )
+	{
+		return;
+	}
+
 	if( pOverworld_Manager->debugmode || editor_world_enabled )
 	{
 		// direction back
@@ -199,8 +209,8 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 
 		if( direction_backward == DIR_RIGHT )
 		{
-			x += image->w;
-			y += (image->h * 0.5f) - (arrow_blue_l->w * 0.5f);
+			x += rect.w;
+			y += (rect.h * 0.5f) - (arrow_blue_l->w * 0.5f);
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
@@ -214,7 +224,7 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 		else if( direction_backward == DIR_LEFT )
 		{
 			x -= arrow_blue_l->w;
-			y += (image->h * 0.5f) - (arrow_blue_l->w * 0.5f);
+			y += (rect.h * 0.5f) - (arrow_blue_l->w * 0.5f);
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
@@ -228,7 +238,7 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 		else if( direction_backward == DIR_UP )
 		{
 			y -= arrow_blue_u->h;
-			x += (image->w * 0.5f) - (arrow_blue_u->h * 0.5f);
+			x += (rect.w * 0.5f) - (arrow_blue_u->h * 0.5f);
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
@@ -241,8 +251,8 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 		}
 		else if( direction_backward == DIR_DOWN )
 		{
-			y += image->h;
-			x += (image->w * 0.5f) - (arrow_blue_u->h * 0.5f);
+			y += rect.h;
+			x += (rect.w * 0.5f) - (arrow_blue_u->h * 0.5f);
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
@@ -260,8 +270,8 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 
 		if( direction_forward == DIR_RIGHT )
 		{
-			x += image->w;
-			y += (image->h * 0.5f) - (arrow_white_l->w * 0.5f);
+			x += rect.w;
+			y += (rect.h * 0.5f) - (arrow_white_l->w * 0.5f);
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
@@ -274,7 +284,7 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 		else if( direction_forward == DIR_LEFT )
 		{
 			x -= arrow_white_l->w;
-			y += (image->h * 0.5f) - (arrow_white_l->w * 0.5f);
+			y += (rect.h * 0.5f) - (arrow_white_l->w * 0.5f);
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
@@ -287,7 +297,7 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 		else if( direction_forward == DIR_UP )
 		{
 			y -= arrow_white_u->h;
-			x += (image->w * 0.5f) - (arrow_white_u->h * 0.5f);
+			x += (rect.w * 0.5f) - (arrow_white_u->h * 0.5f);
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();
@@ -299,8 +309,8 @@ void cWaypoint :: Draw( cSurfaceRequest *request /* = NULL  */ )
 		}
 		else if( direction_forward == DIR_DOWN )
 		{
-			y += image->h;
-			x += (image->w * 0.5f) - (arrow_white_u->h * 0.5f);
+			y += rect.h;
+			x += (rect.w * 0.5f) - (arrow_white_u->h * 0.5f);
 
 			// create request
 			cSurfaceRequest *surface_request = new cSurfaceRequest();

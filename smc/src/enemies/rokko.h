@@ -80,8 +80,6 @@ public:
 	// if draw is valid for the current state and position
 	virtual bool Is_Draw_Valid( void );
 
-	// ignore onground check
-	virtual void Check_on_Ground( void ) {};
 	/* Validate the given collision object
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
@@ -92,10 +90,12 @@ public:
 	// handle moved out of Level
 	virtual void Handle_out_of_Level( ObjectDirection dir );
 
-	// leveleditor activation
+	// editor activation
 	virtual void Editor_Activate( void );
-	// leveleditor events
-	bool Editor_Speed_Key( const CEGUI::EventArgs &event );  // editor speed key up
+	// editor direction option selected event
+	bool Editor_Direction_Select( const CEGUI::EventArgs &event );
+	// editor speed key up event
+	bool Editor_Speed_Key( const CEGUI::EventArgs &event );
 
 	// smoke particle counter
 	float smoke_counter;

@@ -21,21 +21,6 @@
 #include "../video/video.h"
 #include "../core/collision.h"
 
-/* *** *** *** *** *** *** *** cEditor_Object_Settings_Item *** *** *** *** *** *** *** *** *** *** */
-
-class cEditor_Object_Settings_Item
-{
-public:
-	cEditor_Object_Settings_Item( void );
-	~cEditor_Object_Settings_Item( void );
-
-	// name
-	CEGUI::Window *window_name;
-	// settings
-	CEGUI::Window *window_setting;
-	// if set start new row
-	bool advance_row;
-};
 
 /* *** *** *** *** *** *** *** cCollidingSprite *** *** *** *** *** *** *** *** *** *** */
 
@@ -102,7 +87,7 @@ class cSprite : public cCollidingSprite
 {
 public:
 	// if del_img is set the given image will be deleted on change or class deletion
-	cSprite( GL_Surface *new_image = NULL, float x = 0, float y = 0, bool del_img = 0 );
+	cSprite( cGL_Surface *new_image = NULL, float x = 0, float y = 0, bool del_img = 0 );
 	// create from stream
 	cSprite( CEGUI::XMLAttributes &attributes );
 	// destructor
@@ -127,7 +112,7 @@ public:
 	 * if new_start_image is set the default start_image will be set to the given image
 	 * if del_img is set the given image will be deleted
 	*/
-	virtual void Set_Image( GL_Surface *new_image, bool new_start_image = 0, bool del_img = 0 );
+	virtual void Set_Image( cGL_Surface *new_image, bool new_start_image = 0, bool del_img = 0 );
 
 	// Set the sprite type
 	void Set_Sprite_Type( SpriteType ntype );
@@ -272,7 +257,9 @@ public:
 	// if draw is valid for the current state and position
 	virtual bool Is_Draw_Valid( void );
 
-	// deletes this sprite on the next frame start
+	/* set this sprite to destroyed and completely disable it
+	 * sprite is still in the sprite manager but only to get possibly replaced
+	*/
 	virtual void Destroy( void );
 
 	// editor add window object
@@ -289,9 +276,9 @@ public:
 	virtual void Editor_State_Update( void );
 
 	// current image used for drawing
-	GL_Surface *image;
+	cGL_Surface *image;
 	// editor and first image
-	GL_Surface *start_image;
+	cGL_Surface *start_image;
 
 	// complete image rect
 	GL_rect rect;

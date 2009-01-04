@@ -43,7 +43,7 @@ public:
 	virtual bool Key_Down( SDLKey key );
 
 	// Set Active Menu Entry
-	virtual void Activate_Menu( cEditor_Menu_Object *entry );
+	virtual void Activate_Menu_Item( cEditor_Menu_Object *entry );
 
 	// #### LevelEditor Functions
 	/* switch the object state of the given object

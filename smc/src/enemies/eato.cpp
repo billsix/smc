@@ -19,6 +19,9 @@
 #include "../player/player.h"
 #include "../video/gl_surface.h"
 #include "../core/i18n.h"
+// boost filesystem
+#include "boost/filesystem/convenience.hpp"
+namespace fs = boost::filesystem;
 
 /* *** *** *** *** *** *** cEato *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -45,8 +48,8 @@ void cEato :: Init( void )
 	type = TYPE_EATO;
 	player_range = 1000;
 	posz = 0.087f;
+	can_be_on_ground = 0;
 	Set_Rotation_affects_Rect( 1 );
-	can_be_ground = 1;
 	fire_resistant = 1;
 
 	state = STA_STAY;
@@ -104,13 +107,19 @@ void cEato :: Set_Image_Dir( string dir )
 		return;
 	}
 
-	img_dir = dir;
-
 	// remove pixmaps dir
 	if( img_dir.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == 0 )
 	{
 		img_dir.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
 	}
+
+	// if directory does not exist
+	if( !fs::exists( fs::path( DATA_DIR "/" GAME_PIXMAPS_DIR "/" + dir, fs::native ) ) )
+	{
+		return;
+	}
+
+	img_dir = dir;
 
 	// clear images
 	Clear_Images();
@@ -127,6 +136,12 @@ void cEato :: Set_Image_Dir( string dir )
 
 void cEato :: Set_Direction( ObjectDirection dir )
 {
+	// already set
+	if( start_direction == dir )
+	{
+		return;
+	}
+
 	cEnemy::Set_Direction( dir, 1 );
 
 	// clear
@@ -287,13 +302,29 @@ void cEato :: Handle_Collision_Player( cObjectCollision *collision )
 			pPlayer->Action_Jump( 1 );
 		}
 
-		pPlayer->DownGrade();
+		pPlayer->DownGrade_Player();
 	}
 }
 
 void cEato :: Editor_Activate( void )
 {
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+
+	// direction
+	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_eato_direction" ));
+	Editor_Add( UTF8_("Direction"), UTF8_("Direction"), combobox, 100, 200 );
+
+	combobox->addItem( new CEGUI::ListboxTextItem( "top_left" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "top_right" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "bottom_left" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "bottom_right" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "left_top" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "left_bottom" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "right_top" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "right_bottom" ) );
+
+	combobox->setText( Get_Direction_Name( start_direction ) );
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cEato::Editor_Direction_Select, this ) );
 
 	// image dir
 	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_eato_image_dir" ));
@@ -303,6 +334,16 @@ void cEato :: Editor_Activate( void )
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cEato::Editor_Image_Dir_Key, this ) );
 	// init
 	Editor_Init();
+}
+
+bool cEato :: Editor_Direction_Select( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
+
+	Set_Direction( Get_Direction_Id( item->getText().c_str() ) );
+
+	return 1;
 }
 
 bool cEato :: Editor_Image_Dir_Key( const CEGUI::EventArgs &event )

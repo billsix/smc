@@ -26,6 +26,9 @@
 #include "../core/math/utilities.h"
 #include "../input/mouse.h"
 #include "../core/i18n.h"
+// boost filesystem
+#include "boost/filesystem/convenience.hpp"
+namespace fs = boost::filesystem;
 
 /* *** *** *** *** *** *** cThromp *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -52,7 +55,7 @@ void cThromp :: Init( void  )
 	type = TYPE_THROMP;
 	posz = 0.093f;
 	player_range = 1000;
-	can_be_ground = 1;
+	can_be_on_ground = 0;
 
 	fire_resistant = 1;
 
@@ -162,6 +165,12 @@ void cThromp :: Set_Image_Dir( string dir )
 		img_dir.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
 	}
 
+	// if directory does not exist
+	if( !fs::exists( fs::path( DATA_DIR "/" GAME_PIXMAPS_DIR "/" + dir, fs::native ) ) )
+	{
+		return;
+	}
+
 	Update_Images();
 }
 
@@ -176,6 +185,7 @@ void cThromp :: Set_Direction( ObjectDirection dir )
 	cEnemy::Set_Direction( dir, 1 );
 
 	Update_Distance_rect();
+	Update_dest_vel();
 	Update_Images();
 }
 
@@ -534,18 +544,20 @@ bool cThromp :: Is_Update_Valid( void )
 
 bool cThromp :: Is_Draw_Valid( void )
 {
-	if( cEnemy::Is_Draw_Valid() == 1 )
+	bool valid = cEnemy::Is_Draw_Valid();
+
+	// if editor enabled
+	if( editor_enabled )
 	{
-		return 1;
+		// if active mouse object
+		if( pMouseCursor->active_object == this )
+		{
+			return 1;
+		}
 	}
 
-	// if not editor enabled or not active mouse object
-	if( !editor_enabled || pMouseCursor->active_object != this )
-	{
-		return 0;
-	}
 
-	return 1;
+	return valid;
 }
 
 void cThromp :: Generate_Smoke( unsigned int power /* = 10 */ )
@@ -618,30 +630,47 @@ unsigned int cThromp :: Validate_Collision( cSprite *obj )
 		return basic_valid;
 	}
 
-	if( obj->massivetype == MASS_MASSIVE )
+
+	if( obj->type == TYPE_PLAYER || obj->sprite_array == ARRAY_ENEMY )
 	{
-		if( obj->type == TYPE_PLAYER )
+		cMovingSprite *moving_sprite = static_cast<cMovingSprite *>(obj);
+
+		int validation = Validate_Collision_Object_On_Top( moving_sprite );
+
+		if( validation != -1 )
+		{
+			return validation;
+		}
+
+		// massive
+		if( massivetype == MASS_MASSIVE )
 		{
 			return 1;
-		}
-		if( obj->type == TYPE_STATIC_ENEMY )
-		{
-			return 0;
 		}
 
 		// if moving back collide with nothing
 		if( move_back )
 		{
-			return 0;
+			return 1;
 		}
 		else
 		{
 			return 2;
 		}
 	}
+	// massive
+	if( massivetype == MASS_MASSIVE )
+	{
+		if( obj->type == TYPE_STATIC_ENEMY )
+		{
+			return 0;
+		}
+
+		return 1;
+	}
 	if( obj->massivetype == MASS_HALFMASSIVE )
 	{
-		// if moving downwards and object is on top
+		// if moving downwards and the object is on bottom
 		if( vely >= 0 && Is_on_Top( obj ) )
 		{
 			// if moving back collide with nothing
@@ -657,18 +686,10 @@ unsigned int cThromp :: Validate_Collision( cSprite *obj )
 
 void cThromp :: Handle_Collision_Player( cObjectCollision *collision )
 {
-	// behind
-	if( collision->direction == Get_Opposite_Direction( direction ) )
-	{
-		if( collision->direction == DIR_LEFT || collision->direction == DIR_RIGHT )
-		{
-			pPlayer->Col_Move( velx, 0, 1 );
-		}
-	}
 	// front
-	else if( collision->direction == direction )
+	if( collision->direction == direction )
 	{
-		pPlayer->DownGrade();
+		pPlayer->DownGrade_Player();
 
 		if( !move_back )
 		{
@@ -677,36 +698,44 @@ void cThromp :: Handle_Collision_Player( cObjectCollision *collision )
 			Move_Back();
 		}
 	}
-	// else is left/right of front direction which doesn't harm
+	else
+	{
+		Handle_Move_Object_Collision( collision );
+	}
+	// left/right of front direction doesn't harm
 }
 
 void cThromp :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
-	// only destination direction collisions
-	if( collision->direction != direction )
+	// destination direction collision
+	if( collision->direction == direction )
 	{
-		return;
-	}
-
-	// if active
-	if( state == STA_FLY )
-	{
-		cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
-
-		// kill enemy
-		pAudio->Play_Sound( enemy->kill_sound );
-		pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", static_cast<Uint8>(255), 1 );
-		enemy->DownGrade( 1 );
-
-		if( !move_back )
+		// if active
+		if( state == STA_FLY )
 		{
-			Generate_Smoke();
+			cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
+
+			// kill enemy
+			pAudio->Play_Sound( enemy->kill_sound );
+			pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", static_cast<Uint8>(255), 1 );
+			enemy->DownGrade( 1 );
+
+			if( !move_back )
+			{
+				Generate_Smoke();
+			}
 		}
+	}
+	else
+	{
+		Handle_Move_Object_Collision( collision );
 	}
 }
 
 void cThromp :: Handle_Collision_Massive( cObjectCollision *collision )
 {
+	Send_Collision( collision );
+
 	// if not active or already moving back
 	if( state != STA_FLY || move_back )
 	{
@@ -721,6 +750,18 @@ void cThromp :: Handle_Collision_Massive( cObjectCollision *collision )
 void cThromp :: Editor_Activate( void )
 {
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+
+	// direction
+	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_thromp_direction" ));
+	Editor_Add( UTF8_("Direction"), UTF8_("Direction"), combobox, 100, 75 );
+
+	combobox->addItem( new CEGUI::ListboxTextItem( "up" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "down" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "left" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "right" ) );
+
+	combobox->setText( Get_Direction_Name( start_direction ) );
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cThromp::Editor_Direction_Select, this ) );
 
 	// image dir
 	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_thromp_image_dir" ));
@@ -745,6 +786,16 @@ void cThromp :: Editor_Activate( void )
 
 	// init
 	Editor_Init();
+}
+
+bool cThromp :: Editor_Direction_Select( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
+
+	Set_Direction( Get_Direction_Id( item->getText().c_str() ) );
+
+	return 1;
 }
 
 bool cThromp :: Editor_Image_Dir_Key( const CEGUI::EventArgs &event )

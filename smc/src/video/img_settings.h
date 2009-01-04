@@ -32,7 +32,7 @@ public:
 	// returns the best surface size for the current resolution
 	cSize_Float Get_Surface_Size( SDL_Surface *sdl_surface );
 	// Apply settings to an image
-	void Apply( GL_Surface *image );
+	void Apply( cGL_Surface *image );
 	// Apply base settings
 	void Apply_Base( cImage_settings_data *base_settings_data );
 

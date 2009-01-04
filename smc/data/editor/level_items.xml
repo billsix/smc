@@ -441,6 +441,11 @@
 		<Property Name="direction" Value="up" />
 	</Item>
 	<Item>
+		<Property Name="object_name" Value="level_entry" />
+		<Property Name="object_tags" Value="level;special" />
+		<Property Name="type" Value="0" />
+	</Item>
+	<Item>
 		<Property Name="object_name" Value="moving_platform" />
 		<Property Name="object_tags" Value="level;special" />
 	</Item>

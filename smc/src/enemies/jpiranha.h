@@ -48,6 +48,8 @@ public:
 	// save to savegame
 	virtual cSave_Level_Object *Save_to_Savegame( void );
 
+	// Set the image directory
+	void Set_Image_Dir( string filename );
 	// Set Direction
 	void Set_Direction( ObjectDirection dir );
 	// Set Max Distance
@@ -76,8 +78,6 @@ public:
 	// if draw is valid for the current state and position
 	virtual bool Is_Draw_Valid( void );
 
-	// ignore onground check
-	virtual void Check_on_Ground( void ) {};
 	/* Validate the given collision object
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
@@ -86,11 +86,19 @@ public:
 	// collision from player
 	virtual void Handle_Collision_Player( cObjectCollision *collision );
 	
-	// leveleditor activation
+	// editor activation
 	virtual void Editor_Activate( void );
-	// leveleditor events
-	bool Editor_Max_Distance_Key( const CEGUI::EventArgs &event );  // editor max distance key up
-	bool Editor_Speed_Key( const CEGUI::EventArgs &event );  // editor speed key up
+	// editor direction option selected event
+	bool Editor_Direction_Select( const CEGUI::EventArgs &event );
+	// editor image dir key up event
+	bool Editor_Image_Dir_Key( const CEGUI::EventArgs &event );
+	// editor max distance key up
+	bool Editor_Max_Distance_Key( const CEGUI::EventArgs &event );
+	// editor speed key up
+	bool Editor_Speed_Key( const CEGUI::EventArgs &event );
+
+	// image directory
+	string img_dir;
 
 	// moving speed
 	float speed;
@@ -103,6 +111,10 @@ public:
 	float wait_time;
 	// moving back to the original position
 	bool move_back;
+
+private:
+	// Create the Name from the current settings
+    void Create_Name( void );
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

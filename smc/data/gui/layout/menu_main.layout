@@ -13,9 +13,9 @@
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
             <Property Name="UnifiedAreaRect" Value="{{0.8,0},{0.94,0},{0.99,0},{0.99,0}}" />
         </Window>
-        <Window Type="TaharezLook/StaticText" Name="text_homepage" >
+        <Window Type="TaharezLook/StaticText" Name="text_website" >
             <Property Name="Text" Value="www.secretmaryo.org" />
-            <Property Name="Tooltip" Value="Latest News, User Level, Wiki and a Community Forum." />
+            <Property Name="Tooltip" Value="Latest News, User Levels and Worlds, Wiki and a Community Forum." />
             <Property Name="TextColours" Value="tl:FFFFAA22 tr:FFFFAA22 bl:FFFF8822 br:FFFF8822" />
             <Property Name="FrameEnabled" Value="False" />
             <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />

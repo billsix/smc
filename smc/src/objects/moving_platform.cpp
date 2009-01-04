@@ -21,6 +21,8 @@
 #include "../video/renderer.h"
 #include "../user/savegame.h"
 #include "../core/i18n.h"
+#include "../player/player.h"
+#include "../core/sprite_manager.h"
 
 /* *** *** *** *** *** *** *** cMoving_Platform *** *** *** *** *** *** *** *** *** *** */
 
@@ -47,6 +49,7 @@ void cMoving_Platform :: Init( void )
 	sprite_array = ARRAY_ACTIVE;
 	type = TYPE_MOVING_PLATFORM;
 	posz = 0.085f;
+	can_be_on_ground = 0;
 
 	player_range = 2000;
 	can_be_ground = 1;
@@ -55,6 +58,8 @@ void cMoving_Platform :: Init( void )
 	touch_counter = 0;
 	shake_dir_counter = 0;
 	shake_counter = 0;
+	max_distance_slow_down_pos = 0;
+	lowest_speed = 0;
 
 	Set_Massive_Type( MASS_HALFMASSIVE );
 	Set_Max_Distance( 150 );
@@ -264,21 +269,23 @@ void cMoving_Platform :: Set_Massive_Type( MassiveType mtype )
 
 void cMoving_Platform :: Set_Direction( ObjectDirection dir, bool new_start_direction /* = 0 */ )
 {
+	// save old direction
+	ObjectDirection start_direction_old = start_direction;
+	// set direction
 	cImageObjectSprite::Set_Direction( dir, new_start_direction );
 
 	if( new_start_direction )
 	{
 		// changed direction
-		if( dir != start_direction )
+		if( start_direction_old != start_direction )
 		{
-			// set back start position
+			// set back to start position
 			Set_Pos( startposx, startposy );
 			// reset velocity
 			Set_Velocity( 0, 0 );
+			// update name
+			Create_Name();
 		}
-
-		// update name
-		Create_Name();
 	}
 
 	// Set new velocity
@@ -287,17 +294,19 @@ void cMoving_Platform :: Set_Direction( ObjectDirection dir, bool new_start_dire
 
 void cMoving_Platform :: Set_Max_Distance( int nmax_distance )
 {
-	max_distance = nmax_distance;
-
-	if( max_distance < 0 )
+	if( nmax_distance < 0 )
 	{
-		max_distance = 0;
+		nmax_distance = 0;
 	}
+
+	max_distance = nmax_distance;
+	max_distance_slow_down_pos = max_distance * 0.2f;
 }
 
 void cMoving_Platform :: Set_Speed( float val )
 {
 	speed = val;
+	lowest_speed = speed * 0.3f;
 
 	// set velocity
 	Update_Velocity();
@@ -354,7 +363,7 @@ void cMoving_Platform :: Set_Middle_Count( int val )
 	}
 }
 
-void cMoving_Platform :: Set_Image_Top_Left( GL_Surface *surface )
+void cMoving_Platform :: Set_Image_Top_Left( cGL_Surface *surface )
 {
 	if( !surface )
 	{
@@ -362,10 +371,15 @@ void cMoving_Platform :: Set_Image_Top_Left( GL_Surface *surface )
 	}
 
 	images[0] = surface;
+
+	// top left image sets main image
+	curr_img = -1;
+	Set_Image( 0, 1 );
+
 	Update_Rect();
 }
 
-void cMoving_Platform :: Set_Image_Top_Middle( GL_Surface *surface )
+void cMoving_Platform :: Set_Image_Top_Middle( cGL_Surface *surface )
 {
 	if( !surface )
 	{
@@ -373,14 +387,10 @@ void cMoving_Platform :: Set_Image_Top_Middle( GL_Surface *surface )
 	}
 
 	images[1] = surface;
-
-	// middle image sets main image
-	curr_img = -1;
-	Set_Image( 1, 1 );
 	Update_Rect();
 }
 
-void cMoving_Platform :: Set_Image_Top_Right( GL_Surface *surface )
+void cMoving_Platform :: Set_Image_Top_Right( cGL_Surface *surface )
 {
 	if( !surface )
 	{
@@ -477,7 +487,7 @@ void cMoving_Platform :: Update( void )
 			}
 
 			// below screen
-			if( col_rect.y + col_rect.h > pActive_Camera->limit_rect.y + game_res_h )
+			if( col_rect.y > pActive_Camera->limit_rect.y + game_res_h )
 			{
 				platform_state = PLATFORM_STAY;
 				Set_Visible( 0 );
@@ -491,21 +501,49 @@ void cMoving_Platform :: Update( void )
 		// distance to final position
 		float dist_to_final_pos = 0;
 
-		if( direction == DIR_LEFT )
+		if( start_direction == DIR_LEFT )
 		{
-			dist_to_final_pos = 0 - ( startposx - posx );
+			if( direction == DIR_LEFT )
+			{
+				dist_to_final_pos = max_distance - ( startposx - posx );
+			}
+			else if( direction == DIR_RIGHT )
+			{
+				dist_to_final_pos = startposx - posx;
+			}
 		}
-		else if( direction == DIR_RIGHT )
+		else if( start_direction == DIR_RIGHT )
 		{
-			dist_to_final_pos = max_distance + ( startposx - posx );
+			if( direction == DIR_LEFT )
+			{
+				dist_to_final_pos = 0 - ( startposx - posx );
+			}
+			else if( direction == DIR_RIGHT )
+			{
+				dist_to_final_pos = max_distance + ( startposx - posx );
+			}
 		}
-		else if( direction == DIR_UP )
+		if( start_direction == DIR_UP )
 		{
-			dist_to_final_pos = 0 - ( startposy - posy );
+			if( direction == DIR_UP )
+			{
+				dist_to_final_pos = max_distance - ( startposy - posy );
+			}
+			else if( direction == DIR_DOWN )
+			{
+				dist_to_final_pos = startposy - posy;
+			}
 		}
-		else if( direction == DIR_DOWN )
+		else if( start_direction == DIR_DOWN )
 		{
-			dist_to_final_pos = max_distance + ( startposy - posy );
+			if( direction == DIR_UP )
+			{
+				dist_to_final_pos = 0 - ( startposy - posy );
+			}
+			else if( direction == DIR_DOWN )
+			{
+				dist_to_final_pos = max_distance + ( startposy - posy );
+			}
 		}
 
 		// reached final position
@@ -517,28 +555,28 @@ void cMoving_Platform :: Update( void )
 			Set_Direction( Get_Opposite_Direction( direction ) );
 		}
 		// slow down near final position
-		else if( dist_to_final_pos < max_distance * 0.2f )
+		else if( dist_to_final_pos < max_distance_slow_down_pos )
 		{
 			if( direction == DIR_DOWN )
 			{
 				if( vely > 0 )
 				{
 					// slow down
-					if( vely > speed * 0.3f )
+					if( vely > lowest_speed )
 					{
 						vely *= 1 - ( 0.05f * pFramerate->speedfactor );
 
 						// reached lowest value
-						if( vely <= speed * 0.3f )
+						if( vely <= lowest_speed )
 						{
-							vely = speed * 0.3f;
+							vely = lowest_speed;
 						}
 					}
 				}
 				else
 				{
 					// set lowest value
-					vely = speed * 0.3f;
+					vely = lowest_speed;
 				}
 			}
 			else if( direction == DIR_UP )
@@ -546,21 +584,21 @@ void cMoving_Platform :: Update( void )
 				if( vely < 0 )
 				{
 					// slow down
-					if( vely < -speed * 0.3f )
+					if( vely < -lowest_speed )
 					{
 						vely *= 1 - ( 0.05f * pFramerate->speedfactor );
 
 						// reached lowest value
-						if( vely >= -speed * 0.3f )
+						if( vely >= -lowest_speed )
 						{
-							vely = -speed * 0.3f;
+							vely = -lowest_speed;
 						}
 					}
 				}
 				else
 				{
 					// set lowest value
-					vely = -speed * 0.3f;
+					vely = -lowest_speed;
 				}
 			}
 			else if( direction == DIR_LEFT )
@@ -568,21 +606,21 @@ void cMoving_Platform :: Update( void )
 				if( velx < 0 )
 				{
 					// slow down
-					if( velx < -speed * 0.3f )
+					if( velx < -lowest_speed )
 					{
 						velx *= 1 - ( 0.05f * pFramerate->speedfactor );
 
 						// reached lowest value
-						if( velx >= -speed * 0.3f )
+						if( velx >= -lowest_speed )
 						{
-							velx = -speed * 0.3f;
+							velx = -lowest_speed;
 						}
 					}
 				}
 				else
 				{
 					// set lowest value
-					velx = -speed * 0.3f;
+					velx = -lowest_speed;
 				}
 			}
 			else if( direction == DIR_RIGHT )
@@ -590,21 +628,21 @@ void cMoving_Platform :: Update( void )
 				if( velx > 0 )
 				{
 					// slow down
-					if( velx > speed * 0.3f )
+					if( velx > lowest_speed )
 					{
 						velx *= 1 - ( 0.05f * pFramerate->speedfactor );
 
 						// reached lowest value
-						if( velx <= speed * 0.3f )
+						if( velx <= lowest_speed )
 						{
-							velx = speed * 0.3f;
+							velx = lowest_speed;
 						}
 					}
 				}
 				else
 				{
 					// set lowest value
-					velx = speed * 0.3f;
+					velx = lowest_speed;
 				}
 			}
 		}
@@ -625,6 +663,11 @@ void cMoving_Platform :: Draw( cSurfaceRequest *request /* = NULL */ )
 
 	cSurfaceRequest *surface_request;
 	float x = 0;
+
+	if( !editor_level_enabled )
+	{
+		x += col_pos.x;
+	}
 
 	// top left
 	if( images[0] )
@@ -682,13 +725,23 @@ void cMoving_Platform :: Draw( cSurfaceRequest *request /* = NULL */ )
 	// draw distance rect
 	if( editor_level_enabled && speed )
 	{
-		if( start_direction == DIR_RIGHT || start_direction == DIR_LEFT )
+		if( start_direction == DIR_RIGHT )
 		{
 			pVideo->Draw_Rect( startposx - pActive_Camera->x, startposy - pActive_Camera->y, max_distance + col_rect.w, 15, posz - 0.000001f, &whitealpha128 );
 		}
-		else if( start_direction == DIR_DOWN || start_direction == DIR_UP )
+		else if( start_direction == DIR_DOWN )
 		{
 			pVideo->Draw_Rect( startposx - pActive_Camera->x, startposy - pActive_Camera->y, 15, max_distance + col_rect.h, posz - 0.000001f, &whitealpha128 );
+		}
+		// added in version 1.7
+		else if( start_direction == DIR_UP )
+		{
+			pVideo->Draw_Rect( startposx - pActive_Camera->x, startposy - pActive_Camera->y - max_distance, 15, max_distance + col_rect.h, posz - 0.000001f, &whitealpha128 );
+		}
+		// added in version 1.7
+		else if( start_direction == DIR_LEFT )
+		{
+			pVideo->Draw_Rect( startposx - pActive_Camera->x - max_distance, startposy - pActive_Camera->y, max_distance + col_rect.w, 15, posz - 0.000001f, &whitealpha128 );
 		}
 	}
 }
@@ -772,32 +825,21 @@ bool cMoving_Platform :: Is_Update_Valid( void )
 
 unsigned int cMoving_Platform :: Validate_Collision( cSprite *obj )
 {
-	if( obj->type == TYPE_PLAYER )
+	if( obj->type == TYPE_PLAYER || obj->sprite_array == ARRAY_ENEMY )
 	{
 		cMovingSprite *moving_sprite = static_cast<cMovingSprite *>(obj);
 
-		// don't handle if not moving upwards or slower
-		if( moving_sprite->Is_on_Top( this ) && direction == DIR_UP && moving_sprite->vely > vely )
+		int validation = Validate_Collision_Object_On_Top( moving_sprite );
+
+		if( validation != -1 )
 		{
-			// halfmassive
-			if( massivetype == MASS_HALFMASSIVE )
-			{
-				// only if no ground
-				if( !moving_sprite->ground_object )
-				{
-					return 2;
-				}
-			}
-			// massive
-			else if( massivetype == MASS_MASSIVE )
-			{
-				// always pick up
-				if( moving_sprite->ground_object != this )
-				{
-					moving_sprite->ground_object = this;
-					return 0;
-				}
-			}
+			return validation;
+		}
+
+		// massive
+		if( massivetype == MASS_MASSIVE )
+		{
+			return 1;
 		}
 
 		return 0;
@@ -821,23 +863,42 @@ void cMoving_Platform :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	if( collision->direction == DIR_TOP )
 	{
-		// send collision
-		Send_Collision( collision );
-	}
-
-	if( collision->direction == DIR_TOP )
-	{
+		// set to touched
 		if( ( touch_time || touch_move_time ) && platform_state == PLATFORM_STAY )
 		{
 			platform_state = PLATFORM_TOUCHED;
 		}
 
+		// send collision
+		Send_Collision( collision );
 	}
+
+	Handle_Move_Object_Collision( collision );
+}
+
+void cMoving_Platform :: Handle_Collision_Enemy( cObjectCollision *collision )
+{
+	// send collision
+	Send_Collision( collision );
+
+	Handle_Move_Object_Collision( collision );
 }
 
 void cMoving_Platform :: Editor_Activate( void )
 {
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+
+	// direction
+	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_moving_platform_direction" ));
+	Editor_Add( UTF8_("Direction"), UTF8_("Direction"), combobox, 100, 120 );
+
+	combobox->addItem( new CEGUI::ListboxTextItem( "up" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "down" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "left" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "right" ) );
+
+	combobox->setText( Get_Direction_Name( start_direction ) );
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Direction_Select, this ) );
 
 	// max distance
 	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_max_distance" ));
@@ -904,6 +965,16 @@ void cMoving_Platform :: Editor_Activate( void )
 
 	// init
 	Editor_Init();
+}
+
+bool cMoving_Platform :: Editor_Direction_Select( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
+
+	Set_Direction( Get_Direction_Id( item->getText().c_str() ), 1 );
+
+	return 1;
 }
 
 bool cMoving_Platform :: Editor_Max_Distance_Key( const CEGUI::EventArgs &event )

@@ -96,12 +96,16 @@ public:
 	// collision with massive
 	virtual void Handle_Collision_Massive( cObjectCollision *collision );
 
-	// leveleditor activation
+	// editor activation
 	virtual void Editor_Activate( void );
-	// leveleditor events
-	bool Editor_Max_Hits_Key( const CEGUI::EventArgs &event );  // editor max hits key up
-	bool Editor_Max_Downgrade_Counts_Key( const CEGUI::EventArgs &event );  // editor max downgrades key up
-	bool Editor_Shell_Time_Key( const CEGUI::EventArgs &event );  // editor max downgrades time key up
+	// editor direction option selected event
+	bool Editor_Direction_Select( const CEGUI::EventArgs &event );
+	// editor max hits key up event
+	bool Editor_Max_Hits_Key( const CEGUI::EventArgs &event );
+	// editor max downgrades key up event
+	bool Editor_Max_Downgrade_Counts_Key( const CEGUI::EventArgs &event );
+	// editor max downgrades time key up event
+	bool Editor_Shell_Time_Key( const CEGUI::EventArgs &event );
 
 	// internal turtle state
 	TurtleBoss_state turtle_state;

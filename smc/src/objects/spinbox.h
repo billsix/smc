@@ -52,9 +52,6 @@ public:
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
 
-	// ignore onground check
-	virtual void Check_on_Ground( void ) {};
-
 	// spin counter
 	float spin_counter;
 

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.5" />
-		<Property name="engine_version" value="2.4" />
-		<Property name="save_time" value="1205608214" />
+		<Property name="game_version" value="1.6" />
+		<Property name="engine_version" value="2.8" />
+		<Property name="save_time" value="1228154834" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Sauer2" />
@@ -26,10 +26,14 @@
 	</background>
 	<background>
 		<Property name="type" value="1" />
+		<Property name="posx" value="0" />
+		<Property name="posy" value="0" />
+		<Property name="posz" value="0.00011" />
 		<Property name="image" value="game/background/green_grass_1.png" />
 		<Property name="speedx" value="1" />
 		<Property name="speedy" value="1" />
-		<Property name="posz" value="0.00011" />
+		<Property name="const_velx" value="0" />
+		<Property name="const_vely" value="0" />
 	</background>
 	<global_effect>
 		<Property name="type" value="1" />
@@ -41,6 +45,7 @@
 		<Property name="z" value="0.12" />
 		<Property name="z_rand" value="0" />
 		<Property name="time_to_live" value="7" />
+		<Property name="time_to_live_rand" value="0" />
 		<Property name="emitter_iteration_interval" value="0.3" />
 		<Property name="scale" value="0.2" />
 		<Property name="scale_rand" value="0.2" />
@@ -48,6 +53,9 @@
 		<Property name="speed_rand" value="8" />
 		<Property name="dir_range_start" value="0" />
 		<Property name="dir_range_size" value="90" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
 		<Property name="const_rotz" value="0.5" />
 		<Property name="const_rotz_rand" value="10" />
 	</global_effect>
@@ -295,6 +303,7 @@
 		<Property name="posx" value="379" />
 		<Property name="posy" value="492" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="45" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -664,6 +673,7 @@
 		<Property name="posx" value="1424" />
 		<Property name="posy" value="426" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/blue/" />
 		<Property name="max_distance" value="45" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -811,12 +821,14 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2037" />
 		<Property name="posy" value="386" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="left_top" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2034" />
 		<Property name="posy" value="435" />
+		<Property name="image_dir" value="enemy/eato/green/" />
 		<Property name="direction" value="left_bottom" />
 	</enemy>
 	<moving_platform>
@@ -958,12 +970,14 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2097" />
 		<Property name="posy" value="405" />
+		<Property name="image_dir" value="enemy/eato/green/" />
 		<Property name="direction" value="right_top" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2094" />
 		<Property name="posy" value="441" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="right_bottom" />
 	</enemy>
 	<enemy>
@@ -1190,6 +1204,7 @@
 		<Property name="posx" value="3187" />
 		<Property name="posy" value="407" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="45" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -1471,7 +1486,7 @@
 	<sprite>
 		<Property name="posx" value="2753" />
 		<Property name="posy" value="37" />
-		<Property name="image" value="ground/jungle_1/tree_type_1_front.png" />
+		<Property name="image" value="ground/jungle_1/tree/1_front.png" />
 		<Property name="type" value="front_passive" />
 	</sprite>
 	<item>
@@ -1626,6 +1641,7 @@
 		<Property name="posx" value="3487" />
 		<Property name="posy" value="557" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="45" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -1634,6 +1650,7 @@
 		<Property name="posx" value="3732" />
 		<Property name="posy" value="554" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/blue/" />
 		<Property name="max_distance" value="45" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -2018,7 +2035,7 @@
 	<sprite>
 		<Property name="posx" value="4740" />
 		<Property name="posy" value="197" />
-		<Property name="image" value="ground/jungle_1/tree_type_2.png" />
+		<Property name="image" value="ground/jungle_1/tree/2.png" />
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
@@ -2432,18 +2449,21 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6095" />
 		<Property name="posy" value="376" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6138" />
 		<Property name="posy" value="376" />
+		<Property name="image_dir" value="enemy/eato/green/" />
 		<Property name="direction" value="top_right" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6182" />
 		<Property name="posy" value="375" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_right" />
 	</enemy>
 	<enemy>
@@ -3080,7 +3100,7 @@
 		<Property name="posy" value="206" />
 		<Property name="type" value="bonus" />
 		<Property name="animation" value="Bonus" />
-		<Property name="item" value="24" />
+		<Property name="item" value="51" />
 		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
 		<Property name="force_best_item" value="0" />

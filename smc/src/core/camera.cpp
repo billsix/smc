@@ -230,6 +230,16 @@ void cCamera :: Reset_Limits( void )
 void cCamera :: Set_Limits( GL_rect rect )
 {
 	limit_rect = rect;
+
+	// minimal size
+	if( limit_rect.w < 800 )
+	{
+		limit_rect.w = 800;
+	}
+	if( limit_rect.h > 0 )
+	{
+		limit_rect.h = 0;
+	}
 }
 
 void cCamera :: Set_Limit_X( float val )
@@ -330,7 +340,7 @@ void cCamera :: Update( void )
 					// out of camera on the left side
 					if( pPlayer->col_rect.x + pPlayer->col_rect.w < x )
 					{
-						pPlayer->DownGrade( 1, 1 );
+						pPlayer->DownGrade_Player( 1, 1 );
 					}
 
 				}
@@ -340,7 +350,7 @@ void cCamera :: Update( void )
 					// out of camera on the right side
 					if( pPlayer->col_rect.x - game_res_w > x )
 					{
-						pPlayer->DownGrade( 1, 1 );
+						pPlayer->DownGrade_Player( 1, 1 );
 					}
 				}
 			}
@@ -404,18 +414,21 @@ void cCamera :: Update_Position( void )
 	// mouse
 	pMouseCursor->Update_Position();
 
-	// update player
-	pActive_Player->Update_Valid_Draw();
-	// update sprite manager
-	pActive_Sprite_Manager->Update_Items_Valid_Draw();
-
-	// editor
-	if( editor_enabled )
+	if( Game_Mode == MODE_LEVEL || Game_Mode == MODE_OVERWORLD )
 	{
-		// update settings activated object position
-		if( pMouseCursor->active_object )
+		// update player
+		pActive_Player->Update_Valid_Draw();
+		// update sprite manager
+		pActive_Sprite_Manager->Update_Items_Valid_Draw();
+
+		// editor
+		if( editor_enabled )
 		{
-			pMouseCursor->active_object->Editor_Position_Update();
+			// update settings activated object position
+			if( pMouseCursor->active_object )
+			{
+				pMouseCursor->active_object->Editor_Position_Update();
+			}
 		}
 	}
 }

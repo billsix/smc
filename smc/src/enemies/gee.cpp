@@ -47,6 +47,7 @@ void cGee :: Init( void  )
 	type = TYPE_GEE;
 	player_range = 1000;
 	posz = 0.088f;
+	can_be_on_ground = 0;
 
 	state = STA_STAY;
 	dest_velx = 0;
@@ -97,7 +98,7 @@ void cGee :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 	// fly distance
 	fly_distance = attributes.getValueAsInteger( "fly_distance", fly_distance );
 	// color
-	Set_Color( (DefaultColor)Get_Color_Id( attributes.getValueAsString( "color", Get_Color_Name( color_type ) ).c_str() ) );
+	Set_Color( static_cast<DefaultColor>(Get_Color_Id( attributes.getValueAsString( "color", Get_Color_Name( color_type ) ).c_str() )) );
 }
 
 void cGee :: Save_to_Stream( ofstream &file )
@@ -137,7 +138,7 @@ void cGee :: Load_from_Savegame( cSave_Level_Object *save_object )
 void cGee :: Set_Direction( ObjectDirection dir )
 {
 	// already set
-	if( direction == dir )
+	if( start_direction == dir )
 	{
 		return;
 	}
@@ -167,6 +168,11 @@ void cGee :: Set_Direction( ObjectDirection dir )
 	{
 		Update_Rotation_Hor_vely( 1 );
 	}
+
+	// stop moving
+	Stop();
+	// set to start position
+	Set_Pos( startposx, startposy );
 
 	Create_Name();
 }
@@ -558,18 +564,20 @@ bool cGee :: Is_Update_Valid( void )
 
 bool cGee :: Is_Draw_Valid( void )
 {
-	if( cEnemy::Is_Draw_Valid() == 1 )
+	bool valid = cEnemy::Is_Draw_Valid();
+
+	// if editor enabled
+	if( editor_enabled )
 	{
-		return 1;
+		// if active mouse object
+		if( pMouseCursor->active_object == this )
+		{
+			return 1;
+		}
 	}
 
-	// if not editor enabled or not active mouse object
-	if( !editor_enabled || pMouseCursor->active_object != this )
-	{
-		return 0;
-	}
 
-	return 1;
+	return valid;
 }
 
 
@@ -626,14 +634,29 @@ void cGee :: Handle_Collision_Player( cObjectCollision *collision )
 			}
 		}
 
-		pPlayer->DownGrade();
+		pPlayer->DownGrade_Player();
 		Turn_Around( collision->direction );
 	}
+}
+
+void cGee :: Handle_Collision_Massive( cObjectCollision *collision )
+{
+	Send_Collision( collision );
 }
 
 void cGee :: Editor_Activate( void )
 {
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+
+	// direction
+	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_gee_direction" ));
+	Editor_Add( UTF8_("Direction"), UTF8_("Direction"), combobox, 100, 75 );
+
+	combobox->addItem( new CEGUI::ListboxTextItem( "horizontal" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "vertical" ) );
+
+	combobox->setText( Get_Direction_Name( start_direction ) );
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cGee::Editor_Direction_Select, this ) );
 
 	// max distance
 	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_gee_max_distance" ));
@@ -643,7 +666,7 @@ void cGee :: Editor_Activate( void )
 	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cGee::Editor_Max_Distance_Key, this ) );
 
 	// always fly
-	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_gee_always_fly" ));
+	combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_gee_always_fly" ));
 	Editor_Add( UTF8_("Always fly"), UTF8_("Move without stopping at the fly distance"), combobox, 120, 80 );
 
 	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Enabled") ) );
@@ -676,6 +699,16 @@ void cGee :: Editor_Activate( void )
 
 	// init
 	Editor_Init();
+}
+
+bool cGee :: Editor_Direction_Select( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
+
+	Set_Direction( Get_Direction_Id( item->getText().c_str() ) );
+
+	return 1;
 }
 
 bool cGee :: Editor_Max_Distance_Key( const CEGUI::EventArgs &event )

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.4" />
-		<Property name="engine_version" value="2.3" />
-		<Property name="save_time" value="1199027734" />
+		<Property name="game_version" value="1.7" />
+		<Property name="engine_version" value="2.8" />
+		<Property name="save_time" value="1229238458" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="" />
@@ -26,10 +26,14 @@
 	</background>
 	<background>
 		<Property name="type" value="1" />
+		<Property name="posx" value="0" />
+		<Property name="posy" value="0" />
+		<Property name="posz" value="0.00011" />
 		<Property name="image" value="game/background/green_junglehills.png" />
 		<Property name="speedx" value="1" />
 		<Property name="speedy" value="1" />
-		<Property name="posz" value="0.00011" />
+		<Property name="const_velx" value="0" />
+		<Property name="const_vely" value="0" />
 	</background>
 	<player>
 		<Property name="posx" value="84" />
@@ -213,21 +217,21 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
-		<Property name="posx" value="358" />
+		<Property name="type" value="furball" />
+		<Property name="posx" value="369" />
 		<Property name="posy" value="161" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="1491" />
 		<Property name="posy" value="216" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="1887" />
 		<Property name="posy" value="-128" />
 		<Property name="color" value="brown" />
@@ -434,8 +438,8 @@
 		<Property name="posy" value="401" />
 	</enemystopper>
 	<levelexit>
-		<Property name="posx" value="814" />
-		<Property name="posy" value="503" />
+		<Property name="posx" value="821" />
+		<Property name="posy" value="501" />
 		<Property name="type" value="1" />
 		<Property name="level_name" value="stephan_4_1" />
 		<Property name="direction" value="down" />
@@ -532,12 +536,12 @@
 		<Property name="type" value="halfmassive" />
 	</sprite>
 	<enemystopper>
-		<Property name="posx" value="1754" />
-		<Property name="posy" value="-101" />
+		<Property name="posx" value="1756" />
+		<Property name="posy" value="-95" />
 	</enemystopper>
 	<enemystopper>
 		<Property name="posx" value="2022" />
-		<Property name="posy" value="-100" />
+		<Property name="posy" value="-96" />
 	</enemystopper>
 	<sprite>
 		<Property name="posx" value="704" />

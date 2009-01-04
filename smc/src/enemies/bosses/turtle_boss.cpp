@@ -189,15 +189,15 @@ void cTurtleBoss :: Set_Direction( ObjectDirection dir, bool new_start_direction
 
 	Update_Rotation_Hor_velx( new_start_direction );
 
-	// angry turtle
-	if( turtle_state == TURTLEBOSS_STAND_ANGRY )
-	{
-		velx = 0;
-	}
-
 	if( new_start_direction )
 	{
 		Create_Name();
+	}
+
+	// if angry turtle
+	if( turtle_state == TURTLEBOSS_STAND_ANGRY )
+	{
+		velx = 0;
 	}
 }
 
@@ -288,20 +288,7 @@ void cTurtleBoss :: DownGrade( bool force /* = 0 */ )
 				// die
                 if( downgrade_counts == max_downgrade_counts )
                 {
-					// fade out music
-					pAudio->Fadeout_Music( 500 );
-					// play finish music
-					pAudio->Play_Music( "game/courseclear.ogg", 0, 0 );
-
-					// set shell image
-					Set_Image( 5 );
-
-					// death state
 					Set_Dead( 1 );
-					massivetype = MASS_PASSIVE;
-					counter = 8;
-					velx = 0;
-					vely = 0;
                 }
 				// downgrade
                 else
@@ -341,16 +328,29 @@ void cTurtleBoss :: DownGrade( bool force /* = 0 */ )
 	// falling death
 	else
 	{
+		// die
 		Set_Dead( 1 );
-		counter = 8;
-		massivetype = MASS_PASSIVE;
 
 		if( turtle_state == TURTLEBOSS_WALK )
 		{
 			Move( 0, images[0]->h - images[5]->h, 1 );
 		}
+	}
 
+	if( dead )
+	{
+		// fade out music
+		pAudio->Fadeout_Music( 500 );
+		// play finish music
+		pAudio->Play_Music( "game/courseclear.ogg", 0, 0 );
+
+		// set shell image
 		Set_Image( 5 );
+
+		massivetype = MASS_PASSIVE;
+		counter = 8;
+		velx = 0;
+		vely = 0;
 	}
 }
 
@@ -358,67 +358,53 @@ void cTurtleBoss :: DieStep( void )
 {
 	counter += pFramerate->speedfactor * 0.5f;
 
-	// if not below the screen
-	if( posy < game_res_h + col_rect.h )
+	if( scalex > 0.1f )
 	{
-		if( scalex > 0.1f )
+		float speed_x = pFramerate->speedfactor * 10;
+
+		if( direction == DIR_LEFT )
 		{
-			float speed_x = pFramerate->speedfactor * 10;
-
-			if( direction == DIR_LEFT )
-			{
-				speed_x *= -1;
-			}
-
-			Add_Rotation_Z( speed_x );
-			Add_Scale( -pFramerate->speedfactor * 0.025f );
-
-			// finished scale out animation
-			if( scalex <= 0.1f )
-			{
-				// sound
-				pAudio->Play_Sound( "enemy/turtle/shell/hit.ogg" );
-
-				// animation
-				cParticle_Emitter *anim = new cParticle_Emitter();
-				anim->Set_Pos( posx, posy );
-				anim->Set_Image( pVideo->Get_Surface( "animation/particles/star.png" ) );
-				anim->Set_Quota( 30 );
-				anim->Set_Pos_Z( posz + 0.000001f );
-				anim->Set_Const_Rotation_Z( -6, 12 );
-				anim->Set_Time_to_Live( 1 );
-				anim->Set_Speed( 1, 4 );
-				anim->Set_Scale( 0.4f, 0.3f );
-				anim->Set_Color( orange, Color( static_cast<Uint8>(6), 60, 20 ) );
-				anim->Set_Blending( BLEND_ADD );
-				pAnimation_Manager->Add( anim );
-
-				// set empty image
-				cMovingSprite::Set_Image( NULL, 0, 0 );
-				// reset counter
-				counter = 0;
-			}
+			speed_x *= -1;
 		}
-		// after scale animation
-		else
+
+		Add_Rotation_Z( speed_x );
+		Add_Scale( -pFramerate->speedfactor * 0.025f );
+
+		// finished scale out animation
+		if( scalex <= 0.1f )
 		{
-			// wait some time
-			if( counter > 25 )
-			{
-				// next level
-				pPlayer->Goto_Next_Level();
-			}
+			// sound
+			pAudio->Play_Sound( "enemy/turtle/shell/hit.ogg" );
+
+			// animation
+			cParticle_Emitter *anim = new cParticle_Emitter();
+			anim->Set_Pos( posx, posy );
+			anim->Set_Image( pVideo->Get_Surface( "animation/particles/star.png" ) );
+			anim->Set_Quota( 30 );
+			anim->Set_Pos_Z( posz + 0.000001f );
+			anim->Set_Const_Rotation_Z( -6, 12 );
+			anim->Set_Time_to_Live( 1 );
+			anim->Set_Speed( 1, 4 );
+			anim->Set_Scale( 0.4f, 0.3f );
+			anim->Set_Color( orange, Color( static_cast<Uint8>(6), 60, 20 ) );
+			anim->Set_Blending( BLEND_ADD );
+			pAnimation_Manager->Add( anim );
+
+			// set empty image
+			cMovingSprite::Set_Image( NULL, 0, 0 );
+			// reset counter
+			counter = 0;
 		}
 	}
-	// if below disable
+	// after scale animation
 	else
 	{
-		state = STA_STAY;
-		turtle_state = TURTLEBOSS_DEAD;
-		Set_Visible( 0 );
-		rotz = 0;
-		velx = 0;
-		vely = 0;
+		// wait some time
+		if( counter > 25 )
+		{
+			// next level
+			pPlayer->Goto_Next_Level();
+		}
 	}
 }
 
@@ -737,7 +723,7 @@ unsigned int cTurtleBoss :: Validate_Collision( cSprite *obj )
 	}
 	if( obj->massivetype == MASS_HALFMASSIVE )
 	{
-		// if moving downwards and object is on top
+		// if moving downwards and the object is on bottom
 		if( vely >= 0 && Is_on_Top( obj ) )
 		{
 			return 2;
@@ -815,7 +801,7 @@ void cTurtleBoss :: Handle_Collision_Player( cObjectCollision *collision )
 	{
 		if( turtle_state == TURTLEBOSS_WALK )
 		{
-			pPlayer->DownGrade();
+			pPlayer->DownGrade_Player();
 			Turn_Around( collision->direction );
 		}
 		else if( turtle_state == TURTLEBOSS_SHELL_STAND )
@@ -891,7 +877,7 @@ void cTurtleBoss :: Handle_Collision_Player( cObjectCollision *collision )
 			// other directions downgrade
 			else
 			{
-				pPlayer->DownGrade();
+				pPlayer->DownGrade_Player();
 				Turn_Around( collision->direction );
 			}
 		}
@@ -1055,6 +1041,16 @@ void cTurtleBoss :: Editor_Activate( void )
 {
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
+	// direction
+	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_turtle_boss_direction" ));
+	Editor_Add( UTF8_("Direction"), UTF8_("Direction"), combobox, 100, 75 );
+
+	combobox->addItem( new CEGUI::ListboxTextItem( "left" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "right" ) );
+
+	combobox->setText( Get_Direction_Name( start_direction ) );
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cTurtleBoss::Editor_Direction_Select, this ) );
+
 	// max hits
 	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_turtle_boss_max_hits" ));
 	Editor_Add( UTF8_("Hits"), UTF8_("Hits until a downgrade"), editbox, 120 );
@@ -1078,6 +1074,16 @@ void cTurtleBoss :: Editor_Activate( void )
 
 	// init
 	Editor_Init();
+}
+
+bool cTurtleBoss :: Editor_Direction_Select( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
+
+	Set_Direction( Get_Direction_Id( item->getText().c_str() ), 1 );
+
+	return 1;
 }
 
 bool cTurtleBoss :: Editor_Max_Hits_Key( const CEGUI::EventArgs &event )

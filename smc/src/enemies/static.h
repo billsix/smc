@@ -60,8 +60,6 @@ public:
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
 
-	// ignore onground check
-	virtual void Check_on_Ground( void ) {};
 	/* Validate the given collision object
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)

@@ -19,6 +19,20 @@
 #include "../core/globals.h"
 #include "../objects/objectsprite.h"
 
+/* *** *** *** *** *** *** *** *** Box invisible types *** *** *** *** *** *** *** *** *** */
+
+enum Box_Invisible_Type
+{
+	// always visible
+    BOX_VISIBLE = 0,
+	// visible after activation
+    BOX_INVISIBLE_MASSIVE = 1,
+	// only visible in ghost mode
+    BOX_GHOST = 2,
+	// visible after activation and only touchable in the activation direction
+    BOX_INVISIBLE_SEMI_MASSIVE = 3
+};
+
 /* *** *** *** *** *** *** *** *** cBaseBox *** *** *** *** *** *** *** *** *** */
 
 class cBaseBox : public cImageObjectSprite
@@ -43,11 +57,8 @@ public:
 	void Set_Animation( string new_anim_type );
 	// sets the count this object can be activated
 	virtual void Set_Useable_Count( int count, bool new_startcount = 0 );
-	/* Set invisible type
-	 * 1 : invisible until activation
-	 * 2 : ghost box
-	*/
-	void Set_Invisible( unsigned int type );
+	// Set invisible type
+	void Set_Invisible( Box_Invisible_Type type );
 
 	// activates collision movement
 	void Activate_Collision( ObjectDirection cdirection );
@@ -85,10 +96,12 @@ public:
 	// handle the basic box enemy collision
 	virtual void Handle_Collision_Enemy( cObjectCollision *collision );
 
-	// leveleditor activation
+	// editor activation
 	virtual void Editor_Activate( void );
-	bool Editor_Useable_Count_Key( const CEGUI::EventArgs &event ); // editor useable count key up
-	bool Editor_Invisible_Select( const CEGUI::EventArgs &event ); // editor invisible option selected
+	// editor useable count key up event
+	bool Editor_Useable_Count_Key( const CEGUI::EventArgs &event );
+	// editor invisible option selected event
+	bool Editor_Invisible_Select( const CEGUI::EventArgs &event );
 
 	// animation type
 	string anim_type;
@@ -100,7 +113,7 @@ public:
 	SpriteType box_type;
 
 	// leveleditor item image
-	GL_Surface *item_image;
+	cGL_Surface *item_image;
 
 	// moving direction when activated
 	ObjectDirection move_col_dir;
@@ -112,7 +125,7 @@ public:
 	int useable_count, start_useable_count;
 
 	// box invisible type
-	unsigned int box_invisible;
+	Box_Invisible_Type box_invisible;
 
 	// active particle animation counter
 	float particle_counter_active;

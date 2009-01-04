@@ -80,9 +80,9 @@ public:
 	// Set the middle image count
 	void Set_Middle_Count( int val );
 	// set image
-	void Set_Image_Top_Left( GL_Surface *surface );
-	void Set_Image_Top_Middle( GL_Surface *surface );
-	void Set_Image_Top_Right( GL_Surface *surface );
+	void Set_Image_Top_Left( cGL_Surface *surface );
+	void Set_Image_Top_Middle( cGL_Surface *surface );
+	void Set_Image_Top_Right( cGL_Surface *surface );
 
 	// update
 	virtual void Update( void );
@@ -94,9 +94,6 @@ public:
 	// Update velocity
 	void Update_Velocity( void );
 
-	// ignore onground check
-	virtual void Check_on_Ground( void ) {};
-
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
 
@@ -107,27 +104,39 @@ public:
 	virtual unsigned int Validate_Collision( cSprite *obj );
 	// collision from player
 	virtual void Handle_Collision_Player( cObjectCollision *collision );
+	// collision from an enemy
+	virtual void Handle_Collision_Enemy( cObjectCollision *collision );
 
-	// leveleditor activation
+	// editor activation
 	virtual void Editor_Activate( void );
-	// leveleditor events
-	bool Editor_Max_Distance_Key( const CEGUI::EventArgs &event );  // editor max distance key up
-	bool Editor_Speed_Key( const CEGUI::EventArgs &event );  // editor speed key up
-	bool Editor_Hor_Middle_Count_Key( const CEGUI::EventArgs &event );  // editor horizontal middle image count key up
-	bool Editor_Image_Top_Left_Key( const CEGUI::EventArgs &event );  // editor image top left key up
-	bool Editor_Image_Top_Middle_Key( const CEGUI::EventArgs &event );  // editor image top middle key up
-	bool Editor_Image_Top_Right_Key( const CEGUI::EventArgs &event );  // editor image top right key up
-	bool Editor_Touch_Time_Key( const CEGUI::EventArgs &event );  // editor touch time key up
-	bool Editor_Shake_Time_Key( const CEGUI::EventArgs &event );  // editor shaking time key up
-	bool Editor_Touch_Move_Time_Key( const CEGUI::EventArgs &event );  // editor touch moving time key up
+	// editor direction option selected event
+	bool Editor_Direction_Select( const CEGUI::EventArgs &event );
+	// editor max distance key up event
+	bool Editor_Max_Distance_Key( const CEGUI::EventArgs &event );
+	// editor speed key up event
+	bool Editor_Speed_Key( const CEGUI::EventArgs &event );
+	// editor horizontal middle image count key up event
+	bool Editor_Hor_Middle_Count_Key( const CEGUI::EventArgs &event );
+	// editor image top left key up event
+	bool Editor_Image_Top_Left_Key( const CEGUI::EventArgs &event );
+	// editor image top middle key up event
+	bool Editor_Image_Top_Middle_Key( const CEGUI::EventArgs &event );
+	// editor image top right key up event
+	bool Editor_Image_Top_Right_Key( const CEGUI::EventArgs &event );
+	// editor touch time key up event
+	bool Editor_Touch_Time_Key( const CEGUI::EventArgs &event );
+	// editor shaking time key up event
+	bool Editor_Shake_Time_Key( const CEGUI::EventArgs &event );
+	// editor touch moving time key up event
+	bool Editor_Touch_Move_Time_Key( const CEGUI::EventArgs &event );
 
 	// current direction
 	ObjectDirection moving_direction;
-	// moving speed
+	// movement speed
 	float speed;
 	// max moving distance
 	int max_distance;
-	// count the middle image is used
+	// how many times the middle image is drawn
 	unsigned int middle_count;
 
 	// internal platform state
@@ -149,6 +158,11 @@ public:
 private:
 	// Create the Name from the current settings
     void Create_Name( void );
+
+	// position when movement should slow down
+	float max_distance_slow_down_pos;
+	// lowest possible speed when moving
+	float lowest_speed;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

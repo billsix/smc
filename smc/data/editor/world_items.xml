@@ -7,6 +7,10 @@
 		<Property Name="access" Value="0" />
 	</Item>
 	<Item>
+		<Property Name="object_name" Value="line" />
+		<Property Name="object_tags" Value="world;generic" />
+	</Item>
+	<Item>
 		<Property Name="object_name" Value="sound" />
 		<Property Name="object_tags" Value="world;generic" />
 		<Property Name="file" Value="waterdrop_1.ogg" />

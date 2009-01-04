@@ -55,9 +55,6 @@ public:
 	// draw animation
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
-	// ignore onground check
-	virtual void Check_on_Ground( void ) {};
-
 	// Set time to live for Objects in seconds
 	void Set_Time_to_Live( float time, float time_rand = 0 );
 	/* Set speed of fading out ( 0.01 - 100 )
@@ -146,9 +143,6 @@ public:
 	// draw
 	virtual void Draw( cParticle_Emitter *origin );
 
-	// ignore onground check
-	virtual void Check_on_Ground( void ) {};
-
 	// set gravity
 	void Set_Gravity( float x, float y );
 
@@ -200,9 +194,6 @@ public:
 	// if draw is valid for the current state and position
 	virtual bool Is_Draw_Valid( void );
 
-	// ignore onground check
-	virtual void Check_on_Ground( void ) {};
-
 	// Set the Emitter rect
 	void Set_Emitter_Rect( float x, float y, float w = 0, float h = 0 );
 	void Set_Emitter_Rect( GL_rect r );
@@ -243,7 +234,7 @@ public:
 	// Set blending mode
 	virtual void Set_Blending( BlendingMode mode );
 	// Set image
-	virtual void Set_Image( GL_Surface *img );
+	virtual void Set_Image( cGL_Surface *img );
 	// Set the file name
 	virtual void Set_Filename( string str_filename );
 

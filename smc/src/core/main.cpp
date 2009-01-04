@@ -38,10 +38,11 @@
 #include "../input/keyboard.h"
 #include "../video/renderer.h"
 #include "../video/img_settings.h"
-#include "../objects/levelexit.h"
+#include "../objects/level_exit.h"
 #include "../level/level_settings.h"
 #include "../core/sprite_manager.h"
 #include "../core/i18n.h"
+#include "../gui/menu_data.h"
 #ifdef __APPLE__
 // needed for datapath detection
 #include <CoreFoundation/CoreFoundation.h>
@@ -632,7 +633,7 @@ void Update_Game( void )
 			// handle player downgrade
 			if( Current_Game_Action == GA_DOWNGRADE_PLAYER )
 			{
-				pPlayer->DownGrade( 0, CEGUI::PropertyHelper::stringToBool( Current_Game_Action_Data.getValueAsString( "force" ) ) );
+				pPlayer->DownGrade_Player( 0, CEGUI::PropertyHelper::stringToBool( Current_Game_Action_Data.getValueAsString( "force" ) ) );
 			}
 			// activate level exit
 			else if( Current_Game_Action == GA_ACTIVATE_LEVEL_EXIT )
@@ -740,13 +741,32 @@ void Update_Game( void )
 			// Enter Menu
 			else if( Current_Game_Action == GA_ENTER_MENU )
 			{
-				// fade out
-				Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
+				// check if level is active
+				bool level_active = 0;
+
+				// if level is loaded and active
+				if( pActive_Level->Is_Loaded() && !pActive_Level->delayed_unload )
+				{
+					level_active = 1;
+				}
+
+				// set exit game mode
+				GameMode exit_gamemode = MODE_NOTHING;
+
+				if( level_active )
+				{
+					exit_gamemode = MODE_LEVEL;
+				}
+				else
+				{
+					// fade out
+					Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
+				}
 
 				// custom level
 				if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM )
 				{
-					pMenuCore->Load( MENU_START );
+					pMenuCore->Load( MENU_START, exit_gamemode );
 
 					// Get Tab Control
 					CEGUI::TabControl *tabcontrol = static_cast<CEGUI::TabControl *>(CEGUI::WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
@@ -769,11 +789,14 @@ void Update_Game( void )
 				// default menu
 				else
 				{
-					pMenuCore->Load();
+					pMenuCore->Load( MENU_MAIN, exit_gamemode );
 				}
 				
-				// fade int
-				Draw_Effect_In( EFFECT_IN_BLACK, 3 );
+				if( !level_active )
+				{
+					// fade in
+					Draw_Effect_In( EFFECT_IN_BLACK, 3 );
+				}
 			}
 			// Enter Settings
 			else if( Current_Game_Action == GA_ENTER_LEVEL_SETTINGS )
@@ -857,7 +880,7 @@ void Update_Game( void )
 			// Enter Menu
 			else if( Current_Game_Action == GA_ENTER_MENU )
 			{
-				pMenuCore->Load();
+				pMenuCore->Load( MENU_MAIN, MODE_OVERWORLD );
 			}
 			// Enter Credits Menu
 			else if( Current_Game_Action == GA_ENTER_MENU_CREDITS )
@@ -884,8 +907,20 @@ void Update_Game( void )
 			// Enter World
 			if( Current_Game_Action == GA_ENTER_WORLD )
 			{
-				// fade out
-				Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
+				// check if world is active
+				bool world_active = 0;
+
+				// if world loaded and not entering a new world
+				if( (pMenuCore->pMenu_Data && pMenuCore->pMenu_Data->exit_to_gamemode == MODE_OVERWORLD) && !Current_Game_Action_Data.exists( "world" ) )
+				{
+					world_active = 1;
+				}
+				else
+				{
+					// fade out
+					Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
+				}
+
 				// todo : fade only out if not same music
 				// if origin menu is start menu
 				if( pMenuCore->menu_id == MENU_START )
@@ -916,20 +951,31 @@ void Update_Game( void )
 				}
 				// enter world
 				pActive_Overworld->Enter();
-				// fade in
-				Draw_Effect_In( EFFECT_IN_BLACK, 3 );
+				if( !world_active )
+				{
+					// fade in
+					Draw_Effect_In( EFFECT_IN_BLACK, 3 );
+				}
 			}
 			// Enter Level
 			if( Current_Game_Action == GA_ENTER_LEVEL )
 			{
-				// if level not loaded or entering custom level
-				if( !pActive_Level->Is_Loaded() || Current_Game_Action_Data.exists( "level" ) )
+				// check if level is active
+				bool orig_level_active = 0;
+
+				// if level loaded and not entering custom level
+				if( (pMenuCore->pMenu_Data && pMenuCore->pMenu_Data->exit_to_gamemode == MODE_LEVEL) && !Current_Game_Action_Data.exists( "level" ) )
+				{
+					orig_level_active = 1;
+				}
+				else
 				{
 					// fade music out
 					pAudio->Fadeout_Music( 1000 );
+					// fade out
+					Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
 				}
-				// fade out
-				Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
+
 				// check if custom level mode
 				bool custom_level_mode = 0;
 				// if origin menu is start menu
@@ -958,15 +1004,25 @@ void Update_Game( void )
 				{
 					Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
 				}
-				// fade in
-				Draw_Effect_In( EFFECT_IN_BLACK, 3 );
+				if( !orig_level_active )
+				{
+					// fade in
+					Draw_Effect_In( EFFECT_IN_BLACK, 3 );
+				}
 			}
 			// Enter Menu
 			else if( Current_Game_Action == GA_ENTER_MENU )
 			{
 				if( pMenuCore->next_menu != MENU_NOTHING )
 				{
-					pMenuCore->Load( pMenuCore->next_menu );
+					GameMode exit_gamemode = MODE_NOTHING;
+
+					if( pMenuCore->pMenu_Data )
+					{
+						exit_gamemode = pMenuCore->pMenu_Data->exit_to_gamemode;
+					}
+
+					pMenuCore->Load( pMenuCore->next_menu, exit_gamemode );
 				}
 			}
 		}
@@ -1108,7 +1164,7 @@ void Draw_Game( void )
 	if( Game_Mode == MODE_LEVEL )
 	{
 		// draw level layer 1
-		pActive_Level->Draw_Layer1();
+		pActive_Level->Draw_Layer_1();
 
 		// update performance timer
 		pFramerate->perf_timer[PERF_DRAW_LEVEL_LAYER1]->Update();
@@ -1120,7 +1176,7 @@ void Draw_Game( void )
 		pFramerate->perf_timer[PERF_DRAW_LEVEL_PLAYER]->Update();
 
 		// draw level layer 2
-		pActive_Level->Draw_Layer2();
+		pActive_Level->Draw_Layer_2();
 
 		// update performance timer
 		pFramerate->perf_timer[PERF_DRAW_LEVEL_LAYER2]->Update();

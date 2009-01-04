@@ -48,7 +48,7 @@ smc_SOURCES = \
 	objects/enemystopper.cpp \
 	objects/goldpiece.cpp \
 	objects/level_entry.cpp \
-	objects/levelexit.cpp \
+	objects/level_exit.cpp \
 	objects/moving_platform.cpp \
 	objects/movingsprite.cpp \
 	objects/objectsprite.cpp \
@@ -63,6 +63,7 @@ smc_SOURCES = \
 	overworld/world_waypoint.cpp \
 	overworld/world_editor.cpp \
 	overworld/world_manager.cpp \
+	overworld/world_sprite_manager.cpp \
 	player/player.cpp \
 	user/preferences.cpp \
 	user/savegame.cpp \

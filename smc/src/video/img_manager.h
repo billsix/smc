@@ -31,7 +31,7 @@ public:
 	~cSaved_Texture( void );
 
 	// base surface
-	GL_Surface *base;
+	cGL_Surface *base;
 
 	// pixel data
     GLubyte *pixels;
@@ -50,7 +50,7 @@ public:
 };
 
 typedef vector<cSaved_Texture *> Saved_Texture_List;
-typedef vector<GL_Surface *> GL_Surface_List;
+typedef vector<cGL_Surface *> GL_Surface_List;
 
 /* *** *** *** *** *** *** cImage_Manager *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -59,27 +59,27 @@ typedef vector<GL_Surface *> GL_Surface_List;
 // Operators:
 //  - cImage_Manager [path]
 //  - cImage_Manager [identifier]
-class cImage_Manager : public cObject_Manager<GL_Surface>
+class cImage_Manager : public cObject_Manager<cGL_Surface>
 {
 public:
 	cImage_Manager( void );
 	virtual ~cImage_Manager( void );
 
-	// Add a GL_Surface
-	virtual void Add( GL_Surface *obj );
+	// Add a cGL_Surface
+	virtual void Add( cGL_Surface *obj );
 
 	// Return the Surface by Path
-	GL_Surface *Get_Pointer( string path );
+	cGL_Surface *Get_Pointer( string path );
 
 	// Return the copied image
-	GL_Surface *Copy( string path );
+	cGL_Surface *Copy( string path );
 
-	GL_Surface *operator [] ( unsigned int identifier )
+	cGL_Surface *operator [] ( unsigned int identifier )
 	{
-		return cObject_Manager<GL_Surface>::Get_Pointer( identifier );
+		return cObject_Manager<cGL_Surface>::Get_Pointer( identifier );
 	}
 	
-	GL_Surface *operator [] ( string path )
+	cGL_Surface *operator [] ( string path )
 	{
 		return Get_Pointer( path );
 	}

@@ -26,6 +26,8 @@
 #include "../core/sprite_manager.h"
 #include "../core/math/utilities.h"
 #include "../core/i18n.h"
+#include "../enemies/turtle.h"
+#include "../enemies/bosses/turtle_boss.h"
 
 /* *** *** *** *** *** *** *** *** cBaseBox *** *** *** *** *** *** *** *** *** */
 
@@ -48,10 +50,11 @@ cBaseBox :: cBaseBox( float x /* = 0 */, float y /* = 0 */ )
 	move_col_dir = DIR_UNDEFINED;
 	move_counter = 0;
 	move_back = 0;
-	useable_count = 1; // default = 1 time usable
+	// default = usable once
+	useable_count = 1;
 	start_useable_count = 1;
 
-	box_invisible = 0;
+	box_invisible = BOX_VISIBLE;
 
 	particle_counter_active = 0;
 }
@@ -71,7 +74,7 @@ void cBaseBox :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 		Set_Animation( attributes.getValueAsString( "animation", anim_type ).c_str() );
 	}
 	// invisible
-	Set_Invisible( attributes.getValueAsInteger( "invisible" ) );
+	Set_Invisible( static_cast<Box_Invisible_Type>(attributes.getValueAsInteger( "invisible" )) );
 	// useable count
 	Set_Useable_Count( attributes.getValueAsInteger( "useable_count", start_useable_count ), 1 );
 }
@@ -219,7 +222,7 @@ void cBaseBox :: Set_Useable_Count( int count, bool new_startcount /* = 0 */ )
 	}
 }
 
-void cBaseBox :: Set_Invisible( unsigned int type )
+void cBaseBox :: Set_Invisible( Box_Invisible_Type type )
 {
 	// already set
 	if( box_invisible == type )
@@ -227,39 +230,54 @@ void cBaseBox :: Set_Invisible( unsigned int type )
 		return;
 	}
 
+	// remember old type
+	Box_Invisible_Type type_old = box_invisible;
+	// set new type
+	box_invisible = type;
+
 	// was invisible
-	if( box_invisible == 1 )
+	if( type_old == BOX_INVISIBLE_MASSIVE || type_old == BOX_INVISIBLE_SEMI_MASSIVE )
 	{
 		Set_Image( static_cast<int>(counter), 1, 0 );
+
+		// was semi massive
+		if( type_old == BOX_INVISIBLE_SEMI_MASSIVE )
+		{
+			massivetype = MASS_MASSIVE;
+		}
 	}
 	// was ghost
-	else if( box_invisible == 2 )
+	else if( type_old == BOX_GHOST )
 	{
 		Set_Color( 255, 255, 255, 255 );
 		Set_Color_Combine( 0, 0, 0, 0 );
 	}
 
 	// got invisible
-	if( type == 1 )
+	if( type == BOX_INVISIBLE_MASSIVE || type == BOX_INVISIBLE_SEMI_MASSIVE)
 	{
 		Set_Image( -1, 1, 0 );
 
 		col_pos = images[0]->col_pos;
 		col_rect.w = images[0]->col_w;
 		col_rect.h = images[0]->col_h;
-		rect.w = images[0]->col_w;
-		rect.h = images[0]->col_h;
-		start_rect.w = images[0]->col_w;
-		start_rect.h = images[0]->col_h;
+		rect.w = images[0]->w;
+		rect.h = images[0]->h;
+		start_rect.w = images[0]->w;
+		start_rect.h = images[0]->h;
+
+		// got semi massive
+		if( type == BOX_INVISIBLE_SEMI_MASSIVE )
+		{
+			massivetype = MASS_PASSIVE;
+		}
 	}
 	// got ghost
-	else if( type == 2 )
+	else if( type == BOX_GHOST )
 	{
 		Set_Color( 192, 192, 255, 128 );
 		Set_Color_Combine( 0.2f, 0.2f, 0.55f, GL_ADD );
 	}
-
-	box_invisible = type;
 
 	// create name again
 	Create_Name();
@@ -283,6 +301,12 @@ void cBaseBox :: Activate_Collision( ObjectDirection cdirection )
 	if( box_invisible )
 	{
 		Set_Image( static_cast<int>(counter), 0, 0 );
+
+		// get massive
+		if( box_invisible == BOX_INVISIBLE_SEMI_MASSIVE )
+		{
+			massivetype = MASS_MASSIVE;
+		}
 	}
 
 	// set scaling based on direction
@@ -385,7 +409,6 @@ void cBaseBox :: Check_Collision( ObjectDirection cdirection )
 	// additional direction based check position
 	float check_x = 0;
 	float check_y = 0;
-
 
 	// set the collision size based on the collision direction
 	if( cdirection == DIR_BOTTOM )
@@ -493,17 +516,22 @@ void cBaseBox :: Draw( cSurfaceRequest *request /* = NULL */ )
 			Color color;
 
 			// default invisible
-			if( box_invisible == 1 )
+			if( box_invisible == BOX_INVISIBLE_MASSIVE )
 			{
 				color = Color( static_cast<Uint8>(240), 0, 30, 128 );
 			}
 			// ghost
-			else if( box_invisible == 2 )
+			else if( box_invisible == BOX_GHOST )
 			{
 				color = Color( static_cast<Uint8>(20), 20, 150, 128 );
 			}
+			// invisible semi massive
+			else if( box_invisible == BOX_INVISIBLE_SEMI_MASSIVE )
+			{
+				color = Color( static_cast<Uint8>(180), 0, 10, 128 );
+			}
 
-			pVideo->Draw_Rect( startposx - pActive_Camera->x, startposy - pActive_Camera->y, col_rect.w, col_rect.h, posz, &color );
+			pVideo->Draw_Rect( startposx - pActive_Camera->x, startposy - pActive_Camera->y, rect.w, rect.h, posz, &color );
 		}
 		// visible box
 		else
@@ -608,7 +636,7 @@ bool cBaseBox :: Is_Draw_Valid( void )
 		}
 
 		// ghost
-		if( box_invisible == 2 )
+		if( box_invisible == BOX_GHOST )
 		{
 			// maryo is not ghost
 			if( pPlayer->maryo_type != MARYO_GHOST )
@@ -620,6 +648,12 @@ bool cBaseBox :: Is_Draw_Valid( void )
 	// editor enabled
 	else
 	{
+		// if destroyed
+		if( destroy )
+		{
+			return 0;
+		}
+
 		// no image
 		if( !start_image && !box_invisible )
 		{
@@ -650,7 +684,7 @@ unsigned int cBaseBox :: Validate_Collision( cSprite *obj )
 	}
 	if( obj->massivetype == MASS_HALFMASSIVE )
 	{
-		// if moving downwards and object is on top
+		// if moving downwards and the object is on bottom
 		if( vely >= 0 && Is_on_Top( obj ) )
 		{
 			return 2;
@@ -681,9 +715,39 @@ void cBaseBox :: Handle_Collision_Player( cObjectCollision *collision )
 
 void cBaseBox :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
+	cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
+
+	// if turtle
+	if( enemy->type == TYPE_TURTLE )
+	{
+		cTurtle *turtle = static_cast<cTurtle *>(enemy);
+
+		// if not shell
+		if( turtle->turtle_state != TURTLE_SHELL_RUN && turtle->turtle_state != TURTLE_SHELL_STAND )
+		{
+			return;
+		}
+	}
+	// if turtle boss
+	else if( enemy->type == TYPE_TURTLE_BOSS )
+	{
+		cTurtleBoss *turtleboss = static_cast<cTurtleBoss *>(enemy);
+
+		// if not shell
+		if( turtleboss->turtle_state != TURTLEBOSS_SHELL_RUN && turtleboss->turtle_state != TURTLEBOSS_SHELL_STAND )
+		{
+			return;
+		}
+	}
+	// not a valid enemy
+	else
+	{
+		return;
+	}
+
 	if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT || collision->direction == DIR_BOTTOM )
 	{
-		if( useable_count != 0 )
+		if( useable_count != 0 && type != TYPE_TEXT_BOX )
 		{
 			Activate_Collision( Get_Opposite_Direction( collision->direction ) );
 		}
@@ -714,19 +778,24 @@ void cBaseBox :: Editor_Activate( void )
 
 	// Invisible
 	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_basebox_invisible" ));
-	Editor_Add( UTF8_("Invisible"), UTF8_("Invisible until activated or if ghost only visible if in ghost mode."), combobox, 120, 100 );
+	Editor_Add( UTF8_("Invisible"), UTF8_("Massive is invisible until activated.\nGhost is only visible and activateable if in ghost mode.\nSemi Massive is like Massive but only touchable in the activation direction."), combobox, 120, 100 );
 
-	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Enabled") ) );
 	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Disabled") ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Massive") ) );
 	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Ghost") ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Semi Massive") ) );
 
-	if( box_invisible == 1 )
+	if( box_invisible == BOX_INVISIBLE_MASSIVE )
 	{
-		combobox->setText( UTF8_("Enabled") );
+		combobox->setText( UTF8_("Massive") );
 	}
-	else if( box_invisible == 2 )
+	else if( box_invisible == BOX_GHOST )
 	{
 		combobox->setText( UTF8_("Ghost") );
+	}
+	else if( box_invisible == BOX_INVISIBLE_SEMI_MASSIVE )
+	{
+		combobox->setText( UTF8_("Semi Massive") );
 	}
 	else
 	{
@@ -757,17 +826,21 @@ bool cBaseBox :: Editor_Invisible_Select( const CEGUI::EventArgs &event )
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
 	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
 
-	if( item->getText().compare( UTF8_("Enabled") ) == 0 )
+	if( item->getText().compare( UTF8_("Massive") ) == 0 )
 	{
-		Set_Invisible( 1 );
+		Set_Invisible( BOX_INVISIBLE_MASSIVE );
 	}
 	else if( item->getText().compare( UTF8_("Ghost") ) == 0 )
 	{
-		Set_Invisible( 2 );
+		Set_Invisible( BOX_GHOST );
+	}
+	else if( item->getText().compare( UTF8_("Semi Massive") ) == 0 )
+	{
+		Set_Invisible( BOX_INVISIBLE_SEMI_MASSIVE );
 	}
 	else
 	{
-		Set_Invisible( 0 );
+		Set_Invisible( BOX_VISIBLE );
 	}
 
 	return 1;
@@ -828,8 +901,16 @@ void cBaseBox :: Create_Name( void )
 		name = _("Box Unknown Item Type");
 	}
 
-	if( box_invisible )
+	if( box_invisible == BOX_INVISIBLE_MASSIVE )
 	{
 		name.insert( 0, _("Invisible ") );
+	}
+	else if( box_invisible == BOX_GHOST )
+	{
+		name.insert( 0, _("Ghost ") );
+	}
+	else if( box_invisible == BOX_INVISIBLE_SEMI_MASSIVE )
+	{
+		name.insert( 0, _("Invisible Semi Massive") );
 	}
 }

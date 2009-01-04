@@ -19,6 +19,14 @@
 #include "../core/globals.h"
 #include "../objects/objectsprite.h"
 
+/* *** *** *** *** *** *** *** Level Entry types *** *** *** *** *** *** *** *** *** *** */
+
+enum Level_Entry_type
+{
+	LEVEL_ENTRY_BEAM		= 0,	// no animation ( f.e. a door or hole )
+	LEVEL_ENTRY_WARP		= 1		// rotated player moves slowly into the destination direction
+};
+
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 /* Level Entry
@@ -57,25 +65,30 @@ public:
 	// Activate
 	void Activate( void );
 
+	// Set the type
+	void Set_Type( Level_Entry_type ltype );
 	// Set the name
 	void Set_Name( string str_name );
 
 	// if draw is valid for the current state and position
 	virtual bool Is_Draw_Valid( void );
 
-	// level editor activation
+	// editor activation
 	virtual void Editor_Activate( void );
-	// level editor events
-	bool Editor_Direction_Select( const CEGUI::EventArgs &event ); // editor direction option selected
-	bool Editor_Name_Key( const CEGUI::EventArgs &event );  // editor name key up
+	// editor direction option selected event
+	bool Editor_Direction_Select( const CEGUI::EventArgs &event );
+	// editor name key up event
+	bool Editor_Name_Key( const CEGUI::EventArgs &event );
 
+	// level entry type
+	Level_Entry_type entry_type;
 	// identification name
 	string entry_name;
 
 	// editor type color
 	Color editor_color;
 	// editor entry name text
-	GL_Surface *editor_entry_name;
+	cGL_Surface *editor_entry_name;
 
 private:
     void Create_Name( void );

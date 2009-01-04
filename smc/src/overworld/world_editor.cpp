@@ -122,7 +122,7 @@ bool cEditor_World :: Key_Down( SDLKey key )
 	return 1;
 }
 
-void cEditor_World :: Activate_Menu( cEditor_Menu_Object *entry )
+void cEditor_World :: Activate_Menu_Item( cEditor_Menu_Object *entry )
 {
 	// If Function
 	if( entry->bfunction )
@@ -158,13 +158,13 @@ void cEditor_World :: Activate_Menu( cEditor_Menu_Object *entry )
 		// unknown level function
 		else
 		{
-			cEditor::Activate_Menu( entry );
+			cEditor::Activate_Menu_Item( entry );
 		}
 	}
 	// unknown level function
 	else
 	{
-		cEditor::Activate_Menu( entry );
+		cEditor::Activate_Menu_Item( entry );
 	}
 }
 

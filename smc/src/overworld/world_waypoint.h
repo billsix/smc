@@ -96,9 +96,9 @@ public:
 
 
 	// white arrow
-	GL_Surface *arrow_white_l, *arrow_white_r, *arrow_white_u, *arrow_white_d;
+	cGL_Surface *arrow_white_l, *arrow_white_r, *arrow_white_u, *arrow_white_d;
 	// blue arrow
-	GL_Surface *arrow_blue_l, *arrow_blue_r, *arrow_blue_u, *arrow_blue_d;
+	cGL_Surface *arrow_blue_l, *arrow_blue_r, *arrow_blue_u, *arrow_blue_d;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

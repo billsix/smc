@@ -40,6 +40,11 @@
 		<Property Name="color" Value="FFA0FF5E" />
 	</Item>
 	<Item>
+		<Property Name="name" Value="Snow Ground" />
+		<Property Name="tags" Value="snow;ground" />
+		<Property Name="color" Value="FFB9E0F2" />
+	</Item>
+	<Item>
 		<Property Name="name" Value="Blocks" />
 		<Property Name="tags" Value="block" />
 		<Property Name="color" Value="FF7D00BC" />
@@ -108,6 +113,11 @@
 		<Property Name="name" Value="Windows" />
 		<Property Name="tags" Value="window" />
 		<Property Name="color" Value="FFDDDCFD" />
+	</Item>
+	<Item>
+		<Property Name="name" Value="Candy" />
+		<Property Name="tags" Value="candy" />
+		<Property Name="color" Value="FFEAECDE" />
 	</Item>
 	<Item>
 		<Property Name="name" Value="Stuff" />

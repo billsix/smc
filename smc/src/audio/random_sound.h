@@ -89,8 +89,6 @@ public:
 
 	// if camera went out of range
 	void Event_Out_Of_Range( void );
-	// ignore onground check
-	virtual void Check_on_Ground( void ) {};
 
 	// editor activation
 	virtual void Editor_Activate( void );

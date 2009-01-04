@@ -1,7 +1,7 @@
-# generated automatically by aclocal 1.10.1 -*- Autoconf -*-
+# generated automatically by aclocal 1.10 -*- Autoconf -*-
 
 # Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-# 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+# 2005, 2006  Free Software Foundation, Inc.
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -11,16 +11,13 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-m4_ifndef([AC_AUTOCONF_VERSION],
-  [m4_copy([m4_PACKAGE_VERSION], [AC_AUTOCONF_VERSION])])dnl
-m4_if(AC_AUTOCONF_VERSION, [2.63],,
-[m4_warning([this file was generated for autoconf 2.63.
-You have another version of autoconf.  It may work, but is not guaranteed to.
-If you have problems, you may need to regenerate the build system entirely.
-To do so, use the procedure documented by the package, typically `autoreconf'.])])
+m4_if(m4_PACKAGE_VERSION, [2.61],,
+[m4_fatal([this file was generated for autoconf 2.61.
+You have another version of autoconf.  If you want to use that,
+you should regenerate the build system entirely.], [63])])
 
-# gettext.m4 serial 60 (gettext-0.17)
-dnl Copyright (C) 1995-2007 Free Software Foundation, Inc.
+# gettext.m4 serial 59 (gettext-0.16.1)
+dnl Copyright (C) 1995-2006 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -383,6 +380,44 @@ return * gettext ("")$gt_expression_test_code + _nl_msg_cat_cntr + *_nl_expand_a
 ])
 
 
+dnl Checks for special options needed on MacOS X.
+dnl Defines INTL_MACOSX_LIBS.
+AC_DEFUN([gt_INTL_MACOSX],
+[
+  dnl Check for API introduced in MacOS X 10.2.
+  AC_CACHE_CHECK([for CFPreferencesCopyAppValue],
+    gt_cv_func_CFPreferencesCopyAppValue,
+    [gt_save_LIBS="$LIBS"
+     LIBS="$LIBS -Wl,-framework -Wl,CoreFoundation"
+     AC_TRY_LINK([#include <CoreFoundation/CFPreferences.h>],
+       [CFPreferencesCopyAppValue(NULL, NULL)],
+       [gt_cv_func_CFPreferencesCopyAppValue=yes],
+       [gt_cv_func_CFPreferencesCopyAppValue=no])
+     LIBS="$gt_save_LIBS"])
+  if test $gt_cv_func_CFPreferencesCopyAppValue = yes; then
+    AC_DEFINE([HAVE_CFPREFERENCESCOPYAPPVALUE], 1,
+      [Define to 1 if you have the MacOS X function CFPreferencesCopyAppValue in the CoreFoundation framework.])
+  fi
+  dnl Check for API introduced in MacOS X 10.3.
+  AC_CACHE_CHECK([for CFLocaleCopyCurrent], gt_cv_func_CFLocaleCopyCurrent,
+    [gt_save_LIBS="$LIBS"
+     LIBS="$LIBS -Wl,-framework -Wl,CoreFoundation"
+     AC_TRY_LINK([#include <CoreFoundation/CFLocale.h>], [CFLocaleCopyCurrent();],
+       [gt_cv_func_CFLocaleCopyCurrent=yes],
+       [gt_cv_func_CFLocaleCopyCurrent=no])
+     LIBS="$gt_save_LIBS"])
+  if test $gt_cv_func_CFLocaleCopyCurrent = yes; then
+    AC_DEFINE([HAVE_CFLOCALECOPYCURRENT], 1,
+      [Define to 1 if you have the MacOS X function CFLocaleCopyCurrent in the CoreFoundation framework.])
+  fi
+  INTL_MACOSX_LIBS=
+  if test $gt_cv_func_CFPreferencesCopyAppValue = yes || test $gt_cv_func_CFLocaleCopyCurrent = yes; then
+    INTL_MACOSX_LIBS="-Wl,-framework -Wl,CoreFoundation"
+  fi
+  AC_SUBST([INTL_MACOSX_LIBS])
+])
+
+
 dnl gt_NEEDS_INIT ensures that the gt_needs variable is initialized.
 m4_define([gt_NEEDS_INIT],
 [
@@ -401,8 +436,8 @@ AC_DEFUN([AM_GNU_GETTEXT_NEED],
 dnl Usage: AM_GNU_GETTEXT_VERSION([gettext-version])
 AC_DEFUN([AM_GNU_GETTEXT_VERSION], [])
 
-# iconv.m4 serial AM6 (gettext-0.17)
-dnl Copyright (C) 2000-2002, 2007 Free Software Foundation, Inc.
+# iconv.m4 serial AM4 (gettext-0.11.3)
+dnl Copyright (C) 2000-2002 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -424,7 +459,6 @@ AC_DEFUN([AM_ICONV_LINK],
 [
   dnl Some systems have iconv in libc, some have it in libiconv (OSF/1 and
   dnl those with the standalone portable GNU libiconv installed).
-  AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
 
   dnl Search for libiconv and define LIBICONV, LTLIBICONV and INCICONV
   dnl accordingly.
@@ -437,7 +471,7 @@ AC_DEFUN([AM_ICONV_LINK],
   am_save_CPPFLAGS="$CPPFLAGS"
   AC_LIB_APPENDTOVAR([CPPFLAGS], [$INCICONV])
 
-  AC_CACHE_CHECK([for iconv], am_cv_func_iconv, [
+  AC_CACHE_CHECK(for iconv, am_cv_func_iconv, [
     am_cv_func_iconv="no, consider installing GNU libiconv"
     am_cv_lib_iconv=no
     AC_TRY_LINK([#include <stdlib.h>
@@ -460,85 +494,7 @@ AC_DEFUN([AM_ICONV_LINK],
     fi
   ])
   if test "$am_cv_func_iconv" = yes; then
-    AC_CACHE_CHECK([for working iconv], am_cv_func_iconv_works, [
-      dnl This tests against bugs in AIX 5.1 and HP-UX 11.11.
-      am_save_LIBS="$LIBS"
-      if test $am_cv_lib_iconv = yes; then
-        LIBS="$LIBS $LIBICONV"
-      fi
-      AC_TRY_RUN([
-#include <iconv.h>
-#include <string.h>
-int main ()
-{
-  /* Test against AIX 5.1 bug: Failures are not distinguishable from successful
-     returns.  */
-  {
-    iconv_t cd_utf8_to_88591 = iconv_open ("ISO8859-1", "UTF-8");
-    if (cd_utf8_to_88591 != (iconv_t)(-1))
-      {
-        static const char input[] = "\342\202\254"; /* EURO SIGN */
-        char buf[10];
-        const char *inptr = input;
-        size_t inbytesleft = strlen (input);
-        char *outptr = buf;
-        size_t outbytesleft = sizeof (buf);
-        size_t res = iconv (cd_utf8_to_88591,
-                            (char **) &inptr, &inbytesleft,
-                            &outptr, &outbytesleft);
-        if (res == 0)
-          return 1;
-      }
-  }
-#if 0 /* This bug could be worked around by the caller.  */
-  /* Test against HP-UX 11.11 bug: Positive return value instead of 0.  */
-  {
-    iconv_t cd_88591_to_utf8 = iconv_open ("utf8", "iso88591");
-    if (cd_88591_to_utf8 != (iconv_t)(-1))
-      {
-        static const char input[] = "\304rger mit b\366sen B\374bchen ohne Augenma\337";
-        char buf[50];
-        const char *inptr = input;
-        size_t inbytesleft = strlen (input);
-        char *outptr = buf;
-        size_t outbytesleft = sizeof (buf);
-        size_t res = iconv (cd_88591_to_utf8,
-                            (char **) &inptr, &inbytesleft,
-                            &outptr, &outbytesleft);
-        if ((int)res > 0)
-          return 1;
-      }
-  }
-#endif
-  /* Test against HP-UX 11.11 bug: No converter from EUC-JP to UTF-8 is
-     provided.  */
-  if (/* Try standardized names.  */
-      iconv_open ("UTF-8", "EUC-JP") == (iconv_t)(-1)
-      /* Try IRIX, OSF/1 names.  */
-      && iconv_open ("UTF-8", "eucJP") == (iconv_t)(-1)
-      /* Try AIX names.  */
-      && iconv_open ("UTF-8", "IBM-eucJP") == (iconv_t)(-1)
-      /* Try HP-UX names.  */
-      && iconv_open ("utf8", "eucJP") == (iconv_t)(-1))
-    return 1;
-  return 0;
-}], [am_cv_func_iconv_works=yes], [am_cv_func_iconv_works=no],
-        [case "$host_os" in
-           aix* | hpux*) am_cv_func_iconv_works="guessing no" ;;
-           *)            am_cv_func_iconv_works="guessing yes" ;;
-         esac])
-      LIBS="$am_save_LIBS"
-    ])
-    case "$am_cv_func_iconv_works" in
-      *no) am_func_iconv=no am_cv_lib_iconv=no ;;
-      *)   am_func_iconv=yes ;;
-    esac
-  else
-    am_func_iconv=no am_cv_lib_iconv=no
-  fi
-  if test "$am_func_iconv" = yes; then
-    AC_DEFINE(HAVE_ICONV, 1,
-      [Define if you have the iconv() function and it works.])
+    AC_DEFINE(HAVE_ICONV, 1, [Define if you have the iconv() function.])
   fi
   if test "$am_cv_lib_iconv" = yes; then
     AC_MSG_CHECKING([how to link with libiconv])
@@ -580,58 +536,6 @@ size_t iconv();
     AC_DEFINE_UNQUOTED(ICONV_CONST, $am_cv_proto_iconv_arg1,
       [Define as const if the declaration of iconv() needs const.])
   fi
-])
-
-# intlmacosx.m4 serial 1 (gettext-0.17)
-dnl Copyright (C) 2004-2007 Free Software Foundation, Inc.
-dnl This file is free software; the Free Software Foundation
-dnl gives unlimited permission to copy and/or distribute it,
-dnl with or without modifications, as long as this notice is preserved.
-dnl
-dnl This file can can be used in projects which are not available under
-dnl the GNU General Public License or the GNU Library General Public
-dnl License but which still want to provide support for the GNU gettext
-dnl functionality.
-dnl Please note that the actual code of the GNU gettext library is covered
-dnl by the GNU Library General Public License, and the rest of the GNU
-dnl gettext package package is covered by the GNU General Public License.
-dnl They are *not* in the public domain.
-
-dnl Checks for special options needed on MacOS X.
-dnl Defines INTL_MACOSX_LIBS.
-AC_DEFUN([gt_INTL_MACOSX],
-[
-  dnl Check for API introduced in MacOS X 10.2.
-  AC_CACHE_CHECK([for CFPreferencesCopyAppValue],
-    gt_cv_func_CFPreferencesCopyAppValue,
-    [gt_save_LIBS="$LIBS"
-     LIBS="$LIBS -Wl,-framework -Wl,CoreFoundation"
-     AC_TRY_LINK([#include <CoreFoundation/CFPreferences.h>],
-       [CFPreferencesCopyAppValue(NULL, NULL)],
-       [gt_cv_func_CFPreferencesCopyAppValue=yes],
-       [gt_cv_func_CFPreferencesCopyAppValue=no])
-     LIBS="$gt_save_LIBS"])
-  if test $gt_cv_func_CFPreferencesCopyAppValue = yes; then
-    AC_DEFINE([HAVE_CFPREFERENCESCOPYAPPVALUE], 1,
-      [Define to 1 if you have the MacOS X function CFPreferencesCopyAppValue in the CoreFoundation framework.])
-  fi
-  dnl Check for API introduced in MacOS X 10.3.
-  AC_CACHE_CHECK([for CFLocaleCopyCurrent], gt_cv_func_CFLocaleCopyCurrent,
-    [gt_save_LIBS="$LIBS"
-     LIBS="$LIBS -Wl,-framework -Wl,CoreFoundation"
-     AC_TRY_LINK([#include <CoreFoundation/CFLocale.h>], [CFLocaleCopyCurrent();],
-       [gt_cv_func_CFLocaleCopyCurrent=yes],
-       [gt_cv_func_CFLocaleCopyCurrent=no])
-     LIBS="$gt_save_LIBS"])
-  if test $gt_cv_func_CFLocaleCopyCurrent = yes; then
-    AC_DEFINE([HAVE_CFLOCALECOPYCURRENT], 1,
-      [Define to 1 if you have the MacOS X function CFLocaleCopyCurrent in the CoreFoundation framework.])
-  fi
-  INTL_MACOSX_LIBS=
-  if test $gt_cv_func_CFPreferencesCopyAppValue = yes || test $gt_cv_func_CFLocaleCopyCurrent = yes; then
-    INTL_MACOSX_LIBS="-Wl,-framework -Wl,CoreFoundation"
-  fi
-  AC_SUBST([INTL_MACOSX_LIBS])
 ])
 
 # lib-ld.m4 serial 3 (gettext-0.13)
@@ -745,22 +649,20 @@ test -z "$LD" && AC_MSG_ERROR([no acceptable ld found in \$PATH])
 AC_LIB_PROG_LD_GNU
 ])
 
-# lib-link.m4 serial 13 (gettext-0.17)
-dnl Copyright (C) 2001-2007 Free Software Foundation, Inc.
+# lib-link.m4 serial 9 (gettext-0.16)
+dnl Copyright (C) 2001-2006 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
 dnl From Bruno Haible.
 
-AC_PREREQ(2.54)
+AC_PREREQ(2.50)
 
 dnl AC_LIB_LINKFLAGS(name [, dependencies]) searches for libname and
 dnl the libraries corresponding to explicit and implicit dependencies.
 dnl Sets and AC_SUBSTs the LIB${NAME} and LTLIB${NAME} variables and
 dnl augments the CPPFLAGS variable.
-dnl Sets and AC_SUBSTs the LIB${NAME}_PREFIX variable to nonempty if libname
-dnl was found in ${LIB${NAME}_PREFIX}/$acl_libdirstem.
 AC_DEFUN([AC_LIB_LINKFLAGS],
 [
   AC_REQUIRE([AC_LIB_PREPARE_PREFIX])
@@ -773,16 +675,13 @@ AC_DEFUN([AC_LIB_LINKFLAGS],
     ac_cv_lib[]Name[]_libs="$LIB[]NAME"
     ac_cv_lib[]Name[]_ltlibs="$LTLIB[]NAME"
     ac_cv_lib[]Name[]_cppflags="$INC[]NAME"
-    ac_cv_lib[]Name[]_prefix="$LIB[]NAME[]_PREFIX"
   ])
   LIB[]NAME="$ac_cv_lib[]Name[]_libs"
   LTLIB[]NAME="$ac_cv_lib[]Name[]_ltlibs"
   INC[]NAME="$ac_cv_lib[]Name[]_cppflags"
-  LIB[]NAME[]_PREFIX="$ac_cv_lib[]Name[]_prefix"
   AC_LIB_APPENDTOVAR([CPPFLAGS], [$INC]NAME)
   AC_SUBST([LIB]NAME)
   AC_SUBST([LTLIB]NAME)
-  AC_SUBST([LIB]NAME[_PREFIX])
   dnl Also set HAVE_LIB[]NAME so that AC_LIB_HAVE_LINKFLAGS can reuse the
   dnl results of this search when this library appears as a dependency.
   HAVE_LIB[]NAME=yes
@@ -798,8 +697,6 @@ dnl sets and AC_SUBSTs HAVE_LIB${NAME}=yes and the LIB${NAME} and
 dnl LTLIB${NAME} variables and augments the CPPFLAGS variable, and
 dnl #defines HAVE_LIB${NAME} to 1. Otherwise, it sets and AC_SUBSTs
 dnl HAVE_LIB${NAME}=no and LIB${NAME} and LTLIB${NAME} to empty.
-dnl Sets and AC_SUBSTs the LIB${NAME}_PREFIX variable to nonempty if libname
-dnl was found in ${LIB${NAME}_PREFIX}/$acl_libdirstem.
 AC_DEFUN([AC_LIB_HAVE_LINKFLAGS],
 [
   AC_REQUIRE([AC_LIB_PREPARE_PREFIX])
@@ -836,23 +733,17 @@ AC_DEFUN([AC_LIB_HAVE_LINKFLAGS],
     CPPFLAGS="$ac_save_CPPFLAGS"
     LIB[]NAME=
     LTLIB[]NAME=
-    LIB[]NAME[]_PREFIX=
   fi
   AC_SUBST([HAVE_LIB]NAME)
   AC_SUBST([LIB]NAME)
   AC_SUBST([LTLIB]NAME)
-  AC_SUBST([LIB]NAME[_PREFIX])
   undefine([Name])
   undefine([NAME])
 ])
 
 dnl Determine the platform dependent parameters needed to use rpath:
-dnl   acl_libext,
-dnl   acl_shlibext,
-dnl   acl_hardcode_libdir_flag_spec,
-dnl   acl_hardcode_libdir_separator,
-dnl   acl_hardcode_direct,
-dnl   acl_hardcode_minus_L.
+dnl libext, shlibext, hardcode_libdir_flag_spec, hardcode_libdir_separator,
+dnl hardcode_direct, hardcode_minus_L.
 AC_DEFUN([AC_LIB_RPATH],
 [
   dnl Tell automake >= 1.10 to complain if config.rpath is missing.
@@ -869,14 +760,12 @@ AC_DEFUN([AC_LIB_RPATH],
     acl_cv_rpath=done
   ])
   wl="$acl_cv_wl"
-  acl_libext="$acl_cv_libext"
-  acl_shlibext="$acl_cv_shlibext"
-  acl_libname_spec="$acl_cv_libname_spec"
-  acl_library_names_spec="$acl_cv_library_names_spec"
-  acl_hardcode_libdir_flag_spec="$acl_cv_hardcode_libdir_flag_spec"
-  acl_hardcode_libdir_separator="$acl_cv_hardcode_libdir_separator"
-  acl_hardcode_direct="$acl_cv_hardcode_direct"
-  acl_hardcode_minus_L="$acl_cv_hardcode_minus_L"
+  libext="$acl_cv_libext"
+  shlibext="$acl_cv_shlibext"
+  hardcode_libdir_flag_spec="$acl_cv_hardcode_libdir_flag_spec"
+  hardcode_libdir_separator="$acl_cv_hardcode_libdir_separator"
+  hardcode_direct="$acl_cv_hardcode_direct"
+  hardcode_minus_L="$acl_cv_hardcode_minus_L"
   dnl Determine whether the user wants rpath handling at all.
   AC_ARG_ENABLE(rpath,
     [  --disable-rpath         do not hardcode runtime library paths],
@@ -886,24 +775,20 @@ AC_DEFUN([AC_LIB_RPATH],
 dnl AC_LIB_LINKFLAGS_BODY(name [, dependencies]) searches for libname and
 dnl the libraries corresponding to explicit and implicit dependencies.
 dnl Sets the LIB${NAME}, LTLIB${NAME} and INC${NAME} variables.
-dnl Also, sets the LIB${NAME}_PREFIX variable to nonempty if libname was found
-dnl in ${LIB${NAME}_PREFIX}/$acl_libdirstem.
 AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
 [
   AC_REQUIRE([AC_LIB_PREPARE_MULTILIB])
   define([NAME],[translit([$1],[abcdefghijklmnopqrstuvwxyz./-],
                                [ABCDEFGHIJKLMNOPQRSTUVWXYZ___])])
-  dnl Autoconf >= 2.61 supports dots in --with options.
-  define([N_A_M_E],[m4_if(m4_version_compare(m4_defn([m4_PACKAGE_VERSION]),[2.61]),[-1],[translit([$1],[.],[_])],[$1])])
   dnl By default, look in $includedir and $libdir.
   use_additional=yes
   AC_LIB_WITH_FINAL_PREFIX([
     eval additional_includedir=\"$includedir\"
     eval additional_libdir=\"$libdir\"
   ])
-  AC_LIB_ARG_WITH([lib]N_A_M_E[-prefix],
-[  --with-lib]N_A_M_E[-prefix[=DIR]  search for lib$1 in DIR/include and DIR/lib
-  --without-lib]N_A_M_E[-prefix     don't search for lib$1 in includedir and libdir],
+  AC_LIB_ARG_WITH([lib$1-prefix],
+[  --with-lib$1-prefix[=DIR]  search for lib$1 in DIR/include and DIR/lib
+  --without-lib$1-prefix     don't search for lib$1 in includedir and libdir],
 [
     if test "X$withval" = "Xno"; then
       use_additional=no
@@ -924,7 +809,6 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
   LIB[]NAME=
   LTLIB[]NAME=
   INC[]NAME=
-  LIB[]NAME[]_PREFIX=
   rpathdirs=
   ltrpathdirs=
   names_already_handled=
@@ -964,53 +848,27 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
           found_la=
           found_so=
           found_a=
-          eval libname=\"$acl_libname_spec\"    # typically: libname=lib$name
-          if test -n "$acl_shlibext"; then
-            shrext=".$acl_shlibext"             # typically: shrext=.so
-          else
-            shrext=
-          fi
           if test $use_additional = yes; then
-            dir="$additional_libdir"
-            dnl The same code as in the loop below:
-            dnl First look for a shared library.
-            if test -n "$acl_shlibext"; then
-              if test -f "$dir/$libname$shrext"; then
-                found_dir="$dir"
-                found_so="$dir/$libname$shrext"
+            if test -n "$shlibext" \
+               && { test -f "$additional_libdir/lib$name.$shlibext" \
+                    || { test "$shlibext" = dll \
+                         && test -f "$additional_libdir/lib$name.dll.a"; }; }; then
+              found_dir="$additional_libdir"
+              if test -f "$additional_libdir/lib$name.$shlibext"; then
+                found_so="$additional_libdir/lib$name.$shlibext"
               else
-                if test "$acl_library_names_spec" = '$libname$shrext$versuffix'; then
-                  ver=`(cd "$dir" && \
-                        for f in "$libname$shrext".*; do echo "$f"; done \
-                        | sed -e "s,^$libname$shrext\\\\.,," \
-                        | sort -t '.' -n -r -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 \
-                        | sed 1q ) 2>/dev/null`
-                  if test -n "$ver" && test -f "$dir/$libname$shrext.$ver"; then
-                    found_dir="$dir"
-                    found_so="$dir/$libname$shrext.$ver"
-                  fi
-                else
-                  eval library_names=\"$acl_library_names_spec\"
-                  for f in $library_names; do
-                    if test -f "$dir/$f"; then
-                      found_dir="$dir"
-                      found_so="$dir/$f"
-                      break
-                    fi
-                  done
+                found_so="$additional_libdir/lib$name.dll.a"
+              fi
+              if test -f "$additional_libdir/lib$name.la"; then
+                found_la="$additional_libdir/lib$name.la"
+              fi
+            else
+              if test -f "$additional_libdir/lib$name.$libext"; then
+                found_dir="$additional_libdir"
+                found_a="$additional_libdir/lib$name.$libext"
+                if test -f "$additional_libdir/lib$name.la"; then
+                  found_la="$additional_libdir/lib$name.la"
                 fi
-              fi
-            fi
-            dnl Then look for a static library.
-            if test "X$found_dir" = "X"; then
-              if test -f "$dir/$libname.$acl_libext"; then
-                found_dir="$dir"
-                found_a="$dir/$libname.$acl_libext"
-              fi
-            fi
-            if test "X$found_dir" != "X"; then
-              if test -f "$dir/$libname.la"; then
-                found_la="$dir/$libname.la"
               fi
             fi
           fi
@@ -1020,44 +878,26 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
               case "$x" in
                 -L*)
                   dir=`echo "X$x" | sed -e 's/^X-L//'`
-                  dnl First look for a shared library.
-                  if test -n "$acl_shlibext"; then
-                    if test -f "$dir/$libname$shrext"; then
-                      found_dir="$dir"
-                      found_so="$dir/$libname$shrext"
+                  if test -n "$shlibext" \
+                     && { test -f "$dir/lib$name.$shlibext" \
+                          || { test "$shlibext" = dll \
+                               && test -f "$dir/lib$name.dll.a"; }; }; then
+                    found_dir="$dir"
+                    if test -f "$dir/lib$name.$shlibext"; then
+                      found_so="$dir/lib$name.$shlibext"
                     else
-                      if test "$acl_library_names_spec" = '$libname$shrext$versuffix'; then
-                        ver=`(cd "$dir" && \
-                              for f in "$libname$shrext".*; do echo "$f"; done \
-                              | sed -e "s,^$libname$shrext\\\\.,," \
-                              | sort -t '.' -n -r -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 \
-                              | sed 1q ) 2>/dev/null`
-                        if test -n "$ver" && test -f "$dir/$libname$shrext.$ver"; then
-                          found_dir="$dir"
-                          found_so="$dir/$libname$shrext.$ver"
-                        fi
-                      else
-                        eval library_names=\"$acl_library_names_spec\"
-                        for f in $library_names; do
-                          if test -f "$dir/$f"; then
-                            found_dir="$dir"
-                            found_so="$dir/$f"
-                            break
-                          fi
-                        done
-                      fi
+                      found_so="$dir/lib$name.dll.a"
                     fi
-                  fi
-                  dnl Then look for a static library.
-                  if test "X$found_dir" = "X"; then
-                    if test -f "$dir/$libname.$acl_libext"; then
+                    if test -f "$dir/lib$name.la"; then
+                      found_la="$dir/lib$name.la"
+                    fi
+                  else
+                    if test -f "$dir/lib$name.$libext"; then
                       found_dir="$dir"
-                      found_a="$dir/$libname.$acl_libext"
-                    fi
-                  fi
-                  if test "X$found_dir" != "X"; then
-                    if test -f "$dir/$libname.la"; then
-                      found_la="$dir/$libname.la"
+                      found_a="$dir/lib$name.$libext"
+                      if test -f "$dir/lib$name.la"; then
+                        found_la="$dir/lib$name.la"
+                      fi
                     fi
                   fi
                   ;;
@@ -1093,12 +933,12 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
                   ltrpathdirs="$ltrpathdirs $found_dir"
                 fi
                 dnl The hardcoding into $LIBNAME is system dependent.
-                if test "$acl_hardcode_direct" = yes; then
+                if test "$hardcode_direct" = yes; then
                   dnl Using DIR/libNAME.so during linking hardcodes DIR into the
                   dnl resulting binary.
                   LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$found_so"
                 else
-                  if test -n "$acl_hardcode_libdir_flag_spec" && test "$acl_hardcode_minus_L" = no; then
+                  if test -n "$hardcode_libdir_flag_spec" && test "$hardcode_minus_L" = no; then
                     dnl Use an explicit option to hardcode DIR into the resulting
                     dnl binary.
                     LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$found_so"
@@ -1129,13 +969,13 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
                     if test -z "$haveit"; then
                       LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }-L$found_dir"
                     fi
-                    if test "$acl_hardcode_minus_L" != no; then
+                    if test "$hardcode_minus_L" != no; then
                       dnl FIXME: Not sure whether we should use
                       dnl "-L$found_dir -l$name" or "-L$found_dir $found_so"
                       dnl here.
                       LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$found_so"
                     else
-                      dnl We cannot use $acl_hardcode_runpath_var and LD_RUN_PATH
+                      dnl We cannot use $hardcode_runpath_var and LD_RUN_PATH
                       dnl here, because this doesn't fit in flags passed to the
                       dnl compiler. So give up. No hardcoding. This affects only
                       dnl very old systems.
@@ -1162,7 +1002,6 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                LIB[]NAME[]_PREFIX="$basedir"
                 additional_includedir="$basedir/include"
                 ;;
             esac
@@ -1324,18 +1163,18 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
     done
   done
   if test "X$rpathdirs" != "X"; then
-    if test -n "$acl_hardcode_libdir_separator"; then
+    if test -n "$hardcode_libdir_separator"; then
       dnl Weird platform: only the last -rpath option counts, the user must
       dnl pass all path elements in one option. We can arrange that for a
       dnl single library, but not when more than one $LIBNAMEs are used.
       alldirs=
       for found_dir in $rpathdirs; do
-        alldirs="${alldirs}${alldirs:+$acl_hardcode_libdir_separator}$found_dir"
+        alldirs="${alldirs}${alldirs:+$hardcode_libdir_separator}$found_dir"
       done
-      dnl Note: acl_hardcode_libdir_flag_spec uses $libdir and $wl.
+      dnl Note: hardcode_libdir_flag_spec uses $libdir and $wl.
       acl_save_libdir="$libdir"
       libdir="$alldirs"
-      eval flag=\"$acl_hardcode_libdir_flag_spec\"
+      eval flag=\"$hardcode_libdir_flag_spec\"
       libdir="$acl_save_libdir"
       LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$flag"
     else
@@ -1343,7 +1182,7 @@ AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
       for found_dir in $rpathdirs; do
         acl_save_libdir="$libdir"
         libdir="$found_dir"
-        eval flag=\"$acl_hardcode_libdir_flag_spec\"
+        eval flag=\"$hardcode_libdir_flag_spec\"
         libdir="$acl_save_libdir"
         LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$flag"
       done
@@ -1392,7 +1231,7 @@ AC_DEFUN([AC_LIB_LINKFLAGS_FROM_LIBS],
   AC_REQUIRE([AC_LIB_PREPARE_MULTILIB])
   $1=
   if test "$enable_rpath" != no; then
-    if test -n "$acl_hardcode_libdir_flag_spec" && test "$acl_hardcode_minus_L" = no; then
+    if test -n "$hardcode_libdir_flag_spec" && test "$hardcode_minus_L" = no; then
       dnl Use an explicit option to hardcode directories into the resulting
       dnl binary.
       rpathdirs=
@@ -1426,16 +1265,16 @@ AC_DEFUN([AC_LIB_LINKFLAGS_FROM_LIBS],
           done
         else
           dnl The linker is used for linking directly.
-          if test -n "$acl_hardcode_libdir_separator"; then
+          if test -n "$hardcode_libdir_separator"; then
             dnl Weird platform: only the last -rpath option counts, the user
             dnl must pass all path elements in one option.
             alldirs=
             for dir in $rpathdirs; do
-              alldirs="${alldirs}${alldirs:+$acl_hardcode_libdir_separator}$dir"
+              alldirs="${alldirs}${alldirs:+$hardcode_libdir_separator}$dir"
             done
             acl_save_libdir="$libdir"
             libdir="$alldirs"
-            eval flag=\"$acl_hardcode_libdir_flag_spec\"
+            eval flag=\"$hardcode_libdir_flag_spec\"
             libdir="$acl_save_libdir"
             $1="$flag"
           else
@@ -1443,7 +1282,7 @@ AC_DEFUN([AC_LIB_LINKFLAGS_FROM_LIBS],
             for dir in $rpathdirs; do
               acl_save_libdir="$libdir"
               libdir="$dir"
-              eval flag=\"$acl_hardcode_libdir_flag_spec\"
+              eval flag=\"$hardcode_libdir_flag_spec\"
               libdir="$acl_save_libdir"
               $1="${$1}${$1:+ }$flag"
             done
@@ -1741,14 +1580,16 @@ fi])
 # _PKG_CONFIG([VARIABLE], [COMMAND], [MODULES])
 # ---------------------------------------------
 m4_define([_PKG_CONFIG],
-[if test -n "$$1"; then
-    pkg_cv_[]$1="$$1"
- elif test -n "$PKG_CONFIG"; then
-    PKG_CHECK_EXISTS([$3],
-                     [pkg_cv_[]$1=`$PKG_CONFIG --[]$2 "$3" 2>/dev/null`],
-		     [pkg_failed=yes])
- else
-    pkg_failed=untried
+[if test -n "$PKG_CONFIG"; then
+    if test -n "$$1"; then
+        pkg_cv_[]$1="$$1"
+    else
+        PKG_CHECK_EXISTS([$3],
+                         [pkg_cv_[]$1=`$PKG_CONFIG --[]$2 "$3" 2>/dev/null`],
+			 [pkg_failed=yes])
+    fi
+else
+	pkg_failed=untried
 fi[]dnl
 ])# _PKG_CONFIG
 
@@ -1792,9 +1633,9 @@ See the pkg-config man page for more details.])
 if test $pkg_failed = yes; then
         _PKG_SHORT_ERRORS_SUPPORTED
         if test $_pkg_short_errors_supported = yes; then
-	        $1[]_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "$2" 2>&1`
+	        $1[]_PKG_ERRORS=`$PKG_CONFIG --short-errors --errors-to-stdout --print-errors "$2"`
         else 
-	        $1[]_PKG_ERRORS=`$PKG_CONFIG --print-errors "$2" 2>&1`
+	        $1[]_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$2"`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$$1[]_PKG_ERRORS" >&AS_MESSAGE_LOG_FD
@@ -1819,7 +1660,7 @@ path to pkg-config.
 
 _PKG_TEXT
 
-To get pkg-config, see <http://pkg-config.freedesktop.org/>.])],
+To get pkg-config, see <http://www.freedesktop.org/software/pkgconfig>.])],
 		[$4])
 else
 	$1[]_CFLAGS=$pkg_cv_[]$1[]_CFLAGS
@@ -1829,8 +1670,8 @@ else
 fi[]dnl
 ])# PKG_CHECK_MODULES
 
-# po.m4 serial 15 (gettext-0.17)
-dnl Copyright (C) 1995-2007 Free Software Foundation, Inc.
+# po.m4 serial 13 (gettext-0.15)
+dnl Copyright (C) 1995-2006 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -1857,10 +1698,6 @@ AC_DEFUN([AM_PO_SUBDIRS],
   AC_REQUIRE([AC_PROG_INSTALL])dnl
   AC_REQUIRE([AM_PROG_MKDIR_P])dnl defined by automake
   AC_REQUIRE([AM_NLS])dnl
-
-  dnl Release version of the gettext macros. This is used to ensure that
-  dnl the gettext macros and po/Makefile.in.in are in sync.
-  AC_SUBST([GETTEXT_MACRO_VERSION], [0.17])
 
   dnl Perform the following tests also if --disable-nls has been given,
   dnl because they are needed for "make dist" to work.
@@ -1918,10 +1755,6 @@ changequote([,])dnl
   dnl have to define it here, so that it can be used in po/Makefile.
   test -n "$localedir" || localedir='${datadir}/locale'
   AC_SUBST([localedir])
-
-  dnl Support for AM_XGETTEXT_OPTION.
-  test -n "${XGETTEXT_EXTRA_OPTIONS+set}" || XGETTEXT_EXTRA_OPTIONS=
-  AC_SUBST([XGETTEXT_EXTRA_OPTIONS])
 
   AC_CONFIG_COMMANDS([po-directories], [[
     for ac_file in $CONFIG_FILES; do
@@ -2266,19 +2099,6 @@ EOF
   mv "$ac_file.tmp" "$ac_file"
 ])
 
-dnl Initializes the accumulator used by AM_XGETTEXT_OPTION.
-AC_DEFUN([AM_XGETTEXT_OPTION_INIT],
-[
-  XGETTEXT_EXTRA_OPTIONS=
-])
-
-dnl Registers an option to be passed to xgettext in the po subdirectory.
-AC_DEFUN([AM_XGETTEXT_OPTION],
-[
-  AC_REQUIRE([AM_XGETTEXT_OPTION_INIT])
-  XGETTEXT_EXTRA_OPTIONS="$XGETTEXT_EXTRA_OPTIONS $1"
-])
-
 # progtest.m4 serial 4 (gettext-0.14.2)
 dnl Copyright (C) 1996-2003, 2005 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
@@ -2372,189 +2192,7 @@ fi
 AC_SUBST($1)dnl
 ])
 
-# Configure paths for SDL
-# Sam Lantinga 9/21/99
-# stolen from Manish Singh
-# stolen back from Frank Belew
-# stolen from Manish Singh
-# Shamelessly stolen from Owen Taylor
-
-dnl AM_PATH_SDL([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
-dnl Test for SDL, and define SDL_CFLAGS and SDL_LIBS
-dnl
-AC_DEFUN([AM_PATH_SDL],
-[dnl 
-dnl Get the cflags and libraries from the sdl-config script
-dnl
-AC_ARG_WITH(sdl-prefix,[  --with-sdl-prefix=PFX   Prefix where SDL is installed (optional)],
-            sdl_prefix="$withval", sdl_prefix="")
-AC_ARG_WITH(sdl-exec-prefix,[  --with-sdl-exec-prefix=PFX Exec prefix where SDL is installed (optional)],
-            sdl_exec_prefix="$withval", sdl_exec_prefix="")
-AC_ARG_ENABLE(sdltest, [  --disable-sdltest       Do not try to compile and run a test SDL program],
-		    , enable_sdltest=yes)
-
-  if test x$sdl_exec_prefix != x ; then
-    sdl_config_args="$sdl_config_args --exec-prefix=$sdl_exec_prefix"
-    if test x${SDL_CONFIG+set} != xset ; then
-      SDL_CONFIG=$sdl_exec_prefix/bin/sdl-config
-    fi
-  fi
-  if test x$sdl_prefix != x ; then
-    sdl_config_args="$sdl_config_args --prefix=$sdl_prefix"
-    if test x${SDL_CONFIG+set} != xset ; then
-      SDL_CONFIG=$sdl_prefix/bin/sdl-config
-    fi
-  fi
-
-  if test "x$prefix" != xNONE; then
-    PATH="$prefix/bin:$prefix/usr/bin:$PATH"
-  fi
-  AC_PATH_PROG(SDL_CONFIG, sdl-config, no, [$PATH])
-  min_sdl_version=ifelse([$1], ,0.11.0,$1)
-  AC_MSG_CHECKING(for SDL - version >= $min_sdl_version)
-  no_sdl=""
-  if test "$SDL_CONFIG" = "no" ; then
-    no_sdl=yes
-  else
-    SDL_CFLAGS=`$SDL_CONFIG $sdl_config_args --cflags`
-    SDL_LIBS=`$SDL_CONFIG $sdl_config_args --libs`
-
-    sdl_major_version=`$SDL_CONFIG $sdl_config_args --version | \
-           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\1/'`
-    sdl_minor_version=`$SDL_CONFIG $sdl_config_args --version | \
-           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\2/'`
-    sdl_micro_version=`$SDL_CONFIG $sdl_config_args --version | \
-           sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\3/'`
-    if test "x$enable_sdltest" = "xyes" ; then
-      ac_save_CFLAGS="$CFLAGS"
-      ac_save_CXXFLAGS="$CXXFLAGS"
-      ac_save_LIBS="$LIBS"
-      CFLAGS="$CFLAGS $SDL_CFLAGS"
-      CXXFLAGS="$CXXFLAGS $SDL_CFLAGS"
-      LIBS="$LIBS $SDL_LIBS"
-dnl
-dnl Now check if the installed SDL is sufficiently new. (Also sanity
-dnl checks the results of sdl-config to some extent
-dnl
-      rm -f conf.sdltest
-      AC_TRY_RUN([
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "SDL.h"
-
-char*
-my_strdup (char *str)
-{
-  char *new_str;
-  
-  if (str)
-    {
-      new_str = (char *)malloc ((strlen (str) + 1) * sizeof(char));
-      strcpy (new_str, str);
-    }
-  else
-    new_str = NULL;
-  
-  return new_str;
-}
-
-int main (int argc, char *argv[])
-{
-  int major, minor, micro;
-  char *tmp_version;
-
-  /* This hangs on some systems (?)
-  system ("touch conf.sdltest");
-  */
-  { FILE *fp = fopen("conf.sdltest", "a"); if ( fp ) fclose(fp); }
-
-  /* HP/UX 9 (%@#!) writes to sscanf strings */
-  tmp_version = my_strdup("$min_sdl_version");
-  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
-     printf("%s, bad version string\n", "$min_sdl_version");
-     exit(1);
-   }
-
-   if (($sdl_major_version > major) ||
-      (($sdl_major_version == major) && ($sdl_minor_version > minor)) ||
-      (($sdl_major_version == major) && ($sdl_minor_version == minor) && ($sdl_micro_version >= micro)))
-    {
-      return 0;
-    }
-  else
-    {
-      printf("\n*** 'sdl-config --version' returned %d.%d.%d, but the minimum version\n", $sdl_major_version, $sdl_minor_version, $sdl_micro_version);
-      printf("*** of SDL required is %d.%d.%d. If sdl-config is correct, then it is\n", major, minor, micro);
-      printf("*** best to upgrade to the required version.\n");
-      printf("*** If sdl-config was wrong, set the environment variable SDL_CONFIG\n");
-      printf("*** to point to the correct copy of sdl-config, and remove the file\n");
-      printf("*** config.cache before re-running configure\n");
-      return 1;
-    }
-}
-
-],, no_sdl=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
-       CFLAGS="$ac_save_CFLAGS"
-       CXXFLAGS="$ac_save_CXXFLAGS"
-       LIBS="$ac_save_LIBS"
-     fi
-  fi
-  if test "x$no_sdl" = x ; then
-     AC_MSG_RESULT(yes)
-     ifelse([$2], , :, [$2])     
-  else
-     AC_MSG_RESULT(no)
-     if test "$SDL_CONFIG" = "no" ; then
-       echo "*** The sdl-config script installed by SDL could not be found"
-       echo "*** If SDL was installed in PREFIX, make sure PREFIX/bin is in"
-       echo "*** your path, or set the SDL_CONFIG environment variable to the"
-       echo "*** full path to sdl-config."
-     else
-       if test -f conf.sdltest ; then
-        :
-       else
-          echo "*** Could not run SDL test program, checking why..."
-          CFLAGS="$CFLAGS $SDL_CFLAGS"
-          CXXFLAGS="$CXXFLAGS $SDL_CFLAGS"
-          LIBS="$LIBS $SDL_LIBS"
-          AC_TRY_LINK([
-#include <stdio.h>
-#include "SDL.h"
-
-int main(int argc, char *argv[])
-{ return 0; }
-#undef  main
-#define main K_and_R_C_main
-],      [ return 0; ],
-        [ echo "*** The test program compiled, but did not run. This usually means"
-          echo "*** that the run-time linker is not finding SDL or finding the wrong"
-          echo "*** version of SDL. If it is not finding SDL, you'll need to set your"
-          echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
-          echo "*** to the installed location  Also, make sure you have run ldconfig if that"
-          echo "*** is required on your system"
-	  echo "***"
-          echo "*** If you have an old version installed, it is best to remove it, although"
-          echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"],
-        [ echo "*** The test program failed to compile or link. See the file config.log for the"
-          echo "*** exact error that occured. This usually means SDL was incorrectly installed"
-          echo "*** or that you have moved SDL since it was installed. In the latter case, you"
-          echo "*** may want to edit the sdl-config script: $SDL_CONFIG" ])
-          CFLAGS="$ac_save_CFLAGS"
-          CXXFLAGS="$ac_save_CXXFLAGS"
-          LIBS="$ac_save_LIBS"
-       fi
-     fi
-     SDL_CFLAGS=""
-     SDL_LIBS=""
-     ifelse([$3], , :, [$3])
-  fi
-  AC_SUBST(SDL_CFLAGS)
-  AC_SUBST(SDL_LIBS)
-  rm -f conf.sdltest
-])
-
-# Copyright (C) 2002, 2003, 2005, 2006, 2007  Free Software Foundation, Inc.
+# Copyright (C) 2002, 2003, 2005, 2006  Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -2569,7 +2207,7 @@ AC_DEFUN([AM_AUTOMAKE_VERSION],
 [am__api_version='1.10'
 dnl Some users find AM_AUTOMAKE_VERSION and mistake it for a way to
 dnl require some minimum version.  Point them to the right macro.
-m4_if([$1], [1.10.1], [],
+m4_if([$1], [1.10], [],
       [AC_FATAL([Do not call $0, use AM_INIT_AUTOMAKE([$1]).])])dnl
 ])
 
@@ -2585,10 +2223,8 @@ m4_define([_AM_AUTOCONF_VERSION], [])
 # Call AM_AUTOMAKE_VERSION and AM_AUTOMAKE_VERSION so they can be traced.
 # This function is AC_REQUIREd by AC_INIT_AUTOMAKE.
 AC_DEFUN([AM_SET_CURRENT_AUTOMAKE_VERSION],
-[AM_AUTOMAKE_VERSION([1.10.1])dnl
-m4_ifndef([AC_AUTOCONF_VERSION],
-  [m4_copy([m4_PACKAGE_VERSION], [AC_AUTOCONF_VERSION])])dnl
-_AM_AUTOCONF_VERSION(AC_AUTOCONF_VERSION)])
+[AM_AUTOMAKE_VERSION([1.10])dnl
+_AM_AUTOCONF_VERSION(m4_PACKAGE_VERSION)])
 
 # AM_AUX_DIR_EXPAND                                         -*- Autoconf -*-
 
@@ -2860,7 +2496,7 @@ AC_DEFUN([_AM_OUTPUT_DEPENDENCY_COMMANDS],
   # each Makefile.in and add a new line on top of each file to say so.
   # Grep'ing the whole file is not good either: AIX grep has a line
   # limit of 2048, but all sed's we know have understand at least 4000.
-  if sed -n 's,^#.*generated by automake.*,X,p' "$mf" | grep X >/dev/null 2>&1; then
+  if sed 10q "$mf" | grep '^#.*generated by automake' > /dev/null 2>&1; then
     dirpart=`AS_DIRNAME("$mf")`
   else
     continue
@@ -2908,13 +2544,13 @@ AC_DEFUN([AM_OUTPUT_DEPENDENCY_COMMANDS],
 # Do all the work for Automake.                             -*- Autoconf -*-
 
 # Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-# 2005, 2006, 2008 Free Software Foundation, Inc.
+# 2005, 2006 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-# serial 13
+# serial 12
 
 # This macro actually does too much.  Some checks are only needed if
 # your package does certain things.  But this isn't really a big deal.
@@ -3019,17 +2655,16 @@ AC_PROVIDE_IFELSE([AC_PROG_OBJC],
 # our stamp files there.
 AC_DEFUN([_AC_AM_CONFIG_HEADER_HOOK],
 [# Compute $1's index in $config_headers.
-_am_arg=$1
 _am_stamp_count=1
 for _am_header in $config_headers :; do
   case $_am_header in
-    $_am_arg | $_am_arg:* )
+    $1 | $1:* )
       break ;;
     * )
       _am_stamp_count=`expr $_am_stamp_count + 1` ;;
   esac
 done
-echo "timestamp for $_am_arg" >`AS_DIRNAME(["$_am_arg"])`/stamp-h[]$_am_stamp_count])
+echo "timestamp for $1" >`AS_DIRNAME([$1])`/stamp-h[]$_am_stamp_count])
 
 # Copyright (C) 2001, 2003, 2005  Free Software Foundation, Inc.
 #
@@ -3301,7 +2936,7 @@ AC_SUBST([INSTALL_STRIP_PROGRAM])])
 
 # _AM_SUBST_NOTMAKE(VARIABLE)
 # ---------------------------
-# Prevent Automake from outputting VARIABLE = @VARIABLE@ in Makefile.in.
+# Prevent Automake from outputing VARIABLE = @VARIABLE@ in Makefile.in.
 # This macro is traced by Automake.
 AC_DEFUN([_AM_SUBST_NOTMAKE])
 

@@ -25,6 +25,7 @@
 #include "../input/keyboard.h"
 #include "../audio/audio.h"
 #include "../core/i18n.h"
+#include "../player/player.h"
 
 /* *** *** *** *** *** *** *** cEditor_Level *** *** *** *** *** *** *** *** *** *** */
 
@@ -70,6 +71,30 @@ void cEditor_Level :: Enable( void )
 	if( Game_Mode == MODE_LEVEL )
 	{
 		editor_enabled = 1;
+	}
+
+	// reset ground object
+	// player
+	pPlayer->Reset_on_Ground();
+	// sprite manager
+	for( SpriteList::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
+	{
+		// get object pointer
+		cSprite *obj = (*itr);
+
+		// skip destroyed objects
+		if( obj->destroy )
+		{
+			continue;
+		}
+
+		// enemies
+		if( obj->sprite_array == ARRAY_ENEMY )
+		{
+			cMovingSprite *moving_sprite = static_cast<cMovingSprite *>(obj);
+
+			moving_sprite->Reset_on_Ground();
+		}
 	}
 
 	cEditor::Enable();
@@ -190,7 +215,7 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 	return 1;
 }
 
-void cEditor_Level :: Activate_Menu( cEditor_Menu_Object *entry )
+void cEditor_Level :: Activate_Menu_Item( cEditor_Menu_Object *entry )
 {
 	// If Function
 	if( entry->bfunction )
@@ -230,13 +255,13 @@ void cEditor_Level :: Activate_Menu( cEditor_Menu_Object *entry )
 		// unknown level function
 		else
 		{
-			cEditor::Activate_Menu( entry );
+			cEditor::Activate_Menu_Item( entry );
 		}
 	}
 	// unknown level function
 	else
 	{
-		cEditor::Activate_Menu( entry );
+		cEditor::Activate_Menu_Item( entry );
 	}
 }
 

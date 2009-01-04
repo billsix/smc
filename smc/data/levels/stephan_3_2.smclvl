@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.4" />
-		<Property name="engine_version" value="2.3" />
-		<Property name="save_time" value="1199027664" />
+		<Property name="game_version" value="1.7" />
+		<Property name="engine_version" value="2.8" />
+		<Property name="save_time" value="1229238411" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="" />
@@ -11,7 +11,7 @@
 		<Property name="lvl_music" value="land_3.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
-		<Property name="cam_limit_w" value="20000" />
+		<Property name="cam_limit_w" value="10500" />
 		<Property name="cam_limit_h" value="-4000" />
 		<Property name="cam_fixed_hor_vel" value="0" />
 	</settings>
@@ -26,10 +26,14 @@
 	</background>
 	<background>
 		<Property name="type" value="1" />
+		<Property name="posx" value="0" />
+		<Property name="posy" value="0" />
+		<Property name="posz" value="0.00011" />
 		<Property name="image" value="game/background/green_junglehills.png" />
 		<Property name="speedx" value="1" />
 		<Property name="speedy" value="1" />
-		<Property name="posz" value="0.00011" />
+		<Property name="const_velx" value="0" />
+		<Property name="const_vely" value="0" />
 	</background>
 	<player>
 		<Property name="posx" value="83" />
@@ -337,8 +341,8 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="5143" />
-		<Property name="posy" value="311" />
+		<Property name="posx" value="5146" />
+		<Property name="posy" value="321" />
 		<Property name="image" value="ground/green_1/hedges/big_1.png" />
 		<Property name="type" value="passive" />
 	</sprite>
@@ -805,14 +809,14 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="10402" />
-		<Property name="posy" value="122" />
+		<Property name="posx" value="10342" />
+		<Property name="posy" value="152" />
 		<Property name="image" value="clouds/cloudy_1/middle.png" />
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="10682" />
-		<Property name="posy" value="122" />
+		<Property name="posx" value="9949" />
+		<Property name="posy" value="4" />
 		<Property name="image" value="clouds/cloudy_1/middle.png" />
 		<Property name="type" value="passive" />
 	</sprite>
@@ -950,9 +954,10 @@
 	</sprite>
 	<enemy>
 		<Property name="type" value="jpiranha" />
-		<Property name="posx" value="9115" />
-		<Property name="posy" value="455" />
+		<Property name="posx" value="9121" />
+		<Property name="posy" value="456" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -964,30 +969,30 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
-		<Property name="posx" value="9740" />
-		<Property name="posy" value="508" />
+		<Property name="type" value="furball" />
+		<Property name="posx" value="9736" />
+		<Property name="posy" value="506" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
-		<Property name="posx" value="9869" />
-		<Property name="posy" value="508" />
+		<Property name="type" value="furball" />
+		<Property name="posx" value="9863" />
+		<Property name="posy" value="505" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
-		<Property name="posx" value="9998" />
-		<Property name="posy" value="508" />
+		<Property name="type" value="furball" />
+		<Property name="posx" value="10004" />
+		<Property name="posy" value="507" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="turtle" />
-		<Property name="posx" value="8543" />
-		<Property name="posy" value="476" />
+		<Property name="posx" value="8541" />
+		<Property name="posy" value="470" />
 		<Property name="color" value="red" />
 		<Property name="direction" value="right" />
 	</enemy>
@@ -1000,27 +1005,27 @@
 	</enemy>
 	<enemy>
 		<Property name="type" value="turtle" />
-		<Property name="posx" value="7658" />
-		<Property name="posy" value="477" />
+		<Property name="posx" value="7673" />
+		<Property name="posy" value="471" />
 		<Property name="color" value="red" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="7828" />
 		<Property name="posy" value="505" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="7914" />
 		<Property name="posy" value="505" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="8000" />
 		<Property name="posy" value="505" />
 		<Property name="color" value="brown" />
@@ -1034,44 +1039,44 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="6933" />
 		<Property name="posy" value="506" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="7062" />
 		<Property name="posy" value="506" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
-		<Property name="posx" value="5698" />
+		<Property name="type" value="furball" />
+		<Property name="posx" value="6136" />
+		<Property name="posy" value="503" />
+		<Property name="color" value="brown" />
+		<Property name="direction" value="left" />
+	</enemy>
+	<enemy>
+		<Property name="type" value="furball" />
+		<Property name="posx" value="5754" />
 		<Property name="posy" value="507" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
-		<Property name="posx" value="5612" />
-		<Property name="posy" value="434" />
-		<Property name="color" value="brown" />
-		<Property name="direction" value="left" />
-	</enemy>
-	<enemy>
-		<Property name="type" value="gumba" />
-		<Property name="posx" value="5399" />
+		<Property name="type" value="furball" />
+		<Property name="posx" value="5317" />
 		<Property name="posy" value="506" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
-		<Property name="posx" value="5506" />
-		<Property name="posy" value="480" />
+		<Property name="type" value="furball" />
+		<Property name="posx" value="5477" />
+		<Property name="posy" value="505" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
@@ -1083,28 +1088,28 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="4122" />
 		<Property name="posy" value="367" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="2914" />
 		<Property name="posy" value="499" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="1961" />
 		<Property name="posy" value="456" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="1550" />
 		<Property name="posy" value="434" />
 		<Property name="color" value="brown" />
@@ -1112,27 +1117,27 @@
 	</enemy>
 	<enemy>
 		<Property name="type" value="turtle" />
-		<Property name="posx" value="631" />
-		<Property name="posy" value="433" />
+		<Property name="posx" value="623" />
+		<Property name="posy" value="429" />
 		<Property name="color" value="red" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="795" />
 		<Property name="posy" value="461" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="881" />
 		<Property name="posy" value="461" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="gumba" />
+		<Property name="type" value="furball" />
 		<Property name="posx" value="5796" />
 		<Property name="posy" value="-448" />
 		<Property name="color" value="brown" />
@@ -1175,36 +1180,36 @@
 	</enemy>
 	<enemy>
 		<Property name="type" value="turtle" />
-		<Property name="posx" value="8263" />
-		<Property name="posy" value="479" />
+		<Property name="posx" value="8261" />
+		<Property name="posy" value="473" />
 		<Property name="color" value="red" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="turtle" />
-		<Property name="posx" value="8455" />
-		<Property name="posy" value="478" />
+		<Property name="posx" value="8453" />
+		<Property name="posy" value="472" />
 		<Property name="color" value="red" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="turtle" />
-		<Property name="posx" value="8362" />
-		<Property name="posy" value="479" />
+		<Property name="posx" value="8360" />
+		<Property name="posy" value="473" />
 		<Property name="color" value="red" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="turtle" />
-		<Property name="posx" value="8839" />
-		<Property name="posy" value="479" />
+		<Property name="posx" value="8843" />
+		<Property name="posy" value="471" />
 		<Property name="color" value="red" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="turtle" />
-		<Property name="posx" value="8937" />
-		<Property name="posy" value="479" />
+		<Property name="posx" value="8949" />
+		<Property name="posy" value="472" />
 		<Property name="color" value="red" />
 		<Property name="direction" value="right" />
 	</enemy>
@@ -1213,6 +1218,7 @@
 		<Property name="posx" value="7464" />
 		<Property name="posy" value="507" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -1594,8 +1600,8 @@
 		<Property name="gold_color" value="red" />
 	</box>
 	<levelexit>
-		<Property name="posx" value="10222" />
-		<Property name="posy" value="515" />
+		<Property name="posx" value="10229" />
+		<Property name="posy" value="533" />
 		<Property name="type" value="0" />
 		<Property name="level_name" value="stephan_4" />
 	</levelexit>
@@ -1648,8 +1654,8 @@
 		<Property name="posy" value="491" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="7374" />
-		<Property name="posy" value="538" />
+		<Property name="posx" value="7379" />
+		<Property name="posy" value="537" />
 	</enemystopper>
 	<enemystopper>
 		<Property name="posx" value="4940" />
@@ -1660,20 +1666,16 @@
 		<Property name="posy" value="-412" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="5910" />
-		<Property name="posy" value="-161" />
-	</enemystopper>
-	<enemystopper>
 		<Property name="posx" value="5716" />
 		<Property name="posy" value="-411" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="7597" />
-		<Property name="posy" value="537" />
+		<Property name="posx" value="7591" />
+		<Property name="posy" value="538" />
 	</enemystopper>
 	<enemystopper>
-		<Property name="posx" value="10337" />
-		<Property name="posy" value="536" />
+		<Property name="posx" value="10347" />
+		<Property name="posy" value="538" />
 	</enemystopper>
 	<box>
 		<Property name="posx" value="6603" />
@@ -3138,7 +3140,7 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<enemystopper>
-		<Property name="posx" value="9068" />
+		<Property name="posx" value="9076" />
 		<Property name="posy" value="537" />
 	</enemystopper>
 	<sprite>

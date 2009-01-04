@@ -1,5 +1,5 @@
 AC_PREREQ(2.57)
-AC_INIT(smc, 1.6)
+AC_INIT(smc, 1.7)
 AC_CANONICAL_TARGET
 AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE(foreign)
@@ -32,9 +32,7 @@ case "${host}" in
 esac
 
 # Check for the SDL library
-SDL_VERSION=1.2.10
-AM_PATH_SDL($SDL_VERSION, ,
-	AC_MSG_ERROR([SDL library not found. Version $SDL_VERSION or later is needed]))
+PKG_CHECK_MODULES(SDL, sdl >= 1.2.10)
 CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
 LIBS="$LIBS $SDL_LIBS"
 

@@ -1,5 +1,5 @@
 /***************************************************************************
- * gl_surface.cpp  -  GL_Surface class
+ * gl_surface.cpp  -  OpenGL Surface class
  *
  * Copyright (C) 2005 - 2008 Florian Richter
  ***************************************************************************/
@@ -19,9 +19,9 @@
 #include "../video/img_manager.h"
 #include "../objects/sprite.h"
 
-/* *** *** *** *** *** *** *** *** GL_Surface *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** *** cGL_Surface *** *** *** *** *** *** *** *** *** */
 
-GL_Surface :: GL_Surface( void )
+cGL_Surface :: cGL_Surface( void )
 {
 	image = 0;
 
@@ -57,9 +57,9 @@ GL_Surface :: GL_Surface( void )
 	destruction_function = NULL;
 }
 
-GL_Surface :: ~GL_Surface( void )
+cGL_Surface :: ~cGL_Surface( void )
 {
-	// don't delete a managed OpenGL image if still in use by another managed GL_Surface
+	// don't delete a managed OpenGL image if still in use by another managed cGL_Surface
 	if( auto_del_img && glIsTexture( image ) && ( !managed || !Is_Texture_Use_Multiple() ) )
 	{
 		glDeleteTextures( 1, &image );
@@ -71,10 +71,10 @@ GL_Surface :: ~GL_Surface( void )
 	}
 }
 
-GL_Surface *GL_Surface :: Copy( void )
+cGL_Surface *cGL_Surface :: Copy( void )
 {
 	// create copy image
-	GL_Surface *new_surface = new GL_Surface();
+	cGL_Surface *new_surface = new cGL_Surface();
 
 	// data
 	new_surface->image = image;
@@ -104,7 +104,7 @@ GL_Surface *GL_Surface :: Copy( void )
 	return new_surface;
 }
 
-void GL_Surface :: Blit( float x, float y, float z, cSurfaceRequest *request /* = NULL */ )
+void cGL_Surface :: Blit( float x, float y, float z, cSurfaceRequest *request /* = NULL */ )
 {
 	bool create_request = 0;
 
@@ -129,7 +129,7 @@ void GL_Surface :: Blit( float x, float y, float z, cSurfaceRequest *request /* 
 	}
 }
 
-void GL_Surface :: Blit_Data( cSurfaceRequest *request )
+void cGL_Surface :: Blit_Data( cSurfaceRequest *request )
 {
 	// texture id
 	request->texture_id = image;
@@ -148,11 +148,11 @@ void GL_Surface :: Blit_Data( cSurfaceRequest *request )
 	request->rotz += base_rotz;
 }
 
-void GL_Surface :: Save( string filename )
+void cGL_Surface :: Save( string filename )
 {
 	if( !image )
 	{
-		printf( "Couldn't save GL_Surface : No Image Texture ID set\n" );
+		printf( "Couldn't save cGL_Surface : No Image Texture ID set\n" );
 		return;
 	}
 
@@ -169,16 +169,16 @@ void GL_Surface :: Save( string filename )
 	delete[] data;
 }
 
-void GL_Surface :: Set_Ground_Type( GroundType gtype )
+void cGL_Surface :: Set_Ground_Type( GroundType gtype )
 {
 	ground_type = gtype;
 }
 
-bool GL_Surface :: Is_Texture_Use_Multiple( void )
+bool cGL_Surface :: Is_Texture_Use_Multiple( void )
 {
 	for( GL_Surface_List::iterator itr = pImage_Manager->objects.begin(), itr_end = pImage_Manager->objects.end(); itr != itr_end; ++itr )
 	{
-		GL_Surface *obj = (*itr);
+		cGL_Surface *obj = (*itr);
 
 		if( obj == this )
 		{
@@ -194,7 +194,7 @@ bool GL_Surface :: Is_Texture_Use_Multiple( void )
 	return 0;
 }
 
-cSaved_Texture *GL_Surface :: Get_Software_Texture( bool only_filename /* = 0 */ )
+cSaved_Texture *cGL_Surface :: Get_Software_Texture( bool only_filename /* = 0 */ )
 {
 	cSaved_Texture *soft_tex = new cSaved_Texture();
 
@@ -227,7 +227,7 @@ cSaved_Texture *GL_Surface :: Get_Software_Texture( bool only_filename /* = 0 */
 		else
 		{
 			bpp = 4;
-			printf( "Warning: GL_Surface :: Get_Software_Texture : Unknown format\n" );
+			printf( "Warning: cGL_Surface :: Get_Software_Texture : Unknown format\n" );
 		}
 
 		// texture data
@@ -242,7 +242,7 @@ cSaved_Texture *GL_Surface :: Get_Software_Texture( bool only_filename /* = 0 */
 	return soft_tex;
 }
 
-void GL_Surface :: Load_Software_Texture( cSaved_Texture *soft_tex )
+void cGL_Surface :: Load_Software_Texture( cSaved_Texture *soft_tex )
 {
 	if( !soft_tex )
 	{
@@ -279,11 +279,11 @@ void GL_Surface :: Load_Software_Texture( cSaved_Texture *soft_tex )
 	// load from file
 	else
 	{
-		GL_Surface *surface_copy = pVideo->Load_GL_Surface( filename );
+		cGL_Surface *surface_copy = pVideo->Load_GL_Surface( filename );
 
 		if( !surface_copy )
 		{
-			printf( "Warning: GL_Surface :: Load_Software_Texture %s loading failed\n", filename.c_str() );
+			printf( "Warning: cGL_Surface :: Load_Software_Texture %s loading failed\n", filename.c_str() );
 			return;
 		}
 
@@ -298,7 +298,7 @@ void GL_Surface :: Load_Software_Texture( cSaved_Texture *soft_tex )
 	}
 }
 
-string GL_Surface :: Get_Filename( int with_dir /* = 2 */, bool with_end /* = 1 */ ) 
+string cGL_Surface :: Get_Filename( int with_dir /* = 2 */, bool with_end /* = 1 */ ) 
 {
 	string name = filename;
 
@@ -322,7 +322,7 @@ string GL_Surface :: Get_Filename( int with_dir /* = 2 */, bool with_end /* = 1 
 	return name;
 }
 
-void GL_Surface :: Set_Destruction_Function( void ( *nfunction )( GL_Surface * ) )
+void cGL_Surface :: Set_Destruction_Function( void ( *nfunction )( cGL_Surface * ) )
 {
 	destruction_function = nfunction;
 }

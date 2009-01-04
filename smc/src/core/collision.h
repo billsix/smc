@@ -143,8 +143,8 @@ bool Col_Circle( float x1, float y1, float r1, float x2, float y2, float r2, int
  * the circle and approximate the radius using the width and height
  * of the surface (for example a rect of 4x6 would have r = 2.5).
 */
-bool Col_Circle( GL_Surface *surface1, SDL_Rect *a, GL_Surface *surface2, SDL_Rect *b, int offset = 0 );
-bool Col_Circle( GL_Surface *a, float x1, float y1, GL_Surface *b, float x2, float y2, int offset );
+bool Col_Circle( cGL_Surface *surface1, SDL_Rect *a, cGL_Surface *surface2, SDL_Rect *b, int offset = 0 );
+bool Col_Circle( cGL_Surface *a, float x1, float y1, cGL_Surface *b, float x2, float y2, int offset );
 
 // returns the distance from a point to the given line
 float Distance_to_Line( float x, float y, GL_line *line );

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.5" />
-		<Property name="engine_version" value="2.5" />
-		<Property name="save_time" value="1209315346" />
+		<Property name="game_version" value="1.6" />
+		<Property name="engine_version" value="2.8" />
+		<Property name="save_time" value="1228155067" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="SMC Team" />
@@ -2267,6 +2267,7 @@
 		<Property name="posx" value="2066" />
 		<Property name="posy" value="372" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -2305,6 +2306,7 @@
 		<Property name="posx" value="4756" />
 		<Property name="posy" value="381" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -2361,36 +2363,42 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="5202" />
 		<Property name="posy" value="406" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="5245" />
 		<Property name="posy" value="406" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="5288" />
 		<Property name="posy" value="406" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="5331" />
 		<Property name="posy" value="406" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="5374" />
 		<Property name="posy" value="406" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="5417" />
 		<Property name="posy" value="406" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemystopper>
@@ -2814,36 +2822,42 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2699" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2742" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2785" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2828" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2871" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2914" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<sprite>
@@ -2898,36 +2912,42 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2441" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2484" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2527" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2570" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2613" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2656" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<sprite>
@@ -2981,7 +3001,7 @@
 	<sprite>
 		<Property name="posx" value="2330" />
 		<Property name="posy" value="-1275" />
-		<Property name="image" value="blocks/pipe/connection_left_up.png" />
+		<Property name="image" value="blocks/pipe/connection/plastic_1/orange/right_down.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
@@ -3156,36 +3176,42 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2091" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2134" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2177" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2220" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2263" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2306" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<item>
@@ -3297,36 +3323,42 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1833" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1876" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1919" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1962" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2005" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="2048" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<sprite>
@@ -3717,36 +3749,42 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1575" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1618" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1661" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1704" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1747" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1790" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<sprite>
@@ -3789,36 +3827,42 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1317" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1360" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1403" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1446" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1489" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1532" />
 		<Property name="posy" value="-1435" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<sprite>
@@ -5499,7 +5543,7 @@
 	<sprite>
 		<Property name="posx" value="3736" />
 		<Property name="posy" value="-3627" />
-		<Property name="image" value="blocks/pipe/connection_left_up.png" />
+		<Property name="image" value="blocks/pipe/connection/plastic_1/orange/right_down.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
@@ -5547,7 +5591,7 @@
 	<sprite>
 		<Property name="posx" value="3421" />
 		<Property name="posy" value="-3622" />
-		<Property name="image" value="blocks/pipe/connection_right_down.png" />
+		<Property name="image" value="blocks/pipe/connection/plastic_1/orange/left_up.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
@@ -5782,6 +5826,7 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6624" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<sprite>
@@ -5824,36 +5869,42 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6366" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6409" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6452" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6495" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6538" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6581" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<sprite>
@@ -5896,36 +5947,42 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6108" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6151" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6194" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6237" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6280" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6323" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<sprite>
@@ -5968,36 +6025,42 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="5850" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="5893" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="5936" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="5979" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6022" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6065" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<sprite>
@@ -6010,6 +6073,7 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="7441" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<sprite>
@@ -6052,36 +6116,42 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="7183" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="7226" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="7269" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="7312" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="7355" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="7398" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<sprite>
@@ -6124,36 +6194,42 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6925" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6968" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="7011" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="7054" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="7097" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="7140" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<sprite>
@@ -6196,132 +6272,154 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6667" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6710" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6753" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6796" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6839" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="6882" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="3873" />
 		<Property name="posy" value="-2442" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="3615" />
 		<Property name="posy" value="-2442" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="3658" />
 		<Property name="posy" value="-2442" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="3701" />
 		<Property name="posy" value="-2442" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="3744" />
 		<Property name="posy" value="-2442" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="3787" />
 		<Property name="posy" value="-2442" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="3830" />
 		<Property name="posy" value="-2442" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="3572" />
 		<Property name="posy" value="-2442" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="4216" />
 		<Property name="posy" value="-2442" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="3958" />
 		<Property name="posy" value="-2442" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="4001" />
 		<Property name="posy" value="-2442" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="4044" />
 		<Property name="posy" value="-2442" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="4087" />
 		<Property name="posy" value="-2442" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="4130" />
 		<Property name="posy" value="-2442" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="4173" />
 		<Property name="posy" value="-2442" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="3915" />
 		<Property name="posy" value="-2442" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<moving_platform>
@@ -6997,6 +7095,7 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="7656" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<sprite>
@@ -7027,24 +7126,28 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="7484" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="7527" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="7570" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="7613" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<sprite>
@@ -7075,6 +7178,7 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="7741" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<sprite>
@@ -7087,6 +7191,7 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="7698" />
 		<Property name="posy" value="-3090" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<sprite>
@@ -7535,6 +7640,7 @@
 		<Property name="posx" value="3466" />
 		<Property name="posy" value="-3363" />
 		<Property name="direction" value="down" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -7673,6 +7779,7 @@
 		<Property name="posx" value="2368" />
 		<Property name="posy" value="-1549" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -7769,7 +7876,7 @@
 		<Property name="posy" value="-3430" />
 		<Property name="type" value="bonus" />
 		<Property name="animation" value="Bonus" />
-		<Property name="item" value="24" />
+		<Property name="item" value="51" />
 		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="1" />
 		<Property name="force_best_item" value="0" />
@@ -7850,4 +7957,1058 @@
 		<Property name="direction" value="left" />
 		<Property name="speed" value="8.5" />
 	</enemy>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="605" />
+		<Property name="pos_y" value="270" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="730" />
+		<Property name="pos_y" value="273" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="1212" />
+		<Property name="pos_y" value="252" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="1879" />
+		<Property name="pos_y" value="272" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="2968" />
+		<Property name="pos_y" value="220" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="3658" />
+		<Property name="pos_y" value="239" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="3893" />
+		<Property name="pos_y" value="239" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="6124" />
+		<Property name="pos_y" value="292" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="6360" />
+		<Property name="pos_y" value="293" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="6713" />
+		<Property name="pos_y" value="88" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="6948" />
+		<Property name="pos_y" value="89" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="7124" />
+		<Property name="pos_y" value="-134" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="7119" />
+		<Property name="pos_y" value="-418" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="7117" />
+		<Property name="pos_y" value="-686" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="6165" />
+		<Property name="pos_y" value="-1074" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="5930" />
+		<Property name="pos_y" value="-1072" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="4866" />
+		<Property name="pos_y" value="-1010" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="4632" />
+		<Property name="pos_y" value="-1007" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="3268" />
+		<Property name="pos_y" value="-1656" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="3034" />
+		<Property name="pos_y" value="-1656" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="2452" />
+		<Property name="pos_y" value="-2551" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="2688" />
+		<Property name="pos_y" value="-2551" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="4510" />
+		<Property name="pos_y" value="-2720" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="4746" />
+		<Property name="pos_y" value="-2718" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="4585" />
+		<Property name="pos_y" value="-3738" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="4819" />
+		<Property name="pos_y" value="-3739" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="5475" />
+		<Property name="pos_y" value="-3593" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="5710" />
+		<Property name="pos_y" value="-3593" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="6645" />
+		<Property name="pos_y" value="-3373" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="6881" />
+		<Property name="pos_y" value="-3373" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
+	<particle_emitter>
+		<Property name="file" value="animation/fire_1/2.png" />
+		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="7816" />
+		<Property name="pos_y" value="-3417" />
+		<Property name="size_x" value="5" />
+		<Property name="size_y" value="5" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="0.1" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="0.3" />
+		<Property name="time_to_live_rand" value="0.5" />
+		<Property name="vel" value="2" />
+		<Property name="vel_rand" value="2" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="1" />
+		<Property name="angle_start" value="220" />
+		<Property name="angle_range" value="100" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
 </level>

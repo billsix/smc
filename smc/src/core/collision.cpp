@@ -372,13 +372,13 @@ bool Col_Circle( float x1, float y1, float r1, float x2, float y2, float r2, int
 	return ( dcentre_sq - r_sum_sq <= ( offset * offset ) );
 }
 
-bool Col_Circle( GL_Surface *surface1, SDL_Rect *a, GL_Surface *surface2, SDL_Rect *b, int offset )
+bool Col_Circle( cGL_Surface *surface1, SDL_Rect *a, cGL_Surface *surface2, SDL_Rect *b, int offset )
 {
 	return Col_Circle( surface1, a->x, a->y, surface2, b->x, b->y, offset );
 }
 
 // from SDL_collide ( Copyright (C) 2005 Amir Taaki ) - MIT License
-bool Col_Circle( GL_Surface *a, float x1, float y1, GL_Surface *b, float x2, float y2, int offset )
+bool Col_Circle( cGL_Surface *a, float x1, float y1, cGL_Surface *b, float x2, float y2, int offset )
 {
 	/* if radius is not specified
 	we approximate them using SDL_Surface's

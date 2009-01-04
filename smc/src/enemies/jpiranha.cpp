@@ -22,7 +22,11 @@
 #include "../user/savegame.h"
 #include "../core/math/utilities.h"
 #include "../input/mouse.h"
+#include "../video/gl_surface.h"
 #include "../core/i18n.h"
+// boost filesystem
+#include "boost/filesystem/convenience.hpp"
+namespace fs = boost::filesystem;
 
 /* *** *** *** *** *** *** cjPiranha *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -48,11 +52,15 @@ void cjPiranha :: Init( void  )
 {
 	type = TYPE_JPIRANHA;
 	posz = 0.06f;
+	Set_Rotation_affects_Rect( 1 );
 	editor_posz = 0.089f;
 	player_range = 1000;
+	can_be_on_ground = 0;
+	can_be_ground = 0;
 
 	state = STA_STAY;
 	Set_Direction( DIR_UP );
+	Set_Image_Dir( "enemy/jpiranha/orange/" );
 	Set_Max_Distance( 200 );
 	Set_Speed( 5.8f );
 
@@ -68,6 +76,7 @@ cjPiranha *cjPiranha :: Copy( void )
 {
 	cjPiranha *jpiranha = new cjPiranha( startposx, startposy );
 	jpiranha->Set_Direction( start_direction );
+	jpiranha->Set_Image_Dir( img_dir );
 	jpiranha->Set_Max_Distance( max_distance );
 	jpiranha->Set_Speed( speed );
 	return jpiranha;
@@ -79,6 +88,8 @@ void cjPiranha :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// direction
 	Set_Direction( Get_Direction_Id( attributes.getValueAsString( "direction", Get_Direction_Name( start_direction ) ).c_str() ) );
+	// image directory
+	Set_Image_Dir( attributes.getValueAsString( "image_dir", img_dir ).c_str() );
 	// max distance
 	Set_Max_Distance( attributes.getValueAsFloat( "max_distance", max_distance ) );
 	// speed
@@ -97,6 +108,8 @@ void cjPiranha :: Save_to_Stream( ofstream &file )
 	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
 	// direction
 	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( start_direction ) << "\" />" << std::endl;
+	// image directory
+	file << "\t\t<Property name=\"image_dir\" value=\"" << img_dir << "\" />" << std::endl;
 	// max distance
 	file << "\t\t<Property name=\"max_distance\" value=\"" << static_cast<int>(max_distance) << "\" />" << std::endl;
 	// speed
@@ -130,38 +143,77 @@ cSave_Level_Object *cjPiranha :: Save_to_Savegame( void )
 	return save_object;
 }
 
-void cjPiranha :: Set_Direction( ObjectDirection dir )
+void cjPiranha :: Set_Image_Dir( string dir )
 {
-	// already set
-	if( direction == dir )
+	if( dir.empty() )
 	{
 		return;
 	}
 
-	// clear old images
-	Clear_Images();
-
-	cEnemy::Set_Direction( dir, 1 );
-
-	string filename_dir = Get_Direction_Name( start_direction );
-	name = "jPiranha ";
-	name += _(filename_dir.c_str());
-
-	if( direction != DIR_UP && direction != DIR_DOWN && direction != DIR_LEFT && direction != DIR_RIGHT )
+	// remove pixmaps dir
+	if( img_dir.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == 0 )
 	{
-		Set_Dead( 1 );
-		Set_Visible( 0 );
+		img_dir.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
+	}
 
+	// if directory does not exist
+	if( !fs::exists( fs::path( DATA_DIR "/" GAME_PIXMAPS_DIR "/" + dir, fs::native ) ) )
+	{
+		return;
+	}
+
+	img_dir = dir;
+
+	// clear images
+	Clear_Images();
+	// set images
+	images.push_back( pVideo->Get_Surface( img_dir + "closed_1.png" ) );
+	images.push_back( pVideo->Get_Surface( img_dir + "closed_2.png" ) );
+	images.push_back( pVideo->Get_Surface( img_dir + "open_1.png" ) );
+	images.push_back( pVideo->Get_Surface( img_dir + "open_2.png" ) );
+	// set start image
+	Set_Image( 0, 1 );
+
+	Create_Name();
+}
+
+void cjPiranha :: Set_Direction( ObjectDirection dir )
+{
+	// already set
+	if( dir == direction )
+	{
+		return;
+	}
+
+	if( dir != DIR_UP && dir != DIR_DOWN && dir != DIR_LEFT && dir != DIR_RIGHT )
+	{
 		printf( "Error : Unknown jPiranha direction %d\n", direction );
 		return;
 	}
 
-	images.push_back( pVideo->Get_Surface( "enemy/jpiranha/" + filename_dir + "_closed_1.png" ) );
-	images.push_back( pVideo->Get_Surface( "enemy/jpiranha/" + filename_dir + "_closed_2.png" ) );
-	images.push_back( pVideo->Get_Surface( "enemy/jpiranha/" + filename_dir + "_open_1.png" ) );
-	images.push_back( pVideo->Get_Surface( "enemy/jpiranha/" + filename_dir + "_open_2.png" ) );
+	cEnemy::Set_Direction( dir, 1 );
 
-	Set_Image( 0, 1 );
+	// clear
+	Set_Rotation( 0, 0, 0, 1 );
+
+	if( start_direction == DIR_UP )
+	{
+		// default
+	}
+	else if( start_direction == DIR_LEFT )
+	{
+		Set_Rotation_Z( 270, 1 );
+	}
+	else if( start_direction == DIR_RIGHT )
+	{
+		Set_Rotation_Z( 90, 1 );
+	}
+	else if( start_direction == DIR_DOWN )
+	{
+		Set_Rotation_Z( 180, 1 );
+	}
+
+	Create_Name();
 }
 
 void cjPiranha :: Set_Max_Distance( float nmax_distance )
@@ -530,18 +582,20 @@ bool cjPiranha :: Is_Update_Valid( void )
 
 bool cjPiranha :: Is_Draw_Valid( void )
 {
-	if( cEnemy::Is_Draw_Valid() == 1 )
+	bool valid = cEnemy::Is_Draw_Valid();
+
+	// if editor enabled
+	if( editor_enabled )
 	{
-		return 1;
+		// if active mouse object
+		if( pMouseCursor->active_object == this )
+		{
+			return 1;
+		}
 	}
 
-	// if not editor enabled or not active mouse object
-	if( !editor_enabled || pMouseCursor->active_object != this )
-	{
-		return 0;
-	}
 
-	return 1;
+	return valid;
 }
 
 unsigned int cjPiranha :: Validate_Collision( cSprite *obj )
@@ -573,15 +627,34 @@ void cjPiranha :: Handle_Collision_Player( cObjectCollision *collision )
 		pPlayer->Action_Jump( 1 );
 	}
 
-	pPlayer->DownGrade();
+	pPlayer->DownGrade_Player();
 }
 
 void cjPiranha :: Editor_Activate( void )
 {
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
+	// direction
+	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_jpiranha_direction" ));
+	Editor_Add( UTF8_("Direction"), UTF8_("Direction"), combobox, 100, 110 );
+
+	combobox->addItem( new CEGUI::ListboxTextItem( "up" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "down" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "left" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "right" ) );
+
+	combobox->setText( Get_Direction_Name( start_direction ) );
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cjPiranha::Editor_Direction_Select, this ) );
+
+	// image dir
+	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_jpiranha_image_dir" ));
+	Editor_Add( UTF8_("Image directory"), UTF8_("Directory containing the images"), editbox, 200 );
+
+	editbox->setText( img_dir.c_str() );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cjPiranha::Editor_Image_Dir_Key, this ) );
+
 	// max distance
-	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_jpiranha_max_distance" ));
+	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_jpiranha_max_distance" ));
 	Editor_Add( UTF8_("Distance"), _("Movable Distance into its direction"), editbox, 90 );
 
 	editbox->setText( int_to_string( static_cast<int>(max_distance) ) );
@@ -596,6 +669,26 @@ void cjPiranha :: Editor_Activate( void )
 
 	// init
 	Editor_Init();
+}
+
+bool cjPiranha :: Editor_Direction_Select( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
+
+	Set_Direction( Get_Direction_Id( item->getText().c_str() ) );
+
+	return 1;
+}
+
+bool cjPiranha :: Editor_Image_Dir_Key( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+
+	Set_Image_Dir( str_text );
+
+	return 1;
 }
 
 bool cjPiranha :: Editor_Max_Distance_Key( const CEGUI::EventArgs &event )
@@ -616,4 +709,15 @@ bool cjPiranha :: Editor_Speed_Key( const CEGUI::EventArgs &event )
 	Set_Speed( string_to_float( str_text ) );
 
 	return 1;
+}
+
+void cjPiranha :: Create_Name( void )
+{
+	name = "jPiranha ";
+	name += _(Get_Direction_Name( start_direction ).c_str());
+
+	if( start_image && !start_image->name.empty() )
+	{
+		name += " " + start_image->name;
+	}
 }

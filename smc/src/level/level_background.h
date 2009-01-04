@@ -91,7 +91,7 @@ public:
 
 	// - background image settings
 	// image
-	GL_Surface *img_1;
+	cGL_Surface *img_1;
 	// image filename
 	string img_file_1;
 	// scrolling speed

@@ -29,7 +29,7 @@
 
 /* *** *** *** *** *** *** *** cHudSprite *** *** *** *** *** *** *** *** *** *** */
 
-cHudSprite :: cHudSprite( GL_Surface *new_image /* = NULL */, float x /* = 0 */, float y /* = 0 */, bool del_img /* = 0 */ )
+cHudSprite :: cHudSprite( cGL_Surface *new_image /* = NULL */, float x /* = 0 */, float y /* = 0 */, bool del_img /* = 0 */ )
 : cSprite( new_image, x, y, del_img )
 {
 	player_range = 0;
@@ -1184,7 +1184,7 @@ void cDebugDisplay :: Draw_Performance_Debug_Mode( void )
 
 		string current_text = (*itr);
 
-		GL_Surface *surface_temp = pFont->Render_Text( pFont->font_small, current_text, white );
+		cGL_Surface *surface_temp = pFont->Render_Text( pFont->font_small, current_text, white );
 
 		// create request
 		cSurfaceRequest *request = new cSurfaceRequest();

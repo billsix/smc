@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.5" />
-		<Property name="engine_version" value="2.4" />
-		<Property name="save_time" value="1206099630" />
+		<Property name="game_version" value="1.6" />
+		<Property name="engine_version" value="2.8" />
+		<Property name="save_time" value="1228154691" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Sauer2" />
@@ -26,10 +26,14 @@
 	</background>
 	<background>
 		<Property name="type" value="1" />
+		<Property name="posx" value="0" />
+		<Property name="posy" value="0" />
+		<Property name="posz" value="0.00011" />
 		<Property name="image" value="game/background/stars_1.png" />
 		<Property name="speedx" value="0.1" />
 		<Property name="speedy" value="0.1" />
-		<Property name="posz" value="0.00011" />
+		<Property name="const_velx" value="0" />
+		<Property name="const_vely" value="0" />
 	</background>
 	<player>
 		<Property name="posx" value="128" />
@@ -3085,12 +3089,6 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="5844" />
-		<Property name="posy" value="-221" />
-		<Property name="image" value="ground/jungle_1/tree_type_2.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
 		<Property name="posx" value="5440" />
 		<Property name="posy" value="389" />
 		<Property name="image" value="ground/green_1/hedges/big_1.png" />
@@ -3523,27 +3521,6 @@
 		<Property name="type" value="furball" />
 		<Property name="posx" value="7083" />
 		<Property name="posy" value="408" />
-		<Property name="color" value="blue" />
-		<Property name="direction" value="right" />
-	</enemy>
-	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="7023" />
-		<Property name="posy" value="399" />
-		<Property name="color" value="brown" />
-		<Property name="direction" value="right" />
-	</enemy>
-	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="7147" />
-		<Property name="posy" value="399" />
-		<Property name="color" value="blue" />
-		<Property name="direction" value="right" />
-	</enemy>
-	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="7240" />
-		<Property name="posy" value="400" />
 		<Property name="color" value="blue" />
 		<Property name="direction" value="right" />
 	</enemy>
@@ -4161,4 +4138,10 @@
 		<Property name="posx" value="7787" />
 		<Property name="posy" value="-1041" />
 	</item>
+	<sprite>
+		<Property name="posx" value="5836" />
+		<Property name="posy" value="-227" />
+		<Property name="image" value="ground/jungle_1/tree/2_front.png" />
+		<Property name="type" value="passive" />
+	</sprite>
 </level>

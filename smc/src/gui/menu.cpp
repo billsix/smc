@@ -113,30 +113,109 @@ cMenuHandler :: cMenuHandler( void )
 {
 	Reset();
 
-	image_ground = pVideo->Get_Surface( "menu/ground.png" );
+	// SMC logo image
+	cHudSprite *sprite = new cHudSprite( pVideo->Get_Surface( "game/logo/smc_big_1.png" ), 50, 20 );
+	sprite->posz = 0.16f;
+	images.push_back( sprite );
 
-	// Logo Image
-	logo = new cHudSprite( pVideo->Get_Surface( "game/logo/lmario1.png" ), 50, 20 );
-	logo->posz = 0.16f;
-	// Ground Image
-	ground = new cHudSprite( image_ground, 0, 400 );
-	ground->posz = 0.11f;
-	// Moon Image
-	moon = new cHudSprite( pVideo->Get_Surface( "game/items/moon_1.png" ), 702, 39 );
-	moon->posz = 0.16f;
-	// Cloud Image
-	background = new cHudSprite( pVideo->Get_Surface( "game/background/blue_hills_1.png" ), 0, 88 );
-	background->posz = 0.09f;
+	// moon image
+	sprite = new cHudSprite( pVideo->Get_Surface( "game/items/moon_1.png" ), 702, 39 );
+	sprite->posz = 0.16f;
+	images.push_back( sprite );
+	// background image
+	sprite = new cHudSprite( pVideo->Get_Surface( "game/background/blue_hills_1.png" ), 0, 88 );
+	sprite->posz = 0.09f;
+	images.push_back( sprite );
+
+	// ground images
+	float pos_x = 0;
+	cGL_Surface *image = pVideo->Get_Surface( "ground/green_3/ground/top/left.png" );
+	float ground_width = image->w;
+	float ground_height = image->h;
+	
+	for( int i = 0; i < game_res_w; i += static_cast<int>(ground_width) )
+	{
+		// start with left up image
+		if( i == 0 )
+		{
+			sprite = new cHudSprite( image, pos_x, static_cast<float>(game_res_h) - ground_height );
+		}
+		// change to middle up image
+		else
+		{
+			sprite = new cHudSprite( pVideo->Get_Surface( "ground/green_3/ground/top/1.png" ), pos_x, static_cast<float>(game_res_h) - ground_height );
+		}
+
+		sprite->posz = 0.091f;
+		images.push_back( sprite );
+
+		pos_x += sprite->rect.w;
+	}
+
+	// big hedge image
+	sprite = new cHudSprite( pVideo->Get_Surface( "ground/jungle_1/big_plant_1.png" ), 32, static_cast<float>(game_res_h) - ground_height - 256 );
+	sprite->posz = 0.094f;
+	images.push_back( sprite );
+
+	// medium hedge image
+	sprite = new cHudSprite( pVideo->Get_Surface( "ground/green_1/hedges/medium_2.png" ), 410, static_cast<float>(game_res_h) - ground_height - 43 );
+	sprite->posz = 0.094f;
+	images.push_back( sprite );
+
+	// small hedge image
+	sprite = new cHudSprite( pVideo->Get_Surface( "ground/green_1/hedges/small_1.png" ), 240, static_cast<float>(game_res_h) - ground_height - 43 );
+	sprite->posz = 0.094f;
+	images.push_back( sprite );
+
+	// pipe middle image
+	sprite = new cHudSprite( pVideo->Get_Surface( "pipes/orange/ver.png" ), 620, static_cast<float>(game_res_h) - ground_height - 50 );
+	sprite->posz = 0.094f;
+	images.push_back( sprite );
+
+	// pipe middle image
+	sprite = new cHudSprite( pVideo->Get_Surface( "pipes/orange/ver.png" ), 620, static_cast<float>(game_res_h) - ground_height - 50 - 50 );
+	sprite->posz = 0.094f;
+	images.push_back( sprite );
+
+	// pipe top image
+	sprite = new cHudSprite( pVideo->Get_Surface( "pipes/orange/up.png" ), 620, static_cast<float>(game_res_h) - ground_height - 50 - 50 - 50 );
+	sprite->posz = 0.094f;
+	images.push_back( sprite );
+
+	// jumping piranha orange image
+	sprite = new cHudSprite( pVideo->Get_Surface( "enemy/jpiranha/orange/open_1.png" ), 648, static_cast<float>(game_res_h) - ground_height - 50 - 50 - 50 - 36 );
+	sprite->posz = 0.093f;
+	images.push_back( sprite );
+
+	// very small hedge image
+	sprite = new cHudSprite( pVideo->Get_Surface( "ground/green_2/hedges/small_1.png" ), 710, static_cast<float>(game_res_h) - ground_height - 32 );
+	sprite->posz = 0.094f;
+	images.push_back( sprite );
+
+	// furball blue image
+	sprite = new cHudSprite( pVideo->Get_Surface( "enemy/furball/blue/walk_4.png" ), 360, static_cast<float>(game_res_h) - ground_height - 43 );
+	sprite->posz = 0.095f;
+	images.push_back( sprite );
+
+	// eato brown image
+	sprite = new cHudSprite( pVideo->Get_Surface( "enemy/eato/brown/1.png" ), 100, static_cast<float>(game_res_h) - ground_height - 36 );
+	sprite->posz = 0.095f;
+	images.push_back( sprite );
+
+	// maryo falling image
+	sprite = new cHudSprite( pVideo->Get_Surface( "maryo/small/fall_right.png" ), 100, static_cast<float>(game_res_h) - ground_height - 58 - 90 );
+	sprite->posz = 0.095f;
+	images.push_back( sprite );
 }
 
 cMenuHandler :: ~cMenuHandler( void )
 {
 	Reset();
 
-	delete logo;
-	delete ground;
-	delete moon;
-	delete background;
+	for( HudSpriteList::iterator itr = images.begin(), itr_end = images.end(); itr != itr_end; ++itr )
+	{
+		delete *itr;
+	}
 }
 
 void cMenuHandler :: Add_Menu_Item( cMenu_Item *item, float shadow_pos /* = 0 */, Color shadow_color /* = static_cast<Uint8>(0) */ )
@@ -169,8 +248,6 @@ void cMenuHandler :: Reset( void )
 
 	// nothing is active
 	active = -1;
-	// disable quit logo
-	use_quit_image = 0;
 
 	// Default Gradient Colors
 	color_start = Color( 0.7f, 0.93f, 1 );
@@ -192,15 +269,6 @@ void cMenuHandler :: Set_Active( int num )
 		{
 			items[active]->Set_Active( 0 );
 		}
-
-		if( !items[num]->isquit )
-		{
-			ground->Set_Image( image_ground );
-		}
-		if( items[num]->isquit && use_quit_image )
-		{
-			// todo : not an image but a fade out ?
-		}
 	}
 	else if( num == -1 )
 	{
@@ -213,11 +281,6 @@ void cMenuHandler :: Set_Active( int num )
 	{
 		items[active]->Set_Active( 1 );
 	}
-}
-
-void cMenuHandler :: Use_Quit_Image( bool enabled /* = 1 */ )
-{
-	use_quit_image = enabled;
 }
 
 void cMenuHandler :: Update_Mouse( void )
@@ -243,19 +306,19 @@ void cMenuHandler :: Update_Mouse( void )
 	Set_Active( found );
 }
 
-void cMenuHandler :: Draw( void )
+void cMenuHandler :: Draw( bool with_background /* = 1 */ )
 {
-	// Gradient
-	pVideo->Draw_Gradient( NULL, 0.08f, &color_start, &color_end, DIR_VERTICAL );
+	if( with_background )
+	{
+		// Gradient
+		pVideo->Draw_Gradient( NULL, 0.0001f, &color_start, &color_end, DIR_VERTICAL );
 
-	// Logo Image
-	logo->Draw();
-	// Ground Image
-	ground->Draw();
-	// Moon Image
-	moon->Draw();
-	// Background Image
-	background->Draw();
+		// Draw images
+		for( HudSpriteList::iterator itr = images.begin(), itr_end = images.end(); itr != itr_end; ++itr )
+		{
+			(*itr)->Draw();
+		}
+	}
 
 	// menu items
 	for( MenuList::iterator itr = items.begin(), itr_end = items.end(); itr != itr_end; ++itr )
@@ -307,7 +370,7 @@ cMenuCore :: cMenuCore( void )
 	anim->Set_Scale( 0.4f, 0.15f );
 	anim->Set_Color( Color( static_cast<Uint8>(220), 240, 255 ), Color( static_cast<Uint8>(25), 5, 0 ) );
 	anim->Set_Speed( 0.1f, 0.01f );
-	anim->Set_Pos_Z( 0.105f );
+	anim->Set_Pos_Z( 0.0905f );
 
 	pMenu_AnimManager->Add( anim );
 
@@ -324,7 +387,7 @@ cMenuCore :: cMenuCore( void )
 	anim->Set_Scale( 0.4f, 0.15f );
 	anim->Set_Color( Color( static_cast<Uint8>(220), 240, 255 ), Color( static_cast<Uint8>(25), 5, 0 ) );
 	anim->Set_Speed( 0.1f, 0.01f );
-	anim->Set_Pos_Z( 0.105f );
+	anim->Set_Pos_Z( 0.0905f );
 
 	pMenu_AnimManager->Add( anim );
 }
@@ -561,9 +624,11 @@ cMenu_Item *cMenuCore :: Auto_Menu( string imagename, string imagefilename_menu,
 	return temp_item;
 }
 
-void cMenuCore :: Load( MenuID menu /* = MENU_MAIN */ )
+void cMenuCore :: Load( MenuID menu /* = MENU_MAIN */, GameMode exit_gamemode /* = MODE_NOTHING */ )
 {
 	Unload();
+	// reset menu handler
+	handler->Reset();
 
 	// unload level if possible
 	if( pActive_Level->delayed_unload )
@@ -571,10 +636,13 @@ void cMenuCore :: Load( MenuID menu /* = MENU_MAIN */ )
 		pActive_Level->Unload();
 	}
 
-	// Set ID
-	menu_id = menu;
+	// clear mouse active object
+	pMouseCursor->Double_Click( 0 );
 
-	// check if not entering from another menu
+	// default background color to white
+	glClearColor( 1, 1, 1, 1 );
+
+	// if not entering from another menu
 	if( next_menu == MENU_NOTHING )
 	{
 		// clear animations
@@ -593,16 +661,13 @@ void cMenuCore :: Load( MenuID menu /* = MENU_MAIN */ )
 
 		pFramerate->Update();
 	}
-	
-	next_menu = MENU_NOTHING;
+	else
+	{
+		next_menu = MENU_NOTHING;
+	}
 
-	// clear mouse active object
-	pMouseCursor->Double_Click( 0 );
-
-	handler->Reset();
-
-	// default white background
-	glClearColor( 1, 1, 1, 1 );
+	// Set ID
+	menu_id = menu;
 
 	// ## Create menu class
 	// Main
@@ -655,6 +720,7 @@ void cMenuCore :: Load( MenuID menu /* = MENU_MAIN */ )
 		pMenu_Data = static_cast<cMenu_Base *>(new cMenu_Credits());
 	}
 
+	pMenu_Data->Set_Exit_To_Game_Mode( exit_gamemode );
 	pMenu_Data->Init();
 }
 

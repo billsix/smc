@@ -29,7 +29,7 @@
 #include "../user/preferences.h"
 #include "../core/framerate.h"
 #include "../objects/goldpiece.h"
-#include "../objects/levelexit.h"
+#include "../objects/level_exit.h"
 #include "../objects/bonusbox.h"
 #include "../enemies/furball.h"
 #include "../video/font.h"
@@ -420,8 +420,8 @@ bool cMouseCursor :: Get_Collision( GL_rect *mouse_rect )
 	{
 		cSprite *obj = (*itr);
 
-		// don't check spawned objects
-		if( obj->spawned )
+		// don't check spawned/destroyed objects
+		if( obj->spawned || obj->destroy )
 		{
 			continue;
 		}
@@ -1037,7 +1037,7 @@ cSprite *cMouseCursor :: Copy( cSprite *ncopy_object, float px, float py )
 
 	if( !new_sprite )
 	{
-		printf( "Warning : Mouse object copying failed\n" );
+		debug_print( "Warning : Mouse object copying failed for %s\n", ncopy_object->name.c_str() );
 		return NULL;
 	}
 
@@ -1086,21 +1086,8 @@ void cMouseCursor :: Delete( cSprite *sprite )
 		// delete object
 		if( editor_enabled )
 		{
-			// if overworld line point
-			if( sprite->type == TYPE_OW_LINE_START || sprite->type == TYPE_OW_LINE_END )
-			{
-				cLayer_Line *line = static_cast<cLayer_Line *>(static_cast<cLayer_Line_Point *>(sprite)->line);
-
-				// delete line
-				pActive_Overworld->pLayer->Delete( line );
-			}
-			else
-			{
-				sprite->Destroy();
-			}
+			sprite->Destroy();
 		}
-
-		sprite = NULL;
 	}
 }
 
@@ -1159,9 +1146,26 @@ void cMouseCursor :: Draw_Object_Rects( void )
 			// object color
 			obj_color = Get_Massive_Type_Color( object->massivetype );
 
+			// z position
+			float pos_z = 0.5f;
+
+			// different z position for other massive type
+			if( object->massivetype == MASS_HALFMASSIVE )
+			{
+				pos_z += 0.001f;
+			}
+			else if( object->massivetype == MASS_MASSIVE )
+			{
+				pos_z += 0.002f;
+			}
+			else if( object->massivetype == MASS_CLIMBABLE )
+			{
+				pos_z += 0.003f;
+			}
+
 			// create request
 			cRectRequest *rect_request = new cRectRequest();
-			pVideo->Draw_Rect( &hover_rect, 0.5f, &obj_color, rect_request );
+			pVideo->Draw_Rect( &hover_rect, pos_z, &obj_color, rect_request );
 
 			// not filled
 			rect_request->filled = 0;
@@ -1239,12 +1243,21 @@ void cMouseCursor :: Update_Selection( void )
 	// add selected objects
 	for( SpriteList::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
 	{
-		cSprite *object = (*itr);
+		cSprite *obj = (*itr);
 
-		if( !object->spawned && Col_Box( &rect, &object->rect ) )
+		// don't check spawned/destroyed objects
+		if( obj->spawned || obj->destroy )
 		{
-			Add_Selected_Object( object, 1 );
+			continue;
 		}
+
+		// if it doesn't collide with the rect
+		if( !Col_Box( &rect, &obj->rect ) )
+		{
+			continue;
+		}
+		
+		Add_Selected_Object( obj, 1 );
 	}
 
 	if( Col_Box( &rect, &pActive_Player->rect ) )
@@ -1431,7 +1444,7 @@ void cMouseCursor :: Editor_Update( void )
 				}
 			}
 
-			GL_Surface *position_info = pFont->Render_Text( pFont->font_small, info, white );
+			cGL_Surface *position_info = pFont->Render_Text( pFont->font_small, info, white );
 
 			// create request
 			cSurfaceRequest *request = new cSurfaceRequest();

@@ -65,6 +65,7 @@ void cLevel_Entry :: Init( void )
 	start_rect.w = rect.w;
 	start_rect.h = rect.h;
 
+	entry_type = LEVEL_ENTRY_WARP;
 	Set_Direction( DIR_UP );
 
 	editor_color = lightblue;
@@ -76,6 +77,7 @@ void cLevel_Entry :: Init( void )
 cLevel_Entry *cLevel_Entry :: Copy( void )
 {
 	cLevel_Entry *level_entry = new cLevel_Entry( startposx, startposy );
+	level_entry->Set_Type( entry_type );
 	level_entry->Set_Direction( start_direction );
 	level_entry->Set_Name( entry_name );
 
@@ -86,6 +88,8 @@ void cLevel_Entry :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
+	// type
+	Set_Type( static_cast<Level_Entry_type>(attributes.getValueAsInteger( "type", entry_type )) );
 	// name
 	Set_Name( attributes.getValueAsString( "name" ).c_str() );
 	// direction
@@ -100,8 +104,13 @@ void cLevel_Entry :: Save_to_Stream( ofstream &file )
 	// position
 	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
 	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
-	// direction
-	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( start_direction ) << "\" />" << std::endl;
+	// type
+	file << "\t\t<Property name=\"type\" value=\"" << entry_type << "\" />" << std::endl;
+	if( entry_type == LEVEL_ENTRY_WARP )
+	{
+		// direction
+		file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( start_direction ) << "\" />" << std::endl;
+	}
 	// name
 	if( !entry_name.empty() )
 	{
@@ -129,21 +138,30 @@ void cLevel_Entry :: Create_Name( void )
 {
     name = _("Level Entry");
 
-	if( direction == DIR_UP )
-	{
-		name += " U";
-	}
-	else if( direction == DIR_LEFT )
-	{
-		name += " L";
-	}
-	else if( direction == DIR_DOWN )
-	{
-		name += " D";
-	}
-	else if( direction == DIR_RIGHT )
-	{
-		name += " R";
+    if( entry_type == LEVEL_ENTRY_BEAM )
+    {
+        name += _(" Beam");
+    }
+    else if( entry_type == LEVEL_ENTRY_WARP )
+    {
+		name += _(" Warp");
+
+		if( direction == DIR_UP )
+		{
+			name += " U";
+		}
+		else if( direction == DIR_LEFT )
+		{
+			name += " L";
+		}
+		else if( direction == DIR_DOWN )
+		{
+			name += " D";
+		}
+		else if( direction == DIR_RIGHT )
+		{
+			name += " R";
+		}
 	}
 }
 
@@ -173,111 +191,177 @@ void cLevel_Entry :: Draw( cSurfaceRequest *request /* = NULL */ )
 
 void cLevel_Entry :: Activate( void )
 {
-	pAudio->Play_Sound( "leave_pipe.ogg" );
-	
-	pPlayer->Stop_Ducking();
-	pPlayer->Reset_on_Ground();
-
-	// set position
-	pPlayer->Set_Pos( Get_Player_Pos_X(), Get_Player_Pos_Y() );
-	// set image
-	if( direction == DIR_UP || direction == DIR_DOWN )
+	// warp player in
+	if( entry_type == LEVEL_ENTRY_WARP )
 	{
-		pPlayer->Set_Image( MARYO_IMG_FALL + pPlayer->direction );
+		pAudio->Play_Sound( "leave_pipe.ogg" );
+
+		// set state to linked to stop checking for on ground objects which sometimes changes the position
+		Moving_state player_state = pPlayer->state;
+		pPlayer->state = STA_OBJ_LINKED;
+
+		pPlayer->Stop_Ducking();
+		pPlayer->Reset_on_Ground();
+
+		// set position
+		pPlayer->Set_Pos( Get_Player_Pos_X(), Get_Player_Pos_Y() );
+
+		// set image
+		if( direction == DIR_UP || direction == DIR_DOWN )
+		{
+			pPlayer->Set_Image( MARYO_IMG_FALL + pPlayer->direction );
+		}
+		else if( direction == DIR_LEFT || direction == DIR_RIGHT )
+		{
+			pPlayer->Set_Image( pPlayer->direction );
+
+			// set rotation
+			if( direction == DIR_RIGHT )
+			{
+				pPlayer->Set_Rotation_Z( 90 );
+			}
+			else if( direction == DIR_LEFT )
+			{
+				pPlayer->Set_Rotation_Z( 270 );
+			}
+		}
+
+		// change position z to be behind massive for the animation
+		float player_posz = pPlayer->posz;
+		pPlayer->posz = 0.0799f;
+
+		// move slowly out
+		while( 1 )
+		{
+			if( direction == DIR_DOWN )
+			{
+				pPlayer->Move( 0, 2.8f );
+
+				if( pPlayer->posy > rect.y + rect.h )
+				{
+					break;
+				}
+			}
+			else if( direction == DIR_UP )
+			{
+				pPlayer->Move( 0, -2.8f );
+
+				if( pPlayer->col_rect.y + pPlayer->col_rect.h < rect.y )
+				{
+					break;
+				}
+			}
+			else if( direction == DIR_RIGHT )
+			{
+				pPlayer->Move( 2, 0 );
+
+				if( pPlayer->posx > rect.x + rect.w )
+				{
+					break;
+				}
+			}
+			else if( direction == DIR_LEFT )
+			{
+				pPlayer->Move( -2, 0 );
+
+				if( pPlayer->col_rect.x + pPlayer->col_rect.w < rect.x )
+				{
+					break;
+				}
+			}
+			else
+			{
+				break;
+			}
+
+			// center camera
+			pActive_Camera->Center();
+			// keep global effect particles on screen
+			pActive_Level->pGlobal_effect->Update_Particles();
+			// draw
+			Draw_Game();
+
+			pVideo->Render();
+			pFramerate->Update();
+		}
+
+		// set position z back
+		pPlayer->posz = player_posz;
+		// set state back
+		pPlayer->state = player_state;
+
+		if( direction == DIR_RIGHT || direction == DIR_LEFT )
+		{
+			pPlayer->Set_Rotation_Z( 0 );
+		}
 	}
-	else if( direction == DIR_LEFT || direction == DIR_RIGHT )
+	// beam player in
+	else if( entry_type == LEVEL_ENTRY_BEAM )
 	{
-		pPlayer->Set_Image( pPlayer->direction );
-
-		// set rotation
-		if( direction == DIR_RIGHT )
-		{
-			pPlayer->Set_Rotation_Z( 90 );
-		}
-		else if( direction == DIR_LEFT )
-		{
-			pPlayer->Set_Rotation_Z( 270 );
-		}
-	}
-
-	// change position z to be before massive for the animation
-	float player_posz = pPlayer->posz;
-	pPlayer->posz = 0.0799f;
-
-	// move slowly
-	for( float i = 0; i < ( speedfactor_fps * 0.9f ); i += pFramerate->speedfactor )
-	{
-		if( direction == DIR_DOWN )
-		{
-			pPlayer->Move( 0, 2.8f );
-		}
-		else if( direction == DIR_UP )
-		{
-			pPlayer->Move( 0, -2.8f );
-		}
-		else if( direction == DIR_RIGHT )
-		{
-			pPlayer->Move( 2, 0 );
-		}
-		else if( direction == DIR_LEFT )
-		{
-			pPlayer->Move( -2, 0 );
-		}
-
-		// center camera
-		pActive_Camera->Center();
-		// keep global effect particles on screen
-		pActive_Level->pGlobal_effect->Update_Particles();
-		// draw
-		Draw_Game();
-
-		pVideo->Render();
-		pFramerate->Update();
-	}
-
-	// set position z back
-	pPlayer->posz = player_posz;
-
-	if( direction == DIR_RIGHT || direction == DIR_LEFT )
-	{
-		pPlayer->Set_Rotation_Z( 0 );
+		// set position
+		pPlayer->Set_Pos( Get_Player_Pos_X(), Get_Player_Pos_Y() );
 	}
 
 	pPlayer->Collisions_Clear();
 }
 
+void cLevel_Entry :: Set_Type( Level_Entry_type ltype )
+{
+	entry_type = ltype;
+
+	Create_Name();
+}
+
 float cLevel_Entry :: Get_Player_Pos_X( void )
 {
-	// left
-	if( direction == DIR_LEFT )
+	if( entry_type == LEVEL_ENTRY_WARP )
 	{
-		return col_rect.x - pPlayer->col_pos.y + col_rect.w;
+		// left
+		if( direction == DIR_LEFT )
+		{
+			return col_rect.x - pPlayer->col_pos.y + col_rect.w;
+		}
+		// right
+		else if( direction == DIR_RIGHT )
+		{
+			return col_rect.x - pPlayer->col_pos.y - col_rect.w - pPlayer->col_rect.w;
+		}
+
+		// up/down
+		return col_rect.x - pPlayer->col_pos.x + ( col_rect.w * 0.5f ) - ( pPlayer->col_rect.w * 0.5f );
 	}
-	// right
-	else if( direction == DIR_RIGHT )
+	else if( entry_type == LEVEL_ENTRY_BEAM )
 	{
-		return col_rect.x - pPlayer->col_pos.y - col_rect.w - pPlayer->col_rect.w;
+		return col_rect.x + ( col_rect.w * 0.5f ) - pPlayer->col_pos.y - ( pPlayer->col_rect.w * 0.5f );
 	}
 
-	// up/down
-	return col_rect.x - pPlayer->col_pos.x + ( col_rect.w * 0.5f ) - ( pPlayer->col_rect.w * 0.5f );
+	return 0;
 }
 
 float cLevel_Entry :: Get_Player_Pos_Y( void )
 {
-	// up
-	if( direction == DIR_UP )
+	if( entry_type == LEVEL_ENTRY_WARP )
 	{
-		return col_rect.y - pPlayer->col_pos.y + col_rect.h;
+		// up
+		if( direction == DIR_UP )
+		{
+			return col_rect.y - pPlayer->col_pos.y + col_rect.h;
+		}
+		// down
+		else if( direction == DIR_DOWN )
+		{
+			return col_rect.y - pPlayer->col_pos.y - 5 - pPlayer->rect.h;
+		}
+
+		// left/right
+		return col_rect.y - pPlayer->col_pos.y + ( col_rect.h * 0.5f ) - ( pPlayer->col_rect.h * 0.5f );
 	}
-	// down
-	else if( direction == DIR_DOWN )
+	else if( entry_type == LEVEL_ENTRY_BEAM )
 	{
-		return col_rect.y - pPlayer->col_pos.y - 5 - pPlayer->rect.h;
+		return col_rect.y + col_rect.h - pPlayer->col_pos.y - pPlayer->col_rect.h;
 	}
 
-	// left/right
-	return col_rect.y - pPlayer->col_pos.y + ( col_rect.h * 0.5f ) - ( pPlayer->col_rect.h * 0.5f );
+	return 0;
 }
 
 void cLevel_Entry :: Set_Name( string str_name )
@@ -322,17 +406,21 @@ void cLevel_Entry :: Editor_Activate( void )
 {
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
-	// direction
-	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "level_entry_direction" ));
-	Editor_Add( UTF8_("Direction"), UTF8_("The direction to come out"), combobox, 100, 105 );
+	// warp
+	if( entry_type == LEVEL_ENTRY_WARP )
+	{
+		// direction
+		CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "level_entry_direction" ));
+		Editor_Add( UTF8_("Direction"), UTF8_("The direction to come out"), combobox, 100, 105 );
 
-	combobox->addItem( new CEGUI::ListboxTextItem( "up" ) );
-	combobox->addItem( new CEGUI::ListboxTextItem( "down" ) );
-	combobox->addItem( new CEGUI::ListboxTextItem( "right" ) );
-	combobox->addItem( new CEGUI::ListboxTextItem( "left" ) );
-	combobox->setText( Get_Direction_Name( start_direction ) );
+		combobox->addItem( new CEGUI::ListboxTextItem( "up" ) );
+		combobox->addItem( new CEGUI::ListboxTextItem( "down" ) );
+		combobox->addItem( new CEGUI::ListboxTextItem( "right" ) );
+		combobox->addItem( new CEGUI::ListboxTextItem( "left" ) );
+		combobox->setText( Get_Direction_Name( start_direction ) );
 
-	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cLevel_Entry::Editor_Direction_Select, this ) );
+		combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cLevel_Entry::Editor_Direction_Select, this ) );
+	}
 
 	// destination entry
 	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "level_entry_name" ));

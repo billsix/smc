@@ -75,18 +75,18 @@ public:
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
 
-	// ignore onground check
-	virtual void Check_on_Ground( void ) {};
-
-	// level editor activation
+	// editor activation
 	virtual void Editor_Activate( void );
-	// level editor state update
+	// editor state update
 	virtual void Editor_State_Update( void );
-	// level editor events
-	bool Editor_Animation_Select( const CEGUI::EventArgs &event ); // editor animation option selected
-	bool Editor_Item_Select( const CEGUI::EventArgs &event ); // editor item option selected
-	bool Editor_Force_best_item_Select( const CEGUI::EventArgs &event ); // editor force best item option selected
-	bool Editor_Gold_Color_Select( const CEGUI::EventArgs &event ); // editor gold color option selected
+	// editor animation option selected event
+	bool Editor_Animation_Select( const CEGUI::EventArgs &event );
+	// editor item option selected event
+	bool Editor_Item_Select( const CEGUI::EventArgs &event );
+	// editor force best item option selected event
+	bool Editor_Force_best_item_Select( const CEGUI::EventArgs &event );
+	// editor gold color option selected event
+	bool Editor_Gold_Color_Select( const CEGUI::EventArgs &event );
 
 	// force best possible item
 	bool force_best_item;

@@ -32,6 +32,7 @@ cEnemy :: cEnemy( float x /* = 0 */, float y /* = 0 */ )
 	massivetype = MASS_MASSIVE;
 	state = STA_FALL;
 	dead = 0;
+	can_be_ground = 1;
 
 	counter = 0;
 	walk_count = 0;
@@ -185,13 +186,26 @@ void cEnemy :: Update( void )
 
 void cEnemy :: Update_Gravity( void )
 {
-	if( !ground_object && vely < 25 )
+	if( !ground_object )
 	{
-		Add_Velocity( 0, 1.5f );
+		// add gravity
+		if( vely < 25 )
+		{
+			Add_Velocity( 0, 1.5f );
+		}
+		// below ground
+		if( col_rect.y > pActive_Camera->limit_rect.y + game_res_h )
+		{
+			DownGrade( 1 );
+		}
 	}
-	else if( ground_object && vely > 0 )
+	else if( ground_object )
 	{
-		vely = 0;
+		// stop falling
+		if( vely > 0 )
+		{
+			vely = 0;
+		}
 	}
 }
 

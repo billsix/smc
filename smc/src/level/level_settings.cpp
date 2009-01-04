@@ -560,7 +560,7 @@ void cLevel_Settings :: Set_Background_Image_Preview( string filename )
 		return;
 	}
 
-	GL_Surface *temp = pVideo->Get_Surface( filename );
+	cGL_Surface *temp = pVideo->Get_Surface( filename );
 	
 	if( !temp )
 	{
@@ -675,7 +675,7 @@ void cLevel_Settings :: Set_Global_Effect_Image_Preview( string filename )
 		return;
 	}
 
-	GL_Surface *temp = pVideo->Get_Surface( filename );
+	cGL_Surface *temp = pVideo->Get_Surface( filename );
 	
 	if( !temp )
 	{

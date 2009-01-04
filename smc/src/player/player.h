@@ -81,13 +81,17 @@ public:
 	virtual void Set_Direction( ObjectDirection dir, bool new_start_direction = 0 );
 
 	// Set the ground object
-	virtual void Set_on_Ground( cSprite *obj );
+	virtual void Set_on_Ground( cSprite *obj, bool set_on_top = 1 );
 
+	/* downgrade state ( if small maryo : dies )
+	 * force : dies or a complete downgrade
+	*/
+	virtual void DownGrade( bool force = 0 );
 	/* downgrade state ( if small maryo : dies )
 	 * if delayed is set the downgrade is handled on the next game update
 	 * force : dies or a complete downgrade
 	*/
-	void DownGrade( bool delayed = 1, bool force = 0 );
+	void DownGrade_Player( bool delayed = 1, bool force = 0 );
 
 	// moves in the current direction
 	void Move_Player( float velocity, float vel_wrongway );
@@ -191,9 +195,11 @@ public:
 	void Action_Stop_Shoot( void );
 
 	/* Adds a Fire/Ice-ball
+	 * ball_start_angle : starting angle
+	 * amount : the amount of balls to add
 	 * Returns 1 if successful
 	*/
-	bool Ball_Add( ball_effect effect_type = FIREBALL_DEFAULT );
+	bool Ball_Add( ball_effect effect_type = FIREBALL_DEFAULT, float ball_start_angle = -1, unsigned int amount = 0 );
 	// Destroys all Fire/Ice-balls
 	void Ball_Clear( void );
 	
@@ -229,10 +235,10 @@ public:
 	// handle moved out of Level
 	virtual void Handle_out_of_Level( ObjectDirection dir );
 
-	// leveleditor activation
+	// editor activation
 	virtual void Editor_Activate( void );
-	// leveleditor events
-	bool Editor_Direction_Select( const CEGUI::EventArgs &event ); // editor direction option selected
+	// editor direction option selected event
+	bool Editor_Direction_Select( const CEGUI::EventArgs &event );
 
 	// current Maryo type
 	Maryo_type maryo_type;
@@ -304,6 +310,8 @@ public:
 	float shoot_counter;
 	// active/holding object ( f.e. shell )
 	cMovingSprite *active_object;
+	// direction when ducking started ( for the anti stuck under a block test )
+	ObjectDirection duck_direction;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

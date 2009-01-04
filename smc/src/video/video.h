@@ -168,7 +168,7 @@ public:
 	/* Check if the image was already loaded and returns a pointer to it else it will be loaded
 	 * The returned image should not be deleted or modified.
 	 */
-	GL_Surface *Get_Surface( string filename, bool print_errors = 1 );
+	cGL_Surface *Get_Surface( string filename, bool print_errors = 1 );
 
 	// Software image
 	class cSoftware_Image
@@ -196,7 +196,7 @@ public:
 	 * print_errors : print errors if image couldn't be created or loaded
 	 * The returned image should be deleted if not used anymore
 	*/
-	GL_Surface *Load_GL_Surface( string filename, bool use_settings = 1, bool print_errors = 1 );
+	cGL_Surface *Load_GL_Surface( string filename, bool use_settings = 1, bool print_errors = 1 );
 
 	/* Convert to a software image with a power of 2 size and 32 bits per pixel
 	 * surface : the source image which gets converted if needed
@@ -208,7 +208,7 @@ public:
 	 * mipmap : create texture mipmaps
 	 * force_width/height : force the given width and height
 	*/
-	GL_Surface *Create_Texture( SDL_Surface *surface, bool mipmap = 0, unsigned int force_width = 0, unsigned int force_height = 0 );
+	cGL_Surface *Create_Texture( SDL_Surface *surface, bool mipmap = 0, unsigned int force_width = 0, unsigned int force_height = 0 );
 
 	/* Create a texture into the bound GL texture
 	 * mipmap : create texture mipmaps
@@ -216,7 +216,7 @@ public:
 	void Create_GL_Texture( unsigned int width, unsigned int height, void *pixels, bool mipmap = 0 );
 
 	// Get the Pixel color of a GL image
-	Color Get_Pixel( int x, int y, GL_Surface *source = NULL );
+	Color Get_Pixel( int x, int y, cGL_Surface *source = NULL );
 
 	// Draw a line
 	void Draw_Line( GL_line *line, float z, const Color *color, cLineRequest *request = NULL );
@@ -238,7 +238,7 @@ public:
 	/* Return the scale size if the image is bigger as the given size
 	 * also upscales if only_downscale is set to 0
 	*/
-	float Get_Scale( GL_Surface *image, float width, float height, bool only_downscale = 1 );
+	float Get_Scale( cGL_Surface *image, float width, float height, bool only_downscale = 1 );
 
 	/* Downscale an image
 	 * Can be used for creating MIPmaps

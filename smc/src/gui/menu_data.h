@@ -34,6 +34,8 @@ public:
 	virtual void Draw( void );
 	void Draw_End( void );
 
+	// Set the game mode to return on exit
+	void Set_Exit_To_Game_Mode( GameMode gamemode );
 	// Exit
 	virtual void Exit( void );
 
@@ -51,6 +53,8 @@ public:
 	Color text_color;
 	// value text color
 	Color text_color_value;
+	// return to this game mode on exit
+	GameMode exit_to_gamemode;
 
 	// current menu sprites
 	typedef vector<cHudSprite *> HudSpriteList;
@@ -107,8 +111,14 @@ public:
 	*/
 	bool Load_Level( string name );
 
+	// tabcontrol selection changed event
+	bool TabControl_Selection_Changed( const CEGUI::EventArgs &event );
 	// key down event
-	bool Window_Keydown( const CEGUI::EventArgs &event );
+	bool TabControl_Keydown( const CEGUI::EventArgs &event );
+	// listbox level/world key down event
+	bool Listbox_Keydown( const CEGUI::EventArgs &event );
+	// listbox level/world character key event
+	bool Listbox_Character_Key( const CEGUI::EventArgs &event );
 
 	// world selected event
 	bool World_Select( const CEGUI::EventArgs &event );
@@ -130,6 +140,11 @@ public:
 	bool Button_Enter_Clicked( const CEGUI::EventArgs &event );
 	// back button event
 	bool Button_Back_Clicked( const CEGUI::EventArgs &event );
+
+	// buffer if user types characters in the listbox
+	CEGUI::String listbox_search_buffer;
+	// counter until buffer is cleared
+	float listbox_search_buffer_counter;
 };
 
 /* *** *** *** *** *** *** *** cMenu_Options *** *** *** *** *** *** *** *** *** *** */
@@ -164,12 +179,16 @@ public:
 
 	// always run option selected event
 	bool Always_Run_Select( const CEGUI::EventArgs &event );
-	// Camera Horizontal Value changed event
+	// camera horizontal value changed event
 	bool Camera_Hor_Select( const CEGUI::EventArgs &event );
-	// Camera Vertical Value changed event
+	// camera vertical value changed event
 	bool Camera_Ver_Select( const CEGUI::EventArgs &event );
 	// language option selected event
 	bool Language_Select( const CEGUI::EventArgs &event );
+	// editor show item images option selected event
+	bool Editor_Show_Item_Images_Select( const CEGUI::EventArgs &event );
+	// editor item image size value changed event
+	bool Editor_Item_Image_Size_Select( const CEGUI::EventArgs &event );
 };
 
 /* *** *** *** *** *** *** *** cMenu_Options_Video *** *** *** *** *** *** *** *** *** *** */
@@ -292,13 +311,13 @@ public:
 	class cShortcut_item
 	{
 	public:
-		cShortcut_item( string name, input_identifier id )
+		cShortcut_item( CEGUI::String name, input_identifier id )
 		{
 			m_name = name;
 			m_id = id;
 		}
 
-		string m_name;
+		CEGUI::String m_name;
 		input_identifier m_id;
 	};
 };

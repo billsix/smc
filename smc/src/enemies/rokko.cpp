@@ -50,8 +50,9 @@ void cRokko :: Init( void  )
 	massivetype = MASS_PASSIVE;
 	posz = 0.03f;
 	editor_posz = 0.09f;
+	can_be_on_ground = 0;
+	player_range = 4000;
 	Set_Visible( 0 );
-	can_be_ground = 1;
 
 	fire_resistant = 1;
 	ice_resistance = 1;
@@ -62,7 +63,6 @@ void cRokko :: Init( void  )
 	Set_Max_Distance_Sides( 400 );
 	state = STA_STAY;
 
-	player_range = 4000;
 	smoke_counter = 0;
 
 	kill_sound = "stomp_1.ogg";
@@ -127,7 +127,7 @@ void cRokko :: Load_from_Savegame( cSave_Level_Object *save_object )
 void cRokko :: Set_Direction( ObjectDirection dir )
 {
 	// already set
-	if( direction == dir )
+	if( start_direction == dir )
 	{
 		return;
 	}
@@ -137,7 +137,7 @@ void cRokko :: Set_Direction( ObjectDirection dir )
 
 	cEnemy::Set_Direction( dir, 1 );
 	name = "Rokko ";
-	name += _(Get_Direction_Name( start_direction).c_str());
+	name += _(Get_Direction_Name(start_direction).c_str());
 
 	if( direction == DIR_LEFT )
 	{
@@ -232,7 +232,13 @@ void cRokko :: DownGrade( bool force /* = 0 */ )
 
 void cRokko :: DieStep( void )
 {
-	Move( 0, 17 );
+	// add gravity
+	if( vely < 25 )
+	{
+		Add_Velocity( 0, 1.5f );
+	}
+
+	Move( velx, vely );
 
 	if( direction == DIR_LEFT || direction == DIR_RIGHT )
 	{
@@ -250,7 +256,8 @@ void cRokko :: DieStep( void )
 		smoke_counter -= static_cast<int>(smoke_counter);
 	}
 
-	if( posy > 600 )
+	// below ground
+	if( col_rect.y - 200 > pActive_Camera->limit_rect.y + game_res_h )
 	{
 		rotz = 0;
 		massivetype = MASS_PASSIVE;
@@ -395,35 +402,36 @@ void cRokko :: Generate_Smoke( unsigned int quota /*= 10 */ )
 	// moving smoke particle animation
 	while( quota > 0 )
 	{
+		anim = new cParticle_Emitter();
+
 		// not dead
 		if( !dead )
-		{
+		{				
 			if( direction == DIR_LEFT )
 			{
-				anim = new cParticle_Emitter();
 				anim->Set_Pos( posx + col_rect.w - Get_Random_Float( 5, 8 ), posy + Get_Random_Float( 0, rect.h - 15 ) );
 				anim->Set_Direction_Range( 320, 100 );
 			}
 			else
 			{
-				anim = new cParticle_Emitter();
 				anim->Set_Pos( posx + Get_Random_Float( 5, 8 ), posy + Get_Random_Float( 0, rect.h - 15 ) );
 				anim->Set_Direction_Range( 140, 100 );
 			}
+
+			anim->Set_Scale( 1.1f );
 		}
 		// dead
 		else
 		{
-			anim = new cParticle_Emitter();
 			anim->Set_Pos( posx + Get_Random_Float( 0, col_rect.w ), posy + Get_Random_Float( 0, rect.h ) );
+			anim->Set_Scale( 0.5f );
 		}
 
-		// - 0.000001f caused a weird graphical z pos bug with my ATI card
+		// - 0.000001f caused a weird graphical z pos bug with an ATI card
 		anim->Set_Pos_Z( posz - 0.000005f );
 		anim->Set_Image( pVideo->Get_Surface( "animation/particles/smoke_black.png" ) );
 		anim->Set_Time_to_Live( 0.3f, 1 );
 		anim->Set_Speed( 1, 1 );
-		anim->Set_Scale( 1.3f );
 		anim->Set_Const_Rotation_Z( -1, 2 );
 		anim->Set_Color( Color( static_cast<Uint8>(155), 150, 130 ) );
 		anim->Set_Fading_Alpha( 1 );
@@ -469,18 +477,20 @@ bool cRokko :: Is_Update_Valid( void )
 
 bool cRokko :: Is_Draw_Valid( void )
 {
-	if( cEnemy::Is_Draw_Valid() == 1 )
+	bool valid = cEnemy::Is_Draw_Valid();
+
+	// if editor enabled
+	if( editor_enabled )
 	{
-		return 1;
+		// if active mouse object
+		if( pMouseCursor->active_object == this )
+		{
+			return 1;
+		}
 	}
 
-	// if not editor enabled or not active mouse object
-	if( !editor_enabled || pMouseCursor->active_object != this )
-	{
-		return 0;
-	}
 
-	return 1;
+	return valid;
 }
 
 unsigned int cRokko :: Validate_Collision( cSprite *obj )
@@ -516,7 +526,7 @@ void cRokko :: Handle_Collision_Player( cObjectCollision *collision )
 	}
 	else
 	{
-		pPlayer->DownGrade();
+		pPlayer->DownGrade_Player();
 	}
 }
 
@@ -529,6 +539,16 @@ void cRokko :: Editor_Activate( void )
 {
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
+	// direction
+	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_rokko_direction" ));
+	Editor_Add( UTF8_("Direction"), UTF8_("Direction"), combobox, 100, 75 );
+
+	combobox->addItem( new CEGUI::ListboxTextItem( "left" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "right" ) );
+
+	combobox->setText( Get_Direction_Name( start_direction ) );
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cRokko::Editor_Direction_Select, this ) );
+
 	// speed
 	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_rokko_speed" ));
 	Editor_Add( UTF8_("Speed"), UTF8_("Speed when activated"), editbox, 120 );
@@ -538,6 +558,16 @@ void cRokko :: Editor_Activate( void )
 
 	// init
 	Editor_Init();
+}
+
+bool cRokko :: Editor_Direction_Select( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
+
+	Set_Direction( Get_Direction_Id( item->getText().c_str() ) );
+
+	return 1;
 }
 
 bool cRokko :: Editor_Speed_Key( const CEGUI::EventArgs &event )

@@ -434,7 +434,7 @@ bool cOverworld_Player :: Start_Walk( ObjectDirection new_direction )
 	if( current_waypoint >= 0 && direction == DIR_UNDEFINED )
 	{
 		// Get Layer Line in front
-		cLayer_Line *front_line = Get_Front_Line( new_direction );
+		cLayer_Line_Point_Start *front_line = Get_Front_Line( new_direction );
 
 		if( !front_line )
 		{
@@ -676,7 +676,7 @@ cWaypoint *cOverworld_Player :: Get_Waypoint( void )
 	return pActive_Overworld->Get_Waypoint( current_waypoint );
 }
 
-cLayer_Line *cOverworld_Player :: Get_Front_Line( ObjectDirection dir )
+cLayer_Line_Point_Start *cOverworld_Player :: Get_Front_Line( ObjectDirection dir )
 {
 	return pActive_Overworld->pLayer->Get_Line_Collision_Direction( col_rect.x + ( col_rect.w * 0.5f ), col_rect.y + ( col_rect.h * 0.5f ), dir ).line;
 }

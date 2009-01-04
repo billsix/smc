@@ -86,13 +86,18 @@ public:
 	// Special
 	// player always runs
 	bool always_run;
-	// hide mouse if clicked on an object
-	bool editor_mouse_auto_hide;
 	// level background images enabled
 	bool level_background_images;
 	// image cache enabled
 	bool image_cache_enabled;
 
+	// Editor
+	// hide mouse if clicked on an object
+	bool editor_mouse_auto_hide;
+	// show item images
+	bool editor_show_item_images;
+	// size of the item images
+	unsigned int editor_item_image_size;
 	/* *** *** *** *** *** *** *** */
 
 	// configuration filename

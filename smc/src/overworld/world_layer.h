@@ -24,16 +24,15 @@
 
 /* *** *** *** *** *** *** Layer_Line *** *** *** *** *** *** *** *** *** *** *** */
 
-// Layer Line Point class
+// Layer line point class
 // TODO : create a real basic/virtual sprite ?
 class cLayer_Line_Point : public cSprite
 {
 public:
+	// constructor
 	cLayer_Line_Point( SpriteType ntype );
+	// destructor
 	virtual ~cLayer_Line_Point( void );
-
-	// copy this sprite
-	virtual cLayer_Line_Point *Copy( void ) { return NULL; };
 
 	// save to stream
 	virtual void Save_to_Stream( ofstream &file ) {};
@@ -41,27 +40,42 @@ public:
 	// draw
 	virtual void Draw( cSurfaceRequest *request = NULL );
 
-	// editor activation
-	virtual void Editor_Activate( void );
-	// editor events
-	bool Editor_Origin_Key( const CEGUI::EventArgs &event ); // editor origin key up
+	/* set this sprite to destroyed and completely disable it
+	 * sprite is still in the sprite manager but only to get possibly replaced
+	*/
+	virtual void Destroy( void );
 
+	// Get center position x
 	float Get_Line_Pos_X( void );
+	// Get center position y
 	float Get_Line_Pos_Y( void );
 
-	// line
-	void *line;
+	// the linked start/end point
+	cLayer_Line_Point *linked_point;
 };
 
-// Overworld Layer Line class
-class cLayer_Line
+// Layer line start point class
+class cLayer_Line_Point_Start : public cLayer_Line_Point
 {
 public:
-	cLayer_Line( void );
-	virtual ~cLayer_Line( void );
+	// constructor
+	cLayer_Line_Point_Start( void );
+	// destructor
+	virtual ~cLayer_Line_Point_Start( void );
+	// create from stream
+	cLayer_Line_Point_Start( CEGUI::XMLAttributes &attributes );
+
+	// init defaults
+	void Init( void );
+
+	// copy (end point can not be copied)
+	virtual cLayer_Line_Point_Start *Copy( void );
+
+	// create from stream
+	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
 
 	// Draw
-	void Draw( void );
+	virtual void Draw( cSurfaceRequest *request = NULL );
 
 	// return a normal line
 	GL_line Get_Line( void );
@@ -70,11 +84,11 @@ public:
 	 * if the line continues on another line it is followed to the end
 	*/
 	cWaypoint *Get_End_Waypoint( void );
-	
-	// start point
-	cLayer_Line_Point *start;
-	// end point
-	cLayer_Line_Point *end;
+
+	// editor activation
+	virtual void Editor_Activate( void );
+	// editor origin key up event
+	bool Editor_Origin_Key( const CEGUI::EventArgs &event );
 
 	/* animation type 
 	 * 0 = normal walking, 1 = swimming
@@ -93,7 +107,7 @@ public:
 	cLine_collision( void );
 
 	// nearest line pointer
-	cLayer_Line *line;
+	cLayer_Line_Point_Start *line;
 	// nearest line number
 	int line_number;
 	// position difference
@@ -129,15 +143,18 @@ public:
 	cLine_collision line_ver;
 };
 
-typedef vector<cLayer_Line *> LayerLineList;
+typedef vector<cLayer_Line_Point_Start *> LayerLineList;
 
 // Layer class
 // handles the line collision detection
-class cLayer : public CEGUI::XMLHandler, public cObject_Manager<cLayer_Line>
+class cLayer : public CEGUI::XMLHandler, public cObject_Manager<cLayer_Line_Point_Start>
 {
 public:
-	cLayer( void );
+	cLayer( cOverworld *origin );
 	virtual ~cLayer( void );
+
+	// Add a layer line
+	virtual void Add( cLayer_Line_Point_Start *line_point );
 
 	// Load from file
 	void Load( string filename );
@@ -145,13 +162,13 @@ public:
 	// Save
 	bool Save( string filename );
 
-	// Draw the lines and waypoints
-	void Draw( void );
+	// Delete all objects
+	virtual void Delete_All( void );
 
 	/* Returns the colliding Line start point
 	 * if not found returns NULL
 	*/
-	cLayer_Line *Get_Line_Collision_Start( GL_rect *line_rect );
+	cLayer_Line_Point_Start *Get_Line_Collision_Start( GL_rect *line_rect );
 	/* Returns the colliding Line from the given position and the added direction size
 	 * if not found returns a NULL line in the class
 	*/
@@ -163,16 +180,16 @@ public:
 	*/
 	cLine_collision Get_Nearest( float x, float y, ObjectDirection dir = DIR_HORIZONTAL, unsigned int check_size = 15, int only_origin_id = -1 );
 	// Return the collision data between the given line and position
-	cLine_collision Get_Nearest_Line( cLayer_Line *map_layer_line, float x, float y, ObjectDirection dir = DIR_HORIZONTAL, unsigned int check_size = 15 );
+	cLine_collision Get_Nearest_Line( cLayer_Line_Point_Start *map_layer_line, float x, float y, ObjectDirection dir = DIR_HORIZONTAL, unsigned int check_size = 15 );
+
+	// origin overworld
+	cOverworld *n_origin;
 
 private:
 	// XML element start
     virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
 	// XML element end
     virtual void elementEnd( const CEGUI::String &element );
-
-	// handles a line
-    void handle_line( const CEGUI::XMLAttributes &attributes );
 
 	// XML element Property list
 	CEGUI::XMLAttributes xml_attributes;

@@ -142,6 +142,7 @@ void cTurtle :: Set_Direction( ObjectDirection dir, bool new_start_direction /* 
 
 	cEnemy::Set_Direction( dir, new_start_direction );
 
+	// update velocity
 	if( direction == DIR_RIGHT )
 	{
 		if( turtle_state == TURTLE_WALK )
@@ -573,18 +574,39 @@ unsigned int cTurtle :: Validate_Collision( cSprite *obj )
 
 		return 2;
 	}
-	if( obj->type == TYPE_ENEMY_STOPPER )
+	else if( obj->massivetype == MASS_PASSIVE )
 	{
-		if( turtle_state == TURTLE_WALK )
+		if( obj->type == TYPE_ENEMY_STOPPER )
 		{
-			return 2;
-		}
+			if( turtle_state == TURTLE_WALK )
+			{
+				return 2;
+			}
 
-		return 0;
+			return 0;
+		}
+		else if( obj->type == TYPE_BONUSBOX || obj->type == TYPE_SPINBOX )
+		{
+			// if shell
+			if( turtle_state == TURTLE_SHELL_STAND || turtle_state == TURTLE_SHELL_RUN )
+			{
+				cBaseBox *box = static_cast<cBaseBox *>(obj);
+
+				// invisible semi massive
+				if( box->box_invisible == BOX_INVISIBLE_SEMI_MASSIVE )
+				{
+					// if moving upwards and the object is on top
+					if( vely <= 0 && obj->Is_on_Top( this ) )
+					{
+						return 2;
+					}
+				}
+			}
+		}
 	}
-	if( obj->massivetype == MASS_HALFMASSIVE )
+	else if( obj->massivetype == MASS_HALFMASSIVE )
 	{
-		// if moving downwards and object is on top
+		// if moving downwards and the object is on bottom
 		if( vely >= 0 && Is_on_Top( obj ) )
 		{
 			return 2;
@@ -654,7 +676,7 @@ void cTurtle :: Handle_Collision_Player( cObjectCollision *collision )
 	{
 		if( turtle_state == TURTLE_WALK )
 		{
-			pPlayer->DownGrade();
+			pPlayer->DownGrade_Player();
 			Turn_Around( collision->direction );
 		}
 		else if( turtle_state == TURTLE_SHELL_STAND )
@@ -729,7 +751,7 @@ void cTurtle :: Handle_Collision_Player( cObjectCollision *collision )
 			// other directions downgrade
 			else
 			{
-				pPlayer->DownGrade();
+				pPlayer->DownGrade_Player();
 				Turn_Around( collision->direction );
 			}
 		}
@@ -837,7 +859,7 @@ void cTurtle :: Handle_Collision_Massive( cObjectCollision *collision )
 {
 	if( turtle_state == TURTLE_WALK )
 	{
-		//
+		Send_Collision( collision );
 	}
 	else if( turtle_state == TURTLE_SHELL_RUN )
 	{
@@ -927,6 +949,34 @@ void cTurtle :: Handle_Collision_Massive( cObjectCollision *collision )
 	{
 		Turn_Around( collision->direction );
 	}
+}
+
+void cTurtle :: Editor_Activate( void )
+{
+	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
+
+	// direction
+	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_turtle_direction" ));
+	Editor_Add( UTF8_("Direction"), UTF8_("Direction"), combobox, 100, 75 );
+
+	combobox->addItem( new CEGUI::ListboxTextItem( "left" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "right" ) );
+
+	combobox->setText( Get_Direction_Name( start_direction ) );
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cTurtle::Editor_Direction_Select, this ) );
+
+	// init
+	Editor_Init();
+}
+
+bool cTurtle :: Editor_Direction_Select( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
+
+	Set_Direction( Get_Direction_Id( item->getText().c_str() ), 1 );
+
+	return 1;
 }
 
 void cTurtle :: Create_Name( void )

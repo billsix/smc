@@ -77,9 +77,17 @@ int Get_Windows_Primary_Language( const std::string &language )
 	{
 		return LANG_NORWEGIAN;
 	}
+	else if( language.compare( "ru" ) == 0 )
+	{
+		return LANG_RUSSIAN;
+	}
 	else if( language.compare( "sv" ) == 0 )
 	{
 		return LANG_SWEDISH;
+	}
+	else if( language.compare( "zh_TW" ) == 0 )
+	{
+		return LANG_CHINESE;
 	}
 
 	return LANG_NEUTRAL;
@@ -90,6 +98,10 @@ int Get_Windows_Sub_Language( const std::string &language )
 	if( language.compare( "nn" ) == 0 )
 	{
 		return SUBLANG_NORWEGIAN_NYNORSK;
+	}
+	else if( language.compare( "zh_TW" ) == 0 )
+	{
+		return SUBLANG_CHINESE_TRADITIONAL;
 	}
 
 	return SUBLANG_NEUTRAL;

@@ -21,11 +21,11 @@
 
 /* *** *** *** *** *** *** *** *** OpenGL Surface *** *** *** *** *** *** *** *** *** */
 
-class GL_Surface
+class cGL_Surface
 {
 public:
-	GL_Surface( void );
-	~GL_Surface( void );
+	cGL_Surface( void );
+	~cGL_Surface( void );
 
 	/* Blit the surface on the given position
 	 * if request is NULL automatically creates the request
@@ -34,8 +34,8 @@ public:
 	// Blit only the surface data on the given request
 	void Blit_Data( cSurfaceRequest *request );
 
-	// Copy GL_Surface and return it
-	GL_Surface *Copy( void );
+	// Copy cGL_Surface and return it
+	cGL_Surface *Copy( void );
 
 	// Save the texture to a file
 	void Save( string filename );
@@ -43,7 +43,7 @@ public:
 	// Set the ground type
 	void Set_Ground_Type( GroundType gtype );
 
-	// Check if the OpenGL texture is used by another GL_Surface
+	// Check if the OpenGL texture is used by another cGL_Surface
 	bool Is_Texture_Use_Multiple( void );
 
 	/* Return a software texture copy
@@ -56,7 +56,7 @@ public:
 	// Return the filename
 	string Get_Filename( int with_dir = 2, bool with_end = 1 );
 	// Set a function called on destruction
-	void Set_Destruction_Function( void ( *nfunction )( GL_Surface * ) );
+	void Set_Destruction_Function( void ( *nfunction )( cGL_Surface * ) );
 
 	// GL texture number
 	GLuint image;
@@ -93,7 +93,7 @@ public:
 	GroundType ground_type;
 private:
 	// function called on destruction
-	void ( *destruction_function )( GL_Surface * );
+	void ( *destruction_function )( cGL_Surface * );
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

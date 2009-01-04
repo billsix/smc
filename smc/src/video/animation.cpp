@@ -30,6 +30,7 @@ cAnimation :: cAnimation( float x /* = 0 */, float y /* = 0 */ )
 	type = TYPE_ACTIVESPRITE;
 	massivetype = MASS_PASSIVE;
 	spawned = 1;
+	can_be_on_ground = 0;
 
 	posz = 0.07000f;
 	posz_rand = 0;
@@ -380,6 +381,7 @@ void cAnimation_Fireball :: Draw( cSurfaceRequest *request /* = NULL */ )
 cParticle :: cParticle( void )
 : cMovingSprite()
 {
+	can_be_on_ground = 0;
 	// scale centered
 	Set_Scale_Directions( 1, 1, 1, 1 );
 	time_to_live = 0;
@@ -1109,7 +1111,7 @@ void cParticle_Emitter :: Set_Blending( BlendingMode mode )
 	blending = mode;
 }
 
-void cParticle_Emitter :: Set_Image( GL_Surface *img )
+void cParticle_Emitter :: Set_Image( cGL_Surface *img )
 {
 	if( !img )
 	{
