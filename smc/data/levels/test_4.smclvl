@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.5" />
-		<Property name="engine_version" value="2.4" />
-		<Property name="save_time" value="1207357617" />
+		<Property name="game_version" value="1.7" />
+		<Property name="engine_version" value="2.8" />
+		<Property name="save_time" value="1230263165" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="FluXy" />
-		<Property name="lvl_version" value="1.0" />
+		<Property name="lvl_version" value="1.1" />
 		<Property name="lvl_music" value="land/land_5.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
@@ -20,9 +20,9 @@
 		<Property name="bg_color_1_red" value="150" />
 		<Property name="bg_color_1_green" value="0" />
 		<Property name="bg_color_1_blue" value="0" />
-		<Property name="bg_color_2_red" value="180" />
-		<Property name="bg_color_2_green" value="160" />
-		<Property name="bg_color_2_blue" value="60" />
+		<Property name="bg_color_2_red" value="100" />
+		<Property name="bg_color_2_green" value="40" />
+		<Property name="bg_color_2_blue" value="20" />
 	</background>
 	<player>
 		<Property name="posx" value="231" />
@@ -33,6 +33,7 @@
 		<Property name="file" value="waterdrop_1.ogg" />
 		<Property name="pos_x" value="140" />
 		<Property name="pos_y" value="259" />
+		<Property name="continuous" value="0" />
 		<Property name="delay_min" value="1000" />
 		<Property name="delay_max" value="1000" />
 		<Property name="volume_min" value="80" />
@@ -117,6 +118,7 @@
 		<Property name="posx" value="1357" />
 		<Property name="posy" value="99" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="250" />
 		<Property name="speed" value="6" />
 	</enemy>
@@ -297,6 +299,7 @@
 		<Property name="posx" value="1421" />
 		<Property name="posy" value="-149" />
 		<Property name="direction" value="down" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -305,6 +308,7 @@
 		<Property name="posx" value="1533" />
 		<Property name="posy" value="163" />
 		<Property name="direction" value="left" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -313,6 +317,7 @@
 		<Property name="posx" value="1331" />
 		<Property name="posy" value="220" />
 		<Property name="direction" value="right" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -1111,48 +1116,56 @@
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1827" />
 		<Property name="posy" value="20" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1872" />
 		<Property name="posy" value="20" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="top_right" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1786" />
 		<Property name="posy" value="-78" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="left_top" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1786" />
 		<Property name="posy" value="-29" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="left_bottom" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1913" />
 		<Property name="posy" value="-78" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="right_top" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1913" />
 		<Property name="posy" value="-29" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="right_bottom" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1827" />
 		<Property name="posy" value="-115" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="bottom_left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="eato" />
 		<Property name="posx" value="1872" />
 		<Property name="posy" value="-115" />
+		<Property name="image_dir" value="enemy/eato/brown/" />
 		<Property name="direction" value="bottom_right" />
 	</enemy>
 </level>

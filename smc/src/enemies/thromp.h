@@ -1,7 +1,7 @@
 /***************************************************************************
  * thromp.h  -  headers for the corresponding cpp file
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -17,6 +17,9 @@
 #define SMC_THROMP_H
 
 #include "../enemies/enemy.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** cThromp *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -39,19 +42,19 @@ public:
 	virtual cThromp *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
+	virtual void Save_To_Stream( ofstream &file );
 
 	// load from savegame
-	virtual void Load_from_Savegame( cSave_Level_Object *save_object );
+	virtual void Load_From_Savegame( cSave_Level_Object *save_object );
 	// save to savegame
-	virtual cSave_Level_Object *Save_to_Savegame( void );
+	virtual cSave_Level_Object *Save_To_Savegame( void );
 
 	// Set the image directory
-	void Set_Image_Dir( string filename );
+	void Set_Image_Dir( std::string filename );
 	// Set Direction
-	void Set_Direction( ObjectDirection dir );
+	void Set_Direction( const ObjectDirection dir );
 	// Set Max Distance
 	void Set_Max_Distance( float nmax_distance );
 	// Set the Speed
@@ -71,7 +74,7 @@ public:
 	// update
 	virtual void Update( void );
 	// draw
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
 	// update images
 	void Update_Images( void );
@@ -80,10 +83,10 @@ public:
 	// update the distance rect
 	void Update_Distance_rect( void );
 	// Get the final distance rect
-	GL_rect Get_Final_Distance_Rect( void );
+	GL_rect Get_Final_Distance_Rect( void ) const;
 
 	// Generates Smoke Particles
-	void Generate_Smoke( unsigned int power = 10 );
+	void Generate_Smoke( unsigned int amount = 20 ) const;
 
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
@@ -91,10 +94,11 @@ public:
 	virtual bool Is_Draw_Valid( void );
 
 	/* Validate the given collision object
+	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-	virtual unsigned int Validate_Collision( cSprite *obj );
+	virtual Col_Valid_Type Validate_Collision( cSprite *obj );
 	// collision from player
 	virtual void Handle_Collision_Player( cObjectCollision *collision );
 	// collision from an enemy
@@ -106,15 +110,15 @@ public:
 	virtual void Editor_Activate( void );
 	// editor direction option selected event
 	bool Editor_Direction_Select( const CEGUI::EventArgs &event );
-	// editor image dir key up event
-	bool Editor_Image_Dir_Key( const CEGUI::EventArgs &event );
-	// editor max distance key up event
-	bool Editor_Max_Distance_Key( const CEGUI::EventArgs &event );
-	// editor speed key up event
-	bool Editor_Speed_Key( const CEGUI::EventArgs &event );
+	// editor image dir text changed event
+	bool Editor_Image_Dir_Text_Changed( const CEGUI::EventArgs &event );
+	// editor max distance text changed event
+	bool Editor_Max_Distance_Text_Changed( const CEGUI::EventArgs &event );
+	// editor speed text changed event
+	bool Editor_Speed_Text_Changed( const CEGUI::EventArgs &event );
 
 	// image directory
-	string img_dir;
+	std::string img_dir;
 	// speed
 	float speed;
 	// destination direction velocity
@@ -129,9 +133,11 @@ public:
 
 private:
 	// Create the Name from the current settings
-    void Create_Name( void );
+	void Create_Name( void );
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

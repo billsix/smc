@@ -1,7 +1,7 @@
 /***************************************************************************
  * mouse.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -20,6 +20,9 @@
 #include "../objects/movingsprite.h"
 #include "../core/math/rect.h"
 #include "../core/math/vector.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** cSelectedObject *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -62,7 +65,7 @@ public:
 	cMouseCursor( void );
 	virtual ~cMouseCursor( void );
 
-	// resets leveleditor features
+	// resets editor features
 	void Reset( bool clear_copy_buffer = 1 );
 	// only reset buttons
 	void Reset_Keys( void );
@@ -80,22 +83,19 @@ public:
 	*/
 	bool Handle_Mouse_Up( Uint8 button );
 
-	// Checks if the Mousecursor is in the given rect
-	bool Collsion_Check ( GL_rect *crect );
-
 	// Checks for a collision for the editor
 	bool Editor_Collsion_Check( float px = 0, float py = 0 );
 	/* Get the Level/World Object Collision if available
 	 * returns 1 if collision found else 0
 	*/
-	bool Get_Collision( GL_rect *mouse_rect );
+	bool Get_Collision( const GL_rect &mouse_rect );
 
 	// Update
 	virtual void Update( void );
 	// Draw
 	virtual void Draw( void );
 	// Render
-	void Render( void );
+	void Render( void ) const;
 
 	// Update the Mouse Position
 	void Update_Position( void );
@@ -119,11 +119,11 @@ public:
 	// ## Copy Objects
 	// Add new copy object
 	void Add_Copy_Object( cSprite *sprite );
-	void Add_Copy_Objects( SpriteList spritelist );
+	void Add_Copy_Objects( cSprite_List &spritelist );
 	/* Remove a copy_object
 	 * returns true if removed
 	*/
-	bool Remove_Copy_Object( cSprite *sprite );
+	bool Remove_Copy_Object( const cSprite *sprite );
 	// clear copy object list
 	void Clear_Copy_Objects( void );
 	/* returns the position of the first top left copy object
@@ -138,13 +138,13 @@ public:
 	 * Returns true if object got added or changed to user object
 	*/
 	bool Add_Selected_Object( cSprite *sprite, bool from_user = 0 );
-	void Add_Selected_Objects( SpriteList spritelist, bool from_user = 0 );
+	void Add_Selected_Objects( cSprite_List &spritelist, bool from_user = 0 );
 	/* Remove a selected_object
 	 * returns true if found and removed
 	*/
-	bool Remove_Selected_Object( cSprite *sprite, bool no_user = 0 );
+	bool Remove_Selected_Object( const cSprite *sprite, bool no_user = 0 );
 	// Returns all selected objects
-	SpriteList Get_Selected_Objects( void );
+	cSprite_List Get_Selected_Objects( void );
 	// clear selected object list
 	void Clear_Selected_Objects( void );
 	// updates the selected objects positions
@@ -152,11 +152,11 @@ public:
 	/* returns true if the given object is a selected_object
 	 * if only_user is given only check user objects
 	*/
-	bool Is_Selected_Object( cSprite *sprite, bool only_user = 0 );
+	bool Is_Selected_Object( const cSprite *sprite, bool only_user = 0 );
 	// deletes the selected objects
 	void Delete_Selected_Objects( void );
 	// returns the selected objects size
-	unsigned int Get_Selected_Object_Size( void );
+	unsigned int Get_Selected_Object_Size( void ) const;
 
 	// ## Active Object
 	// Set new active object
@@ -168,7 +168,7 @@ public:
 	 * object is automatically added to the object manager
 	 * returns the new object
 	*/
-	cSprite *Copy( cSprite *ncopy_object, float px, float py );
+	cSprite *Copy( cSprite *ncopy_object, float px, float py ) const;
 	// Deletes the given Object
 	void Delete( cSprite *sprite );
 
@@ -229,5 +229,7 @@ public:
 extern cMouseCursor *pMouseCursor;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

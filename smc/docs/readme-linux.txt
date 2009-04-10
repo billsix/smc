@@ -21,6 +21,7 @@ You need:
 - The GCC G++ compiler (version 3.4 or higher)
 - Following libraries (with headers/development files):
 	Boost Filesystem ( >= 1.31 )
+	GNU Gettext
 	SDL ( >= 1.2.10 )
 	SDL_image ( >= 1.2.0 )
 		libpng

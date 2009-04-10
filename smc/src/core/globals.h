@@ -1,7 +1,7 @@
 /***************************************************************************
  * globals.h  -  global header
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -20,8 +20,6 @@
 
 #include "global_basic.h"
 #include "global_game.h"
-#include "global_sdl.h"
-#include "global_gui.h"
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

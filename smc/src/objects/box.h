@@ -1,7 +1,7 @@
 /***************************************************************************
  * box.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,18 +19,21 @@
 #include "../core/globals.h"
 #include "../objects/objectsprite.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** *** *** *** Box invisible types *** *** *** *** *** *** *** *** *** */
 
 enum Box_Invisible_Type
 {
 	// always visible
-    BOX_VISIBLE = 0,
+	BOX_VISIBLE = 0,
 	// visible after activation
-    BOX_INVISIBLE_MASSIVE = 1,
+	BOX_INVISIBLE_MASSIVE = 1,
 	// only visible in ghost mode
-    BOX_GHOST = 2,
+	BOX_GHOST = 2,
 	// visible after activation and only touchable in the activation direction
-    BOX_INVISIBLE_SEMI_MASSIVE = 3
+	BOX_INVISIBLE_SEMI_MASSIVE = 3
 };
 
 /* *** *** *** *** *** *** *** *** cBaseBox *** *** *** *** *** *** *** *** *** */
@@ -42,19 +45,19 @@ public:
 	virtual ~cBaseBox( void );
 
 	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
+	virtual void Save_To_Stream( ofstream &file );
 
 	// load from savegame
-	virtual void Load_from_Savegame( cSave_Level_Object *save_object );
+	virtual void Load_From_Savegame( cSave_Level_Object *save_object );
 	// save to savegame
-	virtual cSave_Level_Object *Save_to_Savegame( void );
+	virtual cSave_Level_Object *Save_To_Savegame( void );
 
 	/* Set the Animation Type
 	 * new_anim_type can be : Bonus, Default or Power
 	*/
-	void Set_Animation( string new_anim_type );
+	void Set_Animation( const std::string &new_anim_type );
 	// sets the count this object can be activated
 	virtual void Set_Useable_Count( int count, bool new_startcount = 0 );
 	// Set invisible type
@@ -76,7 +79,7 @@ public:
 	// update
 	virtual void Update( void );
 	// draw
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
 	// Generate activation Particles
 	void Generate_Activation_Particles( void );
@@ -87,10 +90,11 @@ public:
 	virtual bool Is_Draw_Valid( void );
 
 	/* Validate the given collision object
+	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-	virtual unsigned int Validate_Collision( cSprite *obj );
+	virtual Col_Valid_Type Validate_Collision( cSprite *obj );
 	// handle the basic box player collision
 	virtual void Handle_Collision_Player( cObjectCollision *collision );
 	// handle the basic box enemy collision
@@ -98,13 +102,13 @@ public:
 
 	// editor activation
 	virtual void Editor_Activate( void );
-	// editor useable count key up event
-	bool Editor_Useable_Count_Key( const CEGUI::EventArgs &event );
+	// editor useable count text changed event
+	bool Editor_Useable_Count_Text_Changed( const CEGUI::EventArgs &event );
 	// editor invisible option selected event
 	bool Editor_Invisible_Select( const CEGUI::EventArgs &event );
 
 	// animation type
-	string anim_type;
+	std::string anim_type;
 	// animation counter
 	float counter;
 	unsigned int anim_counter_min;
@@ -121,7 +125,11 @@ public:
 	float move_counter;
 	// if object is moving back to the original position
 	bool move_back;
-	// times the box object can be activated ( -1 = infinite )
+	/* times the box object can be activated
+	 * if set to -1 it is infinite
+	 * the box is visible if useable_count != start_useable_count
+	 * for infinite this only once sets it to -2
+	*/
 	int useable_count, start_useable_count;
 
 	// box invisible type
@@ -132,9 +140,11 @@ public:
 
 protected:
 	// Create the Name from the current settings
-    void Create_Name( void );
+	void Create_Name( void );
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

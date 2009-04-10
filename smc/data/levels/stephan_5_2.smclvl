@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.7" />
-		<Property name="engine_version" value="2.8" />
-		<Property name="save_time" value="1229240055" />
+		<Property name="game_version" value="1.8" />
+		<Property name="engine_version" value="2.9" />
+		<Property name="save_time" value="1230813935" />
 	</information>
 	<settings>
-		<Property name="lvl_author" value="" />
-		<Property name="lvl_version" value="" />
+		<Property name="lvl_author" value="stephan and SMC Team" />
+		<Property name="lvl_version" value="1.3" />
 		<Property name="lvl_music" value="land/land_5.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
@@ -17,12 +17,12 @@
 	</settings>
 	<background>
 		<Property name="type" value="103" />
-		<Property name="bg_color_1_red" value="130" />
-		<Property name="bg_color_1_green" value="200" />
-		<Property name="bg_color_1_blue" value="230" />
-		<Property name="bg_color_2_red" value="210" />
-		<Property name="bg_color_2_green" value="220" />
-		<Property name="bg_color_2_blue" value="250" />
+		<Property name="bg_color_1_red" value="30" />
+		<Property name="bg_color_1_green" value="100" />
+		<Property name="bg_color_1_blue" value="200" />
+		<Property name="bg_color_2_red" value="10" />
+		<Property name="bg_color_2_green" value="120" />
+		<Property name="bg_color_2_blue" value="200" />
 	</background>
 	<background>
 		<Property name="type" value="1" />
@@ -30,8 +30,8 @@
 		<Property name="posy" value="0" />
 		<Property name="posz" value="0.00011" />
 		<Property name="image" value="game/background/green_junglehills.png" />
-		<Property name="speedx" value="1" />
-		<Property name="speedy" value="1" />
+		<Property name="speedx" value="0.8" />
+		<Property name="speedy" value="0.8" />
 		<Property name="const_velx" value="0" />
 		<Property name="const_vely" value="0" />
 	</background>
@@ -407,24 +407,6 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="1415" />
-		<Property name="posy" value="429" />
-		<Property name="image" value="ground/green_1/ground/hill_left_up.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="7430" />
-		<Property name="posy" value="429" />
-		<Property name="image" value="ground/green_1/ground/hill_left_up.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="2531" />
-		<Property name="posy" value="429" />
-		<Property name="image" value="ground/green_1/ground/hill_right_up.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
 		<Property name="posx" value="3511" />
 		<Property name="posy" value="384" />
 		<Property name="image" value="ground/green_1/hedges/medium_1.png" />
@@ -593,110 +575,110 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="211" />
 		<Property name="posy" value="383" />
 		<Property name="direction" value="up" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="1956" />
 		<Property name="posy" value="377" />
 		<Property name="direction" value="up" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="2251" />
 		<Property name="posy" value="381" />
 		<Property name="direction" value="up" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="2836" />
 		<Property name="posy" value="366" />
 		<Property name="direction" value="up" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="3122" />
 		<Property name="posy" value="366" />
 		<Property name="direction" value="up" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="4115" />
 		<Property name="posy" value="366" />
 		<Property name="direction" value="up" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="4343" />
 		<Property name="posy" value="366" />
 		<Property name="direction" value="up" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="5014" />
 		<Property name="posy" value="366" />
 		<Property name="direction" value="up" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="6171" />
 		<Property name="posy" value="366" />
 		<Property name="direction" value="up" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="6414" />
 		<Property name="posy" value="366" />
 		<Property name="direction" value="up" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="7577" />
 		<Property name="posy" value="366" />
 		<Property name="direction" value="up" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="8339" />
 		<Property name="posy" value="366" />
 		<Property name="direction" value="up" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>

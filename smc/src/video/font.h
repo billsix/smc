@@ -1,7 +1,7 @@
 /***************************************************************************
  * font.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -18,6 +18,12 @@
 
 #include "../core/globals.h"
 #include "../video/img_manager.h"
+// SDL
+// also includes SDL.h
+#include "SDL_ttf.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** Font Manager class *** *** *** *** *** *** *** *** *** *** */
 
@@ -39,7 +45,7 @@ public:
 	void Delete_Ref( cGL_Surface *surface );
 
 	// Renders the given text into a new surface
-	cGL_Surface *Render_Text( TTF_Font *font, string text, Color color = static_cast<Uint8>(0) );
+	cGL_Surface *Render_Text( TTF_Font *font, const std::string &text, const Color color = static_cast<Uint8>(0) );
 
 	/* Saves hardware textures in software memory
 	*/
@@ -50,25 +56,23 @@ public:
 	void Restore_Textures( void );
 
 	// TTF loaded fonts
-	TTF_Font *font_normal, *font_small, *font_very_small;
+	TTF_Font *m_font_normal, *m_font_small, *m_font_very_small;
 
 	// current active loaded font list
 	typedef vector<cGL_Surface *> ActiveFontList;
-	ActiveFontList active_fonts;
+	ActiveFontList m_active_fonts;
 
 	// saved software textures only used for reloading
-	Saved_Texture_List software_textures;
+	Saved_Texture_List m_software_textures;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // Font Handler
-namespace SMC
-{ // work around conflicts caused by lack of namespace use in smc
 extern cFont_Manager *pFont;
-}
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
-using namespace SMC;
+
+} // namespace SMC
 
 #endif

@@ -1,7 +1,7 @@
 /***************************************************************************
  * i18n.cpp  -  internationalization with gettext
  *
- * Copyright (C) 2008 Florian Richter
+ * Copyright (C) 2008 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,7 +13,15 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "../core/global_basic.h"
 #include "../core/i18n.h"
+#include "SDL.h"
+#include "SDL_opengl.h"
+
+namespace SMC
+{
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 void I18N_Init( void )
 {
@@ -21,11 +29,11 @@ void I18N_Init( void )
 
 	if( sys_locale == NULL )
 	{
-		debug_print( "Failed to set translation locale\n", );
+		debug_print( "Failed to set translation locale\n" );
 	}
 	else
 	{
-		debug_print( "Translation locale is %s\n", sys_locale);
+		debug_print( "Translation locale is %s\n", sys_locale );
 	}
 
 	const char *textdomain_directory = bindtextdomain( CAPTION, DATA_DIR "/" GAME_TRANSLATION_DIR );
@@ -53,6 +61,10 @@ int Get_Windows_Primary_Language( const std::string &language )
 	{
 		return LANG_GERMAN;
 	}
+	else if( language.compare( "el" ) == 0 )
+	{
+		return LANG_GREEK;
+	}
 	else if( language.compare( "es" ) == 0 )
 	{
 		return LANG_SPANISH;
@@ -76,6 +88,10 @@ int Get_Windows_Primary_Language( const std::string &language )
 	else if( language.compare( "nn" ) == 0 )
 	{
 		return LANG_NORWEGIAN;
+	}
+	else if( language.compare( "pl" ) == 0 )
+	{
+		return LANG_POLISH;
 	}
 	else if( language.compare( "ru" ) == 0 )
 	{
@@ -128,3 +144,7 @@ void I18N_Set_Language( const std::string &language )
 	setenv( "LANGUAGE", language.c_str(), 1 );
 #endif
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

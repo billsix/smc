@@ -1,7 +1,7 @@
 /***************************************************************************
  * img_settings.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2005 - 2008 Florian Richter
+ * Copyright (C) 2005 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -21,6 +21,9 @@
 #include "../video/gl_surface.h"
 #include "../core/math/rect.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** *** cImage_settings_data *** *** *** *** *** *** *** *** *** *** *** */
 
 class cImage_settings_data
@@ -30,14 +33,14 @@ public:
 	~cImage_settings_data( void );
 
 	// returns the best surface size for the current resolution
-	cSize_Float Get_Surface_Size( SDL_Surface *sdl_surface );
+	cSize_Float Get_Surface_Size( const SDL_Surface *sdl_surface ) const;
 	// Apply settings to an image
-	void Apply( cGL_Surface *image );
+	void Apply( cGL_Surface *image ) const;
 	// Apply base settings
-	void Apply_Base( cImage_settings_data *base_settings_data );
+	void Apply_Base( const cImage_settings_data *base_settings_data );
 
 	// base image/settings path
-	string m_base;
+	std::string m_base;
 	// inherit base settings
 	bool m_base_settings;
 
@@ -55,15 +58,15 @@ public:
 	bool m_mipmap;
 
 	// editor tags
-	string m_editor_tags;
+	std::string m_editor_tags;
 	// name
-	string m_name;
+	std::string m_name;
 	// sprite type
 	int m_type;
 	// ground type
 	GroundType m_ground_type;
 	// author
-	string m_author;
+	std::string m_author;
 	// obsolete
 	bool m_obsolete;
 };
@@ -82,10 +85,10 @@ public:
 	 * load_base_settings : if set will overwrite settings with all base settings if available
 	 * The returned settings data should be deleted if not used anymore
 	*/
-	cImage_settings_data *Get( string &filename, bool load_base_settings = 1 );
+	cImage_settings_data *Get( const std::string &filename, bool load_base_settings = 1 );
 
 	// Handles the Image Settings Line
-	virtual bool HandleMessage( string *parts, unsigned int count, unsigned int line );
+	virtual bool HandleMessage( const std::string *parts, unsigned int count, unsigned int line );
 
 	// the surface pointer used
 	cImage_settings_data *settings;
@@ -99,5 +102,7 @@ public:
 extern cImage_settings *pSettingsParser;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

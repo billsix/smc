@@ -1,7 +1,7 @@
 /***************************************************************************
  * sprite_manager.cpp  -  Sprite Manager
  *
- * Copyright (C) 2005 - 2008 Florian Richter
+ * Copyright (C) 2005 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -18,6 +18,10 @@
 #include "../player/player.h"
 #include "../input/mouse.h"
 #include "../overworld/world_player.h"
+#include <algorithm>
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** cSprite_Manager *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -26,11 +30,8 @@ cSprite_Manager :: cSprite_Manager( unsigned int reserve_items /* = 2000 */, uns
 {
 	objects.reserve( reserve_items );
 
-	for( unsigned int i = 0; i < zpos_items; i++ )
-	{
-		zposdata.push_back( 0.0f );
-		zposdata_editor.push_back( 0.0f );
-	}
+	zposdata.assign( zpos_items, 0.0f );
+	zposdata_editor.assign( zpos_items,0.0f );
 }
 
 cSprite_Manager :: ~cSprite_Manager( void )
@@ -46,16 +47,16 @@ void cSprite_Manager :: Add( cSprite *sprite )
 		return;
 	}
 
-	Set_Z( sprite );
+	Set_Pos_Z( sprite );
 
 	// Check if an destroyed object can be replaced
-	for( SpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		// get object pointer
 		cSprite *obj = (*itr);
 
 		// if destroy is set
-		if( obj->destroy )
+		if( obj->m_auto_destroy )
 		{
 			// set new object
 			*itr = sprite;
@@ -81,23 +82,16 @@ cSprite *cSprite_Manager :: Copy( unsigned int identifier )
 
 void cSprite_Manager :: Delete_All( bool delayed /* = 0 */ )
 {
-	// clear z position data
-	for( unsigned int i = 0; i < zposdata.size(); i++ )
-	{
-		zposdata[i] = 0.0f;
-		zposdata_editor[i] = 0.0f;
-	}
-
 	// delayed
 	if( delayed )
 	{
-		for( SpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+		for( cSprite_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cSprite *obj = (*itr);
 
 			obj->Destroy();
-			obj->Collisions_Clear();
+			obj->Clear_Collisions();
 		}
 	}
 	// instant
@@ -106,29 +100,33 @@ void cSprite_Manager :: Delete_All( bool delayed /* = 0 */ )
 		cObject_Manager<cSprite>::Delete_All();
 	}
 
-	// todo : this should be elsewhere...
+	// todo : pPlayer and pMouseCursor should be elsewhere !
 	// clear collision data
 	if( pPlayer )
 	{
-		pPlayer->Collisions_Clear();
+		pPlayer->Clear_Collisions();
 		pPlayer->Reset_on_Ground();
 	}
 	if( pMouseCursor )
 	{
-		pMouseCursor->Collisions_Clear();
+		pMouseCursor->Clear_Collisions();
 	}
+
+	// clear z position data
+	std::fill( zposdata.begin(), zposdata.end(), 0.0f );
+	std::fill( zposdata_editor.begin(), zposdata_editor.end(), 0.0f );
 }
 
-cSprite *cSprite_Manager :: Get_First( SpriteType type )
+cSprite *cSprite_Manager :: Get_First( const SpriteType type ) const
 {
 	cSprite *first = NULL;
 
-	for( SpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::const_iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		// get object pointer
 		cSprite *obj = (*itr);
 
-		if( obj->type == type && ( !first || obj->posz < first->posz ) )
+		if( obj->m_type == type && ( !first || obj->m_pos_z < first->m_pos_z ) )
 		{
 			first = obj;
 		}
@@ -138,16 +136,16 @@ cSprite *cSprite_Manager :: Get_First( SpriteType type )
 	return first;
 }
 
-cSprite *cSprite_Manager :: Get_Last( SpriteType type )
+cSprite *cSprite_Manager :: Get_Last( const SpriteType type ) const
 {
 	cSprite *last = NULL;
 
-	for( SpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::const_iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		// get object pointer
 		cSprite *obj = (*itr);
 
-		if( obj->type == type && ( !last || obj->posz > last->posz ) )
+		if( obj->m_type == type && ( !last || obj->m_pos_z > last->m_pos_z ) )
 		{
 			last = obj;
 		}
@@ -157,14 +155,14 @@ cSprite *cSprite_Manager :: Get_Last( SpriteType type )
 	return last;
 }
 
-cSprite *cSprite_Manager :: Get_from_Position( int posx, int posy, SpriteType type /* = TYPE_UNDEFINED */ )
+cSprite *cSprite_Manager :: Get_from_Position( int posx, int posy, const SpriteType type /* = TYPE_UNDEFINED */ ) const
 {
-	for( SpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::const_iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		// get object pointer
 		cSprite *obj = (*itr);
 
-		if( static_cast<int>(obj->startposx) != posx || static_cast<int>(obj->startposy) != posy )
+		if( static_cast<int>(obj->m_start_pos_x) != posx || static_cast<int>(obj->m_start_pos_y) != posy )
 		{
 			continue;
 		}
@@ -173,7 +171,7 @@ cSprite *cSprite_Manager :: Get_from_Position( int posx, int posy, SpriteType ty
 		if( type != TYPE_UNDEFINED )
 		{
 			// skip invalid type
-			if( obj->type != type )
+			if( obj->m_type != type )
 			{
 				continue;
 			}
@@ -186,7 +184,7 @@ cSprite *cSprite_Manager :: Get_from_Position( int posx, int posy, SpriteType ty
 	return NULL;
 }
 
-void cSprite_Manager :: Get_Objects_sorted( SpriteList &new_objects, bool editor_sort /* = 0 */, bool with_player /* = 0 */ )
+void cSprite_Manager :: Get_Objects_sorted( cSprite_List &new_objects, bool editor_sort /* = 0 */, bool with_player /* = 0 */ ) const
 {
 	new_objects = objects;
 
@@ -199,18 +197,50 @@ void cSprite_Manager :: Get_Objects_sorted( SpriteList &new_objects, bool editor
 	if( !editor_sort )
 	{
 		// default
-		sort( new_objects.begin(), new_objects.end(), zpos_sort() );
+		std::sort( new_objects.begin(), new_objects.end(), zpos_sort() );
 	}
 	else
 	{
 		// editor
-		sort( new_objects.begin(), new_objects.end(), editor_zpos_sort() );
+		std::sort( new_objects.begin(), new_objects.end(), editor_zpos_sort() );
+	}
+}
+
+void cSprite_Manager :: Get_Colliding_Objects( cSprite_List &col_objects, const GL_rect &rect, bool with_player /* = 0 */, const cSprite *exclude_sprite /* = NULL */ ) const
+{
+	// Check objects
+	for( cSprite_List::const_iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	{
+		// get object pointer
+		cSprite *obj = (*itr);
+
+		// if destroyed object
+		if( obj == exclude_sprite || obj->m_auto_destroy )
+		{
+			continue;
+		}
+
+		// if rects don't touch
+		if( !rect.Intersects( obj->m_col_rect ) )
+		{
+			continue;
+		}
+
+		col_objects.push_back( obj );
+	}
+
+	if( with_player && pActive_Player != exclude_sprite )
+	{
+		if( rect.Intersects( pActive_Player->m_col_rect ) )
+		{
+			col_objects.push_back( pActive_Player );
+		}
 	}
 }
 
 void cSprite_Manager :: Update_Items_Valid_Draw( void )
 {
-	for( SpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		(*itr)->Update_Valid_Draw();
 	}
@@ -218,15 +248,23 @@ void cSprite_Manager :: Update_Items_Valid_Draw( void )
 
 void cSprite_Manager :: Update_Items( void )
 {
-	for( SpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		(*itr)->Update();
 	}
 }
 
+void cSprite_Manager :: Update_Items_Late( void )
+{
+	for( cSprite_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	{
+		(*itr)->Update_Late();
+	}
+}
+
 void cSprite_Manager :: Draw_Items( void )
 {
-	for( SpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		(*itr)->Draw();
 	}
@@ -234,22 +272,36 @@ void cSprite_Manager :: Draw_Items( void )
 
 void cSprite_Manager :: Handle_Collision_Items( void )
 {
-	for( SpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
+		cSprite *obj = (*itr);
+
+		// invalid
+		if( obj->m_auto_destroy )
+		{
+			if( obj->collisions.size() )
+			{
+				debug_print( "Collision with a destroyed object (%s)\n", obj->m_name.c_str() );
+				obj->Clear_Collisions();
+			}
+
+			continue;
+		}
+
 		// collision and movement handling
-		(*itr)->Collide_Move();
+		obj->Collide_Move();
 		// handle found collisions
-		(*itr)->Handle_Collisions();
+		obj->Handle_Collisions();
 	}
 }
 
-unsigned int cSprite_Manager :: Get_Size_Array( ArrayType sprite_array )
+unsigned int cSprite_Manager :: Get_Size_Array( const ArrayType sprite_array )
 {
 	unsigned int count = 0;
 
-	for( SpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
-		if( (*itr)->sprite_array == sprite_array )
+		if( (*itr)->m_sprite_array == sprite_array )
 		{
 			count++;
 		}
@@ -258,40 +310,44 @@ unsigned int cSprite_Manager :: Get_Size_Array( ArrayType sprite_array )
 	return count;
 }
 
-void cSprite_Manager :: Set_Z( cSprite *sprite )
+void cSprite_Manager :: Set_Pos_Z( cSprite *sprite )
 {
 	// don't set animation z position
-	if( sprite->sprite_array == ARRAY_ANIM )
+	if( sprite->m_sprite_array == ARRAY_ANIM )
 	{
 		return;
 	}
 
 	// set new z position if unset
-	if( sprite->posz <= zposdata[sprite->type] )
+	if( sprite->m_pos_z <= zposdata[sprite->m_type] )
 	{
-		sprite->posz = zposdata[sprite->type] + 0.000001f;
+		sprite->m_pos_z = zposdata[sprite->m_type] + 0.000001f;
 	}
 	// if editor Z position is given
-	if( sprite->editor_posz != 0 )
+	if( sprite->m_editor_pos_z > 0 )
 	{
-		if( sprite->editor_posz <= zposdata_editor[sprite->type] )
+		if( sprite->m_editor_pos_z <= zposdata_editor[sprite->m_type] )
 		{
-			sprite->editor_posz = zposdata_editor[sprite->type] + 0.000001f;
+			sprite->m_editor_pos_z = zposdata_editor[sprite->m_type] + 0.000001f;
 		}
 	}
 
 
 	// update z position
-	if( sprite->posz > zposdata[sprite->type] )
+	if( sprite->m_pos_z > zposdata[sprite->m_type] )
 	{
-		zposdata[sprite->type] = sprite->posz;
+		zposdata[sprite->m_type] = sprite->m_pos_z;
 	}
 	// if editor Z position is given
-	if( sprite->editor_posz != 0 )
+	if( sprite->m_editor_pos_z > 0 )
 	{
-		if( sprite->editor_posz > zposdata_editor[sprite->type] )
+		if( sprite->m_editor_pos_z > zposdata_editor[sprite->m_type] )
 		{
-			zposdata_editor[sprite->type] = sprite->editor_posz;
+			zposdata_editor[sprite->m_type] = sprite->m_editor_pos_z;
 		}
 	}
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

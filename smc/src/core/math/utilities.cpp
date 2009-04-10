@@ -1,7 +1,7 @@
 /***************************************************************************
  * utilities.cpp  -  General math functions
  *
- * Copyright (C) 2005 - 2008 Florian Richter
+ * Copyright (C) 2005 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -14,7 +14,12 @@
 */
 
 #include "../../core/math/utilities.h"
-
+// for rand()
+#include <cstdlib>
+// for find_if()
+#include <algorithm>
+// for isdigit()
+#include <cctype>
 
 /* non digit class
  * returns true if not a number was found
@@ -23,8 +28,14 @@
 class nondigit
 {
 public:
-	bool operator() (char c) { return !isdigit( c ); }
+	bool operator() ( char c ) const
+	{
+		return !isdigit( c );
+	}
 };
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** Math utility functions *** *** *** *** *** *** *** *** *** */
 
@@ -45,7 +56,7 @@ unsigned int Get_Power_of_2( unsigned int size )
 	return value;
 }
 
-bool is_valid_number( string num, bool accept_floating_point /* = 1 */ )
+bool Is_Valid_Number( std::string num, bool accept_floating_point /* = 1 */ )
 {
 	// accept negative numbers
 	if( num.find( '-' ) == 0 )
@@ -58,7 +69,7 @@ bool is_valid_number( string num, bool accept_floating_point /* = 1 */ )
 	{
 		std::string::size_type pos = num.find( '.' );
 
-		if( pos != string::npos )
+		if( pos != std::string::npos )
 		{
 			num.erase( pos, 1 );
 		}
@@ -71,3 +82,17 @@ bool is_valid_number( string num, bool accept_floating_point /* = 1 */ )
 
 	return 0;
 }
+
+bool Is_Float_Equal( float a, float b, float tolerance /* = 0.0001f */ )
+{
+	if( fabs(b - a) <= tolerance )
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

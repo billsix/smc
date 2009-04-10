@@ -1,7 +1,7 @@
 /***************************************************************************
  * renderer.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -16,9 +16,12 @@
 #ifndef SMC_RENDERER_H
 #define SMC_RENDERER_H
 
-#include "../core/globals.h"
 #include "../video/video.h"
+#include "../core/math/line.h"
 #include "../core/math/rect.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** Render Types *** *** *** *** *** *** *** *** *** *** */
 
@@ -44,15 +47,15 @@ public:
 	// Draw the Render Request
 	virtual void Draw( void );
 
-	// start Rendering
-	void Begin_Render( void );
-	// end Rendering
-	void End_Render( void );
+	// render basic state
+	void Render_Basic( void );
+	// clear basic render state
+	void Render_Basic_Clear( void ) const;
 
-	// add color combine
-	void Begin_Color_Combine( void );
-	// remove color combine
-	void End_Color_Combine( void );
+	// render advanced state
+	void Render_Advanced( void );
+	// clear advanced render state
+	void Render_Advanced_Clear( void ) const;
 
 	// render type
 	RenderType type;
@@ -64,9 +67,11 @@ public:
 
 	// Z position
 	float pos_z;
+	// rotation
+	float rotx, roty, rotz;
 	// blending
-    GLenum blend_sfactor;
-    GLenum blend_dfactor;
+	GLenum blend_sfactor;
+	GLenum blend_dfactor;
 	// shadow position
 	float shadow_pos;
 	// shadow color
@@ -85,30 +90,32 @@ typedef vector<cRenderRequest *> RenderList;
 
 /* *** *** *** *** *** *** cLineRequest *** *** *** *** *** *** *** *** *** *** *** */
 
-class cLineRequest : public cRenderRequest
+class cLine_Request : public cRenderRequest
 {
 public:
-	cLineRequest( void );
-	virtual ~cLineRequest( void );
+	cLine_Request( void );
+	virtual ~cLine_Request( void );
 
 	// draw
 	virtual void Draw( void );
 
 	// color
 	Color color;
-	// line
+	// position
 	GL_line line;
-	// line width
+	// width
 	float line_width;
+	// stipple pattern
+	GLushort stipple_pattern;
 };
 
 /* *** *** *** *** *** *** cRectRequest *** *** *** *** *** *** *** *** *** *** *** */
 
-class cRectRequest : public cRenderRequest
+class cRect_Request : public cRenderRequest
 {
 public:
-	cRectRequest( void );
-	virtual ~cRectRequest( void );
+	cRect_Request( void );
+	virtual ~cRect_Request( void );
 
 	// draw
 	virtual void Draw( void );
@@ -118,15 +125,23 @@ public:
 	GL_rect rect;
 	// rect is filled
 	bool filled;
+	// scale
+	float scale_x;
+	float scale_y;
+	float scale_z;
+	// line width (only used if not filled)
+	float line_width;
+	// stipple pattern (only used if not filled)
+	GLushort stipple_pattern;
 };
 
 /* *** *** *** *** *** *** cGradientRequest *** *** *** *** *** *** *** *** *** *** *** */
 
-class cGradientRequest : public cRenderRequest
+class cGradient_Request : public cRenderRequest
 {
 public:
-	cGradientRequest( void );
-	virtual ~cGradientRequest( void );
+	cGradient_Request( void );
+	virtual ~cGradient_Request( void );
 
 	// draw
 	virtual void Draw( void );
@@ -142,11 +157,11 @@ public:
 
 /* *** *** *** *** *** *** cCircleRequest *** *** *** *** *** *** *** *** *** *** *** */
 
-class cCircleRequest : public cRenderRequest
+class cCircle_Request : public cRenderRequest
 {
 public:
-	cCircleRequest( void );
-	virtual ~cCircleRequest( void );
+	cCircle_Request( void );
+	virtual ~cCircle_Request( void );
 
 	// draw
 	virtual void Draw( void );
@@ -162,11 +177,11 @@ public:
 
 /* *** *** *** *** *** *** cSurfaceRequest *** *** *** *** *** *** *** *** *** *** *** */
 
-class cSurfaceRequest : public cRenderRequest
+class cSurface_Request : public cRenderRequest
 {
 public:
-	cSurfaceRequest( void );
-	virtual ~cSurfaceRequest( void );
+	cSurface_Request( void );
+	virtual ~cSurface_Request( void );
 
 	// Draw
 	virtual void Draw( void );
@@ -175,14 +190,12 @@ public:
 	GLuint texture_id;
 	// position
 	float pos_x, pos_y;
-	// rotation
-	float rotx, roty, rotz;
-	// size
-	float w, h;
 	// scale
 	float scale_x;
 	float scale_y;
 	float scale_z;
+	// size
+	float w, h;
 
 	// color
 	Color color;
@@ -203,7 +216,7 @@ public:
 	*/
 	void Add( cRenderRequest *obj );
 
-	/* if clear is not set doesn't clear the data
+	/* clear: if set clear the finished data after rendering
 	*/
 	void Render( bool clear = 1 );
 
@@ -219,9 +232,9 @@ public:
 	struct zpos_sort
 	{
 		bool operator()( const cRenderRequest *a, const cRenderRequest *b ) const
-        {
-            return a->pos_z < b->pos_z;
-        }
+		{
+			return a->pos_z < b->pos_z;
+		}
 	};
 };
 
@@ -233,5 +246,7 @@ extern cRenderQueue *pRenderer;
 extern cRenderQueue *pRenderer_GUI;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

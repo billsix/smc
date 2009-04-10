@@ -1,7 +1,7 @@
 /***************************************************************************
  * audio.cpp  -  Audio Engine
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -14,19 +14,21 @@
 */
 
 #include "../audio/audio.h"
-#include "../audio/sound_manager.h"
 #include "../core/game_core.h"
 #include "../level/level.h"
 #include "../overworld/overworld.h"
 #include "../user/preferences.h"
 #include "../core/i18n.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-void Finished_Sound( int channel )
+void Finished_Sound( const int channel )
 {
 	// find the finished sound and free the data
-	for( AudioSoundList::iterator itr = pAudio->sounds.begin(), itr_end = pAudio->sounds.end(); itr != itr_end; ++itr )
+	for( AudioSoundList::iterator itr = pAudio->m_active_sounds.begin(), itr_end = pAudio->m_active_sounds.end(); itr != itr_end; ++itr )
 	{
 		cAudio_Sound *obj = (*itr);
 
@@ -85,7 +87,7 @@ int cAudio_Sound :: Play( int use_res_id /* = -1 */, int loops /* = 0 */ )
 
 	if( use_res_id >= 0 )
 	{
-		for( AudioSoundList::iterator itr = pAudio->sounds.begin(), itr_end = pAudio->sounds.end(); itr != itr_end; ++itr )
+		for( AudioSoundList::iterator itr = pAudio->m_active_sounds.begin(), itr_end = pAudio->m_active_sounds.end(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cAudio_Sound *obj = (*itr);
@@ -129,26 +131,22 @@ void cAudio_Sound :: Stop( void )
 
 cAudio :: cAudio( void )
 {
-	initialised = 0;
-	sound_enabled = 0;
-	music_enabled = 0;
+	m_initialised = 0;
+	m_sound_enabled = 0;
+	m_music_enabled = 0;
 
-	debug = 0;
+	m_debug = 0;
 
-	sound_volume = 100;
-	music_volume = 80;
+	m_sound_volume = 100;
+	m_music_volume = 80;
 
-	music = NULL;
-	music_old = NULL;
+	m_music = NULL;
+	m_music_old = NULL;
 
-	max_sounds = 0;
-	sound_count = 0;
+	m_max_sounds = 0;
 
-	audio_buffer = 4096; // below 2000 can be choppy
-	audio_channels = MIX_DEFAULT_CHANNELS; // 1 = Mono, 2 = Stereo
-
-	sounds_played = 0;
-	music_played = 0;
+	m_audio_buffer = 4096; // below 2000 can be choppy
+	m_audio_channels = MIX_DEFAULT_CHANNELS; // 1 = Mono, 2 = Stereo
 }
 
 cAudio :: ~cAudio( void )
@@ -162,13 +160,13 @@ bool cAudio :: Init( void )
 	int dev_frequency = 0;
 	Uint16 dev_format = 0;
 	int dev_channels = 0;
-	Mix_QuerySpec( &dev_frequency, &dev_format, &dev_channels );
+	int numtimesopened = Mix_QuerySpec( &dev_frequency, &dev_format, &dev_channels );
 
 	bool sound = pPreferences->audio_sound;
 	bool music = pPreferences->audio_music;
 
 	// if no change
-	if( music_enabled == music && sound_enabled == sound && dev_frequency == pPreferences->audio_hz )
+	if( numtimesopened && m_music_enabled == music && m_sound_enabled == sound && dev_frequency == pPreferences->audio_hz )
 	{
 		return 1;
 	}
@@ -181,12 +179,12 @@ bool cAudio :: Init( void )
 		return 1;
 	}
 
-	// if audio system is not initialised
-	if( !initialised )
+	// if audio system is not initialized
+	if( !m_initialised )
 	{
-		if( debug )
+		if( m_debug )
 		{
-			printf( "Initializing Audio System - Buffer %i, Frequency %i, Speaker Channels %i\n", audio_buffer, pPreferences->audio_hz, audio_channels );
+			printf( "Initializing Audio System - Buffer %i, Frequency %i, Speaker Channels %i\n", m_audio_buffer, pPreferences->audio_hz, m_audio_channels );
 		}
 
 		/*	Initializing preferred Audio System specs with Mixer Standard format (Stereo)
@@ -197,53 +195,107 @@ bool cAudio :: Init( void )
 		*	chunk size	: Bytes used per output sample.
 		*/
 
-		if( Mix_OpenAudio( pPreferences->audio_hz, MIX_DEFAULT_FORMAT, audio_channels, audio_buffer ) < 0 ) 
+		if( Mix_OpenAudio( pPreferences->audio_hz, MIX_DEFAULT_FORMAT, m_audio_channels, m_audio_buffer ) < 0 ) 
 		{
 			printf( "Warning : Could not init 16-bit Audio\n- Reason : %s\n", SDL_GetError() );
 			return 0;
 		}
 
-		initialised = 1;
+		numtimesopened = Mix_QuerySpec( &dev_frequency, &dev_format, &dev_channels );
+
+		if( !numtimesopened )
+		{
+			printf( "Mix_QuerySpec failed: %s\n", Mix_GetError() );
+		}
+		else
+		{
+			// different frequency
+			if( pPreferences->audio_hz != dev_frequency )
+			{
+				printf( "Warning : different frequency got %d but requested %d\n", dev_frequency, pPreferences->audio_hz );
+			}
+
+			// different format
+			if( dev_format != MIX_DEFAULT_FORMAT )
+			{
+				char *format_str;
+
+				switch( dev_format )
+				{
+					case AUDIO_U8:
+						format_str = "U8";
+						break;
+					case AUDIO_S8:
+						format_str = "S8";
+						break;
+					case AUDIO_U16LSB:
+						format_str = "U16LSB";
+						break;
+					case AUDIO_S16LSB:
+						format_str = "S16LSB";
+						break;
+					case AUDIO_U16MSB:
+						format_str = "U16MSB";
+						break;
+					case AUDIO_S16MSB:
+						format_str = "S16MSB";
+						break;
+					default:
+						format_str = "Unknown";
+						break;
+				}
+
+				printf( "Warning : got different format %s\n", format_str );
+			}
+
+			// different amount of channels
+			if( m_audio_channels != dev_channels )
+			{
+				printf( "Warning : different channels got %d but requested %d\n", dev_channels, m_audio_channels );
+			}
+		}
+
+		m_initialised = 1;
 	}
 
 
-	if( debug )
+	if( m_debug )
 	{
 		printf( "Audio Sound Channels available : %d\n", Mix_AllocateChannels( -1 ) );
 	}
 
 	// music initialization
-	if( music && !music_enabled )
+	if( music && !m_music_enabled )
 	{
-		music_enabled = 1;
+		m_music_enabled = 1;
 
 		// set music volume
-		Set_Music_Volume( music_volume );
+		Set_Music_Volume( m_music_volume );
 	}
 	// music de-initialization
-	else if( !music && music_enabled )
+	else if( !music && m_music_enabled )
 	{
 		Halt_Music();
 
-		music_enabled = 0;
+		m_music_enabled = 0;
 	}
 
 	// sound initialization
-	if( sound && !sound_enabled )
+	if( sound && !m_sound_enabled )
 	{
-		sound_enabled = 1;
+		m_sound_enabled = 1;
 
 		// create sound array
 		Set_Max_Sounds();
 		// set sound volume
-		Set_Sound_Volume( sound_volume );
+		Set_Sound_Volume( m_sound_volume );
 	}
 	// sound de-initialization
-	else if( !sound && sound_enabled )
+	else if( !sound && m_sound_enabled )
 	{
 		Stop_Sounds();
 
-		sound_enabled = 0;
+		m_sound_enabled = 0;
 	}
 
 	return 1;
@@ -251,58 +303,58 @@ bool cAudio :: Init( void )
 
 void cAudio :: Close( void )
 {
-	if( initialised )
+	if( m_initialised )
 	{
-		if( debug )
+		if( m_debug )
 		{
 			printf( "Closing Audio System\n" );
 		}
 
-		if( sound_enabled )
+		if( m_sound_enabled )
 		{
 			Stop_Sounds();
 
 			// clear sounds
-			for( AudioSoundList::iterator itr = sounds.begin(), itr_end = sounds.end(); itr != itr_end; ++itr )
+			for( AudioSoundList::iterator itr = m_active_sounds.begin(), itr_end = m_active_sounds.end(); itr != itr_end; ++itr )
 			{
 				delete *itr;
 			}
 
-			sounds.clear();
+			m_active_sounds.clear();
 
 			Mix_AllocateChannels( 0 );
-			max_sounds = 0;
-			sound_enabled = 0;
+			m_max_sounds = 0;
+			m_sound_enabled = 0;
 		}
 
-		if( music_enabled )
+		if( m_music_enabled )
 		{
 			Halt_Music();
 
-			if( music )
+			if( m_music )
 			{
-				Mix_FreeMusic( music );
-				music = NULL;
+				Mix_FreeMusic( m_music );
+				m_music = NULL;
 			}
 
-			if( music_old )
+			if( m_music_old )
 			{
-				Mix_FreeMusic( music_old );
-				music_old = NULL;
+				Mix_FreeMusic( m_music_old );
+				m_music_old = NULL;
 			}
 
-			music_enabled = 0;
+			m_music_enabled = 0;
 		}
 
 		Mix_CloseAudio();
 
-		initialised = 0;
+		m_initialised = 0;
 	}
 }
 
 void cAudio :: Set_Max_Sounds( unsigned int limit /* = 10 */ )
 {
-	if( !initialised || !sound_enabled )
+	if( !m_initialised || !m_sound_enabled )
 	{
 		return;
 	}
@@ -313,27 +365,33 @@ void cAudio :: Set_Max_Sounds( unsigned int limit /* = 10 */ )
 		limit = 5;
 	}
 
-	max_sounds = limit;
+	m_max_sounds = limit;
 
 	// remove exceeding sounds
-	while( sounds.size() > max_sounds )
+	AudioSoundList::iterator last_itr;
+
+	while( m_active_sounds.size() > m_max_sounds )
 	{
-		delete *sounds.end();
-		sounds.erase( sounds.end() );
+		last_itr = (m_active_sounds.end() - 1);
+
+		// delete data
+		delete *(last_itr);
+		// erase from list
+		m_active_sounds.erase( last_itr );
 	}
 
 	// change channels managed by the mixer
-	Mix_AllocateChannels( max_sounds );
+	Mix_AllocateChannels( m_max_sounds );
 
-	if( debug )
+	if( m_debug )
 	{
 		printf( "Audio Sound Channels changed : %d\n", Mix_AllocateChannels( -1 ) );
 	}
 }
 
-cSound *cAudio :: Get_Sound_File( string filename )
+cSound *cAudio :: Get_Sound_File( std::string filename ) const
 {
-	if( !initialised || !sound_enabled )
+	if( !m_initialised || !m_sound_enabled )
 	{
 		return NULL;
 	}
@@ -342,7 +400,7 @@ cSound *cAudio :: Get_Sound_File( string filename )
 	if( !File_Exists( filename ) )
 	{
 		// add sound directory
-		if( filename.find( DATA_DIR "/" GAME_SOUNDS_DIR "/" ) == string::npos )
+		if( filename.find( DATA_DIR "/" GAME_SOUNDS_DIR "/" ) == std::string::npos )
 		{
 			filename.insert( 0, DATA_DIR "/" GAME_SOUNDS_DIR "/" );
 		}
@@ -360,7 +418,7 @@ cSound *cAudio :: Get_Sound_File( string filename )
 		{
 			pSound_Manager->Add( sound );
 
-			if( debug )
+			if( m_debug )
 			{
 				printf( "Loaded sound file : %s\n", filename.c_str() );
 			}
@@ -378,9 +436,9 @@ cSound *cAudio :: Get_Sound_File( string filename )
 	return sound;
 }
 
-bool cAudio :: Play_Sound( string filename, int res_id /* = -1 */, int volume /* = -1 */, int loops /* = 0 */ )
+bool cAudio :: Play_Sound( std::string filename, int res_id /* = -1 */, int volume /* = -1 */, int loops /* = 0 */ )
 {
-	if( !initialised || !sound_enabled )
+	if( !m_initialised || !m_sound_enabled )
 	{
 		return 0;
 	}
@@ -389,7 +447,7 @@ bool cAudio :: Play_Sound( string filename, int res_id /* = -1 */, int volume /*
 	if( !File_Exists( filename ) )
 	{
 		// add sound directory
-		if( filename.find( DATA_DIR "/" GAME_SOUNDS_DIR "/" ) == string::npos )
+		if( filename.find( DATA_DIR "/" GAME_SOUNDS_DIR "/" ) == std::string::npos )
 		{
 			filename.insert( 0, DATA_DIR "/" GAME_SOUNDS_DIR "/" );
 		}
@@ -428,7 +486,7 @@ bool cAudio :: Play_Sound( string filename, int res_id /* = -1 */, int volume /*
 	// failed to play
 	if( sound->m_channel < 0 )
 	{
-		if( debug )
+		if( m_debug )
 		{
 			printf( "Could not play sound file : %s\n", filename.c_str() );
 		}
@@ -438,18 +496,16 @@ bool cAudio :: Play_Sound( string filename, int res_id /* = -1 */, int volume /*
 	// playing successfully
 	else
 	{
-		sounds_played++;
-
 		// volume is out of range
 		if( volume > MIX_MAX_VOLUME )
 		{
 			printf( "PlaySound Volume is out of range : %d\n", volume );
-			volume = sound_volume;
+			volume = m_sound_volume;
 		}
 		// no volume is given
 		else if( volume < 0 )
 		{
-			volume = sound_volume;
+			volume = m_sound_volume;
 		}
 
 		// set volume
@@ -459,14 +515,14 @@ bool cAudio :: Play_Sound( string filename, int res_id /* = -1 */, int volume /*
 	return 1;
 }
 
-bool cAudio :: Play_Music( string filename, int loops /* = 0 */, bool force /* = 1 */, unsigned int fadein_ms /* = 0 */ )
+bool cAudio :: Play_Music( std::string filename, int loops /* = 0 */, bool force /* = 1 */, unsigned int fadein_ms /* = 0 */ )
 {
-	if( !music_enabled || !initialised )
+	if( !m_music_enabled || !m_initialised )
 	{
 		return 0;
 	}
 
-	if( filename.find( DATA_DIR "/" GAME_MUSIC_DIR "/" ) == string::npos )
+	if( filename.find( DATA_DIR "/" GAME_MUSIC_DIR "/" ) == std::string::npos )
 	{
 		filename.insert( 0, DATA_DIR "/" GAME_MUSIC_DIR "/" );
 	}
@@ -485,42 +541,39 @@ bool cAudio :: Play_Music( string filename, int loops /* = 0 */, bool force /* =
 	if( !Is_Music_Playing() || force ) 
 	{
 		// stop and free current music
-		if( music )
+		if( m_music )
 		{
 			Halt_Music();
-			Mix_FreeMusic( music );
+			Mix_FreeMusic( m_music );
 		}
 		// free old music
-		if( music_old )
+		if( m_music_old )
 		{
-			Mix_FreeMusic( music_old );
-			music_old = NULL;
+			Mix_FreeMusic( m_music_old );
+			m_music_old = NULL;
 		}
 
 		// load the given music
-		music = Mix_LoadMUS( filename.c_str() );
+		m_music = Mix_LoadMUS( filename.c_str() );
 
 		// loaded
-		if( music )
+		if( m_music )
 		{
-			// count success
-			music_played++;
-
 			// no fade in
 			if( !fadein_ms )
 			{
-				Mix_PlayMusic( music, loops );
+				Mix_PlayMusic( m_music, loops );
 			}
 			// fade in
 			else
 			{
-				Mix_FadeInMusic( music, loops, fadein_ms );
+				Mix_FadeInMusic( m_music, loops, fadein_ms );
 			}
 		}
 		// not loaded
 		else 
 		{
-			if( debug )
+			if( m_debug )
 			{
 				printf( "Couldn't load music file : %s\n", filename.c_str() );
 			}
@@ -533,44 +586,44 @@ bool cAudio :: Play_Music( string filename, int loops /* = 0 */, bool force /* =
 	else
 	{
 		// if music is loaded
-		if( music )
+		if( m_music )
 		{
 			// if old music is loaded free the wanted next playing music data
-			if( music_old )
+			if( m_music_old )
 			{
-				Mix_FreeMusic( music );
-				music = NULL;
+				Mix_FreeMusic( m_music );
+				m_music = NULL;
 			}
 			// if no old music move current to old music
 			else
 			{
-				music_old = music;
-				music = NULL;
+				m_music_old = m_music;
+				m_music = NULL;
 			}
 		}
 
 		// load the wanted next playing music
-		music = Mix_LoadMUS( filename.c_str() );
+		m_music = Mix_LoadMUS( filename.c_str() );
 	}
 	
 	return 1;
 }
 
-cAudio_Sound *cAudio :: Get_Playing_Sound( string filename )
+cAudio_Sound *cAudio :: Get_Playing_Sound( std::string filename )
 {
-	if( !sound_enabled || !initialised )
+	if( !m_sound_enabled || !m_initialised )
 	{
 		return NULL;
 	}
 
 	// add sound directory
-	if( filename.find( DATA_DIR "/" GAME_SOUNDS_DIR "/" ) == string::npos )
+	if( filename.find( DATA_DIR "/" GAME_SOUNDS_DIR "/" ) == std::string::npos )
 	{
 		filename.insert( 0, DATA_DIR "/" GAME_SOUNDS_DIR "/" );
 	}
 
 	// get all sounds
-	for( AudioSoundList::iterator itr = sounds.begin(), itr_end = sounds.end(); itr != itr_end; ++itr )
+	for( AudioSoundList::iterator itr = m_active_sounds.begin(), itr_end = m_active_sounds.end(); itr != itr_end; ++itr )
 	{
 		// get object pointer
 		cAudio_Sound *obj = (*itr);
@@ -596,7 +649,7 @@ cAudio_Sound *cAudio :: Get_Playing_Sound( string filename )
 cAudio_Sound *cAudio :: Create_Sound_Channel( void )
 {
 	// get all sounds
-	for( AudioSoundList::iterator itr = sounds.begin(), itr_end = sounds.end(); itr != itr_end; ++itr )
+	for( AudioSoundList::iterator itr = m_active_sounds.begin(), itr_end = m_active_sounds.end(); itr != itr_end; ++itr )
 	{
 		// get object pointer
 		cAudio_Sound *obj = (*itr);
@@ -611,10 +664,10 @@ cAudio_Sound *cAudio :: Create_Sound_Channel( void )
 	}
 
 	// if not maximum sounds
-	if( sounds.size() < max_sounds )
+	if( m_active_sounds.size() < m_max_sounds )
 	{
 		cAudio_Sound *sound = new cAudio_Sound();
-		sounds.push_back( sound );
+		m_active_sounds.push_back( sound );
 		return sound;
 	}
 
@@ -628,12 +681,12 @@ void cAudio :: Toggle_Music( void )
 	Init();
 
 	// play music
-	if( music_enabled )
+	if( m_music_enabled )
 	{
 		// valid level music available
-		if( pActive_Level->valid_music )
+		if( pActive_Level->m_valid_music )
 		{
-			Play_Music( pActive_Level->musicfile, -1, 1, 2000 );
+			Play_Music( pActive_Level->m_musicfile, -1, 1, 2000 );
 		}
 		// in overworld
 		else if( Game_Mode == MODE_OVERWORLD )
@@ -647,9 +700,9 @@ void cAudio :: Toggle_Music( void )
 		}
 
 		// Warning if no music pack is installed and music got enabled
-		if( !File_Exists( DATA_DIR "/" GAME_MUSIC_DIR "/game/menu.ogg" ) && !File_Exists( DATA_DIR "/" GAME_MUSIC_DIR "/land/land_1.ogg" ) )
+		if( !File_Exists( std::string(DATA_DIR "/" GAME_MUSIC_DIR "/game/menu.ogg") ) && !File_Exists( std::string(DATA_DIR "/" GAME_MUSIC_DIR "/land/land_1.ogg") ) )
 		{
-			Draw_Static_Text( _("Warning : No music addon detected"), &orange );
+			Draw_Static_Text( _("Music addon not detected.\nYou can download it from the Website."), &orange );
 		}
 	}
 }
@@ -660,15 +713,15 @@ void cAudio :: Toggle_Sounds( void )
 	Init();
 
 	// play a test sound
-	if( sound_enabled )
+	if( m_sound_enabled )
 	{
 		Play_Sound( "audio_on.ogg" );
 	}
 }
 
-void cAudio :: Pause_Music( void )
+void cAudio :: Pause_Music( void ) const
 {
-	if( !music_enabled || !initialised )
+	if( !m_music_enabled || !m_initialised )
 	{
 		return;
 	}
@@ -680,9 +733,9 @@ void cAudio :: Pause_Music( void )
 	}
 }
 
-void cAudio :: Resume_Sound( int channel /* = -1 */ )
+void cAudio :: Resume_Sound( int channel /* = -1 */ ) const
 {
-	if( !sound_enabled || !initialised )
+	if( !m_sound_enabled || !m_initialised )
 	{
 		return;
 	}
@@ -691,9 +744,9 @@ void cAudio :: Resume_Sound( int channel /* = -1 */ )
 	Mix_Resume( channel );
 }
 
-void cAudio :: Resume_Music( void )
+void cAudio :: Resume_Music( void ) const
 {
-	if( !music_enabled || !initialised )
+	if( !m_music_enabled || !m_initialised )
 	{
 		return;
 	}
@@ -705,9 +758,9 @@ void cAudio :: Resume_Music( void )
 	}
 }
 
-void cAudio :: Fadeout_Sounds( unsigned int ms /* = 200 */, int channel /* = -1 */, bool overwrite_fading /* = 0 */ )
+void cAudio :: Fadeout_Sounds( unsigned int ms /* = 200 */, int channel /* = -1 */, bool overwrite_fading /* = 0 */ ) const
 {
-	if( !sound_enabled || !initialised )
+	if( !m_sound_enabled || !m_initialised )
 	{
 		return;
 	}
@@ -725,21 +778,21 @@ void cAudio :: Fadeout_Sounds( unsigned int ms /* = 200 */, int channel /* = -1 
 	}
 }
 
-void cAudio :: Fadeout_Sounds( unsigned int ms, string filename, bool overwrite_fading /* = 0 */ )
+void cAudio :: Fadeout_Sounds( unsigned int ms, std::string filename, bool overwrite_fading /* = 0 */ )
 {
-	if( !sound_enabled || !initialised )
+	if( !m_sound_enabled || !m_initialised )
 	{
 		return;
 	}
 
 	// add sound directory
-	if( filename.find( DATA_DIR "/" GAME_SOUNDS_DIR "/" ) == string::npos )
+	if( filename.find( DATA_DIR "/" GAME_SOUNDS_DIR "/" ) == std::string::npos )
 	{
 		filename.insert( 0, DATA_DIR "/" GAME_SOUNDS_DIR "/" );
 	}
 
 	// get all sounds
-	for( AudioSoundList::iterator itr = sounds.begin(), itr_end = sounds.end(); itr != itr_end; ++itr )
+	for( AudioSoundList::iterator itr = m_active_sounds.begin(), itr_end = m_active_sounds.end(); itr != itr_end; ++itr )
 	{
 		// get object pointer
 		cAudio_Sound *obj = (*itr);
@@ -760,9 +813,9 @@ void cAudio :: Fadeout_Sounds( unsigned int ms, string filename, bool overwrite_
 	}
 }
 
-void cAudio :: Fadeout_Music( unsigned int ms /* = 500 */, bool overwrite_fading /* = 0 */ )
+void cAudio :: Fadeout_Music( unsigned int ms /* = 500 */, bool overwrite_fading /* = 0 */ ) const
 {
-	if( !music_enabled || !initialised )
+	if( !m_music_enabled || !m_initialised )
 	{
 		return;
 	}
@@ -772,24 +825,34 @@ void cAudio :: Fadeout_Music( unsigned int ms /* = 500 */, bool overwrite_fading
 	{
 		Mix_Fading status = Is_Music_Fading();
 
-		// don't fade the music out again
-		if( !overwrite_fading && status == MIX_FADING_OUT )
+		// if already fading out
+		if( status == MIX_FADING_OUT )
 		{
-			return;
+			// don't fade the music out again
+			if( !overwrite_fading )
+			{
+				return;
+			}
 		} 
-		// Can't stop fade in with SDL_Mixer and fade out is ignored when fading in
+		// if fading in
 		else if( status == MIX_FADING_IN )
 		{
+			// Can t stop fade in with SDL_Mixer and fade out is ignored when fading in
 			Halt_Music();
 		}
 
-		Mix_FadeOutMusic( ms );
+		// if it failed
+		if( !Mix_FadeOutMusic( ms ) )
+		{
+			// stop music
+			Halt_Music();
+		}
 	}
 }
 
-void cAudio :: Set_Music_Position( float position )
+void cAudio :: Set_Music_Position( float position ) const
 {
-	if( !music_enabled || !initialised || Is_Music_Fading() == MIX_FADING_OUT )
+	if( !m_music_enabled || !m_initialised || Is_Music_Fading() == MIX_FADING_OUT )
 	{
 		return;
 	}
@@ -797,9 +860,9 @@ void cAudio :: Set_Music_Position( float position )
 	Mix_SetMusicPosition( position );
 }
 
-Mix_Fading cAudio :: Is_Music_Fading( void )
+Mix_Fading cAudio :: Is_Music_Fading( void ) const
 {
-	if( !music_enabled || !initialised )
+	if( !m_music_enabled || !m_initialised )
 	{
 		return MIX_NO_FADING;
 	}
@@ -807,9 +870,9 @@ Mix_Fading cAudio :: Is_Music_Fading( void )
 	return Mix_FadingMusic();
 }
 
-Mix_Fading cAudio :: Is_Sound_Fading( int sound_channel )
+Mix_Fading cAudio :: Is_Sound_Fading( int sound_channel ) const
 {
-	if( !sound_enabled || !initialised )
+	if( !m_sound_enabled || !m_initialised )
 	{
 		return MIX_NO_FADING;
 	}
@@ -817,9 +880,9 @@ Mix_Fading cAudio :: Is_Sound_Fading( int sound_channel )
 	 return Mix_FadingChannel( sound_channel );
 }
 
-bool cAudio :: Is_Music_Paused( void )
+bool cAudio :: Is_Music_Paused( void ) const
 {
-	if( !music_enabled || !initialised )
+	if( !m_music_enabled || !m_initialised )
 	{
 		return 0;
 	}
@@ -832,9 +895,9 @@ bool cAudio :: Is_Music_Paused( void )
 	return 0;
 }
 
-bool cAudio :: Is_Music_Playing( void )
+bool cAudio :: Is_Music_Playing( void ) const
 {
-	if( !music_enabled || !initialised )
+	if( !m_music_enabled || !m_initialised )
 	{
 		return 0;
 	}
@@ -847,9 +910,9 @@ bool cAudio :: Is_Music_Playing( void )
 	return 0;
 }
 
-void cAudio :: Halt_Sounds( int channel /* = -1 */ )
+void cAudio :: Halt_Sounds( int channel /* = -1 */ ) const
 {
-	if( !sound_enabled || !initialised )
+	if( !m_sound_enabled || !m_initialised )
 	{
 		return;
 	}
@@ -861,9 +924,9 @@ void cAudio :: Halt_Sounds( int channel /* = -1 */ )
 	}
 }
 
-void cAudio :: Halt_Music( void )
+void cAudio :: Halt_Music( void ) const
 {
-	if( !initialised )
+	if( !m_initialised )
 	{
 		return;
 	}
@@ -875,9 +938,9 @@ void cAudio :: Halt_Music( void )
 	}
 }
 
-void cAudio :: Stop_Sounds( void )
+void cAudio :: Stop_Sounds( void ) const
 {
-	if( !initialised )
+	if( !m_initialised )
 	{
 		return;
 	}
@@ -889,21 +952,35 @@ void cAudio :: Stop_Sounds( void )
 	}
 }
 
-void cAudio :: Set_Sound_Volume( Uint8 volume, int channel /* = -1 */ )
+void cAudio :: Set_Sound_Volume( Uint8 volume, int channel /* = -1 */ ) const
 {
-	if( volume > MIX_MAX_VOLUME || !initialised )
+	// not active
+	if( !m_initialised )
 	{
 		return;
+	}
+
+	// out of range
+	if( volume > MIX_MAX_VOLUME )
+	{
+		volume = MIX_MAX_VOLUME;
 	}
 
 	Mix_Volume( channel, volume );
 }
 
-void cAudio :: Set_Music_Volume( Uint8 volume )
+void cAudio :: Set_Music_Volume( Uint8 volume ) const
 {
-	if( volume > MIX_MAX_VOLUME || !initialised )
+	// not active
+	if( !m_initialised )
 	{
 		return;
+	}
+
+	// out of range
+	if( volume > MIX_MAX_VOLUME )
+	{
+		volume = MIX_MAX_VOLUME;
 	}
 
 	Mix_VolumeMusic( volume );
@@ -911,25 +988,24 @@ void cAudio :: Set_Music_Volume( Uint8 volume )
 
 void cAudio :: Update( void )
 {
-	if( !initialised )
+	if( !m_initialised )
 	{
 		return;
 	}
 
 	// if music is enabled
-	if( music_enabled )
+	if( m_music_enabled )
 	{
 		// if no music is playing
-		if( !Mix_PlayingMusic() && music ) 
+		if( !Mix_PlayingMusic() && m_music ) 
 		{
-			Mix_PlayMusic( music, 0 );
-			music_played++;
+			Mix_PlayMusic( m_music, 0 );
 
 			// delete old music if available
-			if( music_old )
+			if( m_music_old )
 			{
-				Mix_FreeMusic( music_old );
-				music_old = NULL;
+				Mix_FreeMusic( m_music_old );
+				m_music_old = NULL;
 			}
 		}
 	}
@@ -938,3 +1014,7 @@ void cAudio :: Update( void )
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cAudio *pAudio = NULL;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

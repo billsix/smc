@@ -1,7 +1,7 @@
 /***************************************************************************
  * enemystopper.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -18,6 +18,9 @@
 
 #include "../core/globals.h"
 #include "../objects/objectsprite.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** cEnemyStopper *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -37,12 +40,12 @@ public:
 	virtual cEnemyStopper *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
+	virtual void Save_To_Stream( ofstream &file );
 
 	// draw
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
 	// if draw is valid for the current state and position
 	virtual bool Is_Draw_Valid( void );
@@ -52,5 +55,7 @@ public:
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.5" />
-		<Property name="engine_version" value="2.4" />
-		<Property name="save_time" value="1205674788" />
+		<Property name="game_version" value="1.8" />
+		<Property name="engine_version" value="34" />
+		<Property name="save_time" value="1235941010" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Sauer2" />
@@ -26,10 +26,14 @@
 	</background>
 	<background>
 		<Property name="type" value="1" />
+		<Property name="posx" value="0" />
+		<Property name="posy" value="0" />
+		<Property name="posz" value="0.00011" />
 		<Property name="image" value="game/background/desert_hills_1.png" />
 		<Property name="speedx" value="1" />
 		<Property name="speedy" value="1" />
-		<Property name="posz" value="0.00011" />
+		<Property name="const_velx" value="0" />
+		<Property name="const_vely" value="0" />
 	</background>
 	<player>
 		<Property name="posx" value="9" />
@@ -151,8 +155,8 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="1033" />
-		<Property name="posy" value="498" />
+		<Property name="posx" value="1019" />
+		<Property name="posy" value="486" />
 		<Property name="image" value="signs/default_1/1_danger.png" />
 		<Property name="type" value="front_passive" />
 	</sprite>
@@ -367,7 +371,7 @@
 		<Property name="gold_color" value="yellow" />
 	</box>
 	<enemy>
-		<Property name="type" value="rex" />
+		<Property name="type" value="krush" />
 		<Property name="posx" value="851" />
 		<Property name="posy" value="462" />
 		<Property name="direction" value="right" />
@@ -1135,7 +1139,7 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="rex" />
+		<Property name="type" value="krush" />
 		<Property name="posx" value="2737" />
 		<Property name="posy" value="335" />
 		<Property name="direction" value="right" />
@@ -2432,6 +2436,7 @@
 		<Property name="posx" value="7502" />
 		<Property name="posy" value="186" />
 		<Property name="type" value="0" />
+		<Property name="motion" value="0" />
 	</levelexit>
 	<sprite>
 		<Property name="posx" value="2637" />
@@ -3169,7 +3174,7 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="rex" />
+		<Property name="type" value="krush" />
 		<Property name="posx" value="7283" />
 		<Property name="posy" value="194" />
 		<Property name="direction" value="left" />

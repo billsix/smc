@@ -1,31 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.5" />
-		<Property name="engine_version" value="2" />
-		<Property name="save_time" value="1172511469" />
+		<Property name="game_version" value="1.7" />
+		<Property name="engine_version" value="2.8" />
+		<Property name="save_time" value="1230262631" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="WeirdNose" />
-		<Property name="lvl_version" value="1.0" />
+		<Property name="lvl_version" value="1.1" />
 		<Property name="lvl_music" value="land/land_5.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
 		<Property name="cam_limit_w" value="1200" />
 		<Property name="cam_limit_h" value="-4000" />
+		<Property name="cam_fixed_hor_vel" value="0" />
 	</settings>
 	<background>
 		<Property name="type" value="103" />
-		<Property name="bg_color_1_red" value="192" />
-		<Property name="bg_color_1_green" value="192" />
-		<Property name="bg_color_1_blue" value="64" />
-		<Property name="bg_color_2_red" value="128" />
-		<Property name="bg_color_2_green" value="128" />
-		<Property name="bg_color_2_blue" value="8" />
+		<Property name="bg_color_1_red" value="160" />
+		<Property name="bg_color_1_green" value="120" />
+		<Property name="bg_color_1_blue" value="0" />
+		<Property name="bg_color_2_red" value="100" />
+		<Property name="bg_color_2_green" value="60" />
+		<Property name="bg_color_2_blue" value="0" />
 	</background>
 	<player>
 		<Property name="posx" value="202" />
-		<Property name="posy" value="307" />
+		<Property name="posy" value="259" />
 		<Property name="direction" value="right" />
 	</player>
 	<sprite>
@@ -395,8 +396,8 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<levelexit>
-		<Property name="posx" value="935" />
-		<Property name="posy" value="387" />
+		<Property name="posx" value="936" />
+		<Property name="posy" value="417" />
 		<Property name="type" value="0" />
 	</levelexit>
 	<sprite>

@@ -1,7 +1,7 @@
 /***************************************************************************
  * turtle_boss.h  -  headers for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -18,7 +18,10 @@
 
 #include "../../enemies/enemy.h"
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+namespace SMC
+{
+
+/* *** *** *** *** *** *** *** *** Turtle Boss state *** *** *** *** *** *** *** *** *** */
 
 enum TurtleBoss_state
 {
@@ -29,7 +32,7 @@ enum TurtleBoss_state
 	TURTLEBOSS_STAND_ANGRY = 4
 };
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** *** Turtle Boss *** *** *** *** *** *** *** *** *** */
 
 class cTurtleBoss : public cEnemy
 {
@@ -48,9 +51,9 @@ public:
 	virtual cTurtleBoss *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
+	virtual void Save_To_Stream( ofstream &file );
 
 	// maximum hits until downgrade
 	void Set_Max_Hits( int nmax_hits );
@@ -60,7 +63,7 @@ public:
 	void Set_Shell_Time( float nmax_downgrade_time );
 
 	// Set Direction
-	void Set_Direction( ObjectDirection dir, bool new_start_direction = 0 );
+	void Set_Direction( const ObjectDirection dir, bool new_start_direction = 0 );
 	// set color
 	void Set_Color( DefaultColor col );
 
@@ -78,17 +81,26 @@ public:
 	// update
 	virtual void Update( void );
 
+	// Change state to walking if it is shell
+	void Stand_Up( void );
+	/* Hit the given enemy
+	 * returns true if enemy could get hit
+	*/
+	bool Hit_Enemy( cEnemy *enemy ) const;
 	// Throw Fireballs upwards
-    void Throw_Fireballs( unsigned int amount = 6 );
+	void Throw_Fireballs( unsigned int amount = 6 );
+	// Generates Star Particles
+	void Generate_Stars( unsigned int amount = 1, float particle_scale = 0.4f ) const;
 
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
 
 	/* Validate the given collision object
+	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-	virtual unsigned int Validate_Collision( cSprite *obj );
+	virtual Col_Valid_Type Validate_Collision( cSprite *obj );
 	// collision from player
 	virtual void Handle_Collision_Player( cObjectCollision *collision );
 	// collision from an enemy
@@ -100,12 +112,12 @@ public:
 	virtual void Editor_Activate( void );
 	// editor direction option selected event
 	bool Editor_Direction_Select( const CEGUI::EventArgs &event );
-	// editor max hits key up event
-	bool Editor_Max_Hits_Key( const CEGUI::EventArgs &event );
-	// editor max downgrades key up event
-	bool Editor_Max_Downgrade_Counts_Key( const CEGUI::EventArgs &event );
-	// editor max downgrades time key up event
-	bool Editor_Shell_Time_Key( const CEGUI::EventArgs &event );
+	// editor max hits text changed event
+	bool Editor_Max_Hits_Text_Changed( const CEGUI::EventArgs &event );
+	// editor max downgrades text changed event
+	bool Editor_Max_Downgrade_Counts_Text_Changed( const CEGUI::EventArgs &event );
+	// editor max downgrades time text changed event
+	bool Editor_Shell_Time_Text_Changed( const CEGUI::EventArgs &event );
 
 	// internal turtle state
 	TurtleBoss_state turtle_state;
@@ -113,10 +125,10 @@ public:
 	// default speed
 	float speed_walk, speed_shell;
 
-    // times hit since the start or downgrade
-    int hits;
+	// times hit since the start or downgrade
+	int hits;
 	// maximum hits until downgrade
-    int max_hits;
+	int max_hits;
 
 	/* If the player kicked the shell this counter starts.
 	 * if this counter is higher than 0
@@ -128,21 +140,21 @@ public:
 	DefaultColor color_type;
 
 protected:
-	// Activates walking Turtle
-    void Activate_Turtle( void );
 	// Create the Name from the current settings
-    void Create_Name( void );
+	void Create_Name( void );
 
-    // times downgraded
-    int downgrade_counts;
+	// times downgraded
+	int downgrade_counts;
 	// maximum downgrades until death
-    int max_downgrade_counts;
+	int max_downgrade_counts;
 	// time running as shell until staying up
-    float shell_time;
+	float shell_time;
 	// time running as shell counter
-    float run_time_counter;
+	float run_time_counter;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

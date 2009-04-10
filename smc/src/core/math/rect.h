@@ -1,7 +1,7 @@
 /***************************************************************************
  * rect.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -16,8 +16,13 @@
 #ifndef SMC_RECT_H
 #define SMC_RECT_H
 
-#include "../../core/globals.h"
+#include "../../core/global_game.h"
 #include "../../core/math/point.h"
+#include "../../core/math/utilities.h"
+#include "SDL.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** GL_rect *** *** *** *** *** *** *** *** *** *** */
 
@@ -25,64 +30,166 @@ class GL_rect
 {
 public:
 	GL_rect( void )
-	: x( 0 ), y( 0 ), w( 0 ), h( 0 ) {}
+	: m_x( 0 ), m_y( 0 ), m_w( 0 ), m_h( 0 ) {}
 
-	GL_rect( GL_rect *rect )
-	: x( rect->x ), y( rect->y ), w( rect->w ), h( rect->h ) {}
+	GL_rect( const GL_rect *rect )
+	: m_x( rect->m_x ), m_y( rect->m_y ), m_w( rect->m_w ), m_h( rect->m_h ) {}
 
 	GL_rect( float x, float y, float w, float h )
-	: x( x ), y( y ), w( w ), h( h ) {}
+	: m_x( x ), m_y( y ), m_w( w ), m_h( h ) {}
 
 	// returns a SDL_Rect
-	SDL_Rect Get_Rect( void )
+	SDL_Rect Get_Rect( void ) const
 	{
 		SDL_Rect rect;
-		rect.x = static_cast<Sint16>(x);
-		rect.y = static_cast<Sint16>(y);
-		rect.w = static_cast<Sint16>(w);
-		rect.h = static_cast<Sint16>(h);
+		rect.x = static_cast<Sint16>(m_x);
+		rect.y = static_cast<Sint16>(m_y);
+		rect.w = static_cast<Uint16>(m_w);
+		rect.h = static_cast<Uint16>(m_h);
 
 		return rect;
 	}
 
-	// returns a SDL_Rect with the given position
-	SDL_Rect Get_Rect_pos( float posx, float posy )
+	// returns this as SDL_Rect
+	SDL_Rect Get_Rect_pos( float posx, float posy ) const
 	{
 		SDL_Rect rect;
-		rect.x = static_cast<Sint16>(x + posx);
-		rect.y = static_cast<Sint16>(y + posy);
-		rect.w = static_cast<Sint16>(w);
-		rect.h = static_cast<Sint16>(h);
+		rect.x = static_cast<Sint16>(m_x + posx);
+		rect.y = static_cast<Sint16>(m_y + posy);
+		rect.w = static_cast<Uint16>(m_w);
+		rect.h = static_cast<Uint16>(m_h);
 
 		return rect;
 	}
 
 	// returns the point in the middle of the rect
-	GL_point Get_pos_middle( void )
+	GL_point Get_pos_middle( void ) const
 	{
-		return GL_point( x + ( w / 2 ), y + ( h / 2 ) );
-	}
-
-	// Set the rect data
-	void Set_Rect( GL_rect *rect )
-	{
-		x = rect->x;
-		y = rect->y;
-		w = rect->w;
-		h = rect->h;
+		return GL_point( m_x + ( m_w / 2 ), m_y + ( m_h / 2 ) );
 	}
 
 	// clears the data
 	void clear( void )
 	{
-		x = 0;
-		y = 0;
-		w = 0;
-		h = 0;
+		m_x = 0;
+		m_y = 0;
+		m_w = 0;
+		m_h = 0;
 	}
 
-	float x, y;
-	float w, h;
+	// returns true if we intersect with the point
+	bool Intersects( const float x, const float y ) const
+	{
+		if( x > m_x + m_w )
+		{
+			return 0;
+		}
+		if( x < m_x )
+		{
+			return 0;
+		}
+		if( y > m_y + m_h )
+		{
+			return 0;
+		}
+		if( y < m_y )
+		{
+			return 0;
+		}
+
+		// they intersect
+		return 1;
+	}
+
+	// returns true if we intersect with the rect
+	bool Intersects( const GL_rect &b ) const
+	{
+		if( b.m_x + b.m_w < m_x )
+		{
+			return 0;
+		}
+		if( b.m_x > m_x + m_w )
+		{
+			return 0;
+		}
+
+		if( b.m_y + b.m_h < m_y )
+		{
+			return 0;
+		}
+		if( b.m_y > m_y + m_h )
+		{
+			return 0;
+		}
+
+		// they intersect
+		return 1;
+	}
+
+	// += operator
+	inline void operator += ( const GL_rect &r )
+	{
+		m_x += r.m_x;
+		m_y += r.m_y;
+		m_w += r.m_w;
+		m_h += r.m_h;
+	}
+
+	// -= operator
+	inline void operator -= ( const GL_rect &r )
+	{
+  		m_x -= r.m_x;
+		m_y -= r.m_y;
+		m_w -= r.m_w;
+		m_h -= r.m_h;
+	}
+
+	// + operator
+	inline GL_rect operator + ( const GL_rect &r ) const
+	{
+		return GL_rect( m_x + r.m_x, m_y + r.m_y, m_w + r.m_w, m_h + r.m_h );
+	}
+
+	// - operator
+	inline GL_rect operator - ( const GL_rect &r ) const
+	{
+		return GL_rect( m_x - r.m_x, m_y - r.m_y, m_w - r.m_w, m_h - r.m_h );
+	}
+
+	// unary - operator
+	inline GL_rect operator - () const
+	{
+		return GL_rect( -m_x, -m_y, -m_w, -m_h );
+	}
+
+	// assignment operator
+	inline GL_rect &operator = ( const GL_rect &r )
+	{ 
+		m_x = r.m_x;
+		m_y = r.m_y;
+		m_w = r.m_w;
+		m_h = r.m_h;
+
+		return *this;
+	}
+
+	// compare
+	inline bool operator == ( const GL_rect &r ) const
+	{
+		return ( Is_Float_Equal(m_x, r.m_x) && Is_Float_Equal(m_y, r.m_y) && Is_Float_Equal(m_w, r.m_w) && Is_Float_Equal(m_h, r.m_h) );
+	}
+
+	inline bool operator != ( const GL_rect &r ) const
+	{
+		return !(operator == (r));
+	}
+
+	float m_x, m_y;
+	float m_w, m_h;
 };
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

@@ -1,7 +1,7 @@
 /***************************************************************************
  * utilities.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2005 - 2008 Florian Richter
+ * Copyright (C) 2005 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -16,7 +16,11 @@
 #ifndef SMC_UTILITIES_H
 #define SMC_UTILITIES_H
 
-#include "../../core/globals.h"
+#include "../../core/global_basic.h"
+#include "../../core/global_game.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** Math utility functions *** *** *** *** *** *** *** *** *** */
 
@@ -26,10 +30,16 @@ float Get_Random_Float( float min, float max );
 // Checks if number is power of 2 and if not returns the next power of two size
 unsigned int Get_Power_of_2( unsigned int size );
 
-/* accept_floating_point: if is set also accept floating point values
- * Returns true if the number is valid
+/* Returns true if the number is valid
+ * accept_floating_point: if is set also accept floating point values
 */
-bool is_valid_number( string num, bool accept_floating_point = 1 );
+bool Is_Valid_Number( std::string num, bool accept_floating_point = 1 );
 
+// Returns true if the floats are equal with the given tolerance
+bool Is_Float_Equal( float a, float b, float tolerance = 0.0001f );
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

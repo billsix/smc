@@ -1,7 +1,7 @@
 /***************************************************************************
  * overworld.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2004 - 2008 Florian Richter
+ * Copyright (C) 2004 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,6 +19,12 @@
 #include "../core/globals.h"
 #include "../core/obj_manager.h"
 #include "../core/camera.h"
+// CEGUI
+#include "CEGUIXMLHandler.h"
+#include "CEGUIXMLAttributes.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** cOverworld_Manager *** *** *** *** *** *** *** *** *** */
 
@@ -33,17 +39,17 @@ public:
 	/* Create a new world
 	 * returns true if successful
 	*/
-	bool New( string name );
+	bool New( const std::string &name );
 
 	// Load all overworlds
 	void Load( void );
 	/* Load overworlds from given directory
 	 * user_dir : if set overrides game worlds
 	*/
-	void Load_Dir( string dir, bool user_dir = 0 );
+	void Load_Dir( const std::string &dir, bool user_dir = 0 );
 
 	// Set Active Overworld from name or path
-	bool Set_Active( string str );
+	bool Set_Active( const std::string &str );
 	// Set Active Overworld
 	bool Set_Active( cOverworld *world );
 
@@ -51,17 +57,17 @@ public:
 	void Reset( void );
 
 	// Get Overworld pointer
-	cOverworld *Get( string str );
+	cOverworld *Get( const std::string &str );
 	// Get Overworld pointer from path
-	cOverworld *Get_from_Path( string path );
+	cOverworld *Get_from_Path( const std::string &path );
 	// Get Overworld pointer from name
-	cOverworld *Get_from_Name( string name );
+	cOverworld *Get_from_Name( const std::string &name );
 
 	// Return Overworld array number
-	int Get_Array_Num( string path );
+	int Get_Array_Num( const std::string &path ) const;
 
 	// worlds descriptor filename
-	string worlds_filename;
+	std::string worlds_filename;
 
 	// shows additional information
 	bool debugmode;
@@ -74,11 +80,11 @@ public:
 	cCamera *camera;
 private:
 	// XML element start
-    virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
+	virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
 	// XML element end
-    virtual void elementEnd( const CEGUI::String &element );
+	virtual void elementEnd( const CEGUI::String &element );
 	// handles a world
-    void handle_world( const CEGUI::XMLAttributes &attributes );
+	void handle_world( const CEGUI::XMLAttributes &attributes );
 
 	// XML element Property list
 	CEGUI::XMLAttributes xml_attributes;
@@ -90,5 +96,7 @@ private:
 extern cOverworld_Manager *pOverworld_Manager;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

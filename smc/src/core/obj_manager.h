@@ -1,7 +1,7 @@
 /***************************************************************************
  * obj_manager.h  -  Generic object manager
  *
- * Copyright (C) 2005 - 2008 Florian Richter
+ * Copyright (C) 2005 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -15,6 +15,12 @@
 
 #ifndef SMC_OBJ_MANAGER_H
 #define SMC_OBJ_MANAGER_H
+
+#include "../core/global_basic.h"
+#include <algorithm>
+
+namespace SMC
+{
 
 /* *** *** *** *** *** cObject_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -31,20 +37,18 @@ public:
 	}
 
 	// Delete the object from given array number
-	virtual bool Delete( unsigned int array_num, bool delete_data = 1 )
+	virtual bool Delete( size_t array_num, bool delete_data = 1 )
 	{
-		// out of array
-		if( array_num >= objects.size() )
+		// if in vector
+		if( array_num < objects.size() )
 		{
-			return 0;
+			objects.erase( objects.begin() + array_num );
 		}
 
 		if( delete_data )
 		{
 			delete objects[array_num];
 		}
-
-		objects.erase( objects.begin() + array_num );
 
 		return 1;
 	}
@@ -58,7 +62,22 @@ public:
 			return 0;
 		}
 
-		return Delete( Get_Array_Num( obj ), delete_data );
+		// get iterator
+		typename vector<T *>::iterator itr = std::find( objects.begin(), objects.end(), obj );
+
+		// available in vector
+		if( itr != objects.end() )
+		{
+			// erase
+			objects.erase( itr );
+		}
+
+		if( delete_data )
+		{
+			delete obj;
+		}
+
+		return 1;
 	}
 
 	// Delete all objects
@@ -75,7 +94,7 @@ public:
 	/* Return the object pointer
 	 * if not found returns NULL
 	*/
-	virtual T *Get_Pointer( unsigned int identifier )
+	virtual T *Get_Pointer( size_t identifier ) const
 	{
 		if( identifier >= objects.size() )
 		{
@@ -102,17 +121,25 @@ public:
 			return 0;
 		}
 
-		int obj1_pos = Get_Array_Num( obj1 );
-		int obj2_pos = Get_Array_Num( obj2 );
-		
-		// not found
-		if( obj1_pos < 0 || obj2_pos < 0 )
+		typename vector<T *>::iterator itr1 = std::find( objects.begin(), objects.end(), obj1 );
+
+		// not in vector
+		if( itr1 == objects.end() )
 		{
 			return 0;
 		}
 
-		objects[obj1_pos] = obj2;
-		objects[obj2_pos] = obj1;
+		typename vector<T *>::iterator itr2 = std::find( objects.begin(), objects.end(), obj2 );
+
+		// not in vector
+		if( itr2 == objects.end() )
+		{
+			return 0;
+		}
+
+		// todo: does that work ?
+		itr1 = obj2;
+		itr2 = obj1;
 
 		return 1;
 	}
@@ -120,7 +147,7 @@ public:
 	/* Return the object array number
 	 * if not found returns -1
 	*/
-	int Get_Array_Num( T *obj )
+	int Get_Array_Num( T *obj ) const
 	{
 		// invalid
 		if( !obj )
@@ -128,29 +155,34 @@ public:
 			return -1;
 		}
 
-		for( unsigned int i = 0; i < objects.size(); i++ )
+		typename vector<T *>::const_iterator itr_obj = std::find( objects.begin(), objects.end(), obj );
+
+		// not in vector
+		if( itr_obj == objects.end() )
 		{
-			// check if the same
-			if( objects[i] == obj )
-			{
-				// found
-				return i;
-			}
+			return -1;
 		}
 
-		// not found
-		return -1;
+		return std::distance( objects.begin(), itr_obj );
 	}
 
 	// Return the object count
-	unsigned int size( void )
+	size_t size( void ) const
 	{
 		return objects.size();
+	}
+
+	// Return true if no objects
+	bool empty( void ) const
+	{
+		return objects.empty();
 	}
 
 	vector<T*> objects;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

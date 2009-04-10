@@ -1,7 +1,7 @@
 /***************************************************************************
  * sprite.cpp  -  basic sprite class
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 #include "../objects/movingsprite.h"
 #include "../core/game_core.h"
 #include "../level/level.h"
-#include "../core/camera.h"
 #include "../core/framerate.h"
 #include "../player/player.h"
 #include "../gui/hud.h"
@@ -25,6 +24,9 @@
 #include "../video/renderer.h"
 #include "../core/sprite_manager.h"
 #include "../core/editor.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** cCollidingSprite *** *** *** *** *** *** *** *** *** */
 
@@ -35,62 +37,65 @@ cCollidingSprite :: cCollidingSprite( void )
 
 cCollidingSprite :: ~cCollidingSprite( void )
 {
-
-}
-
-void cCollidingSprite :: Parse_Collisions( void )
-{
-	// get collision list
-	ObjectCollisionList col_list;
-	collisions.swap( col_list );
-
-	// parse the found collisions
-	for( ObjectCollisionList::iterator itr = col_list.begin(), itr_end = col_list.end(); itr != itr_end; ++itr )
-	{
-		// get object pointer
-		cObjectCollision *col = (*itr);
-
-		// handle
-		Handle_Collision( col );
-	}
+	Clear_Collisions();
 }
 
 void cCollidingSprite :: Handle_Collisions( void )
 {
-	// parse
-	Parse_Collisions();
+	// get collision list
+	cObjectCollision_List col_list;
+	collisions.swap( col_list );
+
+	// parse the given collisions
+	for( cObjectCollision_List::iterator itr = col_list.begin(), itr_end = col_list.end(); itr != itr_end; ++itr )
+	{
+		// handle it
+		Handle_Collision( (*itr) );
+	}
+
 	// clear
-	Collisions_Clear();
+	for( cObjectCollision_List::iterator itr = col_list.begin(), itr_end = col_list.end(); itr != itr_end; ++itr )
+	{
+		delete *itr;
+	}
+
+	col_list.clear();
 }
 
-bool cCollidingSprite :: Collision_Add( cSprite *base, cSprite *col, unsigned int col_id /* = 0 */, ObjectCollisionType col_type /* = CO_NOTHING */, bool add_if_new /* = 0 */ )
+cObjectCollision *cCollidingSprite :: Create_Collision_Object( const cSprite *base, cSprite *col, Col_Valid_Type valid_type ) const
 {
-	// invalid base
-	if( !base )
+	// if invalid
+	if( !base || valid_type == COL_VTYPE_NOT_VALID )
 	{
-		return 0;
+		return NULL;
 	}
 
 	// create
 	cObjectCollision *collision = new cObjectCollision();
 
-	// type
-	collision->type = col_type;
-	// identifier
-	collision->number = col_id;
-
 	// if col object is available
 	if( col )
 	{
+		// object
+		collision->obj = col;
+		// identifier
+		if( col->m_sprite_array != ARRAY_PLAYER )
+		{
+			collision->number = pActive_Sprite_Manager->Get_Array_Num( col );
+		}
+		// type
+		collision->m_array = col->m_sprite_array;
 		// direction 
 		collision->Set_Direction( base, col );
 	}
 
-	// add
-	return Collision_Add( collision, add_if_new );
+	// valid type
+	collision->valid_type = valid_type;
+
+	return collision;
 }
 
-bool cCollidingSprite :: Collision_Add( cObjectCollision *collision, bool add_if_new /* = 0 */ )
+bool cCollidingSprite :: Add_Collision( cObjectCollision *collision, bool add_if_new /* = 0 */ )
 {
 	// invalid collision data
 	if( !collision )
@@ -101,18 +106,11 @@ bool cCollidingSprite :: Collision_Add( cObjectCollision *collision, bool add_if
 	// check if collision data is new
 	if( add_if_new )
 	{
-		// check found collisions list
-		for( ObjectCollisionList::iterator itr = collisions.begin(), itr_end = collisions.end(); itr != itr_end; ++itr )
+		// already in list
+		if( Is_Collision_Included( collision->obj ) )
 		{
-			// get object pointer
-			cObjectCollision *col = (*itr);
-
-			// already in list
-			if( col->number == collision->number )
-			{
-				delete collision;
-				return 0;
-			}
+			delete collision;
+			return 0;
 		}
 	}
 
@@ -121,52 +119,74 @@ bool cCollidingSprite :: Collision_Add( cObjectCollision *collision, bool add_if
 	return 1;
 }
 
-void cCollidingSprite :: Collision_Delete( cObjectCollision *collision )
+void cCollidingSprite :: Add_Collisions( cObjectCollisionType *col_list, bool add_if_new /* = 0 */ )
+{
+	// insert all objects
+	for( cObjectCollision_List::iterator itr = col_list->objects.begin(), itr_end = col_list->objects.end(); itr != itr_end; ++itr )
+	{
+		cObjectCollision *col = (*itr);
+
+		Add_Collision( col, add_if_new );
+	}
+
+	col_list->objects.clear();
+}
+
+void cCollidingSprite :: Delete_Collision( cObjectCollision *collision )
 {
 	if( !collision )
 	{
 		return;
 	}
 
-	for( ObjectCollisionList::iterator itr = collisions.begin(), itr_end = collisions.end(); itr != itr_end; ++itr )
-	{
-		// get object pointer
-		cObjectCollision *col = (*itr);
+	// get iterator
+	cObjectCollision_List::iterator itr = std::find( collisions.begin(), collisions.end(), collision );
 
-		if( col == collision )
-		{
-			delete collision;
-			collisions.erase( itr );
-			break;
-		}
+	// not available
+	if( itr == collisions.end() )
+	{
+		return;
 	}
+
+	// erase from list
+	collisions.erase( itr );
+	// delete
+	delete collision;
 }
 
-void cCollidingSprite :: Collision_Delete_last( void )
+void cCollidingSprite :: Delete_Last_Collision( void )
 {
 	if( collisions.empty() )
 	{
 		return;
 	}
 	
-	delete collisions[collisions.size() - 1];
-	collisions.erase( collisions.begin() + collisions.size() - 1 );
+	cObjectCollision_List::iterator end_itr = collisions.end() - 1;
+
+	delete *end_itr;
+	collisions.erase( end_itr );
 }
 
-int cCollidingSprite :: Collision_Check_Direction( ObjectDirection dir )
+int cCollidingSprite :: Is_Collision_In_Direction( const ObjectDirection dir ) const
 {
-	for( unsigned int i = 0; i < collisions.size(); i++ )
+	int pos = 0;
+
+	for( cObjectCollision_List::const_iterator itr = collisions.begin(), itr_end = collisions.end(); itr != itr_end; ++itr )
 	{
-		if( collisions[i]->direction == dir )
+		cObjectCollision *col = (*itr);
+
+		if( col->direction == dir )
 		{
-			return i;
+			return pos;
 		}
+
+		pos++;
 	}
 
 	return -1;
 }
 
-cObjectCollision *cCollidingSprite :: Collision_Get_first( void )
+cObjectCollision *cCollidingSprite :: Get_First_Collision( void ) const
 {
 	// no collision available
 	if( collisions.empty() )
@@ -174,10 +194,10 @@ cObjectCollision *cCollidingSprite :: Collision_Get_first( void )
 		return NULL;	
 	}
 
-	return collisions[0];
+	return *collisions.begin();
 }
 
-cObjectCollision *cCollidingSprite :: Collision_Get_last( bool only_blocking /* = 0 */ )
+cObjectCollision *cCollidingSprite :: Get_Last_Collision( bool only_blocking /* = 0 */ ) const
 {
 	// no collisions available
 	if( collisions.empty() )
@@ -187,7 +207,7 @@ cObjectCollision *cCollidingSprite :: Collision_Get_last( bool only_blocking /* 
 
 	if( only_blocking )
 	{
-		for( ObjectCollisionList::reverse_iterator itr = collisions.rbegin(), itr_end = collisions.rend(); itr != itr_end; ++itr )
+		for( cObjectCollision_List::const_reverse_iterator itr = collisions.rbegin(), itr_end = collisions.rend(); itr != itr_end; ++itr )
 		{
 			// get object pointer
 			cObjectCollision *col = (*itr);
@@ -195,19 +215,18 @@ cObjectCollision *cCollidingSprite :: Collision_Get_last( bool only_blocking /* 
 			cSprite *col_obj = pActive_Sprite_Manager->Get_Pointer( col->number );
 
 			// ignore passive
-			if( col_obj->massivetype == MASS_PASSIVE )
+			if( col_obj->m_massive_type == MASS_PASSIVE )
 			{
 				continue;
 			}
 			// if active check if not climbable
-			else if( col->type == CO_ACTIVE )
+			if( col->m_array == ARRAY_ACTIVE )
 			{
 				// not a valid object
-				if( col_obj->massivetype == MASS_CLIMBABLE )
+				if( col_obj->m_massive_type == MASS_CLIMBABLE )
 				{
 					continue;
 				}
-
 			}
 
 			// is blocking
@@ -218,12 +237,31 @@ cObjectCollision *cCollidingSprite :: Collision_Get_last( bool only_blocking /* 
 		return NULL;
 	}
 
-	return collisions[collisions.size() - 1];
+	return *(collisions.end() - 1);
 }
 
-void cCollidingSprite :: Collisions_Clear( void )
+bool cCollidingSprite :: Is_Collision_Included( const cSprite *obj ) const
 {
-	for( ObjectCollisionList::iterator itr = collisions.begin(), itr_end = collisions.end(); itr != itr_end; ++itr )
+	// check if in collisions list
+	for( cObjectCollision_List::const_iterator itr = collisions.begin(), itr_end = collisions.end(); itr != itr_end; ++itr )
+	{
+		// get object pointer
+		cObjectCollision *col = (*itr);
+
+		// is in list
+		if( col->obj == obj )
+		{
+			return 1;
+		}
+	}
+
+	// not found
+	return 0;
+}
+
+void cCollidingSprite :: Clear_Collisions( void )
+{
+	for( cObjectCollision_List::iterator itr = collisions.begin(), itr_end = collisions.end(); itr != itr_end; ++itr )
 	{
 		delete *itr;
 	}
@@ -234,19 +272,24 @@ void cCollidingSprite :: Collisions_Clear( void )
 void cCollidingSprite :: Handle_Collision( cObjectCollision *collision )
 {
 	// player
-	if( collision->type == CO_PLAYER )
+	if( collision->m_array == ARRAY_PLAYER )
 	{
 		Handle_Collision_Player( collision );
 	}
 	// enemy
-	else if( collision->type == CO_ENEMY )
+	else if( collision->m_array == ARRAY_ENEMY )
 	{
 		Handle_Collision_Enemy( collision );
 	}
 	// massive
-	else if( collision->type == CO_MASSIVE || collision->type == CO_ACTIVE )
+	else if( collision->m_array == ARRAY_MASSIVE || collision->m_array == ARRAY_ACTIVE )
 	{
 		Handle_Collision_Massive( collision );
+	}
+	// passive
+	else if( collision->m_array == ARRAY_PASSIVE )
+	{
+		Handle_Collision_Passive( collision );
 	}
 }
 
@@ -265,6 +308,11 @@ void cCollidingSprite :: Handle_Collision_Massive( cObjectCollision *collision )
 	// virtual
 }
 
+void cCollidingSprite :: Handle_Collision_Passive( cObjectCollision *collision )
+{
+	// virtual
+}
+
 void cCollidingSprite :: Handle_Collision_Box( ObjectDirection direction, GL_rect *r2 )
 {
 	// virtual
@@ -278,7 +326,7 @@ cSprite :: cSprite( cGL_Surface *new_image /* = NULL */, float x /* = 0 */, floa
 
 	if( new_image )
 	{
-		Set_Image( new_image, 0, del_img );
+		cSprite::Set_Image( new_image, 0, del_img );
 	}
 
 	Set_Pos( x, y );
@@ -287,111 +335,117 @@ cSprite :: cSprite( cGL_Surface *new_image /* = NULL */, float x /* = 0 */, floa
 cSprite :: cSprite( CEGUI::XMLAttributes &attributes )
 {
 	cSprite::Init();
-	cSprite::Create_from_Stream( attributes );
+	cSprite::Create_From_Stream( attributes );
 }
 
 cSprite :: ~cSprite( void )
 {
-	if( delete_image && image )
+	if( m_delete_image && m_image )
 	{
-		delete image;
+		delete m_image;
+		m_image = NULL;
 	}
 }
 
 void cSprite :: Init( void )
 {
 	// undefined
-	type = TYPE_UNDEFINED;
-	sprite_array = ARRAY_UNDEFINED;
+	m_type = TYPE_UNDEFINED;
+	m_sprite_array = ARRAY_UNDEFINED;
 
 	// collision data
-	col_pos.x = 0;
-	col_pos.y = 0;
-	col_rect.x = 0;
-	col_rect.y = 0;
-	col_rect.w = 0;
-	col_rect.h = 0;
+	m_col_pos.m_x = 0;
+	m_col_pos.m_y = 0;
+	m_col_rect.m_x = 0;
+	m_col_rect.m_y = 0;
+	m_col_rect.m_w = 0;
+	m_col_rect.m_h = 0;
 	// image data
-	rect.x = 0;
-	rect.y = 0;
-	rect.w = 0;
-	rect.h = 0;
-	start_rect.clear();
+	m_rect.m_x = 0;
+	m_rect.m_y = 0;
+	m_rect.m_w = 0;
+	m_rect.m_h = 0;
+	m_start_rect.clear();
 
-	startposx = 0;
-	startposy = 0;
+	m_start_pos_x = 0;
+	m_start_pos_y = 0;
 
-	start_image = NULL;
-	image = NULL;
-	destroy = 0;
-	delete_image = 0;
-	shadow_pos = 0;
-	shadow_color = black;
-	no_camera = 0;
+	m_start_image = NULL;
+	m_image = NULL;
+	m_auto_destroy = 0;
+	m_delete_image = 0;
+	m_shadow_pos = 0;
+	m_shadow_color = black;
+	m_no_camera = 0;
 
-	color = static_cast<Uint8>(255);
+	m_color = static_cast<Uint8>(255);
 
-	combine_type = 0;
-	combine_col[0] = 0;
-	combine_col[1] = 0;
-	combine_col[2] = 0;
+	m_combine_type = 0;
+	m_combine_color[0] = 0;
+	m_combine_color[1] = 0;
+	m_combine_color[2] = 0;
 
-	posx = 0;
-	posy = 0;
-	posz = 0;
-	editor_posz = 0;
+	m_pos_x = 0;
+	m_pos_y = 0;
+	m_pos_z = 0;
+	m_editor_pos_z = 0;
 
-	massivetype = MASS_PASSIVE;
-	visible = 1;
-	spawned = 0;
-	player_range = 1000;
-	can_be_ground = 0;
+	m_massive_type = MASS_PASSIVE;
+	m_active = 1;
+	m_spawned = 0;
+	m_player_range = 1000;
+	m_can_be_ground = 0;
 
 	// rotation
-	rotation_affects_rect = 0;
-	start_rotx = 0;
-	start_roty = 0;
-	start_rotz = 0;
-	rotx = 0;
-	roty = 0;
-	rotz = 0;
+	m_rotation_affects_rect = 0;
+	m_start_rot_x = 0;
+	m_start_rot_y = 0;
+	m_start_rot_z = 0;
+	m_rot_x = 0;
+	m_rot_y = 0;
+	m_rot_z = 0;
 	// scale
-	scale_affects_rect = 0;
-	scale_up = 0;
-	scale_down = 1;
-	scale_left = 0;
-	scale_right = 1;
-	start_scalex = 1;
-	start_scaley = 1;
-	scalex = 1;
-	scaley = 1;
+	m_scale_affects_rect = 0;
+	m_scale_up = 0;
+	m_scale_down = 1;
+	m_scale_left = 0;
+	m_scale_right = 1;
+	m_start_scale_x = 1;
+	m_start_scale_y = 1;
+	m_scale_x = 1;
+	m_scale_y = 1;
 
-	valid_draw = 1;
-	valid_update = 1;
+	m_valid_draw = 1;
+	m_valid_update = 1;
 
-	editor_window_name_width = 0;
+	m_editor_window_name_width = 0;
+}
+
+void cSprite :: Init_Links( void )
+{
+	// virtual
 }
 
 cSprite *cSprite :: Copy( void )
 {
-	cSprite *basic_sprite = new cSprite( start_image, startposx, startposy );
+	cSprite *basic_sprite = new cSprite( m_start_image, m_start_pos_x, m_start_pos_y );
 
-	basic_sprite->type = type;
-	basic_sprite->sprite_array = sprite_array;
-	basic_sprite->Set_Massive_Type( massivetype );
-	basic_sprite->can_be_ground = can_be_ground;
-	basic_sprite->Set_Rotation_affects_Rect( rotation_affects_rect );
-	basic_sprite->Set_Scale_affects_Rect( scale_affects_rect );
-	basic_sprite->Set_Scale_Directions( scale_up, scale_down, scale_left, scale_right );
-	basic_sprite->Set_Ignore_Camera( no_camera );
-	basic_sprite->Set_Shadow_Pos( shadow_pos );
-	basic_sprite->Set_Shadow_Color( shadow_color );
-	basic_sprite->spawned = spawned;
+	basic_sprite->m_type = m_type;
+	basic_sprite->m_sprite_array = m_sprite_array;
+	basic_sprite->Set_Massive_Type( m_massive_type );
+	basic_sprite->m_can_be_ground = m_can_be_ground;
+	basic_sprite->Set_Rotation_Affects_Rect( m_rotation_affects_rect );
+	basic_sprite->Set_Scale_Affects_Rect( m_scale_affects_rect );
+	basic_sprite->Set_Scale_Directions( m_scale_up, m_scale_down, m_scale_left, m_scale_right );
+	basic_sprite->Set_Ignore_Camera( m_no_camera );
+	basic_sprite->Set_Shadow_Pos( m_shadow_pos );
+	basic_sprite->Set_Shadow_Color( m_shadow_color );
+	basic_sprite->m_spawned = m_spawned;
 
 	return basic_sprite;
 }
 
-void cSprite :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
+void cSprite :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
@@ -401,28 +455,28 @@ void cSprite :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 	Set_Sprite_Type( Get_Sprite_Type_Id( attributes.getValueAsString( "type" ).c_str() ) );
 }
 
-void cSprite :: Save_to_Stream( ofstream &file )
+void cSprite :: Save_To_Stream( ofstream &file )
 {
 	// begin sprite
 	file << "\t<sprite>" << std::endl;
 
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(m_start_pos_x) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(m_start_pos_y) << "\" />" << std::endl;
 	// image
-	string img_filename;
+	std::string img_filename;
 
-	if( start_image )
+	if( m_start_image )
 	{
-		img_filename = start_image->filename;
+		img_filename = m_start_image->m_filename;
 	}
-	else if( image )
+	else if( m_image )
 	{
-		img_filename = image->filename;
+		img_filename = m_image->m_filename;
 	}
 	else
 	{
-		printf( "Warning: cSprite::Save_to_Stream no image from type %d\n", type );
+		printf( "Warning: cSprite::Save_To_Stream no image from type %d\n", m_type );
 	}
 
 	// remove pixmaps directory from string
@@ -438,102 +492,102 @@ void cSprite :: Save_to_Stream( ofstream &file )
 	file << "\t</sprite>" << std::endl;
 }
 
-void cSprite :: Load_from_Savegame( cSave_Level_Object *save_object )
+void cSprite :: Load_From_Savegame( cSave_Level_Object *save_object )
 {
 	// virtual
 }
 
-cSave_Level_Object *cSprite :: Save_to_Savegame( void )
+cSave_Level_Object *cSprite :: Save_To_Savegame( void )
 {
 	return NULL;
 }
 
 void cSprite :: Set_Image( cGL_Surface *new_image, bool new_start_image /* = 0 */, bool del_img /* = 0 */ )
 {
-	if( delete_image )
+	if( m_delete_image )
 	{
-		if( image )
+		if( m_image )
 		{
 			// if same image reset start_image
-			if( start_image == image )
+			if( m_start_image == m_image )
 			{
-				start_image = NULL;
+				m_start_image = NULL;
 			}
 
-			delete image;
-			image = NULL;
+			delete m_image;
+			m_image = NULL;
 		}
 
-		delete_image = 0;
+		m_delete_image = 0;
 	}
 
-	image = new_image;
+	m_image = new_image;
 
-	if( image )
+	if( m_image )
 	{
 		// collision data
-		col_pos = image->col_pos;
+		m_col_pos = m_image->m_col_pos;
 		// scale affects the rect
-		if( scale_affects_rect )
+		if( m_scale_affects_rect )
 		{
-			col_rect.w = image->col_w * scalex;
-			col_rect.h = image->col_h * scaley;
+			m_col_rect.m_w = m_image->m_col_w * m_scale_x;
+			m_col_rect.m_h = m_image->m_col_h * m_scale_y;
 			// image data
-			rect.w = image->w * scalex;
-			rect.h = image->h * scaley;
+			m_rect.m_w = m_image->m_w * m_scale_x;
+			m_rect.m_h = m_image->m_h * m_scale_y;
 		}
 		// scale does not affect the rect
 		else
 		{
-			col_rect.w = image->col_w;
-			col_rect.h = image->col_h;
+			m_col_rect.m_w = m_image->m_col_w;
+			m_col_rect.m_h = m_image->m_col_h;
 			// image data
-			rect.w = image->w;
-			rect.h = image->h;
+			m_rect.m_w = m_image->m_w;
+			m_rect.m_h = m_image->m_h;
 		}
 		// rotation affects the rect
-		if( rotation_affects_rect )
+		if( m_rotation_affects_rect )
 		{
 			Update_Rect_Rotation();
 		}
 
-		delete_image = del_img;
+		m_delete_image = del_img;
 
 		// if no name is set use the first image name
-		if( !name.length() )
+		if( !m_name.length() )
 		{
-			name = image->name;
+			m_name = m_image->m_name;
 		}
 		// if no editor tags are set use the first image editor tags
-		if( !editor_tags.length() )
+		if( !m_editor_tags.length() )
 		{
-			editor_tags = image->editor_tags;
+			m_editor_tags = m_image->m_editor_tags;
 		}
 	}
 	else
 	{
 		// clear image data
-		col_pos.x = 0;
-		col_pos.y = 0;
-		col_rect.w = 0;
-		col_rect.h = 0;
-		rect.w = 0;
-		rect.h = 0;
+		m_col_pos.m_x = 0;
+		m_col_pos.m_y = 0;
+		m_col_rect.m_w = 0;
+		m_col_rect.m_h = 0;
+		m_rect.m_w = 0;
+		m_rect.m_h = 0;
 	}
 
-	if( !start_image || new_start_image )
+	if( !m_start_image || new_start_image )
 	{
-		start_image = new_image;
+		m_start_image = new_image;
 
 		if( new_image )
 		{
-			start_rect.w = new_image->w;
-			start_rect.h = new_image->h;
+			m_start_rect.m_w = new_image->m_w;
+			m_start_rect.m_h = new_image->m_h;
 		}
 		else
 		{
-			start_rect.w = 0;
-			start_rect.h = 0;
+			m_start_rect.m_w = 0;
+			m_start_rect.m_h = 0;
 		}
 	}
 	
@@ -544,72 +598,86 @@ void cSprite :: Set_Image( cGL_Surface *new_image, bool new_start_image /* = 0 *
 void cSprite :: Set_Sprite_Type( SpriteType ntype )
 {
 	// set first because of massivetype z calculation
-	type = ntype;
+	m_type = ntype;
 
 	if( ntype == TYPE_MASSIVE )
 	{
-		sprite_array = ARRAY_MASSIVE;
+		m_sprite_array = ARRAY_MASSIVE;
 		Set_Massive_Type( MASS_MASSIVE );
-		can_be_ground = 1;
+		m_can_be_ground = 1;
 	}
 	else if( ntype == TYPE_PASSIVE )
 	{
-		sprite_array = ARRAY_PASSIVE;
+		m_sprite_array = ARRAY_PASSIVE;
 		Set_Massive_Type( MASS_PASSIVE );
-		can_be_ground = 0;
+		m_can_be_ground = 0;
 	}
 	else if( ntype == TYPE_FRONT_PASSIVE )
 	{
-		sprite_array = ARRAY_FRONT_PASSIVE;
+		m_sprite_array = ARRAY_PASSIVE;
 		Set_Massive_Type( MASS_PASSIVE );
-		can_be_ground = 0;
+		m_can_be_ground = 0;
 	}
 	else if( ntype == TYPE_HALFMASSIVE )
 	{
-		sprite_array = ARRAY_ACTIVE;
+		m_sprite_array = ARRAY_ACTIVE;
 		Set_Massive_Type( MASS_HALFMASSIVE );
-		can_be_ground = 1;
+		m_can_be_ground = 1;
 	}
 	else if( ntype == TYPE_CLIMBABLE )
 	{
-		sprite_array = ARRAY_ACTIVE;
+		m_sprite_array = ARRAY_ACTIVE;
 		Set_Massive_Type( MASS_CLIMBABLE );
-		can_be_ground = 0;
+		m_can_be_ground = 0;
 	}
 }
 
-string cSprite :: Get_Sprite_Type_String( void )
+std::string cSprite :: Get_Sprite_Type_String( void ) const
 {
-	if( sprite_array == ARRAY_PASSIVE )
+	if( m_sprite_array == ARRAY_UNDEFINED )
 	{
+		return "undefined";
+	}
+	else if( m_sprite_array == ARRAY_PASSIVE )
+	{
+		if( m_type == TYPE_FRONT_PASSIVE )
+		{
+			return "front_passive";
+		}
+
 		return "passive";
 	}
-	else if( sprite_array == ARRAY_FRONT_PASSIVE )
+	else if( m_sprite_array == ARRAY_ACTIVE )
 	{
-		return "front_passive";
-	}
-	else if( sprite_array == ARRAY_ACTIVE )
-	{
-		if( type == TYPE_HALFMASSIVE )
+		if( m_type == TYPE_HALFMASSIVE )
 		{
 			return "halfmassive";
 		}
-		else if( type == TYPE_CLIMBABLE )
+		else if( m_type == TYPE_CLIMBABLE )
 		{
 			return "climbable";
 		}
 		else
 		{
-			printf( "Warning : Sprite array set as active but unknown type %d\n", type );
+			printf( "Warning : Sprite array set as active but unknown type %d\n", m_type );
+			return "active";
 		}
 	}
-	else if( sprite_array == ARRAY_MASSIVE )
+	else if( m_sprite_array == ARRAY_MASSIVE )
 	{
 		return "massive";
 	}
+	else if( m_sprite_array == ARRAY_HUD )
+	{
+		return "hud";
+	}
+	else if( m_sprite_array == ARRAY_ANIM )
+	{
+		return "animation";
+	}
 	else
 	{
-		printf( "Warning : Sprite unknown array %d\n", sprite_array );
+		printf( "Warning : Sprite unknown array %d\n", m_sprite_array );
 	}
 
 	return "";
@@ -618,25 +686,25 @@ string cSprite :: Get_Sprite_Type_String( void )
 void cSprite :: Set_Ignore_Camera( bool enable /* = 0 */ )
 {
 	// already set
-	if( no_camera == enable )
+	if( m_no_camera == enable )
 	{
 		return;
 	}
 
-	no_camera = enable;
+	m_no_camera = enable;
 
 	Update_Valid_Draw();
 }
 
 void cSprite :: Set_Pos( float x, float y, bool new_startpos /* = 0 */ )
 {
-	posx = x;
-	posy = y;
+	m_pos_x = x;
+	m_pos_y = y;
 
-	if( new_startpos || ( startposx == 0 && startposy == 0 ) )
+	if( new_startpos || ( m_start_pos_x == 0 && m_start_pos_y == 0 ) )
 	{
-		startposx = x;
-		startposy = y;
+		m_start_pos_x = x;
+		m_start_pos_y = y;
 	}
 
 	Update_Position_Rect();
@@ -644,11 +712,11 @@ void cSprite :: Set_Pos( float x, float y, bool new_startpos /* = 0 */ )
 
 void cSprite :: Set_Pos_X( float x, bool new_startpos /* = 0 */ )
 {
-	posx = x;
+	m_pos_x = x;
 
 	if( new_startpos )
 	{
-		startposx = x;
+		m_start_pos_x = x;
 	}
 
 	Update_Position_Rect();
@@ -656,31 +724,31 @@ void cSprite :: Set_Pos_X( float x, bool new_startpos /* = 0 */ )
 
 void cSprite :: Set_Pos_Y( float y, bool new_startpos /* = 0 */ )
 {
-	posy = y;
+	m_pos_y = y;
 
 	if( new_startpos )
 	{
-		startposy = y;
+		m_start_pos_y = y;
 	}
 
 	Update_Position_Rect();
 }
 
-void cSprite :: Set_Visible( bool enabled )
+void cSprite :: Set_Active( bool enabled )
 {
 	// already set
-	if( visible == enabled )
+	if( m_active == enabled )
 	{
 		return;
 	}
 
-	visible = enabled;
+	m_active = enabled;
 
 	Update_Valid_Draw();
 	Update_Valid_Update();
 }
 
-void cSprite :: Set_Shadow( Color shadow, float pos )
+void cSprite :: Set_Shadow( const Color &shadow, float pos )
 {
 	Set_Shadow_Pos( pos );
 	Set_Shadow_Color( shadow );
@@ -688,66 +756,66 @@ void cSprite :: Set_Shadow( Color shadow, float pos )
 
 void cSprite :: Set_Shadow_Pos( float pos )
 {
-	shadow_pos = pos;
+	m_shadow_pos = pos;
 }
 
-void cSprite :: Set_Shadow_Color( Color shadow )
+void cSprite :: Set_Shadow_Color( const Color &shadow )
 {
-	shadow_color = shadow;
+	m_shadow_color = shadow;
 }
 
 void cSprite :: Set_Color( Uint8 red, Uint8 green, Uint8 blue, Uint8 alpha /* = 255 */ )
 {
-	color.red = red;
-	color.green = green;
-	color.blue = blue;
-	color.alpha = alpha;
+	m_color.red = red;
+	m_color.green = green;
+	m_color.blue = blue;
+	m_color.alpha = alpha;
 }
 
-void cSprite :: Set_Color( Color col )
+void cSprite :: Set_Color( const Color &col )
 {
-	color = col;
+	m_color = col;
 }
 
 void cSprite :: Set_Color_Combine( float red, float green, float blue, GLint com_type )
 {
-	combine_type = com_type;
-	combine_col[0] = red;
-	combine_col[1] = green;
-	combine_col[2] = blue;
+	m_combine_type = com_type;
+	m_combine_color[0] = red;
+	m_combine_color[1] = green;
+	m_combine_color[2] = blue;
 
 	// red limits
-	if( combine_col[0] > 1 )
+	if( m_combine_color[0] > 1.0f )
 	{
-		combine_col[0] = 1;
+		m_combine_color[0] = 1.0f;
 	}
-	else if( combine_col[0] <= 0 )
+	else if( m_combine_color[0] <= 0.0f )
 	{
-		combine_col[0] = 0.000001f;
+		m_combine_color[0] = 0.000001f;
 	}
 	// green limits
-	if( combine_col[1] > 1 )
+	if( m_combine_color[1] > 1.0f )
 	{
-		combine_col[1] = 1;
+		m_combine_color[1] = 1.0f;
 	}
-	else if( combine_col[1] <= 0 )
+	else if( m_combine_color[1] <= 0.0f )
 	{
-		combine_col[1] = 0.000001f;
+		m_combine_color[1] = 0.000001f;
 	}
 	// blue limits
-	if( combine_col[2] > 1 )
+	if( m_combine_color[2] > 1.0f )
 	{
-		combine_col[2] = 1;
+		m_combine_color[2] = 1.0f;
 	}
-	else if( combine_col[2] <= 0 )
+	else if( m_combine_color[2] <= 0.0f )
 	{
-		combine_col[2] = 0.000001f;
+		m_combine_color[2] = 0.000001f;
 	}
 }
 
-void cSprite :: Set_Rotation_affects_Rect( bool enable /* = 0 */ )
+void cSprite :: Set_Rotation_Affects_Rect( bool enable /* = 0 */ )
 {
-	rotation_affects_rect = enable;
+	m_rotation_affects_rect = enable;
 }
 
 void cSprite :: Update_Rect_Rotation( void )
@@ -761,74 +829,75 @@ void cSprite :: Update_Rect_Rotation( void )
 void cSprite :: Update_Rect_Rotation_X( void )
 {
 	// mirror
-	if( rotx >= 180 )
+	if( m_rot_x >= 180.0f )
 	{
-		col_pos.y = rect.h - ( col_rect.h + col_pos.y );
+		m_col_pos.m_y = m_rect.m_h - ( m_col_rect.m_h + m_col_pos.m_y );
 	}
 }
 
 void cSprite :: Update_Rect_Rotation_Y( void )
 {
 	// mirror
-	if( roty >= 180 )
+	if( m_rot_y >= 180.0f )
 	{
-		col_pos.x = rect.w - ( col_rect.w + col_pos.x );
+		m_col_pos.m_x = m_rect.m_w - ( m_col_rect.m_w + m_col_pos.m_x );
 	}
 }
 
 void cSprite :: Update_Rect_Rotation_Z( void )
 {
 	// rotate 270°
-	if( rotz >= 270 )
+	if( m_rot_z >= 270.0f )
 	{
 		// rotate collision position
-		float orig_x = col_pos.x;
-		col_pos.x = col_pos.y;
-		col_pos.y = orig_x;
+		float orig_x = m_col_pos.m_x;
+		m_col_pos.m_x = m_col_pos.m_y;
+		m_col_pos.m_y = orig_x;
 
 		// switch width and height
-		float orig_w = rect.w;
-		rect.w = rect.h;
-		rect.h = orig_w;
+		float orig_w = m_rect.m_w;
+		m_rect.m_w = m_rect.m_h;
+		m_rect.m_h = orig_w;
 		// switch collision width and height
-		float orig_col_w = col_rect.w;
-		col_rect.w = col_rect.h;
-		col_rect.h = orig_col_w;
+		float orig_col_w = m_col_rect.m_w;
+		m_col_rect.m_w = m_col_rect.m_h;
+		m_col_rect.m_h = orig_col_w;
 	}
 	// mirror
-	else if( rotz >= 180 )
+	else if( m_rot_z >= 180.0f )
 	{
-		col_pos.y = rect.h - ( col_rect.h + col_pos.y );
+		m_col_pos.m_x = m_rect.m_w - ( m_col_rect.m_w + m_col_pos.m_x );
+		m_col_pos.m_y = m_rect.m_h - ( m_col_rect.m_h + m_col_pos.m_y );
 	}
 	// rotate 90°
-	else if( rotz >= 0.00001f )
+	else if( m_rot_z >= 0.00001f )
 	{
 		// rotate collision position
-		float orig_x = col_pos.x;
-		col_pos.x = rect.h - ( col_rect.h + col_pos.y );
-		col_pos.y = orig_x;
+		float orig_x = m_col_pos.m_x;
+		m_col_pos.m_x = m_rect.m_h - ( m_col_rect.m_h + m_col_pos.m_y );
+		m_col_pos.m_y = orig_x;
 
 		// switch width and height
-		float orig_w = rect.w;
-		rect.w = rect.h;
-		rect.h = orig_w;
+		float orig_w = m_rect.m_w;
+		m_rect.m_w = m_rect.m_h;
+		m_rect.m_h = orig_w;
 		// switch collision width and height
-		float orig_col_w = col_rect.w;
-		col_rect.w = col_rect.h;
-		col_rect.h = orig_col_w;
+		float orig_col_w = m_col_rect.m_w;
+		m_col_rect.m_w = m_col_rect.m_h;
+		m_col_rect.m_h = orig_col_w;
 	}
 }
 
 void cSprite :: Set_Rotation_X( float rot, bool new_start_rot /* = 0 */ )
 {
-	rotx = fmod( rot, 360 );
+	m_rot_x = fmod( rot, 360.0f );
 
 	if( new_start_rot )
 	{
-		start_rotx = rotx;
+		m_start_rot_x = m_rot_x;
 	}
 
-	if( rotation_affects_rect )
+	if( m_rotation_affects_rect )
 	{
 		Update_Rect_Rotation_X();
 	}
@@ -836,14 +905,14 @@ void cSprite :: Set_Rotation_X( float rot, bool new_start_rot /* = 0 */ )
 
 void cSprite :: Set_Rotation_Y( float rot, bool new_start_rot /* = 0 */ )
 {
-	roty = fmod( rot, 360 );
+	m_rot_y = fmod( rot, 360.0f );
 
 	if( new_start_rot )
 	{
-		start_roty = roty;
+		m_start_rot_y = m_rot_y;
 	}
 
-	if( rotation_affects_rect )
+	if( m_rotation_affects_rect )
 	{
 		Update_Rect_Rotation_Y();
 	}
@@ -851,14 +920,14 @@ void cSprite :: Set_Rotation_Y( float rot, bool new_start_rot /* = 0 */ )
 
 void cSprite :: Set_Rotation_Z( float rot, bool new_start_rot /* = 0 */ )
 {
-	rotz = fmod( rot, 360 );
+	m_rot_z = fmod( rot, 360.0f );
 
 	if( new_start_rot )
 	{
-		start_rotz = rotz;
+		m_start_rot_z = m_rot_z;
 	}
 
-	if( rotation_affects_rect )
+	if( m_rotation_affects_rect )
 	{
 		Update_Rect_Rotation_Z();
 	}
@@ -873,96 +942,96 @@ void cSprite :: Set_Rotation( float x, float y, float z, bool new_start_rot /* =
 
 void cSprite :: Add_Rotation_X( float rot )
 {
-	Set_Rotation_X( rotx + rot );
+	Set_Rotation_X( m_rot_x + rot );
 }
 
 void cSprite :: Add_Rotation_Y( float rot )
 {
-	Set_Rotation_Y( roty + rot );
+	Set_Rotation_Y( m_rot_y + rot );
 }
 
 void cSprite :: Add_Rotation_Z( float rot )
 {
-	Set_Rotation_Z( rotz + rot );
+	Set_Rotation_Z( m_rot_z + rot );
 }
 
 void cSprite :: Add_Rotation( float x, float y, float z )
 {
-	Set_Rotation_X( rotx + x );
-	Set_Rotation_Y( roty + y );
-	Set_Rotation_Z( rotz + z );
+	Set_Rotation_X( m_rot_x + x );
+	Set_Rotation_Y( m_rot_y + y );
+	Set_Rotation_Z( m_rot_z + z );
 }
 
-void cSprite :: Set_Scale_affects_Rect( bool enable /* = 0 */ )
+void cSprite :: Set_Scale_Affects_Rect( bool enable /* = 0 */ )
 {
-	scale_affects_rect = enable;
+	m_scale_affects_rect = enable;
 }
 
 void cSprite :: Set_Scale_Directions( bool up /* = 1 */, bool down /* = 0 */, bool left /* = 1 */, bool right /* = 0 */ )
 {
-	scale_up = up;
-	scale_down = down;
-	scale_left = left;
-	scale_right = right;
+	m_scale_up = up;
+	m_scale_down = down;
+	m_scale_left = left;
+	m_scale_right = right;
 }
 
 void cSprite :: Set_Scale_X( const float scale, const bool new_startscale /* = 0 */ )
 {
 	// invalid value
-	if( scale == 0 )
+	if( scale == 0.0f )
 	{
 		return;
 	}
 
 	// undo previous scale from rect
-	if( scale_affects_rect && scalex != 1 )
+	if( m_scale_affects_rect && m_scale_x != 1.0f )
 	{
-		col_rect.w /= scalex;
-		rect.w /= scalex;
+		m_col_rect.m_w /= m_scale_x;
+		m_rect.m_w /= m_scale_x;
 	}
 
-	scalex = scale;
+	m_scale_x = scale;
 
 	// set new scale to rect
-	if( scale_affects_rect && scalex != 1 )
+	if( m_scale_affects_rect && m_scale_x != 1.0f )
 	{
-		col_rect.w *= scalex;
-		rect.w *= scalex;
+		m_col_rect.m_w *= m_scale_x;
+		m_rect.m_w *= m_scale_x;
 	}
 
 	if( new_startscale )
 	{
-		start_scalex = scalex;
+		m_start_scale_x = m_scale_x;
 	}
 }
 
 void cSprite :: Set_Scale_Y( const float scale, const bool new_startscale /* = 0 */ )
 {
 	// invalid value
-	if( scale == 0 )
+	if( scale == 0.0f )
 	{
 		return;
 	}
 
 	// undo previous scale from rect
-	if( scale_affects_rect && scaley != 1 )
+	if( m_scale_affects_rect && m_scale_y != 1.0f )
 	{
-		col_rect.h /= scaley;
-		rect.h /= scaley;
+		m_col_rect.m_h /= m_scale_y;
+		m_rect.m_h /= m_scale_y;
 	}
 
-	scaley = scale;
+	m_scale_y = scale;
 
 	// set new scale to rect
-	if( scale_affects_rect && scaley != 1 )
+	if( m_scale_affects_rect && m_scale_y != 1.0f )
 	{
-		col_rect.h *= scaley;
-		rect.h *= scaley;
+		m_col_rect.m_h *= m_scale_y;
+		m_rect.m_h *= m_scale_y;
 	}
 
 	if( new_startscale )
 	{
-		start_scaley = scaley;
+		m_start_scale_y = m_scale_y;
 	}
 }
 
@@ -974,29 +1043,29 @@ void cSprite :: Set_Scale( const float scale, const bool new_startscale /* = 0 *
 
 void cSprite :: Add_Scale_X( const float val )
 {
-	Set_Scale_X( scalex + val );
+	Set_Scale_X( m_scale_x + val );
 }
 
 void cSprite :: Add_Scale_Y( const float val )
 {
-	Set_Scale_Y( scaley + val );
+	Set_Scale_Y( m_scale_y + val );
 }
 
 void cSprite :: Add_Scale( const float val )
 {
-	Set_Scale_X( scalex + val );
-	Set_Scale_Y( scaley + val );
+	Set_Scale_X( m_scale_x + val );
+	Set_Scale_Y( m_scale_y + val );
 }
 
-void cSprite :: Set_on_Top( const cSprite *sprite, bool optimize_hor_pos /* = 1 */ )
+void cSprite :: Set_On_Top( const cSprite *sprite, bool optimize_hor_pos /* = 1 */ )
 {
 	// set ground position 0.1f over it
-	posy = sprite->col_rect.y - col_pos.y - col_rect.h - 0.1f;
+	m_pos_y = sprite->m_col_rect.m_y - m_col_pos.m_y - m_col_rect.m_h - 0.1f;
 
 	// optimize the horizontal position if given
-	if( optimize_hor_pos && ( posx < sprite->posx || posx > sprite->posx + sprite->col_rect.w ) )
+	if( optimize_hor_pos && ( m_pos_x < sprite->m_pos_x || m_pos_x > sprite->m_pos_x + sprite->m_col_rect.m_w ) )
 	{
-		posx = sprite->posx + sprite->col_rect.w / 3;
+		m_pos_x = sprite->m_pos_x + sprite->m_col_rect.m_w / 3;
 	}
 
 	Update_Position_Rect();
@@ -1004,7 +1073,7 @@ void cSprite :: Set_on_Top( const cSprite *sprite, bool optimize_hor_pos /* = 1 
 
 void cSprite :: Move( float move_x, float move_y, const bool real /* = 0 */ )
 {
-	if( move_x == 0 && move_y == 0 )
+	if( Is_Float_Equal( move_x, 0.0f ) && Is_Float_Equal( move_y, 0.0f ) )
 	{
 		return;
 	}
@@ -1015,8 +1084,8 @@ void cSprite :: Move( float move_x, float move_y, const bool real /* = 0 */ )
 		move_y *= pFramerate->speedfactor;
 	}
 
-	posx += move_x;
-	posy += move_y;
+	m_pos_x += move_x;
+	m_pos_y += move_y;
 
 	Update_Position_Rect();
 }
@@ -1031,25 +1100,25 @@ void cSprite :: Update_Position_Rect( void )
 	// if not editor mode
 	if( !editor_enabled )
 	{
-		rect.x = posx;
-		rect.y = posy;
+		m_rect.m_x = m_pos_x;
+		m_rect.m_y = m_pos_y;
 		// editor rect
-		start_rect.x = posx;
-		start_rect.y = posy;
+		m_start_rect.m_x = m_pos_x;
+		m_start_rect.m_y = m_pos_y;
 		// collision rect
-		col_rect.x = posx + col_pos.x;
-		col_rect.y = posy + col_pos.y;
+		m_col_rect.m_x = m_pos_x + m_col_pos.m_x;
+		m_col_rect.m_y = m_pos_y + m_col_pos.m_y;
 	}
 	// editor mode
 	else
 	{
-		rect.x = startposx;
-		rect.y = startposy;
-		start_rect.x = startposx;
-		start_rect.y = startposy;
-		// Don't use startposx/startposy because col_rect is not the editor/start rect
-		col_rect.x = posx + col_pos.x; // todo : startcol_pos ?
-		col_rect.y = posy + col_pos.y;
+		m_rect.m_x = m_start_pos_x;
+		m_rect.m_y = m_start_pos_y;
+		m_start_rect.m_x = m_start_pos_x;
+		m_start_rect.m_y = m_start_pos_y;
+		// Do not use m_start_pos_x/m_start_pos_y because col_rect is not the editor/start rect
+		m_col_rect.m_x = m_pos_x + m_col_pos.m_x; // todo : startcol_pos ?
+		m_col_rect.m_y = m_pos_y + m_col_pos.m_y;
 	}
 
 	Update_Valid_Draw();
@@ -1060,19 +1129,24 @@ void cSprite :: Update( void )
 	// virtual
 }
 
+void cSprite :: Update_Late( void )
+{
+	// virtual
+}
+
 void cSprite :: Update_Valid_Draw( void )
 {
-	valid_draw = Is_Draw_Valid();
+	m_valid_draw = Is_Draw_Valid();
 }
 
 void cSprite :: Update_Valid_Update( void )
 {
-	valid_update = Is_Update_Valid();
+	m_valid_update = Is_Update_Valid();
 }
 
-void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
+void cSprite :: Draw( cSurface_Request *request /* = NULL */ )
 {
-	if( !valid_draw )
+	if( !m_valid_draw )
 	{
 		return;
 	}
@@ -1084,38 +1158,38 @@ void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 	{
 		// - image rect
 		// create request
-		cRectRequest *rect_request = new cRectRequest();
+		cRect_Request *rect_request = new cRect_Request();
 		// draw
-		pVideo->Draw_Rect( &rect, posz + 0.000002f, &lightgrey, rect_request );
-		rect_request->no_camera = no_camera;
+		pVideo->Draw_Rect( &m_rect, m_pos_z + 0.000008f, &lightgrey, rect_request );
+		rect_request->no_camera = m_no_camera;
 		rect_request->filled = 0;
 		rect_request->blend_sfactor = GL_SRC_COLOR;
 		rect_request->blend_dfactor = GL_DST_ALPHA;
 		// scale
-		if( !scale_affects_rect )
+		if( !m_scale_affects_rect )
 		{
 			// scale position y
-			if( scale_up )
+			if( m_scale_up )
 			{
-				rect_request->rect.y += ( image->int_y * scaley ) - ( ( image->h * 0.5f ) * ( scaley - 1 ) );
+				rect_request->rect.m_y += ( m_image->m_int_y * m_scale_y ) - ( ( m_image->m_h * 0.5f ) * ( m_scale_y - 1.0f ) );
 			}
 
 			// scale height
-			if( scale_down )
+			if( m_scale_down )
 			{
-				rect_request->rect.h += image->h * ( scaley - 1 );
+				rect_request->rect.m_h += m_image->m_h * ( m_scale_y - 1.0f );
 			}
 
 			// scale position x
-			if( scale_left )
+			if( m_scale_left )
 			{
-				rect_request->rect.x += ( image->int_x * scalex ) - ( ( image->w * 0.5f ) * ( scalex - 1 ) );
+				rect_request->rect.m_x += ( m_image->m_int_x * m_scale_x ) - ( ( m_image->m_w * 0.5f ) * ( m_scale_x - 1.0f ) );
 			}
 
 			// scale width
-			if( scale_right )
+			if( m_scale_right )
 			{
-				rect_request->rect.w += image->w * ( scalex - 1 );
+				rect_request->rect.m_w += m_image->m_w * ( m_scale_x - 1.0f );
 			}
 		}
 		// add request
@@ -1123,11 +1197,11 @@ void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 
 		// - collision rect
 		// create request
-		rect_request = new cRectRequest();
+		rect_request = new cRect_Request();
 		// draw
 		Color sprite_color = Get_Sprite_Color( this );
-		pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &sprite_color, rect_request );
-		rect_request->no_camera = no_camera;
+		pVideo->Draw_Rect( &m_col_rect, m_pos_z + 0.000007f, &sprite_color, rect_request );
+		rect_request->no_camera = m_no_camera;
 		// blending
 		rect_request->blend_sfactor = GL_SRC_COLOR;
 		rect_request->blend_dfactor = GL_DST_ALPHA;
@@ -1142,18 +1216,18 @@ void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 		// draw debug rect
 		if( game_debug )
 		{
-			if( type == TYPE_PLAYER )
+			if( m_type == TYPE_PLAYER )
 			{
 				// Get Moving Sprite
 				cMovingSprite *moving_sprite = static_cast<cMovingSprite *>(this);
 
 				// if on ground
-				if( moving_sprite->ground_object )
+				if( moving_sprite->m_ground_object )
 				{
 					// create request
-					cRectRequest *rect_request = new cRectRequest();
+					cRect_Request *rect_request = new cRect_Request();
 					// draw
-					pVideo->Draw_Rect( &moving_sprite->ground_object->col_rect, posz + 0.000002f, &grey, rect_request );
+					pVideo->Draw_Rect( &moving_sprite->m_ground_object->m_col_rect, m_pos_z + 0.000009f, &grey, rect_request );
 					rect_request->no_camera = 0;
 					// blending
 					rect_request->blend_sfactor = GL_SRC_COLOR;
@@ -1166,12 +1240,12 @@ void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 		}
 	}
 	// show obsolete images in editor
-	else if( image && image->obsolete )
+	else if( m_image && m_image->m_obsolete )
 	{
 		// create request
-		cRectRequest *rect_request = new cRectRequest();
+		cRect_Request *rect_request = new cRect_Request();
 		// draw
-		pVideo->Draw_Rect( &col_rect, posz + 0.000001f, &red, rect_request );
+		pVideo->Draw_Rect( &m_col_rect, m_pos_z + 0.000005f, &red, rect_request );
 		rect_request->no_camera = 0;
 
 		// blending
@@ -1183,9 +1257,9 @@ void cSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 	}
 }
 
-void cSprite :: Draw_Image( cSurfaceRequest *request /* = NULL */ )
+void cSprite :: Draw_Image( cSurface_Request *request /* = NULL */ ) const
 {
-	if( !valid_draw )
+	if( !m_valid_draw )
 	{
 		return;
 	}
@@ -1196,197 +1270,207 @@ void cSprite :: Draw_Image( cSurfaceRequest *request /* = NULL */ )
 	{
 		create_request = 1;
 		// create request
-		request = new cSurfaceRequest();
+		request = new cSurface_Request();
 	}
 
 	// editor
 	if( editor_enabled )
 	{
-		// blit surface
-		start_image->Blit_Data( request );
+		// texture id
+		request->texture_id = m_start_image->m_image;
+
+		// size
+		request->w = m_start_image->m_start_w;
+		request->h = m_start_image->m_start_h;
 
 		// rotation
-		request->rotx += start_rotx;
-		request->roty += start_roty;
-		request->rotz += start_rotz;
+		request->rotx += m_start_rot_x + m_start_image->m_base_rot_x;
+		request->roty += m_start_rot_y + m_start_image->m_base_rot_y;
+		request->rotz += m_start_rot_z + m_start_image->m_base_rot_z;
+
 		// position x and
 		// scalex
-		if( start_scalex != 1 )
+		if( m_start_scale_x != 1.0f )
 		{
 			// scale to the right and left
-			if( scale_right && scale_left )
+			if( m_scale_right && m_scale_left )
 			{
-				request->scale_x = start_scalex;
-				request->pos_x = startposx + ( start_image->int_x * start_scalex ) - ( ( start_image->w * 0.5f ) * ( start_scalex - 1 ) );
+				request->scale_x = m_start_scale_x;
+				request->pos_x = m_start_pos_x + ( m_start_image->m_int_x * m_start_scale_x ) - ( ( m_start_image->m_w * 0.5f ) * ( m_start_scale_x - 1.0f ) );
 			}
 			// scale to the right only
-			else if( scale_right )
+			else if( m_scale_right )
 			{
-				request->scale_x = start_scalex;
-				request->pos_x = startposx + ( start_image->int_x * start_scalex );
+				request->scale_x = m_start_scale_x;
+				request->pos_x = m_start_pos_x + ( m_start_image->m_int_x * m_start_scale_x );
 			}
 			// scale to the left only
-			else if( scale_left )
+			else if( m_scale_left )
 			{
-				request->scale_x = start_scalex;
-				request->pos_x = startposx + ( start_image->int_x * start_scalex ) - ( ( start_image->w ) * ( start_scalex - 1 ) );
+				request->scale_x = m_start_scale_x;
+				request->pos_x = m_start_pos_x + ( m_start_image->m_int_x * m_start_scale_x ) - ( ( m_start_image->m_w ) * ( m_start_scale_x - 1.0f ) );
 			}
 			// no scaling
 			else
 			{
-				request->pos_x = startposx + start_image->int_x;
+				request->pos_x = m_start_pos_x + m_start_image->m_int_x;
 			}
 		}
 		// no scalex
 		else
 		{
-			request->pos_x = startposx + start_image->int_x;
+			request->pos_x = m_start_pos_x + m_start_image->m_int_x;
 		}
 		// position y and
 		// scaley
-		if( start_scaley != 1 )
+		if( m_start_scale_y != 1.0f )
 		{
 			// scale down and up
-			if( scale_down && scale_up )
+			if( m_scale_down && m_scale_up )
 			{
-				request->scale_y = start_scaley;
-				request->pos_y = startposy + ( start_image->int_y * start_scaley ) - ( ( start_image->h * 0.5f ) * ( start_scaley - 1 ) );
+				request->scale_y = m_start_scale_y;
+				request->pos_y = m_start_pos_y + ( m_start_image->m_int_y * m_start_scale_y ) - ( ( m_start_image->m_h * 0.5f ) * ( m_start_scale_y - 1.0f ) );
 			}
 			// scale down only
-			else if( scale_down )
+			else if( m_scale_down )
 			{
-				request->scale_y = start_scaley;
-				request->pos_y = startposy + ( start_image->int_y * start_scaley );
+				request->scale_y = m_start_scale_y;
+				request->pos_y = m_start_pos_y + ( m_start_image->m_int_y * m_start_scale_y );
 			}
 			// scale up only
-			else if( scale_up )
+			else if( m_scale_up )
 			{
-				request->scale_y = start_scaley;
-				request->pos_y = startposy + ( start_image->int_y * start_scaley ) - ( ( start_image->h ) * ( start_scaley - 1 ) );
+				request->scale_y = m_start_scale_y;
+				request->pos_y = m_start_pos_y + ( m_start_image->m_int_y * m_start_scale_y ) - ( ( m_start_image->m_h ) * ( m_start_scale_y - 1.0f ) );
 			}
 			// no scaling
 			else
 			{
-				request->pos_y = startposy + start_image->int_y;
+				request->pos_y = m_start_pos_y + m_start_image->m_int_y;
 			}
 		}
 		// no scaley
 		else
 		{
-			request->pos_y = startposy + start_image->int_y;
+			request->pos_y = m_start_pos_y + m_start_image->m_int_y;
 		}
 	
 		// if editor z position is given
-		if( editor_posz > 0 )
+		if( m_editor_pos_z > 0.0f )
 		{
-			request->pos_z = editor_posz;
+			request->pos_z = m_editor_pos_z;
 		}
 		// normal position z
 		else
 		{
-			request->pos_z = posz;
+			request->pos_z = m_pos_z;
 		}
 	}
 	// no editor
 	else
 	{
-		// blit surface
-		image->Blit_Data( request );
+		// texture id
+		request->texture_id = m_image->m_image;
+
+		// size
+		request->w = m_image->m_start_w;
+		request->h = m_image->m_start_h;
 
 		// rotation
-		request->rotx += rotx;
-		request->roty += roty;
-		request->rotz += rotz;
+		request->rotx += m_rot_x + m_image->m_base_rot_x;
+		request->roty += m_rot_y + m_image->m_base_rot_y;
+		request->rotz += m_rot_z + m_image->m_base_rot_z;
+
 		// position x and
 		// scalex
-		if( scalex != 1 )
+		if( m_scale_x != 1.0f )
 		{
 			// scale to the right and left
-			if( scale_right && scale_left )
+			if( m_scale_right && m_scale_left )
 			{
-				request->scale_x = scalex;
-				request->pos_x = posx + ( image->int_x * scalex ) - ( ( image->w * 0.5f ) * ( scalex - 1 ) );
+				request->scale_x = m_scale_x;
+				request->pos_x = m_pos_x + ( m_image->m_int_x * m_scale_x ) - ( ( m_image->m_w * 0.5f ) * ( m_scale_x - 1.0f ) );
 			}
 			// scale to the right only
-			else if( scale_right )
+			else if( m_scale_right )
 			{
-				request->scale_x = scalex;
-				request->pos_x = posx + ( image->int_x * scalex );
+				request->scale_x = m_scale_x;
+				request->pos_x = m_pos_x + ( m_image->m_int_x * m_scale_x );
 			}
 			// scale to the left only
-			else if( scale_left )
+			else if( m_scale_left )
 			{
-				request->scale_x = scalex;
-				request->pos_x = posx + ( image->int_x * scalex ) - ( ( image->w ) * ( scalex - 1 ) );
+				request->scale_x = m_scale_x;
+				request->pos_x = m_pos_x + ( m_image->m_int_x * m_scale_x ) - ( ( m_image->m_w ) * ( m_scale_x - 1.0f ) );
 			}
 			// no scaling
 			else
 			{
-				request->pos_x = posx + image->int_x;
+				request->pos_x = m_pos_x + m_image->m_int_x;
 			}
 		}
 		// no scalex
 		else
 		{
-			request->pos_x = posx + image->int_x;
+			request->pos_x = m_pos_x + m_image->m_int_x;
 		}
 		// position y and
 		// scaley
-		if( scaley != 1 )
+		if( m_scale_y != 1.0f )
 		{
 			// scale down and up
-			if( scale_down && scale_up )
+			if( m_scale_down && m_scale_up )
 			{
-				request->scale_y = scaley;
-				request->pos_y = posy + ( image->int_y * scaley ) - ( ( image->h * 0.5f ) * ( scaley - 1 ) );
+				request->scale_y = m_scale_y;
+				request->pos_y = m_pos_y + ( m_image->m_int_y * m_scale_y ) - ( ( m_image->m_h * 0.5f ) * ( m_scale_y - 1.0f ) );
 			}
 			// scale down only
-			else if( scale_down )
+			else if( m_scale_down )
 			{
-				request->scale_y = scaley;
-				request->pos_y = posy + ( image->int_y * scaley );
+				request->scale_y = m_scale_y;
+				request->pos_y = m_pos_y + ( m_image->m_int_y * m_scale_y );
 			}
 			// scale up only
-			else if( scale_up )
+			else if( m_scale_up )
 			{
-				request->scale_y = scaley;
-				request->pos_y = posy + ( image->int_y * scaley ) - ( ( image->h ) * ( scaley - 1 ) );
+				request->scale_y = m_scale_y;
+				request->pos_y = m_pos_y + ( m_image->m_int_y * m_scale_y ) - ( ( m_image->m_h ) * ( m_scale_y - 1.0f ) );
 			}
 			// no scaling
 			else
 			{
-				request->pos_y = posy + image->int_y;
+				request->pos_y = m_pos_y + m_image->m_int_y;
 			}
 		}
 		// no scaley
 		else
 		{
-			request->pos_y = posy + image->int_y;
+			request->pos_y = m_pos_y + m_image->m_int_y;
 		}
 	
 		// position z
-		request->pos_z = posz;
+		request->pos_z = m_pos_z;
 	}
 
 	// no camera setting
-	request->no_camera = no_camera;
+	request->no_camera = m_no_camera;
 
 	// color
-	request->color = color;
+	request->color = m_color;
 	// combine color
-	if( combine_type )
+	if( m_combine_type )
 	{
-		request->combine_type = combine_type;
-		request->combine_col[0] = combine_col[0];
-		request->combine_col[1] = combine_col[1];
-		request->combine_col[2] = combine_col[2];
+		request->combine_type = m_combine_type;
+		request->combine_col[0] = m_combine_color[0];
+		request->combine_col[1] = m_combine_color[1];
+		request->combine_col[2] = m_combine_color[2];
 	}
 
 	// shadow
-	if( shadow_pos )
+	if( m_shadow_pos )
 	{
-		request->shadow_pos = shadow_pos;
-		request->shadow_color = shadow_color;
+		request->shadow_pos = m_shadow_pos;
+		request->shadow_color = m_shadow_color;
 	}
 
 	if( create_request )
@@ -1401,31 +1485,33 @@ void cSprite :: Set_Massive_Type( MassiveType mtype )
 	// set massivetype z position
 	if( mtype == MASS_MASSIVE )
 	{
-		posz = 0.08f;
+		m_pos_z = 0.08f;
 	}
 	else if( mtype == MASS_PASSIVE )
 	{
-		if( sprite_array == ARRAY_FRONT_PASSIVE )
+		if( m_type == TYPE_FRONT_PASSIVE )
 		{
-			posz = 0.1f;
+			m_pos_z = 0.1f;
 		}
 		else
 		{
-			posz = 0.01f;
+			m_pos_z = 0.01f;
 		}
 	}
 	else if( mtype == MASS_CLIMBABLE || mtype == MASS_HALFMASSIVE )
 	{
-		posz = 0.04f;
+		m_pos_z = 0.04f;
 	}
 
-	massivetype = mtype;
+	m_massive_type = mtype;
 
-	// set correct Z position
-	pActive_Sprite_Manager->Set_Z( this );
+	/* set correct Z position
+	 * fixme : this could use the wrong sprite manager
+	*/
+	pActive_Sprite_Manager->Set_Pos_Z( this );
 }
 
-bool cSprite :: Is_on_Top( const cSprite *obj )
+bool cSprite :: Is_On_Top( const cSprite *obj ) const
 {
 	// invalid
 	if( !obj )
@@ -1434,8 +1520,8 @@ bool cSprite :: Is_on_Top( const cSprite *obj )
 	}
 
 	// always collide upwards because of the image size collision checking
-	if( col_rect.x + col_rect.w > obj->col_rect.x && col_rect.x < obj->col_rect.x + obj->col_rect.w &&
-		col_rect.y + col_rect.h < obj->col_rect.y )
+	if( m_col_rect.m_x + m_col_rect.m_w > obj->m_col_rect.m_x && m_col_rect.m_x < obj->m_col_rect.m_x + obj->m_col_rect.m_w &&
+		m_col_rect.m_y + m_col_rect.m_h < obj->m_col_rect.m_y )
 	{
 		return 1;
 	}
@@ -1443,34 +1529,34 @@ bool cSprite :: Is_on_Top( const cSprite *obj )
 	return 0;
 }
 
-bool cSprite :: Is_Visible_on_Screen( void )
+bool cSprite :: Is_Visible_On_Screen( void ) const
 {
 	// camera position
 	float cam_x = 0, cam_y = 0;
 
-	if( !no_camera )
+	if( !m_no_camera )
 	{
 		cam_x = pActive_Camera->x;
 		cam_y = pActive_Camera->y;
 	}
 
 	// not visible left
-	if( rect.x + rect.w < cam_x )
+	if( m_rect.m_x + m_rect.m_w < cam_x )
 	{
 		return 0;
 	}
 	// not visible right
-	else if( rect.x > cam_x + game_res_w )
+	else if( m_rect.m_x > cam_x + game_res_w )
 	{
 		return 0;
 	}
 	// not visible down
-	else if( rect.y + rect.h < cam_y )
+	else if( m_rect.m_y + m_rect.m_h < cam_y )
 	{
 		return 0;
 	}
 	// not visible up
-	else if( rect.y > cam_y + game_res_h )
+	else if( m_rect.m_y > cam_y + game_res_h )
 	{
 		return 0;
 	}
@@ -1478,16 +1564,16 @@ bool cSprite :: Is_Visible_on_Screen( void )
 	return 1;
 }
 
-bool cSprite :: is_Player_range( void )
+bool cSprite :: Is_In_Player_Range( void ) const
 {
 	// no player range set
-	if( player_range < 300 )
+	if( m_player_range < 300 )
 	{
-		return Is_Visible_on_Screen();
+		return Is_Visible_On_Screen();
 	}
 	// check if not in range
-	else if( posx < pPlayer->posx - player_range || posy < pPlayer->posy - player_range ||
-		posx > pPlayer->posx + player_range || posy > pPlayer->posy + player_range )
+	else if( m_pos_x < pPlayer->m_pos_x - m_player_range || m_pos_y < pPlayer->m_pos_y - m_player_range ||
+		m_pos_x > pPlayer->m_pos_x + m_player_range || m_pos_y > pPlayer->m_pos_y + m_player_range )
 	{
 		return 0;
 	}
@@ -1499,7 +1585,7 @@ bool cSprite :: is_Player_range( void )
 bool cSprite :: Is_Update_Valid( void )
 {
 	// if destroyed
-	if( destroy )
+	if( m_auto_destroy )
 	{
 		return 0;
 	}
@@ -1512,8 +1598,8 @@ bool cSprite :: Is_Draw_Valid( void )
 	// if editor not enabled
 	if( !editor_enabled )
 	{
-		// not visible
-		if( !visible || !image )
+		// if not active or no image is set
+		if( !m_active || !m_image )
 		{
 			return 0;
 		}
@@ -1522,20 +1608,20 @@ bool cSprite :: Is_Draw_Valid( void )
 	else
 	{
 		// if destroyed
-		if( destroy )
+		if( m_auto_destroy )
 		{
 			return 0;
 		}
 
 		// no image
-		if( !start_image )
+		if( !m_start_image )
 		{
 			return 0;
 		}
 	}
 
 	// not visible on the screen
-	if( !Is_Visible_on_Screen() )
+	if( !Is_Visible_On_Screen() )
 	{
 		return 0;
 	}
@@ -1545,14 +1631,22 @@ bool cSprite :: Is_Draw_Valid( void )
 
 void cSprite :: Destroy( void )
 {
-	destroy = 1;
-	visible = 0;
-	valid_draw = 0;
-	valid_update = 0;
+	// already destroyed
+	if( m_auto_destroy )
+	{
+		return;
+	}
+
+	m_auto_destroy = 1;
+	m_active = 0;
+	m_valid_draw = 0;
+	m_valid_update = 0;
 	Set_Image( NULL, 1 );
+
+	Clear_Collisions();
 }
 
-void cSprite :: Editor_Add( const CEGUI::String name, const CEGUI::String tooltip, CEGUI::Window *window_setting, float obj_width, float obj_height /* = 28 */, bool advance_row /* = 1 */ )
+void cSprite :: Editor_Add( const CEGUI::String &name, const CEGUI::String &tooltip, CEGUI::Window *window_setting, float obj_width, float obj_height /* = 28 */, bool advance_row /* = 1 */ )
 {
 	if( obj_height < 28 )
 	{
@@ -1572,9 +1666,9 @@ void cSprite :: Editor_Add( const CEGUI::String name, const CEGUI::String toolti
 	CEGUI::Font *font = CEGUI::FontManager::getSingleton().getFont( "bluebold_medium" );
 	float text_width = 12 + font->getTextExtent( name ) * global_downscalex;
 	// all names should have the same width
-	if( text_width > editor_window_name_width )
+	if( text_width > m_editor_window_name_width )
 	{
-		editor_window_name_width = text_width;
+		m_editor_window_name_width = text_width;
 	}
 	// set size
 	window_name->setWidth( CEGUI::UDim( 0, text_width * global_upscalex ) );
@@ -1591,7 +1685,7 @@ void cSprite :: Editor_Add( const CEGUI::String name, const CEGUI::String toolti
 	settings_item->window_setting = window_setting;
 	settings_item->advance_row = advance_row;
 
-	editor_windows.push_back( settings_item );
+	m_editor_windows.push_back( settings_item );
 
 	// add to main window
 	guisheet->addChildWindow( window_name );
@@ -1606,15 +1700,14 @@ void cSprite :: Editor_Activate( void )
 void cSprite :: Editor_Deactivate( void )
 {
 	// remove editor controls
-
-	for( Editor_Object_Settings_List::iterator itr = editor_windows.begin(), itr_end = editor_windows.end(); itr != itr_end; ++itr )
+	for( Editor_Object_Settings_List::iterator itr = m_editor_windows.begin(), itr_end = m_editor_windows.end(); itr != itr_end; ++itr )
 	{
 		cEditor_Object_Settings_Item *obj = (*itr);
 
 		delete obj;
 	}
 
-	editor_windows.clear();
+	m_editor_windows.clear();
 }
 
 void cSprite :: Editor_Position_Update( void )
@@ -1624,7 +1717,7 @@ void cSprite :: Editor_Position_Update( void )
 	float row_height = 0;
 
 	// set all positions
-	for( Editor_Object_Settings_List::iterator itr = editor_windows.begin(), itr_end = editor_windows.end(); itr != itr_end; ++itr )
+	for( Editor_Object_Settings_List::iterator itr = m_editor_windows.begin(), itr_end = m_editor_windows.end(); itr != itr_end; ++itr )
 	{
 		cEditor_Object_Settings_Item *obj = (*itr);
 		CEGUI::Window *window_name = obj->window_name;
@@ -1646,10 +1739,10 @@ void cSprite :: Editor_Position_Update( void )
 		float window_setting_width;
 		float window_setting_height;
 
-		// if combobox get the editbox dimension
+		// if combobox get the editbox/droplist dimension
 		if( window_setting->getType() == "TaharezLook/Combobox" )
 		{
-			window_setting_width = static_cast<CEGUI::Combobox *>(window_setting)->getEditbox()->getWidth().asAbsolute( static_cast<float>(game_res_w) ) * global_downscalex;
+			window_setting_width = static_cast<CEGUI::Combobox *>(window_setting)->getDropList()->getWidth().asAbsolute( static_cast<float>(game_res_w) ) * global_downscalex;
 			window_setting_height = static_cast<CEGUI::Combobox *>(window_setting)->getEditbox()->getHeight().asAbsolute( static_cast<float>(game_res_h) ) * global_downscaley;
 		}
 		// get default dimension
@@ -1670,8 +1763,8 @@ void cSprite :: Editor_Position_Update( void )
 		}
 
 		// current position
-		float object_final_pos_x = startposx + rect.w + 5 + obj_posx - pActive_Camera->x;
-		float object_final_pos_y = startposy + 5 + obj_posy - pActive_Camera->y;
+		float object_final_pos_x = m_start_pos_x + m_rect.m_w + 5 + obj_posx - pActive_Camera->x;
+		float object_final_pos_y = m_start_pos_y + 5 + obj_posy - pActive_Camera->y;
 
 		// set name position
 		window_name->setXPosition( CEGUI::UDim( 0, object_final_pos_x * global_upscalex ) );
@@ -1691,7 +1784,7 @@ void cSprite :: Editor_Init( void )
 	Editor_State_Update();
 
 	// init
-	for( Editor_Object_Settings_List::iterator itr = editor_windows.begin(), itr_end = editor_windows.end(); itr != itr_end; ++itr )
+	for( Editor_Object_Settings_List::iterator itr = m_editor_windows.begin(), itr_end = m_editor_windows.end(); itr != itr_end; ++itr )
 	{
 		cEditor_Object_Settings_Item *obj = (*itr);
 		CEGUI::Window *window_name = obj->window_name;
@@ -1699,7 +1792,7 @@ void cSprite :: Editor_Init( void )
 		// set first row width
 		if( obj->advance_row )
 		{
-			window_name->setWidth( CEGUI::UDim( 0, editor_window_name_width * global_upscalex ) );
+			window_name->setWidth( CEGUI::UDim( 0, m_editor_window_name_width * global_upscalex ) );
 		}
 	}
 
@@ -1711,3 +1804,7 @@ void cSprite :: Editor_State_Update( void )
 {
 	// virtual
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

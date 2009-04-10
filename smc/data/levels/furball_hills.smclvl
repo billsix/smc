@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.5" />
-		<Property name="engine_version" value="2.4" />
-		<Property name="save_time" value="1206804772" />
+		<Property name="game_version" value="1.7" />
+		<Property name="engine_version" value="2.8" />
+		<Property name="save_time" value="1230263828" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Sauer2" />
-		<Property name="lvl_version" value="1" />
+		<Property name="lvl_version" value="1.1" />
 		<Property name="lvl_music" value="land/land_1.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
@@ -17,19 +17,23 @@
 	</settings>
 	<background>
 		<Property name="type" value="103" />
-		<Property name="bg_color_1_red" value="99" />
-		<Property name="bg_color_1_green" value="166" />
-		<Property name="bg_color_1_blue" value="222" />
-		<Property name="bg_color_2_red" value="255" />
-		<Property name="bg_color_2_green" value="255" />
-		<Property name="bg_color_2_blue" value="255" />
+		<Property name="bg_color_1_red" value="100" />
+		<Property name="bg_color_1_green" value="160" />
+		<Property name="bg_color_1_blue" value="200" />
+		<Property name="bg_color_2_red" value="100" />
+		<Property name="bg_color_2_green" value="200" />
+		<Property name="bg_color_2_blue" value="200" />
 	</background>
 	<background>
 		<Property name="type" value="1" />
-		<Property name="image" value="game/background/green_hills_1.png" />
-		<Property name="speedx" value="1" />
-		<Property name="speedy" value="1" />
+		<Property name="posx" value="0" />
+		<Property name="posy" value="0" />
 		<Property name="posz" value="0.00011" />
+		<Property name="image" value="game/background/green_hills_1.png" />
+		<Property name="speedx" value="0.5" />
+		<Property name="speedy" value="0.5" />
+		<Property name="const_velx" value="0" />
+		<Property name="const_vely" value="0" />
 	</background>
 	<player>
 		<Property name="posx" value="94" />
@@ -1157,8 +1161,8 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemystopper>
-		<Property name="posx" value="997" />
-		<Property name="posy" value="200" />
+		<Property name="posx" value="992" />
+		<Property name="posy" value="209" />
 	</enemystopper>
 	<sprite>
 		<Property name="posx" value="2285" />
@@ -1721,7 +1725,7 @@
 	<sprite>
 		<Property name="posx" value="2242" />
 		<Property name="posy" value="-402" />
-		<Property name="image" value="ground/jungle_1/tree_type_1.png" />
+		<Property name="image" value="ground/jungle_1/tree/1.png" />
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
@@ -1761,8 +1765,8 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<enemystopper>
-		<Property name="posx" value="1514" />
-		<Property name="posy" value="70" />
+		<Property name="posx" value="1504" />
+		<Property name="posy" value="79" />
 	</enemystopper>
 	<box>
 		<Property name="posx" value="2779" />
@@ -2899,7 +2903,7 @@
 	<sprite>
 		<Property name="posx" value="4075" />
 		<Property name="posy" value="-428" />
-		<Property name="image" value="ground/jungle_1/tree_type_1_front.png" />
+		<Property name="image" value="ground/jungle_1/tree/1_front.png" />
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>

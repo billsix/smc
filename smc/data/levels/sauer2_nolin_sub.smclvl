@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.6" />
+		<Property name="game_version" value="1.7" />
 		<Property name="engine_version" value="2.8" />
-		<Property name="save_time" value="1220884542" />
+		<Property name="save_time" value="1230262191" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Sauer2" />
-		<Property name="lvl_version" value="1" />
+		<Property name="lvl_version" value="1.1" />
 		<Property name="lvl_music" value="land/land_5.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
@@ -17,12 +17,12 @@
 	</settings>
 	<background>
 		<Property name="type" value="103" />
-		<Property name="bg_color_1_red" value="255" />
-		<Property name="bg_color_1_green" value="255" />
-		<Property name="bg_color_1_blue" value="255" />
+		<Property name="bg_color_1_red" value="100" />
+		<Property name="bg_color_1_green" value="90" />
+		<Property name="bg_color_1_blue" value="200" />
 		<Property name="bg_color_2_red" value="0" />
-		<Property name="bg_color_2_green" value="188" />
-		<Property name="bg_color_2_blue" value="255" />
+		<Property name="bg_color_2_green" value="100" />
+		<Property name="bg_color_2_blue" value="200" />
 	</background>
 	<player>
 		<Property name="posx" value="103" />

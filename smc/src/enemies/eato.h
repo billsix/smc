@@ -1,7 +1,7 @@
 /***************************************************************************
  * eato.h  -  headers for the corresponding cpp file
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -17,6 +17,9 @@
 #define SMC_EATO_H
 
 #include "../enemies/enemy.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** cEato *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -39,14 +42,14 @@ public:
 	virtual cEato *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
+	virtual void Save_To_Stream( ofstream &file );
 
 	// Set the image directory
-	void Set_Image_Dir( string filename );
+	void Set_Image_Dir( const std::string &filename );
 	// Set direction
-	void Set_Direction( ObjectDirection dir );
+	void Set_Direction( const ObjectDirection dir );
 
 	/* downgrade state ( if already weakest state : dies )
 	 * force : usually dies or a complete downgrade
@@ -61,10 +64,11 @@ public:
 	virtual bool Is_Update_Valid( void );
 
 	/* Validate the given collision object
+	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-	virtual unsigned int Validate_Collision( cSprite *obj );
+	virtual Col_Valid_Type Validate_Collision( cSprite *obj );
 	// collision from player
 	virtual void Handle_Collision_Player( cObjectCollision *collision );
 
@@ -72,17 +76,19 @@ public:
 	virtual void Editor_Activate( void );
 	// editor direction option selected event
 	bool Editor_Direction_Select( const CEGUI::EventArgs &event );
-	// editor image dir key up event
-	bool Editor_Image_Dir_Key( const CEGUI::EventArgs &event );
+	// editor image dir text changed event
+	bool Editor_Image_Dir_Text_Changed( const CEGUI::EventArgs &event );
 
 	// image directory
-	string img_dir;
+	std::string img_dir;
 
 private:
 	// Create the Name from the current settings
-    void Create_Name( void );
+	void Create_Name( void );
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

@@ -1,7 +1,7 @@
 /***************************************************************************
  * preferences.cpp  -  Game settings handler
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 #include "../audio/audio.h"
 #include "../video/video.h"
 #include "../core/game_core.h"
-#include "../core/camera.h"
 #include "../input/joystick.h"
 #include "../gui/hud.h"
 #include "../level/level_manager.h"
@@ -25,7 +24,11 @@
 // boost filesystem
 #include "boost/filesystem/convenience.hpp"
 namespace fs = boost::filesystem;
+// CEGUI
+#include "CEGUIXMLParser.h"
 
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** cPreferences *** *** *** *** *** *** *** *** *** *** */
 
@@ -39,7 +42,7 @@ cPreferences :: ~cPreferences( void )
 	//
 }
 
-bool cPreferences :: Load( string filename /* = "" */ )
+bool cPreferences :: Load( const std::string &filename /* = "" */ )
 {
 	Default();
 	
@@ -58,7 +61,9 @@ bool cPreferences :: Load( string filename /* = "" */ )
 	else
 	{
 		config_filename.insert( 0, user_data_dir );
-		// fixme : this crashes in CEGUI::DefaultResourceProvider::loadRawDataContainer because of the é
+		/* fixme : this crashes in CEGUI::DefaultResourceProvider::loadRawDataContainer because of the é
+		 * The CEGUI string encoding is UTF-8 but std::string seems to be ISO-8859-1 or Code page 1252
+		*/
 		//config_filename.insert( 0, "N:/Dokumente und Einstellungen/smc_Invité/Anwendungsdaten/smc/" );
 
 		// does not exist in user dir
@@ -75,13 +80,14 @@ bool cPreferences :: Load( string filename /* = "" */ )
 
 	try
 	{
+		//CEGUI::String str = "N:/Dokumente und Einstellungen/smc_Invité/Anwendungsdaten/smc/config.xml";
 		CEGUI::System::getSingleton().getXMLParser()->parseXMLFile( *this, config_filename, DATA_DIR "/" GAME_SCHEMA_DIR "/Config.xsd", "" );
 	}
 	// catch CEGUI Exceptions
 	catch( CEGUI::Exception &ex )
 	{
 		printf( "Preferences Loading CEGUI Exception %s\n", ex.getMessage().c_str() );
-		debugdisplay->Set_Text( _("Preferences Loading failed : ") + (string)ex.getMessage().c_str() );
+		pHud_Debug->Set_Text( _("Preferences Loading failed : ") + (const std::string)ex.getMessage().c_str() );
 	}
 
 	// if user data dir is set
@@ -101,7 +107,7 @@ void cPreferences :: Save( void )
 
 	if( !file.is_open() )
 	{
-		printf( "Error : couldn't open config file for saving. Is the file read-only ?" );
+		printf( "Error : couldn't open config %s for saving. Is the file read-only ?\n", config_filename.c_str() );
 		return;
 	}
 
@@ -110,24 +116,26 @@ void cPreferences :: Save( void )
 	// begin preferences
 	file << "<Preferences>" << std::endl;
 	// Game
-	file << "\t<Item Name=\"game_language\" Value=\"" << language << "\" />" << std::endl;
 	file << "\t<Item Name=\"game_version\" Value=\"" << smc_version << "\" />" << std::endl;
-	file << "\t<Item Name=\"user_data_dir\" Value=\"" << force_user_data_dir << "\" />" << std::endl;
-	file << "\t<Item Name=\"camera_hor_speed\" Value=\"" << camera_hor_speed << "\" />" << std::endl;
-	file << "\t<Item Name=\"camera_ver_speed\" Value=\"" << camera_ver_speed << "\" />" << std::endl;
+	file << "\t<Item Name=\"game_language\" Value=\"" << language << "\" />" << std::endl;
+	file << "\t<Item Name=\"game_always_run\" Value=\"" << always_run << "\" />" << std::endl;
+	file << "\t<Item Name=\"game_menu_level\" Value=\"" << menu_level << "\" />" << std::endl;
+	file << "\t<Item Name=\"game_user_data_dir\" Value=\"" << force_user_data_dir << "\" />" << std::endl;
+	file << "\t<Item Name=\"game_camera_hor_speed\" Value=\"" << camera_hor_speed << "\" />" << std::endl;
+	file << "\t<Item Name=\"game_camera_ver_speed\" Value=\"" << camera_ver_speed << "\" />" << std::endl;
 	// Video
 	file << "\t<Item Name=\"video_fullscreen\" Value=\"" << video_fullscreen << "\" />" << std::endl;
 	file << "\t<Item Name=\"video_screen_w\" Value=\"" << video_screen_w << "\" />" << std::endl;
 	file << "\t<Item Name=\"video_screen_h\" Value=\"" << video_screen_h << "\" />" << std::endl;
 	file << "\t<Item Name=\"video_screen_bpp\" Value=\"" << static_cast<int>(video_screen_bpp) << "\" />" << std::endl;
 	file << "\t<Item Name=\"video_vsync\" Value=\"" << video_vsync << "\" />" << std::endl;
-	file << "\t<Item Name=\"video_geometry_detail\" Value=\"" << pVideo->geometry_detail << "\" />" << std::endl;
-	file << "\t<Item Name=\"video_texture_detail\" Value=\"" << pVideo->texture_detail << "\" />" << std::endl;
+	file << "\t<Item Name=\"video_geometry_quality\" Value=\"" << pVideo->m_geometry_quality << "\" />" << std::endl;
+	file << "\t<Item Name=\"video_texture_quality\" Value=\"" << pVideo->m_texture_quality << "\" />" << std::endl;
 	// Audio
 	file << "\t<Item Name=\"audio_music\" Value=\"" << audio_music << "\" />" << std::endl;
 	file << "\t<Item Name=\"audio_sound\" Value=\"" << audio_sound << "\" />" << std::endl;
-	file << "\t<Item Name=\"audio_music_volume\" Value=\"" << static_cast<int>(pAudio->music_volume) << "\" />" << std::endl;
-	file << "\t<Item Name=\"audio_sound_volume\" Value=\"" << static_cast<int>(pAudio->sound_volume) << "\" />" << std::endl;
+	file << "\t<Item Name=\"audio_music_volume\" Value=\"" << static_cast<int>(pAudio->m_music_volume) << "\" />" << std::endl;
+	file << "\t<Item Name=\"audio_sound_volume\" Value=\"" << static_cast<int>(pAudio->m_sound_volume) << "\" />" << std::endl;
 	file << "\t<Item Name=\"audio_hz\" Value=\"" << audio_hz << "\" />" << std::endl;
 	// Keyboard
 	file << "\t<Item Name=\"keyboard_key_up\" Value=\"" << key_up << "\" />" << std::endl;
@@ -151,7 +159,6 @@ void cPreferences :: Save( void )
 	file << "\t<Item Name=\"joy_button_action\" Value=\"" << static_cast<int>(joy_button_action) << "\" />" << std::endl;
 	file << "\t<Item Name=\"joy_button_exit\" Value=\"" << static_cast<int>(joy_button_exit) << "\" />" << std::endl;
 	// Special
-	file << "\t<Item Name=\"always_run\" Value=\"" << always_run << "\" />" << std::endl;
 	file << "\t<Item Name=\"level_background_images\" Value=\"" << level_background_images << "\" />" << std::endl;
 	file << "\t<Item Name=\"image_cache_enabled\" Value=\"" << image_cache_enabled << "\" />" << std::endl;
 	// Editor
@@ -167,9 +174,11 @@ void cPreferences :: Save( void )
 void cPreferences :: Default( void )
 {
 	// Game
-	language = "";
-	force_user_data_dir.clear();
 	game_version = smc_version;
+	language = "";
+	always_run = 0;
+	menu_level = "menu_green_1";
+	force_user_data_dir.clear();
 	camera_hor_speed = 0.3f;
 	camera_ver_speed = 0.2f;
 
@@ -198,9 +207,9 @@ void cPreferences :: Default( void )
 	key_down = SDLK_DOWN;
 	key_left = SDLK_LEFT;
 	key_right = SDLK_RIGHT;
-	key_jump = SDLK_LALT;
+	key_jump = SDLK_s;
 	key_shoot = SDLK_SPACE;
-	key_action = SDLK_LCTRL;
+	key_action = SDLK_a;
 	scroll_speed = 1;
 
 	// Joystick
@@ -218,7 +227,6 @@ void cPreferences :: Default( void )
 	joy_button_exit = 4;
 
 	// Special
-	always_run = 0;
 	joy_name.clear();
 	joy_analog_jump = 0;
 	level_background_images = 1;
@@ -238,8 +246,8 @@ void cPreferences :: Update( void )
 	camera_hor_speed = pLevel_Manager->camera->hor_offset_speed;
 	camera_ver_speed = pLevel_Manager->camera->ver_offset_speed;
 
-	audio_music = pAudio->music_enabled;
-	audio_sound = pAudio->sound_enabled;
+	audio_music = pAudio->m_music_enabled;
+	audio_sound = pAudio->m_sound_enabled;
 
 	// if not default joy used
 	if( pJoystick->cur_stick > 0 )
@@ -259,7 +267,7 @@ void cPreferences :: Apply( void )
 	pLevel_Manager->camera->ver_offset_speed = camera_ver_speed;
 	
 	// disable joystick if the joystick initialization failed
-	if( pVideo->joy_init_failed )
+	if( pVideo->m_joy_init_failed )
 	{
 		joy_enabled = 0;
 	}
@@ -270,7 +278,7 @@ void cPreferences :: Apply_Video( Uint16 screen_w, Uint16 screen_h, Uint8 screen
 	/* if resolution, bpp, vsync or texture detail changed
 	 * a texture reload is necessary
 	*/
-	if( video_screen_w != screen_w || video_screen_h != screen_h || video_screen_bpp != screen_bpp || video_vsync != vsync || pVideo->texture_detail != texture_detail )
+	if( video_screen_w != screen_w || video_screen_h != screen_h || video_screen_bpp != screen_bpp || video_vsync != vsync || !Is_Float_Equal( pVideo->m_texture_quality, texture_detail ) )
 	{
 		// new settings
 		video_screen_w = screen_w;
@@ -278,8 +286,8 @@ void cPreferences :: Apply_Video( Uint16 screen_w, Uint16 screen_h, Uint8 screen
 		video_screen_bpp = screen_bpp;
 		video_vsync = vsync;
 		video_fullscreen = fullscreen;
-		pVideo->texture_detail = texture_detail;
-		pVideo->geometry_detail = geometry_detail;
+		pVideo->m_texture_quality = texture_detail;
+		pVideo->m_geometry_quality = geometry_detail;
 
 		// reinitialize video and reload textures from file
 		pVideo->Init_Video( 1 );
@@ -288,9 +296,9 @@ void cPreferences :: Apply_Video( Uint16 screen_w, Uint16 screen_h, Uint8 screen
 	else
 	{
 		// geometry detail changed
-		if( pVideo->geometry_detail != geometry_detail )
+		if( !Is_Float_Equal( pVideo->m_geometry_quality, geometry_detail ) )
 		{
-			pVideo->geometry_detail = geometry_detail;
+			pVideo->m_geometry_quality = geometry_detail;
 			pVideo->Init_Geometry();
 		}
 
@@ -306,7 +314,7 @@ void cPreferences :: Apply_Video( Uint16 screen_w, Uint16 screen_h, Uint8 screen
 void cPreferences :: Apply_Audio( bool sound, bool music )
 {
 	// disable sound and music if the audio initialization failed
-	if( pVideo->audio_init_failed )
+	if( pVideo->m_audio_init_failed )
 	{
 		audio_sound = 0;
 		audio_music = 0;
@@ -323,10 +331,10 @@ void cPreferences :: Apply_Audio( bool sound, bool music )
 // XML element start
 void cPreferences :: elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes )
 {
-    if( element == "Item" )
-    {
-        handle_item( attributes );
-    }
+	if( element == "Item" )
+	{
+		handle_item( attributes );
+	}
 }
 
 // XML element end
@@ -337,18 +345,26 @@ void cPreferences :: elementEnd( const CEGUI::String &element )
 
 void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 {
-	string name = attributes.getValueAsString( "Name" ).c_str();
+	std::string name = attributes.getValueAsString( "Name" ).c_str();
 
 	// Game
-	if( name.compare( "game_language" ) == 0 )
-	{
-		language = attributes.getValueAsString( "Value" ).c_str();
-	}
-	else if( name.compare( "game_version" ) == 0 )
+	if( name.compare( "game_version" ) == 0 )
 	{
 		game_version = attributes.getValueAsFloat( "Value" );
 	}
-	else if( name.compare( "user_data_dir" ) == 0 )
+	else if( name.compare( "game_language" ) == 0 )
+	{
+		language = attributes.getValueAsString( "Value" ).c_str();
+	}
+	else if( name.compare( "game_always_run" ) == 0 || name.compare( "always_run" ) == 0 )
+	{
+		always_run = attributes.getValueAsBool( "Value" );
+	}
+	else if( name.compare( "game_menu_level" ) == 0 )
+	{
+		menu_level = attributes.getValueAsString( "Value" ).c_str();
+	}
+	else if( name.compare( "game_user_data_dir" ) == 0 || name.compare( "user_data_dir" ) == 0 )
 	{
 		force_user_data_dir = attributes.getValueAsString( "Value" ).c_str();
 
@@ -364,16 +380,16 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 			}
 		}
 	}
-	else if( name.compare( "camera_hor_speed" ) == 0 )
+	else if( name.compare( "game_camera_hor_speed" ) == 0 || name.compare( "camera_hor_speed" ) == 0 )
 	{
 		camera_hor_speed = attributes.getValueAsFloat( "Value" );
 	}
-	else if( name.compare( "camera_ver_speed" ) == 0 )
+	else if( name.compare( "game_camera_ver_speed" ) == 0 || name.compare( "camera_ver_speed" ) == 0 )
 	{
 		camera_ver_speed = attributes.getValueAsFloat( "Value" );
 	}
 	// Video
-	else if( name.compare( "Screen_H" ) == 0 || name.compare( "video_screen_h" ) == 0 )
+	else if( name.compare( "video_screen_h" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
@@ -388,7 +404,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 		
 		video_screen_h = val;
 	}
-	else if( name.compare( "Screen_W" ) == 0 || name.compare( "video_screen_w" ) == 0 )
+	else if( name.compare( "video_screen_w" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
@@ -403,7 +419,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 
 		video_screen_w = val;
 	}
-	else if( name.compare( "Screen_Bpp" ) == 0 || name.compare( "video_screen_bpp" ) == 0 )
+	else if( name.compare( "video_screen_bpp" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
@@ -418,60 +434,60 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 
 		video_screen_bpp = val;
 	}
-	else if( name.compare( "vsync" ) == 0 || name.compare( "video_vsync" ) == 0 )
+	else if( name.compare( "video_vsync" ) == 0 )
 	{
 		video_vsync = attributes.getValueAsBool( "Value" );
 	}
-	else if( name.compare( "Fullscreen" ) == 0 || name.compare( "video_fullscreen" ) == 0 )
+	else if( name.compare( "video_fullscreen" ) == 0 )
 	{
 		video_fullscreen = attributes.getValueAsBool( "Value" );
 	}
-	else if( name.compare( "video_geometry_detail" ) == 0 )
+	else if( name.compare( "video_geometry_detail" ) == 0 || name.compare( "video_geometry_quality" ) == 0 )
 	{
-		pVideo->geometry_detail = attributes.getValueAsFloat( "Value" );
+		pVideo->m_geometry_quality = attributes.getValueAsFloat( "Value" );
 	}
-	else if( name.compare( "video_texture_detail" ) == 0 )
+	else if( name.compare( "video_texture_detail" ) == 0 || name.compare( "video_texture_quality" ) == 0 )
 	{
-		pVideo->texture_detail = attributes.getValueAsFloat( "Value" );
+		pVideo->m_texture_quality = attributes.getValueAsFloat( "Value" );
 	}
 	// Audio
-	else if( name.compare( "Music" ) == 0 || name.compare( "audio_music" ) == 0 )
+	else if( name.compare( "audio_music" ) == 0 )
 	{
 		audio_music = attributes.getValueAsBool( "Value" );
 	}
-	else if( name.compare( "Sounds" ) == 0 || name.compare( "audio_sound" ) == 0 )
+	else if( name.compare( "audio_sound" ) == 0 )
 	{
 		audio_sound = attributes.getValueAsBool( "Value" );
 	}
-	if( name.compare( "music_volume" ) == 0 || name.compare( "audio_music_volume" ) == 0 )
+	if( name.compare( "audio_music_volume" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
 		if( val >= 0 && val <= MIX_MAX_VOLUME )
 		{
-			pAudio->music_volume = val;
+			pAudio->m_music_volume = val;
 		}
 	}
-	else if( name.compare( "sound_volume" ) == 0 || name.compare( "audio_sound_volume" ) == 0 )
+	else if( name.compare( "audio_sound_volume" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
 		if( val >= 0 && val <= MIX_MAX_VOLUME )
 		{
-			pAudio->sound_volume = val;
+			pAudio->m_sound_volume = val;
 		}
 	}
 	else if( name.compare( "audio_hz" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
-		if( val >= 0 && val <= 44800 )
+		if( val >= 0 && val <= 96000 )
 		{
 			audio_hz = val;
 		}
 	}
 	// Keyboard
-	else if( name.compare( "Key_up" ) == 0 || name.compare( "keyboard_key_up" ) == 0 )
+	else if( name.compare( "keyboard_key_up" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
@@ -480,7 +496,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 			key_up = static_cast<SDLKey>(val);
 		}
 	}
-	else if( name.compare( "Key_down" ) == 0 || name.compare( "keyboard_key_down" ) == 0 )
+	else if( name.compare( "keyboard_key_down" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
@@ -489,7 +505,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 			key_down = static_cast<SDLKey>(val);
 		}
 	}
-	else if( name.compare( "Key_left" ) == 0 || name.compare( "keyboard_key_left" ) == 0 )
+	else if( name.compare( "keyboard_key_left" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
@@ -498,7 +514,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 			key_left = static_cast<SDLKey>(val);
 		}
 	}
-	else if( name.compare( "Key_right" ) == 0 || name.compare( "keyboard_key_right" ) == 0 )
+	else if( name.compare( "keyboard_key_right" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
@@ -507,7 +523,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 			key_right = static_cast<SDLKey>(val);
 		}
 	}
-	else if( name.compare( "Key_jump" ) == 0 || name.compare( "keyboard_key_jump" ) == 0 )
+	else if( name.compare( "keyboard_key_jump" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
@@ -516,7 +532,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 			key_jump = static_cast<SDLKey>(val);
 		}
 	}
-	else if( name.compare( "Key_shoot" ) == 0 || name.compare( "keyboard_key_shoot" ) == 0 )
+	else if( name.compare( "keyboard_key_shoot" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
@@ -525,7 +541,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 			key_shoot = static_cast<SDLKey>(val);
 		}
 	}
-	else if( name.compare( "Key_action" ) == 0 || name.compare( "keyboard_key_action" ) == 0 )
+	else if( name.compare( "keyboard_key_action" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
@@ -540,7 +556,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 		scroll_speed = attributes.getValueAsFloat( "Value" );
 	}
 	// Joypad
-	else if( name.compare( "Joypad_enabled" ) == 0 || name.compare( "joy_enabled" ) == 0 )
+	else if( name.compare( "joy_enabled" ) == 0 )
 	{
 		joy_enabled = attributes.getValueAsBool( "Value" );
 	}
@@ -579,7 +595,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 			joy_axis_threshold = val;
 		}
 	}
-	else if( name.compare( "Joypad_jump" ) == 0 || name.compare( "joy_button_jump" ) == 0 )
+	else if( name.compare( "joy_button_jump" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
@@ -588,7 +604,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 			joy_button_jump = val;
 		}
 	}
-	else if( name.compare( "Joypad_item" ) == 0 || name.compare( "joy_button_item" ) == 0 )
+	else if( name.compare( "joy_button_item" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
@@ -597,7 +613,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 			joy_button_item = val;
 		}
 	}
-	else if( name.compare( "Joypad_shoot" ) == 0 || name.compare( "joy_button_shoot" ) == 0 )
+	else if( name.compare( "joy_button_shoot" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
@@ -606,7 +622,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 			joy_button_shoot = val;
 		}
 	}
-	else if( name.compare( "Joypad_action" ) == 0 || name.compare( "joy_button_action" ) == 0 )
+	else if( name.compare( "joy_button_action" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
@@ -615,7 +631,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 			joy_button_action = val;
 		}
 	}
-	else if( name.compare( "Joypad_exit" ) == 0 || name.compare( "joy_button_exit" ) == 0 )
+	else if( name.compare( "joy_button_exit" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
@@ -625,11 +641,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 		}
 	}
 	// Special
-	else if( name.compare( "always_run" ) == 0 )
-	{
-		always_run = attributes.getValueAsBool( "Value" );
-	}
-	else if( name.compare( "background_images" ) == 0 || name.compare( "level_background_images" ) == 0 )
+	else if( name.compare( "level_background_images" ) == 0 )
 	{
 		level_background_images = attributes.getValueAsBool( "Value" );
 	}
@@ -655,3 +667,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cPreferences *pPreferences = NULL;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

@@ -1,7 +1,7 @@
 /***************************************************************************
  * global_game.h  -  global header
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -16,17 +16,20 @@
 #ifndef SMC_GLOBAL_GAME_H
 #define SMC_GLOBAL_GAME_H
 
-/* *** *** *** *** *** *** *** Secret Maryo ! *** *** *** *** *** *** *** *** *** *** */
+namespace SMC
+{
 
 // For non-Windows platforms
 #ifdef HAVE_CONFIG_H
 	#include "config.h"
 #endif
 
+/* *** *** *** *** *** *** *** Secret Maryo ! *** *** *** *** *** *** *** *** *** *** */
+
 // Caption
 #define CAPTION "Secret Maryo Chronicles"
 // Version
-static const float smc_version = 1.7f;
+static const float smc_version = 1.8f;
 
 /* *** *** *** *** *** *** *** Object Direction *** *** *** *** *** *** *** *** *** *** */
 
@@ -176,7 +179,7 @@ enum LevelDrawType
 static const int speedfactor_fps = 32;
 
 /* *** level engine version *** */
-static const float level_engine_version = 2.8f;
+static const int level_engine_version = 34;
 
 /* *** Sprite Types *** */
 
@@ -209,9 +212,10 @@ enum SpriteType
 	TYPE_MOVING_PLATFORM = 38,
 	// enemy
 	TYPE_FURBALL = 10,
+	TYPE_FURBALL_BOSS = 62,
 	TYPE_TURTLE = 19,
 	TYPE_TURTLE_BOSS = 56,
-	TYPE_JPIRANHA = 29,
+	TYPE_FLYON = 29,
 	TYPE_ROKKO = 30,
 	TYPE_KRUSH = 36,
 	TYPE_THROMP = 41,
@@ -236,6 +240,7 @@ enum SpriteType
 	TYPE_BALL = 28,
 	TYPE_SOUND = 60,
 	TYPE_ANIMATION = 61,
+	TYPE_PATH = 63,
 	// HUD
 	TYPE_STATUSTEXT = 9,
 	TYPE_POINTDISPLAY = 12,
@@ -274,16 +279,34 @@ enum GroundType
 enum ArrayType
 {
 	ARRAY_UNDEFINED = 0,
-	// level default
+	// normal blocking object (level default)
 	ARRAY_MASSIVE = 1,
+	// normal passive object
 	ARRAY_PASSIVE = 2,
-	ARRAY_FRONT_PASSIVE = 8,
+	// enemy
 	ARRAY_ENEMY = 3,
+	// special object
 	ARRAY_ACTIVE = 4,
 	// hud
 	ARRAY_HUD = 5,
 	// animation
-	ARRAY_ANIM = 6
+	ARRAY_ANIM = 6,
+	// player
+	ARRAY_PLAYER = 7
+};
+
+/* *** *** *** *** *** *** *** collision validation types *** *** *** *** *** *** *** *** *** *** */
+
+enum Col_Valid_Type
+{
+	// not valid
+	COL_VTYPE_NOT_VALID = 0,
+	// internal
+	COL_VTYPE_INTERNAL = 1,
+	// blocking
+	COL_VTYPE_BLOCKING = 2,
+	// no validation for ghost
+	COL_VTYPE_NO_GHOST = 3
 };
 
 /* *** Input identifier ***  */
@@ -324,7 +347,9 @@ enum performance_timer_type
 	PERF_UPDATE_LEVEL_EDITOR = 2,
 	PERF_UPDATE_HUD = 3,
 	PERF_UPDATE_PLAYER = 4,
-	PERF_UPDATE_COLLISIONS = 5,
+	PERF_UPDATE_PLAYER_COLLISIONS = 23,
+	PERF_UPDATE_LATE_LEVEL = 22,
+	PERF_UPDATE_LEVEL_COLLISIONS = 5,
 	PERF_UPDATE_CAMERA = 6,
 	// update overworld
 	PERF_UPDATE_OVERWORLD = 17,
@@ -347,20 +372,23 @@ enum performance_timer_type
 	// draw
 	PERF_DRAW_MOUSE = 12,
 	// rendering
-	PERF_RENDERING = 13
+	PERF_RENDER_GAME = 13,
+	PERF_RENDER_GUI = 20,
+	PERF_RENDER_BUFFER = 21
 };
 
 /* *** Classes ***  */
 
 class cCamera;
-class cCircleRequest;
+class cCircle_Request;
 class cEditor_Object_Settings_Item;
-class cGradientRequest;
+class cGL_Surface;
+class cGradient_Request;
 class cImage_settings_data;
 class cLayer_Line_Point_Start;
 class cLevel;
 class cLine_collision;
-class cLineRequest;
+class cLine_Request;
 class cLevel_Settings;
 class cMenu_Base;
 class cObjectCollisionType;
@@ -368,19 +396,24 @@ class cObjectCollision;
 class cOverworld;
 class cOverworld_Player;
 class cParticle_Emitter;
-class cRectRequest;
+class cPath;
+class cPath_State;
+class cRect_Request;
 class cSave_Level_Object;
 class cSaved_Texture;
 class cSize_Float;
 class cSize_Int;
 class cSprite_Manager;
-class cSurfaceRequest;
+class cSurface_Request;
 class cSprite;
 class cWorld_Sprite_Manager;
 class Color;
 class GL_rect;
-class cGL_Surface;
 class GL_line;
 class GL_point;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

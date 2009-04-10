@@ -1,7 +1,7 @@
 /***************************************************************************
  * world_sprite_manager.cpp  -  World Sprite Manager
  *
- * Copyright (C) 2008 Florian Richter
+ * Copyright (C) 2008 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -15,7 +15,9 @@
 
 #include "../overworld/world_sprite_manager.h"
 #include "../core/game_core.h"
-#include "../overworld/overworld.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** cWorld_Sprite_Manager *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -39,19 +41,23 @@ void cWorld_Sprite_Manager :: Add( cSprite *sprite )
 	}
 
 	// no player range
-	sprite->player_range = 0;
+	sprite->m_player_range = 0;
 
 	// add
 	cSprite_Manager::Add( sprite );
 
 	// Add to Waypoints array
-	if( sprite->type == TYPE_OW_WAYPOINT )
+	if( sprite->m_type == TYPE_OW_WAYPOINT )
 	{
 		n_origin->waypoints.push_back( static_cast<cWaypoint *>(sprite) );
 	}
 	// Add layer line point start to the world layer
-	else if( sprite->type == TYPE_OW_LINE_START )
+	else if( sprite->m_type == TYPE_OW_LINE_START )
 	{
 		n_origin->pLayer->Add( static_cast<cLayer_Line_Point_Start *>(sprite) );
 	}
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

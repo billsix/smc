@@ -1,7 +1,7 @@
 /***************************************************************************
  * main.cpp  -  main routines and initialization
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,40 +13,39 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../core/game_core.h"
 #include "../core/main.h"
 #include "../level/level.h"
 #include "../gui/menu.h"
 #include "../core/framerate.h"
-#include "../core/camera.h"
-#include "../video/video.h"
 #include "../video/font.h"
 #include "../user/preferences.h"
-#include "../video/img_manager.h"
 #include "../audio/sound_manager.h"
 #include "../audio/audio.h"
-#include "../core/obj_manager.h"
 #include "../level/level_editor.h"
 #include "../overworld/world_editor.h"
 #include "../input/joystick.h"
 #include "../overworld/world_manager.h"
 #include "../overworld/overworld.h"
-#include "../player/player.h"
 #include "../input/mouse.h"
 #include "../user/savegame.h"
 #include "../input/keyboard.h"
 #include "../video/renderer.h"
-#include "../video/img_settings.h"
 #include "../objects/level_exit.h"
-#include "../level/level_settings.h"
-#include "../core/sprite_manager.h"
 #include "../core/i18n.h"
 #include "../gui/menu_data.h"
 #ifdef __APPLE__
 // needed for datapath detection
 #include <CoreFoundation/CoreFoundation.h>
 #include <unistd.h>
+#endif
+
+// SMC namespace is set later to exclude main() from it
+using namespace SMC;
+
+#if defined( __WIN32__ ) && defined( _DEBUG )
+	#undef main
 #endif
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -96,7 +95,7 @@ int main( int argc, char **argv )
 
 #endif
 	// convert arguments to a vector string
-	vector<string> arguments( argv, argv + argc );
+	vector<std::string> arguments( argv, argv + argc );
 
 	if( argc >= 2 )
 	{
@@ -134,7 +133,7 @@ int main( int argc, char **argv )
 				{
 					for( unsigned int option = i + i; i < arguments.size(); i++ )
 					{
-						string option_str = arguments[option];
+						std::string option_str = arguments[option];
 
 						if( option_str == "game" )
 						{
@@ -216,14 +215,8 @@ int main( int argc, char **argv )
 		// draw
 		Draw_Game();
 
-		// performance measuring
-		pFramerate->perf_last_ticks = SDL_GetTicks();
-
 		// render
 		pVideo->Render();
-
-		// update performance timer
-		pFramerate->perf_timer[PERF_RENDERING]->Update();
 
 		// update speedfactor
 		pFramerate->Update();
@@ -235,11 +228,14 @@ int main( int argc, char **argv )
 	return EXIT_SUCCESS;
 }
 
+// namespace is set later to exclude main() from it
+namespace SMC
+{
+
 void Init_Game( void )
 {
 	// init random number generator
 	srand( static_cast<unsigned int>(time( NULL )) );
-
 
 	// Init Stage 1 - core classes
 	pVideo = new cVideo();
@@ -289,7 +285,7 @@ void Init_Game( void )
 	pActive_Player = pPlayer;
 	pLevel_Manager = new cLevel_Manager();
 	// set the first active sprite manager available
-	pActive_Sprite_Manager = pActive_Level->pSprite_Manager;
+	pActive_Sprite_Manager = pActive_Level->m_sprite_manager;
 	// set the first camera available
 	pActive_Camera = pLevel_Manager->camera;
 
@@ -311,7 +307,7 @@ void Init_Game( void )
 	pLevel_Manager->Init();
 	pOverworld_Player = new cOverworld_Player();
 	pOverworld_Manager = new cOverworld_Manager();
-	
+
 	pHud_Manager = new cHud_Manager();
 	pAnimation_Manager = new cAnimation_Manager();
 	pMenuCore = new cMenuCore();
@@ -332,6 +328,7 @@ void Exit_Game( void )
 	}
 
 	pLevel_Manager->Unload();
+	pMenuCore->handler->m_level->Unload();
 
 	if( pAudio )
 	{
@@ -534,6 +531,11 @@ bool Handle_Input_Global( SDL_Event *ev )
 			}
 			break;
 		}
+		case SDL_JOYHATMOTION:
+		{
+			pJoystick->Handle_Hat( ev );
+			break;
+		}
 		case SDL_JOYAXISMOTION:
 		{
 			pJoystick->Handle_Motion( ev );
@@ -633,7 +635,7 @@ void Update_Game( void )
 			// handle player downgrade
 			if( Current_Game_Action == GA_DOWNGRADE_PLAYER )
 			{
-				pPlayer->DownGrade_Player( 0, CEGUI::PropertyHelper::stringToBool( Current_Game_Action_Data.getValueAsString( "force" ) ) );
+				pPlayer->DownGrade_Player( 0, Current_Game_Action_Data.getValueAsBool( "force" ) );
 			}
 			// activate level exit
 			else if( Current_Game_Action == GA_ACTIVATE_LEVEL_EXIT )
@@ -654,17 +656,23 @@ void Update_Game( void )
 					Draw_Effect_Out();
 				}
 
-				string str_level = Current_Game_Action_Data.getValueAsString( "level" ).c_str();
+				// change game mode
+				Change_Game_Mode( MODE_LEVEL );
+				std::string str_level = Current_Game_Action_Data.getValueAsString( "level" ).c_str();
 				// load new level
-				if( !pActive_Level->Load( str_level ) )
+				if( pActive_Level->Load( str_level ) )
 				{
-					// if failed to load exit level
+					pActive_Level->Enter();
+				}
+				// if failed to load exit level
+				else
+				{
 					pPlayer->Goto_Next_Level();
 					continue;
 				}
 
 				// load entry
-				string str_entry = Current_Game_Action_Data.getValueAsString( "entry" ).c_str();
+				std::string str_entry = Current_Game_Action_Data.getValueAsString( "entry" ).c_str();
 				cLevel_Entry *entry = pActive_Level->Get_Entry( str_entry );
 
 				if( !entry && !str_entry.empty() )
@@ -672,8 +680,6 @@ void Update_Game( void )
 					printf( "Warning : Level entry %s not found\n", str_entry.c_str() );
 				}
 
-				// change game mode
-				Change_Game_Mode( MODE_LEVEL );
 				// set camera position to the entry 
 				if( entry )
 				{
@@ -682,13 +688,7 @@ void Update_Game( void )
 					// center camera position
 					pActive_Camera->Center();
 					// set invisible for warp animation
-					pPlayer->Set_Visible( 0 );
-				}
-
-				// play new music
-				if( pActive_Level->valid_music )
-				{
-					pAudio->Play_Music( pActive_Level->musicfile, -1, 0, 1000 );
+					pPlayer->Set_Active( 0 );
 				}
 
 				// fade in
@@ -704,7 +704,7 @@ void Update_Game( void )
 				// activate entry
 				if( entry )
 				{
-					pPlayer->Goto_Sub_Level( str_level, str_entry, 0 );
+					pPlayer->Goto_Sub_Level( str_level, str_entry, CAMERA_MOVE_NONE );
 				}
 			}
 			// Enter World
@@ -745,7 +745,7 @@ void Update_Game( void )
 				bool level_active = 0;
 
 				// if level is loaded and active
-				if( pActive_Level->Is_Loaded() && !pActive_Level->delayed_unload )
+				if( pActive_Level->Is_Loaded() && !pActive_Level->m_delayed_unload )
 				{
 					level_active = 1;
 				}
@@ -764,8 +764,10 @@ void Update_Game( void )
 				}
 
 				// custom level
-				if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM )
+				if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM && Current_Game_Action_Data.exists( "level" ) )
 				{
+					std::string lvl_name = Current_Game_Action_Data.getValueAsString( "level" ).c_str();
+
 					pMenuCore->Load( MENU_START, exit_gamemode );
 
 					// Get Tab Control
@@ -776,15 +778,13 @@ void Update_Game( void )
 					// Get Levels Listbox
 					CEGUI::Listbox *listbox_levels = static_cast<CEGUI::Listbox *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_levels" ));
 					// Get Item
-					CEGUI::ListboxItem *list_item = listbox_levels->findItemWithText( Get_Filename( pActive_Level->data_file, 0, 0 ).c_str(), NULL );
+					CEGUI::ListboxItem *list_item = listbox_levels->findItemWithText( lvl_name, NULL );
 					// select level
 					if( list_item )
 					{
 						listbox_levels->setItemSelectState( list_item, 1 );
 						listbox_levels->ensureItemIsVisible( list_item );
 					}
-
-					Game_Mode_Type = MODE_TYPE_DEFAULT;
 				}
 				// default menu
 				else
@@ -830,19 +830,30 @@ void Update_Game( void )
 			{
 				// fade out
 				Draw_Effect_Out( EFFECT_OUT_FIXED_COLORBOX );
+				// change game mode
+				Change_Game_Mode( MODE_LEVEL );
 				// load new level
 				if( Current_Game_Action_Data.exists( "level" ) )
 				{
+					std::string lvl_name = Current_Game_Action_Data.getValueAsString( "level" ).c_str();
+
 					// load level
-					pActive_Level->Load( Current_Game_Action_Data.getValueAsString( "level" ).c_str() );
-					// play new music
-					if( pActive_Level->valid_music )
+					if( pActive_Level->Load( lvl_name ) )
 					{
-						pAudio->Play_Music( pActive_Level->musicfile, -1, 0, 1000 );
+						pActive_Level->Enter();
+					}
+					// not a valid level
+					else
+					{
+						printf( "Error : Level not found %s\n", lvl_name.c_str() );
+						pHud_Debug->Set_Text( _("Loading Level failed : ") + lvl_name );
+
+						// back to overworld
+						pActive_Overworld->Enter();
+						// walk to the next waypoint
+						pActive_Overworld->Goto_Next_Level();
 					}
 				}
-				// change game mode
-				Change_Game_Mode( MODE_LEVEL );
 				// reset player
 				pPlayer->Reset();
 				// fade in
@@ -852,7 +863,7 @@ void Update_Game( void )
 			else if( Current_Game_Action == GA_ENTER_WORLD )
 			{
 				// Random fade out effect
-				Draw_Effect_Out( EFFECT_OUT_TILE_PIXELATION );
+				Draw_Effect_Out( EFFECT_OUT_BLACK_TILED_RECTS );
 				// set active world
 				if( Current_Game_Action_Data.exists( "world" ) )
 				{
@@ -931,6 +942,11 @@ void Update_Game( void )
 				// unload menu
 				pMenuCore->Unload();
 				// set active world
+				if( Current_Game_Action_Data.getValueAsBool( "reset_save" ) )
+				{
+					// reset data
+					pPlayer->Reset_Save();
+				}
 				if( Current_Game_Action_Data.exists( "world" ) )
 				{
 					pOverworld_Manager->Set_Active( Current_Game_Action_Data.getValueAsString( "world" ).c_str() );
@@ -958,7 +974,7 @@ void Update_Game( void )
 				}
 			}
 			// Enter Level
-			if( Current_Game_Action == GA_ENTER_LEVEL )
+			else if( Current_Game_Action == GA_ENTER_LEVEL )
 			{
 				// check if level is active
 				bool orig_level_active = 0;
@@ -976,34 +992,33 @@ void Update_Game( void )
 					Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
 				}
 
-				// check if custom level mode
-				bool custom_level_mode = 0;
-				// if origin menu is start menu
-				if( pMenuCore->menu_id == MENU_START )
-				{
-					custom_level_mode = 1;
-				}
 				// unload menu
 				pMenuCore->Unload();
+				/* change mode
+				 * should be done before loading a level as the correct sprite manager is needed
+				*/
+				Change_Game_Mode( MODE_LEVEL );
 				// load custom level
 				if( Current_Game_Action_Data.exists( "level" ) )
 				{
-					if( custom_level_mode )
+					// reset state
+					if( Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM )
 					{
 						pPlayer->Reset_Save();
 					}
-					// load new level
-					pActive_Level->Load( Current_Game_Action_Data.getValueAsString( "level" ).c_str() );
 					// reset player
-					pPlayer->Reset( custom_level_mode );
+					else
+					{
+						pPlayer->Reset( 0 );
+					}
+
+					// load new level
+					if( pActive_Level->Load( Current_Game_Action_Data.getValueAsString( "level" ).c_str() ) )
+					{
+						pActive_Level->Enter();
+					}
 				}
-				// change mode
-				Change_Game_Mode( MODE_LEVEL );
-				// if custom level
-				if( custom_level_mode )
-				{
-					Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
-				}
+
 				if( !orig_level_active )
 				{
 					// fade in
@@ -1106,16 +1121,30 @@ void Update_Game( void )
 		// update performance timer
 		pFramerate->perf_timer[PERF_UPDATE_PLAYER]->Update();
 
-		// collisions
+		// player collisions
 		if( !editor_enabled )
 		{
 			pPlayer->Collide_Move();
 			pPlayer->Handle_Collisions();
+		}
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_UPDATE_PLAYER_COLLISIONS]->Update();
+
+		// late update for level objects
+		pActive_Level->Update_Late();
+
+		// update performance timer
+		pFramerate->perf_timer[PERF_UPDATE_LATE_LEVEL]->Update();
+
+		// level collisions
+		if( !editor_enabled )
+		{
 			pActive_Sprite_Manager->Handle_Collision_Items();
 		}
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_UPDATE_COLLISIONS]->Update();
+		pFramerate->perf_timer[PERF_UPDATE_LEVEL_COLLISIONS]->Update();
 
 		// Camera ( update after new player position was set )
 		pActive_Camera->Update();
@@ -1223,3 +1252,7 @@ void Draw_Game( void )
 	// update performance timer
 	pFramerate->perf_timer[PERF_DRAW_MOUSE]->Update();
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

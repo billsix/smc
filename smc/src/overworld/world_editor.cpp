@@ -1,7 +1,7 @@
 /***************************************************************************
  * world_editor.cpp  -  class for the World Editor
  *
- * Copyright (C) 2007 - 2008 Florian Richter
+ * Copyright (C) 2007 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -17,10 +17,11 @@
 #include "../overworld/world_editor.h"
 #include "../core/game_core.h"
 #include "../overworld/overworld.h"
-#include "../input/keyboard.h"
-#include "../core/sprite_manager.h"
 #include "../audio/audio.h"
 #include "../core/i18n.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** cEditor_World *** *** *** *** *** *** *** *** *** *** */
 
@@ -79,7 +80,7 @@ void cEditor_World :: Disable( bool native_mode /* = 0 */ )
 		return;
 	}
 
-	debugdisplay->Set_Text( _("World Editor disabled") );
+	pHud_Debug->Set_Text( _("World Editor disabled") );
 
 	editor_world_enabled = 0;
 	pOverworld_Manager->draw_layer = 0;
@@ -170,7 +171,7 @@ void cEditor_World :: Activate_Menu_Item( cEditor_Menu_Object *entry )
 
 bool cEditor_World :: Function_New( void )
 {
-	string world_name = Box_Text_Input( _("Create a new World"), _("Name") );
+	std::string world_name = Box_Text_Input( _("Create a new World"), _("Name") );
 
 	// aborted/invalid
 	if( world_name.empty() )
@@ -180,12 +181,12 @@ bool cEditor_World :: Function_New( void )
 
 	if( pOverworld_Manager->New( world_name ) )
 	{
-		debugdisplay->Set_Text( _("Created ") + world_name );
+		pHud_Debug->Set_Text( _("Created ") + world_name );
 		return 1;
 	}
 	else
 	{
-		debugdisplay->Set_Text( _("World ") + world_name + _(" already exists") );
+		pHud_Debug->Set_Text( _("World ") + world_name + _(" already exists") );
 	}
 
 	return 0;
@@ -193,7 +194,7 @@ bool cEditor_World :: Function_New( void )
 
 void cEditor_World :: Function_Load( void )
 {
-	string world_name = _("Name");
+	std::string world_name = _("Name");
 
 	// valid world
 	while( world_name.length() )
@@ -214,7 +215,7 @@ void cEditor_World :: Function_Load( void )
 			Game_Action = GA_ENTER_WORLD;
 			Game_Action_Data.add( "world", world_name.c_str() );
 
-			debugdisplay->Set_Text( _("Loaded ") + world_name );
+			pHud_Debug->Set_Text( _("Loaded ") + world_name );
 			break;
 		}
 		// failed
@@ -264,3 +265,7 @@ void cEditor_World :: Function_Clear( void )
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cEditor_World *pWorld_Editor = NULL;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

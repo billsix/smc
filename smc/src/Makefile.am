@@ -1,5 +1,9 @@
 AM_CXXFLAGS = -Wall -Wpointer-arith
+
+if RUNINPLACE
+else
 AM_CPPFLAGS = -DDATA_DIR="\"$(pkgdatadir)\""
+endif
 
 bin_PROGRAMS = smc
 
@@ -23,7 +27,7 @@ smc_SOURCES = \
 	enemies/enemy.cpp \
 	enemies/gee.cpp \
 	enemies/furball.cpp \
-	enemies/jpiranha.cpp \
+	enemies/flyon.cpp \
 	enemies/krush.cpp \
 	enemies/rokko.cpp \
 	enemies/spika.cpp \
@@ -52,6 +56,7 @@ smc_SOURCES = \
 	objects/moving_platform.cpp \
 	objects/movingsprite.cpp \
 	objects/objectsprite.cpp \
+	objects/path.cpp \
 	objects/powerup.cpp \
 	objects/spinbox.cpp \
 	objects/sprite.cpp \

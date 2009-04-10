@@ -1,7 +1,7 @@
 /***************************************************************************
  * enemy.h  -  headers for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -20,6 +20,9 @@
 #include "../core/framerate.h"
 #include "../audio/audio.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cEnemy : public cImageObjectSprite
@@ -31,9 +34,9 @@ public:
 	virtual ~cEnemy( void );
 
 	// load from savegame
-	virtual void Load_from_Savegame( cSave_Level_Object *save_object );
+	virtual void Load_From_Savegame( cSave_Level_Object *save_object );
 	// save to savegame
-	virtual cSave_Level_Object *Save_to_Savegame( void );
+	virtual cSave_Level_Object *Save_To_Savegame( void );
 
 	// Set Dead
 	virtual void Set_Dead( bool enable = 1 );
@@ -42,6 +45,10 @@ public:
 	virtual void DieStep( void );
 	// handle basic enemy updates
 	virtual void Update( void );
+	/* late update
+	 * use if it is needed that other objects are already updated
+	*/
+	virtual void Update_Late( void );
 	// update gravity velocity
 	virtual void Update_Gravity( void );
 	
@@ -50,7 +57,7 @@ public:
 
 	// default collision handler
 	virtual void Handle_Collision( cObjectCollision *collision );
-	// handle moved out of Level
+	// handle moved out of Level event
 	virtual void Handle_out_of_Level( ObjectDirection dir );
 
 	// if dead
@@ -62,12 +69,16 @@ public:
 	float counter;
 
 	// sound filename if got killed
-	string kill_sound;
+	std::string kill_sound;
 	// points if enemy got killed
 	unsigned int kill_points;
 
-    // is fire able to kill this enemy
-    bool fire_resistant;
+	// is fire able to kill this enemy
+	bool fire_resistant;
 };
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

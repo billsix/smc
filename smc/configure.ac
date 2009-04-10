@@ -1,5 +1,5 @@
 AC_PREREQ(2.57)
-AC_INIT(smc, 1.7)
+AC_INIT(smc, 1.8)
 AC_CANONICAL_TARGET
 AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE(foreign)
@@ -73,6 +73,17 @@ AC_CHECK_HEADERS(SDL_mixer.h, ,
 
 AC_CHECK_HEADERS(SDL_ttf.h, ,
 		AC_MSG_ERROR([SDL_ttf include files not found. The SDL_ttf development package is needed.]))
+
+### Option to enable debug build ###
+AC_ARG_ENABLE(debug,
+	AC_HELP_STRING(--enable-debug, enable debug build),
+	[CPPFLAGS="$CPPFLAGS -D_DEBUG=1"])
+
+### Allow running in-place for development ###
+AC_ARG_ENABLE(runinplace,
+        AC_HELP_STRING(--enable-runinplace, build to run inplace),
+        [runinplace=yes])
+AM_CONDITIONAL(RUNINPLACE, test "$runinplace" = yes)
 
 ### Create files ###
 

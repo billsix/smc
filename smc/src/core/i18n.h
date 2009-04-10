@@ -1,7 +1,7 @@
 /***************************************************************************
  * i18n.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2008 Florian Richter
+ * Copyright (C) 2008 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -16,8 +16,13 @@
 #ifndef SMC_I18N_H
 #define SMC_I18N_H
 
-#include "../core/globals.h"
+#include "../core/global_game.h"
 #include <libintl.h>
+
+namespace SMC
+{
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // translates the string with gettext
 #define _(String) gettext(String)
@@ -30,5 +35,9 @@
 void I18N_Init( void );
 // set language
 void I18N_Set_Language( const std::string &default_language );
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

@@ -1,7 +1,7 @@
 /***************************************************************************
  * global_basic.h  -  global header
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -57,20 +57,19 @@
 #include <vector>
 #include <time.h>
 #include <math.h>
-#include <algorithm>
+
 
 #ifdef _MSC_VER
 	#define snprintf _snprintf
 #endif
 
-using std::sort;
-using std::string;
 using std::vector;
-using std::flush;
 using std::ifstream;
 using std::fstream;
 using std::ofstream;
 using std::stringstream;
 using std::ios;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 #endif

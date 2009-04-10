@@ -1,7 +1,7 @@
 /***************************************************************************
  * thromp.cpp  -  falling stone
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -15,7 +15,6 @@
 
 #include "../enemies/thromp.h"
 #include "../core/game_core.h"
-#include "../core/camera.h"
 #include "../video/animation.h"
 #include "../player/player.h"
 #include "../level/level.h"
@@ -23,12 +22,16 @@
 #include "../video/gl_surface.h"
 #include "../user/savegame.h"
 #include "../core/sprite_manager.h"
-#include "../core/math/utilities.h"
 #include "../input/mouse.h"
 #include "../core/i18n.h"
 // boost filesystem
 #include "boost/filesystem/convenience.hpp"
 namespace fs = boost::filesystem;
+// CEGUI
+#include "CEGUIXMLAttributes.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** cThromp *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -42,7 +45,7 @@ cThromp :: cThromp( CEGUI::XMLAttributes &attributes )
 : cEnemy()
 {
 	cThromp::Init();
-	cThromp::Create_from_Stream( attributes );
+	cThromp::Create_From_Stream( attributes );
 }
 
 cThromp :: ~cThromp( void )
@@ -52,14 +55,14 @@ cThromp :: ~cThromp( void )
 
 void cThromp :: Init( void  )
 {
-	type = TYPE_THROMP;
-	posz = 0.093f;
-	player_range = 1000;
-	can_be_on_ground = 0;
+	m_type = TYPE_THROMP;
+	m_pos_z = 0.093f;
+	m_player_range = 1000;
+	m_can_be_on_ground = 0;
 
 	fire_resistant = 1;
 
-	state = STA_STAY;
+	m_state = STA_STAY;
 	move_back = 0;
 	dest_velx = 0;
 	dest_vely = 0;
@@ -74,30 +77,30 @@ void cThromp :: Init( void  )
 
 cThromp *cThromp :: Copy( void )
 {
-	cThromp *thromp = new cThromp( startposx, startposy );
+	cThromp *thromp = new cThromp( m_start_pos_x, m_start_pos_y );
 	thromp->Set_Image_Dir( img_dir );
-	thromp->Set_Direction( start_direction );
+	thromp->Set_Direction( m_start_direction );
 	thromp->Set_Max_Distance( max_distance );
 	thromp->Set_Speed( speed );
 
 	return thromp;
 }
 
-void cThromp :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
+void cThromp :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// image directory
 	Set_Image_Dir( attributes.getValueAsString( "image_dir", img_dir ).c_str() );
 	// direction
-	Set_Direction( Get_Direction_Id( attributes.getValueAsString( "direction", Get_Direction_Name( start_direction ) ).c_str() ) );
+	Set_Direction( Get_Direction_Id( attributes.getValueAsString( "direction", Get_Direction_Name( m_start_direction ) ).c_str() ) );
 	// max distance
 	Set_Max_Distance( static_cast<float>(attributes.getValueAsInteger( "max_distance", static_cast<int>(max_distance) )) );
 	// speed
 	Set_Speed( attributes.getValueAsFloat( "speed", speed ) );
 }
 
-void cThromp :: Save_to_Stream( ofstream &file )
+void cThromp :: Save_To_Stream( ofstream &file )
 {
 	// begin enemy
 	file << "\t<enemy>" << std::endl;
@@ -105,12 +108,12 @@ void cThromp :: Save_to_Stream( ofstream &file )
 	// name
 	file << "\t\t<Property name=\"type\" value=\"thromp\" />" << std::endl;
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(m_start_pos_x) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(m_start_pos_y) << "\" />" << std::endl;
 	// image directory
 	file << "\t\t<Property name=\"image_dir\" value=\"" << img_dir << "\" />" << std::endl;
 	// direction
-	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( start_direction ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( m_start_direction ) << "\" />" << std::endl;
 	// max distance
 	file << "\t\t<Property name=\"max_distance\" value=\"" << static_cast<int>(max_distance) << "\" />" << std::endl;
 	// speed
@@ -120,9 +123,9 @@ void cThromp :: Save_to_Stream( ofstream &file )
 	file << "\t</enemy>" << std::endl;
 }
 
-void cThromp :: Load_from_Savegame( cSave_Level_Object *save_object )
+void cThromp :: Load_From_Savegame( cSave_Level_Object *save_object )
 {
-	cEnemy::Load_from_Savegame( save_object );
+	cEnemy::Load_From_Savegame( save_object );
 
 	// Don't activate if dead
 	if( dead )
@@ -137,32 +140,36 @@ void cThromp :: Load_from_Savegame( cSave_Level_Object *save_object )
 	}
 }
 
-cSave_Level_Object *cThromp :: Save_to_Savegame( void )
+cSave_Level_Object *cThromp :: Save_To_Savegame( void )
 {
-	cSave_Level_Object *save_object = cEnemy::Save_to_Savegame();
+	cSave_Level_Object *save_object = cEnemy::Save_To_Savegame();
 
 	// move_back ( only save if needed )
 	if( move_back )
 	{
-		save_object->properties.push_back( cSave_Level_Object_Property( "move_back", int_to_string( move_back ) ) );
+		save_object->m_properties.push_back( cSave_Level_Object_Property( "move_back", int_to_string( move_back ) ) );
 	}
 
 	return save_object;
 }
 
-void cThromp :: Set_Image_Dir( string dir )
+void cThromp :: Set_Image_Dir( std::string dir )
 {
 	if( dir.empty() )
 	{
 		return;
 	}
 
-	img_dir = dir;
-
 	// remove pixmaps dir
 	if( img_dir.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == 0 )
 	{
 		img_dir.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
+	}
+
+	// add trailing slash if missing
+	if( *(dir.end() - 1) != '/' )
+	{
+		dir.insert( dir.length(), "/" );
 	}
 
 	// if directory does not exist
@@ -171,13 +178,15 @@ void cThromp :: Set_Image_Dir( string dir )
 		return;
 	}
 
+	img_dir = dir;
+
 	Update_Images();
 }
 
-void cThromp :: Set_Direction( ObjectDirection dir )
+void cThromp :: Set_Direction( const ObjectDirection dir )
 {
 	// already set
-	if( start_direction == dir )
+	if( m_start_direction == dir )
 	{
 		return;
 	}
@@ -203,9 +212,9 @@ void cThromp :: Set_Max_Distance( float nmax_distance )
 
 void cThromp :: Set_Speed( float val )
 {
-	if( speed < 0.1f )
+	if( val < 0.1f )
 	{
-		speed = 0.1f;
+		val = 0.1f;
 	}
 
 	speed = val;
@@ -215,50 +224,49 @@ void cThromp :: Set_Speed( float val )
 
 void cThromp :: Activate( void )
 {
-	if( state == STA_FLY )
+	if( m_state == STA_FLY )
 	{
 		return;
 	}
 
-	state = STA_FLY;
+	m_state = STA_FLY;
 
-	velx = dest_velx;
-	vely = dest_vely;
+	m_velx = dest_velx;
+	m_vely = dest_vely;
 	move_back = 0;
 
 	// active image
-	Set_Image( 1 );
+	Set_Image_Num( 1 );
 }
 
 void cThromp :: Move_Back( void )
 {
-	if( state == STA_STAY || move_back )
+	if( m_state == STA_STAY || move_back )
 	{
 		return;
 	}
 
-	velx = -dest_velx * 0.01f;
-	vely = -dest_vely * 0.01f;
+	m_velx = -dest_velx * 0.01f;
+	m_vely = -dest_vely * 0.01f;
 
 	move_back = 1;
 
 	// default image
-	Set_Image( 0 );
+	Set_Image_Num( 0 );
 }
 
 void cThromp :: DownGrade( bool force /* = 0 */ )
 {
 	Set_Dead( 1 );
-	massivetype = MASS_PASSIVE;
+	m_massive_type = MASS_PASSIVE;
 	counter = 0;
-	velx = 0;
-	vely = 0;
+	m_velx = 0;
+	m_vely = 0;
 
 	if( !force )
 	{
 		// animation
 		cParticle_Emitter *anim = new cParticle_Emitter();
-		anim->Set_Pos( posx + ( col_rect.w / 2 ), posy + ( col_rect.h / 2 ) );
 		Generate_Hit_Animation( anim );
 
 		anim->Set_Scale( 0.8f );
@@ -277,9 +285,9 @@ void cThromp :: DieStep( void )
 	counter += pFramerate->speedfactor;
 
 	// default death
-	if( rotz != 180 )
+	if( m_rot_z != 180 )
 	{
-		Set_Visible( 0 );
+		Set_Active( 0 );
 	}
 	// falling death
 	else
@@ -290,15 +298,15 @@ void cThromp :: DieStep( void )
 			Move( 0, -5 );
 		}
 		// if not below the screen fall
-		else if( posy < game_res_h + col_rect.h )
+		else if( m_pos_y < game_res_h + m_col_rect.m_h )
 		{
 			Move( 0, 20 );
 		}
 		// if below disable
 		else
 		{
-			rotz = 0;
-			Set_Visible( 0 );
+			m_rot_z = 0;
+			Set_Active( 0 );
 		}
 	}
 }
@@ -307,18 +315,18 @@ void cThromp :: Update( void )
 {
 	cEnemy::Update();
 
-	if( !valid_update || !is_Player_range() )
+	if( !m_valid_update || !Is_In_Player_Range() )
 	{
 		return;
 	}
 
 	// standing ( waiting )
-	if( state == STA_STAY )
+	if( m_state == STA_STAY )
 	{
 		GL_rect final_distance = Get_Final_Distance_Rect();
 
 		// if player is in front then activate
-		if( pPlayer->maryo_type != MARYO_GHOST && Col_Box( &pPlayer->col_rect, &final_distance ) )
+		if( pPlayer->maryo_type != MARYO_GHOST && pPlayer->m_col_rect.Intersects( final_distance ) )
 		{
 			Activate();
 		}
@@ -335,60 +343,60 @@ void cThromp :: Update( void )
 		 * only if the velocity is not too small for the given distance to the final position
 		 * final velocity should not get smaller on the last 10% to the final position
 		*/
-		if( direction == DIR_LEFT )
+		if( m_direction == DIR_LEFT )
 		{
-			dist_to_final_pos = max_distance - ( startposx - posx );
+			dist_to_final_pos = max_distance - ( m_start_pos_x - m_pos_x );
 
 			// move back
 			if( move_back )
 			{
 				vel_mod_min = ( dist_to_final_pos + ( max_distance * 0.1f ) ) / max_distance;
-				if( -velx > dest_velx * vel_mod_min )
+				if( -m_velx > dest_velx * vel_mod_min )
 				{
-					velx *= 1 + ( 0.2f * pFramerate->speedfactor );
+					m_velx *= 1 + ( 0.2f * pFramerate->speedfactor );
 				}
 			}
 
 		}
-		else if( direction == DIR_RIGHT )
+		else if( m_direction == DIR_RIGHT )
 		{
-			dist_to_final_pos = max_distance + ( startposx - posx );
+			dist_to_final_pos = max_distance + ( m_start_pos_x - m_pos_x );
 
 			// move back
 			if( move_back )
 			{
 				vel_mod_min = ( dist_to_final_pos + ( max_distance * 0.1f ) ) / max_distance;
-				if( -velx < dest_velx * vel_mod_min )
+				if( -m_velx < dest_velx * vel_mod_min )
 				{
-					velx *= 1 + ( 0.2f * pFramerate->speedfactor );
+					m_velx *= 1 + ( 0.2f * pFramerate->speedfactor );
 				}
 			}
 		}
-		else if( direction == DIR_UP )
+		else if( m_direction == DIR_UP )
 		{
-			dist_to_final_pos = max_distance - ( startposy - posy );
+			dist_to_final_pos = max_distance - ( m_start_pos_y - m_pos_y );
 
 			// move back
 			if( move_back )
 			{
 				vel_mod_min = ( dist_to_final_pos + ( max_distance * 0.1f ) ) / max_distance;
-				if( -vely > dest_vely * vel_mod_min )
+				if( -m_vely > dest_vely * vel_mod_min )
 				{
-					vely *= 1 + ( 0.2f * pFramerate->speedfactor );
+					m_vely *= 1 + ( 0.2f * pFramerate->speedfactor );
 				}
 			}
 		}
-		else if( direction == DIR_DOWN )
+		else if( m_direction == DIR_DOWN )
 		{
-			dist_to_final_pos = max_distance + ( startposy - posy );
+			dist_to_final_pos = max_distance + ( m_start_pos_y - m_pos_y );
 
 			// move back
 			if( move_back )
 			{
 				vel_mod_min = ( dist_to_final_pos + ( max_distance * 0.1f ) ) / max_distance;
-				if( -vely < dest_vely * vel_mod_min )
+				if( -m_vely < dest_vely * vel_mod_min )
 				{
-					vely *= 1 + ( 0.2f * pFramerate->speedfactor );
+					m_vely *= 1 + ( 0.2f * pFramerate->speedfactor );
 				}
 			}
 		}
@@ -401,8 +409,8 @@ void cThromp :: Update( void )
 		// reached original position
 		else if( move_back && dist_to_final_pos > max_distance )
 		{
-			state = STA_STAY;
-			Set_Pos( startposx, startposy );
+			m_state = STA_STAY;
+			Set_Pos( m_start_pos_x, m_start_pos_y );
 			// unset velocity
 			Set_Velocity( 0, 0 );
 
@@ -411,9 +419,9 @@ void cThromp :: Update( void )
 	}
 }
 
-void cThromp :: Draw( cSurfaceRequest *request /* = NULL */ )
+void cThromp :: Draw( cSurface_Request *request /* = NULL */ )
 {
-	if( !valid_draw )
+	if( !m_valid_draw )
 	{
 		return;
 	}
@@ -422,10 +430,10 @@ void cThromp :: Draw( cSurfaceRequest *request /* = NULL */ )
 	if( editor_level_enabled )
 	{
 		GL_rect final_distance = Get_Final_Distance_Rect();
-		final_distance.x -= pActive_Camera->x;
-		final_distance.y -= pActive_Camera->y;
+		final_distance.m_x -= pActive_Camera->x;
+		final_distance.m_y -= pActive_Camera->y;
 
-		pVideo->Draw_Rect( &final_distance, posz - 0.000001f, &whitealpha128 );
+		pVideo->Draw_Rect( &final_distance, m_pos_z - 0.000001f, &whitealpha128 );
 	}
 
 	cEnemy::Draw( request );
@@ -436,15 +444,15 @@ void cThromp :: Update_Images( void )
 	// clear images
 	Clear_Images();
 	// set images
-	images.push_back( pVideo->Get_Surface( img_dir + Get_Direction_Name( start_direction ) + ".png" ) );
-	images.push_back( pVideo->Get_Surface( img_dir + Get_Direction_Name( start_direction ) + "_active.png" ) );
+	m_images.push_back( pVideo->Get_Surface( img_dir + Get_Direction_Name( m_start_direction ) + ".png" ) );
+	m_images.push_back( pVideo->Get_Surface( img_dir + Get_Direction_Name( m_start_direction ) + "_active.png" ) );
 	// set start image
-	Set_Image( 0, 1 );
+	Set_Image_Num( 0, 1 );
 
 	// set active image
-	if( state == STA_FLY )
+	if( m_state == STA_FLY )
 	{
-		Set_Image( 1 );
+		Set_Image_Num( 1 );
 	}
 
 	Create_Name();
@@ -452,22 +460,22 @@ void cThromp :: Update_Images( void )
 
 void cThromp :: Update_dest_vel( void )
 {
-	if( start_direction == DIR_UP )
+	if( m_start_direction == DIR_UP )
 	{
 		dest_velx = 0;
 		dest_vely = -speed;
 	}
-	else if( start_direction == DIR_DOWN )
+	else if( m_start_direction == DIR_DOWN )
 	{
 		dest_velx = 0;
 		dest_vely = speed;
 	}
-	else if( start_direction == DIR_LEFT )
+	else if( m_start_direction == DIR_LEFT )
 	{
 		dest_velx = -speed;
 		dest_vely = 0;
 	}
-	else if( start_direction == DIR_RIGHT )
+	else if( m_start_direction == DIR_RIGHT )
 	{
 		dest_velx = speed;
 		dest_vely = 0;
@@ -481,52 +489,52 @@ void cThromp :: Update_dest_vel( void )
 
 void cThromp :: Update_Distance_rect( void )
 {
-	if( start_direction == DIR_UP )
+	if( m_start_direction == DIR_UP )
 	{
-		distance_rect.x = col_pos.x;
-		distance_rect.y = -max_distance;
-		distance_rect.w = col_rect.w;
-		distance_rect.h = max_distance;
+		distance_rect.m_x = m_col_pos.m_x;
+		distance_rect.m_y = -max_distance;
+		distance_rect.m_w = m_col_rect.m_w;
+		distance_rect.m_h = max_distance;
 	}
-	else if( start_direction == DIR_DOWN )
+	else if( m_start_direction == DIR_DOWN )
 	{
-		distance_rect.x = col_pos.x;
-		distance_rect.y = 0;
-		distance_rect.w = col_rect.w;
-		distance_rect.h = max_distance;
+		distance_rect.m_x = m_col_pos.m_x;
+		distance_rect.m_y = 0;
+		distance_rect.m_w = m_col_rect.m_w;
+		distance_rect.m_h = max_distance;
 	}
-	else if( start_direction == DIR_LEFT )
+	else if( m_start_direction == DIR_LEFT )
 	{
-		distance_rect.x = -max_distance;
-		distance_rect.y = col_pos.y;
-		distance_rect.w = max_distance;
-		distance_rect.h = col_rect.h;
+		distance_rect.m_x = -max_distance;
+		distance_rect.m_y = m_col_pos.m_y;
+		distance_rect.m_w = max_distance;
+		distance_rect.m_h = m_col_rect.m_h;
 	}
-	else if( start_direction == DIR_RIGHT )
+	else if( m_start_direction == DIR_RIGHT )
 	{
-		distance_rect.x = 0;
-		distance_rect.y = col_pos.y;
-		distance_rect.w = max_distance;
-		distance_rect.h = col_rect.h;
+		distance_rect.m_x = 0;
+		distance_rect.m_y = m_col_pos.m_y;
+		distance_rect.m_w = max_distance;
+		distance_rect.m_h = m_col_rect.m_h;
 	}
 }
 
-GL_rect cThromp :: Get_Final_Distance_Rect( void )
+GL_rect cThromp :: Get_Final_Distance_Rect( void ) const
 {
 	GL_rect final_distance = distance_rect;
 
-	final_distance.x += rect.x;
-	final_distance.y += rect.y;
+	final_distance.m_x += m_rect.m_x;
+	final_distance.m_y += m_rect.m_y;
 
-	if( start_direction == DIR_LEFT || start_direction == DIR_RIGHT )
+	if( m_start_direction == DIR_LEFT || m_start_direction == DIR_RIGHT )
 	{
-		final_distance.x += rect.w;
-		final_distance.w -= rect.w;
+		final_distance.m_x += m_rect.m_w;
+		final_distance.m_w -= m_rect.m_w;
 	}
-	else if( start_direction == DIR_UP || start_direction == DIR_DOWN )
+	else if( m_start_direction == DIR_UP || m_start_direction == DIR_DOWN )
 	{
-		final_distance.y += rect.h;
-		final_distance.h -= rect.h;
+		final_distance.m_y += m_rect.m_h;
+		final_distance.m_h -= m_rect.m_h;
 	}
 
 	return final_distance;
@@ -534,7 +542,7 @@ GL_rect cThromp :: Get_Final_Distance_Rect( void )
 
 bool cThromp :: Is_Update_Valid( void )
 {
-	if( dead || freeze_counter )
+	if( dead || m_freeze_counter )
 	{
 		return 0;
 	}
@@ -556,11 +564,10 @@ bool cThromp :: Is_Draw_Valid( void )
 		}
 	}
 
-
 	return valid;
 }
 
-void cThromp :: Generate_Smoke( unsigned int power /* = 10 */ )
+void cThromp :: Generate_Smoke( unsigned int amount /* = 20 */ ) const
 {
 	// smoke on the destination direction
 	float smoke_x;
@@ -568,126 +575,122 @@ void cThromp :: Generate_Smoke( unsigned int power /* = 10 */ )
 	float smoke_width;
 	float smoke_height;
 
-	if( direction == DIR_DOWN )
+	if( m_direction == DIR_DOWN )
 	{
-		smoke_x = posx;
-		smoke_y = posy + rect.h;
-		smoke_width = col_rect.w;
+		smoke_x = m_pos_x;
+		smoke_y = m_pos_y + m_rect.m_h - 5;
+		smoke_width = m_col_rect.m_w;
 		smoke_height = 1;
 	}
-	else if( direction == DIR_UP )
+	else if( m_direction == DIR_UP )
 	{
-		smoke_x = posx;
-		smoke_y = posy;
-		smoke_width = col_rect.w;
+		smoke_x = m_pos_x;
+		smoke_y = m_pos_y + 5;
+		smoke_width = m_col_rect.m_w;
 		smoke_height = 1;
 	}
-	else if( direction == DIR_LEFT )
+	else if( m_direction == DIR_LEFT )
 	{
-		smoke_x = posx;
-		smoke_y = posy;
+		smoke_x = m_pos_x + 5;
+		smoke_y = m_pos_y;
 		smoke_width = 1;
-		smoke_height = col_rect.h;
+		smoke_height = m_col_rect.m_h;
 	}
-	else if( direction == DIR_RIGHT )
+	else if( m_direction == DIR_RIGHT )
 	{
-		smoke_x = posx + rect.w;
-		smoke_y = posy;
+		smoke_x = m_pos_x + m_rect.m_w - 5;
+		smoke_y = m_pos_y;
 		smoke_width = 1;
-		smoke_height = col_rect.h;
+		smoke_height = m_col_rect.m_h;
 	}
 	else
 	{
 		return;
 	}
 
-	for( unsigned int i = 0 ; i < power; i++ )
-	{
-		// animation
-		cParticle_Emitter *anim = new cParticle_Emitter();
-		anim->Set_Pos( smoke_x + Get_Random_Float( 0, smoke_width ), smoke_y + Get_Random_Float( 0, smoke_height ) );
-
-		anim->Set_Image( pVideo->Get_Surface( "animation/particles/smoke.png" ) );
-		anim->Set_Pos_Z( posz + 0.000001f );
-		anim->Set_Time_to_Live( 1, 1 );
-		anim->Set_Direction_Range( 0, 360 );
-		anim->Set_Speed( 0.5f, 0.2f );
-		anim->Set_Fading_Alpha( 1 );
-		anim->Set_Const_Rotation_Z( -2, 4 );
-		// add animation
-		pAnimation_Manager->Add( anim );
-	}
+	// animation
+	cParticle_Emitter *anim = new cParticle_Emitter();
+	anim->Set_Emitter_Rect( smoke_x, smoke_y, smoke_width, smoke_height );
+	anim->Set_Image( pVideo->Get_Surface( "animation/particles/smoke.png" ) );
+	anim->Set_Quota( amount );
+	anim->Set_Pos_Z( m_pos_z + 0.000001f );
+	anim->Set_Time_to_Live( 1, 1 );
+	anim->Set_Direction_Range( 180, 180 );
+	anim->Set_Speed( 0.05f, 0.4f );
+	anim->Set_Fading_Alpha( 1 );
+	anim->Set_Const_Rotation_Z( -2, 4 );
+	// add animation
+	pAnimation_Manager->Add( anim );
 }
 
-unsigned int cThromp :: Validate_Collision( cSprite *obj )
+Col_Valid_Type cThromp :: Validate_Collision( cSprite *obj )
 {
 	// basic validation checking
-	int basic_valid = Validate_Collision_Ghost( obj );
+	Col_Valid_Type basic_valid = Validate_Collision_Ghost( obj );
 
 	// found valid collision
-	if( basic_valid > -1 )
+	if( basic_valid != COL_VTYPE_NO_GHOST )
 	{
 		return basic_valid;
 	}
 
-
-	if( obj->type == TYPE_PLAYER || obj->sprite_array == ARRAY_ENEMY )
+	if( obj->m_type == TYPE_PLAYER || obj->m_sprite_array == ARRAY_ENEMY )
 	{
 		cMovingSprite *moving_sprite = static_cast<cMovingSprite *>(obj);
 
-		int validation = Validate_Collision_Object_On_Top( moving_sprite );
+		Col_Valid_Type validation = Validate_Collision_Object_On_Top( moving_sprite );
 
-		if( validation != -1 )
+		if( validation != COL_VTYPE_NO_GHOST )
 		{
 			return validation;
 		}
 
 		// massive
-		if( massivetype == MASS_MASSIVE )
+		if( m_massive_type == MASS_MASSIVE )
 		{
-			return 1;
+			return COL_VTYPE_INTERNAL;
 		}
 
 		// if moving back collide with nothing
 		if( move_back )
 		{
-			return 1;
+			return COL_VTYPE_INTERNAL;
 		}
 		else
 		{
-			return 2;
+			return COL_VTYPE_BLOCKING;
 		}
 	}
 	// massive
-	if( massivetype == MASS_MASSIVE )
+	if( obj->m_massive_type == MASS_MASSIVE )
 	{
-		if( obj->type == TYPE_STATIC_ENEMY )
+		if( obj->m_type == TYPE_STATIC_ENEMY )
 		{
-			return 0;
+			return COL_VTYPE_NOT_VALID;
 		}
 
-		return 1;
+		return COL_VTYPE_INTERNAL;
 	}
-	if( obj->massivetype == MASS_HALFMASSIVE )
+	if( obj->m_massive_type == MASS_HALFMASSIVE )
 	{
 		// if moving downwards and the object is on bottom
-		if( vely >= 0 && Is_on_Top( obj ) )
+		if( m_vely >= 0 && Is_On_Top( obj ) )
 		{
 			// if moving back collide with nothing
 			if( !move_back )
 			{
-				return 2;
+				return COL_VTYPE_BLOCKING;
 			}
 		}
 	}
 
-	return 0;
+	return COL_VTYPE_NOT_VALID;
 }
 
 void cThromp :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// front
-	if( collision->direction == direction )
+	if( collision->direction == m_direction )
 	{
 		pPlayer->DownGrade_Player();
 
@@ -708,16 +711,16 @@ void cThromp :: Handle_Collision_Player( cObjectCollision *collision )
 void cThromp :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
 	// destination direction collision
-	if( collision->direction == direction )
+	if( collision->direction == m_direction )
 	{
 		// if active
-		if( state == STA_FLY )
+		if( m_state == STA_FLY )
 		{
 			cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
 
 			// kill enemy
 			pAudio->Play_Sound( enemy->kill_sound );
-			pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", static_cast<Uint8>(255), 1 );
+			pHud_Points->Add_Points( enemy->kill_points, m_pos_x + m_image->m_w / 3, m_pos_y - 5, "", static_cast<Uint8>(255), 1 );
 			enemy->DownGrade( 1 );
 
 			if( !move_back )
@@ -736,8 +739,16 @@ void cThromp :: Handle_Collision_Massive( cObjectCollision *collision )
 {
 	Send_Collision( collision );
 
+	cSprite *col_obj = pActive_Sprite_Manager->Get_Pointer( collision->number );
+
+	// ignore ball
+	if( col_obj->m_type == TYPE_BALL )
+	{
+		return;
+	}
+
 	// if not active or already moving back
-	if( state != STA_FLY || move_back )
+	if( m_state != STA_FLY || move_back )
 	{
 		return;
 	}
@@ -749,18 +760,19 @@ void cThromp :: Handle_Collision_Massive( cObjectCollision *collision )
 
 void cThromp :: Editor_Activate( void )
 {
+	// get window manager
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
 	// direction
 	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_thromp_direction" ));
-	Editor_Add( UTF8_("Direction"), UTF8_("Direction"), combobox, 100, 75 );
+	Editor_Add( UTF8_("Direction"), UTF8_("Direction it moves into."), combobox, 100, 110 );
 
 	combobox->addItem( new CEGUI::ListboxTextItem( "up" ) );
 	combobox->addItem( new CEGUI::ListboxTextItem( "down" ) );
 	combobox->addItem( new CEGUI::ListboxTextItem( "left" ) );
 	combobox->addItem( new CEGUI::ListboxTextItem( "right" ) );
 
-	combobox->setText( Get_Direction_Name( start_direction ) );
+	combobox->setText( Get_Direction_Name( m_start_direction ) );
 	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cThromp::Editor_Direction_Select, this ) );
 
 	// image dir
@@ -768,21 +780,23 @@ void cThromp :: Editor_Activate( void )
 	Editor_Add( UTF8_("Image directory"), UTF8_("Directory containing the images"), editbox, 200 );
 
 	editbox->setText( img_dir.c_str() );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cThromp::Editor_Image_Dir_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cThromp::Editor_Image_Dir_Text_Changed, this ) );
 
 	// max distance
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_thromp_max_distance" ));
 	Editor_Add( UTF8_("Distance"), UTF8_("Detection distance into its direction"), editbox, 90 );
 
+	editbox->setValidationString( "^[+]?\\d*$" );
 	editbox->setText( int_to_string( static_cast<int>(max_distance) ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cThromp::Editor_Max_Distance_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cThromp::Editor_Max_Distance_Text_Changed, this ) );
 
 	// speed
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_thromp_speed" ));
 	Editor_Add( UTF8_("Speed"), UTF8_("Speed when activated"), editbox, 120 );
 
+	editbox->setValidationString( "[+]?[0-9]*\\.?[0-9]*" );
 	editbox->setText( float_to_string( speed ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cThromp::Editor_Speed_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cThromp::Editor_Speed_Text_Changed, this ) );
 
 	// init
 	Editor_Init();
@@ -798,30 +812,30 @@ bool cThromp :: Editor_Direction_Select( const CEGUI::EventArgs &event )
 	return 1;
 }
 
-bool cThromp :: Editor_Image_Dir_Key( const CEGUI::EventArgs &event )
+bool cThromp :: Editor_Image_Dir_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Image_Dir( str_text );
 
 	return 1;
 }
 
-bool cThromp :: Editor_Max_Distance_Key( const CEGUI::EventArgs &event )
+bool cThromp :: Editor_Max_Distance_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Max_Distance( static_cast<float>(string_to_int( str_text )) );
 
 	return 1;
 }
 
-bool cThromp :: Editor_Speed_Key( const CEGUI::EventArgs &event )
+bool cThromp :: Editor_Speed_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Speed( string_to_float( str_text ) );
 
@@ -830,11 +844,15 @@ bool cThromp :: Editor_Speed_Key( const CEGUI::EventArgs &event )
 
 void cThromp :: Create_Name( void )
 {
-	name = "Thromp ";
-	name += _(Get_Direction_Name( start_direction ).c_str());
+	m_name = "Thromp ";
+	m_name += _(Get_Direction_Name( m_start_direction ).c_str());
 
-	if( start_image && !start_image->name.empty() )
+	if( m_start_image && !m_start_image->m_name.empty() )
 	{
-		name += " " + start_image->name;
+		m_name += " " + m_start_image->m_name;
 	}
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

@@ -1,7 +1,7 @@
 /***************************************************************************
  * global_effect.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,6 +19,9 @@
 #include "../core/globals.h"
 #include "../core/math/rect.h"
 #include "../video/animation.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** Global Effect Type *** *** *** *** *** *** *** *** *** *** */
 
@@ -46,9 +49,9 @@ public:
 	virtual void Clear( void );
 
 	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
+	virtual void Save_To_Stream( ofstream &file );
 
 	// update
 	virtual void Update( void );
@@ -58,24 +61,26 @@ public:
 	virtual void Draw( void );
 
 	// Sets global effect type
-	void Set_Type( GlobalEffectType ntype );
-	void Set_Type( string ntype );
+	void Set_Type( const GlobalEffectType ntype );
+	void Set_Type( const std::string &ntype );
 	// Set image
-	void Set_Image( string nimg_file );
+	void Set_Image( const std::string &nimg_file );
 
 	// Return the type name
-	string Get_Type_Name( void );
+	std::string Get_Type_Name( void ) const;
 
 	// type
 	GlobalEffectType ge_type;
 
 	// image filename
-	string image_filename;
+	std::string image_filename;
 
 	// valid global effect
 	bool valid;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

@@ -1,7 +1,7 @@
 /***************************************************************************
  * worlds.cpp  -  class for handling worlds data
  *
- * Copyright (C) 2004 - 2008 Florian Richter
+ * Copyright (C) 2004 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,6 +19,11 @@
 // boost filesystem
 #include "boost/filesystem/convenience.hpp"
 namespace fs = boost::filesystem;
+// CEGUI
+#include "CEGUIXMLParser.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** cOverworld_Manager *** *** *** *** *** *** *** *** *** */
 
@@ -43,7 +48,7 @@ cOverworld_Manager :: ~cOverworld_Manager( void )
 	delete camera;
 }
 
-bool cOverworld_Manager :: New( string name )
+bool cOverworld_Manager :: New( const std::string &name )
 {
 	// no name given
 	if( name.empty() )
@@ -76,7 +81,7 @@ bool cOverworld_Manager :: New( string name )
 void cOverworld_Manager :: Load( void )
 {
 	// if already loaded
-	if( objects.size() )
+	if( !objects.empty() )
 	{
 		Delete_All();
 	}
@@ -101,7 +106,7 @@ void cOverworld_Manager :: Load( void )
 	Set_Active( "World 1" );
 }
 
-void cOverworld_Manager :: Load_Dir( string dir, bool user_dir /* = 0 */ ) 
+void cOverworld_Manager :: Load_Dir( const std::string &dir, bool user_dir /* = 0 */ ) 
 {
 	// set world directory
 	fs::path full_path( dir, fs::native );
@@ -111,7 +116,7 @@ void cOverworld_Manager :: Load_Dir( string dir, bool user_dir /* = 0 */ )
 	{
 		try
 		{
-			string current_dir = dir_itr->leaf();
+			std::string current_dir = dir_itr->leaf();
 
 			// only directories with an existing description
 			if( fs::is_directory( *dir_itr ) && File_Exists( dir + "/" + current_dir + "/description.xml" ) )
@@ -143,7 +148,7 @@ void cOverworld_Manager :: Load_Dir( string dir, bool user_dir /* = 0 */ )
 	}
 }
 
-bool cOverworld_Manager :: Set_Active( string str ) 
+bool cOverworld_Manager :: Set_Active( const std::string &str ) 
 {
 	return Set_Active( Get( str ) );
 }
@@ -179,7 +184,7 @@ void cOverworld_Manager :: Reset( void )
 	}
 }
 
-cOverworld *cOverworld_Manager :: Get( string str )
+cOverworld *cOverworld_Manager :: Get( const std::string &str )
 {
 	cOverworld *world = Get_from_Name( str );
 
@@ -191,7 +196,7 @@ cOverworld *cOverworld_Manager :: Get( string str )
 	return Get_from_Path( str );
 }
 
-cOverworld *cOverworld_Manager :: Get_from_Path( string path )
+cOverworld *cOverworld_Manager :: Get_from_Path( const std::string &path )
 {
 	for( vector<cOverworld *>::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
@@ -206,7 +211,7 @@ cOverworld *cOverworld_Manager :: Get_from_Path( string path )
 	return NULL;
 }
 
-cOverworld *cOverworld_Manager :: Get_from_Name( string name )
+cOverworld *cOverworld_Manager :: Get_from_Name( const std::string &name )
 {
 	for( vector<cOverworld *>::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
@@ -221,7 +226,7 @@ cOverworld *cOverworld_Manager :: Get_from_Name( string name )
 	return NULL;
 }
 
-int cOverworld_Manager :: Get_Array_Num( string path )
+int cOverworld_Manager :: Get_Array_Num( const std::string &path ) const
 {
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
@@ -238,10 +243,10 @@ int cOverworld_Manager :: Get_Array_Num( string path )
 void cOverworld_Manager :: elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes )
 {
 	// Property of an Element
-    if( element == "Property" )
-    {
+	if( element == "Property" )
+	{
 		xml_attributes.add( attributes.getValueAsString( "Name" ), attributes.getValueAsString( "Value" ) );
-    }
+	}
 }
 
 // XML element end
@@ -269,8 +274,8 @@ void cOverworld_Manager :: elementEnd( const CEGUI::String &element )
 
 void cOverworld_Manager :: handle_world( const CEGUI::XMLAttributes &attributes )
 {
-	string ow_name = attributes.getValueAsString( "Name" ).c_str();
-	string ow_comment = attributes.getValueAsString( "Comment" ).c_str();
+	std::string ow_name = attributes.getValueAsString( "Name" ).c_str();
+	std::string ow_comment = attributes.getValueAsString( "Comment" ).c_str();
 
 	// if available
 	cOverworld *overworld = Get_from_Name( ow_name );
@@ -286,3 +291,7 @@ void cOverworld_Manager :: handle_world( const CEGUI::XMLAttributes &attributes 
 
 // Overworld information handler
 cOverworld_Manager *pOverworld_Manager = NULL;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

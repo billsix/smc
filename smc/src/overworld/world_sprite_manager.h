@@ -1,7 +1,7 @@
 /***************************************************************************
  * world_sprite_manager.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2008 Florian Richter
+ * Copyright (C) 2008 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -20,6 +20,9 @@
 #include "../core/sprite_manager.h"
 #include "../overworld/overworld.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** cWorld_Sprite_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cWorld_Sprite_Manager : public cSprite_Manager
@@ -36,5 +39,7 @@ public:
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

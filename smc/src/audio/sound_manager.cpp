@@ -1,7 +1,7 @@
 /***************************************************************************
  * sound_manager.cpp  -  Sound Handler/Manager
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -15,6 +15,9 @@
 
 #include "../audio/sound_manager.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** *** *** *** Sound *** *** *** *** *** *** *** *** *** */
 
 cSound :: cSound( void )
@@ -27,7 +30,7 @@ cSound :: ~cSound( void )
 	Free();
 }
 
-bool cSound :: Load( string filename )
+bool cSound :: Load( const std::string &filename )
 {
 	Free();
 	
@@ -59,17 +62,17 @@ void cSound :: Free( void )
 cSound_Manager :: cSound_Manager( void )
 : cObject_Manager<cSound>()
 {
-	load_count = 0;
+	m_load_count = 0;
 }
 
 cSound_Manager :: ~cSound_Manager( void )
 {
-	Delete_All();
+	cSound_Manager::Delete_All();
 }
 
-cSound *cSound_Manager :: Get_Pointer( string path )
+cSound *cSound_Manager :: Get_Pointer( const std::string &path ) const
 {
-	for( SoundList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( SoundList::const_iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		cSound *obj = (*itr);
 
@@ -86,7 +89,7 @@ cSound *cSound_Manager :: Get_Pointer( string path )
 
 void cSound_Manager :: Add( cSound *sound )
 {
-	load_count++;
+	m_load_count++;
 	cObject_Manager<cSound>::Add( sound );
 }
 
@@ -104,3 +107,7 @@ void cSound_Manager :: Delete_Sounds( void )
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cSound_Manager *pSound_Manager = NULL;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

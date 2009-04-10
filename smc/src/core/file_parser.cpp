@@ -1,7 +1,7 @@
 /***************************************************************************
  * file_parser.cpp  -  Image Settings Handler
  *
- * Copyright (C) 2005 - 2008 Florian Richter
+ * Copyright (C) 2005 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -13,8 +13,14 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../core/file_parser.h"
+#include <cstdio>
+
+namespace SMC
+{
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cFile_parser :: cFile_parser( void )
 {
@@ -26,7 +32,7 @@ cFile_parser :: ~cFile_parser( void )
 	//
 }
 
-bool cFile_parser :: Parse( string &filename )
+bool cFile_parser :: Parse( const std::string &filename )
 {
 	error_count = 0;
 
@@ -40,8 +46,9 @@ bool cFile_parser :: Parse( string &filename )
 
 	data_file = filename;
 
-	char contents[500]; // maximum length of a line
-	
+	// maximum length of a line
+	char contents[500];
+
 	for( unsigned int i = 0; ifs.getline( contents, sizeof( contents ) ); i++ )
 	{
 		if( !Parse_Line( contents, i ) )
@@ -53,44 +60,86 @@ bool cFile_parser :: Parse( string &filename )
 	return 1;
 }
 
-bool cFile_parser :: Parse_Line( string command, int line )
+bool cFile_parser :: Parse_Line( std::string command, int line )
 {
-	// linux support
-	while( command.find( '\r' ) != string::npos )
+	// completely empty
+	if( command.empty() )
 	{
-		command.erase( command.find( '\r' ), 1 );
+		return 1;
+	}
+
+	// linux support
+	while( 1 )
+	{
+		std::string::size_type pos = command.find( '\r' );
+
+		if( pos == std::string::npos )
+		{
+			break;
+		}
+
+		command.erase( pos, 1 );
+
+		if( command.empty() )
+		{
+			return 1;
+		}
 	}
 
 	// no tabs
-	while( command.find( '\t' ) != string::npos )
+	while( 1 )
 	{
-		command.replace( command.find( '\t' ), 1, " " );
+		std::string::size_type pos = command.find( '\t' );
+
+		if( pos == std::string::npos )
+		{
+			break;
+		}
+
+		command.replace( pos, 1, " " );
 	}
 
 	// remove trailing spaces
-	while( command.find_last_of( ' ' ) == command.length() - 1  )
+	while( 1 )
 	{
-		command.erase( command.find_last_of( ' ' ), 1 );
+		std::string::size_type pos = command.find_last_of( ' ' );
+
+		if( pos == std::string::npos || pos != command.length() - 1 )
+		{
+			break;
+		}
+
+		command.erase( pos, 1 );
+
+		if( command.empty() )
+		{
+			return 1;
+		}
 	}
 
 	// remove beginning spaces
-	while( command.find_first_of( ' ' ) == 0  )
+	while( *command.begin() == ' ' )
 	{
-		command.erase( command.find_first_of( ' ' ), 1 );
+		command.erase( 0, 1 );
+
+		if( command.empty() )
+		{
+			return 1;
+		}
 	}
 
 	// ignore comments and empty lines
-	if( command.find_first_of( '#' ) == 0 || command.empty() )
+	if( command.empty() || *command.begin() == '#' )
 	{
 		// no error
 		return 1;
 	}
 
-	string tempstr = command;
+	std::string tempstr = command;
 	int count = 1;
 
 	// Count spaces
-	while( tempstr.find( ' ' ) != string::npos  )
+	while( tempstr.find( ' ' ) != std::string::npos  )
 	{
 		tempstr.erase( tempstr.find( ' ' ) , 1 );
 		count++;
@@ -98,32 +147,41 @@ bool cFile_parser :: Parse_Line( string command, int line )
 
 	tempstr = command;
 	
-	string *parts = new string[ count + 1 ];
+	std::string *parts = new std::string[ count + 1 ];
 	
-	int len;
-	int i = 0;
+	std::string::size_type len;
+	int part_count = 0;
 
 	while( count > 0 )
 	{
-		len = static_cast<int>(tempstr.find_first_of( ' ' ));
-		parts[i] = tempstr.substr( 0, len );
+		// get length of the part
+		len = tempstr.find_first_of( ' ' );
+		// create part
+		parts[part_count] = tempstr.substr( 0, len );
+		// remove part from temp string
 		tempstr.erase( 0, len + 1 );
-		i++;
+
+
+		part_count++;
 		count--;
 	}
 
-	parts[i] = tempstr;
+	parts[part_count] = tempstr;
 
 	// Message handler
-	bool success = HandleMessage( parts, i, line );
+	bool success = HandleMessage( parts, part_count, line );
 
 	delete []parts;
 
 	return success;
 }
 
-bool cFile_parser :: HandleMessage( string *parts, unsigned int count, unsigned int line )
+bool cFile_parser :: HandleMessage( const std::string *parts, unsigned int count, unsigned int line )
 {
 	// virtual
 	return 1;
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

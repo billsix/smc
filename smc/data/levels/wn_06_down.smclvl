@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.5" />
-		<Property name="engine_version" value="2.4" />
-		<Property name="save_time" value="1208915216" />
+		<Property name="game_version" value="1.7" />
+		<Property name="engine_version" value="2.8" />
+		<Property name="save_time" value="1230262532" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="SMC Team" />
-		<Property name="lvl_version" value="1.1" />
+		<Property name="lvl_version" value="1.2" />
 		<Property name="lvl_music" value="land/land_2.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
@@ -1267,11 +1267,12 @@
 		<Property name="posx" value="1132" />
 		<Property name="posy" value="176" />
 		<Property name="type" value="bonus" />
-		<Property name="animation" value="Bonus" />
-		<Property name="item" value="24" />
+		<Property name="animation" value="Default" />
+		<Property name="item" value="8" />
 		<Property name="invisible" value="0" />
-		<Property name="useable_count" value="1" />
+		<Property name="useable_count" value="2" />
 		<Property name="force_best_item" value="0" />
+		<Property name="gold_color" value="yellow" />
 	</box>
 	<box>
 		<Property name="posx" value="884" />
@@ -1405,8 +1406,8 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<levelexit>
-		<Property name="posx" value="1439" />
-		<Property name="posy" value="262" />
+		<Property name="posx" value="1440" />
+		<Property name="posy" value="266" />
 		<Property name="type" value="1" />
 		<Property name="direction" value="down" />
 	</levelexit>
@@ -1466,8 +1467,8 @@
 	</item>
 	<item>
 		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="880" />
-		<Property name="posy" value="-42" />
+		<Property name="posx" value="972" />
+		<Property name="posy" value="-81" />
 		<Property name="color" value="yellow" />
 	</item>
 	<item>
@@ -1478,44 +1479,26 @@
 	</item>
 	<item>
 		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="926" />
-		<Property name="posy" value="19" />
+		<Property name="posx" value="972" />
+		<Property name="posy" value="-1" />
 		<Property name="color" value="yellow" />
 	</item>
 	<item>
 		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="927" />
-		<Property name="posy" value="68" />
+		<Property name="posx" value="1028" />
+		<Property name="posy" value="-3" />
 		<Property name="color" value="yellow" />
 	</item>
 	<item>
 		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="852" />
-		<Property name="posy" value="66" />
+		<Property name="posx" value="1028" />
+		<Property name="posy" value="-83" />
 		<Property name="color" value="yellow" />
 	</item>
 	<item>
 		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="880" />
-		<Property name="posy" value="111" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="930" />
-		<Property name="posy" value="128" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="983" />
-		<Property name="posy" value="106" />
-		<Property name="color" value="yellow" />
-	</item>
-	<item>
-		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="1009" />
-		<Property name="posy" value="65" />
+		<Property name="posx" value="1028" />
+		<Property name="posy" value="-43" />
 		<Property name="color" value="yellow" />
 	</item>
 	<sprite>

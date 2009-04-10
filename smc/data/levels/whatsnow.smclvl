@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.6" />
-		<Property name="engine_version" value="2.6" />
-		<Property name="save_time" value="1210402130" />
+		<Property name="game_version" value="1.7" />
+		<Property name="engine_version" value="2.8" />
+		<Property name="save_time" value="1230263956" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Martimor" />
-		<Property name="lvl_version" value="0.1" />
+		<Property name="lvl_version" value="0.5" />
 		<Property name="lvl_music" value="land/land_5.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
@@ -17,19 +17,23 @@
 	</settings>
 	<background>
 		<Property name="type" value="103" />
-		<Property name="bg_color_1_red" value="60" />
+		<Property name="bg_color_1_red" value="10" />
 		<Property name="bg_color_1_green" value="60" />
 		<Property name="bg_color_1_blue" value="180" />
-		<Property name="bg_color_2_red" value="90" />
+		<Property name="bg_color_2_red" value="10" />
 		<Property name="bg_color_2_green" value="60" />
 		<Property name="bg_color_2_blue" value="90" />
 	</background>
 	<background>
 		<Property name="type" value="1" />
-		<Property name="image" value="game/background/blue_mountains_1.png" />
-		<Property name="speedx" value="1" />
-		<Property name="speedy" value="1" />
+		<Property name="posx" value="0" />
+		<Property name="posy" value="0" />
 		<Property name="posz" value="0.00011" />
+		<Property name="image" value="game/background/blue_mountains_1.png" />
+		<Property name="speedx" value="0.5" />
+		<Property name="speedy" value="0.5" />
+		<Property name="const_velx" value="0" />
+		<Property name="const_vely" value="0" />
 	</background>
 	<player>
 		<Property name="posx" value="10027" />

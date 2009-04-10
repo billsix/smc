@@ -1,7 +1,7 @@
 /***************************************************************************
  * vector.cpp  -  vector class
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  * Copyright (C) 2007 Clanlib Team ( original Vector class )
  ***************************************************************************/
 /*
@@ -16,6 +16,9 @@
 
 #include "../../core/globals.h"
 #include "../../core/math/vector.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** GL_Vector *** *** *** *** *** *** *** *** *** *** */
 
@@ -91,70 +94,6 @@ void GL_Vector :: round( void )
 	w = static_cast<float>(int( w + 0.5f ));
 }
 
-GL_Vector GL_Vector :: operator * ( float s ) const
-{
-	return GL_Vector( s * x, s * y, s * z, s * w );
-}
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-GL_Vector operator * ( float s, const GL_Vector& v )
-{
-	return GL_Vector( s * v.x, s * v.y, s * v.z, s * v.w );
-}
-
-void GL_Vector :: operator += ( const GL_Vector& v )
-{
-	x += v.x;
-	y += v.y;
-	z += v.z;
-	w += v.z;
-}
-
-void GL_Vector :: operator -= ( const GL_Vector& v )
-{
-  	x -= v.x;
-	y -= v.y;
-	z -= v.z;
-	w -= v.w;
-}
-
-void GL_Vector :: operator *= ( float s )
-{
-	x *= s;
-	y *= s;
-	z *= s;
-	w *= s;
-}
-
-GL_Vector GL_Vector::operator + ( const GL_Vector& v ) const
-{
-	return GL_Vector( x + v.x, y + v.y, z + v.z, w + v.w );
-}
-
-GL_Vector GL_Vector::operator - ( const GL_Vector& v ) const
-{
-	return GL_Vector(x - v.x, y - v.y, z - v.z, w - v.z);
-}
-
-GL_Vector GL_Vector::operator - () const
-{
-	return GL_Vector( -x, -y, -z, -w);
-}
-
-GL_Vector& GL_Vector::operator = ( const GL_Vector& v )
-{ 
-	x = v.x;
-	y = v.y;
-	z = v.z;
-	w = v.w;
-	return *this;
-}
- 
-bool GL_Vector::operator == ( const GL_Vector& v ) const
-{
-	return ( (x == v.x) && (y == v.y) && (z == v.z) && (w == v.w) );
-}
-
-bool GL_Vector::operator != ( const GL_Vector& v ) const
-{
-	return !(operator == (v));
-}
+} // namespace SMC

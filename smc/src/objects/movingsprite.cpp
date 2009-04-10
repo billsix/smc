@@ -1,7 +1,7 @@
 /***************************************************************************
  * movingsprite.cpp  -  moving sprite class
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -15,21 +15,26 @@
 
 #include "../core/globals.h"
 #include "../objects/movingsprite.h"
-#include "../core/main.h"
 #include "../core/framerate.h"
 #include "../core/game_core.h"
-#include "../core/camera.h"
 #include "../level/level.h"
 #include "../user/preferences.h"
-#include "../input/joystick.h"
 #include "../audio/audio.h"
 #include "../player/player.h"
 #include "../enemies/turtle.h"
-#include "../input/keyboard.h"
 #include "../objects/box.h"
 #include "../video/renderer.h"
 #include "../video/gl_surface.h"
 #include "../core/sprite_manager.h"
+
+namespace SMC
+{
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+const float deg_to_rad = static_cast<float>(M_PI / 180.0f);
 
 /* *** *** *** *** *** *** *** cMovingSprite *** *** *** *** *** *** *** *** *** *** */
 
@@ -43,47 +48,42 @@ cMovingSprite :: cMovingSprite( CEGUI::XMLAttributes &attributes )
 : cSprite()
 {
 	cMovingSprite::Init();
-	cMovingSprite::Create_from_Stream( attributes );
+	cMovingSprite::Create_From_Stream( attributes );
 }
 
 cMovingSprite :: ~cMovingSprite( void )
 {
-	if( delete_image && image )
-	{
-		delete image;
-	}
-
-	Collisions_Clear();
+	//
 }
 
 void cMovingSprite :: Init( void )
 {
-	state = STA_STAY;
+	m_state = STA_STAY;
 
-	velx = 0;
-	vely = 0;
+	m_velx = 0;
+	m_vely = 0;
 	
-	direction = DIR_UNDEFINED;
-	start_direction = DIR_UNDEFINED;
-	can_be_on_ground = 1;
-	ground_object = NULL;
+	m_direction = DIR_UNDEFINED;
+	m_start_direction = DIR_UNDEFINED;
+	m_can_be_on_ground = 1;
+	m_ground_object = NULL;
 
-	ice_resistance = 0;
-	freeze_counter = 0;
+	m_ice_resistance = 0;
+	m_freeze_counter = 0;
 }
 
 cMovingSprite *cMovingSprite :: Copy( void )
 {
-	cMovingSprite *moving_sprite = new cMovingSprite( start_image, startposx, startposy );
+	cMovingSprite *moving_sprite = new cMovingSprite( m_start_image, m_start_pos_x, m_start_pos_y );
 
-	moving_sprite->type = type;
-	moving_sprite->sprite_array = sprite_array;
-	moving_sprite->Set_Massive_Type( massivetype );
-	moving_sprite->can_be_ground = can_be_ground;
-	moving_sprite->can_be_on_ground = can_be_on_ground;
-	moving_sprite->Set_Ignore_Camera( no_camera );
-	moving_sprite->Set_Shadow_Pos( shadow_pos );
-	moving_sprite->Set_Shadow_Color( shadow_color );
+	moving_sprite->m_type = m_type;
+	moving_sprite->m_sprite_array = m_sprite_array;
+	moving_sprite->Set_Massive_Type( m_massive_type );
+	moving_sprite->m_can_be_ground = m_can_be_ground;
+	moving_sprite->m_can_be_on_ground = m_can_be_on_ground;
+	moving_sprite->Set_Ignore_Camera( m_no_camera );
+	moving_sprite->Set_Shadow_Pos( m_shadow_pos );
+	moving_sprite->Set_Shadow_Color( m_shadow_color );
 
 	return moving_sprite;
 }
@@ -93,96 +93,96 @@ void cMovingSprite :: Set_Image( cGL_Surface *new_image, bool new_start_image /*
 	// get a possible collision point change
 	GL_point col_pos_change = GL_point();
 
-	if( image && new_image )
+	if( m_image && new_image )
 	{
-		col_pos_change = new_image->col_pos - image->col_pos;
+		col_pos_change = new_image->m_col_pos - m_image->m_col_pos;
 	}
 
 	cSprite::Set_Image( new_image, new_start_image, del_img );
 
 	// handle collision point change
-	if( col_pos_change.x != 0 || col_pos_change.y != 0 )
+	if( col_pos_change.m_x != 0.0f || col_pos_change.m_y != 0.0f )
 	{
-		Move( -col_pos_change.x, -col_pos_change.y, 1 );
+		Move( -col_pos_change.m_x, -col_pos_change.m_y, 1 );
 	}
 
 	// check onground
 	Check_on_Ground();
 }
 
-void cMovingSprite :: Set_Direction( ObjectDirection dir, bool new_start_direction /* = 0 */ )
+void cMovingSprite :: Set_Direction( const ObjectDirection dir, bool new_start_direction /* = 0 */ )
 {
-	direction = dir;
+	m_direction = dir;
 
 	// turn velocity if wrong
-	if( ( dir == DIR_LEFT && velx > 0 ) || ( dir == DIR_RIGHT && velx < 0 ) )
+	if( ( dir == DIR_LEFT && m_velx > 0.0f ) || ( dir == DIR_RIGHT && m_velx < 0.0f ) )
 	{
-		velx *= -1;
+		m_velx *= -1;
 	}
 
 	if( new_start_direction )
 	{
-		start_direction = dir;
+		m_start_direction = dir;
 	}
 }
 
 void cMovingSprite :: Set_Direction( float angle, float speed, bool new_start_direction /* = 0 */ )
 {
-	velx = cos( angle * 0.01745329f ) * speed;
-	vely = sin( angle * 0.01745329f ) * speed;
+	m_velx = cos( angle * deg_to_rad ) * speed;
+	m_vely = sin( angle * deg_to_rad ) * speed;
 
 	Update_Direction();
 
 	if( new_start_direction )
 	{
-		start_direction = direction;
+		m_start_direction = m_direction;
 	}
 }
 
 void cMovingSprite :: Auto_Slow_Down( float x_speed, float y_speed /* = 0 */ )
 {
 	// horizontal slow down
-	if( x_speed > 0 )
+	if( x_speed > 0.0f )
 	{
-		if( velx > 0 )
+		if( m_velx > 0.0f )
 		{
-			Add_Velocity( -x_speed, 0 );
+			Add_Velocity( -x_speed, 0.0f );
 
-			if( velx < 0 )
+			if( m_velx < 0.0f )
 			{
-				velx = 0;
+				m_velx = 0.0f;
 			}
 		}
-		else if( velx < 0 )
+		else if( m_velx < 0.0f )
 		{
-			Add_Velocity( x_speed, 0 );
+			Add_Velocity( x_speed, 0.0f );
 
-			if( velx > 0 )
+			if( m_velx > 0.0f )
 			{
-				velx = 0;
+				m_velx = 0.0f;
 			}
 		}
 	}
 
 	// vertical slow down
-	if( y_speed > 0 )
+	if( y_speed > 0.0f )
 	{
-		if( vely > 0 )
+		if( m_vely > 0.0f )
 		{
-			Add_Velocity( 0, -y_speed );
+			Add_Velocity( 0.0f, -y_speed );
 
-			if( vely < 0 )
+			if( m_vely < 0.0f )
 			{
-				vely = 0;
+				m_vely = 0.0f;
 			}
 		}
-		else if( vely < 0 )
+		else if( m_vely < 0.0f )
 		{
-			Add_Velocity( 0, y_speed );
+			Add_Velocity( 0.0f, y_speed );
 
-			if( vely > 0 )
+			if( m_vely > 0.0f )
 			{
-				vely = 0;
+				m_vely = 0.0f;
 			}
 		}
 	}
@@ -197,18 +197,225 @@ void cMovingSprite :: Move( float move_x, float move_y, bool real /* = 0 */ )
 	Check_out_of_Level_Ver( move_y, 1 );
 }
 
-ObjectDirection cMovingSprite :: Col_Move( float move_x, float move_y, bool real /* = 0 */, bool force /* = 0 */, bool check_on_ground /* = 1 */ )
+cObjectCollisionType *cMovingSprite :: Col_Move_in_Steps( float move_x, float move_y, float step_size_x, float step_size_y, float final_pos_x, float final_pos_y, cSprite_List sprite_list, bool stop_on_internal /* = 0 */ )
 {
-	// nothing to move
-	if( move_x == 0 && move_y == 0 )
+	if( sprite_list.empty() )
 	{
-		return DIR_UNDEFINED;
+		cSprite::Move( final_pos_x - m_pos_x, final_pos_y - m_pos_y, 1 );
+		return NULL;
+	}
+
+	// collision list
+	cObjectCollisionType *col_list = new cObjectCollisionType();
+
+	bool move_x_valid = 1;
+	bool move_y_valid = 1;
+
+	/* Checks in both directions simultaneously
+	 * if a collision occurs it saves the direction
+	*/
+	while( move_x_valid || move_y_valid )
+	{
+		if( move_x_valid )
+		{
+			// nothing to do
+			if( Is_Float_Equal( step_size_x, 0.0f ) )
+			{
+				move_x_valid = 0;
+				continue;
+			}
+
+			// collision check
+			cObjectCollisionType *col_list_temp = Collision_Check_Relative( step_size_x, 0.0f, 0.0f, 0.0f, COLLIDE_COMPLETE, &sprite_list );
+			
+			bool collision_found = 0;
+
+			// stop on everything
+			if( stop_on_internal )
+			{
+				if( col_list_temp->size() )
+				{
+					collision_found = 1;
+				}
+			}
+			// stop only on blocking
+			else
+			{
+				if( col_list_temp->Is_Included( COL_VTYPE_BLOCKING ) )
+				{
+					collision_found = 1;
+				}
+				// remove internal collision from further checks
+				else if( col_list_temp->objects.size() )
+				{
+					for( cObjectCollision_List::iterator itr = col_list_temp->objects.begin(), itr_end = col_list_temp->objects.end(); itr != itr_end; ++itr )
+					{
+						cObjectCollision *col = (*itr);
+
+						if( col->valid_type != COL_VTYPE_INTERNAL )
+						{
+							continue;
+						}
+
+						// find in sprite list
+						cSprite_List::iterator sprite_itr = std::find( sprite_list.begin(), sprite_list.end(), col->obj );
+
+						// not found
+						if( sprite_itr == sprite_list.end() )
+						{
+							continue;
+						}
+
+						sprite_list.erase( sprite_itr );
+					}
+
+					// if no objects left
+					if( sprite_list.empty() )
+					{
+						// move to final position
+						m_pos_x = final_pos_x;
+					}
+				}
+			}
+			
+			if( col_list_temp->size() )
+			{
+				col_list->objects.insert( col_list->objects.end(), col_list_temp->objects.begin(), col_list_temp->objects.end() );
+				col_list_temp->objects.clear();
+			}
+
+			delete col_list_temp;
+
+			if( !collision_found )
+			{
+				m_pos_x += step_size_x;
+
+				if( ( step_size_x > 0.0f && final_pos_x <= m_pos_x ) || ( step_size_x < 0.0f && final_pos_x >= m_pos_x ) )
+				{
+					m_pos_x = final_pos_x;
+					move_x_valid = 0;
+					step_size_x = 0.0f;
+				}
+
+				// update collision rects
+				Update_Position_Rect();
+			}
+			// collision found
+			else
+			{
+				step_size_x = 0.0f;
+				move_x_valid = 0;
+			}
+		}
+
+		if( move_y_valid )
+		{
+			// nothing to do
+			if( Is_Float_Equal( step_size_y, 0.0f ) )
+			{
+				move_y_valid = 0;
+				continue;
+			}
+
+			// collision check
+			cObjectCollisionType *col_list_temp = Collision_Check_Relative( 0.0f, step_size_y, 0.0f, 0.0f, COLLIDE_COMPLETE, &sprite_list );
+
+			bool collision_found = 0;
+
+			// stop on everything
+			if( stop_on_internal )
+			{
+				if( col_list_temp->size() )
+				{
+					collision_found = 1;
+				}
+			}
+			// stop only on blocking
+			else
+			{
+				if( col_list_temp->Is_Included( COL_VTYPE_BLOCKING ) )
+				{
+					collision_found = 1;
+				}
+				// remove internal collision from further checks
+				else if( col_list_temp->objects.size() )
+				{
+					for( cObjectCollision_List::iterator itr = col_list_temp->objects.begin(), itr_end = col_list_temp->objects.end(); itr != itr_end; ++itr )
+					{
+						cObjectCollision *col = (*itr);
+
+						if( col->valid_type != COL_VTYPE_INTERNAL )
+						{
+							continue;
+						}
+
+						// find in sprite list
+						cSprite_List::iterator sprite_itr = std::find( sprite_list.begin(), sprite_list.end(), col->obj );
+
+						// not found
+						if( sprite_itr == sprite_list.end() )
+						{
+							continue;
+						}
+
+						sprite_list.erase( sprite_itr );
+
+						// if no objects left
+						if( sprite_list.empty() )
+						{
+							// move to final position
+							m_pos_y = final_pos_y;
+						}
+					}
+				}
+			}
+			
+			if( col_list_temp->size() )
+			{
+				col_list->objects.insert( col_list->objects.end(), col_list_temp->objects.begin(), col_list_temp->objects.end() );
+				col_list_temp->objects.clear();
+			}
+
+			delete col_list_temp;
+
+			if( !collision_found )
+			{
+				m_pos_y += step_size_y;
+
+				if( ( step_size_y > 0.0f && final_pos_y <= m_pos_y ) || ( step_size_y < 0.0f && final_pos_y >= m_pos_y ) )
+				{
+					m_pos_y = final_pos_y;
+					move_y_valid = 0;
+					step_size_y = 0.0f;
+				}
+
+				// update collision rects
+				Update_Position_Rect();
+			}
+			// collision found
+			else
+			{
+				step_size_y = 0.0f;
+				move_y_valid = 0;
+			}
+		}
+	}
+
+	return col_list;
+}
+
+void cMovingSprite :: Col_Move( float move_x, float move_y, bool real /* = 0 */, bool force /* = 0 */, bool check_on_ground /* = 1 */ )
+{
+	// no need to move
+	if( Is_Float_Equal( move_x, 0.0f ) && Is_Float_Equal( move_y, 0.0f ) )
+	{
+		return;
 	}
 
 	// invalid collision rect
-	if( col_rect.w == 0 || col_rect.h == 0 )
+	if( Is_Float_Equal( m_col_rect.m_w, 0.0f ) || Is_Float_Equal( m_col_rect.m_h, 0.0f ) )
 	{
-		return DIR_UNDEFINED;
+		return;
 	}
 
 	// use speedfactor
@@ -217,200 +424,103 @@ ObjectDirection cMovingSprite :: Col_Move( float move_x, float move_y, bool real
 		move_x *= pFramerate->speedfactor;
 		move_y *= pFramerate->speedfactor;
 	}
-
-	ObjectDirection collision_dir = DIR_UNDEFINED;
  
 	// check for collisions
 	if( !force )
 	{
-		float posx_old = posx;
-		float posy_old = posy;
-		float posx_final = posx + move_x;
-		float posy_final = posy + move_y;
-		float check_x = move_x;
-		float check_y = move_y;
+		// get all possible colliding items
+		GL_rect complete_rect = m_col_rect;
+
+		if( move_x > 0.0f )
+		{
+			complete_rect.m_w += move_x;
+		}
+		else
+		{
+			complete_rect.m_x += move_x;
+			complete_rect.m_w -= move_x;
+		}
+
+		if( move_y > 0.0f )
+		{
+			complete_rect.m_h += move_y;
+		}
+		else
+		{
+			complete_rect.m_y += move_y;
+			complete_rect.m_h -= move_y;
+		}
+
+		cSprite_List sprite_list;
+		pActive_Sprite_Manager->Get_Colliding_Objects( sprite_list, complete_rect, 1, this );
+
+		// step size
+		float step_size_x = move_x;
+		float step_size_y = move_y;
 
 		// check if object collision rect is smaller as the position check size
-		if( check_x > col_rect.w )
+		if( step_size_x > m_col_rect.m_w )
 		{
-			check_x = col_rect.w;
+			step_size_x = m_col_rect.m_w;
 		}
-		else if( check_x < -col_rect.w )
+		else if( step_size_x < -m_col_rect.m_w )
 		{
-			check_x = -col_rect.w;
-		}
-
-		if( check_y > col_rect.h )
-		{
-			check_y = col_rect.h;
-		}
-		else if( check_y < -col_rect.h )
-		{
-			check_y = -col_rect.h;
+			step_size_x = -m_col_rect.m_w;
 		}
 
-		// collision list if collisions found
-		cObjectCollisionType col_list;
-
-		/* Checks in both directions simultaneous using collision rects
-		 * if a collision occurs moves to pixel collision testing
-		*/
-		while( check_x < -0.01f || check_x > 0.01f || check_y < -0.01f || check_y > 0.01f )
+		if( step_size_y > m_col_rect.m_h )
 		{
-			col_list = Collision_Check_Relative( check_x, check_y, 0, 0, COLLIDE_ALLOW_INTERNAL );
-
-			if( !col_list.size() )
-			{
-				// update horizontal
-				if( check_x != 0 )
-				{
-					posx += check_x;
-
-					if( ( check_x > 0 && posx_final <= posx ) || ( check_x < 0 && posx_final >= posx ) )
-					{
-						posx = posx_final;
-						check_x = 0;
-					}
-				}
-
-				// update vertical
-				if( check_y != 0 )
-				{
-					posy += check_y;
-
-					if( ( check_y > 0 && posy_final <= posy ) || ( check_y < 0 && posy_final >= posy ) )
-					{
-						posy = posy_final;
-						check_y = 0;
-					}
-				}
-
-				// update collision rects
-				Update_Position_Rect();
-			}
-			else
-			{
-				break;
-			}
+			step_size_y = m_col_rect.m_h;
 		}
+		else if( step_size_y < -m_col_rect.m_h )
+		{
+			step_size_y = -m_col_rect.m_h;
+		}
+
+		float final_pos_x = m_pos_x + move_x;
+		float final_pos_y = m_pos_y + move_y;
+
+		// move in big steps
+		cObjectCollisionType *col_list = Col_Move_in_Steps( move_x, move_y, step_size_x, step_size_y, final_pos_x, final_pos_y, sprite_list, 1 );
 
 		// if a collision is found enter pixel checking
-		if( col_list.size() )
+		if( col_list && col_list->size() )
 		{
 			// change to pixel checking
-			if( check_x < -1 )
+			if( step_size_x < -1.0f )
 			{
-				check_x = -1;
+				step_size_x = -1.0f;
 			}
-			else if( check_x > 1 )
+			else if( step_size_x > 1.0f )
 			{
-				check_x = 1;
-			}
-
-			if( check_y < -1 )
-			{
-				check_y = -1;
-			}
-			else if( check_y > 1 )
-			{
-				check_y = 1;
+				step_size_x = 1.0f;
 			}
 
-			// collision list link for checking
-			SpriteList *sprite_list = &col_list.list;
-
-			// collision list if collisions found in pixel checking
-			cObjectCollisionType col_list_pixel;
-
-			/* Checks in both directions simultaneous
-			 * if a collision occurs it saves the direction
-			*/
-			while( check_x < -0.01f || check_x > 0.01f || check_y < -0.01f || check_y > 0.01f )
+			if( step_size_y < -1.0f )
 			{
-				if( check_x != 0 )
-				{
-					// collision check
-					col_list_pixel = Collision_Check_Relative( check_x, 0, 0, 0, COLLIDE_COMPLETE, sprite_list );
-
-					if( !col_list_pixel.size() )
-					{
-						posx += check_x;
-
-						if( ( check_x > 0 && posx_final <= posx ) || ( check_x < 0 && posx_final >= posx ) )
-						{
-							posx = posx_final;
-							check_x = 0;
-						}
-
-						// update collision rects
-						Update_Position_Rect();
-					}
-					// collision found
-					else
-					{
-						if( collision_dir == DIR_UNDEFINED )
-						{
-							// Collision Left/Right
-							collision_dir = DIR_HORIZONTAL;
-						}
-						else
-						{
-							// Collision Up/Down/Left/Right
-							collision_dir = DIR_ALL;
-						}
-						
-						check_x = 0;
-					}
-				}
-
-				if( check_y != 0 )
-				{
-					// collision check
-					col_list_pixel = Collision_Check_Relative( 0, check_y, 0, 0, COLLIDE_COMPLETE, sprite_list );
-
-					if( !col_list_pixel.size() )
-					{
-						posy += check_y;
-
-						if( ( check_y > 0 && posy_final <= posy ) || ( check_y < 0 && posy_final >= posy ) )
-						{
-							posy = posy_final;
-							check_y = 0;
-						}
-
-						// update collision rects
-						Update_Position_Rect();
-					}
-					// collision found
-					else
-					{
-						if( collision_dir == DIR_UNDEFINED ) 
-						{
-							// Collision Up/Down
-							collision_dir = DIR_VERTICAL;
-						}
-						else
-						{
-							// Collision Up/Down/Left/Right
-							collision_dir = DIR_ALL;
-						}
-
-						check_y = 0;
-					}
-				}
+				step_size_y = -1.0f;
 			}
+			else if( step_size_y > 1.0f )
+			{
+				step_size_y = 1.0f;
+			}
+
+			delete col_list;
+			col_list = Col_Move_in_Steps( move_x, move_y, step_size_x, step_size_y, final_pos_x, final_pos_y, sprite_list );
+
+			Add_Collisions( col_list, 1 );
+		}
+
+		if( col_list )
+		{
+			delete col_list;
 		}
 	}
 	// don't check for collisions
 	else
 	{
-		posx += move_x;
-		posy += move_y;
-	}
-
-	if( collision_dir == DIR_UNDEFINED )
-	{
-		// update the position values
+		m_pos_x += move_x;
+		m_pos_y += move_y;
 		Update_Position_Rect();
 	}
 
@@ -423,27 +533,25 @@ ObjectDirection cMovingSprite :: Col_Move( float move_x, float move_y, bool real
 	// check/handle if moved out of level rect
 	Check_out_of_Level_Hor( move_x, 1 );
 	Check_out_of_Level_Ver( move_y, 1 );
-
-	return collision_dir;
 }
 
-void cMovingSprite :: Set_Velocity( float x, float y )
+void cMovingSprite :: Set_Velocity( const float x, const float y )
 {
-	velx = x;
-	vely = y;
+	m_velx = x;
+	m_vely = y;
 }
 
-void cMovingSprite :: Add_Velocity( float x, float y, bool real /* = 0 */ )
+void cMovingSprite :: Add_Velocity( const float x, const float y, const bool real /* = 0 */ )
 {
 	if( real )
 	{
-		velx += x;
-		vely += y;
+		m_velx += x;
+		m_vely += y;
 	}
 	else
 	{
-		velx += x * pFramerate->speedfactor;
-		vely += y * pFramerate->speedfactor;
+		m_velx += x * pFramerate->speedfactor;
+		m_vely += y * pFramerate->speedfactor;
 	}
 }
 
@@ -452,8 +560,8 @@ void cMovingSprite :: Turn_Around( ObjectDirection col_dir /* = DIR_UNDEFINED */
 	if( col_dir != DIR_UNDEFINED )
 	{
 		// check if the collision direction is in front
-		if( ( col_dir == DIR_RIGHT && direction != col_dir ) || ( col_dir == DIR_LEFT && direction != col_dir ) ||
-			( col_dir == DIR_UP && direction != col_dir ) || ( col_dir == DIR_DOWN && direction != col_dir ) )
+		if( ( col_dir == DIR_RIGHT && m_direction != col_dir ) || ( col_dir == DIR_LEFT && m_direction != col_dir ) ||
+			( col_dir == DIR_UP && m_direction != col_dir ) || ( col_dir == DIR_DOWN && m_direction != col_dir ) )
 		{
 			// collision direction is not in front
 			return;
@@ -461,13 +569,13 @@ void cMovingSprite :: Turn_Around( ObjectDirection col_dir /* = DIR_UNDEFINED */
 	}
 
 	// reverse velocity
-	if( direction == DIR_LEFT || direction == DIR_RIGHT )
+	if( m_direction == DIR_LEFT || m_direction == DIR_RIGHT )
 	{
-		velx *= -1;
+		m_velx *= -1;
 	}
-	else if( direction == DIR_UP || direction == DIR_DOWN )
+	else if( m_direction == DIR_UP || m_direction == DIR_DOWN )
 	{
-		vely *= -1;
+		m_vely *= -1;
 	}
 
 	Update_Direction();
@@ -475,21 +583,22 @@ void cMovingSprite :: Turn_Around( ObjectDirection col_dir /* = DIR_UNDEFINED */
 
 void cMovingSprite :: Update( void )
 {
-	if( freeze_counter > 0 )
+	if( m_freeze_counter > 0.0f )
 	{
-		freeze_counter -= pFramerate->speedfactor;
+		m_freeze_counter -= pFramerate->speedfactor;
 
-		if( freeze_counter <= 0 )
+		if( m_freeze_counter <= 0.0f )
 		{
-			freeze_counter = 0;
+			// todo : Event_Freeze_Ended()
+			m_freeze_counter = 0.0f;
 			Update_Valid_Update();
 		}
 	}
 }
 
-void cMovingSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
+void cMovingSprite :: Draw( cSurface_Request *request /* = NULL */ )
 {
-	if( !valid_draw )
+	if( !m_valid_draw )
 	{
 		return;
 	}
@@ -500,7 +609,7 @@ void cMovingSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 	{
 		create_request = 1;
 		// create request
-		request = new cSurfaceRequest();
+		request = new cSurface_Request();
 	}
 
 	cSprite::Draw( request );
@@ -508,15 +617,15 @@ void cMovingSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 	if( !editor_enabled )
 	{
 		// frozen
-		if( freeze_counter )
+		if( m_freeze_counter )
 		{
 			request->combine_type = GL_ADD;
 
-			float counter_add = freeze_counter;
+			float counter_add = m_freeze_counter;
 
-			if( counter_add > 1000 )
+			if( counter_add > 1000.0f )
 			{
-				counter_add = 1000;
+				counter_add = 1000.0f;
 			}
 
 			request->combine_col[0] = counter_add * 0.003f;
@@ -532,63 +641,63 @@ void cMovingSprite :: Draw( cSurfaceRequest *request /* = NULL */ )
 	}
 }
 
-cObjectCollisionType cMovingSprite :: Collision_Check_Relative( const float x, const float y, const float w /* = 0 */, const float h /* = 0 */, const ColCheckType check_type /* = COLLIDE_COMPLETE */, SpriteList *objects /* = NULL */ )
+cObjectCollisionType *cMovingSprite :: Collision_Check_Relative( const float x, const float y, const float w /* = 0 */, const float h /* = 0 */, const ColCheckType check_type /* = COLLIDE_COMPLETE */, cSprite_List *objects /* = NULL */ )
 {
-	return Collision_Check_Absolute( col_rect.x + x, col_rect.y + y, w, h, check_type, objects );
+	return Collision_Check_Absolute( m_col_rect.m_x + x, m_col_rect.m_y + y, w, h, check_type, objects );
 }
 
-cObjectCollisionType cMovingSprite :: Collision_Check_Absolute( const float x, const float y, const float w /* = 0 */, const float h /* = 0 */, const ColCheckType check_type /* = COLLIDE_COMPLETE */, SpriteList *objects /* = NULL */ )
+cObjectCollisionType *cMovingSprite :: Collision_Check_Absolute( const float x, const float y, const float w /* = 0 */, const float h /* = 0 */, const ColCheckType check_type /* = COLLIDE_COMPLETE */, cSprite_List *objects /* = NULL */ )
 {
 	// save original rect
 	GL_rect new_rect;
 
 	// if given use x position
-	if( x != 0 )
+	if( !Is_Float_Equal( x, 0.0f ) )
 	{
-		new_rect.x = x;
+		new_rect.m_x = x;
 	}
 	else
 	{
-		new_rect.x = col_rect.x;
+		new_rect.m_x = m_col_rect.m_x;
 	}
 
 	// if given use y position
-	if( y != 0 )
+	if( !Is_Float_Equal( y, 0.0f ) )
 	{
-		new_rect.y = y;
+		new_rect.m_y = y;
 	}
 	else
 	{
-		new_rect.y = col_rect.y;
+		new_rect.m_y = m_col_rect.m_y;
 	}
 
 	// if given use width
-	if( w > 0 )
+	if( w > 0.0f )
 	{
-		new_rect.w = w;
+		new_rect.m_w = w;
 	}
 	else
 	{
-		new_rect.w = col_rect.w;
+		new_rect.m_w = m_col_rect.m_w;
 	}
 
 	// if given use height
-	if( h > 0 )
+	if( h > 0.0f )
 	{
-		new_rect.h = h;
+		new_rect.m_h = h;
 	}
 	else
 	{
-		new_rect.h = col_rect.h;
+		new_rect.m_h = m_col_rect.m_h;
 	}
 
 	// visual debugging
 	if( game_debug )
 	{
 		// create request
-		cRectRequest *request = new cRectRequest();
+		cRect_Request *request = new cRect_Request();
 
-		pVideo->Draw_Rect( &new_rect, posz + 0.00001f, &green, request );
+		pVideo->Draw_Rect( &new_rect, m_pos_z + 0.00001f, &green, request );
 		request->no_camera = 0;
 
 		request->blend_sfactor = GL_SRC_COLOR;
@@ -602,14 +711,14 @@ cObjectCollisionType cMovingSprite :: Collision_Check_Absolute( const float x, c
 	// return collisions list
 	return Collision_Check( &new_rect, check_type, objects );
 }
-	
-cObjectCollisionType cMovingSprite :: Collision_Check( const GL_rect *new_rect, const ColCheckType check_type /* = COLLIDE_COMPLETE */, SpriteList *objects /* = NULL */ )
+
+cObjectCollisionType *cMovingSprite :: Collision_Check( const GL_rect &new_rect, const ColCheckType check_type /* = COLLIDE_COMPLETE */, cSprite_List *objects /* = NULL */ )
 {
 	// blocking collisions list
-	cObjectCollisionType col_list = cObjectCollisionType();
+	cObjectCollisionType *col_list = new cObjectCollisionType();
 
 	// no width or height is invalid
-	if( new_rect->w == 0 || new_rect->h == 0 )
+	if( Is_Float_Equal( new_rect.m_w, 0.0f ) || Is_Float_Equal( new_rect.m_h, 0.0f ) )
 	{
 		return col_list;
 	}
@@ -618,105 +727,97 @@ cObjectCollisionType cMovingSprite :: Collision_Check( const GL_rect *new_rect, 
 	if( !objects )
 	{
 		objects = &pActive_Sprite_Manager->objects;
+
+		// Player
+		if( m_type != TYPE_PLAYER && new_rect.Intersects( pActive_Player->m_col_rect ) )
+		{
+			// validate
+			Col_Valid_Type col_valid = Validate_Collision( pActive_Player );
+
+			// ignore internal collisions
+			if( check_type == COLLIDE_ONLY_BLOCKING )
+			{
+				if( col_valid == COL_VTYPE_INTERNAL )
+				{
+					col_valid = COL_VTYPE_NOT_VALID;
+				}
+			}
+			// ignore blocking collisions
+			else if( check_type == COLLIDE_ONLY_INTERNAL )
+			{
+				if( col_valid == COL_VTYPE_BLOCKING )
+				{
+					col_valid = COL_VTYPE_NOT_VALID;
+				}
+			}
+
+			// valid collision
+			if( col_valid != COL_VTYPE_NOT_VALID )
+			{
+				// add to list
+				col_list->Add( Create_Collision_Object( this, pActive_Player, col_valid ) );
+			}
+		}
 	}
 
-	// Check Objects
-	for( SpriteList::iterator itr = objects->begin(), itr_end = objects->end(); itr != itr_end; ++itr )
+	// Check objects
+	for( cSprite_List::iterator itr = objects->begin(), itr_end = objects->end(); itr != itr_end; ++itr )
 	{
 		// get object pointer
 		cSprite *level_object = (*itr);
 
 		// if the same object or destroyed object
-		if( this == level_object || level_object->destroy )
+		if( this == level_object || level_object->m_auto_destroy )
 		{
 			continue;
 		}
 
-		// if not Active/Massive/Enemy
-		if( !( level_object->sprite_array == ARRAY_ACTIVE || level_object->sprite_array == ARRAY_MASSIVE || level_object->sprite_array == ARRAY_ENEMY ) )
+		// if rects don't touch
+		if( !new_rect.Intersects( level_object->m_col_rect ) )
 		{
 			continue;
 		}
 
-		// if rects doesn't touch
-		if( !Col_Box( new_rect, &level_object->col_rect ) )
+		// if undefined, hud or animation
+		if( level_object->m_sprite_array == ARRAY_UNDEFINED || level_object->m_sprite_array == ARRAY_HUD || level_object->m_sprite_array == ARRAY_ANIM )
 		{
 			continue;
 		}
 
 		// if enemy is dead
-		if( level_object->sprite_array == ARRAY_ENEMY && static_cast<cEnemy *>(level_object)->dead )
+		if( level_object->m_sprite_array == ARRAY_ENEMY && static_cast<cEnemy *>(level_object)->dead )
 		{
 			continue;
 		}
 
-		// if col_valid is 1 it's an internal collision
-		unsigned int col_valid = Validate_Collision( level_object );
+		// validate
+		Col_Valid_Type col_valid = Validate_Collision( level_object );
 
 		// not a valid collision
-		if( !col_valid )
+		if( col_valid == COL_VTYPE_NOT_VALID )
 		{
 			continue;
 		}
 
 		// ignore internal collisions
-		if( check_type == COLLIDE_ALLOW_BLOCKING && col_valid == 1 )
+		if( check_type == COLLIDE_ONLY_BLOCKING )
 		{
-			continue;
-		}
-
-		// todo : check if check_type should be used instead for validation
-		// add to list if full collision
-		if( col_valid == 2 )
-		{
-			col_list.add( level_object );
-		}
-
-		// ignore full collisions
-		if( check_type == COLLIDE_ALLOW_INTERNAL && col_valid == 2 )
-		{
-			continue;
-		}
-
-		// if only checking
-		if( check_type == COLLIDE_ONLY_CHECK )
-		{
-			continue;
-		}
-
-		// add collision
-		Collision_Add( this, level_object, pActive_Sprite_Manager->Get_Array_Num( level_object ), Get_Collision_Type( level_object->sprite_array ), ( col_valid == 1 ) ? (1) : (0) );
-	}
-
-	// Player
-	if( type != TYPE_PLAYER && Col_Box( new_rect, &pActive_Player->col_rect ) )
-	{
-		// if col_valid is 1 it's an internal collision
-		unsigned int col_valid = Validate_Collision( pActive_Player );
-
-		// ignore internal collisions
-		if( check_type == COLLIDE_ALLOW_BLOCKING && col_valid == 1 )
-		{
-			col_valid = 0;
-		}
-
-		if( col_valid )
-		{
-			// full collision
-			if( col_valid == 2 )
+			if( col_valid == COL_VTYPE_INTERNAL )
 			{
-				col_list.add( pActive_Player );
-			}
-
-			// ignore full collisions
-			if( !( check_type == COLLIDE_ALLOW_INTERNAL && col_valid == 2 ) )
-			{
-				if( check_type != COLLIDE_ONLY_CHECK )
-				{
-					Collision_Add( this, pActive_Player, 0, CO_PLAYER, ( col_valid == 1 ) ? (1) : (0) );
-				}
+				continue;
 			}
 		}
+		// ignore blocking collisions
+		else if( check_type == COLLIDE_ONLY_INTERNAL )
+		{
+			if( col_valid == COL_VTYPE_BLOCKING )
+			{
+				continue;
+			}
+		}
+
+		// add to list
+		col_list->Add( Create_Collision_Object( this, level_object, col_valid ) );
 	}
 
 	return col_list;
@@ -725,7 +826,7 @@ cObjectCollisionType cMovingSprite :: Collision_Check( const GL_rect *new_rect, 
 bool cMovingSprite :: Check_out_of_Level_Hor( const float move_x, const bool handle /* = 0 */ )
 {
 	// left
-	if( col_rect.x < pActive_Camera->limit_rect.x && col_rect.x - ( move_x - 0.00001f ) >= pActive_Camera->limit_rect.x  )
+	if( m_col_rect.m_x < pActive_Camera->limit_rect.m_x && m_col_rect.m_x - ( move_x - 0.00001f ) >= pActive_Camera->limit_rect.m_x  )
 	{
 		if( handle )
 		{
@@ -735,7 +836,7 @@ bool cMovingSprite :: Check_out_of_Level_Hor( const float move_x, const bool han
 		return 1;
 	}
 	// right
-	else if( col_rect.x + col_rect.w > pActive_Camera->limit_rect.x + pActive_Camera->limit_rect.w && col_rect.x + col_rect.w - ( move_x + 0.00001f ) <= pActive_Camera->limit_rect.x + pActive_Camera->limit_rect.w )
+	else if( m_col_rect.m_x + m_col_rect.m_w > pActive_Camera->limit_rect.m_x + pActive_Camera->limit_rect.m_w && m_col_rect.m_x + m_col_rect.m_w - ( move_x + 0.00001f ) <= pActive_Camera->limit_rect.m_x + pActive_Camera->limit_rect.m_w )
 	{
 		if( handle )
 		{
@@ -751,7 +852,7 @@ bool cMovingSprite :: Check_out_of_Level_Hor( const float move_x, const bool han
 bool cMovingSprite :: Check_out_of_Level_Ver( const float move_y, const bool handle /* = 0 */ )
 {
 	// top
-	if( col_rect.y < pActive_Camera->limit_rect.y + pActive_Camera->limit_rect.h && col_rect.y - ( move_y - 0.00001f ) >= pActive_Camera->limit_rect.h + pActive_Camera->limit_rect.y )
+	if( m_col_rect.m_y < pActive_Camera->limit_rect.m_y + pActive_Camera->limit_rect.m_h && m_col_rect.m_y - ( move_y - 0.00001f ) >= pActive_Camera->limit_rect.m_h + pActive_Camera->limit_rect.m_y )
 	{
 		if( handle )
 		{
@@ -761,7 +862,7 @@ bool cMovingSprite :: Check_out_of_Level_Ver( const float move_y, const bool han
 		return 1;
 	}
 	// bottom
-	else if( col_rect.y + col_rect.h > pActive_Camera->limit_rect.y + game_res_h && col_rect.y + col_rect.h - ( move_y + 0.00001f ) <= pActive_Camera->limit_rect.y + game_res_h  )
+	else if( m_col_rect.m_y + m_col_rect.m_h > pActive_Camera->limit_rect.m_y + game_res_h && m_col_rect.m_y + m_col_rect.m_h - ( move_y + 0.00001f ) <= pActive_Camera->limit_rect.m_y + game_res_h  )
 	{
 		if( handle )
 		{
@@ -774,210 +875,216 @@ bool cMovingSprite :: Check_out_of_Level_Ver( const float move_y, const bool han
 	return 0;
 }
 
-void cMovingSprite :: Set_on_Ground( cSprite *obj, bool set_on_top /* = 1 */ )
+bool cMovingSprite :: Set_on_Ground( cSprite *obj, bool set_on_top /* = 1 */ )
 {
 	// invalid or can't be on ground
-	if( !obj || !can_be_on_ground )
+	if( !obj || !m_can_be_on_ground )
 	{
-		return;
+		return 0;
 	}
 
 	// if wanted object can't be ground object
-	if( !obj->can_be_ground )
+	if( !obj->m_can_be_ground )
 	{
-		return;
+		return 0;
 	}
 
 	// set groundobject
-	ground_object = obj;
+	m_ground_object = obj;
 	// set on top
 	if( set_on_top )
 	{
-		Set_on_Top( ground_object, 0 );
+		Set_On_Top( m_ground_object, 0 );
 	}
+
+	return 1;
 }
 
 void cMovingSprite :: Check_on_Ground( void )
 {
 	// can't be on ground
-	if( !can_be_on_ground )
+	if( !m_can_be_on_ground )
 	{
 		return;
 	}
 
-	if( type != TYPE_PLAYER && sprite_array != ARRAY_ENEMY && sprite_array != ARRAY_ACTIVE )
+	if( m_type != TYPE_PLAYER && m_sprite_array != ARRAY_ENEMY && m_sprite_array != ARRAY_ACTIVE )
 	{
 		return;
 	}
 
 	// if ground object
-	if( ground_object )
+	if( m_ground_object )
 	{
-		GL_rect rect2( col_rect.x, col_rect.y + col_rect.h, col_rect.w, 1 );
+		GL_rect rect2( m_col_rect.m_x, m_col_rect.m_y + m_col_rect.m_h, m_col_rect.m_w, 1.0f );
 
 		// if on ground object
-		if( Col_Box( &ground_object->col_rect, &rect2 ) && ground_object->can_be_ground )
+		if( m_ground_object->m_col_rect.Intersects( rect2 ) && m_ground_object->m_can_be_ground )
 		{
 			return;
 		}
 	}
 
 	// don't check if flying or linked
-	if( state == STA_FLY || state == STA_OBJ_LINKED )
+	if( m_state == STA_FLY || m_state == STA_OBJ_LINKED )
 	{
 		return;
 	}
 
 	// new onground check
-	cObjectCollisionType col_objects = Collision_Check_Relative( 0, col_rect.h, 0, 1, COLLIDE_ALLOW_BLOCKING );
+	cObjectCollisionType *col_list = Collision_Check_Relative( 0.0f, m_col_rect.m_h, 0.0f, 1.0f, COLLIDE_ONLY_BLOCKING );
 
 	Reset_on_Ground();
 
 	// possible ground objects
-	for( SpriteList::iterator itr = col_objects.list.begin(), itr_end = col_objects.list.end(); itr != itr_end; ++itr )
+	for( cObjectCollision_List::iterator itr = col_list->objects.begin(), itr_end = col_list->objects.end(); itr != itr_end; ++itr )
 	{
-		cObjectCollision *collision = Collision_Get_last();
-
-		// no valid collision
-		if( !collision )
-		{
-			continue;
-		}
+		cObjectCollision *col = (*itr);
 
 		// ground collision found
-		if( collision->direction == DIR_BOTTOM )
+		if( col->direction == DIR_BOTTOM )
 		{
-			Set_on_Ground( *itr );
-			// send collision ( for falling platform )
-			Send_Collision( collision );
+			if( Set_on_Ground( col->obj ) )
+			{
+				// send collision ( needed for falling platform )
+				Send_Collision( col );
+				break;
+			}
 		}
-		
-		Collision_Delete( collision );
 	}
+
+	delete col_list;
 }
 
 void cMovingSprite :: Reset_on_Ground( void )
 {
-	ground_object = NULL;
+	m_ground_object = NULL;
 }
 
 void cMovingSprite :: Update_Anti_Stuck( void )
 {
 	// collision count
-	unsigned int count = Collision_Check( &col_rect, COLLIDE_ALLOW_BLOCKING ).size();
+	cObjectCollisionType *col_list = Collision_Check( &m_col_rect, COLLIDE_ONLY_BLOCKING );
 
 	// check collisions
-	for( unsigned int i = 0; i < count; i++ )
+	for( cObjectCollision_List::iterator itr = col_list->objects.begin(), itr_end = col_list->objects.end(); itr != itr_end; ++itr )
 	{
-		cObjectCollision *collision = Collision_Get_last();
+		cObjectCollision *collision = (*itr);
+		cSprite *col_obj = collision->obj;
 
-		if( !collision )
+		if( collision->m_array == ARRAY_ENEMY || ( collision->m_array == ARRAY_ACTIVE && ( col_obj->m_massive_type == MASS_HALFMASSIVE || col_obj->m_massive_type == MASS_CLIMBABLE ) ) )
 		{
 			continue;
 		}
 
-		cSprite *col_obj = pActive_Sprite_Manager->objects[collision->number];
+		debug_print( "Anti Stuck detected object %s on %s side\n", col_obj->m_name.c_str(), Get_Direction_Name( collision->direction ).c_str() );
 
-		if( collision->type != CO_ENEMY && !( collision->type == CO_ACTIVE && ( col_obj->massivetype == MASS_HALFMASSIVE || col_obj->massivetype == MASS_CLIMBABLE ) ) )
+		if( collision->direction == DIR_LEFT ) 
 		{
-			debug_print( "Anti Stuck detected object %s on %s side\n", col_obj->name.c_str(), Get_Direction_Name( collision->direction ).c_str() );
-
-			if( collision->direction == DIR_LEFT ) 
-			{
-				Col_Move( 1, 0, 0, 1 );
-			}
-			else if( collision->direction == DIR_RIGHT ) 
-			{
-				Col_Move( -1, 0, 0, 1 );
-			}
-			else if( collision->direction == DIR_UP ) 
-			{
-				Col_Move( 0, 1, 0, 1 );
-			}
-			else if( collision->direction == DIR_DOWN ) 
-			{
-				Col_Move( 0, -1, 0, 1 );
-			}
+			Col_Move( 1.0f, 0.0f, 0, 1 );
 		}
-
-		Collision_Delete( collision );
+		else if( collision->direction == DIR_RIGHT ) 
+		{
+			Col_Move( -1.0f, 0.0f, 0, 1 );
+		}
+		else if( collision->direction == DIR_UP ) 
+		{
+			Col_Move( 0.0f, 1.0f, 0, 1 );
+		}
+		else if( collision->direction == DIR_DOWN ) 
+		{
+			Col_Move( 0.0f, -1.0f, 0, 1 );
+		}
 	}
+
+	delete col_list;
 }
 
 void cMovingSprite :: Collide_Move( void )
 {
-	if( !valid_update || !is_Player_range() )
+	if( !m_valid_update || !Is_In_Player_Range() )
 	{
 		return;
 	}
 
 	// move and create collision data
-	Col_Move( velx, vely );
+	Col_Move( m_velx, m_vely );
 
-	// if the ground object moves also move this sprite
-	if( ground_object && ( ground_object->sprite_array == ARRAY_ACTIVE || ground_object->sprite_array == ARRAY_ENEMY ) ) // || ground_object->sprite_array == ARRAY_MASSIVE
+	Move_With_Ground();
+}
+
+void cMovingSprite :: Move_With_Ground( void )
+{
+	if( !m_ground_object || ( m_ground_object->m_sprite_array != ARRAY_ACTIVE && m_ground_object->m_sprite_array != ARRAY_ENEMY ) ) // || m_ground_object->sprite_array == ARRAY_MASSIVE
 	{
-		cMovingSprite *moving_ground_object = dynamic_cast<cMovingSprite *>(ground_object);
+		return;
+	}
 
-		// if valid moving sprite
-		if( moving_ground_object )
+	cMovingSprite *moving_ground_object = dynamic_cast<cMovingSprite *>(m_ground_object);
+
+	// invalid moving sprite
+	if( !moving_ground_object )
+	{
+		return;
+	}
+
+	// does not move
+	if( Is_Float_Equal( moving_ground_object->m_velx, 0.0f ) && Is_Float_Equal( moving_ground_object->m_vely, 0.0f ) )
+	{
+		return;
+	}
+
+	// check ground first because of the moving object velocity
+	Check_on_Ground();
+	// save posx for possible can not move test
+	float posy_orig = m_pos_y;
+	/* stop object from getting stopped of the moving object which did not yet move itself
+	 * for example the player always moves as last
+	*/
+	bool is_massive = 0;
+	if( moving_ground_object->m_massive_type == MASS_MASSIVE )
+	{
+		moving_ground_object->m_massive_type = MASS_PASSIVE;
+		is_massive = 1;
+	}
+	// move
+	Col_Move( moving_ground_object->m_velx, moving_ground_object->m_vely, 0, 0, 0 );
+
+	if( is_massive )
+	{
+		moving_ground_object->m_massive_type = MASS_MASSIVE;
+	}
+	// if ground object is moving up
+	if( moving_ground_object->m_vely < -0.01f )
+	{
+		// test if we could not move upwards because something did block us in Col_Move()
+		if( Is_Float_Equal( m_pos_y, posy_orig ) )
 		{
-			if( moving_ground_object->velx != 0 || moving_ground_object->vely != 0 )
+			// massive
+			if( moving_ground_object->m_massive_type == MASS_MASSIVE )
 			{
-				// check ground first because of the moving object velocity
-				Check_on_Ground();
-				// save posx for possible can not move test
-				float posy_orig = posy;
-				/* stop object from getting stopped of the moving object which did not yet move itself
-				 * for example the player always moves as last
-				*/
-				bool is_massive = 0;
-				if( moving_ground_object->massivetype == MASS_MASSIVE )
-				{
-					moving_ground_object->massivetype = MASS_PASSIVE;
-					is_massive = 1;
-				}
-				// move
-				Col_Move( moving_ground_object->velx, moving_ground_object->vely, 0, 0, 0 );
-
-				if( is_massive )
-				{
-					moving_ground_object->massivetype = MASS_MASSIVE;
-				}
-				// if ground object is moving up
-				if( moving_ground_object->vely < 0 )
-				{
-					// test if we could not move upwards because something did block us in Col_Move()
-					if( posy == posy_orig )
-					{
-						// massive
-						if( moving_ground_object->massivetype == MASS_MASSIVE )
-						{
-							// got crunched
-							DownGrade( 1 );
-						}
-						// halfmassive
-						else if( moving_ground_object->massivetype == MASS_HALFMASSIVE )
-						{
-							// lost ground
-							Move( 0, 1.9f, 1 );
-							Reset_on_Ground();
-						}
-					}
-				}
+				// got crunched
+				DownGrade( 1 );
+			}
+			// halfmassive
+			else if( moving_ground_object->m_massive_type == MASS_HALFMASSIVE )
+			{
+				// lost ground
+				Move( 0.0f, 1.9f, 1 );
+				Reset_on_Ground();
 			}
 		}
 	}
 }
 
-void cMovingSprite :: Freeze( float freeze_time /* = DESIRED_FPS * 10 */ )
+void cMovingSprite :: Freeze( float freeze_time /* = speedfactor_fps * 10 */ )
 {
-	freeze_counter = freeze_time;
+	m_freeze_counter = freeze_time;
 
 	// apply resistance
-	if( ice_resistance > 0 )
+	if( m_ice_resistance > 0.0f )
 	{
-		freeze_counter *= ( ice_resistance * -1 ) + 1;
+		m_freeze_counter *= ( m_ice_resistance * -1 ) + 1;
 	}
 
 	Update_Valid_Update();
@@ -990,44 +1097,56 @@ void cMovingSprite :: DownGrade( bool force )
 
 void cMovingSprite :: Update_Direction( void )
 {
-	if( velx < 0 )
+	if( m_velx < 0.0f )
 	{
-		direction = DIR_LEFT;
+		m_direction = DIR_LEFT;
 	}
-	else if( velx > 0 )
+	else if( m_velx > 0.0f )
 	{
-		direction = DIR_RIGHT;
+		m_direction = DIR_RIGHT;
 	}
-	else if( vely < 0 )
+	else if( m_vely < 0.0f )
 	{
-		direction = DIR_UP;
+		m_direction = DIR_UP;
 	}
-	else if( vely > 0 )
+	else if( m_vely > 0.0f )
 	{
-		direction = DIR_DOWN;
+		m_direction = DIR_DOWN;
+	}
+}
+
+void cMovingSprite :: Update_Rotation_Hor( bool start_rotation /* = 0 */ )
+{
+	if( m_direction == DIR_LEFT || m_direction == DIR_RIGHT || m_direction == DIR_HORIZONTAL )
+	{
+		Update_Rotation_Hor_velx( start_rotation );
+	}
+	else
+	{
+		Update_Rotation_Hor_vely( start_rotation );
 	}
 }
 
 void cMovingSprite :: Update_Rotation_Hor_velx( bool start_rotation /* = 0 */ )
 {
 	// left
-	if( velx < 0 )
+	if( m_velx < 0.0f )
 	{
-		roty = 0;
+		m_rot_y = 0.0f;
 
 		if( start_rotation )
 		{
-			start_roty = roty;
+			m_start_rot_y = m_rot_y;
 		}
 	}
 	// right
-	else if( velx > 0 )
+	else if( m_velx > 0.0f )
 	{
-		roty = 180;
+		m_rot_y = 180.0f;
 
 		if( start_rotation )
 		{
-			start_roty = roty;
+			m_start_rot_y = m_rot_y;
 		}
 	}
 }
@@ -1035,31 +1154,31 @@ void cMovingSprite :: Update_Rotation_Hor_velx( bool start_rotation /* = 0 */ )
 void cMovingSprite :: Update_Rotation_Hor_vely( bool start_rotation /* = 0 */ )
 {
 	// up
-	if( vely < 0 )
+	if( m_vely < 0.0f )
 	{
-		roty = 0;
+		m_rot_y = 0.0f;
 
 		if( start_rotation )
 		{
-			start_roty = roty;
+			m_start_rot_y = m_rot_y;
 		}
 	}
 	// down
-	else if( vely > 0 )
+	else if( m_vely > 0.0f )
 	{
-		roty = 180;
+		m_rot_y = 180.0f;
 
 		if( start_rotation )
 		{
-			start_roty = roty;
+			m_start_rot_y = m_rot_y;
 		}
 	}
 }
 
-void cMovingSprite :: Handle_Move_Object_Collision( cObjectCollision *collision )
+void cMovingSprite :: Handle_Move_Object_Collision( const cObjectCollision *collision )
 {
 	// if not massive
-	if( massivetype != MASS_MASSIVE )
+	if( m_massive_type != MASS_MASSIVE )
 	{
 		return;
 	}
@@ -1067,17 +1186,17 @@ void cMovingSprite :: Handle_Move_Object_Collision( cObjectCollision *collision 
 	// get object
 	cMovingSprite *obj = NULL;
 
-	if( collision->type == CO_ENEMY )
+	if( collision->m_array == ARRAY_ENEMY )
 	{
 		obj = static_cast<cMovingSprite *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
 
 		// ignore these enemies
-		if( obj->type == TYPE_THROMP || obj->type == TYPE_EATO || obj->type == TYPE_JPIRANHA || obj->type == TYPE_STATIC_ENEMY )
+		if( obj->m_type == TYPE_THROMP || obj->m_type == TYPE_EATO || obj->m_type == TYPE_FLYON || obj->m_type == TYPE_STATIC_ENEMY )
 		{
 			return;
 		}
 	}
-	else if( collision->type == CO_PLAYER )
+	else if( collision->m_array == ARRAY_PLAYER )
 	{
 		obj = static_cast<cMovingSprite *>(pPlayer);
 	}
@@ -1090,7 +1209,7 @@ void cMovingSprite :: Handle_Move_Object_Collision( cObjectCollision *collision 
 	// top collision is handled in cMovingSprite::Collide_Move()
 	if( collision->direction == DIR_BOTTOM )
 	{
-		if( obj->ground_object && obj->ground_object->massivetype == MASS_MASSIVE )
+		if( obj->m_ground_object && obj->m_ground_object->m_massive_type == MASS_MASSIVE )
 		{
 			// got crunched
 			obj->DownGrade( 1 );
@@ -1098,18 +1217,18 @@ void cMovingSprite :: Handle_Move_Object_Collision( cObjectCollision *collision 
 		else
 		{
 			// move
-			obj->Col_Move( 0, vely, 0, 0, 0 );
+			obj->Col_Move( 0.0f, m_vely, 0, 0, 0 );
 		}
 	}
-	else if( ( collision->direction == DIR_LEFT && velx < 0 ) || ( collision->direction == DIR_RIGHT && velx > 0 ) )
+	else if( ( collision->direction == DIR_LEFT && m_velx < 0 ) || ( collision->direction == DIR_RIGHT && m_velx > 0 ) )
 	{
 		// save posx for possible can not move test
-		float posx_orig = obj->posx;
-		// move
-		obj->Col_Move( velx, 0, 0, 0, 0 );
+		float posx_orig = obj->m_pos_x;
+		// move with check on ground
+		obj->Col_Move( m_velx, 0.0f, 0, 0 );
 
 		// test if we could not move it upwards because something did block it
-		if( obj->posx == posx_orig )
+		if( Is_Float_Equal( obj->m_pos_x, posx_orig ) )
 		{
 			// got crunched
 			obj->DownGrade( 1 );
@@ -1117,74 +1236,96 @@ void cMovingSprite :: Handle_Move_Object_Collision( cObjectCollision *collision 
 	}
 }
 
-unsigned int cMovingSprite :: Validate_Collision( cSprite *obj )
+Col_Valid_Type cMovingSprite :: Validate_Collision( cSprite *obj )
 {
-	if( obj->massivetype == MASS_MASSIVE )
+	if( obj->m_massive_type == MASS_MASSIVE )
 	{
-		return 2;
+		return COL_VTYPE_BLOCKING;
 	}
-	if( obj->massivetype == MASS_HALFMASSIVE )
+	if( obj->m_massive_type == MASS_HALFMASSIVE )
 	{
 		// if moving downwards and the object is on bottom
-		if( vely >= 0 && Is_on_Top( obj ) )
+		if( m_vely >= 0 && Is_On_Top( obj ) )
 		{
-			return 2;
+			return COL_VTYPE_BLOCKING;
 		}
 	}
 
-	return 0;
+	return COL_VTYPE_NOT_VALID;
 }
 
-int cMovingSprite :: Validate_Collision_Ghost( cSprite *obj )
+Col_Valid_Type cMovingSprite :: Validate_Collision_Ghost( cSprite *obj )
 {
-	if( obj->type == TYPE_BONUSBOX || obj->type == TYPE_SPINBOX )
+	if( obj->m_type == TYPE_BONUSBOX || obj->m_type == TYPE_SPINBOX )
 	{
 		cBaseBox *box = static_cast<cBaseBox *>(obj);
 
 		// ghost
 		if( box->box_invisible == BOX_GHOST )
 		{
+			// enemies ignore ghost objects
+			// todo : unless ghost itself
+			if( m_sprite_array == ARRAY_ENEMY )
+			{
+				return COL_VTYPE_NOT_VALID;
+			}
+
 			// maryo is not ghost
 			if( pPlayer->maryo_type != MARYO_GHOST )
 			{
-				return 0;
+				return COL_VTYPE_NOT_VALID;
 			}
 		}
 	}
 
-	return -1;
+	return COL_VTYPE_NO_GHOST;
 }
 
-int cMovingSprite :: Validate_Collision_Object_On_Top( cMovingSprite *moving_sprite )
+Col_Valid_Type cMovingSprite :: Validate_Collision_Object_On_Top( cMovingSprite *moving_sprite )
 {
+	/* hack : ignore early jumping player because we collide move earlier
+	* also see cPlayer :: Handle_Collision_Massive
+	*/
+	if( moving_sprite->m_type == TYPE_PLAYER )
+	{
+		cPlayer *player = static_cast<cPlayer *>(moving_sprite);
+
+		if( player->jump_power > 6.0f )
+		{
+			// invalid
+			return COL_VTYPE_NO_GHOST;
+		}
+	}
+
 	// don't handle if not moving upwards or slower
-	if( moving_sprite->Is_on_Top( this ) && direction == DIR_UP && moving_sprite->vely > vely && moving_sprite->can_be_on_ground )
+	if( moving_sprite->Is_On_Top( this ) && m_direction == DIR_UP && moving_sprite->m_vely > m_vely && moving_sprite->m_can_be_on_ground )
 	{
 		// halfmassive
-		if( massivetype == MASS_HALFMASSIVE )
+		if( m_massive_type == MASS_HALFMASSIVE )
 		{
 			// only if no ground
-			if( !moving_sprite->ground_object )
+			if( !moving_sprite->m_ground_object )
 			{
-				return 2;
+				return COL_VTYPE_BLOCKING;
 			}
 		}
 		// massive
-		else if( massivetype == MASS_MASSIVE )
+		else if( m_massive_type == MASS_MASSIVE )
 		{
 			// always pick up
-			if( moving_sprite->ground_object != this )
+			if( moving_sprite->m_ground_object != this )
 			{
-				moving_sprite->ground_object = this;
-				return 0;
+				moving_sprite->m_ground_object = this;
+				return COL_VTYPE_NOT_VALID;
 			}
 		}
 	}
 
-	return -1;
+	// invalid
+	return COL_VTYPE_NO_GHOST;
 }
 
-void cMovingSprite :: Send_Collision( cObjectCollision *collision )
+void cMovingSprite :: Send_Collision( const cObjectCollision *collision, bool handle_now /* = 0 */ )
 {
 	// empty collision
 	if( !collision )
@@ -1207,60 +1348,81 @@ void cMovingSprite :: Send_Collision( cObjectCollision *collision )
 		return;
 	}
 
-	// create a new collision
-	cObjectCollision *ncollision = new cObjectCollision();
+	int my_number;
 
-	// this is a received collision
-	ncollision->received = 1;
-	// set object manager id
-	if( type != TYPE_PLAYER )
+	// player is always 0
+	if( m_type == TYPE_PLAYER )
 	{
-		ncollision->number = pActive_Sprite_Manager->Get_Array_Num( this );
+		my_number = 0;
+	}
+	// get sprite array number
+	else
+	{
+		my_number = pActive_Sprite_Manager->Get_Array_Num( this );
 
-		// object not available
-		if( ncollision->number < 0 )
+		// object not available in manager
+		if( my_number < 0 )
 		{
-			debug_print( "Warning : Object did send Collision but doesn't exists in Manager\n" );
-
-			delete ncollision;
+			debug_print( "Warning : Object %s did send Collision but doesn't exists in Manager\n", m_name.c_str() );
 			return;
 		}
 	}
 
+	cSprite *target_obj;
+
+	if( collision->m_array == ARRAY_PLAYER )
+	{
+		target_obj = pActive_Player;
+	}
+	else
+	{
+		target_obj = pActive_Sprite_Manager->Get_Pointer( collision->number );
+	}
+
+	// check if this is already in list
+	if( target_obj->Is_Collision_Included( this ) )
+	{
+		return;
+	}
+
+	// create the new collision
+	cObjectCollision *new_collision = new cObjectCollision();
+	// this is a received collision
+	new_collision->received = 1;
+
+	// set object
+	new_collision->obj = this;
+	// set object manager id
+	new_collision->number = my_number;
+
 	// set direction
 	if( collision->direction != DIR_UNDEFINED )
 	{
-		ncollision->direction = Get_Opposite_Direction( collision->direction );
+		new_collision->direction = Get_Opposite_Direction( collision->direction );
 	}
 
 	// set type
-	if( type != TYPE_PLAYER )
-	{
-		ncollision->type = Get_Collision_Type( sprite_array );
-	}
-	// from player
-	else
-	{
-		ncollision->type = CO_PLAYER;
-	}
+	new_collision->m_array = m_sprite_array;
 
-	// add collision to the list
-	if( collision->type == CO_PLAYER )
+	// handle now
+	if( handle_now )
 	{
-		pActive_Player->Collision_Add( ncollision, 1 );
+		target_obj->Handle_Collision( new_collision );
+		delete new_collision;
 	}
+	// add collision to the list
 	else
 	{
-		pActive_Sprite_Manager->Get_Pointer( collision->number )->Collision_Add( ncollision, 1 );
+		target_obj->Add_Collision( new_collision );
 	}
 }
 
 void cMovingSprite :: Handle_Collision( cObjectCollision *collision )
 {
 	// ignore player/enemy if frozen
-	if( collision->type == CO_PLAYER || collision->type == CO_ENEMY )
+	if( collision->m_array == ARRAY_PLAYER || collision->m_array == ARRAY_ENEMY )
 	{
-		if( freeze_counter )
+		if( m_freeze_counter )
 		{
 			return;
 		}
@@ -1275,3 +1437,5 @@ void cMovingSprite :: Handle_out_of_Level( ObjectDirection dir )
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

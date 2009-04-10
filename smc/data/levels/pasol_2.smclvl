@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.5" />
-		<Property name="engine_version" value="2.4" />
-		<Property name="save_time" value="1205939938" />
+		<Property name="game_version" value="1.7" />
+		<Property name="engine_version" value="2.8" />
+		<Property name="save_time" value="1230264462" />
 	</information>
 	<settings>
-		<Property name="lvl_author" value="Pasol" />
-		<Property name="lvl_version" value="1.1" />
+		<Property name="lvl_author" value="Pasol and SMC Team" />
+		<Property name="lvl_version" value="1.7" />
 		<Property name="lvl_music" value="land/land_5.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
@@ -17,11 +17,11 @@
 	</settings>
 	<background>
 		<Property name="type" value="103" />
-		<Property name="bg_color_1_red" value="95" />
-		<Property name="bg_color_1_green" value="55" />
+		<Property name="bg_color_1_red" value="90" />
+		<Property name="bg_color_1_green" value="40" />
 		<Property name="bg_color_1_blue" value="0" />
-		<Property name="bg_color_2_red" value="95" />
-		<Property name="bg_color_2_green" value="55" />
+		<Property name="bg_color_2_red" value="90" />
+		<Property name="bg_color_2_green" value="40" />
 		<Property name="bg_color_2_blue" value="0" />
 	</background>
 	<player>
@@ -27827,6 +27827,7 @@
 		<Property name="posx" value="1588" />
 		<Property name="posy" value="260" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27835,6 +27836,7 @@
 		<Property name="posx" value="1674" />
 		<Property name="posy" value="259" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27843,6 +27845,7 @@
 		<Property name="posx" value="1847" />
 		<Property name="posy" value="131" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27851,6 +27854,7 @@
 		<Property name="posx" value="1759" />
 		<Property name="posy" value="174" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27859,6 +27863,7 @@
 		<Property name="posx" value="1586" />
 		<Property name="posy" value="-383" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27867,6 +27872,7 @@
 		<Property name="posx" value="1631" />
 		<Property name="posy" value="-41" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27875,6 +27881,7 @@
 		<Property name="posx" value="1587" />
 		<Property name="posy" value="-84" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27883,6 +27890,7 @@
 		<Property name="posx" value="1761" />
 		<Property name="posy" value="-213" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27891,6 +27899,7 @@
 		<Property name="posx" value="1763" />
 		<Property name="posy" value="-556" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27899,6 +27908,7 @@
 		<Property name="posx" value="1849" />
 		<Property name="posy" value="-599" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27907,6 +27917,7 @@
 		<Property name="posx" value="1934" />
 		<Property name="posy" value="-643" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27915,6 +27926,7 @@
 		<Property name="posx" value="2062" />
 		<Property name="posy" value="-686" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27923,6 +27935,7 @@
 		<Property name="posx" value="2148" />
 		<Property name="posy" value="-726" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27931,6 +27944,7 @@
 		<Property name="posx" value="2405" />
 		<Property name="posy" value="-2149" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27939,6 +27953,7 @@
 		<Property name="posx" value="2706" />
 		<Property name="posy" value="-2150" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27947,6 +27962,7 @@
 		<Property name="posx" value="2276" />
 		<Property name="posy" value="-2149" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27955,6 +27971,7 @@
 		<Property name="posx" value="2190" />
 		<Property name="posy" value="-2107" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27963,6 +27980,7 @@
 		<Property name="posx" value="1889" />
 		<Property name="posy" value="-2105" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27971,6 +27989,7 @@
 		<Property name="posx" value="1631" />
 		<Property name="posy" value="-2149" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27979,6 +27998,7 @@
 		<Property name="posx" value="3008" />
 		<Property name="posy" value="-2146" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27987,6 +28007,7 @@
 		<Property name="posx" value="1977" />
 		<Property name="posy" value="-2188" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -27995,6 +28016,7 @@
 		<Property name="posx" value="1590" />
 		<Property name="posy" value="-857" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28003,6 +28025,7 @@
 		<Property name="posx" value="1674" />
 		<Property name="posy" value="-815" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28011,6 +28034,7 @@
 		<Property name="posx" value="2189" />
 		<Property name="posy" value="-257" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28019,6 +28043,7 @@
 		<Property name="posx" value="943" />
 		<Property name="posy" value="-555" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28027,6 +28052,7 @@
 		<Property name="posx" value="899" />
 		<Property name="posy" value="-555" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28035,6 +28061,7 @@
 		<Property name="posx" value="299" />
 		<Property name="posy" value="-2148" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28043,6 +28070,7 @@
 		<Property name="posx" value="3265" />
 		<Property name="posy" value="-944" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28051,6 +28079,7 @@
 		<Property name="posx" value="3394" />
 		<Property name="posy" value="-901" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28059,6 +28088,7 @@
 		<Property name="posx" value="3093" />
 		<Property name="posy" value="-987" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28067,6 +28097,7 @@
 		<Property name="posx" value="3309" />
 		<Property name="posy" value="-1631" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28075,6 +28106,7 @@
 		<Property name="posx" value="3522" />
 		<Property name="posy" value="-1589" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28083,6 +28115,7 @@
 		<Property name="posx" value="4080" />
 		<Property name="posy" value="-1588" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28091,6 +28124,7 @@
 		<Property name="posx" value="4335" />
 		<Property name="posy" value="-2148" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28099,6 +28133,7 @@
 		<Property name="posx" value="3649" />
 		<Property name="posy" value="-2148" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28107,6 +28142,7 @@
 		<Property name="posx" value="491" />
 		<Property name="posy" value="443" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28115,6 +28151,7 @@
 		<Property name="posx" value="2791" />
 		<Property name="posy" value="-2190" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28123,6 +28160,7 @@
 		<Property name="posx" value="858" />
 		<Property name="posy" value="-1374" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28131,6 +28169,7 @@
 		<Property name="posx" value="727" />
 		<Property name="posy" value="-1331" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28139,6 +28178,7 @@
 		<Property name="posx" value="342" />
 		<Property name="posy" value="-126" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28147,6 +28187,7 @@
 		<Property name="posx" value="513" />
 		<Property name="posy" value="-84" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -28162,6 +28203,7 @@
 		<Property name="posx" value="944" />
 		<Property name="posy" value="-1245" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/jpiranha/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>

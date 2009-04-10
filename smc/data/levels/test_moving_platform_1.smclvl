@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.7" />
-		<Property name="engine_version" value="2.8" />
-		<Property name="save_time" value="1229243995" />
+		<Property name="game_version" value="1.8" />
+		<Property name="engine_version" value="34" />
+		<Property name="save_time" value="1236475902" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="" />
@@ -92,6 +92,7 @@
 	<moving_platform>
 		<Property name="posx" value="609" />
 		<Property name="posy" value="18" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="massive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="360" />
@@ -289,6 +290,7 @@
 		<Property name="posx" value="1206" />
 		<Property name="posy" value="29" />
 		<Property name="type" value="1" />
+		<Property name="motion" value="0" />
 		<Property name="direction" value="right" />
 	</levelexit>
 	<sprite>
@@ -486,6 +488,7 @@
 	<moving_platform>
 		<Property name="posx" value="68" />
 		<Property name="posy" value="-126" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="massive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="150" />
@@ -501,6 +504,7 @@
 	<moving_platform>
 		<Property name="posx" value="194" />
 		<Property name="posy" value="-127" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="150" />
@@ -558,6 +562,7 @@
 	<moving_platform>
 		<Property name="posx" value="561" />
 		<Property name="posy" value="-111" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="massive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="280" />
@@ -696,6 +701,7 @@
 	<moving_platform>
 		<Property name="posx" value="43" />
 		<Property name="posy" value="210" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="massive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="70" />
@@ -1089,11 +1095,11 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="342" />
 		<Property name="posy" value="359" />
 		<Property name="direction" value="left" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="100" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -1124,6 +1130,8 @@
 		<Property name="posy" value="362" />
 		<Property name="rotation_speed" value="2.5" />
 		<Property name="image" value="enemy/static/blocks/spike_1/1_grey.png" />
+		<Property name="path" value="" />
+		<Property name="speed" value="0" />
 	</enemy>
 	<sprite>
 		<Property name="posx" value="301" />
@@ -1137,6 +1145,8 @@
 		<Property name="posy" value="361" />
 		<Property name="rotation_speed" value="0" />
 		<Property name="image" value="enemy/static/blocks/spike_1/2_grey.png" />
+		<Property name="path" value="" />
+		<Property name="speed" value="0" />
 	</enemy>
 	<sprite>
 		<Property name="posx" value="258" />
@@ -1147,6 +1157,7 @@
 	<moving_platform>
 		<Property name="posx" value="57" />
 		<Property name="posy" value="364" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="massive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="280" />
@@ -1243,11 +1254,12 @@
 		<Property name="type" value="text" />
 		<Property name="invisible" value="0" />
 		<Property name="useable_count" value="-1" />
-		<Property name="text" value="Bugs:&lt;br/&gt;-Climbable platform doesn&apos;t function correctly&lt;br/&gt;-Gee hor and ver colliding problem with hor and ver platform&lt;br/&gt;-There are only the down and right movemente (platforms)&lt;br/&gt;" />
+		<Property name="text" value="Bugs:&lt;br/&gt;-Climbable platform doesn&apos;t function correctly&lt;br/&gt;&lt;br/&gt;" />
 	</box>
 	<moving_platform>
 		<Property name="posx" value="473" />
 		<Property name="posy" value="296" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="85" />
@@ -1263,6 +1275,7 @@
 	<moving_platform>
 		<Property name="posx" value="774" />
 		<Property name="posy" value="296" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="climbable" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="85" />
@@ -1428,6 +1441,7 @@
 	<moving_platform>
 		<Property name="posx" value="339" />
 		<Property name="posy" value="-319" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="massive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="280" />
@@ -1514,6 +1528,7 @@
 	<moving_platform>
 		<Property name="posx" value="288" />
 		<Property name="posy" value="-502" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="massive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="400" />
@@ -1540,6 +1555,7 @@
 	<moving_platform>
 		<Property name="posx" value="424" />
 		<Property name="posy" value="-502" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="massive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="400" />
@@ -1687,6 +1703,7 @@
 	<moving_platform>
 		<Property name="posx" value="903" />
 		<Property name="posy" value="-1123" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="400" />
@@ -2182,6 +2199,7 @@
 	<moving_platform>
 		<Property name="posx" value="215" />
 		<Property name="posy" value="-1123" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="massive" />
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="280" />
@@ -2494,6 +2512,8 @@
 		<Property name="posy" value="-1062" />
 		<Property name="rotation_speed" value="0" />
 		<Property name="image" value="enemy/static/blocks/spike_1/2_grey.png" />
+		<Property name="path" value="" />
+		<Property name="speed" value="0" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="static" />
@@ -2501,6 +2521,8 @@
 		<Property name="posy" value="-1068" />
 		<Property name="rotation_speed" value="-5.5" />
 		<Property name="image" value="enemy/static/saw/default.png" />
+		<Property name="path" value="" />
+		<Property name="speed" value="0" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="static" />
@@ -2508,13 +2530,15 @@
 		<Property name="posy" value="-1062" />
 		<Property name="rotation_speed" value="2.5" />
 		<Property name="image" value="enemy/static/blocks/spike_1/1_grey.png" />
+		<Property name="path" value="" />
+		<Property name="speed" value="0" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="539" />
 		<Property name="posy" value="-1072" />
 		<Property name="direction" value="left" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -2543,6 +2567,8 @@
 		<Property name="posy" value="360" />
 		<Property name="rotation_speed" value="0" />
 		<Property name="image" value="enemy/static/blocks/spike_1/2_grey.png" />
+		<Property name="path" value="" />
+		<Property name="speed" value="0" />
 	</enemy>
 	<sprite>
 		<Property name="posx" value="1204" />

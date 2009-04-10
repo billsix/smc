@@ -1,7 +1,7 @@
 /***************************************************************************
  * spinbox.cpp  -  spinning box
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -14,9 +14,11 @@
 */
 
 #include "../objects/spinbox.h"
-#include "../core/obj_manager.h"
 #include "../core/framerate.h"
 #include "../core/game_core.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** cSpinBox *** *** *** *** *** *** *** *** *** */
 
@@ -30,7 +32,7 @@ cSpinBox :: cSpinBox( CEGUI::XMLAttributes &attributes )
 : cBaseBox()
 {
 	cSpinBox::Init();
-	cSpinBox::Create_from_Stream( attributes );
+	cSpinBox::Create_From_Stream( attributes );
 }
 
 cSpinBox :: ~cSpinBox( void )
@@ -40,10 +42,11 @@ cSpinBox :: ~cSpinBox( void )
 
 void cSpinBox :: Init( void )
 {
-	type = TYPE_SPINBOX;
-	box_type = type;
-	player_range = 5000;
-	can_be_on_ground = 0;
+	m_type = TYPE_SPINBOX;
+	box_type = m_type;
+	m_player_range = 5000;
+	m_can_be_on_ground = 0;
+	counter = 1;
 
 	spin_counter = 0;
 	spin = 0;
@@ -64,24 +67,24 @@ void cSpinBox :: Init( void )
 
 cSpinBox *cSpinBox :: Copy( void )
 {
-	cSpinBox *spinbox = new cSpinBox( startposx, startposy );
+	cSpinBox *spinbox = new cSpinBox( m_start_pos_x, m_start_pos_y );
 	spinbox->Set_Invisible( box_invisible );
 	spinbox->Set_Useable_Count( start_useable_count, 1 );
 
 	return spinbox;
 }
 
-void cSpinBox :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
+void cSpinBox :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 {
-	cBaseBox::Create_from_Stream( attributes );
+	cBaseBox::Create_From_Stream( attributes );
 }
 
-void cSpinBox :: Save_to_Stream( ofstream &file )
+void cSpinBox :: Save_To_Stream( ofstream &file )
 {
 	// begin box
 	file << "\t<box>" << std::endl;
 
-	cBaseBox::Save_to_Stream( file );
+	cBaseBox::Save_To_Stream( file );
 
 	// end box
 	file << "\t</box>" << std::endl;
@@ -98,7 +101,7 @@ void cSpinBox :: Activate( void )
 	spin = 1;
 	Update_Valid_Update();
 	// passive box for spinning
-	massivetype = MASS_PASSIVE;
+	m_massive_type = MASS_PASSIVE;
 
 	counter = static_cast<float>(anim_counter_min);
 	spin_counter = 0;
@@ -117,12 +120,12 @@ void cSpinBox :: Stop( void )
 	// disabled image
 	if( !useable_count )
 	{
-		Set_Image( 0, 0, 0 );
+		Set_Image_Num( 0, 0, 0 );
 	}
 	// default image
 	else
 	{
-		Set_Image( 1, 0, 0 );
+		Set_Image_Num( 1, 0, 0 );
 	}
 	// reset
 	spin = 0;
@@ -131,14 +134,14 @@ void cSpinBox :: Stop( void )
 	spin_counter = 0;
 
 	// back to a massive box
-	massivetype = MASS_MASSIVE;
+	m_massive_type = MASS_MASSIVE;
 	// set the BaseBox maximum animation image
 	anim_counter_max = 1;
 }
 
 void cSpinBox :: Update( void )
 {
-	if( !valid_update || !is_Player_range() )
+	if( !m_valid_update || !Is_In_Player_Range() )
 	{
 		return;
 	}
@@ -157,33 +160,35 @@ void cSpinBox :: Update( void )
 			{
 				// reset spin counter
 				spin_counter = 0;
-				// for collision check and if spinning stopped back to a massive box
-				massivetype = MASS_MASSIVE;
+				// set to massive for collision check
+				m_massive_type = MASS_MASSIVE;
 				// collision data
-				cObjectCollisionType col_list = Collision_Check( &col_rect, COLLIDE_ONLY_CHECK );
+				cObjectCollisionType *col_list = Collision_Check( &m_col_rect, COLLIDE_ONLY_BLOCKING );
 				
 				// check if spinning should continue
 				bool spin_again = 0;
 
 				// colliding with player or enemy
-				if( col_list.find( TYPE_PLAYER ) || col_list.find( ARRAY_ENEMY ) )
+				if( col_list->Is_Included( TYPE_PLAYER ) || col_list->Is_Included( ARRAY_ENEMY ) )
 				{
 					spin_again = 1;
 				}
 				// colliding with an active object
-				else if( col_list.find( ARRAY_ACTIVE ) )
+				else if( col_list->Is_Included( ARRAY_ACTIVE ) )
 				{
-					cSprite *col_obj = col_list.find( ARRAY_ACTIVE );
+					cSprite *col_obj = col_list->Find_First( ARRAY_ACTIVE )->obj;
 					
 					// check for items
-					if( col_obj->type == TYPE_MUSHROOM_LIVE_1 || col_obj->type == TYPE_MUSHROOM_DEFAULT || 
-						col_obj->type == TYPE_MUSHROOM_POISON || col_obj->type == TYPE_MUSHROOM_BLUE || col_obj->type == TYPE_MUSHROOM_GHOST || 
-						col_obj->type == TYPE_FIREPLANT || col_obj->type == TYPE_JSTAR || col_obj->type == TYPE_FGOLDPIECE )
+					if( col_obj->m_type == TYPE_MUSHROOM_LIVE_1 || col_obj->m_type == TYPE_MUSHROOM_DEFAULT || 
+						col_obj->m_type == TYPE_MUSHROOM_POISON || col_obj->m_type == TYPE_MUSHROOM_BLUE || col_obj->m_type == TYPE_MUSHROOM_GHOST || 
+						col_obj->m_type == TYPE_FIREPLANT || col_obj->m_type == TYPE_JSTAR || col_obj->m_type == TYPE_FGOLDPIECE )
 					{
 						// found blocking active object
 						spin_again = 1;
 					}
 				}
+
+				delete col_list;
 
 				// continue spinning
 				if( spin_again )
@@ -191,7 +196,7 @@ void cSpinBox :: Update( void )
 					// spin some time again
 					spin_counter = speedfactor_fps * 2;
 					// passive for spinning
-					massivetype = MASS_PASSIVE;
+					m_massive_type = MASS_PASSIVE;
 				}
 				// finished spinning
 				else
@@ -212,3 +217,7 @@ bool cSpinBox :: Is_Update_Valid( void )
 
 	return cBaseBox::Is_Update_Valid();
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

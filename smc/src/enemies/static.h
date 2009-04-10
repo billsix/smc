@@ -1,7 +1,7 @@
 /***************************************************************************
  * static.h  -  headers for the corresponding cpp file
  *
- * Copyright (C) 2007 - 2008 Florian Richter
+ * Copyright (C) 2007 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -17,6 +17,10 @@
 #define SMC_STATIC_ENEMY_H
 
 #include "../enemies/enemy.h"
+#include "../objects/path.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** cStaticEnemy *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -35,18 +39,31 @@ public:
 
 	// init defaults
 	void Init( void );
+	/* late initialization
+	 * this needs linked objects to be already loaded
+	*/
+	virtual void Init_Links( void );
 	// copy
 	virtual cStaticEnemy *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
+	virtual void Save_To_Stream( ofstream &file );
+
+	// load from savegame
+	virtual void Load_From_Savegame( cSave_Level_Object *save_object );
+	// save to savegame
+	virtual cSave_Level_Object *Save_To_Savegame( void );
 
 	// Set the static image
-	void Set_Static_Image( string filename );
+	void Set_Static_Image( const std::string &filename );
 	// Set the rotation speed
 	void Set_Rotation_Speed( float speed );
+    // Set the movement speed
+    void Set_Speed( float speed );
+    // Set the path identifier
+    void Set_Path_Identifier( const std::string &path );
 
 	/* downgrade state ( if already weakest state : dies )
 	 * force : usually dies or a complete downgrade
@@ -56,15 +73,18 @@ public:
 
 	// update
 	virtual void Update( void );
+	// draw
+	virtual void Draw( cSurface_Request *request /* = NULL */ );
 
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
 
 	/* Validate the given collision object
+	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-	virtual unsigned int Validate_Collision( cSprite *obj );
+	virtual Col_Valid_Type Validate_Collision( cSprite *obj );
 	// collision from player
 	virtual void Handle_Collision_Player( cObjectCollision *collision );
 	// collision from an enemy
@@ -72,20 +92,32 @@ public:
 
 	// leveleditor activation
 	virtual void Editor_Activate( void );
-	// leveleditor events
-	bool Editor_Image_Key( const CEGUI::EventArgs &event );  // editor image key up
-	bool Editor_Rotation_Speed_Key( const CEGUI::EventArgs &event );  // editor rotation speed key up
+	// editor image text changed event
+	bool Editor_Image_Text_Changed( const CEGUI::EventArgs &event );
+	// editor rotation speed text changed event
+	bool Editor_Rotation_Speed_Text_Changed( const CEGUI::EventArgs &event );
+    // editor path identifier text changed event
+	bool Editor_Path_Identifier_Text_Changed( const CEGUI::EventArgs &event );
+    // editor speed text changed event
+	bool Editor_Speed_Text_Changed( const CEGUI::EventArgs &event );
+    
 
 	// image filename
-	string img_filename;
+	std::string m_img_filename;
 	// rotation speed
-	float rotation_speed;
+	float m_rotation_speed;
+	// movement speed if using path
+	float m_speed;
 
+	// path state if linked to a path
+	cPath_State m_path_state;
 private:
 	// Create the Name from the current settings
-    void Create_Name( void );
+	void Create_Name( void );
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

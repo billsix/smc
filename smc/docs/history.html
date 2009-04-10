@@ -22,6 +22,165 @@
 	</tr>
 	<tr>
 		<td class="version">
+			<p>1.8</p>
+		</td>
+		<td class="version">
+			2009.04.08
+		</td>
+	</tr>
+	<tr>
+		<td class="fixes" colspan="2">
+			<p>X implemented underground furball boss</p>
+			<p>X new sprites : slime particle, overworld sand_1 hills ( thanks youngheart80 ), overworld sand_1 bone ( thanks sauer2 ), big snow hill ( from youngheart80 and updated from me ), snow hills background, snow_1 window ( from thebosssdu68 )</p>
+			<p>X sprite updates : more_hills, beanstalk ( from sauer2 ), rope_1_hor ( from sauer2 ), fir_1 ( thanks sauer2 ), lightblue_1 cloud, dirt, smoke, smoke_black, green_1 kplant, recreated green_1 hedge wild_medium ( from sauer2 and me ), recreated old yoshi_1 slider and moved it to jungle_1 ( from sauer2 and updated from me ), recreated brown slider, recreated logo, background images, re-exported desert_1 ground in high resolution ( thanks fabianius ), recreated green_1 hedge big_1, green_1 hedge medium_1, green_1 hedge small_2, green_2 tendril, wood block 1 ( thanks fabianius ), signs, green grass ( thanks fabianius ), mushroom block ( thanks yoshis_fan ), brown box, moon, fireplant</p>
+			<p>X implemented path object and the ability for level exit, static enemy and moving platform to connect with it</p>
+			<p>X implemented moving platform circle and path type</p>
+			<p>X updated almost every level</p>
+			<p>X updated collision creation, checking, handling and validation !</p>
+			<p>X many level updates and fixes ( thanks to sauer2 )</p>
+			<p>X updated game_tutorial level ( from guest_xd, yoshis_fan and me )</p>
+			<p>X completely new gui graphics ( from fabianius and updated from me )</p>
+			<p>X implemented detection and scaling if image is greater than the maximum supported texture size</p>
+			<p>X massive sourcecode cleanup with many small optimizations and changes</p>
+			<p>X menu background changed to a level ( default is menu_green_1 )</p>
+			<p>X new levels : ita_2 ( from italian ), lake_shore_paradise level ( from yoshis_fan and small update from me )</p>
+			<p>X small world 3 updates</p>
+			<p>X world 4 level updates ( from guest_xd and me )</p>
+			<p>X use better and faster scale function in texture creation</p>
+			<p>X updated full screen effects</p>
+			<p>X new sounds : red goldpiece, pickup item, turtle stand up, empty box and fireball repelled</p>
+			<p>X recreated sounds : rokko activate, rokko hit, fireball explode, wall hit and fireball explosion sound</p>
+			<p>X fireplant and jstar can now be placed in a level</p>
+			<p>X updated world editor menu</p>
+			<p>X updated editor selected object drawing</p>
+			<p>X fade ghost mode in and out</p>
+			<p>X implemented line stipple pattern in the renderer</p>
+			<p>X implemented level exit blink movement option ( from simpletoon )</p>
+			<p>X many smaller updates and performance optimizations</p>
+			<p>X updated handling of the player active item release</p>
+			<p>X implemented rect request scaling</p>
+			<p>X implemented rokko up and down direction</p>
+			<p>X updated and added background image settings</p>
+			<p>X added fireplant particle animation</p>
+			<p>X added particle animation if player jumps against a massive object</p>
+			<p>X updated and fixed other particle animations</p>
+			<p>X implemented joystick hat handling ( thanks lig15 )</p>
+			<p>X allow all render request types to use rotation</p>
+			<p>X merged flippa_3 levels and some nice updates</p>
+			<p>X added nsis installer translations</p>
+			<p>X implemented possibility to handle a send collision instantly</p>
+			<p>X implemented collision handling with passive objects</p>
+			<p>X added greek translation ( thanks medigeek )</p>
+			<p>X added polish translation ( thanks rajish )</p>
+			<p>X added turkish translation ( thanks yusuf aydin )</p>
+			<p>X added more performance timer</p>
+			<p>* changed default action key from left ctrl to a</p>
+			<p>* changed default jump key from left alt to s</p>
+			<p>* fixed player change size function did not check the opposite direction</p>
+			<p>* updated moving ground and platform collision handling</p>
+			<p>* fixed entering level exit does not release the active object correctly</p>
+			<p>* fixed on a very high framerate per second maryo could get killed if on a massive moving platform</p>
+			<p>* fixed goldpiece animation draw and update is using the wrong images ( for years :o )</p>
+			<p>* fixed particle animation image is not centered</p>
+			<p>* fixed if player is in ghost mode all powerups move to the itembox and the bonusbox always creates the better item</p>
+			<p>* fixed a segfault on sprite destructor</p>
+			<p>* optimize box collision check function</p>
+			<p>* collision handling updates</p>
+			<p>* limit fps on loading screens or vsync will slow down the loading</p>
+			<p>* updated editor help screen</p>
+			<p>* fixed image settings rotation z of 180 does not change the x position</p>
+			<p>* fixed background image velocity is not framerate independent</p>
+			<p>* merged object collision type and array type</p>
+			<p>* fixed custom level could reset state after entering the menu</p>
+			<p>* updated custom level mode handling</p>
+			<p>* merged array type passive and front passive</p>
+			<p>* fixed crash if flyon or thromp image dir is set without a trailing slash</p>
+			<p>* updated particle emitter item drawing</p>
+			<p>* updated particle animation drawing</p>
+			<p>* fixed level music is not played if entering from menu</p>
+			<p>* fixed gee rotation is sometimes not updated</p>
+			<p>* fixed text box is not shown completely on the left or right level border</p>
+			<p>* fixed box did not always use the disabled image</p>
+			<p>* updated box useable count handling</p>
+			<p>* fixed disabled combobox button is not drawn</p>
+			<p>* fixed player active item as shell could collide with objects on top when player is moving</p>
+			<p>* fixed objects can still collide with a moving platform if it falls below the level</p>
+			<p>* optimized powerups and goldpiece collision handling</p>
+			<p>* changed generic enemy got hit animation</p>
+			<p>* update krush collision rect</p>
+			<p>* fixed player handling with the moving platform when jumping from it</p>
+			<p>* optimized plastic pipe connection collision rect</p>
+			<p>* fixed enemies don't ignore ghost objects</p>
+			<p>* fixed debug rects could be drawn behind objects</p>
+			<p>* auto update level to new slider graphics on load ( if the slider sprite used middle tiles it does now overlap and you need to update the level but not for the moving platform as it auto sizes )</p>
+			<p>* fixed player particle animation is not on the correct position when ducked and jumping against an object</p>
+			<p>* fixed editor crash if text or question box was opened twice</p>
+			<p>* allow player to walk on static enemies when on downgrade invincibility</p>
+			<p>* updated rokko, turtle boss, thromp and poison mushroom particle animation</p>
+			<p>* fixed thromp collides with almost everything</p>
+			<p>* turtle and turtle boss as shell only stand up if nothing is blocking it</p>
+			<p>* do not cache images without the width and height set in the image settings as there is currently no support to get the old and real image size. the scaled down (cached) image size was used which is wrong</p>
+			<p>* fixed level sprite manager z position always increases</p>
+			<p>* renamed jpiranha to flyon</p>
+			<p>* fixed game over particle animation is not drawn</p>
+			<p>* fixed time display did recreate the image every frame</p>
+			<p>* updated credits menu animation</p>
+			<p>* updated editor gui window handling</p>
+			<p>* optimize mouse copy function</p>
+			<p>* update txt file parser and make it more robust</p>
+			<p>* updated turtle and turtle boss</p>
+			<p>* added entered number validation for all editor object settings</p>
+			<p>* savegames now restore the custom level mode</p>
+			<p>* fixed falling from a halfmassive ground object does not check if other objects now block</p>
+			<p>* fixed if object or player is moved by another object the ground is not checked</p>
+			<p>* updated player movement check if colliding with blocking objects</p>
+			<p>* fixed level background image constant velocity changes the start position</p>
+			<p>* fixed on ground check sends collision even if it failed</p>
+			<p>* updated object detection if climbing</p>
+			<p>* updated detection if on climbable object</p>
+			<p>* draw moving platform always if active object</p>
+			<p>* fixed destroyed object collisions are handled</p>
+			<p>* fixed player active item can collide with objects it should not as it moved one the wrong frame</p>
+			<p>* added checks if audio was initialized as requested</p>
+			<p>* set audio menu tooltip text with gettext</p>
+			<p>* changed audio hertz option from 44800 to 48000</p>
+			<p>* fixed thromp speed can be set to negative values</p>
+			<p>* fixed thromp stops after collision with fire and iceball</p>
+			<p>* fixed moving platform does not shake</p>
+			<p>* fixed falling platform image rotation is framerate dependant</p>
+			<p>* fixed star does not turn around on the level edges</p>
+			<p>* fixed entering level with fading out music could play the default music</p>
+			<p>* fixed collision handling and points text memory leak</p>
+			<p>* many stl updates and iterator handling fixes</p>
+			<p>* run in place patch for linux ( from simpletoon )</p>
+			<p>* fixed fireball fire particle animation is framerate dependent</p>
+			<p>* add option to enable debug build on linux</p>
+			<p>* fixed menu alpha rect is drawn in front of buttons</p>
+			<p>* fixed rope_1_hor and beanstalk image settings</p>
+			<p>* many cegui event updates</p>
+			<p>* updated options menu</p>
+			<p>* renamed texture/geometry detail to texture/geometry quality</p>
+			<p>* options menu text is now translatable</p>
+			<p>* changed level engine format to integer</p>
+			<p>* updated fonts</p>
+			<p>* removed old green ground from stephan levels ( thanks sauer2 )</p>
+			<p>* fixed controls.html style ( thanks fabianius )</p>
+			<p>* lowered the default background image scrolling speed</p>
+			<p>* moved some txt author files to image settings data</p>
+			<p>* editor item drawing now overwrites scale directions</p>
+			<p>* updated mountain trials ( from bowserjr )</p>
+			<p>* updated nsis installer</p>
+			<p>* preload fire animation</p>
+			<p>* updated template and german translation</p>
+			<p>* optimized renderer drawing a bit</p>
+			<p>* fixed get pixel function</p>
+			<p>- removed old yoshi_1 ground</p>
+			<p>- removed very old pipes</p>
+			<p>- remove old and unused sprites</p>
+		</td>
+	</tr>
+	<tr>
+		<td class="version">
 			<p>1.7</p>
 		</td>
 		<td class="version">
@@ -30,7 +189,7 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X new sprites : tree_shaped_2 ( from sauer2 ), jumping piranha ( from sauer2 and me ), snow ground ( from youngheart80, bowserjr and updated from me ), ice balloon tree, candy_cane ( from sauer2 and me ), fir_1 ( from youngheart80 ), ice block 3</p>
+			<p>X new sprites : tree_shaped_2 ( from sauer2 ), jumping piranha ( from sauer2 and me ), snow ground ( from youngheart80, bowserjr and updated from me ), ice balloon tree, candy_cane ( from sauer2 and me ), fir_1 ( from youngheart80 ), ice block 3, candy_cane_2 ( from youngheart80 ), snowman_1 ( from youngheart80 )</p>
 			<p>X new levels : test_pipes ( from robwood ), sauer2_12 ( from sauer2 ), sauer2_13 ( from sauer2 ), sauer2_13end ( from sauer2 ), sauer2_14 ( from sauer2 ), neverland ( from sauer2 ), furball_hills ( from sauer2 ), flan ( from jasonwoof ), space ( from ae ), cave_1 ( from youngheart80 ), jungle_2 ( from youngheart80 ), jungle_3 ( from youngheart80 ), test_moving_platform_1 ( from italian )</p>
 			<p>X world line layer copy function implemented</p>
 			<p>X implemented listbox search buffer for typing in the name directly in menu start</p>
@@ -943,7 +1102,7 @@
 			<p>X Added Fireball Animations</p>
 			<p>X Added 2 new Overworld Levels ( from pasol )</p>
 			<p>X Added Background Gradient support ( thanks Ricardo )</p>
-			<p>X New Graphics ( Turtle, Spinbox, Plastic tileset, jungle tiles, Clouds redone, climbing plant head, other small changes )</p>
+			<p>X New Graphics : Turtle, Spinbox, Plastic tileset, jungle tiles, Clouds redone, climbing plant head, other small changes</p>
 			<p>* Fixed Savegame loading deaths</p>
 			<p>* Fixed wrong collision handling with Rex</p>
 			<p>* Leveleditor updated</p>
@@ -1179,7 +1338,7 @@
 			<p>* Leveleditor : Enemystopper are now selected correctly</p>
 			<p>* Savegame saving works now correctly with unknown Levels</p>
 			<p>* Active Sprites are now drawn properly</p>
-			<p>- No Console Window in Release Builds</p>
+			<p>- no console window in release builds</p>
 		</td>
 	</tr>
 	<tr>
@@ -1249,11 +1408,11 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X Added a new Leveleditor Menu Sprite Option : Ground Objects</p>
-			<p>* Improved and Optimized Level 1, 3 and 6</p>
-			<p>* Maryo can not fire anymore a Fireball if he is ducked</p>
-			<p>* Fixed an Overworld Maryo direction bug if in the last available Waypoint</p>
-			<p>- Removed some unneded images</p>
+			<p>X added a new level editor menu sprite option : ground objects</p>
+			<p>* improved and optimized level 1, 3 and 6</p>
+			<p>* maryo can not fire a fireball anymore if ducked</p>
+			<p>* fixed an overworld player direction bug if in the last available waypoint</p>
+			<p>- removed some unneded images</p>
 		</td>
 	</tr>
 	<tr>
@@ -1266,12 +1425,12 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X Music now Fades in and out</p>
-			<p>X Added and Updated the History, Keyboard Control and Extra Level Commands</p>
-			<p>* Fixed some wrong Levels Objects </p>
-			<p>* Fixed Music doesn't play</p>
-			<p>* Fixed invalid Music commands in Level 5 and 6</p>
-			<p>* Fixed Mushroom is drawn after passive Objects</p>
+			<p>X music now fades in and out</p>
+			<p>X added and updated the history, keyboard control and extra level commands</p>
+			<p>* fixed some wrong levels objects</p>
+			<p>* fixed music doesn't play</p>
+			<p>* fixed invalid music commands in level 5 and 6</p>
+			<p>* fixed mushroom is drawn after passive objects</p>
 		</td>
 	</tr>
 	<tr>
@@ -1284,20 +1443,20 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X Added Turtle shell collision with every Powerup/Gold - box</p>
-			<p>X Added Overworld</p>
-			<p>X Added Animations</p>
-			<p>X Added 1-UP Mushroom</p>
-			<p>X Added a new Frame Correction ( runs alot smoother )</p>
-			<p>X Added higher quality Music Files in Ogg</p>
-			<p>X Many Images Optimized</p>
-			<p>X Many Ingame Leveleditor enhancements</p>
-			<p>X Many more features !</p>
-			<p>* Realigned Point System</p>
-			<p>* Every Level got updated</p>
-			<p>* Updated Collision Checking</p>
-			<p>* Many Bugs fixed</p>
-			<p>- Removed Level Music Volume and forcing</p>
+			<p>X added turtle shell collision with every powerup and goldbox</p>
+			<p>X added overworld</p>
+			<p>X added animations</p>
+			<p>X added 1-up mushroom</p>
+			<p>X added new framerate correction which is a lot smoother</p>
+			<p>X added higher quality music files in ogg vorbis</p>
+			<p>X many images optimized</p>
+			<p>X many ingame level editor enhancements</p>
+			<p>X many more features !</p>
+			<p>* realigned point system</p>
+			<p>* every level updated</p>
+			<p>* updated collision checking</p>
+			<p>* many bugs fixed</p>
+			<p>- removed level music volume setting</p>
 		</td>
 	</tr>
 	<tr>
@@ -1310,12 +1469,12 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X Added two new sounds</p>
-			<p>* Red Goomba now gives 50 points</p>
-			<p>* Red Turtle points changed</p>
-			<p>* All Sound file normalized</p>
+			<p>X added two new sounds</p>
+			<p>* red goomba now gives 50 points</p>
+			<p>* red turtle points changed</p>
+			<p>* sound file normalized</p>
 			<p>* some collision fixes</p>
-			<p>* some images optimized ( Goldpiece, Hud Sprites, Stones, Fireball, Star, Fire Maryo, Palm, kplant, lmario1, wall )</p>
+			<p>* images optimized : goldpiece, hud sprites, stones, fireball, star, fire maryo, palm, kplant, lmario1, wall</p>
 			<p>* some levels updated</p>
 		</td>
 	</tr>
@@ -1329,15 +1488,15 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* Graphical Text fixes/changes</p>
-			<p>* Rare Rokko collision fix</p>
-			<p>* Leveleditor fixes</p>
-			<p>* Level Limit changed from 16 to 32</p>
-			<p>* Enemy Jumping changed</p>
-			<p>* Player fixes</p>
-			<p>* Leveleditor now draws dead Enemies properly</p>
-			<p>X New Enemy : Red Goomba</p>
-			<p>* Rokko images </p>
+			<p>X new enemy : red goomba</p>
+			<p>* graphical text fixes and changes</p>
+			<p>* rare rokko collision problem fixed</p>
+			<p>* level editor fixes</p>
+			<p>* level limit changed from 16 to 32</p>
+			<p>* jumping from enemy changed</p>
+			<p>* player fixes</p>
+			<p>* level editor now draws dead enemies properly</p>
+			<p>* rokko images</p>
 			<p>* other fixes/changes</p>
 		</td>
 	</tr>
@@ -1351,13 +1510,13 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* Turtle changes/fixes</p>
-			<p>X Fireballs are jumping and got a better animation</p>
-			<p>* some Game Over fixes</p>
-			<p>* Point text changes</p>
+			<p>* turtle changes and fixes</p>
+			<p>X fireballs are jumping and got a better animation</p>
+			<p>* some game over fixes</p>
+			<p>* point text changes</p>
 			<p>* small speedups</p>
-			<p>* Debugmode changes</p>
-			<p>X Every Box is now jumping upwards</p>
+			<p>* debugmode changes</p>
+			<p>X every box is now moving upwards if hit</p>
 		</td>
 	</tr>
 	<tr>
@@ -1370,15 +1529,15 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* Bouncing Goldpiece fixes</p>
-			<p>* Level possible fixes</p>
-			<p>* Enemy fixes</p>
-			<p>* Turtle changes/fixes</p>
-			<p>* Maryo changes</p>
-			<p>X Some Stones can now kill enemys and kick objects if Maryo jumps from below</p>
-			<p>* Mousecoursor collision now point precise</p>
-			<p>* Mushroom changes</p>
-			<p>* Rokko game crash fixed</p>
+			<p>X some stones can now kill enemys and kick objects if maryo jumps from below</p>
+			<p>* bouncing Goldpiece fixes</p>
+			<p>* level possible fixes</p>
+			<p>* enemy fixes</p>
+			<p>* turtle changes and fixes</p>
+			<p>* maryo changes</p>
+			<p>* mousecoursor collision is now pixel precise</p>
+			<p>* mushroom changes</p>
+			<p>* rokko game crash fixed</p>
 			<p>* other fixes/changes</p>
 		</td>
 	</tr>
@@ -1392,14 +1551,14 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* Leveleditor rectangle Boxes now shaded and fixed</p>
-			<p>* Fireplant fixes</p>
-			<p>* Fireball fixes</p>
-			<p>* Player possible fixes</p>
-			<p>* Rokko fixes and will now be properly drawn</p>
-			<p>X if you get a live because you have 100 Goldpieces a Text will appear</p>
-			<p>* Maryo Physics little changes and fixes</p>
-			<p>* Bouncing Goldpiece fixes</p>
+			<p>* level editor rectangle boxes now shaded and fixed</p>
+			<p>* fireplant fixes</p>
+			<p>* fireball fixes</p>
+			<p>* player possible fixes</p>
+			<p>* rokko fixes and will is now properly drawn</p>
+			<p>X if you get a live because you have 100 Goldpieces a text will appear</p>
+			<p>* little maryo physics changes and fixes</p>
+			<p>* bouncing goldpiece fixes</p>
 		</td>
 	</tr>
 	<tr>
@@ -1412,9 +1571,9 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X If Maryo gets some Points a small point text will appear</p>
-			<p>* Shells now play sounds and you get coins if they kill enemies</p>
-			<p>* Rokko is not drawna nymore if you die</p>
+			<p>X if maryo gets points a small point text will appear</p>
+			<p>* shells now play sounds and you get coins if they kill enemies</p>
+			<p>* rokko is not drawn anymore if you die</p>
 		</td>
 	</tr>
 	<tr>
@@ -1427,8 +1586,8 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* fixed an shell collison bug</p>
-			<p>X Leveleditor : Rectangle Boxes for better Object selection</p>
+			<p>* fixed a shell collison bug</p>
+			<p>X level editor : rectangle boxes for better object selection</p>
 		</td>
 	</tr>
 	<tr>
@@ -1441,10 +1600,10 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* Spinbox spins only 5 seconds</p>
-			<p>* Boxes are now drawn after Passive Objects</p>
-			<p>* Mushrooms are not colliding anymore with an Enemystopper</p>
-			<p>* Fireballs now drawn properly over an Enemystopper</p>
+			<p>* spinbox spins only for 5 seconds</p>
+			<p>* noxes are now drawn after passive objects</p>
+			<p>* mushrooms are not colliding anymore with an enemystopper</p>
+			<p>* fireballs are drawn properly over an enemystopper</p>
 		</td>
 	</tr>
 	<tr>
@@ -1457,12 +1616,12 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X History Text added</p>
-			<p>* More different music is played in the official levels</p>
-			<p>* Shadow text fixes</p>
-			<p>* Audio Options added/updated</p>
-			<p>* Options updated</p>
-			<p>* Controls options fixed</p>
+			<p>X history text added</p>
+			<p>X different music is played in the official levels</p>
+			<p>* fixed text with shadow</p>
+			<p>* audio options added and updated</p>
+			<p>* options updated</p>
+			<p>* controls options fixed</p>
 		</td>
 	</tr>
 	<tr>
@@ -1475,9 +1634,9 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* Updates in many parts</p>
-			<p>* Hud changes/speedup</p>
-			<p>* Screen resolution changing fixed</p>
+			<p>* updated in many different parts</p>
+			<p>* hud changes and speedups</p>
+			<p>* fixed changing screen resolution</p>
 			<p>- removed 640x480 resolution support</p>
 		</td>
 	</tr>
@@ -1491,8 +1650,8 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* Maryo jump sound will not anymore played if he hits an enemy</p>
-			<p>* Rokko drawing fixes</p>
+			<p>* maryo jump sound will not anymore played if he hits an enemy</p>
+			<p>* rokko drawing fixes</p>
 		</td>
 	</tr>
 	<tr>
@@ -1505,8 +1664,8 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X New Enemy : Rokko</p>
-			<p>* Piranhas arent jumping out if Maryo is in front</p>
+			<p>X new enemy : rokko</p>
+			<p>* piranhas are not jumping out anymore if maryo is in front</p>
 		</td>
 	</tr>
 	<tr>
@@ -1519,8 +1678,8 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* Camera changes</p>
-			<p>* small Maryo changes</p>
+			<p>* camera changes</p>
+			<p>* small maryo changes</p>
 		</td>
 	</tr>
 	<tr>
@@ -1533,9 +1692,9 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* Camera Bugs fixed</p>
+			<p>* fixed camera bugs</p>
 			<p>* FPS correction changed</p>
-			<p>* Big Collision fixes and better Maryo stuck testing</p>
+			<p>* many collision fixes and better player stuck position testing</p>
 		</td>
 	</tr>
 	<tr>
@@ -1548,17 +1707,17 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X Music can now be disabled ingame with F11</p>
-			<p>* Game keys description added</p>
-			<p>* Leveleditor Object Moving is now precise</p>
-			<p>* Fireballs don't collide anymore with enemystoppers</p>
-			<p>* Big Enemy collision updates !</p>
-			<p>* Camera up/down handling changed</p>
-			<p>* Leveleditor delete bug fixed</p>
-			<p>* some levels fixed/updated</p>
-			<p>* Goldpieces now drawn properly again in Leveleditor</p>
-			<p>* Leveleditor : spawned objects will not be safed</p>
-			<p>* Leveleditor : some fixes</p>
+			<p>X music can now be disabled ingame with F11</p>
+			<p>* game keys description added</p>
+			<p>* level editor object moving is now more precise</p>
+			<p>* fireballs don't collide anymore with enemystoppers</p>
+			<p>* many enemy collision updates !</p>
+			<p>* camera up/down handling changed</p>
+			<p>* level editor delete bug fixed</p>
+			<p>* some levels fixed and updated</p>
+			<p>* goldpieces are now drawn properly again in the level editor</p>
+			<p>* level editor : spawned objects are not saved</p>
+			<p>* level editor : some fixes</p>
 		</td>
 	</tr>
 	<tr>
@@ -1571,11 +1730,11 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X Some new sounds</p>
-			<p>* Leveleditor Objects updated</p>
-			<p>* Physics modified/fixed</p>
-			<p>* Piranha images optimized</p>
-			<p>* Something else ... o.0</p>
+			<p>X some new sounds</p>
+			<p>* level editor objects updated</p>
+			<p>* physics modified and some fixes</p>
+			<p>* piranha images optimized</p>
+			<p>* something else ... o.0</p>
 		</td>
 	</tr>
 	<tr>
@@ -1588,16 +1747,16 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* Camera modified</p>
-			<p>* Jumping Piranha modified</p>
-			<p>* All Levels updated</p>
-			<p>* If Maryo enters the next level the size is kept</p>
-			<p>* Physics modified</p>
-			<p>* Level Music will be played again if entered the menus</p>
+			<p>* camera modified</p>
+			<p>* jumping piranha modified</p>
+			<p>* all levels updated</p>
+			<p>* if maryo enters the next level the size is kept</p>
+			<p>* physics modified</p>
+			<p>* level music will be played again if entered from menu</p>
 			<p>* Piranha jump start is randomized</p>
-			<p>* Leveleditor : Piranhas can now be copied an properly selected</p>
-			<p>* Fireballs are now changing enemies into Goldpieces</p>
-			<p>* Goldpieces are drawn properly</p>
+			<p>* level editor : piranhas can now be copied an properly selected</p>
+			<p>* fireballs are now changing enemies into goldpieces</p>
+			<p>* goldpieces are drawn properly</p>
 		</td>
 	</tr>
 	<tr>
@@ -1610,8 +1769,8 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X New Images</p>
-			<p>X New enemy : Jumping Piranha</p>
+			<p>X new images</p>
+			<p>X new enemy : jumping piranha</p>
 		</td>
 	</tr>
 	<tr>
@@ -1624,10 +1783,10 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* Possible Maryo bug fixed</p>
-			<p>* Jumping modifications</p>
-			<p>* Physic changes/fixes</p>
-			<p>* Joypad jumping fixed</p>
+			<p>* possible maryo bug fixed</p>
+			<p>* jumping modifications</p>
+			<p>* physic changes and fixes</p>
+			<p>* joypad jumping fixed</p>
 		</td>
 	</tr>
 	<tr>
@@ -1640,8 +1799,8 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* Maryo doesn't fall below the ground if in godmode</p>
-			<p>* Object physics improved</p>
+			<p>* player doesn't fall below the ground if in godmode</p>
+			<p>* object physics improved</p>
 		</td>
 	</tr>
 	<tr>
@@ -1654,12 +1813,12 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X Mouse is now drawn ingame</p>
-			<p>* Leveleditor major bugs fixed</p>
-			<p>* Leveleditor updates</p>
-			<p>* Maryo can't jump anymore if he's ducked</p>
-			<p>* Main menu updated</p>
-			<p>* Maryo will recover from some stuck positions</p>
+			<p>X mouse is now drawn ingame</p>
+			<p>* major level editor bugs fixed</p>
+			<p>* level editor updates</p>
+			<p>* player can't jump anymore if he's ducked</p>
+			<p>* main menu updated</p>
+			<p>* player tries to recover from some stuck positions</p>
 		</td>
 	</tr>
 	<tr>
@@ -1672,38 +1831,37 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X New Audio Engine</p>
-			<p>X New Audio Sounds ( Mushroom, Fireball, Door, size change, level up )</p>
-			<p>X Main menu music added</p>
-			<p>X Music command is now in a Level avilable</p>
-			<p>X Mod_Camera ist nun bei den Levels verf&uuml;gbar</p>
-			<p>X Background_Color ist nun bei den Levels verf&uuml;gbar</p>
-			<p>X Einstellungen werden gespeichert</p>
-			<p>* Fehlende Sitz animationen hinzugef&uuml;gt</p>
-			<p>* Maryo's springen und bewegungen verbessert/ver&auml;ndert</p>
-			<p>* Kollisionsabfrage mit gegnern verbessert/ver&auml;ndert</p>
-			<p>* Audio output optimised</p>
-			<p>* Feuerb&auml;lle sind schneller und werden wenn zu weit weg automatisch gel&ouml;scht</p>
-			<p>* Leveleditor Objektverschiebung verbessert</p>
-			<p>* Mehrere Objekte werden jetzt in richtiger reihenfolge gezeichnet</p>
-			<p>* some Savegame bugs fixed</p>
-			<p>* Shells werden nun nicht mehr von enemystoppern aufgehalten</p>
-			<p>* Maryo l&auml;uft nun im feuer und im gro&szlig;en zustand normaler</p>
-			<p>* Blume hat nun neue bilder und bewegt sich</p>
-			<p>* Turtle Shells now move correctly</p>
-			<p>* New Sprites</p>
-			<p>* Maryo bewegt sich nun wenn er gro&szlig; ist normaler</p>
-			<p>* fixed Joystick bugs</p>
-			<p>* Der Spieler muss nun auf dem boden stehen um in ein tor gehen zu k&ouml;nnen</p>
-			<p>* Leveleditor kann nun jedes Objekt kopieren</p>
-			<p>* Leveleditor platzierung ist nun genau auf der aktuellen Mausposition</p>
-			<p>* Leveleditor Bugs</p>
-			<p>* Speedups</p>
-			<p>* Savegame beschreibungs eingabe verbessert</p>
-			<p>* Die Aufl&ouml;sung kann nun im Spiel gewechselt werden ohne Men&uuml; fehler</p>
-			<p>* fixed Menu bugs</p>
-			<p>* Leveleditor updated</p>
-			<p>* Music will not be played again while dying</p>
+			<p>X new audio engine</p>
+			<p>X new sounds : mushroom, fireball, door, size change, level up</p>
+			<p>X main menu music added</p>
+			<p>X music command is now in a Level avilable</p>
+			<p>X implemented camera mod for levels</p>
+			<p>X implemented background color for levels</p>
+			<p>X settings are saved</p>
+			<p>* added missing duck animation</p>
+			<p>* player jump and move optimized</p>
+			<p>* collision detection with enemies optimized</p>
+			<p>* audio output optimised</p>
+			<p>* fireballs are now faster and automatically destroyed if far away</p>
+			<p>* moving objects in the level editor optimized</p>
+			<p>* many objects are now drawn in the correct order</p>
+			<p>* fixed some savegame bugs</p>
+			<p>* shells now ignore enemystoppers</p>
+			<p>* player running optimized if in big or fire type</p>
+			<p>* fireplant got new images and moves</p>
+			<p>* turtle shells now move correctly</p>
+			<p>* new sprites</p>
+			<p>* fixed joystick bugs</p>
+			<p>* player now needs to stand on the ground if entering the door</p>
+			<p>* level editor can now copy every object</p>
+			<p>* level editor positionig with the mouse is more precise</p>
+			<p>* fixed level editor bugs</p>
+			<p>* performance improvements</p>
+			<p>* savegame description dialog optimized</p>
+			<p>* fixed changing resolution causes menu errors</p>
+			<p>* fixed menu bugs</p>
+			<p>* level editor updated</p>
+			<p>* music is not played again while dying</p>
 		</td>
 	</tr>
 	<tr>
@@ -1716,10 +1874,10 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* Sprites optimized ( Goomba, Grass, Hedges, Maryo, Plants, Mushrooms, Flower, Shells )</p>
-			<p>* Joystick Support optimized</p>
-			<p>* Menu ist nun steuerbar durchs Joystick</p>
-			<p>* Video Options available</p>
+			<p>X menu is now accessible with a joystick</p>
+			<p>X implemented video options</p>
+			<p>* sprites optimized ( goomba, grass, hedges, maryo, plants, mushrooms, flower, shells )</p>
+			<p>* joystick Support optimized</p>
 		</td>
 	</tr>
 	<tr>
@@ -1732,8 +1890,8 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* Savegame names now supprt upper case</p>
-			<p>X Joystick Support</p>
+			<p>X implemented  joystick Support</p>
+			<p>* savegame names now supprt upper case</p>
 		</td>
 	</tr>
 	<tr>
@@ -1746,27 +1904,27 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X Savegame function added</p>
-			<p>X Savegames now show the save time</p>
-			<p>X Leveleditor Sprite Copy &amp; Paste function added</p>
-			<p>X Position display in the Leveleditor</p>
-			<p>* Audio menu selection bug fixed</p>
-			<p>* Leveleditor tile selection key changed from 0 to F1</p>
-			<p>* If you are ingame or in the Leveleditor the game is not quit if you press ESC in the main menu</p>
-			<p>* Screenshot bug fixed</p>
-			<p>* Savegame loading bug fixed</p>
+			<p>X implemented savegame support</p>
+			<p>X savegames now show the save time</p>
+			<p>X implemented level editor sprite copy &amp; paste function</p>
+			<p>X position display in the level editor</p>
+			<p>* audio menu selection bug fixed</p>
+			<p>* level editor tile selection key changed from 0 to F1</p>
+			<p>* the game does not quit anymore if you press esc ingame or in the level editor</p>
+			<p>* fixed screenshot bug</p>
+			<p>* fixed savegame loading bug</p>
 			<p>* very small optimizations in lvl 1 ^^</p>
-			<p>* If you die the level does not get reloaded (makes it harder !)</p>
-			<p>* Savegames are now saved with the exact player position</p>
-			<p>* Sprites optimized ( clouds, maryo, turtle, pipes, goldpieces, yoshi, grey stone, sign )</p>
-			<p>* Exact object movement in the Leveleditor</p>
-			<p>* Enemystopper was sometimes not shown in the Leveleditor</p>
-			<p>* Audio quality optimized</p>
-			<p>* If you select an object in the Leveditor menu it is placed at the mouse pointer position</p>
-			<p>* Leveleditor menu advanced</p>
-			<p>* Fixed the savegame description could change on saving</p>
-			<p>* Leveleditor maryo position bug fixed</p>
-			<p>* Leveleditor bug fixed with some newly created objekts from the menu which thereafter got moved</p>
+			<p>* if you die the level does not get reloaded (makes it harder !)</p>
+			<p>* savegames are now saved with the exact player position</p>
+			<p>* sprites optimized ( clouds, maryo, turtle, pipes, goldpieces, yoshi, grey stone, sign )</p>
+			<p>* exact object movement in the level editor</p>
+			<p>* enemystopper was sometimes not shown in the level editor</p>
+			<p>* audio quality improved</p>
+			<p>* if you select an object in the level editor menu it is placed at the mouse pointer position</p>
+			<p>* level editor menu extended</p>
+			<p>* fixed the savegame description could change when saving</p>
+			<p>* level editor maryo position bug fixed</p>
+			<p>* level editor bug fixed with some newly created objects from the menu which got moved afterwards</p>
 		</td>
 	</tr>
 	<tr>
@@ -1779,11 +1937,11 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X fireball support</p>
+			<p>X linux version</p>
+			<p>X implemented fireballs</p>
 			<p>X new levels</p>
 			<p>* less values for jump power / speed</p>
-			<p>* used another ttf file</p>
-			<p>X linux version</p>
+			<p>* new font</p>
 		</td>
 	</tr>
 	<tr>
@@ -1797,13 +1955,8 @@
 	<tr>
 		<td class="fixes" colspan="2">
 			<p>X added SDL_ttf libary</p>
-			<p>X added a main menu with the points </p>
-			<p>1. Start</p>
-			<p>2. Options -&gt; 1. Controls, 2. Audio 3. (video)</p>
-			<p>3. (Save)</p>
-			<p>4. (Load)</p>
-			<p>5. Quit</p>
-			<p>* fixed a bug for falling into the ground</p>
+			<p>X implemented main menu</p>
+			<p>* fixed falling through the ground</p>
 		</td>
 	</tr>
 	<tr>
@@ -1847,9 +2000,9 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X mushrooms included</p>
-			<p>X fireplants included</p>
-			<p>X player can get bigger</p>
+			<p>X implemented mushrooms</p>
+			<p>X implemented fireplants</p>
+			<p>X player can get powerups</p>
 			<p>X new level</p>
 			<p>X new jumping controls</p>
 		</td>
@@ -1864,9 +2017,9 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X added gold box</p>
-			<p>X added bonus box</p>
-			<p>X added spin box</p>
+			<p>X implemented gold box</p>
+			<p>X implemented bonus box</p>
+			<p>X implemented spin box</p>
 		</td>
 	</tr>
 	<tr>
@@ -1879,8 +2032,8 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* speed improvements</p>
-			<p>* fixed halfmassive objects (had problems with enemies)</p>
+			<p>* performance improvements</p>
+			<p>* fixed halfmassive objects have problems with enemies</p>
 			<p>* bugfixes</p>
 		</td>
 	</tr>
@@ -1894,9 +2047,9 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
+			<p>X implemented halfmassive support</p>
 			<p>* fixed duck support</p>
-			<p>X added halfmassive support for game and editor</p>
-			<p>* halfmassives are sprites like the clouds</p>
+			<p>* halfmassives sprites behave like the clouds</p>
 		</td>
 	</tr>
 	<tr>
@@ -1909,10 +2062,10 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X status bar background</p>
-			<p>X level exits (in the game, and in the editor)</p>
+			<p>X hud status bar background</p>
+			<p>X implemented level exit object</p>
 			<p>X lvl_list.txt in data/levels</p>
-			<p>* bugfix stuff</p>
+			<p>* bugfixes</p>
 		</td>
 	</tr>
 	<tr>
@@ -1925,7 +2078,7 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X status bar</p>
+			<p>X implemented hud status bar</p>
 		</td>
 	</tr>
 	<tr>
@@ -1938,13 +2091,13 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X now player has lifes and gold</p>
-			<p>X if player gets 100 gold, he gets one life</p>
+			<p>X player has lives and gold</p>
+			<p>X player gets 100 gold and one live</p>
 			<p>X gold and life are displayed</p>
 			<p>* some bugfixes</p>
-			<p>* leveleditor bugfixes</p>
-			<p>* game does not always die when player dies</p>
-			<p>* very much done with dynamic memory allocation and these things</p>
+			<p>* level editor bugfixes</p>
+			<p>* game does not quit anymore when player dies</p>
+			<p>* started dynamic memory allocation and more</p>
 		</td>
 	</tr>
 	<tr>
@@ -1957,7 +2110,7 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* leveleditor extended</p>
+			<p>* level editor extended</p>
 		</td>
 	</tr>
 	<tr>
@@ -1970,7 +2123,7 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>- added leveleditor</p>
+			<p>- added level editor</p>
 		</td>
 	</tr>
 	<tr>
@@ -1984,8 +2137,8 @@
 	<tr>
 		<td class="fixes" colspan="2">
 			<p>X sound support enabled</p>
-			<p>X Debug display of x/y coordinates for level designers</p>
-			<p>* extended level (not much)</p>
+			<p>X debug display of x/y coordinates for level designers</p>
+			<p>* extended level a bit</p>
 		</td>
 	</tr>
 	<tr>
@@ -1998,9 +2151,9 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* speed improvements (images are now only loaded once)</p>
-			<p>* extended level (not much)</p>
-			<p>* error messages when an error occurs in the lvl_1.txt</p>
+			<p>* performance improvements (images are now only loaded once)</p>
+			<p>* extended level a bit</p>
+			<p>* show an error message when an error occurs in the first level</p>
 		</td>
 	</tr>
 	<tr>
@@ -2013,8 +2166,8 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>* bugfixes...</p>
 			<p>X points and time display</p>
+			<p>* bugfixes</p>
 		</td>
 	</tr>
 	<tr>
@@ -2028,7 +2181,7 @@
 	<tr>
 		<td class="fixes" colspan="2">
 			<p>* bugfixes</p>
-			<p>* speed improvement</p>
+			<p>* performance improvements</p>
 			<p>* smaller changes</p>
 		</td>
 	</tr>
@@ -2042,7 +2195,7 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X new enemy ( red turtle )</p>
+			<p>X new enemy : red turtle</p>
 			<p>* bugfixes</p>
 		</td>
 	</tr>
@@ -2056,10 +2209,10 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X cool new clouds (you can jump on them), and they move.</p>
+			<p>X new clouds on which you can jump and they move</p>
 			<p>X many new images</p>
 			<p>X new level</p>
-			<p>* smoother graphics, looks great !</p>
+			<p>* smoother graphics, looks great</p>
 			<p>* many bugfixes</p>
 		</td>
 	</tr>
@@ -2073,7 +2226,7 @@
 	</tr>
 	<tr>
 		<td class="fixes" colspan="2">
-			<p>X killing goomba</p>
+			<p>X implemented hitting goomba</p>
 		</td>
 	</tr>
 	<tr>
@@ -2087,7 +2240,7 @@
 	<tr>
 		<td class="fixes" colspan="2">
 			<p>X start of history</p>
-			<p>X Goomba as a new enemy type</p>
+			<p>X new enemy : goomba</p>
 			<p>X new images</p>
 			<p>* bugfixes</p>
 		</td>

@@ -1,7 +1,7 @@
 /***************************************************************************
  * menu_data.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2004 - 2008 Florian Richter
+ * Copyright (C) 2004 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,6 +19,9 @@
 #include "../core/globals.h"
 #include "../gui/menu.h"
 #include "../gui/hud.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** cMenu_Base *** *** *** *** *** *** *** *** *** *** */
 
@@ -40,7 +43,7 @@ public:
 	virtual void Exit( void );
 
 	// gui layout filename
-	string layout_file;
+	std::string layout_file;
 	// CEGUI window
 	CEGUI::Window *guiwindow;
 
@@ -95,7 +98,7 @@ public:
 	virtual void Exit( void );
 
 	// Get all levels from the given directory
-	void Get_Levels( string dir, CEGUI::colour color );
+	void Get_Levels( std::string dir, CEGUI::colour color );
 
 	/* Load the Selected Listbox item
 	 * and exit if successful
@@ -105,11 +108,11 @@ public:
 	/* Load the Selected World
 	 * and exit if successful
 	*/
-	void Load_World( string level_name );
+	void Load_World( std::string level_name );
 	/* Load the Selected Level
 	 * and exit if successful
 	*/
-	bool Load_Level( string name );
+	bool Load_Level( std::string name );
 
 	// tabcontrol selection changed event
 	bool TabControl_Selection_Changed( const CEGUI::EventArgs &event );
@@ -185,6 +188,10 @@ public:
 	bool Camera_Ver_Select( const CEGUI::EventArgs &event );
 	// language option selected event
 	bool Language_Select( const CEGUI::EventArgs &event );
+	// menu level option selected event
+	bool Menu_Level_Select( const CEGUI::EventArgs &event );
+	// menu level text changed event
+	bool Menu_Level_Text_Changed( const CEGUI::EventArgs &event );
 	// editor show item images option selected event
 	bool Editor_Show_Item_Images_Select( const CEGUI::EventArgs &event );
 	// editor item image size value changed event
@@ -212,10 +219,10 @@ public:
 	bool Fullscreen_Select( const CEGUI::EventArgs &event );
 	// Vsync option selected event
 	bool Vsync_Select( const CEGUI::EventArgs &event );
-	// Geometry detail value changed event
-	bool Slider_Geometry_Detail_Changed( const CEGUI::EventArgs &event );
-	// Texture detail value changed event
-	bool Slider_Texture_Detail_Changed( const CEGUI::EventArgs &event );
+	// Geometry quality value changed event
+	bool Slider_Geometry_Quality_Changed( const CEGUI::EventArgs &event );
+	// Texture quality value changed event
+	bool Slider_Texture_Quality_Changed( const CEGUI::EventArgs &event );
 	// Button apply clicked event
 	bool Button_Apply_Clicked( const CEGUI::EventArgs &event );
 	// Button recreate cache clicked event
@@ -277,7 +284,7 @@ public:
 	 * and exit if successful
 	 * joystick : if true set it for joystick
 	*/
-	void Set_Shortcut( string shortcut_name, input_identifier shortcut_id, bool joystick = 0 );
+	void Set_Shortcut( std::string shortcut_name, input_identifier shortcut_id, bool joystick = 0 );
 
 	// Select given Joystick
 	void Joy_Default( unsigned int index );
@@ -303,15 +310,11 @@ public:
 	// joystick listbox item double clicked event
 	bool Joystick_List_Double_Click( const CEGUI::EventArgs &event );
 
-
-	// Gamepad Image
-	cHudSprite *gamepad;
-
 	// Shortcut item
 	class cShortcut_item
 	{
 	public:
-		cShortcut_item( CEGUI::String name, input_identifier id )
+		cShortcut_item( const CEGUI::String &name, const input_identifier id )
 		{
 			m_name = name;
 			m_id = id;
@@ -342,7 +345,7 @@ public:
 	void Update_Save( void );
 
 	// Set Savegame Description
-	string Set_Save_Description( unsigned int save_slot );
+	std::string Set_Save_Description( unsigned int save_slot );
 	// Update Savegame Descriptions
 	void Update_Saved_Games_Text( void );
 
@@ -368,7 +371,13 @@ public:
 
 	// Exit
 	virtual void Exit( void );
+
+	// fade the credits menu in or out
+	void Fade( bool fadein = 1 );
 };
 
-#endif
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
+} // namespace SMC
+
+#endif

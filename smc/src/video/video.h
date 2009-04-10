@@ -1,7 +1,7 @@
 /***************************************************************************
  * video.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2005 - 2008 Florian Richter
+ * Copyright (C) 2005 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -17,23 +17,18 @@
 #define SMC_VIDEO_H
 
 #include "../core/globals.h"
+// SDL
+// also includes SDL.h
+#include "SDL_image.h"
+#include "SDL_opengl.h"
+// CEGUI
+#include "CEGUI.h"
+#include "RendererModules/OpenGLGUIRenderer/openglrenderer.h"
 
-/* *** *** *** *** *** *** *** *** Primitive types *** *** *** *** *** *** *** *** *** */
-
-class GL_line
+namespace SMC
 {
-public:
-	GL_line( void )
-	: x1( 0 ), y1( 0 ), x2( 0 ), y2( 0 ) {}
 
-	GL_line( float x1, float y1, float x2, float y2 )
-	: x1( x1 ), y1( y1 ), x2( x2 ), y2( y2 ) {}
-
-	float x1, y1;
-	float x2, y2;
-};
-
-/* *** *** *** *** *** *** *** *** Color struct *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** *** Color class *** *** *** *** *** *** *** *** *** */
 
 class Color
 {
@@ -42,18 +37,73 @@ public:
 	Color( Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255 );
 	Color( float r, float g, float b, float a = 1 );
 	Color( Uint8 grey );
-	Color( Uint32 color );
-	Color( SDL_Color color );
+	Color( const SDL_Color &color );
 
 	// Returns a matching Color value
-	SDL_Color Get_SDL_Color( void );
-	CEGUI::colour Get_cegui_Color( void );
+	SDL_Color Get_SDL_Color( void ) const;
+	CEGUI::colour Get_cegui_Color( void ) const;
 
-	// compares colors
-	bool Compare( const Color c );
+	// += operator
+	inline void operator += ( const Color &c )
+	{
+		red += c.red;
+		green += c.green;
+		blue += c.blue;
+		alpha += c.alpha;
+	}
 
-	bool operator == ( const Color c ) const;
-	bool operator == ( const SDL_Color c ) const;
+	// -= operator
+	inline void operator -= ( const Color &c )
+	{
+  		red -= c.red;
+		green -= c.green;
+		blue -= c.blue;
+		alpha -= c.alpha;
+	}
+
+	// + operator
+	inline Color operator + ( const Color &c ) const
+	{
+		return Color( static_cast<Uint8>(red + c.red), green + c.green, blue + c.blue, alpha + c.alpha );
+	}
+
+	// - operator
+	inline Color operator - ( const Color &c ) const
+	{
+		return Color( static_cast<Uint8>(red - c.red), green - c.green, blue - c.blue, alpha - c.alpha );
+	}
+
+	// assignment operator
+	inline Color &operator = ( const Color &c )
+	{
+		red = c.red;
+		green = c.green;
+		blue = c.blue;
+		alpha = c.alpha;
+
+		return *this;
+	}
+
+	// compare
+	inline bool operator == ( const Color &c ) const
+	{
+		return red == c.red && green == c.green && blue == c.blue && alpha == c.alpha;
+	}
+
+	inline bool operator == ( const SDL_Color &c ) const
+	{
+		return red == c.r && green == c.g && blue == c.b;
+	}
+
+	inline bool operator != ( const Color &c ) const
+	{
+		return !(operator == (c));
+	}
+
+	inline bool operator != ( const SDL_Color &c ) const
+	{
+		return !(operator == (c));
+	}
 
 	Uint8 red, green, blue, alpha;
 };
@@ -64,10 +114,10 @@ enum Effect_Fadeout
 {
 	EFFECT_OUT_RANDOM,
 	EFFECT_OUT_BLACK, // fade out the screen to black
-	EFFECT_OUT_HORIZONTAL_VERTICAL, // random color boxes from left/right or up/down
+	EFFECT_OUT_HORIZONTAL_VERTICAL, // black color gradient rectangles moving to the middle from left/right or up/down
 	EFFECT_OUT_BIG_ITEM, // a big item eats the whole screen
 	EFFECT_OUT_RANDOM_COLOR_BOOST, // boosts a random color in a cool fadeout
-	EFFECT_OUT_TILE_PIXELATION, // big black boxes pup up random on a tile grid
+	EFFECT_OUT_BLACK_TILED_RECTS, // big black rotating rectangles pop up randomly on a tiled grid
 	EFFECT_OUT_FIXED_COLORBOX, // small fast random alpha color boxes fades out the screen
 	EFFECT_OUT_AMOUNT
 };
@@ -115,13 +165,13 @@ public:
 	~cVideo( void );
 
 	// Initialize CEGUI system and renderer fake for the preferences xml parser
-	void Init_CEGUI_Fake( void );
+	void Init_CEGUI_Fake( void ) const;
 	// Delete the CEGUI system and renderer fake
-	void Delete_CEGUI_Fake( void );
+	void Delete_CEGUI_Fake( void ) const;
 	// Initialize the CEGUI System and Renderer
-	void Init_CEGUI( void );
+	void Init_CEGUI( void ) const;
 	// Initialize the basic CEGUI data and configuration
-	void Init_CEGUI_Data( void );
+	void Init_CEGUI_Data( void ) const;
 	// Initialize all the SDL systems
 	void Init_SDL( void );
 	/* Initialize the screen surface
@@ -131,13 +181,13 @@ public:
 	*/
 	void Init_Video( bool reload_textures_from_file = 0, bool use_preferences = 1 );
 	// Initialize OpenGL with current settings
-	void Init_OpenGL( void );
+	void Init_OpenGL( void ) const;
 	// Initialize Geometry with current settings
-	void Init_Geometry( void );
+	void Init_Geometry( void ) const;
 	// Initialize Texture detail settings
-	void Init_Texture_Detail( void );
+	void Init_Texture_Detail( void ) const;
 	// initialize the up/down scaling value for the current resolution ( image/mouse scale )
-	void Init_Resolution_Scale( void );
+	void Init_Resolution_Scale( void ) const;
 	/* Initialize the image cache and recreates cache if game version changed
 	 * recreate : if set force cache recreation
 	 * draw_gui : if set use the loading screen gui for drawing
@@ -149,18 +199,18 @@ public:
 	 * returns 0 if the requested mode is not supported under any bit depth,
 	 * or returns the bits-per-pixel of the closest available mode
 	*/
-	int Test_Video( int width, int height, int bpp, int flags = 0 );
+	int Test_Video( int width, int height, int bpp, int flags = 0 ) const;
 
 	/* Get the supported resolutions for the current screen pixel format
 	 * if flags aren't set they are set to the default
 	*/
-	vector<cSize_Int> Get_Supported_Resolutions( int flags = 0 );
+	vector<cSize_Int> Get_Supported_Resolutions( int flags = 0 ) const;
 
 	// Reset and clear the screen
-	void Clear_Screen( void );
+	void Clear_Screen( void ) const;
 
 	// Render the Queue, GUI and Swap Buffers
-	void Render( void );
+	void Render( void ) const;
 
 	// Toggle fullscreen video mode ( new mode is set to preferences )
 	void Toggle_Fullscreen( void );
@@ -168,7 +218,7 @@ public:
 	/* Check if the image was already loaded and returns a pointer to it else it will be loaded
 	 * The returned image should not be deleted or modified.
 	 */
-	cGL_Surface *Get_Surface( string filename, bool print_errors = 1 );
+	cGL_Surface *Get_Surface( std::string filename, bool print_errors = 1 );
 
 	// Software image
 	class cSoftware_Image
@@ -189,97 +239,99 @@ public:
 	 * print_errors : print errors if image couldn't be created or loaded
 	 * The returned data in the software image should be deleted if not used anymore
 	*/
-	cSoftware_Image Load_Image( string filename, bool load_settings = 1, bool print_errors = 1 );
+	cSoftware_Image Load_Image( std::string filename, bool load_settings = 1, bool print_errors = 1 ) const;
 
 	/* Load and return the hardware image
 	 * use_settings : enable file settings if set to 1
 	 * print_errors : print errors if image couldn't be created or loaded
 	 * The returned image should be deleted if not used anymore
 	*/
-	cGL_Surface *Load_GL_Surface( string filename, bool use_settings = 1, bool print_errors = 1 );
+	cGL_Surface *Load_GL_Surface( std::string filename, bool use_settings = 1, bool print_errors = 1 );
 
 	/* Convert to a software image with a power of 2 size and 32 bits per pixel
 	 * surface : the source image which gets converted if needed
 	 * use the returned image after this conversion
 	*/
-	SDL_Surface *Convert_To_Final_Software_Image( SDL_Surface *surface );
+	SDL_Surface *Convert_To_Final_Software_Image( SDL_Surface *surface ) const;
 
 	/* Create a GL image from a SDL_Surface
 	 * mipmap : create texture mipmaps
 	 * force_width/height : force the given width and height
 	*/
-	cGL_Surface *Create_Texture( SDL_Surface *surface, bool mipmap = 0, unsigned int force_width = 0, unsigned int force_height = 0 );
+	cGL_Surface *Create_Texture( SDL_Surface *surface, bool mipmap = 0, unsigned int force_width = 0, unsigned int force_height = 0 ) const;
 
 	/* Create a texture into the bound GL texture
 	 * mipmap : create texture mipmaps
 	*/
-	void Create_GL_Texture( unsigned int width, unsigned int height, void *pixels, bool mipmap = 0 );
+	void Create_GL_Texture( unsigned int width, unsigned int height, const void *pixels, bool mipmap = 0 ) const;
 
-	// Get the Pixel color of a GL image
-	Color Get_Pixel( int x, int y, cGL_Surface *source = NULL );
+	// Get pixel color of the given position on the screen
+	Color Get_Pixel( int x, int y ) const;
 
 	// Draw a line
-	void Draw_Line( GL_line *line, float z, const Color *color, cLineRequest *request = NULL );
-	void Draw_Line( float x1, float y1, float x2, float y2, float z, const Color *color, cLineRequest *request = NULL );
+	void Draw_Line( const GL_line *line, float z, const Color *color, cLine_Request *request = NULL ) const;
+	void Draw_Line( float x1, float y1, float x2, float y2, float z, const Color *color, cLine_Request *request = NULL ) const;
 	/* Draw a rectangle
 	 * if request is NULL automatically creates the request
 	*/
-	void Draw_Rect( GL_rect *rect, float z, const Color *color, cRectRequest *request = NULL );
-	void Draw_Rect( float x, float y, float width, float height, float z, const Color *color, cRectRequest *request = NULL );
+	void Draw_Rect( const GL_rect *rect, float z, const Color *color, cRect_Request *request = NULL ) const;
+	void Draw_Rect( float x, float y, float width, float height, float z, const Color *color, cRect_Request *request = NULL ) const;
 	/* Draw a gradient
 	 * if request is NULL automatically creates the request
 	*/
-	void Draw_Gradient( GL_rect *rect, float z, const Color *color_1, const Color *color_2, ObjectDirection direction, cGradientRequest *request = NULL );
-	void Draw_Gradient( float x, float y, float width, float height, float z, const Color *color_1, const Color *color_2, ObjectDirection direction, cGradientRequest *request = NULL );
+	void Draw_Gradient( const GL_rect *rect, float z, const Color *color_1, const Color *color_2, ObjectDirection direction, cGradient_Request *request = NULL ) const;
+	void Draw_Gradient( float x, float y, float width, float height, float z, const Color *color_1, const Color *color_2, ObjectDirection direction, cGradient_Request *request = NULL ) const;
 	// Draw a circle
-	//void Draw_Circle( GL_circle *line, float z, Color *color, cCircleRequest *request = NULL );
-	void Draw_Circle( float x, float y, float radius, float z, Color *color, cCircleRequest *request = NULL );
+	//void Draw_Circle( GL_circle *circle, float z, Color *color, cCircleRequest *request = NULL );
+	void Draw_Circle( float x, float y, float radius, float z, const Color *color, cCircle_Request *request = NULL ) const;
 
 	/* Return the scale size if the image is bigger as the given size
 	 * also upscales if only_downscale is set to 0
 	*/
-	float Get_Scale( cGL_Surface *image, float width, float height, bool only_downscale = 1 );
+	float Get_Scale( const cGL_Surface *image, float width, float height, bool only_downscale = 1 ) const;
+	// scale the size down if the width or height is bigger than the maximum supported texture size
+	void Apply_Max_Texture_Size( int &width, int &height ) const;
 
 	/* Downscale an image
 	 * Can be used for creating MIPmaps
 	 * The incoming image should be a power-of-two sized
 	*/
-	bool Downscale_Image( const unsigned char* const orig, int width, int height, int channels, unsigned char* resampled, int block_size_x, int block_size_y );
+	bool Downscale_Image( const unsigned char *const orig, int width, int height, int channels, unsigned char *resampled, int block_size_x, int block_size_y ) const;
 
 	// Save an image of the current screen
-	void Save_Screenshot( void );
+	void Save_Screenshot( void ) const;
 	// Save data as png image
-	void Save_Surface( string filename, unsigned char *data, unsigned int width, unsigned int height, unsigned int bpp = 4, bool reverse_data = 0 );
+	void Save_Surface( const std::string &filename, const unsigned char *data, unsigned int width, unsigned int height, unsigned int bpp = 4, bool reverse_data = 0 ) const;
 
 	// available OpenGL version
-	float opengl_version;
+	float m_opengl_version;
 
 	// using double buffering
-	bool double_buffer;
-	// using hardware surfaces
-	bool hardware_surfaces;
+	bool m_double_buffer;
 
 	// screen red, green and blue color bit size
-	int rgb_size[3];
+	int m_rgb_size[3];
 
 	// default drawing buffer
-	GLint default_buffer;
+	GLint m_default_buffer;
+	// max texture size
+	GLint m_max_texture_size;
 
 	// if audio initialization failed
-	bool audio_init_failed;
+	bool m_audio_init_failed;
 	// if joystick initialization failed
-	bool joy_init_failed;
+	bool m_joy_init_failed;
 
 	// active image cache directory
-	string imgcache_dir;
+	std::string m_imgcache_dir;
 
-	// geometry detail level 0.0 - 1.0
-	float geometry_detail;
-	// texture detail level 0.0 - 1.0
-	float texture_detail;
+	// geometry quality level 0.0 - 1.0
+	float m_geometry_quality;
+	// texture quality level 0.0 - 1.0
+	float m_texture_quality;
 private:
 	// if set video is initialized successfully
-	bool initialised;
+	bool m_initialised;
 };
 
 /* Draw an Screen Fadeout Effect
@@ -294,8 +346,10 @@ void Draw_Effect_In( Effect_Fadein effect = EFFECT_IN_RANDOM, float speed = 1 );
 
 // initialize loading screen
 void Loading_Screen_Init( void );
-// set the loading screen info string
-void Loading_Screen_Draw_Text( string str_info = "Loading" );
+// set the loading screen info string and draw it
+void Loading_Screen_Draw_Text( const std::string &str_info = "Loading" );
+// draw the loading screen
+void Loading_Screen_Draw( void );
 // exit loading screen
 void Loading_Screen_Exit( void );
 
@@ -335,5 +389,7 @@ static const Color orange = Color( static_cast<Uint8>(248), 191, 38 );
 static const Color lightorange = Color( static_cast<Uint8>(255), 220, 100 );
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.5" />
-		<Property name="engine_version" value="2.4" />
-		<Property name="save_time" value="1208750576" />
+		<Property name="game_version" value="1.8" />
+		<Property name="engine_version" value="34" />
+		<Property name="save_time" value="1233715542" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="FluXy" />
@@ -61,7 +61,7 @@
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1107" />
-		<Property name="posy" value="442" />
+		<Property name="posy" value="440" />
 		<Property name="image" value="pipes/grey/left.png" />
 		<Property name="type" value="massive" />
 	</sprite>
@@ -576,12 +576,6 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="1152" />
-		<Property name="posy" value="537" />
-		<Property name="image" value="ground/green_3/ground/middle/left.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
 		<Property name="posx" value="123" />
 		<Property name="posy" value="537" />
 		<Property name="image" value="ground/green_3/ground/top/1.png" />
@@ -720,9 +714,10 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<levelexit>
-		<Property name="posx" value="1101" />
-		<Property name="posy" value="483" />
+		<Property name="posx" value="1103" />
+		<Property name="posy" value="484" />
 		<Property name="type" value="1" />
+		<Property name="motion" value="0" />
 		<Property name="direction" value="right" />
 	</levelexit>
 	<item>
@@ -1025,4 +1020,52 @@
 		<Property name="posy" value="-30" />
 		<Property name="color" value="red" />
 	</item>
+	<sprite>
+		<Property name="posx" value="542" />
+		<Property name="posy" value="524" />
+		<Property name="image" value="ground/green_2/gras_middle.png" />
+		<Property name="type" value="passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="1141" />
+		<Property name="posy" value="302" />
+		<Property name="image" value="ground/green_2/gras_middle.png" />
+		<Property name="type" value="passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="592" />
+		<Property name="posy" value="301" />
+		<Property name="image" value="ground/green_2/gras_middle.png" />
+		<Property name="type" value="passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="92" />
+		<Property name="posy" value="72" />
+		<Property name="image" value="ground/green_2/gras_middle.png" />
+		<Property name="type" value="passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="513" />
+		<Property name="posy" value="73" />
+		<Property name="image" value="ground/green_2/gras_middle.png" />
+		<Property name="type" value="passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="61" />
+		<Property name="posy" value="521" />
+		<Property name="image" value="ground/green_2/gras_middle.png" />
+		<Property name="type" value="passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="1144" />
+		<Property name="posy" value="521" />
+		<Property name="image" value="ground/green_2/gras_middle.png" />
+		<Property name="type" value="front_passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="1152" />
+		<Property name="posy" value="537" />
+		<Property name="image" value="ground/green_3/ground/middle/left.png" />
+		<Property name="type" value="massive" />
+	</sprite>
 </level>

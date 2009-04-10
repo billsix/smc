@@ -1,7 +1,7 @@
 /***************************************************************************
  * sound_manager.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -18,6 +18,12 @@
 
 #include "../core/globals.h"
 #include "../core/obj_manager.h"
+// SDL
+// also includes needed SDL headers
+#include "SDL_mixer.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** Sound object *** *** *** *** *** *** *** *** *** *** */
 
@@ -28,12 +34,12 @@ public:
 	virtual ~cSound( void );
 	
 	// Load the data
-	bool Load( string filename );
+	bool Load( const std::string &filename );
 	// Free the data
 	void Free( void );
 
 	// filename
-	string m_filename;
+	std::string m_filename;
 	// data if loaded else null
 	Mix_Chunk *m_chunk;
 };
@@ -55,22 +61,19 @@ public:
 	virtual ~cSound_Manager( void );
 
 	// Return the Sound from Path
-	virtual cSound *Get_Pointer( string path );
-
-	// Return the Sound Path as string
-	string Get_Path( unsigned int identifier );
+	virtual cSound *Get_Pointer( const std::string &path ) const;
 
 	/* Add a Sound
 	 * Should always have the path set
 	 */
 	void Add( cSound *item );
 
-	cSound *operator [] ( unsigned int identifier )
+	cSound *operator [] ( unsigned int identifier ) const
 	{
 		return cObject_Manager<cSound>::Get_Pointer( identifier );
 	}
 	
-	cSound *operator [] ( string path )
+	cSound *operator [] ( const std::string &path ) const
 	{
 		return Get_Pointer( path );
 	}
@@ -80,7 +83,7 @@ public:
 
 private:
 	// sounds loaded since initialization
-	unsigned int load_count;
+	unsigned int m_load_count;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -89,5 +92,7 @@ private:
 extern cSound_Manager *pSound_Manager;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

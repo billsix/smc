@@ -1,7 +1,7 @@
 /***************************************************************************
  * turtle.h  -  headers for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -18,6 +18,9 @@
 
 #include "../enemies/enemy.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 enum Turtle_state
@@ -26,7 +29,7 @@ enum Turtle_state
 	TURTLE_WALK		= 1,
 	TURTLE_SHELL_STAND	= 2,
 	TURTLE_SHELL_RUN	= 3,
-	TURTLE_FLY		= 4, // todo
+	TURTLE_FLY		= 4 // todo
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -47,17 +50,17 @@ public:
 	virtual cTurtle *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
+	virtual void Save_To_Stream( ofstream &file );
 
 	// load from savegame
-	virtual void Load_from_Savegame( cSave_Level_Object *save_object );
+	virtual void Load_From_Savegame( cSave_Level_Object *save_object );
 	// save to savegame
-	virtual cSave_Level_Object *Save_to_Savegame( void );
+	virtual cSave_Level_Object *Save_To_Savegame( void );
 
 	// Set Direction
-	virtual void Set_Direction( ObjectDirection dir, bool new_start_direction = 0 );
+	virtual void Set_Direction( const ObjectDirection dir, bool new_start_direction = 0 );
 	// set color
 	void Set_Color( DefaultColor col );
 
@@ -75,14 +78,22 @@ public:
 	// update
 	virtual void Update( void );
 
+	// Change state to walking if it is shell
+	void Stand_Up( void );
+	/* Hit the given enemy
+	 * returns true if enemy could get hit
+	*/
+	bool Hit_Enemy( cEnemy *enemy ) const;
+
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
 
 	/* Validate the given collision object
+	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-	virtual unsigned int Validate_Collision( cSprite *obj );
+	virtual Col_Valid_Type Validate_Collision( cSprite *obj );
 	// collision from player
 	virtual void Handle_Collision_Player( cObjectCollision *collision );
 	// collision from an enemy
@@ -112,9 +123,11 @@ public:
 
 private:
 	// Create the Name from the current settings
-    void Create_Name( void );
+	void Create_Name( void );
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

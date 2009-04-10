@@ -1,7 +1,7 @@
 /***************************************************************************
  * enemystopper.cpp  -  enemystopper class
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -16,8 +16,10 @@
 #include "../objects/enemystopper.h"
 #include "../level/level_editor.h"
 #include "../core/game_core.h"
-#include "../core/camera.h"
 #include "../core/i18n.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** cEnemyStopper *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -31,7 +33,7 @@ cEnemyStopper :: cEnemyStopper( CEGUI::XMLAttributes &attributes )
 : cImageObjectSprite()
 {
 	cEnemyStopper::Init();
-	cEnemyStopper::Create_from_Stream( attributes );
+	cEnemyStopper::Create_From_Stream( attributes );
 }
 
 cEnemyStopper :: ~cEnemyStopper( void )
@@ -41,56 +43,57 @@ cEnemyStopper :: ~cEnemyStopper( void )
 
 cEnemyStopper *cEnemyStopper :: Copy( void )
 {
-	cEnemyStopper *enemystopper = new cEnemyStopper( startposx, startposy );
+	cEnemyStopper *enemystopper = new cEnemyStopper( m_start_pos_x, m_start_pos_y );
 
 	return enemystopper;
 }
 
 void cEnemyStopper :: Init( void )
 {
-	sprite_array = ARRAY_ACTIVE;
-	type = TYPE_ENEMY_STOPPER;
-	massivetype = MASS_PASSIVE;
-	editor_posz = 0.11f;
+	m_sprite_array = ARRAY_ACTIVE;
+	m_type = TYPE_ENEMY_STOPPER;
+	m_massive_type = MASS_PASSIVE;
+	m_editor_pos_z = 0.11f;
 
-	name = _("Enemystopper");
+	m_name = _("Enemystopper");
 
-	rect.w = 15;
-	rect.h = 15;
-	col_rect.w = 15;
-	col_rect.h = 15;
-	start_rect.w = 15;
-	start_rect.h = 15;
+	// size
+	m_rect.m_w = 15;
+	m_rect.m_h = 15;
+	m_col_rect.m_w = m_rect.m_w;
+	m_col_rect.m_h = m_rect.m_h;
+	m_start_rect.m_w = m_rect.m_w;
+	m_start_rect.m_h = m_rect.m_h;
 
 	editor_color = Color( static_cast<Uint8>(0), 0, 255, 128 );
 }
 
-void cEnemyStopper :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
+void cEnemyStopper :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 {
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 }
 
-void cEnemyStopper :: Save_to_Stream( ofstream &file )
+void cEnemyStopper :: Save_To_Stream( ofstream &file )
 {
 	// begin enemystopper
 	file << "\t<enemystopper>" << std::endl;
 
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(m_start_pos_x) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(m_start_pos_y) << "\" />" << std::endl;
 
 	// end enemystopper
 	file << "\t</enemystopper>" << std::endl;
 }
 
-void cEnemyStopper :: Draw( cSurfaceRequest *request /* = NULL */ )
+void cEnemyStopper :: Draw( cSurface_Request *request /* = NULL */ )
 {
-	if( !valid_draw )
+	if( !m_valid_draw )
 	{
 		return;
 	}
 
-	pVideo->Draw_Rect( col_rect.x - pActive_Camera->x, col_rect.y - pActive_Camera->y, col_rect.w, col_rect.h, editor_posz, &editor_color );
+	pVideo->Draw_Rect( m_col_rect.m_x - pActive_Camera->x, m_col_rect.m_y - pActive_Camera->y, m_col_rect.m_w, m_col_rect.m_h, m_editor_pos_z, &editor_color );
 }
 
 bool cEnemyStopper :: Is_Draw_Valid( void )
@@ -101,11 +104,15 @@ bool cEnemyStopper :: Is_Draw_Valid( void )
 		return 0;
 	}
 
-	// if not visible on the screen
-	if( !visible || !Is_Visible_on_Screen() )
+	// if not active or not on the screen
+	if( !m_active || !Is_Visible_On_Screen() )
 	{
 		return 0;
 	}
 
 	return 1;
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

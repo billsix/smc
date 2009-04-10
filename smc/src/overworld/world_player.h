@@ -1,7 +1,7 @@
 /***************************************************************************
  * ow_player.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -22,6 +22,9 @@
 #include "../player/player.h"
 #include "../overworld/world_waypoint.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** *** *** cOverworld_Player *** *** *** *** *** *** *** *** *** *** */
 
 class cOverworld_Player : public cImageObjectSprite
@@ -38,7 +41,7 @@ public:
 	// Update
 	virtual void Update( void );
 	// Draw
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 	// Draw debug text
 	void Draw_Debug_Text( void );
 
@@ -65,19 +68,19 @@ public:
 	*/
 	void Update_Walk( void );
 	// Start fixed walking into the given Waypoint
-	void Start_Waypoint_Walk( unsigned int new_waypoint );
+	void Start_Waypoint_Walk( int new_waypoint );
 	/* Fixed walking into the Waypoint
 	 * moves maryo smoothly into the found Waypoint
 	*/
 	void Update_Waypoint_Walk( void );
 
 	// Set Maryo to the given Waypoint position
-	bool Set_Waypoint( unsigned int waypoint, bool new_startpos = 0 );
+	bool Set_Waypoint( int waypoint, bool new_startpos = 0 );
 	// Get current Waypoint
 	cWaypoint *Get_Waypoint( void );
 
 	// Returns the current Waypoint front line
-	cLayer_Line_Point_Start *Get_Front_Line( ObjectDirection dir );
+	cLayer_Line_Point_Start *Get_Front_Line( ObjectDirection dir ) const;
 
 	/* Checks how much Maryo can walk into all directions
 	 * and sets the size into the path directions
@@ -132,5 +135,7 @@ private:
 extern cOverworld_Player *pOverworld_Player;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

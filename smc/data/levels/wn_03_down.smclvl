@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.5" />
-		<Property name="engine_version" value="2.4" />
-		<Property name="save_time" value="1206125121" />
+		<Property name="game_version" value="1.8" />
+		<Property name="engine_version" value="34" />
+		<Property name="save_time" value="1236085435" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="SMC Team" />
@@ -20,23 +20,20 @@
 		<Property name="bg_color_1_red" value="128" />
 		<Property name="bg_color_1_green" value="64" />
 		<Property name="bg_color_1_blue" value="0" />
-		<Property name="bg_color_2_red" value="196" />
-		<Property name="bg_color_2_green" value="196" />
-		<Property name="bg_color_2_blue" value="2" />
+		<Property name="bg_color_2_red" value="190" />
+		<Property name="bg_color_2_green" value="160" />
+		<Property name="bg_color_2_blue" value="0" />
 	</background>
 	<background>
 		<Property name="type" value="1" />
-		<Property name="image" value="game/background/desert_hills_1.png" />
-		<Property name="speedx" value="0.7" />
-		<Property name="speedy" value="1" />
-		<Property name="posz" value="0.000107" />
-	</background>
-	<background>
-		<Property name="type" value="1" />
-		<Property name="image" value="game/background/low_sand.png" />
-		<Property name="speedx" value="1" />
-		<Property name="speedy" value="1" />
+		<Property name="posx" value="0" />
+		<Property name="posy" value="0" />
 		<Property name="posz" value="0.00011" />
+		<Property name="image" value="game/background/low_sand.png" />
+		<Property name="speedx" value="0.5" />
+		<Property name="speedy" value="0.5" />
+		<Property name="const_velx" value="0" />
+		<Property name="const_vely" value="0" />
 	</background>
 	<player>
 		<Property name="posx" value="204" />
@@ -46,193 +43,193 @@
 	<sprite>
 		<Property name="posx" value="743" />
 		<Property name="posy" value="408" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="719" />
 		<Property name="posy" value="408" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="695" />
 		<Property name="posy" value="408" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="671" />
 		<Property name="posy" value="408" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="647" />
 		<Property name="posy" value="408" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="623" />
 		<Property name="posy" value="408" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="599" />
 		<Property name="posy" value="408" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="575" />
 		<Property name="posy" value="408" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="551" />
 		<Property name="posy" value="408" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1103" />
 		<Property name="posy" value="395" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1079" />
 		<Property name="posy" value="395" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1055" />
 		<Property name="posy" value="395" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1031" />
 		<Property name="posy" value="395" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1007" />
 		<Property name="posy" value="395" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="983" />
 		<Property name="posy" value="395" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="959" />
 		<Property name="posy" value="395" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="935" />
 		<Property name="posy" value="395" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="911" />
 		<Property name="posy" value="395" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="887" />
 		<Property name="posy" value="395" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="863" />
 		<Property name="posy" value="395" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="839" />
 		<Property name="posy" value="395" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1696" />
 		<Property name="posy" value="445" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1672" />
 		<Property name="posy" value="445" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1648" />
 		<Property name="posy" value="445" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1624" />
 		<Property name="posy" value="445" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1600" />
 		<Property name="posy" value="445" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1576" />
 		<Property name="posy" value="445" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1528" />
 		<Property name="posy" value="445" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1552" />
 		<Property name="posy" value="445" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1504" />
 		<Property name="posy" value="445" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1744" />
 		<Property name="posy" value="445" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1720" />
 		<Property name="posy" value="445" />
-		<Property name="image" value="ground/yoshi_1/rope_1_leftright.png" />
+		<Property name="image" value="ground/jungle_2/rope_1_hor.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
@@ -712,7 +709,7 @@
 	<sprite>
 		<Property name="posx" value="372" />
 		<Property name="posy" value="349" />
-		<Property name="image" value="ground/yoshi_1/extra_1_yellow.png" />
+		<Property name="image" value="ground/jungle_2/hedge/1_yellow.png" />
 		<Property name="type" value="passive" />
 	</sprite>
 	<item>
@@ -1138,14 +1135,15 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<levelexit>
-		<Property name="posx" value="2024" />
-		<Property name="posy" value="376" />
+		<Property name="posx" value="2023" />
+		<Property name="posy" value="378" />
 		<Property name="type" value="0" />
+		<Property name="motion" value="0" />
 	</levelexit>
 	<sprite>
 		<Property name="posx" value="1856" />
 		<Property name="posy" value="358" />
-		<Property name="image" value="ground/yoshi_1/extra_1_yellow.png" />
+		<Property name="image" value="ground/jungle_2/hedge/1_yellow.png" />
 		<Property name="type" value="passive" />
 	</sprite>
 	<box>
@@ -1216,13 +1214,13 @@
 		<Property name="force_best_item" value="0" />
 	</box>
 	<sprite>
-		<Property name="posx" value="177" />
+		<Property name="posx" value="179" />
 		<Property name="posy" value="60" />
 		<Property name="image" value="pipes/grey/down.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="177" />
+		<Property name="posx" value="179" />
 		<Property name="posy" value="10" />
 		<Property name="image" value="pipes/grey/ver.png" />
 		<Property name="type" value="massive" />
@@ -1230,7 +1228,7 @@
 	<sprite>
 		<Property name="posx" value="165" />
 		<Property name="posy" value="-114" />
-		<Property name="image" value="blocks/pipe/connection_left_down.png" />
+		<Property name="image" value="blocks/pipe/connection/plastic_1/orange/right_up.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
@@ -1341,4 +1339,38 @@
 		<Property name="image" value="ground/sand_1/ground/middle.png" />
 		<Property name="type" value="passive" />
 	</sprite>
+	<particle_emitter>
+		<Property name="file" value="animation/particles/rain.png" />
+		<Property name="pos_z" value="0.07" />
+		<Property name="pos_z_rand" value="0" />
+		<Property name="pos_x" value="195" />
+		<Property name="pos_y" value="94" />
+		<Property name="size_x" value="70" />
+		<Property name="size_y" value="10" />
+		<Property name="emitter_time_to_live" value="-1" />
+		<Property name="emitter_interval" value="3" />
+		<Property name="quota" value="1" />
+		<Property name="time_to_live" value="1" />
+		<Property name="time_to_live_rand" value="0.2" />
+		<Property name="vel" value="3" />
+		<Property name="vel_rand" value="1" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
+		<Property name="start_rot_z_uses_direction" value="0" />
+		<Property name="const_rot_x" value="0" />
+		<Property name="const_rot_x_rand" value="0" />
+		<Property name="const_rot_y" value="0" />
+		<Property name="const_rot_y_rand" value="0" />
+		<Property name="const_rot_z" value="0" />
+		<Property name="const_rot_z_rand" value="0" />
+		<Property name="angle_start" value="85" />
+		<Property name="angle_range" value="10" />
+		<Property name="size_scale" value="0.3" />
+		<Property name="size_scale_rand" value="0.2" />
+		<Property name="gravity_x" value="0" />
+		<Property name="gravity_x_rand" value="0" />
+		<Property name="gravity_y" value="0.1" />
+		<Property name="gravity_y_rand" value="0" />
+	</particle_emitter>
 </level>

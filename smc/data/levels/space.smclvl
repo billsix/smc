@@ -3,11 +3,11 @@
 	<information>
 		<Property name="game_version" value="1.7" />
 		<Property name="engine_version" value="2.8" />
-		<Property name="save_time" value="1228873241" />
+		<Property name="save_time" value="1230264962" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="?ƿ" />
-		<Property name="lvl_version" value="1.2" />
+		<Property name="lvl_version" value="1.3" />
 		<Property name="lvl_music" value="land/hyper_1.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
@@ -30,8 +30,8 @@
 		<Property name="posy" value="0" />
 		<Property name="posz" value="0.1" />
 		<Property name="image" value="game/background/stars_1.png" />
-		<Property name="speedx" value="3" />
-		<Property name="speedy" value="2" />
+		<Property name="speedx" value="1.2" />
+		<Property name="speedy" value="0.8" />
 		<Property name="const_velx" value="0" />
 		<Property name="const_vely" value="0" />
 	</background>
@@ -41,8 +41,8 @@
 		<Property name="posy" value="0" />
 		<Property name="posz" value="0.12" />
 		<Property name="image" value="game/background/stars_1.png" />
-		<Property name="speedx" value="6" />
-		<Property name="speedy" value="6" />
+		<Property name="speedx" value="2.3" />
+		<Property name="speedy" value="2.3" />
 		<Property name="const_velx" value="0" />
 		<Property name="const_vely" value="0" />
 	</background>
@@ -52,8 +52,8 @@
 		<Property name="posy" value="0" />
 		<Property name="posz" value="0.00019" />
 		<Property name="image" value="game/background/stars_1.png" />
-		<Property name="speedx" value="1" />
-		<Property name="speedy" value="1" />
+		<Property name="speedx" value="0.3" />
+		<Property name="speedy" value="0.3" />
 		<Property name="const_velx" value="0" />
 		<Property name="const_vely" value="0" />
 	</background>
@@ -63,8 +63,8 @@
 		<Property name="posy" value="0" />
 		<Property name="posz" value="0.11" />
 		<Property name="image" value="game/background/stars_1.png" />
-		<Property name="speedx" value="5" />
-		<Property name="speedy" value="4" />
+		<Property name="speedx" value="2" />
+		<Property name="speedy" value="1.7" />
 		<Property name="const_velx" value="0" />
 		<Property name="const_vely" value="0" />
 	</background>

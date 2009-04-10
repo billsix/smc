@@ -1,7 +1,7 @@
 /***************************************************************************
  * camera.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -16,8 +16,11 @@
 #ifndef SMC_CAMERA_H
 #define SMC_CAMERA_H
 
-#include "../core/globals.h"
+#include "../core/global_game.h"
 #include "../core/math/rect.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** cCamera *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -32,36 +35,40 @@ public:
 	void Set_Pos_X( float nx );
 	void Set_Pos_Y( float ny );
 	// move the camera
-	void Move( float move_x, float move_y );
-	/* moves to the given position gradually
-	 * returns 0 if reached nearest the possible position
+	void Move( const float move_x, const float move_y );
+	/* moves to the given position with the given frames gradually
+	 * returns 0 if reached the nearest possible position
 	*/
-	bool Move_to_Position_Gradually( float px, float py );
+	bool Move_to_Position_Gradually( const float px, const float py, const unsigned int frames = 200 );
+	/* move one step to the given position gradually
+	 * returns 0 if reached the nearest possible position
+	*/
+	bool Step_to_Position_Gradually( const float px, const float py );
 
 	// update
 	void Update( void );
 
 	// center on the player with the given direction ( DIR_HORIZONTAL, DIR_VERTICAL and DIR_ALL )
-	void Center( ObjectDirection direction = DIR_ALL );
+	void Center( const ObjectDirection direction = DIR_ALL );
 	// get centered player position x
-	float Get_Center_Pos_X( void );
+	float Get_Center_Pos_X( void ) const;
 	// get centered player position y
-	float Get_Center_Pos_Y( void );
+	float Get_Center_Pos_Y( void ) const;
 
 	// reset limits
 	void Reset_Limits( void );
 	// set limits
-	void Set_Limits( GL_rect rect );
-	void Set_Limit_X( float val );
-	void Set_Limit_Y( float val );
-	void Set_Limit_W( float val );
-	void Set_Limit_H( float val );
+	void Set_Limits( const GL_rect &rect );
+	void Set_Limit_X( const float val );
+	void Set_Limit_Y( const float val );
+	void Set_Limit_W( const float val );
+	void Set_Limit_H( const float val );
 	// update limit with the given position
-	void Update_Limit( float &nx, float &ny );
-	void Update_Limit_X( float &nx );
-	void Update_Limit_Y( float &ny );
+	void Update_Limit( float &nx, float &ny ) const;
+	void Update_Limit_X( float &nx ) const;
+	void Update_Limit_Y( float &ny ) const;
 	// update if position changed
-	void Update_Position( void );
+	void Update_Position( void ) const;
 
 	// position
 	float x, y;
@@ -74,8 +81,13 @@ public:
 
 	// fixed horizontal scrolling velocity
 	float fixed_hor_vel;
+
+	// default limits
+	static const GL_rect default_limits;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

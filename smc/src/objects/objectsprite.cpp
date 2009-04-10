@@ -1,7 +1,7 @@
 /***************************************************************************
  * objectsprite.cpp  - multi image object sprite class
  *
- * Copyright (C) 2005 - 2008 Florian Richter
+ * Copyright (C) 2005 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -16,54 +16,61 @@
 #include "../objects/objectsprite.h"
 #include "../core/game_core.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** *** *** cImageObjectSprite *** *** *** *** *** *** *** *** *** *** */
 
 cImageObjectSprite :: cImageObjectSprite( float x /* = 0 */, float y /* = 0 */ )
 : cMovingSprite( NULL, x, y )
 {
-	curr_img = -1;
+	m_curr_img = -1;
 }
 
 cImageObjectSprite :: ~cImageObjectSprite( void )
 {
-	images.clear();
+	m_images.clear();
 }
 
-void cImageObjectSprite :: Set_Image( int num, bool new_startimage /* = 0 */, bool del_img /* = 0 */ )
+void cImageObjectSprite :: Set_Image_Num( const int num, const bool new_startimage /* = 0 */, const bool del_img /* = 0 */ )
 {
-	if( curr_img == num )
+	if( m_curr_img == num )
 	{
 		return;
 	}
 
-	curr_img = num;
+	m_curr_img = num;
 
-	if( curr_img < 0 )
+	if( m_curr_img < 0 )
 	{
 		cMovingSprite::Set_Image( NULL, new_startimage, del_img );
 	}
-	else if( curr_img < static_cast<int>(images.size()) )
+	else if( m_curr_img < static_cast<int>(m_images.size()) )
 	{
-		cMovingSprite::Set_Image( images[curr_img], new_startimage, del_img );
+		cMovingSprite::Set_Image( m_images[m_curr_img], new_startimage, del_img );
 	}
 	else
 	{
-		printf( "Warning : Object image number %d bigger as the array size %u, sprite type %d, name %s\n", curr_img, static_cast<unsigned int>(images.size()), type, name.c_str() );
+		printf( "Warning : Object image number %d bigger as the array size %u, sprite type %d, name %s\n", m_curr_img, static_cast<unsigned int>(m_images.size()), m_type, m_name.c_str() );
 	}
 }
 
-cGL_Surface *cImageObjectSprite :: Get_Image( unsigned int num ) 
+cGL_Surface *cImageObjectSprite :: Get_Image( const unsigned int num ) 
 {
-	if( num >= images.size() )
+	if( num >= m_images.size() )
 	{
 		return NULL;
 	}
 
-	return images[num];
+	return m_images[num];
 }
 
 void cImageObjectSprite :: Clear_Images( void )
 {
-	curr_img = -1;
-	images.clear();
+	m_curr_img = -1;
+	m_images.clear();
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

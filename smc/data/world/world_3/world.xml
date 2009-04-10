@@ -9,9 +9,9 @@
 		<Property name="music" value="overworld/land_2.ogg" />
 	</settings>
 	<background>
-		<Property name="color_red" value="0" />
-		<Property name="color_green" value="155" />
-		<Property name="color_blue" value="0" />
+		<Property name="color_red" value="28" />
+		<Property name="color_green" value="144" />
+		<Property name="color_blue" value="21" />
 	</background>
 	<player>
 		<Property name="waypoint" value="0" />

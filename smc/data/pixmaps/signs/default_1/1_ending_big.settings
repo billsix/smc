@@ -1,4 +1,5 @@
-width 85
+width 128
+height 64
 editor_tags level;sign
 name 2_Right
 type passive

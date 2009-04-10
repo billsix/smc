@@ -1,7 +1,7 @@
 /***************************************************************************
  * level_manager.cpp  -  class for handling levels
  *
- * Copyright (C) 2007 - 2008 Florian Richter
+ * Copyright (C) 2007 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -14,6 +14,9 @@
 */
 
 #include "../level/level_manager.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** cLevel_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -44,7 +47,7 @@ void cLevel_Manager :: Unload( void )
 	pActive_Level->Unload();
 }
 
-bool cLevel_Manager :: Load( string filename, bool delayed /* = 0 */, bool sub_level /* = 0 */ )
+bool cLevel_Manager :: Load( std::string filename, bool delayed /* = 0 */, bool sub_level /* = 0 */ )
 {
 	return 1;
 }
@@ -54,3 +57,7 @@ bool cLevel_Manager :: Load( string filename, bool delayed /* = 0 */, bool sub_l
 
 // Level information handler
 cLevel_Manager *pLevel_Manager = NULL;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

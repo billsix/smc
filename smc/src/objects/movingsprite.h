@@ -1,7 +1,7 @@
 /***************************************************************************
  * movingsprite.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -17,6 +17,9 @@
 #define SMC_MOVINGSPRITE_H
 
 #include "../objects/sprite.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** Movement states *** *** *** *** *** *** *** *** *** *** */
 
@@ -37,12 +40,10 @@ enum Moving_state
 
 enum ColCheckType
 {
-	// Don't add found collisions to the collision list
-	COLLIDE_ONLY_CHECK = 0,
-	// Only allow internal collisions
-	COLLIDE_ALLOW_INTERNAL = 1,
+	// Only allow internal (not blocking) collisions
+	COLLIDE_ONLY_INTERNAL = 1,
 	// Only allow blocking collisions
-	COLLIDE_ALLOW_BLOCKING = 2,
+	COLLIDE_ONLY_BLOCKING = 2,
 	// Complete collision check
 	COLLIDE_COMPLETE = 3
 };
@@ -73,7 +74,7 @@ public:
 	/* Set the direction
 	 * if new_start_direction is set also set the start/editor direction
 	*/
-	virtual void Set_Direction( ObjectDirection dir, bool new_start_direction = 0 );
+	virtual void Set_Direction( const ObjectDirection dir, bool new_start_direction = 0 );
 	// Sets the direction/velocity from the given angle and speed
 	void Set_Direction( float angle, float speed, bool new_start_direction = 0 );
 
@@ -84,17 +85,22 @@ public:
 	 * real : if set the speedfactor is not used
 	*/
 	virtual void Move( float move_x, float move_y, const bool real = 0 );
-	/* Returns the Collision direction if not forced
+	/* Collision Move
 	 * if real is set the speedfactor will not be used
 	 * if force is set no collision detection will be performed
 	 * if check_on_ground is set after moving onground will be checked
 	*/
-	virtual ObjectDirection Col_Move( float move_x, float move_y, bool real = 0, bool force = 0, bool check_on_ground = 1 );
+	virtual void Col_Move( float move_x, float move_y, bool real = 0, bool force = 0, bool check_on_ground = 1 );
+
+	/* if the ground object moves then move us with it
+	 * massive moving ground can crunch us
+	*/
+	void Move_With_Ground( void );
 
 	// Set velocity
-	void Set_Velocity( float x, float y );
+	void Set_Velocity( const float x, const float y );
 	// Add Velocity
-	void Add_Velocity( float x, float y, bool real = 0 );
+	void Add_Velocity( const float x, const float y, const bool real = 0 );
 
 	/* Move into the opposite Direction
 	 * if col_dir is given only turns around if the collision direction is in front
@@ -106,20 +112,26 @@ public:
 	/* draw
 	* if request is NULL automatically creates the request
 	*/
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
-	/* Check if the current position with the given additional value is valid
+	/* Check if moving the current position with the given values is valid
 	 * uses the collision rect
+	 * check_type : set which collision types are added to the list
+	 * objects : if set check these object instead of all
 	*/
-	cObjectCollisionType Collision_Check_Relative( const float x, const float y, const float w = 0, const float h = 0, const ColCheckType check_type = COLLIDE_COMPLETE, SpriteList *objects = NULL );
+	cObjectCollisionType *Collision_Check_Relative( const float x, const float y, const float w = 0, const float h = 0, const ColCheckType check_type = COLLIDE_COMPLETE, cSprite_List *objects = NULL );
 	/* Check if the given position is valid
 	 * Creates a collision rect with the given values
+	 * check_type : set which collision types are added to the list
+	 * objects : if set check these object instead of all
 	*/
-	cObjectCollisionType Collision_Check_Absolute( const float x, const float y, const float w = 0, const float h = 0, const ColCheckType check_type = COLLIDE_COMPLETE, SpriteList *objects = NULL );
-	/* Check if the given Position is valid
-	 * uses the given rect as new source collision rect
+	cObjectCollisionType *Collision_Check_Absolute( const float x, const float y, const float w = 0, const float h = 0, const ColCheckType check_type = COLLIDE_COMPLETE, cSprite_List *objects = NULL );
+	/* Check if the given position is valid
+	 * new_rect : this is the source collision rect
+	 * check_type : set which collision types are added to the list
+	 * objects : if set check these object instead of all
 	*/
-	cObjectCollisionType Collision_Check( const GL_rect *new_rect, const ColCheckType check_type = COLLIDE_COMPLETE, SpriteList *objects = NULL );
+	cObjectCollisionType *Collision_Check( const GL_rect &new_rect, const ColCheckType check_type = COLLIDE_COMPLETE, cSprite_List *objects = NULL );
 
 	/* Check if the given movement goes out of the level rect
 	 * handle : if set handle out of level if valid
@@ -127,7 +139,7 @@ public:
 	bool Check_out_of_Level_Hor( const float move_x, const bool handle = 0 );
 	bool Check_out_of_Level_Ver( const float move_y, const bool handle = 0 );
 	// Set the ground object
-	virtual void Set_on_Ground( cSprite *obj, bool set_on_top = 1 );
+	virtual bool Set_on_Ground( cSprite *obj, bool set_on_top = 1 );
 	// Check if the Object is onground and sets the state to onground
 	virtual void Check_on_Ground( void );
 	// object looses onground state
@@ -152,6 +164,10 @@ public:
 	/* set the horizontal sprite rotation based on x velocity
 	 * if start_rotation is set also set the start/editor rotation
 	*/
+	void Update_Rotation_Hor( bool start_rotation = 0 );
+	/* set the horizontal sprite rotation based on the current direction and velocity
+	 * if start_rotation is set also set the start/editor rotation
+	*/
 	void Update_Rotation_Hor_velx( bool start_rotation = 0 );
 	/* set the horizontal sprite rotation based on y velocity
 	 * if start_rotation is set also set the start/editor rotation
@@ -161,52 +177,65 @@ public:
 	/* handle collision with object that moves it with the current velocity
 	 * if moved object gets stuck it is downgraded
 	*/
-	void Handle_Move_Object_Collision( cObjectCollision *collision );
+	void Handle_Move_Object_Collision( const cObjectCollision *collision );
 
 	/* Validate the given collision object
+	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-	virtual unsigned int Validate_Collision( cSprite *obj );
+	virtual Col_Valid_Type Validate_Collision( cSprite *obj );
 	/* Check if colliding with ghost objects
-	 * returns -1 if nothing found
+	 * returns normal validation type if it can be handled else 3
 	 */
-	virtual int Validate_Collision_Ghost( cSprite *obj );
+	virtual Col_Valid_Type Validate_Collision_Ghost( cSprite *obj );
 	/* Validate the collision if this could be moving and the object could be on top
 	 * returns -1 if nothing found
 	*/
-	int Validate_Collision_Object_On_Top( cMovingSprite *moving_sprite );
-	// send a collision to an object based from the given collision
-	virtual void Send_Collision( cObjectCollision *collision );
+	Col_Valid_Type Validate_Collision_Object_On_Top( cMovingSprite *moving_sprite );
+	/* send a collision to an object based from the given collision
+	 * handle_now : if set to true it is handled now instead of adding it to the list
+	*/
+	virtual void Send_Collision( const cObjectCollision *collision, bool handle_now = 0 );
 	// default collision handler
 	virtual void Handle_Collision( cObjectCollision *collision );
-	// handle moved out of Level
+	// handle moved out of Level event
 	virtual void Handle_out_of_Level( ObjectDirection dir );
 
 	// velocity
-	float velx, vely;
+	float m_velx, m_vely;
 
 	// current direction
-	ObjectDirection direction;
+	ObjectDirection m_direction;
 	// start direction
-	ObjectDirection start_direction;
+	ObjectDirection m_start_direction;
 
 	// can be on a ground object
-	bool can_be_on_ground;
+	bool m_can_be_on_ground;
 	// colliding ground object
-	cSprite *ground_object;
+	cSprite *m_ground_object;
 
 	/* the different states
 	 * look at the definitions
 	 */
-	Moving_state state;
+	Moving_state m_state;
 
 	// ice resistance
-	float ice_resistance;
+	float m_ice_resistance;
 	// time counter if frozen
-	float freeze_counter;
+	float m_freeze_counter;
+
+private:
+	/* moves in steps and checks in both directions simultaneous
+	 * returns the found collisions
+	 * sprite_list : objects to check
+	 * stop_on_internal : if set stops moving if internal collision was found
+	*/
+	cObjectCollisionType *Col_Move_in_Steps( float move_x, float move_y, float step_size_x, float step_size_y, float final_pos_x, float final_pos_y, cSprite_List sprite_list, bool stop_on_internal = 0 );
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

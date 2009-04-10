@@ -1,7 +1,7 @@
 /***************************************************************************
  * text_box.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2007 - 2008 Florian Richter
+ * Copyright (C) 2007 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,6 +19,9 @@
 #include "../core/globals.h"
 #include "../objects/box.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** *** *** *** cText_Box *** *** *** *** *** *** *** *** *** */
 
 class cText_Box : public cBaseBox
@@ -33,14 +36,13 @@ public:
 
 	// init defaults
 	void Init( void );
-
 	// copy
 	virtual cText_Box *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
+	virtual void Save_To_Stream( ofstream &file );
 
 	// Activate
 	virtual void Activate( void );
@@ -49,17 +51,19 @@ public:
 	virtual void Update( void );
 
 	// Set Text
-	void Set_Text( string str_text );
+	void Set_Text( const std::string &str_text );
 
 	// editor activation
 	virtual void Editor_Activate( void );
-	// editor text key up event
-	bool Editor_Text_Key( const CEGUI::EventArgs &event );
+	// editor text text changed event
+	bool Editor_Text_Text_Changed( const CEGUI::EventArgs &event );
 
 	// the text
-	string text;
+	std::string text;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

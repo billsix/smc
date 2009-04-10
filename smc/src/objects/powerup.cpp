@@ -1,7 +1,7 @@
 /***************************************************************************
  * powerup.cpp  -  powerup classes
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -18,22 +18,24 @@
 #include "../player/player.h"
 #include "../gui/hud.h"
 #include "../core/framerate.h"
-#include "../core/camera.h"
 #include "../video/animation.h"
 #include "../video/gl_surface.h"
 #include "../user/savegame.h"
 #include "../core/math/utilities.h"
 #include "../core/i18n.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** *** cPowerUp *** *** *** *** *** *** *** *** *** *** *** */
 
 cPowerUp :: cPowerUp( float x, float y )
 : cImageObjectSprite( x, y )
 {
-	sprite_array = ARRAY_ACTIVE;
-	massivetype = MASS_PASSIVE;
-	type = TYPE_POWERUP;
-	posz = 0.05f;
+	m_sprite_array = ARRAY_ACTIVE;
+	m_massive_type = MASS_PASSIVE;
+	m_type = TYPE_POWERUP;
+	m_pos_z = 0.05f;
 
 	counter = 0;
 }
@@ -43,17 +45,17 @@ cPowerUp :: ~cPowerUp( void )
 	//
 }
 
-void cPowerUp :: Load_from_Savegame( cSave_Level_Object *save_object )
+void cPowerUp :: Load_From_Savegame( cSave_Level_Object *save_object )
 {
-	// visible
-	bool save_visible = string_to_int( save_object->Get_Value( "visible" ) ) > 0;
-	Set_Visible( save_visible );
+	// active
+	bool save_visible = string_to_int( save_object->Get_Value( "active" ) ) > 0;
+	Set_Active( save_visible );
 }
 
-cSave_Level_Object *cPowerUp :: Save_to_Savegame( void )
+cSave_Level_Object *cPowerUp :: Save_To_Savegame( void )
 {
 	// only save if needed
-	if( visible )
+	if( m_active )
 	{
 		return NULL;
 	}
@@ -61,25 +63,25 @@ cSave_Level_Object *cPowerUp :: Save_to_Savegame( void )
 	cSave_Level_Object *save_object = new cSave_Level_Object();
 
 	// default values
-	save_object->type = type;
-	save_object->properties.push_back( cSave_Level_Object_Property( "posx", int_to_string( static_cast<int>(startposx) ) ) );
-	save_object->properties.push_back( cSave_Level_Object_Property( "posy", int_to_string( static_cast<int>(startposy) ) ) );
+	save_object->m_type = m_type;
+	save_object->m_properties.push_back( cSave_Level_Object_Property( "posx", int_to_string( static_cast<int>(m_start_pos_x) ) ) );
+	save_object->m_properties.push_back( cSave_Level_Object_Property( "posy", int_to_string( static_cast<int>(m_start_pos_y) ) ) );
 
 	// visible
-	save_object->properties.push_back( cSave_Level_Object_Property( "visible", int_to_string( visible ) ) );
+	save_object->m_properties.push_back( cSave_Level_Object_Property( "active", int_to_string( m_active ) ) );
 
 	return save_object;
 }
 
-void cPowerUp :: Draw( cSurfaceRequest *request /* = NULL */ )
+void cPowerUp :: Draw( cSurface_Request *request /* = NULL */ )
 {
-	if( !valid_draw )
+	if( !m_valid_draw )
 	{
 		return;
 	}
 
 	// don't draw in editor mode if spawned
-	if( spawned && editor_level_enabled )
+	if( m_spawned && editor_level_enabled )
 	{
 		return;
 	}
@@ -90,7 +92,7 @@ void cPowerUp :: Draw( cSurfaceRequest *request /* = NULL */ )
 bool cPowerUp :: Is_Update_Valid( void )
 {
 	// if not visible
-	if( !visible )
+	if( !m_active )
 	{
 		return 0;
 	}
@@ -98,56 +100,56 @@ bool cPowerUp :: Is_Update_Valid( void )
 	return 1;
 }
 
-unsigned int cPowerUp :: Validate_Collision( cSprite *obj )
+Col_Valid_Type cPowerUp :: Validate_Collision( cSprite *obj )
 {
 	// basic validation checking
-	int basic_valid = Validate_Collision_Ghost( obj );
+	Col_Valid_Type basic_valid = Validate_Collision_Ghost( obj );
 
 	// found valid collision
-	if( basic_valid > -1 )
+	if( basic_valid != COL_VTYPE_NO_GHOST )
 	{
 		return basic_valid;
 	}
 
-	if( obj->massivetype == MASS_MASSIVE )
+	if( obj->m_massive_type == MASS_MASSIVE )
 	{
-		if( obj->type == TYPE_PLAYER )
+		if( obj->m_type == TYPE_PLAYER )
 		{
-			return 0;
+			return COL_VTYPE_INTERNAL;
 		}
-		if( obj->sprite_array == ARRAY_ENEMY )
+		if( obj->m_sprite_array == ARRAY_ENEMY )
 		{
-			return 0;
+			return COL_VTYPE_NOT_VALID;
 		}
 		// don't collide with balls
-		if( obj->type == TYPE_BALL )
+		if( obj->m_type == TYPE_BALL )
 		{
-			return 0;
+			return COL_VTYPE_NOT_VALID;
 		}
 
-		return 2;
+		return COL_VTYPE_BLOCKING;
 	}
-	if( obj->massivetype == MASS_HALFMASSIVE )
+	if( obj->m_massive_type == MASS_HALFMASSIVE )
 	{
 		// if moving downwards and the object is on bottom
-		if( vely >= 0 && Is_on_Top( obj ) )
+		if( m_vely >= 0 && Is_On_Top( obj ) )
 		{
-			return 2;
+			return COL_VTYPE_BLOCKING;
 		}
 	}
 
-	return 0;
+	return COL_VTYPE_NOT_VALID;
 }
 
 void cPowerUp :: Handle_out_of_Level( ObjectDirection dir )
 {
 	if( dir == DIR_LEFT )
 	{
-		posx = pActive_Camera->limit_rect.x;
+		m_pos_x = pActive_Camera->limit_rect.m_x;
 	}
 	else if( dir == DIR_RIGHT )
 	{
-		posx = pActive_Camera->limit_rect.x + pActive_Camera->limit_rect.w - col_pos.x - col_rect.w - 0.01f;
+		m_pos_x = pActive_Camera->limit_rect.m_x + pActive_Camera->limit_rect.m_w - m_col_pos.m_x - m_col_rect.m_w - 0.01f;
 	}
 
 	Turn_Around( dir );
@@ -158,14 +160,14 @@ void cPowerUp :: Handle_out_of_Level( ObjectDirection dir )
 cMushroom :: cMushroom( float x, float y )
 : cPowerUp( x, y )
 {
-	Init();
+	cMushroom::Init();
 }
 
 cMushroom :: cMushroom( CEGUI::XMLAttributes &attributes )
 : cPowerUp()
 {
-	Init();
-	Create_from_Stream( attributes );
+	cMushroom::Init();
+	cMushroom::Create_From_Stream( attributes );
 }
 
 cMushroom :: ~cMushroom( void )
@@ -175,10 +177,10 @@ cMushroom :: ~cMushroom( void )
 
 void cMushroom :: Init( void )
 {
-	velx = 3;
-	player_range = 5000;
+	m_velx = 3;
+	m_player_range = 5000;
 
-	type = TYPE_UNDEFINED;
+	m_type = TYPE_UNDEFINED;
 	Set_Type( TYPE_MUSHROOM_DEFAULT );
 
 	Update_Direction();
@@ -188,21 +190,21 @@ void cMushroom :: Init( void )
 
 cMushroom *cMushroom :: Copy( void )
 {
-	cMushroom *mushroom = new cMushroom( startposx, startposy );
-	mushroom->Set_Type( type );
+	cMushroom *mushroom = new cMushroom( m_start_pos_x, m_start_pos_y );
+	mushroom->Set_Type( m_type );
 
 	return mushroom;
 }
 
-void cMushroom :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
+void cMushroom :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )) );
 	// type
-	Set_Type( (SpriteType)attributes.getValueAsInteger( "mushroom_type", TYPE_MUSHROOM_DEFAULT ) );
+	Set_Type( static_cast<SpriteType>(attributes.getValueAsInteger( "mushroom_type", TYPE_MUSHROOM_DEFAULT )) );
 }
 
-void cMushroom :: Save_to_Stream( ofstream &file )
+void cMushroom :: Save_To_Stream( ofstream &file )
 {
 	// begin item
 	file << "\t<item>" << std::endl;
@@ -210,10 +212,10 @@ void cMushroom :: Save_to_Stream( ofstream &file )
 	// type
 	file << "\t\t<Property name=\"type\" value=\"mushroom\" />" << std::endl;
 	// mushroom type
-	file << "\t\t<Property name=\"mushroom_type\" value=\"" << type << "\" />" << std::endl;
+	file << "\t\t<Property name=\"mushroom_type\" value=\"" << m_type << "\" />" << std::endl;
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(m_start_pos_x) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(m_start_pos_y) << "\" />" << std::endl;
 
 	// end item
 	file << "\t</item>" << std::endl;
@@ -222,7 +224,7 @@ void cMushroom :: Save_to_Stream( ofstream &file )
 void cMushroom :: Set_Type( SpriteType ntype )
 {
 	// already set
-	if( type == ntype )
+	if( m_type == ntype )
 	{
 		return;
 	}
@@ -232,28 +234,28 @@ void cMushroom :: Set_Type( SpriteType ntype )
 
 	if( ntype == TYPE_MUSHROOM_DEFAULT )
 	{
-		images.push_back( pVideo->Get_Surface( "game/items/mushroom_red.png" ) );
-		name = _("Mushroom Red");
+		m_images.push_back( pVideo->Get_Surface( "game/items/mushroom_red.png" ) );
+		m_name = _("Mushroom Red");
 	}
 	else if( ntype == TYPE_MUSHROOM_LIVE_1 )
 	{
-		images.push_back( pVideo->Get_Surface( "game/items/mushroom_green.png" ) );
-		name = _("Mushroom 1-UP");
+		m_images.push_back( pVideo->Get_Surface( "game/items/mushroom_green.png" ) );
+		m_name = _("Mushroom 1-UP");
 	}
 	else if( ntype == TYPE_MUSHROOM_POISON )
 	{
-		images.push_back( pVideo->Get_Surface( "game/items/mushroom_poison.png" ) );
-		name = _("Mushroom Poison");
+		m_images.push_back( pVideo->Get_Surface( "game/items/mushroom_poison.png" ) );
+		m_name = _("Mushroom Poison");
 	}
 	else if( ntype == TYPE_MUSHROOM_BLUE )
 	{
-		images.push_back( pVideo->Get_Surface( "game/items/mushroom_blue.png" ) );
-		name = _("Mushroom Blue");
+		m_images.push_back( pVideo->Get_Surface( "game/items/mushroom_blue.png" ) );
+		m_name = _("Mushroom Blue");
 	}
 	else if( ntype == TYPE_MUSHROOM_GHOST )
 	{
-		images.push_back( pVideo->Get_Surface( "game/items/mushroom_ghost.png" ) );
-		name = _("Mushroom Ghost");
+		m_images.push_back( pVideo->Get_Surface( "game/items/mushroom_ghost.png" ) );
+		m_name = _("Mushroom Ghost");
 	}
 	else
 	{
@@ -261,165 +263,172 @@ void cMushroom :: Set_Type( SpriteType ntype )
 		return;
 	}
 	
-	type = ntype;
+	m_type = ntype;
 	
-	Set_Image( 0, 1, 0 );
+	Set_Image_Num( 0, 1, 0 );
 }
 
 void cMushroom :: Activate( void )
 {
-	pPlayer->Get_Item( type );
+	if( !m_active )
+	{
+		return;
+	}
 
-	if( type == TYPE_MUSHROOM_DEFAULT )
+	pPlayer->Get_Item( m_type );
+
+	if( m_type == TYPE_MUSHROOM_DEFAULT )
 	{
-		pointsdisplay->Add_Points( 500, posx + image->w / 2, posy + 3 );
+		pHud_Points->Add_Points( 500, m_pos_x + (m_rect.m_w * 0.5f), m_pos_y + 3 );
 	}
-	else if( type == TYPE_MUSHROOM_LIVE_1 )
+	else if( m_type == TYPE_MUSHROOM_LIVE_1 )
 	{
-		pointsdisplay->Add_Points( 1000, posx + image->w / 2, posy + 3 );
+		pHud_Points->Add_Points( 1000, m_pos_x + (m_rect.m_w * 0.5f), m_pos_y + 3 );
 	}
-	else if( type == TYPE_MUSHROOM_POISON )
+	else if( m_type == TYPE_MUSHROOM_POISON )
 	{
 		// nothing
 	}
-	else if( type == TYPE_MUSHROOM_BLUE )
+	else if( m_type == TYPE_MUSHROOM_BLUE )
 	{
-		pointsdisplay->Add_Points( 700, posx + image->w / 2, posy + 3 );
+		pHud_Points->Add_Points( 700, m_pos_x + (m_rect.m_w * 0.5f), m_pos_y + 3 );
 	}
-	else if( type == TYPE_MUSHROOM_GHOST )
+	else if( m_type == TYPE_MUSHROOM_GHOST )
 	{
-		pointsdisplay->Add_Points( 800, posx + image->w / 2, posy + 3 );
+		pHud_Points->Add_Points( 800, m_pos_x + (m_rect.m_w * 0.5f), m_pos_y + 3 );
 	}
 
 	// if spawned destroy
-	if( spawned )
+	if( m_spawned )
 	{
 		Destroy();
 	}
 	// hide
 	else
 	{
-		Set_Visible( 0 );
+		Set_Active( 0 );
 	}
 }
 
 void cMushroom :: Update( void )
 {
-	if( !valid_update || !is_Player_range() )
+	if( !m_valid_update || !Is_In_Player_Range() )
 	{
 		return;
 	}
 
-	// Collision with Player
-	if( Col_Box( &col_rect, &pPlayer->col_rect ) )
+	if( !m_ground_object )
 	{
-		Activate();
-	}
-
-	if( !ground_object )
-	{
-		if( vely < 25 )
+		if( m_vely < 25 )
 		{
 			Add_Velocity( 0, 1.5f );
 		}
 	}
 	else
 	{
-		vely = 0;
+		m_vely = 0;
 	}
 
 	// particles
-	if( type == TYPE_MUSHROOM_LIVE_1 || type == TYPE_MUSHROOM_POISON )
+	if( m_type == TYPE_MUSHROOM_LIVE_1 || m_type == TYPE_MUSHROOM_BLUE )
 	{
-		counter += pFramerate->speedfactor;
+		counter += pFramerate->speedfactor * 0.8f;
 
 		while( counter > 1 )
 		{
-			// randomly generated
-			if( ( rand() % 3 ) == 0 )
+			cParticle_Emitter *anim = new cParticle_Emitter();
+			anim->Set_Pos( m_col_rect.m_x + Get_Random_Float( 0, m_col_rect.m_w ), m_col_rect.m_y + Get_Random_Float( 0, m_col_rect.m_h ) );
+			anim->Set_Pos_Z( m_pos_z - 0.000001f );
+			anim->Set_Direction_Range( 180, 180 );
+			anim->Set_Scale( 0.4f, 0.1f );
+			// 1-UP
+			if( m_type ==  TYPE_MUSHROOM_LIVE_1 )
 			{
-				cParticle_Emitter *anim = new cParticle_Emitter();
-				anim->Set_Pos( col_rect.x + Get_Random_Float( 0, col_rect.w ), col_rect.y + Get_Random_Float( 0, col_rect.h ) );
-				anim->Set_Direction_Range( 180, 180 );
-				anim->Set_Time_to_Live( 0.3f );
-				anim->Set_Scale( 0.6f, 0.1f );
-				// 1-UP
-				if( type ==  TYPE_MUSHROOM_LIVE_1 )
-				{
-					anim->Set_Color( Color( static_cast<Uint8>(rand() % 30), 100 + ( rand() % 150 ), rand() % 30 ) );
-					anim->Set_Speed( 0.5f, 0.5f );
-					anim->Set_Blending( BLEND_ADD );
-				}
-				// Poison
-				else if( type == TYPE_MUSHROOM_POISON )
-				{
-					anim->Set_Color( Color( static_cast<Uint8>( 120 + rand() % 30 ), 80 + ( rand() % 150 ), rand() % 30 ) );
-					anim->Set_Speed( 0.7f, 0.5f );
-				}
-				
-				anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
-
-				pAnimation_Manager->Add( anim );
+				anim->Set_Time_to_Live( 0.4f );
+				anim->Set_Color( Color( static_cast<Uint8>(rand() % 30), 100 + ( rand() % 150 ), rand() % 30 ) );
+				anim->Set_Speed( 0.5f, 0.5f );
+				anim->Set_Blending( BLEND_ADD );
 			}
+			// Ice
+			else if( m_type == TYPE_MUSHROOM_BLUE )
+			{
+				anim->Set_Time_to_Live( 0.6f );
+				anim->Set_Color( Color( static_cast<Uint8>(180 + ( rand() % 50 ) ), 180 + ( rand() % 50 ), 255, 128 ) );
+				anim->Set_Speed( 0.2f, 0.1f );
+			}
+			
+			anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
+
+			pAnimation_Manager->Add( anim );
 
 			counter--;
 		}
+
+		if( m_type == TYPE_MUSHROOM_BLUE )
+		{
+			// glimming
+			float new_glim = m_combine_color[2]; 
+
+			if( glim_mod )
+			{
+				new_glim += pFramerate->speedfactor * 0.02f;
+
+				if( new_glim > 0.5f )
+				{
+					new_glim = 1;
+					glim_mod = 0;
+				}
+			}
+			else
+			{
+				new_glim -= pFramerate->speedfactor * 0.02f;
+
+				if( new_glim < 0 )
+				{
+					new_glim = 0;
+					glim_mod = 1;
+				}
+			}
+
+			Set_Color_Combine( new_glim * 0.1f, new_glim * 0.1f, new_glim, GL_ADD );
+		}
 	}
-	else if( type == TYPE_MUSHROOM_BLUE )
+	// Poison
+	else if( m_type == TYPE_MUSHROOM_POISON )
 	{
 		// animation only if on ground
-		if( ground_object )
+		if( m_ground_object )
 		{
-			counter += pFramerate->speedfactor * 2;
-
+			counter += pFramerate->speedfactor * 0.7f;
 
 			while( counter > 1 )
 			{
-				// randomly generated
-				if( ( rand() % 3 ) == 0 )
-				{
-					cParticle_Emitter *anim = new cParticle_Emitter();
-					anim->Set_Pos( col_rect.x + col_rect.w * 0.3f + Get_Random_Float( 0, col_rect.w * 0.4f ), col_rect.y + col_rect.h * 0.72f + Get_Random_Float( 0, col_rect.h * 0.1f ) );
-					anim->Set_Time_to_Live( 1.4f, 1 );
-					anim->Set_Scale( 0.3f, 0.1f );
-					anim->Set_Color( Color( static_cast<Uint8>(100), 100, 255 ) );
-					anim->Set_Blending( BLEND_ADD );
-					anim->Set_Speed( 0, 0.01f );
-					anim->Set_Image( pVideo->Get_Surface( "animation/particles/ice_1.png" ) );
+				cParticle_Emitter *anim = new cParticle_Emitter();
+				anim->Set_Emitter_Rect( m_col_rect.m_x + (m_col_rect.m_w * 0.3f), m_col_rect.m_y + (m_col_rect.m_h * 0.91f), Get_Random_Float( 0, m_col_rect.m_w * 0.4f ), 0 );
+				anim->Set_Time_to_Live( 1.4f, 0.4f );
+				anim->Set_Scale( 0.7f, 0.2f );
+				anim->Set_Color( Color( static_cast<Uint8>( 120 + rand() % 40 ), 190 + ( rand() % 60 ), 0 + rand() % 10 ) );
+				anim->Set_Blending( BLEND_ADD );
+				anim->Set_Speed( 0.0f, 0.0f );
+				anim->Set_Image( pVideo->Get_Surface( "animation/particles/slime_1.png" ) );
 
-					pAnimation_Manager->Add( anim );
-				}
+				pAnimation_Manager->Add( anim );
 
 				counter--;
 			}
 		}
-
-		// glimming
-		float new_glim = combine_col[2]; 
-
-		if( glim_mod )
-		{
-			new_glim += pFramerate->speedfactor * 0.05f;
-
-			if( new_glim > 0.5f )
-			{
-				new_glim = 1;
-				glim_mod = 0;
-			}
-		}
-		else
-		{
-			new_glim -= pFramerate->speedfactor * 0.05f;
-
-			if( new_glim < 0 )
-			{
-				new_glim = 0;
-				glim_mod = 1;
-			}
-		}
-
-		Set_Color_Combine( new_glim * 0.1f, new_glim * 0.1f, new_glim, GL_ADD );
 	}
+}
+
+void cMushroom :: Handle_Collision_Player( cObjectCollision *collision )
+{
+	// invalid
+	if( collision->direction == DIR_UNDEFINED )
+	{
+		return;
+	}
+
+	Activate();
 }
 
 void cMushroom :: Handle_Collision_Massive( cObjectCollision *collision )
@@ -431,22 +440,22 @@ void cMushroom :: Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 
 {
 	if( cdirection == DIR_DOWN )
 	{
-		vely = -30;
+		m_vely = -30;
 
 		// left
-		if( posx > r2->x && velx < 0 )
+		if( m_pos_x > r2->m_x && m_velx < 0 )
 		{
 			Turn_Around( DIR_LEFT );
 		}
 		// right
-		else if( posx < r2->x && velx > 0 )
+		else if( m_pos_x < r2->m_x && m_velx > 0 )
 		{
 			Turn_Around( DIR_RIGHT );
 		}
 	}
 	else if( cdirection == DIR_LEFT || cdirection == DIR_RIGHT )
 	{
-		vely = -13;
+		m_vely = -13;
 		Turn_Around( cdirection );
 	}
 	// unsupported collision direction
@@ -463,16 +472,14 @@ void cMushroom :: Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 
 cFirePlant :: cFirePlant( float x, float y )
 : cPowerUp( x, y )
 {
-	type = TYPE_FIREPLANT;
-	can_be_on_ground = 0;
+	cFirePlant::Init();
+}
 
-	images.push_back( pVideo->Get_Surface( "game/items/fireplant.png" ) );
-	images.push_back( pVideo->Get_Surface( "game/items/fireplant_left.png" ) );
-	images.push_back( pVideo->Get_Surface( "game/items/fireplant_right.png" ) );
-
-	Set_Image( 0, 1, 0 );
-
-	name = _("Fireplant");
+cFirePlant :: cFirePlant( CEGUI::XMLAttributes &attributes )
+: cPowerUp()
+{
+	cFirePlant::Init();
+	cFirePlant::Create_From_Stream( attributes );
 }
 
 cFirePlant :: ~cFirePlant( void )
@@ -480,16 +487,76 @@ cFirePlant :: ~cFirePlant( void )
 	//
 }
 
+void cFirePlant :: Init( void )
+{
+	m_type = TYPE_FIREPLANT;
+	m_can_be_on_ground = 0;
+
+	m_images.push_back( pVideo->Get_Surface( "game/items/fireplant.png" ) );
+	m_images.push_back( pVideo->Get_Surface( "game/items/fireplant_left.png" ) );
+	m_images.push_back( pVideo->Get_Surface( "game/items/fireplant_right.png" ) );
+
+	Set_Image_Num( 0, 1, 0 );
+
+	m_name = _("Fireplant");
+
+	particle_counter = 0;
+}
+
 cFirePlant *cFirePlant :: Copy( void )
 {
-	cFirePlant *fireplant = new cFirePlant( startposx, startposy );
+	cFirePlant *fireplant = new cFirePlant( m_start_pos_x, m_start_pos_y );
 
 	return fireplant;
 }
 
+void cFirePlant :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
+{
+	// position
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
+}
+
+void cFirePlant :: Save_To_Stream( ofstream &file )
+{
+	// begin item
+	file << "\t<item>" << std::endl;
+
+	// type
+	file << "\t\t<Property name=\"type\" value=\"fireplant\" />" << std::endl;
+	// position
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(m_start_pos_x) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(m_start_pos_y) << "\" />" << std::endl;
+
+	// end item
+	file << "\t</item>" << std::endl;
+}
+
+void cFirePlant :: Activate( void )
+{
+	if( !m_active )
+	{
+		return;
+	}
+
+	pPlayer->Get_Item( TYPE_FIREPLANT );
+
+	pHud_Points->Add_Points( 700, m_pos_x + m_image->m_w / 2, m_pos_y );
+	
+	// if spawned destroy
+	if( m_spawned )
+	{
+		Destroy();
+	}
+	// hide
+	else
+	{
+		Set_Active( 0 );
+	}
+}
+
 void cFirePlant :: Update( void )
 {
-	if( !valid_update || !Is_Visible_on_Screen() )
+	if( !m_valid_update || !Is_Visible_On_Screen() )
 	{
 		return;
 	}
@@ -499,52 +566,66 @@ void cFirePlant :: Update( void )
 	if( counter > speedfactor_fps * 2.5f )
 	{
 		// if no direction image set
-		if( curr_img == 0 )
+		if( m_curr_img == 0 )
 		{
-			Set_Image( 1 + ( rand() % 2 ), 0, 0 );
+			Set_Image_Num( 1 + ( rand() % 2 ), 0, 0 );
 		}
 		// direction image is set
 		else
 		{
-			Set_Image( 0, 0, 0 );
+			Set_Image_Num( 0, 0, 0 );
 		}
 
 		counter = 0;
 	}
 
-	if( Col_Box( &col_rect, &pPlayer->col_rect ) )
-	{
-		pPlayer->Get_Item( TYPE_FIREPLANT );
+	// particle animation
+	particle_counter += pFramerate->speedfactor * 0.8f;
 
-		pointsdisplay->Add_Points( 700, posx + image->w / 2, posy );
+	while( particle_counter > 1 )
+	{
+		cParticle_Emitter *anim = new cParticle_Emitter();
+		anim->Set_Pos( m_col_rect.m_x + Get_Random_Float( 0, m_col_rect.m_w ), m_col_rect.m_y + Get_Random_Float( 0, m_col_rect.m_h * 0.5f ) );
+		anim->Set_Pos_Z( m_pos_z + 0.000001f );
+		anim->Set_Direction_Range( 180, 180 );
+		anim->Set_Scale( 0.4f, 0.1f );
+		anim->Set_Time_to_Live( 0.4f );
+		anim->Set_Color( Color( static_cast<Uint8>(255), 50 + ( rand() % 50 ), 0 ) );
+		anim->Set_Speed( 0.2f, 0.1f );
+		anim->Set_Blending( BLEND_ADD );
 		
-		// if spawned destroy
-		if( spawned )
-		{
-			Destroy();
-		}
-		// hide
-		else
-		{
-			Set_Visible( 0 );
-		}
+		anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
+
+		pAnimation_Manager->Add( anim );
+
+		particle_counter--;
 	}
 }
 
+void cFirePlant :: Handle_Collision_Player( cObjectCollision *collision )
+{
+	// invalid
+	if( collision->direction == DIR_UNDEFINED )
+	{
+		return;
+	}
+
+	Activate();
+}
 
 /* *** *** *** *** *** *** *** cMoon *** *** *** *** *** *** *** *** *** *** */
 
 cMoon :: cMoon( float x, float y )
 : cPowerUp( x, y )
 {
-	Init();
+	cMoon::Init();
 }
 
 cMoon :: cMoon( CEGUI::XMLAttributes &attributes )
 : cPowerUp()
 {
-	Init();
-	Create_from_Stream( attributes );
+	cMoon::Init();
+	cMoon::Create_From_Stream( attributes );
 }
 
 cMoon :: ~cMoon( void )
@@ -554,31 +635,31 @@ cMoon :: ~cMoon( void )
 
 void cMoon :: Init( void )
 {
-	type = TYPE_MOON;
-	can_be_on_ground = 0;
+	m_type = TYPE_MOON;
+	m_can_be_on_ground = 0;
 
-	images.push_back( pVideo->Get_Surface( "game/items/moon_1.png" ) );
-	images.push_back( pVideo->Get_Surface( "game/items/moon_2.png" ) );
+	m_images.push_back( pVideo->Get_Surface( "game/items/moon_1.png" ) );
+	m_images.push_back( pVideo->Get_Surface( "game/items/moon_2.png" ) );
 
-	Set_Image( 0, 1, 0 );
+	Set_Image_Num( 0, 1, 0 );
 
-	name = _("Moon (3-UP)");
+	m_name = _("Moon (3-UP)");
 }
 
 cMoon *cMoon :: Copy( void )
 {
-	cMoon *moon = new cMoon( startposx, startposy );
+	cMoon *moon = new cMoon( m_start_pos_x, m_start_pos_y );
 
 	return moon;
 }
 
-void cMoon :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
+void cMoon :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )) );
 }
 
-void cMoon :: Save_to_Stream( ofstream &file )
+void cMoon :: Save_To_Stream( ofstream &file )
 {
 	// begin item
 	file << "\t<item>" << std::endl;
@@ -586,16 +667,39 @@ void cMoon :: Save_to_Stream( ofstream &file )
 	// type
 	file << "\t\t<Property name=\"type\" value=\"moon\" />" << std::endl;
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(m_start_pos_x) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(m_start_pos_y) << "\" />" << std::endl;
 
 	// end item
 	file << "\t</item>" << std::endl;
 }
 
+void cMoon :: Activate( void )
+{
+	if( !m_active )
+	{
+		return;
+	}
+
+	pPlayer->Get_Item( TYPE_MOON );
+
+	pHud_Points->Add_Points( 4000, m_pos_x + m_image->m_w / 2, m_pos_y );
+
+	// if spawned destroy
+	if( m_spawned )
+	{
+		Destroy();
+	}
+	// hide
+	else
+	{
+		Set_Active( 0 );
+	}
+}
+
 void cMoon :: Update( void )
 {
-	if( !valid_update || !Is_Visible_on_Screen() )
+	if( !m_valid_update || !Is_Visible_On_Screen() )
 	{
 		return;
 	}
@@ -604,34 +708,16 @@ void cMoon :: Update( void )
 
 	if( counter > speedfactor_fps * 2.8f )
 	{
-		Set_Image( 1, 0, 0 );
+		Set_Image_Num( 1, 0, 0 );
 	}
 	else if( counter > 0 )
 	{
-		Set_Image( 0, 0, 0 );
+		Set_Image_Num( 0, 0, 0 );
 	}
 
 	if( counter > speedfactor_fps * 3.3f )
 	{
 		counter = 0;
-	}
-
-	if( Col_Box( &col_rect, &pPlayer->col_rect ) )
-	{
-		pPlayer->Get_Item( TYPE_MOON );
-
-		pointsdisplay->Add_Points( 4000, posx + image->w / 2, posy );
-
-		// if spawned destroy
-		if( spawned )
-		{
-			Destroy();
-		}
-		// hide
-		else
-		{
-			Set_Visible( 0 );
-		}
 	}
 
 	particle_counter += pFramerate->speedfactor;
@@ -642,7 +728,7 @@ void cMoon :: Update( void )
 		if( ( rand() % 5 ) == 0 )
 		{
 			cParticle_Emitter *anim = new cParticle_Emitter();
-			anim->Set_Pos( posx + 12 + ( rand() % 30 ), posy + 10 + ( rand() % 20 ) );
+			anim->Set_Pos( m_pos_x + 12 + ( rand() % 30 ), m_pos_y + 10 + ( rand() % 20 ) );
 			anim->Set_Speed( 0.2f, 0.2f );
 			anim->Set_Scale( 0.2f );
 			anim->Set_Time_to_Live( 0.3f );
@@ -655,3 +741,18 @@ void cMoon :: Update( void )
 		particle_counter = 0;
 	}
 }
+
+void cMoon :: Handle_Collision_Player( cObjectCollision *collision )
+{
+	// invalid
+	if( collision->direction == DIR_UNDEFINED )
+	{
+		return;
+	}
+
+	Activate();
+}
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

@@ -1,7 +1,7 @@
 /***************************************************************************
  * level_editor.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -18,6 +18,9 @@
 
 #include "../core/editor.h"
 #include "../level/level_settings.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** cEditor_Level *** *** *** *** *** *** *** *** *** *** */
 
@@ -49,7 +52,7 @@ public:
 	/* switch the object state of the given object
 	 * returns true if successful
 	*/
-	bool Switch_Object_State( cSprite *obj );
+	bool Switch_Object_State( cSprite *obj ) const;
 
 	// Menu functions
 	virtual bool Function_New( void );
@@ -71,5 +74,7 @@ public:
 extern cEditor_Level *pLevel_Editor;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

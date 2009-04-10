@@ -1,7 +1,7 @@
 /***************************************************************************
  * spika.cpp  -  spika, spiked waiting enemy
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -22,6 +22,11 @@
 #include "../core/sprite_manager.h"
 #include "../core/i18n.h"
 #include "../enemies/bosses/turtle_boss.h"
+// CEGUI
+#include "CEGUIXMLAttributes.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** cSpika *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -35,7 +40,7 @@ cSpika :: cSpika( CEGUI::XMLAttributes &attributes )
 : cEnemy()
 {
 	cSpika::Init();
-	cSpika::Create_from_Stream( attributes );
+	cSpika::Create_From_Stream( attributes );
 }
 
 cSpika :: ~cSpika( void )
@@ -45,8 +50,8 @@ cSpika :: ~cSpika( void )
 
 void cSpika :: Init( void )
 {
-	type = TYPE_SPIKA;
-	posz = 0.09f;
+	m_type = TYPE_SPIKA;
+	m_pos_z = 0.09f;
 
 	color_type = COL_DEFAULT;
 	speed = 0;
@@ -57,13 +62,13 @@ void cSpika :: Init( void )
 
 cSpika *cSpika :: Copy( void )
 {
-	cSpika *spika = new cSpika( startposx, startposy );
+	cSpika *spika = new cSpika( m_start_pos_x, m_start_pos_y );
 	spika->Set_Color( color_type );
 
 	return spika;
 }
 
-void cSpika :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
+void cSpika :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
@@ -71,7 +76,7 @@ void cSpika :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 	Set_Color( static_cast<DefaultColor>(Get_Color_Id( attributes.getValueAsString( "color", Get_Color_Name( color_type ) ).c_str() )) );
 }
 
-void cSpika :: Save_to_Stream( ofstream &file )
+void cSpika :: Save_To_Stream( ofstream &file )
 {
 	// begin enemy
 	file << "\t<enemy>" << std::endl;
@@ -79,8 +84,8 @@ void cSpika :: Save_to_Stream( ofstream &file )
 	// name
 	file << "\t\t<Property name=\"type\" value=\"spika\" />" << std::endl;
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(m_start_pos_x) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(m_start_pos_y) << "\" />" << std::endl;
 	// color
 	file << "\t\t<Property name=\"color\" value=\"" << Get_Color_Name( color_type ) << "\" />" << std::endl;
 
@@ -103,7 +108,7 @@ void cSpika :: Set_Color( DefaultColor col )
 
 	if( color_type == COL_ORANGE )
 	{
-		images.push_back( pVideo->Get_Surface( "enemy/spika/orange.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "enemy/spika/orange.png" ) );
 
 		speed = 3;
 		detection_size = 160;
@@ -113,7 +118,7 @@ void cSpika :: Set_Color( DefaultColor col )
 	}
 	else if( color_type == COL_GREEN )
 	{
-		images.push_back( pVideo->Get_Surface( "enemy/spika/green.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "enemy/spika/green.png" ) );
 
 		speed = 4;
 		detection_size = 220;
@@ -123,7 +128,7 @@ void cSpika :: Set_Color( DefaultColor col )
 	}
 	else if( color_type == COL_GREY )
 	{
-		images.push_back( pVideo->Get_Surface( "enemy/spika/grey.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "enemy/spika/grey.png" ) );
 
 		speed = 7;
 		detection_size = 330;
@@ -136,19 +141,19 @@ void cSpika :: Set_Color( DefaultColor col )
 		printf( "Error : Unknown Spika Color %d\n", color_type );
 	}
 
-	Set_Image( 0, 1 );
+	Set_Image_Num( 0, 1 );
 
-	name = "Spika ";
-	name += _(Get_Color_Name( color_type ).c_str());
+	m_name = "Spika ";
+	m_name += _(Get_Color_Name( color_type ).c_str());
 }
 
 void cSpika :: DownGrade( bool force /* = 0 */ )
 {
 	Set_Dead( 1 );
-	massivetype = MASS_PASSIVE;
+	m_massive_type = MASS_PASSIVE;
 	counter = 0;
-	velx = 0;
-	vely = 0;
+	m_velx = 0;
+	m_vely = 0;
 	Set_Scale_Directions( 1, 1, 1, 1 );
 
 	// default stomp death
@@ -175,7 +180,7 @@ void cSpika :: DieStep( void )
 		Move( 0, -5 );
 	}
 	// if not below the screen fall
-	else if( posy < game_res_h + col_rect.h )
+	else if( m_pos_y < game_res_h + m_col_rect.m_h )
 	{
 		Move( 0, 20 );
 
@@ -184,9 +189,9 @@ void cSpika :: DieStep( void )
 	// if below disable
 	else
 	{
-		rotz = 0;
+		m_rot_z = 0;
 		Set_Scale( 1 );
-		Set_Visible( 0 );
+		Set_Active( 0 );
 	}
 }
 
@@ -194,59 +199,59 @@ void cSpika :: Update( void )
 {
 	cEnemy::Update();
 
-	if( !valid_update || !is_Player_range() )
+	if( !m_valid_update || !Is_In_Player_Range() )
 	{
 		return;
 	}
 
 	// update rotation
-	if( velx != 0 )
+	if( m_velx != 0 )
 	{
-		Add_Rotation_Z( ( velx / ( image->w * 0.01f ) ) * pFramerate->speedfactor );
+		Add_Rotation_Z( ( m_velx / ( m_image->m_w * 0.01f ) ) * pFramerate->speedfactor );
 	}
 
 	// check for player
-	GL_rect player_rect = pPlayer->col_rect;
-	player_rect.x += ( pPlayer->col_rect.w / 2 );
-	player_rect.w = 1;
+	GL_rect player_rect = pPlayer->m_col_rect;
+	player_rect.m_x += ( pPlayer->m_col_rect.m_w / 2 );
+	player_rect.m_w = 1;
 
 	// rect
-	GL_rect rect_left = col_rect;
-	rect_left.y -= 10;
-	rect_left.h += 10;
+	GL_rect rect_left = m_col_rect;
+	rect_left.m_y -= 10;
+	rect_left.m_h += 10;
 
 	GL_rect rect_right = rect_left;
 	// left
-	rect_left.x -= detection_size + ( col_rect.w / 2 );
-	rect_left.w += detection_size;
+	rect_left.m_x -= detection_size + ( m_col_rect.m_w / 2 );
+	rect_left.m_w += detection_size;
 	// right
-	rect_right.x -= col_rect.w / 2;
-	rect_right.w += detection_size;
+	rect_right.m_x -= m_col_rect.m_w / 2;
+	rect_right.m_w += detection_size;
 
 
 	// if player is left
-	if( pPlayer->maryo_type != MARYO_GHOST && Col_Box( &player_rect, &rect_left ) )
+	if( pPlayer->maryo_type != MARYO_GHOST && player_rect.Intersects( rect_left ) )
 	{
-		if( velx > -speed )
+		if( m_velx > -speed )
 		{
-			velx -= speed * 0.1f * pFramerate->speedfactor;
+			m_velx -= speed * 0.1f * pFramerate->speedfactor;
 
-			if( velx < -speed )
+			if( m_velx < -speed )
 			{
-				velx = -speed;
+				m_velx = -speed;
 			}
 		}
 	}
 	// if player is right
-	else if( pPlayer->maryo_type != MARYO_GHOST && Col_Box( &player_rect, &rect_right ) )
+	else if( pPlayer->maryo_type != MARYO_GHOST && player_rect.Intersects( rect_right ) )
 	{
-		if( velx < speed )
+		if( m_velx < speed )
 		{
-			velx += speed * 0.1f * pFramerate->speedfactor;
+			m_velx += speed * 0.1f * pFramerate->speedfactor;
 
-			if( velx > speed )
+			if( m_velx > speed )
 			{
-				velx = speed;
+				m_velx = speed;
 			}
 		}
 	}
@@ -254,15 +259,15 @@ void cSpika :: Update( void )
 	else
 	{
 		// slow down
-		velx -= velx * 0.03f * pFramerate->speedfactor;
+		m_velx -= (m_velx * 0.03f) * pFramerate->speedfactor;
 	}
 
 	// play walking sound based on speed
-	if( walk_count < rotz - 30 || walk_count > rotz + 30 )
+	if( walk_count < m_rot_z - 30 || walk_count > m_rot_z + 30 )
 	{
 		pAudio->Play_Sound( "enemy/spika/move.ogg" );
 
-		walk_count = rotz;
+		walk_count = m_rot_z;
 	}
 
 	// gravity
@@ -271,7 +276,7 @@ void cSpika :: Update( void )
 
 bool cSpika :: Is_Update_Valid( void )
 {
-	if( dead || freeze_counter )
+	if( dead || m_freeze_counter )
 	{
 		return 0;
 	}
@@ -279,65 +284,69 @@ bool cSpika :: Is_Update_Valid( void )
 	return 1;
 }
 
-unsigned int cSpika :: Validate_Collision( cSprite *obj )
+Col_Valid_Type cSpika :: Validate_Collision( cSprite *obj )
 {
 	// basic validation checking
-	int basic_valid = Validate_Collision_Ghost( obj );
+	Col_Valid_Type basic_valid = Validate_Collision_Ghost( obj );
 
 	// found valid collision
-	if( basic_valid > -1 )
+	if( basic_valid != COL_VTYPE_NO_GHOST )
 	{
 		return basic_valid;
 	}
 
-	if( obj->massivetype == MASS_MASSIVE )
+	if( obj->m_massive_type == MASS_MASSIVE )
 	{
-		if( obj->type == TYPE_ROKKO )
+		if( obj->m_type == TYPE_ROKKO )
 		{
-			return 0;
+			return COL_VTYPE_NOT_VALID;
 		}
-		if( obj->type == TYPE_GEE )
+		if( obj->m_type == TYPE_GEE )
 		{
-			return 0;
+			return COL_VTYPE_NOT_VALID;
 		}
-		if( obj->type == TYPE_TURTLE_BOSS )
+		if( obj->m_type == TYPE_TURTLE_BOSS )
 		{
-			return 0;
+			return COL_VTYPE_NOT_VALID;
 		}
-		if( obj->type == TYPE_STATIC_ENEMY )
+		if( obj->m_type == TYPE_FURBALL_BOSS )
 		{
-			return 0;
+			return COL_VTYPE_NOT_VALID;
+		}
+		if( obj->m_type == TYPE_STATIC_ENEMY )
+		{
+			return COL_VTYPE_NOT_VALID;
 		}
 
-		if( obj->sprite_array == ARRAY_ENEMY )
+		if( obj->m_sprite_array == ARRAY_ENEMY )
 		{
 			// if moving collide
-			if( velx != 0 )
+			if( m_velx != 0 )
 			{
 				// if enemy is spika and more powerful
-				if( obj->type == TYPE_SPIKA && speed < static_cast<cSpika *>(obj)->speed )
+				if( obj->m_type == TYPE_SPIKA && speed < static_cast<cSpika *>(obj)->speed )
 				{
-					return 2;
+					return COL_VTYPE_BLOCKING;
 				}
 
-				return 1;
+				return COL_VTYPE_INTERNAL;
 			}
 
-			return 0;
+			return COL_VTYPE_NOT_VALID;
 		}
 
-		return 2;
+		return COL_VTYPE_BLOCKING;
 	}
-	if( obj->massivetype == MASS_HALFMASSIVE )
+	if( obj->m_massive_type == MASS_HALFMASSIVE )
 	{
 		// if moving downwards and the object is on bottom
-		if( vely >= 0 && Is_on_Top( obj ) )
+		if( m_vely >= 0 && Is_On_Top( obj ) )
 		{
-			return 2;
+			return COL_VTYPE_BLOCKING;
 		}
 	}
 
-	return 0;
+	return COL_VTYPE_NOT_VALID;
 }
 
 void cSpika :: Handle_Collision_Player( cObjectCollision *collision )
@@ -346,7 +355,7 @@ void cSpika :: Handle_Collision_Player( cObjectCollision *collision )
 
 	if( collision->direction == DIR_LEFT || collision->direction == DIR_RIGHT )
 	{
-		velx = 0;
+		m_velx = 0;
 	}
 }
 
@@ -359,7 +368,7 @@ void cSpika :: Handle_Collision_Enemy( cObjectCollision *collision )
 	}
 
 	// only if moving
-	if( !velx )
+	if( !m_velx )
 	{
 		return;
 	}
@@ -373,7 +382,7 @@ void cSpika :: Handle_Collision_Enemy( cObjectCollision *collision )
 	}
 
 	// check spika power
-	if( enemy->type == TYPE_SPIKA )
+	if( enemy->m_type == TYPE_SPIKA )
 	{
 		cSpika *spika = static_cast<cSpika *>(enemy);
 
@@ -386,7 +395,7 @@ void cSpika :: Handle_Collision_Enemy( cObjectCollision *collision )
 	}
 
 	// state change for turtle boss
-	if( enemy->type == TYPE_TURTLE_BOSS )
+	if( enemy->m_type == TYPE_TURTLE_BOSS )
 	{
 		// todo : remove hackiness and implement a better generic downgrade handler
 		cTurtleBoss *turtle_boss = static_cast<cTurtleBoss *>(enemy);
@@ -400,11 +409,18 @@ void cSpika :: Handle_Collision_Enemy( cObjectCollision *collision )
 		// turtle kills spika
 		DownGrade( 1 );
 	}
+	// state change for furball boss
+	else if( enemy->m_type == TYPE_FURBALL_BOSS )
+	{
+		enemy->DownGrade();
+		// kills spika
+		DownGrade( 1 );
+	}
 	// kill enemy
 	else
 	{
 		pAudio->Play_Sound( enemy->kill_sound );
-		pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", static_cast<Uint8>(255), 1 );
+		pHud_Points->Add_Points( enemy->kill_points, m_pos_x + m_image->m_w / 3, m_pos_y - 5, "", static_cast<Uint8>(255), 1 );
 		enemy->DownGrade( 1 );
 	}
 }
@@ -413,7 +429,7 @@ void cSpika :: Handle_Collision_Massive( cObjectCollision *collision )
 {
 	if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
 	{
-		velx = 0;
+		m_velx = 0;
 	}
 
 	Send_Collision( collision );
@@ -423,17 +439,17 @@ void cSpika :: Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 )
 {
 	if( cdirection == DIR_DOWN )
 	{
-		vely = -10;
+		m_vely = -10;
 
 		// left
-		if( posx > r2->x )
+		if( m_pos_x > r2->m_x )
 		{
-			velx += 10;
+			m_velx += 10;
 		}
 		// right
-		else if( posx < r2->x )
+		else if( m_pos_x < r2->m_x )
 		{
-			velx -= 10;
+			m_velx -= 10;
 		}
 	}
 	// unsupported collision direction
@@ -444,3 +460,7 @@ void cSpika :: Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 )
 
 	Reset_on_Ground();
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

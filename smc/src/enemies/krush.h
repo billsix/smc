@@ -1,7 +1,7 @@
 /***************************************************************************
  * krush.h  -  headers for the corresponding cpp file
  *
- * Copyright (C) 2004 - 2008 Florian Richter
+ * Copyright (C) 2004 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -18,13 +18,16 @@
 
 #include "../enemies/enemy.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** Krush states *** *** *** *** *** *** *** *** *** *** *** *** */
 
 enum Krush_state
 {
 	KRUSH_DEAD		= 0,
 	KRUSH_WALK		= 1,
-	KRUSH_SMALL		= 2,
+	KRUSH_SMALL		= 2
 };
 
 /* *** *** *** *** *** cKrush *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -50,17 +53,17 @@ public:
 	virtual cKrush *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
+	virtual void Save_To_Stream( ofstream &file );
 
 	// load from savegame
-	virtual void Load_from_Savegame( cSave_Level_Object *save_object );
+	virtual void Load_From_Savegame( cSave_Level_Object *save_object );
 	// save to savegame
-	virtual cSave_Level_Object *Save_to_Savegame( void );
+	virtual cSave_Level_Object *Save_To_Savegame( void );
 
 	// Set Direction
-	void Set_Direction( ObjectDirection dir );
+	void Set_Direction( const ObjectDirection dir );
 
 	/* downgrade state ( if already weakest state : dies )
 	 * force : usually dies or a complete downgrade
@@ -75,10 +78,11 @@ public:
 	virtual bool Is_Update_Valid( void );
 
 	/* Validate the given collision object
+	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-	virtual unsigned int Validate_Collision( cSprite *obj );
+	virtual Col_Valid_Type Validate_Collision( cSprite *obj );
 	// collision from player
 	virtual void Handle_Collision_Player( cObjectCollision *collision );
 	// collision from an enemy
@@ -94,10 +98,12 @@ public:
 	// Krush state
 	Krush_state krush_state;
 
-	// speed
-	float speed;
+	// speed when small
+	float m_small_speed;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

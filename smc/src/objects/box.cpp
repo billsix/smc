@@ -1,7 +1,7 @@
 /***************************************************************************
  * box.cpp  -  class for the basic box handler
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,7 +19,6 @@
 #include "../core/framerate.h"
 #include "../level/level.h"
 #include "../core/game_core.h"
-#include "../video/animation.h"
 #include "../player/player.h"
 #include "../video/gl_surface.h"
 #include "../user/savegame.h"
@@ -28,16 +27,21 @@
 #include "../core/i18n.h"
 #include "../enemies/turtle.h"
 #include "../enemies/bosses/turtle_boss.h"
+// CEGUI
+#include "CEGUIXMLAttributes.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** cBaseBox *** *** *** *** *** *** *** *** *** */
 
 cBaseBox :: cBaseBox( float x /* = 0 */, float y /* = 0 */ )
 : cImageObjectSprite( x, y )
 {
-	type = TYPE_ACTIVESPRITE;
-	sprite_array = ARRAY_ACTIVE;
-	massivetype = MASS_MASSIVE;
-	can_be_ground = 1;
+	m_type = TYPE_ACTIVESPRITE;
+	m_sprite_array = ARRAY_ACTIVE;
+	m_massive_type = MASS_MASSIVE;
+	m_can_be_ground = 1;
 	Set_Scale_Directions( 1, 1, 1, 1 );
 
 	counter = 0;
@@ -45,7 +49,7 @@ cBaseBox :: cBaseBox( float x /* = 0 */, float y /* = 0 */ )
 	anim_counter_max = 0;
 	box_type = TYPE_UNDEFINED;
 	item_image = NULL;
-	posz = 0.055f;
+	m_pos_z = 0.055f;
 
 	move_col_dir = DIR_UNDEFINED;
 	move_counter = 0;
@@ -64,7 +68,7 @@ cBaseBox :: ~cBaseBox( void )
 	//
 }
 
-void cBaseBox :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
+void cBaseBox :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
@@ -79,11 +83,11 @@ void cBaseBox :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 	Set_Useable_Count( attributes.getValueAsInteger( "useable_count", start_useable_count ), 1 );
 }
 
-void cBaseBox :: Save_to_Stream( ofstream &file )
+void cBaseBox :: Save_To_Stream( ofstream &file )
 {
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(m_start_pos_x) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(m_start_pos_y) << "\" />" << std::endl;
 	// type
 	if( box_type == TYPE_SPINBOX )
 	{
@@ -107,14 +111,14 @@ void cBaseBox :: Save_to_Stream( ofstream &file )
 	file << "\t\t<Property name=\"useable_count\" value=\"" << start_useable_count << "\" />" << std::endl;
 }
 
-void cBaseBox :: Load_from_Savegame( cSave_Level_Object *save_object )
+void cBaseBox :: Load_From_Savegame( cSave_Level_Object *save_object )
 {
 	// useable count
 	int save_useable_count = string_to_int( save_object->Get_Value( "useable_count" ) );
 	Set_Useable_Count( save_useable_count );
 }
 
-cSave_Level_Object *cBaseBox :: Save_to_Savegame( void )
+cSave_Level_Object *cBaseBox :: Save_To_Savegame( void )
 {
 	// only save if needed
 	if( useable_count == start_useable_count )
@@ -125,17 +129,17 @@ cSave_Level_Object *cBaseBox :: Save_to_Savegame( void )
 	cSave_Level_Object *save_object = new cSave_Level_Object();
 
 	// default values
-	save_object->type = type;
-	save_object->properties.push_back( cSave_Level_Object_Property( "posx", int_to_string( static_cast<int>(startposx) ) ) );
-	save_object->properties.push_back( cSave_Level_Object_Property( "posy", int_to_string( static_cast<int>(startposy) ) ) );
+	save_object->m_type = m_type;
+	save_object->m_properties.push_back( cSave_Level_Object_Property( "posx", int_to_string( static_cast<int>(m_start_pos_x) ) ) );
+	save_object->m_properties.push_back( cSave_Level_Object_Property( "posy", int_to_string( static_cast<int>(m_start_pos_y) ) ) );
 
 	// Useable Count
-	save_object->properties.push_back( cSave_Level_Object_Property( "useable_count", int_to_string( useable_count ) ) );
+	save_object->m_properties.push_back( cSave_Level_Object_Property( "useable_count", int_to_string( useable_count ) ) );
 
 	return save_object;
 }
 
-void cBaseBox :: Set_Animation( string new_anim_type )
+void cBaseBox :: Set_Animation( const std::string &new_anim_type )
 {
 	// already set
 	if( anim_type.compare( new_anim_type ) == 0 )
@@ -149,14 +153,14 @@ void cBaseBox :: Set_Animation( string new_anim_type )
 	if( anim_type.compare( "Bonus" ) == 0 )
 	{
 		// disabled image
-		images.push_back( pVideo->Get_Surface( "game/box/brown1_1.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "game/box/brown1_1.png" ) );
 		// animation images
-		images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/1.png" ) );
-		images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/2.png" ) );
-		images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/3.png" ) );
-		images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/4.png" ) );
-		images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/5.png" ) );
-		images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/6.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/1.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/2.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/3.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/4.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/5.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/6.png" ) );
 
 		anim_counter_min = 1;
 		anim_counter_max = 6;
@@ -164,9 +168,9 @@ void cBaseBox :: Set_Animation( string new_anim_type )
 	else if( anim_type.compare( "Default" ) == 0 )
 	{
 		// disabled image
-		images.push_back( pVideo->Get_Surface( "game/box/brown1_1.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "game/box/brown1_1.png" ) );
 		// default
-		images.push_back( pVideo->Get_Surface( "game/box/yellow/default.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/default.png" ) );
 
 		anim_counter_min = 1;
 		anim_counter_max = 1;
@@ -174,9 +178,9 @@ void cBaseBox :: Set_Animation( string new_anim_type )
 	else if( anim_type.compare( "Power" ) == 0 )
 	{
 		// disabled image
-		images.push_back( pVideo->Get_Surface( "game/box/brown1_1.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "game/box/brown1_1.png" ) );
 		// default
-		images.push_back( pVideo->Get_Surface( "game/box/yellow/power_1.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/power_1.png" ) );
 
 		anim_counter_min = 1;
 		anim_counter_max = 1;
@@ -184,14 +188,14 @@ void cBaseBox :: Set_Animation( string new_anim_type )
 	else if( anim_type.compare( "Spin" ) == 0 )
 	{
 		// disabled image
-		images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/disabled.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/disabled.png" ) );
 		// animation images
-		images.push_back( pVideo->Get_Surface( "game/box/yellow/default.png" ) );
-		images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/1.png" ) );
-		images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/2.png" ) );
-		images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/3.png" ) );
-		images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/4.png" ) );
-		images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/5.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/default.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/1.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/2.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/3.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/4.png" ) );
+		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/5.png" ) );
 
 		anim_counter_min = 1;
 		anim_counter_max = 6;
@@ -202,23 +206,32 @@ void cBaseBox :: Set_Animation( string new_anim_type )
 		Set_Animation( "Bonus" );
 	}
 
-	counter = static_cast<float>(anim_counter_min);
-	Set_Image( static_cast<int>(counter), 1, 0 );
+	// set start image
+	Set_Image_Num( anim_counter_min, 1, 0 );
+
+	// if counter is over the new maximum
+	if( counter > anim_counter_max )
+	{
+		counter = static_cast<float>(anim_counter_max);
+	}
+
+	// set current image
+	Set_Image_Num( static_cast<int>(counter) );
 }
 
 void cBaseBox :: Set_Useable_Count( int count, bool new_startcount /* = 0 */ )
 {
-	// unlimited
-	if( count < -1 )
-	{
-		count = -1;
-	}
-
 	useable_count = count;
 
 	if( new_startcount )
 	{
 		start_useable_count = useable_count;
+
+		// unlimited
+		if( start_useable_count < -1 )
+		{
+			start_useable_count = -1;
+		}
 	}
 }
 
@@ -238,12 +251,10 @@ void cBaseBox :: Set_Invisible( Box_Invisible_Type type )
 	// was invisible
 	if( type_old == BOX_INVISIBLE_MASSIVE || type_old == BOX_INVISIBLE_SEMI_MASSIVE )
 	{
-		Set_Image( static_cast<int>(counter), 1, 0 );
-
 		// was semi massive
 		if( type_old == BOX_INVISIBLE_SEMI_MASSIVE )
 		{
-			massivetype = MASS_MASSIVE;
+			m_massive_type = MASS_MASSIVE;
 		}
 	}
 	// was ghost
@@ -254,22 +265,12 @@ void cBaseBox :: Set_Invisible( Box_Invisible_Type type )
 	}
 
 	// got invisible
-	if( type == BOX_INVISIBLE_MASSIVE || type == BOX_INVISIBLE_SEMI_MASSIVE)
+	if( type == BOX_INVISIBLE_MASSIVE || type == BOX_INVISIBLE_SEMI_MASSIVE )
 	{
-		Set_Image( -1, 1, 0 );
-
-		col_pos = images[0]->col_pos;
-		col_rect.w = images[0]->col_w;
-		col_rect.h = images[0]->col_h;
-		rect.w = images[0]->w;
-		rect.h = images[0]->h;
-		start_rect.w = images[0]->w;
-		start_rect.h = images[0]->h;
-
 		// got semi massive
 		if( type == BOX_INVISIBLE_SEMI_MASSIVE )
 		{
-			massivetype = MASS_PASSIVE;
+			m_massive_type = MASS_PASSIVE;
 		}
 	}
 	// got ghost
@@ -300,12 +301,10 @@ void cBaseBox :: Activate_Collision( ObjectDirection cdirection )
 	// if invisible go visible
 	if( box_invisible )
 	{
-		Set_Image( static_cast<int>(counter), 0, 0 );
-
 		// get massive
 		if( box_invisible == BOX_INVISIBLE_SEMI_MASSIVE )
 		{
-			massivetype = MASS_MASSIVE;
+			m_massive_type = MASS_MASSIVE;
 		}
 	}
 
@@ -335,7 +334,7 @@ void cBaseBox :: Activate_Collision( ObjectDirection cdirection )
 	Activate();
 
 	// set useable count
-	if( useable_count > 0 )
+	if( useable_count > 0 || useable_count == -1 )
 	{
 		Set_Useable_Count( useable_count - 1 );
 	}
@@ -394,12 +393,12 @@ void cBaseBox :: Update_Collision( void )
 			move_counter = 0;
 
 			// reset rect
-			col_pos = image->col_pos;
+			m_col_pos = m_image->m_col_pos;
 			// reset scale
 			Set_Scale( 1 );
 			Set_Scale_Directions( 1, 1, 1, 1 );
 			// reset position
-			Set_Pos( startposx, startposy );
+			Set_Pos( m_start_pos_x, m_start_pos_y );
 		}
 	}
 }
@@ -429,32 +428,31 @@ void cBaseBox :: Check_Collision( ObjectDirection cdirection )
 	}
 
 	// collision count
-	unsigned int col_count = Collision_Check_Relative( check_x, check_y, col_rect.w - ( check_x * 0.5f ), col_rect.h - ( check_y * 0.5f ) ).size();
+	cObjectCollisionType *col_list = Collision_Check_Relative( check_x, check_y, m_col_rect.m_w - ( check_x * 0.5f ), m_col_rect.m_h - ( check_y * 0.5f ) );
 
 	// handle collisions
-	for( unsigned int i = 0; i < col_count; i++ )
+	for( cObjectCollision_List::iterator itr = col_list->objects.begin(), itr_end = col_list->objects.end(); itr != itr_end; ++itr )
 	{
-		cObjectCollision *col = Collision_Get_last();
-		cSprite *col_obj = pActive_Sprite_Manager->Get_Pointer( col->number );
+		cObjectCollision *col_obj = (*itr);
 
 		// send box collision
-		col_obj->Handle_Collision_Box( Get_Opposite_Direction( col->direction ), &col_rect );
+		col_obj->obj->Handle_Collision_Box( Get_Opposite_Direction( col_obj->direction ), &m_col_rect );
 
 		// Enemy collision
-		if( col->type == CO_ENEMY )
+		if( col_obj->m_array == ARRAY_ENEMY )
 		{
-			Col_Enemy( col_obj );
+			Col_Enemy( col_obj->obj );
 		}
-
-		Collision_Delete( col );
 	}
+
+	delete col_list;
 }
 
 void cBaseBox :: Col_Enemy( cSprite *obj )
 {
 	// todo : handle this on enemy class Handle_Collision_Box()
 	// only valid enemies
-	if( obj->type == TYPE_FURBALL || obj->type == TYPE_TURTLE || obj->type == TYPE_KRUSH )
+	if( obj->m_type == TYPE_FURBALL || obj->m_type == TYPE_TURTLE || obj->m_type == TYPE_KRUSH )
 	{
 		pAudio->Play_Sound( "death_box.ogg" );
 		static_cast<cMovingSprite *>(obj)->DownGrade( 1 );
@@ -468,11 +466,11 @@ void cBaseBox :: Activate( void )
 
 void cBaseBox :: Update( void )
 {
-	// animate visible box only or an activated invisible box
-	if( !box_invisible || image )
+	// animate only a visible box or an activated invisible box
+	if( box_invisible == BOX_VISIBLE || ( box_invisible == BOX_GHOST && pPlayer->maryo_type == MARYO_GHOST ) || useable_count != start_useable_count )
 	{
 		// Spinbox uses anim_counter for animation handling
-		if( ( type == TYPE_SPINBOX || useable_count != 0 ) && anim_counter_min != anim_counter_max )
+		if( ( m_type == TYPE_SPINBOX || useable_count != 0 ) && anim_counter_min != anim_counter_max )
 		{
 			counter += pFramerate->speedfactor * 0.4f;
 
@@ -482,21 +480,21 @@ void cBaseBox :: Update( void )
 			}
 
 			// Set_Image overwrites col_pos
-			GL_point col_pos_temp = col_pos;
+			GL_point col_pos_temp = m_col_pos;
 
-			Set_Image( static_cast<int>(counter) );
+			Set_Image_Num( static_cast<int>(counter) );
 
 			// save col_pos
-			col_pos = col_pos_temp;
+			m_col_pos = col_pos_temp;
 		}
 	}
 
 	Update_Collision();
 }
 
-void cBaseBox :: Draw( cSurfaceRequest *request /* = NULL */ )
+void cBaseBox :: Draw( cSurface_Request *request /* = NULL */ )
 {
-	if( !valid_draw )
+	if( !m_valid_draw )
 	{
 		return;
 	}
@@ -505,7 +503,10 @@ void cBaseBox :: Draw( cSurfaceRequest *request /* = NULL */ )
 	if( !editor_level_enabled )
 	{
 		// visible box or activated invisible box
-		cImageObjectSprite::Draw( request );
+		if( box_invisible == BOX_VISIBLE || ( box_invisible == BOX_GHOST && pPlayer->maryo_type == MARYO_GHOST ) || useable_count != start_useable_count )
+		{
+			cImageObjectSprite::Draw( request );
+		}
 	}
 	// editor enabled
 	else
@@ -531,7 +532,7 @@ void cBaseBox :: Draw( cSurfaceRequest *request /* = NULL */ )
 				color = Color( static_cast<Uint8>(180), 0, 10, 128 );
 			}
 
-			pVideo->Draw_Rect( startposx - pActive_Camera->x, startposy - pActive_Camera->y, rect.w, rect.h, posz, &color );
+			pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->x, m_start_pos_y - pActive_Camera->y, m_rect.m_w, m_rect.m_h, m_pos_z, &color );
 		}
 		// visible box
 		else
@@ -543,7 +544,7 @@ void cBaseBox :: Draw( cSurfaceRequest *request /* = NULL */ )
 		if( item_image )
 		{
 			// auto position
-			item_image->Blit( startposx - ( ( item_image->w - rect.w ) / 2 ) - pActive_Camera->x, startposy - ( ( item_image->h - rect.h ) / 2 ) - pActive_Camera->y, posz + 0.000003f );
+			item_image->Blit( m_start_pos_x - ( ( item_image->m_w - m_rect.m_w ) / 2 ) - pActive_Camera->x, m_start_pos_y - ( ( item_image->m_h - m_rect.m_h ) / 2 ) - pActive_Camera->y, m_pos_z + 0.000003f );
 		}
 	}
 }
@@ -551,7 +552,7 @@ void cBaseBox :: Draw( cSurfaceRequest *request /* = NULL */ )
 void cBaseBox :: Generate_Activation_Particles( void )
 {
 	// no default/unimportant boxes
-	if( type == TYPE_SPINBOX || type == TYPE_TEXT_BOX || box_type == TYPE_GOLDPIECE )
+	if( m_type == TYPE_SPINBOX || m_type == TYPE_TEXT_BOX || box_type == TYPE_GOLDPIECE )
 	{
 		return;
 	}
@@ -561,7 +562,8 @@ void cBaseBox :: Generate_Activation_Particles( void )
 	while( particle_counter_active > 0 )
 	{
 		cParticle_Emitter *anim = new cParticle_Emitter();
-		anim->Set_Pos( posx + Get_Random_Float( 0, rect.w ), posy );
+		anim->Set_Pos( m_pos_x + Get_Random_Float( 0, m_rect.m_w ), m_pos_y );
+		anim->Set_Pos_Z( m_pos_z - 0.000001f );
 		anim->Set_Direction_Range( 180, 180 );
 		anim->Set_Speed( 3.1f, 0.5f );
 		anim->Set_Scale( 0.7f, 0.1f );
@@ -615,8 +617,8 @@ bool cBaseBox :: Is_Update_Valid( void )
 		return 0;
 	}
 
-	// if not visible
-	if( !visible )
+	// if not active
+	if( !m_active )
 	{
 		return 0;
 	}
@@ -629,8 +631,8 @@ bool cBaseBox :: Is_Draw_Valid( void )
 	// if editor not enabled
 	if( !editor_enabled )
 	{
-		// not visible
-		if( !visible || !image )
+		// if not active or no image is set
+		if( !m_active || !m_image )
 		{
 			return 0;
 		}
@@ -649,20 +651,20 @@ bool cBaseBox :: Is_Draw_Valid( void )
 	else
 	{
 		// if destroyed
-		if( destroy )
+		if( m_auto_destroy )
 		{
 			return 0;
 		}
 
 		// no image
-		if( !start_image && !box_invisible )
+		if( !m_start_image && !box_invisible )
 		{
 			return 0;
 		}
 	}
 
 	// not visible on the screen
-	if( !Is_Visible_on_Screen() )
+	if( !Is_Visible_On_Screen() )
 	{
 		return 0;
 	}
@@ -670,34 +672,34 @@ bool cBaseBox :: Is_Draw_Valid( void )
 	return 1;
 }
 
-unsigned int cBaseBox :: Validate_Collision( cSprite *obj )
+Col_Valid_Type cBaseBox :: Validate_Collision( cSprite *obj )
 {
-	if( obj->massivetype == MASS_MASSIVE )
+	if( obj->m_massive_type == MASS_MASSIVE )
 	{
-		return 2;
+		return COL_VTYPE_BLOCKING;
 	}
 	// items
-	if( obj->type == TYPE_MUSHROOM_LIVE_1 || obj->type == TYPE_MUSHROOM_DEFAULT || obj->type == TYPE_MUSHROOM_POISON 
-		|| obj->type == TYPE_MUSHROOM_BLUE || obj->type == TYPE_MUSHROOM_GHOST || obj->type == TYPE_FGOLDPIECE )
+	if( obj->m_type == TYPE_MUSHROOM_LIVE_1 || obj->m_type == TYPE_MUSHROOM_DEFAULT || obj->m_type == TYPE_MUSHROOM_POISON 
+		|| obj->m_type == TYPE_MUSHROOM_BLUE || obj->m_type == TYPE_MUSHROOM_GHOST || obj->m_type == TYPE_FGOLDPIECE )
 	{
-		return 2;
+		return COL_VTYPE_BLOCKING;
 	}
-	if( obj->massivetype == MASS_HALFMASSIVE )
+	if( obj->m_massive_type == MASS_HALFMASSIVE )
 	{
 		// if moving downwards and the object is on bottom
-		if( vely >= 0 && Is_on_Top( obj ) )
+		if( m_vely >= 0 && Is_On_Top( obj ) )
 		{
-			return 2;
+			return COL_VTYPE_BLOCKING;
 		}
 	}
 
-	return 0;
+	return COL_VTYPE_NOT_VALID;
 }
 
 void cBaseBox :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// if player jumps from below or fly's against it
-	if( collision->direction == DIR_BOTTOM && pPlayer->state != STA_FLY )
+	if( collision->direction == DIR_BOTTOM && pPlayer->m_state != STA_FLY )
 	{
 		if( useable_count != 0 )
 		{
@@ -705,9 +707,9 @@ void cBaseBox :: Handle_Collision_Player( cObjectCollision *collision )
 		}
 		else
 		{
-			if( Is_Visible_on_Screen() )
+			if( Is_Visible_On_Screen() )
 			{
-				pAudio->Play_Sound( "tock.ogg" );
+				pAudio->Play_Sound( "wall_hit.wav", RID_MARYO_WALL_HIT );
 			}
 		}
 	}
@@ -718,7 +720,7 @@ void cBaseBox :: Handle_Collision_Enemy( cObjectCollision *collision )
 	cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
 
 	// if turtle
-	if( enemy->type == TYPE_TURTLE )
+	if( enemy->m_type == TYPE_TURTLE )
 	{
 		cTurtle *turtle = static_cast<cTurtle *>(enemy);
 
@@ -729,7 +731,7 @@ void cBaseBox :: Handle_Collision_Enemy( cObjectCollision *collision )
 		}
 	}
 	// if turtle boss
-	else if( enemy->type == TYPE_TURTLE_BOSS )
+	else if( enemy->m_type == TYPE_TURTLE_BOSS )
 	{
 		cTurtleBoss *turtleboss = static_cast<cTurtleBoss *>(enemy);
 
@@ -747,15 +749,15 @@ void cBaseBox :: Handle_Collision_Enemy( cObjectCollision *collision )
 
 	if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT || collision->direction == DIR_BOTTOM )
 	{
-		if( useable_count != 0 && type != TYPE_TEXT_BOX )
+		if( useable_count != 0 && m_type != TYPE_TEXT_BOX )
 		{
 			Activate_Collision( Get_Opposite_Direction( collision->direction ) );
 		}
 		else
 		{
-			if( Is_Visible_on_Screen() )
+			if( Is_Visible_On_Screen() )
 			{
-				pAudio->Play_Sound( "tock.ogg" );
+				pAudio->Play_Sound( "wall_hit.wav" );
 			}
 		}
 	}
@@ -766,14 +768,14 @@ void cBaseBox :: Editor_Activate( void )
 {
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
-	if( type != TYPE_TEXT_BOX )
+	if( m_type != TYPE_TEXT_BOX )
 	{
 		// useable count
 		CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_basebox_useable_count" ));
 		Editor_Add( UTF8_("Useable Count"), UTF8_("Useable Count"), editbox, 80 );
 
 		editbox->setText( int_to_string( start_useable_count ) );
-		editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cBaseBox::Editor_Useable_Count_Key, this ) );
+		editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cBaseBox::Editor_Useable_Count_Text_Changed, this ) );
 	}
 
 	// Invisible
@@ -804,17 +806,17 @@ void cBaseBox :: Editor_Activate( void )
 
 	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cBaseBox::Editor_Invisible_Select, this ) );
 
-	if( type == TYPE_SPINBOX )
+	if( m_type == TYPE_SPINBOX )
 	{
 		// init
 		Editor_Init();
 	}
 }
 
-bool cBaseBox :: Editor_Useable_Count_Key( const CEGUI::EventArgs &event )
+bool cBaseBox :: Editor_Useable_Count_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Useable_Count( string_to_int( str_text ), 1 );
 
@@ -850,67 +852,71 @@ void cBaseBox :: Create_Name( void )
 {
 	if( box_type == TYPE_UNDEFINED )
 	{
-		name = _("Box Empty");
+		m_name = _("Box Empty");
 	}
 	else if( box_type == TYPE_POWERUP )
 	{
-		name = _("Box Random");
+		m_name = _("Box Random");
 	}
 	else if( box_type == TYPE_SPINBOX )
 	{
-		name = _("Spinbox");
+		m_name = _("Spinbox");
 	}
 	else if( box_type == TYPE_TEXT_BOX )
 	{
-		name = _("Textbox");
+		m_name = _("Textbox");
 	}
 	else if( box_type == TYPE_MUSHROOM_DEFAULT )
 	{
-		name = _("Box Mushroom");
+		m_name = _("Box Mushroom");
 	}
 	else if( box_type == TYPE_FIREPLANT )
 	{
-		name = _("Box Mushroom - Fireplant");
+		m_name = _("Box Mushroom - Fireplant");
 	}
 	else if( box_type == TYPE_MUSHROOM_BLUE )
 	{
-		name = _("Box Mushroom - Blue Mushroom");
+		m_name = _("Box Mushroom - Blue Mushroom");
 	}
 	else if( box_type == TYPE_MUSHROOM_GHOST )
 	{
-		name = _("Box Mushroom - Ghost Mushroom");
+		m_name = _("Box Mushroom - Ghost Mushroom");
 	}
 	else if( box_type == TYPE_MUSHROOM_LIVE_1 )
 	{
-		name = _("Box 1-UP");
+		m_name = _("Box 1-UP");
 	}
 	else if( box_type == TYPE_JSTAR )
 	{
-		name = _("Box Star");
+		m_name = _("Box Star");
 	}
 	else if( box_type == TYPE_GOLDPIECE )
 	{
-		name = _("Box Goldpiece");
+		m_name = _("Box Goldpiece");
 	}
 	else if( box_type == TYPE_MUSHROOM_POISON )
 	{
-		name = _("Box Mushroom Poison");
+		m_name = _("Box Mushroom Poison");
 	}
 	else
 	{
-		name = _("Box Unknown Item Type");
+		m_name = _("Box Unknown Item Type");
 	}
 
 	if( box_invisible == BOX_INVISIBLE_MASSIVE )
 	{
-		name.insert( 0, _("Invisible ") );
+		m_name.insert( 0, _("Invisible ") );
 	}
 	else if( box_invisible == BOX_GHOST )
 	{
-		name.insert( 0, _("Ghost ") );
+		m_name.insert( 0, _("Ghost ") );
 	}
 	else if( box_invisible == BOX_INVISIBLE_SEMI_MASSIVE )
 	{
-		name.insert( 0, _("Invisible Semi Massive") );
+		m_name.insert( 0, _("Invisible Semi Massive ") );
 	}
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

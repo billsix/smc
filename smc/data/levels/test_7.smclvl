@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.6" />
+		<Property name="game_version" value="1.7" />
 		<Property name="engine_version" value="2.8" />
-		<Property name="save_time" value="1222449409" />
+		<Property name="save_time" value="1230263124" />
 	</information>
 	<settings>
-		<Property name="lvl_author" value="" />
-		<Property name="lvl_version" value="" />
+		<Property name="lvl_author" value="SMC Team" />
+		<Property name="lvl_version" value="1.5" />
 		<Property name="lvl_music" value="land/land_5.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
@@ -6264,6 +6264,7 @@
 	<level_entry>
 		<Property name="posx" value="488" />
 		<Property name="posy" value="-514" />
+		<Property name="type" value="1" />
 		<Property name="direction" value="up" />
 		<Property name="name" value="one" />
 	</level_entry>

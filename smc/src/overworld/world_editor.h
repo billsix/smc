@@ -1,7 +1,7 @@
 /***************************************************************************
  * world_editor.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2007 - 2008 Florian Richter
+ * Copyright (C) 2007 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -17,6 +17,9 @@
 #define SMC_WORLD_EDITOR_H
 
 #include "../core/editor.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** cEditor_World *** *** *** *** *** *** *** *** *** *** */
 
@@ -60,5 +63,7 @@ public:
 extern cEditor_World *pWorld_Editor;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

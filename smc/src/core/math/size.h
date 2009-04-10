@@ -1,7 +1,7 @@
 /***************************************************************************
  * size.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2008 Florian Richter
+ * Copyright (C) 2008 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -16,7 +16,10 @@
 #ifndef SMC_SIZE_H
 #define SMC_SIZE_H
 
-#include "../../core/globals.h"
+#include "../../core/global_game.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** cSize_Int *** *** *** *** *** *** *** *** *** *** */
 
@@ -26,11 +29,19 @@ class cSize_Int
 public:
 	cSize_Int( void )
 	{ m_width = 0; m_height = 0; }
+
 	cSize_Int( int width, int height)
 	: m_width( width ), m_height( height ) {}
 
-	bool operator == ( const cSize_Int& other ) const;
-	bool operator != ( const cSize_Int& other ) const;
+	inline bool operator == ( const cSize_Int &other ) const
+	{
+		return ( m_width == other.m_width ) && ( m_height == other.m_height ); 
+	}
+
+	inline bool operator != ( const cSize_Int &other ) const
+	{
+		return ( m_width != other.m_width ) || ( m_height != other.m_height ); 
+	}
 
 	int m_width, m_height;
 };
@@ -43,13 +54,25 @@ class cSize_Float
 public:
 	cSize_Float( void )
 	{ m_width = 0; m_height = 0; }
+
 	cSize_Float( float width, float height)
 	: m_width( width ), m_height( height ) {}
 
-	bool operator == ( const cSize_Float& other ) const;
-	bool operator != ( const cSize_Float& other ) const;
+	inline bool operator == ( const cSize_Float &other ) const
+	{
+		return Is_Float_Equal( m_width, other.m_width ) && Is_Float_Equal( m_height, other.m_height ); 
+	}
+
+	inline bool operator != ( const cSize_Float &other ) const
+	{
+		return !Is_Float_Equal( m_width, other.m_width ) || !Is_Float_Equal( m_height, other.m_height ); 
+	}
 
 	float m_width, m_height;
 };
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

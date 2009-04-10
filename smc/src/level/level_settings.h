@@ -1,7 +1,7 @@
 /***************************************************************************
  * level_settings.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -18,6 +18,9 @@
 
 #include "../core/globals.h"
 #include "../gui/hud.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** Level Settings *** *** *** *** *** *** *** *** *** *** */
 class cLevel_Settings
@@ -59,7 +62,7 @@ public:
 	void Load_BG_Image_List( void );
 
 	// Set the Background image preview
-	void Set_Background_Image_Preview( string filename );
+	void Set_Background_Image_Preview( std::string filename );
 	// Updates the Background image
 	bool Update_BG_Image( const CEGUI::EventArgs &event );
 	// Clears the background Layer fields
@@ -68,7 +71,7 @@ public:
 	// Loads the global effect data
 	void Load_Global_Effect( void );
 	// Set the global effect image preview
-	void Set_Global_Effect_Image_Preview( string filename );
+	void Set_Global_Effect_Image_Preview( std::string filename );
 	// Updates the global effect image
 	bool Update_Global_Effect_Image( const CEGUI::EventArgs &event );
 
@@ -92,5 +95,7 @@ public:
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

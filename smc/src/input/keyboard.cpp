@@ -1,7 +1,7 @@
 /***************************************************************************
  * keyboard.cpp  -  keyboard handling class
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -14,7 +14,6 @@
 */
 
 #include "../core/game_core.h"
-#include "../core/main.h"
 #include "../input/keyboard.h"
 #include "../input/mouse.h"
 #include "../input/joystick.h"
@@ -26,8 +25,10 @@
 #include "../level/level.h"
 #include "../user/preferences.h"
 #include "../level/level_editor.h"
-#include "../level/level_settings.h"
 #include "../overworld/world_editor.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** cKeyboard *** *** *** *** *** *** *** *** *** */
 
@@ -47,7 +48,7 @@ void cKeyboard :: Reset_Keys( void )
 	memset( keys, 0, sizeof( keys ) );
 }
 
-bool cKeyboard :: CEGUI_Handle_Key_Up( SDLKey key )
+bool cKeyboard :: CEGUI_Handle_Key_Up( SDLKey key ) const
 {
 	// inject the scancode directly
 	if( pGuiSystem->injectKeyUp( SDLKey_to_CEGUIKey( key ) ) )
@@ -91,7 +92,7 @@ bool cKeyboard :: Key_Up( SDLKey key )
 	return 0;
 }
 
-bool cKeyboard :: CEGUI_Handle_Key_Down( SDLKey key )
+bool cKeyboard :: CEGUI_Handle_Key_Down( SDLKey key ) const
 {
 	// inject the scancode
 	if( pGuiSystem->injectKeyDown( SDLKey_to_CEGUIKey( key ) ) == 1 )
@@ -206,13 +207,13 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		if( fixed_speedfactor <= 0 )
 		{
 			pFramerate->Set_Fixed_Speedfacor( 0 );
-			debugdisplay->Set_Text( "Fixed Speedfactor disabled" );
+			pHud_Debug->Set_Text( "Fixed Speedfactor disabled" );
 		}
 		// enable fixed speedfactor mode
 		else
 		{
 			pFramerate->Set_Fixed_Speedfacor( fixed_speedfactor );
-			debugdisplay->Set_Text( "Fixed Speedfactor enabled" );
+			pHud_Debug->Set_Text( "Fixed Speedfactor enabled" );
 		}
 	}
 	// take a screenshot
@@ -242,13 +243,13 @@ bool cKeyboard :: Key_Down( SDLKey key )
 	{
 		pAudio->Toggle_Sounds();
 
-		if( !pAudio->sound_enabled )
+		if( !pAudio->m_sound_enabled )
 		{
-			debugdisplay->Set_Text( "Sound Disabled" );
+			pHud_Debug->Set_Text( "Sound Disabled" );
 		}
 		else
 		{
-			debugdisplay->Set_Text( "Sound Enabled" );
+			pHud_Debug->Set_Text( "Sound Enabled" );
 		}
 	}
 	// music toggle
@@ -256,13 +257,13 @@ bool cKeyboard :: Key_Down( SDLKey key )
 	{
 		pAudio->Toggle_Music();
 
-		if( !pAudio->music_enabled )
+		if( !pAudio->m_music_enabled )
 		{
-			debugdisplay->Set_Text( "Music Disabled" );
+			pHud_Debug->Set_Text( "Music Disabled" );
 		}
 		else
 		{
-			debugdisplay->Set_Text( "Music Enabled" );
+			pHud_Debug->Set_Text( "Music Enabled" );
 		}
 	}
 	// debug mode
@@ -270,13 +271,13 @@ bool cKeyboard :: Key_Down( SDLKey key )
 	{
 		if( game_debug )
 		{
-			debugdisplay->Set_Text( "Debug mode disabled" );
+			pHud_Debug->Set_Text( "Debug mode disabled" );
 		}
 		else
 		{
 			pFramerate->fps_worst = 1000;
 			pFramerate->fps_best = 0;
-			debugdisplay->Set_Text( "Debug mode enabled" );
+			pHud_Debug->Set_Text( "Debug mode enabled" );
 		}
 
 		game_debug = !game_debug;
@@ -286,13 +287,13 @@ bool cKeyboard :: Key_Down( SDLKey key )
 	{
 		if( game_debug_performance )
 		{
-			debugdisplay->Set_Text( "Performance debug mode disabled" );
+			pHud_Debug->Set_Text( "Performance debug mode disabled" );
 		}
 		else
 		{
 			pFramerate->fps_worst = 1000;
 			pFramerate->fps_best = 0;
-			debugdisplay->Set_Text( "Performance debug mode  enabled" );
+			pHud_Debug->Set_Text( "Performance debug mode  enabled" );
 		}
 
 		game_debug_performance = !game_debug_performance;
@@ -301,7 +302,7 @@ bool cKeyboard :: Key_Down( SDLKey key )
 	return 0;
 }
 
-SDLKey *cKeyboard :: Get_Shortcut( input_identifier shortcut_id )
+SDLKey *cKeyboard :: Get_Shortcut( const input_identifier shortcut_id ) const
 {
 	if( shortcut_id == INP_UP )
 	{
@@ -335,13 +336,13 @@ SDLKey *cKeyboard :: Get_Shortcut( input_identifier shortcut_id )
 	return NULL;
 }
 
-void cKeyboard :: Assign_Shortcut( input_identifier shortcut_id, SDLKey new_key )
+void cKeyboard :: Assign_Shortcut( const input_identifier shortcut_id, SDLKey new_key )
 {
 	SDLKey *key = Get_Shortcut( shortcut_id );
 	*key = new_key;
 }
 
-unsigned int cKeyboard :: SDLKey_to_CEGUIKey( SDLKey key )
+unsigned int cKeyboard :: SDLKey_to_CEGUIKey( const SDLKey key ) const
 {
     switch( key )
     {
@@ -459,3 +460,7 @@ unsigned int cKeyboard :: SDLKey_to_CEGUIKey( SDLKey key )
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cKeyboard *pKeyboard = NULL;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

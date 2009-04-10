@@ -1,7 +1,7 @@
 /***************************************************************************
  * animation.cpp  -  Animation and Particle classes
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -20,19 +20,24 @@
 #include "../video/renderer.h"
 #include "../core/math/utilities.h"
 #include "../core/i18n.h"
+// CEGUI
+#include "CEGUIXMLAttributes.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** Base Animation class *** *** *** *** *** *** *** *** *** *** */
 
 cAnimation :: cAnimation( float x /* = 0 */, float y /* = 0 */ )
 : cImageObjectSprite( x, y )
 {
-	sprite_array = ARRAY_ANIM;
-	type = TYPE_ACTIVESPRITE;
-	massivetype = MASS_PASSIVE;
-	spawned = 1;
-	can_be_on_ground = 0;
+	m_sprite_array = ARRAY_ANIM;
+	m_type = TYPE_ACTIVESPRITE;
+	m_massive_type = MASS_PASSIVE;
+	m_spawned = 1;
+	m_can_be_on_ground = 0;
 
-	posz = 0.07000f;
+	m_pos_z = 0.07000f;
 	posz_rand = 0;
 	time_to_live = 0;
 	time_to_live_rand = 0;
@@ -56,7 +61,7 @@ void cAnimation :: Update( void )
 	// virtual
 }
 
-void cAnimation :: Draw( cSurfaceRequest *request /* = NULL */ )
+void cAnimation :: Draw( cSurface_Request *request /* = NULL */ )
 {
 }
 
@@ -79,7 +84,7 @@ void cAnimation :: Set_Fading_Speed( float speed )
 
 void cAnimation :: Set_Pos_Z( float pos, float pos_rand /* = 0 */ )
 {
-	posz = pos;
+	m_pos_z = pos;
 	posz_rand = pos_rand;
 }
 
@@ -90,15 +95,12 @@ cAnimation_Goldpiece :: cAnimation_Goldpiece( float posx, float posy, float heig
 {
 	animtype = BLINKING_POINTS;
 
-	images.push_back( pVideo->Get_Surface( "animation/light_1/1.png" ) );
-	images.push_back( pVideo->Get_Surface( "animation/light_1/2.png" ) );
-	images.push_back( pVideo->Get_Surface( "animation/light_1/3.png" ) );
+	m_images.push_back( pVideo->Get_Surface( "animation/light_1/1.png" ) );
+	m_images.push_back( pVideo->Get_Surface( "animation/light_1/2.png" ) );
+	m_images.push_back( pVideo->Get_Surface( "animation/light_1/3.png" ) );
 
-	for( unsigned int i = 0; i < 4; i++ )
-	{
-		cSprite *obj = new cSprite( NULL, Get_Random_Float( 0, width ), Get_Random_Float( 0, height ) );
-		objects.push_back( obj );
-	}
+	m_rect.m_w = width;
+	m_rect.m_h = height;
 }
 
 cAnimation_Goldpiece :: ~cAnimation_Goldpiece( void )
@@ -112,32 +114,52 @@ cAnimation_Goldpiece :: ~cAnimation_Goldpiece( void )
 	objects.clear();
 }
 
+void cAnimation_Goldpiece :: Init_Anim( void )
+{
+	for( unsigned int i = 0; i < 4; i++ )
+	{
+		cSprite *obj = new cSprite( m_images[0], m_pos_x + Get_Random_Float( 0.0f, m_rect.m_w ), m_pos_y + Get_Random_Float( 0.0f, m_rect.m_h ) );
+		obj->m_pos_z = m_pos_z;
+		obj->Set_Scale_X( m_scale_x, 1 );
+		obj->Set_Scale_Y( m_scale_y, 1 );
+		obj->Set_Color( m_color );
+		obj->Set_Color_Combine( m_combine_color[0], m_combine_color[1], m_combine_color[2], m_combine_type );
+
+		objects.push_back( obj );
+	}
+}
+
 void cAnimation_Goldpiece :: Update( void )
 {
 	time_to_live += pFramerate->speedfactor * fading_speed;
 
+	unsigned int count = 0;
+
 	// update the fixed points
-	for( unsigned int i = 0; i < objects.size(); i++ )
+	for( BlinkPointList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
-		switch( i ) 
+		// get object
+		cSprite *obj = (*itr);
+
+		switch( count ) 
 		{
 		case 0:
 		{
 			if( time_to_live < 3 )
 			{
-				Set_Image( 0 );
+				obj->Set_Image( m_images[0] );
 			}
 			else if( time_to_live < 6 )
 			{
-				Set_Image( 0 );
+				obj->Set_Image( m_images[0] );
 			}
 			else if( time_to_live < 9 )
 			{
-				Set_Image( 1 );
+				obj->Set_Image( m_images[1] );
 			}
 			else if( time_to_live < 12 )
 			{
-				Set_Image( 0 );
+				obj->Set_Image( m_images[0] );
 			}
 			break;
 		}
@@ -145,19 +167,19 @@ void cAnimation_Goldpiece :: Update( void )
 		{
 			if( time_to_live < 3 )
 			{
-				Set_Image( 0 );
+				obj->Set_Image( m_images[0] );
 			}
 			else if( time_to_live < 6 )
 			{
-				Set_Image( 1 );
+				obj->Set_Image( m_images[1] );
 			}
 			else if( time_to_live < 9 )
 			{
-				Set_Image( 2 );
+				obj->Set_Image( m_images[2] );
 			}
 			else if( time_to_live < 12 )
 			{
-				Set_Image( 1 );
+				obj->Set_Image( m_images[1] );
 			}
 			break;
 		}
@@ -165,19 +187,19 @@ void cAnimation_Goldpiece :: Update( void )
 		{
 			if( time_to_live < 3 )
 			{
-				Set_Image( 1 );
+				obj->Set_Image( m_images[1] );
 			}
 			else if( time_to_live < 6 )
 			{
-				Set_Image( 2 );
+				obj->Set_Image( m_images[2] );
 			}
 			else if( time_to_live < 9 )
 			{
-				Set_Image( 0 );
+				obj->Set_Image( m_images[0] );
 			}
 			else if( time_to_live < 12 )
 			{
-				Set_Image( -1 );
+				obj->Set_Image( m_images[0] );
 			}
 			break;			
 		}
@@ -185,19 +207,19 @@ void cAnimation_Goldpiece :: Update( void )
 		{
 			if( time_to_live < 3 )
 			{
-				Set_Image( 0 );
+				obj->Set_Image( m_images[0] );
 			}
 			else if( time_to_live < 6 )
 			{
-				Set_Image( 1 );
+				obj->Set_Image( m_images[1] );
 			}
 			else if( time_to_live < 9 )
 			{
-				Set_Image( 0 );
+				obj->Set_Image( m_images[0] );
 			}
 			else if( time_to_live < 12 )
 			{
-				Set_Image( 0 );
+				obj->Set_Image( m_images[0] );
 			}
 			break;
 		}
@@ -207,46 +229,30 @@ void cAnimation_Goldpiece :: Update( void )
 		}
 		}
 
-		objects[i]->Set_Scale( 1.1f - ( time_to_live / 12 ) );
+		obj->Set_Scale( 1.1f - ( time_to_live / 12 ) );
+		count++;
 	}
 }
 
-void cAnimation_Goldpiece :: Draw( cSurfaceRequest *request /* = NULL */ )
+void cAnimation_Goldpiece :: Draw( cSurface_Request *request /* = NULL */ )
 {
-	if( !visible )
+	if( !m_active )
 	{
-		return;
-	}
-
-	if( !image )
-	{
-		Set_Visible( 0 );
 		return;
 	}
 
 	// draw the fixed points
 	for( BlinkPointList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
+		// get object
 		cSprite *obj = (*itr);
 
-		// create request
-		cSurfaceRequest *request = new cSurfaceRequest();
-		image->Blit( obj->posx - ( pActive_Camera->x - posx ), obj->posy - ( pActive_Camera->y - posy ), posz, request );
-
-		// scale
-		request->scale_x = obj->scalex;
-		request->scale_y = obj->scaley;
-
-		// color
-		request->color = color;
-
-		// add request
-		pRenderer->Add( request );
+		obj->Draw();
 	}
 	
 	if( time_to_live > 11 || time_to_live < 0 )
 	{
-		Set_Visible( 0 );
+		Set_Active( 0 );
 	}
 }
 
@@ -283,21 +289,21 @@ void cAnimation_Fireball :: Init_Anim( void )
 		cAnimation_Fireball_Item *obj = (*itr);
 
 		// images
-		obj->images.push_back( pVideo->Get_Surface( "animation/fire_1/4.png" ) );
-		obj->images.push_back( pVideo->Get_Surface( "animation/fire_1/3.png" ) );
-		obj->images.push_back( pVideo->Get_Surface( "animation/fire_1/2.png" ) );
-		obj->images.push_back( pVideo->Get_Surface( "animation/fire_1/1.png" ) );
-		obj->Set_Image( 0 );
+		obj->m_images.push_back( pVideo->Get_Surface( "animation/fire_1/4.png" ) );
+		obj->m_images.push_back( pVideo->Get_Surface( "animation/fire_1/3.png" ) );
+		obj->m_images.push_back( pVideo->Get_Surface( "animation/fire_1/2.png" ) );
+		obj->m_images.push_back( pVideo->Get_Surface( "animation/fire_1/1.png" ) );
+		obj->Set_Image_Num( 0 );
 
 		// velocity
-		obj->velx = Get_Random_Float( -2.5f, 5 );
-		obj->vely = Get_Random_Float( -2.5f, 5 );
+		obj->m_velx = Get_Random_Float( -2.5f, 5 );
+		obj->m_vely = Get_Random_Float( -2.5f, 5 );
 
 		// Z position
-		obj->posz = posz;
+		obj->m_pos_z = m_pos_z;
 		if( posz_rand > 0 )
 		{
-			obj->posz += Get_Random_Float( 0, posz_rand );
+			obj->m_pos_z += Get_Random_Float( 0, posz_rand );
 		}
 
 		// lifetime
@@ -307,7 +313,7 @@ void cAnimation_Fireball :: Init_Anim( void )
 
 void cAnimation_Fireball :: Update( void )
 {
-	if( !visible )
+	if( !m_active )
 	{
 		return;
 	}
@@ -321,36 +327,36 @@ void cAnimation_Fireball :: Update( void )
 
 		if( obj->counter > 8 )
 		{
-			obj->Set_Image( 0 );
+			obj->Set_Image_Num( 0 );
 		}
 		else if( obj->counter > 5 )
 		{
-			obj->Set_Image( 1 );
+			obj->Set_Image_Num( 1 );
 		}
 		else if( obj->counter > 3 )
 		{
-			obj->Set_Image( 2 );
+			obj->Set_Image_Num( 2 );
 		}
 		else
 		{
-			obj->Set_Image( 3 );
+			obj->Set_Image_Num( 3 );
 		}
 
 		obj->counter -= pFramerate->speedfactor * fading_speed;
 
 		obj->Set_Scale( obj->counter / 10 );
-		obj->Move( obj->velx, obj->vely );
+		obj->Move( obj->m_velx, obj->m_vely );
 	}
 
 	if( time_to_live > 12 || time_to_live < 0 )
 	{
-		Set_Visible( 0 );
+		Set_Active( 0 );
 	}
 }
 
-void cAnimation_Fireball :: Draw( cSurfaceRequest *request /* = NULL */ )
+void cAnimation_Fireball :: Draw( cSurface_Request *request /* = NULL */ )
 {
-	if( !visible )
+	if( !m_active )
 	{
 		return;
 	}
@@ -361,15 +367,15 @@ void cAnimation_Fireball :: Draw( cSurfaceRequest *request /* = NULL */ )
 		cAnimation_Fireball_Item *obj = (*itr);
 
 		// create request
-		cSurfaceRequest *request = new cSurfaceRequest();
-		obj->image->Blit( obj->posx - ( pActive_Camera->x - posx ), obj->posy - ( pActive_Camera->y - posy ), obj->posz, request );
+		cSurface_Request *request = new cSurface_Request();
+		obj->m_image->Blit( obj->m_pos_x - ( pActive_Camera->x - m_pos_x ), obj->m_pos_y - ( pActive_Camera->y - m_pos_y ), obj->m_pos_z, request );
 
 		// scale
-		request->scale_x = obj->scalex;
-		request->scale_y = obj->scaley;
+		request->scale_x = obj->m_scale_x;
+		request->scale_y = obj->m_scale_y;
 
 		// color
-		request->color = color;
+		request->color = m_color;
 
 		// add request
 		pRenderer->Add( request );
@@ -378,12 +384,13 @@ void cAnimation_Fireball :: Draw( cSurfaceRequest *request /* = NULL */ )
 
 /* *** *** *** *** *** *** *** cParticle *** *** *** *** *** *** *** *** *** *** */
 
-cParticle :: cParticle( void )
+cParticle :: cParticle( cParticle_Emitter *parent )
 : cMovingSprite()
 {
-	can_be_on_ground = 0;
+	m_can_be_on_ground = 0;
 	// scale centered
 	Set_Scale_Directions( 1, 1, 1, 1 );
+
 	time_to_live = 0;
 	const_rotx = 0;
 	const_roty = 0;
@@ -392,6 +399,8 @@ cParticle :: cParticle( void )
 	gravity_y = 0;
 
 	fade_pos = 1;
+
+	m_parent = parent;
 }
 
 cParticle :: ~cParticle( void )
@@ -402,18 +411,25 @@ cParticle :: ~cParticle( void )
 void cParticle :: Update( void )
 {
 	// update fade modifier
-	fade_pos -= ( pFramerate->speedfactor * ( static_cast<float>(speedfactor_fps) * 0.001f ) ) / time_to_live;
+	fade_pos -= ( ( static_cast<float>(speedfactor_fps) * 0.001f ) * pFramerate->speedfactor ) / time_to_live;
 
 	// finished fading
 	if( fade_pos <= 0 )
 	{
 		fade_pos = 0;
-		Set_Visible( 0 );
+		Set_Active( 0 );
 		return;
 	}
 
+	// with size fading
+	if( m_parent->fade_size )
+	{
+		m_scale_x = m_start_scale_x * fade_pos;
+		m_scale_y = m_scale_x;
+	}
+
 	// move
-	Move( velx, vely );
+	Move( m_velx, m_vely );
 	// add gravity velocity
 	Add_Velocity( gravity_x, gravity_y );
 
@@ -432,67 +448,59 @@ void cParticle :: Update( void )
 	}
 }
 
-void cParticle :: Draw( cParticle_Emitter *origin )
+void cParticle :: Draw( cSurface_Request *request /* = NULL */ )
 {
-	if( !image )
+	if( !m_image )
 	{
 		return;
 	}
 
-	// create request
-	cSurfaceRequest *request = new cSurfaceRequest();
+	bool create_request = 0;
 
-	image->Blit( posx - pActive_Camera->x, posy - pActive_Camera->y, posz, request );
+	if( !request )
+	{
+		create_request = 1;
+		// create request
+		request = new cSurface_Request();
+	}
+
+	Draw_Image( request );
 
 	// blending
-	if( origin->blending == BLEND_ADD )
+	if( m_parent->blending == BLEND_ADD )
 	{
 		request->blend_sfactor = GL_SRC_ALPHA;
 		request->blend_dfactor = GL_ONE;
 	}
-	else if( origin->blending == BLEND_DRIVE )
+	else if( m_parent->blending == BLEND_DRIVE )
 	{
 		request->blend_sfactor = GL_SRC_COLOR;
 		request->blend_dfactor = GL_DST_ALPHA;
 	}
 
-	// rotation
-	request->rotx += rotx;
-	request->roty += roty;
-	request->rotz += rotz;
-
-	// scale
-	request->scale_x = scalex;
-	request->scale_y = scaley;
-
-	// size fading
-	if( origin->fade_size )
-	{
-		request->scale_x *= fade_pos;
-		request->scale_y *= fade_pos;
-	}
-
-	// color
-	request->color = color;
-
 	// color fading
-	if( origin->fade_color )
+	if( m_parent->fade_color )
 	{
-		request->color.red = static_cast<Uint8>(request->color.red * fade_pos);
-		request->color.green = static_cast<Uint8>(request->color.green * fade_pos);
-		request->color.blue = static_cast<Uint8>(request->color.blue * fade_pos);
+		request->color.red = static_cast<Uint8>(m_color.red * fade_pos);
+		request->color.green = static_cast<Uint8>(m_color.green * fade_pos);
+		request->color.blue = static_cast<Uint8>(m_color.blue * fade_pos);
+		request->color.alpha = m_color.alpha;
 	}
+
 	// alpha fading
-	if( origin->fade_alpha )
+	if( m_parent->fade_alpha )
 	{
 		request->color.alpha = static_cast<Uint8>(request->color.alpha * fade_pos);
 	}
 
-	// add request
-	pRenderer->Add( request );
+	if( create_request )
+	{
+		// add request
+		pRenderer->Add( request );
+	}
 }
 
-void cParticle :: Set_Gravity( float x, float y)
+void cParticle :: Set_Gravity( float x, float y )
 {
 	gravity_x = x;
 	gravity_y = y;
@@ -503,29 +511,29 @@ void cParticle :: Set_Gravity( float x, float y)
 cParticle_Emitter :: cParticle_Emitter( void )
 : cAnimation()
 {
-	Init();
+	cParticle_Emitter::Init();
 }
 
 cParticle_Emitter :: cParticle_Emitter( CEGUI::XMLAttributes &attributes )
 : cAnimation()
 {
-	Init();
-	Create_from_Stream( attributes );
+	cParticle_Emitter::Init();
+	cParticle_Emitter::Create_From_Stream( attributes );
 }
 
 cParticle_Emitter :: ~cParticle_Emitter( void )
 {
-	Clear();
+	cParticle_Emitter::Clear();
 }
 
-void cParticle_Emitter :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
+void cParticle_Emitter :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// filename
 	Set_Filename( attributes.getValueAsString( "file" ).c_str() );
 	// position z
-	Set_Pos_Z( attributes.getValueAsFloat( "pos_z", posz ), attributes.getValueAsFloat( "pos_z_rand", posz_rand ) );
+	Set_Pos_Z( attributes.getValueAsFloat( "pos_z", m_pos_z ), attributes.getValueAsFloat( "pos_z_rand", posz_rand ) );
 	// emitter rect
-	Set_Emitter_Rect( static_cast<float>(attributes.getValueAsInteger( "pos_x", static_cast<int>(posx) )), static_cast<float>(attributes.getValueAsInteger( "pos_y", static_cast<int>(posy) )), static_cast<float>(attributes.getValueAsInteger( "size_x", static_cast<int>(start_rect.w) )), static_cast<float>(attributes.getValueAsInteger( "size_y", static_cast<int>(start_rect.h) )) );
+	Set_Emitter_Rect( static_cast<float>(attributes.getValueAsInteger( "pos_x", static_cast<int>(m_pos_x) )), static_cast<float>(attributes.getValueAsInteger( "pos_y", static_cast<int>(m_pos_y) )), static_cast<float>(attributes.getValueAsInteger( "size_x", static_cast<int>(m_start_rect.m_w) )), static_cast<float>(attributes.getValueAsInteger( "size_y", static_cast<int>(m_start_rect.m_h) )) );
 	// emitter time to live
 	Set_Emitter_Time_to_Live( attributes.getValueAsFloat( "emitter_time_to_live", emitter_time_to_live ) );
 	// emitter interval
@@ -537,7 +545,7 @@ void cParticle_Emitter :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 	// velocity
 	Set_Speed( attributes.getValueAsFloat( "vel", vel ), attributes.getValueAsFloat( "vel_rand", vel_rand ) );
 	// start rotation
-	Set_Rotation( attributes.getValueAsFloat( "rot_x", start_rotx ), attributes.getValueAsFloat( "rot_y", start_roty ), attributes.getValueAsFloat( "rot_z", start_rotz ), 1 );
+	Set_Rotation( attributes.getValueAsFloat( "rot_x", m_start_rot_x ), attributes.getValueAsFloat( "rot_y", m_start_rot_y ), attributes.getValueAsFloat( "rot_z", m_start_rot_z ), 1 );
 	Set_Start_Rot_Z_Uses_Direction( attributes.getValueAsBool( "start_rot_z_uses_direction", start_rot_z_uses_direction ) );
 	// constant rotation x
 	Set_Const_Rotation_X( attributes.getValueAsFloat( "const_rot_x", const_rotx ), attributes.getValueAsFloat( "const_rot_x_rand", const_rotx_rand ) );
@@ -555,20 +563,20 @@ void cParticle_Emitter :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 	Set_Vertical_Gravity( attributes.getValueAsFloat( "gravity_y", gravity_y ), attributes.getValueAsFloat( "gravity_y_rand", gravity_y_rand ) );
 }
 
-void cParticle_Emitter :: Save_to_Stream( ofstream &file )
+void cParticle_Emitter :: Save_To_Stream( ofstream &file )
 {
 	file << "\t<particle_emitter>" << std::endl;
 
 	// filename
 	file << "\t\t<Property name=\"file\" value=\"" << filename.c_str() << "\" />" << std::endl;
 	// position z
-	file << "\t\t<Property name=\"pos_z\" value=\"" << posz << "\" />" << std::endl;
+	file << "\t\t<Property name=\"pos_z\" value=\"" << m_pos_z << "\" />" << std::endl;
 	file << "\t\t<Property name=\"pos_z_rand\" value=\"" << posz_rand << "\" />" << std::endl;
 	// emitter rect
-	file << "\t\t<Property name=\"pos_x\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
-	file << "\t\t<Property name=\"pos_y\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
-	file << "\t\t<Property name=\"size_x\" value=\"" << static_cast<int>(start_rect.w) << "\" />" << std::endl;
-	file << "\t\t<Property name=\"size_y\" value=\"" << static_cast<int>(start_rect.h) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"pos_x\" value=\"" << static_cast<int>(m_start_pos_x) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"pos_y\" value=\"" << static_cast<int>(m_start_pos_y) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"size_x\" value=\"" << static_cast<int>(m_start_rect.m_w) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"size_y\" value=\"" << static_cast<int>(m_start_rect.m_h) << "\" />" << std::endl;
 	// emitter time to live
 	file << "\t\t<Property name=\"emitter_time_to_live\" value=\"" << emitter_time_to_live << "\" />" << std::endl;
 	// emitter interval
@@ -582,9 +590,9 @@ void cParticle_Emitter :: Save_to_Stream( ofstream &file )
 	file << "\t\t<Property name=\"vel\" value=\"" << vel << "\" />" << std::endl;
 	file << "\t\t<Property name=\"vel_rand\" value=\"" << vel_rand << "\" />" << std::endl;
 	// start rotation
-	file << "\t\t<Property name=\"rot_x\" value=\"" << start_rotx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"rot_y\" value=\"" << start_roty << "\" />" << std::endl;
-	file << "\t\t<Property name=\"rot_z\" value=\"" << start_rotz << "\" />" << std::endl;
+	file << "\t\t<Property name=\"rot_x\" value=\"" << m_start_rot_x << "\" />" << std::endl;
+	file << "\t\t<Property name=\"rot_y\" value=\"" << m_start_rot_y << "\" />" << std::endl;
+	file << "\t\t<Property name=\"rot_z\" value=\"" << m_start_rot_z << "\" />" << std::endl;
 	file << "\t\t<Property name=\"start_rot_z_uses_direction\" value=\"" << start_rot_z_uses_direction << "\" />" << std::endl;
 	// constant rotation x
 	file << "\t\t<Property name=\"const_rot_x\" value=\"" << const_rotx << "\" />" << std::endl;
@@ -614,17 +622,17 @@ void cParticle_Emitter :: Save_to_Stream( ofstream &file )
 void cParticle_Emitter :: Init( void )
 {
 	animtype = PARTICLE_EXPLOSION;
-	editor_posz = 0.111f;
-	sprite_array = ARRAY_ANIM;
-	type = TYPE_ANIMATION;
-	name = "Particle Emitter";
+	m_editor_pos_z = 0.111f;
+	m_sprite_array = ARRAY_ANIM;
+	m_type = TYPE_ANIMATION;
+	m_name = "Particle Emitter";
 
-	rect.w = 0;
-	rect.h = 0;
-	col_rect.w = rect.w;
-	col_rect.h = rect.h;
-	start_rect.w = rect.w;
-	start_rect.h = rect.h;
+	m_rect.m_w = 0;
+	m_rect.m_h = 0;
+	m_col_rect.m_w = m_rect.m_w;
+	m_col_rect.m_h = m_rect.m_h;
+	m_start_rect.m_w = m_rect.m_w;
+	m_start_rect.m_h = m_rect.m_h;
 
 	// 0 = 1 emit
 	emitter_time_to_live = 0;
@@ -673,26 +681,26 @@ void cParticle_Emitter :: Init( void )
 cParticle_Emitter *cParticle_Emitter :: Copy( void )
 {
 	cParticle_Emitter *particle_animation = new cParticle_Emitter();
-	particle_animation->Set_Pos( startposx, startposy, 1 );
-	particle_animation->Set_Pos_Z( posz, posz_rand );
+	particle_animation->Set_Pos( m_start_pos_x, m_start_pos_y, 1 );
+	particle_animation->Set_Pos_Z( m_pos_z, posz_rand );
 	particle_animation->Set_Filename( filename.c_str() );
-	particle_animation->Set_Emitter_Rect( rect );
+	particle_animation->Set_Emitter_Rect( m_rect );
 	particle_animation->Set_Emitter_Time_to_Live( emitter_time_to_live );
 	particle_animation->Set_Emitter_Iteration_Interval( emitter_iteration_interval );
 	particle_animation->Set_Quota( emitter_quota );
 	particle_animation->Set_Time_to_Live( time_to_live, time_to_live_rand );
 	particle_animation->Set_Speed( vel, vel_rand );
-	particle_animation->Set_Rotation( start_rotx, start_roty, start_rotz, 1 );
+	particle_animation->Set_Rotation( m_start_rot_x, m_start_rot_y, m_start_rot_z, 1 );
 	particle_animation->Set_Start_Rot_Z_Uses_Direction( start_rot_z_uses_direction );
 	particle_animation->Set_Const_Rotation_X( const_rotx, const_rotx_rand );
 	particle_animation->Set_Const_Rotation_Y( const_roty, const_roty_rand );
 	particle_animation->Set_Const_Rotation_Z( const_rotz, const_rotz_rand );
 	particle_animation->Set_Direction_Range( angle_start, angle_range );
 	particle_animation->Set_Scale( size_scale, size_scale_rand );
-	particle_animation->Set_Color( color, color_rand );
+	particle_animation->Set_Color( m_color, color_rand );
 	particle_animation->Set_Horizontal_Gravity( gravity_x, gravity_x_rand );
 	particle_animation->Set_Vertical_Gravity( gravity_y, gravity_y_rand );
-	particle_animation->spawned = spawned;
+	particle_animation->m_spawned = m_spawned;
 
 	return particle_animation;
 }
@@ -704,7 +712,7 @@ void cParticle_Emitter :: Init_Anim( void )
 
 void cParticle_Emitter :: Emit( void )
 {
-	if( !image )
+	if( !m_image )
 	{
 		printf( "Warning : cParticle_Emitter can not emit with no image set\n" );
 		return;
@@ -712,122 +720,124 @@ void cParticle_Emitter :: Emit( void )
 
 	for( unsigned int i = 0; i < emitter_quota; i++ )
 	{
-		cParticle *particle = new cParticle();
+		cParticle *particle = new cParticle( this );
 
 		// X Position
-		float x = posx;
-		if( rect.w > 0 )
+		float x = m_pos_x - ( m_image->m_w * 0.5f );
+		if( m_rect.m_w > 0.0f )
 		{
-			x += Get_Random_Float( 0, rect.w );
+			x += Get_Random_Float( 0.0f, m_rect.m_w );
 		}
 		// Y Position
-		float y = posy;
-		if( rect.h > 0 )
+		float y = m_pos_y - ( m_image->m_h * 0.5f );
+		if( m_rect.m_h > 0.0f )
 		{
-			y += Get_Random_Float( 0, rect.h );
+			y += Get_Random_Float( 0.0f, m_rect.m_h );
 		}
 		// Set Position
 		particle->Set_Pos( x, y, 1 );
 
 		// Image
-		particle->Set_Image( image, 1, 0 );
+		particle->Set_Image( m_image, 1, 0 );
 
 		// Z position
-		particle->posz = posz;
-		if( posz_rand > 0 )
+		particle->m_pos_z = m_pos_z;
+		if( posz_rand > 0.0f )
 		{
-			particle->posz += Get_Random_Float( 0, posz_rand );
+			particle->m_pos_z += Get_Random_Float( 0.0f, posz_rand );
 		}
 
 		// angle range
 		float dir_angle = angle_start;
 		// start angle
-		if( angle_range > 0 )
+		if( angle_range > 0.0f )
 		{
-			dir_angle += Get_Random_Float( 0, angle_range );
+			dir_angle += Get_Random_Float( 0.0f, angle_range );
 		}
 
 		// Velocity
 		float speed = vel;
-		if( vel_rand > 0 )
+		if( vel_rand > 0.0f )
 		{
-			speed += Get_Random_Float( 0, vel_rand );
+			speed += Get_Random_Float( 0.0f, vel_rand );
 		}
 		// set Velocity
 		particle->Set_Direction( dir_angle, speed, 1 );
 
 		// Start rotation
-		particle->rotx = start_rotx;
-		particle->roty = start_roty;
-		particle->rotz = start_rotz;
+		particle->m_rot_x = m_start_rot_x;
+		particle->m_rot_y = m_start_rot_y;
+		particle->m_rot_z = m_start_rot_z;
 
 		// rotation z uses start direction
 		if( start_rot_z_uses_direction )
 		{
-			particle->rotz += dir_angle;
+			particle->m_rot_z += dir_angle;
 		}
 
 		// Constant rotation
 		particle->const_rotx = const_rotx;
 		particle->const_roty = const_roty;
 		particle->const_rotz = const_rotz;
-		if( const_rotx_rand > 0 )
+		if( const_rotx_rand > 0.0f )
 		{
-			particle->const_rotx += Get_Random_Float( 0, const_rotx_rand );
+			particle->const_rotx += Get_Random_Float( 0.0f, const_rotx_rand );
 		}
-		if( const_roty_rand > 0 )
+		if( const_roty_rand > 0.0f )
 		{
-			particle->const_roty += Get_Random_Float( 0, const_roty_rand );
+			particle->const_roty += Get_Random_Float( 0.0f, const_roty_rand );
 		}
-		if( const_rotz_rand > 0 )
+		if( const_rotz_rand > 0.0f )
 		{
-			particle->const_rotz += Get_Random_Float( 0, const_rotz_rand );
+			particle->const_rotz += Get_Random_Float( 0.0f, const_rotz_rand );
 		}
 
 		// Scale
-		particle->Set_Scale( size_scale );
-		if( size_scale_rand > 0 )
+		float scale = size_scale;
+		if( size_scale_rand > 0.0f )
 		{
-			particle->Add_Scale( Get_Random_Float( 0, size_scale_rand ) );
+			scale += Get_Random_Float( 0.0f, size_scale_rand );
 		}
+		particle->Set_Scale( scale, 1 );
+
 		// Gravity
 		float grav_x = gravity_x;
-		if( gravity_x_rand > 0 )
+		if( gravity_x_rand > 0.0f )
 		{
-			grav_x += Get_Random_Float( 0, gravity_x_rand );
+			grav_x += Get_Random_Float( 0.0f, gravity_x_rand );
 		}
 		float grav_y = gravity_y;
-		if( gravity_y_rand > 0 )
+		if( gravity_y_rand > 0.0f )
 		{
-			grav_y += Get_Random_Float( 0, gravity_y_rand );
+			grav_y += Get_Random_Float( 0.0f, gravity_y_rand );
 		}
 		// set Gravity
 		particle->Set_Gravity( grav_x, grav_y );
 
 		// Color
-		particle->Set_Color( color );
+		particle->Set_Color( m_color );
 		if( color_rand.red > 0 )
 		{
-			particle->color.red += rand() % color_rand.red;
+			particle->m_color.red += rand() % color_rand.red;
 		}
 		if( color_rand.green > 0 )
 		{
-			particle->color.green += rand() % color_rand.green;
+			particle->m_color.green += rand() % color_rand.green;
 		}
 		if( color_rand.blue > 0 )
 		{
-			particle->color.blue += rand() % color_rand.blue;
+			particle->m_color.blue += rand() % color_rand.blue;
 		}
 		if( color_rand.alpha > 0 )
 		{
-			particle->color.alpha += rand() % color_rand.alpha;
+			particle->m_color.alpha += rand() % color_rand.alpha;
 		}
 
 		// Time to life
 		particle->time_to_live = time_to_live;
-		if( time_to_live_rand > 0 )
+		if( time_to_live_rand > 0.0f )
 		{
-			particle->time_to_live += Get_Random_Float( 0, time_to_live_rand );
+			particle->time_to_live += Get_Random_Float( 0.0f, time_to_live_rand );
 		}
 
 		objects.push_back( particle );
@@ -853,7 +863,7 @@ void cParticle_Emitter :: Update( void )
 {
 	Update_Valid_Update();
 
-	if( !valid_update )
+	if( !m_valid_update )
 	{
 		return;
 	}
@@ -870,7 +880,7 @@ void cParticle_Emitter :: Update( void )
 		obj->Update();
 
 		// if finished
-		if( obj->fade_pos <= 0 )
+		if( !obj->m_active )
 		{
 			itr = objects.erase( itr );
 			delete obj;
@@ -883,7 +893,7 @@ void cParticle_Emitter :: Update( void )
 	}
 
 	// if able to emit or endless emitter
-	if( emitter_living_time < emitter_time_to_live || emitter_time_to_live == -1 )
+	if( emitter_living_time < emitter_time_to_live || Is_Float_Equal( emitter_time_to_live, -1.0f ) )
 	{
 		// emit
 		while( emit_counter > emitter_iteration_interval )
@@ -895,15 +905,15 @@ void cParticle_Emitter :: Update( void )
 		emit_counter += pFramerate->speedfactor * ( static_cast<float>(speedfactor_fps) * 0.001f );
 	}
 	// no particles are active
-	else if( !objects.size() )
+	else if( objects.empty() )
 	{
-		Set_Visible( 0 );
+		Set_Active( 0 );
 	}
 }
 
-void cParticle_Emitter :: Draw( cSurfaceRequest *request /* = NULL */ )
+void cParticle_Emitter :: Draw( cSurface_Request *request /* = NULL */ )
 {
-	if( !valid_draw )
+	if( !m_valid_draw )
 	{
 		return;
 	}
@@ -912,28 +922,28 @@ void cParticle_Emitter :: Draw( cSurfaceRequest *request /* = NULL */ )
 	{
 		for( ParticleList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 		{
-			(*itr)->Draw( this );
+			(*itr)->Draw();
 		}
 	}
 	else
 	{
-		if( !spawned )
+		if( !m_spawned )
 		{
 			// draw color rect
-			GL_rect color_rect = GL_rect( col_rect.x - pActive_Camera->x, col_rect.y - pActive_Camera->y, col_rect.w, col_rect.h );
+			GL_rect color_rect = GL_rect( m_col_rect.m_x - pActive_Camera->x, m_col_rect.m_y - pActive_Camera->y, m_col_rect.m_w, m_col_rect.m_h );
 
 			// minimum visible rect size
-			if( color_rect.w < 5 )
+			if( color_rect.m_w < 5 )
 			{
-				color_rect.w = 5;
+				color_rect.m_w = 5;
 			}
-			if( color_rect.h < 5 )
+			if( color_rect.m_h < 5 )
 			{
-				color_rect.h = 5;
+				color_rect.m_h = 5;
 			}
 
-			cRectRequest *rect_request = new cRectRequest();
-			pVideo->Draw_Rect( &color_rect, editor_posz, &darkgreen, rect_request );
+			cRect_Request *rect_request = new cRect_Request();
+			pVideo->Draw_Rect( &color_rect, m_editor_pos_z, &darkgreen, rect_request );
 			rect_request->filled = 0;
 			pRenderer->Add( rect_request );
 		}
@@ -943,13 +953,13 @@ void cParticle_Emitter :: Draw( cSurfaceRequest *request /* = NULL */ )
 bool cParticle_Emitter :: Is_Update_Valid( void )
 {
 	// if not visible
-	if( !visible )
+	if( !m_active )
 	{
 		return 0;
 	}
 
 	// if not in player range and not visible on the screen
-	if( !is_Player_range() && !Is_Visible_on_Screen() )
+	if( !Is_In_Player_Range() && !Is_Visible_On_Screen() )
 	{
 		return 0;
 	}
@@ -960,13 +970,13 @@ bool cParticle_Emitter :: Is_Update_Valid( void )
 bool cParticle_Emitter :: Is_Draw_Valid( void )
 {
 	// if not visible
-	if( !visible )
+	if( !m_active )
 	{
 		return 0;
 	}
 
 	// if not in player range and not visible on the screen
-	if( !is_Player_range() && !Is_Visible_on_Screen() )
+	if( !Is_In_Player_Range() && !Is_Visible_On_Screen() )
 	{
 		return 0;
 	}
@@ -977,34 +987,34 @@ bool cParticle_Emitter :: Is_Draw_Valid( void )
 void cParticle_Emitter :: Set_Emitter_Rect( float x, float y, float w /* = 0 */, float h /* = 0 */ )
 {
 	// don't set x/y to 0 or the next Set_Pos call will overwrite the start position
-	if( x == 0 && y == 0 )
+	if( Is_Float_Equal( x, 0.0f ) && Is_Float_Equal( y, 0.0f ) )
 	{
 		y = -1;
 	}
 
 	Set_Pos( x, y, 1 );
-	rect.w = w;
-	rect.h = h;
-	col_rect.w = rect.w;
-	col_rect.h = rect.h;
-	start_rect.w = rect.w;
-	start_rect.h = rect.h;
+	m_rect.m_w = w;
+	m_rect.m_h = h;
+	m_col_rect.m_w = m_rect.m_w;
+	m_col_rect.m_h = m_rect.m_h;
+	m_start_rect.m_w = m_rect.m_w;
+	m_start_rect.m_h = m_rect.m_h;
 
 	// invalid width
-	if( rect.w < 0 )
+	if( m_rect.m_w < 0.0f )
 	{
-		rect.w = 0;
+		m_rect.m_w = 0.0f;
 	}
 	// invalid height
-	if( rect.h < 0 )
+	if( m_rect.m_h < 0.0f )
 	{
-		rect.h = 0;
+		m_rect.m_h = 0.0f;
 	}
 }
 
-void cParticle_Emitter :: Set_Emitter_Rect( GL_rect r )
+void cParticle_Emitter :: Set_Emitter_Rect( const GL_rect &r )
 {
-	Set_Emitter_Rect( r.x, r.y, r.w, r.h );
+	Set_Emitter_Rect( r.m_x, r.m_y, r.m_w, r.m_h );
 }
 
 void cParticle_Emitter :: Set_Emitter_Time_to_Live( float time )
@@ -1085,10 +1095,29 @@ void cParticle_Emitter :: Set_Vertical_Gravity( float start, float random /* = 0
 	gravity_y_rand = random;
 }
 
-void cParticle_Emitter :: Set_Color( Color col, Color col_rand /* = Color( static_cast<Uint8>(0) ) */ )
+void cParticle_Emitter :: Set_Color( const Color &col, const Color &col_rand /* = Color( static_cast<Uint8>(0) ) */ )
 {
-	color = col;
+	m_color = col;
 	color_rand = col_rand;
+
+#ifdef _DEBUG
+		if( m_color.red + col_rand.red > 255 )
+		{
+			printf( "cParticle_Emitter::Set_Color random color red (%d) is too high\n", col_rand.red );
+		}
+		if( m_color.green + col_rand.green > 255 )
+		{
+			printf( "cParticle_Emitter::Set_Color random color green (%d) is too high\n", col_rand.green );
+		}
+		if( m_color.blue + col_rand.blue > 255 )
+		{
+			printf( "cParticle_Emitter::Set_Color random color blue (%d) is too high\n", col_rand.blue );
+		}
+		if( m_color.alpha + col_rand.alpha > 255 )
+		{
+			printf( "cParticle_Emitter::Set_Color random color alpha (%d) is too high\n", col_rand.alpha );
+		}
+#endif
 }
 
 void cParticle_Emitter :: Set_Fading_Size( bool enable )
@@ -1118,10 +1147,10 @@ void cParticle_Emitter :: Set_Image( cGL_Surface *img )
 		return;
 	}
 
-	image = img;
+	m_image = img;
 }
 
-void cParticle_Emitter :: Set_Filename( string str_filename )
+void cParticle_Emitter :: Set_Filename( const std::string &str_filename )
 {
 	// remember the filename for saving
 	filename = str_filename;
@@ -1138,106 +1167,106 @@ void cParticle_Emitter :: Editor_Activate( void )
 	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_pos_z_base" ));
 	Editor_Add( UTF8_("Position z"), UTF8_("Position z base"), editbox, 150 );
 
-	editbox->setText( float_to_string( posz ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Pos_Z_Base_Key, this ) );
+	editbox->setText( float_to_string( m_pos_z ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Pos_Z_Base_Text_Changed, this ) );
 
 	// position z rand
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_pos_z_rand" ));
 	Editor_Add( UTF8_("Random"), UTF8_("Position z rand"), editbox, 150, 28, 0 );
 
 	editbox->setText( float_to_string( posz_rand ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Pos_Z_Rand_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Pos_Z_Rand_Text_Changed, this ) );
 	
 	// image filename
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_image_filename" ));
 	Editor_Add( UTF8_("Filename"), UTF8_("Image filename"), editbox, 300 );
 
 	editbox->setText( filename.c_str() );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Filename_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Filename_Text_Changed, this ) );
 
 	// emitter width
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_width" ));
 	Editor_Add( UTF8_("Emitter width"), UTF8_("Emitter width in which the particles spawn"), editbox, 150 );
 
-	editbox->setText( float_to_string( rect.w ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Emitter_Width_Key, this ) );
+	editbox->setText( float_to_string( m_rect.m_w ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Emitter_Width_Text_Changed, this ) );
 
 	// emitter height
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_height" ));
 	Editor_Add( UTF8_("Height"), UTF8_("Emitter height in which the particles spawn"), editbox, 150, 28, 0 );
 
-	editbox->setText( float_to_string( rect.h ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Emitter_Height_Key, this ) );
+	editbox->setText( float_to_string( m_rect.m_h ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Emitter_Height_Text_Changed, this ) );
 
 	// emitter time to live
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_time_to_live" ));
 	Editor_Add( UTF8_("Emitter TTL"), UTF8_("Emitter time to live. Set -1 for infinite."), editbox, 150 );
 
 	editbox->setText( float_to_string( emitter_time_to_live ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Emitter_Time_To_Live_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Emitter_Time_To_Live_Text_Changed, this ) );
 
 	// emitter interval
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_interval" ));
 	Editor_Add( UTF8_("Emitter interval"), UTF8_("Time between spawning particles based on the quota"), editbox, 150 );
 
 	editbox->setText( float_to_string( emitter_iteration_interval ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Emitter_Interval_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Emitter_Interval_Text_Changed, this ) );
 
 	// quota
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_quota" ));
 	Editor_Add( UTF8_("Quota"), UTF8_("The amount of particles to spawn for an interval"), editbox, 50 );
 
 	editbox->setText( int_to_string( emitter_quota ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Quota_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Quota_Text_Changed, this ) );
 
 	// time to live base
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_ttl_base" ));
 	Editor_Add( UTF8_("TTL"), UTF8_("Time to live base"), editbox, 150 );
 
 	editbox->setText( float_to_string( time_to_live ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Ttl_Base_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Ttl_Base_Text_Changed, this ) );
 	
 	// time to live rand
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_ttl_rand" ));
 	Editor_Add( UTF8_("Random"), UTF8_("Time to live random"), editbox, 150, 28, 0 );
 
 	editbox->setText( float_to_string( time_to_live_rand ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Ttl_Rand_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Ttl_Rand_Text_Changed, this ) );
 
 	// velocity base
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_vel_base" ));
 	Editor_Add( UTF8_("Velocity"), UTF8_("Velocity base"), editbox, 150 );
 
 	editbox->setText( float_to_string( vel ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Velocity_Base_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Velocity_Base_Text_Changed, this ) );
 
 	// velocity rand
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_vel_rand" ));
 	Editor_Add( UTF8_("Random"), UTF8_("Velocity random"), editbox, 150, 28, 0 );
 
 	editbox->setText( float_to_string( vel_rand ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Velocity_Rand_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Velocity_Rand_Text_Changed, this ) );
 	
 	// start rotation x base
 	/*editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_rotation_x_base" ));
 	Editor_Add( UTF8_("Rotation x"), UTF8_("Rotation x base"), editbox, 150 );
 
 	editbox->setText( float_to_string( start_rotx ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Rotation_X_Base_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Rotation_X_Base_Text_Changed, this ) );
 	*/
 	// start rotation y base
 	/*editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_rotation_y_base" ));
 	Editor_Add( UTF8_("Rotation y"), UTF8_("Rotation y base"), editbox, 150 );
 
 	editbox->setText( float_to_string( start_roty ) );
-	editbox->subscribeEvent( Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Rotation_Y_Base_Key, this ) );
+	editbox->subscribeEvent( Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Rotation_Y_Base_Text_Changed, this ) );
 	*/
 	// start rotation z base
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_rotation_z_base" ));
 	Editor_Add( UTF8_("Rotation z"), UTF8_("Rotation z base"), editbox, 150 );
 
-	editbox->setText( float_to_string( start_rotz ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Rotation_Z_Base_Key, this ) );
+	editbox->setText( float_to_string( m_start_rot_z ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Rotation_Z_Base_Text_Changed, this ) );
 	
 	// start rotation z uses start direction
 	CEGUI::Checkbox *checkbox = static_cast<CEGUI::Checkbox *>(wmgr.createWindow( "TaharezLook/Checkbox", "emitter_start_rot_z_uses_direction" ));
@@ -1251,237 +1280,237 @@ void cParticle_Emitter :: Editor_Activate( void )
 	Editor_Add( UTF8_("Const. rotation x"), UTF8_("Constant rotation x base"), editbox, 150 );
 
 	editbox->setText( float_to_string( const_rotx ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Const_Rotation_X_Base_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Const_Rotation_X_Base_Text_Changed, this ) );
 	*/
 	// constant rotation x rand
 	/*editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_const_rotation_x_rand" ));
 	Editor_Add( UTF8_("Random"), UTF8_("Constant rotation x random"), editbox, 150, 28, 0 );
 
 	editbox->setText( float_to_string( const_rotx_rand ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Const_Rotation_X_Rand_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Const_Rotation_X_Rand_Text_Changed, this ) );
 	*/
 	// constant rotation y base
 	/*editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_const_rotation_y_base" ));
 	Editor_Add( UTF8_("Const. rotation y"), UTF8_("Constant rotation y base"), editbox, 150 );
 
 	editbox->setText( float_to_string( const_roty ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Const_Rotation_Y_Base_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Const_Rotation_Y_Base_Text_Changed, this ) );
 	*/
 	// constant rotation y rand
 	/*editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_const_rotation_y_rand" ));
 	Editor_Add( UTF8_("Random"), UTF8_("Constant rotation y random"), editbox, 150, 28, 0 );
 
 	editbox->setText( float_to_string( const_roty_rand ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Const_Rotation_Y_Rand_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Const_Rotation_Y_Rand_Text_Changed, this ) );
 	*/
 	// constant rotation z base
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_const_rotation_z_base" ));
 	Editor_Add( UTF8_("Const. rotation z"), UTF8_("Constant rotation z base"), editbox, 150 );
 
 	editbox->setText( float_to_string( const_rotz ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Const_Rotation_Z_Base_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Const_Rotation_Z_Base_Text_Changed, this ) );
 	
 	// constant rotation z rand
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_const_rotation_z_rand" ));
 	Editor_Add( UTF8_("Random"), UTF8_("Constant rotation z random"), editbox, 150, 28, 0 );
 
 	editbox->setText( float_to_string( const_rotz_rand ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Const_Rotation_Z_Rand_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Const_Rotation_Z_Rand_Text_Changed, this ) );
 
 	// direction base
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_direction_base" ));
 	Editor_Add( UTF8_("Direction"), UTF8_("Direction start"), editbox, 150 );
 
 	editbox->setText( float_to_string( angle_start ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Direction_Base_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Direction_Base_Text_Changed, this ) );
 
 	// direction rand
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_direction_rand" ));
 	Editor_Add( UTF8_("Random"), UTF8_("Direction range"), editbox, 150, 28, 0 );
 
 	editbox->setText( float_to_string( angle_range ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Direction_Rand_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Direction_Rand_Text_Changed, this ) );
 
 	// scale base
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_scale_base" ));
 	Editor_Add( UTF8_("Scale"), UTF8_("Scale base"), editbox, 150 );
 
 	editbox->setText( float_to_string( size_scale ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Scale_Base_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Scale_Base_Text_Changed, this ) );
 
 	// scale rand
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_scale_rand" ));
 	Editor_Add( UTF8_("Random"), UTF8_("Scale random"), editbox, 150, 28, 0 );
 
 	editbox->setText( float_to_string( size_scale_rand ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Scale_Rand_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Scale_Rand_Text_Changed, this ) );
 	
 	// horizontal gravity base
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_hor_gravity_base" ));
 	Editor_Add( UTF8_("Hor gravity"), UTF8_("Horizontal gravity base"), editbox, 150 );
 
 	editbox->setText( float_to_string( gravity_x ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Horizontal_Gravity_Base_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Horizontal_Gravity_Base_Text_Changed, this ) );
 
 	// horizontal gravity rand
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_hor_gravity_rand" ));
 	Editor_Add( UTF8_("Random"), UTF8_("Horizontal gravity random"), editbox, 150, 28, 0 );
 
 	editbox->setText( float_to_string( gravity_x_rand ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Horizontal_Gravity_Rand_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Horizontal_Gravity_Rand_Text_Changed, this ) );
 	
 	// vertical gravity base
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_ver_gravity_base" ));
 	Editor_Add( UTF8_("Ver gravity"), UTF8_("Vertical gravity base"), editbox, 150 );
 
 	editbox->setText( float_to_string( gravity_y ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Vertical_Gravity_Base_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Vertical_Gravity_Base_Text_Changed, this ) );
 
 	// vertical gravity rand
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_ver_gravity_rand" ));
 	Editor_Add( UTF8_("Random"), UTF8_("Vertical gravity random"), editbox, 150, 28, 0 );
 
 	editbox->setText( float_to_string( gravity_y_rand ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Vertical_Gravity_Rand_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Vertical_Gravity_Rand_Text_Changed, this ) );
 
 	// init
 	Editor_Init();
 }
 
-bool cParticle_Emitter :: Editor_Filename_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Filename_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Filename( str_text );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Pos_Z_Base_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Pos_Z_Base_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Pos_Z( string_to_float( str_text ), posz_rand ); 
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Pos_Z_Rand_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Pos_Z_Rand_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
-	Set_Pos_Z( posz, string_to_float( str_text ) );
+	Set_Pos_Z( m_pos_z, string_to_float( str_text ) );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Emitter_Width_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Emitter_Width_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
-	Set_Emitter_Rect( posx, posy, string_to_float( str_text ), rect.h );
+	Set_Emitter_Rect( m_pos_x, m_pos_y, string_to_float( str_text ), m_rect.m_h );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Emitter_Height_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Emitter_Height_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
-	Set_Emitter_Rect( posx, posy, rect.w, string_to_float( str_text ) );
+	Set_Emitter_Rect( m_pos_x, m_pos_y, m_rect.m_w, string_to_float( str_text ) );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Emitter_Time_To_Live_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Emitter_Time_To_Live_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Emitter_Time_to_Live( string_to_float( str_text ) );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Emitter_Interval_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Emitter_Interval_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Emitter_Iteration_Interval( string_to_float( str_text ) );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Quota_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Quota_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Quota( string_to_int( str_text ) );
 	
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Ttl_Base_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Ttl_Base_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Time_to_Live( string_to_float( str_text ), time_to_live_rand );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Ttl_Rand_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Ttl_Rand_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Time_to_Live( time_to_live, string_to_float( str_text ) );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Velocity_Base_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Velocity_Base_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Speed( string_to_float( str_text ), vel_rand );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Velocity_Rand_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Velocity_Rand_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Speed( vel, string_to_float( str_text ) );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Rotation_X_Base_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Rotation_X_Base_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Rotation_X( string_to_float( str_text ), 1 );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Rotation_Y_Base_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Rotation_Y_Base_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Rotation_Y( string_to_float( str_text ), 1 );
 
@@ -1498,150 +1527,150 @@ bool cParticle_Emitter :: Editor_Start_Rot_Z_Uses_Direction_Changed( const CEGUI
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Rotation_Z_Base_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Rotation_Z_Base_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Rotation_Z( string_to_float( str_text ), 1 );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Const_Rotation_X_Base_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Const_Rotation_X_Base_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Const_Rotation_X( string_to_float( str_text ), const_rotz_rand );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Const_Rotation_X_Rand_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Const_Rotation_X_Rand_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Const_Rotation_X( const_rotz, string_to_float( str_text ) );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Const_Rotation_Y_Base_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Const_Rotation_Y_Base_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Const_Rotation_Y( string_to_float( str_text ), const_rotz_rand );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Const_Rotation_Y_Rand_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Const_Rotation_Y_Rand_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Const_Rotation_Y( const_rotz, string_to_float( str_text ) );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Const_Rotation_Z_Base_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Const_Rotation_Z_Base_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Const_Rotation_Z( string_to_float( str_text ), const_rotz_rand );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Const_Rotation_Z_Rand_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Const_Rotation_Z_Rand_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Const_Rotation_Z( const_rotz, string_to_float( str_text ) );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Direction_Base_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Direction_Base_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Direction_Range( string_to_float( str_text ), angle_range );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Direction_Rand_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Direction_Rand_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Direction_Range( angle_start, string_to_float( str_text ) );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Scale_Base_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Scale_Base_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Scale( string_to_float( str_text ), size_scale_rand );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Scale_Rand_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Scale_Rand_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Scale( size_scale, string_to_float( str_text ) );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Horizontal_Gravity_Base_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Horizontal_Gravity_Base_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Horizontal_Gravity( string_to_float( str_text ), gravity_x_rand );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Horizontal_Gravity_Rand_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Horizontal_Gravity_Rand_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Horizontal_Gravity( gravity_x, string_to_float( str_text ) );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Vertical_Gravity_Base_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Vertical_Gravity_Base_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Vertical_Gravity( string_to_float( str_text ), gravity_y_rand );
 
 	return 1;
 }
 
-bool cParticle_Emitter :: Editor_Vertical_Gravity_Rand_Key( const CEGUI::EventArgs &event )
+bool cParticle_Emitter :: Editor_Vertical_Gravity_Rand_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Vertical_Gravity( gravity_y, string_to_float( str_text ) );
 
@@ -1658,7 +1687,7 @@ cAnimation_Manager :: cAnimation_Manager( void )
 
 cAnimation_Manager :: ~cAnimation_Manager( void )
 {
-	Delete_All();
+	cAnimation_Manager::Delete_All();
 }
 
 void cAnimation_Manager :: Update( void )
@@ -1672,7 +1701,7 @@ void cAnimation_Manager :: Update( void )
 		obj->Update();
 
 		// delete if finished
-		if( !obj->visible )
+		if( !obj->m_active )
 		{
 			itr = objects.erase( itr );
 			delete obj;
@@ -1710,3 +1739,7 @@ void cAnimation_Manager :: Add( cAnimation *animation )
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cAnimation_Manager *pAnimation_Manager = NULL;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

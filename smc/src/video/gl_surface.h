@@ -1,7 +1,7 @@
 /***************************************************************************
  * gl_surface.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2005 - 2008 Florian Richter
+ * Copyright (C) 2005 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -18,6 +18,12 @@
 
 #include "../core/globals.h"
 #include "../core/math/point.h"
+// SDL
+#include "SDL.h"
+#include "SDL_opengl.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** OpenGL Surface *** *** *** *** *** *** *** *** *** */
 
@@ -30,21 +36,21 @@ public:
 	/* Blit the surface on the given position
 	 * if request is NULL automatically creates the request
 	*/
-	void Blit( float x, float y, float z, cSurfaceRequest *request = NULL );
+	void Blit( float x, float y, float z, cSurface_Request *request = NULL ) const;
 	// Blit only the surface data on the given request
-	void Blit_Data( cSurfaceRequest *request );
+	void Blit_Data( cSurface_Request *request ) const;
 
 	// Copy cGL_Surface and return it
 	cGL_Surface *Copy( void );
 
 	// Save the texture to a file
-	void Save( string filename );
+	void Save( const std::string &filename );
 
 	// Set the ground type
 	void Set_Ground_Type( GroundType gtype );
 
 	// Check if the OpenGL texture is used by another cGL_Surface
-	bool Is_Texture_Use_Multiple( void );
+	bool Is_Texture_Use_Multiple( void ) const;
 
 	/* Return a software texture copy
 	 * only_filename: if set doesn't save the software texture but only the filename
@@ -54,48 +60,50 @@ public:
 	void Load_Software_Texture( cSaved_Texture *soft_tex );
 
 	// Return the filename
-	string Get_Filename( int with_dir = 2, bool with_end = 1 );
+	std::string Get_Filename( int with_dir = 2, bool with_end = 1 ) const;
 	// Set a function called on destruction
 	void Set_Destruction_Function( void ( *nfunction )( cGL_Surface * ) );
 
 	// GL texture number
-	GLuint image;
+	GLuint m_image;
 	// internal drawing offset
-	float int_x, int_y;
+	float m_int_x, m_int_y;
 	// starting drawing dimension without modifications like rotation and scaling
-	float start_w, start_h;
+	float m_start_w, m_start_h;
 	// final drawing dimension
-	float w, h;
+	float m_w, m_h;
 	// texture dimension
-	unsigned int tex_w, tex_h;
+	unsigned int m_tex_w, m_tex_h;
 	// internal rotation
-	float base_rotx, base_roty, base_rotz;
+	float m_base_rot_x, m_base_rot_y, m_base_rot_z;
 	// image collision data
-	GL_point col_pos;
-	float col_w, col_h;
+	GL_point m_col_pos;
+	float m_col_w, m_col_h;
 
 	// origin if created from a file
-	string filename;
+	std::string m_filename;
 	// should the image be deleted
-	bool auto_del_img;
+	bool m_auto_del_img;
 	// if managed over the image manager
-	bool managed;
+	bool m_managed;
 	// if the image is tagged as obsolete 
-	bool obsolete;
+	bool m_obsolete;
 
 	// editor tags
-	string editor_tags;
+	std::string m_editor_tags;
 	// name
-	string name;
+	std::string m_name;
 	// default sprite type
-	unsigned int type;
+	unsigned int m_type;
 	// ground type
-	GroundType ground_type;
+	GroundType m_ground_type;
 private:
 	// function called on destruction
 	void ( *destruction_function )( cGL_Surface * );
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

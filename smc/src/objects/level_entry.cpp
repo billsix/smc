@@ -1,7 +1,7 @@
 /***************************************************************************
  * level_entry.cpp  -  entry point to enter a level
  *
- * Copyright (C) 2007 - 2008 Florian Richter
+ * Copyright (C) 2007 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -16,7 +16,6 @@
 #include "../objects/level_entry.h"
 #include "../player/player.h"
 #include "../core/game_core.h"
-#include "../core/camera.h"
 #include "../audio/audio.h"
 #include "../core/framerate.h"
 #include "../core/main.h"
@@ -25,6 +24,11 @@
 #include "../video/renderer.h"
 #include "../level/level.h"
 #include "../core/i18n.h"
+// CEGUI
+#include "CEGUIXMLAttributes.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -38,7 +42,7 @@ cLevel_Entry :: cLevel_Entry( CEGUI::XMLAttributes &attributes )
 : cImageObjectSprite()
 {
 	cLevel_Entry::Init();
-	cLevel_Entry::Create_from_Stream( attributes );
+	cLevel_Entry::Create_From_Stream( attributes );
 }
 
 cLevel_Entry :: ~cLevel_Entry( void )
@@ -52,18 +56,19 @@ cLevel_Entry :: ~cLevel_Entry( void )
 
 void cLevel_Entry :: Init( void )
 {
-	sprite_array = ARRAY_ACTIVE;
-	type = TYPE_LEVEL_ENTRY;
-	massivetype = MASS_PASSIVE;
-	editor_posz = 0.111f;
-	player_range = 1000;
+	m_sprite_array = ARRAY_ACTIVE;
+	m_type = TYPE_LEVEL_ENTRY;
+	m_massive_type = MASS_PASSIVE;
+	m_editor_pos_z = 0.112f;
+	m_player_range = 1000;
 
-	rect.w = 10;
-	rect.h = 20;
-	col_rect.w = rect.w;
-	col_rect.h = rect.h;
-	start_rect.w = rect.w;
-	start_rect.h = rect.h;
+	// size
+	m_rect.m_w = 10;
+	m_rect.m_h = 20;
+	m_col_rect.m_w = m_rect.m_w;
+	m_col_rect.m_h = m_rect.m_h;
+	m_start_rect.m_w = m_rect.m_w;
+	m_start_rect.m_h = m_rect.m_h;
 
 	entry_type = LEVEL_ENTRY_WARP;
 	Set_Direction( DIR_UP );
@@ -76,15 +81,15 @@ void cLevel_Entry :: Init( void )
 
 cLevel_Entry *cLevel_Entry :: Copy( void )
 {
-	cLevel_Entry *level_entry = new cLevel_Entry( startposx, startposy );
+	cLevel_Entry *level_entry = new cLevel_Entry( m_start_pos_x, m_start_pos_y );
 	level_entry->Set_Type( entry_type );
-	level_entry->Set_Direction( start_direction );
+	level_entry->Set_Direction( m_start_direction );
 	level_entry->Set_Name( entry_name );
 
 	return level_entry;
 }
 
-void cLevel_Entry :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
+void cLevel_Entry :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
@@ -93,23 +98,23 @@ void cLevel_Entry :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 	// name
 	Set_Name( attributes.getValueAsString( "name" ).c_str() );
 	// direction
-	Set_Direction( Get_Direction_Id( attributes.getValueAsString( "direction", Get_Direction_Name( start_direction ) ).c_str() ) );
+	Set_Direction( Get_Direction_Id( attributes.getValueAsString( "direction", Get_Direction_Name( m_start_direction ) ).c_str() ) );
 }
 
-void cLevel_Entry :: Save_to_Stream( ofstream &file )
+void cLevel_Entry :: Save_To_Stream( ofstream &file )
 {
 	// begin level_entry
 	file << "\t<level_entry>" << std::endl;
 
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(m_start_pos_x) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(m_start_pos_y) << "\" />" << std::endl;
 	// type
 	file << "\t\t<Property name=\"type\" value=\"" << entry_type << "\" />" << std::endl;
 	if( entry_type == LEVEL_ENTRY_WARP )
 	{
 		// direction
-		file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( start_direction ) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( m_start_direction ) << "\" />" << std::endl;
 	}
 	// name
 	if( !entry_name.empty() )
@@ -121,10 +126,10 @@ void cLevel_Entry :: Save_to_Stream( ofstream &file )
 	file << "\t</level_entry>" << std::endl;
 }
 
-void cLevel_Entry :: Set_Direction( ObjectDirection dir )
+void cLevel_Entry :: Set_Direction( const ObjectDirection dir )
 {
 	// already set
-	if( direction == dir )
+	if( m_direction == dir )
 	{
 		return;
 	}
@@ -136,52 +141,52 @@ void cLevel_Entry :: Set_Direction( ObjectDirection dir )
 
 void cLevel_Entry :: Create_Name( void )
 {
-    name = _("Level Entry");
+	m_name = _("Level Entry");
 
-    if( entry_type == LEVEL_ENTRY_BEAM )
-    {
-        name += _(" Beam");
-    }
-    else if( entry_type == LEVEL_ENTRY_WARP )
-    {
-		name += _(" Warp");
+	if( entry_type == LEVEL_ENTRY_BEAM )
+	{
+		m_name += _(" Beam");
+	}
+	else if( entry_type == LEVEL_ENTRY_WARP )
+	{
+		m_name += _(" Warp");
 
-		if( direction == DIR_UP )
+		if( m_direction == DIR_UP )
 		{
-			name += " U";
+			m_name += " U";
 		}
-		else if( direction == DIR_LEFT )
+		else if( m_direction == DIR_LEFT )
 		{
-			name += " L";
+			m_name += " L";
 		}
-		else if( direction == DIR_DOWN )
+		else if( m_direction == DIR_DOWN )
 		{
-			name += " D";
+			m_name += " D";
 		}
-		else if( direction == DIR_RIGHT )
+		else if( m_direction == DIR_RIGHT )
 		{
-			name += " R";
+			m_name += " R";
 		}
 	}
 }
 
-void cLevel_Entry :: Draw( cSurfaceRequest *request /* = NULL */ )
+void cLevel_Entry :: Draw( cSurface_Request *request /* = NULL */ )
 {
-	if( !valid_draw )
+	if( !m_valid_draw )
 	{
 		return;
 	}
 
 	// draw color rect
-	pVideo->Draw_Rect( col_rect.x - pActive_Camera->x, col_rect.y - pActive_Camera->y, col_rect.w, col_rect.h, editor_posz, &editor_color );
+	pVideo->Draw_Rect( m_col_rect.m_x - pActive_Camera->x, m_col_rect.m_y - pActive_Camera->y, m_col_rect.m_w, m_col_rect.m_h, m_editor_pos_z, &editor_color );
 
 	// draw entry name
 	if( editor_entry_name )
 	{
 		// create request
-		cSurfaceRequest *surface_request = new cSurfaceRequest();
+		cSurface_Request *surface_request = new cSurface_Request();
 		// blit
-		editor_entry_name->Blit( col_rect.x + col_rect.w + 5 - pActive_Camera->x, col_rect.y - pActive_Camera->y, editor_posz, surface_request );
+		editor_entry_name->Blit( m_col_rect.m_x + m_col_rect.m_w + 5 - pActive_Camera->x, m_col_rect.m_y - pActive_Camera->y, m_editor_pos_z, surface_request );
 		surface_request->shadow_pos = 2;
 		surface_request->shadow_color = lightgreyalpha64;
 		// add request
@@ -197,8 +202,8 @@ void cLevel_Entry :: Activate( void )
 		pAudio->Play_Sound( "leave_pipe.ogg" );
 
 		// set state to linked to stop checking for on ground objects which sometimes changes the position
-		Moving_state player_state = pPlayer->state;
-		pPlayer->state = STA_OBJ_LINKED;
+		Moving_state player_state = pPlayer->m_state;
+		pPlayer->m_state = STA_OBJ_LINKED;
 
 		pPlayer->Stop_Ducking();
 		pPlayer->Reset_on_Ground();
@@ -207,64 +212,64 @@ void cLevel_Entry :: Activate( void )
 		pPlayer->Set_Pos( Get_Player_Pos_X(), Get_Player_Pos_Y() );
 
 		// set image
-		if( direction == DIR_UP || direction == DIR_DOWN )
+		if( m_direction == DIR_UP || m_direction == DIR_DOWN )
 		{
-			pPlayer->Set_Image( MARYO_IMG_FALL + pPlayer->direction );
+			pPlayer->Set_Image_Num( MARYO_IMG_FALL + pPlayer->m_direction );
 		}
-		else if( direction == DIR_LEFT || direction == DIR_RIGHT )
+		else if( m_direction == DIR_LEFT || m_direction == DIR_RIGHT )
 		{
-			pPlayer->Set_Image( pPlayer->direction );
+			pPlayer->Set_Image_Num( pPlayer->m_direction );
 
 			// set rotation
-			if( direction == DIR_RIGHT )
+			if( m_direction == DIR_RIGHT )
 			{
 				pPlayer->Set_Rotation_Z( 90 );
 			}
-			else if( direction == DIR_LEFT )
+			else if( m_direction == DIR_LEFT )
 			{
 				pPlayer->Set_Rotation_Z( 270 );
 			}
 		}
 
 		// change position z to be behind massive for the animation
-		float player_posz = pPlayer->posz;
-		pPlayer->posz = 0.0799f;
+		float player_posz = pPlayer->m_pos_z;
+		pPlayer->m_pos_z = 0.0799f;
 
 		// move slowly out
 		while( 1 )
 		{
-			if( direction == DIR_DOWN )
+			if( m_direction == DIR_DOWN )
 			{
 				pPlayer->Move( 0, 2.8f );
 
-				if( pPlayer->posy > rect.y + rect.h )
+				if( pPlayer->m_pos_y > m_rect.m_y + m_rect.m_h )
 				{
 					break;
 				}
 			}
-			else if( direction == DIR_UP )
+			else if( m_direction == DIR_UP )
 			{
 				pPlayer->Move( 0, -2.8f );
 
-				if( pPlayer->col_rect.y + pPlayer->col_rect.h < rect.y )
+				if( pPlayer->m_col_rect.m_y + pPlayer->m_col_rect.m_h < m_rect.m_y )
 				{
 					break;
 				}
 			}
-			else if( direction == DIR_RIGHT )
+			else if( m_direction == DIR_RIGHT )
 			{
 				pPlayer->Move( 2, 0 );
 
-				if( pPlayer->posx > rect.x + rect.w )
+				if( pPlayer->m_pos_x > m_rect.m_x + m_rect.m_w )
 				{
 					break;
 				}
 			}
-			else if( direction == DIR_LEFT )
+			else if( m_direction == DIR_LEFT )
 			{
 				pPlayer->Move( -2, 0 );
 
-				if( pPlayer->col_rect.x + pPlayer->col_rect.w < rect.x )
+				if( pPlayer->m_col_rect.m_x + pPlayer->m_col_rect.m_w < m_rect.m_x )
 				{
 					break;
 				}
@@ -277,7 +282,7 @@ void cLevel_Entry :: Activate( void )
 			// center camera
 			pActive_Camera->Center();
 			// keep global effect particles on screen
-			pActive_Level->pGlobal_effect->Update_Particles();
+			pActive_Level->m_global_effect->Update_Particles();
 			// draw
 			Draw_Game();
 
@@ -286,11 +291,11 @@ void cLevel_Entry :: Activate( void )
 		}
 
 		// set position z back
-		pPlayer->posz = player_posz;
+		pPlayer->m_pos_z = player_posz;
 		// set state back
-		pPlayer->state = player_state;
+		pPlayer->m_state = player_state;
 
-		if( direction == DIR_RIGHT || direction == DIR_LEFT )
+		if( m_direction == DIR_RIGHT || m_direction == DIR_LEFT )
 		{
 			pPlayer->Set_Rotation_Z( 0 );
 		}
@@ -302,7 +307,7 @@ void cLevel_Entry :: Activate( void )
 		pPlayer->Set_Pos( Get_Player_Pos_X(), Get_Player_Pos_Y() );
 	}
 
-	pPlayer->Collisions_Clear();
+	pPlayer->Clear_Collisions();
 }
 
 void cLevel_Entry :: Set_Type( Level_Entry_type ltype )
@@ -312,59 +317,59 @@ void cLevel_Entry :: Set_Type( Level_Entry_type ltype )
 	Create_Name();
 }
 
-float cLevel_Entry :: Get_Player_Pos_X( void )
+float cLevel_Entry :: Get_Player_Pos_X( void ) const
 {
 	if( entry_type == LEVEL_ENTRY_WARP )
 	{
 		// left
-		if( direction == DIR_LEFT )
+		if( m_direction == DIR_LEFT )
 		{
-			return col_rect.x - pPlayer->col_pos.y + col_rect.w;
+			return m_col_rect.m_x - pPlayer->m_col_pos.m_y + m_col_rect.m_w;
 		}
 		// right
-		else if( direction == DIR_RIGHT )
+		else if( m_direction == DIR_RIGHT )
 		{
-			return col_rect.x - pPlayer->col_pos.y - col_rect.w - pPlayer->col_rect.w;
+			return m_col_rect.m_x - pPlayer->m_col_pos.m_y - m_col_rect.m_w - pPlayer->m_col_rect.m_w;
 		}
 
 		// up/down
-		return col_rect.x - pPlayer->col_pos.x + ( col_rect.w * 0.5f ) - ( pPlayer->col_rect.w * 0.5f );
+		return m_col_rect.m_x - pPlayer->m_col_pos.m_x + ( m_col_rect.m_w * 0.5f ) - ( pPlayer->m_col_rect.m_w * 0.5f );
 	}
 	else if( entry_type == LEVEL_ENTRY_BEAM )
 	{
-		return col_rect.x + ( col_rect.w * 0.5f ) - pPlayer->col_pos.y - ( pPlayer->col_rect.w * 0.5f );
+		return m_col_rect.m_x + ( m_col_rect.m_w * 0.5f ) - pPlayer->m_col_pos.m_y - ( pPlayer->m_col_rect.m_w * 0.5f );
 	}
 
 	return 0;
 }
 
-float cLevel_Entry :: Get_Player_Pos_Y( void )
+float cLevel_Entry :: Get_Player_Pos_Y( void ) const
 {
 	if( entry_type == LEVEL_ENTRY_WARP )
 	{
 		// up
-		if( direction == DIR_UP )
+		if( m_direction == DIR_UP )
 		{
-			return col_rect.y - pPlayer->col_pos.y + col_rect.h;
+			return m_col_rect.m_y - pPlayer->m_col_pos.m_y + m_col_rect.m_h;
 		}
 		// down
-		else if( direction == DIR_DOWN )
+		else if( m_direction == DIR_DOWN )
 		{
-			return col_rect.y - pPlayer->col_pos.y - 5 - pPlayer->rect.h;
+			return m_col_rect.m_y - pPlayer->m_col_pos.m_y - 5 - pPlayer->m_rect.m_h;
 		}
 
 		// left/right
-		return col_rect.y - pPlayer->col_pos.y + ( col_rect.h * 0.5f ) - ( pPlayer->col_rect.h * 0.5f );
+		return m_col_rect.m_y - pPlayer->m_col_pos.m_y + ( m_col_rect.m_h * 0.5f ) - ( pPlayer->m_col_rect.m_h * 0.5f );
 	}
 	else if( entry_type == LEVEL_ENTRY_BEAM )
 	{
-		return col_rect.y + col_rect.h - pPlayer->col_pos.y - pPlayer->col_rect.h;
+		return m_col_rect.m_y + m_col_rect.m_h - pPlayer->m_col_pos.m_y - pPlayer->m_col_rect.m_h;
 	}
 
 	return 0;
 }
 
-void cLevel_Entry :: Set_Name( string str_name )
+void cLevel_Entry :: Set_Name( const std::string &str_name )
 {
 	// delete editor image
 	if( editor_entry_name )
@@ -382,7 +387,7 @@ void cLevel_Entry :: Set_Name( string str_name )
 		return;
 	}
 
-	editor_entry_name = pFont->Render_Text( pFont->font_small, entry_name, white );
+	editor_entry_name = pFont->Render_Text( pFont->m_font_small, entry_name, white );
 }
 
 bool cLevel_Entry :: Is_Draw_Valid( void )
@@ -393,8 +398,8 @@ bool cLevel_Entry :: Is_Draw_Valid( void )
 		return 0;
 	}
 
-	// not visible on the screen
-	if( !visible || !Is_Visible_on_Screen() )
+	// if not active or not visible on the screen
+	if( !m_active || !Is_Visible_On_Screen() )
 	{
 		return 0;
 	}
@@ -404,6 +409,7 @@ bool cLevel_Entry :: Is_Draw_Valid( void )
 
 void cLevel_Entry :: Editor_Activate( void )
 {
+	// get window manager
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
 	// warp
@@ -417,7 +423,7 @@ void cLevel_Entry :: Editor_Activate( void )
 		combobox->addItem( new CEGUI::ListboxTextItem( "down" ) );
 		combobox->addItem( new CEGUI::ListboxTextItem( "right" ) );
 		combobox->addItem( new CEGUI::ListboxTextItem( "left" ) );
-		combobox->setText( Get_Direction_Name( start_direction ) );
+		combobox->setText( Get_Direction_Name( m_start_direction ) );
 
 		combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cLevel_Entry::Editor_Direction_Select, this ) );
 	}
@@ -427,7 +433,7 @@ void cLevel_Entry :: Editor_Activate( void )
 	Editor_Add( UTF8_("Name"), UTF8_("Name for identification"), editbox, 150 );
 
 	editbox->setText( entry_name.c_str() );
-	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cLevel_Entry::Editor_Name_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cLevel_Entry::Editor_Name_Text_Changed, this ) );
 
 	// init
 	Editor_Init();
@@ -443,12 +449,16 @@ bool cLevel_Entry :: Editor_Direction_Select( const CEGUI::EventArgs &event )
 	return 1;
 }
 
-bool cLevel_Entry :: Editor_Name_Key( const CEGUI::EventArgs &event )
+bool cLevel_Entry :: Editor_Name_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Name( str_text );
 
 	return 1;
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

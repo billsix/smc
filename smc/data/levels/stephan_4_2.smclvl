@@ -3,11 +3,11 @@
 	<information>
 		<Property name="game_version" value="1.7" />
 		<Property name="engine_version" value="2.8" />
-		<Property name="save_time" value="1229239533" />
+		<Property name="save_time" value="1230264268" />
 	</information>
 	<settings>
-		<Property name="lvl_author" value="" />
-		<Property name="lvl_version" value="" />
+		<Property name="lvl_author" value="stephan and SMC Team" />
+		<Property name="lvl_version" value="1.2" />
 		<Property name="lvl_music" value="land_4.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
@@ -21,8 +21,8 @@
 		<Property name="bg_color_1_green" value="20" />
 		<Property name="bg_color_1_blue" value="160" />
 		<Property name="bg_color_2_red" value="60" />
-		<Property name="bg_color_2_green" value="160" />
-		<Property name="bg_color_2_blue" value="255" />
+		<Property name="bg_color_2_green" value="120" />
+		<Property name="bg_color_2_blue" value="200" />
 	</background>
 	<background>
 		<Property name="type" value="1" />
@@ -30,8 +30,8 @@
 		<Property name="posy" value="0" />
 		<Property name="posz" value="0.00011" />
 		<Property name="image" value="game/background/green_junglehills.png" />
-		<Property name="speedx" value="1" />
-		<Property name="speedy" value="1" />
+		<Property name="speedx" value="0.8" />
+		<Property name="speedy" value="0.8" />
 		<Property name="const_velx" value="0" />
 		<Property name="const_vely" value="0" />
 	</background>

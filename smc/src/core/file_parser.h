@@ -1,7 +1,7 @@
 /***************************************************************************
  * file_parser.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2005 - 2008 Florian Richter
+ * Copyright (C) 2005 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -16,7 +16,10 @@
 #ifndef SMC_FILE_PARSER_H
 #define SMC_FILE_PARSER_H
 
-#include "../core/globals.h"
+#include "../core/global_game.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** cFile_parser *** *** *** *** *** *** *** *** *** */
 
@@ -27,23 +30,24 @@ public:
 	cFile_parser( void );
 	virtual ~cFile_parser( void );
 
-	// Function: Parse
 	// Parses the given file
-	bool Parse( string &filename );
+	bool Parse( const std::string &filename );
 
-	// Function: Parse_Line
 	// Parses a line of a description file into string parts
-	bool Parse_Line( string command, int line );
+	bool Parse_Line( std::string command, int line );
 
-	// Function: HandleMessage
 	// Handles the File Line
-	virtual bool HandleMessage( string *parts, unsigned int count, unsigned int line );
+	virtual bool HandleMessage( const std::string *parts, unsigned int count, unsigned int line );
 
 	// data filename
-	string data_file;
+	std::string data_file;
 	// data error count
 	unsigned int error_count;
 };
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif
 

@@ -1,7 +1,7 @@
 /***************************************************************************
  * spinbox.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -18,6 +18,9 @@
 
 #include "../core/globals.h"
 #include "../objects/box.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** cSpinBox *** *** *** *** *** *** *** *** *** */
 
@@ -38,9 +41,9 @@ public:
 	virtual cSpinBox *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
+	virtual void Save_To_Stream( ofstream &file );
 
 	// Activate the Spinning
 	virtual void Activate( void );
@@ -60,5 +63,7 @@ public:
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

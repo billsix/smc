@@ -1,7 +1,7 @@
 /***************************************************************************
  * global_effect.cpp  -  class for handling level global effects
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,20 +19,25 @@
 #include "../core/camera.h"
 #include "../core/game_core.h"
 #include "../video/gl_surface.h"
+// CEGUI
+#include "CEGUIXMLAttributes.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** cGlobal_effect *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cGlobal_effect :: cGlobal_effect( void )
 : cParticle_Emitter()
 {
-	Clear();
+	cGlobal_effect::Clear();
 }
 
 cGlobal_effect :: cGlobal_effect( CEGUI::XMLAttributes &attributes )
 : cParticle_Emitter()
 {
-	Clear();
-	Create_from_Stream( attributes );
+	cGlobal_effect::Clear();
+	cGlobal_effect::Create_From_Stream( attributes );
 }
 
 cGlobal_effect :: ~cGlobal_effect( void )
@@ -57,7 +62,7 @@ void cGlobal_effect :: Init_Anim( void )
 		// image exists
 		else
 		{
-			image = pVideo->Get_Surface( image_filename );
+			m_image = pVideo->Get_Surface( image_filename );
 			// valid effect
 			valid = 1;
 		}
@@ -85,7 +90,7 @@ void cGlobal_effect :: Clear( void )
 	ge_type = GL_EFF_NONE;
 
 	image_filename.clear();
-	image = NULL;
+	m_image = NULL;
 	Set_Emitter_Rect( 0, 0, static_cast<float>(game_res_w), 0 );
 	Set_Emitter_Time_to_Live( -1 );
 	Set_Emitter_Iteration_Interval( 0.3f );
@@ -100,16 +105,16 @@ void cGlobal_effect :: Clear( void )
 	valid = 0;
 }
 
-void cGlobal_effect :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
+void cGlobal_effect :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// Type
-	Set_Type( (GlobalEffectType)attributes.getValueAsInteger( "type", ge_type ) );
+	Set_Type( static_cast<GlobalEffectType>(attributes.getValueAsInteger( "type", ge_type )) );
 	// Image
 	Set_Image( attributes.getValueAsString( "image", image_filename ).c_str() );
 	// Creation Rect
-	Set_Emitter_Rect( static_cast<float>(attributes.getValueAsInteger( "rect_x", static_cast<int>(startposx) )), static_cast<float>(attributes.getValueAsInteger( "rect_y", static_cast<int>(startposy) )), static_cast<float>(attributes.getValueAsInteger( "rect_w", static_cast<int>(rect.w) )), static_cast<float>(attributes.getValueAsInteger( "rect_h", static_cast<int>(rect.h) )) );
+	Set_Emitter_Rect( static_cast<float>(attributes.getValueAsInteger( "rect_x", static_cast<int>(m_start_pos_x) )), static_cast<float>(attributes.getValueAsInteger( "rect_y", static_cast<int>(m_start_pos_y) )), static_cast<float>(attributes.getValueAsInteger( "rect_w", static_cast<int>(m_rect.m_w) )), static_cast<float>(attributes.getValueAsInteger( "rect_h", static_cast<int>(m_rect.m_h) )) );
 	// Z Position
-	Set_Pos_Z( attributes.getValueAsFloat( "z", posz ), attributes.getValueAsFloat( "z_rand", posz_rand ) );
+	Set_Pos_Z( attributes.getValueAsFloat( "z", m_pos_z ), attributes.getValueAsFloat( "z_rand", posz_rand ) );
 	// Time to Live
 	if( attributes.exists( "time_to_live" ) )
 	{
@@ -137,12 +142,12 @@ void cGlobal_effect :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 	// Direction
 	Set_Direction_Range( attributes.getValueAsFloat( "dir_range_start", angle_start ), attributes.getValueAsFloat( "dir_range_size", angle_range ) );
 	// start rotation
-	Set_Rotation( attributes.getValueAsFloat( "rot_x", start_rotx ), attributes.getValueAsFloat( "rot_y", start_roty ), attributes.getValueAsFloat( "rot_z", start_rotz ), 1 );
+	Set_Rotation( attributes.getValueAsFloat( "rot_x", m_start_rot_x ), attributes.getValueAsFloat( "rot_y", m_start_rot_y ), attributes.getValueAsFloat( "rot_z", m_start_rot_z ), 1 );
 	// Constant Rotation Z
 	Set_Const_Rotation_Z( attributes.getValueAsFloat( "const_rotz", const_rotz ), attributes.getValueAsFloat( "const_rotz_rand", const_rotz_rand ) );
 }
 
-void cGlobal_effect :: Save_to_Stream( ofstream &file )
+void cGlobal_effect :: Save_To_Stream( ofstream &file )
 {
 	if( ge_type == GL_EFF_NONE )
 	{
@@ -155,7 +160,7 @@ void cGlobal_effect :: Save_to_Stream( ofstream &file )
 	// type
 	file << "\t\t<Property name=\"type\" value=\"" << ge_type << "\" />" << std::endl;
 	// image
-	string img_filename = image_filename;
+	std::string img_filename = image_filename;
 
 	if( img_filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == 0 )
 	{
@@ -164,12 +169,12 @@ void cGlobal_effect :: Save_to_Stream( ofstream &file )
 
 	file << "\t\t<Property name=\"image\" value=\"" << img_filename << "\" />" << std::endl;
 	// rect
-	file << "\t\t<Property name=\"rect_x\" value=\"" << startposx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"rect_y\" value=\"" << startposy << "\" />" << std::endl;
-	file << "\t\t<Property name=\"rect_w\" value=\"" << rect.w << "\" />" << std::endl;
-	file << "\t\t<Property name=\"rect_h\" value=\"" << rect.h << "\" />" << std::endl;
+	file << "\t\t<Property name=\"rect_x\" value=\"" << m_start_pos_x << "\" />" << std::endl;
+	file << "\t\t<Property name=\"rect_y\" value=\"" << m_start_pos_y << "\" />" << std::endl;
+	file << "\t\t<Property name=\"rect_w\" value=\"" << m_rect.m_w << "\" />" << std::endl;
+	file << "\t\t<Property name=\"rect_h\" value=\"" << m_rect.m_h << "\" />" << std::endl;
 	// Z Position
-	file << "\t\t<Property name=\"z\" value=\"" << posz << "\" />" << std::endl;
+	file << "\t\t<Property name=\"z\" value=\"" << m_pos_z << "\" />" << std::endl;
 	file << "\t\t<Property name=\"z_rand\" value=\"" << posz_rand << "\" />" << std::endl;
 	// Time to Live
 	file << "\t\t<Property name=\"time_to_live\" value=\"" << time_to_live << "\" />" << std::endl;
@@ -186,9 +191,9 @@ void cGlobal_effect :: Save_to_Stream( ofstream &file )
 	file << "\t\t<Property name=\"dir_range_start\" value=\"" << angle_start << "\" />" << std::endl;
 	file << "\t\t<Property name=\"dir_range_size\" value=\"" << angle_range << "\" />" << std::endl;
 	// start rotation
-	file << "\t\t<Property name=\"rot_x\" value=\"" << start_rotx << "\" />" << std::endl;
-	file << "\t\t<Property name=\"rot_y\" value=\"" << start_roty << "\" />" << std::endl;
-	file << "\t\t<Property name=\"rot_z\" value=\"" << start_rotz << "\" />" << std::endl;
+	file << "\t\t<Property name=\"rot_x\" value=\"" << m_start_rot_x << "\" />" << std::endl;
+	file << "\t\t<Property name=\"rot_y\" value=\"" << m_start_rot_y << "\" />" << std::endl;
+	file << "\t\t<Property name=\"rot_z\" value=\"" << m_start_rot_z << "\" />" << std::endl;
 	// constant rotation Z
 	file << "\t\t<Property name=\"const_rotz\" value=\"" << const_rotz << "\" />" << std::endl;
 	file << "\t\t<Property name=\"const_rotz_rand\" value=\"" << const_rotz_rand << "\" />" << std::endl;
@@ -210,7 +215,7 @@ void cGlobal_effect :: Update( void )
 		return;
 	}
 	
-	Set_Pos( startposx + pActive_Camera->x, startposy + pActive_Camera->y );
+	Set_Pos( m_start_pos_x + pActive_Camera->x, m_start_pos_y + pActive_Camera->y );
 	// update particles
 	Update_Particles();
 	// update particle animation
@@ -220,41 +225,46 @@ void cGlobal_effect :: Update( void )
 void cGlobal_effect :: Update_Particles( void )
 {
 	GL_rect camera_rect = GL_rect( pActive_Camera->x, pActive_Camera->y, static_cast<float>(game_res_w), static_cast<float>(game_res_h) );
+	// temporary animation rect
+	GL_rect anim_rect;
 
 	for( ParticleList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		// get animation particle pointer
 		cParticle *obj = static_cast<cParticle *>(*itr);
 		
-		GL_rect anim_rect = GL_rect( obj->posx, obj->posy, obj->rect.w, obj->rect.h );
+		// set rectangle
+		anim_rect = GL_rect( obj->m_pos_x, obj->m_pos_y, obj->m_rect.m_w, obj->m_rect.m_h );
 		
-		// if not on screen
-		if( !Col_Box( &camera_rect, &anim_rect ) )
+		// if on screen
+		if( camera_rect.Intersects( anim_rect ) )
 		{
-			// out in left
-			if( anim_rect.x + anim_rect.w < camera_rect.x )
-			{
-				// move to right
-				obj->Set_Pos_X( camera_rect.x + camera_rect.w - 1 );
-			}
-			// out in right
-			else if( anim_rect.x > camera_rect.x + camera_rect.w )
-			{
-				// move to left
-				obj->Set_Pos_X( camera_rect.x + 1 );
-			}
-			// out on top
-			else if( anim_rect.y + anim_rect.h < camera_rect.y )
-			{
-				// move to bottom
-				obj->Set_Pos_Y( camera_rect.y + camera_rect.h - 1 );
-			}
-			// out on bottom
-			else if( anim_rect.y > camera_rect.y + camera_rect.h )
-			{
-				// move to top
-				obj->Set_Pos_Y( camera_rect.y + 1 );
-			}
+			continue;
+		}
+
+		// out in left
+		if( anim_rect.m_x + anim_rect.m_w < camera_rect.m_x )
+		{
+			// move to right
+			obj->Set_Pos_X( camera_rect.m_x + camera_rect.m_w - 1 );
+		}
+		// out in right
+		else if( anim_rect.m_x > camera_rect.m_x + camera_rect.m_w )
+		{
+			// move to left
+			obj->Set_Pos_X( camera_rect.m_x + 1 );
+		}
+		// out on top
+		else if( anim_rect.m_y + anim_rect.m_h < camera_rect.m_y )
+		{
+			// move to bottom
+			obj->Set_Pos_Y( camera_rect.m_y + camera_rect.m_h - 1 );
+		}
+		// out on bottom
+		else if( anim_rect.m_y > camera_rect.m_y + camera_rect.m_h )
+		{
+			// move to top
+			obj->Set_Pos_Y( camera_rect.m_y + 1 );
 		}
 	}
 }
@@ -264,12 +274,12 @@ void cGlobal_effect :: Draw( void )
 	cParticle_Emitter::Draw();
 }
 
-void cGlobal_effect :: Set_Type( GlobalEffectType ntype )
+void cGlobal_effect :: Set_Type( const GlobalEffectType ntype )
 {
 	ge_type = ntype;
 }
 
-void cGlobal_effect :: Set_Type( string ntype )
+void cGlobal_effect :: Set_Type( const std::string &ntype )
 {
 	if( ntype.compare( "Disabled" ) == 0 )
 	{
@@ -285,12 +295,12 @@ void cGlobal_effect :: Set_Type( string ntype )
 	}
 }
 
-void cGlobal_effect :: Set_Image( string nimg_file )
+void cGlobal_effect :: Set_Image( const std::string &nimg_file )
 {
 	image_filename = nimg_file;
 }
 
-string cGlobal_effect :: Get_Type_Name( void )
+std::string cGlobal_effect :: Get_Type_Name( void ) const
 {
 	if( ge_type == GL_EFF_NONE )
 	{
@@ -303,3 +313,7 @@ string cGlobal_effect :: Get_Type_Name( void )
 
 	return "Unknown";
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

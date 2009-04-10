@@ -1,7 +1,7 @@
 /***************************************************************************
  * random_sound.cpp  -  random sounds support
  *
- * Copyright (C) 2008 Florian Richter
+ * Copyright (C) 2008 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -15,13 +15,17 @@
 
 #include "../audio/random_sound.h"
 #include "../core/game_core.h"
-#include "../core/camera.h"
 #include "../core/framerate.h"
 #include "../audio/audio.h"
 #include "../video/renderer.h"
 #include "../input/mouse.h"
 #include "../core/math/utilities.h"
 #include "../core/i18n.h"
+// CEGUI
+#include "CEGUIXMLAttributes.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** cRandom_Sound *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -36,7 +40,7 @@ cRandom_Sound :: cRandom_Sound( CEGUI::XMLAttributes &attributes )
 : cSprite()
 {
 	cRandom_Sound::Init();
-	cRandom_Sound::Create_from_Stream( attributes );
+	cRandom_Sound::Create_From_Stream( attributes );
 }
 
 cRandom_Sound :: ~cRandom_Sound( void )
@@ -44,64 +48,21 @@ cRandom_Sound :: ~cRandom_Sound( void )
 
 }
 
-void cRandom_Sound :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
-{
-	// filename
-	Set_Filename( attributes.getValueAsString( "file" ).c_str() );
-	// position
-	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "pos_x" )), static_cast<float>(attributes.getValueAsInteger( "pos_y" )), 1 );
-	// 
-	Set_Continuous( attributes.getValueAsBool( "continuous", m_continuous ) );
-	// delay
-	Set_Delay_Min( attributes.getValueAsInteger( "delay_min", m_delay_min ) );
-	Set_Delay_Max( attributes.getValueAsInteger( "delay_max", m_delay_max ) );
-	// volume
-	Set_Volume_Min( attributes.getValueAsFloat( "volume_min", m_volume_min ) );
-	Set_Volume_Max( attributes.getValueAsFloat( "volume_max", m_volume_max ) );
-	// volume reduction
-	Set_Volume_Reduction_Begin( attributes.getValueAsFloat( "volume_reduction_begin", m_volume_reduction_begin ) );
-	Set_Volume_Reduction_End( attributes.getValueAsFloat( "volume_reduction_end", m_volume_reduction_end ) );
-}
-
-void cRandom_Sound :: Save_to_Stream( ofstream &ofile )
-{
-	ofile << "\t<sound>" << std::endl;
-
-	// filename
-	ofile << "\t\t<Property name=\"file\" value=\"" << m_filename.c_str() << "\" />" << std::endl;
-	// position
-	ofile << "\t\t<Property name=\"pos_x\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
-	ofile << "\t\t<Property name=\"pos_y\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
-	// continuous
-	ofile << "\t\t<Property name=\"continuous\" value=\"" << m_continuous << "\" />" << std::endl;
-	// delay
-	ofile << "\t\t<Property name=\"delay_min\" value=\"" << m_delay_min << "\" />" << std::endl;
-	ofile << "\t\t<Property name=\"delay_max\" value=\"" << m_delay_max << "\" />" << std::endl;
-	// volume
-	ofile << "\t\t<Property name=\"volume_min\" value=\"" << m_volume_min << "\" />" << std::endl;
-	ofile << "\t\t<Property name=\"volume_max\" value=\"" << m_volume_max << "\" />" << std::endl;
-	// volume reduction
-	ofile << "\t\t<Property name=\"volume_reduction_begin\" value=\"" << m_volume_reduction_begin << "\" />" << std::endl;
-	ofile << "\t\t<Property name=\"volume_reduction_end\" value=\"" << m_volume_reduction_end << "\" />" << std::endl;
-
-	ofile << "\t</sound>" << std::endl;
-}
-
 void cRandom_Sound :: Init( void )
 {
-	sprite_array = ARRAY_ACTIVE;
-	type = TYPE_SOUND;
-	massivetype = MASS_PASSIVE;
-	editor_posz = 0.111f;
-	player_range = 0;
-	name = "Sound";
+	m_sprite_array = ARRAY_ACTIVE;
+	m_type = TYPE_SOUND;
+	m_massive_type = MASS_PASSIVE;
+	m_editor_pos_z = 0.111f;
+	m_player_range = 0;
+	m_name = "Sound";
 
-	rect.w = 10;
-	rect.h = 10;
-	col_rect.w = rect.w;
-	col_rect.h = rect.h;
-	start_rect.w = rect.w;
-	start_rect.h = rect.h;
+	m_rect.m_w = 10;
+	m_rect.m_h = 10;
+	m_col_rect.m_w = m_rect.m_w;
+	m_col_rect.m_h = m_rect.m_h;
+	m_start_rect.m_w = m_rect.m_w;
+	m_start_rect.m_h = m_rect.m_h;
 
 	// default values
 	m_continuous = 0;
@@ -123,7 +84,7 @@ void cRandom_Sound :: Init( void )
 cRandom_Sound *cRandom_Sound :: Copy( void )
 {
 	cRandom_Sound *random_sound = new cRandom_Sound();
-	random_sound->Set_Pos( startposx, startposy, 1 );
+	random_sound->Set_Pos( m_start_pos_x, m_start_pos_y, 1 );
 	random_sound->Set_Filename( m_filename.c_str() );
 	random_sound->Set_Continuous( m_continuous );
 	random_sound->Set_Delay_Min( m_delay_min );
@@ -136,7 +97,50 @@ cRandom_Sound *cRandom_Sound :: Copy( void )
 	return random_sound;
 }
 
-void cRandom_Sound :: Set_Filename( string str )
+void cRandom_Sound :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
+{
+	// filename
+	Set_Filename( attributes.getValueAsString( "file" ).c_str() );
+	// position
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "pos_x" )), static_cast<float>(attributes.getValueAsInteger( "pos_y" )), 1 );
+	// 
+	Set_Continuous( attributes.getValueAsBool( "continuous", m_continuous ) );
+	// delay
+	Set_Delay_Min( attributes.getValueAsInteger( "delay_min", m_delay_min ) );
+	Set_Delay_Max( attributes.getValueAsInteger( "delay_max", m_delay_max ) );
+	// volume
+	Set_Volume_Min( attributes.getValueAsFloat( "volume_min", m_volume_min ) );
+	Set_Volume_Max( attributes.getValueAsFloat( "volume_max", m_volume_max ) );
+	// volume reduction
+	Set_Volume_Reduction_Begin( attributes.getValueAsFloat( "volume_reduction_begin", m_volume_reduction_begin ) );
+	Set_Volume_Reduction_End( attributes.getValueAsFloat( "volume_reduction_end", m_volume_reduction_end ) );
+}
+
+void cRandom_Sound :: Save_To_Stream( ofstream &ofile )
+{
+	ofile << "\t<sound>" << std::endl;
+
+	// filename
+	ofile << "\t\t<Property name=\"file\" value=\"" << m_filename.c_str() << "\" />" << std::endl;
+	// position
+	ofile << "\t\t<Property name=\"pos_x\" value=\"" << static_cast<int>(m_start_pos_x) << "\" />" << std::endl;
+	ofile << "\t\t<Property name=\"pos_y\" value=\"" << static_cast<int>(m_start_pos_y) << "\" />" << std::endl;
+	// continuous
+	ofile << "\t\t<Property name=\"continuous\" value=\"" << m_continuous << "\" />" << std::endl;
+	// delay
+	ofile << "\t\t<Property name=\"delay_min\" value=\"" << m_delay_min << "\" />" << std::endl;
+	ofile << "\t\t<Property name=\"delay_max\" value=\"" << m_delay_max << "\" />" << std::endl;
+	// volume
+	ofile << "\t\t<Property name=\"volume_min\" value=\"" << m_volume_min << "\" />" << std::endl;
+	ofile << "\t\t<Property name=\"volume_max\" value=\"" << m_volume_max << "\" />" << std::endl;
+	// volume reduction
+	ofile << "\t\t<Property name=\"volume_reduction_begin\" value=\"" << m_volume_reduction_begin << "\" />" << std::endl;
+	ofile << "\t\t<Property name=\"volume_reduction_end\" value=\"" << m_volume_reduction_end << "\" />" << std::endl;
+
+	ofile << "\t</sound>" << std::endl;
+}
+
+void cRandom_Sound :: Set_Filename( const std::string &str )
 {
 	// stop playing sounds
 	for( unsigned int i = 0; i < 100; i++ )
@@ -154,7 +158,7 @@ void cRandom_Sound :: Set_Filename( string str )
 	m_filename = str;
 }
 
-string cRandom_Sound :: Get_Filename( void ) const
+std::string cRandom_Sound :: Get_Filename( void ) const
 {
 	return m_filename;
 }
@@ -282,7 +286,7 @@ float cRandom_Sound :: Get_Volume_Reduction_End( void ) const
 	return m_volume_reduction_end;
 }
 
-float cRandom_Sound :: Get_Distance_Volume_Mod( void )
+float cRandom_Sound :: Get_Distance_Volume_Mod( void ) const
 {
 	// if in volume reduction range
 	if( m_distance_to_camera > m_volume_reduction_begin )
@@ -299,7 +303,7 @@ void cRandom_Sound :: Update( void )
 {
 	Update_Valid_Update();
 
-	if( !valid_update )
+	if( !m_valid_update )
 	{
 		return;
 	}
@@ -329,7 +333,7 @@ void cRandom_Sound :: Update( void )
 			// set to mixer volume
 			sound_volume *= static_cast<float>(MIX_MAX_VOLUME);
 			// set volume
-			pAudio->Set_Sound_Volume( static_cast<int>(sound_volume), sound->m_channel );
+			pAudio->Set_Sound_Volume( static_cast<Uint8>(sound_volume), sound->m_channel );
 
 			// update volume every 100 ms
 			m_volume_update_counter = 100;
@@ -399,24 +403,24 @@ void cRandom_Sound :: Update( void )
 	}
 }
 
-void cRandom_Sound :: Draw( cSurfaceRequest *request /* = NULL */ )
+void cRandom_Sound :: Draw( cSurface_Request *request /* = NULL */ )
 {
-	if( !valid_draw )
+	if( !m_valid_draw )
 	{
 		return;
 	}
 
 	// draw color rect
-	pVideo->Draw_Rect( col_rect.x - pActive_Camera->x, col_rect.y - pActive_Camera->y, col_rect.w, col_rect.h, editor_posz, &greenyellow );
+	pVideo->Draw_Rect( m_col_rect.m_x - pActive_Camera->x, m_col_rect.m_y - pActive_Camera->y, m_col_rect.m_w, m_col_rect.m_h, m_editor_pos_z, &greenyellow );
 	// volume reduction begin
-	cCircleRequest *circle_request = new cCircleRequest();
-	pVideo->Draw_Circle( col_rect.x - pActive_Camera->x, col_rect.y - pActive_Camera->y, m_volume_reduction_begin, editor_posz - 0.0001f, &m_editor_color_volume_reduction_begin, circle_request );
+	cCircle_Request *circle_request = new cCircle_Request();
+	pVideo->Draw_Circle( m_col_rect.m_x - pActive_Camera->x, m_col_rect.m_y - pActive_Camera->y, m_volume_reduction_begin, m_editor_pos_z - 0.0001f, &m_editor_color_volume_reduction_begin, circle_request );
 	circle_request->line_width = 3;
 	// add request
 	pRenderer->Add( circle_request );
 	// volume reduction end
-	circle_request = new cCircleRequest();
-	pVideo->Draw_Circle( col_rect.x - pActive_Camera->x, col_rect.y - pActive_Camera->y, m_volume_reduction_end, editor_posz - 0.0002f, &m_editor_color_volume_reduction_end, circle_request  );
+	circle_request = new cCircle_Request();
+	pVideo->Draw_Circle( m_col_rect.m_x - pActive_Camera->x, m_col_rect.m_y - pActive_Camera->y, m_volume_reduction_end, m_editor_pos_z - 0.0002f, &m_editor_color_volume_reduction_end, circle_request  );
 	circle_request->line_width = 3;
 	// add request
 	pRenderer->Add( circle_request );
@@ -425,14 +429,14 @@ void cRandom_Sound :: Draw( cSurfaceRequest *request /* = NULL */ )
 bool cRandom_Sound :: Is_Update_Valid( void )
 {
 	// if destroyed
-	if( destroy )
+	if( m_auto_destroy )
 	{
 		return 0;
 	}
 
 	// get distance from camera center position
-	float dx = fabs( pActive_Camera->x + (game_res_w * 0.5f) - posx );
-	float dy = fabs( pActive_Camera->y + (game_res_h * 0.5f) - posy );
+	float dx = fabs( pActive_Camera->x + (game_res_w * 0.5f) - m_pos_x );
+	float dy = fabs( pActive_Camera->y + (game_res_h * 0.5f) - m_pos_y );
 
 	m_distance_to_camera = sqrt( dx * dx + dy * dy );
 
@@ -454,8 +458,8 @@ bool cRandom_Sound :: Is_Draw_Valid( void )
 		return 0;
 	}
 
-	// if not visible on the screen or not mouse object
-	if( !visible || ( !Is_Visible_on_Screen() && pMouseCursor->active_object != this ) )
+	// if not active on the screen or not mouse object
+	if( !m_active || ( !Is_Visible_On_Screen() && pMouseCursor->active_object != this ) )
 	{
 		return 0;
 	}
@@ -463,7 +467,7 @@ bool cRandom_Sound :: Is_Draw_Valid( void )
 	return 1;
 }
 
-void cRandom_Sound :: Event_Out_Of_Range( void )
+void cRandom_Sound :: Event_Out_Of_Range( void ) const
 {
 	// fade out sounds if out of range
 	pAudio->Fadeout_Sounds( 500, m_filename );
@@ -478,7 +482,7 @@ void cRandom_Sound :: Editor_Activate( void )
 	Editor_Add( UTF8_("Filename"), UTF8_("Sound filename"), editbox, 200 );
 
 	editbox->setText( m_filename.c_str() );
-	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cRandom_Sound::Editor_Filename_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cRandom_Sound::Editor_Filename_Text_Changed, this ) );
 
 	// continuous
 	CEGUI::Checkbox *checkbox = static_cast<CEGUI::Checkbox *>(wmgr.createWindow( "TaharezLook/Checkbox", "editor_sound_continuous" ));
@@ -491,54 +495,58 @@ void cRandom_Sound :: Editor_Activate( void )
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_sound_delay_min" ));
 	Editor_Add( UTF8_("Delay Minimum"), UTF8_("Minimal delay until played again"), editbox, 90 );
 
+	editbox->setValidationString( "^[+]?\\d*$" );
 	editbox->setText( int_to_string( m_delay_min ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cRandom_Sound::Editor_Delay_Min_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cRandom_Sound::Editor_Delay_Min_Text_Changed, this ) );
 
 	// delay max
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_sound_delay_max" ));
 	Editor_Add( UTF8_("Maximum"), UTF8_("Maximal delay until played again"), editbox, 90, 28, 0 );
 
+	editbox->setValidationString( "^[+]?\\d*$" );
 	editbox->setText( int_to_string( m_delay_max ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cRandom_Sound::Editor_Delay_Max_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cRandom_Sound::Editor_Delay_Max_Text_Changed, this ) );
 
 	// volume min
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_sound_volume_min" ));
 	Editor_Add( UTF8_("Volume Minimum"), UTF8_("Minimal random volume for each play"), editbox, 90 );
 
+	editbox->setValidationString( "^[+]?\\d*$" );
 	editbox->setText( int_to_string( static_cast<int>(m_volume_min) ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cRandom_Sound::Editor_Volume_Min_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cRandom_Sound::Editor_Volume_Min_Text_Changed, this ) );
 
 	// volume max
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_sound_volume_max" ));
 	Editor_Add( UTF8_("Maximum"), UTF8_("Maximal random volume for each play"), editbox, 90, 28, 0 );
 
+	editbox->setValidationString( "^[+]?\\d*$" );
 	editbox->setText( int_to_string( static_cast<int>(m_volume_max) ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cRandom_Sound::Editor_Volume_Max_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cRandom_Sound::Editor_Volume_Max_Text_Changed, this ) );
 
 	// volume reduction begin
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_sound_volume_reduction_begin" ));
 	Editor_Add( UTF8_("Volume Reduction Begin"), UTF8_("Volume reduction begins gradually at this distance"), editbox, 90 );
 
+	editbox->setValidationString( "^[+]?\\d*$" );
 	editbox->setText( int_to_string( static_cast<int>(m_volume_reduction_begin) ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cRandom_Sound::Editor_Volume_Reduction_Begin_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cRandom_Sound::Editor_Volume_Reduction_Begin_Text_Changed, this ) );
 
 	// volume reduction end
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_sound_volume_reduction_end" ));
 	Editor_Add( UTF8_("End"), UTF8_("Volume reduction ends at this distance. Sound is not played beyond this."), editbox, 90, 28, 0 );
 
+	editbox->setValidationString( "^[+]?\\d*$" );
 	editbox->setText( int_to_string( static_cast<int>(m_volume_reduction_end) ) );
-	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cRandom_Sound::Editor_Volume_Reduction_End_Key, this ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cRandom_Sound::Editor_Volume_Reduction_End_Text_Changed, this ) );
 
 	// init
 	Editor_Init();
 }
 
-bool cRandom_Sound :: Editor_Filename_Key( const CEGUI::EventArgs &event )
+bool cRandom_Sound :: Editor_Filename_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
-
-	Set_Filename( str_text );
+	Set_Filename( static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str() );
 
 	return 1;
 }
@@ -553,62 +561,66 @@ bool cRandom_Sound :: Editor_Continuous_Changed( const CEGUI::EventArgs &event )
 	return 1;
 }
 
-bool cRandom_Sound :: Editor_Delay_Min_Key( const CEGUI::EventArgs &event )
+bool cRandom_Sound :: Editor_Delay_Min_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Delay_Min( string_to_int( str_text ) );
 
 	return 1;
 }
 
-bool cRandom_Sound :: Editor_Delay_Max_Key( const CEGUI::EventArgs &event )
+bool cRandom_Sound :: Editor_Delay_Max_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Delay_Max( string_to_int( str_text ) );
 
 	return 1;
 }
 
-bool cRandom_Sound :: Editor_Volume_Min_Key( const CEGUI::EventArgs &event )
+bool cRandom_Sound :: Editor_Volume_Min_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Volume_Min( string_to_float( str_text ) );
 
 	return 1;
 }
 
-bool cRandom_Sound :: Editor_Volume_Max_Key( const CEGUI::EventArgs &event )
+bool cRandom_Sound :: Editor_Volume_Max_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Volume_Max( string_to_float( str_text ) );
 
 	return 1;
 }
 
-bool cRandom_Sound :: Editor_Volume_Reduction_Begin_Key( const CEGUI::EventArgs &event )
+bool cRandom_Sound :: Editor_Volume_Reduction_Begin_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Volume_Reduction_Begin( string_to_float( str_text ) );
 
 	return 1;
 }
 
-bool cRandom_Sound :: Editor_Volume_Reduction_End_Key( const CEGUI::EventArgs &event )
+bool cRandom_Sound :: Editor_Volume_Reduction_End_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Volume_Reduction_End( string_to_float( str_text ) );
 
 	return 1;
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

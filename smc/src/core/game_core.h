@@ -1,7 +1,7 @@
 /***************************************************************************
  * game_core.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2005 - 2008 Florian Richter
+ * Copyright (C) 2005 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -16,9 +16,11 @@
 #ifndef SMC_GAME_CORE_H
 #define SMC_GAME_CORE_H
 
-#include "../core/globals.h"
 #include "../objects/movingsprite.h"
 #include "../core/camera.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** Variables *** *** *** *** *** *** *** *** *** */
 
@@ -92,7 +94,7 @@ public:
 	// base window
 	CEGUI::Window *window;
 	// layout filename
-	string layout_file;
+	std::string layout_file;
 
 	// hide mouse on exit
 	bool mouse_hide;
@@ -109,10 +111,11 @@ public:
 	void Init( std::string title_text );
 
 	// enter
-	string Enter( std::string default_text, std::string title_text, bool auto_no_text = 1 );
+	std::string Enter( std::string default_text, std::string title_text, bool auto_no_text = 1 );
 
 	// CEGUI events
-	bool Button_window_quit_clicked( const CEGUI::EventArgs &event ); // window quit button
+	// window quit button clicked event
+	bool Button_window_quit_clicked( const CEGUI::EventArgs &event );
 
 	// editbox
 	CEGUI::Editbox *box_editbox;
@@ -148,7 +151,7 @@ public:
 /* Change the Game Mode to the given mode
  * and disables or enables game mode specific objects
 */
-void Change_Game_Mode( GameMode new_mode );
+void Change_Game_Mode( const GameMode new_mode );
 
 // Return the given time as string
 std::string Time_to_String( time_t t, const char *format );
@@ -160,35 +163,35 @@ std::string Get_Filename( std::string filename, bool with_dir = 1, bool with_end
 void Clear_Input_Events( void ); 
 
 // Return the opposite Direction
-ObjectDirection Get_Opposite_Direction( ObjectDirection direction );
+ObjectDirection Get_Opposite_Direction( const ObjectDirection direction );
 // Return the Direction Name
-std::string Get_Direction_Name( ObjectDirection dir );
+std::string Get_Direction_Name( const ObjectDirection dir );
 // Return the Direction identifier
-ObjectDirection Get_Direction_Id( std::string str_direction );
+ObjectDirection Get_Direction_Id( const std::string &str_direction );
 
 // Return the SpriteType identifier
-SpriteType Get_Sprite_Type_Id( std::string str_type );
+SpriteType Get_Sprite_Type_Id( const std::string &str_type );
 /* Return the Color of the given Sprite
  * based mostly on sprite array
 */
-Color Get_Sprite_Color( cSprite *sprite );
+Color Get_Sprite_Color( const cSprite *sprite );
 
 // Return the massive type Name
-std::string Get_Massive_Type_Name( MassiveType mtype );
+std::string Get_Massive_Type_Name( const MassiveType mtype );
 // Return the massive type identifier
-MassiveType Get_Massive_Type_Id( std::string str_massivetype );
+MassiveType Get_Massive_Type_Id( const std::string &str_massivetype );
 // Return the Color of the given Massivetype
-Color Get_Massive_Type_Color( MassiveType mtype );
+Color Get_Massive_Type_Color( const MassiveType mtype );
 
 // Return the ground type name
-std::string Get_Ground_Type_Name( GroundType gtype );
+std::string Get_Ground_Type_Name( const GroundType gtype );
 // Return the ground type identifier
-GroundType Get_Ground_Type_Id( std::string str_groundtype );
+GroundType Get_Ground_Type_Id( const std::string &str_groundtype );
 
 // Return the Color Name
-std::string Get_Color_Name( DefaultColor color );
+std::string Get_Color_Name( const DefaultColor color );
 // Return the Color identifier
-DefaultColor Get_Color_Id( std::string str_color );
+DefaultColor Get_Color_Id( const std::string &str_color );
 
 // Update The GUI time handler
 void Gui_Handle_Time( void );
@@ -196,7 +199,7 @@ void Gui_Handle_Time( void );
 /* Draw a Statictext
  * if wait_for_input is given draws the text until the user pressed a key
  */
-void Draw_Static_Text( std::string text, const Color *color_text = &white, const Color *color_bg = NULL, bool wait_for_input = 1 );
+void Draw_Static_Text( const std::string &text, const Color *color_text = &white, const Color *color_bg = NULL, bool wait_for_input = 1 );
 
 /* CEGUI EditBox with header
  *
@@ -205,7 +208,7 @@ void Draw_Static_Text( std::string text, const Color *color_text = &white, const
  * title_text : box header text
  * auto_no_text : if true and any key is pressed the default text is cleared
  */
-std::string Box_Text_Input( std::string default_text, std::string title_text, bool auto_no_text = 1 );
+std::string Box_Text_Input( const std::string &default_text, const std::string &title_text, bool auto_no_text = 1 );
 
 /* Button Question Box
  * returns 1 for Yes, 0 for No and -1 if canceled
@@ -213,7 +216,7 @@ std::string Box_Text_Input( std::string default_text, std::string title_text, bo
  * text : box question text
  * with_cancel : add the cancel button
 */
-int Box_Question( std::string text, bool with_cancel = 0 );
+int Box_Question( const std::string &text, bool with_cancel = 0 );
 
 /* Preload the common images into the image manager
  * draw_gui : if set use the loading screen gui for drawing
@@ -234,12 +237,18 @@ void Preload_Sounds( bool draw_gui = 0 );
 bool Delete_File( const std::string &filename );
 // Check if the file exists
 bool File_Exists( const std::string &filename );
+// Check if the directory exists
+bool Dir_Exists( const std::string &dir );
+/* Get the file size in bytes 
+* returns 0 if the file does not exist
+*/
+size_t Get_File_Size( const std::string &filename );
 
 // Converts "\" and "!" to "/"
 void Convert_Path_Separators( std::string &str );
 
 // Changes the image path in the given xml attributes to the new one
-void Relocate_Image( CEGUI::XMLAttributes &xml_attributes, std::string filename_old, std::string filename_new );
+void Relocate_Image( CEGUI::XMLAttributes &xml_attributes, const std::string &filename_old, const std::string &filename_new, const CEGUI::String &attribute_name = "image" );
 
 /* Get all files from the directory
  * dir : the directory to scan
@@ -247,12 +256,12 @@ void Relocate_Image( CEGUI::XMLAttributes &xml_attributes, std::string filename_
  * with_directories : if set adds directories to the returned objects
  * search_in_sub_directories : searches in every sub-directory
 */
-vector<std::string> Get_Directory_Files( std::string dir, std::string file_type = "", bool with_directories = 0, bool search_in_sub_directories = 1 );
+vector<std::string> Get_Directory_Files( const std::string &dir, const std::string &file_type = "", bool with_directories = 0, bool search_in_sub_directories = 1 );
 
 // Return the operating system temporary files directory
 std::string Get_Temp_Directory( void );
 // Return the default smc user directory in the operating system application/home directory
-string Get_User_Directory( void );
+std::string Get_User_Directory( void );
 // Create the necessary folders in the user directory
 void Init_User_Directory( void );
 // Return the clipboard content
@@ -285,5 +294,7 @@ std::string string_to_xml_string( const std::string &str );
 std::string xml_string_to_string( std::string str );
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

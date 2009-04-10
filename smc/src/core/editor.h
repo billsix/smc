@@ -1,7 +1,7 @@
 /***************************************************************************
  * editor.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -20,6 +20,12 @@
 #include "../objects/sprite.h"
 #include "../gui/hud.h"
 #include "../video/img_settings.h"
+// CEGUI
+#include "CEGUIXMLHandler.h"
+#include "CEGUIXMLAttributes.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** cEditor_Object_Settings_Item *** *** *** *** *** *** *** *** *** *** */
 
@@ -42,7 +48,7 @@ public:
 class cEditor_Item_Object : public CEGUI::ListboxItem
 {
 public:
-	cEditor_Item_Object( string text );
+	cEditor_Item_Object( const std::string &text );
 	virtual ~cEditor_Item_Object( void );
 
 	// Initialize
@@ -74,16 +80,16 @@ public:
 class cEditor_Menu_Object : public CEGUI::ListboxTextItem
 {
 public:
-	cEditor_Menu_Object( string text );
+	cEditor_Menu_Object( const std::string &text );
 	virtual ~cEditor_Menu_Object( void );
 
 	// Initialize
 	void Init( void );
 
 	// Name
-	string name;
+	std::string name;
 	// tags or function name if function
-	string tags;
+	std::string tags;
 
 	// if type is a function
 	bool bfunction;
@@ -140,34 +146,34 @@ public:
 	// ##### Main Menu
 
 	// Add Menu Entry
-	void Add_Menu_Object( string name, string tags, CEGUI::colour normal_color = CEGUI::colour( 1, 1, 1 ) );
+	void Add_Menu_Object( const std::string &name, std::string tags, CEGUI::colour normal_color = CEGUI::colour( 1, 1, 1 ) );
 	// Set Active Menu Entry
 	virtual void Activate_Menu_Item( cEditor_Menu_Object *entry );
 
 	// ##### Item Menu
 	// Load an defined Menu
-	virtual bool Load_Item_Menu( string item_tag );
+	virtual bool Load_Item_Menu( std::string item_tag );
 	// Unload the Menu
 	void Unload_Item_Menu( void );
 	/* Add an Object to the Item list
 	 * if nName is set it will not use the object name
 	 * if image is set the default object image is not used
 	 */
-	void Add_Item_Object( cSprite *sprite, string new_name = "", cGL_Surface *image = NULL );
+	void Add_Item_Object( cSprite *sprite, std::string new_name = "", cGL_Surface *image = NULL );
 	// Loads all Image Items
-	void Load_Image_Items( string dir );
+	void Load_Image_Items( std::string dir );
 	// Active Item Entry
 	virtual void Activate_Item( cEditor_Item_Object *entry );
 
 	// #### Editor Functions
-	// push the object into the front or back
-	void Change_Draw_Position( cSprite *obj, bool push_back );
+	// move the draw position of object to the front or back
+	void Change_Draw_Position( cSprite *obj, bool move_back ) const;
 	/* copy the given object(s) next to itself into the given direction
 	 * if offset is given it will be used instead of the auto calculated direction size
 	 * returns the new object(s)
 	*/
-	SpriteList Copy_Direction( SpriteList objects, ObjectDirection dir );
-	cSprite *Copy_Direction( cSprite *obj, ObjectDirection dir, int offset = 0 );
+	cSprite_List Copy_Direction( cSprite_List &objects, const ObjectDirection dir ) const;
+	cSprite *Copy_Direction( cSprite *obj, const ObjectDirection dir, int offset = 0 ) const;
 
 	// CEGUI events
 	bool Editor_Mouse_Enter( const CEGUI::EventArgs &event ); // Mouse entered Window
@@ -190,11 +196,11 @@ public:
 	bool enabled;
 
 	// Editor filenames
-	string menu_filename;
-	string items_filename;
+	std::string menu_filename;
+	std::string items_filename;
 
 	// Required item tag
-	string editor_item_tag;
+	std::string editor_item_tag;
 	// editor Camera speed
 	float camera_speed;
 
@@ -209,28 +215,32 @@ public:
 
 	// CEGUI window
 	CEGUI::Window *editor_window;
+	CEGUI::Listbox *listbox_menu;
+	CEGUI::Listbox *listbox_items;
+	CEGUI::TabControl *tabcontrol_menu;
 
 protected:
 	// Check if the given tag is available in the string
-	bool Is_Tag_Available( string str, string tag, unsigned int search_pos = 0 );
+	bool Is_Tag_Available( const std::string &str, const std::string &tag, unsigned int search_pos = 0 );
 
 	// Draw Editor Help Box
-    void Draw_Editor_Help( void );
-	/* Add a Help Text Line to the Help Box
+	void Draw_Editor_Help( void );
+	/* Add a text line to the Help Box
 	 * spacing : can be used f.e. a header
 	 * pos_x : the line start position x
 	*/
-    void Add_Help_Line( string key_text, string text = "", float spacing = 0, float pos_x = 60 );
+	void Add_Help_Line( std::string key_text, std::string description = "", float spacing = 0, float pos_x = 60 );
 
 	// if true show the editor help
-    bool show_editor_help;
-   	// help sprites
+	bool show_editor_help;
+	// help sprites
+	typedef vector<cHudSprite *> HudSpriteList;
 	HudSpriteList help_sprites;
 private:
 	// XML element start
-    virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
+	virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
 	// XML element end
-    virtual void elementEnd( const CEGUI::String &element );
+	virtual void elementEnd( const CEGUI::String &element );
 
 	void Handle_Item( const CEGUI::XMLAttributes &attributes );
 	void Handle_Menu( const CEGUI::XMLAttributes &attributes );
@@ -240,5 +250,7 @@ private:
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

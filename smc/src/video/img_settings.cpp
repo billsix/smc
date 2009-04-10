@@ -1,7 +1,7 @@
 /***************************************************************************
  * img_settings.cpp  -  Image Settings Handler
  *
- * Copyright (C) 2005 - 2008 Florian Richter
+ * Copyright (C) 2005 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -15,9 +15,11 @@
 
 #include "../video/img_settings.h"
 #include "../core/game_core.h"
-#include "../video/gl_surface.h"
 #include "../core/math/utilities.h"
 #include "../core/math/size.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** cImage_settings_data *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -45,7 +47,7 @@ cImage_settings_data :: ~cImage_settings_data( void )
 
 }
 
-cSize_Float cImage_settings_data :: Get_Surface_Size( SDL_Surface *sdl_surface )
+cSize_Float cImage_settings_data :: Get_Surface_Size( const SDL_Surface *sdl_surface ) const
 {
 	if( !sdl_surface )
 	{
@@ -70,7 +72,7 @@ cSize_Float cImage_settings_data :: Get_Surface_Size( SDL_Surface *sdl_surface )
 		}
 
 		// if texture detail below low
-		if( pVideo->texture_detail < 0.25f )
+		if( pVideo->m_texture_quality < 0.25f )
 		{
 			// half size only if texture size is high
 			if( new_w * 0.8f > m_width * global_upscalex && new_h * 0.8f > m_height * global_upscaley )
@@ -84,7 +86,7 @@ cSize_Float cImage_settings_data :: Get_Surface_Size( SDL_Surface *sdl_surface )
 	return cSize_Float( new_w, new_h);
 }
 
-void cImage_settings_data :: Apply( cGL_Surface *image )
+void cImage_settings_data :: Apply( cGL_Surface *image ) const
 {
 	// empty image
 	if( !image )
@@ -94,128 +96,129 @@ void cImage_settings_data :: Apply( cGL_Surface *image )
 	}
 
 	// ## int_x/int_y
-	image->int_x = static_cast<float>(m_int_x);
-	image->int_y = static_cast<float>(m_int_y);
+	image->m_int_x = static_cast<float>(m_int_x);
+	image->m_int_y = static_cast<float>(m_int_y);
 
 	// ## width
 	if( m_width > 0 )
 	{
-		image->start_w = static_cast<float>(m_width);
-		image->w = image->start_w;
-		image->col_w = image->w;
+		image->m_start_w = static_cast<float>(m_width);
+		image->m_w = image->m_start_w;
+		image->m_col_w = image->m_w;
 	}
 	// ## height
 	if( m_height > 0 )
 	{
-		image->start_h = static_cast<float>(m_height);
-		image->h = image->start_h;
-		image->col_h = image->h;
+		image->m_start_h = static_cast<float>(m_height);
+		image->m_h = image->m_start_h;
+		image->m_col_h = image->m_h;
 	}
 
 	// ## collision rect
-	if( m_col_rect.w > 0 && m_col_rect.h > 0 )
+	if( m_col_rect.m_w > 0.0f && m_col_rect.m_h > 0.0f )
 	{
 		// position
-		image->col_pos.x = m_col_rect.x;
-		image->col_pos.y = m_col_rect.y;
+		image->m_col_pos.m_x = m_col_rect.m_x;
+		image->m_col_pos.m_y = m_col_rect.m_y;
 		// dimension
-		image->col_w = m_col_rect.w;
-		image->col_h = m_col_rect.h;
+		image->m_col_w = m_col_rect.m_w;
+		image->m_col_h = m_col_rect.m_h;
 	}
 
 	// ## rotation x
 	if( m_rotation_x != 0 )
 	{
-		image->base_rotx = static_cast<float>(m_rotation_x);
+		image->m_base_rot_x = static_cast<float>(m_rotation_x);
 
-		//image->col_pos = image->col_pos.rotate3d( image->base_rotx, 1, 0, 0 );
+		//image->m_col_pos = image->m_col_pos.rotate3d( image->base_rotx, 1, 0, 0 );
 		// mirror
-		if( image->base_rotx == 180 )
+		if( image->m_base_rot_x == 180.0f )
 		{
-			image->col_pos.y = image->h - ( image->col_h + image->col_pos.y );
+			image->m_col_pos.m_y = image->m_h - ( image->m_col_h + image->m_col_pos.m_y );
 		}
 	}
 	// ## rotation y
 	if( m_rotation_y != 0 )
 	{
-		image->base_roty = static_cast<float>(m_rotation_y);
+		image->m_base_rot_y = static_cast<float>(m_rotation_y);
 
-		//image->col_pos = image->col_pos.rotate3d( image->base_roty, 0, 1, 0 );
+		//image->m_col_pos = image->m_col_pos.rotate3d( image->base_roty, 0, 1, 0 );
 		// mirror
-		if( image->base_roty == 180 )
+		if( image->m_base_rot_y == 180.0f )
 		{
-			image->col_pos.x = image->w - ( image->col_w + image->col_pos.x );
+			image->m_col_pos.m_x = image->m_w - ( image->m_col_w + image->m_col_pos.m_x );
 		}
 	}
 	// ## rotation z
 	if( m_rotation_z != 0 )
 	{
-		image->base_rotz = static_cast<float>(m_rotation_z);
+		image->m_base_rot_z = static_cast<float>(m_rotation_z);
 
-		//image->col_pos = image->col_pos.rotate3d( image->base_rotz, 0, 0, 1 );
+		//image->m_col_pos = image->m_col_pos.rotate3d( image->m_base_rot_z, 0, 0, 1 );
 
-		if( image->base_rotz == 90 )
+		if( image->m_base_rot_z == 90.0f )
 		{
 			// rotate position
-			GL_point pos( image->int_x, image->int_y );
-			pos = pos.rotate( GL_point( image->w * 0.5f, image->h * 0.5f ), image->base_rotz );
-			image->int_x = pos.y;
-			image->int_y = pos.x - image->h;
+			GL_point pos( image->m_int_x, image->m_int_y );
+			pos = pos.rotate( GL_point( image->m_w * 0.5f, image->m_h * 0.5f ), image->m_base_rot_z );
+			image->m_int_x = pos.m_y;
+			image->m_int_y = pos.m_x - image->m_h;
 			// rotate collision position
-			float orig_x = image->col_pos.x;
-			image->col_pos.x = image->h - ( image->col_h + image->col_pos.y );
-			image->col_pos.y = orig_x;
+			float orig_x = image->m_col_pos.m_x;
+			image->m_col_pos.m_x = image->m_h - ( image->m_col_h + image->m_col_pos.m_y );
+			image->m_col_pos.m_y = orig_x;
 
 			// switch width and height
-			float orig_w = image->w;
-			image->w = image->h;
-			image->h = orig_w;
+			float orig_w = image->m_w;
+			image->m_w = image->m_h;
+			image->m_h = orig_w;
 			// switch collision width and height
-			float orig_col_w = image->col_w;
-			image->col_w = image->col_h;
-			image->col_h = orig_col_w;
+			float orig_col_w = image->m_col_w;
+			image->m_col_w = image->m_col_h;
+			image->m_col_h = orig_col_w;
 		}
 		// mirror
-		else if( image->base_rotz == 180 )
+		else if( image->m_base_rot_z == 180.0f )
 		{
-			image->col_pos.y = image->h - ( image->col_h + image->col_pos.y );
+			image->m_col_pos.m_x = image->m_w - ( image->m_col_w + image->m_col_pos.m_x );
+			image->m_col_pos.m_y = image->m_h - ( image->m_col_h + image->m_col_pos.m_y );
 		}
-		else if( image->base_rotz == 270 )
+		else if( image->m_base_rot_z == 270.0f )
 		{
 			// rotate position
-			GL_point pos( image->int_x, image->int_y );
-			pos = pos.rotate( GL_point( image->w * 0.5f, image->h * 0.5f ), image->base_rotz );
-			image->int_x = pos.y - image->w;
-			image->int_y = pos.x;
+			GL_point pos( image->m_int_x, image->m_int_y );
+			pos = pos.rotate( GL_point( image->m_w * 0.5f, image->m_h * 0.5f ), image->m_base_rot_z );
+			image->m_int_x = pos.m_y - image->m_w;
+			image->m_int_y = pos.m_x;
 			// rotate collision position
-			float orig_x = image->col_pos.x;
-			image->col_pos.x = image->col_pos.y;
-			image->col_pos.y = orig_x;
+			float orig_x = image->m_col_pos.m_x;
+			image->m_col_pos.m_x = image->m_col_pos.m_y;
+			image->m_col_pos.m_y = orig_x;
 
 			// switch width and height
-			float orig_w = image->w;
-			image->w = image->h;
-			image->h = orig_w;
+			float orig_w = image->m_w;
+			image->m_w = image->m_h;
+			image->m_h = orig_w;
 			// switch collision width and height
-			float orig_col_w = image->col_w;
-			image->col_w = image->col_h;
-			image->col_h = orig_col_w;
+			float orig_col_w = image->m_col_w;
+			image->m_col_w = image->m_col_h;
+			image->m_col_h = orig_col_w;
 		}
 	}
 
 	// ## editor_tags
 	if( !m_editor_tags.empty() )
 	{
-		image->editor_tags = m_editor_tags;
+		image->m_editor_tags = m_editor_tags;
 	}
 
 	// ## name
 	if( !m_name.empty() )
 	{
-		image->name = m_name;
+		image->m_name = m_name;
 
 		// finds all "_" and replaces them with " "
-		for( string::iterator itr = image->name.begin(); itr != image->name.end(); ++itr )
+		for( std::string::iterator itr = image->m_name.begin(); itr != image->m_name.end(); ++itr )
 		{
 			// change
 			if( *itr == '_' )
@@ -228,17 +231,17 @@ void cImage_settings_data :: Apply( cGL_Surface *image )
 	// ## type
 	if( m_type > 0 )
 	{
-		image->type = m_type;
+		image->m_type = m_type;
 	}
 
 	// ## ground type
-	image->ground_type = m_ground_type;
+	image->m_ground_type = m_ground_type;
 
 	// ## obsolete
-	image->obsolete = m_obsolete;
+	image->m_obsolete = m_obsolete;
 }
 
-void cImage_settings_data :: Apply_Base( cImage_settings_data *base_settings_data )
+void cImage_settings_data :: Apply_Base( const cImage_settings_data *base_settings_data )
 {
 	if( !base_settings_data->m_base.empty() )
 	{
@@ -281,7 +284,7 @@ cImage_settings :: ~cImage_settings( void )
 	//
 }
 
-cImage_settings_data *cImage_settings :: Get( string &filename, bool load_base_settings /* = 1 */ )
+cImage_settings_data *cImage_settings :: Get( const std::string &filename, bool load_base_settings /* = 1 */ )
 {
 	load_base = load_base_settings;
 	settings = new cImage_settings_data();
@@ -290,7 +293,7 @@ cImage_settings_data *cImage_settings :: Get( string &filename, bool load_base_s
 	return settings;
 }
 
-bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsigned int line )
+bool cImage_settings :: HandleMessage( const std::string *parts, unsigned int count, unsigned int line )
 {
 	if( parts[0].compare( "base" ) == 0 )
 	{
@@ -301,7 +304,7 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 			return 0; // error
 		}
 
-		if( !is_valid_number( parts[2] ) )
+		if( !Is_Valid_Number( parts[2] ) )
 		{
 			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
@@ -317,13 +320,13 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 
 			if( load_base )
 			{
-				string settings_file = settings->m_base;
+				std::string settings_file = settings->m_base;
 
 				// if settings file exists
 				while( !settings_file.empty() )
 				{
 					// if not already image settings based
-					if( settings_file.rfind( ".settings" ) == string::npos )
+					if( settings_file.rfind( ".settings" ) == std::string::npos )
 					{
 						settings_file.erase( settings_file.rfind( "." ) + 1 );
 						settings_file.insert( settings_file.rfind( "." ) + 1, "settings" );
@@ -369,7 +372,7 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 			return 0; // error
 		}
 
-		if( !is_valid_number( parts[1] ) )
+		if( !Is_Valid_Number( parts[1] ) )
 		{
 			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
@@ -387,7 +390,7 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 			return 0; // error
 		}
 
-		if( !is_valid_number( parts[1] ) )
+		if( !Is_Valid_Number( parts[1] ) )
 		{
 			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
@@ -407,7 +410,7 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 
 		for( unsigned int i = 1; i < 5; i++ )
 		{
-			if( !is_valid_number( parts[i] ) )
+			if( !Is_Valid_Number( parts[i] ) )
 			{
 				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[1].c_str() );
@@ -427,7 +430,7 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 			return 0; // error
 		}
 
-		if( !is_valid_number( parts[1] ) )
+		if( !Is_Valid_Number( parts[1] ) )
 		{
 			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
@@ -445,7 +448,7 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 			return 0; // error
 		}
 
-		if( !is_valid_number( parts[1] ) )
+		if( !Is_Valid_Number( parts[1] ) )
 		{
 			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
@@ -463,7 +466,7 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 			return 0; // error
 		}
 
-		if( !is_valid_number( parts[1] ) )
+		if( !Is_Valid_Number( parts[1] ) )
 		{
 			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
@@ -476,7 +479,7 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 		// y
 		if( count > 2 )
 		{
-			if( !is_valid_number( parts[2] ) )
+			if( !Is_Valid_Number( parts[2] ) )
 			{
 				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[2].c_str() );
@@ -488,7 +491,7 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 		// z
 		if( count > 3 )
 		{
-			if( !is_valid_number( parts[3] ) )
+			if( !Is_Valid_Number( parts[3] ) )
 			{
 				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[3].c_str() );
@@ -507,7 +510,7 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 			return 0; // error
 		}
 
-		if( !is_valid_number( parts[1] ) )
+		if( !Is_Valid_Number( parts[1] ) )
 		{
 			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
@@ -584,7 +587,7 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 			return 0; // error
 		}
 
-		if( !is_valid_number( parts[1] ) )
+		if( !Is_Valid_Number( parts[1] ) )
 		{
 			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
@@ -610,3 +613,7 @@ bool cImage_settings :: HandleMessage( string *parts, unsigned int count, unsign
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cImage_settings *pSettingsParser = NULL;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

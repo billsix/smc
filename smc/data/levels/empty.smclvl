@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.5" />
-		<Property name="engine_version" value="2" />
-		<Property name="save_time" value="1174591498" />
+		<Property name="game_version" value="1.7" />
+		<Property name="engine_version" value="2.8" />
+		<Property name="save_time" value="1230264525" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="" />
@@ -13,26 +13,31 @@
 		<Property name="cam_limit_y" value="0" />
 		<Property name="cam_limit_w" value="20000" />
 		<Property name="cam_limit_h" value="-4000" />
+		<Property name="cam_fixed_hor_vel" value="0" />
 	</settings>
 	<background>
 		<Property name="type" value="103" />
-		<Property name="bg_color_1_red" value="0" />
-		<Property name="bg_color_1_green" value="200" />
+		<Property name="bg_color_1_red" value="40" />
+		<Property name="bg_color_1_green" value="160" />
 		<Property name="bg_color_1_blue" value="0" />
-		<Property name="bg_color_2_red" value="0" />
+		<Property name="bg_color_2_red" value="40" />
 		<Property name="bg_color_2_green" value="90" />
 		<Property name="bg_color_2_blue" value="0" />
 	</background>
 	<background>
 		<Property name="type" value="1" />
-		<Property name="image" value="game/background/green_junglehills.png" />
-		<Property name="speedx" value="1" />
-		<Property name="speedy" value="1" />
+		<Property name="posx" value="0" />
+		<Property name="posy" value="0" />
 		<Property name="posz" value="0.00011" />
+		<Property name="image" value="game/background/green_junglehills.png" />
+		<Property name="speedx" value="0.6" />
+		<Property name="speedy" value="0.6" />
+		<Property name="const_velx" value="0" />
+		<Property name="const_vely" value="0" />
 	</background>
 	<player>
 		<Property name="posx" value="510" />
-		<Property name="posy" value="471" />
+		<Property name="posy" value="423" />
 		<Property name="direction" value="right" />
 	</player>
 	<sprite>

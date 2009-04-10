@@ -1,7 +1,7 @@
 /***************************************************************************
  * collison.cpp  -  internal collision functions
  *
- * Copyright (C) 2005 - 2008 Florian Richter
+ * Copyright (C) 2005 - 2009 Florian Richter
  * Copyright (C) 2005        Amir Taaki
  ***************************************************************************/
 /*
@@ -16,87 +16,109 @@
 
 #include "../core/collision.h"
 #include "../core/game_core.h"
-#include "../objects/movingsprite.h"
 #include "../level/level.h"
 #include "../player/player.h"
 #include "../video/gl_surface.h"
 #include "../core/sprite_manager.h"
+// for binary_function and bind2nd
+#include <functional>
 
-/* *** *** *** *** *** *** *** collision type class *** *** *** *** *** *** *** *** *** *** */
+namespace SMC
+{
+
+/* *** *** *** *** *** *** *** cObjectCollisionType *** *** *** *** *** *** *** *** *** *** */
 
 cObjectCollisionType :: cObjectCollisionType( void )
+: cObject_Manager<cObjectCollision>()
 {
 
 }
 
 cObjectCollisionType :: ~cObjectCollisionType( void )
 {
-	list.clear();
+	Delete_All();
 }
 
-void cObjectCollisionType :: add( cSprite *obj )
+void cObjectCollisionType :: Add( cObjectCollision *obj )
 {
 	if( !obj )
 	{
 		return;
 	}
 
-	list.push_back( obj );
+	cObject_Manager<cObjectCollision>::Add( obj );
 }
 
-bool cObjectCollisionType :: find( const cSprite *obj )
+// check if sprite
+struct check_if_sprite : public std::binary_function<cObjectCollision *, cSprite *, bool>
 {
-	for( SpriteList::iterator itr = list.begin(), itr_end = list.end(); itr != itr_end; ++itr )
+	bool operator()( const cObjectCollision *col, cSprite *sprite ) const
 	{
-		// matching
-		if( (*itr) == obj )
-		{
-			return 1;
-		}
+		return col->obj == sprite;
 	}
-
-	return 0;
+};
+bool cObjectCollisionType :: Is_Included( const cSprite *obj )
+{
+	return std::find_if( objects.begin(), objects.end(), std::bind2nd( check_if_sprite(), obj ) ) != objects.end();
 }
 
-cSprite *cObjectCollisionType :: find( const ArrayType type )
+// check if array type
+struct check_if_sprite_array : public std::binary_function<cObjectCollision *, ArrayType, bool>
 {
-	for( SpriteList::iterator itr = list.begin(), itr_end = list.end(); itr != itr_end; ++itr )
+	bool operator()( const cObjectCollision *col, ArrayType type ) const
 	{
-		// matching
-		if( (*itr)->sprite_array == type )
-		{
-			return (*itr);
-		}
+		return col->obj->m_sprite_array == type;
 	}
-
-	return 0;
+};
+bool cObjectCollisionType :: Is_Included( const ArrayType type )
+{
+	return std::find_if( objects.begin(), objects.end(), std::bind2nd( check_if_sprite_array(), type ) ) != objects.end();
 }
 
-cSprite *cObjectCollisionType :: find( const SpriteType type )
+// check if sprite type
+struct check_if_sprite_type : public std::binary_function<cObjectCollision *, SpriteType, bool>
 {
-	for( SpriteList::iterator itr = list.begin(), itr_end = list.end(); itr != itr_end; ++itr )
+	bool operator()( const cObjectCollision *col, SpriteType type ) const
 	{
-		// matching
-		if( (*itr)->type == type )
-		{
-			return (*itr);
-		}
+		return col->obj->m_type == type;
 	}
-
-	return 0;
-}
-
-unsigned int cObjectCollisionType :: size( void )
+};
+bool cObjectCollisionType :: Is_Included( const SpriteType type )
 {
-	return list.size();
+	return std::find_if( objects.begin(), objects.end(), std::bind2nd( check_if_sprite_type(), type ) ) != objects.end();
 }
 
-/* *** *** *** *** *** *** *** collision description *** *** *** *** *** *** *** *** *** *** */
+// check if validation type
+struct check_if_valid_type : public std::binary_function<cObjectCollision *, Col_Valid_Type, bool>
+{
+	bool operator()( const cObjectCollision *col, Col_Valid_Type type ) const
+	{
+		return col->valid_type == type;
+	}
+};
+bool cObjectCollisionType :: Is_Included( const Col_Valid_Type type )
+{
+	return std::find_if( objects.begin(), objects.end(), std::bind2nd( check_if_valid_type(), type ) ) != objects.end();
+}
+
+cObjectCollision *cObjectCollisionType :: Find_First( const ArrayType type )
+{
+	return *std::find_if( objects.begin(), objects.end(), std::bind2nd( check_if_sprite_array(), type ) );
+}
+
+cObjectCollision *cObjectCollisionType :: Find_First( const SpriteType type )
+{
+	return *std::find_if( objects.begin(), objects.end(), std::bind2nd( check_if_sprite_type(), type ) );
+}
+
+/* *** *** *** *** *** *** *** cObjectCollision *** *** *** *** *** *** *** *** *** *** */
 
 cObjectCollision :: cObjectCollision( void )
 {
+	valid_type = COL_VTYPE_NOT_VALID;
 	received = 0;
-	type = CO_NOTHING;
+	m_array = ARRAY_UNDEFINED;
+	obj = NULL;
 	number = 0;
 	direction = DIR_UNDEFINED;
 }
@@ -106,7 +128,7 @@ cObjectCollision :: ~cObjectCollision( void )
 	//
 }
 
-void cObjectCollision :: Set_Direction( cSprite *base, cSprite *col )
+void cObjectCollision :: Set_Direction( const cSprite *base, const cSprite *col )
 {
 	direction = Get_Collision_Direction( base, col );
 }
@@ -114,70 +136,113 @@ void cObjectCollision :: Set_Direction( cSprite *base, cSprite *col )
 GL_rect cObjectCollision :: Get_Collision_Object_Rect( void )
 {
 	// player
-	if( type == CO_PLAYER )
+	if( m_array == ARRAY_PLAYER )
 	{
-		return pActive_Player->col_rect;
+		return pActive_Player->m_col_rect;
 	}
 
 	// sprite manager
-	return pActive_Sprite_Manager->objects[number]->col_rect;
+	return pActive_Sprite_Manager->objects[number]->m_col_rect;
 }
 
 /* *** *** *** *** *** *** *** functions *** *** *** *** *** *** *** *** *** *** */
 
-ObjectDirection Get_Collision_Direction( cSprite *base, cSprite *col )
+ObjectDirection Get_Collision_Direction( const cSprite *base, const cSprite *col )
 {
-	// if valid moving sprite
-	if( base->sprite_array == ARRAY_ENEMY || base->sprite_array == ARRAY_ACTIVE )
+	// if valid moving sprite try the velocity based detection
+	if( base->m_sprite_array == ARRAY_ENEMY || base->m_sprite_array == ARRAY_ACTIVE || base->m_sprite_array == ARRAY_PLAYER )
 	{
 		const cMovingSprite *moving_base = static_cast<const cMovingSprite *>(base);
 
-		// ## velocity based detection
-		if( moving_base->velx != 0 || moving_base->vely != 0 )
+		// top
+		if( moving_base->m_vely < 0.0f )
 		{
-			// top
-			if( moving_base->vely < 0 && Is_Collision_Top( &base->col_rect, &col->col_rect ) )
+			if( Is_Collision_Top( base->m_col_rect, col->m_col_rect ) )
 			{
 				return DIR_TOP;
 			}
-			// bottom
-			else if( moving_base->vely > 0 && Is_Collision_Bottom( &base->col_rect, &col->col_rect ) )
-			{
-				return DIR_BOTTOM;
-			}
-			// left
-			else if( moving_base->velx < 0 && Is_Collision_Left( &base->col_rect, &col->col_rect ) )
+
+			if( moving_base->m_velx < 0.0f )
 			{
 				return DIR_LEFT;
 			}
-			// right
-			else if( moving_base->velx > 0 && Is_Collision_Right( &base->col_rect, &col->col_rect ) )
+			if( moving_base->m_velx > 0.0f )
 			{
 				return DIR_RIGHT;
 			}
 		}
-	}
+		// bottom
+		else if( moving_base->m_vely > 0.0f )
+		{
+			if( Is_Collision_Bottom( base->m_col_rect, col->m_col_rect ) )
+			{
+				return DIR_BOTTOM;
+			}
 
+			if( moving_base->m_velx < 0.0f )
+			{
+				return DIR_LEFT;
+			}
+			if( moving_base->m_velx > 0.0f )
+			{
+				return DIR_RIGHT;
+			}
+		}
+		// left
+		if( moving_base->m_velx < 0.0f )
+		{
+			if( Is_Collision_Left( base->m_col_rect, col->m_col_rect ) )
+			{
+				return DIR_LEFT;
+			}
+
+			if( moving_base->m_vely < 0.0f )
+			{
+				return DIR_TOP;
+			}
+			if( moving_base->m_vely > 0.0f )
+			{
+				return DIR_BOTTOM;
+			}
+		}
+		// right
+		else if( moving_base->m_velx > 0.0f )
+		{
+			if( Is_Collision_Right( base->m_col_rect, col->m_col_rect ) )
+			{
+				return DIR_RIGHT;
+			}
+
+			if( moving_base->m_vely < 0.0f )
+			{
+				return DIR_TOP;
+			}
+			if( moving_base->m_vely > 0.0f )
+			{
+				return DIR_BOTTOM;
+			}
+		}
+	}
 
 	// ## detection without velocity
 
 	// top
-	if( Is_Collision_Top( &base->col_rect, &col->col_rect ) )
+	if( Is_Collision_Top( base->m_col_rect, col->m_col_rect ) )
 	{
 		return DIR_TOP;
 	}
 	// bottom
-	else if( Is_Collision_Bottom( &base->col_rect, &col->col_rect ) )
+	if( Is_Collision_Bottom( base->m_col_rect, col->m_col_rect ) )
 	{
 		return DIR_BOTTOM;
 	}
 	// left
-	else if( Is_Collision_Left( &base->col_rect, &col->col_rect ) )
+	if( Is_Collision_Left( base->m_col_rect, col->m_col_rect ) )
 	{
 		return DIR_LEFT;
 	}
 	// right
-	else if( Is_Collision_Right( &base->col_rect, &col->col_rect ) )
+	if( Is_Collision_Right( base->m_col_rect, col->m_col_rect ) )
 	{
 		return DIR_RIGHT;
 	}
@@ -185,18 +250,18 @@ ObjectDirection Get_Collision_Direction( cSprite *base, cSprite *col )
 	// ## advanced detection ( if base object is partly inside col object )
 
 	// get the middle point
-	GL_point point_base = base->col_rect.Get_pos_middle();
-	GL_point point_col = col->col_rect.Get_pos_middle();
+	GL_point point_base = base->m_col_rect.Get_pos_middle();
+	GL_point point_col = col->m_col_rect.Get_pos_middle();
 
 	// difference between points
-	float diff_x = point_col.x - point_base.x;
-	float diff_y = point_col.y - point_base.y;
+	float diff_x = point_col.m_x - point_base.m_x;
+	float diff_y = point_col.m_y - point_base.m_y;
 
 	// more horizontal
-	if( ( diff_x > 0 && ( diff_x > diff_y ) ) || ( diff_x < 0 && ( diff_x < diff_y ) ) )
+	if( ( diff_x > 0.0f && ( diff_x > diff_y ) ) || ( diff_x < 0.0f && ( diff_x < diff_y ) ) )
 	{
 		// if col object point left
-		if( diff_x > 0 )
+		if( diff_x > 0.0f )
 		{
 			return DIR_RIGHT;
 		}
@@ -210,7 +275,7 @@ ObjectDirection Get_Collision_Direction( cSprite *base, cSprite *col )
 	else
 	{
 		// if col object point is on top
-		if( diff_y > 0 )
+		if( diff_y > 0.0f )
 		{
 			return DIR_DOWN;
 		}
@@ -222,9 +287,9 @@ ObjectDirection Get_Collision_Direction( cSprite *base, cSprite *col )
 	}
 }
 
-bool Is_Collision_Top( const GL_rect *base_rect, const GL_rect *col_rect )
+bool Is_Collision_Top( const GL_rect &base_rect, const GL_rect &col_rect )
 {
-	if( base_rect->y + 1 >= col_rect->y + col_rect->h && base_rect->x < col_rect->x + col_rect->w && base_rect->x + base_rect->w > col_rect->x )
+	if( base_rect.m_y + 1 >= col_rect.m_y + col_rect.m_h && base_rect.m_x < col_rect.m_x + col_rect.m_w && base_rect.m_x + base_rect.m_w > col_rect.m_x )
 	{
 		return 1;
 	}
@@ -232,9 +297,9 @@ bool Is_Collision_Top( const GL_rect *base_rect, const GL_rect *col_rect )
 	return 0;
 }
 
-bool Is_Collision_Bottom( const GL_rect *base_rect, const GL_rect *col_rect )
+bool Is_Collision_Bottom( const GL_rect &base_rect, const GL_rect &col_rect )
 {
-	if( base_rect->y + base_rect->h - 1 <= col_rect->y && base_rect->x < col_rect->x + col_rect->w && base_rect->x + base_rect->w > col_rect->x )
+	if( base_rect.m_y + base_rect.m_h - 1 <= col_rect.m_y && base_rect.m_x < col_rect.m_x + col_rect.m_w && base_rect.m_x + base_rect.m_w > col_rect.m_x )
 	{
 		return 1;
 	}
@@ -242,9 +307,9 @@ bool Is_Collision_Bottom( const GL_rect *base_rect, const GL_rect *col_rect )
 	return 0;
 }
 
-bool Is_Collision_Left( const GL_rect *base_rect, const GL_rect *col_rect )
+bool Is_Collision_Left( const GL_rect &base_rect, const GL_rect &col_rect )
 {
-	if( base_rect->x + 1 >= col_rect->x + col_rect->w && base_rect->y < col_rect->y + col_rect->h && base_rect->y + base_rect->h > col_rect->y )
+	if( base_rect.m_x + 1 >= col_rect.m_x + col_rect.m_w && base_rect.m_y < col_rect.m_y + col_rect.m_h && base_rect.m_y + base_rect.m_h > col_rect.m_y )
 	{
 		return 1;
 	}
@@ -252,9 +317,9 @@ bool Is_Collision_Left( const GL_rect *base_rect, const GL_rect *col_rect )
 	return 0;
 }
 
-bool Is_Collision_Right( const GL_rect *base_rect, const GL_rect *col_rect )
+bool Is_Collision_Right( const GL_rect &base_rect, const GL_rect &col_rect )
 {
-	if( base_rect->x + base_rect->w - 1 <= col_rect->x && base_rect->y < col_rect->y + col_rect->h && base_rect->y + base_rect->h > col_rect->y )
+	if( base_rect.m_x + base_rect.m_w - 1 <= col_rect.m_x && base_rect.m_y < col_rect.m_y + col_rect.m_h && base_rect.m_y + base_rect.m_h > col_rect.m_y )
 	{
 		return 1;
 	}
@@ -262,45 +327,23 @@ bool Is_Collision_Right( const GL_rect *base_rect, const GL_rect *col_rect )
 	return 0;
 }
 
-ObjectCollisionType Get_Collision_Type( ArrayType array_type )
-{
-	if( array_type == ARRAY_FRONT_PASSIVE || array_type == ARRAY_PASSIVE )
-	{
-		return CO_PASSIVE;
-	}
-	else if( array_type == ARRAY_MASSIVE )
-	{
-		return CO_MASSIVE;
-	}
-	else if( array_type == ARRAY_ACTIVE )
-	{
-		return CO_ACTIVE;
-	}
-	else if( array_type == ARRAY_ENEMY )
-	{
-		return CO_ENEMY;
-	}
-
-	return CO_NOTHING;
-}
-
-bool Col_Box( const GL_rect *a, const GL_rect *b )
+bool Col_Box( const SDL_Rect &a, const GL_rect &b )
 {
 	// check if their bounding boxes touch
-	if( b->x + b->w < a->x )
+	if( b.m_x + b.m_w < a.x )
 	{
 		return 0;
 	}
-	if( b->x > a->x + a->w )
+	if( b.m_x > a.x + a.w )
 	{
 		return 0;
 	}
 
-	if( b->y + b->h < a->y )
+	if( b.m_y + b.m_h < a.y )
 	{
 		return 0;
 	}
-	if( b->y > a->y + a->h )
+	if( b.m_y > a.y + a.h )
 	{
 		return 0;
 	}
@@ -309,46 +352,21 @@ bool Col_Box( const GL_rect *a, const GL_rect *b )
 	return 1;
 }
 
-bool Col_Box( const SDL_Rect *a, const GL_rect *b )
+bool Col_Box_full( const SDL_Rect &a, const SDL_Rect &b )
 {
-	// check if their bounding boxes touch
-	if( b->x + b->w < a->x )
+	if( a.x <= b.x )
 	{
 		return 0;
 	}
-	if( b->x > a->x + a->w )
+	if( a.x + a.w >= b.x + b.w )
 	{
 		return 0;
 	}
-
-	if( b->y + b->h < a->y )
+	if( a.y <= b.y )
 	{
 		return 0;
 	}
-	if( b->y > a->y + a->h )
-	{
-		return 0;
-	}
-
-	// bounding boxes intersect
-	return 1;
-}
-
-bool Col_Box_full( const SDL_Rect *a, const SDL_Rect *b )
-{
-	if( a->x <= b->x )
-	{
-		return 0;
-	}
-	if( a->x + a->w >= b->x + b->w )
-	{
-		return 0;
-	}
-	if( a->y <= b->y )
-	{
-		return 0;
-	}
-	if( a->y + a->h >= b->y + b->h )
+	if( a.y + a.h >= b.y + b.h )
 	{
 		return 0;
 	}
@@ -383,98 +401,18 @@ bool Col_Circle( cGL_Surface *a, float x1, float y1, cGL_Surface *b, float x2, f
 	/* if radius is not specified
 	we approximate them using SDL_Surface's
 	width and height average and divide by 2*/
-	float r1 = ( ( a->w + a->h ) / 4 );	// same as / 2) / 2;
-	float r2 = ( ( b->w + b->h ) / 4 );
+	float r1 = ( ( a->m_w + a->m_h ) / 4 );	// same as / 2) / 2;
+	float r2 = ( ( b->m_w + b->m_h ) / 4 );
 
-	x1 += a->w / 2;		// offset x and y
-	y1 += a->h / 2;		// co-ordinates into
+	x1 += a->m_w / 2;		// offset x and y
+	y1 += a->m_h / 2;		// co-ordinates into
 				// centre of image
-	x2 += b->w / 2;
-	y2 += b->h / 2;
+	x2 += b->m_w / 2;
+	y2 += b->m_h / 2;
 
 	return Col_Circle( x1, y1, r1, x2, y2, r2, offset );
 }
 
-template<typename T> inline T pow2( T value ) { return value * value; }
-template<typename T> inline T cl_min( T a, T b ) { if( a < b ) return a; return b; }
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-// from ClanLib ( Copyright (C) 2005 Magnus Norddahl ) - BSD License
-float Distance_to_Line( float x, float y, GL_line *line )
-{
-	float L = sqrt( pow2( line->x2 - line->x1 ) + pow2( line->y2 - line->y1 ) );
-	float r = ( ( x - line->x1 ) * ( line->x2 - line->x1 ) + ( y - line->y1 ) * ( line->y2 - line->y1 ) ) / pow2( L );
-	
-	if( r <= 0 || r >= 1 )
-	{
-		GL_point p( x, y );
-		GL_point A( line->x1, line->y1 );
-		GL_point B( line->x2, line->y2 );
-		
-		return cl_min( p.distance( A ), p.distance( B ) );
-	}
-	
-	float s = ( ( line->y1 - y ) * ( line->x2 - line->x1 ) - ( line->x1 - x ) * ( line->y2 - line->y1 ) ) / pow2( L );
-	return fabs( s ) * L ;
-}
-
-// from ClanLib ( Copyright (C) 2005 Magnus Norddahl ) - BSD License
-GL_point Get_Line_Intersection( GL_line *line1, GL_line *line2 )
-{
-	float denominator = ( ( line1->x2 - line1->x1 ) * ( line2->y2 - line2->y1 ) - ( line1->y2 - line1->y1 ) * ( line2->x2 - line2->x1 ) );
-
-	if( denominator == 0 )
-	{
-		return GL_point( line1->x1, line1->y1 );
-	}
-	
-	float r = ( ( line1->y1 - line2->y1 ) * ( line2->x2 - line2->x1 ) - ( line1->x1 - line2->x1 ) * ( line2->y2 - line2->y1 ) ) / denominator;
-	
-	GL_point p;
-	p.x = line1->x1 + r * ( line1->x2 - line1->x1 );
-	p.y = line1->y1 + r * ( line1->y2 - line1->y1 );
-	
-	return p;
-}
-
-// from ClanLib ( Copyright (C) 2005 Magnus Norddahl ) - BSD License
-bool Col_Line( GL_line *line1, GL_line *line2, bool collinear_intersect )
-{
-	float denominator = ( ( line1->x2 - line1->x1 ) * ( line2->y2 - line2->y1 ) - ( line1->y2 - line1->y1 ) * ( line2->x2 - line2->x1 ) );	
-	
-	if( denominator == 0 ) // parallel
-	{
-		if( ( line1->y1 - line2->y1 ) * ( line2->x2 - line2->x1 ) - ( line1->x1 - line2->x1 ) * ( line2->y2 - line2->y1 ) == 0 ) // collinear
-		{
-			if( collinear_intersect )
-			{
-				return 1;
-			}
-			else
-			{
-				return 0;
-			}
-		}
-
-		return 0;
-	}
-	
-	float r = ( ( line1->y1 - line2->y1 ) * ( line2->x2 - line2->x1 ) - ( line1->x1 - line2->x1 ) * ( line2->y2 - line2->y1 ) ) / denominator;
-	float s = ( ( line1->y1 - line2->y1 ) * ( line1->x2 - line1->x1 ) - ( line1->x1 - line2->x1 ) * ( line1->y2 - line1->y1 ) ) / denominator;
-	
-	if( line2->y1 < line2->y2 )
-	{
-		if( (s >= 0.0f  && s < 1.0f) && ( r >= 0.0f && r <= 1.0f ) )
-		{
-			return 1;
-		}
-	}
-	else
-	{
-		if( (s > 0.0f  && s <= 1.0f) && ( r >= 0.0f && r <= 1.0f ) )
-		{
-			return 1;
-		}
-	}
-	
-	return 0;
-}
+} // namespace SMC

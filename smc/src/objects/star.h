@@ -1,7 +1,7 @@
 /***************************************************************************
  * star.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,6 +19,9 @@
 #include "../core/globals.h"
 #include "../objects/powerup.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** Jumping Star *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cjStar : public cPowerUp
@@ -26,11 +29,20 @@ class cjStar : public cPowerUp
 public:
 	// constructor
 	cjStar( float x, float y );
+	// create from stream
+	cjStar( CEGUI::XMLAttributes &attributes );
 	// destructor
 	virtual ~cjStar( void );
 	
+	// init defaults
+	void Init( void );
 	// copy
 	virtual cjStar *Copy( void );
+
+	// create from stream
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
+	// save to stream
+	virtual void Save_To_Stream( ofstream &file );
 
 	// Activate the star
 	void Activate( void );
@@ -38,11 +50,13 @@ public:
 	// update the Star
 	virtual void Update( void );
 	// draw the Star
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
 	// Adds Star Particles
-	void Generate_Particles( float x = 0, float y = 0, unsigned int quota = 2 );
+	void Generate_Particles( float x = 0, float y = 0, bool random = 1, unsigned int quota = 2 ) const;
 
+	// collision from player
+	virtual void Handle_Collision_Player( cObjectCollision *collision );
 	// collision with massive
 	virtual void Handle_Collision_Massive( cObjectCollision *collision );
 
@@ -56,5 +70,7 @@ public:
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

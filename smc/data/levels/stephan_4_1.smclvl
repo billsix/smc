@@ -3,11 +3,11 @@
 	<information>
 		<Property name="game_version" value="1.7" />
 		<Property name="engine_version" value="2.8" />
-		<Property name="save_time" value="1229239493" />
+		<Property name="save_time" value="1230264232" />
 	</information>
 	<settings>
-		<Property name="lvl_author" value="" />
-		<Property name="lvl_version" value="" />
+		<Property name="lvl_author" value="stephan and SMC Team" />
+		<Property name="lvl_version" value="1.3" />
 		<Property name="lvl_music" value="land/cave_2.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
@@ -18,11 +18,22 @@
 	<background>
 		<Property name="type" value="103" />
 		<Property name="bg_color_1_red" value="80" />
-		<Property name="bg_color_1_green" value="80" />
+		<Property name="bg_color_1_green" value="120" />
 		<Property name="bg_color_1_blue" value="80" />
 		<Property name="bg_color_2_red" value="20" />
-		<Property name="bg_color_2_green" value="20" />
+		<Property name="bg_color_2_green" value="40" />
 		<Property name="bg_color_2_blue" value="20" />
+	</background>
+	<background>
+		<Property name="type" value="1" />
+		<Property name="posx" value="0" />
+		<Property name="posy" value="0" />
+		<Property name="posz" value="0.00011" />
+		<Property name="image" value="game/background/more_hills.png" />
+		<Property name="speedx" value="0.5" />
+		<Property name="speedy" value="0.5" />
+		<Property name="const_velx" value="0" />
+		<Property name="const_vely" value="0" />
 	</background>
 	<player>
 		<Property name="posx" value="128" />

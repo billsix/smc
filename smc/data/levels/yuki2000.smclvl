@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.7" />
-		<Property name="engine_version" value="2.8" />
-		<Property name="save_time" value="1228329954" />
+		<Property name="game_version" value="1.8" />
+		<Property name="engine_version" value="34" />
+		<Property name="save_time" value="1234429579" />
 	</information>
 	<settings>
-		<Property name="lvl_author" value="" />
-		<Property name="lvl_version" value="" />
-		<Property name="lvl_music" value="land/hyper_1.ogg" />
+		<Property name="lvl_author" value="Yuki" />
+		<Property name="lvl_version" value="1.4" />
+		<Property name="lvl_music" value="land/land_3.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
 		<Property name="cam_limit_w" value="20000" />
@@ -3642,7 +3642,7 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="467" />
+		<Property name="posx" value="460" />
 		<Property name="posy" value="-3182" />
 		<Property name="image" value="game/level/door_yellow_1.png" />
 		<Property name="type" value="passive" />
@@ -3690,38 +3690,38 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="1259" />
 		<Property name="posy" value="-1092" />
 		<Property name="direction" value="up" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="1491" />
 		<Property name="posy" value="-1175" />
 		<Property name="direction" value="up" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="1733" />
 		<Property name="posy" value="-1254" />
 		<Property name="direction" value="up" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="1257" />
 		<Property name="posy" value="-1515" />
 		<Property name="direction" value="up" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -4564,9 +4564,10 @@
 		<Property name="color" value="yellow" />
 	</item>
 	<levelexit>
-		<Property name="posx" value="485" />
-		<Property name="posy" value="-3116" />
+		<Property name="posx" value="480" />
+		<Property name="posy" value="-3103" />
 		<Property name="type" value="0" />
+		<Property name="motion" value="0" />
 	</levelexit>
 	<sprite>
 		<Property name="posx" value="366" />
@@ -4605,15 +4606,27 @@
 		<Property name="type" value="climbable" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="390" />
-		<Property name="posy" value="-2789" />
-		<Property name="image" value="slider/grey_1/slider_right.png" />
+		<Property name="posx" value="389" />
+		<Property name="posy" value="-2790" />
+		<Property name="image" value="ground/green_1/slider/1/brown/middle.png" />
 		<Property name="type" value="halfmassive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="354" />
-		<Property name="posy" value="-2789" />
-		<Property name="image" value="slider/grey_1/slider_left.png" />
+		<Property name="posx" value="407" />
+		<Property name="posy" value="-2790" />
+		<Property name="image" value="ground/green_1/slider/1/brown/right.png" />
+		<Property name="type" value="halfmassive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="371" />
+		<Property name="posy" value="-2790" />
+		<Property name="image" value="ground/green_1/slider/1/brown/middle.png" />
+		<Property name="type" value="halfmassive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="353" />
+		<Property name="posy" value="-2790" />
+		<Property name="image" value="ground/green_1/slider/1/brown/left.png" />
 		<Property name="type" value="halfmassive" />
 	</sprite>
 	<sprite>

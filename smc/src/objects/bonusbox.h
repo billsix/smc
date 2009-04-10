@@ -1,7 +1,7 @@
 /***************************************************************************
  * bonusbox.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,6 +19,9 @@
 #include "../core/globals.h"
 #include "../objects/box.h"
 #include "../objects/powerup.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** cBonusBox *** *** *** *** *** *** *** *** *** */
 
@@ -39,9 +42,9 @@ public:
 	virtual cBonusBox *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
+	virtual void Save_To_Stream( ofstream &file );
 
 	// sets the count this object can be activated
 	virtual void Set_Useable_Count( int count, bool new_startcount = 0 );
@@ -70,7 +73,7 @@ public:
 	// update
 	virtual void Update( void );
 	// draw
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
@@ -102,5 +105,7 @@ public:
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

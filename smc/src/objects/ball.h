@@ -1,7 +1,7 @@
 /***************************************************************************
  * ball.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -16,18 +16,22 @@
 #ifndef SMC_BALL_H
 #define SMC_BALL_H
 
-#include "../core/globals.h"
 #include "../video/video.h"
-#include "../core/collision.h"
 #include "../objects/movingsprite.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** Ball class *** *** *** *** *** *** *** *** *** *** */
 
 class cBall : public cMovingSprite
 {
 public:
-	cBall( float x, float y, cSprite *origin_object = NULL, ball_effect btype = FIREBALL_DEFAULT );
+	cBall( float x, float y, const cSprite *origin_object = NULL, ball_effect btype = FIREBALL_DEFAULT );
 	virtual ~cBall( void );
+
+	// like Destroy but with sound option
+	void Destroy_Ball( bool with_sound = 0 );
 
 	/* set this sprite to destroyed and completely disable it
 	 * sprite is still in the sprite manager but only to get possibly replaced
@@ -37,16 +41,17 @@ public:
 	// update
 	virtual void Update( void );
 	// draw
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
 	// Generate the default animation Particles
-	void Generate_Particles( cParticle_Emitter *anim = NULL );
+	void Generate_Particles( cParticle_Emitter *anim = NULL ) const;
 
 	/* Validate the given collision object
+	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-	virtual unsigned int Validate_Collision( cSprite *obj );
+	virtual Col_Valid_Type Validate_Collision( cSprite *obj );
 	// default collision handler
 	virtual void Handle_Collision( cObjectCollision *collision );
 	// collision from player
@@ -55,24 +60,25 @@ public:
 	virtual void Handle_Collision_Enemy( cObjectCollision *collision );
 	// collision with massive
 	virtual void Handle_Collision_Massive( cObjectCollision *collision );
-	// handle moved out of Level
+	// handle moved out of Level event
 	virtual void Handle_out_of_Level( ObjectDirection dir );
 
 	// ball origin
-	ArrayType origin_array;
-	SpriteType origin_type;
+	ArrayType m_origin_array;
+	SpriteType m_origin_type;
 	// ball type
-	ball_effect ball_type;
-
-	// rotation animation counter
-	float counter;
+	ball_effect m_ball_type;
 
 	// glim animation modifier
-	bool glim_mod;
+	bool m_glim_mod;
 	// glim animation counter
-	float glim_counter;
+	float m_glim_counter;
+	// fire particle counter
+	float m_fire_counter;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

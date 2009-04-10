@@ -1,7 +1,7 @@
 /***************************************************************************
  * img_manager.cpp  -  Image Handler/Manager
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -16,6 +16,9 @@
 #include "../video/img_manager.h"
 #include "../video/renderer.h"
 #include "../core/i18n.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** cSaved_Texture *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -52,7 +55,7 @@ cImage_Manager :: cImage_Manager( void )
 
 cImage_Manager :: ~cImage_Manager( void )
 {
-	Delete_All();
+	cImage_Manager::Delete_All();
 }
 
 void cImage_Manager :: Add( cGL_Surface *obj )
@@ -63,20 +66,20 @@ void cImage_Manager :: Add( cGL_Surface *obj )
 	}
 
 	// it is now managed
-	obj->managed = 1;
+	obj->m_managed = 1;
 
 	// Add
 	cObject_Manager<cGL_Surface>::Add( obj );
 }
 
-cGL_Surface *cImage_Manager :: Get_Pointer( string path )
+cGL_Surface *cImage_Manager :: Get_Pointer( const std::string &path ) const
 {
-	for( GL_Surface_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( GL_Surface_List::const_iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
 		cGL_Surface *obj = (*itr);
 
 		// return first match
-		if( obj->filename.compare( path ) == 0 )
+		if( obj->m_filename.compare( path ) == 0 )
 		{
 			return obj;
 		}
@@ -86,7 +89,7 @@ cGL_Surface *cImage_Manager :: Get_Pointer( string path )
 	return NULL;
 }
 
-cGL_Surface *cImage_Manager :: Copy( string path )
+cGL_Surface *cImage_Manager :: Copy( const std::string &path )
 {
 	for( GL_Surface_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
 	{
@@ -94,7 +97,7 @@ cGL_Surface *cImage_Manager :: Copy( string path )
 		cGL_Surface *obj = (*itr);
 
 		// first match
-		if( obj->filename.compare( path ) == 0 )
+		if( obj->m_filename.compare( path ) == 0 )
 		{
 			return obj->Copy();
 		}
@@ -128,7 +131,7 @@ void cImage_Manager :: Grab_Textures( bool from_file /* = 0 */, bool draw_gui /*
 		cGL_Surface *obj = (*itr);
 
 		// skip surfaces with an already deleted texture
-		if( !glIsTexture( obj->image ) )
+		if( !glIsTexture( obj->m_image ) )
 		{
 			continue;
 		}
@@ -136,9 +139,9 @@ void cImage_Manager :: Grab_Textures( bool from_file /* = 0 */, bool draw_gui /*
 		// get software texture and save it to software memory
 		saved_textures.push_back( obj->Get_Software_Texture( from_file ) );
 		// delete hardware texture
-		if( glIsTexture( obj->image ) )
+		if( glIsTexture( obj->m_image ) )
 		{
-			glDeleteTextures( 1, &obj->image );
+			glDeleteTextures( 1, &obj->m_image );
 		}
 
 		// count files
@@ -150,15 +153,7 @@ void cImage_Manager :: Grab_Textures( bool from_file /* = 0 */, bool draw_gui /*
 			// update progress
 			progress_bar->setProgress( static_cast<float>(loaded_files) / static_cast<float>(file_count) );
 
-			// clear screen
-			pVideo->Clear_Screen();
-			pVideo->Draw_Rect( NULL, 0.01f, &black );
-
-			// Render
-			pRenderer->Render();
-			pGuiSystem->renderGUI();
-			pRenderer_GUI->Render();
-			SDL_GL_SwapBuffers();
+			Loading_Screen_Draw();
 		}
 	}
 }
@@ -200,15 +195,7 @@ void cImage_Manager :: Restore_Textures( bool draw_gui /* = 0 */ )
 			// update progress
 			progress_bar->setProgress( static_cast<float>(loaded_files) / static_cast<float>(file_count) );
 
-			// clear screen
-			pVideo->Clear_Screen();
-			pVideo->Draw_Rect( NULL, 0.01f, &black );
-
-			// Render
-			pRenderer->Render();
-			pGuiSystem->renderGUI();
-			pRenderer_GUI->Render();
-			SDL_GL_SwapBuffers();
+			Loading_Screen_Draw();
 		}
 	}
 
@@ -222,9 +209,9 @@ void cImage_Manager :: Delete_Image_Textures( void )
 		// get object
 		cGL_Surface *obj = (*itr);
 
-		if( obj->auto_del_img && glIsTexture( obj->image ) )
+		if( obj->m_auto_del_img && glIsTexture( obj->m_image ) )
 		{
-			glDeleteTextures( 1, &obj->image );
+			glDeleteTextures( 1, &obj->m_image );
 		}
 	}
 }
@@ -254,3 +241,7 @@ void cImage_Manager :: Delete_All( void )
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cImage_Manager *pImage_Manager = NULL;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

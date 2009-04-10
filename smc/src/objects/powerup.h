@@ -1,7 +1,7 @@
 /***************************************************************************
  * powerup.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,6 +19,9 @@
 #include "../core/globals.h"
 #include "../objects/objectsprite.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** cPowerUp *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cPowerUp : public cImageObjectSprite
@@ -30,24 +33,25 @@ public:
 	virtual ~cPowerUp( void );
 
 	// load from savegame
-	virtual void Load_from_Savegame( cSave_Level_Object *save_object );
+	virtual void Load_From_Savegame( cSave_Level_Object *save_object );
 	// save to savegame
-	virtual cSave_Level_Object *Save_to_Savegame( void );
+	virtual cSave_Level_Object *Save_To_Savegame( void );
 
 	/* draw
 	 * a spawned powerup doesn't draw in editor mode
 	*/
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
 
 	/* Validate the given collision object
+	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-	virtual unsigned int Validate_Collision( cSprite *obj );
-	// handle moved out of Level
+	virtual Col_Valid_Type Validate_Collision( cSprite *obj );
+	// handle moved out of Level event
 	virtual void Handle_out_of_Level( ObjectDirection dir );
 
 	float counter;
@@ -72,9 +76,9 @@ public:
 	virtual cMushroom *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
+	virtual void Save_To_Stream( ofstream &file );
 
 	// Set the Mushroom Type
 	void Set_Type( SpriteType ntype );
@@ -85,6 +89,8 @@ public:
 	// update
 	virtual void Update( void );
 
+	// collision from player
+	virtual void Handle_Collision_Player( cObjectCollision *collision );
 	// collision with massive
 	virtual void Handle_Collision_Massive( cObjectCollision *collision );
 	// collision from a box
@@ -101,14 +107,31 @@ class cFirePlant : public cPowerUp
 public:
 	// constructor
 	cFirePlant( float x, float y );
+	// create from stream
+	cFirePlant( CEGUI::XMLAttributes &attributes );
 	// destructor
 	virtual ~cFirePlant( void );
 
+	// init defaults
+	void Init( void );
 	// copy
 	virtual cFirePlant *Copy( void );
 
+	// create from stream
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
+	// save to stream
+	virtual void Save_To_Stream( ofstream &file );
+
+	// Activates the item
+	virtual void Activate( void );
+
 	// update
 	virtual void Update( void );
+
+	// collision from player
+	virtual void Handle_Collision_Player( cObjectCollision *collision );
+
+	float particle_counter;
 };
 
 /* *** *** *** *** *** cMoon *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -130,16 +153,24 @@ public:
 	virtual cMoon *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
+	virtual void Save_To_Stream( ofstream &file );
+
+	// Activates the item
+	virtual void Activate( void );
 
 	// update
 	virtual void Update( void );
+
+	// collision from player
+	virtual void Handle_Collision_Player( cObjectCollision *collision );
 
 	float particle_counter;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

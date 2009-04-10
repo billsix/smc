@@ -1,7 +1,7 @@
 /***************************************************************************
  * star.cpp  -  jumping star class
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -17,29 +17,26 @@
 #include "../player/player.h"
 #include "../core/framerate.h"
 #include "../video/animation.h"
-#include "../core/math/utilities.h"
 #include "../core/i18n.h"
+// CEGUI
+#include "CEGUIXMLAttributes.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** cjStar *** *** *** *** *** *** *** *** *** *** *** */
 
 cjStar :: cjStar( float x, float y )
 : cPowerUp( x, y )
 {
-	type = TYPE_JSTAR;
-	massivetype = MASS_PASSIVE;
+	cjStar::Init();
+}
 
-	images.push_back( pVideo->Get_Surface( "game/items/star.png" ) );
-
-	anim_counter = 0;
-
-	glim_mod = 1;
-	glim_counter = 0;
-
-	velx = 5;
-
-	Set_Image( 0, 1, 0 );
-
-	name = _("Star");
+cjStar :: cjStar( CEGUI::XMLAttributes &attributes )
+: cPowerUp()
+{
+	cjStar::Init();
+	cjStar::Create_From_Stream( attributes );
 }
 
 cjStar :: ~cjStar( void )
@@ -47,77 +44,114 @@ cjStar :: ~cjStar( void )
 	//
 }
 
+void cjStar :: Init( void )
+{
+	m_type = TYPE_JSTAR;
+
+	m_direction = DIR_RIGHT;
+	anim_counter = 0;
+	glim_mod = 1;
+	glim_counter = 0;
+
+	m_velx = 5;
+
+	m_images.push_back( pVideo->Get_Surface( "game/items/star.png" ) );
+	Set_Image_Num( 0, 1, 0 );
+
+	m_name = _("Star");
+}
+
 cjStar *cjStar :: Copy( void )
 {
-	cjStar *star = new cjStar( startposx, startposy );
+	cjStar *star = new cjStar( m_start_pos_x, m_start_pos_y );
 
 	return star;
 }
 
+void cjStar :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
+{
+	// position
+	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
+}
+
+void cjStar :: Save_To_Stream( ofstream &file )
+{
+	// begin item
+	file << "\t<item>" << std::endl;
+
+	// type
+	file << "\t\t<Property name=\"type\" value=\"jstar\" />" << std::endl;
+	// position
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(m_start_pos_x) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(m_start_pos_y) << "\" />" << std::endl;
+
+	// end item
+	file << "\t</item>" << std::endl;
+}
+
 void cjStar :: Activate( void )
 {
+	if( !m_active )
+	{
+		return;
+	}
+
 	// animation
-	Generate_Particles( posx + col_rect.w * 0.5f, posy + col_rect.h * 0.5f, 20 );
+	Generate_Particles( m_pos_x + m_col_rect.m_w * 0.5f, m_pos_y + m_col_rect.m_h * 0.5f, 1, 20 );
 
 	// activate star
 	pPlayer->Get_Item( TYPE_JSTAR );
 
 	// if spawned destroy
-	if( spawned )
+	if( m_spawned )
 	{
 		Destroy();
 	}
-	// hide
+	// disable
 	else
 	{
-		Set_Visible( 0 );
+		Set_Active( 0 );
 	}
 }
 
 void cjStar :: Update( void )
 {
-	if( !valid_update || !is_Player_range() )
+	if( !m_valid_update || !Is_In_Player_Range() )
 	{
-		return;
-	}
-
-	if( Col_Box( &col_rect, &pPlayer->col_rect ) )
-	{
-		Activate();
 		return;
 	}
 
 	// Add Gravitation
-	if( vely < 25 )
+	if( m_vely < 25 )
 	{
 		Add_Velocity( 0, 1.8f );
 	}
 	
 	// rotate
-	if( vely < 0 )
+	if( m_vely < 0 )
 	{
-		Add_Rotation_Z( ( 5 - ( vely / 2.5f ) ) * pFramerate->speedfactor );
+		Add_Rotation_Z( ( 5 - ( m_vely / 2.5f ) ) * pFramerate->speedfactor );
 	}
 	// rotate back to 0 if falling
 	else
 	{
-		if( rotz > 5 && rotz <= 175 )
+		if( m_rot_z > 5 && m_rot_z <= 175 )
 		{
-			Add_Rotation_Z( ( 5 - ( vely / 1.2f ) ) * pFramerate->speedfactor );
+			Add_Rotation_Z( ( 5 - ( m_vely / 1.2f ) ) * pFramerate->speedfactor );
 		}
-		else if( rotz < 355 && rotz > 185 )
+		else if( m_rot_z < 355 && m_rot_z > 185 )
 		{
-			Add_Rotation_Z( ( -5 + ( vely / 1.2f ) ) * pFramerate->speedfactor );
+			Add_Rotation_Z( ( -5 + ( m_vely / 1.2f ) ) * pFramerate->speedfactor );
 		}
 	}
 
-	// small stars
+	// generate small stars
 	anim_counter += 1.1f * pFramerate->speedfactor;
 
-	while( anim_counter > 1 )
+	if( anim_counter > 1 )
 	{
-		Generate_Particles();
-		anim_counter--;
+		Generate_Particles( m_pos_x, m_pos_y, 1, static_cast<int>(anim_counter) );
+		anim_counter -= static_cast<int>(anim_counter);
 	}
 
 	// glim animation
@@ -143,9 +177,9 @@ void cjStar :: Update( void )
 	}
 }
 
-void cjStar :: Draw( cSurfaceRequest *request /* = NULL */ )
+void cjStar :: Draw( cSurface_Request *request /* = NULL */ )
 {
-	if( !valid_draw )
+	if( !m_valid_draw )
 	{
 		return;
 	}
@@ -155,16 +189,16 @@ void cjStar :: Draw( cSurfaceRequest *request /* = NULL */ )
 	cPowerUp::Draw();
 }
 
-void cjStar :: Generate_Particles( float x /* = 0 */, float y /* = 0 */, unsigned int quota /* = 2 */ )
+void cjStar :: Generate_Particles( float x /* = 0 */, float y /* = 0 */, bool random /* = 1 */, unsigned int quota /* = 2 */ ) const
 {
 	if( x == 0 )
 	{
-		x = posx + Get_Random_Float( 0, col_rect.w * 0.9f );
+		x = m_pos_x;
 	}
 
 	if( y == 0 )
 	{
-		y = posy + Get_Random_Float( 0, col_rect.h * 0.9f );
+		y = m_pos_y;
 	}
 
 	// set particle color
@@ -172,9 +206,19 @@ void cjStar :: Generate_Particles( float x /* = 0 */, float y /* = 0 */, unsigne
 	particle_color.green += static_cast<Uint8>( glim_counter / 5 );
 	particle_color.blue += static_cast<Uint8>( glim_counter / 1.5f );
 
-	// create particles
+	// create emitter
 	cParticle_Emitter *anim = new cParticle_Emitter();
-	anim->Set_Pos( x, y );
+	if( random )
+	{
+		anim->Set_Emitter_Rect( x, y, m_col_rect.m_w * 0.9f, m_col_rect.m_h * 0.9f );
+	}
+	// create without random
+	else
+	{
+		anim->Set_Emitter_Rect( x, y );
+		// emit upwards
+		anim->Set_Direction_Range( 180, 180 );
+	}
 	anim->Set_Quota( quota );
 	anim->Set_Image( pVideo->Get_Surface( "animation/particles/star.png" ) );
 	anim->Set_Time_to_Live( 0.4f );
@@ -192,19 +236,48 @@ void cjStar :: Handle_Collision_Massive( cObjectCollision *collision )
 {
 	if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
 	{
-		velx = -velx;
+		Turn_Around( collision->direction );
 	}
 	else if( collision->direction == DIR_UP )
 	{
-		vely = -( vely * 0.3f );
+		m_vely = -( m_vely * 0.3f );
 	}
 	else if( collision->direction == DIR_DOWN )
 	{
-		if( ground_object )
+		if( m_ground_object )
 		{
-			Generate_Particles( posx + rect.w / 2, ground_object->posy, 10 );
+			// clamp x to the ground object position
+			float x = m_rect.m_x + ( m_rect.m_w / 2 );
+
+			// left
+			if( x < m_ground_object->m_col_rect.m_x )
+			{
+				x = m_ground_object->m_col_rect.m_x;
+			}
+			// right
+			else if( x > m_ground_object->m_col_rect.m_x + m_ground_object->m_col_rect.m_w )
+			{
+				x = m_ground_object->m_col_rect.m_x +  + m_ground_object->m_col_rect.m_w;
+			}
+
+			Generate_Particles( x, m_ground_object->m_col_rect.m_y, 0, 5 );
 		}
 
-		vely = -25;
+		m_vely = -25;
 	}
 }
+
+void cjStar :: Handle_Collision_Player( cObjectCollision *collision )
+{
+	// invalid
+	if( collision->direction == DIR_UNDEFINED )
+	{
+		return;
+	}
+
+	Activate();
+}
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

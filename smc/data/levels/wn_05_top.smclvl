@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.5" />
-		<Property name="engine_version" value="2.4" />
-		<Property name="save_time" value="1206125385" />
+		<Property name="game_version" value="1.7" />
+		<Property name="engine_version" value="2.8" />
+		<Property name="save_time" value="1230262410" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="SMC Team" />
-		<Property name="lvl_version" value="1.1" />
+		<Property name="lvl_version" value="1.2" />
 		<Property name="lvl_music" value="land/land_4.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
@@ -26,10 +26,14 @@
 	</background>
 	<background>
 		<Property name="type" value="1" />
+		<Property name="posx" value="0" />
+		<Property name="posy" value="0" />
+		<Property name="posz" value="0.00011" />
 		<Property name="image" value="game/background/desert_hills_1.png" />
-		<Property name="speedx" value="0.7" />
-		<Property name="speedy" value="1" />
-		<Property name="posz" value="0.000107" />
+		<Property name="speedx" value="0.5" />
+		<Property name="speedy" value="0.7" />
+		<Property name="const_velx" value="0" />
+		<Property name="const_vely" value="0" />
 	</background>
 	<global_effect>
 		<Property name="type" value="1" />
@@ -41,6 +45,7 @@
 		<Property name="z" value="0.12" />
 		<Property name="z_rand" value="0" />
 		<Property name="time_to_live" value="6" />
+		<Property name="time_to_live_rand" value="0" />
 		<Property name="emitter_iteration_interval" value="0.106667" />
 		<Property name="scale" value="0.2" />
 		<Property name="scale_rand" value="0.2" />
@@ -48,6 +53,9 @@
 		<Property name="speed_rand" value="8" />
 		<Property name="dir_range_start" value="0" />
 		<Property name="dir_range_size" value="90" />
+		<Property name="rot_x" value="0" />
+		<Property name="rot_y" value="0" />
+		<Property name="rot_z" value="0" />
 		<Property name="const_rotz" value="0.5" />
 		<Property name="const_rotz_rand" value="10" />
 	</global_effect>

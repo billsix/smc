@@ -1,7 +1,7 @@
 /***************************************************************************
  * overworld.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -23,6 +23,12 @@
 #include "../overworld/world_sprite_manager.h"
 #include "../gui/hud.h"
 #include "../audio/random_sound.h"
+// CEGUI
+#include "CEGUIXMLHandler.h"
+#include "CEGUIXMLAttributes.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** cOverworld_description *** *** *** *** *** *** *** *** *** */
 
@@ -39,26 +45,26 @@ public:
 	void Save( void );
 
 	// returns the full path
-	string Get_Full_Path( void );
+	std::string Get_Full_Path( void ) const;
 
 	// directory name
-	string path;
+	std::string path;
 	// world name
-	string name;
+	std::string name;
 	// is visible on selection
 	bool visible;
 	// from user directory
 	bool user;
 
 	// world comment
-	string comment;
+	std::string comment;
 private:
 	// XML element start
-    virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
+	virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
 	// XML element end
-    virtual void elementEnd( const CEGUI::String &element );
+	virtual void elementEnd( const CEGUI::String &element );
 	// handle world description
-    void handle_world( const CEGUI::XMLAttributes& attributes );
+	void handle_world( const CEGUI::XMLAttributes& attributes );
 
 	// XML element Property list
 	CEGUI::XMLAttributes xml_attributes;
@@ -131,21 +137,21 @@ public:
 	/* Returns a pointer to the Waypoint
 	 * if not found returns NULL
 	*/
-	cWaypoint *Get_Waypoint( string name );
+	cWaypoint *Get_Waypoint( const std::string &name );
 	cWaypoint *Get_Waypoint( unsigned int num );
 	/* Returns the Waypoint array number if the level name matches
 	 * if not found returns -1
 	*/
-	int Get_Level_Waypoint_Num( string level_name );
+	int Get_Level_Waypoint_Num( std::string level_name );
 	/* Returns the Waypoint array number if the destination name matches
 	 * if not found returns -1
 	*/
-	int Get_Waypoint_Num( string world_name );
+	int Get_Waypoint_Num( const std::string &world_name );
 
 	/* Check if the rect collides with a Waypoint
 	 * if no collision found returns -1
 	*/
-	int Get_Waypoint_Collision( GL_rect *rect_2 );
+	int Get_Waypoint_Collision( const GL_rect &rect_2 );
 	// returns the last accessible Waypoint
 	int Get_Last_Valid_Waypoint( void );
 	// update the Waypoint text
@@ -169,7 +175,7 @@ public:
 	// Background Color
 	Color background_color;
 	// music filename
-	string musicfile;
+	std::string musicfile;
 	// HUD world name
 	cHudSprite *hud_world_name;
 	// HUD current level name
@@ -178,15 +184,15 @@ public:
 	// goto next level on overworld enter
 	bool next_level;
 
-	// Settings
+	// settings
 	unsigned int player_start_waypoint;
 	Moving_state player_moving_state;
 
 private:
 	// XML element start
-    virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
+	virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
 	// XML element end
-    virtual void elementEnd( const CEGUI::String &element );
+	virtual void elementEnd( const CEGUI::String &element );
  
 	// XML element Property list
 	CEGUI::XMLAttributes xml_attributes;
@@ -201,5 +207,7 @@ cSprite *Get_World_Object( const CEGUI::String &element, CEGUI::XMLAttributes &a
 extern cOverworld *pActive_Overworld;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.7" />
-		<Property name="engine_version" value="2.8" />
-		<Property name="save_time" value="1228479384" />
+		<Property name="game_version" value="1.8" />
+		<Property name="engine_version" value="2.9" />
+		<Property name="save_time" value="1230559569" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="youngheart80 &amp; SMC Team" />
-		<Property name="lvl_version" value="1.0" />
+		<Property name="lvl_version" value="1.2" />
 		<Property name="lvl_music" value="land/land_5.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
@@ -18,8 +18,8 @@
 	<background>
 		<Property name="type" value="103" />
 		<Property name="bg_color_1_red" value="0" />
-		<Property name="bg_color_1_green" value="220" />
-		<Property name="bg_color_1_blue" value="255" />
+		<Property name="bg_color_1_green" value="150" />
+		<Property name="bg_color_1_blue" value="200" />
 		<Property name="bg_color_2_red" value="120" />
 		<Property name="bg_color_2_green" value="180" />
 		<Property name="bg_color_2_blue" value="110" />
@@ -30,9 +30,9 @@
 		<Property name="posy" value="0" />
 		<Property name="posz" value="0.00011" />
 		<Property name="image" value="game/background/ocean_green.png" />
-		<Property name="speedx" value="1" />
-		<Property name="speedy" value="1" />
-		<Property name="const_velx" value="0" />
+		<Property name="speedx" value="1.5" />
+		<Property name="speedy" value="0.45" />
+		<Property name="const_velx" value="1.2" />
 		<Property name="const_vely" value="0" />
 	</background>
 	<background>
@@ -41,8 +41,8 @@
 		<Property name="posy" value="0" />
 		<Property name="posz" value="0.00021" />
 		<Property name="image" value="game/background/beach_island.png" />
-		<Property name="speedx" value="3" />
-		<Property name="speedy" value="1" />
+		<Property name="speedx" value="1.5" />
+		<Property name="speedy" value="0.5" />
 		<Property name="const_velx" value="0" />
 		<Property name="const_vely" value="0" />
 	</background>
@@ -1790,11 +1790,11 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="4577" />
 		<Property name="posy" value="-470" />
 		<Property name="direction" value="up" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -3007,11 +3007,11 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="2052" />
 		<Property name="posy" value="374" />
 		<Property name="direction" value="left" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -3083,11 +3083,11 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="6022" />
 		<Property name="posy" value="330" />
 		<Property name="direction" value="up" />
-		<Property name="image_dir" value="enemy/jpiranha/orange/" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="100" />
 		<Property name="speed" value="5.8" />
 	</enemy>

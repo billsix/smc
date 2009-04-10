@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.5" />
-		<Property name="engine_version" value="2.5" />
-		<Property name="save_time" value="1210611682" />
+		<Property name="game_version" value="1.8" />
+		<Property name="engine_version" value="34" />
+		<Property name="save_time" value="1235944640" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="" />
@@ -26,17 +26,25 @@
 	</background>
 	<background>
 		<Property name="type" value="1" />
+		<Property name="posx" value="0" />
+		<Property name="posy" value="0" />
+		<Property name="posz" value="0.0002" />
 		<Property name="image" value="game/background/green_junglehills.png" />
 		<Property name="speedx" value="1.1" />
 		<Property name="speedy" value="1" />
-		<Property name="posz" value="0.00011" />
+		<Property name="const_velx" value="0" />
+		<Property name="const_vely" value="0" />
 	</background>
 	<background>
 		<Property name="type" value="1" />
+		<Property name="posx" value="0" />
+		<Property name="posy" value="0" />
+		<Property name="posz" value="0.0001" />
 		<Property name="image" value="game/background/puffy_clouds.png" />
 		<Property name="speedx" value="0.5" />
 		<Property name="speedy" value="0.8" />
-		<Property name="posz" value="0.0001" />
+		<Property name="const_velx" value="0" />
+		<Property name="const_vely" value="0" />
 	</background>
 	<global_effect>
 		<Property name="type" value="1" />
@@ -380,10 +388,11 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="1172" />
 		<Property name="posy" value="158" />
 		<Property name="direction" value="left" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -724,10 +733,11 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="1295" />
 		<Property name="posy" value="243" />
 		<Property name="direction" value="right" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="390" />
 		<Property name="speed" value="7" />
 	</enemy>
@@ -1586,19 +1596,19 @@
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="rex" />
+		<Property name="type" value="krush" />
 		<Property name="posx" value="474" />
 		<Property name="posy" value="364" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="rex" />
+		<Property name="type" value="krush" />
 		<Property name="posx" value="1757" />
 		<Property name="posy" value="384" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="rex" />
+		<Property name="type" value="krush" />
 		<Property name="posx" value="2295" />
 		<Property name="posy" value="384" />
 		<Property name="direction" value="left" />
@@ -2193,6 +2203,7 @@
 		<Property name="posx" value="2791" />
 		<Property name="posy" value="321" />
 		<Property name="type" value="0" />
+		<Property name="motion" value="0" />
 		<Property name="entry" value="1" />
 	</levelexit>
 	<sprite>
@@ -2252,6 +2263,7 @@
 	<level_entry>
 		<Property name="posx" value="3225" />
 		<Property name="posy" value="-17" />
+		<Property name="type" value="1" />
 		<Property name="direction" value="up" />
 		<Property name="name" value="1" />
 	</level_entry>
@@ -5095,6 +5107,8 @@
 		<Property name="posy" value="445" />
 		<Property name="rotation_speed" value="0" />
 		<Property name="image" value="enemy/static/blocks/spike_1/2_grey.png" />
+		<Property name="path" value="" />
+		<Property name="speed" value="0" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="static" />
@@ -5102,6 +5116,8 @@
 		<Property name="posy" value="445" />
 		<Property name="rotation_speed" value="0" />
 		<Property name="image" value="enemy/static/blocks/spike_1/2_grey.png" />
+		<Property name="path" value="" />
+		<Property name="speed" value="0" />
 	</enemy>
 	<sprite>
 		<Property name="posx" value="5692" />
@@ -11108,12 +11124,6 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="9641" />
-		<Property name="posy" value="-391" />
-		<Property name="image" value="ground/jungle_1/tree_type_1_front.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
 		<Property name="posx" value="10098" />
 		<Property name="posy" value="-461" />
 		<Property name="image" value="ground/green_1/hedges/medium_1.png" />
@@ -11207,6 +11217,7 @@
 		<Property name="posx" value="9955" />
 		<Property name="posy" value="32" />
 		<Property name="type" value="0" />
+		<Property name="motion" value="0" />
 	</levelexit>
 	<box>
 		<Property name="posx" value="9726" />
@@ -11293,10 +11304,11 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="10225" />
 		<Property name="posy" value="-409" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="350" />
 		<Property name="speed" value="5" />
 	</enemy>
@@ -11349,6 +11361,7 @@
 	<moving_platform>
 		<Property name="posx" value="6733" />
 		<Property name="posy" value="-227" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -11364,6 +11377,7 @@
 	<moving_platform>
 		<Property name="posx" value="5734" />
 		<Property name="posy" value="-313" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -11379,6 +11393,7 @@
 	<moving_platform>
 		<Property name="posx" value="5445" />
 		<Property name="posy" value="445" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="massive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -11409,6 +11424,7 @@
 	<moving_platform>
 		<Property name="posx" value="6819" />
 		<Property name="posy" value="-26" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -11439,6 +11455,7 @@
 	<moving_platform>
 		<Property name="posx" value="6906" />
 		<Property name="posy" value="197" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -11642,7 +11659,7 @@
 		<Property name="useable_count" value="-1" />
 	</box>
 	<enemy>
-		<Property name="type" value="rex" />
+		<Property name="type" value="krush" />
 		<Property name="posx" value="6379" />
 		<Property name="posy" value="-424" />
 		<Property name="direction" value="right" />
@@ -11657,6 +11674,7 @@
 	<moving_platform>
 		<Property name="posx" value="5488" />
 		<Property name="posy" value="-48" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />

@@ -1,7 +1,7 @@
 /***************************************************************************
  * keyboard.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -17,6 +17,11 @@
 #define SMC_KEYBOARD_H
 
 #include "../core/globals.h"
+// SDL
+#include "SDL.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** cKeyboard *** *** *** *** *** *** *** *** *** */
 
@@ -33,7 +38,7 @@ public:
 	 * CEGUI Key Up handler
 	 * returns true if CEGUI processed the given key up event
 	*/
-	bool CEGUI_Handle_Key_Up( SDLKey key );
+	bool CEGUI_Handle_Key_Up( SDLKey key ) const;
 
 	/* Function : KeyUp
 	 * Gives player various cues depending on the key
@@ -45,7 +50,7 @@ public:
 	 * CEGUI Key Down handler
 	 * returns true if CEGUI processed the given key down event
 	*/
-	bool CEGUI_Handle_Key_Down( SDLKey key );
+	bool CEGUI_Handle_Key_Down( SDLKey key ) const;
 
 	/* Function : KeyDown
 	 * Key Down handler
@@ -54,12 +59,12 @@ public:
 	bool Key_Down( SDLKey key );
 
 	// Get the assigned shortcut
-	SDLKey *Get_Shortcut( input_identifier shortcut_id );
+	SDLKey *Get_Shortcut( const input_identifier shortcut_id ) const;
 	// Assign a shortcut
-	void Assign_Shortcut( input_identifier shortcut_id, SDLKey new_key );
+	void Assign_Shortcut( const input_identifier shortcut_id, SDLKey new_key );
 
 	// Translate a SDLKey to the proper CEGUI::Key
-	unsigned int SDLKey_to_CEGUIKey( SDLKey key );
+	unsigned int SDLKey_to_CEGUIKey( const SDLKey key ) const;
 
 	// Pressed keys
 	Uint8 keys[SDLK_LAST];
@@ -71,5 +76,7 @@ public:
 extern cKeyboard *pKeyboard;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

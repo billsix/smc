@@ -1,7 +1,7 @@
 /***************************************************************************
  * level_manager.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2007 - 2008 Florian Richter
+ * Copyright (C) 2007 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -20,6 +20,9 @@
 #include "../core/obj_manager.h"
 #include "../core/camera.h"
 #include "../level/level.h"
+
+namespace SMC
+{
 
 // default files for levels
 #define LEVEL_DEFAULT_MUSIC "land/land_5.ogg"
@@ -42,7 +45,7 @@ public:
 	 * delayed : if set the level will be loaded on the next update
 	 * sub_level : if set previous level isn't unloaded
 	*/
-	bool Load( string filename, bool delayed = 0, bool sub_level = 0 );
+	bool Load( std::string filename, bool delayed = 0, bool sub_level = 0 );
 
 	// level camera
 	cCamera *camera;
@@ -54,5 +57,7 @@ public:
 extern cLevel_Manager *pLevel_Manager;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

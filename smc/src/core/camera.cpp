@@ -1,7 +1,7 @@
 /***************************************************************************
  * camera.cpp  -  class for handling screen camera movement
  *
- * copyright (C) 2006 - 2008 by Florian Richter
+ * copyright (C) 2006 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -18,11 +18,15 @@
 #include "../player/player.h"
 #include "../core/framerate.h"
 #include "../input/mouse.h"
-#include "../core/obj_manager.h"
 #include "../overworld/world_manager.h"
 #include "../level/level.h"
 #include "../overworld/overworld.h"
-#include "../core/sprite_manager.h"
+#include "../core/main.h"
+
+namespace SMC
+{
+
+const GL_rect cCamera::default_limits = GL_rect( 0, 0, 20000, -4000 );
 
 /* *** *** *** *** *** *** *** cCamera *** *** *** *** *** *** *** *** *** *** */
 
@@ -109,7 +113,7 @@ void cCamera :: Set_Pos_Y( float ny )
 	Update_Position();
 }
 
-void cCamera :: Move( float move_x, float move_y )
+void cCamera :: Move( const float move_x, const float move_y )
 {
 	if( ( Game_Mode == MODE_LEVEL || Game_Mode == MODE_OVERWORLD ) && !editor_enabled )
 	{
@@ -121,39 +125,61 @@ void cCamera :: Move( float move_x, float move_y )
 	}
 }
 
-bool cCamera :: Move_to_Position_Gradually( float px, float py )
+bool cCamera :: Move_to_Position_Gradually( const float px, const float py, const unsigned int frames /* = 200 */ )
+{
+	for( float i = 0.0f; i < frames; i += pFramerate->speedfactor )
+	{
+		if( Step_to_Position_Gradually( px, py ) == 0 )
+		{
+			return 0;
+		}
+
+		if( Game_Mode == MODE_LEVEL )
+		{
+			// keep global effect particles on screen
+			pActive_Level->m_global_effect->Update_Particles();
+		}
+
+		// draw
+		Draw_Game();
+
+		pVideo->Render();
+		pFramerate->Update();
+	}
+
+	return 1;
+}
+
+bool cCamera :: Step_to_Position_Gradually( const float px, const float py )
 {
 	// limit to nearest possible position
-	float px_final = px + pActive_Camera->x_offset;
-	float py_final = py + pActive_Camera->y_offset;
+	float px_final = px + x_offset;
+	float py_final = py + y_offset;
 	Update_Limit( px_final, py_final );
 
 	// check distance to new position
-	float distance_x = px_final - pActive_Camera->x;
-	float distance_y = py_final - pActive_Camera->y;
+	float distance_x = px_final - x;
+	float distance_y = py_final - y;
 	// velocity
 	float vel_x = ( distance_x * 0.04f ) * pFramerate->speedfactor;
 	float vel_y = ( distance_y * 0.04f ) * pFramerate->speedfactor;
 	// true if reached position
-	bool reached_y = 0, reached_x = 0;
+	bool reached_x = 0;
+	bool reached_y = 0;
 
-	if( distance_x > 1 )
+	if( distance_x > 2.0f )
 	{
-		if( vel_x < 1 )
+		if( vel_x < 2.0f )
 		{
-			vel_x = 1;
+			vel_x = 2.0f;
 		}
-
-		pActive_Camera->Move( vel_x, 0 );
 	}
-	else if( distance_x < -1 )
+	else if( distance_x < -2.0f )
 	{
-		if( vel_x > -1 )
+		if( vel_x > -2.0f )
 		{
-			vel_x = -1;
+			vel_x = -2.0f;
 		}
-
-		pActive_Camera->Move( vel_x, 0 );
 	}
 	// reached destination position x
 	else
@@ -161,23 +187,19 @@ bool cCamera :: Move_to_Position_Gradually( float px, float py )
 		reached_x = 1;
 	}
 
-	if( distance_y > 1 )
+	if( distance_y > 2.0f )
 	{
-		if( vel_y < 1 )
+		if( vel_y < 2.0f )
 		{
-			vel_y = 1;
+			vel_y = 2.0f;
 		}
-
-		pActive_Camera->Move( 0, vel_y );
 	}
-	else if( distance_y < -1 )
+	else if( distance_y < -2.0f )
 	{
-		if( vel_y > -1 )
+		if( vel_y > -2.0f )
 		{
-			vel_y = -1;
+			vel_y = -2.0f;
 		}
-
-		pActive_Camera->Move( 0, vel_y );
 	}
 	// reached destination position y
 	else
@@ -190,12 +212,17 @@ bool cCamera :: Move_to_Position_Gradually( float px, float py )
 	{
 		return 0;
 	}
+	// move
+	else
+	{
+		Move( vel_x, vel_y );
+	}
 
 	// position not reached
 	return 1;
 }
 
-void cCamera :: Center( ObjectDirection direction /* = DIR_ALL */ )
+void cCamera :: Center( const ObjectDirection direction /* = DIR_ALL */ )
 {
 	// Center camera on a not changing player position
 	if( direction == DIR_VERTICAL )
@@ -212,87 +239,87 @@ void cCamera :: Center( ObjectDirection direction /* = DIR_ALL */ )
 	}
 }
 
-float cCamera :: Get_Center_Pos_X( void )
+float cCamera :: Get_Center_Pos_X( void ) const
 {
-	return pActive_Player->col_rect.x + 5 - ( game_res_w / 2 );
+	return pActive_Player->m_col_rect.m_x + 5 - ( game_res_w * 0.5f );
 }
 
-float cCamera :: Get_Center_Pos_Y( void )
+float cCamera :: Get_Center_Pos_Y( void ) const
 {
-	return pActive_Player->col_rect.y + pActive_Player->col_rect.h - 5 - ( game_res_h / 2 );
+	return pActive_Player->m_col_rect.m_y + pActive_Player->m_col_rect.m_h - 5 - ( game_res_h * 0.5f );
 }
 
 void cCamera :: Reset_Limits( void )
 {
-	limit_rect = GL_rect( 0, 0, 20000, -4000 );
+	limit_rect = default_limits;
 }
 
-void cCamera :: Set_Limits( GL_rect rect )
+void cCamera :: Set_Limits( const GL_rect &rect )
 {
 	limit_rect = rect;
 
 	// minimal size
-	if( limit_rect.w < 800 )
+	if( limit_rect.m_w < 800 )
 	{
-		limit_rect.w = 800;
+		limit_rect.m_w = 800;
 	}
-	if( limit_rect.h > 0 )
+	if( limit_rect.m_h > 0 )
 	{
-		limit_rect.h = 0;
+		limit_rect.m_h = 0;
 	}
 }
 
-void cCamera :: Set_Limit_X( float val )
+void cCamera :: Set_Limit_X( const float val )
 {
-	limit_rect.x = val;
+	limit_rect.m_x = val;
 }
 
-void cCamera :: Set_Limit_Y( float val )
+void cCamera :: Set_Limit_Y( const float val )
 {
-	limit_rect.y = val;
+	limit_rect.m_y = val;
 }
 
-void cCamera :: Set_Limit_W( float val )
+void cCamera :: Set_Limit_W( const float val )
 {
-	limit_rect.w = val;
+	limit_rect.m_w = val;
 }
 
-void cCamera :: Set_Limit_H( float val )
+void cCamera :: Set_Limit_H( const float val )
 {
-	limit_rect.h = val;
+	limit_rect.m_h = val;
 }
 
-void cCamera :: Update_Limit( float &nx, float &ny )
+void cCamera :: Update_Limit( float &nx, float &ny ) const
 {
 	Update_Limit_X( nx );
 	Update_Limit_Y( ny );
 }
 
-void cCamera :: Update_Limit_X( float &nx )
+void cCamera :: Update_Limit_X( float &nx ) const
 {
 	// left
-	if( nx < limit_rect.x )
+	if( nx < limit_rect.m_x )
 	{
-		nx = limit_rect.x;
+		nx = limit_rect.m_x;
 	}
 	// right
-	else if( nx + game_res_w > limit_rect.x + limit_rect.w )
+	else if( nx + game_res_w > limit_rect.m_x + limit_rect.m_w )
 	{
-		nx = limit_rect.x + limit_rect.w - game_res_w;
+		nx = limit_rect.m_x + limit_rect.m_w - game_res_w;
 	}
 }
 
-void cCamera :: Update_Limit_Y( float &ny )
+void cCamera :: Update_Limit_Y( float &ny ) const
 {
 	// down
-	if( ny > limit_rect.y )
+	if( ny > limit_rect.m_y )
 	{
-		ny = limit_rect.x;
+		ny = limit_rect.m_x;
 	}
 	// up
-	else if( ny < limit_rect.y + limit_rect.h )
+	else if( ny < limit_rect.m_y + limit_rect.m_h )
 	{
-		ny = limit_rect.y + limit_rect.h;
+		ny = limit_rect.m_y + limit_rect.m_h;
 	}
 }
 
@@ -305,13 +332,13 @@ void cCamera :: Update( void )
 		if( !editor_enabled )
 		{
 			// player is moving vertical
-			if( pPlayer->vely != 0 && ver_offset_speed > 0 )
+			if( pPlayer->m_vely != 0 && ver_offset_speed > 0 )
 			{
 				pPlayer->no_vely_counter = 0;
 
-				if( ( y_offset < 100 && pPlayer->vely > 0 ) || ( y_offset > -100 && pPlayer->vely < 0 ) )
+				if( ( y_offset < 100 && pPlayer->m_vely > 0 ) || ( y_offset > -100 && pPlayer->m_vely < 0 ) )
 				{
-					y_offset += ( pPlayer->vely * ver_offset_speed ) * pFramerate->speedfactor;
+					y_offset += ( pPlayer->m_vely * ver_offset_speed ) * pFramerate->speedfactor;
 				}
 			}
 			// slowly remove offset
@@ -338,7 +365,7 @@ void cCamera :: Update( void )
 				if( fixed_hor_vel > 0 )
 				{
 					// out of camera on the left side
-					if( pPlayer->col_rect.x + pPlayer->col_rect.w < x )
+					if( pPlayer->m_col_rect.m_x + pPlayer->m_col_rect.m_w < x )
 					{
 						pPlayer->DownGrade_Player( 1, 1 );
 					}
@@ -348,7 +375,7 @@ void cCamera :: Update( void )
 				else
 				{
 					// out of camera on the right side
-					if( pPlayer->col_rect.x - game_res_w > x )
+					if( pPlayer->m_col_rect.m_x - game_res_w > x )
 					{
 						pPlayer->DownGrade_Player( 1, 1 );
 					}
@@ -357,13 +384,13 @@ void cCamera :: Update( void )
 			else
 			{
 				// player is moving horizontal
-				if( pPlayer->velx != 0 && hor_offset_speed > 0 )
+				if( pPlayer->m_velx != 0 && hor_offset_speed > 0 )
 				{
 					pPlayer->no_velx_counter = 0;
 
-					if( ( x_offset < 200 && pPlayer->velx > 0 ) || ( x_offset > -200 && pPlayer->velx < 0 ) )
+					if( ( x_offset < 200 && pPlayer->m_velx > 0 ) || ( x_offset > -200 && pPlayer->m_velx < 0 ) )
 					{
-						x_offset += ( pPlayer->velx * hor_offset_speed ) * pFramerate->speedfactor;
+						x_offset += ( pPlayer->m_velx * hor_offset_speed ) * pFramerate->speedfactor;
 					}
 				}
 				// slowly remove offset
@@ -386,30 +413,30 @@ void cCamera :: Update( void )
 	else if( Game_Mode == MODE_OVERWORLD )
 	{
 		// Left
-		if( pActive_Player->posx - x < game_res_w * 0.4f )
+		if( pActive_Player->m_pos_x - x < game_res_w * 0.4f )
 		{
-			Set_Pos_X( pActive_Player->posx - game_res_w * 0.4f );
+			Set_Pos_X( pActive_Player->m_pos_x - game_res_w * 0.4f );
 		}
 		// Right
-		else if( pActive_Player->posx - x > game_res_w * 0.6f )
+		else if( pActive_Player->m_pos_x - x > game_res_w * 0.6f )
 		{
-			Set_Pos_X( pActive_Player->posx - game_res_w * 0.6f );
+			Set_Pos_X( pActive_Player->m_pos_x - game_res_w * 0.6f );
 		}
 		
 		// Up
-		if( pActive_Player->posy - y < game_res_h * 0.4f )
+		if( pActive_Player->m_pos_y - y < game_res_h * 0.4f )
 		{
-			Set_Pos_Y( pActive_Player->posy - game_res_h * 0.4f );
+			Set_Pos_Y( pActive_Player->m_pos_y - game_res_h * 0.4f );
 		}
 		// Down
-		else if( pActive_Player->posy - y > game_res_h * 0.6f )
+		else if( pActive_Player->m_pos_y - y > game_res_h * 0.6f )
 		{
-			Set_Pos_Y( pActive_Player->posy - game_res_h * 0.6f );
+			Set_Pos_Y( pActive_Player->m_pos_y - game_res_h * 0.6f );
 		}
 	}
 }
 
-void cCamera :: Update_Position( void )
+void cCamera :: Update_Position( void ) const
 {
 	// mouse
 	pMouseCursor->Update_Position();
@@ -435,3 +462,4 @@ void cCamera :: Update_Position( void )
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
+} // namespace SMC

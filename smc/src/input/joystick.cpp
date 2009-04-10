@@ -1,7 +1,7 @@
 /***************************************************************************
  * joystick.cpp  -  Joystick handling class
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -23,6 +23,9 @@
 #include "../gui/menu.h"
 #include "../level/level.h"
 #include "../overworld/overworld.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** cJoystick *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -61,11 +64,11 @@ int cJoystick :: Init( void )
 
 	// no joystick available
 	if( joy_count <= 0 )
-    {
+	{
 		printf( "No joysticks available\n" );
 		pPreferences->joy_enabled = 0;
 		return 0;
-    }
+	}
 
 	if( debug )
 	{
@@ -77,7 +80,7 @@ int cJoystick :: Init( void )
 	// if default joy name is given
 	if( !pPreferences->joy_name.empty() )
 	{
-		vector<string> joy_names = Get_Names();
+		vector<std::string> joy_names = Get_Names();
 
 		for( unsigned int i = 0; i < joy_names.size(); i++ )
 		{
@@ -130,12 +133,8 @@ bool cJoystick :: Stick_Open( unsigned int index )
 	num_axes = SDL_JoystickNumAxes( joystick );
 	num_balls = SDL_JoystickNumBalls( joystick );
 
-	// todo : replace with STL fill
-	// setup available button
-	for( unsigned int i = 0; i < num_buttons; i++ )
-	{
-		buttons.push_back( 0 );
-	}
+	// setup available buttons
+	buttons.assign( num_buttons, 0 );
 
 	if( debug )
 	{
@@ -181,15 +180,111 @@ void cJoystick :: Stick_Close( void )
 void cJoystick :: Reset_keys( void )
 {
 	// clear buttons
-	for( unsigned int i = 0; i < buttons.size(); i++ )
-	{
-		buttons[i] = 0;
-	}
+	std::fill( buttons.begin(), buttons.end(), static_cast<bool>(0) );
 	
 	left = 0;
 	right = 0;
 	up = 0;
 	down = 0;
+}
+
+void cJoystick :: Handle_Hat( SDL_Event *ev )
+{
+	// up
+	if( ev->jhat.value == SDL_HAT_UP )
+	{
+		if( !up )
+		{
+			pKeyboard->Key_Down( pPreferences->key_up );
+			up = 1;
+		}
+
+		if( down )
+		{
+			pKeyboard->Key_Up( pPreferences->key_down );
+			down = 0;
+		}
+	}
+	else
+	{
+		if( up )
+		{
+			pKeyboard->Key_Up( pPreferences->key_up );
+			up = 0;
+		}
+	}
+
+	// down
+	if( ev->jhat.value == SDL_HAT_DOWN )
+	{
+		if( !down )
+		{
+			pKeyboard->Key_Down( pPreferences->key_down );
+			down = 1;
+		}
+
+		if( up )
+		{
+			pKeyboard->Key_Up( pPreferences->key_up );
+			up = 0;
+		}
+	}
+	else
+	{
+		if( down )
+		{
+			pKeyboard->Key_Up( pPreferences->key_down );
+			down = 0;
+		}
+	}
+
+	// left
+	if( ev->jhat.value == SDL_HAT_LEFT )
+	{
+		if( !left )
+		{
+			pKeyboard->Key_Down( pPreferences->key_left );
+			left = 1;
+		}
+
+		if( right )
+		{
+			pKeyboard->Key_Up( pPreferences->key_right );
+			right = 0;
+		}
+	}
+	else
+	{
+		if( left )
+		{
+			pKeyboard->Key_Up( pPreferences->key_left );
+			left = 0;
+		}
+	}
+
+	// right
+	if( ev->jhat.value == SDL_HAT_RIGHT)
+	{
+		if( !right )
+		{
+			pKeyboard->Key_Down( pPreferences->key_right );
+			right = 1;
+		}
+
+		if( left )
+		{
+			pKeyboard->Key_Up( pPreferences->key_left );
+			left = 0;
+		}
+	}
+	else
+	{
+		if( right )
+		{
+			pKeyboard->Key_Up( pPreferences->key_right );
+			right = 0;
+		}
+	}
 }
 
 void cJoystick :: Handle_Motion( SDL_Event *ev )
@@ -459,20 +554,20 @@ bool cJoystick :: Handle_Button_Up_Event( SDL_Event *ev )
 	return 0;
 }
 
-string cJoystick :: Get_Name( void )
+std::string cJoystick :: Get_Name( void ) const
 {
 	return SDL_JoystickName( cur_stick );
 }
 
-vector<string> cJoystick :: Get_Names( void )
+vector<std::string> cJoystick :: Get_Names( void ) const
 {
-	vector<string> names;
+	vector<std::string> names;
 	// get joy count
 	int joy_count = SDL_NumJoysticks();
 
 	// joystick names
-	for( int i = 0; i < joy_count; i++  )
-    {
+	for( int i = 0; i < joy_count; i++ )
+	{
 		names.push_back( SDL_JoystickName( i ) );
 	}
 
@@ -502,7 +597,7 @@ void cJoystick :: Set_Button( Uint8 num, bool pressed )
 	buttons[num] = pressed;
 }
 
-Uint8 *cJoystick :: Get_Shortcut( input_identifier shortcut_id )
+Uint8 *cJoystick :: Get_Shortcut( input_identifier shortcut_id ) const
 {
 	if( shortcut_id == INP_JUMP )
 	{
@@ -534,7 +629,7 @@ void cJoystick :: Assign_Shortcut( input_identifier shortcut_id, Uint8 new_butto
 	*button = new_button;
 }
 
-bool cJoystick :: Left( void )
+bool cJoystick :: Left( void ) const
 {
 	if( pPreferences->joy_enabled && input_event.type == SDL_JOYAXISMOTION && input_event.jaxis.value < -pPreferences->joy_axis_threshold && 
 		input_event.jaxis.axis == pPreferences->joy_axis_hor )
@@ -545,7 +640,7 @@ bool cJoystick :: Left( void )
 	return 0;
 }
 
-bool cJoystick :: Right( void )
+bool cJoystick :: Right( void ) const
 {
 	if( pPreferences->joy_enabled && input_event.type == SDL_JOYAXISMOTION && input_event.jaxis.value > pPreferences->joy_axis_threshold && 
 		input_event.jaxis.axis == pPreferences->joy_axis_hor )
@@ -556,7 +651,7 @@ bool cJoystick :: Right( void )
 	return 0;
 }
 
-bool cJoystick :: Up( void )
+bool cJoystick :: Up( void ) const
 {
 	if( pPreferences->joy_enabled && input_event.type == SDL_JOYAXISMOTION && input_event.jaxis.value < -pPreferences->joy_axis_threshold && 
 		input_event.jaxis.axis == pPreferences->joy_axis_ver )
@@ -567,7 +662,7 @@ bool cJoystick :: Up( void )
 	return 0;
 }
 
-bool cJoystick :: Down( void )
+bool cJoystick :: Down( void ) const
 {
 	if( pPreferences->joy_enabled && input_event.type == SDL_JOYAXISMOTION && input_event.jaxis.value > pPreferences->joy_axis_threshold && 
 		input_event.jaxis.axis == pPreferences->joy_axis_ver )
@@ -592,3 +687,7 @@ bool cJoystick :: Button( Uint8 num )
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cJoystick *pJoystick = NULL;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

@@ -1,7 +1,7 @@
 /***************************************************************************
  * player.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,6 +19,9 @@
 #include "../core/globals.h"
 #include "../objects/ball.h"
 #include "../objects/objectsprite.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** Maryo states *** *** *** *** *** *** *** *** *** */
 
@@ -52,23 +55,28 @@ enum Maryo_imgpos
 	MARYO_IMG_SPECIAL_1 = 34
 };
 
+/* *** *** *** *** *** *** *** How to move the camera *** *** *** *** *** *** *** *** */
+enum Camera_movement
+{
+	CAMERA_MOVE_NONE = 0,	// No movement is used when changing level files
+	CAMERA_MOVE_FLY = 1,	// Move the camera visibly
+	CAMERA_MOVE_BLINK = 2,	// Fade out and back in at the destination position
+	CAMERA_MOVE_ALONG_PATH = 3, // Move the camera along a given path
+	CAMERA_MOVE_ALONG_PATH_BACKWARDS = 4 // Move the camera along a given path backwards
+};
+
 /* *** *** *** *** *** *** *** Player class *** *** *** *** *** *** *** *** *** *** */
 
 class cPlayer : public cImageObjectSprite
 {
 public:
 	// constructor
-	cPlayer( float x = 120, float y = 0 );
+	cPlayer( float x = m_default_pos_x, float y = m_default_pos_y );
 	// destructor
 	virtual ~cPlayer( void );
 
 	// copy
 	virtual cPlayer *Copy( void );
-
-	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
-	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
 
 	// Init
 	virtual void Init( void );
@@ -78,10 +86,10 @@ public:
 	/* Set the direction
 	 * if new_start_direction is set also set the start/editor direction
 	*/
-	virtual void Set_Direction( ObjectDirection dir, bool new_start_direction = 0 );
+	virtual void Set_Direction( const ObjectDirection dir, bool new_start_direction = 0 );
 
 	// Set the ground object
-	virtual void Set_on_Ground( cSprite *obj, bool set_on_top = 1 );
+	virtual bool Set_on_Ground( cSprite *obj, bool set_on_top = 1 );
 
 	/* downgrade state ( if small maryo : dies )
 	 * force : dies or a complete downgrade
@@ -123,9 +131,11 @@ public:
 	void Start_Climbing( void );
 	// Update the climbing
 	void Update_Climbing( void );
-	// Set up the upkeytime for better jumping detection
+	// Test if colliding with climbable
+	bool Is_On_Climbable( float move_y = 0.0f );
+	// Set up the UpKeytime for better jumping detection
 	void Start_Jump_Keytime( void );
-	// Update the upkeytime and start a jump if possible
+	// Update the UpKeytime and start a jump if possible
 	void Update_Jump_Keytime( void );
 	// Start a jump with the given de-acceleration
 	void Start_Jump( float deaccel = 0.08f );
@@ -144,9 +154,10 @@ public:
 	/* Set the Type
 	 * animate : show type change animation
 	 * sound : if set the upgrade sound is played
+	 * temp_power : set the temp power item
 	*/
-	void Set_Type( Maryo_type new_type, bool animation = 1, bool sound = 1 );
-	void Set_Type( SpriteType item_type, bool animation = 1, bool sound = 1 );
+	void Set_Type( Maryo_type new_type, bool animation = 1, bool sound = 1, bool temp_power = 0 );
+	void Set_Type( SpriteType item_type, bool animation = 1, bool sound = 1, bool temp_power = 0 );
 	// sets the moving state
 	void Set_Moving_State( Moving_state new_state );
 
@@ -154,13 +165,13 @@ public:
 	virtual void Update( void );
 
 	// Draw
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 	/* Draw an animation using the given new type
 	 * ends with the new type set
 	*/
 	void Draw_Animation( Maryo_type new_mtype );
 	// Returns the current image number without the direction modifier
-	unsigned int Get_Image( void );
+	unsigned int Get_Image( void ) const;
 
 	// Loads the images depending on maryo_type
 	void Load_Images( void );
@@ -178,7 +189,7 @@ public:
 	void Get_Item( SpriteType item_type, bool force = 0, cMovingSprite *base = NULL );
 	
 	// returns the current velocity modifier
-	float Get_Vel_Modifier( void );
+	float Get_Vel_Modifier( void ) const;
 
 	// Start a jump
 	void Action_Jump( bool enemy_jump = 0 );
@@ -199,9 +210,9 @@ public:
 	 * amount : the amount of balls to add
 	 * Returns 1 if successful
 	*/
-	bool Ball_Add( ball_effect effect_type = FIREBALL_DEFAULT, float ball_start_angle = -1, unsigned int amount = 0 );
+	bool Ball_Add( ball_effect effect_type = FIREBALL_DEFAULT, float ball_start_angle = -1, unsigned int amount = 0 ) const;
 	// Destroys all Fire/Ice-balls
-	void Ball_Clear( void );
+	void Ball_Clear( void ) const;
 	
 	// Resets the complete game state
 	void Reset_Save( void );
@@ -209,13 +220,16 @@ public:
 	 * if full is set reset item and camera state
 	*/
 	void Reset( bool full = 1 );
+	// Reset position to start position
+	void Reset_Position( void );
 
 	// Exits the level and walks to the next Overworld waypoint
 	void Goto_Next_Level( void );
 	/* Enters the given level on the entry
-	 * move_camera: if set move camera slowly to the new position
+	 * move_camera: set how to move the camera to the new position
+	 * path_identifier: set the identifier of the path to move the camera along
 	*/
-	void Goto_Sub_Level( string str_level, string str_entry, bool move_camera = 1 );
+	void Goto_Sub_Level( std::string str_level, const std::string &str_entry, Camera_movement move_camera = CAMERA_MOVE_FLY, const std::string &path_identifier = "" );
 	
 	// Add an enemy to the kill multiplier
 	void Add_Kill_Multiplier( void );
@@ -223,16 +237,19 @@ public:
 	void Update_Kill_Multiplier( void );
 
 	/* Validate the given collision object
+	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-	virtual unsigned int Validate_Collision( cSprite *obj );
+	virtual Col_Valid_Type Validate_Collision( cSprite *obj );
 
 	// collision from an enemy
 	virtual void Handle_Collision_Enemy( cObjectCollision *collision );
 	// collision with massive
 	virtual void Handle_Collision_Massive( cObjectCollision *collision );
-	// handle moved out of Level
+	// collision with passive
+	virtual void Handle_Collision_Passive( cObjectCollision *collision );
+	// handle moved out of Level event
 	virtual void Handle_out_of_Level( ObjectDirection dir );
 
 	// editor activation
@@ -312,6 +329,10 @@ public:
 	cMovingSprite *active_object;
 	// direction when ducking started ( for the anti stuck under a block test )
 	ObjectDirection duck_direction;
+
+	// default position
+	static const float m_default_pos_x;
+	static const float m_default_pos_y;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -320,5 +341,7 @@ public:
 extern cPlayer *pPlayer;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

@@ -1,7 +1,7 @@
 /***************************************************************************
  * menu.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -22,10 +22,10 @@
 #include "../gui/hud.h"
 #include "../core/camera.h"
 
-/* *** *** *** *** *** *** *** Menu Types *** *** *** *** *** *** *** *** *** *** */
-
 namespace SMC
-{ // work around conflicts caused by lack of namespace use in smc
+{
+
+/* *** *** *** *** *** *** *** Menu Types *** *** *** *** *** *** *** *** *** *** */
 
 enum MenuID
 {
@@ -45,8 +45,6 @@ enum OptionMenuID
 	MENU_AUDIO = 2,
 	MENU_CONTROLS = 3
 };
-}
-using namespace SMC;
 
 /* *** *** *** *** *** *** cMenu_Item *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -59,7 +57,7 @@ public:
 	// Sets the Active Modifier
 	void Set_Active( bool nactive = 0 );
 	// Draws the Menu Item
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
 	// The menu images
 	cHudSprite *image_default;
@@ -100,21 +98,21 @@ public:
 
 	// Updates the Menu Mouse Collision detection
 	void Update_Mouse( void );
-	// Draw the Menu
+
+	// Update
+	void Update( void );
+	// Draw
 	void Draw( bool with_background = 1 );
 
 	// Returns the currently active Menu Item
 	cMenu_Item *Get_Active_Item( void );
 	// Returns the number of loaded Menus
-	unsigned int Get_Size( void );
+	unsigned int Get_Size( void ) const;
 
-	// menu image sprites
-	typedef vector<cHudSprite *> HudSpriteList;
-	HudSpriteList images;
-
-	// Gradient Colors
-	Color color_start;
-	Color color_end;
+	// menu level
+	cLevel *m_level;
+	// menu player (currently only used to set the pActive_Player)
+	cSprite *m_player;
 
 	/* The Currently Active Menu Item
 	* if set to -1 nothing is active
@@ -162,7 +160,7 @@ public:
 
 
 	// Returns a Menu with the common image filenames
-	cMenu_Item *Auto_Menu( string imagename, string imagename_menu, float ypos = 0, bool is_quit = 0 );
+	cMenu_Item *Auto_Menu( std::string imagename, std::string imagename_menu, float ypos = 0, bool is_quit = 0 );
 
 	/* Load the given Menu
 	 * exit_gamemode : return to this game mode on exit
@@ -200,5 +198,7 @@ public:
 extern cMenuCore *pMenuCore;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

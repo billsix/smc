@@ -1,7 +1,7 @@
 /***************************************************************************
  * animation.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -16,9 +16,11 @@
 #ifndef SMC_ANIMATION_H
 #define SMC_ANIMATION_H
 
-#include "../objects/movingsprite.h"
 #include "../objects/objectsprite.h"
 #include "../core/obj_manager.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** Animation definitions *** *** *** *** *** *** *** *** *** *** */
 
@@ -27,7 +29,7 @@ enum AnimationEffect
 	ANIM_UNDEFINED,
 	BLINKING_POINTS,
 	FIRE_EXPLOSION,
-	PARTICLE_EXPLOSION,
+	PARTICLE_EXPLOSION
 };
 
 /* *** *** *** *** *** *** *** Particle blending definitions *** *** *** *** *** *** *** *** *** *** */
@@ -53,7 +55,7 @@ public:
 	// update animation
 	virtual void Update( void );
 	// draw animation
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
 	// Set time to live for Objects in seconds
 	void Set_Time_to_Live( float time, float time_rand = 0 );
@@ -83,10 +85,12 @@ public:
 	cAnimation_Goldpiece( float posx, float posy, float height = 40, float width = 20 );
 	virtual ~cAnimation_Goldpiece( void );
 
+	// initialize animation
+	virtual void Init_Anim( void );
 	// update
 	virtual void Update( void );
 	// draw
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
 	typedef vector<cSprite *> BlinkPointList;
 	BlinkPointList objects;
@@ -121,31 +125,34 @@ public:
 	// update
 	virtual void Update( void );
 	// draw
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
 	typedef vector<cAnimation_Fireball_Item *> FireAnimList;
 	FireAnimList objects;
 };
 
-/* *** *** *** *** *** *** *** Particle Emitter *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** Particle Emitter item *** *** *** *** *** *** *** *** *** *** */
 
+// pre declare
 class cParticle_Emitter;
 
 // Particle Item
 class cParticle : public cMovingSprite
 {
 public:
-	cParticle( void );
+	cParticle( cParticle_Emitter *parent );
 	virtual ~cParticle( void );
 
 	// update
 	virtual void Update( void );
 	// draw
-	virtual void Draw( cParticle_Emitter *origin );
+	virtual void Draw( cSurface_Request *request = NULL );
 
 	// set gravity
 	void Set_Gravity( float x, float y );
 
+	// parent particle emitter
+	cParticle_Emitter *m_parent;
 	// time to live
 	float time_to_live;
 	// constant rotation
@@ -157,7 +164,8 @@ public:
 	float fade_pos;
 };
 
-// Particle Emitter
+/* *** *** *** *** *** *** *** Particle Emitter *** *** *** *** *** *** *** *** *** *** */
+
 class cParticle_Emitter : public cAnimation
 {
 public:
@@ -169,9 +177,9 @@ public:
 	virtual ~cParticle_Emitter( void );
 
 	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
+	virtual void Save_To_Stream( ofstream &file );
 
 	// Init
 	virtual void Init( void );
@@ -187,7 +195,7 @@ public:
 	// Update given settings
 	virtual void Update( void );
 	// Draw everything
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
@@ -196,7 +204,7 @@ public:
 
 	// Set the Emitter rect
 	void Set_Emitter_Rect( float x, float y, float w = 0, float h = 0 );
-	void Set_Emitter_Rect( GL_rect r );
+	void Set_Emitter_Rect( const GL_rect &r );
 	/* Set time to live for the Emitter in seconds
 	 * set -1 for infinite
 	*/
@@ -226,7 +234,7 @@ public:
 	// Set vertical gravity
 	void Set_Vertical_Gravity( float start, float random = 0 );
 	// Set the Color
-	virtual void Set_Color( Color col, Color col_rand = Color( static_cast<Uint8>(0) ) );
+	virtual void Set_Color( const Color &col, const Color &col_rand = Color( static_cast<Uint8>(0), 0, 0, 0 ) );
 	// Set fading type
 	void Set_Fading_Size( bool enable );
 	void Set_Fading_Alpha( bool enable );
@@ -236,70 +244,70 @@ public:
 	// Set image
 	virtual void Set_Image( cGL_Surface *img );
 	// Set the file name
-	virtual void Set_Filename( string str_filename );
+	virtual void Set_Filename( const std::string &str_filename );
 
 	// editor activation
 	virtual void Editor_Activate( void );
-	// position z base key up event
-	bool Editor_Pos_Z_Base_Key( const CEGUI::EventArgs &event );
-	// position z rand key up event
-	bool Editor_Pos_Z_Rand_Key( const CEGUI::EventArgs &event );
-	// editor filename key up event
-	bool Editor_Filename_Key( const CEGUI::EventArgs &event );
-	// emitter width key up event
-	bool Editor_Emitter_Width_Key( const CEGUI::EventArgs &event );
-	// emitter height key up event
-	bool Editor_Emitter_Height_Key( const CEGUI::EventArgs &event );
-	// emitter time to live key up event
-	bool Editor_Emitter_Time_To_Live_Key( const CEGUI::EventArgs &event );
-	// emitter interval key up event
-	bool Editor_Emitter_Interval_Key( const CEGUI::EventArgs &event );
-	// quota key up event
-	bool Editor_Quota_Key( const CEGUI::EventArgs &event );
-	// ttl base key up event
-	bool Editor_Ttl_Base_Key( const CEGUI::EventArgs &event );
-	// ttl rand key up event
-	bool Editor_Ttl_Rand_Key( const CEGUI::EventArgs &event );
-	// velocity base key up event
-	bool Editor_Velocity_Base_Key( const CEGUI::EventArgs &event );
-	// velocity rand key up event
-	bool Editor_Velocity_Rand_Key( const CEGUI::EventArgs &event );
-	// start rotation x base key up event
-	bool Editor_Rotation_X_Base_Key( const CEGUI::EventArgs &event );
-	// start rotation y base key up event
-	bool Editor_Rotation_Y_Base_Key( const CEGUI::EventArgs &event );
-	// start rotation z base key up event
-	bool Editor_Rotation_Z_Base_Key( const CEGUI::EventArgs &event );
+	// position z base text changed event
+	bool Editor_Pos_Z_Base_Text_Changed( const CEGUI::EventArgs &event );
+	// position z rand text changed event
+	bool Editor_Pos_Z_Rand_Text_Changed( const CEGUI::EventArgs &event );
+	// editor filename text changed event
+	bool Editor_Filename_Text_Changed( const CEGUI::EventArgs &event );
+	// emitter width text changed event
+	bool Editor_Emitter_Width_Text_Changed( const CEGUI::EventArgs &event );
+	// emitter height text changed event
+	bool Editor_Emitter_Height_Text_Changed( const CEGUI::EventArgs &event );
+	// emitter time to live text changed event
+	bool Editor_Emitter_Time_To_Live_Text_Changed( const CEGUI::EventArgs &event );
+	// emitter interval text changed event
+	bool Editor_Emitter_Interval_Text_Changed( const CEGUI::EventArgs &event );
+	// quota text changed event
+	bool Editor_Quota_Text_Changed( const CEGUI::EventArgs &event );
+	// ttl base text changed event
+	bool Editor_Ttl_Base_Text_Changed( const CEGUI::EventArgs &event );
+	// ttl rand text changed event
+	bool Editor_Ttl_Rand_Text_Changed( const CEGUI::EventArgs &event );
+	// velocity base text changed event
+	bool Editor_Velocity_Base_Text_Changed( const CEGUI::EventArgs &event );
+	// velocity rand text changed event
+	bool Editor_Velocity_Rand_Text_Changed( const CEGUI::EventArgs &event );
+	// start rotation x base text changed event
+	bool Editor_Rotation_X_Base_Text_Changed( const CEGUI::EventArgs &event );
+	// start rotation y base text changed event
+	bool Editor_Rotation_Y_Base_Text_Changed( const CEGUI::EventArgs &event );
+	// start rotation z base text changed event
+	bool Editor_Rotation_Z_Base_Text_Changed( const CEGUI::EventArgs &event );
 	// start rotation z uses start direction event
 	bool Editor_Start_Rot_Z_Uses_Direction_Changed( const CEGUI::EventArgs &event );
-	// constant rotation x base key up event
-	bool Editor_Const_Rotation_X_Base_Key( const CEGUI::EventArgs &event );
-	// constant rotation x rand key up event
-	bool Editor_Const_Rotation_X_Rand_Key( const CEGUI::EventArgs &event );
-	// constant rotation y base key up event
-	bool Editor_Const_Rotation_Y_Base_Key( const CEGUI::EventArgs &event );
-	// constant rotation y rand key up event
-	bool Editor_Const_Rotation_Y_Rand_Key( const CEGUI::EventArgs &event );
-	// constant rotation z base key up event
-	bool Editor_Const_Rotation_Z_Base_Key( const CEGUI::EventArgs &event );
-	// constant rotation z rand key up event
-	bool Editor_Const_Rotation_Z_Rand_Key( const CEGUI::EventArgs &event );
-	// direction base key up event
-	bool Editor_Direction_Base_Key( const CEGUI::EventArgs &event );
-	// direction rand key up event
-	bool Editor_Direction_Rand_Key( const CEGUI::EventArgs &event );
-	// scale base key up event
-	bool Editor_Scale_Base_Key( const CEGUI::EventArgs &event );
-	// scale rand key up event
-	bool Editor_Scale_Rand_Key( const CEGUI::EventArgs &event );
-	// horizontal gravity base key up event
-	bool Editor_Horizontal_Gravity_Base_Key( const CEGUI::EventArgs &event );
-	// horizontal gravity rand key up event
-	bool Editor_Horizontal_Gravity_Rand_Key( const CEGUI::EventArgs &event );
-	// vertical gravity base key up event
-	bool Editor_Vertical_Gravity_Base_Key( const CEGUI::EventArgs &event );
-	// vertical gravity rand key up event
-	bool Editor_Vertical_Gravity_Rand_Key( const CEGUI::EventArgs &event );
+	// constant rotation x base text changed event
+	bool Editor_Const_Rotation_X_Base_Text_Changed( const CEGUI::EventArgs &event );
+	// constant rotation x rand text changed event
+	bool Editor_Const_Rotation_X_Rand_Text_Changed( const CEGUI::EventArgs &event );
+	// constant rotation y base text changed event
+	bool Editor_Const_Rotation_Y_Base_Text_Changed( const CEGUI::EventArgs &event );
+	// constant rotation y rand text changed event
+	bool Editor_Const_Rotation_Y_Rand_Text_Changed( const CEGUI::EventArgs &event );
+	// constant rotation z base text changed event
+	bool Editor_Const_Rotation_Z_Base_Text_Changed( const CEGUI::EventArgs &event );
+	// constant rotation z rand text changed event
+	bool Editor_Const_Rotation_Z_Rand_Text_Changed( const CEGUI::EventArgs &event );
+	// direction base text changed event
+	bool Editor_Direction_Base_Text_Changed( const CEGUI::EventArgs &event );
+	// direction rand text changed event
+	bool Editor_Direction_Rand_Text_Changed( const CEGUI::EventArgs &event );
+	// scale base text changed event
+	bool Editor_Scale_Base_Text_Changed( const CEGUI::EventArgs &event );
+	// scale rand text changed event
+	bool Editor_Scale_Rand_Text_Changed( const CEGUI::EventArgs &event );
+	// horizontal gravity base text changed event
+	bool Editor_Horizontal_Gravity_Base_Text_Changed( const CEGUI::EventArgs &event );
+	// horizontal gravity rand text changed event
+	bool Editor_Horizontal_Gravity_Rand_Text_Changed( const CEGUI::EventArgs &event );
+	// vertical gravity base text changed event
+	bool Editor_Vertical_Gravity_Base_Text_Changed( const CEGUI::EventArgs &event );
+	// vertical gravity rand text changed event
+	bool Editor_Vertical_Gravity_Rand_Text_Changed( const CEGUI::EventArgs &event );
 	// todo : start rotation x/y/z rand, color, color_rand
 
 	// Particle items
@@ -307,7 +315,7 @@ public:
 	ParticleList objects;
 
 	// filename of the particle
-	string filename;
+	std::string filename;
 	// emitter time to live
 	float emitter_time_to_live;
 	// emitter iteration interval
@@ -369,5 +377,7 @@ public:
 extern cAnimation_Manager *pAnimation_Manager;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

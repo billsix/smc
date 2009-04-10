@@ -1,7 +1,7 @@
 /***************************************************************************
  * img_manager.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -21,6 +21,9 @@
 #include "../core/obj_manager.h"
 #include "../video/gl_surface.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** cSaved_Texture *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // software texture data
@@ -34,19 +37,19 @@ public:
 	cGL_Surface *base;
 
 	// pixel data
-    GLubyte *pixels;
+	GLubyte *pixels;
 
 	// size
-    GLint width;
-    GLint height;
+	GLint width;
+	GLint height;
 	// format
 	GLint format;
 
 	// settings
-    GLint min_filter;
-    GLint mag_filter;
-    GLint wrap_s;
-    GLint wrap_t;
+	GLint min_filter;
+	GLint mag_filter;
+	GLint wrap_s;
+	GLint wrap_t;
 };
 
 typedef vector<cSaved_Texture *> Saved_Texture_List;
@@ -65,21 +68,21 @@ public:
 	cImage_Manager( void );
 	virtual ~cImage_Manager( void );
 
-	// Add a cGL_Surface
+	// Add a surface
 	virtual void Add( cGL_Surface *obj );
 
-	// Return the Surface by Path
-	cGL_Surface *Get_Pointer( string path );
+	// Return the surface by path
+	cGL_Surface *Get_Pointer( const std::string &path ) const;
 
 	// Return the copied image
-	cGL_Surface *Copy( string path );
+	cGL_Surface *Copy( const std::string &path );
 
 	cGL_Surface *operator [] ( unsigned int identifier )
 	{
 		return cObject_Manager<cGL_Surface>::Get_Pointer( identifier );
 	}
-	
-	cGL_Surface *operator [] ( string path )
+
+	cGL_Surface *operator [] ( const std::string &path )
 	{
 		return Get_Pointer( path );
 	}
@@ -119,5 +122,7 @@ private:
 extern cImage_Manager *pImage_Manager;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

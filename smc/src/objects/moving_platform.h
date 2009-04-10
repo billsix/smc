@@ -1,7 +1,7 @@
 /***************************************************************************
  * moving_platform.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2005 - 2008 Florian Richter
+ * Copyright (C) 2005 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -18,22 +18,36 @@
 
 #include "../core/globals.h"
 #include "../objects/objectsprite.h"
+#include "../objects/path.h"
 
+namespace SMC
+{
 
-/* *** *** *** *** *** *** *** *** Moving Platform states *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** *** Moving Platform type *** *** *** *** *** *** *** *** *** */
+
+enum Moving_Platform_Type
+{
+	MOVING_PLATFORM_TYPE_LINE = 0,
+	MOVING_PLATFORM_TYPE_CIRCLE = 1,
+	MOVING_PLATFORM_TYPE_PATH = 2,
+	MOVING_PLATFORM_TYPE_PATH_BACKWARDS = 3
+};
+
+/* *** *** *** *** *** *** *** *** Moving Platform state *** *** *** *** *** *** *** *** *** */
 
 enum Moving_Platform_State
 {
-    PLATFORM_STAY = 0,
-    PLATFORM_TOUCHED = 1,
-    PLATFORM_SHAKE = 2,
-    PLATFORM_FALL = 3
+	MOVING_PLATFORM_STAY = 0,
+	MOVING_PLATFORM_TOUCHED = 1,
+	MOVING_PLATFORM_SHAKE = 2,
+	MOVING_PLATFORM_FALL = 3
 };
 
 /* *** *** *** *** *** *** cMoving_Platform *** *** *** *** *** *** *** *** *** *** *** */
 
-/* todo : 
- * - platform type : static(current) and rotating
+/* Moving Platform
+ * Move along a line, circle or path
+ * todo : circle start angle and circle radius for height and width ?
 */
 class cMoving_Platform : public cImageObjectSprite
 {
@@ -47,24 +61,37 @@ public:
 	
 	// init defaults
 	void Init( void );
+	/* late initialization
+	 * this needs linked objects to be already loaded
+	*/
+	virtual void Init_Links( void );
 	// copy
 	virtual cMoving_Platform *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
+	virtual void Save_To_Stream( ofstream &file );
 
 	// load from savegame
-	virtual void Load_from_Savegame( cSave_Level_Object *save_object );
+	virtual void Load_From_Savegame( cSave_Level_Object *save_object );
 	// save to savegame
-	virtual cSave_Level_Object *Save_to_Savegame( void );
+	virtual cSave_Level_Object *Save_To_Savegame( void );
 
-	// Set Massive Type
+	// Set move type
+	void Set_Move_Type( Moving_Platform_Type move_type );
+	/* Set the path identifier
+	 * only used if move type is path
+	*/
+	void Set_Path_Identifier( const std::string &identifier );
+	// Set Massive type
 	virtual void Set_Massive_Type( MassiveType mtype );
 	// Set Direction
-	void Set_Direction( ObjectDirection dir, bool new_start_direction = 0 );
-	// Set Max Distance
+	void Set_Direction( const ObjectDirection dir, bool new_start_direction = 0 );
+	/* Set Maximum distance
+	 * if move type is line this is the length and if circle the radius
+	 * but not used if path
+	*/
 	void Set_Max_Distance( int nmax_distance );
 	// Set the Speed
 	void Set_Speed( float val );
@@ -78,7 +105,7 @@ public:
 	void Set_Touch_Move_Time( float val );
 
 	// Set the middle image count
-	void Set_Middle_Count( int val );
+	void Set_Middle_Count( const unsigned int val );
 	// set image
 	void Set_Image_Top_Left( cGL_Surface *surface );
 	void Set_Image_Top_Middle( cGL_Surface *surface );
@@ -87,7 +114,7 @@ public:
 	// update
 	virtual void Update( void );
 	// draw
-	virtual void Draw( cSurfaceRequest *request /* = NULL */ );
+	virtual void Draw( cSurface_Request *request /* = NULL */ );
 
 	// Update rect
 	void Update_Rect( void );
@@ -96,12 +123,15 @@ public:
 
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
+	// if draw is valid for the current state and position
+	virtual bool Is_Draw_Valid( void );
 
 	/* Validate the given collision object
+	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-	virtual unsigned int Validate_Collision( cSprite *obj );
+	virtual Col_Valid_Type Validate_Collision( cSprite *obj );
 	// collision from player
 	virtual void Handle_Collision_Player( cObjectCollision *collision );
 	// collision from an enemy
@@ -109,38 +139,46 @@ public:
 
 	// editor activation
 	virtual void Editor_Activate( void );
+	// editor state update
+	virtual void Editor_State_Update( void );
+	// editor move type option selected event
+	bool Editor_Move_Type_Select( const CEGUI::EventArgs &event);
+	// editor path identifier text changed event
+	bool Editor_Path_Identifier_Text_Changed( const CEGUI::EventArgs &event );
 	// editor direction option selected event
 	bool Editor_Direction_Select( const CEGUI::EventArgs &event );
-	// editor max distance key up event
-	bool Editor_Max_Distance_Key( const CEGUI::EventArgs &event );
-	// editor speed key up event
-	bool Editor_Speed_Key( const CEGUI::EventArgs &event );
-	// editor horizontal middle image count key up event
-	bool Editor_Hor_Middle_Count_Key( const CEGUI::EventArgs &event );
-	// editor image top left key up event
-	bool Editor_Image_Top_Left_Key( const CEGUI::EventArgs &event );
-	// editor image top middle key up event
-	bool Editor_Image_Top_Middle_Key( const CEGUI::EventArgs &event );
-	// editor image top right key up event
-	bool Editor_Image_Top_Right_Key( const CEGUI::EventArgs &event );
-	// editor touch time key up event
-	bool Editor_Touch_Time_Key( const CEGUI::EventArgs &event );
-	// editor shaking time key up event
-	bool Editor_Shake_Time_Key( const CEGUI::EventArgs &event );
-	// editor touch moving time key up event
-	bool Editor_Touch_Move_Time_Key( const CEGUI::EventArgs &event );
+	// editor max distance text changed event
+	bool Editor_Max_Distance_Text_Changed( const CEGUI::EventArgs &event );
+	// editor speed text changed event
+	bool Editor_Speed_Text_Changed( const CEGUI::EventArgs &event );
+	// editor horizontal middle image count text changed event
+	bool Editor_Hor_Middle_Count_Text_Changed( const CEGUI::EventArgs &event );
+	// editor image top left text changed event
+	bool Editor_Image_Top_Left_Text_Changed( const CEGUI::EventArgs &event );
+	// editor image top middle text changed event
+	bool Editor_Image_Top_Middle_Text_Changed( const CEGUI::EventArgs &event );
+	// editor image top right text changed event
+	bool Editor_Image_Top_Right_Text_Changed( const CEGUI::EventArgs &event );
+	// editor touch time text changed event
+	bool Editor_Touch_Time_Text_Changed( const CEGUI::EventArgs &event );
+	// editor shaking time text changed event
+	bool Editor_Shake_Time_Text_Changed( const CEGUI::EventArgs &event );
+	// editor touch moving time text changed event
+	bool Editor_Touch_Move_Time_Text_Changed( const CEGUI::EventArgs &event );
 
-	// current direction
-	ObjectDirection moving_direction;
+	// platform moving type
+	Moving_Platform_Type m_move_type;
+	// internal platform state
+	Moving_Platform_State m_platform_state;
+
+	// current angle if move type is circle
+	float moving_angle;
 	// movement speed
 	float speed;
 	// max moving distance
 	int max_distance;
 	// how many times the middle image is drawn
 	unsigned int middle_count;
-
-	// internal platform state
-    Moving_Platform_State platform_state;
 
 	// time when touched until it starts shaking
 	float touch_time;
@@ -150,21 +188,30 @@ public:
 	float shake_time;
 	// time since shaking started
 	float shake_counter;
+	// shaking direction
+	bool shake_dir;
 	// shaking direction counter
 	float shake_dir_counter;
 	// time when touched until it starts moving
 	float touch_move_time;
 
+	// path state if linked to a path
+	cPath_State m_path_state;
+
 private:
 	// Create the Name from the current settings
-    void Create_Name( void );
+	void Create_Name( void );
 
 	// position when movement should slow down
 	float max_distance_slow_down_pos;
 	// lowest possible speed when moving
 	float lowest_speed;
+	// editor color
+	Color editor_color;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

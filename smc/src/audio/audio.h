@@ -1,7 +1,7 @@
 /***************************************************************************
  * audio.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,13 +19,16 @@
 #include "../core/globals.h"
 #include "../audio/sound_manager.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** *** *** Sound Resource ID's  *** *** *** *** *** *** *** *** *** *** */
 
 // sounds which shouldn't be played multiple times at the same time
 enum AudioChannel
 {
 	RID_MARYO_JUMP		= 1,
-	RID_MARYO_TOCK		= 2,
+	RID_MARYO_WALL_HIT	= 2,
 	RID_MARYO_POWERDOWN = 3,
 	RID_MARYO_DEATH		= 5,
 	RID_MARYO_BALL		= 4,
@@ -44,7 +47,7 @@ enum AudioChannel
 /* *** *** *** *** *** *** *** Audio Sound object *** *** *** *** *** *** *** *** *** *** */
 	
 // Callback for a sound finished playing 
-void Finished_Sound( int channel );
+void Finished_Sound( const int channel );
 
 class cAudio_Sound
 {
@@ -97,17 +100,17 @@ public:
 	/* Check if the sound was already loaded and returns a pointer to it else it will be loaded.
 	 * The returned sound should not be deleted or modified.
 	 */
-	cSound *Get_Sound_File( string filename );
+	cSound *Get_Sound_File( std::string filename ) const;
 
 	// Play the given sound
-	bool Play_Sound( string filename, int res_id = -1, int volume = -1, int loops = 0 );
+	bool Play_Sound( std::string filename, int res_id = -1, int volume = -1, int loops = 0 );
 	// If no forcing it will be played after the current Music file
-	bool Play_Music( string filename, int loops = 0, bool force = 1, unsigned int fadein_ms = 0 ); 
+	bool Play_Music( std::string filename, int loops = 0, bool force = 1, unsigned int fadein_ms = 0 ); 
 
 	/* Returns a pointer to the sound if it is active.
 	 * The returned sound should not be deleted or modified.
 	 */
-	cAudio_Sound *Get_Playing_Sound( string filename );
+	cAudio_Sound *Get_Playing_Sound( std::string filename );
 
 	/* Returns true if a free channel for the sound is available
 	*/
@@ -119,91 +122,87 @@ public:
 	void Toggle_Sounds( void );
 
 	// Pause Music
-	void Pause_Music( void );
+	void Pause_Music( void ) const;
 
 	/* Resume halted sound
 	 * if channel is -1 all halted sounds will be resumed
 	*/
-	void Resume_Sound( int channel = -1 );
+	void Resume_Sound( int channel = -1 ) const;
 	// Resume Music
-	void Resume_Music( void );
+	void Resume_Music( void ) const;
 
 	/* Fade out Sound(s)
 	 * ms : the time to fade out
 	 * channel : if set only fade this channel out or if -1 all channels
 	 * overwrite_fading : overwrite an already existing fade out
 	*/
-	void Fadeout_Sounds( unsigned int ms = 200, int channel = -1, bool overwrite_fading = 0 );
+	void Fadeout_Sounds( unsigned int ms = 200, int channel = -1, bool overwrite_fading = 0 ) const;
 	/* Fade out Sound(s)
 	 * ms : the time to fade out
 	 * filename : fade all sounds with this filename out
 	 * overwrite_fading : overwrite an already existing fade out
 	*/
-	void Fadeout_Sounds( unsigned int ms, string filename, bool overwrite_fading = 0 );
+	void Fadeout_Sounds( unsigned int ms, std::string filename, bool overwrite_fading = 0 );
 	/* Fade out Music
 	 * ms : the time to fade out
 	 * overwrite_fading : overwrite an already existing fade out
 	*/
-	void Fadeout_Music( unsigned int ms = 500, bool overwrite_fading = 0 );
+	void Fadeout_Music( unsigned int ms = 500, bool overwrite_fading = 0 ) const;
 
 	// Set the Music position ( if .ogg in seconds )
-	void Set_Music_Position( float position );
+	void Set_Music_Position( float position ) const;
 
 	// Returns 1 if the Music is currently fading in and 2 if it's fading out else 0
-	Mix_Fading Is_Music_Fading( void );
+	Mix_Fading Is_Music_Fading( void ) const;
 	// Returns 1 if the Sound is currently fading in and 2 if it's fading out else 0
-	Mix_Fading Is_Sound_Fading( int sound_channel );
+	Mix_Fading Is_Sound_Fading( int sound_channel ) const;
 
 	// Returns true if the Music is paused
-	bool Is_Music_Paused( void );
+	bool Is_Music_Paused( void ) const;
 	// Returns true if the Music is playing
-	bool Is_Music_Playing( void );
+	bool Is_Music_Playing( void ) const;
 
 	// Halt the given sounds
-	void Halt_Sounds( int channel = -1 );
+	void Halt_Sounds( int channel = -1 ) const;
 	// Halt the Music
-	void Halt_Music( void );
+	void Halt_Music( void ) const;
 
 	// Stop all sounds
-	void Stop_Sounds( void ); 
+	void Stop_Sounds( void ) const;
 
 	// Set the Sound Volume
-	void Set_Sound_Volume( Uint8 volume, int channel = -1 );
+	void Set_Sound_Volume( Uint8 volume, int channel = -1 ) const;
 	// Set the Music Volume
-	void Set_Music_Volume( Uint8 volume );
+	void Set_Music_Volume( Uint8 volume ) const;
 
 	// Update the Audio Engine
 	void Update( void );
 
 	// is the audio engine initialized
-	bool initialised;
+	bool m_initialised;
 	// is sound enabled
-	bool sound_enabled;
+	bool m_sound_enabled;
 	// is music enabled
-	bool music_enabled;
+	bool m_music_enabled;
 	// is the debug mode enabled
-	bool debug;
+	bool m_debug;
 
 	// current music and sound volume
-	Uint8 sound_volume, music_volume;
+	Uint8 m_sound_volume, m_music_volume;
 
 	// current playing Music pointer
-	Mix_Music *music;
+	Mix_Music *m_music;
 	// if new music should play after the current this is the old data
-	Mix_Music *music_old;
+	Mix_Music *m_music_old;
 
 	// The current sounds pointer array
-	AudioSoundList sounds;
+	AudioSoundList m_active_sounds;
 
 	// maximum sounds allowed at once
-	unsigned int max_sounds;
-	// last used sound array buffer
-	unsigned int sound_count;
+	unsigned int m_max_sounds;
 
 	// initialization information
-	int audio_buffer, audio_channels;
-	// sound and music played counter since initialization
-	unsigned int sounds_played, music_played;
+	int m_audio_buffer, m_audio_channels;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -212,5 +211,7 @@ public:
 extern cAudio *pAudio;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

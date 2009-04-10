@@ -6,7 +6,7 @@
         <Property Name="InheritsAlpha" Value="False" />
         <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
         <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
-        <Property Name="MousePassThroughEnabled" Value="True" />
+        <Property Name="MousePassThroughEnabled" Value="False" />
         <Window Type="TaharezLook/FrameWindow" Name="box_question_window" >
             <Property Name="Text" Value="Question" />
             <Property Name="Tooltip" Value="Box wants an answer !" />

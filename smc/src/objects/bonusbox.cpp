@@ -1,7 +1,7 @@
 /***************************************************************************
  * bonusbox.cpp  -  class for bonusbox
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -20,13 +20,16 @@
 #include "../audio/audio.h"
 #include "../core/framerate.h"
 #include "../level/level.h"
-#include "../core/camera.h"
 #include "../level/level_editor.h"
 #include "../core/game_core.h"
 #include "../objects/goldpiece.h"
-#include "../video/gl_surface.h"
 #include "../core/sprite_manager.h"
 #include "../core/i18n.h"
+// CEGUI
+#include "CEGUIXMLAttributes.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** cBonusBox *** *** *** *** *** *** *** *** *** */
 
@@ -40,7 +43,7 @@ cBonusBox :: cBonusBox( CEGUI::XMLAttributes &attributes )
 : cBaseBox()
 {
 	cBonusBox::Init();
-	cBonusBox::Create_from_Stream( attributes );
+	cBonusBox::Create_From_Stream( attributes );
 }
 
 cBonusBox :: ~cBonusBox( void )
@@ -55,10 +58,10 @@ cBonusBox :: ~cBonusBox( void )
 
 void cBonusBox :: Init( void )
 {
-	type = TYPE_BONUSBOX;
+	m_type = TYPE_BONUSBOX;
 	force_best_item = 0;
-	player_range = 5000;
-	can_be_on_ground = 0;
+	m_player_range = 5000;
+	m_can_be_on_ground = 0;
 	counter = 1;
 
 	Set_Animation( "Bonus" );
@@ -70,7 +73,7 @@ void cBonusBox :: Init( void )
 
 cBonusBox *cBonusBox :: Copy( void )
 {
-	cBonusBox *bonusbox = new cBonusBox( startposx, startposy );
+	cBonusBox *bonusbox = new cBonusBox( m_start_pos_x, m_start_pos_y );
 	bonusbox->Set_Animation( anim_type );
 	bonusbox->Set_Bonus_Type( box_type );
 	bonusbox->Set_Invisible( box_invisible );
@@ -81,9 +84,9 @@ cBonusBox *cBonusBox :: Copy( void )
 	return bonusbox;
 }
 
-void cBonusBox :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
+void cBonusBox :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 {
-	cBaseBox::Create_from_Stream( attributes );
+	cBaseBox::Create_From_Stream( attributes );
 
 	// item
 	Set_Bonus_Type( static_cast<SpriteType>(attributes.getValueAsInteger( "item" )) );
@@ -96,12 +99,12 @@ void cBonusBox :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 	}
 }
 
-void cBonusBox :: Save_to_Stream( ofstream &file )
+void cBonusBox :: Save_To_Stream( ofstream &file )
 {
 	// begin box
 	file << "\t<box>" << std::endl;
 
-	cBaseBox::Save_to_Stream( file );
+	cBaseBox::Save_To_Stream( file );
 
 	// force best possible item
 	file << "\t\t<Property name=\"force_best_item\" value=\"" << force_best_item << "\" />" << std::endl;
@@ -122,14 +125,8 @@ void cBonusBox :: Set_Useable_Count( int count, bool new_startcount /* = 0 */ )
 	// disable
 	if( !useable_count )
 	{
-		Set_Image( 0, 0, 0 );
-
-		// invisible box
-		if( box_invisible )
-		{
-			// keep empty start/editor image
-			start_image = NULL;
-		}
+		counter = 0;
+		Set_Image_Num( static_cast<int>(counter) );
 	}
 
 	Update_Valid_Update();
@@ -239,12 +236,12 @@ void cBonusBox :: Set_Goldcolor( DefaultColor ncolor )
 	if( gold_color == COL_YELLOW )
 	{
 		item_image = pVideo->Get_Surface( "game/items/goldpiece/yellow/1.png" );
-		name = _("Box Goldpiece Yellow");
+		m_name = _("Box Goldpiece Yellow");
 	}
 	else if( gold_color == COL_RED )
 	{
 		item_image = pVideo->Get_Surface( "game/items/goldpiece/red/1.png" );
-		name = _("Box Goldpiece Red");
+		m_name = _("Box Goldpiece Red");
 	}
 	else
 	{
@@ -288,39 +285,52 @@ void cBonusBox :: Activate( void )
 		random = 1;
 	}
 
+	Maryo_type current_maryo_type;
+
+	// use original type
+	if( pPlayer->maryo_type == MARYO_GHOST )
+	{
+		current_maryo_type = pPlayer->maryo_type_temp_power;
+	}
+	// already using original type
+	else
+	{
+		current_maryo_type = pPlayer->maryo_type;
+	}
+
 	// no item
 	if( box_type == TYPE_UNDEFINED )
 	{
-		pAudio->Play_Sound( "item/death_box.ogg" );
+		pAudio->Play_Sound( "item/empty_box.wav" );
 	}
 	// check if lower item should be used if no force best item
 	else if( !force_best_item && ( box_type == TYPE_FIREPLANT || box_type == TYPE_MUSHROOM_BLUE ) && 
-		( pPlayer->maryo_type == MARYO_SMALL || ( ( pPlayer->maryo_type == MARYO_FIRE || pPlayer->maryo_type == MARYO_ICE ) && !Itembox->item_id ) ) )
+		( current_maryo_type == MARYO_SMALL || ( ( current_maryo_type == MARYO_FIRE || current_maryo_type == MARYO_ICE ) && !pHud_Itembox->item_id ) ) )
 	{
 		pAudio->Play_Sound( "sprout_1.ogg" );
 
-		cMushroom *mushroom = new cMushroom( startposx - ( ( item_image->w - rect.w ) / 2 ), startposy - ( ( item_image->h - rect.h ) / 2 ) );
+		cMushroom *mushroom = new cMushroom( m_start_pos_x - ( ( item_image->m_w - m_rect.m_w ) / 2 ), m_start_pos_y - ( ( item_image->m_h - m_rect.m_h ) / 2 ) );
 		box_item = static_cast<cMovingSprite *>(mushroom);
 	}
 	else if( box_type == TYPE_FIREPLANT )
 	{
 		pAudio->Play_Sound( "sprout_1.ogg" );
-		box_item = static_cast<cMovingSprite *>(new cFirePlant( startposx - ( ( item_image->w - rect.w ) / 2 ), startposy ));
+		box_item = static_cast<cMovingSprite *>(new cFirePlant( m_start_pos_x - ( ( item_image->m_w - m_rect.m_w ) / 2 ), m_start_pos_y ));
 	}
 	else if( box_type == TYPE_MUSHROOM_DEFAULT || box_type == TYPE_MUSHROOM_LIVE_1 || box_type == TYPE_MUSHROOM_POISON || box_type == TYPE_MUSHROOM_BLUE || box_type == TYPE_MUSHROOM_GHOST )
 	{
 		pAudio->Play_Sound( "sprout_1.ogg" );
 
-		cMushroom *mushroom = new cMushroom( startposx - ( ( item_image->w - rect.w ) / 2 ), startposy - ( ( item_image->h - rect.h ) / 2 ) );
+		cMushroom *mushroom = new cMushroom( m_start_pos_x - ( ( item_image->m_w - m_rect.m_w ) / 2 ), m_start_pos_y - ( ( item_image->m_h - m_rect.m_h ) / 2 ) );
 		mushroom->Set_Type( box_type );
 		box_item = static_cast<cMovingSprite *>(mushroom);
 	}
 	else if( box_type == TYPE_JSTAR )
 	{
 		pAudio->Play_Sound( "sprout_1.ogg" );
-		cjStar *star = new cjStar( startposx - ( ( item_image->w - rect.w ) / 2 ), startposy );
-		star->Set_on_Top( this );
-		star->spawned = 1;
+		cjStar *star = new cjStar( m_start_pos_x - ( ( item_image->m_w - m_rect.m_w ) / 2 ), m_start_pos_y );
+		star->Set_On_Top( this );
+		star->m_spawned = 1;
 		// add to global objects
 		pActive_Sprite_Manager->Add( star );
 	}
@@ -328,7 +338,7 @@ void cBonusBox :: Activate( void )
 	{
 		pAudio->Play_Sound( "item/goldpiece_1.ogg" );
 
-		cJGoldpiece *goldpiece = new cJGoldpiece( startposx - ( ( item_image->w - rect.w ) / 2 ), posy );
+		cJGoldpiece *goldpiece = new cJGoldpiece( m_start_pos_x - ( ( item_image->m_w - m_rect.m_w ) / 2 ), m_pos_y );
 		goldpiece->Set_Gold_Color( gold_color );
 		// add to global objects
 		pActive_Sprite_Manager->Add( goldpiece );
@@ -348,9 +358,9 @@ void cBonusBox :: Activate( void )
 	if( box_item )
 	{
 		// set posz behind box
-		box_item->posz = posz - 0.000001f;
+		box_item->m_pos_z = m_pos_z - 0.000001f;
 		// set spawned
-		box_item->spawned = 1;
+		box_item->m_spawned = 1;
 
 		// add to item list
 		active_items.push_back( box_item );
@@ -360,7 +370,7 @@ void cBonusBox :: Activate( void )
 
 void cBonusBox :: Update( void )
 {
-	if( !valid_update || !is_Player_range() )
+	if( !m_valid_update || !Is_In_Player_Range() )
 	{
 		return;
 	}
@@ -370,23 +380,25 @@ void cBonusBox :: Update( void )
 	{
 		cPowerUp *powerup = static_cast<cPowerUp *>(*itr);
 
-		if( !powerup->visible )
+		if( !powerup->m_active )
 		{
 			++itr;
 			continue;
 		}
 
+		float diff = powerup->m_pos_y - (m_pos_y - powerup->m_col_rect.m_h - powerup->m_col_pos.m_y);
+
 		// position over the box reached
-		if( powerup->posy < posy - powerup->col_rect.h - powerup->col_pos.y )
+		if( diff < 0 )
 		{
 			// clear animation counter
 			powerup->counter = 0;
 
 			// set powerup default posz
-			powerup->posz = 0.05f;
+			powerup->m_pos_z = 0.05f;
 
 			// set the item on top
-			powerup->Set_on_Top( this, 0 );
+			powerup->Set_On_Top( this, 0 );
 			// add the item to the level objects
 			pActive_Sprite_Manager->Add( powerup );
 
@@ -398,7 +410,7 @@ void cBonusBox :: Update( void )
 		else
 		{
 			powerup->counter += pFramerate->speedfactor;
-			powerup->Move( 0, -3.1f );
+			powerup->Move( 0, -1.0f - (diff * 0.1f) );
 
 			++itr;
 		}
@@ -407,9 +419,9 @@ void cBonusBox :: Update( void )
 	cBaseBox::Update();
 }
 
-void cBonusBox :: Draw( cSurfaceRequest *request /* = NULL */ )
+void cBonusBox :: Draw( cSurface_Request *request /* = NULL */ )
 {
-	if( !valid_draw )
+	if( !m_valid_draw )
 	{
 		return;
 	}
@@ -418,7 +430,7 @@ void cBonusBox :: Draw( cSurfaceRequest *request /* = NULL */ )
 	{
 		cMovingSprite *obj = (*itr);
 
-		if( !obj->visible )
+		if( !obj->m_active )
 		{
 			continue;
 		}
@@ -432,7 +444,7 @@ void cBonusBox :: Draw( cSurfaceRequest *request /* = NULL */ )
 bool cBonusBox :: Is_Update_Valid( void )
 {
 	// if item is in animation
-	if( active_items.size() )
+	if( !active_items.empty() )
 	{
 		return 1;
 	}
@@ -445,6 +457,7 @@ void cBonusBox :: Editor_Activate( void )
 	// BaseBox Settings first
 	cBaseBox::Editor_Activate();
 
+	// get window manager
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
 	// Animation
@@ -532,7 +545,6 @@ void cBonusBox :: Editor_Activate( void )
 	{
 		combobox->setText( UTF8_("Disabled") );
 	}
-
 
 	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cBonusBox::Editor_Force_best_item_Select, this ) );
 
@@ -667,3 +679,7 @@ bool cBonusBox :: Editor_Gold_Color_Select( const CEGUI::EventArgs &event )
 
 	return 1;
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

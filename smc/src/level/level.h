@@ -1,7 +1,7 @@
 /***************************************************************************
  * level.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -23,7 +23,12 @@
 #include "../level/level_manager.h"
 #include "../objects/level_entry.h"
 #include "../audio/random_sound.h"
+// CEGUI
+#include "CEGUIXMLHandler.h"
+#include "CEGUIXMLAttributes.h"
 
+namespace SMC
+{
 
 /* *** *** *** *** *** cLevel *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -36,11 +41,11 @@ public:
 	/* Create a new level
 	 * returns true if successful
 	*/
-	bool New( string filename );
+	bool New( std::string filename );
 	/* Load a Level
 	 * if delayed is given the level will be loaded on the next update
 	*/
-	bool Load( string filename, bool delayed = 0 );
+	bool Load( std::string filename, bool delayed = 0 );
 	/* Unload the current Level
 	 * if delayed is given unloads the on the next update
 	*/
@@ -49,9 +54,18 @@ public:
 	void Save( void );
 	// Delete and Unload Level
 	void Delete( void );
+	// reset settings data
+	void Reset_Settings( void );
 
-	// update level changes
+	// Enter
+	void Enter( void );
+
+	// update level
 	void Update( void );
+	/* late level update
+	 * needed for objects that need other objects to be already updated
+	*/
+	void Update_Late( void );
 
 	// Draw Layer 1 ( Backgrounds, Level objects and Animations )
 	void Draw_Layer_1( LevelDrawType type = LVL_DRAW );
@@ -64,11 +78,11 @@ public:
 	/* handle key down event
 	 * returns true processed
 	*/
-	bool Key_Down( SDLKey key );
+	bool Key_Down( const SDLKey key );
 	/* handle key up event
 	 * returns true if processed
 	*/
-	bool Key_Up( SDLKey key );
+	bool Key_Up( const SDLKey key );
 	/* handle mouse button down event
 	 * returns true if processed
 	*/
@@ -91,73 +105,89 @@ public:
 	 * if set to 1 the music directory is cut out
 	 * if set to 1 the full directory will be returned
 	*/
-	string Get_Musicfile( int with_dir = 2, bool with_end = 1 );
+	std::string Get_Musicfile( int with_dir = 2, bool with_end = 1 ) const;
 	// Set the Music filename
-	void Set_Musicfile( string filename );
+	void Set_Musicfile( std::string filename );
 	/* Set a new Level filename name and automatically re-save the level
 	 * delete_old : if set delete the old level name
 	*/
-	void Set_Levelfile( string filename, bool delete_old = 1 );
+	void Set_Levelfile( std::string filename, bool delete_old = 1 );
 	/* Return the level path if level is valid else empty
 	 * check_only_user_dir : only check user directory for the level
 	*/
-	bool Get_Path( string &filename, bool check_only_user_dir = 0 );
+	bool Get_Path( std::string &filename, bool check_only_user_dir = 0 ) const;
 	// Set the Level Author
-	void Set_Author( string name );
+	void Set_Author( const std::string &name );
 	// Set the Level Version
-	void Set_Version( string level_version );
+	void Set_Version( const std::string &level_version );
 
 	// Get entry with the given name
-	cLevel_Entry *Get_Entry( string name );
+	cLevel_Entry *Get_Entry( const std::string &name );
+	// Get the path object with the given identifier
+	cPath *Get_Path_Object( const std::string &identifier );
 
 	// Return true if a level is loaded
-	bool Is_Loaded( void );
+	bool Is_Loaded( void ) const;
 
-	// music filename
-	string musicfile;
-	// valid music to play
-	bool valid_music;
+
 
 	// level filename
-	string levelfile;
+	std::string m_level_filename;
 	// if a new level should be loaded this is the next level filename
-	string next_levelfile;
+	std::string m_next_level_filename;
 
 	// unload the level on the next update
-	bool delayed_unload;
-
-	// level engine version
-	float engine_version;
-	// last save time
-	time_t last_saved;
-	// level author
-	string author;
-	// level version
-	string version;
+	bool m_delayed_unload;
 
 	// background manager
-	cBackground_Manager *background_manager;
+	cBackground_Manager *m_background_manager;
 	// global effect
-	cGlobal_effect *pGlobal_effect;
+	cGlobal_effect *m_global_effect;
 	// sprite manager
-	cSprite_Manager *pSprite_Manager;
+	cSprite_Manager *m_sprite_manager;
+
+	/* *** *** *** Settings *** *** *** *** */
+
+	// level engine version
+	int m_engine_version;
+	// last save time
+	time_t m_last_saved;
+	// level author
+	std::string m_author;
+	// level version
+	std::string m_version;
+	// music filename
+	std::string m_musicfile;
+	// valid music to play
+	bool m_valid_music;
+
+	// player
+	float m_player_start_pos_x;
+	float m_player_start_pos_y;
+	ObjectDirection m_player_start_direction;
+	// camera 
+	GL_rect m_camera_limits;
+	float m_fixed_camera_hor_vel;
 
 private:
 	// Handles the old txt level format command
-	virtual bool HandleMessage( string *parts, unsigned int count, unsigned int line );
-	bool Read_Color_Data( string *parts, unsigned int count, unsigned int line, Color &read_color );
+	virtual bool HandleMessage( const std::string *parts, unsigned int count, unsigned int line );
+	bool Read_Color_Data( const std::string *parts, unsigned int count, unsigned int line, Color &read_color );
 
 	// XML element start
-    virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
+	virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
 	// XML element end
-    virtual void elementEnd( const CEGUI::String &element );
+	virtual void elementEnd( const CEGUI::String &element );
 
 	// XML element Item Tag list
 	CEGUI::XMLAttributes xml_attributes;
 };
 
-// Return the Level Object if element name is available else NULL
-cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttributes &attributes, float engine_version = level_engine_version );
+/* Return the Level Object if element name is available else NULL
+ * engine_version : engine version of the data and if below the current version it converts it
+ * sprite_manager : needed if the engine version is below the current version and data conversion creates multiple objects
+*/
+cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttributes &attributes, int engine_version = level_engine_version, cSprite_Manager *sprite_manager = NULL );
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -165,5 +195,7 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 extern cLevel *pActive_Level;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

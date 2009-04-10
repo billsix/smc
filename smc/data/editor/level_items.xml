@@ -122,6 +122,12 @@
 		<Property Name="object_name" Value="enemy" />
 		<Property Name="object_tags" Value="level;enemy" />
 		<Property Name="type" Value="furball" />
+		<Property Name="color" Value="black" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="enemy" />
+		<Property Name="object_tags" Value="level;enemy" />
+		<Property Name="type" Value="furball" />
 		<Property Name="direction" Value="left" />
 		<Property Name="color" Value="blue" />
 	</Item>
@@ -163,25 +169,25 @@
 	<Item>
 		<Property Name="object_name" Value="enemy" />
 		<Property Name="object_tags" Value="level;enemy" />
-		<Property Name="type" Value="jpiranha" />
+		<Property Name="type" Value="flyon" />
 		<Property Name="direction" Value="up" />
 	</Item>
 	<Item>
 		<Property Name="object_name" Value="enemy" />
 		<Property Name="object_tags" Value="level;enemy" />
-		<Property Name="type" Value="jpiranha" />
+		<Property Name="type" Value="flyon" />
 		<Property Name="direction" Value="down" />
 	</Item>
 	<Item>
 		<Property Name="object_name" Value="enemy" />
 		<Property Name="object_tags" Value="level;enemy" />
-		<Property Name="type" Value="jpiranha" />
+		<Property Name="type" Value="flyon" />
 		<Property Name="direction" Value="left" />
 	</Item>
 	<Item>
 		<Property Name="object_name" Value="enemy" />
 		<Property Name="object_tags" Value="level;enemy" />
-		<Property Name="type" Value="jpiranha" />
+		<Property Name="type" Value="flyon" />
 		<Property Name="direction" Value="right" />
 	</Item>
 	<Item>
@@ -402,6 +408,16 @@
 	<Item>
 		<Property Name="object_name" Value="item" />
 		<Property Name="object_tags" Value="level;special" />
+		<Property Name="type" Value="fireplant" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="item" />
+		<Property Name="object_tags" Value="level;special" />
+		<Property Name="type" Value="jstar" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="item" />
+		<Property Name="object_tags" Value="level;special" />
 		<Property Name="type" Value="moon" />
 	</Item>
 	<Item>
@@ -476,5 +492,21 @@
 		<Property Name="size_x" Value="10" />
 		<Property Name="size_y" Value="10" />
 		<Property Name="emitter_time_to_live" Value="-1" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="path" />
+		<Property Name="object_tags" Value="level;special" />
+		<Property Name="segment_0_x1" Value="0" />
+		<Property Name="segment_0_y1" Value="0" />
+		<Property Name="segment_0_x2" Value="0" />
+		<Property Name="segment_0_y2" Value="200" />
+		<Property Name="segment_1_x1" Value="0" />
+		<Property Name="segment_1_y1" Value="200" />
+		<Property Name="segment_1_x2" Value="500" />
+		<Property Name="segment_1_y2" Value="200" />
+		<Property Name="segment_2_x1" Value="500" />
+		<Property Name="segment_2_y1" Value="200" />
+		<Property Name="segment_2_x2" Value="500" />
+		<Property Name="segment_2_y2" Value="0" />
 	</Item>
 </Items>

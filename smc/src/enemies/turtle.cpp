@@ -1,7 +1,7 @@
 /***************************************************************************
  * turtle.cpp  -  turtle enemy class
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -24,6 +24,11 @@
 #include "../user/savegame.h"
 #include "../core/sprite_manager.h"
 #include "../core/i18n.h"
+// CEGUI
+#include "CEGUIXMLAttributes.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** cTurtle *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -37,7 +42,7 @@ cTurtle :: cTurtle( CEGUI::XMLAttributes &attributes )
 : cEnemy()
 {
 	cTurtle::Init();
-	cTurtle::Create_from_Stream( attributes );
+	cTurtle::Create_From_Stream( attributes );
 }
 
 cTurtle :: ~cTurtle( void )
@@ -47,10 +52,10 @@ cTurtle :: ~cTurtle( void )
 
 void cTurtle :: Init( void )
 {
-	type = TYPE_TURTLE;
-	posz = 0.091f;
+	m_type = TYPE_TURTLE;
+	m_pos_z = 0.091f;
 
-	state = STA_WALK;
+	m_state = STA_WALK;
 	turtle_state = TURTLE_WALK;	// Walking
 	playercounter = 0;
 
@@ -63,24 +68,24 @@ void cTurtle :: Init( void )
 
 cTurtle *cTurtle :: Copy( void )
 {
-	cTurtle *turtle = new cTurtle( startposx, startposy );
-	turtle->Set_Direction( start_direction, 1 );
+	cTurtle *turtle = new cTurtle( m_start_pos_x, m_start_pos_y );
+	turtle->Set_Direction( m_start_direction, 1 );
 	turtle->Set_Color( color_type );
 
 	return turtle;
 }
 
-void cTurtle :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
+void cTurtle :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// direction
-	Set_Direction( Get_Direction_Id( attributes.getValueAsString( "direction", Get_Direction_Name( start_direction ) ).c_str() ), 1 );
+	Set_Direction( Get_Direction_Id( attributes.getValueAsString( "direction", Get_Direction_Name( m_start_direction ) ).c_str() ), 1 );
 	// color
 	Set_Color( static_cast<DefaultColor>(Get_Color_Id( attributes.getValueAsString( "color", Get_Color_Name( color_type ) ).c_str() )) );
 }
 
-void cTurtle :: Save_to_Stream( ofstream &file )
+void cTurtle :: Save_To_Stream( ofstream &file )
 {
 	// begin enemy
 	file << "\t<enemy>" << std::endl;
@@ -88,20 +93,20 @@ void cTurtle :: Save_to_Stream( ofstream &file )
 	// name
 	file << "\t\t<Property name=\"type\" value=\"turtle\" />" << std::endl;
 	// position
-	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(startposx) << "\" />" << std::endl;
-	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(startposy) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(m_start_pos_x) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(m_start_pos_y) << "\" />" << std::endl;
 	// color
 	file << "\t\t<Property name=\"color\" value=\"" << Get_Color_Name( color_type ) << "\" />" << std::endl;
 	// direction
-	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( start_direction ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( m_start_direction ) << "\" />" << std::endl;
 
 	// end enemy
 	file << "\t</enemy>" << std::endl;
 }
 
-void cTurtle :: Load_from_Savegame( cSave_Level_Object *save_object )
+void cTurtle :: Load_From_Savegame( cSave_Level_Object *save_object )
 {
-	cEnemy::Load_from_Savegame( save_object );
+	cEnemy::Load_From_Savegame( save_object );
 
 	// turtle_state
 	if( save_object->exists( "turtle_state" ) )
@@ -112,27 +117,27 @@ void cTurtle :: Load_from_Savegame( cSave_Level_Object *save_object )
 		{
 			// todo : create a Set_State function
 			// set shell image without position changes
-			cSprite::Set_Image( images[5] );
+			cSprite::Set_Image( m_images[5] );
 		}
 	}
 	
 	Update_Rotation_Hor_velx();
 }
 
-cSave_Level_Object *cTurtle :: Save_to_Savegame( void )
+cSave_Level_Object *cTurtle :: Save_To_Savegame( void )
 {
-	cSave_Level_Object *save_object = cEnemy::Save_to_Savegame();
+	cSave_Level_Object *save_object = cEnemy::Save_To_Savegame();
 
 	// turtle_state ( only save if needed )
 	if( turtle_state != TURTLE_WALK )
 	{
-		save_object->properties.push_back( cSave_Level_Object_Property( "turtle_state", int_to_string( turtle_state ) ) );
+		save_object->m_properties.push_back( cSave_Level_Object_Property( "turtle_state", int_to_string( turtle_state ) ) );
 	}
 
 	return save_object;
 }
 
-void cTurtle :: Set_Direction( ObjectDirection dir, bool new_start_direction /* = 0 */ )
+void cTurtle :: Set_Direction( const ObjectDirection dir, bool new_start_direction /* = 0 */ )
 {
 	if( dir != DIR_RIGHT && dir != DIR_LEFT )
 	{
@@ -143,26 +148,26 @@ void cTurtle :: Set_Direction( ObjectDirection dir, bool new_start_direction /* 
 	cEnemy::Set_Direction( dir, new_start_direction );
 
 	// update velocity
-	if( direction == DIR_RIGHT )
+	if( m_direction == DIR_RIGHT )
 	{
 		if( turtle_state == TURTLE_WALK )
 		{
-			velx = speed_walk;
+			m_velx = speed_walk;
 		}
 		else
 		{
-			velx = speed_shell;
+			m_velx = speed_shell;
 		}
 	}
 	else
 	{
 		if( turtle_state == TURTLE_WALK )
 		{
-			velx = -speed_walk;
+			m_velx = -speed_walk;
 		}
 		else
 		{
-			velx = -speed_shell;
+			m_velx = -speed_shell;
 		}
 	}
 
@@ -184,7 +189,7 @@ void cTurtle :: Set_Color( DefaultColor col )
 
 	color_type = col;
 
-	string filename_dir;
+	std::string filename_dir;
 
 	if( color_type == COL_RED )
 	{
@@ -211,21 +216,21 @@ void cTurtle :: Set_Color( DefaultColor col )
 	Clear_Images();
 
 	// Walk
-	images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/walk_0.png" ) );
-	images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/walk_1.png" ) );
-	images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/walk_2.png" ) );
-	images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/walk_1.png" ) );
+	m_images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/walk_0.png" ) );
+	m_images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/walk_1.png" ) );
+	m_images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/walk_2.png" ) );
+	m_images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/walk_1.png" ) );
 	// Walk Turn
 	//images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/turn_1.png" ) );
-	images.push_back( NULL );
+	m_images.push_back( NULL );
 	// Shell
-	images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/shell_front.png" ) );
-	images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/shell_move_1.png" ) );
-	images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/shell_move_2.png" ) );
-	images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/shell_move_3.png" ) );
-	images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/shell_active.png" ) );
+	m_images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/shell_front.png" ) );
+	m_images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/shell_move_1.png" ) );
+	m_images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/shell_move_2.png" ) );
+	m_images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/shell_move_3.png" ) );
+	m_images.push_back( pVideo->Get_Surface( "enemy/turtle/" + filename_dir + "/shell_active.png" ) );
 
-	Set_Image( 0, 1 );
+	Set_Image_Num( 0, 1 );
 	Create_Name();
 }
 
@@ -251,30 +256,30 @@ void cTurtle :: DownGrade( bool force /* = 0 */ )
 		if( turtle_state == TURTLE_WALK )
 		{
 			counter = 0;
-			state = STA_STAY;
+			m_state = STA_STAY;
 			turtle_state = TURTLE_SHELL_STAND;
 
-			Set_Image( 5 );
-			Col_Move( 0, images[0]->col_h - images[5]->col_h, 1, 1 );
+			Set_Image_Num( 5 );
+			Col_Move( 0, m_images[0]->m_col_h - m_images[5]->m_col_h, 1, 1 );
 		}
 		// staying
 		else if( turtle_state == TURTLE_SHELL_STAND )
 		{
 			counter = 0;
-			state = STA_RUN;
+			m_state = STA_RUN;
 			turtle_state = TURTLE_SHELL_RUN;
-			player_range = 5000;
+			m_player_range = 5000;
 
 			// move into random direction
 			if( rand() % 2 != 1 )
 			{
 				// right
-				velx = speed_shell;
+				m_velx = speed_shell;
 			}
 			else
 			{
 				// left
-				velx = -speed_shell;
+				m_velx = -speed_shell;
 			}
 
 			Update_Direction();
@@ -284,9 +289,9 @@ void cTurtle :: DownGrade( bool force /* = 0 */ )
 		else if( turtle_state == TURTLE_SHELL_RUN )
 		{
 			counter = 0;
-			state = STA_STAY;
+			m_state = STA_STAY;
 			turtle_state = TURTLE_SHELL_STAND;
-			player_range = 2000;
+			m_player_range = 2000;
 		}
 	}
 	// falling death
@@ -294,16 +299,16 @@ void cTurtle :: DownGrade( bool force /* = 0 */ )
 	{
 		counter = 8;
 		Set_Dead( 1 );
-		massivetype = MASS_PASSIVE;
-		velx = 0;
-		vely = 0;
+		m_massive_type = MASS_PASSIVE;
+		m_velx = 0;
+		m_vely = 0;
 
 		if( turtle_state == TURTLE_WALK )
 		{
-			Move( 0, images[0]->h - images[5]->h, 1 );
+			Move( 0, m_images[0]->m_h - m_images[5]->m_h, 1 );
 		}
 
-		Set_Image( 5 );
+		Set_Image_Num( 5 );
 	}
 }
 
@@ -312,7 +317,7 @@ void cTurtle :: DieStep( void )
 	counter += pFramerate->speedfactor * 0.5f;
 
 	// if not below the screen fall
-	if( posy < game_res_h + col_rect.h )
+	if( m_pos_y < game_res_h + m_col_rect.m_h )
 	{
 		float speed_y = counter;
 
@@ -329,7 +334,7 @@ void cTurtle :: DieStep( void )
 
 		float speed_x = pFramerate->speedfactor;
 
-		if( direction == DIR_LEFT )
+		if( m_direction == DIR_LEFT )
 		{
 			speed_x *= -1;
 		}
@@ -341,9 +346,9 @@ void cTurtle :: DieStep( void )
 	// if below disable
 	else
 	{
-		Set_Visible( 0 );
-		rotz = 0;
-		state = STA_STAY;
+		Set_Active( 0 );
+		m_rot_z = 0;
+		m_state = STA_STAY;
 		turtle_state = TURTLE_DEAD;
 	}
 }
@@ -352,7 +357,7 @@ void cTurtle :: Update( void )
 {
 	cEnemy::Update();
 
-	if( !valid_update || !is_Player_range() )
+	if( !m_valid_update || !Is_In_Player_Range() )
 	{
 		return;
 	}
@@ -363,14 +368,14 @@ void cTurtle :: Update( void )
 		walk_count += pFramerate->speedfactor * 0.3f;
 
 		// if not turn around image
-		if( curr_img != 4 )
+		if( m_curr_img != 4 )
 		{
 			if( walk_count >= 4 )
 			{
 				walk_count = 0;
 			}
 
-			Set_Image( static_cast<int>(walk_count) );
+			Set_Image_Num( static_cast<int>(walk_count) );
 		}
 		// turn around image
 		else
@@ -378,19 +383,19 @@ void cTurtle :: Update( void )
 			// set normal image back
 			if( walk_count >= 4 )
 			{
-				Set_Image( static_cast<int>(walk_count) );
+				Set_Image_Num( static_cast<int>(walk_count) );
 				Update_Rotation_Hor_velx();
 			}
 			// rotate the turn image
 			else if( walk_count >= 2 )
 			{
-				if( velx < 0 )
+				if( m_velx < 0 )
 				{
-					roty = 180;
+					m_rot_y = 180;
 				}
 				else
 				{
-					roty = 0;
+					m_rot_y = 0;
 				}
 			}
 		}
@@ -403,7 +408,7 @@ void cTurtle :: Update( void )
 		// waiting
 		if( counter < 160 )
 		{
-			Set_Image( 5 ); // front
+			Set_Image_Num( 5 ); // front
 		}
 		else
 		{
@@ -412,52 +417,29 @@ void cTurtle :: Update( void )
 			{
 				if( static_cast<int>(counter) % 5 == 1 )
 				{
-					Set_Image( 9 ); // active
+					Set_Image_Num( 9 ); // active
 				}
 				else
 				{
-					Set_Image( 5 ); // front
+					Set_Image_Num( 5 ); // front
 				}
 			}
 			// activate
 			else
 			{
 				counter = 0;
-				turtle_state = TURTLE_WALK;
-				state = STA_WALK;
-
-				if( direction == DIR_RIGHT )
-				{
-					velx = speed_walk;
-				}
-				else
-				{
-					velx = -speed_walk;
-				}
-
-				Update_Direction();
-				Update_Rotation_Hor_velx();
-
-				// todo : create again
-				//pAudio->PlaySound( "enemy/turtle/power_up.ogg" );
-
-				if( curr_img > 4 )
-				{
-					Col_Move( 0, images[5]->col_h - images[0]->col_h, 1, 1 );
-				}
-
-				Set_Image( 0 ); // walk
+				Stand_Up();
 			}
 		}
 
 
-		if( velx != 0 )
+		if( m_velx != 0 )
 		{
-			Add_Velocity( -velx * 0.2f, 0 );
+			Add_Velocity( -m_velx * 0.2f, 0 );
 
-			if( velx < 0.3f && velx > -0.3f )
+			if( m_velx < 0.3f && m_velx > -0.3f )
 			{
-				velx = 0;
+				m_velx = 0;
 			}
 		}
 	}
@@ -471,7 +453,7 @@ void cTurtle :: Update( void )
 			walk_count = 0;
 		}
 
-		Set_Image( 6 + static_cast<int>(walk_count) );
+		Set_Image_Num( 6 + static_cast<int>(walk_count) );
 	}
 
 	if( playercounter > 0 )
@@ -481,7 +463,7 @@ void cTurtle :: Update( void )
 		if( playercounter <= 0 )
 		{
 			// do not start collision detection if in maryo
-			if( Col_Box( &pPlayer->col_rect, &col_rect ) )
+			if( pPlayer->m_col_rect.Intersects( m_col_rect ) )
 			{
 				playercounter = 5;
 			}
@@ -496,9 +478,98 @@ void cTurtle :: Update( void )
 	Update_Gravity();
 }
 
+void cTurtle :: Stand_Up( void )
+{
+	if( turtle_state != TURTLE_SHELL_STAND && turtle_state != TURTLE_SHELL_RUN )
+	{
+		return;
+	}
+
+	// get space needed to stand up
+	float move_y = m_image->m_col_h - m_images[0]->m_col_h;
+
+	cObjectCollisionType *col_list = Collision_Check_Relative( 0, move_y, 0, 0, COLLIDE_ONLY_BLOCKING );
+
+	// failed to stand up because something is blocking
+	if( !col_list->empty() )
+	{
+		delete col_list;
+		return;
+	}
+
+	delete col_list;
+
+	turtle_state = TURTLE_WALK;
+	m_state = STA_WALK;
+
+	if( m_direction == DIR_RIGHT )
+	{
+		m_velx = speed_walk;
+	}
+	else
+	{
+		m_velx = -speed_walk;
+	}
+
+	Update_Direction();
+	Update_Rotation_Hor_velx();
+
+	pAudio->Play_Sound( "enemy/turtle/stand_up.wav" );
+
+	Col_Move( 0, move_y, 1, 1 );
+
+	// set walking image
+	Set_Image_Num( static_cast<int>(walk_count) );
+}
+
+bool cTurtle :: Hit_Enemy( cEnemy *enemy ) const
+{
+	// invalid
+	if( !enemy )
+	{
+		return 0;
+	}
+
+	// don't collide with already dead enemies
+	if( enemy->dead )
+	{
+		return 0;
+	}
+
+	// shells can't hit these bosses
+	if( enemy->m_type == TYPE_TURTLE_BOSS )
+	{
+		return 0;
+	}
+	if( enemy->m_type == TYPE_FURBALL_BOSS )
+	{
+		return 0;
+	}
+
+	// if red shell check if colliding turtle is green and also running
+	if( color_type == COL_RED && enemy->m_type == TYPE_TURTLE )
+	{
+		cTurtle *turtle = static_cast<cTurtle *>(enemy);
+
+		// red shell can't kill the green shell
+		if( turtle->color_type == COL_GREEN && turtle->m_state == STA_RUN )
+		{
+			return 0;
+		}
+	}
+
+	// hit enemy
+	pAudio->Play_Sound( enemy->kill_sound );
+	pHud_Points->Add_Points( enemy->kill_points, m_pos_x + m_image->m_w / 3, m_pos_y - 5.0f, "", static_cast<Uint8>(255), 1 );
+	enemy->DownGrade( 1 );
+	pPlayer->Add_Kill_Multiplier();
+
+	return 1;
+}
+
 bool cTurtle :: Is_Update_Valid( void )
 {
-	if( dead || freeze_counter || state == STA_OBJ_LINKED )
+	if( dead || m_freeze_counter || m_state == STA_OBJ_LINKED )
 	{
 		return 0;
 	}
@@ -506,86 +577,86 @@ bool cTurtle :: Is_Update_Valid( void )
 	return 1;
 }
 
-unsigned int cTurtle :: Validate_Collision( cSprite *obj )
+Col_Valid_Type cTurtle :: Validate_Collision( cSprite *obj )
 {
 	// basic validation checking
-	int basic_valid = Validate_Collision_Ghost( obj );
+	Col_Valid_Type basic_valid = Validate_Collision_Ghost( obj );
 
 	// found valid collision
-	if( basic_valid > -1 )
+	if( basic_valid != COL_VTYPE_NO_GHOST )
 	{
 		return basic_valid;
 	}
 
-	if( obj->massivetype == MASS_MASSIVE )
+	if( obj->m_massive_type == MASS_MASSIVE )
 	{
-		if( obj->type == TYPE_PLAYER )
+		if( obj->m_type == TYPE_PLAYER )
 		{
 			// player is invincible
 			if( pPlayer->invincible )
 			{
-				return 0;
+				return COL_VTYPE_NOT_VALID;
 			}
 			// player counter is active
-			if( turtle_state == TURTLE_SHELL_RUN && playercounter > 0 )
+			if( turtle_state == TURTLE_SHELL_RUN && playercounter > 0.0f )
 			{
-				return 0;
+				return COL_VTYPE_NOT_VALID;
 			}
 		}
-		else if( obj->sprite_array == ARRAY_ENEMY )
+		else if( obj->m_sprite_array == ARRAY_ENEMY )
 		{
-			if( obj->type == TYPE_JPIRANHA )
+			if( obj->m_type == TYPE_FLYON )
 			{
 				// if walking
 				if( turtle_state == TURTLE_WALK )
 				{
-					return 0;
+					return COL_VTYPE_NOT_VALID;
 				}
 				// shell
 				if( turtle_state == TURTLE_SHELL_STAND || turtle_state == TURTLE_SHELL_RUN )
 				{
-					return 1;
+					return COL_VTYPE_INTERNAL;
 				}
 			}
-			if( obj->type == TYPE_ROKKO )
+			if( obj->m_type == TYPE_ROKKO )
 			{
-				return 0;
+				return COL_VTYPE_NOT_VALID;
 			}
-			if( obj->type == TYPE_GEE )
+			if( obj->m_type == TYPE_GEE )
 			{
 				if( turtle_state == TURTLE_SHELL_STAND || turtle_state == TURTLE_SHELL_RUN )
 				{
-					return 1;
+					return COL_VTYPE_INTERNAL;
 				}
 
-				return 0;
+				return COL_VTYPE_NOT_VALID;
 			}
-			if( obj->type == TYPE_STATIC_ENEMY )
+			if( obj->m_type == TYPE_STATIC_ENEMY )
 			{
-				return 0;
+				return COL_VTYPE_NOT_VALID;
 			}
 
 			// if moving shell don't collide with enemies
 			if( turtle_state == TURTLE_SHELL_RUN )
 			{
-				return 1;
+				return COL_VTYPE_INTERNAL;
 			}
 		}
 
-		return 2;
+		return COL_VTYPE_BLOCKING;
 	}
-	else if( obj->massivetype == MASS_PASSIVE )
+	else if( obj->m_massive_type == MASS_PASSIVE )
 	{
-		if( obj->type == TYPE_ENEMY_STOPPER )
+		if( obj->m_type == TYPE_ENEMY_STOPPER )
 		{
 			if( turtle_state == TURTLE_WALK )
 			{
-				return 2;
+				return COL_VTYPE_BLOCKING;
 			}
 
-			return 0;
+			return COL_VTYPE_NOT_VALID;
 		}
-		else if( obj->type == TYPE_BONUSBOX || obj->type == TYPE_SPINBOX )
+		else if( obj->m_type == TYPE_BONUSBOX || obj->m_type == TYPE_SPINBOX )
 		{
 			// if shell
 			if( turtle_state == TURTLE_SHELL_STAND || turtle_state == TURTLE_SHELL_RUN )
@@ -596,56 +667,54 @@ unsigned int cTurtle :: Validate_Collision( cSprite *obj )
 				if( box->box_invisible == BOX_INVISIBLE_SEMI_MASSIVE )
 				{
 					// if moving upwards and the object is on top
-					if( vely <= 0 && obj->Is_on_Top( this ) )
+					if( m_vely <= 0.0f && obj->Is_On_Top( this ) )
 					{
-						return 2;
+						return COL_VTYPE_BLOCKING;
 					}
 				}
 			}
 		}
 	}
-	else if( obj->massivetype == MASS_HALFMASSIVE )
+	else if( obj->m_massive_type == MASS_HALFMASSIVE )
 	{
 		// if moving downwards and the object is on bottom
-		if( vely >= 0 && Is_on_Top( obj ) )
+		if( m_vely >= 0.0f && Is_On_Top( obj ) )
 		{
-			return 2;
+			return COL_VTYPE_BLOCKING;
 		}
 	}
 
-	return 0;
+	return COL_VTYPE_NOT_VALID;
 }
 
 void cTurtle :: Handle_Collision_Player( cObjectCollision *collision )
 {
-	if( collision->direction == DIR_UNDEFINED || ( turtle_state == TURTLE_SHELL_RUN && playercounter > 0 ) || state == STA_OBJ_LINKED )
+	if( collision->direction == DIR_UNDEFINED || ( turtle_state == TURTLE_SHELL_RUN && playercounter > 0 ) || m_state == STA_OBJ_LINKED )
 	{
 		return;
 	}
 
-	if( collision->direction == DIR_TOP && pPlayer->state != STA_FLY )
+	if( collision->direction == DIR_TOP && pPlayer->m_state != STA_FLY )
 	{
 		if( turtle_state == TURTLE_WALK )
 		{
-			pointsdisplay->Add_Points( 25, pPlayer->posx, pPlayer->posy );
+			pHud_Points->Add_Points( 25, pPlayer->m_pos_x, pPlayer->m_pos_y );
 			pAudio->Play_Sound( "enemy/turtle/hit.ogg" );
 		}
 		else if( turtle_state == TURTLE_SHELL_STAND )
 		{
-			pointsdisplay->Add_Points( 10, pPlayer->posx, pPlayer->posy );
+			pHud_Points->Add_Points( 10, pPlayer->m_pos_x, pPlayer->m_pos_y );
 			pAudio->Play_Sound( "enemy/turtle/shell/hit.ogg" );
 		}
 		else if( turtle_state == TURTLE_SHELL_RUN )
 		{
-			pointsdisplay->Add_Points( 5, pPlayer->posx, pPlayer->posy );
+			pHud_Points->Add_Points( 5, pPlayer->m_pos_x, pPlayer->m_pos_y );
 			pAudio->Play_Sound( "enemy/turtle/shell/hit.ogg" );
 		}
 
 		// animation
 		cParticle_Emitter *anim = new cParticle_Emitter();
-		anim->Set_Pos( posx + ( col_rect.w / 2 ), posy + ( col_rect.h / 2 ) );
 		Generate_Hit_Animation( anim );
-
 		anim->Set_Speed( 4, 0.8f );
 		anim->Set_Scale( 0.6f );
 		// add animation
@@ -657,14 +726,14 @@ void cTurtle :: Handle_Collision_Player( cObjectCollision *collision )
 		if( turtle_state == TURTLE_SHELL_RUN )
 		{
 			// if player is on the left side
-			if( ( pPlayer->col_rect.w / 2 ) + pPlayer->posx < ( col_rect.w / 2 ) + posx )
+			if( ( pPlayer->m_col_rect.m_w / 2 ) + pPlayer->m_pos_x < ( m_col_rect.m_w / 2 ) + m_pos_x )
 			{
-				velx = speed_shell;
+				m_velx = speed_shell;
 			}
 			// on the right side
 			else
 			{
-				velx = -speed_shell;
+				m_velx = -speed_shell;
 			}
 
 			Update_Direction();
@@ -688,38 +757,38 @@ void cTurtle :: Handle_Collision_Player( cObjectCollision *collision )
 			if( collision->direction == DIR_RIGHT )
 			{
 				anim = new cParticle_Emitter();
-				anim->Set_Pos( posx + col_pos.x + col_rect.w, posy + ( col_rect.h / 2 ) );
+				anim->Set_Pos( m_pos_x + m_col_pos.m_x + m_col_rect.m_w, m_pos_y + ( m_col_rect.m_h / 2 ) );
 				anim->Set_Direction_Range( 90, 180 );
-				velx = -speed_shell;
+				m_velx = -speed_shell;
 			}
 			else if( collision->direction == DIR_LEFT )
 			{
 				anim = new cParticle_Emitter();
-				anim->Set_Pos( posx, posy + ( col_rect.h / 2 ) );
+				anim->Set_Pos( m_pos_x, m_pos_y + ( m_col_rect.m_h / 2 ) );
 				anim->Set_Direction_Range( 270, 180 );
-				velx = speed_shell;
+				m_velx = speed_shell;
 			}
 			else
 			{
 				anim = new cParticle_Emitter();
-				anim->Set_Pos( posx + ( col_rect.w / 2 ), posy + col_pos.y + col_rect.h );
+				anim->Set_Pos( m_pos_x + ( m_col_rect.m_w / 2 ), m_pos_y + m_col_pos.m_y + m_col_rect.m_h );
 				anim->Set_Direction_Range( 180, 180 );
 
 				// if player is on the left side
-				if( ( pPlayer->col_rect.w / 2 ) + pPlayer->posx < ( col_rect.w / 2 ) + posx )
+				if( ( pPlayer->m_col_rect.m_w / 2 ) + pPlayer->m_pos_x < ( m_col_rect.m_w / 2 ) + m_pos_x )
 				{
-					velx = speed_shell;
+					m_velx = speed_shell;
 				}
 				// on the right side
 				else
 				{
-					velx = -speed_shell;
+					m_velx = -speed_shell;
 				}
 			}
 			
 			anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
 			anim->Set_Quota( 4 );
-			anim->Set_Pos_Z( posz + 0.0001f );
+			anim->Set_Pos_Z( m_pos_z + 0.0001f );
 			anim->Set_Time_to_Live( 0.3f );
 			anim->Set_Speed( 4, 0.5f );
 			anim->Set_Scale( 0.6f );
@@ -734,7 +803,7 @@ void cTurtle :: Handle_Collision_Player( cObjectCollision *collision )
 			// small upwards kick
 			if( collision->direction == DIR_BOTTOM )
 			{
-				vely = -5 + (pPlayer->vely * 0.3f);
+				m_vely = -5.0f + (pPlayer->m_vely * 0.3f);
 			}
 		}
 		else if( turtle_state == TURTLE_SHELL_RUN )
@@ -745,7 +814,7 @@ void cTurtle :: Handle_Collision_Player( cObjectCollision *collision )
 				// small upwards kick
 				if( collision->direction == DIR_BOTTOM )
 				{
-					vely = -5 + (pPlayer->vely * 0.3f);
+					m_vely = -5.0f + (pPlayer->m_vely * 0.3f);
 				}
 			}
 			// other directions downgrade
@@ -765,69 +834,25 @@ void cTurtle :: Handle_Collision_Enemy( cObjectCollision *collision )
 		cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
 
 		// if able to collide
-		if( state == STA_OBJ_LINKED || vely < -5 )
+		if( m_state == STA_OBJ_LINKED || m_vely < -5.0f )
 		{
-			// don't collide with already dead enemies
-			if( enemy->dead )
-			{
-				return;
-			}
-
-			// Shells can't hit the boss
-			if( enemy->type == TYPE_TURTLE_BOSS )
-			{
-				return;
-			}
-
-			// hit enemy
-			pAudio->Play_Sound( enemy->kill_sound );
-			pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", static_cast<Uint8>(255), 1 );
-			enemy->DownGrade( 1 );
-
+			Hit_Enemy( enemy );
 			DownGrade( 1 );
-			pPlayer->Add_Kill_Multiplier();
 		}
 	}
 	else if( turtle_state == TURTLE_SHELL_RUN )
 	{
 		cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
 
-		// don't collide with already dead enemies
-		if( enemy->dead )
-		{
-			return;
-		}
-
-		// Shells can't hit the boss
-		if( enemy->type == TYPE_TURTLE_BOSS )
-		{
-		    return;
-		}
-
-		// if red shell check if colliding turtle is green and also running
-		if( color_type == COL_RED && enemy->type == TYPE_TURTLE )
-		{
-			cTurtle *turtle = static_cast<cTurtle *>(enemy);
-
-			// red shell can't kill green shells
-			if( turtle->color_type == COL_GREEN && turtle->state == STA_RUN )
-			{
-				return;
-			}
-		}
-
-		// hit enemy
-		pAudio->Play_Sound( enemy->kill_sound );
-		pointsdisplay->Add_Points( enemy->kill_points, posx + image->w / 3, posy - 5, "", static_cast<Uint8>(255), 1 );
-		enemy->DownGrade( 1 );
+		Hit_Enemy( enemy );
 
 		// create animation
 		cParticle_Emitter *anim = new cParticle_Emitter();
 
-		anim->Set_Emitter_Rect( col_rect.x + ( col_rect.w * 0.2f ), col_rect.y + ( col_rect.h * 0.2f ), col_rect.w * 0.6f, col_rect.h * 0.8f );
+		anim->Set_Emitter_Rect( m_col_rect.m_x + ( m_col_rect.m_w * 0.2f ), m_col_rect.m_y + ( m_col_rect.m_h * 0.2f ), m_col_rect.m_w * 0.6f, m_col_rect.m_h * 0.8f );
 		anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
 		anim->Set_Quota( 5 );
-		anim->Set_Pos_Z( posz + 0.000001f );
+		anim->Set_Pos_Z( m_pos_z + 0.000001f );
 		anim->Set_Time_to_Live( 0.3f );
 		anim->Set_Speed( 1.2f, 0.8f );
 		anim->Set_Scale( 0.7f );
@@ -836,17 +861,15 @@ void cTurtle :: Handle_Collision_Enemy( cObjectCollision *collision )
 
 		if( collision->direction == DIR_RIGHT )
 		{
-			anim->Set_Direction_Range( 0 );
+			anim->Set_Direction_Range( 0.0f );
 		}
 		else if( collision->direction == DIR_LEFT )
 		{
-			anim->Set_Direction_Range( 180 );
+			anim->Set_Direction_Range( 180.0f );
 		}
 		
 		// add animation
 		pAnimation_Manager->Add( anim );
-
-		pPlayer->Add_Kill_Multiplier();
 	}
 	else if( turtle_state == TURTLE_WALK )
 	{
@@ -872,19 +895,19 @@ void cTurtle :: Handle_Collision_Massive( cObjectCollision *collision )
 			if( collision->direction == DIR_RIGHT )
 			{
 				anim = new cParticle_Emitter();
-				anim->Set_Pos( col_object->posx + col_object->col_pos.x + 4, posy + ( col_rect.h / 1.35f ) );
+				anim->Set_Pos( col_object->m_pos_x + col_object->m_col_pos.m_x + 4, m_pos_y + ( m_col_rect.m_h / 1.35f ) );
 				anim->Set_Direction_Range( 140, 100 );
 			}
 			else
 			{
 				anim = new cParticle_Emitter();
-				anim->Set_Pos( col_object->posx + col_object->col_pos.x + col_object->col_rect.w - 4, posy + ( col_rect.h / 1.35f ) );
+				anim->Set_Pos( col_object->m_pos_x + col_object->m_col_pos.m_x + col_object->m_col_rect.m_w - 4, m_pos_y + ( m_col_rect.m_h / 1.35f ) );
 				anim->Set_Direction_Range( 320, 100 );
 			}
 
 			anim->Set_Image( pVideo->Get_Surface( "animation/particles/smoke.png" ) );
 			anim->Set_Quota( 5 );
-			anim->Set_Pos_Z( col_object->posz - 0.0001f, 0.0002f );
+			anim->Set_Pos_Z( col_object->m_pos_z - 0.0001f, 0.0002f );
 			anim->Set_Time_to_Live( 0.2f, 0.2f );
 			anim->Set_Speed( 1, 1 );
 			anim->Set_Scale( 0.5f, 0.4f );
@@ -892,7 +915,7 @@ void cTurtle :: Handle_Collision_Massive( cObjectCollision *collision )
 		}
 
 		// active object collision
-		if( collision->type == CO_ACTIVE )
+		if( collision->m_array == ARRAY_ACTIVE )
 		{
 			Send_Collision( collision );
 		}
@@ -900,15 +923,15 @@ void cTurtle :: Handle_Collision_Massive( cObjectCollision *collision )
 	else if( turtle_state == TURTLE_SHELL_STAND )
 	{
 		// if able to collide
-		if( state == STA_OBJ_LINKED || vely < -5 )
+		if( m_state == STA_OBJ_LINKED || m_vely < -5 )
 		{
 			// active object box collision
-			if( collision->type == CO_ACTIVE )
+			if( collision->m_array == ARRAY_ACTIVE )
 			{
 				// get colliding object
 				cSprite *col_object = pActive_Sprite_Manager->Get_Pointer( collision->number );
 
-				if( col_object->type == TYPE_BONUSBOX || col_object->type == TYPE_SPINBOX )
+				if( col_object->m_type == TYPE_BONUSBOX || col_object->m_type == TYPE_SPINBOX )
 				{
 					// get basebox
 					cBaseBox *box = static_cast<cBaseBox *>(col_object);
@@ -916,7 +939,7 @@ void cTurtle :: Handle_Collision_Massive( cObjectCollision *collision )
 					// if useable
 					if( box->useable_count != 0 )
 					{
-						pointsdisplay->Add_Points( 50, posx + image->w / 3, posy - 5 );
+						pHud_Points->Add_Points( 50, m_pos_x + m_image->m_w / 3, m_pos_y - 5 );
 						Send_Collision( collision );
 						DownGrade( 1 );
 						return;
@@ -926,23 +949,23 @@ void cTurtle :: Handle_Collision_Massive( cObjectCollision *collision )
 		}
 	}
 
-	if( state == STA_OBJ_LINKED )
+	if( m_state == STA_OBJ_LINKED )
 	{
 		return;
 	}
 	
 	if( collision->direction == DIR_TOP )
 	{
-		if( vely > 0 )
+		if( m_vely > 0.0f )
 		{
-			vely = 0;
+			m_vely = 0;
 		}
 	}
 	else if( collision->direction == DIR_BOTTOM )
 	{
-		if( vely < 0 )
+		if( m_vely < 0.0f )
 		{
-			vely = 0;
+			m_vely = 0;
 		}
 	}
 	else
@@ -953,16 +976,17 @@ void cTurtle :: Handle_Collision_Massive( cObjectCollision *collision )
 
 void cTurtle :: Editor_Activate( void )
 {
+	// get window manager
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
 	// direction
 	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_turtle_direction" ));
-	Editor_Add( UTF8_("Direction"), UTF8_("Direction"), combobox, 100, 75 );
+	Editor_Add( UTF8_("Direction"), UTF8_("Starting direction."), combobox, 100, 75 );
 
 	combobox->addItem( new CEGUI::ListboxTextItem( "left" ) );
 	combobox->addItem( new CEGUI::ListboxTextItem( "right" ) );
 
-	combobox->setText( Get_Direction_Name( start_direction ) );
+	combobox->setText( Get_Direction_Name( m_start_direction ) );
 	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cTurtle::Editor_Direction_Select, this ) );
 
 	// init
@@ -981,8 +1005,12 @@ bool cTurtle :: Editor_Direction_Select( const CEGUI::EventArgs &event )
 
 void cTurtle :: Create_Name( void )
 {
-	name = "Turtle ";
-	name += _(Get_Color_Name( color_type ).c_str());
-	name += " ";
-	name += _(Get_Direction_Name( start_direction ).c_str());
+	m_name = "Turtle ";
+	m_name += _(Get_Color_Name( color_type ).c_str());
+	m_name += " ";
+	m_name += _(Get_Direction_Name( m_start_direction ).c_str());
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

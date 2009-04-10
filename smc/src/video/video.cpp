@@ -1,7 +1,7 @@
 /***************************************************************************
  * video.cpp  -  General video functions
  *
- * Copyright (C) 2005 - 2008 Florian Richter
+ * Copyright (C) 2005 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -20,14 +20,14 @@
 #include "../video/font.h"
 #include "../core/game_core.h"
 #include "../video/img_settings.h"
-#include "../core/camera.h"
 #include "../input/mouse.h"
-#include "../video/gl_surface.h"
 #include "../video/renderer.h"
 #include "../core/main.h"
 #include "../core/math/utilities.h"
 #include "../core/i18n.h"
 #include "../core/math/size.h"
+// SDL
+#include "SDL_opengl.h"
 // CEGUI
 #include "CEGUIDefaultResourceProvider.h"
 #include "CEGUIDefaultLogger.h"
@@ -39,6 +39,9 @@ namespace fs = boost::filesystem;
 #ifndef PNG_COLOR_TYPE_RGBA
 	#define PNG_COLOR_TYPE_RGBA PNG_COLOR_TYPE_RGB_ALPHA
 #endif
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** Color struct *** *** *** *** *** *** *** *** *** */
 
@@ -74,12 +77,7 @@ Color :: Color( Uint8 grey )
 	alpha = 255;
 };
 
-Color :: Color( Uint32 color )
-{
-	//SDL_GetRGBA( mapcolor, format, &red, &green, &blue, &alpha );
-};
-
-Color :: Color( SDL_Color color )
+Color :: Color( const SDL_Color &color )
 {
 	red = color.r;
 	green = color.g;
@@ -87,7 +85,7 @@ Color :: Color( SDL_Color color )
 	alpha = 255;
 }
 
-SDL_Color Color :: Get_SDL_Color( void )
+SDL_Color Color :: Get_SDL_Color( void ) const
 {
 	SDL_Color color;
 	color.r = red;
@@ -96,24 +94,9 @@ SDL_Color Color :: Get_SDL_Color( void )
 	return color;
 }
 
-CEGUI::colour Color :: Get_cegui_Color( void )
+CEGUI::colour Color :: Get_cegui_Color( void ) const
 {
 	return CEGUI::colour( static_cast<float>(red) / 255, static_cast<float>(green) / 255, static_cast<float>(blue) / 255, static_cast<float>(alpha) / 255 );
-}
-
-bool Color :: Compare( const Color color )
-{
-	return red == color.red && green == color.green && blue == color.blue && alpha == color.alpha;
-}
-
-bool Color :: operator == ( const Color color ) const
-{
-	return red == color.red && green == color.green && blue == color.blue && alpha == color.alpha;
-}
-
-bool Color :: operator == ( const SDL_Color color ) const
-{
-	return red == color.r && green == color.g && blue == color.b;
 }
 
 /* *** *** *** *** *** *** *** CEGUI renderer fake class *** *** *** *** *** *** *** *** *** *** */
@@ -132,25 +115,25 @@ cFake_Renderer :: ~cFake_Renderer( void )
 
 cVideo :: cVideo( void )
 {
-	opengl_version = 0;
+	m_opengl_version = 0;
 
-	double_buffer = 0;
-	hardware_surfaces = 0;
+	m_double_buffer = 0;
 
-	rgb_size[0] = 0;
-	rgb_size[1] = 0;
-	rgb_size[2] = 0;
+	m_rgb_size[0] = 0;
+	m_rgb_size[1] = 0;
+	m_rgb_size[2] = 0;
 
-	default_buffer = GL_BACK;
+	m_default_buffer = GL_BACK;
+	m_max_texture_size = 512;
 	
-	audio_init_failed = 0;
-	joy_init_failed = 0;
+	m_audio_init_failed = 0;
+	m_joy_init_failed = 0;
 	// default geometry detail is medium
-	geometry_detail = 0.5f;
+	m_geometry_quality = 0.5f;
 	// default texture detail is high
-	texture_detail = 0.75f;
+	m_texture_quality = 0.75f;
 
-	initialised = 0;
+	m_initialised = 0;
 }
 
 cVideo :: ~cVideo( void )
@@ -158,7 +141,7 @@ cVideo :: ~cVideo( void )
 
 }
 
-void cVideo :: Init_CEGUI_Fake( void )
+void cVideo :: Init_CEGUI_Fake( void ) const
 {
 	// create fake Resource Provider
 	CEGUI::DefaultResourceProvider *rp = new CEGUI::DefaultResourceProvider();
@@ -169,7 +152,7 @@ void cVideo :: Init_CEGUI_Fake( void )
 		rp->setResourceGroupDirectory( "schemas", DATA_DIR "/" GAME_SCHEMA_DIR "/" );
 	}
 	// get a directory to dump the CEGUI log
-	string log_dump_dir;
+	std::string log_dump_dir;
 #ifdef _WIN32
 	log_dump_dir = Get_Temp_Directory() + "cegui.log";
 #else
@@ -179,7 +162,7 @@ void cVideo :: Init_CEGUI_Fake( void )
 	pGuiSystem = new CEGUI::System( new cFake_Renderer(), rp, NULL, NULL, "", log_dump_dir );
 }
 
-void cVideo :: Delete_CEGUI_Fake( void )
+void cVideo :: Delete_CEGUI_Fake( void ) const
 {
 	CEGUI::ResourceProvider *rp = pGuiSystem->getResourceProvider();
 	CEGUI::Renderer *renderer = pGuiSystem->getRenderer();
@@ -190,7 +173,7 @@ void cVideo :: Delete_CEGUI_Fake( void )
 	delete rp;
 }
 
-void cVideo :: Init_CEGUI( void )
+void cVideo :: Init_CEGUI( void ) const
 {
 	// create renderer
 	try
@@ -243,7 +226,7 @@ void cVideo :: Init_CEGUI( void )
 	}
 }
 
-void cVideo :: Init_CEGUI_Data( void )
+void cVideo :: Init_CEGUI_Data( void ) const
 {
 	// set the default resource groups to be used
 	CEGUI::Scheme::setDefaultResourceGroup( "schemes" );
@@ -266,18 +249,6 @@ void cVideo :: Init_CEGUI_Data( void )
 	catch( CEGUI::Exception &ex )
 	{
 		printf( "CEGUI Scheme Exception occurred : %s\n", ex.getMessage().c_str() );
-		exit( EXIT_FAILURE );
-	}
-
-	// first font loaded automatically becomes the default font
-	try
-	{
-		CEGUI::FontManager::getSingleton().createFont( "bluebold1024_medium.font" );
-	}
-	// catch CEGUI Exceptions
-	catch( CEGUI::Exception &ex )
-	{
-		printf( "CEGUI Font Exception occurred : %s\n", ex.getMessage().c_str() );
 		exit( EXIT_FAILURE );
 	}
 
@@ -308,21 +279,21 @@ void cVideo :: Init_SDL( void )
 	if( SDL_InitSubSystem( SDL_INIT_JOYSTICK ) == -1 )
 	{
 		printf( "Warning : SDL Joystick initialization failed\nReason : %s\n", SDL_GetError() );
-		joy_init_failed = 1;
+		m_joy_init_failed = 1;
 	}
 	else
 	{
-		joy_init_failed = 0;
+		m_joy_init_failed = 0;
 	}
 
 	if( SDL_InitSubSystem( SDL_INIT_AUDIO ) == -1 )
 	{
 		printf( "Warning : SDL Audio initialization failed\nReason : %s\n", SDL_GetError() );
-		audio_init_failed = 1;
+		m_audio_init_failed = 1;
 	}
 	else
 	{
-		audio_init_failed = 0;
+		m_audio_init_failed = 0;
 	}
 
 	SDL_EnableUNICODE( 1 );
@@ -359,12 +330,12 @@ void cVideo :: Init_Video( bool reload_textures_from_file /* = 0 */, bool use_pr
 	}
 
 	// first initialization
-	if( !initialised )
+	if( !m_initialised )
 	{
 		// Set Caption
 		SDL_WM_SetCaption( CAPTION, NULL );
 		// Set Icon
-		string filename_icon = DATA_DIR "/" GAME_ICON_DIR "/window_32.png";
+		std::string filename_icon = DATA_DIR "/" GAME_ICON_DIR "/window_32.png";
 		if( File_Exists( filename_icon ) )
 		{
 			SDL_Surface *icon = IMG_Load( filename_icon.c_str() );
@@ -462,7 +433,7 @@ void cVideo :: Init_Video( bool reload_textures_from_file /* = 0 */, bool use_pr
 	}
 
 	// if reinitialization
-	if( initialised )
+	if( m_initialised )
 	{
 		// check if CEGUI is initialized
 		bool cegui_initialized = pGuiSystem->getGUISheet() != NULL;
@@ -509,9 +480,9 @@ void cVideo :: Init_Video( bool reload_textures_from_file /* = 0 */, bool use_pr
 	// check if double buffering got set
 	int is_double_buffer;
 	SDL_GL_GetAttribute( SDL_GL_DOUBLEBUFFER, &is_double_buffer );
-	double_buffer = is_double_buffer > 0;
+	m_double_buffer = is_double_buffer > 0;
 
-	if( !double_buffer )
+	if( !m_double_buffer )
 	{
 		// only important on full initialization
 		if( use_preferences )
@@ -534,31 +505,33 @@ void cVideo :: Init_Video( bool reload_textures_from_file /* = 0 */, bool use_pr
 	}
 
 	// get color bit size
-	SDL_GL_GetAttribute( SDL_GL_RED_SIZE, &rgb_size[0] );
-	SDL_GL_GetAttribute( SDL_GL_GREEN_SIZE, &rgb_size[1] );
-	SDL_GL_GetAttribute( SDL_GL_BLUE_SIZE, &rgb_size[2] );
+	SDL_GL_GetAttribute( SDL_GL_RED_SIZE, &m_rgb_size[0] );
+	SDL_GL_GetAttribute( SDL_GL_GREEN_SIZE, &m_rgb_size[1] );
+	SDL_GL_GetAttribute( SDL_GL_BLUE_SIZE, &m_rgb_size[2] );
 
 	// check if color bit size is set as wanted
 	if( use_preferences )
 	{
-		if( rgb_size[0] < screen_rgb_size[0] )
+		if( m_rgb_size[0] < screen_rgb_size[0] )
 		{
-			printf( "Warning : smaller red bit size %d as requested %d\n", rgb_size[0], screen_rgb_size[0] );
+			printf( "Warning : smaller red bit size %d as requested %d\n", m_rgb_size[0], screen_rgb_size[0] );
 		}
 
-		if( rgb_size[1] < screen_rgb_size[1] )
+		if( m_rgb_size[1] < screen_rgb_size[1] )
 		{
-			printf( "Warning : smaller green bit size %d as requested %d\n", rgb_size[1], screen_rgb_size[1] );
+			printf( "Warning : smaller green bit size %d as requested %d\n", m_rgb_size[1], screen_rgb_size[1] );
 		}
 
-		if( rgb_size[2] < screen_rgb_size[2] )
+		if( m_rgb_size[2] < screen_rgb_size[2] )
 		{
-			printf( "Warning : smaller blue bit size %d as requested %d\n", rgb_size[2], screen_rgb_size[2] );
+			printf( "Warning : smaller blue bit size %d as requested %d\n", m_rgb_size[2], screen_rgb_size[2] );
 		}
 	}
 
 	// remember default buffer
-	glGetIntegerv( GL_DRAW_BUFFER, &default_buffer );
+	glGetIntegerv( GL_DRAW_BUFFER, &m_default_buffer );
+	// get maximum texture size
+	glGetIntegerv( GL_MAX_TEXTURE_SIZE, &m_max_texture_size );
 
 	/* check if accelerated visual
 	int accelerated = 0;
@@ -569,7 +542,7 @@ void cVideo :: Init_Video( bool reload_textures_from_file /* = 0 */, bool use_pr
 	Init_OpenGL();
 
 	// if reinitialization
-	if( initialised )
+	if( m_initialised )
 	{
 		// reset highest texture id
 		pImage_Manager->high_texture_id = 0;
@@ -611,39 +584,41 @@ void cVideo :: Init_Video( bool reload_textures_from_file /* = 0 */, bool use_pr
 	else
 	{
 		// get opengl version
-		opengl_version = static_cast<float>(atof( reinterpret_cast<const char*>(glGetString( GL_VERSION )) ));
+		m_opengl_version = static_cast<float>(atof( reinterpret_cast<const char*>(glGetString( GL_VERSION )) ));
 
-		if( opengl_version < 1.4f )
+		if( m_opengl_version < 1.4f )
 		{
-			printf( "Warning : OpenGL Version %f below optimal version 1.4 and higher\n", opengl_version );
+			printf( "Warning : OpenGL Version %f below optimal version 1.4 and higher\n", m_opengl_version );
 		}
 
-		initialised = 1;
+		m_initialised = 1;
 	}
 }
 
-void cVideo :: Init_OpenGL( void )
+void cVideo :: Init_OpenGL( void ) const
 {
-    // viewport should cover the whole screen
-    glViewport( 0, 0, pPreferences->video_screen_w, pPreferences->video_screen_h );
+	// viewport should cover the whole screen
+	glViewport( 0, 0, pPreferences->video_screen_w, pPreferences->video_screen_h );
 
-    // Camera projection matrix
-    glMatrixMode( GL_PROJECTION );
-    glLoadIdentity();
-	// Set up an Ortho Screen
+	// select the projection matrix
+	glMatrixMode( GL_PROJECTION );
+	// clear it
+	glLoadIdentity();
+	// Set up the orthographic projection matrix
 	glOrtho( 0, static_cast<float>(pPreferences->video_screen_w), static_cast<float>(pPreferences->video_screen_h), 0, -1, 1 );
 	
-    // matrix operations
-    glMatrixMode( GL_MODELVIEW );
+	// select the orthographic projection matrix
+	glMatrixMode( GL_MODELVIEW );
+	// clear it
 	glLoadIdentity();
 
-	// Smooth Shading
+	// set the smooth shading model
 	glShadeModel( GL_SMOOTH );
 
-    // clear color
-    glClearColor( 0, 0, 0, 1 );
+	// set clear color to black
+	glClearColor( 0, 0, 0, 1 );
 
-    // Z-Buffer
+	// Z-Buffer
 	glEnable( GL_DEPTH_TEST );
 
 	// Depth function
@@ -674,10 +649,10 @@ void cVideo :: Init_OpenGL( void )
 	SDL_GL_SwapBuffers();
 }
 
-void cVideo :: Init_Geometry( void )
+void cVideo :: Init_Geometry( void ) const
 {
 	// Geometry Anti-Aliasing
-	if( geometry_detail > 0.5f )
+	if( m_geometry_quality > 0.5f )
 	{
 		// Point
 		glEnable( GL_POINT_SMOOTH );
@@ -703,7 +678,7 @@ void cVideo :: Init_Geometry( void )
 	/* Perspective Correction
 	 * The quality of color, texture coordinate, and fog coordinate interpolation
 	*/
-	if( geometry_detail > 0.25f )
+	if( m_geometry_quality > 0.25f )
 	{
 		// high quality
 		glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
@@ -715,14 +690,14 @@ void cVideo :: Init_Geometry( void )
 	}
 }
 
-void cVideo :: Init_Texture_Detail( void )
+void cVideo :: Init_Texture_Detail( void ) const
 {
 	/* filter quality of generated mipmap images
 	 * only available if OpenGL version is 1.4 or greater
 	*/
-	if( opengl_version >= 1.4f )
+	if( m_opengl_version >= 1.4f )
 	{
-		if( texture_detail > 0.2f )
+		if( m_texture_quality > 0.2f )
 		{
 			glHint( GL_GENERATE_MIPMAP_HINT, GL_NICEST );
 		}
@@ -733,7 +708,7 @@ void cVideo :: Init_Texture_Detail( void )
 	}
 }
 
-void cVideo :: Init_Resolution_Scale( void )
+void cVideo :: Init_Resolution_Scale( void ) const
 {
 	// up scale
 	global_upscalex = static_cast<float>(pPreferences->video_screen_w) / static_cast<float>(game_res_w);
@@ -745,8 +720,8 @@ void cVideo :: Init_Resolution_Scale( void )
 
 void cVideo :: Init_Image_Cache( bool recreate /* = 0 */, bool draw_gui /* = 0 */ )
 {
-	imgcache_dir = user_data_dir + USER_IMGCACHE_DIR;
-	string imgcache_dir_active = imgcache_dir + "/" + int_to_string( pPreferences->video_screen_w ) + "x" + int_to_string( pPreferences->video_screen_h );
+	m_imgcache_dir = user_data_dir + USER_IMGCACHE_DIR;
+	std::string imgcache_dir_active = m_imgcache_dir + "/" + int_to_string( pPreferences->video_screen_w ) + "x" + int_to_string( pPreferences->video_screen_h );
 
 	// if cache is disabled
 	if( !pPreferences->image_cache_enabled )
@@ -758,13 +733,13 @@ void cVideo :: Init_Image_Cache( bool recreate /* = 0 */, bool draw_gui /* = 0 *
 	if( recreate || pPreferences->game_version != smc_version )
 	{
 		// delete all caches
-		if( fs::exists( fs::path( imgcache_dir, fs::native ) ) )
+		if( fs::exists( fs::path( m_imgcache_dir, fs::native ) ) )
 		{
 			try
 			{
-				fs::remove_all( fs::path( imgcache_dir, fs::native ) );
+				fs::remove_all( fs::path( m_imgcache_dir, fs::native ) );
 			}
-			// could happen if a file is locked or no write rights
+			// could happen if a file is locked or we have no write rights
 			catch( const std::exception &ex )
 			{
 				printf( "%s\n", ex.what() );
@@ -778,7 +753,7 @@ void cVideo :: Init_Image_Cache( bool recreate /* = 0 */, bool draw_gui /* = 0 *
 			}
 		}
 		
-		fs::create_directory( fs::path( imgcache_dir, fs::native ) );
+		fs::create_directory( fs::path( m_imgcache_dir, fs::native ) );
 	}
 
 	// no cache available
@@ -789,13 +764,13 @@ void cVideo :: Init_Image_Cache( bool recreate /* = 0 */, bool draw_gui /* = 0 *
 	// cache available
 	else
 	{
-		imgcache_dir = imgcache_dir_active;
+		m_imgcache_dir = imgcache_dir_active;
 		return;
 	}
 
 	// texture detail should be maximum for caching
-	float real_texture_detail = texture_detail;
-	texture_detail = 1;
+	float real_texture_detail = m_texture_quality;
+	m_texture_quality = 1;
 
 	CEGUI::ProgressBar *progress_bar = NULL;
 
@@ -810,22 +785,22 @@ void cVideo :: Init_Image_Cache( bool recreate /* = 0 */, bool draw_gui /* = 0 *
 	}
 
 	// get all files
-	vector<string> image_files = Get_Directory_Files( DATA_DIR "/" GAME_PIXMAPS_DIR, ".settings", 1 );
+	vector<std::string> image_files = Get_Directory_Files( DATA_DIR "/" GAME_PIXMAPS_DIR, ".settings", 1 );
 
 	unsigned int loaded_files = 0;
 	unsigned int file_count = image_files.size();
 
 	// create directories, load images and save to cache
-	for( vector<string>::iterator itr = image_files.begin(), itr_end = image_files.end(); itr != itr_end; ++itr )
+	for( vector<std::string>::iterator itr = image_files.begin(), itr_end = image_files.end(); itr != itr_end; ++itr )
 	{
 		// get filename
-		string filename = (*itr);
+		std::string filename = (*itr);
 
 		// remove data dir
-		string cache_filename = filename.substr( strlen( DATA_DIR "/" ) );
+		std::string cache_filename = filename.substr( strlen( DATA_DIR "/" ) );
 
 		// if directory
-		if( filename.rfind( "." ) == string::npos )
+		if( filename.rfind( "." ) == std::string::npos )
 		{
 			if( !fs::exists( fs::path( imgcache_dir_active + "/" + cache_filename, fs::native ) ) )
 			{
@@ -839,13 +814,13 @@ void cVideo :: Init_Image_Cache( bool recreate /* = 0 */, bool draw_gui /* = 0 *
 		bool settings_file = 0;
 
 		// Don't use .settings file type directly for image loading
-		if( filename.rfind( ".settings" ) != string::npos )
+		if( filename.rfind( ".settings" ) != std::string::npos )
 		{
 			settings_file = 1;
 			filename.erase( filename.rfind( ".settings" ) );
 			filename.insert( filename.length(), ".png" );
 		}
-		
+
 		// load software image
 		cSoftware_Image software_image = Load_Image( filename );
 		SDL_Surface *sdl_surface = software_image.sdl_surface;
@@ -857,9 +832,14 @@ void cVideo :: Init_Image_Cache( bool recreate /* = 0 */, bool draw_gui /* = 0 *
 			continue;
 		}
 
-		// no settings
-		if( !settings )
+		/* if no image settings
+		 * additionally don't cache images without the width and height set
+		 * as there is currently no support to get the old and real image size
+		 * and thus the scaled down (cached) image size is used which is wrong
+		*/
+		if( !settings || !settings->m_width || !settings->m_height )
 		{
+			debug_print( "Info : %s has no image settings or the image size is not set so it can't get cached\n", cache_filename.c_str() );
 			SDL_FreeSurface( sdl_surface );
 			continue;
 		}
@@ -869,9 +849,12 @@ void cVideo :: Init_Image_Cache( bool recreate /* = 0 */, bool draw_gui /* = 0 *
 
 		// get final size for this resolution
 		cSize_Float size = settings->Get_Surface_Size( sdl_surface );
+		delete settings;
 		int new_width = static_cast<int>(size.m_width);
 		int new_height = static_cast<int>(size.m_height);
-		delete settings;
+
+		// apply maximum texture size
+		Apply_Max_Texture_Size( new_width, new_height );
 
 		// does not need to be sampled down
 		if( new_width >= sdl_surface->w && new_height >= sdl_surface->h )
@@ -888,6 +871,7 @@ void cVideo :: Init_Image_Cache( bool recreate /* = 0 */, bool draw_gui /* = 0 *
 		unsigned int image_bpp = sdl_surface->format->BytesPerPixel;
 		unsigned char *image_downsampled = new unsigned char[new_width * new_height * image_bpp];
 		bool sampled = Downscale_Image( static_cast<unsigned char*>(sdl_surface->pixels), sdl_surface->w, sdl_surface->h, image_bpp, image_downsampled, reduce_block_x, reduce_block_y );
+
 		SDL_FreeSurface( sdl_surface );
 		
 		// if image is available
@@ -903,7 +887,7 @@ void cVideo :: Init_Image_Cache( bool recreate /* = 0 */, bool draw_gui /* = 0 *
 			Save_Surface( imgcache_dir_active + "/" + cache_filename, image_downsampled, new_width, new_height, image_bpp );
 		}
 
-		delete image_downsampled;
+		delete[] image_downsampled;
 
 		// count files
 		loaded_files++;
@@ -912,23 +896,15 @@ void cVideo :: Init_Image_Cache( bool recreate /* = 0 */, bool draw_gui /* = 0 *
 		if( draw_gui )
 		{
 			// update filename
-			cGL_Surface *surface_filename = pFont->Render_Text( pFont->font_small, filename, white );
+			cGL_Surface *surface_filename = pFont->Render_Text( pFont->m_font_small, filename, white );
 
 			// update progress
 			progress_bar->setProgress( static_cast<float>(loaded_files) / static_cast<float>(file_count) );
-
-			// clear screen
-			Clear_Screen();
-			Draw_Rect( NULL, 0.01f, &black );
-
 			// draw filename
+
 			surface_filename->Blit( game_res_w * 0.2f, game_res_h * 0.8f, 0.1f );
 
-			// Render
-			pRenderer->Render();
-			pGuiSystem->renderGUI();
-			pRenderer_GUI->Render();
-			SDL_GL_SwapBuffers();
+			Loading_Screen_Draw();
 			
 			// delete
 			delete surface_filename;
@@ -936,12 +912,12 @@ void cVideo :: Init_Image_Cache( bool recreate /* = 0 */, bool draw_gui /* = 0 *
 	}
 
 	// set back texture detail
-	texture_detail = real_texture_detail;
+	m_texture_quality = real_texture_detail;
 	// set directory after surfaces got loaded from Load_GL_Surface()
-	imgcache_dir = imgcache_dir_active;
+	m_imgcache_dir = imgcache_dir_active;
 }
 
-int cVideo :: Test_Video( int width, int height, int bpp, int flags /* = 0 */ )
+int cVideo :: Test_Video( int width, int height, int bpp, int flags /* = 0 */ ) const
 {
 	// auto set the video flags
 	if( !flags )
@@ -958,7 +934,7 @@ int cVideo :: Test_Video( int width, int height, int bpp, int flags /* = 0 */ )
 	return SDL_VideoModeOK( width, height, bpp, flags );
 }
 
-vector<cSize_Int> cVideo :: Get_Supported_Resolutions( int flags /* = 0 */ )
+vector<cSize_Int> cVideo :: Get_Supported_Resolutions( int flags /* = 0 */ ) const
 {
 	vector<cSize_Int> valid_resolutions;
 
@@ -1003,19 +979,32 @@ vector<cSize_Int> cVideo :: Get_Supported_Resolutions( int flags /* = 0 */ )
 	return valid_resolutions;
 }
 
-void cVideo :: Clear_Screen( void )
+void cVideo :: Clear_Screen( void ) const
 {
+	// clear screen
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	// clear the matrix (default position and orientation)
 	glLoadIdentity();
 }
 
-void cVideo :: Render( void )
+void cVideo :: Render( void ) const
 {
 	pRenderer->Render();
+
+	// update performance timer
+	pFramerate->perf_timer[PERF_RENDER_GAME]->Update();
+
 	pGuiSystem->renderGUI();
 	pRenderer_GUI->Render();
 	pMouseCursor->Render();
+
+	// update performance timer
+	pFramerate->perf_timer[PERF_RENDER_GUI]->Update();
+
 	SDL_GL_SwapBuffers();
+
+	// update performance timer
+	pFramerate->perf_timer[PERF_RENDER_BUFFER]->Update();
 }
 
 void cVideo :: Toggle_Fullscreen( void )
@@ -1039,17 +1028,17 @@ void cVideo :: Toggle_Fullscreen( void )
 	glClearColor( clear_color[0], clear_color[1], clear_color[2], clear_color[3] );
 }
 
-cGL_Surface *cVideo :: Get_Surface( string filename, bool print_errors /* = 1 */ )
+cGL_Surface *cVideo :: Get_Surface( std::string filename, bool print_errors /* = 1 */ )
 {
 	// .settings file type can't be used directly
-	if( filename.find( ".settings" ) != string::npos )
+	if( filename.find( ".settings" ) != std::string::npos )
 	{
 		filename.erase( filename.find( ".settings" ) );
 		filename.insert( filename.length(), ".png" );
 	}
 
 	// pixmaps dir must be given
-	if( filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == string::npos )
+	if( filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == std::string::npos )
 	{
 		filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
 	}
@@ -1061,7 +1050,7 @@ cGL_Surface *cVideo :: Get_Surface( string filename, bool print_errors /* = 1 */
 	{
 		return image;
 	}
-	
+
 	// load new image
 	image = Load_GL_Surface( filename, 1, print_errors );
 	// add new image
@@ -1069,14 +1058,14 @@ cGL_Surface *cVideo :: Get_Surface( string filename, bool print_errors /* = 1 */
 	{
 		pImage_Manager->Add( image );
 	}
-	
+
 	return image;
 }
 
-cVideo::cSoftware_Image cVideo :: Load_Image( string filename, bool load_settings /* = 1 */, bool print_errors /* = 1 */ )
+cVideo::cSoftware_Image cVideo :: Load_Image( std::string filename, bool load_settings /* = 1 */, bool print_errors /* = 1 */ ) const
 {
 	// pixmaps dir must be given
-	if( filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == string::npos ) 
+	if( filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == std::string::npos ) 
 	{
 		filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
 	}
@@ -1088,10 +1077,10 @@ cVideo::cSoftware_Image cVideo :: Load_Image( string filename, bool load_setting
 	// load settings if available
 	if( load_settings )
 	{
-		string settings_file = filename;
+		std::string settings_file = filename;
 
 		// if not already set
-		if( settings_file.rfind( ".settings" ) == string::npos )
+		if( settings_file.rfind( ".settings" ) == std::string::npos )
 		{
 			settings_file.erase( settings_file.rfind( "." ) + 1 );
 			settings_file.insert( settings_file.rfind( "." ) + 1, "settings" );
@@ -1103,7 +1092,7 @@ cVideo::cSoftware_Image cVideo :: Load_Image( string filename, bool load_setting
 			settings = pSettingsParser->Get( settings_file );
 
 			// add cache dir and remove data dir
-			string img_filename_cache = imgcache_dir + "/" + settings_file.substr( strlen( DATA_DIR "/" ) ) + ".png";
+			std::string img_filename_cache = m_imgcache_dir + "/" + settings_file.substr( strlen( DATA_DIR "/" ) ) + ".png";
 
 			// check if image cache file exists
 			if( File_Exists( img_filename_cache ) )
@@ -1114,7 +1103,7 @@ cVideo::cSoftware_Image cVideo :: Load_Image( string filename, bool load_setting
 			else if( !settings->m_base.empty() )
 			{
 				// use current directory
-				string img_filename = filename.substr( 0, filename.rfind( "/" ) + 1 ) + settings->m_base;
+				std::string img_filename = filename.substr( 0, filename.rfind( "/" ) + 1 ) + settings->m_base;
 
 				// not found
 				if( !File_Exists( img_filename ) )
@@ -1123,7 +1112,7 @@ cVideo::cSoftware_Image cVideo :: Load_Image( string filename, bool load_setting
 					img_filename = settings->m_base;
 
 					// pixmaps dir must be given
-					if( img_filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == string::npos )
+					if( img_filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == std::string::npos )
 					{
 						img_filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
 					}
@@ -1161,10 +1150,10 @@ cVideo::cSoftware_Image cVideo :: Load_Image( string filename, bool load_setting
 	return software_image;
 }
 
-cGL_Surface *cVideo :: Load_GL_Surface( string filename, bool use_settings /* = 1 */, bool print_errors /* = 1 */ )
+cGL_Surface *cVideo :: Load_GL_Surface( std::string filename, bool use_settings /* = 1 */, bool print_errors /* = 1 */ )
 {
 	// pixmaps dir must be given
-	if( filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == string::npos ) 
+	if( filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == std::string::npos ) 
 	{
 		filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
 	}
@@ -1193,11 +1182,10 @@ cGL_Surface *cVideo :: Load_GL_Surface( string filename, bool use_settings /* = 
 	{
 		image = Create_Texture( sdl_surface );
 	}
-
 	// set filename
 	if( image )
 	{
-		image->filename = filename;
+		image->m_filename = filename;
 	}
 	// print error
 	else if( print_errors )
@@ -1208,7 +1196,7 @@ cGL_Surface *cVideo :: Load_GL_Surface( string filename, bool use_settings /* = 
 	return image;
 }
 
-SDL_Surface *cVideo :: Convert_To_Final_Software_Image( SDL_Surface *surface )
+SDL_Surface *cVideo :: Convert_To_Final_Software_Image( SDL_Surface *surface ) const
 {
 	// get power of two size
 	unsigned int width = Get_Power_of_2( surface->w );
@@ -1238,7 +1226,7 @@ SDL_Surface *cVideo :: Convert_To_Final_Software_Image( SDL_Surface *surface )
 	return surface;
 }
 
-cGL_Surface *cVideo :: Create_Texture( SDL_Surface *surface, bool mipmap /* = 0 */, unsigned int force_width /* = 0 */, unsigned int force_height /* = 0 */ )
+cGL_Surface *cVideo :: Create_Texture( SDL_Surface *surface, bool mipmap /* = 0 */, unsigned int force_width /* = 0 */, unsigned int force_height /* = 0 */ ) const
 {
 	if( !surface )
 	{
@@ -1266,46 +1254,59 @@ cGL_Surface *cVideo :: Create_Texture( SDL_Surface *surface, bool mipmap /* = 0 
 		pImage_Manager->high_texture_id = image_num;
 	}
 
-	unsigned int width = surface->w;
-	unsigned int height = surface->h;
+	int width = surface->w;
+	int height = surface->h;
 
-	// new dimension is set
+	// forced size is set
 	if( force_width > 0 && force_height > 0 )
 	{
 		// get power of two size
 		force_width = Get_Power_of_2( force_width );
 		force_height = Get_Power_of_2( force_height );
 
-		// scale
+		// apply forced size
 		if( force_width != width || force_height != height )
 		{
-			// create scaled image
-			void *new_pixels = SDL_malloc( force_width * force_height * 4 );
-			gluScaleImage( GL_RGBA, surface->w, surface->h, GL_UNSIGNED_BYTE, surface->pixels, force_width, force_height, GL_UNSIGNED_BYTE, new_pixels );
-			SDL_free( surface->pixels );
-			surface->pixels = new_pixels;
-
-			// set new dimension
 			width = force_width;
 			height = force_height;
 		}
-		// set SDL_image pixel store mode
-		else
-		{
-			glPixelStorei( GL_UNPACK_ROW_LENGTH, surface->pitch / surface->format->BytesPerPixel );
-		}
+	}
+
+	// texture size
+	int texture_width = width;
+	int texture_height = height;
+	// check if the image size is greater than the maximum texture size
+	Apply_Max_Texture_Size( texture_width, texture_height );
+
+	// scale to new size
+	if( texture_width != surface->w || texture_height != surface->h )
+	{
+		int reduce_block_x = surface->w / texture_width;
+		int reduce_block_y = surface->h / texture_height;
+
+		// create scaled image
+		unsigned char *new_pixels = static_cast<unsigned char*>(SDL_malloc( texture_width * texture_height * 4 ));
+		Downscale_Image( static_cast<unsigned char*>(surface->pixels), surface->w, surface->h, surface->format->BytesPerPixel, new_pixels, reduce_block_x, reduce_block_y );
+		SDL_free( surface->pixels );
+		surface->pixels = new_pixels;
+	}
+	// set SDL_image pixel store mode
+	else
+	{
+		glPixelStorei( GL_UNPACK_ROW_LENGTH, surface->pitch / surface->format->BytesPerPixel );
 	}
 
 	// use the generated texture
 	glBindTexture( GL_TEXTURE_2D, image_num );
 
-	// set how this texture is drawn
+	// set texture wrap modes which control how to interpret texture coordinates
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 	// set texture magnification function
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	// upload to OpenGL texture
-	Create_GL_Texture( width, height, surface->pixels, mipmap );
+	Create_GL_Texture( texture_width, texture_height, surface->pixels, mipmap );
+
 	// unset pixel store mode
 	glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
 
@@ -1313,86 +1314,95 @@ cGL_Surface *cVideo :: Create_Texture( SDL_Surface *surface, bool mipmap /* = 0 
 
 	// create OpenGL surface class
 	cGL_Surface *image = new cGL_Surface();
-	image->image = image_num;
-	image->tex_w = width;
-	image->tex_h = height;
-	image->start_w = static_cast<float>(width);
-	image->start_h = static_cast<float>(height);
-	image->w = image->start_w;
-	image->h = image->start_h;
-	image->col_w = image->w;
-	image->col_h = image->h;
+	image->m_image = image_num;
+	image->m_tex_w = texture_width;
+	image->m_tex_h = texture_height;
+	image->m_start_w = static_cast<float>(width);
+	image->m_start_h = static_cast<float>(height);
+	image->m_w = image->m_start_w;
+	image->m_h = image->m_start_h;
+	image->m_col_w = image->m_w;
+	image->m_col_h = image->m_h;
 
 	// if debug build check for errors
 #ifdef _DEBUG
-	GLenum error = glGetError();
-	if( error != GL_NO_ERROR )
+	while( 1 )
 	{
-		printf( "CreateTexture : GL Error found : %s\n", gluErrorString( error ) );
+		GLenum error = glGetError();
+
+		if( error != GL_NO_ERROR )
+		{
+			printf( "CreateTexture : GL Error found : %s\n", gluErrorString( error ) );
+		}
+		else
+		{
+			break;
+		}
 	}
 #endif
 
 	return image;
 }
 
-void cVideo :: Create_GL_Texture( unsigned int width, unsigned int height, void *pixels, bool mipmap /* = 0 */ )
+void cVideo :: Create_GL_Texture( unsigned int width, unsigned int height, const void *pixels, bool mipmap /* = 0 */ ) const
 {
+	// unsigned byte is an unsigned 8-bit integer (1 byte)
 	// create mipmaps
-    if( mipmap )
-    {
+	if( mipmap )
+	{
 		// enable mipmap filter
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
 
 		// if OpenGL 1.4 or higher
-        if( opengl_version >= 1.4f )
+		if( m_opengl_version >= 1.4f )
 		{
 			// use glTexImage2D to create Mipmaps
 			glTexParameteri( GL_TEXTURE_2D, GL_GENERATE_MIPMAP, 1 );
 			// copy the software bitmap into the opengl texture
 			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels );
-        }
+		}
 		// OpenGL below 1.4
 		else
 		{
 			// use glu to create Mipmaps
 			gluBuild2DMipmaps( GL_TEXTURE_2D, GL_RGBA, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels );
 		}
-    }
+	}
 	// no mipmaps
-    else
-    {
+	else
+	{
 		// default texture minifying function
- 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		// copy the software bitmap into the opengl texture
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels );
-    }
+	}
 }
 
-Color cVideo :: Get_Pixel( int x, int y, cGL_Surface *source /* = NULL */ )
+Color cVideo :: Get_Pixel( int x, int y ) const
 {
-	//glReadBuffer( GL_FRONT );
+	GLubyte *pixel = new GLubyte[3];
+	// read it
+	glReadPixels( x, y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel );
 
-	float *pixel = new float[3];
-	glLoadIdentity();
-	glReadPixels( x, y, 1, 1, GL_RGB, GL_FLOAT, pixel );
-
+	// convert to color
 	Color color = Color( pixel[0], pixel[1], pixel[2] );
+	// delete data
 	delete[] pixel;
 
 	return color;
 }
 
-void cVideo :: Draw_Line( GL_line *line, float z, const Color *color, cLineRequest *request /* = NULL */ )
+void cVideo :: Draw_Line( const GL_line *line, float z, const Color *color, cLine_Request *request /* = NULL */ ) const
 {
 	if( !line )
 	{
 		return;
 	}
 
-	Draw_Line( line->x1, line->y1, line->x2, line->y2, z, color, request );
+	Draw_Line( line->m_x1, line->m_y1, line->m_x2, line->m_y2, z, color, request );
 }
 
-void cVideo :: Draw_Line( float x1, float y1, float x2, float y2, float z, const Color *color, cLineRequest *request /* = NULL */ )
+void cVideo :: Draw_Line( float x1, float y1, float x2, float y2, float z, const Color *color, cLine_Request *request /* = NULL */ ) const
 {
 	if( !color )
 	{
@@ -1405,14 +1415,14 @@ void cVideo :: Draw_Line( float x1, float y1, float x2, float y2, float z, const
 	{
 		create_request = 1;
 		// create request
-		request = new cLineRequest();
+		request = new cLine_Request();
 	}
 
 	// line
-	request->line.x1 = x1;
-	request->line.y1 = y1;
-	request->line.x2 = x2;
-	request->line.y2 = y2;
+	request->line.m_x1 = x1;
+	request->line.m_y1 = y1;
+	request->line.m_x2 = x2;
+	request->line.m_y2 = y2;
 
 	// z position
 	request->pos_z = z;
@@ -1427,7 +1437,7 @@ void cVideo :: Draw_Line( float x1, float y1, float x2, float y2, float z, const
 	}
 }
 
-void cVideo :: Draw_Rect( GL_rect *rect, float z, const Color *color, cRectRequest *request /* = NULL */ )
+void cVideo :: Draw_Rect( const GL_rect *rect, float z, const Color *color, cRect_Request *request /* = NULL */ ) const
 {
 	if( !rect )
 	{
@@ -1435,11 +1445,11 @@ void cVideo :: Draw_Rect( GL_rect *rect, float z, const Color *color, cRectReque
 	}
 	else
 	{
-		Draw_Rect( rect->x, rect->y, rect->w, rect->h, z, color, request );
+		Draw_Rect( rect->m_x, rect->m_y, rect->m_w, rect->m_h, z, color, request );
 	}
 }
 
-void cVideo :: Draw_Rect( float x, float y, float width, float height, float z, const Color *color, cRectRequest *request /* = NULL */ )
+void cVideo :: Draw_Rect( float x, float y, float width, float height, float z, const Color *color, cRect_Request *request /* = NULL */ ) const
 {
 	if( !color || height == 0 || width == 0 )
 	{
@@ -1452,14 +1462,14 @@ void cVideo :: Draw_Rect( float x, float y, float width, float height, float z, 
 	{
 		create_request = 1;
 		// create request
-		request = new cRectRequest();
+		request = new cRect_Request();
 	}
 
 	// rect
-	request->rect.x = x;
-	request->rect.y = y;
-	request->rect.w = width;
-	request->rect.h = height;
+	request->rect.m_x = x;
+	request->rect.m_y = y;
+	request->rect.m_w = width;
+	request->rect.m_h = height;
 
 	// z position
 	request->pos_z = z;
@@ -1474,7 +1484,7 @@ void cVideo :: Draw_Rect( float x, float y, float width, float height, float z, 
 	}
 }
 
-void cVideo :: Draw_Gradient( GL_rect *rect, float z, const Color *color_1, const Color *color_2, ObjectDirection direction, cGradientRequest *request /* = NULL */ )
+void cVideo :: Draw_Gradient( const GL_rect *rect, float z, const Color *color_1, const Color *color_2, ObjectDirection direction, cGradient_Request *request /* = NULL */ ) const
 {
 	if( !rect )
 	{
@@ -1482,11 +1492,11 @@ void cVideo :: Draw_Gradient( GL_rect *rect, float z, const Color *color_1, cons
 	}
 	else
 	{
-		Draw_Gradient( rect->x, rect->y, rect->w, rect->h, z, color_1, color_2, direction, request );
+		Draw_Gradient( rect->m_x, rect->m_y, rect->m_w, rect->m_h, z, color_1, color_2, direction, request );
 	}
 }
 
-void cVideo :: Draw_Gradient( float x, float y, float width, float height, float z, const Color *color_1, const Color *color_2, ObjectDirection direction, cGradientRequest *request /* = NULL */ )
+void cVideo :: Draw_Gradient( float x, float y, float width, float height, float z, const Color *color_1, const Color *color_2, ObjectDirection direction, cGradient_Request *request /* = NULL */ ) const
 {
 	if( !color_1 || !color_2 || height == 0 || width == 0 )
 	{
@@ -1499,14 +1509,14 @@ void cVideo :: Draw_Gradient( float x, float y, float width, float height, float
 	{
 		create_request = 1;
 		// create request
-		request = new cGradientRequest();
+		request = new cGradient_Request();
 	}
 
 	// rect
-	request->rect.x = x;
-	request->rect.y = y;
-	request->rect.w = width;
-	request->rect.h = height;
+	request->rect.m_x = x;
+	request->rect.m_y = y;
+	request->rect.m_w = width;
+	request->rect.m_h = height;
 
 	// z position
 	request->pos_z = z;
@@ -1525,7 +1535,7 @@ void cVideo :: Draw_Gradient( float x, float y, float width, float height, float
 	}
 }
 
-void cVideo :: Draw_Circle( float x, float y, float radius, float z, Color *color, cCircleRequest *request /* = NULL */ )
+void cVideo :: Draw_Circle( float x, float y, float radius, float z, const Color *color, cCircle_Request *request /* = NULL */ ) const
 {
 	if( !color || radius <= 0 )
 	{
@@ -1538,12 +1548,12 @@ void cVideo :: Draw_Circle( float x, float y, float radius, float z, Color *colo
 	{
 		create_request = 1;
 		// create request
-		request = new cCircleRequest();
+		request = new cCircle_Request();
 	}
 
 	// position
-	request->pos.x = x;
-	request->pos.y = y;
+	request->pos.m_x = x;
+	request->pos.m_y = y;
 	// radius
 	request->radius = radius;
 
@@ -1560,7 +1570,7 @@ void cVideo :: Draw_Circle( float x, float y, float radius, float z, Color *colo
 	}
 }
 
-float cVideo :: Get_Scale( cGL_Surface *image, float width, float height, bool only_downscale /* = 1 */ )
+float cVideo :: Get_Scale( const cGL_Surface *image, float width, float height, bool only_downscale /* = 1 */ ) const
 {
 	if( !image )
 	{
@@ -1568,13 +1578,13 @@ float cVideo :: Get_Scale( cGL_Surface *image, float width, float height, bool o
 	}
 
 	// change size
-	if( !( only_downscale && image->h <= height && image->w <= width ) )
+	if( !( only_downscale && image->m_h <= height && image->m_w <= width ) )
 	{
-		float zoom = width / image->w;
+		float zoom = width / image->m_w;
 
-		if( height / image->h < zoom ) // if height is smaller
+		if( height / image->m_h < zoom ) // if height is smaller
 		{
-			zoom = height / image->h;
+			zoom = height / image->m_h;
 		}
 
 		return zoom;
@@ -1583,13 +1593,45 @@ float cVideo :: Get_Scale( cGL_Surface *image, float width, float height, bool o
 	return 1;
 }
 
+void cVideo :: Apply_Max_Texture_Size( int &width, int &height ) const
+{
+	if( width > m_max_texture_size )
+	{
+		// change height to keep aspect ratio
+		int scale_down = width / m_max_texture_size;
+
+		if( scale_down < 1 )
+		{
+			debug_print( "Warning : image height scale down %d is invalid\n", scale_down );
+			scale_down = 1;
+		}
+
+		height = height / scale_down;
+		width = m_max_texture_size;
+	}
+	if( height > m_max_texture_size )
+	{
+		// change width to keep aspect ratio
+		int scale_down = height / m_max_texture_size;
+
+		if( scale_down < 1 )
+		{
+			debug_print( "Warning : image width scale down %d is invalid\n", scale_down );
+			scale_down = 1;
+		}
+
+		width = width / scale_down;
+		height = m_max_texture_size;
+	}
+}
+
 /* function from Jonathan Dummer
  * from image helper functions
  * MIT license
 */
-bool cVideo :: Downscale_Image( const unsigned char* const orig, int width, int height, int channels, unsigned char* resampled, int block_size_x, int block_size_y )
+bool cVideo :: Downscale_Image( const unsigned char* const orig, int width, int height, int channels, unsigned char* resampled, int block_size_x, int block_size_y ) const
 {
-	//	error check
+	// error check
 	if( width <= 0 || height <= 0 || channels <= 0 || orig == NULL || resampled == NULL || block_size_x <= 0 || block_size_y <= 0 )
 	{
 		// invalid argument
@@ -1658,9 +1700,9 @@ bool cVideo :: Downscale_Image( const unsigned char* const orig, int width, int 
 	return 1;
 }
 
-void cVideo :: Save_Screenshot( void )
+void cVideo :: Save_Screenshot( void ) const
 {
-	string filename;
+	std::string filename;
 	
 	for( unsigned int i = 1; i < 1000; i++ )
 	{
@@ -1678,7 +1720,7 @@ void cVideo :: Save_Screenshot( void )
 			delete[] data;
 
 			// show info
-			debugdisplay->Set_Text( "Screenshot " + int_to_string( i ) + _(" saved"), speedfactor_fps * 2.5f );
+			pHud_Debug->Set_Text( "Screenshot " + int_to_string( i ) + _(" saved"), speedfactor_fps * 2.5f );
 
 			// finished
 			return;
@@ -1686,7 +1728,7 @@ void cVideo :: Save_Screenshot( void )
 	}
 }
 
-void cVideo :: Save_Surface( string filename, unsigned char *data, unsigned int width, unsigned int height, unsigned int bpp /* = 4 */, bool reverse_data /* = 0 */ )
+void cVideo :: Save_Surface( const std::string &filename, const unsigned char *data, unsigned int width, unsigned int height, unsigned int bpp /* = 4 */, bool reverse_data /* = 0 */ ) const
 {
 	FILE *fp = NULL;
 
@@ -1785,7 +1827,7 @@ void Draw_Effect_Out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 			color.alpha = static_cast<Uint8>( 45 - ( 45 * i ) );
 
 			// create request
-			cRectRequest *request = new cRectRequest();
+			cRect_Request *request = new cRect_Request();
 			pVideo->Draw_Rect( NULL, 0.9f, &color, request );
 			
 			request->render_count = 2;
@@ -1804,10 +1846,9 @@ void Draw_Effect_Out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 	}
 	case EFFECT_OUT_HORIZONTAL_VERTICAL:
 	{
-		float pos = 0;
-		float size = 1;
 		int hor = ( rand() % 2 ) - 1;
-		Color color = Color( static_cast<Uint8>( rand() % 100 ), rand() % 100, rand() % 100, 150 );
+		float pos = 0;
+		float pos_end = 0;
 
 		// horizontal
 		if( hor )
@@ -1820,48 +1861,69 @@ void Draw_Effect_Out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 			pos = static_cast<float>(game_res_h);
 		}
 
-		while( pos > 0 )
+		Color color = Color( static_cast<Uint8>( 0 ), 0, 0, 0 );
+		float alpha = 10.0f;
+
+		while( pos > pos_end * 0.5f )
 		{
+			// fade alpha in
+			if( alpha < 255.0f )
+			{
+				alpha += 10 * pFramerate->speedfactor;
+
+				if( alpha > 255.0f )
+				{
+					alpha = 255.0f;
+				}
+
+				color.alpha = static_cast<Uint8>(alpha);
+			}
+
+			// draw gradient
+			cGradient_Request *gradient_request = new cGradient_Request();
+
 			// horizontal
 			if( hor )
 			{
-				// left/top
-				cRectRequest *rect_request = new cRectRequest();
-				pVideo->Draw_Rect( pos, 0, size, static_cast<float>(game_res_h), 0.9f, &color, rect_request );
-				rect_request->render_count = 2;
-				// add request
-				pRenderer->Add( rect_request );
-
-				// down/right
-				rect_request = new cRectRequest();
-				pVideo->Draw_Rect( static_cast<float>(game_res_w) - pos - size, 0, size, static_cast<float>(game_res_h), 0.9f, &color, rect_request );
-				rect_request->render_count = 2;
-				// add request
-				pRenderer->Add( rect_request );
-
-				size = 20 * pFramerate->speedfactor;
-				pos -= size;
+				pos -= 20 * pFramerate->speedfactor;
+				pos_end = static_cast<float>(game_res_w) - pos;
+				// left
+				pVideo->Draw_Gradient( 0, 0, pos_end, static_cast<float>(game_res_h), 0.9f, &color, &black, DIR_HORIZONTAL, gradient_request );
 			}
 			// vertical
 			else
 			{
-				// left/top
-				cRectRequest *rect_request = new cRectRequest();
-				pVideo->Draw_Rect( 0, pos, static_cast<float>(game_res_w), size, 0.9f, &color, rect_request );
-				rect_request->render_count = 2;
-				// add request
-				pRenderer->Add( rect_request );
-
-				// down/right
-				rect_request = new cRectRequest();
-				pVideo->Draw_Rect( 0, static_cast<float>(game_res_h) - pos - size, static_cast<float>(game_res_w), size, 0.9f, &color, rect_request );
-				rect_request->render_count = 2;
-				// add request
-				pRenderer->Add( rect_request );
-
-				size = 15 * pFramerate->speedfactor;
-				pos -= size;
+				pos -= 15 * pFramerate->speedfactor;
+				pos_end = static_cast<float>(game_res_h) - pos;
+				// top
+				pVideo->Draw_Gradient( 0, 0, static_cast<float>(game_res_w), pos_end, 0.9f, &color, &black, DIR_VERTICAL, gradient_request );
 			}
+
+			gradient_request->render_count = 2;
+			// add request
+			pRenderer->Add( gradient_request );
+
+			gradient_request = new cGradient_Request();
+
+			// horizontal
+			if( hor )
+			{
+				// right
+				pVideo->Draw_Gradient( static_cast<float>(game_res_w) - pos_end, 0, pos_end, static_cast<float>(game_res_h), 0.9f, &color, &black, DIR_HORIZONTAL, gradient_request );
+			}
+			// vertical
+			else
+			{
+				// down
+				pVideo->Draw_Gradient( 0, static_cast<float>(game_res_h) - pos_end, static_cast<float>(game_res_w), pos_end, 0.9f, &color, &black, DIR_VERTICAL, gradient_request );
+			}
+
+			gradient_request->render_count = 2;
+			// add request
+			pRenderer->Add( gradient_request );
+
+			// draw game
+			Draw_Game();
 
 			pVideo->Render();
 
@@ -1910,8 +1972,8 @@ void Draw_Effect_Out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 
 			// ## item
 			// create request
-			cSurfaceRequest *request = new cSurfaceRequest();
-			image->Blit( ( game_res_w / 2 ) - ( ( image->w * f ) / 2 ) , game_res_h / 2 - ( ( image->h * f ) / 2 ), 0.9f, request );
+			cSurface_Request *request = new cSurface_Request();
+			image->Blit( ( game_res_w * 0.5f ) - ( ( image->m_w * f ) / 2 ) , game_res_h * 0.5f - ( ( image->m_h * f ) / 2 ), 0.9f, request );
 
 			request->blend_sfactor = GL_SRC_ALPHA;
 			request->blend_dfactor = GL_ONE;
@@ -1930,7 +1992,7 @@ void Draw_Effect_Out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 			color = Color( 0, 0, 0, static_cast<Uint8>( 50 + ( f * 4 ) ) );
 
 			// create request
-			cRectRequest *rect_request = new cRectRequest();
+			cRect_Request *rect_request = new cRect_Request();
 			pVideo->Draw_Rect( NULL, 0.901f, &color, rect_request );
 
 			// add request
@@ -1944,58 +2006,44 @@ void Draw_Effect_Out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 	}
 	case EFFECT_OUT_RANDOM_COLOR_BOOST:
 	{
-		float f = 50;
-		unsigned int rand_color = ( rand() % 4 );
+		unsigned int rand_color_num = ( rand() % 4 );
 
-		float xwidth = 45;
+		Color rand_color;
 
-		GL_rect rect;
-		
-		while( f > 0 )
+		// red
+		if( rand_color_num == 0 )
 		{
-			xwidth -= 0.1f + ( xwidth / 50 ) * pFramerate->speedfactor;
+			rand_color = Color( static_cast<Uint8>( 1 ), 20, 20, 4 );
+		}
+		// green
+		else if( rand_color_num == 1 )
+		{
+			rand_color = Color( static_cast<Uint8>( 20 ), 1, 20, 4 );
+		}
+		// blue
+		else if( rand_color_num == 2 )
+		{
+			rand_color = Color( static_cast<Uint8>( 20 ), 20, 1, 4 );
+		}
+		// yellow
+		else
+		{
+			rand_color = Color( static_cast<Uint8>( 1 ), 1, 40, 4 );
+		}
 
-			rect.w = xwidth;
-			rect.h = xwidth;
+		// rect size
+		float rect_size = 1.0f;
+
+		while( rect_size < 200.0f )
+		{
+			rect_size += 4.0f * pFramerate->speedfactor;
 
 			for( unsigned int g = 0; g < 50; g++ )
 			{
-				rect.x = Get_Random_Float( 0, static_cast<float>(game_res_w) );
-				rect.y = Get_Random_Float( 0, static_cast<float>(game_res_h) );
-
-				Color pixel = black;
-
-				// red
-				if( rand_color == 0 )
-				{
-					pixel = Color( 1, static_cast<Uint8>( 45 ), static_cast<Uint8>( 45 ), static_cast<Uint8>( 5 * pFramerate->speedfactor ) );
-				}
-				// green
-				else if( rand_color == 1 )
-				{
-					pixel = Color( static_cast<Uint8>( 45 ), 1, static_cast<Uint8>( 45 ), static_cast<Uint8>( 5 * pFramerate->speedfactor ) );
-				}
-				// blue
-				else if( rand_color == 2 )
-				{
-					pixel = Color( static_cast<Uint8>( 45 ), static_cast<Uint8>( 45 ), 1, static_cast<Uint8>( 5 * pFramerate->speedfactor ) );
-				}
-				// yellow
-				else
-				{
-					pixel = Color( 1, 1, static_cast<Uint8>( 45 ), static_cast<Uint8>( 6 * pFramerate->speedfactor ) );
-				}
-
-				// minimum alpha
-				if( pixel.alpha < 5 )
-				{
-					pixel.alpha = 5;
-				}
-				
 				// create request
-				cRectRequest *request = new cRectRequest();
-				pVideo->Draw_Rect( rect.x, rect.y, rect.w - (xwidth * 0.5f), rect.h - (xwidth * 0.5f), 0.9f, &pixel, request );
-				
+				cRect_Request *request = new cRect_Request();
+				pVideo->Draw_Rect( Get_Random_Float( -rect_size * 0.5f, game_res_w - rect_size * 0.5f ), Get_Random_Float( -rect_size * 0.5f, game_res_h - rect_size * 0.5f ), rect_size, rect_size, 0.9f, &rand_color, request );
+
 				request->render_count = 2;
 
 				request->blend_sfactor = GL_SRC_ALPHA;
@@ -2004,171 +2052,198 @@ void Draw_Effect_Out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 				// add request
 				pRenderer->Add( request );
 			}
-			
-			f -= pFramerate->speedfactor;
 
 			pVideo->Render();
 			pFramerate->Update();
 		}
 		break;
 	}
-	case EFFECT_OUT_TILE_PIXELATION:
+	case EFFECT_OUT_BLACK_TILED_RECTS:
 	{
-		const unsigned int num_hor = 8;
-		const unsigned int num_ver = 6;
-		unsigned int num = num_hor * num_ver;
+		// grid settings
+		const unsigned int tiles_num_hor = 8;
+		const unsigned int tiles_num_ver = 6;
+		const unsigned int tiles_num = tiles_num_hor * tiles_num_ver;
 
-		bool grid[num_ver][num_hor];
+		// the grid
+		float grid[tiles_num_ver][tiles_num_hor];
 
-		for( unsigned int i = 0; i < num_ver; i++ )
+		// init grid
+		for( unsigned int i = 0; i < tiles_num_ver; i++ )
 		{
-			for( unsigned int j = 0; j < num_hor; j++ )
+			for( unsigned int j = 0; j < tiles_num_hor; j++ )
 			{
-				grid[i][j] = 1;
+				grid[i][j] = 0.0f;
 			}
 		}
 		
-		unsigned int select_x = 0, select_y = 0;
-		unsigned int temp;
-		GL_rect dest( 0, 0, static_cast<float>(game_res_w) / num_hor, static_cast<float>(game_res_h) / num_ver );
-		
-		for( unsigned int i = 0; i < num; i++ )
+		unsigned int selected_tile_x = 0;
+		unsigned int selected_tile_y = 0;
+
+		unsigned int activated_tiles = 0;
+
+		GL_rect dest( 0, 0, static_cast<float>(game_res_w) / tiles_num_hor, static_cast<float>(game_res_h) / tiles_num_ver );
+		Color color = black;
+
+		// update until the latest tile did fade in
+		while( grid[selected_tile_y][selected_tile_x] < 60.0f )
 		{
-			while( grid[select_y][select_x] == 0 ) // find a unused rect
+			// if not all activated
+			if( activated_tiles < tiles_num )
 			{
-				temp = rand()%( num );
+				// find an unused rect
+				while( grid[selected_tile_y][selected_tile_x] > 0.1f )
+				{
+					unsigned int temp = rand() % tiles_num;
 
-				select_y = temp / num_hor;
-				select_x = temp % num_hor;
+					selected_tile_y = temp / tiles_num_hor;
+					selected_tile_x = temp % tiles_num_hor;
+				}
+
+				// activate it
+				grid[selected_tile_y][selected_tile_x] = 0.2f;
+				activated_tiles++;
 			}
-
-			grid[select_y][select_x] = 0;
-			dest.x = select_x * dest.w;
-			dest.y = select_y * dest.h;
 			
-			Color color = black;
+			// fade in and draw all activated tiles
+			for( unsigned int x = 0; x < tiles_num_hor; x++ )
+			{
+				for( unsigned int y = 0; y < tiles_num_ver; y++ )
+				{
+					// not activated
+					if( grid[y][x] < 0.1f )
+					{
+						continue;
+					}
 
-			// create request
-			cRectRequest *request = new cRectRequest();
-			pVideo->Draw_Rect( &dest, 0.9f, &color, request );
-			
-			request->render_count = 2;
+					// fade in
+					if( grid[y][x] < 120.0f )
+					{
+						grid[y][x] += pFramerate->speedfactor;
+						
+						if( grid[y][x] > 120.0f )
+						{
+							grid[y][x] = 120.0f;
+						}
+					}
 
-			// add request
-			pRenderer->Add( request );
-			
+					// set position
+					dest.m_x = x * dest.m_w;
+					dest.m_y = y * dest.m_h;
+					// set alpha
+					color.alpha = static_cast<Uint8>(grid[y][x] * 0.4f);
+
+					// create request
+					cRect_Request *request = new cRect_Request();
+					pVideo->Draw_Rect( &dest, 0.9f, &color, request );
+
+					// rotation
+					request->rotz = grid[y][x] * 5.0f;
+
+					// scale
+					request->scale_x = 0.1f + (grid[y][x] * 0.02f);
+					request->scale_y = request->scale_x;
+					request->rect.m_x -= ( dest.m_w * 0.5f ) * ( request->scale_x - 1.0f );
+					request->rect.m_y -= ( dest.m_h * 0.5f ) * ( request->scale_y - 1.0f );
+
+
+					request->render_count = 2;
+					// add request
+					pRenderer->Add( request );
+				}
+			}
 
 			pVideo->Render();
 			pFramerate->Update();
-			Correct_Frame_Time( speedfactor_fps ); // correction needed
+			// correction needed
+			Correct_Frame_Time( speedfactor_fps * 2 );
 		}
 		break;
 	}
 	case EFFECT_OUT_FIXED_COLORBOX:
 	{
-		Color color( static_cast<Uint8>(0), 0, 0, 20 );
+		Color start_color;
 
-		unsigned int rand_color = ( rand() % 3 );
+		const unsigned int rand_color = ( rand() % 2 );
 
 		// green
 		if( rand_color == 0 )
 		{
-			color = Color( static_cast<Uint8>(10), 55, 10 );
+			start_color = Color( static_cast<Uint8>(10), 55, 10, 250 );
 		}
 		// blue
-		else if( rand_color == 1 )
-		{
-			color = Color( static_cast<Uint8>(10), 10, 55 );
-		}
-		// red - yellow
 		else
 		{
-			color = Color( static_cast<Uint8>(55), 20, 10 );
+			start_color = Color( static_cast<Uint8>(10), 10, 55, 250 );
 		}
+
+		Color color = start_color;
+		float color_mod = 1.0f;
 
 		// position
 		float pos_x = 0;
 		float pos_y = 0;
 		// size
 		float rect_size = 20;
-		// counter
-		float random_counter = 0;
-		// temp rect for drawing
+		// rect used for grid drawing
 		GL_rect rect;
 
-		// animate while size did not reach the limit
-		while( rect_size < 30 )
+		// animate until size reached the limit
+		while( rect_size < 35 )
 		{
 			// add size
 			rect_size += 0.3f * pFramerate->speedfactor;
 
-			// change position and color
-			if( random_counter < rect_size )
+			// change color modification
+			if( color_mod > 0.0f )
 			{
-				// color gets darker
-				if( color.red > 1 )
+				color_mod -= 0.04f * pFramerate->speedfactor;
+
+				if( color_mod < 0.0f )
 				{
-					color.red = static_cast<Uint8>(color.red * 0.7f);
-					if( color.red < 1 )
-					{
-						color.red = 1;
-					}
-				}
-				if( color.green > 1 )
-				{
-					color.green = static_cast<Uint8>(color.green * 0.7f);
-					if( color.green < 1 )
-					{
-						color.green = 1;
-					}
-				}
-				if( color.blue > 1 )
-				{
-					color.blue = static_cast<Uint8>(color.blue * 0.7f);
-					if( color.blue < 1 )
-					{
-						color.blue = 1;
-					}
+					color_mod = 0.0f;
 				}
 
-				// random position advances with size
-				pos_x = Get_Random_Float( -(rect_size), 0 );
-				pos_y = Get_Random_Float( -(rect_size), 0 );
-
-				// set counter
-				random_counter = rect_size + 2;
+				// darken color
+				color.red = static_cast<Uint8>(start_color.red * color_mod);
+				color.green = static_cast<Uint8>(start_color.green * color_mod);
+				color.blue = static_cast<Uint8>(start_color.blue * color_mod);
+				color.alpha = static_cast<Uint8>(rect_size * 0.3f);
 			}
+
+			// continuous random position advance
+			float random = Get_Random_Float( 2.0f, 3.0f );
+			pos_x -= random;
+			pos_y -= random + Get_Random_Float( 0.1f, 0.1f );
 
 			// draw rects as a net
 			// horizontal
-			for( rect.x = pos_x; rect.x < game_res_w; rect.x += random_counter )
+			for( rect.m_x = pos_x; rect.m_x < game_res_w; rect.m_x += 20 + ( rect_size * color_mod ) )
 			{
 				// vertical
-				for( rect.y = pos_y; rect.y < game_res_h; rect.y += random_counter )
+				for( rect.m_y = pos_y; rect.m_y < game_res_h; rect.m_y += 20 + ( rect_size * color_mod ) )
 				{
-					rect.w = Get_Random_Float( 0, random_counter );
-					rect.h = Get_Random_Float( 0, random_counter );
-
-					Color pixel_color = Color( 5 + ( rand() % color.red ), 5 + ( rand() % color.green ), 5 + ( rand() % color.blue ), color.alpha );
+					rect.m_w = Get_Random_Float( 1.0f, 0.2f + ( rect_size * 1.5f ) );
+					rect.m_h = Get_Random_Float( 1.0f, 0.2f + ( rect_size * 1.5f ) );
 
 					// create request
-					cRectRequest *request = new cRectRequest();
-					pVideo->Draw_Rect( &rect, 0.9f, &pixel_color, request );
+					cRect_Request *request = new cRect_Request();
+					pVideo->Draw_Rect( &rect, 0.9f, &color, request );
 
 					request->render_count = 2;
-
-					request->blend_sfactor = GL_ONE_MINUS_SRC_ALPHA;
-					request->blend_dfactor = GL_ONE_MINUS_SRC_COLOR;
 
 					// add request
 					pRenderer->Add( request );
 				}
 			}
 
-			Color rect_color = color;
-			rect_color.alpha = 120 - static_cast<Uint8>(rect_size * 3);
+			Color rect_color;
+			rect_color.red = static_cast<Uint8>(start_color.red * 0.1f * color_mod);
+			rect_color.green = static_cast<Uint8>(start_color.green * 0.1f * color_mod);
+			rect_color.blue = static_cast<Uint8>(start_color.blue * 0.1f * color_mod);
+			rect_color.alpha = static_cast<Uint8>(rect_size * 3);
 			// create request
-			cRectRequest *request = new cRectRequest();
+			cRect_Request *request = new cRect_Request();
 			pVideo->Draw_Rect( NULL, 0.9f, &rect_color, request );
 			
 			request->render_count = 2;
@@ -2181,6 +2256,8 @@ void Draw_Effect_Out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 
 			pVideo->Render();
 			pFramerate->Update();
+			// correction needed
+			Correct_Frame_Time( speedfactor_fps * 2 );
 		}
 		break;
 	}
@@ -2212,7 +2289,7 @@ void Draw_Effect_In( Effect_Fadein effect /* = EFFECT_IN_RANDOM */, float speed 
 			color.alpha = static_cast<Uint8>( 255 * i );
 
 			// create request
-			cRectRequest *request = new cRectRequest();
+			cRect_Request *request = new cRect_Request();
 			pVideo->Draw_Rect( NULL, 0.9f, &color, request );
 
 			// add request
@@ -2261,7 +2338,7 @@ void Loading_Screen_Init( void )
 	text_default->setText( _("Loading") );
 }
 
-void Loading_Screen_Draw_Text( string str_info /* = "Loading" */ )
+void Loading_Screen_Draw_Text( const std::string &str_info /* = "Loading" */ )
 {
 	// set info text
 	CEGUI::Window *text_default = static_cast<CEGUI::Window *>(CEGUI::WindowManager::getSingleton().getWindow( "text_loading" ));
@@ -2271,6 +2348,17 @@ void Loading_Screen_Draw_Text( string str_info /* = "Loading" */ )
 		return;
 	}
 	text_default->setText( reinterpret_cast<const CEGUI::utf8*>(str_info.c_str()) );
+
+	Loading_Screen_Draw();
+}
+
+void Loading_Screen_Draw( void )
+{
+	// limit fps or vsync will slow down the loading
+	if( !Is_Frame_Time( 60 ) )
+	{
+		return;
+	}
 
 	// clear screen
 	pVideo->Clear_Screen();
@@ -2313,3 +2401,7 @@ CEGUI::OpenGLRenderer *pGuiRenderer = NULL;
 CEGUI::System *pGuiSystem = NULL;
 
 SDL_Surface *screen = NULL;
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

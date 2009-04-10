@@ -1,7 +1,7 @@
 /***************************************************************************
  * waypoint.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,6 +19,9 @@
 #include "../core/globals.h"
 #include "../video/video.h"
 #include "../objects/movingsprite.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** Waypoint types *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -47,31 +50,35 @@ public:
 	virtual cWaypoint *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
+	virtual void Save_To_Stream( ofstream &file );
 
 	// Update
 	virtual void Update( void );
 	// Draw
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
 	// Set Access
 	void Set_Access( bool enabled, bool new_start_access = 0 );
 
 	// Set the Destination
-	void Set_Destination( string str );
+	void Set_Destination( std::string str );
 	// Returns the Destination
-	string Get_Destination( bool with_dir = 0, bool with_end = 0 );
+	std::string Get_Destination( bool with_dir = 0, bool with_end = 0 ) const;
 
 	// editor activation
 	virtual void Editor_Activate( void );
-	// editor events
-	bool Editor_Type_Select( const CEGUI::EventArgs &event ); // editor type option selected
-	bool Editor_Destination_Key( const CEGUI::EventArgs &event );  // editor destination key up
-	bool Editor_Access_Select( const CEGUI::EventArgs &event ); // editor access option selected
-	bool Editor_Backward_Direction_Select( const CEGUI::EventArgs &event ); // editor direction backward option selected
-	bool Editor_Forward_Direction_Select( const CEGUI::EventArgs &event ); // editor direction forward option selected
+	// editor type option selected event
+	bool Editor_Type_Select( const CEGUI::EventArgs &event );
+	// editor destination text changed event
+	bool Editor_Destination_Text_Changed( const CEGUI::EventArgs &event );
+	// editor access option selected event
+	bool Editor_Access_Select( const CEGUI::EventArgs &event );
+	// editor direction backward option selected event
+	bool Editor_Backward_Direction_Select( const CEGUI::EventArgs &event );
+	// editor direction forward option selected event
+	bool Editor_Forward_Direction_Select( const CEGUI::EventArgs &event );
 
 	/* backward and forward direction
 	 */
@@ -82,7 +89,7 @@ public:
 	*/
 	Waypoint_type waypoint_type;
 	// destination
-	string destination;
+	std::string destination;
 
 	// if this waypoint is accessible
 	bool access;
@@ -102,5 +109,7 @@ public:
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

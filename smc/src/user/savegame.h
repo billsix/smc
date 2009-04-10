@@ -1,7 +1,7 @@
 /***************************************************************************
  * savegame.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -16,8 +16,13 @@
 #ifndef SMC_SAVEGAME_H
 #define SMC_SAVEGAME_H
 
-#include "../core/globals.h"
 #include "../objects/sprite.h"
+// CEGUI
+#include "CEGUIXMLHandler.h"
+#include "CEGUIXMLAttributes.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -34,7 +39,7 @@ public:
 	cSave_Overworld_Waypoint( void );
 	~cSave_Overworld_Waypoint( void );
 
-	string destination;
+	std::string destination;
 	bool access;
 };
 
@@ -51,10 +56,10 @@ public:
 	cSave_Overworld( void );
 	~cSave_Overworld( void );
 
-	string name;
+	std::string name;
 
 	// waypoint data
-	Save_Overworld_WaypointList Waypoints;
+	Save_Overworld_WaypointList m_waypoints;
 };
 
 typedef vector<cSave_Overworld *> Save_OverworldList;
@@ -65,10 +70,10 @@ typedef vector<cSave_Overworld *> Save_OverworldList;
 class cSave_Level_Object_Property
 {
 public:
-	cSave_Level_Object_Property( string nName = "", string nValue = "" );
+	cSave_Level_Object_Property( const std::string &n_name = "", const std::string &nv_alue = "" );
 
-	string Name;
-	string Value;
+	std::string m_name;
+	std::string m_value;
 };
 
 typedef vector<cSave_Level_Object_Property> Save_Level_Object_ProprtyList;
@@ -84,15 +89,15 @@ public:
 	~cSave_Level_Object( void );
 
 	// Check if property exists
-	bool exists( string val_name );
+	bool exists( const std::string &val_name );
 
 	// Returns the Value
-	string Get_Value( string val_name );
+	std::string Get_Value( const std::string &val_name );
 
-	SpriteType type;
+	SpriteType m_type;
 
 	// object properties
-	Save_Level_Object_ProprtyList properties;
+	Save_Level_Object_ProprtyList m_properties;
 };
 
 typedef vector<cSave_Level_Object *> Save_Level_ObjectList;
@@ -107,12 +112,12 @@ public:
 	cSave( void );
 	~cSave( void );
 
-	// Set data to default/empty values
-	void Clear( void );
+	// Initialize data to empty values
+	void Init( void );
 
 	// ## Save Information
 	// description
-	string description;
+	std::string description;
 	// savegame version
 	int version;
 	// time  ( seconds since 1970 )
@@ -136,20 +141,22 @@ public:
 	/* level name
 	 * only saved if player is in a level
 	*/
-	string level_name;
+	std::string level_name;
 	// level position
 	float level_posx, level_posy;
 	// objects data
 	Save_Level_ObjectList level_objects;
 
 	// ## Overworld Information
-	// active Overworld
-	string overworld_active;
-	// current Waypoint
+	/* active overworld
+	 * if not set game mode is custom level
+	*/
+	std::string overworld_active;
+	// current waypoint
 	unsigned int overworld_current_waypoint;
 
 	// overworld data
-	Save_OverworldList Overworlds;
+	Save_OverworldList m_overworlds;
 };
 
 /* *** *** *** *** *** *** *** cSavegame *** *** *** *** *** *** *** *** *** *** */
@@ -167,7 +174,7 @@ public:
 	*/
 	int Load_Game( unsigned int save_slot );
 	// Save the game with the given description
-	bool Save_Game( unsigned int save_slot, string description );
+	bool Save_Game( unsigned int save_slot, std::string description );
 
 	// Load a Save
 	cSave *Load( unsigned int save_slot );
@@ -175,10 +182,10 @@ public:
 	int Save( unsigned int save_slot, cSave *Save_info );
 
 	// Returns only the Savegame Description
-	string Get_Description( unsigned int save_slot, bool only_description = 0 );
+	std::string Get_Description( unsigned int save_slot, bool only_description = 0 );
 
 	// Returns true if the Savegame is valid
-	bool Is_Valid( unsigned int save_slot );
+	bool Is_Valid( unsigned int save_slot ) const;
 
 	// debug messages enabled
 	bool debug;
@@ -187,12 +194,12 @@ public:
 	unsigned int error_count;
 
 	// savegame directory
-	string savegame_dir;
+	std::string savegame_dir;
 private:
 	// XML element start
-    virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
+	virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
 	// XML element end
-    virtual void elementEnd( const CEGUI::String &element );
+	virtual void elementEnd( const CEGUI::String &element );
 
 	void Handle_Level( const CEGUI::XMLAttributes &attributes );
 	void Handle_Level_Object( const CEGUI::XMLAttributes &attributes );
@@ -219,5 +226,7 @@ private:
 extern cSavegame *pSavegame;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

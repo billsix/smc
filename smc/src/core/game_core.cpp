@@ -1,7 +1,7 @@
 /***************************************************************************
  * game_core.cpp  -  globally used variables and functions
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -18,14 +18,12 @@
 #include "../video/font.h"
 #include "../audio/audio.h"
 #include "../core/framerate.h"
-#include "../core/camera.h"
 #include "../input/keyboard.h"
 #include "../input/mouse.h"
 #include "../input/joystick.h"
 #include "../level/level_editor.h"
 #include "../overworld/world_editor.h"
 #include "../player/player.h"
-#include "../video/gl_surface.h"
 #include "../video/renderer.h"
 #include "../level/level.h"
 #include "../core/sprite_manager.h"
@@ -36,25 +34,23 @@
 #include "boost/filesystem/convenience.hpp"
 namespace fs = boost::filesystem;
 
+// needed for the stat function and to get the user directory on unix
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #ifdef __unix__
-// needed to get the user directory
-#include <sys/stat.h>
-// needed for the clipboard access
-#  include <SDL_syswm.h>
+	// needed for the clipboard access
+	#  include <SDL_syswm.h>
 #elif _WIN32
-// needed to get the user directory
-#include <shlobj.h>
+	// needed to get the user directory
+	#include <shlobj.h>
 #elif __APPLE__
-// FIXME - hackish workaround SMC's lack of namespace
-namespace carbon_stuff
-{
-// needed for the clipboard access
-#include <Carbon/Carbon.h>
-}
-using namespace carbon_stuff;
+	// needed for the clipboard access
+	#include <Carbon/Carbon.h>
 #endif
 
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** Variables *** *** *** *** *** *** *** *** *** */
 
@@ -89,6 +85,8 @@ cSprite *pActive_Player = NULL;
 
 cDialogBox :: cDialogBox( void )
 {
+	finished = 0;
+	window = NULL;
 	mouse_hide = 0;
 }
 
@@ -104,10 +102,10 @@ void cDialogBox :: Init( void )
 	pGuiSystem->getGUISheet()->addChildWindow( window );
 
 	// hide mouse on exit
-	if( !pMouseCursor->visible )
+	if( !pMouseCursor->m_active )
 	{
 		mouse_hide = 1;
-		pMouseCursor->visible = 1;
+		pMouseCursor->Set_Active( 1 );
 	}
 }
 
@@ -116,7 +114,7 @@ void cDialogBox :: Exit( void )
 	// hide mouse
 	if( mouse_hide )
 	{
-		pMouseCursor->Set_Visible( 0 );
+		pMouseCursor->Set_Active( 0 );
 	}
 
 	pGuiSystem->getGUISheet()->removeChildWindow( window );
@@ -166,7 +164,7 @@ void cDialogBox_Text :: Init( std::string title_text )
 	box_editbox = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "box_text_editbox" ));
 }
 
-string cDialogBox_Text :: Enter( std::string default_text, std::string title_text, bool auto_no_text /* = 1 */ )
+std::string cDialogBox_Text :: Enter( std::string default_text, std::string title_text, bool auto_no_text /* = 1 */ )
 {
 	Init( title_text );
 
@@ -377,13 +375,13 @@ bool cDialogBox_Question :: Button_cancel_clicked( const CEGUI::EventArgs &event
 
 /* *** *** *** *** *** *** *** Functions *** *** *** *** *** *** *** *** *** *** */
 
-void Change_Game_Mode( GameMode new_mode )
+void Change_Game_Mode( const GameMode new_mode )
 {
 	// always set for level
 	if( new_mode == MODE_LEVEL )
 	{
 		// set active level manager
-		pActive_Sprite_Manager = pActive_Level->pSprite_Manager;
+		pActive_Sprite_Manager = pActive_Level->m_sprite_manager;
 		// set active camera
 		pActive_Camera = pLevel_Manager->camera;
 		// set active player
@@ -402,8 +400,12 @@ void Change_Game_Mode( GameMode new_mode )
 	// always set for menu
 	else if( new_mode == MODE_MENU )
 	{
+		// set active level manager
+		pActive_Sprite_Manager = pMenuCore->handler->m_level->m_sprite_manager;
 		// set active camera
 		pActive_Camera = pMenuCore->camera;
+		// set active player
+		pActive_Player = pMenuCore->handler->m_player;
 	}
 	// always set for level settings
 	else if( new_mode == MODE_LEVEL_SETTINGS )
@@ -499,7 +501,7 @@ void Change_Game_Mode( GameMode new_mode )
 		// hide mouse
 		if( !editor_enabled )
 		{
-			pMouseCursor->Set_Visible( 0 );
+			pMouseCursor->Set_Active( 0 );
 		}
 	}
 	// mode was settings
@@ -512,14 +514,17 @@ void Change_Game_Mode( GameMode new_mode )
 	// mode gets level
 	if( new_mode == MODE_LEVEL )
 	{
-		// play music
-		if( pActive_Level->valid_music )
+		if( pActive_Level->Is_Loaded() )
 		{
-			pAudio->Play_Music( pActive_Level->musicfile, -1, 0, 1000 );
-		}
-		else if( pAudio->music_enabled )
-		{
-			printf( "Warning : Music file not found %s\n", pActive_Level->musicfile.c_str() );
+			// play music
+			if( pActive_Level->m_valid_music )
+			{
+				pAudio->Play_Music( pActive_Level->m_musicfile, -1, 0, 1000 );
+			}
+			else if( pAudio->m_music_enabled )
+			{
+				printf( "Warning : Music file not found %s\n", pActive_Level->m_musicfile.c_str() );
+			}
 		}
 
 		// disable world editor
@@ -533,7 +538,7 @@ void Change_Game_Mode( GameMode new_mode )
 			if( !pLevel_Editor->editor_window->isVisible() )
 			{
 				pLevel_Editor->editor_window->show();
-				pMouseCursor->visible = 1;
+				pMouseCursor->Set_Active( 1 );
 			}
 		}
 		// enable editor
@@ -576,7 +581,7 @@ void Change_Game_Mode( GameMode new_mode )
 			if( !pWorld_Editor->editor_window->isVisible() )
 			{
 				pWorld_Editor->editor_window->show();
-				pMouseCursor->visible = 1;
+				pMouseCursor->Set_Active( 1 );
 			}
 		}
 
@@ -597,7 +602,7 @@ void Change_Game_Mode( GameMode new_mode )
 		// update camera
 		pActive_Camera->Update_Position();
 		// show mouse
-		pMouseCursor->visible = 1;
+		pMouseCursor->Set_Active( 1 );
 		// position HUD
 		pHud_Manager->Update_Text();
 	}
@@ -619,7 +624,7 @@ void Change_Game_Mode( GameMode new_mode )
 std::string Time_to_String( time_t t, const char *format )
 {
 	char str_time[60];
-	strftime( str_time, 60, format,localtime( &t ) );
+	strftime( str_time, 60, format, localtime( &t ) );
 
 	return str_time;
 }
@@ -653,7 +658,7 @@ void Clear_Input_Events( void )
 	pJoystick->Reset_keys();
 }
 
-ObjectDirection Get_Opposite_Direction( ObjectDirection direction )
+ObjectDirection Get_Opposite_Direction( const ObjectDirection direction )
 {
 	switch( direction )
 	{
@@ -690,7 +695,7 @@ ObjectDirection Get_Opposite_Direction( ObjectDirection direction )
 	return DIR_UNDEFINED;
 }
 
-std::string Get_Direction_Name( ObjectDirection dir )
+std::string Get_Direction_Name( const ObjectDirection dir )
 {
 	switch( dir )
 	{
@@ -775,7 +780,7 @@ std::string Get_Direction_Name( ObjectDirection dir )
 	return "";
 }
 
-ObjectDirection Get_Direction_Id( std::string str_direction )
+ObjectDirection Get_Direction_Id( const std::string &str_direction )
 {
 	if( str_direction.compare( "undefined" ) == 0 )
 	{
@@ -854,7 +859,7 @@ ObjectDirection Get_Direction_Id( std::string str_direction )
 }
 
 
-SpriteType Get_Sprite_Type_Id( std::string str_type )
+SpriteType Get_Sprite_Type_Id( const std::string &str_type )
 {
 	if( str_type.compare( "massive" ) == 0 )
 	{
@@ -884,9 +889,9 @@ SpriteType Get_Sprite_Type_Id( std::string str_type )
 	return TYPE_UNDEFINED;
 }
 
-Color Get_Sprite_Color( cSprite *sprite )
+Color Get_Sprite_Color( const cSprite *sprite )
 {
-	switch( sprite->sprite_array )
+	switch( sprite->m_sprite_array )
 	{
 		case ARRAY_ENEMY:
 		{
@@ -898,7 +903,7 @@ Color Get_Sprite_Color( cSprite *sprite )
 		}
 		case ARRAY_MASSIVE:
 		{
-			if( sprite->type == TYPE_PLAYER )
+			if( sprite->m_type == TYPE_PLAYER )
 			{
 				return lila;
 			}
@@ -907,11 +912,12 @@ Color Get_Sprite_Color( cSprite *sprite )
 		}
 		case ARRAY_PASSIVE:
 		{
+			if( sprite->m_type == TYPE_FRONT_PASSIVE )
+			{
+				return greenyellow;
+			}
+
 			return green;
-		}
-		case ARRAY_FRONT_PASSIVE:
-		{
-			return greenyellow;
 		}
 		case ARRAY_HUD:
 		{
@@ -926,7 +932,7 @@ Color Get_Sprite_Color( cSprite *sprite )
 	return lightgreyalpha64;
 }
 
-std::string Get_Massive_Type_Name( MassiveType mtype )
+std::string Get_Massive_Type_Name( const MassiveType mtype )
 {
 	switch( mtype )
 	{
@@ -955,7 +961,7 @@ std::string Get_Massive_Type_Name( MassiveType mtype )
 	return "";
 }
 
-MassiveType Get_Massive_Type_Id( std::string str_massivetype )
+MassiveType Get_Massive_Type_Id( const std::string &str_massivetype )
 {
 	if( str_massivetype.compare( "passive" ) == 0 )
 	{
@@ -1006,7 +1012,7 @@ Color Get_Massive_Type_Color( MassiveType mtype )
 	return white;
 }
 
-std::string Get_Ground_Type_Name( GroundType gtype )
+std::string Get_Ground_Type_Name( const GroundType gtype )
 {
 	switch( gtype )
 	{
@@ -1043,7 +1049,7 @@ std::string Get_Ground_Type_Name( GroundType gtype )
 	return "";
 }
 
-GroundType Get_Ground_Type_Id( std::string str_groundtype )
+GroundType Get_Ground_Type_Id( const std::string &str_groundtype )
 {
 	if( str_groundtype.compare( "normal" ) == 0 )
 	{
@@ -1073,7 +1079,7 @@ GroundType Get_Ground_Type_Id( std::string str_groundtype )
 	return GROUND_NORMAL;
 }
 
-std::string Get_Color_Name( DefaultColor color )
+std::string Get_Color_Name( const DefaultColor color )
 {
 	switch( color )
 	{
@@ -1126,7 +1132,7 @@ std::string Get_Color_Name( DefaultColor color )
 	return "";
 }
 
-DefaultColor Get_Color_Id( string str_color )
+DefaultColor Get_Color_Id( const std::string &str_color )
 {
 	if( str_color.compare( "white" ) == 0 )
 	{
@@ -1160,7 +1166,7 @@ DefaultColor Get_Color_Id( string str_color )
 	{
 		return COL_BROWN;
 	}
-	else if( str_color == "grey" )
+	else if( str_color.compare( "grey" ) == 0 )
 	{
 		return COL_GREY;
 	}
@@ -1168,10 +1174,10 @@ DefaultColor Get_Color_Id( string str_color )
 	return COL_DEFAULT;
 }
 
-float last_time_pulse = 0;
-
 void Gui_Handle_Time( void )
 {
+	static float last_time_pulse = 0;
+
 	// get current "run-time" in seconds
 	float t = 0.001f * SDL_GetTicks();
 
@@ -1182,7 +1188,7 @@ void Gui_Handle_Time( void )
 	last_time_pulse = t;
 }
 
-void Draw_Static_Text( std::string text, const Color *color_text /* = &white */, const Color *color_bg /* = NULL */, bool wait_for_input /* = 1 */ )
+void Draw_Static_Text( const std::string &text, const Color *color_text /* = &white */, const Color *color_bg /* = NULL */, bool wait_for_input /* = 1 */ )
 {
 	// fixme : Can't handle multiple lines of text. Change to MultiLineEditbox or use HorzFormatting=WordWrapLeftAligned property.
 	bool draw = 1;
@@ -1217,7 +1223,7 @@ void Draw_Static_Text( std::string text, const Color *color_text /* = &white */,
 		if( color_bg )
 		{
 			// create request
-			cRectRequest *request = new cRectRequest();
+			cRect_Request *request = new cRect_Request();
 
 			pVideo->Draw_Rect( NULL, 0.9f, color_bg, request );
 			request->render_count = wait_for_input ? 4 : 1;
@@ -1259,7 +1265,7 @@ void Draw_Static_Text( std::string text, const Color *color_text /* = &white */,
 	CEGUI::WindowManager::getSingleton().destroyWindow( window_statictext );
 }
 
-std::string Box_Text_Input( std::string default_text, std::string title_text, bool auto_no_text /* = 1 */ )
+std::string Box_Text_Input( const std::string &default_text, const std::string &title_text, bool auto_no_text /* = 1 */ )
 {
 	cDialogBox_Text *box = new cDialogBox_Text();
 	std::string return_value = box->Enter( default_text, title_text, auto_no_text );
@@ -1268,7 +1274,7 @@ std::string Box_Text_Input( std::string default_text, std::string title_text, bo
 	return return_value;
 }
 
-int Box_Question( std::string text, bool with_cancel /* = 0 */ )
+int Box_Question( const std::string &text, bool with_cancel /* = 0 */ )
 {
 	cDialogBox_Question *box = new cDialogBox_Question();
 	int return_value = box->Enter( text, with_cancel );
@@ -1350,6 +1356,11 @@ void Preload_Images( bool draw_gui /* = 0 */ )
 	image_files.push_back( "animation/light_1/1.png" );
 	image_files.push_back( "animation/light_1/2.png" );
 	image_files.push_back( "animation/light_1/3.png" );
+	// Fire animation
+	image_files.push_back( "animation/fire_1/1.png" );
+	image_files.push_back( "animation/fire_1/2.png" );
+	image_files.push_back( "animation/fire_1/3.png" );
+	image_files.push_back( "animation/fire_1/4.png" );
 	// Particle animation
 	image_files.push_back( "animation/particles/smoke.png" );
 	image_files.push_back( "animation/particles/smoke_black.png" );
@@ -1388,15 +1399,7 @@ void Preload_Images( bool draw_gui /* = 0 */ )
 			// update progress
 			progress_bar->setProgress( static_cast<float>(loaded_files) / static_cast<float>(file_count) );
 
-			// clear screen
-			pVideo->Clear_Screen();
-			pVideo->Draw_Rect( NULL, 0.01f, &black );
-
-			// Render
-			pRenderer->Render();
-			pGuiSystem->renderGUI();
-			pRenderer_GUI->Render();
-			SDL_GL_SwapBuffers();
+			Loading_Screen_Draw();
 		}
 	}
 }
@@ -1404,7 +1407,7 @@ void Preload_Images( bool draw_gui /* = 0 */ )
 void Preload_Sounds( bool draw_gui /* = 0 */ )
 {
 	// skip caching if disabled
-	if( !pAudio->sound_enabled )
+	if( !pAudio->m_sound_enabled )
 	{
 		return;
 	}
@@ -1425,10 +1428,11 @@ void Preload_Sounds( bool draw_gui /* = 0 */ )
 	vector<std::string> sound_files;
 
 	// player
-	sound_files.push_back( "tock.ogg" );
+	sound_files.push_back( "wall_hit.wav" );
 	sound_files.push_back( "player/dead.ogg" );
 	sound_files.push_back( "itembox_get.ogg" );
 	sound_files.push_back( "itembox_set.ogg" );
+	sound_files.push_back( "player/pickup_item.wav" );
 	sound_files.push_back( "player/jump_small.ogg" );
 	sound_files.push_back( "player/jump_small_power.ogg" );
 	sound_files.push_back( "player/jump_big.ogg" );
@@ -1445,9 +1449,12 @@ void Preload_Sounds( bool draw_gui /* = 0 */ )
 	// items
 	sound_files.push_back( "item/star_kill.ogg" );
 	sound_files.push_back( "item/fireball.ogg" );
-	sound_files.push_back( "item/fireball_2.ogg" );
+	sound_files.push_back( "item/fireball_explode.wav" );
+	sound_files.push_back( "item/fireball_repelled.wav" );
+	sound_files.push_back( "item/fireball_explosion.wav" );
 	sound_files.push_back( "item/fireplant.ogg" );
 	sound_files.push_back( "item/goldpiece_1.ogg" );
+	sound_files.push_back( "item/goldpiece_red.wav" );
 	sound_files.push_back( "item/live_up.ogg" );
 	sound_files.push_back( "item/live_up_2.ogg" );
 	sound_files.push_back( "item/mushroom.ogg" );
@@ -1455,6 +1462,7 @@ void Preload_Sounds( bool draw_gui /* = 0 */ )
 	sound_files.push_back( "item/moon.ogg" );
 
 	// box
+	sound_files.push_back( "item/empty_box.wav" );
 	sound_files.push_back( "death_box.ogg" );
 
 	// enemies
@@ -1464,12 +1472,16 @@ void Preload_Sounds( bool draw_gui /* = 0 */ )
 	sound_files.push_back( "enemy/gee/die.ogg" );
 	// furball
 	sound_files.push_back( "enemy/furball/die.ogg" );
-	// jpiranha
-	sound_files.push_back( "enemy/jpiranha/die.ogg" );
+	// furball boss
+	sound_files.push_back( "enemy/boss/furball/hit.wav" );
+	sound_files.push_back( "enemy/boss/furball/hit_failed.wav" );
+	// flyon
+	sound_files.push_back( "enemy/flyon/die.ogg" );
 	// krush
 	sound_files.push_back( "enemy/krush/die.ogg" );
 	// rokko
-	sound_files.push_back( "enemy/rokko/activate.ogg" );
+	sound_files.push_back( "enemy/rokko/activate.wav" );
+	sound_files.push_back( "enemy/rokko/hit.wav" );
 	// spika
 	sound_files.push_back( "enemy/spika/move.ogg" );
 	// thromp
@@ -1478,18 +1490,17 @@ void Preload_Sounds( bool draw_gui /* = 0 */ )
 	// turtle
 	sound_files.push_back( "enemy/turtle/hit.ogg" );
 	sound_files.push_back( "enemy/turtle/shell/hit.ogg" );
-	// todo : create again
-	//sound_files.push_back( "enemy/turtle/power_up.ogg" );
+	sound_files.push_back( "enemy/turtle/stand_up.wav" );
+	// turtle boss
+	sound_files.push_back( "enemy/boss/turtle/big_hit.ogg" );
+	sound_files.push_back( "enemy/boss/turtle/shell_attack.ogg" );
+	sound_files.push_back( "enemy/boss/turtle/power_up.ogg" );
 
 	// default
 	sound_files.push_back( "sprout_1.ogg" );
 	sound_files.push_back( "stomp_1.ogg" );
 	sound_files.push_back( "stomp_2.ogg" );
 	sound_files.push_back( "stomp_4.ogg" );
-	// boss
-	sound_files.push_back( "enemy/boss/turtle/big_hit.ogg" );
-	sound_files.push_back( "enemy/boss/turtle/shell_attack.ogg" );
-	sound_files.push_back( "enemy/boss/turtle/power_up.ogg" );
 
 	// savegame
 	sound_files.push_back( "savegame_load.ogg" );
@@ -1505,7 +1516,7 @@ void Preload_Sounds( bool draw_gui /* = 0 */ )
 	for( vector<std::string>::iterator itr = sound_files.begin(), itr_end = sound_files.end(); itr != itr_end; ++itr )
 	{
 		// get filename
-		string filename = (*itr);
+		std::string filename = (*itr);
 
 		// preload it
 		pAudio->Get_Sound_File( filename );
@@ -1518,45 +1529,75 @@ void Preload_Sounds( bool draw_gui /* = 0 */ )
 			// update progress
 			progress_bar->setProgress( static_cast<float>(loaded_files) / static_cast<float>(file_count) );
 
-			// clear screen
-			pVideo->Clear_Screen();
-			pVideo->Draw_Rect( NULL, 0.01f, &black );
-
-			// Render
-			pRenderer->Render();
-			pGuiSystem->renderGUI();
-			pRenderer_GUI->Render();
-			SDL_GL_SwapBuffers();
+			Loading_Screen_Draw();
 		}
 	}
 }
 
 bool Delete_File( const std::string &filename )
 {
-	if( remove( filename.c_str() ) == 0 )
+	return remove( filename.c_str() ) == 0;
+}
+
+bool File_Exists( const std::string &filename )
+{
+	struct stat file_info; 
+
+	if( stat( filename.c_str(), &file_info ) == 0 )
 	{
-		return 1;
+	#ifdef _WIN32
+		return (file_info.st_mode & S_IFREG) > 0;
+	#else
+		return !S_ISDIR(file_info.st_mode);
+	#endif
 	}
 
 	return 0;
 }
 
-bool File_Exists( const std::string &filename )
+bool Dir_Exists( const std::string &dir )
 {
-	std::ifstream filestream( filename.c_str(), std::ifstream::in );
+	struct stat file_info;
 
-	if( filestream.fail() )
+	// if file exists
+	if( stat( dir.c_str(), &file_info ) == 0 )
 	{
-		return 0;
+		// check if regular file
+	#ifdef _WIN32
+		return (file_info.st_mode & S_IFDIR) > 0;
+	#else
+		return S_ISDIR(file_info.st_mode);
+	#endif
 	}
 
-	filestream.close();
-	return 1;
+	return 0;
+}
+
+size_t Get_File_Size( const std::string &filename )
+{
+	struct stat file_info; 
+
+	// if file exists
+	if( stat( filename.c_str(), &file_info ) == 0 )
+	{
+		// if regular file
+	#ifdef _WIN32
+		if( (file_info.st_mode & S_IFREG) > 0 )
+	#else
+		if( !S_ISDIR(file_info.st_mode) )
+	#endif
+		{
+			// return size
+			return file_info.st_size;
+		}
+	}
+
+	return 0;
 }
 
 void Convert_Path_Separators( std::string &str )
 {
-	for( string::iterator itr = str.begin(); itr != str.end(); ++itr )
+	for( std::string::iterator itr = str.begin(); itr != str.end(); ++itr )
 	{
 		// fix it
 		if( *itr == '\\' || *itr == '!' )
@@ -1566,16 +1607,16 @@ void Convert_Path_Separators( std::string &str )
 	}
 }
 
-void Relocate_Image( CEGUI::XMLAttributes &xml_attributes, std::string filename_old, std::string filename_new )
+void Relocate_Image( CEGUI::XMLAttributes &xml_attributes, const std::string &filename_old, const std::string &filename_new, const CEGUI::String &attribute_name /* = "image" */ )
 {
-	if( xml_attributes.getValueAsString( "image" ).compare( filename_old ) == 0 || xml_attributes.getValueAsString( "image" ).compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" + filename_old ) == 0 )
+	if( xml_attributes.getValueAsString( attribute_name ).compare( filename_old ) == 0 || xml_attributes.getValueAsString( attribute_name ).compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" + filename_old ) == 0 )
 	{
-		xml_attributes.remove( "image" );
-		xml_attributes.add( "image", filename_new );
+		xml_attributes.remove( attribute_name );
+		xml_attributes.add( attribute_name, filename_new );
 	}
 }
 
-vector<std::string> Get_Directory_Files( std::string dir, std::string file_type /* = "" */, bool with_directories /* = 0 */, bool search_in_sub_directories /* = 1 */ )
+vector<std::string> Get_Directory_Files( const std::string &dir, const std::string &file_type /* = "" */, bool with_directories /* = 0 */, bool search_in_sub_directories /* = 1 */ )
 {
 	vector<std::string> valid_files;
 
@@ -1609,7 +1650,7 @@ vector<std::string> Get_Directory_Files( std::string dir, std::string file_type 
 				}
 			}
 			// valid file
-			else if( file_type.empty() || dir_itr->leaf().rfind( file_type ) != string::npos )
+			else if( file_type.empty() || dir_itr->leaf().rfind( file_type ) != std::string::npos )
 			{
 				valid_files.push_back( dir + "/" + dir_itr->leaf() );
 			}
@@ -1642,6 +1683,9 @@ std::string Get_Temp_Directory( void )
 	return str_path;
 #elif __unix__
 	return (std::string)getenv( "TMPDIR" ) + "/";
+#elif __APPLE__
+	// fixme : same as unix ?
+	return "";
 #else
 	return "";
 #endif
@@ -1654,7 +1698,7 @@ std::string Get_User_Directory( void )
 
 	if( FAILED( SHGetFolderPath( NULL, CSIDL_APPDATA, NULL, 0 /*SHGFP_TYPE_CURRENT*/, path_appdata ) ) )
 	{
-		printf( "Error : Couldn't get Windows user data directory. Now using the Application directory.\n" );
+		printf( "Error : Couldn't get Windows user data directory. Defaulting to the Application directory.\n" );
 		return "";
 	}
 
@@ -1729,7 +1773,7 @@ std::string Get_Clipboard_Content( void )
 		GlobalUnlock( h );
 		CloseClipboard();
 	}
-#elif defined(__APPLE__)
+#elif __APPLE__
 	// not tested
 	ScrapRef scrap;
 	if( ::GetCurrentScrap( &scrap ) != noErr )
@@ -1821,7 +1865,7 @@ void Set_Clipboard_Content( std::string str )
 
 		CloseClipboard();
 	}
-#elif defined(__APPLE__)
+#elif __APPLE__
 	// not implemented
 #elif __unix__
 	SDL_SysWMinfo sdlinfo;
@@ -2019,8 +2063,7 @@ std::string string_trim_from_end( std::string str, const char c )
  * Powers of 10
  * 10^0 to 10^9
  */
-static const double pow_of_10[] = {1, 10, 100, 1000, 10000, 100000, 1000000,
-                               10000000, 100000000, 1000000000};
+static const double pow_of_10[] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000};
 
 // from stringencoders for float_to_string
 static void strreverse(char* begin, char* end)
@@ -2180,8 +2223,8 @@ std::string string_to_xml_string( const std::string &str )
 	std::string res;
 	res.reserve( str.size() * 2 );
 
-	const string::const_iterator iterEnd = str.end();
-	for( string::const_iterator iter = str.begin(); iter != iterEnd ; ++iter )
+	const std::string::const_iterator iterEnd = str.end();
+	for( std::string::const_iterator iter = str.begin(); iter != iterEnd ; ++iter )
 	{
 		switch( *iter )
 		{
@@ -2228,8 +2271,12 @@ std::string xml_string_to_string( std::string str )
 			break;
 		}
 
-		str.replace( str.find( "<br/>" ), 5, "\n" );
+		str.replace( pos, 5, "\n" );
 	}
 
 	return str;
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

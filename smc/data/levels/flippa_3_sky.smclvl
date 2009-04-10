@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="0.99.4" />
-		<Property name="engine_version" value="2" />
-		<Property name="save_time" value="1171029812" />
+		<Property name="game_version" value="1.8" />
+		<Property name="engine_version" value="31" />
+		<Property name="save_time" value="1231436505" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Flippa" />
@@ -13,6 +13,7 @@
 		<Property name="cam_limit_y" value="0" />
 		<Property name="cam_limit_w" value="2900" />
 		<Property name="cam_limit_h" value="-4000" />
+		<Property name="cam_fixed_hor_vel" value="0" />
 	</settings>
 	<background>
 		<Property name="type" value="103" />
@@ -24,12 +25,12 @@
 		<Property name="bg_color_2_blue" value="255" />
 	</background>
 	<player>
-		<Property name="posx" value="302" />
-		<Property name="posy" value="246" />
+		<Property name="posx" value="291" />
+		<Property name="posy" value="188" />
 		<Property name="direction" value="right" />
 	</player>
 	<sprite>
-		<Property name="posx" value="281" />
+		<Property name="posx" value="275" />
 		<Property name="posy" value="297" />
 		<Property name="image" value="pipes/blue/ver.png" />
 		<Property name="type" value="massive" />
@@ -83,7 +84,7 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="281" />
+		<Property name="posx" value="275" />
 		<Property name="posy" value="247" />
 		<Property name="image" value="pipes/blue/up.png" />
 		<Property name="type" value="massive" />
@@ -2565,12 +2566,6 @@
 		<Property name="type" value="front_passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="2629" />
-		<Property name="posy" value="519" />
-		<Property name="image" value="clouds/cloudy_1/middle.png" />
-		<Property name="type" value="front_passive" />
-	</sprite>
-	<sprite>
 		<Property name="posx" value="2615" />
 		<Property name="posy" value="555" />
 		<Property name="image" value="clouds/cloudy_1/middle.png" />
@@ -2766,14 +2761,14 @@
 	</item>
 	<item>
 		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2783" />
-		<Property name="posy" value="424" />
+		<Property name="posx" value="2776" />
+		<Property name="posy" value="433" />
 		<Property name="color" value="yellow" />
 	</item>
 	<item>
 		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2631" />
-		<Property name="posy" value="424" />
+		<Property name="posx" value="2638" />
+		<Property name="posy" value="433" />
 		<Property name="color" value="yellow" />
 	</item>
 	<item>
@@ -2782,172 +2777,18 @@
 		<Property name="posy" value="310" />
 		<Property name="color" value="yellow" />
 	</item>
+	<sprite>
+		<Property name="posx" value="2677" />
+		<Property name="posy" value="540" />
+		<Property name="image" value="pipes/blue/up.png" />
+		<Property name="type" value="massive" />
+	</sprite>
 	<levelexit>
-		<Property name="posx" value="2753" />
-		<Property name="posy" value="582" />
+		<Property name="posx" value="2722" />
+		<Property name="posy" value="538" />
 		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2743" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2733" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2723" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2713" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2703" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2693" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2683" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2673" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2663" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2653" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2643" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2633" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2623" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2613" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2763" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2773" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2783" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2793" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2803" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2813" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2823" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2833" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2843" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
+		<Property name="level_name" value="flippa_3" />
+		<Property name="entry" value="1" />
 		<Property name="direction" value="down" />
 	</levelexit>
 	<sprite>
@@ -2962,90 +2803,6 @@
 		<Property name="image" value="clouds/cloudy_1/middle.png" />
 		<Property name="type" value="front_passive" />
 	</sprite>
-	<levelexit>
-		<Property name="posx" value="2603" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2593" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2583" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2573" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2563" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2553" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2543" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2853" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2863" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2873" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2883" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
-	<levelexit>
-		<Property name="posx" value="2893" />
-		<Property name="posy" value="582" />
-		<Property name="type" value="1" />
-		<Property name="level_name" value="flippa_3_2" />
-		<Property name="direction" value="down" />
-	</levelexit>
 	<sprite>
 		<Property name="posx" value="2443" />
 		<Property name="posy" value="438" />

@@ -1,7 +1,7 @@
 /***************************************************************************
  * level_entry.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2007 - 2008 Florian Richter
+ * Copyright (C) 2007 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -18,6 +18,9 @@
 
 #include "../core/globals.h"
 #include "../objects/objectsprite.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** Level Entry types *** *** *** *** *** *** *** *** *** *** */
 
@@ -48,19 +51,19 @@ public:
 	virtual cLevel_Entry *Copy( void );
 
 	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
-	virtual void Save_to_Stream( ofstream &file );
-    // Set direction
-	void Set_Direction( ObjectDirection dir );
+	virtual void Save_To_Stream( ofstream &file );
+	// Set direction
+	void Set_Direction( const ObjectDirection dir );
 
 	// draw
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
 	// Get centered player position y
-	float Get_Player_Pos_X( void );
+	float Get_Player_Pos_X( void ) const;
 	// Get centered player position y
-	float Get_Player_Pos_Y( void );
+	float Get_Player_Pos_Y( void ) const;
 
 	// Activate
 	void Activate( void );
@@ -68,7 +71,7 @@ public:
 	// Set the type
 	void Set_Type( Level_Entry_type ltype );
 	// Set the name
-	void Set_Name( string str_name );
+	void Set_Name( const std::string &str_name );
 
 	// if draw is valid for the current state and position
 	virtual bool Is_Draw_Valid( void );
@@ -77,13 +80,13 @@ public:
 	virtual void Editor_Activate( void );
 	// editor direction option selected event
 	bool Editor_Direction_Select( const CEGUI::EventArgs &event );
-	// editor name key up event
-	bool Editor_Name_Key( const CEGUI::EventArgs &event );
+	// editor name text changed event
+	bool Editor_Name_Text_Changed( const CEGUI::EventArgs &event );
 
 	// level entry type
 	Level_Entry_type entry_type;
 	// identification name
-	string entry_name;
+	std::string entry_name;
 
 	// editor type color
 	Color editor_color;
@@ -91,9 +94,11 @@ public:
 	cGL_Surface *editor_entry_name;
 
 private:
-    void Create_Name( void );
+	void Create_Name( void );
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

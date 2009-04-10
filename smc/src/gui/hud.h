@@ -1,7 +1,7 @@
 /***************************************************************************
  * hud.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,6 +19,9 @@
 #include "../objects/movingsprite.h"
 #include "../core/obj_manager.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** *** *** cHudSprite *** *** *** *** *** *** *** *** *** *** */
 
 class cHudSprite : public cSprite
@@ -30,8 +33,6 @@ public:
 	// copy this sprite
 	virtual cHudSprite *Copy( void );
 };
-
-typedef vector<cHudSprite *> HudSpriteList;
 
 /* *** *** *** *** *** *** *** cHud_Manager *** *** *** *** *** *** *** *** *** *** */
 
@@ -52,6 +53,8 @@ public:
 	void Update( void );
 	// Draw the objects
 	void Draw( void );
+
+	typedef vector<cHudSprite *> HudSpriteList;
 
 	// is the HUD loaded
 	bool loaded;
@@ -82,10 +85,13 @@ public:
 	cMenuBackground( float x = 0, float y = 0 );
 	virtual ~cMenuBackground( void );
 
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
-	cGL_Surface *maryo_head, *goldpiece;
-	SDL_Rect rect_maryo_head, rect_goldpiece;
+	cGL_Surface *maryo_head;
+	cGL_Surface *goldpiece;
+
+	GL_point rect_maryo_head;
+	GL_point rect_goldpiece;
 };
 
 /* *** *** *** *** *** cStatusText *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -96,7 +102,7 @@ public:
 	cStatusText( float x = 0, float y = 0 );
 	virtual ~cStatusText( void );
 	
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 };
 
 /* *** *** *** *** *** cPlayerPoints *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -107,13 +113,13 @@ public:
 	cPlayerPoints( float x = 0, float y = 0 );
 	virtual ~cPlayerPoints( void );
 
-	void Set_Points( unsigned int points );
-	void Add_Points( unsigned int points, float x = 0, float y = 0, string strtext = "", Color color = static_cast<Uint8>(255), bool allow_multiplier = 0 );
+	void Set_Points( long points );
+	void Add_Points( unsigned int points, float x = 0, float y = 0, std::string strtext = "", const Color &color = static_cast<Uint8>(255), bool allow_multiplier = 0 );
 
 	// removes all point texts
 	void Clear( void );
 
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
 	typedef vector<PointsText *> PointsTextList;
 	PointsTextList pointsobjects;
@@ -130,7 +136,7 @@ public:
 	void Set_Gold( int gold );
 	void Add_Gold( int gold );
 
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 };
 
 /* *** *** *** *** *** cLiveDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -144,7 +150,7 @@ public:
 	void Set_Lives( int lives );
 	void Add_Lives( int lives );
 
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 };
 
 /* *** *** *** *** *** cTimeDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -158,7 +164,10 @@ public:
 	// update
 	virtual void Update( void );
 	// draw
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
+
+	// reset
+	void Reset( void );
 
 	char text[50];
 	unsigned int old_seconds;
@@ -176,7 +185,7 @@ public:
 	// update
 	virtual void Update( void );
 	// draw
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
 	/* Set the item
 	* sound : if set the box sound is played
@@ -217,7 +226,7 @@ public:
 	// update
 	virtual void Update( void );
 	// draw
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 	// draw the frames per second info
 	void Draw_fps( void );
 	// draw the debug mode info
@@ -226,10 +235,10 @@ public:
 	void Draw_Performance_Debug_Mode( void );
 
 	// set the debug text to display
-	void Set_Text( string ntext, float display_time = speedfactor_fps * 2 );
+	void Set_Text( const std::string &ntext, float display_time = speedfactor_fps * 2 );
 
 	// display text
-	string text, text_old;
+	std::string text, text_old;
 	// text counter
 	float counter;
 
@@ -239,23 +248,26 @@ public:
 	// last game mode
 	GameMode Game_Mode_last;
 	// last level text
-	string level_old;
+	std::string level_old;
 	// last object counters
 	int obj_counter, pass_counter, mass_counter, enemy_counter, active_counter;
 	// sprites
+	typedef vector<cHudSprite *> HudSpriteList;
 	HudSpriteList sprites;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // The HUD
-extern cPlayerPoints *pointsdisplay;
-extern cDebugDisplay *debugdisplay;
-extern cGoldDisplay *golddisplay;
-extern cLiveDisplay *livedisplay;
-extern cTimeDisplay *timedisplay;
-extern cItemBox *Itembox;
+extern cPlayerPoints *pHud_Points;
+extern cDebugDisplay *pHud_Debug;
+extern cGoldDisplay *pHud_Goldpieces;
+extern cLiveDisplay *pHud_Lives;
+extern cTimeDisplay *pHud_Time;
+extern cItemBox *pHud_Itembox;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

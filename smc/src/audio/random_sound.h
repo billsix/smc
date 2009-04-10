@@ -1,7 +1,7 @@
 /***************************************************************************
  * random_sound.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2008 Florian Richter
+ * Copyright (C) 2008 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -19,7 +19,11 @@
 #include "../core/globals.h"
 #include "../objects/sprite.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** cRandom_Sound *** *** *** *** *** *** *** *** *** *** *** */
+
 class cRandom_Sound : public cSprite
 {
 public:
@@ -30,20 +34,20 @@ public:
 	// destructor
 	virtual ~cRandom_Sound( void );
 
-	// create from stream
-	virtual void Create_from_Stream( CEGUI::XMLAttributes &attributes );
-	// save to stream
-	virtual void Save_to_Stream( ofstream &ofile );
 	// initialize defaults
 	void Init( void );
-
 	// copy
 	virtual cRandom_Sound *Copy( void );
 
+	// create from stream
+	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
+	// save to stream
+	virtual void Save_To_Stream( ofstream &ofile );
+
 	// Set filename
-	void Set_Filename( string str );
+	void Set_Filename( const std::string &str );
 	// Get filename
-	string Get_Filename( void ) const;
+	std::string Get_Filename( void ) const;
 
 	// Set if it is played continuously
 	void Set_Continuous( bool continuous );
@@ -75,12 +79,12 @@ public:
 	float Get_Volume_Reduction_End( void ) const;
 
 	// Returns the volume modifier (0.0 - 1.0) for the current distance
-	float Get_Distance_Volume_Mod( void );
+	float Get_Distance_Volume_Mod( void ) const;
 
 	// update
 	virtual void Update( void );
 	// draw
-	virtual void Draw( cSurfaceRequest *request = NULL );
+	virtual void Draw( cSurface_Request *request = NULL );
 
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
@@ -88,30 +92,30 @@ public:
 	virtual bool Is_Draw_Valid( void );
 
 	// if camera went out of range
-	void Event_Out_Of_Range( void );
+	void Event_Out_Of_Range( void ) const;
 
 	// editor activation
 	virtual void Editor_Activate( void );
-	// editor filename key up event
-	bool Editor_Filename_Key( const CEGUI::EventArgs &event );
+	// editor filename text changed event
+	bool Editor_Filename_Text_Changed( const CEGUI::EventArgs &event );
 	// editor continuous changed event
 	bool Editor_Continuous_Changed( const CEGUI::EventArgs &event );
-	// editor delay min key up event
-	bool Editor_Delay_Min_Key( const CEGUI::EventArgs &event );
-	// editor delay max key up event
-	bool Editor_Delay_Max_Key( const CEGUI::EventArgs &event );
-	// editor volume min key up event
-	bool Editor_Volume_Min_Key( const CEGUI::EventArgs &event );
-	// editor volume max key up event
-	bool Editor_Volume_Max_Key( const CEGUI::EventArgs &event );
-	// editor volume reduction begin key up event
-	bool Editor_Volume_Reduction_Begin_Key( const CEGUI::EventArgs &event );
-	// editor volume reduction end key up event
-	bool Editor_Volume_Reduction_End_Key( const CEGUI::EventArgs &event );
+	// editor delay min text changed event
+	bool Editor_Delay_Min_Text_Changed( const CEGUI::EventArgs &event );
+	// editor delay max text changed event
+	bool Editor_Delay_Max_Text_Changed( const CEGUI::EventArgs &event );
+	// editor volume min text changed event
+	bool Editor_Volume_Min_Text_Changed( const CEGUI::EventArgs &event );
+	// editor volume max text changed event
+	bool Editor_Volume_Max_Text_Changed( const CEGUI::EventArgs &event );
+	// editor volume reduction begin text changed event
+	bool Editor_Volume_Reduction_Begin_Text_Changed( const CEGUI::EventArgs &event );
+	// editor volume reduction end text changed event
+	bool Editor_Volume_Reduction_End_Text_Changed( const CEGUI::EventArgs &event );
 
 private:
 	// the audio filename to play
-	string m_filename;
+	std::string m_filename;
 	// is it played continuous
 	bool m_continuous;
 	// delay in milliseconds
@@ -139,6 +143,10 @@ private:
 	// editor color volume reduction end
 	Color m_editor_color_volume_reduction_end;
 };
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif
 

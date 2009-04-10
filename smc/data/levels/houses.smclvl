@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.6" />
-		<Property name="engine_version" value="2.7" />
-		<Property name="save_time" value="1212251311" />
+		<Property name="game_version" value="1.8" />
+		<Property name="engine_version" value="34" />
+		<Property name="save_time" value="1233718500" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Sauer2 &amp; Nilz" />
-		<Property name="lvl_version" value="1.2" />
+		<Property name="lvl_version" value="1.3" />
 		<Property name="lvl_music" value="land/land_5.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
@@ -20,23 +20,31 @@
 		<Property name="bg_color_1_red" value="0" />
 		<Property name="bg_color_1_green" value="255" />
 		<Property name="bg_color_1_blue" value="0" />
-		<Property name="bg_color_2_red" value="255" />
-		<Property name="bg_color_2_green" value="255" />
+		<Property name="bg_color_2_red" value="100" />
+		<Property name="bg_color_2_green" value="100" />
 		<Property name="bg_color_2_blue" value="0" />
 	</background>
 	<background>
 		<Property name="type" value="1" />
+		<Property name="posx" value="0" />
+		<Property name="posy" value="0" />
+		<Property name="posz" value="0.00011" />
 		<Property name="image" value="game/background/green_hills_1.png" />
 		<Property name="speedx" value="0.5" />
 		<Property name="speedy" value="0.5" />
-		<Property name="posz" value="0.00011" />
+		<Property name="const_velx" value="0" />
+		<Property name="const_vely" value="0" />
 	</background>
 	<background>
 		<Property name="type" value="1" />
+		<Property name="posx" value="0" />
+		<Property name="posy" value="0" />
+		<Property name="posz" value="0.0002" />
 		<Property name="image" value="game/background/puffy_clouds.png" />
 		<Property name="speedx" value="1" />
 		<Property name="speedy" value="1" />
-		<Property name="posz" value="0.00011" />
+		<Property name="const_velx" value="0" />
+		<Property name="const_vely" value="0" />
 	</background>
 	<global_effect>
 		<Property name="type" value="1" />
@@ -780,10 +788,11 @@
 		<Property name="gold_color" value="yellow" />
 	</box>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="970" />
 		<Property name="posy" value="395" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="100" />
 		<Property name="speed" value="5" />
 	</enemy>
@@ -1710,6 +1719,7 @@
 	<moving_platform>
 		<Property name="posx" value="2036" />
 		<Property name="posy" value="14" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1725,6 +1735,7 @@
 	<moving_platform>
 		<Property name="posx" value="2102" />
 		<Property name="posy" value="14" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1740,6 +1751,7 @@
 	<moving_platform>
 		<Property name="posx" value="2168" />
 		<Property name="posy" value="14" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1755,6 +1767,7 @@
 	<moving_platform>
 		<Property name="posx" value="2234" />
 		<Property name="posy" value="14" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1776,6 +1789,7 @@
 	<moving_platform>
 		<Property name="posx" value="2343" />
 		<Property name="posy" value="14" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1791,6 +1805,7 @@
 	<moving_platform>
 		<Property name="posx" value="2409" />
 		<Property name="posy" value="14" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1806,6 +1821,7 @@
 	<moving_platform>
 		<Property name="posx" value="2475" />
 		<Property name="posy" value="14" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1821,6 +1837,7 @@
 	<moving_platform>
 		<Property name="posx" value="2541" />
 		<Property name="posy" value="14" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1836,6 +1853,7 @@
 	<moving_platform>
 		<Property name="posx" value="2607" />
 		<Property name="posy" value="14" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1851,6 +1869,7 @@
 	<moving_platform>
 		<Property name="posx" value="2673" />
 		<Property name="posy" value="14" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1866,6 +1885,7 @@
 	<moving_platform>
 		<Property name="posx" value="2739" />
 		<Property name="posy" value="14" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1881,6 +1901,7 @@
 	<moving_platform>
 		<Property name="posx" value="2805" />
 		<Property name="posy" value="14" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1959,18 +1980,20 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="2378" />
 		<Property name="posy" value="322" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="100" />
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="2663" />
 		<Property name="posy" value="277" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="100" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -2544,7 +2567,7 @@
 	</sprite>
 	<sprite>
 		<Property name="posx" value="3622" />
-		<Property name="posy" value="194" />
+		<Property name="posy" value="193" />
 		<Property name="image" value="ground/green_1/hedges/medium_1.png" />
 		<Property name="type" value="front_passive" />
 	</sprite>
@@ -2678,15 +2701,15 @@
 	</enemystopper>
 	<enemy>
 		<Property name="type" value="furball" />
-		<Property name="posx" value="3646" />
-		<Property name="posy" value="177" />
+		<Property name="posx" value="3614" />
+		<Property name="posy" value="192" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="furball" />
-		<Property name="posx" value="3729" />
-		<Property name="posy" value="179" />
+		<Property name="posx" value="3775" />
+		<Property name="posy" value="192" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="right" />
 	</enemy>
@@ -2713,10 +2736,11 @@
 		<Property name="gold_color" value="red" />
 	</box>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="3532" />
 		<Property name="posy" value="454" />
 		<Property name="direction" value="left" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="100" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -2727,9 +2751,10 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<levelexit>
-		<Property name="posx" value="3513" />
-		<Property name="posy" value="464" />
+		<Property name="posx" value="3517" />
+		<Property name="posy" value="468" />
 		<Property name="type" value="1" />
+		<Property name="motion" value="0" />
 		<Property name="level_name" value="houses" />
 		<Property name="entry" value="bon2" />
 		<Property name="direction" value="right" />
@@ -2737,6 +2762,7 @@
 	<level_entry>
 		<Property name="posx" value="3562" />
 		<Property name="posy" value="-867" />
+		<Property name="type" value="1" />
 		<Property name="direction" value="up" />
 		<Property name="name" value="bon2" />
 	</level_entry>
@@ -3326,16 +3352,18 @@
 		<Property name="gold_color" value="red" />
 	</box>
 	<levelexit>
-		<Property name="posx" value="5536" />
-		<Property name="posy" value="383" />
+		<Property name="posx" value="5539" />
+		<Property name="posy" value="401" />
 		<Property name="type" value="1" />
+		<Property name="motion" value="0" />
 		<Property name="direction" value="down" />
 	</levelexit>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="5520" />
 		<Property name="posy" value="414" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -3664,14 +3692,14 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="5580" />
-		<Property name="posy" value="451" />
+		<Property name="posx" value="5483" />
+		<Property name="posy" value="445" />
 		<Property name="image" value="ground/green_1/hedges/big_1.png" />
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="5751" />
-		<Property name="posy" value="455" />
+		<Property name="posx" value="5714" />
+		<Property name="posy" value="448" />
 		<Property name="image" value="ground/green_1/hedges/big_1.png" />
 		<Property name="type" value="front_passive" />
 	</sprite>
@@ -3682,10 +3710,11 @@
 		<Property name="type" value="front_passive" />
 	</sprite>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="5781" />
 		<Property name="posy" value="500" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="1200" />
 		<Property name="speed" value="20" />
 	</enemy>
@@ -3794,6 +3823,7 @@
 	<moving_platform>
 		<Property name="posx" value="6147" />
 		<Property name="posy" value="-548" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -3809,6 +3839,7 @@
 	<moving_platform>
 		<Property name="posx" value="6213" />
 		<Property name="posy" value="-548" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -3824,6 +3855,7 @@
 	<moving_platform>
 		<Property name="posx" value="6279" />
 		<Property name="posy" value="-548" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -3839,6 +3871,7 @@
 	<moving_platform>
 		<Property name="posx" value="6345" />
 		<Property name="posy" value="-548" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -3860,6 +3893,7 @@
 	<moving_platform>
 		<Property name="posx" value="6454" />
 		<Property name="posy" value="-548" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -3875,6 +3909,7 @@
 	<moving_platform>
 		<Property name="posx" value="6520" />
 		<Property name="posy" value="-548" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -3890,6 +3925,7 @@
 	<moving_platform>
 		<Property name="posx" value="6586" />
 		<Property name="posy" value="-548" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -3905,6 +3941,7 @@
 	<moving_platform>
 		<Property name="posx" value="6652" />
 		<Property name="posy" value="-548" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -3920,6 +3957,7 @@
 	<moving_platform>
 		<Property name="posx" value="6718" />
 		<Property name="posy" value="-548" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -3935,6 +3973,7 @@
 	<moving_platform>
 		<Property name="posx" value="6784" />
 		<Property name="posy" value="-548" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -3950,6 +3989,7 @@
 	<moving_platform>
 		<Property name="posx" value="6850" />
 		<Property name="posy" value="-548" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -3965,6 +4005,7 @@
 	<moving_platform>
 		<Property name="posx" value="6916" />
 		<Property name="posy" value="-548" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -4704,63 +4745,9 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="6787" />
-		<Property name="posy" value="596" />
-		<Property name="image" value="ground/green_3/ground/middle/right.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
 		<Property name="posx" value="6211" />
 		<Property name="posy" value="596" />
 		<Property name="image" value="ground/green_3/ground/middle/left.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="6275" />
-		<Property name="posy" value="596" />
-		<Property name="image" value="ground/green_3/ground/middle/1.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="6339" />
-		<Property name="posy" value="596" />
-		<Property name="image" value="ground/green_3/ground/middle/1.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="6403" />
-		<Property name="posy" value="596" />
-		<Property name="image" value="ground/green_3/ground/middle/1.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="6467" />
-		<Property name="posy" value="596" />
-		<Property name="image" value="ground/green_3/ground/middle/1.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="6531" />
-		<Property name="posy" value="596" />
-		<Property name="image" value="ground/green_3/ground/middle/1.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="6595" />
-		<Property name="posy" value="596" />
-		<Property name="image" value="ground/green_3/ground/middle/1.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="6659" />
-		<Property name="posy" value="596" />
-		<Property name="image" value="ground/green_3/ground/middle/1.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="6723" />
-		<Property name="posy" value="596" />
-		<Property name="image" value="ground/green_3/ground/middle/1.png" />
 		<Property name="type" value="passive" />
 	</sprite>
 	<box>
@@ -4837,10 +4824,11 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<enemy>
-		<Property name="type" value="jpiranha" />
+		<Property name="type" value="flyon" />
 		<Property name="posx" value="6378" />
 		<Property name="posy" value="-265" />
 		<Property name="direction" value="up" />
+		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="100" />
 		<Property name="speed" value="5.8" />
 	</enemy>
@@ -5210,8 +5198,8 @@
 	</enemy>
 	<enemy>
 		<Property name="type" value="turtle" />
-		<Property name="posx" value="6343" />
-		<Property name="posy" value="213" />
+		<Property name="posx" value="6401" />
+		<Property name="posy" value="223" />
 		<Property name="color" value="green" />
 		<Property name="direction" value="left" />
 	</enemy>
@@ -5244,9 +5232,10 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<levelexit>
-		<Property name="posx" value="6100" />
-		<Property name="posy" value="260" />
+		<Property name="posx" value="6098" />
+		<Property name="posy" value="278" />
 		<Property name="type" value="0" />
+		<Property name="motion" value="0" />
 	</levelexit>
 	<sprite>
 		<Property name="posx" value="6226" />

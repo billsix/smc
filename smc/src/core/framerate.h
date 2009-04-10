@@ -1,7 +1,7 @@
 /***************************************************************************
  * framerate.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -15,6 +15,13 @@
 
 #ifndef SMC_FRAMERATE_H
 #define SMC_FRAMERATE_H
+
+#include "SDL.h"
+
+namespace SMC
+{
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // counts milliseconds for 100 frames and sets them to ms
 class cPerformance_Timer
@@ -44,23 +51,23 @@ public:
 class cFramerate
 {
 public:
-	cFramerate( float tfps = speedfactor_fps );
-	~cFramerate ( void );
+	cFramerate( const float tfps = speedfactor_fps );
+	~cFramerate( void );
 	
 	// Initialize with the given target fps
-	void Init( float tfps );
+	void Init( const float tfps );
 	// update speedfactor
 	void Update( void );
 	// reset speedfactor and worst/best fps statistic
 	void Reset( void );
 	
 	// set maximum allowed speedfactor
-	void Set_Max_Speed_Factor( float maximum );
+	void Set_Max_Speed_Factor( const float maximum );
 
 	/* Set the given fixed speedfactor
 	 * if value is 0 no fixed speedfactor will be used
 	*/
-	void Set_Fixed_Speedfacor( float val );
+	void Set_Fixed_Speedfacor( const float val );
 
 	// target fps for speedfactor calculations
 	float fps_target;
@@ -99,8 +106,12 @@ public:
 	Performance_Timer_List perf_timer;
 };
 
-/* Fixed framerate method */
-void Correct_Frame_Time( unsigned int fps = speedfactor_fps );
+/* Fixed framerate method
+ * if next frame is not ready wait until it is
+*/
+void Correct_Frame_Time( const unsigned int fps );
+// Return true if the next frame is ready for the given framerate
+bool Is_Frame_Time( const unsigned int fps );
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -108,5 +119,7 @@ void Correct_Frame_Time( unsigned int fps = speedfactor_fps );
 extern cFramerate *pFramerate;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

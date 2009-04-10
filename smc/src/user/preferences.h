@@ -1,7 +1,7 @@
 /***************************************************************************
  * preferences.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -17,6 +17,14 @@
 #define SMC_PREFERENCES_H
 
 #include "../core/globals.h"
+// SDL
+#include "SDL.h"
+// CEGUI
+#include "CEGUIXMLHandler.h"
+#include "CEGUIXMLAttributes.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** cPreferences *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -27,7 +35,7 @@ public:
 	virtual ~cPreferences( void );
 	
 	// Load the preferences from a file
-	bool Load( string filename = "" );
+	bool Load( const std::string &filename = "" );
 	// Save the preferences to a file
 	void Save( void );
 
@@ -45,12 +53,16 @@ public:
 	/* *** *** *** Game Settings *** *** *** *** */
 
 	// Game
-	// default language
-	string language;
 	// last version of smc which saved the preferences file
 	float game_version;
+	// default language
+	std::string language;
+	// player always runs
+	bool always_run;
+	// menu level name to load
+	std::string menu_level;
 	// force the given user data directory
-	string force_user_data_dir;
+	std::string force_user_data_dir;
 	// smart camera speed
 	float camera_hor_speed, camera_ver_speed;
 
@@ -72,7 +84,7 @@ public:
 	// Joystick
 	bool joy_enabled;
 	// active joy name
-	string joy_name;
+	std::string joy_name;
 	// jump with upwards
 	bool joy_analog_jump;
 	// hor/ver axis used
@@ -82,10 +94,7 @@ public:
 	// button definitions
 	Uint8 joy_button_jump, joy_button_shoot, joy_button_item, joy_button_action, joy_button_exit;
 
-
 	// Special
-	// player always runs
-	bool always_run;
 	// level background images enabled
 	bool level_background_images;
 	// image cache enabled
@@ -101,15 +110,15 @@ public:
 	/* *** *** *** *** *** *** *** */
 
 	// configuration filename
-	string config_filename;
+	std::string config_filename;
 
 private:
 	// XML element start
-    virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
+	virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
 	// XML element end
-    virtual void elementEnd( const CEGUI::String &element );
+	virtual void elementEnd( const CEGUI::String &element );
 	// handles an item
-    void handle_item( const CEGUI::XMLAttributes& attributes );
+	void handle_item( const CEGUI::XMLAttributes& attributes );
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -118,5 +127,7 @@ private:
 extern cPreferences *pPreferences;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

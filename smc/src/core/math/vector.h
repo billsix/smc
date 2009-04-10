@@ -1,7 +1,7 @@
 /***************************************************************************
  * vector.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2006 - 2008 Florian Richter
+ * Copyright (C) 2006 - 2009 Florian Richter
  * Copyright (C) 2007 Clanlib Team ( original Vector class )
  ***************************************************************************/
 /*
@@ -17,11 +17,15 @@
 #ifndef SMC_VECTOR_H
 #define SMC_VECTOR_H
 
-#include "../../core/globals.h"
+#include "../../core/global_game.h"
+#include "../../core/math/utilities.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** GL_Vector *** *** *** *** *** *** *** *** *** *** */
 
-/*
+/* Vector
  * parts from Clanlib
 */
 class GL_Vector
@@ -40,56 +44,103 @@ public:
 	void normalize( void );
 
 	// Dot products this vector with an other vector
-	float dot( const GL_Vector& vector ) const;
+	float dot( const GL_Vector &vector ) const;
 	
 	// Calculate the angle between this vector and an other vector
-	float angle( const GL_Vector& vector ) const;
+	float angle( const GL_Vector &vector ) const;
 
 	// Calculate the cross product between this vector and an other vector
-	GL_Vector cross( const GL_Vector& vector ) const;
+	GL_Vector cross( const GL_Vector &vector ) const;
 	
 	// Rotate vector around an axis
 	// angle: Angle to rotate
 	// axis: Rotation axis
-	GL_Vector rotate( float angle, const GL_Vector& axis ) const;
+	GL_Vector rotate( float angle, const GL_Vector &axis ) const;
 
 	// Rounds all components
 	void round( void );
 
 	//: Scalar product (vector * scalar)
-	GL_Vector operator * (float scalar) const;  
+	inline GL_Vector operator * ( float s ) const
+	{
+		return GL_Vector( s * x, s * y, s * z, s * w );
+	}
 
 	// Scalar product (scalar * vector)
-	friend GL_Vector operator *  (float scalar, const GL_Vector& vector);
+	inline friend GL_Vector operator * ( float s, const GL_Vector &v )
+	{
+		return GL_Vector( s * v.x, s * v.y, s * v.z, s * v.w );
+	}
 
 	// += operator
-	void operator += (const GL_Vector& v);
+	inline void operator += ( const GL_Vector &v )
+	{
+		x += v.x;
+		y += v.y;
+		z += v.z;
+		w += v.z;
+	}
 
 	// -= operator
-	void operator -= (const GL_Vector& v);  
+	inline void operator -= ( const GL_Vector &v )
+	{
+  		x -= v.x;
+		y -= v.y;
+		z -= v.z;
+		w -= v.w;
+	}
 
 	// *= operator (scalar multiplication)
-	void operator *= (float s);  
+	inline void operator *= ( float s )
+	{
+		x *= s;
+		y *= s;
+		z *= s;
+		w *= s;
+	}
 
 	// + operator
-	GL_Vector operator + (const GL_Vector& v) const;
-	
+	inline GL_Vector operator + ( const GL_Vector &v ) const
+	{
+		return GL_Vector( x + v.x, y + v.y, z + v.z, w + v.w );
+	}
+
 	// - operator
-	GL_Vector operator - (const GL_Vector& v) const;
-	
+	inline GL_Vector operator - ( const GL_Vector &v ) const
+	{
+		return GL_Vector( x - v.x, y - v.y, z - v.z, w - v.z );
+	}
+
 	// unary - operator
-	GL_Vector operator - () const;
+	inline GL_Vector operator - () const
+	{
+		return GL_Vector( -x, -y, -z, -w);
+	}
 
 	// assignment operator
-	GL_Vector& operator = (const GL_Vector& v);
+	inline GL_Vector &operator = ( const GL_Vector &v )
+	{ 
+		x = v.x;
+		y = v.y;
+		z = v.z;
+		w = v.w;
+
+		return *this;
+	}
 
 	// Returns true if current vector equals v
 	// v : other vector
-	bool operator == (const GL_Vector& v) const;
-    	
+	inline bool operator == ( const GL_Vector &v ) const
+	{
+		return ( Is_Float_Equal(x, v.x) && Is_Float_Equal(y, v.y) && Is_Float_Equal(z, v.z) && Is_Float_Equal(w, v.w) );
+	}
+
 	// Returns false if current vector equals v
 	// v : other vector
-	bool operator != (const GL_Vector& v) const;
+	inline bool operator != ( const GL_Vector &v ) const
+	{
+		return !(operator == (v));
+	}
 
 	// coordinates
 	float x;
@@ -97,5 +148,9 @@ public:
 	float z;
 	float w;
 };
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

@@ -3,11 +3,11 @@
 	<information>
 		<Property name="game_version" value="1.7" />
 		<Property name="engine_version" value="2.8" />
-		<Property name="save_time" value="1229110255" />
+		<Property name="save_time" value="1230263054" />
 	</information>
 	<settings>
-		<Property name="lvl_author" value="" />
-		<Property name="lvl_version" value="" />
+		<Property name="lvl_author" value="SMC Team" />
+		<Property name="lvl_version" value="1.2" />
 		<Property name="lvl_music" value="land/land_5.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
@@ -28,10 +28,10 @@
 		<Property name="type" value="1" />
 		<Property name="posx" value="0" />
 		<Property name="posy" value="0" />
-		<Property name="posz" value="0.000109" />
+		<Property name="posz" value="0.00011" />
 		<Property name="image" value="game/background/puffy_clouds.png" />
-		<Property name="speedx" value="1" />
-		<Property name="speedy" value="0.1" />
+		<Property name="speedx" value="0.3" />
+		<Property name="speedy" value="0.3" />
 		<Property name="const_velx" value="0" />
 		<Property name="const_vely" value="0" />
 	</background>

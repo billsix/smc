@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.5" />
-		<Property name="engine_version" value="2.5" />
-		<Property name="save_time" value="1209323192" />
+		<Property name="game_version" value="1.8" />
+		<Property name="engine_version" value="34" />
+		<Property name="save_time" value="1234750121" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Sauer2" />
-		<Property name="lvl_version" value="1" />
+		<Property name="lvl_version" value="1.1" />
 		<Property name="lvl_music" value="land/cave_2.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
@@ -1068,7 +1068,7 @@
 		<Property name="pos_z" value="0.07" />
 		<Property name="pos_z_rand" value="0" />
 		<Property name="pos_x" value="273" />
-		<Property name="pos_y" value="445" />
+		<Property name="pos_y" value="446" />
 		<Property name="size_x" value="10" />
 		<Property name="size_y" value="10" />
 		<Property name="emitter_time_to_live" value="-1" />
@@ -1629,6 +1629,7 @@
 	<moving_platform>
 		<Property name="posx" value="2420" />
 		<Property name="posy" value="289" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1636,14 +1637,15 @@
 		<Property name="touch_time" value="48" />
 		<Property name="shake_time" value="12" />
 		<Property name="touch_move_time" value="0" />
-		<Property name="middle_img_count" value="2" />
-		<Property name="image_top_left" value="slider/grey_1/slider_left.png" />
-		<Property name="image_top_middle" value="slider/grey_1/slider_middle.png" />
-		<Property name="image_top_right" value="slider/grey_1/slider_right.png" />
+		<Property name="middle_img_count" value="3" />
+		<Property name="image_top_left" value="ground/green_1/slider/1/brown/left.png" />
+		<Property name="image_top_middle" value="ground/green_1/slider/1/brown/middle.png" />
+		<Property name="image_top_right" value="ground/green_1/slider/1/brown/right.png" />
 	</moving_platform>
 	<moving_platform>
 		<Property name="posx" value="2524" />
 		<Property name="posy" value="289" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1651,14 +1653,15 @@
 		<Property name="touch_time" value="48" />
 		<Property name="shake_time" value="12" />
 		<Property name="touch_move_time" value="0" />
-		<Property name="middle_img_count" value="2" />
-		<Property name="image_top_left" value="slider/grey_1/slider_left.png" />
-		<Property name="image_top_middle" value="slider/grey_1/slider_middle.png" />
-		<Property name="image_top_right" value="slider/grey_1/slider_right.png" />
+		<Property name="middle_img_count" value="3" />
+		<Property name="image_top_left" value="ground/green_1/slider/1/brown/left.png" />
+		<Property name="image_top_middle" value="ground/green_1/slider/1/brown/middle.png" />
+		<Property name="image_top_right" value="ground/green_1/slider/1/brown/right.png" />
 	</moving_platform>
 	<moving_platform>
 		<Property name="posx" value="2628" />
 		<Property name="posy" value="289" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1666,14 +1669,15 @@
 		<Property name="touch_time" value="48" />
 		<Property name="shake_time" value="12" />
 		<Property name="touch_move_time" value="0" />
-		<Property name="middle_img_count" value="2" />
-		<Property name="image_top_left" value="slider/grey_1/slider_left.png" />
-		<Property name="image_top_middle" value="slider/grey_1/slider_middle.png" />
-		<Property name="image_top_right" value="slider/grey_1/slider_right.png" />
+		<Property name="middle_img_count" value="3" />
+		<Property name="image_top_left" value="ground/green_1/slider/1/brown/left.png" />
+		<Property name="image_top_middle" value="ground/green_1/slider/1/brown/middle.png" />
+		<Property name="image_top_right" value="ground/green_1/slider/1/brown/right.png" />
 	</moving_platform>
 	<moving_platform>
 		<Property name="posx" value="2732" />
 		<Property name="posy" value="289" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1681,14 +1685,15 @@
 		<Property name="touch_time" value="48" />
 		<Property name="shake_time" value="12" />
 		<Property name="touch_move_time" value="0" />
-		<Property name="middle_img_count" value="2" />
-		<Property name="image_top_left" value="slider/grey_1/slider_left.png" />
-		<Property name="image_top_middle" value="slider/grey_1/slider_middle.png" />
-		<Property name="image_top_right" value="slider/grey_1/slider_right.png" />
+		<Property name="middle_img_count" value="3" />
+		<Property name="image_top_left" value="ground/green_1/slider/1/brown/left.png" />
+		<Property name="image_top_middle" value="ground/green_1/slider/1/brown/middle.png" />
+		<Property name="image_top_right" value="ground/green_1/slider/1/brown/right.png" />
 	</moving_platform>
 	<moving_platform>
 		<Property name="posx" value="2836" />
 		<Property name="posy" value="289" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1696,14 +1701,15 @@
 		<Property name="touch_time" value="48" />
 		<Property name="shake_time" value="12" />
 		<Property name="touch_move_time" value="0" />
-		<Property name="middle_img_count" value="2" />
-		<Property name="image_top_left" value="slider/grey_1/slider_left.png" />
-		<Property name="image_top_middle" value="slider/grey_1/slider_middle.png" />
-		<Property name="image_top_right" value="slider/grey_1/slider_right.png" />
+		<Property name="middle_img_count" value="3" />
+		<Property name="image_top_left" value="ground/green_1/slider/1/brown/left.png" />
+		<Property name="image_top_middle" value="ground/green_1/slider/1/brown/middle.png" />
+		<Property name="image_top_right" value="ground/green_1/slider/1/brown/right.png" />
 	</moving_platform>
 	<moving_platform>
 		<Property name="posx" value="2940" />
 		<Property name="posy" value="289" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1711,14 +1717,15 @@
 		<Property name="touch_time" value="48" />
 		<Property name="shake_time" value="12" />
 		<Property name="touch_move_time" value="0" />
-		<Property name="middle_img_count" value="2" />
-		<Property name="image_top_left" value="slider/grey_1/slider_left.png" />
-		<Property name="image_top_middle" value="slider/grey_1/slider_middle.png" />
-		<Property name="image_top_right" value="slider/grey_1/slider_right.png" />
+		<Property name="middle_img_count" value="3" />
+		<Property name="image_top_left" value="ground/green_1/slider/1/brown/left.png" />
+		<Property name="image_top_middle" value="ground/green_1/slider/1/brown/middle.png" />
+		<Property name="image_top_right" value="ground/green_1/slider/1/brown/right.png" />
 	</moving_platform>
 	<moving_platform>
 		<Property name="posx" value="3044" />
 		<Property name="posy" value="289" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1726,14 +1733,15 @@
 		<Property name="touch_time" value="48" />
 		<Property name="shake_time" value="12" />
 		<Property name="touch_move_time" value="0" />
-		<Property name="middle_img_count" value="2" />
-		<Property name="image_top_left" value="slider/grey_1/slider_left.png" />
-		<Property name="image_top_middle" value="slider/grey_1/slider_middle.png" />
-		<Property name="image_top_right" value="slider/grey_1/slider_right.png" />
+		<Property name="middle_img_count" value="3" />
+		<Property name="image_top_left" value="ground/green_1/slider/1/brown/left.png" />
+		<Property name="image_top_middle" value="ground/green_1/slider/1/brown/middle.png" />
+		<Property name="image_top_right" value="ground/green_1/slider/1/brown/right.png" />
 	</moving_platform>
 	<moving_platform>
 		<Property name="posx" value="3148" />
 		<Property name="posy" value="289" />
+		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="halfmassive" />
 		<Property name="direction" value="right" />
 		<Property name="max_distance" value="150" />
@@ -1741,10 +1749,10 @@
 		<Property name="touch_time" value="48" />
 		<Property name="shake_time" value="12" />
 		<Property name="touch_move_time" value="0" />
-		<Property name="middle_img_count" value="2" />
-		<Property name="image_top_left" value="slider/grey_1/slider_left.png" />
-		<Property name="image_top_middle" value="slider/grey_1/slider_middle.png" />
-		<Property name="image_top_right" value="slider/grey_1/slider_right.png" />
+		<Property name="middle_img_count" value="3" />
+		<Property name="image_top_left" value="ground/green_1/slider/1/brown/left.png" />
+		<Property name="image_top_middle" value="ground/green_1/slider/1/brown/middle.png" />
+		<Property name="image_top_right" value="ground/green_1/slider/1/brown/right.png" />
 	</moving_platform>
 	<sprite>
 		<Property name="posx" value="3253" />
@@ -1899,6 +1907,8 @@
 		<Property name="posy" value="439" />
 		<Property name="rotation_speed" value="2.5" />
 		<Property name="image" value="enemy/static/blocks/spike_1/1_grey.png" />
+		<Property name="path" value="" />
+		<Property name="speed" value="0" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="static" />
@@ -1906,6 +1916,8 @@
 		<Property name="posy" value="392" />
 		<Property name="rotation_speed" value="2.5" />
 		<Property name="image" value="enemy/static/blocks/spike_1/1_grey.png" />
+		<Property name="path" value="" />
+		<Property name="speed" value="0" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="static" />
@@ -1913,6 +1925,8 @@
 		<Property name="posy" value="345" />
 		<Property name="rotation_speed" value="2.5" />
 		<Property name="image" value="enemy/static/blocks/spike_1/1_grey.png" />
+		<Property name="path" value="" />
+		<Property name="speed" value="0" />
 	</enemy>
 	<sprite>
 		<Property name="posx" value="3129" />
@@ -3245,13 +3259,15 @@
 		<Property name="posx" value="2539" />
 		<Property name="posy" value="497" />
 		<Property name="type" value="1" />
+		<Property name="motion" value="0" />
 		<Property name="level_name" value="sauer2_9" />
 		<Property name="entry" value="bon" />
 		<Property name="direction" value="down" />
 	</levelexit>
 	<level_entry>
-		<Property name="posx" value="3142" />
+		<Property name="posx" value="3153" />
 		<Property name="posy" value="-275" />
+		<Property name="type" value="1" />
 		<Property name="direction" value="left" />
 		<Property name="name" value="bon" />
 	</level_entry>
@@ -3911,9 +3927,10 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<levelexit>
-		<Property name="posx" value="4600" />
-		<Property name="posy" value="507" />
+		<Property name="posx" value="4603" />
+		<Property name="posy" value="520" />
 		<Property name="type" value="0" />
+		<Property name="motion" value="0" />
 	</levelexit>
 	<sprite>
 		<Property name="posx" value="4689" />
@@ -3932,7 +3949,7 @@
 		<Property name="pos_z" value="0.07" />
 		<Property name="pos_z_rand" value="0" />
 		<Property name="pos_x" value="723" />
-		<Property name="pos_y" value="447" />
+		<Property name="pos_y" value="448" />
 		<Property name="size_x" value="10" />
 		<Property name="size_y" value="10" />
 		<Property name="emitter_time_to_live" value="-1" />
@@ -4170,7 +4187,7 @@
 		<Property name="pos_z" value="0.07" />
 		<Property name="pos_z_rand" value="0" />
 		<Property name="pos_x" value="4700" />
-		<Property name="pos_y" value="475" />
+		<Property name="pos_y" value="477" />
 		<Property name="size_x" value="10" />
 		<Property name="size_y" value="10" />
 		<Property name="emitter_time_to_live" value="-1" />

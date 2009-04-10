@@ -1,7 +1,7 @@
 /***************************************************************************
  * level_background.cpp  -  level background image and color handling class
  *
- * Copyright (C) 2005 - 2008 Florian Richter
+ * Copyright (C) 2005 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -17,7 +17,10 @@
 #include "../user/preferences.h"
 #include "../core/game_core.h"
 #include "../video/gl_surface.h"
-#include "../core/math/utilities.h"
+#include "../core/framerate.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** cBackground *** *** *** *** *** *** *** *** *** *** */
 
@@ -29,7 +32,7 @@ cBackground :: cBackground( void )
 cBackground :: cBackground( CEGUI::XMLAttributes &attributes )
 {
 	Init();
-	Create_from_Stream( attributes );
+	Create_From_Stream( attributes );
 }
 
 cBackground :: ~cBackground( void )
@@ -39,36 +42,38 @@ cBackground :: ~cBackground( void )
 
 void cBackground :: Init( void )
 {
-	type = BG_NONE;
+	m_type = BG_NONE;
 
-	posx = 0;
-	posy = 0;
-	posz = 0.00011f;
+	m_pos_x = 0.0f;
+	m_pos_y = 0.0f;
+	m_start_pos_x = 0.0f;
+	m_start_pos_y = 0.0f;
+	m_pos_z = 0.00011f;
 
-	color_1 = static_cast<Uint8>(0);
-	color_2 = static_cast<Uint8>(0);
+	m_color_1 = static_cast<Uint8>(0);
+	m_color_2 = static_cast<Uint8>(0);
 
-	img_file_1.reserve( 120 );
-	img_1 = NULL;
+	m_image_1_filename.reserve( 120 );
+	m_image_1 = NULL;
 
-	speedx = 1;
-	speedy = 1;
-	const_velx = 0;
-	const_vely = 0;
+	m_speed_x = 0.5f;
+	m_speed_y = 0.5f;
+	m_const_vel_x = 0.0f;
+	m_const_vel_y = 0.0f;
 }
 
-void cBackground :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
+void cBackground :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 {
 	Set_Type( static_cast<BackgroundType>(attributes.getValueAsInteger( "type" )) );
 
-	if( type == BG_GR_HOR || type == BG_GR_VER )
+	if( m_type == BG_GR_HOR || m_type == BG_GR_VER )
 	{
 		Set_Color_1( Color( static_cast<Uint8>(attributes.getValueAsInteger( "bg_color_1_red" )), attributes.getValueAsInteger( "bg_color_1_green" ), attributes.getValueAsInteger( "bg_color_1_blue" ) ) );
 		Set_Color_2( Color( static_cast<Uint8>(attributes.getValueAsInteger( "bg_color_2_red" )), attributes.getValueAsInteger( "bg_color_2_green" ), attributes.getValueAsInteger( "bg_color_2_blue" ) ) );
 	}
-	else if( type == BG_IMG_BOTTOM || type == BG_IMG_TOP || type == BG_IMG_ALL )
+	else if( m_type == BG_IMG_BOTTOM || m_type == BG_IMG_TOP || m_type == BG_IMG_ALL )
 	{
-		Set_Pos( attributes.getValueAsFloat( "posx" ), attributes.getValueAsFloat( "posy" ) );
+		Set_Start_Pos( attributes.getValueAsFloat( "posx" ), attributes.getValueAsFloat( "posy" ) );
 		Set_Pos_Z( attributes.getValueAsFloat( "posz" ) );
 
 		Set_Image( attributes.getValueAsString( "image" ).c_str() );
@@ -78,9 +83,9 @@ void cBackground :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
 	}
 }
 
-void cBackground :: Save_to_Stream( ofstream &file )
+void cBackground :: Save_To_Stream( ofstream &file )
 {
-	if( type == BG_NONE && img_file_1.length() <= 3 )
+	if( m_type == BG_NONE && m_image_1_filename.length() <= 3 )
 	{
 		return;
 	}
@@ -89,64 +94,64 @@ void cBackground :: Save_to_Stream( ofstream &file )
 	file << "\t<background>" << std::endl;
 
 	// type
-	file << "\t\t<Property name=\"type\" value=\"" << type << "\" />" << std::endl;
+	file << "\t\t<Property name=\"type\" value=\"" << m_type << "\" />" << std::endl;
 
 	// gradient
-	if( type == BG_GR_HOR || type == BG_GR_VER )
+	if( m_type == BG_GR_HOR || m_type == BG_GR_VER )
 	{
 		// background color 1
-		file << "\t\t<Property name=\"bg_color_1_red\" value=\"" << static_cast<int>(color_1.red) << "\" />" << std::endl;
-		file << "\t\t<Property name=\"bg_color_1_green\" value=\"" << static_cast<int>(color_1.green) << "\" />" << std::endl;
-		file << "\t\t<Property name=\"bg_color_1_blue\" value=\"" << static_cast<int>(color_1.blue) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"bg_color_1_red\" value=\"" << static_cast<int>(m_color_1.red) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"bg_color_1_green\" value=\"" << static_cast<int>(m_color_1.green) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"bg_color_1_blue\" value=\"" << static_cast<int>(m_color_1.blue) << "\" />" << std::endl;
 		// background color 2
-		file << "\t\t<Property name=\"bg_color_2_red\" value=\"" << static_cast<int>(color_2.red) << "\" />" << std::endl;
-		file << "\t\t<Property name=\"bg_color_2_green\" value=\"" << static_cast<int>(color_2.green) << "\" />" << std::endl;
-		file << "\t\t<Property name=\"bg_color_2_blue\" value=\"" << static_cast<int>(color_2.blue) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"bg_color_2_red\" value=\"" << static_cast<int>(m_color_2.red) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"bg_color_2_green\" value=\"" << static_cast<int>(m_color_2.green) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"bg_color_2_blue\" value=\"" << static_cast<int>(m_color_2.blue) << "\" />" << std::endl;
 	}
 	// image
-	else if( type == BG_IMG_BOTTOM || type == BG_IMG_TOP || type == BG_IMG_ALL )
+	else if( m_type == BG_IMG_BOTTOM || m_type == BG_IMG_TOP || m_type == BG_IMG_ALL )
 	{
 		// position
-		file << "\t\t<Property name=\"posx\" value=\"" << posx << "\" />" << std::endl;
-		file << "\t\t<Property name=\"posy\" value=\"" << posy << "\" />" << std::endl;
-		file << "\t\t<Property name=\"posz\" value=\"" << posz << "\" />" << std::endl;
+		file << "\t\t<Property name=\"posx\" value=\"" << m_start_pos_x << "\" />" << std::endl;
+		file << "\t\t<Property name=\"posy\" value=\"" << m_start_pos_y << "\" />" << std::endl;
+		file << "\t\t<Property name=\"posz\" value=\"" << m_pos_z << "\" />" << std::endl;
 
 		// image filename
-		file << "\t\t<Property name=\"image\" value=\"" << img_file_1 << "\" />" << std::endl;
+		file << "\t\t<Property name=\"image\" value=\"" << m_image_1_filename << "\" />" << std::endl;
 		// speed
-		file << "\t\t<Property name=\"speedx\" value=\"" << speedx << "\" />" << std::endl;
-		file << "\t\t<Property name=\"speedy\" value=\"" << speedy << "\" />" << std::endl;
+		file << "\t\t<Property name=\"speedx\" value=\"" << m_speed_x << "\" />" << std::endl;
+		file << "\t\t<Property name=\"speedy\" value=\"" << m_speed_y << "\" />" << std::endl;
 		// constant velocity
-		file << "\t\t<Property name=\"const_velx\" value=\"" << const_velx << "\" />" << std::endl;
-		file << "\t\t<Property name=\"const_vely\" value=\"" << const_vely << "\" />" << std::endl;
+		file << "\t\t<Property name=\"const_velx\" value=\"" << m_const_vel_x << "\" />" << std::endl;
+		file << "\t\t<Property name=\"const_vely\" value=\"" << m_const_vel_y << "\" />" << std::endl;
 	}
 	else
 	{
-		printf( "Error : Unknown Background Type %d\n", type );
+		printf( "Error : Unknown Background Type %d\n", m_type );
 	}
 
 	// end background
 	file << "\t</background>" << std::endl;
 }
 
-void cBackground :: Set_Type( BackgroundType ntype )
+void cBackground :: Set_Type( const BackgroundType ntype )
 {
-	type = ntype;
+	m_type = ntype;
 }
 
-void cBackground :: Set_Type( string ntype ) 
+void cBackground :: Set_Type( const std::string &ntype ) 
 {
 	if( ntype.compare( "Disabled" ) == 0 )
 	{
-		type = BG_NONE;
+		m_type = BG_NONE;
 	}
 	else if( ntype.compare( "Bottom" ) == 0 )
 	{
-		type = BG_IMG_BOTTOM;
+		m_type = BG_IMG_BOTTOM;
 	}
 	else if( ntype.compare( "All" ) == 0 )
 	{
-		type = BG_IMG_ALL;
+		m_type = BG_IMG_ALL;
 	}
 	else
 	{
@@ -155,147 +160,154 @@ void cBackground :: Set_Type( string ntype )
 }
 
 void cBackground :: Set_Color_1( const Color &color )
-{ 
-	color_1 = color; 
+{
+	m_color_1 = color; 
 }
 
 void cBackground :: Set_Color_2( const Color &color )
 {
-	color_2 = color; 
+	m_color_2 = color; 
 }
 
-void cBackground :: Set_Image( string nimg_file_1 )
+void cBackground :: Set_Image( const std::string &nimg_file_1 )
 {
-	img_file_1 = nimg_file_1;
+	m_image_1_filename = nimg_file_1;
 
 	// empty
-	if( img_file_1.empty() )
+	if( m_image_1_filename.empty() )
 	{
-		img_1 = NULL;
+		m_image_1 = NULL;
 		return;
 	}
 
-	if( img_file_1.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) != string::npos )
+	if( m_image_1_filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) != std::string::npos )
 	{
-		img_file_1.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
+		m_image_1_filename.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
 	}
 
-	img_1 = pVideo->Get_Surface( img_file_1 );
+	m_image_1 = pVideo->Get_Surface( m_image_1_filename );
 }
 
-void cBackground :: Set_Scroll_Speed( float x /* = 1 */, float y /* = 1 */ )
+void cBackground :: Set_Scroll_Speed( const float x /* = 1.0f */, const float y /* = 1.0f */ )
 {
-	speedx = x;
-	speedy = y;
+	m_speed_x = x;
+	m_speed_y = y;
 }
 
-void cBackground :: Set_Pos( float x, float y )
+void cBackground :: Set_Start_Pos( const float x, const float y )
 {
-	posx = x;
-	posy = y;
+	m_start_pos_x = x;
+	m_start_pos_y = y;
+	// reset current position
+	m_pos_x = m_start_pos_x;
+	m_pos_y = m_start_pos_y;
 }
 
-void cBackground :: Set_Pos_Z( float val )
+void cBackground :: Set_Pos_Z( const float val )
 {
-	posz = val;
+	m_pos_z = val;
 }
 
-void cBackground :: Set_Const_Velocity_X( float vel )
+void cBackground :: Set_Const_Velocity_X( const float vel )
 {
-	const_velx = vel;
+	m_const_vel_x = vel;
+	// reset current position
+	m_pos_x = m_start_pos_x;
 }
 
-void cBackground :: Set_Const_Velocity_Y( float vel )
+void cBackground :: Set_Const_Velocity_Y( const float vel )
 {
-	const_vely = vel;
+	m_const_vel_y = vel;
+	// reset current position
+	m_pos_y = m_start_pos_y;
 }
 
 void cBackground :: Update( void )
 {
-	if( const_velx )
+	if( !Is_Float_Equal( m_const_vel_x, 0.0f ) )
 	{
-		posx += const_velx;
+		m_pos_x += (m_const_vel_x * 2) * pFramerate->speedfactor;
 	}
 
-	if( const_vely )
+	if( !Is_Float_Equal( m_const_vel_y, 0.0f ) )
 	{
-		posy += const_vely;
+		m_pos_y += (m_const_vel_y * 2) * pFramerate->speedfactor;
 	}
 }
 
 void cBackground :: Draw( void )
-{ 
+{
 	// gradient
-	if( type == BG_GR_VER || type == BG_GR_HOR )
+	if( m_type == BG_GR_VER || m_type == BG_GR_HOR )
 	{
 		Draw_Gradient();
 	}
 	// image
-	else if( type == BG_IMG_BOTTOM || type == BG_IMG_ALL ) 
+	else if( m_type == BG_IMG_BOTTOM || m_type == BG_IMG_ALL ) 
 	{
 		// if background images are disabled or no image
-		if( !pPreferences->level_background_images || !img_1 )
+		if( !pPreferences->level_background_images || !m_image_1 )
 		{
 			return;
 		}
 
 		// get position
-		float posx_final = posx - ( ( pActive_Camera->x * 0.2f ) * speedx );
-		float posy_final = posy - ( ( pActive_Camera->y * 0.3f ) * speedy );
+		float posx_final = m_pos_x - ( ( pActive_Camera->x * 0.2f ) * m_speed_x );
+		float posy_final = m_pos_y - ( ( pActive_Camera->y * 0.3f ) * m_speed_y );
 
-		if( type == BG_IMG_BOTTOM || type == BG_IMG_ALL )
+		if( m_type == BG_IMG_BOTTOM || m_type == BG_IMG_ALL )
 		{
-			posy_final += game_res_h - img_1->h;
+			posy_final += game_res_h - m_image_1->m_h;
 		}
 
 		// align start position x
 		// to left
-		while( posx_final > 0 )
+		while( posx_final > 0.0f )
 		{
-			posx_final -= img_1->w;
+			posx_final -= m_image_1->m_w;
 		}
 		// to right
-		while( posx_final < -img_1->w )
+		while( posx_final < -m_image_1->m_w )
 		{
-			posx_final += img_1->w;
+			posx_final += m_image_1->m_w;
 		}
 		// align start position y
-		if( type == BG_IMG_ALL )
+		if( m_type == BG_IMG_ALL )
 		{
 			// to top
 			while( posy_final > 0 )
 			{
-				posy_final -= img_1->h;
+				posy_final -= m_image_1->m_h;
 			}
 			// to bottom
-			while( posy_final < -img_1->h )
+			while( posy_final < -m_image_1->m_h )
 			{
-				posy_final += img_1->h;
+				posy_final += m_image_1->m_h;
 			}
 		}
 
-		// draw  until width is filled
+		// draw until width is filled
 		while( posx_final < game_res_w )
 		{
 			// draw horizontal
-			img_1->Blit( posx_final, posy_final, posz );
+			m_image_1->Blit( posx_final, posy_final, m_pos_z );
 
 			// draw vertical
-			if( type == BG_IMG_ALL )
+			if( m_type == BG_IMG_ALL )
 			{
 				float posy_temp = posy_final;
 
 				// draw until height is filled
-				while( posy_temp < game_res_h - img_1->h )
+				while( posy_temp < game_res_h - m_image_1->m_h )
 				{
 					// change position first as this position y is already drawn
-					posy_temp += img_1->h;
+					posy_temp += m_image_1->m_h;
 
-					img_1->Blit( posx_final, posy_temp, posz );
+					m_image_1->Blit( posx_final, posy_temp, m_pos_z );
 				}
 			}
 
-			posx_final += img_1->w;
+			posx_final += m_image_1->m_w;
 		}
 	}
 }
@@ -305,59 +317,59 @@ void cBackground :: Draw_Gradient( void )
 	pVideo->Clear_Screen();
 
 	// no need to draw a gradient if both colors are the same
-	if( color_1 == color_2 )
+	if( m_color_1 == m_color_2 )
 	{
-		pVideo->Draw_Rect( NULL, posz, &color_1 );
+		pVideo->Draw_Rect( NULL, m_pos_z, &m_color_1 );
 	}
 	else
 	{
 		Color color, color_start;
 
 		// set color start
-		color_start = color_1;
+		color_start = m_color_1;
 
-		if( pActive_Camera->y < -1 )
+		if( pActive_Camera->y < -1.0f )
 		{
 			float power = ( -pActive_Camera->y / 10000 );
 
-			if( power > 1 )
+			if( power > 1.0f )
 			{
-				power = 1;
+				power = 1.0f;
 			}
 
-			color_start.red += static_cast<Uint8>( static_cast<float>( color_2.red - color_1.red ) * power );
-			color_start.green += static_cast<Uint8>( static_cast<float>( color_2.green - color_1.green ) * power );
-			color_start.blue += static_cast<Uint8>( static_cast<float>( color_2.blue - color_1.blue ) * power );
+			color_start.red += static_cast<Uint8>( static_cast<float>( m_color_2.red - m_color_1.red ) * power );
+			color_start.green += static_cast<Uint8>( static_cast<float>( m_color_2.green - m_color_1.green ) * power );
+			color_start.blue += static_cast<Uint8>( static_cast<float>( m_color_2.blue - m_color_1.blue ) * power );
 		}
 
-		if( type == BG_GR_VER )
+		if( m_type == BG_GR_VER )
 		{
-			pVideo->Draw_Gradient( NULL, posz, &color_start, &color_2, DIR_VERTICAL );
+			pVideo->Draw_Gradient( NULL, m_pos_z, &color_start, &m_color_2, DIR_VERTICAL );
 		}
-		else if( type == BG_GR_HOR )
+		else if( m_type == BG_GR_HOR )
 		{
-			pVideo->Draw_Gradient( NULL, posz, &color_start, &color_2, DIR_HORIZONTAL );
+			pVideo->Draw_Gradient( NULL, m_pos_z, &color_start, &m_color_2, DIR_HORIZONTAL );
 		}
 	}
 }
 
-string cBackground :: Get_Type_Name( void )
+std::string cBackground :: Get_Type_Name( void ) const
 {
-	if( type == BG_NONE )
+	if( m_type == BG_NONE )
 	{
 		return "Disabled";
 	}
-	else if( type == BG_IMG_BOTTOM )
+	else if( m_type == BG_IMG_BOTTOM )
 	{
 		return "Bottom";
 	}
-	else if( type == BG_IMG_ALL )
+	else if( m_type == BG_IMG_ALL )
 	{
 		return "All";
 	}
 
 	return "Unknown";
-};
+}
 
 /* *** *** *** *** *** *** cBackground_Manager *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -369,5 +381,9 @@ cBackground_Manager :: cBackground_Manager( void )
 
 cBackground_Manager :: ~cBackground_Manager( void )
 {
-	Delete_All();
+	cBackground_Manager::Delete_All();
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

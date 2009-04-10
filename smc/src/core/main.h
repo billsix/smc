@@ -1,7 +1,7 @@
 /***************************************************************************
  * main.h  -  header for the corresponding cpp file
  *
- * Copyright (C) 2003 - 2008 Florian Richter
+ * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -16,7 +16,10 @@
 #ifndef SMC_MAIN_H
 #define SMC_MAIN_H
 
-#include "../core/globals.h"
+#include "SDL.h"
+
+namespace SMC
+{
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -24,20 +27,28 @@
 // Seed random numbers, init SDL, OpenGL, CEGUI, load preferences, and create globals
 void Init_Game( void );
 
-// Delete globals. Also saves preferences and closes SDL
+// Save preferences, delete globals, and closes SDL
 void Exit_Game( void );
 
 /*
- * Top-level input function. Calls either KeyDown, KeyUp,
- * or passes control to pMouseCursor or pJoystick
+ * Top-level input function.
+ * Calls either KeyDown, KeyUp, or passes control to pMouseCursor or pJoystick
  * Returns true if the event was handled.
 */ 
 bool Handle_Input_Global( SDL_Event *ev );
 
-// Called continuously from Game Loop. Update current game state
+/* Update current game state
+ * Should be called continuously from Game Loop.
+*/
 void Update_Game( void );
 
-// Called continuously from Game Loop. Draw current game state
+/* Draw current game state
+ * Should be called continuously from Game Loop.
+*/
 void Draw_Game( void );
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC
 
 #endif

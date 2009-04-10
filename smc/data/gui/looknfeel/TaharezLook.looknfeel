@@ -6,10 +6,10 @@
     ***************************************************
     -->
     <WidgetLook name="TaharezLook/Button">
-        <PropertyDefinition name="NormalTextColour" initialValue="FFFFFFFF" redrawOnWrite="true" />
-        <PropertyDefinition name="HoverTextColour" initialValue="FFFFFFFF" redrawOnWrite="true" />
-        <PropertyDefinition name="PushedTextColour" initialValue="FFFFFFFF" redrawOnWrite="true" />
-        <PropertyDefinition name="DisabledTextColour" initialValue="FF7F7F7F" redrawOnWrite="true" />
+        <PropertyDefinition name="NormalTextColour" initialValue="FF5A1e0A" redrawOnWrite="true" />
+        <PropertyDefinition name="HoverTextColour" initialValue="FF50280A" redrawOnWrite="true" />
+        <PropertyDefinition name="PushedTextColour" initialValue="FF451d13" redrawOnWrite="true" />
+        <PropertyDefinition name="DisabledTextColour" initialValue="7F271d1d" redrawOnWrite="true" />
         <PropertyDefinition name="VertLabelFormatting" initialValue="CentreAligned" />
         <PropertyDefinition name="HorzLabelFormatting" initialValue="CentreAligned" />
         <PropertyDefinition name="NormalImage" initialValue="" redrawOnWrite="true" />
@@ -1044,12 +1044,22 @@
     <WidgetLook name="TaharezLook/ProgressBar">
         <NamedArea name="ProgressArea">
             <Area>
-                <Dim type="LeftEdge" ><ImageDim imageset="TaharezLook" image="ProgressBarLeft" dimension="Width" /></Dim>
+                <Dim type="LeftEdge" >
+                    <ImageDim imageset="TaharezLook" image="ProgressBarLeft" dimension="Width">
+                        <DimOperator op="Divide">
+                            <AbsoluteDim value="2" />
+                        </DimOperator>
+                    </ImageDim>
+                </Dim>
                 <Dim type="TopEdge" ><AbsoluteDim value="0" /></Dim>
                 <Dim type="RightEdge" >
                     <UnifiedDim scale="1" type="RightEdge">
                         <DimOperator op="Subtract">
-                            <ImageDim imageset="TaharezLook" image="ProgressBarRight" dimension="Width" />
+                            <ImageDim imageset="TaharezLook" image="ProgressBarRight" dimension="Width">
+                                <DimOperator op="Divide">
+                                    <AbsoluteDim value="2" />
+                                </DimOperator>
+                            </ImageDim>
                         </DimOperator>
                     </UnifiedDim>
                 </Dim>
@@ -1067,6 +1077,7 @@
                 <Image type="LeftEdge" imageset="TaharezLook" image="ProgressBarLeft" />
                 <Image type="RightEdge" imageset="TaharezLook" image="ProgressBarRight" />
                 <Image type="Background" imageset="TaharezLook" image="ProgressBarMiddle" />
+                <HorzFormat type="Tiled" />
             </FrameComponent>
         </ImagerySection>
         <ImagerySection name="progress_lights" >
@@ -1365,7 +1376,7 @@
                     <Dim type="Width" ><UnifiedDim scale="1.0" type="Width" /></Dim>
                     <Dim type="Height" ><UnifiedDim scale="1.0" type="Height" /></Dim>
                 </Area>
-                <Image imageset="TaharezLook" image="SliderThumbNormal" />
+                <Image imageset="TaharezLook" image="VertSliderThumbNormal" />
                 <VertFormat type="Stretched" />
                 <HorzFormat type="Stretched" />
             </ImageryComponent>
@@ -1378,7 +1389,7 @@
                     <Dim type="Width" ><UnifiedDim scale="1.0" type="Width" /></Dim>
                     <Dim type="Height" ><UnifiedDim scale="1.0" type="Height" /></Dim>
                 </Area>
-                <Image imageset="TaharezLook" image="SliderThumbHover" />
+                <Image imageset="TaharezLook" image="VertSliderThumbHover" />
                 <VertFormat type="Stretched" />
                 <HorzFormat type="Stretched" />
             </ImageryComponent>
@@ -1428,8 +1439,8 @@
             <Area>
                 <Dim type="LeftEdge" ><AbsoluteDim value="0" /></Dim>
                 <Dim type="TopEdge" ><AbsoluteDim value="0" /></Dim>
-                <Dim type="Width" ><ImageDim imageset="TaharezLook" image="SliderThumbNormal" dimension="Width" /></Dim>
-                <Dim type="Height" ><ImageDim imageset="TaharezLook" image="SliderThumbNormal" dimension="Height" /></Dim>
+				<Dim type="Width" ><ImageDim imageset="TaharezLook" image="VertSliderThumbNormal" dimension="Width" /></Dim>
+                <Dim type="Height" ><ImageDim imageset="TaharezLook" image="VertSliderThumbNormal" dimension="Height" /></Dim>
             </Area>
             <VertAlignment type="CentreAligned" />
         </Child>
@@ -1437,7 +1448,7 @@
             <FrameComponent>
                 <Area>
                     <Dim type="LeftEdge" >
-                        <ImageDim imageset="TaharezLook" image="SliderThumbNormal" dimension="Width">
+                        <ImageDim imageset="TaharezLook" image="VertSliderThumbNormal" dimension="Width">
                             <DimOperator op="Multiply">
                                 <AbsoluteDim value="0.5" />
                             </DimOperator>
@@ -1446,7 +1457,7 @@
                     <Dim type="TopEdge" >
                         <UnifiedDim scale="0.5" type="TopEdge">
                             <DimOperator op="Subtract">
-                                <ImageDim imageset="TaharezLook" image="SliderThumbNormal" dimension="Height">
+                                <ImageDim imageset="TaharezLook" image="SlidertrackMiddle" dimension="Height">
                                     <DimOperator op="Multiply">
                                         <AbsoluteDim value="0.5" />
                                     </DimOperator>
@@ -1457,7 +1468,7 @@
                     <Dim type="RightEdge" >
                         <UnifiedDim scale="1.0" type="RightEdge">
                             <DimOperator op="Subtract">
-                                <ImageDim imageset="TaharezLook" image="SliderThumbNormal" dimension="Width">
+                                <ImageDim imageset="TaharezLook" image="VertSliderThumbNormal" dimension="Width">
                                     <DimOperator op="Multiply">
                                         <AbsoluteDim value="0.5" />
                                     </DimOperator>
@@ -2190,6 +2201,7 @@
             <Property name="NormalImage" value="set:TaharezLook image:ComboboxListButtonNormal" />
             <Property name="HoverImage" value="set:TaharezLook image:ComboboxListButtonHover" />
             <Property name="PushedImage" value="set:TaharezLook image:ComboboxListButtonNormal" />
+			<Property name="DisabledImage" value="set:TaharezLook image:ComboboxListButtonNormal" />
         </Child>
         <StateImagery name="Enabled" />
         <StateImagery name="Disabled" />
@@ -3290,10 +3302,10 @@
     ***************************************************
     -->
     <WidgetLook name="TaharezLook/TabButton">
-        <PropertyDefinition name="NormalTextColour" initialValue="FFC0C0C0" redrawOnWrite="true" />
-        <PropertyDefinition name="HoverTextColour" initialValue="FFE0E0E0" redrawOnWrite="true" />
-        <PropertyDefinition name="PushedTextColour" initialValue="FFFFFFFF" redrawOnWrite="true" />
-        <PropertyDefinition name="SelectedTextColour" initialValue="FFE0E0E0" redrawOnWrite="true" />
+        <PropertyDefinition name="NormalTextColour" initialValue="FFFFFFFF" redrawOnWrite="true" />
+        <PropertyDefinition name="HoverTextColour" initialValue="FFFFFFE0" redrawOnWrite="true" />
+        <PropertyDefinition name="PushedTextColour" initialValue="FFFFDF6F" redrawOnWrite="true" />
+        <PropertyDefinition name="SelectedTextColour" initialValue="FFFFFF30" redrawOnWrite="true" />
         <PropertyDefinition name="DisabledTextColour" initialValue="FF7F7F7F" redrawOnWrite="true" />
         <ImagerySection name="label">
             <TextComponent>
@@ -4510,7 +4522,9 @@
         </StateImagery>
         <StateImagery name="Disabled">
             <Layer>
-                <Section section="disabled" />
+                <Section section="disabled">
+					<Colours topLeft="FF7F7F7F" topRight="FF7F7F7F" bottomLeft="FF7F7F7F" bottomRight="FF7F7F7F" />
+                </Section>
             </Layer>
         </StateImagery>
     </WidgetLook>
@@ -4827,6 +4841,5 @@
 
 
 </Falagard>
-
 
 

@@ -1,7 +1,7 @@
 /***************************************************************************
  * text_box.cpp  -  box speaking to you
  *
- * Copyright (C) 2007 - 2008 Florian Richter
+ * Copyright (C) 2007 - 2009 Florian Richter
  ***************************************************************************/
 /*
    This program is free software; you can redistribute it and/or modify
@@ -14,17 +14,21 @@
 */
 
 #include "../objects/text_box.h"
-#include "../core/obj_manager.h"
 #include "../core/framerate.h"
 #include "../core/game_core.h"
-#include "../core/camera.h"
 #include "../user/preferences.h"
 #include "../input/joystick.h"
 #include "../core/main.h"
 #include "../input/keyboard.h"
 #include "../core/i18n.h"
 
+namespace SMC
+{
+
 /* *** *** *** *** *** *** *** *** cText_Box *** *** *** *** *** *** *** *** *** */
+
+static unsigned int text_box_window_width = 300;
+static unsigned int text_box_window_height = 200;
 
 cText_Box :: cText_Box( float x, float y )
 : cBaseBox( x, y )
@@ -36,7 +40,7 @@ cText_Box :: cText_Box( CEGUI::XMLAttributes &attributes )
 : cBaseBox()
 {
 	cText_Box::Init();
-	cText_Box::Create_from_Stream( attributes );
+	cText_Box::Create_From_Stream( attributes );
 }
 
 cText_Box :: ~cText_Box( void )
@@ -46,9 +50,10 @@ cText_Box :: ~cText_Box( void )
 
 void cText_Box :: Init( void )
 {
-	type = TYPE_TEXT_BOX;
-	box_type = type;
-	can_be_on_ground = 0;
+	m_type = TYPE_TEXT_BOX;
+	box_type = m_type;
+	m_can_be_on_ground = 0;
+	counter = 1;
 
 	// default is infinite times activate-able
 	Set_Useable_Count( -1, 1 );
@@ -63,27 +68,27 @@ void cText_Box :: Init( void )
 
 cText_Box *cText_Box :: Copy( void )
 {
-	cText_Box *text_box = new cText_Box( startposx, startposy );
+	cText_Box *text_box = new cText_Box( m_start_pos_x, m_start_pos_y );
 	text_box->Set_Text( text );
 	text_box->Set_Invisible( box_invisible );
 
 	return text_box;
 }
 
-void cText_Box :: Create_from_Stream( CEGUI::XMLAttributes &attributes )
+void cText_Box :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 {
-	cBaseBox::Create_from_Stream( attributes );
+	cBaseBox::Create_From_Stream( attributes );
 
 	// text
 	Set_Text( xml_string_to_string( attributes.getValueAsString( "text" ).c_str() ) );
 }
 
-void cText_Box :: Save_to_Stream( ofstream &file )
+void cText_Box :: Save_To_Stream( ofstream &file )
 {
 	// begin box
 	file << "\t<box>" << std::endl;
 
-	cBaseBox::Save_to_Stream( file );
+	cBaseBox::Save_To_Stream( file );
 
 	// text
 	file << "\t\t<Property name=\"text\" value=\"" << string_to_xml_string( text ) << "\" />" << std::endl;
@@ -104,13 +109,27 @@ void cText_Box :: Activate( void )
 	// set on top
 	editbox->setAlwaysOnTop( 1 );
 	// set position
-	float text_pos_x = posx - 150 + ( rect.w * 0.5f );
-	float text_pos_y = posy - 5 - 200;
+	float text_pos_x = m_pos_x - ( text_box_window_width * 0.5f ) + ( m_rect.m_w * 0.5f );
+	float text_pos_y = m_pos_y - 5 - text_box_window_height;
+
+	// if not on screen on the left side
+	if( text_pos_x < 0 )
+	{
+		// put it on screen
+		text_pos_x = 0;
+	}
+	// if not on screen on the right side
+	if( text_pos_x > pActive_Camera->limit_rect.m_x + pActive_Camera->limit_rect.m_w - text_box_window_width )
+	{
+		// put it on screen
+		text_pos_x = pActive_Camera->limit_rect.m_x + pActive_Camera->limit_rect.m_w - text_box_window_width;
+	}
+
 	editbox->setXPosition( CEGUI::UDim( 0, ( text_pos_x - pActive_Camera->x ) * global_upscalex ) );
 	editbox->setYPosition( CEGUI::UDim( 0, ( text_pos_y - pActive_Camera->y ) * global_upscaley ) );
 	// set size
-	editbox->setWidth( CEGUI::UDim( 0, 300 * global_upscalex ) );
-	editbox->setHeight( CEGUI::UDim( 0, 200 * global_upscaley ) );
+	editbox->setWidth( CEGUI::UDim( 0, text_box_window_width * global_upscalex ) );
+	editbox->setHeight( CEGUI::UDim( 0, text_box_window_height * global_upscaley ) );
 
 	// set text
 	editbox->setText( reinterpret_cast<const CEGUI::utf8*>(text.c_str()) );
@@ -201,7 +220,7 @@ void cText_Box :: Activate( void )
 
 void cText_Box :: Update( void )
 {
-	if( !valid_update || !is_Player_range() )
+	if( !m_valid_update || !Is_In_Player_Range() )
 	{
 		return;
 	}
@@ -209,7 +228,7 @@ void cText_Box :: Update( void )
 	cBaseBox::Update();
 }
 
-void cText_Box :: Set_Text( string str_text )
+void cText_Box :: Set_Text( const std::string &str_text )
 {
 	text = str_text;
 }
@@ -219,25 +238,30 @@ void cText_Box :: Editor_Activate( void )
 	// BaseBox Settings first
 	cBaseBox::Editor_Activate();
 
+	// get window manager
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
 	// text
 	CEGUI::MultiLineEditbox *editbox = static_cast<CEGUI::MultiLineEditbox *>(wmgr.createWindow( "TaharezLook/MultiLineEditbox", "text_box_text" ));
-	Editor_Add( UTF8_("Text"), UTF8_("Text to display when activated"), editbox, 300, 200 );
+	Editor_Add( UTF8_("Text"), UTF8_("Text to display when activated"), editbox, static_cast<float>(text_box_window_width), static_cast<float>(text_box_window_height) );
 
 	editbox->setText( reinterpret_cast<const CEGUI::utf8*>(text.c_str()) );
-	editbox->subscribeEvent( CEGUI::MultiLineEditbox::EventKeyUp, CEGUI::Event::Subscriber( &cText_Box::Editor_Text_Key, this ) );
+	editbox->subscribeEvent( CEGUI::MultiLineEditbox::EventTextChanged, CEGUI::Event::Subscriber( &cText_Box::Editor_Text_Text_Changed, this ) );
 
 	// init
 	Editor_Init();
 }
 
-bool cText_Box :: Editor_Text_Key( const CEGUI::EventArgs &event )
+bool cText_Box :: Editor_Text_Text_Changed( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
-	string str_text = static_cast<CEGUI::MultiLineEditbox *>( windowEventArgs.window )->getText().c_str();
+	std::string str_text = static_cast<CEGUI::MultiLineEditbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Text( str_text );
 
 	return 1;
 }
+
+/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+
+} // namespace SMC

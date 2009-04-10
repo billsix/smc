@@ -13,7 +13,8 @@
 			<xsd:element name="player" type="PropertyType" minOccurs="0" maxOccurs="1"/>
 			<xsd:element name="sound" type="PropertyType" minOccurs="0" maxOccurs="unbounded"/>
 			<xsd:element name="particle_emitter" type="PropertyType" minOccurs="0" maxOccurs="unbounded"/>
-
+			<xsd:element name="path" type="PropertyType" minOccurs="0" maxOccurs="unbounded"/>
+			
 			<xsd:element name="sprite" type="PropertyType" minOccurs="0" maxOccurs="unbounded"/>
 			<xsd:element name="powerup" type="PropertyType" minOccurs="0" maxOccurs="unbounded"/>
 			<xsd:element name="item" type="PropertyType" minOccurs="0" maxOccurs="unbounded"/>
