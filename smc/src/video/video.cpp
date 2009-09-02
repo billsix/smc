@@ -26,6 +26,8 @@
 #include "../core/math/utilities.h"
 #include "../core/i18n.h"
 #include "../core/math/size.h"
+#include "../core/filesystem/filesystem.h"
+#include "../core/filesystem/resource_manager.h"
 // SDL
 #include "SDL_opengl.h"
 // CEGUI
@@ -61,7 +63,7 @@ Color :: Color( Uint8 r, Uint8 g, Uint8 b, Uint8 a /* = 255 */ )
 	alpha = a;
 };
 
-Color :: Color( float r, float g, float b, float a /* = 1 */ )
+Color :: Color( float r, float g, float b, float a /* = 1.0f */ )
 {
 	red = static_cast<Uint8>(r * 255);
 	green = static_cast<Uint8>(g * 255);
@@ -128,10 +130,8 @@ cVideo :: cVideo( void )
 	
 	m_audio_init_failed = 0;
 	m_joy_init_failed = 0;
-	// default geometry detail is medium
-	m_geometry_quality = 0.5f;
-	// default texture detail is high
-	m_texture_quality = 0.75f;
+	m_geometry_quality = cPreferences::m_geometry_quality_default;
+	m_texture_quality = cPreferences::m_texture_quality_default;
 
 	m_initialised = 0;
 }
@@ -152,11 +152,10 @@ void cVideo :: Init_CEGUI_Fake( void ) const
 		rp->setResourceGroupDirectory( "schemas", DATA_DIR "/" GAME_SCHEMA_DIR "/" );
 	}
 	// get a directory to dump the CEGUI log
-	std::string log_dump_dir;
 #ifdef _WIN32
-	log_dump_dir = Get_Temp_Directory() + "cegui.log";
+	std::string log_dump_dir = Get_Temp_Directory() + "cegui.log";
 #else
-	log_dump_dir = "/dev/null";
+	std::string log_dump_dir = "/dev/null";
 #endif
 	// create fake system and renderer
 	pGuiSystem = new CEGUI::System( new cFake_Renderer(), rp, NULL, NULL, "", log_dump_dir );
@@ -216,7 +215,7 @@ void cVideo :: Init_CEGUI( void ) const
 	// create system
 	try
 	{
-		pGuiSystem = new CEGUI::System( pGuiRenderer, rp, NULL, NULL, "", user_data_dir + "cegui.log" );
+		pGuiSystem = new CEGUI::System( pGuiRenderer, rp, NULL, NULL, "", pResource_Manager->user_data_dir + "cegui.log" );
 	}
 	// catch CEGUI Exceptions
 	catch( CEGUI::Exception &ex )
@@ -307,7 +306,7 @@ void cVideo :: Init_Video( bool reload_textures_from_file /* = 0 */, bool use_pr
 	int flags = SDL_OPENGL | SDL_SWSURFACE;
 
 	// only enter fullscreen if set in preferences
-	if( use_preferences && pPreferences->video_fullscreen )
+	if( use_preferences && pPreferences->m_video_fullscreen )
 	{
 		flags |= SDL_FULLSCREEN;
 	}
@@ -317,9 +316,9 @@ void cVideo :: Init_Video( bool reload_textures_from_file /* = 0 */, bool use_pr
 	// full initialization
 	if( use_preferences )
 	{
-		screen_w = pPreferences->video_screen_w;
-		screen_h = pPreferences->video_screen_h;
-		screen_bpp = pPreferences->video_screen_bpp;
+		screen_w = pPreferences->m_video_screen_w;
+		screen_h = pPreferences->m_video_screen_h;
+		screen_bpp = pPreferences->m_video_screen_bpp;
 	}
 	// initialization with SDL defaults
 	else
@@ -364,8 +363,8 @@ void cVideo :: Init_Video( bool reload_textures_from_file /* = 0 */, bool use_pr
 		// overwrite user settings
 		if( use_preferences )
 		{
-			pPreferences->video_screen_w = screen_w;
-			pPreferences->video_screen_h = screen_h;
+			pPreferences->m_video_screen_w = screen_w;
+			pPreferences->m_video_screen_h = screen_h;
 		}
 	}
 	// can not handle bits per pixel
@@ -378,7 +377,7 @@ void cVideo :: Init_Video( bool reload_textures_from_file /* = 0 */, bool use_pr
 		// overwrite user settings
 		if( use_preferences )
 		{
-			pPreferences->video_screen_bpp = screen_bpp;
+			pPreferences->m_video_screen_bpp = screen_bpp;
 		}
 	}
 
@@ -427,7 +426,7 @@ void cVideo :: Init_Video( bool reload_textures_from_file /* = 0 */, bool use_pr
 	//SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 16 );
 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 	// if vertical synchronization is enabled
-	if( use_preferences && pPreferences->video_vsync )
+	if( use_preferences && pPreferences->m_video_vsync )
 	{
 		SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, 1 );
 	}
@@ -467,7 +466,7 @@ void cVideo :: Init_Video( bool reload_textures_from_file /* = 0 */, bool use_pr
 	}
 
 	// check if fullscreen got set
-	if( use_preferences && pPreferences->video_fullscreen )
+	if( use_preferences && pPreferences->m_video_fullscreen )
 	{
 		int is_fullscreen = ( ( screen->flags & SDL_FULLSCREEN ) == SDL_FULLSCREEN );
 
@@ -492,7 +491,7 @@ void cVideo :: Init_Video( bool reload_textures_from_file /* = 0 */, bool use_pr
 	}
 
 	// check if vertical synchronization got set
-	if( use_preferences && pPreferences->video_vsync )
+	if( use_preferences && pPreferences->m_video_vsync )
 	{
 		int is_vsync;
 		// seems to return always true even if not available
@@ -584,11 +583,24 @@ void cVideo :: Init_Video( bool reload_textures_from_file /* = 0 */, bool use_pr
 	else
 	{
 		// get opengl version
-		m_opengl_version = static_cast<float>(atof( reinterpret_cast<const char*>(glGetString( GL_VERSION )) ));
+		std::string version_str = reinterpret_cast<const char *>(glGetString( GL_VERSION ));
+		// erase everything after X.X
+		version_str.erase( 3 );
 
+		m_opengl_version = string_to_float( version_str );
+
+		// if below optimal version
 		if( m_opengl_version < 1.4f )
 		{
-			printf( "Warning : OpenGL Version %f below optimal version 1.4 and higher\n", m_opengl_version );
+			if( m_opengl_version >= 1.3f )
+			{
+				printf( "Info : OpenGL Version %.1f is below the optimal version 1.4 and higher\n", m_opengl_version );
+			}
+			else
+			{
+				printf( "Warning : OpenGL Version %.1f is below version 1.3\n", m_opengl_version );
+			}
+
 		}
 
 		m_initialised = 1;
@@ -598,14 +610,14 @@ void cVideo :: Init_Video( bool reload_textures_from_file /* = 0 */, bool use_pr
 void cVideo :: Init_OpenGL( void ) const
 {
 	// viewport should cover the whole screen
-	glViewport( 0, 0, pPreferences->video_screen_w, pPreferences->video_screen_h );
+	glViewport( 0, 0, pPreferences->m_video_screen_w, pPreferences->m_video_screen_h );
 
 	// select the projection matrix
 	glMatrixMode( GL_PROJECTION );
 	// clear it
 	glLoadIdentity();
 	// Set up the orthographic projection matrix
-	glOrtho( 0, static_cast<float>(pPreferences->video_screen_w), static_cast<float>(pPreferences->video_screen_h), 0, -1, 1 );
+	glOrtho( 0, static_cast<float>(pPreferences->m_video_screen_w), static_cast<float>(pPreferences->m_video_screen_h), 0, -1, 1 );
 	
 	// select the orthographic projection matrix
 	glMatrixMode( GL_MODELVIEW );
@@ -711,29 +723,29 @@ void cVideo :: Init_Texture_Detail( void ) const
 void cVideo :: Init_Resolution_Scale( void ) const
 {
 	// up scale
-	global_upscalex = static_cast<float>(pPreferences->video_screen_w) / static_cast<float>(game_res_w);
-	global_upscaley = static_cast<float>(pPreferences->video_screen_h) / static_cast<float>(game_res_h);
+	global_upscalex = static_cast<float>(pPreferences->m_video_screen_w) / static_cast<float>(game_res_w);
+	global_upscaley = static_cast<float>(pPreferences->m_video_screen_h) / static_cast<float>(game_res_h);
 	// down scale
-	global_downscalex = static_cast<float>(game_res_w) / static_cast<float>(pPreferences->video_screen_w);
-	global_downscaley = static_cast<float>(game_res_h) / static_cast<float>(pPreferences->video_screen_h);
+	global_downscalex = static_cast<float>(game_res_w) / static_cast<float>(pPreferences->m_video_screen_w);
+	global_downscaley = static_cast<float>(game_res_h) / static_cast<float>(pPreferences->m_video_screen_h);
 }
 
 void cVideo :: Init_Image_Cache( bool recreate /* = 0 */, bool draw_gui /* = 0 */ )
 {
-	m_imgcache_dir = user_data_dir + USER_IMGCACHE_DIR;
-	std::string imgcache_dir_active = m_imgcache_dir + "/" + int_to_string( pPreferences->video_screen_w ) + "x" + int_to_string( pPreferences->video_screen_h );
+	m_imgcache_dir = pResource_Manager->user_data_dir + USER_IMGCACHE_DIR;
+	std::string imgcache_dir_active = m_imgcache_dir + "/" + int_to_string( pPreferences->m_video_screen_w ) + "x" + int_to_string( pPreferences->m_video_screen_h );
 
 	// if cache is disabled
-	if( !pPreferences->image_cache_enabled )
+	if( !pPreferences->m_image_cache_enabled )
 	{
 		return;
 	}
 
 	// if not the same game version
-	if( recreate || pPreferences->game_version != smc_version )
+	if( recreate || pPreferences->m_game_version != smc_version )
 	{
 		// delete all caches
-		if( fs::exists( fs::path( m_imgcache_dir, fs::native ) ) )
+		if( Dir_Exists( m_imgcache_dir ) )
 		{
 			try
 			{
@@ -753,11 +765,11 @@ void cVideo :: Init_Image_Cache( bool recreate /* = 0 */, bool draw_gui /* = 0 *
 			}
 		}
 		
-		fs::create_directory( fs::path( m_imgcache_dir, fs::native ) );
+		Create_Directory( m_imgcache_dir );
 	}
 
 	// no cache available
-	if( !fs::exists( fs::path( imgcache_dir_active, fs::native ) ) )
+	if( !Dir_Exists( imgcache_dir_active ) )
 	{
 		fs::create_directories( fs::path( imgcache_dir_active + "/" GAME_PIXMAPS_DIR, fs::native ) );
 	}
@@ -802,9 +814,9 @@ void cVideo :: Init_Image_Cache( bool recreate /* = 0 */, bool draw_gui /* = 0 *
 		// if directory
 		if( filename.rfind( "." ) == std::string::npos )
 		{
-			if( !fs::exists( fs::path( imgcache_dir_active + "/" + cache_filename, fs::native ) ) )
+			if( !Dir_Exists( imgcache_dir_active + "/" + cache_filename ) )
 			{
-				fs::create_directory( fs::path( imgcache_dir_active + "/" + cache_filename, fs::native ) );
+				Create_Directory( imgcache_dir_active + "/" + cache_filename );
 			}
 
 			loaded_files++;
@@ -839,7 +851,7 @@ void cVideo :: Init_Image_Cache( bool recreate /* = 0 */, bool draw_gui /* = 0 *
 		*/
 		if( !settings || !settings->m_width || !settings->m_height )
 		{
-			debug_print( "Info : %s has no image settings or the image size is not set so it can't get cached\n", cache_filename.c_str() );
+			debug_print( "Info : %s has no image settings image size set and will not get cached\n", cache_filename.c_str() );
 			SDL_FreeSurface( sdl_surface );
 			continue;
 		}
@@ -925,7 +937,7 @@ int cVideo :: Test_Video( int width, int height, int bpp, int flags /* = 0 */ ) 
 		flags = SDL_OPENGL | SDL_SWSURFACE;
 
 		// if fullscreen is set
-		if( pPreferences->video_fullscreen )
+		if( pPreferences->m_video_fullscreen )
 		{
 			flags |= SDL_FULLSCREEN;
 		}
@@ -992,25 +1004,25 @@ void cVideo :: Render( void ) const
 	pRenderer->Render();
 
 	// update performance timer
-	pFramerate->perf_timer[PERF_RENDER_GAME]->Update();
+	pFramerate->m_perf_timer[PERF_RENDER_GAME]->Update();
 
 	pGuiSystem->renderGUI();
 	pRenderer_GUI->Render();
 	pMouseCursor->Render();
 
 	// update performance timer
-	pFramerate->perf_timer[PERF_RENDER_GUI]->Update();
+	pFramerate->m_perf_timer[PERF_RENDER_GUI]->Update();
 
 	SDL_GL_SwapBuffers();
 
 	// update performance timer
-	pFramerate->perf_timer[PERF_RENDER_BUFFER]->Update();
+	pFramerate->m_perf_timer[PERF_RENDER_BUFFER]->Update();
 }
 
 void cVideo :: Toggle_Fullscreen( void )
 {
 	// toggle fullscreen
-	pPreferences->video_fullscreen = !pPreferences->video_fullscreen;
+	pPreferences->m_video_fullscreen = !pPreferences->m_video_fullscreen;
 
 	// save clear color
 	GLclampf clear_color[4];
@@ -1706,16 +1718,16 @@ void cVideo :: Save_Screenshot( void ) const
 	
 	for( unsigned int i = 1; i < 1000; i++ )
 	{
-		filename = user_data_dir + USER_SCREENSHOT_DIR "/" + int_to_string( i ) + ".png";
+		filename = pResource_Manager->user_data_dir + USER_SCREENSHOT_DIR "/" + int_to_string( i ) + ".png";
 
 		if( !File_Exists( filename ) )
 		{
 			// create image data
-			GLubyte *data = new GLubyte[pPreferences->video_screen_w * pPreferences->video_screen_h * 3];
+			GLubyte *data = new GLubyte[pPreferences->m_video_screen_w * pPreferences->m_video_screen_h * 3];
 			// read opengl screen
-			glReadPixels( 0, 0, pPreferences->video_screen_w, pPreferences->video_screen_h, GL_RGB, GL_UNSIGNED_BYTE, static_cast<GLvoid *>(data) );
+			glReadPixels( 0, 0, pPreferences->m_video_screen_w, pPreferences->m_video_screen_h, GL_RGB, GL_UNSIGNED_BYTE, static_cast<GLvoid *>(data) );
 			// save
-			Save_Surface( filename, data, pPreferences->video_screen_w, pPreferences->video_screen_h, 3, 1 );
+			Save_Surface( filename, data, pPreferences->m_video_screen_w, pPreferences->m_video_screen_h, 3, 1 );
 			// clear data
 			delete[] data;
 
@@ -1822,7 +1834,7 @@ void Draw_Effect_Out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 	{
 		Color color = static_cast<Uint8>(0);
 
-		for( float i = 1; i > 0; i -= ( speed / 30 ) * pFramerate->speedfactor )
+		for( float i = 1; i > 0; i -= ( speed / 30 ) * pFramerate->m_speed_factor )
 		{
 			color.alpha = static_cast<Uint8>( 45 - ( 45 * i ) );
 
@@ -1869,7 +1881,7 @@ void Draw_Effect_Out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 			// fade alpha in
 			if( alpha < 255.0f )
 			{
-				alpha += 10 * pFramerate->speedfactor;
+				alpha += 10 * pFramerate->m_speed_factor;
 
 				if( alpha > 255.0f )
 				{
@@ -1885,7 +1897,7 @@ void Draw_Effect_Out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 			// horizontal
 			if( hor )
 			{
-				pos -= 20 * pFramerate->speedfactor;
+				pos -= 20 * pFramerate->m_speed_factor;
 				pos_end = static_cast<float>(game_res_w) - pos;
 				// left
 				pVideo->Draw_Gradient( 0, 0, pos_end, static_cast<float>(game_res_h), 0.9f, &color, &black, DIR_HORIZONTAL, gradient_request );
@@ -1893,7 +1905,7 @@ void Draw_Effect_Out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 			// vertical
 			else
 			{
-				pos -= 15 * pFramerate->speedfactor;
+				pos -= 15 * pFramerate->m_speed_factor;
 				pos_end = static_cast<float>(game_res_h) - pos;
 				// top
 				pVideo->Draw_Gradient( 0, 0, static_cast<float>(game_res_w), pos_end, 0.9f, &color, &black, DIR_VERTICAL, gradient_request );
@@ -1966,7 +1978,7 @@ void Draw_Effect_Out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 		{
 			Draw_Game();
 
-			f += 0.9f * pFramerate->speedfactor * speed * ( f / 7 );
+			f += 0.9f * pFramerate->m_speed_factor * speed * ( f / 7 );
 
 			color = Color( static_cast<Uint8>( 255 - ( f * 4 ) ), 255 - static_cast<Uint8>( f * 4 ), 255 - static_cast<Uint8>( f * 4 ), 200 - static_cast<Uint8>( f * 4 ) );
 
@@ -2036,7 +2048,7 @@ void Draw_Effect_Out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 
 		while( rect_size < 200.0f )
 		{
-			rect_size += 4.0f * pFramerate->speedfactor;
+			rect_size += 4.0f * pFramerate->m_speed_factor;
 
 			for( unsigned int g = 0; g < 50; g++ )
 			{
@@ -2119,7 +2131,7 @@ void Draw_Effect_Out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 					// fade in
 					if( grid[y][x] < 120.0f )
 					{
-						grid[y][x] += pFramerate->speedfactor;
+						grid[y][x] += pFramerate->m_speed_factor;
 						
 						if( grid[y][x] > 120.0f )
 						{
@@ -2192,12 +2204,12 @@ void Draw_Effect_Out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 		while( rect_size < 35 )
 		{
 			// add size
-			rect_size += 0.3f * pFramerate->speedfactor;
+			rect_size += 0.3f * pFramerate->m_speed_factor;
 
 			// change color modification
 			if( color_mod > 0.0f )
 			{
-				color_mod -= 0.04f * pFramerate->speedfactor;
+				color_mod -= 0.04f * pFramerate->m_speed_factor;
 
 				if( color_mod < 0.0f )
 				{
@@ -2284,7 +2296,7 @@ void Draw_Effect_In( Effect_Fadein effect /* = EFFECT_IN_RANDOM */, float speed 
 	{
 		Color color = static_cast<Uint8>(0);
 
-		for( float i = 1; i > 0; i -= ( speed / 30 ) * pFramerate->speedfactor )
+		for( float i = 1; i > 0; i -= ( speed / 30 ) * pFramerate->m_speed_factor )
 		{
 			color.alpha = static_cast<Uint8>( 255 * i );
 

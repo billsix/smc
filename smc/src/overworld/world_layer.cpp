@@ -91,7 +91,7 @@ void cLayer_Line_Point :: Destroy( void )
 
 	if( m_type == TYPE_OW_LINE_START )
 	{
-		pActive_Overworld->pLayer->Delete( static_cast<cLayer_Line_Point_Start *>(this), 0 );
+		pActive_Overworld->m_layer->Delete( static_cast<cLayer_Line_Point_Start *>(this), 0 );
 	}
 
 	cSprite::Destroy();
@@ -191,7 +191,7 @@ void cLayer_Line_Point_Start :: Draw( cSurface_Request *request /* = NULL */ )
 	Color color = darkgreen;
 
 	// if active
-	if( pOverworld_Player->current_line >= 0 && pActive_Overworld->pLayer->objects[pOverworld_Player->current_line] == this )
+	if( pOverworld_Player->current_line >= 0 && pActive_Overworld->m_layer->objects[pOverworld_Player->current_line] == this )
 	{
 		color = lightblue;
 	}
@@ -219,7 +219,7 @@ cWaypoint *cLayer_Line_Point_Start :: Get_End_Waypoint( void ) const
 	// no waypoint collision
 	if( wp_num < 0 )
 	{
-		cLayer_Line_Point_Start *line_col = pActive_Overworld->pLayer->Get_Line_Collision_Start( linked_point->m_col_rect );
+		cLayer_Line_Point_Start *line_col = pActive_Overworld->m_layer->Get_Line_Collision_Start( linked_point->m_col_rect );
 
 		// line collision
 		if( line_col )
@@ -277,53 +277,6 @@ cNearLine_collision :: cNearLine_collision( void )
 	start = 0;
 }
 
-/* *** *** *** *** *** *** *** *** Contact Collision *** *** *** *** *** *** *** *** *** */
-
-void cContact_collision :: clear( void )
-{
-	contact = 0;
-	line_hor = cLine_collision();
-	line_ver = cLine_collision();
-}
-
-int cContact_collision :: Get_Best_Line( ObjectDirection dir )
-{
-	// favor vertical
-	if( dir == DIR_LEFT || dir == DIR_RIGHT )
-	{
-		if( line_ver.line_number >= 0 && line_ver.difference < line_hor.difference )
-		{
-			return line_ver.line_number;
-		}
-		else if( line_hor.line_number >= 0 )
-		{
-			return line_hor.line_number;
-		}
-		else
-		{
-			return line_ver.line_number;
-		}
-	}
-	// favor horizontal
-	else if( dir == DIR_UP || dir == DIR_DOWN )
-	{
-		if( line_hor.line_number >= 0 && line_hor.difference < line_ver.difference )
-		{
-			return line_hor.line_number;
-		}
-		else if( line_ver.line_number >= 0 )
-		{
-			return line_ver.line_number;
-		}
-		else
-		{
-			return line_hor.line_number;
-		}
-	}
-
-	return -2;
-}
-
 /* *** *** *** *** *** *** *** *** Layer *** *** *** *** *** *** *** *** *** */
 
 cLayer :: cLayer( cOverworld *origin )
@@ -353,16 +306,16 @@ void cLayer :: Add( cLayer_Line_Point_Start *line_point )
 	cObject_Manager<cLayer_Line_Point_Start>::Add( line_point );
 
 	// check if in sprite manager
-	if( n_origin->sprite_manager->Get_Array_Num( line_point ) == -1 )
+	if( n_origin->m_sprite_manager->Get_Array_Num( line_point ) == -1 )
 	{
 		// add start point
-		n_origin->sprite_manager->Add( line_point );
+		n_origin->m_sprite_manager->Add( line_point );
 	}
 	// check if in sprite manager
-	if( n_origin->sprite_manager->Get_Array_Num( line_point->linked_point ) == -1 )
+	if( n_origin->m_sprite_manager->Get_Array_Num( line_point->linked_point ) == -1 )
 	{
 		// add end point
-		n_origin->sprite_manager->Add( line_point->linked_point );
+		n_origin->m_sprite_manager->Add( line_point->linked_point );
 	}
 }
 
@@ -468,11 +421,11 @@ cLine_collision cLayer :: Get_Line_Collision_Direction( float x, float y, Object
 
 	if( dir == DIR_LEFT || dir == DIR_RIGHT )
 	{
-		return n_origin->pLayer->Get_Nearest( x, y, DIR_VERTICAL, check_size );
+		return n_origin->m_layer->Get_Nearest( x, y, DIR_VERTICAL, check_size );
 	}
 	else if( dir == DIR_UP || dir == DIR_DOWN )
 	{
-		return n_origin->pLayer->Get_Nearest( x, y, DIR_HORIZONTAL, check_size );
+		return n_origin->m_layer->Get_Nearest( x, y, DIR_HORIZONTAL, check_size );
 	}
 
 	// invalid direction

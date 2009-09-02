@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.8" />
+		<Property name="game_version" value="1.9" />
 		<Property name="engine_version" value="34" />
-		<Property name="save_time" value="1233431061" />
+		<Property name="save_time" value="1241106148" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="SMC Team" />
@@ -1141,23 +1141,12 @@
 		<Property name="force_best_item" value="0" />
 	</box>
 	<enemy>
-		<Property name="type" value="static" />
-		<Property name="posx" value="798" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="855" />
 		<Property name="posy" value="446" />
-		<Property name="rotation_speed" value="6" />
-		<Property name="image" value="enemy/static/blocks/spike_1/1_grey.png" />
-		<Property name="path" value="lol" />
-		<Property name="speed" value="5" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="right" />
 	</enemy>
-	<path>
-		<Property name="posx" value="787" />
-		<Property name="posy" value="449" />
-		<Property name="identifier" value="lol" />
-		<Property name="segment_0_x1" value="0" />
-		<Property name="segment_0_y1" value="0" />
-		<Property name="segment_0_x2" value="200" />
-		<Property name="segment_0_y2" value="0" />
-	</path>
 	<box>
 		<Property name="posx" value="1420" />
 		<Property name="posy" value="245" />

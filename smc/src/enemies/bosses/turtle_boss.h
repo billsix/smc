@@ -76,7 +76,11 @@ public:
 	 * force : usually dies or a complete downgrade
 	*/
 	virtual void DownGrade( bool force = 0 );
-	virtual void DieStep( void );
+	// dying animation update
+	virtual void Update_Dying( void );
+
+	// set the turtle moving state
+	void Set_Turtle_Moving_State( TurtleBoss_state new_state );
 
 	// update
 	virtual void Update( void );
@@ -91,6 +95,9 @@ public:
 	void Throw_Fireballs( unsigned int amount = 6 );
 	// Generates Star Particles
 	void Generate_Stars( unsigned int amount = 1, float particle_scale = 0.4f ) const;
+
+	// update the current velocity
+	void Update_Velocity( void );
 
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
@@ -120,37 +127,37 @@ public:
 	bool Editor_Shell_Time_Text_Changed( const CEGUI::EventArgs &event );
 
 	// internal turtle state
-	TurtleBoss_state turtle_state;
+	TurtleBoss_state m_turtle_state;
 
 	// default speed
-	float speed_walk, speed_shell;
+	float m_speed_walk, m_speed_shell;
 
 	// times hit since the start or downgrade
-	int hits;
+	int m_hits;
 	// maximum hits until downgrade
-	int max_hits;
+	int m_max_hits;
 
 	/* If the player kicked the shell this counter starts.
 	 * if this counter is higher than 0
 	 * maryo cannot get killed by the shell
 	 */
-	float playercounter;
+	float m_player_counter;
 
 	// Color
-	DefaultColor color_type;
+	DefaultColor m_color_type;
 
 protected:
 	// Create the Name from the current settings
 	void Create_Name( void );
 
 	// times downgraded
-	int downgrade_counts;
+	int m_downgrade_count;
 	// maximum downgrades until death
-	int max_downgrade_counts;
+	int m_max_downgrade_count;
 	// time running as shell until staying up
-	float shell_time;
+	float m_shell_time;
 	// time running as shell counter
-	float run_time_counter;
+	float m_run_time_counter;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

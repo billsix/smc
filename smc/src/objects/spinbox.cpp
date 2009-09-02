@@ -46,18 +46,14 @@ void cSpinBox :: Init( void )
 	box_type = m_type;
 	m_player_range = 5000;
 	m_can_be_on_ground = 0;
-	counter = 1;
 
-	spin_counter = 0;
+	spin_counter = 0.0f;
 	spin = 0;
 
 	// default is infinite times activate-able
 	Set_Useable_Count( -1, 1 );
 	// Spinbox Animation
-	Set_Animation( "Spin" );
-
-	// no animation
-	anim_counter_max = 1;
+	Set_Animation_Type( "Spin" );
 
 	// editor image
 	item_image = pVideo->Get_Surface( "game/arrow/small/white/up.png" );
@@ -103,10 +99,10 @@ void cSpinBox :: Activate( void )
 	// passive box for spinning
 	m_massive_type = MASS_PASSIVE;
 
-	counter = static_cast<float>(anim_counter_min);
-	spin_counter = 0;
-	// set the BaseBox maximum animation image
-	anim_counter_max = 6;
+	spin_counter = 0.0f;
+	// enable animation
+	Set_Animation( 1 );
+	Reset_Animation();
 }
 
 void cSpinBox :: Stop( void )
@@ -120,23 +116,23 @@ void cSpinBox :: Stop( void )
 	// disabled image
 	if( !useable_count )
 	{
-		Set_Image_Num( 0, 0, 0 );
+		Set_Image_Num( 0 );
 	}
 	// default image
 	else
 	{
-		Set_Image_Num( 1, 0, 0 );
+		Set_Image_Num( 1 );
 	}
 	// reset
 	spin = 0;
 	Update_Valid_Update();
-	counter = static_cast<float>(anim_counter_min);
-	spin_counter = 0;
+	spin_counter = 0.0f;
 
 	// back to a massive box
 	m_massive_type = MASS_MASSIVE;
-	// set the BaseBox maximum animation image
-	anim_counter_max = 1;
+	// disable animation
+	Set_Animation( 0 );
+	Reset_Animation();
 }
 
 void cSpinBox :: Update( void )
@@ -150,16 +146,16 @@ void cSpinBox :: Update( void )
 
 	if( spin )
 	{
-		spin_counter += pFramerate->speedfactor;
+		spin_counter += pFramerate->m_speed_factor;
 
 		// spinning animation finished
-		if( counter == 1 )
+		if( m_curr_img == 1 )
 		{
 			// spinning time finished
 			if( spin_counter > speedfactor_fps * 5 )
 			{
 				// reset spin counter
-				spin_counter = 0;
+				spin_counter = 0.0f;
 				// set to massive for collision check
 				m_massive_type = MASS_MASSIVE;
 				// collision data

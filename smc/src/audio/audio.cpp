@@ -19,6 +19,7 @@
 #include "../overworld/overworld.h"
 #include "../user/preferences.h"
 #include "../core/i18n.h"
+#include "../core/filesystem/filesystem.h"
 
 namespace SMC
 {
@@ -137,15 +138,15 @@ cAudio :: cAudio( void )
 
 	m_debug = 0;
 
-	m_sound_volume = 100;
-	m_music_volume = 80;
+	m_sound_volume = cPreferences::m_sound_volume_default;
+	m_music_volume = cPreferences::m_music_volume_default;
 
 	m_music = NULL;
 	m_music_old = NULL;
 
 	m_max_sounds = 0;
 
-	m_audio_buffer = 4096; // below 2000 can be choppy
+	m_audio_buffer = 4096; // below 2048 can be choppy
 	m_audio_channels = MIX_DEFAULT_CHANNELS; // 1 = Mono, 2 = Stereo
 }
 
@@ -162,11 +163,11 @@ bool cAudio :: Init( void )
 	int dev_channels = 0;
 	int numtimesopened = Mix_QuerySpec( &dev_frequency, &dev_format, &dev_channels );
 
-	bool sound = pPreferences->audio_sound;
-	bool music = pPreferences->audio_music;
+	bool sound = pPreferences->m_audio_sound;
+	bool music = pPreferences->m_audio_music;
 
 	// if no change
-	if( numtimesopened && m_music_enabled == music && m_sound_enabled == sound && dev_frequency == pPreferences->audio_hz )
+	if( numtimesopened && m_music_enabled == music && m_sound_enabled == sound && dev_frequency == pPreferences->m_audio_hz )
 	{
 		return 1;
 	}
@@ -184,7 +185,7 @@ bool cAudio :: Init( void )
 	{
 		if( m_debug )
 		{
-			printf( "Initializing Audio System - Buffer %i, Frequency %i, Speaker Channels %i\n", m_audio_buffer, pPreferences->audio_hz, m_audio_channels );
+			printf( "Initializing Audio System - Buffer %i, Frequency %i, Speaker Channels %i\n", m_audio_buffer, pPreferences->m_audio_hz, m_audio_channels );
 		}
 
 		/*	Initializing preferred Audio System specs with Mixer Standard format (Stereo)
@@ -195,7 +196,7 @@ bool cAudio :: Init( void )
 		*	chunk size	: Bytes used per output sample.
 		*/
 
-		if( Mix_OpenAudio( pPreferences->audio_hz, MIX_DEFAULT_FORMAT, m_audio_channels, m_audio_buffer ) < 0 ) 
+		if( Mix_OpenAudio( pPreferences->m_audio_hz, MIX_DEFAULT_FORMAT, m_audio_channels, m_audio_buffer ) < 0 ) 
 		{
 			printf( "Warning : Could not init 16-bit Audio\n- Reason : %s\n", SDL_GetError() );
 			return 0;
@@ -210,9 +211,9 @@ bool cAudio :: Init( void )
 		else
 		{
 			// different frequency
-			if( pPreferences->audio_hz != dev_frequency )
+			if( pPreferences->m_audio_hz != dev_frequency )
 			{
-				printf( "Warning : different frequency got %d but requested %d\n", dev_frequency, pPreferences->audio_hz );
+				printf( "Warning : different frequency got %d but requested %d\n", dev_frequency, pPreferences->m_audio_hz );
 			}
 
 			// different format
@@ -677,7 +678,7 @@ cAudio_Sound *cAudio :: Create_Sound_Channel( void )
 
 void cAudio :: Toggle_Music( void )
 {
-	pPreferences->audio_music = !pPreferences->audio_music;
+	pPreferences->m_audio_music = !pPreferences->m_audio_music;
 	Init();
 
 	// play music
@@ -691,7 +692,7 @@ void cAudio :: Toggle_Music( void )
 		// in overworld
 		else if( Game_Mode == MODE_OVERWORLD )
 		{
-			Play_Music( pActive_Overworld->musicfile, -1, 1, 2000 );
+			Play_Music( pActive_Overworld->m_musicfile, -1, 1, 2000 );
 		}
 		// in menu
 		else
@@ -709,7 +710,7 @@ void cAudio :: Toggle_Music( void )
 
 void cAudio :: Toggle_Sounds( void )
 {
-	pPreferences->audio_sound = !pPreferences->audio_sound;
+	pPreferences->m_audio_sound = !pPreferences->m_audio_sound;
 	Init();
 
 	// play a test sound

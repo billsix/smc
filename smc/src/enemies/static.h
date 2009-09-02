@@ -69,7 +69,8 @@ public:
 	 * force : usually dies or a complete downgrade
 	*/
 	virtual void DownGrade( bool force = 0 );
-	virtual void DieStep( void );
+	// dying animation update
+	virtual void Update_Dying( void );
 
 	// update
 	virtual void Update( void );
@@ -100,7 +101,10 @@ public:
 	bool Editor_Path_Identifier_Text_Changed( const CEGUI::EventArgs &event );
     // editor speed text changed event
 	bool Editor_Speed_Text_Changed( const CEGUI::EventArgs &event );
-    
+	// editor fire resistant option selected event
+	bool Editor_Fire_Resistant_Select( const CEGUI::EventArgs &event );
+	// editor ice resistance text changed event
+	bool Editor_Ice_Resistance_Text_Changed( const CEGUI::EventArgs &event );
 
 	// image filename
 	std::string m_img_filename;

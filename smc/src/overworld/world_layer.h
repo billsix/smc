@@ -131,23 +131,6 @@ public:
 	bool start;
 };
 
-// Layer Contact Collision data
-class cContact_collision
-{
-public:
-	// clear data
-	void clear( void );
-	// return the best fitting line for the given direction
-	int Get_Best_Line( ObjectDirection dir );
-
-	// is there a contact
-	bool contact;
-	// horizontal line contact
-	cLine_collision line_hor;
-	// vertical line contact
-	cLine_collision line_ver;
-};
-
 typedef vector<cLayer_Line_Point_Start *> LayerLineList;
 
 // Layer class

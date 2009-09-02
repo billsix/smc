@@ -47,39 +47,39 @@ cGlobal_effect :: ~cGlobal_effect( void )
 
 void cGlobal_effect :: Init_Anim( void )
 {
-	if( ge_type == GL_EFF_NONE )
+	if( m_global_effect_type == GL_EFF_NONE )
 	{
 		return;
 	}
 
-	if( ge_type == GL_EFF_FALLING )
+	if( m_global_effect_type == GL_EFF_FALLING )
 	{
 		// image doesn't exist
-		if( !pVideo->Get_Surface( image_filename ) )
+		if( !pVideo->Get_Surface( m_image_filename ) )
 		{
-			valid = 0;
+			m_valid = 0;
 		}
 		// image exists
 		else
 		{
-			m_image = pVideo->Get_Surface( image_filename );
+			m_image = pVideo->Get_Surface( m_image_filename );
 			// valid effect
-			valid = 1;
+			m_valid = 1;
 		}
 	}
 
 	// update ahead
-	if( valid )
+	if( m_valid )
 	{
-		float old_speedfactor = pFramerate->speedfactor;
-		pFramerate->speedfactor = 1;
+		float old_speedfactor = pFramerate->m_speed_factor;
+		pFramerate->m_speed_factor = 1.0f;
 		// use time to live as seconds
-		for( float i = 0; i < speedfactor_fps * time_to_live; i++ )
+		for( float i = 0.0f; i < speedfactor_fps * time_to_live; i++ )
 		{
 			Update();
 		}
 
-		pFramerate->speedfactor = old_speedfactor;
+		pFramerate->m_speed_factor = old_speedfactor;
 	}
 }
 
@@ -87,9 +87,9 @@ void cGlobal_effect :: Clear( void )
 {
 	cParticle_Emitter::Clear();
 
-	ge_type = GL_EFF_NONE;
+	m_global_effect_type = GL_EFF_NONE;
 
-	image_filename.clear();
+	m_image_filename.clear();
 	m_image = NULL;
 	Set_Emitter_Rect( 0, 0, static_cast<float>(game_res_w), 0 );
 	Set_Emitter_Time_to_Live( -1 );
@@ -102,15 +102,15 @@ void cGlobal_effect :: Clear( void )
 	Set_Rotation( 0, 0, 0, 1 );
 	Set_Const_Rotation_Z( -5, 10 );
 
-	valid = 0;
+	m_valid = 0;
 }
 
 void cGlobal_effect :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 {
 	// Type
-	Set_Type( static_cast<GlobalEffectType>(attributes.getValueAsInteger( "type", ge_type )) );
+	Set_Type( static_cast<GlobalEffectType>(attributes.getValueAsInteger( "type", m_global_effect_type )) );
 	// Image
-	Set_Image( attributes.getValueAsString( "image", image_filename ).c_str() );
+	Set_Image( attributes.getValueAsString( "image", m_image_filename ).c_str() );
 	// Creation Rect
 	Set_Emitter_Rect( static_cast<float>(attributes.getValueAsInteger( "rect_x", static_cast<int>(m_start_pos_x) )), static_cast<float>(attributes.getValueAsInteger( "rect_y", static_cast<int>(m_start_pos_y) )), static_cast<float>(attributes.getValueAsInteger( "rect_w", static_cast<int>(m_rect.m_w) )), static_cast<float>(attributes.getValueAsInteger( "rect_h", static_cast<int>(m_rect.m_h) )) );
 	// Z Position
@@ -120,7 +120,7 @@ void cGlobal_effect :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 	{
 		Set_Time_to_Live( attributes.getValueAsFloat( "time_to_live", time_to_live ), attributes.getValueAsFloat( "time_to_live_rand", time_to_live_rand ) );
 	}
-	// if not set uses old Lifetime mod
+	// if not set uses old Lifetime mod ( 0.99.4 and below )
 	else
 	{
 		Set_Time_to_Live( attributes.getValueAsFloat( "lifetime_mod", 20 ) * 0.3f );
@@ -149,7 +149,7 @@ void cGlobal_effect :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 
 void cGlobal_effect :: Save_To_Stream( ofstream &file )
 {
-	if( ge_type == GL_EFF_NONE )
+	if( m_global_effect_type == GL_EFF_NONE )
 	{
 		return;
 	}
@@ -158,9 +158,9 @@ void cGlobal_effect :: Save_To_Stream( ofstream &file )
 	file << "\t<global_effect>" << std::endl;
 
 	// type
-	file << "\t\t<Property name=\"type\" value=\"" << ge_type << "\" />" << std::endl;
+	file << "\t\t<Property name=\"type\" value=\"" << m_global_effect_type << "\" />" << std::endl;
 	// image
-	std::string img_filename = image_filename;
+	std::string img_filename = m_image_filename;
 
 	if( img_filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == 0 )
 	{
@@ -204,13 +204,13 @@ void cGlobal_effect :: Save_To_Stream( ofstream &file )
 
 void cGlobal_effect :: Update( void )
 {
-	if( editor_level_enabled || !valid )
+	if( editor_level_enabled || !m_valid )
 	{
 		return;
 	}
 
 	// if disabled
-	if( ge_type == GL_EFF_NONE )
+	if( m_global_effect_type == GL_EFF_NONE )
 	{
 		return;
 	}
@@ -274,39 +274,49 @@ void cGlobal_effect :: Draw( void )
 	cParticle_Emitter::Draw();
 }
 
-void cGlobal_effect :: Set_Type( const GlobalEffectType ntype )
+void cGlobal_effect :: Set_Type( const GlobalEffectType type )
 {
-	ge_type = ntype;
+	if( m_global_effect_type == type )
+	{
+		return;
+	}
+
+	m_global_effect_type = type;
+
+	if( m_global_effect_type == GL_EFF_NONE )
+	{
+		cParticle_Emitter::Clear();
+	}
 }
 
-void cGlobal_effect :: Set_Type( const std::string &ntype )
+void cGlobal_effect :: Set_Type( const std::string &str_type )
 {
-	if( ntype.compare( "Disabled" ) == 0 )
+	if( str_type.compare( "Disabled" ) == 0 )
 	{
-		ge_type = GL_EFF_NONE;
+		Set_Type( GL_EFF_NONE );
 	}
-	else if( ntype.compare( "Falling" ) == 0 || ntype.compare( "Default" ) == 0 )
+	else if( str_type.compare( "Falling" ) == 0 || str_type.compare( "Default" ) == 0 )
 	{
-		ge_type = GL_EFF_FALLING;
+		Set_Type( GL_EFF_FALLING );
 	}
 	else
 	{
-		printf( "Warning : Unknown Global Effect type %s\n", ntype.c_str() );
+		printf( "Warning : Unknown Global Effect type %s\n", str_type.c_str() );
 	}
 }
 
 void cGlobal_effect :: Set_Image( const std::string &nimg_file )
 {
-	image_filename = nimg_file;
+	m_image_filename = nimg_file;
 }
 
 std::string cGlobal_effect :: Get_Type_Name( void ) const
 {
-	if( ge_type == GL_EFF_NONE )
+	if( m_global_effect_type == GL_EFF_NONE )
 	{
 		return "Disabled";
 	}
-	else if( ge_type == GL_EFF_FALLING )
+	else if( m_global_effect_type == GL_EFF_FALLING )
 	{
 		return "Falling";
 	}

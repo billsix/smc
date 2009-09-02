@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.8" />
+		<Property name="game_version" value="1.9" />
 		<Property name="engine_version" value="34" />
-		<Property name="save_time" value="1238479828" />
+		<Property name="save_time" value="1241105021" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Sauer2 and SMC Team" />
@@ -1189,10 +1189,11 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="krush" />
-		<Property name="posx" value="89" />
-		<Property name="posy" value="-148" />
-		<Property name="direction" value="left" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="77" />
+		<Property name="posy" value="-117" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="right" />
 	</enemy>
 	<sprite>
 		<Property name="posx" value="552" />
@@ -1986,10 +1987,10 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="turtle" />
-		<Property name="posx" value="144" />
-		<Property name="posy" value="-2947" />
-		<Property name="color" value="green" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="147" />
+		<Property name="posy" value="-2920" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<sprite>
@@ -2207,9 +2208,10 @@
 		<Property name="posy" value="-2417" />
 	</enemystopper>
 	<enemy>
-		<Property name="type" value="krush" />
-		<Property name="posx" value="764" />
-		<Property name="posy" value="-3381" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="763" />
+		<Property name="posy" value="-3352" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemystopper>
@@ -2334,9 +2336,10 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="krush" />
-		<Property name="posx" value="362" />
-		<Property name="posy" value="-2357" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="225" />
+		<Property name="posy" value="-2325" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<sprite>
@@ -2356,9 +2359,10 @@
 		<Property name="posy" value="-539" />
 	</enemystopper>
 	<enemy>
-		<Property name="type" value="krush" />
-		<Property name="posx" value="547" />
-		<Property name="posy" value="-606" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="532" />
+		<Property name="posy" value="-577" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
@@ -2460,4 +2464,18 @@
 		<Property name="useable_count" value="1" />
 		<Property name="force_best_item" value="0" />
 	</box>
+	<enemy>
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="127" />
+		<Property name="posy" value="-117" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="right" />
+	</enemy>
+	<enemy>
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="175" />
+		<Property name="posy" value="-2325" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="right" />
+	</enemy>
 </level>

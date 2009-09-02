@@ -18,7 +18,7 @@
 
 #include "../core/globals.h"
 #include "../objects/ball.h"
-#include "../objects/objectsprite.h"
+#include "../objects/animated_sprite.h"
 
 namespace SMC
 {
@@ -67,7 +67,7 @@ enum Camera_movement
 
 /* *** *** *** *** *** *** *** Player class *** *** *** *** *** *** *** *** *** *** */
 
-class cPlayer : public cImageObjectSprite
+class cPlayer : public cAnimated_Sprite
 {
 public:
 	// constructor
@@ -89,7 +89,7 @@ public:
 	virtual void Set_Direction( const ObjectDirection dir, bool new_start_direction = 0 );
 
 	// Set the ground object
-	virtual bool Set_on_Ground( cSprite *obj, bool set_on_top = 1 );
+	virtual bool Set_On_Ground( cSprite *obj, bool set_on_top = 1 );
 
 	/* downgrade state ( if small maryo : dies )
 	 * force : dies or a complete downgrade
@@ -158,7 +158,7 @@ public:
 	*/
 	void Set_Type( Maryo_type new_type, bool animation = 1, bool sound = 1, bool temp_power = 0 );
 	void Set_Type( SpriteType item_type, bool animation = 1, bool sound = 1, bool temp_power = 0 );
-	// sets the moving state
+	// set the moving state
 	void Set_Moving_State( Moving_state new_state );
 
 	// default update
@@ -273,7 +273,9 @@ public:
 	float ghost_time;
 	// ghost mode drawing modifier
 	float ghost_time_mod;
-	// time maryo gets invincible
+	/* invincible time
+	 * if 0 we are not invincible
+	*/
 	float invincible;
 	// invincible time if maryo got a star
 	float invincible_star;
@@ -312,7 +314,7 @@ public:
 	float ducked_animation_counter;
 	// if parachute falling
 	bool parachute;
-	// goldpiece amount collected
+	// amount of goldpieces collected
 	unsigned int goldpieces;
 	// collected points
 	long points;

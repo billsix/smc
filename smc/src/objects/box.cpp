@@ -36,7 +36,7 @@ namespace SMC
 /* *** *** *** *** *** *** *** *** cBaseBox *** *** *** *** *** *** *** *** *** */
 
 cBaseBox :: cBaseBox( float x /* = 0 */, float y /* = 0 */ )
-: cImageObjectSprite( x, y )
+: cAnimated_Sprite( x, y )
 {
 	m_type = TYPE_ACTIVESPRITE;
 	m_sprite_array = ARRAY_ACTIVE;
@@ -44,15 +44,12 @@ cBaseBox :: cBaseBox( float x /* = 0 */, float y /* = 0 */ )
 	m_can_be_ground = 1;
 	Set_Scale_Directions( 1, 1, 1, 1 );
 
-	counter = 0;
-	anim_counter_min = 0;
-	anim_counter_max = 0;
 	box_type = TYPE_UNDEFINED;
 	item_image = NULL;
 	m_pos_z = 0.055f;
 
 	move_col_dir = DIR_UNDEFINED;
-	move_counter = 0;
+	move_counter = 0.0f;
 	move_back = 0;
 	// default = usable once
 	useable_count = 1;
@@ -60,7 +57,7 @@ cBaseBox :: cBaseBox( float x /* = 0 */, float y /* = 0 */ )
 
 	box_invisible = BOX_VISIBLE;
 
-	particle_counter_active = 0;
+	particle_counter_active = 0.0f;
 }
 
 cBaseBox :: ~cBaseBox( void )
@@ -75,7 +72,7 @@ void cBaseBox :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 	if( box_type != TYPE_SPINBOX && box_type != TYPE_TEXT_BOX )
 	{
 		// animation
-		Set_Animation( attributes.getValueAsString( "animation", anim_type ).c_str() );
+		Set_Animation_Type( attributes.getValueAsString( "animation", anim_type ).c_str() );
 	}
 	// invisible
 	Set_Invisible( static_cast<Box_Invisible_Type>(attributes.getValueAsInteger( "invisible" )) );
@@ -139,7 +136,7 @@ cSave_Level_Object *cBaseBox :: Save_To_Savegame( void )
 	return save_object;
 }
 
-void cBaseBox :: Set_Animation( const std::string &new_anim_type )
+void cBaseBox :: Set_Animation_Type( const std::string &new_anim_type )
 {
 	// already set
 	if( anim_type.compare( new_anim_type ) == 0 )
@@ -153,70 +150,64 @@ void cBaseBox :: Set_Animation( const std::string &new_anim_type )
 	if( anim_type.compare( "Bonus" ) == 0 )
 	{
 		// disabled image
-		m_images.push_back( pVideo->Get_Surface( "game/box/brown1_1.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/box/brown1_1.png" ) );
 		// animation images
-		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/1.png" ) );
-		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/2.png" ) );
-		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/3.png" ) );
-		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/4.png" ) );
-		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/5.png" ) );
-		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/bonus/6.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/box/yellow/bonus/1.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/box/yellow/bonus/2.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/box/yellow/bonus/3.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/box/yellow/bonus/4.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/box/yellow/bonus/5.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/box/yellow/bonus/6.png" ) );
 
-		anim_counter_min = 1;
-		anim_counter_max = 6;
+		Set_Animation( 1 );
+		Set_Animation_Image_Range( 1, 6 );
+		Set_Time_All( 90, 1 );
 	}
 	else if( anim_type.compare( "Default" ) == 0 )
 	{
 		// disabled image
-		m_images.push_back( pVideo->Get_Surface( "game/box/brown1_1.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/box/brown1_1.png" ) );
 		// default
-		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/default.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/box/yellow/default.png" ) );
 
-		anim_counter_min = 1;
-		anim_counter_max = 1;
+		Set_Animation( 0 );
+		Set_Animation_Image_Range( 1, 1 );
 	}
 	else if( anim_type.compare( "Power" ) == 0 )
 	{
 		// disabled image
-		m_images.push_back( pVideo->Get_Surface( "game/box/brown1_1.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/box/brown1_1.png" ) );
 		// default
-		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/power_1.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/box/yellow/power_1.png" ) );
 
-		anim_counter_min = 1;
-		anim_counter_max = 1;
+		Set_Animation( 0 );
+		Set_Animation_Image_Range( 1, 1 );
 	}
 	else if( anim_type.compare( "Spin" ) == 0 )
 	{
 		// disabled image
-		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/disabled.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/box/yellow/spin/disabled.png" ) );
 		// animation images
-		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/default.png" ) );
-		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/1.png" ) );
-		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/2.png" ) );
-		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/3.png" ) );
-		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/4.png" ) );
-		m_images.push_back( pVideo->Get_Surface( "game/box/yellow/spin/5.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/box/yellow/default.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/box/yellow/spin/1.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/box/yellow/spin/2.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/box/yellow/spin/3.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/box/yellow/spin/4.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/box/yellow/spin/5.png" ) );
 
-		anim_counter_min = 1;
-		anim_counter_max = 6;
+		Set_Animation( 0 );
+		Set_Animation_Image_Range( 1, 6 );
+		Set_Time_All( 80, 1 );
 	}
 	else
 	{
 		printf( "Warning : Unknown Box Animation Type %s\n", anim_type.c_str() );
-		Set_Animation( "Bonus" );
+		Set_Animation_Type( "Bonus" );
 	}
 
+	Reset_Animation();
 	// set start image
-	Set_Image_Num( anim_counter_min, 1, 0 );
-
-	// if counter is over the new maximum
-	if( counter > anim_counter_max )
-	{
-		counter = static_cast<float>(anim_counter_max);
-	}
-
-	// set current image
-	Set_Image_Num( static_cast<int>(counter) );
+	Set_Image_Num( m_anim_img_start, 1, 0 );
 }
 
 void cBaseBox :: Set_Useable_Count( int count, bool new_startcount /* = 0 */ )
@@ -358,9 +349,9 @@ void cBaseBox :: Update_Collision( void )
 	}
 
 	// speed mod
-	float mod = pFramerate->speedfactor * 0.05f;
+	float mod = pFramerate->m_speed_factor * 0.05f;
 	// counter
-	move_counter += pFramerate->speedfactor * 0.2f;
+	move_counter += pFramerate->m_speed_factor * 0.2f;
 
 	// move into the given direction
 	if( !move_back )
@@ -372,10 +363,10 @@ void cBaseBox :: Update_Collision( void )
 		Generate_Activation_Particles();
 
 		// check if reached final position
-		if( move_counter > 1 )
+		if( move_counter > 1.0f )
 		{
 			move_back = 1;
-			move_counter = 0;
+			move_counter = 0.0f;
 		}
 	}
 	// move back to the original position
@@ -385,12 +376,12 @@ void cBaseBox :: Update_Collision( void )
 		Add_Scale( -mod );
 
 		// check if reached original position
-		if(	move_counter > 1 )
+		if(	move_counter > 1.0f )
 		{
 			move_col_dir = DIR_UNDEFINED;
 			Update_Valid_Update();
 			move_back = 0;
-			move_counter = 0;
+			move_counter = 0.0f;
 
 			// reset rect
 			m_col_pos = m_image->m_col_pos;
@@ -406,25 +397,25 @@ void cBaseBox :: Update_Collision( void )
 void cBaseBox :: Check_Collision( ObjectDirection cdirection )
 {
 	// additional direction based check position
-	float check_x = 0;
-	float check_y = 0;
+	float check_x = 0.0f;
+	float check_y = 0.0f;
 
 	// set the collision size based on the collision direction
 	if( cdirection == DIR_BOTTOM )
 	{
-		check_y -= 10;
+		check_y -= 10.0f;
 	}
 	else if( cdirection == DIR_TOP )
 	{
-		check_y += 10;
+		check_y += 10.0f;
 	}
 	else if( cdirection == DIR_LEFT ) 
 	{
-		check_x += 5;
+		check_x += 5.0f;
 	}
 	else if( cdirection == DIR_RIGHT )
 	{
-		check_x -= 5;
+		check_x -= 5.0f;
 	}
 
 	// collision count
@@ -454,7 +445,7 @@ void cBaseBox :: Col_Enemy( cSprite *obj )
 	// only valid enemies
 	if( obj->m_type == TYPE_FURBALL || obj->m_type == TYPE_TURTLE || obj->m_type == TYPE_KRUSH )
 	{
-		pAudio->Play_Sound( "death_box.ogg" );
+		pAudio->Play_Sound( "death_box.wav" );
 		static_cast<cMovingSprite *>(obj)->DownGrade( 1 );
 	}
 }
@@ -469,20 +460,13 @@ void cBaseBox :: Update( void )
 	// animate only a visible box or an activated invisible box
 	if( box_invisible == BOX_VISIBLE || ( box_invisible == BOX_GHOST && pPlayer->maryo_type == MARYO_GHOST ) || useable_count != start_useable_count )
 	{
-		// Spinbox uses anim_counter for animation handling
-		if( ( m_type == TYPE_SPINBOX || useable_count != 0 ) && anim_counter_min != anim_counter_max )
+		// Spinbox animation handling
+		if( ( m_type == TYPE_SPINBOX || useable_count != 0 ) && m_anim_enabled )
 		{
-			counter += pFramerate->speedfactor * 0.4f;
-
-			if( counter >= anim_counter_max + 1 )
-			{
-				counter = static_cast<float>(anim_counter_min);
-			}
-
-			// Set_Image overwrites col_pos
+			// Set_Image in Update_Animation overwrites col_pos
 			GL_point col_pos_temp = m_col_pos;
 
-			Set_Image_Num( static_cast<int>(counter) );
+			Update_Animation();
 
 			// save col_pos
 			m_col_pos = col_pos_temp;
@@ -505,7 +489,7 @@ void cBaseBox :: Draw( cSurface_Request *request /* = NULL */ )
 		// visible box or activated invisible box
 		if( box_invisible == BOX_VISIBLE || ( box_invisible == BOX_GHOST && pPlayer->maryo_type == MARYO_GHOST ) || useable_count != start_useable_count )
 		{
-			cImageObjectSprite::Draw( request );
+			cAnimated_Sprite::Draw( request );
 		}
 	}
 	// editor enabled
@@ -537,7 +521,7 @@ void cBaseBox :: Draw( cSurface_Request *request /* = NULL */ )
 		// visible box
 		else
 		{
-			cImageObjectSprite::Draw( request );
+			cAnimated_Sprite::Draw( request );
 		}
 
 		// draw item image
@@ -557,12 +541,12 @@ void cBaseBox :: Generate_Activation_Particles( void )
 		return;
 	}
 
-	particle_counter_active += pFramerate->speedfactor;
+	particle_counter_active += pFramerate->m_speed_factor;
 
-	while( particle_counter_active > 0 )
+	while( particle_counter_active > 0.0f )
 	{
 		cParticle_Emitter *anim = new cParticle_Emitter();
-		anim->Set_Pos( m_pos_x + Get_Random_Float( 0, m_rect.m_w ), m_pos_y );
+		anim->Set_Pos( m_pos_x + Get_Random_Float( 0.0f, m_rect.m_w ), m_pos_y );
 		anim->Set_Pos_Z( m_pos_z - 0.000001f );
 		anim->Set_Direction_Range( 180, 180 );
 		anim->Set_Speed( 3.1f, 0.5f );
@@ -674,20 +658,31 @@ bool cBaseBox :: Is_Draw_Valid( void )
 
 Col_Valid_Type cBaseBox :: Validate_Collision( cSprite *obj )
 {
+	switch( obj->m_type )
+	{
+		case TYPE_MUSHROOM_LIVE_1:
+		case TYPE_MUSHROOM_DEFAULT:
+		case TYPE_MUSHROOM_POISON:
+		case TYPE_MUSHROOM_BLUE:
+		case TYPE_MUSHROOM_GHOST:
+		case TYPE_FGOLDPIECE:
+		{
+			return COL_VTYPE_BLOCKING;
+		}
+		default:
+		{
+			break;
+		}
+	}
+
 	if( obj->m_massive_type == MASS_MASSIVE )
 	{
 		return COL_VTYPE_BLOCKING;
 	}
-	// items
-	if( obj->m_type == TYPE_MUSHROOM_LIVE_1 || obj->m_type == TYPE_MUSHROOM_DEFAULT || obj->m_type == TYPE_MUSHROOM_POISON 
-		|| obj->m_type == TYPE_MUSHROOM_BLUE || obj->m_type == TYPE_MUSHROOM_GHOST || obj->m_type == TYPE_FGOLDPIECE )
-	{
-		return COL_VTYPE_BLOCKING;
-	}
-	if( obj->m_massive_type == MASS_HALFMASSIVE )
+	else if( obj->m_massive_type == MASS_HALFMASSIVE )
 	{
 		// if moving downwards and the object is on bottom
-		if( m_vely >= 0 && Is_On_Top( obj ) )
+		if( m_vely >= 0.0f && Is_On_Top( obj ) )
 		{
 			return COL_VTYPE_BLOCKING;
 		}
@@ -698,7 +693,7 @@ Col_Valid_Type cBaseBox :: Validate_Collision( cSprite *obj )
 
 void cBaseBox :: Handle_Collision_Player( cObjectCollision *collision )
 {
-	// if player jumps from below or fly's against it
+	// if player jumps from below or flies against it
 	if( collision->direction == DIR_BOTTOM && pPlayer->m_state != STA_FLY )
 	{
 		if( useable_count != 0 )
@@ -725,7 +720,7 @@ void cBaseBox :: Handle_Collision_Enemy( cObjectCollision *collision )
 		cTurtle *turtle = static_cast<cTurtle *>(enemy);
 
 		// if not shell
-		if( turtle->turtle_state != TURTLE_SHELL_RUN && turtle->turtle_state != TURTLE_SHELL_STAND )
+		if( turtle->m_turtle_state != TURTLE_SHELL_RUN && turtle->m_turtle_state != TURTLE_SHELL_STAND )
 		{
 			return;
 		}
@@ -736,7 +731,7 @@ void cBaseBox :: Handle_Collision_Enemy( cObjectCollision *collision )
 		cTurtleBoss *turtleboss = static_cast<cTurtleBoss *>(enemy);
 
 		// if not shell
-		if( turtleboss->turtle_state != TURTLEBOSS_SHELL_RUN && turtleboss->turtle_state != TURTLEBOSS_SHELL_STAND )
+		if( turtleboss->m_turtle_state != TURTLEBOSS_SHELL_RUN && turtleboss->m_turtle_state != TURTLEBOSS_SHELL_STAND )
 		{
 			return;
 		}

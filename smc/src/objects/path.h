@@ -154,6 +154,8 @@ public:
 
 	// Set the identifier
 	void Set_Identifier( const std::string &identifier );
+	// Set if we move from the beginning again if reached the end instead of turning around
+	void Set_Rewind( bool rewind );
 
 	// Add a link to a path state
 	void Create_Link( cPath_State *path_state );
@@ -176,6 +178,8 @@ public:
 	virtual void Editor_State_Update( void );
 	// editor identifier text changed event
 	bool Editor_Identifier_Text_Changed( const CEGUI::EventArgs &event );
+	// editor move type option selected event
+	bool Editor_Move_Type_Select( const CEGUI::EventArgs &event );
 	// editor selected segment option selected event
 	bool Editor_Selected_Segment_Select( const CEGUI::EventArgs &event );
 	// button add segment clicked event
@@ -195,6 +199,8 @@ public:
 
 	// string identifier (so objects can link to us)
 	std::string m_identifier;
+	// move from the beginning again if reached the end instead of turning around
+	bool m_rewind;
 
 	// line segments
 	typedef vector<cPath_Segment> PathList;

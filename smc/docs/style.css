@@ -9,7 +9,7 @@ table { margin: 0px; padding: 0px; }
 img { border: none; }
 
 p { margin: 0px; padding: 4px 6px; }
-h1 { font-size: 20px; text-align: center; color: #005890; text-shadow: #001850 1px 1px 0.1em; margin-top: 10px; margin-bottom: 10px; }
+h1 { font-size: 20px; text-align: center; color: #005890; text-shadow: 1px 1px 1px #003860; margin-top: 10px; margin-bottom: 10px; }
 h2 { font-size: 18px; color: #2309B0; margin-top: 5px; margin-bottom: 5px; }
 h3 { font-size: 16px; font-family: Arial; text-align: center; color: #000066; border-bottom: #ffcc00 ridge thin; margin-top: 3px; margin-bottom: 3px; }
 h4 { margin: 8px; margin-bottom: 12px; }

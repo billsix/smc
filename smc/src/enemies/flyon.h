@@ -64,7 +64,11 @@ public:
 	 * force : usually dies or a complete downgrade
 	*/
 	virtual void DownGrade( bool force = 0 );
-	virtual void DieStep( void );
+	// dying animation update
+	virtual void Update_Dying( void );
+
+	// set the moving state
+	void Set_Moving_State( Moving_state new_state );
 
 	// update
 	virtual void Update( void );
@@ -102,19 +106,19 @@ public:
 	bool Editor_Speed_Text_Changed( const CEGUI::EventArgs &event );
 
 	// image directory
-	std::string img_dir;
+	std::string m_img_dir;
 
 	// moving speed
-	float speed;
+	float m_speed;
 	// destination direction velocity
-	float dest_velx, dest_vely;
+	float m_dest_velx, m_dest_vely;
 	// maximum distance from the startposition
-	float max_distance;
+	float m_max_distance;
 
 	// time to wait until next approach
-	float wait_time;
+	float m_wait_time;
 	// moving back to the original position
-	bool move_back;
+	bool m_move_back;
 
 private:
 	// Create the Name from the current settings

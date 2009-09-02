@@ -140,7 +140,7 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		return 1;
 	}
 	// GUI copy
-	else if( key == SDLK_c && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
+	else if( key == SDLK_c && input_event.key.keysym.mod & KMOD_CTRL )
 	{
 		if( GUI_Copy_To_Clipboard() )
 		{
@@ -148,7 +148,7 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		}
 	}
 	// GUI cut
-	else if( key == SDLK_x && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
+	else if( key == SDLK_x && input_event.key.keysym.mod & KMOD_CTRL )
 	{
 		if( GUI_Copy_To_Clipboard( 1 ) )
 		{
@@ -156,7 +156,7 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		}
 	}
 	// GUI paste
-	else if( key == SDLK_v && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
+	else if( key == SDLK_v && input_event.key.keysym.mod & KMOD_CTRL )
 	{
 		if( GUI_Paste_From_Clipboard() )
 		{
@@ -198,22 +198,27 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		}
 	}
 
-	// set fixed speedfactor mode
+	// set fixed speed factor mode
 	if( key == SDLK_F6 )
 	{
-		float fixed_speedfactor = string_to_float( Box_Text_Input( float_to_string( pFramerate->force_speedfactor, 4 ), "Set Fixed Speedfactor", 1 ) );
+		float fixed_speedfactor = string_to_float( Box_Text_Input( float_to_string( pFramerate->m_force_speed_factor, 2 ), "Set Fixed Speedfactor", 1 ) );
 
-		// disable fixed speedfactor mode
-		if( fixed_speedfactor <= 0 )
+		// disable
+		if( Is_Float_Equal( fixed_speedfactor, 0.0f ) )
 		{
-			pFramerate->Set_Fixed_Speedfacor( 0 );
-			pHud_Debug->Set_Text( "Fixed Speedfactor disabled" );
+			pFramerate->Set_Fixed_Speedfacor( 0.0f );
+			pHud_Debug->Set_Text( "Fixed speed factor disabled" );
 		}
-		// enable fixed speedfactor mode
+		// below minimum
+		else if( fixed_speedfactor <= 0.04f )
+		{
+			pHud_Debug->Set_Text( "Fixed speed factor must be greater than 0.04" );
+		}
+		// enable
 		else
 		{
 			pFramerate->Set_Fixed_Speedfacor( fixed_speedfactor );
-			pHud_Debug->Set_Text( "Fixed Speedfactor enabled" );
+			pHud_Debug->Set_Text( "Fixed speed factor enabled" );
 		}
 	}
 	// take a screenshot
@@ -227,14 +232,12 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		Draw_Static_Text( "Pause", &yellow, &lightgreyalpha64 );
 	}
 	// load a level
-	else if( key == SDLK_l && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) &&
-			!( Game_Mode == MODE_OVERWORLD && pOverworld_Manager->debugmode ) && Game_Mode != MODE_LEVEL_SETTINGS )
+	else if( key == SDLK_l && input_event.key.keysym.mod & KMOD_CTRL && !( Game_Mode == MODE_OVERWORLD && pOverworld_Manager->debugmode ) && Game_Mode != MODE_LEVEL_SETTINGS )
 	{
 		pLevel_Editor->Function_Load();
 	}
 	// load an overworld
-	else if( key == SDLK_w && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) &&
-			!( Game_Mode == MODE_OVERWORLD && pOverworld_Manager->debugmode ) && Game_Mode != MODE_LEVEL_SETTINGS )
+	else if( key == SDLK_w && input_event.key.keysym.mod & KMOD_CTRL && !( Game_Mode == MODE_OVERWORLD && pOverworld_Manager->debugmode ) && Game_Mode != MODE_LEVEL_SETTINGS )
 	{
 		pWorld_Editor->Function_Load();
 	}
@@ -267,7 +270,7 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		}
 	}
 	// debug mode
-	else if( key == SDLK_d && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
+	else if( key == SDLK_d && input_event.key.keysym.mod & KMOD_CTRL )
 	{
 		if( game_debug )
 		{
@@ -275,15 +278,15 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		}
 		else
 		{
-			pFramerate->fps_worst = 1000;
-			pFramerate->fps_best = 0;
+			pFramerate->m_fps_worst = 1000;
+			pFramerate->m_fps_best = 0;
 			pHud_Debug->Set_Text( "Debug mode enabled" );
 		}
 
 		game_debug = !game_debug;
 	}
 	// performance mode
-	else if( key == SDLK_p && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
+	else if( key == SDLK_p && input_event.key.keysym.mod & KMOD_CTRL )
 	{
 		if( game_debug_performance )
 		{
@@ -291,8 +294,8 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		}
 		else
 		{
-			pFramerate->fps_worst = 1000;
-			pFramerate->fps_best = 0;
+			pFramerate->m_fps_worst = 1000;
+			pFramerate->m_fps_best = 0;
 			pHud_Debug->Set_Text( "Performance debug mode  enabled" );
 		}
 
@@ -306,31 +309,31 @@ SDLKey *cKeyboard :: Get_Shortcut( const input_identifier shortcut_id ) const
 {
 	if( shortcut_id == INP_UP )
 	{
-		return &pPreferences->key_up;
+		return &pPreferences->m_key_up;
 	}
 	else if( shortcut_id == INP_DOWN )
 	{
-		return &pPreferences->key_down;
+		return &pPreferences->m_key_down;
 	}
 	else if( shortcut_id == INP_LEFT )
 	{
-		return &pPreferences->key_left;
+		return &pPreferences->m_key_left;
 	}
 	else if( shortcut_id == INP_RIGHT )
 	{
-		return &pPreferences->key_right;
+		return &pPreferences->m_key_right;
 	}
 	else if( shortcut_id == INP_JUMP )
 	{
-		return &pPreferences->key_jump;
+		return &pPreferences->m_key_jump;
 	}
 	else if( shortcut_id == INP_SHOOT )
 	{
-		return &pPreferences->key_shoot; 
+		return &pPreferences->m_key_shoot; 
 	}
 	else if( shortcut_id == INP_ACTION )
 	{
-		return &pPreferences->key_action; 
+		return &pPreferences->m_key_action; 
 	}
 
 	return NULL;

@@ -33,13 +33,13 @@ namespace SMC
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cLevel_Entry :: cLevel_Entry( float x, float y )
-: cImageObjectSprite( x, y )
+: cAnimated_Sprite( x, y )
 {
 	cLevel_Entry::Init();
 }
 
 cLevel_Entry :: cLevel_Entry( CEGUI::XMLAttributes &attributes )
-: cImageObjectSprite()
+: cAnimated_Sprite()
 {
 	cLevel_Entry::Init();
 	cLevel_Entry::Create_From_Stream( attributes );
@@ -134,7 +134,7 @@ void cLevel_Entry :: Set_Direction( const ObjectDirection dir )
 		return;
 	}
 
-	cImageObjectSprite::Set_Direction( dir, 1 );
+	cAnimated_Sprite::Set_Direction( dir, 1 );
 
 	Create_Name();
 }
@@ -206,7 +206,7 @@ void cLevel_Entry :: Activate( void )
 		pPlayer->m_state = STA_OBJ_LINKED;
 
 		pPlayer->Stop_Ducking();
-		pPlayer->Reset_on_Ground();
+		pPlayer->Reset_On_Ground();
 
 		// set position
 		pPlayer->Set_Pos( Get_Player_Pos_X(), Get_Player_Pos_Y() );
@@ -240,7 +240,7 @@ void cLevel_Entry :: Activate( void )
 		{
 			if( m_direction == DIR_DOWN )
 			{
-				pPlayer->Move( 0, 2.8f );
+				pPlayer->Move( 0.0f, 2.8f );
 
 				if( pPlayer->m_pos_y > m_rect.m_y + m_rect.m_h )
 				{
@@ -249,7 +249,7 @@ void cLevel_Entry :: Activate( void )
 			}
 			else if( m_direction == DIR_UP )
 			{
-				pPlayer->Move( 0, -2.8f );
+				pPlayer->Move( 0.0f, -2.8f );
 
 				if( pPlayer->m_col_rect.m_y + pPlayer->m_col_rect.m_h < m_rect.m_y )
 				{
@@ -258,7 +258,7 @@ void cLevel_Entry :: Activate( void )
 			}
 			else if( m_direction == DIR_RIGHT )
 			{
-				pPlayer->Move( 2, 0 );
+				pPlayer->Move( 2.0f, 0.0f );
 
 				if( pPlayer->m_pos_x > m_rect.m_x + m_rect.m_w )
 				{
@@ -267,7 +267,7 @@ void cLevel_Entry :: Activate( void )
 			}
 			else if( m_direction == DIR_LEFT )
 			{
-				pPlayer->Move( -2, 0 );
+				pPlayer->Move( -2.0f, 0.0f );
 
 				if( pPlayer->m_col_rect.m_x + pPlayer->m_col_rect.m_w < m_rect.m_x )
 				{
@@ -279,6 +279,8 @@ void cLevel_Entry :: Activate( void )
 				break;
 			}
 
+			// update audio
+			pAudio->Update();
 			// center camera
 			pActive_Camera->Center();
 			// keep global effect particles on screen

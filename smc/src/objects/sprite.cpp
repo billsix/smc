@@ -1080,8 +1080,8 @@ void cSprite :: Move( float move_x, float move_y, const bool real /* = 0 */ )
 
 	if( !real )
 	{
-		move_x *= pFramerate->speedfactor;
-		move_y *= pFramerate->speedfactor;
+		move_x *= pFramerate->m_speed_factor;
+		move_y *= pFramerate->m_speed_factor;
 	}
 
 	m_pos_x += move_x;

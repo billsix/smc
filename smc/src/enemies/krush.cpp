@@ -52,26 +52,20 @@ void cKrush :: Init( void  )
 	m_type = TYPE_KRUSH;
 	m_pos_z = 0.093f;
 
-	m_state = STA_WALK;
-	krush_state = KRUSH_WALK;
+	Add_Image( pVideo->Get_Surface( "enemy/krush/big_1.png" ) );
+	Add_Image( pVideo->Get_Surface( "enemy/krush/big_2.png" ) );
+	Add_Image( pVideo->Get_Surface( "enemy/krush/big_3.png" ) );
+	Add_Image( pVideo->Get_Surface( "enemy/krush/big_4.png" ) );
+	Add_Image( pVideo->Get_Surface( "enemy/krush/small_1.png" ) );
+	Add_Image( pVideo->Get_Surface( "enemy/krush/small_2.png" ) );
+	Add_Image( pVideo->Get_Surface( "enemy/krush/small_3.png" ) );
+	Add_Image( pVideo->Get_Surface( "enemy/krush/small_4.png" ) );
 
-	m_small_speed = 6;
-
-	m_images.push_back( pVideo->Get_Surface( "enemy/krush/big_1.png" ) );
-	m_images.push_back( pVideo->Get_Surface( "enemy/krush/big_2.png" ) );
-	m_images.push_back( pVideo->Get_Surface( "enemy/krush/big_3.png" ) );
-	m_images.push_back( pVideo->Get_Surface( "enemy/krush/big_4.png" ) );
-	m_images.push_back( pVideo->Get_Surface( "enemy/krush/small_1.png" ) );
-	m_images.push_back( pVideo->Get_Surface( "enemy/krush/small_2.png" ) );
-	m_images.push_back( pVideo->Get_Surface( "enemy/krush/small_3.png" ) );
-	m_images.push_back( pVideo->Get_Surface( "enemy/krush/small_4.png" ) );
-
+	m_state = STA_FALL;
+	Set_Moving_State( STA_WALK );
 	Set_Direction( DIR_RIGHT );
 
-	Set_Image_Num( 0, 1 );
-
-	kill_sound = "enemy/krush/die.ogg";
-	kill_points = 20;
+	m_kill_sound = "enemy/krush/die.ogg";
 }
 
 cKrush *cKrush :: Copy( void )
@@ -109,36 +103,20 @@ void cKrush :: Save_To_Stream( ofstream &file )
 
 void cKrush :: Load_From_Savegame( cSave_Level_Object *save_object )
 {
-	cEnemy::Load_From_Savegame( save_object );
-
 	// krush_state
-	if( save_object->exists( "krush_state" ) )
+	if( save_object->exists( "state" ) )
 	{
-		krush_state = static_cast<Krush_state>(string_to_int( save_object->Get_Value( "krush_state" ) ));
+		Moving_state mov_state = static_cast<Moving_state>(string_to_int( save_object->Get_Value( "state" ) ));
 
-		if( krush_state == KRUSH_SMALL )
+		if( mov_state == STA_RUN )
 		{
-			// todo : create a Set_State function
-			// set small image without position changes
-			cSprite::Set_Image( m_images[4] );
-			kill_points = 40;
+			Set_Moving_State( mov_state );
 		}
 	}
 
+	cEnemy::Load_From_Savegame( save_object );
+
 	Update_Rotation_Hor_velx();
-}
-
-cSave_Level_Object *cKrush :: Save_To_Savegame( void )
-{
-	cSave_Level_Object *save_object = cEnemy::Save_To_Savegame();
-
-	// krush_state ( only save if needed )
-	if( krush_state != KRUSH_WALK )
-	{
-		save_object->m_properties.push_back( cSave_Level_Object_Property( "krush_state", int_to_string( krush_state ) ) );
-	}
-
-	return save_object;
 }
 
 void cKrush :: Set_Direction( const ObjectDirection dir )
@@ -154,16 +132,18 @@ void cKrush :: Set_Direction( const ObjectDirection dir )
 	m_name = "Krush ";
 	m_name += _(Get_Direction_Name( m_start_direction ).c_str());
 
-	if( m_start_direction == DIR_RIGHT )
-	{
-		m_velx = 2.5f;
-	}
-	else
-	{
-		m_velx = -2.5f;
-	}
-
+	Update_Velocity();
 	Update_Rotation_Hor_velx( 1 );
+}
+
+void cKrush :: Turn_Around( ObjectDirection col_dir /* = DIR_UNDEFINED */ )
+{
+	cEnemy::Turn_Around( col_dir );
+
+	if( col_dir == DIR_LEFT || col_dir == DIR_RIGHT || col_dir == DIR_UNDEFINED )
+	{
+		Update_Rotation_Hor_velx();
+	}
 }
 
 void cKrush :: DownGrade( bool force /* = 0 */ )
@@ -172,28 +152,22 @@ void cKrush :: DownGrade( bool force /* = 0 */ )
 	if( !force )
 	{
 		// big to small walking
-		if( krush_state == KRUSH_WALK )
+		if( m_state == STA_WALK )
 		{
-			krush_state = KRUSH_SMALL;
-			m_state = STA_RUN;
-			m_velx = ( m_direction == DIR_RIGHT ) ? (m_small_speed) : (-m_small_speed);
-			counter = 4;
-			kill_points = 40;
+			Set_Moving_State( STA_RUN );
 
-			Set_Image_Num( static_cast<int>(counter) );
-			Col_Move( 0, m_images[3]->m_col_h - m_images[4]->m_col_h, 1, 1 );
+			Col_Move( 0.0f, m_images[3].m_image->m_col_h - m_images[4].m_image->m_col_h, 1, 1 );
 			Update_Direction();
 
 			// animation
 			cParticle_Emitter *anim = new cParticle_Emitter();
 			Generate_Hit_Animation( anim );
-
 			anim->Set_Speed( 3.5f, 0.6f );
 			anim->Set_Fading_Alpha( 1 );
 			// add animation
 			pAnimation_Manager->Add( anim );
 		}
-		else if( krush_state == KRUSH_SMALL )
+		else if( m_state == STA_RUN )
 		{
 			Set_Scale_Directions( 1, 0, 1, 1 );
 			Set_Dead( 1 );
@@ -201,7 +175,6 @@ void cKrush :: DownGrade( bool force /* = 0 */ )
 			// animation
 			cParticle_Emitter *anim = new cParticle_Emitter();
 			Generate_Hit_Animation( anim );
-
 			anim->Set_Speed( 4.5f, 1.6f );
 			anim->Set_Scale( 0.6f );
 			// add animation
@@ -212,35 +185,33 @@ void cKrush :: DownGrade( bool force /* = 0 */ )
 	else
 	{
 		Set_Dead( 1 );
-		Set_Rotation_Z( 180 );
+		Set_Rotation_Z( 180.0f );
 	}
 
-	if( dead )
+	if( m_dead )
 	{
-		krush_state = KRUSH_DEAD;
-		m_state = STA_STAY;
 		m_massive_type = MASS_PASSIVE;
-		counter = 0;
-		m_velx = 0;
-		m_vely = 0;
+		m_counter = 0.0f;
+		m_velx = 0.0f;
+		m_vely = 0.0f;
 	}
 }
 
-void cKrush :: DieStep( void )
+void cKrush :: Update_Dying( void )
 {
-	counter += pFramerate->speedfactor;
+	m_counter += pFramerate->m_speed_factor;
 
 	// stomp death
-	if( m_rot_z != 180 )
+	if( !Is_Float_Equal( m_rot_z, 180.0f ) )
 	{
-		float speed = pFramerate->speedfactor * 0.05f;
+		float speed = pFramerate->m_speed_factor * 0.05f;
 
 		Add_Scale_X( -speed * 0.5f );
 		Add_Scale_Y( -speed );
 
 		if( m_scale_y < 0.01f )
 		{
-			Set_Scale( 1 );
+			Set_Scale( 1.0f );
 			Set_Active( 0 );
 		}
 	}
@@ -248,21 +219,61 @@ void cKrush :: DieStep( void )
 	else
 	{
 		// a little bit upwards first
-		if( counter < 5 )
+		if( m_counter < 5.0f )
 		{
-			Move( 0, -5 );
+			Move( 0.0f, -5.0f );
 		}
 		// if not below the screen fall
 		else if( m_pos_y < game_res_h + m_col_rect.m_h )
 		{
-			Move( 0, 20 );
+			Move( 0.0f, 20.0f );
 		}
 		// if below disable
 		else
 		{
-			m_rot_z = 0;
+			m_rot_z = 0.0f;
 			Set_Active( 0 );
 		}
+	}
+}
+
+void cKrush :: Set_Moving_State( Moving_state new_state )
+{
+	if( new_state == m_state )
+	{
+		return;
+	}
+
+	if( new_state == STA_WALK )
+	{
+		Set_Animation( 1 );
+		Set_Animation_Image_Range( 0, 3 );
+		Set_Time_All( 120, 1 );
+		Reset_Animation();
+		Set_Image_Num( m_anim_img_start );
+
+		m_kill_points = 20;
+	}
+	else if( new_state == STA_RUN )
+	{
+		Set_Animation( 1 );
+		Set_Animation_Image_Range( 4, 7 );
+		Set_Time_All( 70, 1 );
+		Reset_Animation();
+		Set_Image_Num( m_anim_img_start );
+
+		m_kill_points = 40;
+	}
+
+	m_state = new_state;
+
+	if( m_state == STA_WALK )
+	{
+		Update_Velocity();
+	}
+	else if( m_state == STA_RUN )
+	{
+		Update_Velocity();
 	}
 }
 
@@ -275,41 +286,45 @@ void cKrush :: Update( void )
 		return;
 	}
 
-	if( krush_state == KRUSH_WALK )
-	{
-		counter += pFramerate->speedfactor * 0.3f;
-
-		if( counter >= 4 )
-		{
-			counter = 0;
-		}
-	}
-	else
-	{
-		counter += pFramerate->speedfactor * 0.5f;
-
-		if( counter >= 8 )
-		{
-			counter = 4;
-		}
-	}
-
-	Set_Image_Num( static_cast<int>(counter) );
-
+	Update_Animation();
 	// gravity
 	Update_Gravity();
+}
 
-	Update_Rotation_Hor_velx();
+void cKrush :: Update_Velocity( void )
+{
+	if( m_state == STA_WALK )
+	{
+		if( m_direction == DIR_RIGHT )
+		{
+			m_velx = 3.0f;
+		}
+		else
+		{
+			m_velx = -3.0f;
+		}
+	}
+	else if( m_state == STA_RUN )
+	{
+		if( m_direction == DIR_RIGHT )
+		{
+			m_velx = 5.5f;
+		}
+		else
+		{
+			m_velx = -5.5f;
+		}
+	}
 }
 
 bool cKrush :: Is_Update_Valid( void )
 {
-	if( dead || m_freeze_counter )
+	if( m_dead || m_freeze_counter )
 	{
-		return COL_VTYPE_NOT_VALID;
+		return 0;
 	}
 
-	return COL_VTYPE_INTERNAL;
+	return 1;
 }
 
 Col_Valid_Type cKrush :: Validate_Collision( cSprite *obj )
@@ -318,38 +333,55 @@ Col_Valid_Type cKrush :: Validate_Collision( cSprite *obj )
 	Col_Valid_Type basic_valid = Validate_Collision_Ghost( obj );
 
 	// found valid collision
-	if( basic_valid != COL_VTYPE_NO_GHOST )
+	if( basic_valid != COL_VTYPE_NOT_POSSIBLE )
 	{
 		return basic_valid;
 	}
 
 	if( obj->m_massive_type == MASS_MASSIVE )
 	{
-		if( obj->m_type == TYPE_FLYON )
+		switch( obj->m_type )
 		{
-			return COL_VTYPE_NOT_VALID;
-		}
-		if( obj->m_type == TYPE_ROKKO )
-		{
-			return COL_VTYPE_NOT_VALID;
-		}
-		if( obj->m_type == TYPE_GEE )
-		{
-			return COL_VTYPE_NOT_VALID;
+			case TYPE_FLYON:
+			{
+				return COL_VTYPE_NOT_VALID;
+			}
+			case TYPE_ROKKO:
+			{
+				return COL_VTYPE_NOT_VALID;
+			}
+			case TYPE_GEE:
+			{
+				return COL_VTYPE_NOT_VALID;
+			}
+			default:
+			{
+				break;
+			}
 		}
 
 		return COL_VTYPE_BLOCKING;
 	}
-	if( obj->m_type == TYPE_ENEMY_STOPPER )
-	{
-		return COL_VTYPE_BLOCKING;
-	}
-	if( obj->m_massive_type == MASS_HALFMASSIVE )
+	else if( obj->m_massive_type == MASS_HALFMASSIVE )
 	{
 		// if moving downwards and the object is on bottom
-		if( m_vely >= 0 && Is_On_Top( obj ) )
+		if( m_vely >= 0.0f && Is_On_Top( obj ) )
 		{
 			return COL_VTYPE_BLOCKING;
+		}
+	}
+	else if( obj->m_massive_type == MASS_PASSIVE )
+	{
+		switch( obj->m_type )
+		{
+			case TYPE_ENEMY_STOPPER:
+			{
+				return COL_VTYPE_BLOCKING;
+			}
+			default:
+			{
+				break;
+			}
 		}
 	}
 
@@ -366,17 +398,16 @@ void cKrush :: Handle_Collision_Player( cObjectCollision *collision )
 
 	if( collision->direction == DIR_TOP && pPlayer->m_state != STA_FLY )
 	{
-		pHud_Points->Add_Points( kill_points, pPlayer->m_pos_x, pPlayer->m_pos_y, "", static_cast<Uint8>(255), 1 );
-		pAudio->Play_Sound( kill_sound );
-
+		pHud_Points->Add_Points( m_kill_points, pPlayer->m_pos_x, pPlayer->m_pos_y, "", static_cast<Uint8>(255), 1 );
+		pAudio->Play_Sound( m_kill_sound );
 
 		// big walking
-		if( krush_state == KRUSH_WALK )
+		if( m_state == STA_WALK )
 		{
 			DownGrade();
 		}
 		// small walking
-		else if( krush_state == KRUSH_SMALL )
+		else if( m_state == STA_RUN )
 		{
 			DownGrade();
 			pPlayer->Add_Kill_Multiplier();
@@ -393,13 +424,21 @@ void cKrush :: Handle_Collision_Player( cObjectCollision *collision )
 
 void cKrush :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
-	Turn_Around( collision->direction );
+	if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
+	{
+		Turn_Around( collision->direction );
+	}
+
 	Send_Collision( collision );
 }
 
 void cKrush :: Handle_Collision_Massive( cObjectCollision *collision )
 {
-	Turn_Around( collision->direction );
+	if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
+	{
+		Turn_Around( collision->direction );
+	}
+
 	Send_Collision( collision );
 }
 

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.8" />
+		<Property name="game_version" value="1.9" />
 		<Property name="engine_version" value="34" />
-		<Property name="save_time" value="1236775601" />
+		<Property name="save_time" value="1241889408" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Sauer2" />
@@ -1951,8 +1951,8 @@
 	</sprite>
 	<enemy>
 		<Property name="type" value="krush" />
-		<Property name="posx" value="1030" />
-		<Property name="posy" value="-238" />
+		<Property name="posx" value="1029" />
+		<Property name="posy" value="-245" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>

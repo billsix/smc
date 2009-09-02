@@ -19,6 +19,7 @@
 #include "../overworld/overworld.h"
 #include "../audio/audio.h"
 #include "../core/i18n.h"
+#include "../core/filesystem/filesystem.h"
 
 namespace SMC
 {
@@ -109,7 +110,7 @@ bool cEditor_World :: Key_Down( SDLKey key )
 		return 1;
 	}
 	// save level
-	else if( key == SDLK_s && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
+	else if( key == SDLK_s && input_event.key.keysym.mod & KMOD_CTRL )
 	{
 		pActive_Overworld->Save();
 	}
@@ -229,7 +230,7 @@ void cEditor_World :: Function_Load( void )
 void cEditor_World :: Function_Save( bool with_dialog /* = 0 */ )
 {
 	// if denied
-	if( with_dialog && !Box_Question( _("Save ") + Get_Filename( pActive_Overworld->description->name, 0, 0 ) + " ?" ) )
+	if( with_dialog && !Box_Question( _("Save ") + Trim_Filename( pActive_Overworld->m_description->name, 0, 0 ) + " ?" ) )
 	{
 		return;
 	}
@@ -258,7 +259,7 @@ void cEditor_World :: Function_Clear( void )
 	}
 
 	pActive_Sprite_Manager->Delete_All();
-	pActive_Overworld->waypoints.clear();
+	pActive_Overworld->m_waypoints.clear();
 	pOverworld_Player->Reset();
 }
 

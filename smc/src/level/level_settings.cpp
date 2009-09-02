@@ -20,6 +20,7 @@
 #include "../level/level.h"
 #include "../video/font.h"
 #include "../video/renderer.h"
+#include "../core/filesystem/filesystem.h"
 
 namespace SMC
 {
@@ -69,7 +70,7 @@ void cLevel_Settings :: Init( void )
 	// Main
 	// level filename
 	CEGUI::Editbox *editbox_level_filename = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_level_filename" ));
-	editbox_level_filename->setText( Get_Filename( pActive_Level->data_file, 0, 0 ).c_str() );
+	editbox_level_filename->setText( Trim_Filename( pActive_Level->data_file, 0, 0 ).c_str() );
 	// music filename
 	CEGUI::Editbox *editbox_music_filename = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_music_filename" ));
 	editbox_music_filename->setText( pActive_Level->Get_Musicfile( 1 ).c_str() );
@@ -243,7 +244,7 @@ void cLevel_Settings :: Unload( void )
 {
 	// # Main Tab
 	// filename
-	if( Get_Filename( pActive_Level->data_file, 0, 0 ).compare( CEGUI::WindowManager::getSingleton().getWindow( "editbox_level_filename" )->getText().c_str() ) != 0 )
+	if( Trim_Filename( pActive_Level->data_file, 0, 0 ).compare( CEGUI::WindowManager::getSingleton().getWindow( "editbox_level_filename" )->getText().c_str() ) != 0 )
 	{
 		pActive_Level->Set_Levelfile( CEGUI::WindowManager::getSingleton().getWindow( "editbox_level_filename" )->getText().c_str() );
 		// show no level saved info text
@@ -270,7 +271,7 @@ void cLevel_Settings :: Unload( void )
 	pActive_Level->m_background_manager->Get_Pointer(0)->Set_Color_2( bg_color_2 );
 
 	// # Global Effect Tab
-	pActive_Level->m_global_effect->image_filename = CEGUI::WindowManager::getSingleton().getWindow( "editbox_global_effect_file" )->getText().c_str();
+	pActive_Level->m_global_effect->m_image_filename = CEGUI::WindowManager::getSingleton().getWindow( "editbox_global_effect_file" )->getText().c_str();
 	pActive_Level->m_global_effect->Set_Pos_Z( string_to_float( ( static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z" )))->getText().c_str() ), string_to_float( ( static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z_rand" )))->getText().c_str() ) );
 	pActive_Level->m_global_effect->Set_Type( CEGUI::WindowManager::getSingleton().getWindow( "combo_global_effect_type" )->getText().c_str() );
 	pActive_Level->m_global_effect->Init_Anim();
@@ -661,7 +662,7 @@ void cLevel_Settings :: Clear_Layer_Field( void )
 void cLevel_Settings :: Load_Global_Effect( void )
 {
 	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_global_effect_file" ));
-	editbox->setText( pActive_Level->m_global_effect->image_filename.c_str() );
+	editbox->setText( pActive_Level->m_global_effect->m_image_filename.c_str() );
 
 	editbox = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "combo_global_effect_type" ));
 	editbox->setText( pActive_Level->m_global_effect->Get_Type_Name().c_str() );

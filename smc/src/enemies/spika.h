@@ -56,7 +56,8 @@ public:
 	 * force : usually dies or a complete downgrade
 	*/
 	virtual void DownGrade( bool force = 0 );
-	virtual void DieStep( void );
+	// dying animation update
+	virtual void Update_Dying( void );
 
 	// update
 	virtual void Update( void );
@@ -79,12 +80,15 @@ public:
 	// collision from a box
 	virtual void Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 );
 
-	// default speed
-	float speed;
-	// default detection size
-	float detection_size;
 	// Color
-	DefaultColor color_type;
+	DefaultColor m_color_type;
+	// default speed
+	float m_speed;
+	// default detection size
+	float m_detection_size;
+
+	// counter for walking
+	float m_walk_count;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

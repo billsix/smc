@@ -61,8 +61,8 @@ public:
 	virtual void Draw( void );
 
 	// Sets global effect type
-	void Set_Type( const GlobalEffectType ntype );
-	void Set_Type( const std::string &ntype );
+	void Set_Type( const GlobalEffectType type );
+	void Set_Type( const std::string &str_type );
 	// Set image
 	void Set_Image( const std::string &nimg_file );
 
@@ -70,13 +70,13 @@ public:
 	std::string Get_Type_Name( void ) const;
 
 	// type
-	GlobalEffectType ge_type;
+	GlobalEffectType m_global_effect_type;
 
 	// image filename
-	std::string image_filename;
+	std::string m_image_filename;
 
 	// valid global effect
-	bool valid;
+	bool m_valid;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

@@ -47,7 +47,7 @@ public:
 	virtual void Save_To_Stream( ofstream &file );
 
 	// Set the image directory
-	void Set_Image_Dir( const std::string &filename );
+	void Set_Image_Dir( std::string dir );
 	// Set direction
 	void Set_Direction( const ObjectDirection dir );
 
@@ -55,7 +55,8 @@ public:
 	 * force : usually dies or a complete downgrade
 	*/
 	virtual void DownGrade( bool force = 0 );
-	virtual void DieStep( void );
+	// dying animation update
+	virtual void Update_Dying( void );
 
 	// update
 	virtual void Update( void );
@@ -80,7 +81,7 @@ public:
 	bool Editor_Image_Dir_Text_Changed( const CEGUI::EventArgs &event );
 
 	// image directory
-	std::string img_dir;
+	std::string m_img_dir;
 
 private:
 	// Create the Name from the current settings

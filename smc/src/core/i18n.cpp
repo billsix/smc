@@ -140,6 +140,7 @@ void I18N_Set_Language( const std::string &language )
 	{
 		debug_print("Translation locale set to %d %d\n", primary_language, sub_language);
 	}
+	//putenv(("LANG=" + std::string(_nl_locale_name_default())).c_str());
 #else
 	setenv( "LANGUAGE", language.c_str(), 1 );
 #endif

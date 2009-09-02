@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.8" />
+		<Property name="game_version" value="1.9" />
 		<Property name="engine_version" value="34" />
-		<Property name="save_time" value="1238476011" />
+		<Property name="save_time" value="1241104825" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Sauer2" />
@@ -246,10 +246,10 @@
 		<Property name="type" value="bonus" />
 		<Property name="animation" value="Default" />
 		<Property name="item" value="8" />
-		<Property name="invisible" value="1" />
+		<Property name="invisible" value="3" />
 		<Property name="useable_count" value="3" />
 		<Property name="force_best_item" value="0" />
-		<Property name="gold_color" value="yellow" />
+		<Property name="gold_color" value="red" />
 	</box>
 	<sprite>
 		<Property name="posx" value="120" />
@@ -384,10 +384,10 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="turtle" />
-		<Property name="posx" value="708" />
-		<Property name="posy" value="402" />
-		<Property name="color" value="green" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="722" />
+		<Property name="posy" value="430" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<box>
@@ -816,8 +816,8 @@
 		<Property name="type" value="bonus" />
 		<Property name="animation" value="Default" />
 		<Property name="item" value="8" />
-		<Property name="invisible" value="1" />
-		<Property name="useable_count" value="12" />
+		<Property name="invisible" value="3" />
+		<Property name="useable_count" value="3" />
 		<Property name="force_best_item" value="0" />
 		<Property name="gold_color" value="red" />
 	</box>
@@ -826,17 +826,17 @@
 		<Property name="posy" value="461" />
 	</enemystopper>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="1746" />
-		<Property name="posy" value="429" />
-		<Property name="color" value="brown" />
-		<Property name="direction" value="right" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="1754" />
+		<Property name="posy" value="420" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="1803" />
-		<Property name="posy" value="429" />
-		<Property name="color" value="brown" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="4121" />
+		<Property name="posy" value="426" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
@@ -1193,11 +1193,11 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="4137" />
-		<Property name="posy" value="433" />
-		<Property name="color" value="brown" />
-		<Property name="direction" value="right" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="5896" />
+		<Property name="posy" value="118" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="furball" />
@@ -1935,11 +1935,11 @@
 		<Property name="posy" value="158" />
 	</enemystopper>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="5878" />
-		<Property name="posy" value="124" />
-		<Property name="color" value="brown" />
-		<Property name="direction" value="left" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="6489" />
+		<Property name="posy" value="355" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="right" />
 	</enemy>
 	<sprite>
 		<Property name="posx" value="5938" />
@@ -2322,11 +2322,11 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="6503" />
-		<Property name="posy" value="361" />
-		<Property name="color" value="brown" />
-		<Property name="direction" value="left" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="7985" />
+		<Property name="posy" value="484" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="right" />
 	</enemy>
 	<enemystopper>
 		<Property name="posx" value="6499" />
@@ -2770,4 +2770,15 @@
 		<Property name="posy" value="227" />
 		<Property name="color" value="red" />
 	</item>
+	<enemy>
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="772" />
+		<Property name="posy" value="430" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="right" />
+	</enemy>
+	<enemystopper>
+		<Property name="posx" value="7892" />
+		<Property name="posy" value="525" />
+	</enemystopper>
 </level>

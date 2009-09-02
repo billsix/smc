@@ -27,7 +27,7 @@ namespace SMC
 class cHudSprite : public cSprite
 {
 public:
-	cHudSprite( cGL_Surface *new_image = NULL, float x = 0, float y = 0, bool del_img = 0 );
+	cHudSprite( cGL_Surface *new_image = NULL, float x = 0.0f, float y = 0.0f, bool del_img = 0 );
 	virtual ~cHudSprite( void );
 	
 	// copy this sprite
@@ -56,8 +56,8 @@ public:
 
 	typedef vector<cHudSprite *> HudSpriteList;
 
-	// is the HUD loaded
-	bool loaded;
+	// true if loaded
+	bool m_loaded;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -73,8 +73,8 @@ public:
 	PointsText( void );
 	virtual ~PointsText( void );
 
-	float vely;
-	unsigned int points;
+	float m_vely;
+	unsigned int m_points;
 };
 
 /* *** *** *** *** *** cMenuBackground *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -82,16 +82,16 @@ public:
 class cMenuBackground : public cHudSprite
 {
 public:
-	cMenuBackground( float x = 0, float y = 0 );
+	cMenuBackground( float x = 0.0f, float y = 0.0f );
 	virtual ~cMenuBackground( void );
 
 	virtual void Draw( cSurface_Request *request = NULL );
 
-	cGL_Surface *maryo_head;
-	cGL_Surface *goldpiece;
+	cGL_Surface *m_maryo_head;
+	cGL_Surface *m_goldpiece;
 
-	GL_point rect_maryo_head;
-	GL_point rect_goldpiece;
+	GL_point m_rect_maryo_head;
+	GL_point m_rect_goldpiece;
 };
 
 /* *** *** *** *** *** cStatusText *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -99,7 +99,7 @@ public:
 class cStatusText : public cHudSprite
 {
 public:
-	cStatusText( float x = 0, float y = 0 );
+	cStatusText( float x = 0.0f, float y = 0.0f );
 	virtual ~cStatusText( void );
 	
 	virtual void Draw( cSurface_Request *request = NULL );
@@ -110,11 +110,11 @@ public:
 class cPlayerPoints : public cStatusText
 {
 public:
-	cPlayerPoints( float x = 0, float y = 0 );
+	cPlayerPoints( float x = 0.0f, float y = 0.0f );
 	virtual ~cPlayerPoints( void );
 
 	void Set_Points( long points );
-	void Add_Points( unsigned int points, float x = 0, float y = 0, std::string strtext = "", const Color &color = static_cast<Uint8>(255), bool allow_multiplier = 0 );
+	void Add_Points( unsigned int points, float x = 0.0f, float y = 0.0f, std::string strtext = "", const Color &color = static_cast<Uint8>(255), bool allow_multiplier = 0 );
 
 	// removes all point texts
 	void Clear( void );
@@ -122,7 +122,7 @@ public:
 	virtual void Draw( cSurface_Request *request = NULL );
 
 	typedef vector<PointsText *> PointsTextList;
-	PointsTextList pointsobjects;
+	PointsTextList m_points_objects;
 };
 
 /* *** *** *** *** *** cGoldDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -130,7 +130,7 @@ public:
 class cGoldDisplay : public cStatusText
 {
 public:
-	cGoldDisplay( float x = 0, float y = 0 );
+	cGoldDisplay( float x = 0.0f, float y = 0.0f );
 	virtual ~cGoldDisplay( void );
 
 	void Set_Gold( int gold );
@@ -144,7 +144,7 @@ public:
 class cLiveDisplay : public cStatusText
 {
 public:
-	cLiveDisplay( float x = 0, float y = 0 );
+	cLiveDisplay( float x = 0.0f, float y = 0.0f );
 	virtual ~cLiveDisplay( void );
 
 	void Set_Lives( int lives );
@@ -158,7 +158,7 @@ public:
 class cTimeDisplay : public cStatusText
 {
 public:
-	cTimeDisplay( float x = 0, float y = 0 );
+	cTimeDisplay( float x = 0.0f, float y = 0.0f );
 	virtual ~cTimeDisplay( void );
 
 	// update
@@ -169,9 +169,9 @@ public:
 	// reset
 	void Reset( void );
 
-	char text[50];
-	unsigned int old_seconds;
-	float counter;
+	char m_text[50];
+	Uint32 m_last_update_seconds;
+	Uint32 m_milliseconds;
 };
 
 /* *** *** *** *** *** cItemBox *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -179,7 +179,7 @@ public:
 class cItemBox : public cStatusText
 {
 public:
-	cItemBox( float x = 0, float y = 0 );
+	cItemBox( float x = 0.0f, float y = 0.0f );
 	virtual ~cItemBox( void );
 
 	// update
@@ -201,18 +201,18 @@ public:
 	/* The current Item
 	 * uses the Item defines
 	 */
-	SpriteType item_id;
+	SpriteType m_item_id;
 
 	// alpha effect
-	float item_counter;
+	float m_item_counter;
 	// alpha effect mod
-	bool item_counter_mod;
+	bool m_item_counter_mod;
 
 	// itembox color
-	Color box_color;
+	Color m_box_color;
 
 	// stored item
-	cMovingSprite *item;
+	cMovingSprite *m_item;
 };
 
 /* *** *** *** *** *** cDebugDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -220,7 +220,7 @@ public:
 class cDebugDisplay : public cStatusText
 {
 public:
-	cDebugDisplay( float x = 0, float y = 0 );
+	cDebugDisplay( float x = 0.0f, float y = 0.0f );
 	virtual ~cDebugDisplay( void );
 
 	// update
@@ -235,25 +235,25 @@ public:
 	void Draw_Performance_Debug_Mode( void );
 
 	// set the debug text to display
-	void Set_Text( const std::string &ntext, float display_time = speedfactor_fps * 2 );
+	void Set_Text( const std::string &ntext, float display_time = speedfactor_fps * 2.0f );
 
 	// display text
-	std::string text, text_old;
+	std::string m_text, m_text_old;
 	// text counter
-	float counter;
+	float m_counter;
 
-	// CEGUI debugtext
-	CEGUI::Window *window_debugtext, *text_debugtext;
+	// CEGUI debug text
+	CEGUI::Window *m_window_debug_text, *m_text_debug_text;
 
 	// last game mode
-	GameMode Game_Mode_last;
+	GameMode m_game_mode_last;
 	// last level text
-	std::string level_old;
+	std::string m_level_old;
 	// last object counters
-	int obj_counter, pass_counter, mass_counter, enemy_counter, active_counter;
+	int m_obj_counter, m_pass_counter, m_mass_counter, m_enemy_counter, m_active_counter;
 	// sprites
 	typedef vector<cHudSprite *> HudSpriteList;
-	HudSpriteList sprites;
+	HudSpriteList m_sprites;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

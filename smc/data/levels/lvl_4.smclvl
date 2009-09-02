@@ -3,7 +3,7 @@
 	<information>
 		<Property name="game_version" value="1.8" />
 		<Property name="engine_version" value="34" />
-		<Property name="save_time" value="1234636562" />
+		<Property name="save_time" value="1239282257" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="SMC_Team" />
@@ -11,7 +11,7 @@
 		<Property name="lvl_music" value="land/cave_2.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
-		<Property name="cam_limit_w" value="20000" />
+		<Property name="cam_limit_w" value="18614" />
 		<Property name="cam_limit_h" value="-4000" />
 		<Property name="cam_fixed_hor_vel" value="0" />
 	</settings>

@@ -16,7 +16,7 @@
 #ifndef SMC_ANIMATION_H
 #define SMC_ANIMATION_H
 
-#include "../objects/objectsprite.h"
+#include "../objects/animated_sprite.h"
 #include "../core/obj_manager.h"
 
 namespace SMC
@@ -44,10 +44,10 @@ enum BlendingMode
 
 /* *** *** *** *** *** *** *** Base Animation class *** *** *** *** *** *** *** *** *** *** */
 
-class cAnimation : public cImageObjectSprite
+class cAnimation : public cAnimated_Sprite
 {
 public:
-	cAnimation( float x = 0, float y = 0 );
+	cAnimation( float x = 0.0f, float y = 0.0f );
 	virtual ~cAnimation( void );
 
 	// initialize animation
@@ -58,14 +58,14 @@ public:
 	virtual void Draw( cSurface_Request *request = NULL );
 
 	// Set time to live for Objects in seconds
-	void Set_Time_to_Live( float time, float time_rand = 0 );
+	void Set_Time_to_Live( float time, float time_rand = 0.0f );
 	/* Set speed of fading out ( 0.01 - 100 )
 	* the lower the longer it takes
 	* Note : only useful for non particle animation Objects
 	*/
 	void Set_Fading_Speed( float speed );
 	// set z position
-	virtual void Set_Pos_Z( float pos, float pos_rand = 0 );
+	virtual void Set_Pos_Z( float pos, float pos_rand = 0.0f );
 
 	// Z random position
 	float posz_rand;
@@ -82,7 +82,7 @@ public:
 class cAnimation_Goldpiece : public cAnimation
 {
 public:
-	cAnimation_Goldpiece( float posx, float posy, float height = 40, float width = 20 );
+	cAnimation_Goldpiece( float posx, float posy, float height = 40.0f, float width = 20.0f );
 	virtual ~cAnimation_Goldpiece( void );
 
 	// initialize animation
@@ -99,13 +99,13 @@ public:
 
 /* *** *** *** *** *** *** *** Fireball Animation *** *** *** *** *** *** *** *** *** *** */
 
-class cAnimation_Fireball_Item : public cImageObjectSprite
+class cAnimation_Fireball_Item : public cAnimated_Sprite
 {
 public:
 	cAnimation_Fireball_Item( void )
-	: cImageObjectSprite()
+	: cAnimated_Sprite()
 	{
-		counter = 0;
+		counter = 0.0f;
 	}
 
 	virtual ~cAnimation_Fireball_Item( void ) {}

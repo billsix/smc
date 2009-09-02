@@ -69,7 +69,8 @@ public:
 	 * force : usually dies or a complete downgrade
 	*/
 	virtual void DownGrade( bool force = 0 );
-	virtual void DieStep( void );
+	// dying animation update
+	virtual void Update_Dying( void );
 
 	// update
 	virtual void Update( void );
@@ -79,9 +80,9 @@ public:
 	// update images
 	void Update_Images( void );
 	// update destination velocity from the speed
-	void Update_dest_vel( void );
+	void Update_Dest_Vel( void );
 	// update the distance rect
-	void Update_Distance_rect( void );
+	void Update_Distance_Rect( void );
 	// Get the final distance rect
 	GL_rect Get_Final_Distance_Rect( void ) const;
 
@@ -118,18 +119,18 @@ public:
 	bool Editor_Speed_Text_Changed( const CEGUI::EventArgs &event );
 
 	// image directory
-	std::string img_dir;
+	std::string m_img_dir;
 	// speed
-	float speed;
+	float m_speed;
 	// destination direction velocity
-	float dest_velx, dest_vely;
+	float m_dest_velx, m_dest_vely;
 	// maximum distance from the startposition
-	float max_distance;
+	float m_max_distance;
 
 	// moving back to the original position
-	bool move_back;
+	bool m_move_back;
 	// distance rect to end position
-	GL_rect distance_rect;
+	GL_rect m_distance_rect;
 
 private:
 	// Create the Name from the current settings

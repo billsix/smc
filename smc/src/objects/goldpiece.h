@@ -17,14 +17,14 @@
 #define SMC_GOLDPIECE_H
 
 #include "../core/globals.h"
-#include "../objects/objectsprite.h"
+#include "../objects/animated_sprite.h"
 
 namespace SMC
 {
 
 /* *** *** *** *** *** cGoldpiece *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cGoldpiece : public cImageObjectSprite
+class cGoldpiece : public cAnimated_Sprite
 {
 public:
 	// constructor
@@ -66,8 +66,6 @@ public:
 	// collision from player
 	virtual void Handle_Collision_Player( cObjectCollision *collision );
 
-	// goldpiece rotation
-	float counter;
 	// gold color
 	DefaultColor color_type;
 };
@@ -104,9 +102,6 @@ class cFGoldpiece : public cGoldpiece
 public:
 	cFGoldpiece( float x, float y, ObjectDirection dir = DIR_UNDEFINED );
 	virtual ~cFGoldpiece( void );
-	
-	// Set the gold color
-	virtual void Set_Gold_Color( DefaultColor ncolor );
 
 	// update
 	virtual void Update( void );

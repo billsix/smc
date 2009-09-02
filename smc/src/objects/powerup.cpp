@@ -30,7 +30,7 @@ namespace SMC
 /* *** *** *** *** *** *** cPowerUp *** *** *** *** *** *** *** *** *** *** *** */
 
 cPowerUp :: cPowerUp( float x, float y )
-: cImageObjectSprite( x, y )
+: cAnimated_Sprite( x, y )
 {
 	m_sprite_array = ARRAY_ACTIVE;
 	m_massive_type = MASS_PASSIVE;
@@ -86,7 +86,7 @@ void cPowerUp :: Draw( cSurface_Request *request /* = NULL */ )
 		return;
 	}
 
-	cImageObjectSprite::Draw( request );
+	cAnimated_Sprite::Draw( request );
 }
 
 bool cPowerUp :: Is_Update_Valid( void )
@@ -106,23 +106,30 @@ Col_Valid_Type cPowerUp :: Validate_Collision( cSprite *obj )
 	Col_Valid_Type basic_valid = Validate_Collision_Ghost( obj );
 
 	// found valid collision
-	if( basic_valid != COL_VTYPE_NO_GHOST )
+	if( basic_valid != COL_VTYPE_NOT_POSSIBLE )
 	{
 		return basic_valid;
 	}
 
-	if( obj->m_massive_type == MASS_MASSIVE )
+	switch( obj->m_type )
 	{
-		if( obj->m_type == TYPE_PLAYER )
+		case TYPE_PLAYER:
 		{
 			return COL_VTYPE_INTERNAL;
 		}
-		if( obj->m_sprite_array == ARRAY_ENEMY )
+		case TYPE_BALL:
 		{
 			return COL_VTYPE_NOT_VALID;
 		}
-		// don't collide with balls
-		if( obj->m_type == TYPE_BALL )
+		default:
+		{
+			break;
+		}
+	}
+
+	if( obj->m_massive_type == MASS_MASSIVE )
+	{
+		if( obj->m_sprite_array == ARRAY_ENEMY )
 		{
 			return COL_VTYPE_NOT_VALID;
 		}
@@ -132,7 +139,7 @@ Col_Valid_Type cPowerUp :: Validate_Collision( cSprite *obj )
 	if( obj->m_massive_type == MASS_HALFMASSIVE )
 	{
 		// if moving downwards and the object is on bottom
-		if( m_vely >= 0 && Is_On_Top( obj ) )
+		if( m_vely >= 0.0f && Is_On_Top( obj ) )
 		{
 			return COL_VTYPE_BLOCKING;
 		}
@@ -234,27 +241,27 @@ void cMushroom :: Set_Type( SpriteType ntype )
 
 	if( ntype == TYPE_MUSHROOM_DEFAULT )
 	{
-		m_images.push_back( pVideo->Get_Surface( "game/items/mushroom_red.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/items/mushroom_red.png" ) );
 		m_name = _("Mushroom Red");
 	}
 	else if( ntype == TYPE_MUSHROOM_LIVE_1 )
 	{
-		m_images.push_back( pVideo->Get_Surface( "game/items/mushroom_green.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/items/mushroom_green.png" ) );
 		m_name = _("Mushroom 1-UP");
 	}
 	else if( ntype == TYPE_MUSHROOM_POISON )
 	{
-		m_images.push_back( pVideo->Get_Surface( "game/items/mushroom_poison.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/items/mushroom_poison.png" ) );
 		m_name = _("Mushroom Poison");
 	}
 	else if( ntype == TYPE_MUSHROOM_BLUE )
 	{
-		m_images.push_back( pVideo->Get_Surface( "game/items/mushroom_blue.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/items/mushroom_blue.png" ) );
 		m_name = _("Mushroom Blue");
 	}
 	else if( ntype == TYPE_MUSHROOM_GHOST )
 	{
-		m_images.push_back( pVideo->Get_Surface( "game/items/mushroom_ghost.png" ) );
+		Add_Image( pVideo->Get_Surface( "game/items/mushroom_ghost.png" ) );
 		m_name = _("Mushroom Ghost");
 	}
 	else
@@ -319,22 +326,22 @@ void cMushroom :: Update( void )
 
 	if( !m_ground_object )
 	{
-		if( m_vely < 25 )
+		if( m_vely < 25.0f )
 		{
-			Add_Velocity( 0, 1.5f );
+			Add_Velocity( 0.0f, 1.5f );
 		}
 	}
 	else
 	{
-		m_vely = 0;
+		m_vely = 0.0f;
 	}
 
 	// particles
 	if( m_type == TYPE_MUSHROOM_LIVE_1 || m_type == TYPE_MUSHROOM_BLUE )
 	{
-		counter += pFramerate->speedfactor * 0.8f;
+		counter += pFramerate->m_speed_factor * 0.8f;
 
-		while( counter > 1 )
+		while( counter > 1.0f )
 		{
 			cParticle_Emitter *anim = new cParticle_Emitter();
 			anim->Set_Pos( m_col_rect.m_x + Get_Random_Float( 0, m_col_rect.m_w ), m_col_rect.m_y + Get_Random_Float( 0, m_col_rect.m_h ) );
@@ -371,21 +378,21 @@ void cMushroom :: Update( void )
 
 			if( glim_mod )
 			{
-				new_glim += pFramerate->speedfactor * 0.02f;
+				new_glim += pFramerate->m_speed_factor * 0.02f;
 
 				if( new_glim > 0.5f )
 				{
-					new_glim = 1;
+					new_glim = 1.0f;
 					glim_mod = 0;
 				}
 			}
 			else
 			{
-				new_glim -= pFramerate->speedfactor * 0.02f;
+				new_glim -= pFramerate->m_speed_factor * 0.02f;
 
-				if( new_glim < 0 )
+				if( new_glim < 0.0f )
 				{
-					new_glim = 0;
+					new_glim = 0.0f;
 					glim_mod = 1;
 				}
 			}
@@ -399,9 +406,9 @@ void cMushroom :: Update( void )
 		// animation only if on ground
 		if( m_ground_object )
 		{
-			counter += pFramerate->speedfactor * 0.7f;
+			counter += pFramerate->m_speed_factor * 0.7f;
 
-			while( counter > 1 )
+			while( counter > 1.0f )
 			{
 				cParticle_Emitter *anim = new cParticle_Emitter();
 				anim->Set_Emitter_Rect( m_col_rect.m_x + (m_col_rect.m_w * 0.3f), m_col_rect.m_y + (m_col_rect.m_h * 0.91f), Get_Random_Float( 0, m_col_rect.m_w * 0.4f ), 0 );
@@ -440,22 +447,22 @@ void cMushroom :: Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 
 {
 	if( cdirection == DIR_DOWN )
 	{
-		m_vely = -30;
+		m_vely = -30.0f;
 
 		// left
-		if( m_pos_x > r2->m_x && m_velx < 0 )
+		if( m_pos_x > r2->m_x && m_velx < 0.0f )
 		{
 			Turn_Around( DIR_LEFT );
 		}
 		// right
-		else if( m_pos_x < r2->m_x && m_velx > 0 )
+		else if( m_pos_x < r2->m_x && m_velx > 0.0f )
 		{
 			Turn_Around( DIR_RIGHT );
 		}
 	}
 	else if( cdirection == DIR_LEFT || cdirection == DIR_RIGHT )
 	{
-		m_vely = -13;
+		m_vely = -13.0f;
 		Turn_Around( cdirection );
 	}
 	// unsupported collision direction
@@ -464,7 +471,7 @@ void cMushroom :: Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 
 		return;
 	}
 
-	Reset_on_Ground();
+	Reset_On_Ground();
 }
 
 /* *** *** *** *** *** *** cFirePlant *** *** *** *** *** *** *** *** *** *** *** */
@@ -492,15 +499,15 @@ void cFirePlant :: Init( void )
 	m_type = TYPE_FIREPLANT;
 	m_can_be_on_ground = 0;
 
-	m_images.push_back( pVideo->Get_Surface( "game/items/fireplant.png" ) );
-	m_images.push_back( pVideo->Get_Surface( "game/items/fireplant_left.png" ) );
-	m_images.push_back( pVideo->Get_Surface( "game/items/fireplant_right.png" ) );
+	Add_Image( pVideo->Get_Surface( "game/items/fireplant.png" ) );
+	Add_Image( pVideo->Get_Surface( "game/items/fireplant_left.png" ) );
+	Add_Image( pVideo->Get_Surface( "game/items/fireplant_right.png" ) );
 
 	Set_Image_Num( 0, 1, 0 );
 
 	m_name = _("Fireplant");
 
-	particle_counter = 0;
+	particle_counter = 0.0f;
 }
 
 cFirePlant *cFirePlant :: Copy( void )
@@ -561,7 +568,7 @@ void cFirePlant :: Update( void )
 		return;
 	}
 
-	counter += pFramerate->speedfactor;
+	counter += pFramerate->m_speed_factor;
 
 	if( counter > speedfactor_fps * 2.5f )
 	{
@@ -576,18 +583,18 @@ void cFirePlant :: Update( void )
 			Set_Image_Num( 0, 0, 0 );
 		}
 
-		counter = 0;
+		counter = 0.0f;
 	}
 
 	// particle animation
-	particle_counter += pFramerate->speedfactor * 0.8f;
+	particle_counter += pFramerate->m_speed_factor * 0.8f;
 
 	while( particle_counter > 1 )
 	{
 		cParticle_Emitter *anim = new cParticle_Emitter();
-		anim->Set_Pos( m_col_rect.m_x + Get_Random_Float( 0, m_col_rect.m_w ), m_col_rect.m_y + Get_Random_Float( 0, m_col_rect.m_h * 0.5f ) );
+		anim->Set_Pos( m_col_rect.m_x + Get_Random_Float( 0.0f, m_col_rect.m_w ), m_col_rect.m_y + Get_Random_Float( 0.0f, m_col_rect.m_h * 0.5f ) );
 		anim->Set_Pos_Z( m_pos_z + 0.000001f );
-		anim->Set_Direction_Range( 180, 180 );
+		anim->Set_Direction_Range( 180.0f, 180.0f );
 		anim->Set_Scale( 0.4f, 0.1f );
 		anim->Set_Time_to_Live( 0.4f );
 		anim->Set_Color( Color( static_cast<Uint8>(255), 50 + ( rand() % 50 ), 0 ) );
@@ -638,10 +645,13 @@ void cMoon :: Init( void )
 	m_type = TYPE_MOON;
 	m_can_be_on_ground = 0;
 
-	m_images.push_back( pVideo->Get_Surface( "game/items/moon_1.png" ) );
-	m_images.push_back( pVideo->Get_Surface( "game/items/moon_2.png" ) );
+	Add_Image( pVideo->Get_Surface( "game/items/moon_1.png" ), 4800 );
+	Add_Image( pVideo->Get_Surface( "game/items/moon_2.png" ), 150 );
 
-	Set_Image_Num( 0, 1, 0 );
+	Set_Image_Num( 0, 1 );
+	Set_Animation( 1 );
+	Set_Animation_Image_Range( 0, 1 );
+	Reset_Animation();
 
 	m_name = _("Moon (3-UP)");
 }
@@ -704,41 +714,26 @@ void cMoon :: Update( void )
 		return;
 	}
 
-	counter += pFramerate->speedfactor;
+	Update_Animation();
 
-	if( counter > speedfactor_fps * 2.8f )
-	{
-		Set_Image_Num( 1, 0, 0 );
-	}
-	else if( counter > 0 )
-	{
-		Set_Image_Num( 0, 0, 0 );
-	}
-
-	if( counter > speedfactor_fps * 3.3f )
-	{
-		counter = 0;
-	}
-
-	particle_counter += pFramerate->speedfactor;
+	particle_counter += pFramerate->m_speed_factor;
 
 	// particles
-	if( particle_counter > 5 )
+	if( particle_counter > 15.0f )
 	{
-		if( ( rand() % 5 ) == 0 )
-		{
-			cParticle_Emitter *anim = new cParticle_Emitter();
-			anim->Set_Pos( m_pos_x + 12 + ( rand() % 30 ), m_pos_y + 10 + ( rand() % 20 ) );
-			anim->Set_Speed( 0.2f, 0.2f );
-			anim->Set_Scale( 0.2f );
-			anim->Set_Time_to_Live( 0.3f );
-			anim->Set_Color( Color( static_cast<Uint8>(200), 200, 0 ) );
-			anim->Set_Blending( BLEND_ADD );
-			anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
-			pAnimation_Manager->Add( anim );
-		}
+		cParticle_Emitter *anim = new cParticle_Emitter();
+		anim->Set_Pos( m_pos_x + Get_Random_Float( 28.0f, 40.0f ), m_pos_y + Get_Random_Float( 10.0f, 30.0f ) );
+		anim->Set_Pos_Z( m_pos_z - 0.0001f );
+		anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
+		anim->Set_Speed( 0.2f, 0.2f );
+		anim->Set_Scale( 0.2f );
+		anim->Set_Time_to_Live( 0.9f );
+		anim->Set_Color( Color( static_cast<Uint8>(200), 200, 0 ) );
+		anim->Set_Blending( BLEND_ADD );
 
-		particle_counter = 0;
+		pAnimation_Manager->Add( anim );
+
+		particle_counter = 0.0f;
 	}
 }
 

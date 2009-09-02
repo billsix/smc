@@ -17,7 +17,7 @@
 #define SMC_LEVEL_EXIT_H
 
 #include "../core/globals.h"
-#include "../objects/objectsprite.h"
+#include "../objects/animated_sprite.h"
 
 namespace SMC
 {
@@ -47,7 +47,7 @@ enum Level_Exit_motion
 /* Level exit
  * or if a destination or entry is given it gets you there
 */
-class cLevel_Exit : public cImageObjectSprite
+class cLevel_Exit : public cAnimated_Sprite
 {
 public:
 	// constructor

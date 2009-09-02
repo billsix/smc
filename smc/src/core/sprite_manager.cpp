@@ -105,7 +105,7 @@ void cSprite_Manager :: Delete_All( bool delayed /* = 0 */ )
 	if( pPlayer )
 	{
 		pPlayer->Clear_Collisions();
-		pPlayer->Reset_on_Ground();
+		pPlayer->Reset_On_Ground();
 	}
 	if( pMouseCursor )
 	{

@@ -29,7 +29,7 @@ namespace SMC
 /* *** *** *** *** *** *** *** *** cOverworld_Player *** *** *** *** *** *** *** *** *** */
 
 cOverworld_Player :: cOverworld_Player( void )
-: cImageObjectSprite()
+: cAnimated_Sprite()
 {
 	m_sprite_array = ARRAY_PLAYER;
 	m_type = TYPE_PLAYER;
@@ -38,14 +38,9 @@ cOverworld_Player :: cOverworld_Player( void )
 	m_player_range = 0;
 	m_name = "Maryo";
 
-	maryo_state = MARYO_SMALL;
 	current_waypoint = -2; // no waypoint
 	line_waypoint = 0;
 	current_line = -2;
-
-	anim_counter = 0;
-	anim_speed = 0;
-	anim_max = 0;
 
 	fixed_walking = 0;
 
@@ -60,7 +55,9 @@ cOverworld_Player :: cOverworld_Player( void )
 	debug_current_line = new cHudSprite( NULL, 300, game_res_h * 0.97f );
 	debug_current_waypoint = new cHudSprite( NULL, 500, game_res_h * 0.97f );
 
-	Load_Images();
+	Set_Type( MARYO_SMALL );
+	m_direction = DIR_DOWN;
+	Set_Direction( DIR_UNDEFINED );
 }
 
 cOverworld_Player :: ~cOverworld_Player( void )
@@ -78,52 +75,28 @@ void cOverworld_Player :: Load_Images( void )
 
 	if( maryo_state == MARYO_SMALL )
 	{
-		// todo : load all direction images at once so we can set the correct direction down start/editor image
-		if( m_direction == DIR_DOWN || m_direction == DIR_UNDEFINED )
-		{
-			m_images.push_back( pVideo->Get_Surface( "world/maryo/small/down.png" ) );
-			m_images.push_back( pVideo->Get_Surface( "world/maryo/small/down_1.png" ) );
-			m_images.push_back( pVideo->Get_Surface( "world/maryo/small/down.png" ) );
-			m_images.push_back( pVideo->Get_Surface( "world/maryo/small/down_2.png" ) );
-			
-			anim_max = 4;
-			anim_speed = 1.5f;
-		}
-		else if( m_direction == DIR_UP )
-		{
-			m_images.push_back( pVideo->Get_Surface( "world/maryo/small/up_1.png" ) );
-			m_images.push_back( pVideo->Get_Surface( "world/maryo/small/up.png" ) );
-			m_images.push_back( pVideo->Get_Surface( "world/maryo/small/up_1.png" ) );
-			m_images.push_back( pVideo->Get_Surface( "world/maryo/small/up_2.png" ) );
-			
-			anim_max = 4;
-			anim_speed = 1.5f;
-		}
-		else if( m_direction == DIR_LEFT )
-		{
-			m_images.push_back( pVideo->Get_Surface( "world/maryo/small/left.png" ) );
-			m_images.push_back( pVideo->Get_Surface( "world/maryo/small/left_1.png" ) );
-			m_images.push_back( pVideo->Get_Surface( "world/maryo/small/left.png" ) );
-			m_images.push_back( pVideo->Get_Surface( "world/maryo/small/left_2.png" ) );
+		Add_Image( pVideo->Get_Surface( "world/maryo/small/down.png" ) );
+		Add_Image( pVideo->Get_Surface( "world/maryo/small/down_1.png" ) );
+		Add_Image( pVideo->Get_Surface( "world/maryo/small/down.png" ) );
+		Add_Image( pVideo->Get_Surface( "world/maryo/small/down_2.png" ) );
+		Add_Image( pVideo->Get_Surface( "world/maryo/small/up_1.png" ) );
+		Add_Image( pVideo->Get_Surface( "world/maryo/small/up.png" ) );
+		Add_Image( pVideo->Get_Surface( "world/maryo/small/up_1.png" ) );
+		Add_Image( pVideo->Get_Surface( "world/maryo/small/up_2.png" ) );
+		Add_Image( pVideo->Get_Surface( "world/maryo/small/left.png" ) );
+		Add_Image( pVideo->Get_Surface( "world/maryo/small/left_1.png" ) );
+		Add_Image( pVideo->Get_Surface( "world/maryo/small/left.png" ) );
+		Add_Image( pVideo->Get_Surface( "world/maryo/small/left_2.png" ) );
+		Add_Image( pVideo->Get_Surface( "world/maryo/small/right.png" ) );
+		Add_Image( pVideo->Get_Surface( "world/maryo/small/right_1.png" ) );
+		Add_Image( pVideo->Get_Surface( "world/maryo/small/right.png" ) );
+		Add_Image( pVideo->Get_Surface( "world/maryo/small/right_2.png" ) );
 
-			anim_max = 4;
-			anim_speed = 1.4f;
-		}
-		else if( m_direction == DIR_RIGHT )
-		{
-			m_images.push_back( pVideo->Get_Surface( "world/maryo/small/right.png" ) );
-			m_images.push_back( pVideo->Get_Surface( "world/maryo/small/right_1.png" ) );
-			m_images.push_back( pVideo->Get_Surface( "world/maryo/small/right.png" ) );
-			m_images.push_back( pVideo->Get_Surface( "world/maryo/small/right_2.png" ) );
-
-			anim_max = 4;
-			anim_speed = 1.4f;
-		}
+		Set_Animation( 1 );
 	}
 	else
 	{
 		printf( "Unsupported Maryo state : %d\n", static_cast<unsigned int>(maryo_state) );
-		maryo_state = MARYO_SMALL;
 		return;
 	}
 	
@@ -133,31 +106,72 @@ void cOverworld_Player :: Load_Images( void )
 void cOverworld_Player :: Unload_Images( void )
 {
 	Clear_Images();
+	Reset_Animation();
+}
 
-	anim_counter = 0;
-	anim_speed = 0;
-	anim_max = 0;
+void cOverworld_Player :: Set_Direction( const ObjectDirection dir, bool new_start_direction /* = 0 */ )
+{
+	if( dir != m_direction )
+	{
+		Reset_Animation();
+
+		// undefined is set if not moving
+		if( dir == DIR_UNDEFINED )
+		{
+			Set_Animation_Image_Range( 0, 3 );
+			Set_Time_All( 300, 1 );
+		}
+		else if( dir == DIR_DOWN )
+		{
+			Set_Animation_Image_Range( 0, 3 );
+			Set_Time_All( 200, 1 );
+		}
+		else if( dir == DIR_UP )
+		{
+			Set_Animation_Image_Range( 4, 7 );
+			Set_Time_All( 200, 1 );
+		}
+		else if( dir == DIR_LEFT )
+		{
+			Set_Animation_Image_Range( 8, 11 );
+			Set_Time_All( 200, 1 );
+		}
+		else if( dir == DIR_RIGHT )
+		{
+			Set_Animation_Image_Range( 12, 15 );
+			Set_Time_All( 200, 1 );
+		}
+
+		Set_Image_Num( m_anim_img_start );
+	}
+
+	cAnimated_Sprite::Set_Direction( dir, new_start_direction );
+
+	Update_Vel();
+}
+
+void cOverworld_Player :: Set_Type( Maryo_type new_type )
+{
+	// already set
+	if( maryo_state == new_type )
+	{
+		return;
+	}
+
+	maryo_state = new_type;
+	Load_Images();
 }
 
 void cOverworld_Player :: Update( void )
 {
-	cImageObjectSprite::Update();
+	cAnimated_Sprite::Update();
 
-	anim_counter += pFramerate->speedfactor * anim_speed * 0.1f;
-
-	if( anim_counter >= anim_max )
-	{
-		anim_counter = 0;
-	}
-
-	Set_Image_Num( static_cast<int>(anim_counter) );
+	Update_Animation();
 
 	if( m_direction == DIR_UNDEFINED )
 	{
 		return;
 	}
-
-	Update_Vel();
 
 	// default walking
 	if( !fixed_walking )
@@ -183,7 +197,7 @@ void cOverworld_Player :: Draw( cSurface_Request *request /* = NULL */ )
 	}
 
 	// Draw player
-	cImageObjectSprite::Draw( request );
+	cAnimated_Sprite::Draw( request );
 	// alpha in debug mode
 	if( pOverworld_Manager->debugmode )
 	{
@@ -208,9 +222,9 @@ void cOverworld_Player :: Draw_Debug_Text( void )
 	}
 
 	// Update Lines Texts
-	if( static_cast<int>(pActive_Overworld->pLayer->size()) != debug_lines_last )
+	if( static_cast<int>(pActive_Overworld->m_layer->size()) != debug_lines_last )
 	{
-		debug_lines->Set_Image( pFont->Render_Text( pFont->m_font_small, "Lines : " + int_to_string( pActive_Overworld->pLayer->size() ), blue ), 1, 1 );
+		debug_lines->Set_Image( pFont->Render_Text( pFont->m_font_small, "Lines : " + int_to_string( pActive_Overworld->m_layer->size() ), blue ), 1, 1 );
 	}
 	// Update Current Line Texts
 	if( current_line != debug_current_line_last )
@@ -226,7 +240,7 @@ void cOverworld_Player :: Draw_Debug_Text( void )
 	// Draw Line count
 	cSurface_Request *request = new cSurface_Request();
 	debug_lines->Draw( request );
-	request->shadow_pos = 1;
+	request->shadow_pos = 1.0f;
 	request->shadow_color = black;
 	// add request
 	pRenderer->Add( request );
@@ -234,7 +248,7 @@ void cOverworld_Player :: Draw_Debug_Text( void )
 	// Draw Current Line
 	request = new cSurface_Request();
 	debug_current_line->Draw( request );
-	request->shadow_pos = 1;
+	request->shadow_pos = 1.0f;
 	request->shadow_color = black;
 	// add request
 	pRenderer->Add( request );
@@ -242,7 +256,7 @@ void cOverworld_Player :: Draw_Debug_Text( void )
 	// Draw Current Waypoint
 	request = new cSurface_Request();
 	debug_current_waypoint->Draw( request );
-	request->shadow_pos = 1;
+	request->shadow_pos = 1.0f;
 	request->shadow_color = black;
 	// add request
 	pRenderer->Add( request );
@@ -255,9 +269,7 @@ void cOverworld_Player :: Reset( void )
 	current_line = -2;
 
 	fixed_walking = 0;
-	m_direction = DIR_UNDEFINED;
-
-	Load_Images();
+	Set_Direction( DIR_UNDEFINED );
 }
 
 void cOverworld_Player :: Action_Interact( input_identifier key_type )
@@ -343,7 +355,7 @@ void cOverworld_Player :: Activate_Waypoint( void )
 			{
 				Game_Action = GA_ENTER_WORLD;
 				Game_Action_Data.add( "world", str_world.c_str() );
-				Game_Action_Data.add( "player_waypoint", overworld_origin->description->path.c_str() );
+				Game_Action_Data.add( "player_waypoint", overworld_origin->m_description->path.c_str() );
 			}
 			else
 			{
@@ -357,23 +369,23 @@ void cOverworld_Player :: Update_Vel( void )
 {
 	if( m_direction == DIR_UP )
 	{
-		m_velx = 0;
-		m_vely = -3;
+		m_velx = 0.0f;
+		m_vely = -3.0f;
 	}
 	else if( m_direction == DIR_DOWN )
 	{
-		m_velx = 0;
-		m_vely = 3;
-	}
-	else if( m_direction == DIR_RIGHT )
-	{
-		m_velx = 3;
-		m_vely = 0;
+		m_velx = 0.0f;
+		m_vely = 3.0f;
 	}
 	else if( m_direction == DIR_LEFT )
 	{
-		m_velx = -3;
-		m_vely = 0;
+		m_velx = -3.0f;
+		m_vely = 0.0f;
+	}
+	else if( m_direction == DIR_RIGHT )
+	{
+		m_velx = 3.0f;
+		m_vely = 0.0f;
 	}
 }
 
@@ -386,7 +398,7 @@ bool cOverworld_Player :: Start_Walk( ObjectDirection new_direction )
 	}
 
 	// invalid direction
-	if( !( new_direction == DIR_LEFT || new_direction == DIR_RIGHT || new_direction == DIR_UP || new_direction == DIR_DOWN ) )
+	if( !( new_direction == DIR_UP || new_direction == DIR_DOWN || new_direction == DIR_LEFT || new_direction == DIR_RIGHT ) )
 	{
 		printf( "Warning : New direction is invalid : %d\n", new_direction );
 		return 0;
@@ -421,7 +433,7 @@ bool cOverworld_Player :: Start_Walk( ObjectDirection new_direction )
 
 		if( pOverworld_Manager->debugmode )
 		{
-			printf( "Waypoint Front line id %d, origin id %d\n", pActive_Overworld->pLayer->Get_Array_Num( front_line ), front_line->origin );
+			printf( "Waypoint Front line id %d, origin id %d\n", pActive_Overworld->m_layer->Get_Array_Num( front_line ), front_line->origin );
 		}
 
 		// forward
@@ -475,18 +487,14 @@ bool cOverworld_Player :: Start_Walk( ObjectDirection new_direction )
 	{
 		if( m_direction == Get_Opposite_Direction( new_direction ) && !fixed_walking && pActive_Overworld->Get_Waypoint_Collision( m_col_rect ) < 0 )
 		{
-			m_direction = new_direction;
-			Load_Images();
+			Set_Direction( new_direction );
 		}
 	}
 	// start walking
 	else
 	{
-		m_direction = new_direction;
-		Load_Images();
-		
+		Set_Direction( new_direction );
 		// force a small move into the new direction
-		Update_Vel();
 		Move( m_velx, m_vely, 1 );
 	}
 
@@ -496,12 +504,14 @@ bool cOverworld_Player :: Start_Walk( ObjectDirection new_direction )
 		current_waypoint = -1;
 	}
 
+	// if maryo is walking into a new direction
 	if( direction_old != m_direction )
 	{
-		return 1; // return true if maryo is walking into a new direction
+		return 1;
 	}
 
-	return 0; // no direction change
+	// direction unchanged
+	return 0;
 }
 
 void cOverworld_Player :: Update_Walk( void )
@@ -532,13 +542,12 @@ void cOverworld_Player :: Update_Walk( void )
 		current_waypoint = -1;
 
 		Change_Direction();
-		Load_Images();
 	}
 
 	Auto_Pos_Correction();
 
 	// check if a new waypoint is near maryo
-	for( unsigned int i = 0; i < pActive_Overworld->waypoints.size(); i++ )
+	for( unsigned int i = 0; i < pActive_Overworld->m_waypoints.size(); i++ )
 	{
 		// skip the start waypoint
 		if( static_cast<int>(i) == current_waypoint )
@@ -546,7 +555,7 @@ void cOverworld_Player :: Update_Walk( void )
 			continue;
 		}
 
-		if( pActive_Overworld->waypoints[i]->m_rect.Intersects( m_col_rect ) )
+		if( pActive_Overworld->m_waypoints[i]->m_rect.Intersects( m_col_rect ) )
 		{
 			Start_Waypoint_Walk( i );
 			break;
@@ -575,15 +584,15 @@ void cOverworld_Player :: Update_Waypoint_Walk( void )
 	cWaypoint *waypoint = Get_Waypoint();
 
 	// horizontal position to waypoint
-	float x = m_col_rect.m_x + ( m_col_rect.m_w * 0.5f );
+	const float x = m_col_rect.m_x + ( m_col_rect.m_w * 0.5f );
 
 	if( waypoint->m_rect.m_x + ( waypoint->m_rect.m_w * 0.4f ) > x )
 	{
-		Move( 3, 0 );
+		Move( 3.0f, 0.0f );
 	}
 	else if( waypoint->m_rect.m_x + ( waypoint->m_rect.m_w * 0.7f ) < x )
 	{
-		Move( -3, 0 );
+		Move( -3.0f, 0.0f );
 	}
 	else
 	{
@@ -591,15 +600,15 @@ void cOverworld_Player :: Update_Waypoint_Walk( void )
 	}
 
 	// vertical position to waypoint
-	float y = m_col_rect.m_y + ( m_col_rect.m_h * 0.5f );
+	const float y = m_col_rect.m_y + ( m_col_rect.m_h * 0.5f );
 
 	if( waypoint->m_rect.m_y + ( waypoint->m_rect.m_h * 0.4f ) > y )
 	{
-		Move( 0, 3 );
+		Move( 0.0f, 3.0f );
 	}
 	else if( waypoint->m_rect.m_y + ( waypoint->m_rect.m_h * 0.7f ) < y )
 	{
-		Move( 0, -3 );
+		Move( 0.0f, -3.0f );
 	}
 	else
 	{
@@ -610,9 +619,7 @@ void cOverworld_Player :: Update_Waypoint_Walk( void )
 	{
 		fixed_walking = 0;
 
-		m_direction = DIR_DOWN;
-		Load_Images();
-		m_direction = DIR_UNDEFINED;
+		Set_Direction( DIR_UNDEFINED );
 		Set_Waypoint( current_waypoint );
 
 		pAudio->Play_Sound( "waypoint_reached.ogg" );
@@ -621,12 +628,12 @@ void cOverworld_Player :: Update_Waypoint_Walk( void )
 
 bool cOverworld_Player :: Set_Waypoint( int waypoint, bool new_startpos /* = 0 */ )
 {
-	if( waypoint < 0 || waypoint > static_cast<int>(pActive_Overworld->waypoints.size()) ) 
+	if( waypoint < 0 || waypoint >= static_cast<int>(pActive_Overworld->m_waypoints.size()) ) 
 	{
 		return 0;
 	}
 
-	cWaypoint *wp = pActive_Overworld->waypoints[waypoint];
+	cWaypoint *wp = pActive_Overworld->m_waypoints[waypoint];
 
 	Set_Pos( wp->m_rect.m_x - m_col_pos.m_x + ( ( wp->m_rect.m_w - m_col_rect.m_w ) * 0.5f ), wp->m_rect.m_y - m_col_pos.m_y + ( ( wp->m_rect.m_h - m_col_rect.m_h ) * 0.5f ), new_startpos );
 	current_waypoint = waypoint;
@@ -651,7 +658,7 @@ cWaypoint *cOverworld_Player :: Get_Waypoint( void )
 
 cLayer_Line_Point_Start *cOverworld_Player :: Get_Front_Line( ObjectDirection dir ) const
 {
-	return pActive_Overworld->pLayer->Get_Line_Collision_Direction( m_col_rect.m_x + ( m_col_rect.m_w * 0.5f ), m_col_rect.m_y + ( m_col_rect.m_h * 0.5f ), dir ).line;
+	return pActive_Overworld->m_layer->Get_Line_Collision_Direction( m_col_rect.m_x + ( m_col_rect.m_w * 0.5f ), m_col_rect.m_y + ( m_col_rect.m_h * 0.5f ), dir ).line;
 }
 
 void cOverworld_Player :: Update_Path_Diff( unsigned int csize /* = 25 */ )
@@ -672,8 +679,8 @@ void cOverworld_Player :: Update_Path_Diff( unsigned int csize /* = 25 */ )
 	}
 
 	// get nearest lines
-	line_hor = pActive_Overworld->pLayer->Get_Nearest( x, y, DIR_HORIZONTAL, csize + hor_advance, line_waypoint );
- 	line_ver = pActive_Overworld->pLayer->Get_Nearest( x, y, DIR_VERTICAL, csize + ver_advance, line_waypoint );
+	line_hor = pActive_Overworld->m_layer->Get_Nearest( x, y, DIR_HORIZONTAL, csize + hor_advance, line_waypoint );
+ 	line_ver = pActive_Overworld->m_layer->Get_Nearest( x, y, DIR_VERTICAL, csize + ver_advance, line_waypoint );
 }
 
 void cOverworld_Player :: Change_Direction( void )
@@ -693,7 +700,7 @@ void cOverworld_Player :: Change_Direction( void )
 		// search for a line with increasing distance
 		for( unsigned int i = 0; i < 30; i++ )
 		{
-			line_ver = pActive_Overworld->pLayer->Get_Nearest( x - i, y, DIR_VERTICAL, 80, line_waypoint );
+			line_ver = pActive_Overworld->m_layer->Get_Nearest( x - i, y, DIR_VERTICAL, 80, line_waypoint );
 
 			// found
 			if( line_ver.line_number >= 0 )
@@ -701,7 +708,7 @@ void cOverworld_Player :: Change_Direction( void )
 				break;
 			}
 
-			line_ver = pActive_Overworld->pLayer->Get_Nearest( x + i, y, DIR_VERTICAL, 80, line_waypoint );
+			line_ver = pActive_Overworld->m_layer->Get_Nearest( x + i, y, DIR_VERTICAL, 80, line_waypoint );
 
 			// found
 			if( line_ver.line_number >= 0 )
@@ -715,17 +722,17 @@ void cOverworld_Player :: Change_Direction( void )
 		{
 			if( line_ver.difference < 0 )
 			{
-				m_direction = DIR_UP;
+				Set_Direction( DIR_UP );
 			}
 			else if( line_ver.difference > 0 )
 			{
-				m_direction = DIR_DOWN;
+				Set_Direction( DIR_DOWN );
 			}
 		}
 		// if no line found walk in to the opposite direction
 		else
 		{
-			m_direction = Get_Opposite_Direction( m_direction );
+			Set_Direction( Get_Opposite_Direction( m_direction ) );
 		}
 	}
 	else if( m_direction == DIR_UP || m_direction == DIR_DOWN )
@@ -733,7 +740,7 @@ void cOverworld_Player :: Change_Direction( void )
 		// search for a line with increasing distance
 		for( unsigned int i = 0; i < 30; i++ )
 		{
-			line_hor = pActive_Overworld->pLayer->Get_Nearest( x, y + i, DIR_HORIZONTAL, 80, line_waypoint );
+			line_hor = pActive_Overworld->m_layer->Get_Nearest( x, y + i, DIR_HORIZONTAL, 80, line_waypoint );
 
 			// found
 			if( line_hor.line_number >= 0 )
@@ -741,7 +748,7 @@ void cOverworld_Player :: Change_Direction( void )
 				break;
 			}
 
-			line_hor = pActive_Overworld->pLayer->Get_Nearest( x, y - i, DIR_HORIZONTAL, 80, line_waypoint );
+			line_hor = pActive_Overworld->m_layer->Get_Nearest( x, y - i, DIR_HORIZONTAL, 80, line_waypoint );
 
 			// found
 			if( line_hor.line_number >= 0 )
@@ -755,34 +762,32 @@ void cOverworld_Player :: Change_Direction( void )
 		{
 			if( line_hor.difference < 0 )
 			{
-				m_direction = DIR_LEFT;
+				Set_Direction( DIR_LEFT );
 			}
 			else if( line_hor.difference > 0 )
 			{
-				m_direction = DIR_RIGHT;
+				Set_Direction( DIR_RIGHT );
 			}
 		}
 		// if no line found walk in to the opposite direction
 		else
 		{
-			m_direction = Get_Opposite_Direction( m_direction );
+			Set_Direction( Get_Opposite_Direction( m_direction ) );
 		}
 	}
 	else
 	{
 		printf( "Warning : Unknown Maryo direction %d\n", static_cast<int>(m_direction) );
-		m_direction = DIR_DOWN;
+		Set_Direction( DIR_DOWN );
 	}
 
 	if( pOverworld_Manager->debugmode )
 	{
 		printf( "Changed direction to %s\n", Get_Direction_Name( m_direction ).c_str() );
 	}
-
-	Update_Vel();
 }
 
-void cOverworld_Player :: Auto_Pos_Correction( float size /* = 1.7f */, float min_distance /* = 5 */ )
+void cOverworld_Player :: Auto_Pos_Correction( float size /* = 1.7f */, float min_distance /* = 5.0f */ )
 {
 	// if colliding with a waypoint
 	if( pActive_Overworld->Get_Waypoint_Collision( m_col_rect ) != -1 )
@@ -795,11 +800,11 @@ void cOverworld_Player :: Auto_Pos_Correction( float size /* = 1.7f */, float mi
 		// up and down correction
 		if( line_ver.difference > min_distance )
 		{
-			Move( 0, size );
+			Move( 0.0f, size );
 		}
 		else if( line_ver.difference < -min_distance )
 		{
-			Move( 0, -size );
+			Move( 0.0f, -size );
 		}
 
 		// Set current line number
@@ -813,12 +818,12 @@ void cOverworld_Player :: Auto_Pos_Correction( float size /* = 1.7f */, float mi
 		// left correction
 		if( line_hor.difference < -min_distance )
 		{
-			Move( -size, 0 );
+			Move( -size, 0.0f );
 		}
 		// right correction
 		else if( line_hor.difference > min_distance )
 		{
-			Move( size, 0 );
+			Move( size, 0.0f );
 		}
 
 		// Set current line number

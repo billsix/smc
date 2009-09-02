@@ -22,6 +22,7 @@
 #include "../input/mouse.h"
 #include "../video/gl_surface.h"
 #include "../core/i18n.h"
+#include "../core/filesystem/filesystem.h"
 // boost filesystem
 #include "boost/filesystem/convenience.hpp"
 namespace fs = boost::filesystem;
@@ -67,21 +68,20 @@ void cFlyon :: Init( void  )
 	Set_Max_Distance( 200 );
 	Set_Speed( 5.8f );
 
-	kill_sound = "enemy/flyon/die.ogg";
-	kill_points = 100;
+	m_kill_sound = "enemy/flyon/die.ogg";
+	m_kill_points = 100;
 
-	walk_count = Get_Random_Float( 0, 4 );
-	wait_time = Get_Random_Float( 0, 70 );
-	move_back = 0;
+	m_wait_time = Get_Random_Float( 0.0f, 70.0f );
+	m_move_back = 0;
 }
 
 cFlyon *cFlyon :: Copy( void )
 {
 	cFlyon *jpiranha = new cFlyon( m_start_pos_x, m_start_pos_y );
 	jpiranha->Set_Direction( m_start_direction );
-	jpiranha->Set_Image_Dir( img_dir );
-	jpiranha->Set_Max_Distance( max_distance );
-	jpiranha->Set_Speed( speed );
+	jpiranha->Set_Image_Dir( m_img_dir );
+	jpiranha->Set_Max_Distance( m_max_distance );
+	jpiranha->Set_Speed( m_speed );
 	return jpiranha;
 }
 
@@ -92,11 +92,11 @@ void cFlyon :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 	// direction
 	Set_Direction( Get_Direction_Id( attributes.getValueAsString( "direction", Get_Direction_Name( m_start_direction ) ).c_str() ) );
 	// image directory
-	Set_Image_Dir( attributes.getValueAsString( "image_dir", img_dir ).c_str() );
+	Set_Image_Dir( attributes.getValueAsString( "image_dir", m_img_dir ).c_str() );
 	// max distance
-	Set_Max_Distance( attributes.getValueAsFloat( "max_distance", max_distance ) );
+	Set_Max_Distance( attributes.getValueAsFloat( "max_distance", m_max_distance ) );
 	// speed
-	Set_Speed( attributes.getValueAsFloat( "speed", speed ) );
+	Set_Speed( attributes.getValueAsFloat( "speed", m_speed ) );
 }
 
 void cFlyon :: Save_To_Stream( ofstream &file )
@@ -112,11 +112,11 @@ void cFlyon :: Save_To_Stream( ofstream &file )
 	// direction
 	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( m_start_direction ) << "\" />" << std::endl;
 	// image directory
-	file << "\t\t<Property name=\"image_dir\" value=\"" << img_dir << "\" />" << std::endl;
+	file << "\t\t<Property name=\"image_dir\" value=\"" << m_img_dir << "\" />" << std::endl;
 	// max distance
-	file << "\t\t<Property name=\"max_distance\" value=\"" << static_cast<int>(max_distance) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"max_distance\" value=\"" << static_cast<int>(m_max_distance) << "\" />" << std::endl;
 	// speed
-	file << "\t\t<Property name=\"speed\" value=\"" << speed << "\" />" << std::endl;
+	file << "\t\t<Property name=\"speed\" value=\"" << m_speed << "\" />" << std::endl;
 
 	// end enemy
 	file << "\t</enemy>" << std::endl;
@@ -129,7 +129,7 @@ void cFlyon :: Load_From_Savegame( cSave_Level_Object *save_object )
 	// move_back
 	if( save_object->exists( "move_back" ) )
 	{
-		move_back = string_to_int( save_object->Get_Value( "move_back" ) ) > 0;
+		m_move_back = string_to_int( save_object->Get_Value( "move_back" ) ) > 0;
 	}
 }
 
@@ -138,9 +138,9 @@ cSave_Level_Object *cFlyon :: Save_To_Savegame( void )
 	cSave_Level_Object *save_object = cEnemy::Save_To_Savegame();
 
 	// move_back ( only save if needed )
-	if( move_back )
+	if( m_move_back )
 	{
-		save_object->m_properties.push_back( cSave_Level_Object_Property( "move_back", int_to_string( move_back ) ) );
+		save_object->m_properties.push_back( cSave_Level_Object_Property( "move_back", int_to_string( m_move_back ) ) );
 	}
 
 	return save_object;
@@ -154,9 +154,9 @@ void cFlyon :: Set_Image_Dir( std::string dir )
 	}
 
 	// remove pixmaps dir
-	if( img_dir.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == 0 )
+	if( dir.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == 0 )
 	{
-		img_dir.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
+		dir.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
 	}
 
 	// add trailing slash if missing
@@ -165,23 +165,29 @@ void cFlyon :: Set_Image_Dir( std::string dir )
 		dir.insert( dir.length(), "/" );
 	}
 
-	// if directory does not exist
-	if( !fs::exists( fs::path( DATA_DIR "/" GAME_PIXMAPS_DIR "/" + dir, fs::native ) ) )
+	// if not image directory
+	if( !File_Exists( DATA_DIR "/" GAME_PIXMAPS_DIR "/" + dir + "closed_1.png" ) && !File_Exists( DATA_DIR "/" GAME_PIXMAPS_DIR "/" + dir + "closed_1.settings" ) )
 	{
+		printf( "Warning : Flyon image dir does not exist %s\n", dir.c_str() );
 		return;
 	}
 
-	img_dir = dir;
+	m_img_dir = dir;
 
 	// clear images
 	Clear_Images();
 	// set images
-	m_images.push_back( pVideo->Get_Surface( img_dir + "closed_1.png" ) );
-	m_images.push_back( pVideo->Get_Surface( img_dir + "closed_2.png" ) );
-	m_images.push_back( pVideo->Get_Surface( img_dir + "open_1.png" ) );
-	m_images.push_back( pVideo->Get_Surface( img_dir + "open_2.png" ) );
+	Add_Image( pVideo->Get_Surface( m_img_dir + "closed_1.png" ) );
+	Add_Image( pVideo->Get_Surface( m_img_dir + "closed_2.png" ) );
+	Add_Image( pVideo->Get_Surface( m_img_dir + "open_1.png" ) );
+	Add_Image( pVideo->Get_Surface( m_img_dir + "open_2.png" ) );
 	// set start image
 	Set_Image_Num( 0, 1 );
+
+	Set_Animation( 1 );
+	Set_Animation_Image_Range( 0, 3 );
+	Set_Time_All( 130, 1 );
+	Reset_Animation();
 
 	Create_Name();
 }
@@ -203,7 +209,7 @@ void cFlyon :: Set_Direction( const ObjectDirection dir )
 	cEnemy::Set_Direction( dir, 1 );
 
 	// clear
-	Set_Rotation( 0, 0, 0, 1 );
+	Set_Rotation( 0.0f, 0.0f, 0.0f, 1 );
 
 	if( m_start_direction == DIR_UP )
 	{
@@ -211,38 +217,40 @@ void cFlyon :: Set_Direction( const ObjectDirection dir )
 	}
 	else if( m_start_direction == DIR_LEFT )
 	{
-		Set_Rotation_Z( 270, 1 );
+		Set_Rotation_Z( 270.0f, 1 );
 	}
 	else if( m_start_direction == DIR_RIGHT )
 	{
-		Set_Rotation_Z( 90, 1 );
+		Set_Rotation_Z( 90.0f, 1 );
 	}
 	else if( m_start_direction == DIR_DOWN )
 	{
-		Set_Rotation_Z( 180, 1 );
+		Set_Rotation_Z( 180.0f, 1 );
 	}
 
+	Set_Velocity( 0.0f, 0.0f );
+	Update_Dest_Vel();
 	Create_Name();
 }
 
 void cFlyon :: Set_Max_Distance( float nmax_distance )
 {
-	max_distance = nmax_distance;
+	m_max_distance = nmax_distance;
 
-	if( max_distance < 0 )
+	if( m_max_distance < 0.0f )
 	{
-		max_distance = 0;
+		m_max_distance = 0.0f;
 	}
 }
 
 void cFlyon :: Set_Speed( float val )
 {
-	if( speed < 0.1f )
+	if( m_speed < 0.1f )
 	{
-		speed = 0.1f;
+		m_speed = 0.1f;
 	}
 
-	speed = val;
+	m_speed = val;
 
 	Update_Dest_Vel();
 }
@@ -251,9 +259,9 @@ void cFlyon :: DownGrade( bool force /* = 0 */ )
 {
 	Set_Dead( 1 );
 	m_massive_type = MASS_PASSIVE;
-	counter = 0;
-	m_velx = 0;
-	m_vely = 0;
+	m_counter = 0.0f;
+	m_velx = 0.0f;
+	m_vely = 0.0f;
 
 	if( !force )
 	{
@@ -261,23 +269,23 @@ void cFlyon :: DownGrade( bool force /* = 0 */ )
 		cParticle_Emitter *anim = new cParticle_Emitter();
 		Generate_Hit_Animation( anim );
 
-		anim->Set_Speed( 5, 0.6f );
+		anim->Set_Speed( 5.0f, 0.6f );
 		anim->Set_Scale( 0.8f );
 		// add animation
 		pAnimation_Manager->Add( anim );
 	}
 	else
 	{
-		Set_Rotation_Z( 180 );
+		Set_Rotation_Z( 180.0f );
 	}
 }
 
-void cFlyon :: DieStep( void )
+void cFlyon :: Update_Dying( void )
 {
-	counter += pFramerate->speedfactor;
+	m_counter += pFramerate->m_speed_factor;
 
 	// default death
-	if( m_rot_z != 180 )
+	if( !Is_Float_Equal( m_rot_z, 180.0f ) )
 	{
 		Set_Active( 0 );
 	}
@@ -285,22 +293,51 @@ void cFlyon :: DieStep( void )
 	else
 	{
 		// a little bit upwards first
-		if( counter < 5 )
+		if( m_counter < 5.0f )
 		{
-			Move( 0, -5 );
+			Move( 0.0f, -5.0f );
 		}
 		// if not below the screen fall
 		else if( m_pos_y < game_res_h + m_col_rect.m_h )
 		{
-			Move( 0, 20 );
+			Move( 0.0f, 20.0f );
 		}
 		// if below disable
 		else
 		{
-			m_rot_z = 0;
+			m_rot_z = 0.0f;
 			Set_Active( 0 );
 		}
 	}
+}
+
+void cFlyon :: Set_Moving_State( Moving_state new_state )
+{
+	if( new_state == m_state )
+	{
+		return;
+	}
+
+	if( new_state == STA_STAY )
+	{
+		m_velx = 0.0f;
+		m_vely = 0.0f;
+
+		m_move_back = 0;
+
+		Set_Image_Num( 0 );
+		Reset_Animation();
+		Set_Animation( 0 );
+	}
+	else if( new_state == STA_FLY )
+	{
+		m_velx = m_dest_velx;
+		m_vely = m_dest_vely;
+		m_move_back = 0;
+		Set_Animation( 1 );
+	}
+
+	m_state = new_state;
 }
 
 void cFlyon :: Update( void )
@@ -312,17 +349,19 @@ void cFlyon :: Update( void )
 		return;
 	}
 
+	Update_Animation();
+
 	// standing ( waiting )
 	if( m_state == STA_STAY )
 	{
 		// if waiting time
-		if( wait_time > 0 )
+		if( m_wait_time > 0.0f )
 		{
-			wait_time -= pFramerate->speedfactor;
+			m_wait_time -= pFramerate->m_speed_factor;
 
-			if( wait_time < 0 )
+			if( m_wait_time < 0.0f )
 			{
-				wait_time = 0;
+				m_wait_time = 0.0f;
 			}
 		}
 		// no more waiting try to jump out
@@ -332,38 +371,34 @@ void cFlyon :: Update( void )
 
 			if( m_direction == DIR_UP )
 			{
-				rect1.m_y -= 40;
-				rect1.m_h += 40;
+				rect1.m_y -= 40.0f;
+				rect1.m_h += 40.0f;
 			}
 			else if( m_direction == DIR_DOWN )
 			{
-				rect1.m_y += 40;
-				rect1.m_h -= 40;
+				rect1.m_y += 40.0f;
+				rect1.m_h -= 40.0f;
 			}
 			else if( m_direction == DIR_LEFT )
 			{
-				rect1.m_x -= 35;
-				rect1.m_w += 35;
+				rect1.m_x -= 35.0f;
+				rect1.m_w += 35.0f;
 			}
 			else if( m_direction == DIR_RIGHT )
 			{
-				rect1.m_x += 35;
-				rect1.m_w += 35;
+				rect1.m_x += 35.0f;
+				rect1.m_w += 35.0f;
 			}
 
-			// if player is in front wait again
+			// if player is in front: wait again
 			if( pPlayer->maryo_type != MARYO_GHOST && pPlayer->m_col_rect.Intersects( rect1 ) )
 			{
-				wait_time = speedfactor_fps * 2;
+				m_wait_time = speedfactor_fps * 2;
 			}
-			// if not jump out
+			// if not: jump out
 			else
 			{
-				m_state = STA_FLY;
-
-				m_velx = dest_velx;
-				m_vely = dest_vely;
-				move_back = 0;
+				Set_Moving_State( STA_FLY );
 			}
 		}
 	}
@@ -373,7 +408,7 @@ void cFlyon :: Update( void )
 		// distance to final position
 		float dist_to_final_pos = Get_End_Distance();
 		// multiplier for the minimal velocity
-		float vel_mod_min = ( dist_to_final_pos + ( max_distance * 0.1f ) ) / max_distance;
+		float vel_mod_min = ( dist_to_final_pos + ( m_max_distance * 0.1f ) ) / m_max_distance;
 
 		// if behind max distance
 		if( vel_mod_min <= 0.1f )
@@ -389,56 +424,56 @@ void cFlyon :: Update( void )
 		case DIR_LEFT:
 		{
 			// move forward
-			if( !move_back )
+			if( !m_move_back )
 			{
-				m_velx = dest_velx * vel_mod_min;
+				m_velx = m_dest_velx * vel_mod_min;
 			}
 			// move back
 			else
 			{
-				m_velx = -dest_velx * vel_mod_min;
+				m_velx = -m_dest_velx * vel_mod_min;
 			}
 			break;
 		}
 		case DIR_RIGHT:
 		{
 			// move forward
-			if( !move_back )
+			if( !m_move_back )
 			{
-				m_velx = dest_velx * vel_mod_min;
+				m_velx = m_dest_velx * vel_mod_min;
 			}
 			// move back
 			else
 			{
-				m_velx = -dest_velx * vel_mod_min;
+				m_velx = -m_dest_velx * vel_mod_min;
 			}
 			break;
 		}
 		case DIR_UP:
 		{
 			// move forward
-			if( !move_back )
+			if( !m_move_back )
 			{
-				m_vely = dest_vely * vel_mod_min;
+				m_vely = m_dest_vely * vel_mod_min;
 			}
 			// move back
 			else
 			{
-				m_vely = -dest_vely * vel_mod_min;
+				m_vely = -m_dest_vely * vel_mod_min;
 			}
 			break;
 		}
 		case DIR_DOWN:
 		{
 			// move forward
-			if( !move_back )
+			if( !m_move_back )
 			{
-				m_vely = dest_vely * vel_mod_min;
+				m_vely = m_dest_vely * vel_mod_min;
 			}
 			// move back
 			else
 			{
-				m_vely = -dest_vely * vel_mod_min;
+				m_vely = -m_dest_vely * vel_mod_min;
 			}
 			break;
 		}
@@ -448,41 +483,28 @@ void cFlyon :: Update( void )
 		}
 		}
 
-		walk_count += 0.23f * pFramerate->speedfactor;
-
-		if( walk_count >= 4 )
-		{
-			walk_count = 0;
-		}
-
-		Set_Image_Num( static_cast<int>(walk_count) );
-
 		// moving forward
-		if( !move_back )
+		if( !m_move_back )
 		{
 			// reached final position move back
-			if( dist_to_final_pos < 0 )
+			if( dist_to_final_pos < 0.0f )
 			{
-				m_velx = -dest_velx * 0.01f;
-				m_vely = -dest_vely * 0.01f;
+				m_velx = -m_dest_velx * 0.01f;
+				m_vely = -m_dest_vely * 0.01f;
 
-				move_back = 1;
+				m_move_back = 1;
 			}
 		}
 		// moving back
 		else
 		{
 			// reached original position
-			if( dist_to_final_pos > max_distance )
+			if( dist_to_final_pos > m_max_distance )
 			{
-				m_state = STA_STAY;
 				Set_Pos( m_start_pos_x, m_start_pos_y );
-				m_velx = 0;
-				m_vely = 0;
+				m_wait_time = speedfactor_fps * 2;
 
-				move_back = 0;
-				wait_time = speedfactor_fps * 2;
-				Set_Image_Num( 0 );
+				Set_Moving_State( STA_STAY );
 			}
 		}
 	}
@@ -500,19 +522,19 @@ void cFlyon :: Draw( cSurface_Request *request /* = NULL */ )
 	{
 		if( m_start_direction == DIR_RIGHT )
 		{
-			pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->x, m_start_pos_y + ( m_rect.m_h * 0.5f ) - 5 - pActive_Camera->y, max_distance + m_rect.m_w, 10, m_editor_pos_z - 0.000001f, &whitealpha128 );
+			pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->x, m_start_pos_y + ( m_rect.m_h * 0.5f ) - 5.0f - pActive_Camera->y, m_max_distance + m_rect.m_w, 10.0f, m_editor_pos_z - 0.000001f, &whitealpha128 );
 		}
 		else if( m_start_direction == DIR_LEFT )
 		{
-			pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->x + m_rect.m_w, m_start_pos_y + ( m_rect.m_h * 0.5f ) - 5 - pActive_Camera->y, -( m_rect.m_w + max_distance ), 10, m_editor_pos_z - 0.000001f, &whitealpha128 );
+			pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->x + m_rect.m_w, m_start_pos_y + ( m_rect.m_h * 0.5f ) - 5.0f - pActive_Camera->y, -( m_rect.m_w + m_max_distance ), 10.0f, m_editor_pos_z - 0.000001f, &whitealpha128 );
 		}
 		else if( m_start_direction == DIR_DOWN )
 		{
-			pVideo->Draw_Rect( m_start_pos_x + ( m_rect.m_w * 0.5f ) - 5 - pActive_Camera->x, m_start_pos_y - pActive_Camera->y, 10, max_distance + m_rect.m_h, m_editor_pos_z - 0.000001f, &whitealpha128 );
+			pVideo->Draw_Rect( m_start_pos_x + ( m_rect.m_w * 0.5f ) - 5.0f - pActive_Camera->x, m_start_pos_y - pActive_Camera->y, 10.0f, m_max_distance + m_rect.m_h, m_editor_pos_z - 0.000001f, &whitealpha128 );
 		}
 		else if( m_start_direction == DIR_UP )
 		{
-			pVideo->Draw_Rect( m_start_pos_x + ( m_rect.m_w * 0.5f ) - 5 - pActive_Camera->x, m_start_pos_y - pActive_Camera->y + m_rect.m_h, 10, -( m_rect.m_h + max_distance ), m_editor_pos_z - 0.000001f, &whitealpha128 );
+			pVideo->Draw_Rect( m_start_pos_x + ( m_rect.m_w * 0.5f ) - 5.0f - pActive_Camera->x, m_start_pos_y - pActive_Camera->y + m_rect.m_h, 10.0f, -( m_rect.m_h + m_max_distance ), m_editor_pos_z - 0.000001f, &whitealpha128 );
 		}
 	}
 
@@ -525,19 +547,19 @@ float cFlyon :: Get_End_Distance( void ) const
 	{
 	case DIR_LEFT:
 	{
-		return max_distance - ( m_start_pos_x - m_pos_x );
+		return m_max_distance - ( m_start_pos_x - m_pos_x );
 	}
 	case DIR_RIGHT:
 	{
-		return max_distance + ( m_start_pos_x - m_pos_x );
+		return m_max_distance + ( m_start_pos_x - m_pos_x );
 	}
 	case DIR_UP:
 	{
-		return max_distance - ( m_start_pos_y - m_pos_y );
+		return m_max_distance - ( m_start_pos_y - m_pos_y );
 	}
 	case DIR_DOWN:
 	{
-		return max_distance + ( m_start_pos_y - m_pos_y );
+		return m_max_distance + ( m_start_pos_y - m_pos_y );
 	}
 	default:
 	{
@@ -552,34 +574,34 @@ void cFlyon :: Update_Dest_Vel( void )
 {
 	if( m_direction == DIR_UP )
 	{
-		dest_velx = 0;
-		dest_vely = -speed;
+		m_dest_velx = 0.0f;
+		m_dest_vely = -m_speed;
 	}
 	else if( m_direction == DIR_DOWN )
 	{
-		dest_velx = 0;
-		dest_vely = speed;
+		m_dest_velx = 0.0f;
+		m_dest_vely = m_speed;
 	}
 	else if( m_direction == DIR_LEFT )
 	{
-		dest_velx = -speed;
-		dest_vely = 0;
+		m_dest_velx = -m_speed;
+		m_dest_vely = 0.0f;
 	}
 	else if( m_direction == DIR_RIGHT )
 	{
-		dest_velx = speed;
-		dest_vely = 0;
+		m_dest_velx = m_speed;
+		m_dest_vely = 0.0f;
 	}
 	else
 	{
-		dest_velx = 0;
-		dest_vely = 0;
+		m_dest_velx = 0.0f;
+		m_dest_vely = 0.0f;
 	}
 }
 
 bool cFlyon :: Is_Update_Valid( void )
 {
-	if( dead || m_freeze_counter )
+	if( m_dead || m_freeze_counter )
 	{
 		return 0;
 	}
@@ -595,25 +617,29 @@ bool cFlyon :: Is_Draw_Valid( void )
 	if( editor_enabled )
 	{
 		// if active mouse object
-		if( pMouseCursor->active_object == this )
+		if( pMouseCursor->m_active_object == this )
 		{
 			return 1;
 		}
 	}
-
 
 	return valid;
 }
 
 Col_Valid_Type cFlyon :: Validate_Collision( cSprite *obj )
 {
-	if( obj->m_type == TYPE_PLAYER )
+	if( obj->m_massive_type == MASS_MASSIVE )
 	{
-		return COL_VTYPE_INTERNAL;
-	}
-	if( obj->m_type == TYPE_BALL )
-	{
-		return COL_VTYPE_BLOCKING;
+		if( obj->m_type == TYPE_PLAYER )
+		{
+			return COL_VTYPE_INTERNAL;
+		}
+		if( obj->m_type == TYPE_BALL )
+		{
+			return COL_VTYPE_BLOCKING;
+		}
+
+		return COL_VTYPE_NOT_VALID;
 	}
 
 	return COL_VTYPE_NOT_VALID;
@@ -658,7 +684,7 @@ void cFlyon :: Editor_Activate( void )
 	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_flyon_image_dir" ));
 	Editor_Add( UTF8_("Image directory"), UTF8_("Directory containing the images"), editbox, 200 );
 
-	editbox->setText( img_dir.c_str() );
+	editbox->setText( m_img_dir.c_str() );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cFlyon::Editor_Image_Dir_Text_Changed, this ) );
 
 	// max distance
@@ -666,7 +692,7 @@ void cFlyon :: Editor_Activate( void )
 	Editor_Add( UTF8_("Distance"), _("Movable Distance into its direction"), editbox, 90 );
 
 	editbox->setValidationString( "^[+]?\\d*$" );
-	editbox->setText( int_to_string( static_cast<int>(max_distance) ) );
+	editbox->setText( int_to_string( static_cast<int>(m_max_distance) ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cFlyon::Editor_Max_Distance_Text_Changed, this ) );
 
 	// speed
@@ -674,7 +700,7 @@ void cFlyon :: Editor_Activate( void )
 	Editor_Add( UTF8_("Speed"), UTF8_("Initial speed when jumping out"), editbox, 120 );
 
 	editbox->setValidationString( "[+]?[0-9]*\\.?[0-9]*" );
-	editbox->setText( float_to_string( speed ) );
+	editbox->setText( float_to_string( m_speed ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cFlyon::Editor_Speed_Text_Changed, this ) );
 
 	// init

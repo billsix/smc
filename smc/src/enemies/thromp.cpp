@@ -24,6 +24,7 @@
 #include "../core/sprite_manager.h"
 #include "../input/mouse.h"
 #include "../core/i18n.h"
+#include "../core/filesystem/filesystem.h"
 // boost filesystem
 #include "boost/filesystem/convenience.hpp"
 namespace fs = boost::filesystem;
@@ -60,28 +61,28 @@ void cThromp :: Init( void  )
 	m_player_range = 1000;
 	m_can_be_on_ground = 0;
 
-	fire_resistant = 1;
+	m_fire_resistant = 1;
 
 	m_state = STA_STAY;
-	move_back = 0;
-	dest_velx = 0;
-	dest_vely = 0;
-	img_dir = "enemy/thromp/";
+	m_move_back = 0;
+	m_dest_velx = 0;
+	m_dest_vely = 0;
+	m_img_dir = "enemy/thromp/";
 	Set_Direction( DIR_DOWN );
 	Set_Speed( 7 );
 	Set_Max_Distance( 200 );
 
-	kill_sound = "enemy/thromp/die.ogg";
-	kill_points = 200;
+	m_kill_sound = "enemy/thromp/die.ogg";
+	m_kill_points = 200;
 }
 
 cThromp *cThromp :: Copy( void )
 {
 	cThromp *thromp = new cThromp( m_start_pos_x, m_start_pos_y );
-	thromp->Set_Image_Dir( img_dir );
+	thromp->Set_Image_Dir( m_img_dir );
 	thromp->Set_Direction( m_start_direction );
-	thromp->Set_Max_Distance( max_distance );
-	thromp->Set_Speed( speed );
+	thromp->Set_Max_Distance( m_max_distance );
+	thromp->Set_Speed( m_speed );
 
 	return thromp;
 }
@@ -91,13 +92,13 @@ void cThromp :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// image directory
-	Set_Image_Dir( attributes.getValueAsString( "image_dir", img_dir ).c_str() );
+	Set_Image_Dir( attributes.getValueAsString( "image_dir", m_img_dir ).c_str() );
 	// direction
 	Set_Direction( Get_Direction_Id( attributes.getValueAsString( "direction", Get_Direction_Name( m_start_direction ) ).c_str() ) );
 	// max distance
-	Set_Max_Distance( static_cast<float>(attributes.getValueAsInteger( "max_distance", static_cast<int>(max_distance) )) );
+	Set_Max_Distance( static_cast<float>(attributes.getValueAsInteger( "max_distance", static_cast<int>(m_max_distance) )) );
 	// speed
-	Set_Speed( attributes.getValueAsFloat( "speed", speed ) );
+	Set_Speed( attributes.getValueAsFloat( "speed", m_speed ) );
 }
 
 void cThromp :: Save_To_Stream( ofstream &file )
@@ -111,13 +112,13 @@ void cThromp :: Save_To_Stream( ofstream &file )
 	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(m_start_pos_x) << "\" />" << std::endl;
 	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(m_start_pos_y) << "\" />" << std::endl;
 	// image directory
-	file << "\t\t<Property name=\"image_dir\" value=\"" << img_dir << "\" />" << std::endl;
+	file << "\t\t<Property name=\"image_dir\" value=\"" << m_img_dir << "\" />" << std::endl;
 	// direction
 	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( m_start_direction ) << "\" />" << std::endl;
 	// max distance
-	file << "\t\t<Property name=\"max_distance\" value=\"" << static_cast<int>(max_distance) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"max_distance\" value=\"" << static_cast<int>(m_max_distance) << "\" />" << std::endl;
 	// speed
-	file << "\t\t<Property name=\"speed\" value=\"" << speed << "\" />" << std::endl;
+	file << "\t\t<Property name=\"speed\" value=\"" << m_speed << "\" />" << std::endl;
 
 	// end enemy
 	file << "\t</enemy>" << std::endl;
@@ -128,7 +129,7 @@ void cThromp :: Load_From_Savegame( cSave_Level_Object *save_object )
 	cEnemy::Load_From_Savegame( save_object );
 
 	// Don't activate if dead
-	if( dead )
+	if( m_dead )
 	{
 		return;
 	}
@@ -136,7 +137,7 @@ void cThromp :: Load_From_Savegame( cSave_Level_Object *save_object )
 	// move_back
 	if( save_object->exists( "move_back" ) )
 	{
-		move_back = string_to_int( save_object->Get_Value( "move_back" ) ) > 0;
+		m_move_back = string_to_int( save_object->Get_Value( "move_back" ) ) > 0;
 	}
 }
 
@@ -145,9 +146,9 @@ cSave_Level_Object *cThromp :: Save_To_Savegame( void )
 	cSave_Level_Object *save_object = cEnemy::Save_To_Savegame();
 
 	// move_back ( only save if needed )
-	if( move_back )
+	if( m_move_back )
 	{
-		save_object->m_properties.push_back( cSave_Level_Object_Property( "move_back", int_to_string( move_back ) ) );
+		save_object->m_properties.push_back( cSave_Level_Object_Property( "move_back", int_to_string( m_move_back ) ) );
 	}
 
 	return save_object;
@@ -161,9 +162,9 @@ void cThromp :: Set_Image_Dir( std::string dir )
 	}
 
 	// remove pixmaps dir
-	if( img_dir.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == 0 )
+	if( dir.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == 0 )
 	{
-		img_dir.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
+		dir.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
 	}
 
 	// add trailing slash if missing
@@ -172,13 +173,14 @@ void cThromp :: Set_Image_Dir( std::string dir )
 		dir.insert( dir.length(), "/" );
 	}
 
-	// if directory does not exist
-	if( !fs::exists( fs::path( DATA_DIR "/" GAME_PIXMAPS_DIR "/" + dir, fs::native ) ) )
+	// if not image directory
+	if( !File_Exists( DATA_DIR "/" GAME_PIXMAPS_DIR "/" + dir + "up.png" ) && !File_Exists( DATA_DIR "/" GAME_PIXMAPS_DIR "/" + dir + "up.settings" ) )
 	{
+		printf( "Warning : Thromp image dir does not exist %s\n", dir.c_str() );
 		return;
 	}
 
-	img_dir = dir;
+	m_img_dir = dir;
 
 	Update_Images();
 }
@@ -193,21 +195,21 @@ void cThromp :: Set_Direction( const ObjectDirection dir )
 
 	cEnemy::Set_Direction( dir, 1 );
 
-	Update_Distance_rect();
-	Update_dest_vel();
+	Update_Distance_Rect();
+	Update_Dest_Vel();
 	Update_Images();
 }
 
 void cThromp :: Set_Max_Distance( float nmax_distance )
 {
-	max_distance = nmax_distance;
+	m_max_distance = nmax_distance;
 
-	if( max_distance < 0 )
+	if( m_max_distance < 0 )
 	{
-		max_distance = 0;
+		m_max_distance = 0;
 	}
 
-	Update_Distance_rect();
+	Update_Distance_Rect();
 }
 
 void cThromp :: Set_Speed( float val )
@@ -217,9 +219,9 @@ void cThromp :: Set_Speed( float val )
 		val = 0.1f;
 	}
 
-	speed = val;
+	m_speed = val;
 
-	Update_dest_vel();
+	Update_Dest_Vel();
 }
 
 void cThromp :: Activate( void )
@@ -231,9 +233,9 @@ void cThromp :: Activate( void )
 
 	m_state = STA_FLY;
 
-	m_velx = dest_velx;
-	m_vely = dest_vely;
-	move_back = 0;
+	m_velx = m_dest_velx;
+	m_vely = m_dest_vely;
+	m_move_back = 0;
 
 	// active image
 	Set_Image_Num( 1 );
@@ -241,15 +243,15 @@ void cThromp :: Activate( void )
 
 void cThromp :: Move_Back( void )
 {
-	if( m_state == STA_STAY || move_back )
+	if( m_state == STA_STAY || m_move_back )
 	{
 		return;
 	}
 
-	m_velx = -dest_velx * 0.01f;
-	m_vely = -dest_vely * 0.01f;
+	m_velx = -m_dest_velx * 0.01f;
+	m_vely = -m_dest_vely * 0.01f;
 
-	move_back = 1;
+	m_move_back = 1;
 
 	// default image
 	Set_Image_Num( 0 );
@@ -259,7 +261,7 @@ void cThromp :: DownGrade( bool force /* = 0 */ )
 {
 	Set_Dead( 1 );
 	m_massive_type = MASS_PASSIVE;
-	counter = 0;
+	m_counter = 0;
 	m_velx = 0;
 	m_vely = 0;
 
@@ -280,12 +282,12 @@ void cThromp :: DownGrade( bool force /* = 0 */ )
 	}
 }
 
-void cThromp :: DieStep( void )
+void cThromp :: Update_Dying( void )
 {
-	counter += pFramerate->speedfactor;
+	m_counter += pFramerate->m_speed_factor;
 
 	// default death
-	if( m_rot_z != 180 )
+	if( !Is_Float_Equal( m_rot_z, 180.0f ) )
 	{
 		Set_Active( 0 );
 	}
@@ -293,19 +295,19 @@ void cThromp :: DieStep( void )
 	else
 	{
 		// a little bit upwards first
-		if( counter < 5 )
+		if( m_counter < 5.0f )
 		{
-			Move( 0, -5 );
+			Move( 0.0f, -5.0f );
 		}
 		// if not below the screen fall
 		else if( m_pos_y < game_res_h + m_col_rect.m_h )
 		{
-			Move( 0, 20 );
+			Move( 0.0f, 20.0f );
 		}
 		// if below disable
 		else
 		{
-			m_rot_z = 0;
+			m_rot_z = 0.0f;
 			Set_Active( 0 );
 		}
 	}
@@ -345,76 +347,76 @@ void cThromp :: Update( void )
 		*/
 		if( m_direction == DIR_LEFT )
 		{
-			dist_to_final_pos = max_distance - ( m_start_pos_x - m_pos_x );
+			dist_to_final_pos = m_max_distance - ( m_start_pos_x - m_pos_x );
 
 			// move back
-			if( move_back )
+			if( m_move_back )
 			{
-				vel_mod_min = ( dist_to_final_pos + ( max_distance * 0.1f ) ) / max_distance;
-				if( -m_velx > dest_velx * vel_mod_min )
+				vel_mod_min = ( dist_to_final_pos + ( m_max_distance * 0.1f ) ) / m_max_distance;
+				if( -m_velx > m_dest_velx * vel_mod_min )
 				{
-					m_velx *= 1 + ( 0.2f * pFramerate->speedfactor );
+					m_velx *= 1 + ( 0.2f * pFramerate->m_speed_factor );
 				}
 			}
 
 		}
 		else if( m_direction == DIR_RIGHT )
 		{
-			dist_to_final_pos = max_distance + ( m_start_pos_x - m_pos_x );
+			dist_to_final_pos = m_max_distance + ( m_start_pos_x - m_pos_x );
 
 			// move back
-			if( move_back )
+			if( m_move_back )
 			{
-				vel_mod_min = ( dist_to_final_pos + ( max_distance * 0.1f ) ) / max_distance;
-				if( -m_velx < dest_velx * vel_mod_min )
+				vel_mod_min = ( dist_to_final_pos + ( m_max_distance * 0.1f ) ) / m_max_distance;
+				if( -m_velx < m_dest_velx * vel_mod_min )
 				{
-					m_velx *= 1 + ( 0.2f * pFramerate->speedfactor );
+					m_velx *= 1 + ( 0.2f * pFramerate->m_speed_factor );
 				}
 			}
 		}
 		else if( m_direction == DIR_UP )
 		{
-			dist_to_final_pos = max_distance - ( m_start_pos_y - m_pos_y );
+			dist_to_final_pos = m_max_distance - ( m_start_pos_y - m_pos_y );
 
 			// move back
-			if( move_back )
+			if( m_move_back )
 			{
-				vel_mod_min = ( dist_to_final_pos + ( max_distance * 0.1f ) ) / max_distance;
-				if( -m_vely > dest_vely * vel_mod_min )
+				vel_mod_min = ( dist_to_final_pos + ( m_max_distance * 0.1f ) ) / m_max_distance;
+				if( -m_vely > m_dest_vely * vel_mod_min )
 				{
-					m_vely *= 1 + ( 0.2f * pFramerate->speedfactor );
+					m_vely *= 1 + ( 0.2f * pFramerate->m_speed_factor );
 				}
 			}
 		}
 		else if( m_direction == DIR_DOWN )
 		{
-			dist_to_final_pos = max_distance + ( m_start_pos_y - m_pos_y );
+			dist_to_final_pos = m_max_distance + ( m_start_pos_y - m_pos_y );
 
 			// move back
-			if( move_back )
+			if( m_move_back )
 			{
-				vel_mod_min = ( dist_to_final_pos + ( max_distance * 0.1f ) ) / max_distance;
-				if( -m_vely < dest_vely * vel_mod_min )
+				vel_mod_min = ( dist_to_final_pos + ( m_max_distance * 0.1f ) ) / m_max_distance;
+				if( -m_vely < m_dest_vely * vel_mod_min )
 				{
-					m_vely *= 1 + ( 0.2f * pFramerate->speedfactor );
+					m_vely *= 1 + ( 0.2f * pFramerate->m_speed_factor );
 				}
 			}
 		}
 
 		// reached final position move back
-		if( !move_back && dist_to_final_pos < 0 )
+		if( !m_move_back && dist_to_final_pos < 0 )
 		{
 			Move_Back();
 		}
 		// reached original position
-		else if( move_back && dist_to_final_pos > max_distance )
+		else if( m_move_back && dist_to_final_pos > m_max_distance )
 		{
 			m_state = STA_STAY;
 			Set_Pos( m_start_pos_x, m_start_pos_y );
 			// unset velocity
 			Set_Velocity( 0, 0 );
 
-			move_back = 0;
+			m_move_back = 0;
 		}
 	}
 }
@@ -444,8 +446,8 @@ void cThromp :: Update_Images( void )
 	// clear images
 	Clear_Images();
 	// set images
-	m_images.push_back( pVideo->Get_Surface( img_dir + Get_Direction_Name( m_start_direction ) + ".png" ) );
-	m_images.push_back( pVideo->Get_Surface( img_dir + Get_Direction_Name( m_start_direction ) + "_active.png" ) );
+	Add_Image( pVideo->Get_Surface( m_img_dir + Get_Direction_Name( m_start_direction ) + ".png" ) );
+	Add_Image( pVideo->Get_Surface( m_img_dir + Get_Direction_Name( m_start_direction ) + "_active.png" ) );
 	// set start image
 	Set_Image_Num( 0, 1 );
 
@@ -458,70 +460,70 @@ void cThromp :: Update_Images( void )
 	Create_Name();
 }
 
-void cThromp :: Update_dest_vel( void )
+void cThromp :: Update_Dest_Vel( void )
 {
 	if( m_start_direction == DIR_UP )
 	{
-		dest_velx = 0;
-		dest_vely = -speed;
+		m_dest_velx = 0;
+		m_dest_vely = -m_speed;
 	}
 	else if( m_start_direction == DIR_DOWN )
 	{
-		dest_velx = 0;
-		dest_vely = speed;
+		m_dest_velx = 0;
+		m_dest_vely = m_speed;
 	}
 	else if( m_start_direction == DIR_LEFT )
 	{
-		dest_velx = -speed;
-		dest_vely = 0;
+		m_dest_velx = -m_speed;
+		m_dest_vely = 0;
 	}
 	else if( m_start_direction == DIR_RIGHT )
 	{
-		dest_velx = speed;
-		dest_vely = 0;
+		m_dest_velx = m_speed;
+		m_dest_vely = 0;
 	}
 	else
 	{
-		dest_velx = 0;
-		dest_vely = 0;
+		m_dest_velx = 0;
+		m_dest_vely = 0;
 	}
 }
 
-void cThromp :: Update_Distance_rect( void )
+void cThromp :: Update_Distance_Rect( void )
 {
 	if( m_start_direction == DIR_UP )
 	{
-		distance_rect.m_x = m_col_pos.m_x;
-		distance_rect.m_y = -max_distance;
-		distance_rect.m_w = m_col_rect.m_w;
-		distance_rect.m_h = max_distance;
+		m_distance_rect.m_x = m_col_pos.m_x;
+		m_distance_rect.m_y = -m_max_distance;
+		m_distance_rect.m_w = m_col_rect.m_w;
+		m_distance_rect.m_h = m_max_distance;
 	}
 	else if( m_start_direction == DIR_DOWN )
 	{
-		distance_rect.m_x = m_col_pos.m_x;
-		distance_rect.m_y = 0;
-		distance_rect.m_w = m_col_rect.m_w;
-		distance_rect.m_h = max_distance;
+		m_distance_rect.m_x = m_col_pos.m_x;
+		m_distance_rect.m_y = 0;
+		m_distance_rect.m_w = m_col_rect.m_w;
+		m_distance_rect.m_h = m_max_distance;
 	}
 	else if( m_start_direction == DIR_LEFT )
 	{
-		distance_rect.m_x = -max_distance;
-		distance_rect.m_y = m_col_pos.m_y;
-		distance_rect.m_w = max_distance;
-		distance_rect.m_h = m_col_rect.m_h;
+		m_distance_rect.m_x = -m_max_distance;
+		m_distance_rect.m_y = m_col_pos.m_y;
+		m_distance_rect.m_w = m_max_distance;
+		m_distance_rect.m_h = m_col_rect.m_h;
 	}
 	else if( m_start_direction == DIR_RIGHT )
 	{
-		distance_rect.m_x = 0;
-		distance_rect.m_y = m_col_pos.m_y;
-		distance_rect.m_w = max_distance;
-		distance_rect.m_h = m_col_rect.m_h;
+		m_distance_rect.m_x = 0;
+		m_distance_rect.m_y = m_col_pos.m_y;
+		m_distance_rect.m_w = m_max_distance;
+		m_distance_rect.m_h = m_col_rect.m_h;
 	}
 }
 
 GL_rect cThromp :: Get_Final_Distance_Rect( void ) const
 {
-	GL_rect final_distance = distance_rect;
+	GL_rect final_distance = m_distance_rect;
 
 	final_distance.m_x += m_rect.m_x;
 	final_distance.m_y += m_rect.m_y;
@@ -542,7 +544,7 @@ GL_rect cThromp :: Get_Final_Distance_Rect( void ) const
 
 bool cThromp :: Is_Update_Valid( void )
 {
-	if( dead || m_freeze_counter )
+	if( m_dead || m_freeze_counter )
 	{
 		return 0;
 	}
@@ -558,7 +560,7 @@ bool cThromp :: Is_Draw_Valid( void )
 	if( editor_enabled )
 	{
 		// if active mouse object
-		if( pMouseCursor->active_object == this )
+		if( pMouseCursor->m_active_object == this )
 		{
 			return 1;
 		}
@@ -629,7 +631,7 @@ Col_Valid_Type cThromp :: Validate_Collision( cSprite *obj )
 	Col_Valid_Type basic_valid = Validate_Collision_Ghost( obj );
 
 	// found valid collision
-	if( basic_valid != COL_VTYPE_NO_GHOST )
+	if( basic_valid != COL_VTYPE_NOT_POSSIBLE )
 	{
 		return basic_valid;
 	}
@@ -640,7 +642,7 @@ Col_Valid_Type cThromp :: Validate_Collision( cSprite *obj )
 
 		Col_Valid_Type validation = Validate_Collision_Object_On_Top( moving_sprite );
 
-		if( validation != COL_VTYPE_NO_GHOST )
+		if( validation != COL_VTYPE_NOT_POSSIBLE )
 		{
 			return validation;
 		}
@@ -652,7 +654,7 @@ Col_Valid_Type cThromp :: Validate_Collision( cSprite *obj )
 		}
 
 		// if moving back collide with nothing
-		if( move_back )
+		if( m_move_back )
 		{
 			return COL_VTYPE_INTERNAL;
 		}
@@ -677,7 +679,7 @@ Col_Valid_Type cThromp :: Validate_Collision( cSprite *obj )
 		if( m_vely >= 0 && Is_On_Top( obj ) )
 		{
 			// if moving back collide with nothing
-			if( !move_back )
+			if( !m_move_back )
 			{
 				return COL_VTYPE_BLOCKING;
 			}
@@ -694,7 +696,7 @@ void cThromp :: Handle_Collision_Player( cObjectCollision *collision )
 	{
 		pPlayer->DownGrade_Player();
 
-		if( !move_back )
+		if( !m_move_back )
 		{
 			pAudio->Play_Sound( "enemy/thromp/hit.ogg" );
 			Generate_Smoke();
@@ -718,15 +720,25 @@ void cThromp :: Handle_Collision_Enemy( cObjectCollision *collision )
 		{
 			cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
 
-			// kill enemy
-			pAudio->Play_Sound( enemy->kill_sound );
-			pHud_Points->Add_Points( enemy->kill_points, m_pos_x + m_image->m_w / 3, m_pos_y - 5, "", static_cast<Uint8>(255), 1 );
-			enemy->DownGrade( 1 );
-
-			if( !move_back )
+			// enemies that only hit us
+			if( enemy->m_type == TYPE_SPIKEBALL )
 			{
-				Generate_Smoke();
+				// hits us
+				DownGrade( 1 );
 			}
+			// kill enemy
+			else
+			{
+				pAudio->Play_Sound( enemy->m_kill_sound );
+				pHud_Points->Add_Points( enemy->m_kill_points, m_pos_x + m_image->m_w / 3, m_pos_y - 5, "", static_cast<Uint8>(255), 1 );
+				enemy->DownGrade( 1 );
+
+				if( !m_move_back )
+				{
+					Generate_Smoke();
+				}
+			}
+
 		}
 	}
 	else
@@ -748,7 +760,7 @@ void cThromp :: Handle_Collision_Massive( cObjectCollision *collision )
 	}
 
 	// if not active or already moving back
-	if( m_state != STA_FLY || move_back )
+	if( m_state != STA_FLY || m_move_back )
 	{
 		return;
 	}
@@ -779,7 +791,7 @@ void cThromp :: Editor_Activate( void )
 	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_thromp_image_dir" ));
 	Editor_Add( UTF8_("Image directory"), UTF8_("Directory containing the images"), editbox, 200 );
 
-	editbox->setText( img_dir.c_str() );
+	editbox->setText( m_img_dir.c_str() );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cThromp::Editor_Image_Dir_Text_Changed, this ) );
 
 	// max distance
@@ -787,7 +799,7 @@ void cThromp :: Editor_Activate( void )
 	Editor_Add( UTF8_("Distance"), UTF8_("Detection distance into its direction"), editbox, 90 );
 
 	editbox->setValidationString( "^[+]?\\d*$" );
-	editbox->setText( int_to_string( static_cast<int>(max_distance) ) );
+	editbox->setText( int_to_string( static_cast<int>(m_max_distance) ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cThromp::Editor_Max_Distance_Text_Changed, this ) );
 
 	// speed
@@ -795,7 +807,7 @@ void cThromp :: Editor_Activate( void )
 	Editor_Add( UTF8_("Speed"), UTF8_("Speed when activated"), editbox, 120 );
 
 	editbox->setValidationString( "[+]?[0-9]*\\.?[0-9]*" );
-	editbox->setText( float_to_string( speed ) );
+	editbox->setText( float_to_string( m_speed ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cThromp::Editor_Speed_Text_Changed, this ) );
 
 	// init

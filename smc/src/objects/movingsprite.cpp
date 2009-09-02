@@ -193,8 +193,8 @@ void cMovingSprite :: Move( float move_x, float move_y, bool real /* = 0 */ )
 	cSprite::Move( move_x, move_y, real );
 
 	// check/handle if moved out of level rect
-	Check_out_of_Level_Hor( move_x, 1 );
-	Check_out_of_Level_Ver( move_y, 1 );
+	Check_Out_Of_Level_Hor( move_x, 1 );
+	Check_Out_Of_Level_Ver( move_y, 1 );
 }
 
 cObjectCollisionType *cMovingSprite :: Col_Move_in_Steps( float move_x, float move_y, float step_size_x, float step_size_y, float final_pos_x, float final_pos_y, cSprite_List sprite_list, bool stop_on_internal /* = 0 */ )
@@ -421,8 +421,8 @@ void cMovingSprite :: Col_Move( float move_x, float move_y, bool real /* = 0 */,
 	// use speedfactor
 	if( !real )
 	{
-		move_x *= pFramerate->speedfactor;
-		move_y *= pFramerate->speedfactor;
+		move_x *= pFramerate->m_speed_factor;
+		move_y *= pFramerate->m_speed_factor;
 	}
  
 	// check for collisions
@@ -531,8 +531,8 @@ void cMovingSprite :: Col_Move( float move_x, float move_y, bool real /* = 0 */,
 	}
 
 	// check/handle if moved out of level rect
-	Check_out_of_Level_Hor( move_x, 1 );
-	Check_out_of_Level_Ver( move_y, 1 );
+	Check_Out_Of_Level_Hor( move_x, 1 );
+	Check_Out_Of_Level_Ver( move_y, 1 );
 }
 
 void cMovingSprite :: Set_Velocity( const float x, const float y )
@@ -550,22 +550,17 @@ void cMovingSprite :: Add_Velocity( const float x, const float y, const bool rea
 	}
 	else
 	{
-		m_velx += x * pFramerate->speedfactor;
-		m_vely += y * pFramerate->speedfactor;
+		m_velx += x * pFramerate->m_speed_factor;
+		m_vely += y * pFramerate->m_speed_factor;
 	}
 }
 
 void cMovingSprite :: Turn_Around( ObjectDirection col_dir /* = DIR_UNDEFINED */ )
 {
-	if( col_dir != DIR_UNDEFINED )
+	// check if the collision direction is not in front
+	if( col_dir != DIR_UNDEFINED && m_direction != DIR_UNDEFINED && m_direction != col_dir )
 	{
-		// check if the collision direction is in front
-		if( ( col_dir == DIR_RIGHT && m_direction != col_dir ) || ( col_dir == DIR_LEFT && m_direction != col_dir ) ||
-			( col_dir == DIR_UP && m_direction != col_dir ) || ( col_dir == DIR_DOWN && m_direction != col_dir ) )
-		{
-			// collision direction is not in front
-			return;
-		}
+		return;
 	}
 
 	// reverse velocity
@@ -577,6 +572,11 @@ void cMovingSprite :: Turn_Around( ObjectDirection col_dir /* = DIR_UNDEFINED */
 	{
 		m_vely *= -1;
 	}
+	else
+	{
+		m_velx *= -1;
+		m_vely *= -1;
+	}
 
 	Update_Direction();
 }
@@ -585,7 +585,7 @@ void cMovingSprite :: Update( void )
 {
 	if( m_freeze_counter > 0.0f )
 	{
-		m_freeze_counter -= pFramerate->speedfactor;
+		m_freeze_counter -= pFramerate->m_speed_factor;
 
 		if( m_freeze_counter <= 0.0f )
 		{
@@ -785,7 +785,7 @@ cObjectCollisionType *cMovingSprite :: Collision_Check( const GL_rect &new_rect,
 		}
 
 		// if enemy is dead
-		if( level_object->m_sprite_array == ARRAY_ENEMY && static_cast<cEnemy *>(level_object)->dead )
+		if( level_object->m_sprite_array == ARRAY_ENEMY && static_cast<cEnemy *>(level_object)->m_dead )
 		{
 			continue;
 		}
@@ -823,7 +823,7 @@ cObjectCollisionType *cMovingSprite :: Collision_Check( const GL_rect &new_rect,
 	return col_list;
 }
 
-bool cMovingSprite :: Check_out_of_Level_Hor( const float move_x, const bool handle /* = 0 */ )
+bool cMovingSprite :: Check_Out_Of_Level_Hor( const float move_x, const bool handle /* = 0 */ )
 {
 	// left
 	if( m_col_rect.m_x < pActive_Camera->limit_rect.m_x && m_col_rect.m_x - ( move_x - 0.00001f ) >= pActive_Camera->limit_rect.m_x  )
@@ -849,7 +849,7 @@ bool cMovingSprite :: Check_out_of_Level_Hor( const float move_x, const bool han
 	return 0;
 }
 
-bool cMovingSprite :: Check_out_of_Level_Ver( const float move_y, const bool handle /* = 0 */ )
+bool cMovingSprite :: Check_Out_Of_Level_Ver( const float move_y, const bool handle /* = 0 */ )
 {
 	// top
 	if( m_col_rect.m_y < pActive_Camera->limit_rect.m_y + pActive_Camera->limit_rect.m_h && m_col_rect.m_y - ( move_y - 0.00001f ) >= pActive_Camera->limit_rect.m_h + pActive_Camera->limit_rect.m_y )
@@ -875,7 +875,7 @@ bool cMovingSprite :: Check_out_of_Level_Ver( const float move_y, const bool han
 	return 0;
 }
 
-bool cMovingSprite :: Set_on_Ground( cSprite *obj, bool set_on_top /* = 1 */ )
+bool cMovingSprite :: Set_On_Ground( cSprite *obj, bool set_on_top /* = 1 */ )
 {
 	// invalid or can't be on ground
 	if( !obj || !m_can_be_on_ground )
@@ -934,7 +934,7 @@ void cMovingSprite :: Check_on_Ground( void )
 	// new onground check
 	cObjectCollisionType *col_list = Collision_Check_Relative( 0.0f, m_col_rect.m_h, 0.0f, 1.0f, COLLIDE_ONLY_BLOCKING );
 
-	Reset_on_Ground();
+	Reset_On_Ground();
 
 	// possible ground objects
 	for( cObjectCollision_List::iterator itr = col_list->objects.begin(), itr_end = col_list->objects.end(); itr != itr_end; ++itr )
@@ -944,7 +944,7 @@ void cMovingSprite :: Check_on_Ground( void )
 		// ground collision found
 		if( col->direction == DIR_BOTTOM )
 		{
-			if( Set_on_Ground( col->obj ) )
+			if( Set_On_Ground( col->obj ) )
 			{
 				// send collision ( needed for falling platform )
 				Send_Collision( col );
@@ -956,7 +956,7 @@ void cMovingSprite :: Check_on_Ground( void )
 	delete col_list;
 }
 
-void cMovingSprite :: Reset_on_Ground( void )
+void cMovingSprite :: Reset_On_Ground( void )
 {
 	m_ground_object = NULL;
 }
@@ -1071,7 +1071,7 @@ void cMovingSprite :: Move_With_Ground( void )
 			{
 				// lost ground
 				Move( 0.0f, 1.9f, 1 );
-				Reset_on_Ground();
+				Reset_On_Ground();
 			}
 		}
 	}
@@ -1220,7 +1220,7 @@ void cMovingSprite :: Handle_Move_Object_Collision( const cObjectCollision *coll
 			obj->Col_Move( 0.0f, m_vely, 0, 0, 0 );
 		}
 	}
-	else if( ( collision->direction == DIR_LEFT && m_velx < 0 ) || ( collision->direction == DIR_RIGHT && m_velx > 0 ) )
+	else if( ( collision->direction == DIR_LEFT && m_velx < 0.0f ) || ( collision->direction == DIR_RIGHT && m_velx > 0.0f ) )
 	{
 		// save posx for possible can not move test
 		float posx_orig = obj->m_pos_x;
@@ -1242,10 +1242,10 @@ Col_Valid_Type cMovingSprite :: Validate_Collision( cSprite *obj )
 	{
 		return COL_VTYPE_BLOCKING;
 	}
-	if( obj->m_massive_type == MASS_HALFMASSIVE )
+	else if( obj->m_massive_type == MASS_HALFMASSIVE )
 	{
 		// if moving downwards and the object is on bottom
-		if( m_vely >= 0 && Is_On_Top( obj ) )
+		if( m_vely >= 0.0f && Is_On_Top( obj ) )
 		{
 			return COL_VTYPE_BLOCKING;
 		}
@@ -1278,7 +1278,7 @@ Col_Valid_Type cMovingSprite :: Validate_Collision_Ghost( cSprite *obj )
 		}
 	}
 
-	return COL_VTYPE_NO_GHOST;
+	return COL_VTYPE_NOT_POSSIBLE;
 }
 
 Col_Valid_Type cMovingSprite :: Validate_Collision_Object_On_Top( cMovingSprite *moving_sprite )
@@ -1293,7 +1293,7 @@ Col_Valid_Type cMovingSprite :: Validate_Collision_Object_On_Top( cMovingSprite 
 		if( player->jump_power > 6.0f )
 		{
 			// invalid
-			return COL_VTYPE_NO_GHOST;
+			return COL_VTYPE_NOT_POSSIBLE;
 		}
 	}
 
@@ -1322,7 +1322,7 @@ Col_Valid_Type cMovingSprite :: Validate_Collision_Object_On_Top( cMovingSprite 
 	}
 
 	// invalid
-	return COL_VTYPE_NO_GHOST;
+	return COL_VTYPE_NOT_POSSIBLE;
 }
 
 void cMovingSprite :: Send_Collision( const cObjectCollision *collision, bool handle_now /* = 0 */ )

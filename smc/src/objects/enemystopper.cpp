@@ -24,13 +24,13 @@ namespace SMC
 /* *** *** *** *** *** cEnemyStopper *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cEnemyStopper :: cEnemyStopper( float x, float y )
-: cImageObjectSprite( x, y )
+: cAnimated_Sprite( x, y )
 {
 	cEnemyStopper::Init();
 }
 
 cEnemyStopper :: cEnemyStopper( CEGUI::XMLAttributes &attributes )
-: cImageObjectSprite()
+: cAnimated_Sprite()
 {
 	cEnemyStopper::Init();
 	cEnemyStopper::Create_From_Stream( attributes );

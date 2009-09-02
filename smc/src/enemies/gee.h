@@ -65,7 +65,11 @@ public:
 	 * force : usually dies or a complete downgrade
 	*/
 	virtual void DownGrade( bool force = 0 );
-	virtual void DieStep( void );
+	// dying animation update
+	virtual void Update_Dying( void );
+
+	// set the moving state
+	void Set_Moving_State( Moving_state new_state );
 
 	// update
 	virtual void Update( void );
@@ -80,8 +84,8 @@ public:
 	// generate small cloud particles ( for moving )
 	void Generate_Particles( unsigned int amount = 4 ) const;
 
-	// Check if out of max distance
-	bool Check_Max_Distance( void ) const;
+	// Check if position is beyond the max distance
+	bool Is_At_Max_Distance( void ) const;
 
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
@@ -113,25 +117,25 @@ public:
 	bool Editor_Fly_Distance_Text_Changed( const CEGUI::EventArgs &event );
 
 	// color
-	DefaultColor color_type;
+	DefaultColor m_color_type;
 
-	// destination direction velocity
-	float dest_velx, dest_vely;
+	// flying velocity
+	float m_speed_fly;
 	// maximum distance from the startposition
-	int max_distance;
+	int m_max_distance;
 	// always fly around
-	bool always_fly;
+	bool m_always_fly;
 	// time to wait until next movement
-	float wait_time;
+	float m_wait_time;
 	// fly distance
-	int fly_distance;
+	int m_fly_distance;
 
 	// wait time counter
-	float wait_time_counter;
+	float m_wait_time_counter;
 	// fly distance counter
-	float fly_distance_counter;
+	float m_fly_distance_counter;
 	// clouds particle counter
-	float clouds_counter;
+	float m_clouds_counter;
 
 private:
 	// Create the Name from the current settings

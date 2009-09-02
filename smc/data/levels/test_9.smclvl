@@ -2,8 +2,8 @@
 <level>
 	<information>
 		<Property name="game_version" value="1.8" />
-		<Property name="engine_version" value="33" />
-		<Property name="save_time" value="1233327034" />
+		<Property name="engine_version" value="34" />
+		<Property name="save_time" value="1239054986" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="SMC Team" />
@@ -476,4 +476,11 @@
 		<Property name="gravity_y" value="0" />
 		<Property name="gravity_y_rand" value="0" />
 	</particle_emitter>
+	<enemy>
+		<Property name="type" value="turtle" />
+		<Property name="posx" value="221" />
+		<Property name="posy" value="474" />
+		<Property name="color" value="red" />
+		<Property name="direction" value="right" />
+	</enemy>
 </level>

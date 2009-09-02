@@ -21,14 +21,14 @@
                     <Property Name="ReadOnly" Value="True" />
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
                     <Property Name="ClippedByParent" Value="False" />
-                    <Property Name="UnifiedAreaRect" Value="{{0.3,0},{0.13,0},{0.42,0},{0.36,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.3,0},{0.13,0},{0.42,0},{0.37,0}}" />
                     <Property Name="MaxEditTextLength" Value="1073741823" />
                 </Window>
                 <Window Type="TaharezLook/Combobox" Name="combo_sounds" >
                     <Property Name="ReadOnly" Value="True" />
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
                     <Property Name="ClippedByParent" Value="False" />
-                    <Property Name="UnifiedAreaRect" Value="{{0.3,0},{0.21,0},{0.42,0},{0.44,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.3,0},{0.21,0},{0.42,0},{0.45,0}}" />
                     <Property Name="MaxEditTextLength" Value="1073741823" />
                 </Window>
                 <Window Type="TaharezLook/Slider" Name="slider_music_volume" >
@@ -72,6 +72,11 @@
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
                     <Property Name="UnifiedAreaRect" Value="{{0.01,0},{0.21,0},{0.3,0},{0.28,0}}" />
                     <Property Name="BackgroundEnabled" Value="False" />
+                </Window>
+                <Window Type="TaharezLook/Button" Name="button_reset" >
+                    <Property Name="Text" Value="Reset" />
+                    <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.02,0},{0.9,0},{0.16,0},{0.98,0}}" />
                 </Window>
             </Window>
         </Window>

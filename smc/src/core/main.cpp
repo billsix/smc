@@ -16,6 +16,8 @@
 #include "../core/global_basic.h"
 #include "../core/game_core.h"
 #include "../core/main.h"
+#include "../core/filesystem/resource_manager.h"
+#include "../core/filesystem/filesystem.h"
 #include "../level/level.h"
 #include "../gui/menu.h"
 #include "../core/framerate.h"
@@ -52,6 +54,7 @@ using namespace SMC;
 
 int main( int argc, char **argv )
 {
+// todo : remove this apple hack
 #ifdef __APPLE__
 	// dynamic datapath detection for OS X
 	// change CWD to point inside bundle so it finds its data (if necessary)
@@ -92,8 +95,8 @@ int main( int argc, char **argv )
 			std::cerr << "Warning: Failed changing CWD\n";
 		}
 	}
-
 #endif
+
 	// convert arguments to a vector string
 	vector<std::string> arguments( argv, argv + argc );
 
@@ -228,7 +231,7 @@ int main( int argc, char **argv )
 	return EXIT_SUCCESS;
 }
 
-// namespace is set later to exclude main() from it
+// namespace is set here to exclude main() from it
 namespace SMC
 {
 
@@ -238,7 +241,9 @@ void Init_Game( void )
 	srand( static_cast<unsigned int>(time( NULL )) );
 
 	// Init Stage 1 - core classes
+	pResource_Manager = new cResource_Manager();
 	pVideo = new cVideo();
+	pAudio = new cAudio();
 	pFont = new cFont_Manager();
 	pFramerate = new cFramerate();
 	pRenderer = new cRenderQueue( 200 );
@@ -248,12 +253,11 @@ void Init_Game( void )
 	pSound_Manager = new cSound_Manager();
 	pSettingsParser = new cImage_settings();
 
-	// Init Stage 2 - set preferences and init audio and video screen
-	pAudio = new cAudio();
+	// Init Stage 2 - set preferences and init audio and the video screen
 	/* Set default user directory
 	 * can get overridden later from the preferences
 	*/
-	user_data_dir = Get_User_Directory();
+	pResource_Manager->Set_User_Directory( Get_User_Directory() );
 	/* Initialize the fake CEGUI renderer and system for the pPreferences XMLParser,
 	 * because CEGUI creates the system normally with the OpenGL-Renderer and OpenGL calls may 
 	 * only be made with a valid OpenGL-context, which we would get only by setting 
@@ -263,14 +267,14 @@ void Init_Game( void )
 	// load user data
 	pPreferences->Load();
 	// set game language
-	I18N_Set_Language( pPreferences->language );
+	I18N_Set_Language( pPreferences->m_language );
 	// init translation support
 	I18N_Init();
 	// delete CEGUI System fake
 	pVideo->Delete_CEGUI_Fake();
 
 	// init user dir directory
-	Init_User_Directory();
+	pResource_Manager->Init_User_Directory();
 	// video init
 	pVideo->Init_SDL();
 	pVideo->Init_Video();
@@ -474,9 +478,16 @@ void Exit_Game( void )
 		pFont = NULL;
 	}
 
-	if( strlen( SDL_GetError() ) > 0 )
+	if( pResource_Manager )
 	{
-		printf( "Last known SDL Error : %s\n", SDL_GetError() );
+		delete pResource_Manager;
+		pResource_Manager = NULL;
+	}
+
+	char *last_sdl_error = SDL_GetError();
+	if( strlen( last_sdl_error ) > 0 )
+	{
+		printf( "Last known SDL Error : %s\n", last_sdl_error );
 	}
 
 	SDL_Quit();
@@ -1085,7 +1096,7 @@ void Update_Game( void )
 	pAudio->Update();
 
 	// performance measuring
-	pFramerate->perf_last_ticks = SDL_GetTicks();
+	pFramerate->m_perf_last_ticks = SDL_GetTicks();
 
 	// ## update
 	if( Game_Mode == MODE_LEVEL )
@@ -1095,31 +1106,31 @@ void Update_Game( void )
 		pLevel_Editor->Process_Input();
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_UPDATE_PROCESS_INPUT]->Update();
+		pFramerate->m_perf_timer[PERF_UPDATE_PROCESS_INPUT]->Update();
 
 		// update
 		pActive_Level->Update();
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_UPDATE_LEVEL]->Update();
+		pFramerate->m_perf_timer[PERF_UPDATE_LEVEL]->Update();
 
 		// editor
 		pLevel_Editor->Update();
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_UPDATE_LEVEL_EDITOR]->Update();
+		pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_EDITOR]->Update();
 
 		// hud
 		pHud_Manager->Update();
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_UPDATE_HUD]->Update();
+		pFramerate->m_perf_timer[PERF_UPDATE_HUD]->Update();
 
 		// player
 		pPlayer->Update();
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_UPDATE_PLAYER]->Update();
+		pFramerate->m_perf_timer[PERF_UPDATE_PLAYER]->Update();
 
 		// player collisions
 		if( !editor_enabled )
@@ -1129,13 +1140,13 @@ void Update_Game( void )
 		}
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_UPDATE_PLAYER_COLLISIONS]->Update();
+		pFramerate->m_perf_timer[PERF_UPDATE_PLAYER_COLLISIONS]->Update();
 
 		// late update for level objects
 		pActive_Level->Update_Late();
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_UPDATE_LATE_LEVEL]->Update();
+		pFramerate->m_perf_timer[PERF_UPDATE_LATE_LEVEL]->Update();
 
 		// level collisions
 		if( !editor_enabled )
@@ -1144,13 +1155,13 @@ void Update_Game( void )
 		}
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_UPDATE_LEVEL_COLLISIONS]->Update();
+		pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_COLLISIONS]->Update();
 
 		// Camera ( update after new player position was set )
 		pActive_Camera->Update();
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_UPDATE_CAMERA]->Update();
+		pFramerate->m_perf_timer[PERF_UPDATE_CAMERA]->Update();
 
 	}
 	else if( Game_Mode == MODE_OVERWORLD )
@@ -1158,21 +1169,21 @@ void Update_Game( void )
 		pActive_Overworld->Update();
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_UPDATE_OVERWORLD]->Update();
+		pFramerate->m_perf_timer[PERF_UPDATE_OVERWORLD]->Update();
 	}
 	else if( Game_Mode == MODE_MENU )
 	{
 		pMenuCore->Update();
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_UPDATE_MENU]->Update();
+		pFramerate->m_perf_timer[PERF_UPDATE_MENU]->Update();
 	}
 	else if( Game_Mode == MODE_LEVEL_SETTINGS )
 	{
 		pLevel_Editor->pSettings->Update();
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_UPDATE_LEVEL_SETTINGS]->Update();
+		pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_SETTINGS]->Update();
 	}
 
 	// gui
@@ -1188,7 +1199,7 @@ void Draw_Game( void )
 	}
 
 	// performance measuring
-	pFramerate->perf_last_ticks = SDL_GetTicks();
+	pFramerate->m_perf_last_ticks = SDL_GetTicks();
 
 	if( Game_Mode == MODE_LEVEL )
 	{
@@ -1196,31 +1207,31 @@ void Draw_Game( void )
 		pActive_Level->Draw_Layer_1();
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_DRAW_LEVEL_LAYER1]->Update();
+		pFramerate->m_perf_timer[PERF_DRAW_LEVEL_LAYER1]->Update();
 
 		// player draw
 		pPlayer->Draw();
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_DRAW_LEVEL_PLAYER]->Update();
+		pFramerate->m_perf_timer[PERF_DRAW_LEVEL_PLAYER]->Update();
 
 		// draw level layer 2
 		pActive_Level->Draw_Layer_2();
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_DRAW_LEVEL_LAYER2]->Update();
+		pFramerate->m_perf_timer[PERF_DRAW_LEVEL_LAYER2]->Update();
 
 		// hud
 		pHud_Manager->Draw();
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_DRAW_LEVEL_HUD]->Update();
+		pFramerate->m_perf_timer[PERF_DRAW_LEVEL_HUD]->Update();
 
 		// level editor
 		pLevel_Editor->Draw();
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_DRAW_LEVEL_EDITOR]->Update();
+		pFramerate->m_perf_timer[PERF_DRAW_LEVEL_EDITOR]->Update();
 
 	}
 	else if( Game_Mode == MODE_OVERWORLD )
@@ -1229,28 +1240,28 @@ void Draw_Game( void )
 		pActive_Overworld->Draw();
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_DRAW_OVERWORLD]->Update();
+		pFramerate->m_perf_timer[PERF_DRAW_OVERWORLD]->Update();
 	}
 	else if( Game_Mode == MODE_MENU )
 	{
 		pMenuCore->Draw();
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_DRAW_MENU]->Update();
+		pFramerate->m_perf_timer[PERF_DRAW_MENU]->Update();
 	}
 	else if( Game_Mode == MODE_LEVEL_SETTINGS )
 	{
 		pLevel_Editor->pSettings->Draw();
 
 		// update performance timer
-		pFramerate->perf_timer[PERF_DRAW_LEVEL_SETTINGS]->Update();
+		pFramerate->m_perf_timer[PERF_DRAW_LEVEL_SETTINGS]->Update();
 	}
 
 	// Mouse
 	pMouseCursor->Draw();
 
 	// update performance timer
-	pFramerate->perf_timer[PERF_DRAW_MOUSE]->Update();
+	pFramerate->m_perf_timer[PERF_DRAW_MOUSE]->Update();
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

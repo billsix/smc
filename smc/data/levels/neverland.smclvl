@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.8" />
+		<Property name="game_version" value="1.9" />
 		<Property name="engine_version" value="34" />
-		<Property name="save_time" value="1236085349" />
+		<Property name="save_time" value="1249395991" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Sauer2 and SMC Team" />
@@ -5725,31 +5725,31 @@
 	<sprite>
 		<Property name="posx" value="4406" />
 		<Property name="posy" value="556" />
-		<Property name="image" value="blocks/metal/stone_2_black.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="4406" />
-		<Property name="posy" value="427" />
 		<Property name="image" value="blocks/metal/stone_2_yellow.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="4406" />
 		<Property name="posy" value="470" />
-		<Property name="image" value="blocks/metal/stone_2_black.png" />
-		<Property name="type" value="massive" />
-	</sprite>
-	<sprite>
-		<Property name="posx" value="4406" />
-		<Property name="posy" value="513" />
 		<Property name="image" value="blocks/metal/stone_2_yellow.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="4406" />
-		<Property name="posy" value="384" />
+		<Property name="posy" value="513" />
 		<Property name="image" value="blocks/metal/stone_2_black.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="4406" />
+		<Property name="posy" value="427" />
+		<Property name="image" value="blocks/metal/stone_2_black.png" />
+		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="4406" />
+		<Property name="posy" value="384" />
+		<Property name="image" value="blocks/metal/stone_2_yellow.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<enemy>
@@ -5789,7 +5789,7 @@
 	<sprite>
 		<Property name="posx" value="4019" />
 		<Property name="posy" value="255" />
-		<Property name="image" value="blocks/metal/stone_2_black.png" />
+		<Property name="image" value="blocks/metal/stone_2_yellow.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<enemy>

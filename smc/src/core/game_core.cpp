@@ -30,20 +30,14 @@
 #include "../overworld/overworld.h"
 #include "../gui/menu.h"
 #include "../core/i18n.h"
+#include "../core/filesystem/filesystem.h"
 // boost filesystem
 #include "boost/filesystem/convenience.hpp"
 namespace fs = boost::filesystem;
 
-// needed for the stat function and to get the user directory on unix
-#include <sys/stat.h>
-#include <sys/types.h>
-
 #ifdef __unix__
 	// needed for the clipboard access
 	#  include <SDL_syswm.h>
-#elif _WIN32
-	// needed to get the user directory
-	#include <shlobj.h>
 #elif __APPLE__
 	// needed for the clipboard access
 	#include <Carbon/Carbon.h>
@@ -63,8 +57,6 @@ void *Game_Action_ptr = NULL;
 
 int game_res_w = 800;
 int game_res_h = 600;
-
-std::string user_data_dir = "";
 
 bool game_debug = 0, game_debug_performance = 0;
 
@@ -391,7 +383,7 @@ void Change_Game_Mode( const GameMode new_mode )
 	else if( new_mode == MODE_OVERWORLD )
 	{
 		// set active level manager
-		pActive_Sprite_Manager = pActive_Overworld->sprite_manager;
+		pActive_Sprite_Manager = pActive_Overworld->m_sprite_manager;
 		// set active camera
 		pActive_Camera = pOverworld_Manager->camera;
 		// set active player
@@ -423,7 +415,7 @@ void Change_Game_Mode( const GameMode new_mode )
 			// fade out music
 			pAudio->Fadeout_Music( 500 );
 			// play music
-			pAudio->Play_Music( pActive_Overworld->musicfile, -1, 0, 3000 );
+			pAudio->Play_Music( pActive_Overworld->m_musicfile, -1, 0, 3000 );
 
 			// center camera position
 			pActive_Camera->Center();
@@ -464,8 +456,8 @@ void Change_Game_Mode( const GameMode new_mode )
 			}
 		}
 
-		// if new mode is not menu
-		if( new_mode != MODE_MENU )
+		// if new mode should play different music
+		if( new_mode != MODE_MENU && new_mode != MODE_LEVEL_SETTINGS )
 		{
 			// fade out music
 			pAudio->Fadeout_Music( 1000 );
@@ -562,7 +554,7 @@ void Change_Game_Mode( const GameMode new_mode )
 	else if( new_mode == MODE_OVERWORLD )
 	{
 		// play music
-		pAudio->Play_Music( pActive_Overworld->musicfile, -1, 0, 3000 );
+		pAudio->Play_Music( pActive_Overworld->m_musicfile, -1, 0, 3000 );
 
 		// reset custom level mode type
 		if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM )
@@ -614,7 +606,7 @@ void Change_Game_Mode( const GameMode new_mode )
 		// update camera
 		pActive_Camera->Update_Position();
 
-		if( pMouseCursor->active_object )
+		if( pMouseCursor->m_active_object )
 		{
 			pMouseCursor->Clear_Active_Object();
 		}
@@ -627,21 +619,6 @@ std::string Time_to_String( time_t t, const char *format )
 	strftime( str_time, 60, format, localtime( &t ) );
 
 	return str_time;
-}
-
-std::string Get_Filename( std::string filename, bool with_dir /* = 1 */, bool with_end /* = 1 */ )
-{
-	if( !with_dir && filename.find( "/" ) != std::string::npos ) 
-	{
-		filename.erase( 0, filename.rfind( "/" ) + 1 );
-	}
-
-	if( !with_end && filename.rfind( "." ) != std::string::npos ) 
-	{
-		filename.erase( filename.rfind( "." ) );
-	}
-
-	return filename;
 }
 
 void Clear_Input_Events( void )
@@ -1337,6 +1314,16 @@ void Preload_Images( bool draw_gui /* = 0 */ )
 	image_files.push_back( "game/items/goldpiece/yellow/8.png" );
 	image_files.push_back( "game/items/goldpiece/yellow/9.png" );
 	image_files.push_back( "game/items/goldpiece/yellow/10.png" );
+	image_files.push_back( "game/items/goldpiece/yellow/1_falling.png" );
+	image_files.push_back( "game/items/goldpiece/yellow/2_falling.png" );
+	image_files.push_back( "game/items/goldpiece/yellow/3_falling.png" );
+	image_files.push_back( "game/items/goldpiece/yellow/4_falling.png" );
+	image_files.push_back( "game/items/goldpiece/yellow/5_falling.png" );
+	image_files.push_back( "game/items/goldpiece/yellow/6_falling.png" );
+	image_files.push_back( "game/items/goldpiece/yellow/7_falling.png" );
+	image_files.push_back( "game/items/goldpiece/yellow/8_falling.png" );
+	image_files.push_back( "game/items/goldpiece/yellow/9_falling.png" );
+	image_files.push_back( "game/items/goldpiece/yellow/10_falling.png" );
 	// Red Goldpiece
 	image_files.push_back( "game/items/goldpiece/red/1.png" );
 	image_files.push_back( "game/items/goldpiece/red/2.png" );
@@ -1348,6 +1335,16 @@ void Preload_Images( bool draw_gui /* = 0 */ )
 	image_files.push_back( "game/items/goldpiece/red/8.png" );
 	image_files.push_back( "game/items/goldpiece/red/9.png" );
 	image_files.push_back( "game/items/goldpiece/red/10.png" );
+	image_files.push_back( "game/items/goldpiece/red/1_falling.png" );
+	image_files.push_back( "game/items/goldpiece/red/2_falling.png" );
+	image_files.push_back( "game/items/goldpiece/red/3_falling.png" );
+	image_files.push_back( "game/items/goldpiece/red/4_falling.png" );
+	image_files.push_back( "game/items/goldpiece/red/5_falling.png" );
+	image_files.push_back( "game/items/goldpiece/red/6_falling.png" );
+	image_files.push_back( "game/items/goldpiece/red/7_falling.png" );
+	image_files.push_back( "game/items/goldpiece/red/8_falling.png" );
+	image_files.push_back( "game/items/goldpiece/red/9_falling.png" );
+	image_files.push_back( "game/items/goldpiece/red/10_falling.png" );
 
 	// Brown Box
 	image_files.push_back( "game/box/brown1_1.png" );	
@@ -1463,7 +1460,7 @@ void Preload_Sounds( bool draw_gui /* = 0 */ )
 
 	// box
 	sound_files.push_back( "item/empty_box.wav" );
-	sound_files.push_back( "death_box.ogg" );
+	sound_files.push_back( "death_box.wav" );
 
 	// enemies
 	// eato
@@ -1534,219 +1531,12 @@ void Preload_Sounds( bool draw_gui /* = 0 */ )
 	}
 }
 
-bool Delete_File( const std::string &filename )
-{
-	return remove( filename.c_str() ) == 0;
-}
-
-bool File_Exists( const std::string &filename )
-{
-	struct stat file_info; 
-
-	if( stat( filename.c_str(), &file_info ) == 0 )
-	{
-	#ifdef _WIN32
-		return (file_info.st_mode & S_IFREG) > 0;
-	#else
-		return !S_ISDIR(file_info.st_mode);
-	#endif
-	}
-
-	return 0;
-}
-
-bool Dir_Exists( const std::string &dir )
-{
-	struct stat file_info;
-
-	// if file exists
-	if( stat( dir.c_str(), &file_info ) == 0 )
-	{
-		// check if regular file
-	#ifdef _WIN32
-		return (file_info.st_mode & S_IFDIR) > 0;
-	#else
-		return S_ISDIR(file_info.st_mode);
-	#endif
-	}
-
-	return 0;
-}
-
-size_t Get_File_Size( const std::string &filename )
-{
-	struct stat file_info; 
-
-	// if file exists
-	if( stat( filename.c_str(), &file_info ) == 0 )
-	{
-		// if regular file
-	#ifdef _WIN32
-		if( (file_info.st_mode & S_IFREG) > 0 )
-	#else
-		if( !S_ISDIR(file_info.st_mode) )
-	#endif
-		{
-			// return size
-			return file_info.st_size;
-		}
-	}
-
-	return 0;
-}
-
-void Convert_Path_Separators( std::string &str )
-{
-	for( std::string::iterator itr = str.begin(); itr != str.end(); ++itr )
-	{
-		// fix it
-		if( *itr == '\\' || *itr == '!' )
-		{
-			*itr = '/';
-		}
-	}
-}
-
 void Relocate_Image( CEGUI::XMLAttributes &xml_attributes, const std::string &filename_old, const std::string &filename_new, const CEGUI::String &attribute_name /* = "image" */ )
 {
 	if( xml_attributes.getValueAsString( attribute_name ).compare( filename_old ) == 0 || xml_attributes.getValueAsString( attribute_name ).compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" + filename_old ) == 0 )
 	{
 		xml_attributes.remove( attribute_name );
 		xml_attributes.add( attribute_name, filename_new );
-	}
-}
-
-vector<std::string> Get_Directory_Files( const std::string &dir, const std::string &file_type /* = "" */, bool with_directories /* = 0 */, bool search_in_sub_directories /* = 1 */ )
-{
-	vector<std::string> valid_files;
-
-	fs::path full_path( dir, fs::native );
-	fs::directory_iterator end_iter;
-
-	// load all available objects
-	for( fs::directory_iterator dir_itr( full_path ); dir_itr != end_iter; ++dir_itr )
-	{
-		try
-		{
-			// if directory
-			if( fs::is_directory( *dir_itr ) )
-			{
-				// ignore hidden directories
-				if( dir_itr->leaf().find( "." ) == 0 )
-				{
-					continue;
-				}
-
-				if( with_directories )
-				{
-					valid_files.push_back( dir + "/" + dir_itr->leaf() );
-				}
-
-				// load all items from the sub-directory
-				if( search_in_sub_directories )
-				{
-					vector<std::string> new_valid_files = Get_Directory_Files( dir + "/" + dir_itr->leaf(), file_type, with_directories );
-					valid_files.insert( valid_files.end(), new_valid_files.begin(), new_valid_files.end() );
-				}
-			}
-			// valid file
-			else if( file_type.empty() || dir_itr->leaf().rfind( file_type ) != std::string::npos )
-			{
-				valid_files.push_back( dir + "/" + dir_itr->leaf() );
-			}
-		}
-		catch( const std::exception &ex )
-		{
-			printf( "%s %s\n", dir_itr->leaf().c_str(), ex.what() );
-		}
-	}
-
-	return valid_files;
-}
-
-std::string Get_Temp_Directory( void )
-{
-#ifdef _WIN32
-	char path[MAX_PATH];
-
-	DWORD retval = GetTempPath( MAX_PATH, path );
-
-	if( retval > MAX_PATH || ( retval == 0 ) )
-	{
-		printf( "Error : Couldn't get Windows temp directory.\n" );
-		return "";
-	}
-
-	std::string str_path = path;
-	Convert_Path_Separators( str_path );
-
-	return str_path;
-#elif __unix__
-	return (std::string)getenv( "TMPDIR" ) + "/";
-#elif __APPLE__
-	// fixme : same as unix ?
-	return "";
-#else
-	return "";
-#endif
-}
-
-std::string Get_User_Directory( void )
-{
-#ifdef _WIN32
-	TCHAR path_appdata[MAX_PATH + 1];
-
-	if( FAILED( SHGetFolderPath( NULL, CSIDL_APPDATA, NULL, 0 /*SHGFP_TYPE_CURRENT*/, path_appdata ) ) )
-	{
-		printf( "Error : Couldn't get Windows user data directory. Defaulting to the Application directory.\n" );
-		return "";
-	}
-
-	std::string str_path = path_appdata;
-	Convert_Path_Separators( str_path );
-
-	return str_path + "/smc/";
-#elif __unix__
-	return (std::string)getenv( "HOME" ) + "/.smc/";
-#elif __APPLE__
-	return (std::string)getenv( "HOME" ) + "/Library/Application Support/smc/";
-#else
-	return "";
-#endif
-}
-
-void Init_User_Directory( void )
-{
-	// Create user directory
-	if( !fs::exists( fs::path( user_data_dir, fs::native ) ) )
-	{
-		// first run if not available
-		fs::create_directories( fs::path( user_data_dir, fs::native ) );
-	}
-	// Create savegame directory
-	if( !fs::exists( fs::path( user_data_dir + USER_SAVEGAME_DIR, fs::native ) ) )
-	{
-		fs::create_directory( fs::path( user_data_dir + USER_SAVEGAME_DIR, fs::native ) );
-	}
-	// Create screenshot directory
-	if( !fs::exists( fs::path( user_data_dir + USER_SCREENSHOT_DIR, fs::native ) ) )
-	{
-		fs::create_directory( fs::path( user_data_dir + USER_SCREENSHOT_DIR, fs::native ) );
-	}
-	// Create level directory
-	if( !fs::exists( fs::path( user_data_dir + USER_LEVEL_DIR, fs::native ) ) )
-	{
-		fs::create_directory( fs::path( user_data_dir + USER_LEVEL_DIR, fs::native ) );
-	}
-	// Create world directory
-	if( !fs::exists( fs::path( user_data_dir + USER_WORLD_DIR, fs::native ) ) )
-	{
-		fs::create_directory( fs::path( user_data_dir + USER_WORLD_DIR, fs::native ) );
-	}
-	// Create cache directory
-	if( !fs::exists( fs::path( user_data_dir + USER_IMGCACHE_DIR, fs::native ) ) )
-	{
-		fs::create_directory( fs::path( user_data_dir + USER_IMGCACHE_DIR, fs::native ) );
 	}
 }
 
@@ -2185,36 +1975,34 @@ std::string float_to_string( const float number, int prec /* = 6 */ )
 	return str;
 }
 
+// string conversion helper
+template <class T> bool from_string( T &t, const std::string &s, std::ios_base &(*f)(std::ios_base&) )
+{
+	std::istringstream iss( s );
+	return !(iss >> f >> t).fail();
+}
+
 float string_to_float( const std::string &str )
 {
-	float val = 0;
-	sscanf( str.c_str(), " %f", &val );
-
-	return val;
+	float num;
+	// use helper
+	from_string<float>( num, str, std::dec );
+	return num;
 }
 
 int string_to_int( const std::string &str )
 {
-	if( str.empty() )
-	{
-		return 0;
-	}
-
 	int num;
-
-	std::istringstream temp( str );
-	temp >> num;
-
+	// use helper
+	from_string<int>( num, str, std::dec );
 	return num;
 }
 
 double string_to_double( const std::string &str )
 {
 	double num;
-
-	std::istringstream temp( str );
-	temp >> num;
-
+	// use helper
+	from_string<double>( num, str, std::dec );
 	return num;
 }
 

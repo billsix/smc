@@ -22,25 +22,26 @@
 #include "../level/level.h"
 #include "../overworld/overworld.h"
 #include "../core/main.h"
+#include "../audio/audio.h"
 
 namespace SMC
 {
 
-const GL_rect cCamera::default_limits = GL_rect( 0, 0, 20000, -4000 );
-
 /* *** *** *** *** *** *** *** cCamera *** *** *** *** *** *** *** *** *** *** */
+
+const GL_rect cCamera::default_limits = GL_rect( 0, 0, 20000, -4000 );
 
 cCamera :: cCamera( void )
 {
-	x = 0;
-	y = 0;
+	x = 0.0f;
+	y = 0.0f;
 
-	x_offset = 0;
-	y_offset = 0;
+	x_offset = 0.0f;
+	y_offset = 0.0f;
 	hor_offset_speed = 0.3f;
 	ver_offset_speed = 0.2f;
 
-	fixed_hor_vel = 0;
+	fixed_hor_vel = 0.0f;
 
 	// default camera limit
 	Reset_Limits();
@@ -127,7 +128,7 @@ void cCamera :: Move( const float move_x, const float move_y )
 
 bool cCamera :: Move_to_Position_Gradually( const float px, const float py, const unsigned int frames /* = 200 */ )
 {
-	for( float i = 0.0f; i < frames; i += pFramerate->speedfactor )
+	for( float i = 0.0f; i < frames; i += pFramerate->m_speed_factor )
 	{
 		if( Step_to_Position_Gradually( px, py ) == 0 )
 		{
@@ -140,6 +141,8 @@ bool cCamera :: Move_to_Position_Gradually( const float px, const float py, cons
 			pActive_Level->m_global_effect->Update_Particles();
 		}
 
+		// update audio
+		pAudio->Update();
 		// draw
 		Draw_Game();
 
@@ -161,8 +164,8 @@ bool cCamera :: Step_to_Position_Gradually( const float px, const float py )
 	float distance_x = px_final - x;
 	float distance_y = py_final - y;
 	// velocity
-	float vel_x = ( distance_x * 0.04f ) * pFramerate->speedfactor;
-	float vel_y = ( distance_y * 0.04f ) * pFramerate->speedfactor;
+	float vel_x = ( distance_x * 0.04f ) * pFramerate->m_speed_factor;
+	float vel_y = ( distance_y * 0.04f ) * pFramerate->m_speed_factor;
 	// true if reached position
 	bool reached_x = 0;
 	bool reached_y = 0;
@@ -246,7 +249,7 @@ float cCamera :: Get_Center_Pos_X( void ) const
 
 float cCamera :: Get_Center_Pos_Y( void ) const
 {
-	return pActive_Player->m_col_rect.m_y + pActive_Player->m_col_rect.m_h - 5 - ( game_res_h * 0.5f );
+	return pActive_Player->m_col_rect.m_y + pActive_Player->m_col_rect.m_h - 5.0f - ( game_res_h * 0.5f );
 }
 
 void cCamera :: Reset_Limits( void )
@@ -259,13 +262,13 @@ void cCamera :: Set_Limits( const GL_rect &rect )
 	limit_rect = rect;
 
 	// minimal size
-	if( limit_rect.m_w < 800 )
+	if( limit_rect.m_w < 800.0f )
 	{
-		limit_rect.m_w = 800;
+		limit_rect.m_w = 800.0f;
 	}
-	if( limit_rect.m_h > 0 )
+	if( limit_rect.m_h > 0.0f )
 	{
-		limit_rect.m_h = 0;
+		limit_rect.m_h = 0.0f;
 	}
 }
 
@@ -332,44 +335,43 @@ void cCamera :: Update( void )
 		if( !editor_enabled )
 		{
 			// player is moving vertical
-			if( pPlayer->m_vely != 0 && ver_offset_speed > 0 )
+			if( pPlayer->m_vely != 0 && ver_offset_speed > 0.0f )
 			{
-				pPlayer->no_vely_counter = 0;
+				pPlayer->no_vely_counter = 0.0f;
 
-				if( ( y_offset < 100 && pPlayer->m_vely > 0 ) || ( y_offset > -100 && pPlayer->m_vely < 0 ) )
+				if( ( y_offset < 100.0f && pPlayer->m_vely > 0.0f ) || ( y_offset > -100.0f && pPlayer->m_vely < 0.0f ) )
 				{
-					y_offset += ( pPlayer->m_vely * ver_offset_speed ) * pFramerate->speedfactor;
+					y_offset += ( pPlayer->m_vely * ver_offset_speed ) * pFramerate->m_speed_factor;
 				}
 			}
 			// slowly remove offset
 			else 
 			{
-				pPlayer->no_vely_counter += pFramerate->speedfactor;
+				pPlayer->no_vely_counter += pFramerate->m_speed_factor;
 
-				if( pPlayer->no_vely_counter > 10 && ( y_offset > 20 || y_offset < -20 ) )
+				if( pPlayer->no_vely_counter > 10.0f && ( y_offset > 20.0f || y_offset < -20.0f ) )
 				{
-					y_offset += -( y_offset / 30 ) * pFramerate->speedfactor;
+					y_offset += -( y_offset / 30 ) * pFramerate->m_speed_factor;
 				}
 			}
 
 			if( fixed_hor_vel )
 			{
 				// todo : remove hackiness
-				x += fixed_hor_vel * pFramerate->speedfactor;
+				x += fixed_hor_vel * pFramerate->m_speed_factor;
 				// check limit
 				Update_Limit_X( x );
 				// center one side
 				Center( DIR_HORIZONTAL );
 
 				// scrolls to the right
-				if( fixed_hor_vel > 0 )
+				if( fixed_hor_vel > 0.0f )
 				{
 					// out of camera on the left side
 					if( pPlayer->m_col_rect.m_x + pPlayer->m_col_rect.m_w < x )
 					{
 						pPlayer->DownGrade_Player( 1, 1 );
 					}
-
 				}
 				// scrolls to the left
 				else
@@ -384,23 +386,23 @@ void cCamera :: Update( void )
 			else
 			{
 				// player is moving horizontal
-				if( pPlayer->m_velx != 0 && hor_offset_speed > 0 )
+				if( pPlayer->m_velx != 0 && hor_offset_speed > 0.0f )
 				{
-					pPlayer->no_velx_counter = 0;
+					pPlayer->no_velx_counter = 0.0f;
 
-					if( ( x_offset < 200 && pPlayer->m_velx > 0 ) || ( x_offset > -200 && pPlayer->m_velx < 0 ) )
+					if( ( x_offset < 200.0f && pPlayer->m_velx > 0.0f ) || ( x_offset > -200.0f && pPlayer->m_velx < 0.0f ) )
 					{
-						x_offset += ( pPlayer->m_velx * hor_offset_speed ) * pFramerate->speedfactor;
+						x_offset += ( pPlayer->m_velx * hor_offset_speed ) * pFramerate->m_speed_factor;
 					}
 				}
 				// slowly remove offset
 				else
 				{
-					pPlayer->no_velx_counter += pFramerate->speedfactor;
+					pPlayer->no_velx_counter += pFramerate->m_speed_factor;
 
-					if( pPlayer->no_velx_counter > 10 && ( x_offset > 40 || x_offset < -40 ) )
+					if( pPlayer->no_velx_counter > 10.0f && ( x_offset > 40.0f || x_offset < -40.0f ) )
 					{
-						x_offset += -( x_offset / 50 ) * pFramerate->speedfactor;
+						x_offset += -( x_offset / 50 ) * pFramerate->m_speed_factor;
 					}
 				}
 
@@ -452,9 +454,9 @@ void cCamera :: Update_Position( void ) const
 		if( editor_enabled )
 		{
 			// update settings activated object position
-			if( pMouseCursor->active_object )
+			if( pMouseCursor->m_active_object )
 			{
-				pMouseCursor->active_object->Editor_Position_Update();
+				pMouseCursor->m_active_object->Editor_Position_Update();
 			}
 		}
 	}

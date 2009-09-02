@@ -21,7 +21,7 @@
 namespace SMC
 {
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** *** cPerformance_Timer *** *** *** *** *** *** *** *** *** *** */
 
 // counts milliseconds for 100 frames and sets them to ms
 class cPerformance_Timer
@@ -44,9 +44,11 @@ public:
 	Uint32 ms;
 };
 
-/* The Speedfactor is the heart of this class.
- * It's a float with that you multiply all your motions. For instance, if the targetfps is 100,
- * and the actual fps is 80, the speedfactor will be set to 100/80, or 1.25.
+/* *** *** *** *** *** *** *** cFramerate *** *** *** *** *** *** *** *** *** *** */
+
+/* Framerate class
+ * speed factor is a float with that you multiply all your motions. For instance, if the targetfps is 100,
+ * and the actual fps is 80, the speed factor will be set to 100/80, or 1.25.
 */
 class cFramerate
 {
@@ -56,55 +58,61 @@ public:
 	
 	// Initialize with the given target fps
 	void Init( const float tfps );
-	// update speedfactor
+	// update speed factor
 	void Update( void );
-	// reset speedfactor and worst/best fps statistic
+	// reset speed factor and worst/best fps statistic
 	void Reset( void );
 	
-	// set maximum allowed speedfactor
-	void Set_Max_Speed_Factor( const float maximum );
+	// set maximum allowed elapsed ticks
+	void Set_Max_Elapsed_Ticks( const Uint32 ticks );
 
-	/* Set the given fixed speedfactor
-	 * if value is 0 no fixed speedfactor will be used
+	/* Set the given fixed speed factor
+	 * if value is 0 no fixed speed factor will be used
 	*/
 	void Set_Fixed_Speedfacor( const float val );
 
-	// target fps for speedfactor calculations
-	float fps_target;
+	// target fps for speed factor calculations
+	float m_fps_target;
 	// current fps
-	float fps;
+	float m_fps;
 	// best fps
-	float fps_best;
+	float m_fps_best;
 	// worst fps
-	float fps_worst;
+	float m_fps_worst;
 	// average fps in the last second
-	unsigned int fps_average;
+	unsigned int m_fps_average;
 	// delay since last average fps calculation
-	Uint32 fps_average_framedelay;
+	Uint32 m_fps_average_framedelay;
 	// amount of frames counted
-	unsigned int frames_counted;
+	unsigned int m_frames_counted;
 
-	// last updated ticks
-	Uint32 currentticks;
-	// last updated ticks for speedfactor calculation
-	Uint32 framedelay;
+	/* last update ticks
+	 * used for speed factor calculation
+	 */
+	Uint32 m_last_ticks;
+	// elapsed ticks since last frame
+	Uint32 m_elapsed_ticks;
+	// maximum elapsed ticks
+	Uint32 m_max_elapsed_ticks;
 
-	// current factor based on target fps
-	float speedfactor;
-	// maximum factor
-	float maxspeedfactor;
+	/* current factor
+	 * based on target fps
+	 */
+	float m_speed_factor;
 
-	// fixed speedfactor value
-	float force_speedfactor;
 
+	// fixed speed factor value
+	float m_force_speed_factor;
 
 	// ## performance values ##
 	// ticks since last section
-	Uint32 perf_last_ticks;
+	Uint32 m_perf_last_ticks;
 
 	typedef vector<cPerformance_Timer *> Performance_Timer_List;
-	Performance_Timer_List perf_timer;
+	Performance_Timer_List m_perf_timer;
 };
+
+/* *** *** *** *** *** *** *** helper functions *** *** *** *** *** *** *** *** *** *** */
 
 /* Fixed framerate method
  * if next frame is not ready wait until it is

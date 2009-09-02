@@ -43,8 +43,8 @@ cBall :: cBall( float x, float y, const cSprite *origin_object /* = NULL */, bal
 	m_massive_type = MASS_MASSIVE;
 
 	m_glim_mod = 1;
-	m_glim_counter = 0;
-	m_fire_counter = 0;
+	m_glim_counter = 0.0f;
+	m_fire_counter = 0.0f;
 
 	if( btype == FIREBALL_DEFAULT || btype == FIREBALL_EXPLOSION )
 	{
@@ -139,17 +139,17 @@ void cBall :: Update( void )
 	}
 
 	// right
-	if( m_velx > 0 )
+	if( m_velx > 0.0f )
 	{
-		m_rot_z += pFramerate->speedfactor * 40;
+		m_rot_z += pFramerate->m_speed_factor * 40;
 	}
 	// left
 	else
 	{
-		m_rot_z -= pFramerate->speedfactor * 40;
+		m_rot_z -= pFramerate->m_speed_factor * 40;
 	}
 
-	if( m_vely < 30 )
+	if( m_vely < 30.0f )
 	{
 		Add_Velocity( 0, 1 );
 	}
@@ -163,27 +163,27 @@ void cBall :: Update( void )
 	// glim animation
 	if( m_glim_mod )
 	{
-		m_glim_counter += pFramerate->speedfactor * 0.1f;
+		m_glim_counter += pFramerate->m_speed_factor * 0.1f;
 
-		if( m_glim_counter > 1 )
+		if( m_glim_counter > 1.0f )
 		{
-			m_glim_counter = 1;
+			m_glim_counter = 1.0f;
 			m_glim_mod = 0;
 		}
 	}
 	else
 	{
-		m_glim_counter -= pFramerate->speedfactor * 0.1f;
+		m_glim_counter -= pFramerate->m_speed_factor * 0.1f;
 
-		if( m_glim_counter < 0 )
+		if( m_glim_counter < 0.0f )
 		{
-			m_glim_counter = 0;
+			m_glim_counter = 0.0f;
 			m_glim_mod = 1;
 		}
 	}
 
 	// generate fire particle animation
-	m_fire_counter += pFramerate->speedfactor;
+	m_fire_counter += pFramerate->m_speed_factor;
 	while( m_fire_counter > 1 )
 	{
 		Generate_Particles();
@@ -257,29 +257,35 @@ Col_Valid_Type cBall :: Validate_Collision( cSprite *obj )
 	Col_Valid_Type basic_valid = Validate_Collision_Ghost( obj );
 
 	// found valid collision
-	if( basic_valid != COL_VTYPE_NO_GHOST )
+	if( basic_valid != COL_VTYPE_NOT_POSSIBLE )
 	{
 		return basic_valid;
 	}
 
-	// player
-	if( obj->m_type == TYPE_PLAYER )
+	switch( obj->m_type )
 	{
-		if( m_origin_type != TYPE_PLAYER )
+		case TYPE_PLAYER:
 		{
-			return COL_VTYPE_INTERNAL;
-		}
+			if( m_origin_type != TYPE_PLAYER )
+			{
+				return COL_VTYPE_INTERNAL;
+			}
 
-		return COL_VTYPE_NOT_VALID;
-	}
-	// massive
-	if( obj->m_massive_type == MASS_MASSIVE )
-	{
-		if( obj->m_type == TYPE_BALL )
+			return COL_VTYPE_NOT_VALID;
+		}
+		case TYPE_BALL:
 		{
 			return COL_VTYPE_NOT_VALID;
 		}
-		else if( obj->m_sprite_array == ARRAY_ENEMY && m_origin_array == ARRAY_ENEMY )
+		default:
+		{
+			break;
+		}
+	}
+
+	if( obj->m_massive_type == MASS_MASSIVE )
+	{
+		if( obj->m_sprite_array == ARRAY_ENEMY && m_origin_array == ARRAY_ENEMY )
 		{
 			return COL_VTYPE_NOT_VALID;
 		}
@@ -314,28 +320,28 @@ void cBall :: Handle_Collision_Player( cObjectCollision *collision )
 	// velocity hit
 	if( collision->direction == DIR_LEFT )
 	{
-		if( pPlayer->m_velx > 0 )
+		if( pPlayer->m_velx > 0.0f )
 		{
 			pPlayer->m_velx *= 0.3f;
 		}
 	}
 	else if( collision->direction == DIR_RIGHT )
 	{
-		if( pPlayer->m_velx < 0 )
+		if( pPlayer->m_velx < 0.0f )
 		{
 			pPlayer->m_velx *= 0.3f;
 		}
 	}
 	else if( collision->direction == DIR_UP )
 	{
-		if( pPlayer->m_vely > 0 )
+		if( pPlayer->m_vely > 0.0f )
 		{
 			pPlayer->m_vely *= 0.2f;
 		}
 	}
 	else if( collision->direction == DIR_DOWN )
 	{
-		if( pPlayer->m_vely < 0 )
+		if( pPlayer->m_vely < 0.0f )
 		{
 			pPlayer->m_vely *= 0.4f;
 		}
@@ -350,7 +356,7 @@ void cBall :: Handle_Collision_Enemy( cObjectCollision *collision )
 	cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
 
 	// if enemy is not destroyable
-	if( ( m_ball_type == FIREBALL_DEFAULT && enemy->fire_resistant ) || ( m_ball_type == ICEBALL_DEFAULT && enemy->m_ice_resistance >= 1 ) )
+	if( ( m_ball_type == FIREBALL_DEFAULT && enemy->m_fire_resistant ) || ( m_ball_type == ICEBALL_DEFAULT && enemy->m_ice_resistance >= 1 ) )
 	{
 		pAudio->Play_Sound( "item/fireball_repelled.wav" );
 	}
@@ -390,12 +396,12 @@ void cBall :: Handle_Collision_Enemy( cObjectCollision *collision )
 		}
 
 		// play enemy kill sound
-		pAudio->Play_Sound( enemy->kill_sound );
+		pAudio->Play_Sound( enemy->m_kill_sound );
 
 		if( m_ball_type == FIREBALL_DEFAULT )
 		{
 			// get points
-			pHud_Points->Add_Points( enemy->kill_points, m_pos_x, m_pos_y, "", static_cast<Uint8>(255), 1 );
+			pHud_Points->Add_Points( enemy->m_kill_points, m_pos_x, m_pos_y, "", static_cast<Uint8>(255), 1 );
 
 			// create goldpiece
 			cMovingSprite *goldpiece = new cFGoldpiece( enemy->m_col_rect.m_x, enemy->m_col_rect.m_y + enemy->m_col_rect.m_h, collision->direction );
@@ -430,16 +436,16 @@ void cBall :: Handle_Collision_Massive( cObjectCollision *collision )
 
 		if( m_ball_type == FIREBALL_DEFAULT )
 		{
-			m_vely = -10;	
+			m_vely = -10.0f;	
 			
 			// create animation
 			cAnimation_Fireball *anim = new cAnimation_Fireball( m_pos_x + m_col_rect.m_w / 2, m_pos_y + m_col_rect.m_h / 2 );
-			anim->Set_Fading_Speed( 3 );
+			anim->Set_Fading_Speed( 3.0f );
 			pAnimation_Manager->Add( anim );
 		}
 		else if( m_ball_type == ICEBALL_DEFAULT )
 		{
-			m_vely = -5;
+			m_vely = -5.0f;
 
 			// create animation
 			cParticle_Emitter *anim = new cParticle_Emitter();

@@ -21,6 +21,8 @@
 #include "../core/main.h"
 #include "../input/keyboard.h"
 #include "../core/i18n.h"
+#include "../audio/audio.h"
+#include "../level/level.h"
 
 namespace SMC
 {
@@ -53,12 +55,11 @@ void cText_Box :: Init( void )
 	m_type = TYPE_TEXT_BOX;
 	box_type = m_type;
 	m_can_be_on_ground = 0;
-	counter = 1;
 
 	// default is infinite times activate-able
 	Set_Useable_Count( -1, 1 );
 	// Spinbox Animation
-	Set_Animation( "Default" );
+	Set_Animation_Type( "Default" );
 
 	// todo : editor image needed
 	//item_image = NULL;
@@ -147,29 +148,50 @@ void cText_Box :: Activate( void )
 				pKeyboard->keys[input_event.key.keysym.sym] = 1;
 
 				// exit keys
-				if( input_event.key.keysym.sym == pPreferences->key_action || input_event.key.keysym.sym == SDLK_ESCAPE || input_event.key.keysym.sym == SDLK_RETURN || input_event.key.keysym.sym == SDLK_SPACE )
+				if( input_event.key.keysym.sym == pPreferences->m_key_action || input_event.key.keysym.sym == SDLK_ESCAPE || input_event.key.keysym.sym == SDLK_RETURN || input_event.key.keysym.sym == SDLK_SPACE )
 				{
 					display = 0;
 					break;
+				}
+				// handled keys
+				else if( input_event.key.keysym.sym == pPreferences->m_key_right || input_event.key.keysym.sym == pPreferences->m_key_left )
+				{
+					pKeyboard->Key_Down( input_event.key.keysym.sym );
+				}
+			}
+			else if( input_event.type == SDL_KEYUP )
+			{
+				pKeyboard->keys[input_event.key.keysym.sym] = 0;
+
+				// handled keys
+				if( input_event.key.keysym.sym == pPreferences->m_key_right || input_event.key.keysym.sym == pPreferences->m_key_left )
+				{
+					pKeyboard->Key_Up( input_event.key.keysym.sym );
 				}
 			}
 			else if( input_event.type == SDL_JOYBUTTONDOWN )
 			{
 				pJoystick->Set_Button( input_event.jbutton.button, 1 );
 
-				if( input_event.jbutton.button == pPreferences->joy_button_action || input_event.jbutton.button == pPreferences->joy_button_exit )
+				if( input_event.jbutton.button == pPreferences->m_joy_button_action || input_event.jbutton.button == pPreferences->m_joy_button_exit )
 				{
 					display = 0;
 					break;
 				}
 			}
-			else if( input_event.type == SDL_KEYUP )
-			{
-				pKeyboard->keys[input_event.key.keysym.sym] = 0;
-			}
 			else if( input_event.type == SDL_JOYBUTTONUP )
 			{
 				pJoystick->Set_Button( input_event.jbutton.button, 0 );
+			}
+			else if( input_event.type == SDL_JOYHATMOTION )
+			{
+				pJoystick->Handle_Hat( &input_event );
+				break;
+			}
+			else if( input_event.type == SDL_JOYAXISMOTION )
+			{
+				pJoystick->Handle_Motion( &input_event );
+				break;
 			}
 		}
 
@@ -177,20 +199,20 @@ void cText_Box :: Activate( void )
 		Sint16 joy_ver_axis = 0;
 
 		// if joystick enabled
-		if( pPreferences->joy_enabled )
+		if( pPreferences->m_joy_enabled )
 		{
-			joy_ver_axis = SDL_JoystickGetAxis( pJoystick->joystick, pPreferences->joy_axis_ver );
+			joy_ver_axis = SDL_JoystickGetAxis( pJoystick->joystick, pPreferences->m_joy_axis_ver );
 		}
 
 		// down
-		if( keys[pPreferences->key_down] || joy_ver_axis > pPreferences->joy_axis_threshold )
+		if( keys[pPreferences->m_key_down] || joy_ver_axis > pPreferences->m_joy_axis_threshold )
 		{
-			editbox->getVertScrollbar()->setScrollPosition( editbox->getVertScrollbar()->getScrollPosition() + ( editbox->getVertScrollbar()->getStepSize() * 0.25f * pFramerate->speedfactor ) );
+			editbox->getVertScrollbar()->setScrollPosition( editbox->getVertScrollbar()->getScrollPosition() + ( editbox->getVertScrollbar()->getStepSize() * 0.25f * pFramerate->m_speed_factor ) );
 		}
 		// up
-		if( keys[pPreferences->key_up] || joy_ver_axis < -pPreferences->joy_axis_threshold )
+		if( keys[pPreferences->m_key_up] || joy_ver_axis < -pPreferences->m_joy_axis_threshold )
 		{
-			editbox->getVertScrollbar()->setScrollPosition( editbox->getVertScrollbar()->getScrollPosition() - ( editbox->getVertScrollbar()->getStepSize() * 0.25f * pFramerate->speedfactor ) );
+			editbox->getVertScrollbar()->setScrollPosition( editbox->getVertScrollbar()->getScrollPosition() - ( editbox->getVertScrollbar()->getStepSize() * 0.25f * pFramerate->m_speed_factor ) );
 		}
 
 		// move camera because text could not be completely visible
@@ -208,6 +230,8 @@ void cText_Box :: Activate( void )
 		// update animation
 		Update();
 		
+		// update audio
+		pAudio->Update();
 		// draw
 		Draw_Game();
 		// render

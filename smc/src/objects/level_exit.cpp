@@ -25,6 +25,7 @@
 #include "../video/renderer.h"
 #include "../level/level.h"
 #include "../core/i18n.h"
+#include "../core/filesystem/filesystem.h"
 // CEGUI
 #include "CEGUIXMLAttributes.h"
 
@@ -34,13 +35,13 @@ namespace SMC
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cLevel_Exit :: cLevel_Exit( float x, float y )
-: cImageObjectSprite( x, y )
+: cAnimated_Sprite( x, y )
 {
 	cLevel_Exit::Init();
 }
 
 cLevel_Exit :: cLevel_Exit( CEGUI::XMLAttributes &attributes )
-: cImageObjectSprite()
+: cAnimated_Sprite()
 {
 	cLevel_Exit::Init();
 	cLevel_Exit::Create_From_Stream( attributes );
@@ -172,7 +173,7 @@ void cLevel_Exit :: Set_Direction( const ObjectDirection dir )
 		return;
 	}
 
-	cImageObjectSprite::Set_Direction( dir, 1 );
+	cAnimated_Sprite::Set_Direction( dir, 1 );
 
 	Create_Name();
 }
@@ -249,7 +250,7 @@ void cLevel_Exit :: Activate( void )
 		pPlayer->Set_Moving_State( STA_FALL );
 		pPlayer->Set_Image_Num( pPlayer->Get_Image() + pPlayer->m_direction );
 		pPlayer->Stop_Ducking();
-		pPlayer->Reset_on_Ground();
+		pPlayer->Reset_On_Ground();
 
 		// set position and image
 		if( m_direction == DIR_UP || m_direction == DIR_DOWN )
@@ -263,11 +264,11 @@ void cLevel_Exit :: Activate( void )
 			// set rotation
 			if( m_direction == DIR_RIGHT )
 			{
-				pPlayer->Set_Rotation_Z( 90 );
+				pPlayer->Set_Rotation_Z( 90.0f );
 			}
 			else if( m_direction == DIR_LEFT )
 			{
-				pPlayer->Set_Rotation_Z( 270 );
+				pPlayer->Set_Rotation_Z( 270.0f );
 			}
 		}
 
@@ -276,8 +277,8 @@ void cLevel_Exit :: Activate( void )
 		pPlayer->m_pos_z = 0.0799f;
 
 		// set the speed
-		float speedx = 0;
-		float speedy = 0;
+		float speedx = 0.0f;
+		float speedy = 0.0f;
 
 		if( m_direction == DIR_DOWN )
 		{
@@ -300,32 +301,34 @@ void cLevel_Exit :: Activate( void )
 		float maryo_size = pPlayer->m_col_rect.m_h;
 
 		// move slowly in
-		while( maryo_size > 0 )
+		while( maryo_size > 0.0f )
 		{
 			pPlayer->Move( speedx, speedy );
 
 			// reduce size
-			if( speedx > 0 )
+			if( speedx > 0.0f )
 			{
-				maryo_size -= speedx * pFramerate->speedfactor;
+				maryo_size -= speedx * pFramerate->m_speed_factor;
 			}
-			else if( speedx < 0 )
+			else if( speedx < 0.0f )
 			{
-				maryo_size += speedx * pFramerate->speedfactor;
+				maryo_size += speedx * pFramerate->m_speed_factor;
 			}
-			else if( speedy > 0 )
+			else if( speedy > 0.0f )
 			{
-				maryo_size -= speedy * pFramerate->speedfactor;
+				maryo_size -= speedy * pFramerate->m_speed_factor;
 			}
-			else if( speedy < 0 )
+			else if( speedy < 0.0f )
 			{
-				maryo_size += speedy * pFramerate->speedfactor;
+				maryo_size += speedy * pFramerate->m_speed_factor;
 			}
 			else
 			{
 				break;
 			}
 
+			// update audio
+			pAudio->Update();
 			// draw
 			Draw_Game();
 
@@ -407,7 +410,7 @@ void cLevel_Exit :: Set_Level( std::string filename )
 	editor_color.alpha = 128;
 
 	// erase file type and directory if set
-	dest_level = Get_Filename( filename, 0, 0 );
+	dest_level = Trim_Filename( filename, 0, 0 );
 }
 
 std::string cLevel_Exit :: Get_Level( bool with_dir /* = 1 */, bool with_end /* = 1 */ ) const
@@ -418,7 +421,7 @@ std::string cLevel_Exit :: Get_Level( bool with_dir /* = 1 */, bool with_end /* 
 	pActive_Level->Get_Path( name );
 
 	// return
-	return Get_Filename( name, with_dir, with_end );
+	return Trim_Filename( name, with_dir, with_end );
 }
 
 void cLevel_Exit :: Set_Entry( const std::string &entry_name )

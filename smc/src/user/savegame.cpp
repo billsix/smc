@@ -22,6 +22,8 @@
 #include "../player/player.h"
 #include "../overworld/overworld.h"
 #include "../core/i18n.h"
+#include "../core/filesystem/filesystem.h"
+#include "../core/filesystem/resource_manager.h"
 // CEGUI
 #include "CEGUIXMLParser.h"
 
@@ -164,7 +166,7 @@ cSavegame :: cSavegame( void )
 	save_temp = NULL;
 	debug = 0;
 
-	savegame_dir = user_data_dir + USER_SAVEGAME_DIR;
+	savegame_dir = pResource_Manager->user_data_dir + USER_SAVEGAME_DIR;
 }
 
 cSavegame :: ~cSavegame( void )
@@ -369,7 +371,7 @@ bool cSavegame :: Save_Game( unsigned int save_slot, std::string description )
 	if( pActive_Level->Is_Loaded() )
 	{
 		// name
-		savegame->level_name = Get_Filename( pActive_Level->data_file, 0, 0 );
+		savegame->level_name = Trim_Filename( pActive_Level->data_file, 0, 0 );
 
 		// position
 		savegame->level_posx = pPlayer->m_pos_x;
@@ -405,7 +407,7 @@ bool cSavegame :: Save_Game( unsigned int save_slot, std::string description )
 	// Player state
 	savegame->player_state = pPlayer->m_state;
 	// Itembox Item
-	savegame->itembox_item = pHud_Itembox->item_id;
+	savegame->itembox_item = pHud_Itembox->m_item_id;
 
 	// save overworld progress
 	for( vector<cOverworld *>::iterator itr = pOverworld_Manager->objects.begin(), itr_end = pOverworld_Manager->objects.end(); itr != itr_end; ++itr )
@@ -416,10 +418,10 @@ bool cSavegame :: Save_Game( unsigned int save_slot, std::string description )
 		// create Overworld
 		cSave_Overworld *save_overworld = new cSave_Overworld();
 		// name
-		save_overworld->name = overworld->description->name;
+		save_overworld->name = overworld->m_description->name;
 		
 		// Waypoints
-		for( cSprite_List::iterator wp_itr = overworld->sprite_manager->objects.begin(), wp_itr_end = overworld->sprite_manager->objects.end(); wp_itr != wp_itr_end; ++wp_itr )
+		for( cSprite_List::iterator wp_itr = overworld->m_sprite_manager->objects.begin(), wp_itr_end = overworld->m_sprite_manager->objects.end(); wp_itr != wp_itr_end; ++wp_itr )
 		{
 			// get waypoint
 			cSprite *obj = static_cast<cSprite *>(*wp_itr);
@@ -451,7 +453,7 @@ bool cSavegame :: Save_Game( unsigned int save_slot, std::string description )
 	if( pActive_Overworld && Game_Mode_Type != MODE_TYPE_LEVEL_CUSTOM )
 	{
 		// set overworld name
-		savegame->overworld_active = pActive_Overworld->description->name;
+		savegame->overworld_active = pActive_Overworld->m_description->name;
 
 		// if valid waypoint
 		if( pOverworld_Player->current_waypoint >= 0 )
@@ -490,7 +492,9 @@ cSave *cSavegame :: Load( unsigned int save_slot )
 	if( !File_Exists( filename ) )
 	{
 		printf( "Error : Savegame Loading : No Savegame found at Slot : %s\n", filename.c_str() );
-		return save_temp;
+		cSave *savegame = save_temp;
+		save_temp = NULL;
+		return savegame;
 	}
 
 	try
@@ -517,7 +521,7 @@ cSave *cSavegame :: Load( unsigned int save_slot )
 		save_temp->description = _("No Description");
 	}
 
-	cSave *savegame =  save_temp;
+	cSave *savegame = save_temp;
 	save_temp = NULL;
 	return savegame;
 }

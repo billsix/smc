@@ -17,14 +17,14 @@
 #define SMC_ENEMYSTOPPER_H
 
 #include "../core/globals.h"
-#include "../objects/objectsprite.h"
+#include "../objects/animated_sprite.h"
 
 namespace SMC
 {
 
 /* *** *** *** *** *** cEnemyStopper *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cEnemyStopper : public cImageObjectSprite
+class cEnemyStopper : public cAnimated_Sprite
 {
 public:
 	// constructor

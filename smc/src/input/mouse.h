@@ -72,23 +72,25 @@ public:
 
 	// Handles the Mouse events
 	bool Handle_Event( SDL_Event *ev );
-	/* Function: Gui_handle_Mouse_down
-	 * GUI handle mouse down function
+	/* GUI handle mouse down function
 	 * Returns true if GUI handled the event
 	*/
 	bool Handle_Mouse_Down( Uint8 button );
-	/* Function: Gui_handle_Mouse_up
-	 * GUI handle mouse up function
+	/* GUI handle mouse up function
 	 * Returns true if GUI handled the event
 	*/
 	bool Handle_Mouse_Up( Uint8 button );
 
-	// Checks for a collision for the editor
-	bool Editor_Collsion_Check( float px = 0, float py = 0 );
-	/* Get the Level/World Object Collision if available
-	 * returns 1 if collision found else 0
+	/* Get the first object colliding with the mouse which is valid for the editor
+	 * returns the collision if an object was found else NULL
+	 * The collision data should be deleted if not used anymore
 	*/
-	bool Get_Collision( const GL_rect &mouse_rect );
+	cObjectCollision *Get_First_Editor_Collsion( float px = 0.0f, float py = 0.0f );
+	/* Get the first object colliding with the mouse
+	 * returns the collision if an object was found else NULL
+	 * The collision data should be deleted if not used anymore
+	*/
+	cObjectCollision *Get_First_Mouse_Collision( const GL_rect &mouse_rect );
 
 	// Update
 	virtual void Update( void );
@@ -101,7 +103,6 @@ public:
 	void Update_Position( void );
 	// Update the Double Click event
 	void Update_Doubleclick( void );
-
 
 	// Editor default click
 	void Click( void );
@@ -172,7 +173,7 @@ public:
 	// Deletes the given Object
 	void Delete( cSprite *sprite );
 
-	// Draws a rect around the mouse_object and selected objects
+	// Draws a rect around the m_hovering_object and selected objects
 	void Draw_Object_Rects( void );
 
 	// Start selection mode
@@ -190,37 +191,36 @@ public:
 	void Editor_Update( void );
 	
 	// current internal mouse position
-	int x, y;
+	int m_x, m_y;
 	
 	// selection mode
-	bool mode_selection;
+	bool m_selection_mode;
 	// Selection rect
-	GL_rect selection_rect;
+	GL_rect m_selection_rect;
 
 	// if activated the mouse cursor movement moves the screen	
-	bool mover_mode;
-	// fastcopy mode
-	bool mode_fastcopy;
+	bool m_mover_mode;
+	// fast copy mode
+	bool m_fastcopy_mode;
 
 	/* selected objects
 	 * the mouse object is also always a selected object
 	*/
-	SelectedObjectList selected_objects;
+	SelectedObjectList m_selected_objects;
 	// currently colliding object with the mouse
-	cSelectedObject *mouse_object;
+	cSelectedObject *m_hovering_object;
 	// objects selected for copying
-	CopyObjectList copy_objects;
+	CopyObjectList m_copy_objects;
 	// settings activated object
-	cSprite *active_object;
+	cSprite *m_active_object;
 
-	// pressed Buttons
-	bool left, right, middle;
+	// buttons pressed state
+	bool m_left, m_right, m_middle;
 
 	// last clicked object
-	cSprite *click_temp;
-
-	// counter for catching float-clicks
-	float clickcounter;
+	cSprite *m_last_clicked_object;
+	// counter for catching double-clicks
+	float m_click_counter;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

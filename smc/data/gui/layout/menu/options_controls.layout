@@ -20,7 +20,7 @@
                 <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
                 <Window Type="TaharezLook/MultiColumnList" Name="listbox_keyboard" >
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-                    <Property Name="UnifiedAreaRect" Value="{{0.05,0},{0.15,0},{0.4,0},{0.98,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.05,0},{0.15,0},{0.4,0},{0.88,0}}" />
                 </Window>
                 <Window Type="TaharezLook/StaticText" Name="text_keyboard_shortcuts" >
                     <Property Name="Text" Value="Shortcuts" />
@@ -43,6 +43,11 @@
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
                     <Property Name="UnifiedAreaRect" Value="{{0.45,0},{0.05,0},{0.7,0},{0.15,0}}" />
                     <Property Name="BackgroundEnabled" Value="False" />
+                </Window>
+                <Window Type="TaharezLook/Button" Name="button_reset_keyboard" >
+                    <Property Name="Text" Value="Reset" />
+                    <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.02,0},{0.9,0},{0.16,0},{0.98,0}}" />
                 </Window>
             </Window>
             <Window Type="DefaultWindow" Name="controls_tab_joystick" >
@@ -92,7 +97,7 @@
                 </Window>
                 <Window Type="TaharezLook/MultiColumnList" Name="listbox_joystick" >
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-                    <Property Name="UnifiedAreaRect" Value="{{0.05,0},{0.43,0},{0.4,0},{0.98,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.05,0},{0.43,0},{0.4,0},{0.88,0}}" />
                 </Window>
                 <Window Type="TaharezLook/Spinner" Name="spinner_joystick_axis_hor" >
                     <Property Name="StepSize" Value="1" />
@@ -125,6 +130,11 @@
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
                     <Property Name="UnifiedAreaRect" Value="{{0.74,0},{0.2,0},{0.82,0},{0.28,0}}" />
                     <Property Name="BackgroundEnabled" Value="False" />
+                </Window>
+                <Window Type="TaharezLook/Button" Name="button_reset_joystick" >
+                    <Property Name="Text" Value="Reset" />
+                    <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.02,0},{0.9,0},{0.16,0},{0.98,0}}" />
                 </Window>
             </Window>
         </Window>

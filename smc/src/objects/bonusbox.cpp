@@ -62,9 +62,8 @@ void cBonusBox :: Init( void )
 	force_best_item = 0;
 	m_player_range = 5000;
 	m_can_be_on_ground = 0;
-	counter = 1;
 
-	Set_Animation( "Bonus" );
+	Set_Animation_Type( "Bonus" );
 	gold_color = COL_DEFAULT;
 	Set_Goldcolor( COL_YELLOW );
 
@@ -74,7 +73,7 @@ void cBonusBox :: Init( void )
 cBonusBox *cBonusBox :: Copy( void )
 {
 	cBonusBox *bonusbox = new cBonusBox( m_start_pos_x, m_start_pos_y );
-	bonusbox->Set_Animation( anim_type );
+	bonusbox->Set_Animation_Type( anim_type );
 	bonusbox->Set_Bonus_Type( box_type );
 	bonusbox->Set_Invisible( box_invisible );
 	bonusbox->Set_Force_Best_Item( force_best_item );
@@ -125,8 +124,14 @@ void cBonusBox :: Set_Useable_Count( int count, bool new_startcount /* = 0 */ )
 	// disable
 	if( !useable_count )
 	{
-		counter = 0;
-		Set_Image_Num( static_cast<int>(counter) );
+		Reset_Animation();
+		Set_Animation( 0 );
+		Set_Image_Num( 0 );
+	}
+	// enable
+	else
+	{
+		Set_Animation( 1 );
 	}
 
 	Update_Valid_Update();
@@ -305,7 +310,7 @@ void cBonusBox :: Activate( void )
 	}
 	// check if lower item should be used if no force best item
 	else if( !force_best_item && ( box_type == TYPE_FIREPLANT || box_type == TYPE_MUSHROOM_BLUE ) && 
-		( current_maryo_type == MARYO_SMALL || ( ( current_maryo_type == MARYO_FIRE || current_maryo_type == MARYO_ICE ) && !pHud_Itembox->item_id ) ) )
+		( current_maryo_type == MARYO_SMALL || ( ( current_maryo_type == MARYO_FIRE || current_maryo_type == MARYO_ICE ) && !pHud_Itembox->m_item_id ) ) )
 	{
 		pAudio->Play_Sound( "sprout_1.ogg" );
 
@@ -409,7 +414,7 @@ void cBonusBox :: Update( void )
 		// move upwards
 		else
 		{
-			powerup->counter += pFramerate->speedfactor;
+			powerup->counter += pFramerate->m_speed_factor;
 			powerup->Move( 0, -1.0f - (diff * 0.1f) );
 
 			++itr;
@@ -597,7 +602,7 @@ bool cBonusBox :: Editor_Animation_Select( const CEGUI::EventArgs &event )
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
 	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
 
-	Set_Animation( item->getText().c_str() );
+	Set_Animation_Type( item->getText().c_str() );
 
 	return 1;
 }

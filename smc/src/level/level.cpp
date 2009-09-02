@@ -40,6 +40,7 @@
 #include "../enemies/gee.h"
 #include "../enemies/spika.h"
 #include "../enemies/static.h"
+#include "../enemies/spikeball.h"
 #include "../objects/powerup.h"
 #include "../objects/star.h"
 #include "../objects/enemystopper.h"
@@ -51,6 +52,8 @@
 #include "../core/math/utilities.h"
 #include "../core/i18n.h"
 #include "../objects/path.h"
+#include "../core/filesystem/filesystem.h"
+#include "../core/filesystem/resource_manager.h"
 // CEGUI
 #include "CEGUIXMLParser.h"
 
@@ -103,7 +106,7 @@ bool cLevel :: New( std::string filename )
 		while( 1 )
 		{
 			// set name
-			filename = user_data_dir + USER_LEVEL_DIR + "/new_" + int_to_string( i ) + ".smclvl";
+			filename = pResource_Manager->user_data_dir + USER_LEVEL_DIR + "/new_" + int_to_string( i ) + ".smclvl";
 			// try to open the file
 			ifs.open( filename.c_str(), ios::in );
 
@@ -132,9 +135,9 @@ bool cLevel :: New( std::string filename )
 		}
 
 		// set user directory
-		if( filename.find( user_data_dir + USER_LEVEL_DIR + "/" ) == std::string::npos )
+		if( filename.find( pResource_Manager->user_data_dir + USER_LEVEL_DIR + "/" ) == std::string::npos )
 		{
-			filename.insert( 0, user_data_dir + USER_LEVEL_DIR + "/" );
+			filename.insert( 0, pResource_Manager->user_data_dir + USER_LEVEL_DIR + "/" );
 		}
 	}
 
@@ -146,7 +149,7 @@ bool cLevel :: New( std::string filename )
 	{
 		// set filename
 		m_level_filename = filename;
-		data_file = Get_Filename( filename, 0, 1 );
+		data_file = Trim_Filename( filename, 0, 1 );
 
 		m_engine_version = level_engine_version;
 
@@ -165,7 +168,7 @@ bool cLevel :: Load( std::string filename, bool delayed /* = 0 */ )
 	if( !Get_Path( filename ) )
 	{
 		// show error without directory and file type
-		printf( "Couldn't load level : %s\n", Get_Filename( filename, 0, 0 ).c_str() );
+		printf( "Couldn't load level : %s\n", Trim_Filename( filename, 0, 0 ).c_str() );
 		return 0;
 	}
 
@@ -258,6 +261,7 @@ void cLevel :: Unload( bool delayed /* = 0 */ )
 
 	// reset camera limits
 	pLevel_Manager->camera->Reset_Limits();
+	pLevel_Manager->camera->fixed_hor_vel = 0.0f;
 
 	// clear global effect
 	m_global_effect->Clear();
@@ -298,12 +302,12 @@ void cLevel :: Save( void )
 	}
 
 	// use user level dir
-	if( m_level_filename.find( user_data_dir + USER_LEVEL_DIR + "/" ) == std::string::npos )
+	if( m_level_filename.find( pResource_Manager->user_data_dir + USER_LEVEL_DIR + "/" ) == std::string::npos )
 	{
 		// erase old directory
-		m_level_filename = Get_Filename( m_level_filename, 0, 1 );
+		m_level_filename = Trim_Filename( m_level_filename, 0, 1 );
 		// set user directory
-		m_level_filename.insert( 0, user_data_dir + USER_LEVEL_DIR + "/" );
+		m_level_filename.insert( 0, pResource_Manager->user_data_dir + USER_LEVEL_DIR + "/" );
 	}
 
 	ofstream file( m_level_filename.c_str(), ios::out | ios::trunc );
@@ -387,7 +391,7 @@ void cLevel :: Save( void )
 	file << "</level>" << std::endl;
 	file.close();
 
-	pHud_Debug->Set_Text( _("Level ") + Get_Filename( data_file, 0, 0 ) + _(" saved") );
+	pHud_Debug->Set_Text( _("Level ") + Trim_Filename( data_file, 0, 0 ) + _(" saved") );
 }
 
 void cLevel :: Delete( void )
@@ -415,7 +419,7 @@ void cLevel :: Reset_Settings( void )
 
 	// camera
 	m_camera_limits = cCamera::default_limits;
-	m_fixed_camera_hor_vel = 0;
+	m_fixed_camera_hor_vel = 0.0f;
 }
 
 void cLevel :: Enter( void )
@@ -625,37 +629,37 @@ bool cLevel :: Key_Down( const SDLKey key )
 	}
 	// ## Game
 	// Shoot
-	else if( key == pPreferences->key_shoot && !editor_enabled )
+	else if( key == pPreferences->m_key_shoot && !editor_enabled )
 	{
 		pPlayer->Action_Shoot();
 	}
 	// Jump
-	else if( key == pPreferences->key_jump && !editor_enabled )
+	else if( key == pPreferences->m_key_jump && !editor_enabled )
 	{
 		pPlayer->Action_Jump();
 	}
 	// Action
-	else if( key == pPreferences->key_action && !editor_enabled )
+	else if( key == pPreferences->m_key_action && !editor_enabled )
 	{
 		pPlayer->Action_Interact( INP_ACTION );
 	}
 	// Up
-	else if( key == pPreferences->key_up && !editor_enabled )
+	else if( key == pPreferences->m_key_up && !editor_enabled )
 	{
 		pPlayer->Action_Interact( INP_UP );
 	}
 	// Down
-	else if( key == pPreferences->key_down && !editor_enabled )
+	else if( key == pPreferences->m_key_down && !editor_enabled )
 	{
 		pPlayer->Action_Interact( INP_DOWN );
 	}
 	// Left
-	else if( key == pPreferences->key_left && !editor_enabled )
+	else if( key == pPreferences->m_key_left && !editor_enabled )
 	{
 		pPlayer->Action_Interact( INP_LEFT );
 	}
 	// Right
-	else if( key == pPreferences->key_right && !editor_enabled )
+	else if( key == pPreferences->m_key_right && !editor_enabled )
 	{
 		pPlayer->Action_Interact( INP_RIGHT );
 	}
@@ -713,27 +717,27 @@ bool cLevel :: Key_Up( const SDLKey key )
 	}
 
 	// Interaction keys
-	if( key == pPreferences->key_right )
+	if( key == pPreferences->m_key_right )
 	{
 		pPlayer->Action_Stop_Interact( INP_RIGHT );
 	}
-	else if( key == pPreferences->key_left )
+	else if( key == pPreferences->m_key_left )
 	{
 		pPlayer->Action_Stop_Interact( INP_LEFT );
 	}
-	else if( key == pPreferences->key_down )
+	else if( key == pPreferences->m_key_down )
 	{
 		pPlayer->Action_Stop_Interact( INP_DOWN );
 	}
-	else if( key == pPreferences->key_jump )
+	else if( key == pPreferences->m_key_jump )
 	{
 		pPlayer->Action_Stop_Interact( INP_JUMP );
 	}
-	else if( key == pPreferences->key_shoot )
+	else if( key == pPreferences->m_key_shoot )
 	{
 		pPlayer->Action_Stop_Interact( INP_SHOOT );
 	}
-	else if( key == pPreferences->key_action )
+	else if( key == pPreferences->m_key_action )
 	{
 		pPlayer->Action_Stop_Interact( INP_ACTION );
 	}
@@ -787,27 +791,27 @@ bool cLevel :: Mouse_Up( Uint8 button )
 bool cLevel :: Joy_Button_Down( Uint8 button )
 {
 	// Shoot
-	if( button == pPreferences->joy_button_shoot && !editor_enabled )
+	if( button == pPreferences->m_joy_button_shoot && !editor_enabled )
 	{
 		pPlayer->Action_Interact( INP_SHOOT );
 	}
 	// Jump
-	else if( button == pPreferences->joy_button_jump && !editor_enabled )
+	else if( button == pPreferences->m_joy_button_jump && !editor_enabled )
 	{
 		pPlayer->Action_Interact( INP_JUMP );
 	}
 	// Interaction keys
-	else if( button == pPreferences->joy_button_action && !editor_enabled )
+	else if( button == pPreferences->m_joy_button_action && !editor_enabled )
 	{
 		pPlayer->Action_Interact( INP_ACTION );
 	}
 	// Request Itembox Item
-	else if( button == pPreferences->joy_button_item && !editor_enabled )
+	else if( button == pPreferences->m_joy_button_item && !editor_enabled )
 	{
 		pPlayer->Action_Interact( INP_ITEM );
 	}
 	// Enter menu
-	else if( button == pPreferences->joy_button_exit )
+	else if( button == pPreferences->m_joy_button_exit )
 	{
 		pPlayer->Action_Interact( INP_EXIT );
 	}
@@ -829,15 +833,15 @@ bool cLevel :: Joy_Button_Up( Uint8 button )
 		return 0;
 	}
 
-	if( button == pPreferences->joy_button_jump )
+	if( button == pPreferences->m_joy_button_jump )
 	{
 		pPlayer->Action_Stop_Interact( INP_JUMP );
 	}
-	else if( button == pPreferences->joy_button_shoot )
+	else if( button == pPreferences->m_joy_button_shoot )
 	{
 		pPlayer->Action_Stop_Interact( INP_SHOOT );
 	}
-	else if( button == pPreferences->joy_button_action )
+	else if( button == pPreferences->m_joy_button_action )
 	{
 		pPlayer->Action_Stop_Interact( INP_ACTION );
 	}
@@ -891,15 +895,27 @@ void cLevel :: Set_Musicfile( std::string filename )
 		filename.insert( 0, DATA_DIR "/" GAME_MUSIC_DIR "/" );
 	}
 
+	// already set
+	if( m_musicfile.compare( filename ) == 0 )
+	{
+		return;
+	}
+
 	m_musicfile = filename;
 	// check if music is available
 	m_valid_music = File_Exists( filename );
+
+	// switch to the new music if music is playing
+	if( pAudio->Is_Music_Playing() )
+	{
+		pAudio->Fadeout_Music( 1000 );
+	}
 }
 
 void cLevel :: Set_Levelfile( std::string filename, bool delete_old /* = 1 */ )
 {
 	// erase file type and directory
-	filename = Get_Filename( filename, 0, 0 );
+	filename = Trim_Filename( filename, 0, 0 );
 
 	// if invalid
 	if( filename.length() < 2 )
@@ -925,9 +941,9 @@ void cLevel :: Set_Levelfile( std::string filename, bool delete_old /* = 1 */ )
 	data_file = filename;
 
 	// add level dir
-	if( m_level_filename.find( user_data_dir + USER_LEVEL_DIR + "/" ) == std::string::npos )
+	if( m_level_filename.find( pResource_Manager->user_data_dir + USER_LEVEL_DIR + "/" ) == std::string::npos )
 	{
-		m_level_filename.insert( 0, user_data_dir + USER_LEVEL_DIR + "/" );
+		m_level_filename.insert( 0, pResource_Manager->user_data_dir + USER_LEVEL_DIR + "/" );
 	}
 
 	// save with new filename
@@ -936,10 +952,10 @@ void cLevel :: Set_Levelfile( std::string filename, bool delete_old /* = 1 */ )
 
 bool cLevel :: Get_Path( std::string &filename, bool check_only_user_dir /* = 0 */ ) const
 {
-	filename = Get_Filename( filename, 0, 0 );
+	filename = Trim_Filename( filename, 0, 0 );
 
 	// user level directory as default
-	filename.insert( 0, user_data_dir + USER_LEVEL_DIR + "/" );
+	filename.insert( 0, pResource_Manager->user_data_dir + USER_LEVEL_DIR + "/" );
 	// use new file type as default
 	filename.insert( filename.length(), ".smclvl" );
 
@@ -966,7 +982,7 @@ bool cLevel :: Get_Path( std::string &filename, bool check_only_user_dir /* = 0 
 		filename.insert( filename.length(), ".smclvl" );
 
 		// erase user level directory
-		filename.erase( 0, user_data_dir.length() + strlen( USER_LEVEL_DIR "/" ) );
+		filename.erase( 0, pResource_Manager->user_data_dir.length() + strlen( USER_LEVEL_DIR "/" ) );
 
 		// game level directory
 		if( filename.find( DATA_DIR "/" GAME_LEVEL_DIR "/" ) == std::string::npos )
@@ -992,7 +1008,7 @@ bool cLevel :: Get_Path( std::string &filename, bool check_only_user_dir /* = 0 
 	}
 
 	// erase file type and directory
-	filename = Get_Filename( filename, 0, 0 );
+	filename = Trim_Filename( filename, 0, 0 );
 
 	// not found
 	return 0;
@@ -1083,20 +1099,20 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( count != 3 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 3 parameters" );
 			return 0; // error
 		}
 
 		if( !Is_Valid_Number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 		if( !Is_Valid_Number( parts[2] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[2].c_str() );
 			return 0; // error
 		}
@@ -1108,7 +1124,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( count != 2 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
 			return 0; // error
 		}
@@ -1119,7 +1135,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( count != 2 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
 			return 0; // error
 		}
@@ -1131,14 +1147,14 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( count != 2 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
 			return 0; // error
 		}
 
 		if( parts[1].length() < 3 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "No valid Music file\n" );
 			return 0;  // error
 		}
@@ -1193,14 +1209,14 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( count < 2 || count > 6 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s %s\n", parts[0].c_str(), "needs 2-6 parameters" );
 			return 0; // error
 		}
 
 		if( parts[1].length() < 3 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Not a valid %s file\n", parts[0].c_str() );
 			return 0;  // error
 		}
@@ -1217,7 +1233,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 
 		if( !File_Exists( filename ) )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s file not found : %s\n", parts[0].c_str(), filename.c_str() );
 
 			return 0; // error
@@ -1233,8 +1249,9 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 
 			if( bg_type > 200 )
 			{
-				printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "Not a valid Background image type ( %d )\n", bg_type );
+				delete background;
 				return 0;  // error
 			}
 
@@ -1280,7 +1297,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( count < 5 || count > 5 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 5 parameters" );
 			return 0; // error
 		}
@@ -1292,21 +1309,21 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( count < 3 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s %s\n", parts[0].c_str(), "needs 3 parameters" );
 			return 0; // error
 		}
 
 		if( parts[2].length() < 3 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Not a valid %s file\n", parts[0].c_str() );
 			return 0;  // error
 		}
 
 		if( !Is_Valid_Number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
@@ -1323,7 +1340,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 
 		if( !File_Exists( filename ) )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s file not found : %s\n", parts[0].c_str(), filename.c_str() );
 
 			return 0; // error
@@ -1374,14 +1391,14 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( count != 2 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
 			return 0; // error
 		}
 
 		if( !Is_Valid_Number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
@@ -1394,7 +1411,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( count != 5 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 5 parameters" );
 			return 0; // error
 		}
@@ -1418,26 +1435,26 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 
 		if( !File_Exists( filename ) && !File_Exists( settings_file ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "file not found : %s\n", parts[1].c_str() );
 			return 0; // error
 		}
 
 		if( !Is_Valid_Number( parts[2] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[2].c_str() );
 			return 0; // error
 		}
 		if( !Is_Valid_Number( parts[3] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[3].c_str() );
 			return 0; // error
 		}
 		if( !parts[4].compare( "MASSIVE" ) == 0 && !parts[4].compare( "PASSIVE" ) == 0 && !parts[4].compare( "FRONT_PASSIVE" ) == 0 && !parts[4].compare( "HALFMASSIVE" ) == 0 )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "parameter five has to be MASSIVE, PASSIVE, or HALFMASSIVE\n" );
 			return 0; // error
 		}
@@ -1452,7 +1469,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 		// if image is obsolete show a warning
 		if( surface->m_obsolete )
 		{
-			printf( "%s : line %d Warning :\n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Warning :\n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "using obsolete image : %s\nAt position x : %d, y : %d\n", getimage_path.c_str(), posx, posy );
 		}
 
@@ -1491,20 +1508,20 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( count < 3 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs more than 2 parameters" );
 			return 0; // error
 		}
 
 		if( !Is_Valid_Number( parts[2] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[2].c_str() );
 			return 0; // error
 		}
 		if( !Is_Valid_Number( parts[3] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[3].c_str() );
 			return 0; // error
 		}
@@ -1517,7 +1534,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 			*/
 			if( !( count == 3 || count == 4 || count == 5 || count == 6 ) )
 			{
-				printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "Error : %s %s\n", parts[1].c_str(), "needs 5 parameters" );
 				return 0; // error
 			}
@@ -1550,8 +1567,9 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 				{
 					if( !Is_Valid_Number( parts[5] ) )
 					{
-						printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+						printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 						printf( "%s is not a valid integer value\n", parts[5].c_str() );
+						delete temp;
 						return 0; // error
 					}
 
@@ -1579,7 +1597,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 		{
 			if( count < 4 || count > 5 )
 			{
-				printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "Error : %s %s\n", parts[1].c_str(), "needs 4-5 parameters" );
 				return 0; // error
 			}
@@ -1601,7 +1619,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 		{
 			if( count < 4 || count > 7 )
 			{
-				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "Error : %s %s\n", parts[1].c_str(), "needs 4-7 parameters" );
 				return 0; // error
 			}
@@ -1615,14 +1633,14 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 			{
 				if( !Is_Valid_Number( parts[4] ) )
 				{
-					printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+					printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 					printf( "%s is not a valid integer value\n", parts[4].c_str() );
 					return 0; // error
 				}
 
 				if( !Is_Valid_Number( parts[5] ) )
 				{
-					printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+					printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 					printf( "%s is not a valid integer value\n", parts[5].c_str() );
 					return 0; // error
 				}
@@ -1655,7 +1673,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 		{
 			if( count < 5 || count > 6 )
 			{
-				printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "Line %d, error : %s %s\n", line, parts[1].c_str(), "needs 5-6 parameters" );
 				return 0; // error
 			}
@@ -1678,7 +1696,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 		{
 			if( count < 4 || count > 5 )
 			{
-				printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "Line %d, error : %s %s\n", line, parts[1].c_str(), "needs 4-5 parameters" );
 				return 0; // error
 			}
@@ -1701,21 +1719,21 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 		{
 			if( count < 6 || count > 7 )
 			{
-				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "Error : %s %s\n", parts[1].c_str(), "needs 6-7 parameters" );
 				return 0; // error
 			}
 
 			if( !Is_Valid_Number( parts[4] ) )
 			{
-				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[4].c_str() );
 				return 0; // error
 			}
 
 			if( !Is_Valid_Number( parts[5] ) )
 			{
-				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[5].c_str() );
 				return 0; // error
 			}
@@ -1748,14 +1766,14 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 		{
 			if( count != 5 )
 			{
-				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "Error : %s %s\n", parts[1].c_str(), "needs 5 parameters" );
 				return 0; // error
 			}
 
 			if( !Is_Valid_Number( parts[4] ) )
 			{
-				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[4].c_str() );
 				return 0; // error
 			}
@@ -1771,21 +1789,21 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 		{
 			if( count < 6 || count > 7 )
 			{
-				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "Error : %s %s\n", parts[1].c_str(), "needs 6-7 parameters" );
 				return 0; // error
 			}
 
 			if( !Is_Valid_Number( parts[4] ) )
 			{
-				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[4].c_str() );
 				return 0; // error
 			}
 
 			if( !Is_Valid_Number( parts[5] ) )
 			{
-				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[5].c_str() );
 				return 0; // error
 			}
@@ -1824,7 +1842,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 		}
 		else
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Line %d, error : %s %s\n", line, parts[1].c_str(), "Unknown Enemy type" );
 			return 0; // error
 		}
@@ -1834,21 +1852,21 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( count < 3 || count > 4 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 3-4 parameters" );
 			return 0; // error
 		}
 
 		if( !Is_Valid_Number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 
 		if( !Is_Valid_Number( parts[2] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[2].c_str() );
 			return 0; // error
 		}
@@ -1860,7 +1878,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 		{
 			if( !Is_Valid_Number( parts[3] ) )
 			{
-				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[3].c_str() );
 				return 0; // error
 			}
@@ -1877,21 +1895,21 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( count != 3 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 3 parameters" );
 			return 0; // error
 		}
 
 		if( !Is_Valid_Number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 
 		if( !Is_Valid_Number( parts[2] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[2].c_str() );
 			return 0; // error
 		}
@@ -1904,20 +1922,20 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( count < 3 || count > 5 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 3-5 parameters" );
 			return 0; // error
 		}
 
 		if( !Is_Valid_Number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 		if( !Is_Valid_Number( parts[2] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[2].c_str() );
 			return 0; // error
 		}
@@ -1929,7 +1947,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 		{
 			if( !Is_Valid_Number( parts[3] ) )
 			{
-				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[2].c_str() );
 				return 0; // error
 			}
@@ -1963,7 +1981,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( !( count == 3 || count == 4 ) )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 3-4 parameters" );
 			return 0; // error
 		}
@@ -1973,13 +1991,13 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 		{
 			if( !Is_Valid_Number( parts[1] ) )
 			{
-				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[1].c_str() );
 				return 0; // error
 			}
 			if( !Is_Valid_Number( parts[2] ) )
 			{
-				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[2].c_str() );
 				return 0; // error
 			}
@@ -1991,13 +2009,13 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 		{
 			if( !Is_Valid_Number( parts[1] ) )
 			{
-				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[1].c_str() );
 				return 0; // error
 			}
 			if ( !Is_Valid_Number( parts[2] ) )
 			{
-				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[2].c_str() );
 				return 0; // error
 			}
@@ -2023,7 +2041,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 			else
 			{
 				delete temp;
-				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "Bonusbox type Error %s\n", parts[3].c_str() );
 				return 0; // error
 			}
@@ -2032,7 +2050,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 		}
 		else
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Bonusbox count Error %d\n", count );
 			return 0; // error
 		}
@@ -2042,21 +2060,21 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( count < 3 || count > 5 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 3-5 parameters" );
 			return 0; // error
 		}
 
 		if( !Is_Valid_Number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 
 		if( !Is_Valid_Number( parts[2] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[2].c_str() );
 			return 0; // error
 		}
@@ -2068,7 +2086,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 		{
 			if( !Is_Valid_Number( parts[3] ) )
 			{
-				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[3].c_str() );
 				return 0; // error
 			}
@@ -2077,7 +2095,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 		}
 
 		cBonusBox *temp = new cBonusBox( (float)string_to_int( parts[1] ), (float)( game_res_h - string_to_int( parts[2] ) ) );
-		temp->Set_Animation( "Default" );
+		temp->Set_Animation_Type( "Default" );
 		temp->Set_Bonus_Type( TYPE_GOLDPIECE );
 		temp->Set_Goldcolor( color );
 		m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
@@ -2087,7 +2105,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 		{
 			if( !Is_Valid_Number( parts[4] ) )
 			{
-				printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 				printf( "%s is not a valid integer value\n", parts[4].c_str() );
 				return 0; // error
 			}
@@ -2100,21 +2118,21 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( count != 3 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 3 parameters" );
 			return 0; // error
 		}
 
 		if( !Is_Valid_Number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 
 		if( !Is_Valid_Number( parts[2] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[2].c_str() );
 			return 0; // error
 		}
@@ -2127,21 +2145,21 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( count < 3 || count > 5 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 3-5 parameters" );
 			return 0; // error
 		}
 
 		if( !Is_Valid_Number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 
 		if( !Is_Valid_Number( parts[2] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[2].c_str() );
 			return 0; // error
 		}
@@ -2157,19 +2175,19 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( count != 3 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 3 parameters" );
 			return 0; // error
 		}
 		if( !Is_Valid_Number( parts[1] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[1].c_str() );
 			return 0; // error
 		}
 		if( !Is_Valid_Number( parts[2] ) )
 		{
-			printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "%s is not a valid integer value\n", parts[2].c_str() );
 			return 0; // error
 		}
@@ -2182,7 +2200,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	{
 		if( count < 10 || count > 10 )
 		{
-			printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 			printf( "Error : %s %s\n", parts[0].c_str(), "needs 10 parameters" );
 			return 0; // error
 		}
@@ -2211,7 +2229,7 @@ bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsi
 	/***************************************************************************/
 	else
 	{
-		printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+		printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 		printf( "Unknown Command : %s\n", parts[0].c_str() );
 		return 0; // error
 	}
@@ -2224,26 +2242,26 @@ bool cLevel :: Read_Color_Data( const std::string *parts, unsigned int count, un
 {
 	if( count != 4 )
 	{
-		printf( "%s : line %d Error : \n", Get_Filename( data_file, 0, 0 ).c_str(), line );
+		printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 		printf( "Error : %s %s\n", parts[0].c_str(), "needs 4 parameters" );
 		return 0; // error
 	}
 
 	if( !Is_Valid_Number( parts[1] ) )
 	{
-		printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+		printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 		printf( "%s is not a valid integer value\n", parts[1].c_str() );
 		return 0; // error
 	}
 	if( !Is_Valid_Number( parts[2] ) )
 	{
-		printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+		printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 		printf( "%s is not a valid integer value\n", parts[2].c_str() );
 		return 0; // error
 	}
 	if( !Is_Valid_Number( parts[3] ) )
 	{
-		printf( "%s : line %d Error : ", Get_Filename( data_file, 0, 0 ).c_str(), line );
+		printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
 		printf( "%s is not a valid integer value\n", parts[3].c_str() );
 		return 0; // error
 	}
@@ -2281,7 +2299,7 @@ void cLevel :: elementStart( const CEGUI::String &element, const CEGUI::XMLAttri
 	// Property/Item/Tag of an Element
 	if( element == "Property" )
 	{
-		xml_attributes.add( attributes.getValueAsString( "name" ), attributes.getValueAsString( "value" ) );
+		m_xml_attributes.add( attributes.getValueAsString( "name" ), attributes.getValueAsString( "value" ) );
 	}
 }
 
@@ -2293,7 +2311,7 @@ void cLevel :: elementEnd( const CEGUI::String &element )
 		if( element == "information" )
 		{
 			// support 1.7 and lower which used float
-			float engine_version_float = xml_attributes.getValueAsFloat( "engine_version" );
+			float engine_version_float = m_xml_attributes.getValueAsFloat( "engine_version" );
 
 			// if float engine version
 			if( engine_version_float < 3 )
@@ -2303,45 +2321,45 @@ void cLevel :: elementEnd( const CEGUI::String &element )
 			}
 
 			m_engine_version = static_cast<int>(engine_version_float);
-			m_last_saved = xml_attributes.getValueAsInteger( "save_time" );
+			m_last_saved = m_xml_attributes.getValueAsInteger( "save_time" );
 		}
 		else if( element == "settings" )
 		{
 			// Author
-			m_author = xml_attributes.getValueAsString( "lvl_author" ).c_str();
+			m_author = m_xml_attributes.getValueAsString( "lvl_author" ).c_str();
 			// Version
-			m_version = xml_attributes.getValueAsString( "lvl_version" ).c_str();
+			m_version = m_xml_attributes.getValueAsString( "lvl_version" ).c_str();
 			// Music
-			Set_Musicfile( xml_attributes.getValueAsString( "lvl_music" ).c_str() );
+			Set_Musicfile( m_xml_attributes.getValueAsString( "lvl_music" ).c_str() );
 			// Camera Limits
-			m_camera_limits = GL_rect( static_cast<float>(xml_attributes.getValueAsInteger( "cam_limit_x" )), static_cast<float>(xml_attributes.getValueAsInteger( "cam_limit_y" )), static_cast<float>(xml_attributes.getValueAsInteger( "cam_limit_w" )), static_cast<float>(xml_attributes.getValueAsInteger( "cam_limit_h" )) );
+			m_camera_limits = GL_rect( static_cast<float>(m_xml_attributes.getValueAsInteger( "cam_limit_x" )), static_cast<float>(m_xml_attributes.getValueAsInteger( "cam_limit_y" )), static_cast<float>(m_xml_attributes.getValueAsInteger( "cam_limit_w" )), static_cast<float>(m_xml_attributes.getValueAsInteger( "cam_limit_h" )) );
 			// fixed camera horizontal velocity
-			m_fixed_camera_hor_vel = xml_attributes.getValueAsFloat( "cam_fixed_hor_vel" );
+			m_fixed_camera_hor_vel = m_xml_attributes.getValueAsFloat( "cam_fixed_hor_vel" );
 		}
 		else if( element == "background" )
 		{
-			BackgroundType bg_type = static_cast<BackgroundType>(xml_attributes.getValueAsInteger( "type" ));
+			BackgroundType bg_type = static_cast<BackgroundType>(m_xml_attributes.getValueAsInteger( "type" ));
 
 			// use gradient background
 			if( bg_type == BG_GR_HOR || bg_type == BG_GR_VER )
 			{
-				m_background_manager->Get_Pointer(0)->Create_From_Stream( xml_attributes );
+				m_background_manager->Get_Pointer(0)->Create_From_Stream( m_xml_attributes );
 			}
 			// default background
 			else
 			{
-				m_background_manager->Add( new cBackground( xml_attributes ) );
+				m_background_manager->Add( new cBackground( m_xml_attributes ) );
 			}
 		}
 		else if( element == "global_effect" )
 		{
-			m_global_effect->Create_From_Stream( xml_attributes );
+			m_global_effect->Create_From_Stream( m_xml_attributes );
 		}
 		else if( element == "player" )
 		{
 			// position
-			m_player_start_pos_x = static_cast<float>(xml_attributes.getValueAsInteger( "posx", static_cast<int>(cPlayer::m_default_pos_x) ));
-			m_player_start_pos_y = static_cast<float>(xml_attributes.getValueAsInteger( "posy", static_cast<int>(cPlayer::m_default_pos_y) ));
+			m_player_start_pos_x = static_cast<float>(m_xml_attributes.getValueAsInteger( "posx", static_cast<int>(cPlayer::m_default_pos_x) ));
+			m_player_start_pos_y = static_cast<float>(m_xml_attributes.getValueAsInteger( "posy", static_cast<int>(cPlayer::m_default_pos_y) ));
 
 			// check level engine version
 			// 10 and lower
@@ -2356,7 +2374,7 @@ void cLevel :: elementEnd( const CEGUI::String &element )
 			}
 
 			// direction
-			m_player_start_direction = Get_Direction_Id( xml_attributes.getValueAsString( "direction" ).c_str() );
+			m_player_start_direction = Get_Direction_Id( m_xml_attributes.getValueAsString( "direction" ).c_str() );
 
 			// if invalid set default
 			if( m_player_start_direction != DIR_LEFT && m_player_start_direction != DIR_RIGHT )
@@ -2367,7 +2385,7 @@ void cLevel :: elementEnd( const CEGUI::String &element )
 		else
 		{
 			// get Level object
-			cSprite *object = Get_Level_Object( element, xml_attributes, m_engine_version, m_sprite_manager );
+			cSprite *object = Get_Level_Object( element, m_xml_attributes, m_engine_version, m_sprite_manager );
 			
 			// valid
 			if( object )
@@ -2385,7 +2403,7 @@ void cLevel :: elementEnd( const CEGUI::String &element )
 		}
 
 		// clear
-		xml_attributes = CEGUI::XMLAttributes();
+		m_xml_attributes = CEGUI::XMLAttributes();
 	}
 }
 
@@ -2714,11 +2732,11 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 		// if V.1.7 and lower : change new slider middle count because start and end image is now half the width
 		if( engine_version < 32 )
 		{
-			if( moving_platform->m_images[0]->m_filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "ground/green_1/slider/1/brown/left.png" ) == 0 )
+			if( moving_platform->m_images[0].m_image->m_filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "ground/green_1/slider/1/brown/left.png" ) == 0 )
 			{
 				moving_platform->Set_Middle_Count( moving_platform->middle_count + 1 );
 			}
-			if( moving_platform->m_images[0]->m_filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "ground/green_1/slider/1/brown/right.png" ) == 0 )
+			if( moving_platform->m_images[0].m_image->m_filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "ground/green_1/slider/1/brown/right.png" ) == 0 )
 			{
 				moving_platform->Set_Middle_Count( moving_platform->middle_count + 1 );
 			}
@@ -2757,11 +2775,11 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 		// if V.1.7 and lower : change new slider middle count because start and end image is now half the width
 		if( engine_version < 32 )
 		{
-			if( moving_platform->m_images[0]->m_filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "ground/green_1/slider/1/brown/left.png" ) == 0 )
+			if( moving_platform->m_images[0].m_image->m_filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "ground/green_1/slider/1/brown/left.png" ) == 0 )
 			{
 				moving_platform->Set_Middle_Count( moving_platform->middle_count + 1 );
 			}
-			if( moving_platform->m_images[0]->m_filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "ground/green_1/slider/1/brown/right.png" ) == 0 )
+			if( moving_platform->m_images[0].m_image->m_filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "ground/green_1/slider/1/brown/right.png" ) == 0 )
 			{
 				moving_platform->Set_Middle_Count( moving_platform->middle_count + 1 );
 			}
@@ -2859,7 +2877,7 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 			// if V.1.4 and lower : fix thromp distance was smaller
 			if( engine_version < 25 )
 			{
-				thromp->Set_Max_Distance( thromp->max_distance + 36 );
+				thromp->Set_Max_Distance( thromp->m_max_distance + 36 );
 			}
 
 			return thromp;
@@ -2883,6 +2901,10 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 		else if( str_type == "static" )
 		{
 			return new cStaticEnemy( attributes );
+		}
+		else if( str_type == "spikeball" )
+		{
+			return new cSpikeball( attributes );
 		}
 		else
 		{

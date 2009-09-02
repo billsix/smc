@@ -16,6 +16,8 @@
 #include "../overworld/world_manager.h"
 #include "../core/game_core.h"
 #include "../overworld/overworld.h"
+#include "../core/filesystem/filesystem.h"
+#include "../core/filesystem/resource_manager.h"
 // boost filesystem
 #include "boost/filesystem/convenience.hpp"
 namespace fs = boost::filesystem;
@@ -57,7 +59,7 @@ bool cOverworld_Manager :: New( const std::string &name )
 	}
 
 	// already available
-	if( fs::exists( fs::path( user_data_dir + USER_WORLD_DIR + "/" + name, fs::native ) ) )
+	if( Dir_Exists( pResource_Manager->user_data_dir + USER_WORLD_DIR + "/" + name ) )
 	{
 		return 0;
 	}
@@ -65,9 +67,9 @@ bool cOverworld_Manager :: New( const std::string &name )
 	cOverworld *overworld = new cOverworld();
 
 	// set path
-	overworld->description->path = name;
+	overworld->m_description->path = name;
 	// default name is the path
-	overworld->description->name = name;
+	overworld->m_description->name = name;
 
 	objects.push_back( overworld );
 
@@ -87,7 +89,7 @@ void cOverworld_Manager :: Load( void )
 	}
 
 	// Load Worlds
-	Load_Dir( user_data_dir + USER_WORLD_DIR, 1 );
+	Load_Dir( pResource_Manager->user_data_dir + USER_WORLD_DIR, 1 );
 	Load_Dir( DATA_DIR "/" GAME_OVERWORLD_DIR );
 
 	// Get Overworld User Comments
@@ -116,7 +118,7 @@ void cOverworld_Manager :: Load_Dir( const std::string &dir, bool user_dir /* = 
 	{
 		try
 		{
-			std::string current_dir = dir_itr->leaf();
+			std::string current_dir = dir_itr->path().leaf();
 
 			// only directories with an existing description
 			if( fs::is_directory( *dir_itr ) && File_Exists( dir + "/" + current_dir + "/description.xml" ) )
@@ -130,11 +132,11 @@ void cOverworld_Manager :: Load_Dir( const std::string &dir, bool user_dir /* = 
 				cOverworld *overworld = new cOverworld();
 
 				// set path
-				overworld->description->path = current_dir;
+				overworld->m_description->path = current_dir;
 				// default name is the path
-				overworld->description->name = current_dir;
+				overworld->m_description->name = current_dir;
 				// set user
-				overworld->description->user = user_dir;
+				overworld->m_description->user = user_dir;
 
 				objects.push_back( overworld );
 
@@ -143,7 +145,7 @@ void cOverworld_Manager :: Load_Dir( const std::string &dir, bool user_dir /* = 
 		}
 		catch( const std::exception &ex )
 		{
-			printf( "%s %s\n", dir_itr->leaf().c_str(), ex.what() );
+			printf( "%s %s\n", dir_itr->path().leaf().c_str(), ex.what() );
 		}
 	}
 }
@@ -164,7 +166,7 @@ bool cOverworld_Manager :: Set_Active( cOverworld *world )
 
 	// set player start waypoint
 	pOverworld_Player->Reset();
-	pOverworld_Player->Set_Waypoint( pActive_Overworld->player_start_waypoint, 1 );
+	pOverworld_Player->Set_Waypoint( pActive_Overworld->m_player_start_waypoint, 1 );
 
 	return 1;
 }
@@ -175,7 +177,7 @@ void cOverworld_Manager :: Reset( void )
 	Set_Active( "World 1" );
 
 	// Set Player to first Waypoint
-	pOverworld_Player->Set_Waypoint( pActive_Overworld->player_start_waypoint );
+	pOverworld_Player->Set_Waypoint( pActive_Overworld->m_player_start_waypoint );
 
 	// Reset all Waypoints
 	for( vector<cOverworld *>::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
@@ -202,7 +204,7 @@ cOverworld *cOverworld_Manager :: Get_from_Path( const std::string &path )
 	{
 		cOverworld *obj = (*itr);
 
-		if( obj->description->path.compare( path ) == 0 )
+		if( obj->m_description->path.compare( path ) == 0 )
 		{
 			return obj;
 		}
@@ -217,7 +219,7 @@ cOverworld *cOverworld_Manager :: Get_from_Name( const std::string &name )
 	{
 		cOverworld *obj = (*itr);
 
-		if( obj->description->name.compare( name ) == 0 )
+		if( obj->m_description->name.compare( name ) == 0 )
 		{
 			return obj;
 		}
@@ -230,7 +232,7 @@ int cOverworld_Manager :: Get_Array_Num( const std::string &path ) const
 {
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
-		if( objects[i]->description->path.compare( path ) == 0 )
+		if( objects[i]->m_description->path.compare( path ) == 0 )
 		{
 			return i;
 		}
@@ -283,7 +285,7 @@ void cOverworld_Manager :: handle_world( const CEGUI::XMLAttributes &attributes 
 	// set comment
 	if( overworld )
 	{
-		overworld->description->comment = ow_comment;
+		overworld->m_description->comment = ow_comment;
 	}
 }
 

@@ -17,14 +17,14 @@
 #define SMC_POWERUP_H
 
 #include "../core/globals.h"
-#include "../objects/objectsprite.h"
+#include "../objects/animated_sprite.h"
 
 namespace SMC
 {
 
 /* *** *** *** *** *** cPowerUp *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cPowerUp : public cImageObjectSprite
+class cPowerUp : public cAnimated_Sprite
 {
 public:
 	// constructor

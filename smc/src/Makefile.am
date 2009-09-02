@@ -14,6 +14,8 @@ smc_SOURCES = \
 	core/camera.cpp \
 	core/collision.cpp \
 	core/editor.cpp \
+	core/filesystem/filesystem.cpp \
+	core/filesystem/resource_manager.cpp \
 	core/file_parser.cpp \
 	core/framerate.cpp \
 	core/game_core.cpp \
@@ -31,6 +33,7 @@ smc_SOURCES = \
 	enemies/krush.cpp \
 	enemies/rokko.cpp \
 	enemies/spika.cpp \
+	enemies/spikeball.cpp \
 	enemies/static.cpp \
 	enemies/thromp.cpp \
 	enemies/turtle.cpp \
@@ -46,6 +49,7 @@ smc_SOURCES = \
 	level/level_editor.cpp \
 	level/level_manager.cpp \
 	level/level_settings.cpp \
+	objects/animated_sprite.cpp \
 	objects/ball.cpp \
 	objects/bonusbox.cpp \
 	objects/box.cpp \
@@ -55,7 +59,6 @@ smc_SOURCES = \
 	objects/level_exit.cpp \
 	objects/moving_platform.cpp \
 	objects/movingsprite.cpp \
-	objects/objectsprite.cpp \
 	objects/path.cpp \
 	objects/powerup.cpp \
 	objects/spinbox.cpp \

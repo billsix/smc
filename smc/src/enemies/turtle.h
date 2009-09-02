@@ -73,7 +73,11 @@ public:
 	 * force : usually dies or a complete downgrade
 	*/
 	virtual void DownGrade( bool force = 0 );
-	virtual void DieStep( void );
+	// dying animation update
+	virtual void Update_Dying( void );
+
+	// set the turtle moving state
+	void Set_Turtle_Moving_State( Turtle_state new_state );
 
 	// update
 	virtual void Update( void );
@@ -83,7 +87,10 @@ public:
 	/* Hit the given enemy
 	 * returns true if enemy could get hit
 	*/
-	bool Hit_Enemy( cEnemy *enemy ) const;
+	bool Hit_Enemy( cEnemy *enemy );
+
+	// update the current velocity
+	void Update_Velocity( void );
 
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
@@ -107,19 +114,19 @@ public:
 	bool Editor_Direction_Select( const CEGUI::EventArgs &event );
 
 	// internal turtle state
-	Turtle_state turtle_state;
+	Turtle_state m_turtle_state;
 
 	// default speed
-	float speed_walk, speed_shell;
+	float m_speed_walk, m_speed_shell;
 
 	/* If the player kicked the shell this counter is set.
 	 * if this counter is higher than 0
 	 * maryo cannot get killed by the shell
 	 */
-	float playercounter;
+	float m_player_counter;
 
 	// Color
-	DefaultColor color_type;
+	DefaultColor m_color_type;
 
 private:
 	// Create the Name from the current settings

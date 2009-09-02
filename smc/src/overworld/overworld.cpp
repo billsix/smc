@@ -28,9 +28,8 @@
 #include "../input/keyboard.h"
 #include "../level/level.h"
 #include "../core/i18n.h"
-// boost filesystem
-#include "boost/filesystem/convenience.hpp"
-namespace fs = boost::filesystem;
+#include "../core/filesystem/filesystem.h"
+#include "../core/filesystem/resource_manager.h"
 // CEGUI
 #include "CEGUIXMLParser.h"
 #include "CEGUIXMLAttributes.h"
@@ -72,7 +71,7 @@ void cOverworld_description :: Load( void )
 
 void cOverworld_description :: Save( void )
 {
-	std::string save_dir = user_data_dir + USER_WORLD_DIR + "/" + path;
+	std::string save_dir = pResource_Manager->user_data_dir + USER_WORLD_DIR + "/" + path;
 	std::string filename = save_dir + "/description.xml";
 
 	ofstream file( filename.c_str(), ios::out | ios::trunc );
@@ -106,9 +105,9 @@ void cOverworld_description :: Save( void )
 std::string cOverworld_description :: Get_Full_Path( void ) const
 {
 	// return user world if available
-	if( fs::exists( fs::path( user_data_dir + USER_WORLD_DIR + "/" + path + "/description.xml", fs::native ) ) )
+	if( File_Exists( pResource_Manager->user_data_dir + USER_WORLD_DIR + "/" + path + "/description.xml" ) )
 	{
-		return user_data_dir + USER_WORLD_DIR + "/" + path;
+		return pResource_Manager->user_data_dir + USER_WORLD_DIR + "/" + path;
 	}
 
 	// return game world
@@ -158,33 +157,34 @@ void cOverworld_description :: handle_world( const CEGUI::XMLAttributes &attribu
 
 cOverworld :: cOverworld( void )
 {
-	sprite_manager = new cWorld_Sprite_Manager( this );
+	m_sprite_manager = new cWorld_Sprite_Manager( this );
+	m_description = new cOverworld_description();
+	m_layer = new cLayer( this );
 
-	description = new cOverworld_description();
-	pLayer = new cLayer( this );
+	m_engine_version = -1;
+	m_last_saved = 0;
+	m_background_color = Color();
+	m_musicfile = "overworld/land_1.ogg";
+	m_hud_world_name = new cHudSprite( NULL, 10, static_cast<float>(game_res_h) - 30, 0 );
+	m_hud_world_name->Set_Shadow( black, 1.5f );
+	m_hud_level_name = new cHudSprite( NULL, 350, 2, 0 );
+	m_hud_level_name->Set_Shadow( black, 1.5f );
 
-	background_color = Color();
-	musicfile = "overworld/land_1.ogg";
-	hud_world_name = new cHudSprite( NULL, 10, static_cast<float>(game_res_h) - 30, 0 );
-	hud_world_name->Set_Shadow( black, 1.5f );
-	hud_level_name = new cHudSprite( NULL, 350, 2, 0 );
-	hud_level_name->Set_Shadow( black, 1.5f );
+	m_next_level = 0;
 
-	next_level = 0;
-
-	player_start_waypoint = 0;
-	player_moving_state = STA_STAY;
+	m_player_start_waypoint = 0;
+	m_player_moving_state = STA_STAY;
 }
 
 cOverworld :: ~cOverworld( void )
 {
 	Unload();
 
-	delete sprite_manager;
-	delete description;
-	delete pLayer;
-	delete hud_level_name;
-	delete hud_world_name;
+	delete m_sprite_manager;
+	delete m_description;
+	delete m_layer;
+	delete m_hud_level_name;
+	delete m_hud_world_name;
 }
 
 void cOverworld :: Enter( bool delayed /* = 0 */ )
@@ -208,7 +208,7 @@ void cOverworld :: Enter( bool delayed /* = 0 */ )
 	}
 
 	// if not loaded
-	if( sprite_manager->empty() )
+	if( !Is_Loaded() )
 	{
 		return;
 	}
@@ -220,27 +220,301 @@ void cOverworld :: Enter( bool delayed /* = 0 */ )
 	if( pOverworld_Player->current_waypoint < 0 )
 	{
 		pOverworld_Player->Reset();
-		pOverworld_Player->Set_Waypoint( player_start_waypoint, 1 );
+		pOverworld_Player->Set_Waypoint( m_player_start_waypoint, 1 );
 	}
 
 	// if goto next level
-	if( next_level )
+	if( m_next_level )
 	{
 		Goto_Next_Level();
 	}
 
 	// if on start waypoint
-	if( pOverworld_Player->current_waypoint == static_cast<int>(player_start_waypoint) )
+	if( pOverworld_Player->current_waypoint == static_cast<int>(m_player_start_waypoint) )
 	{
 		// if player state is walk
-		if( player_moving_state == STA_WALK )
+		if( m_player_moving_state == STA_WALK )
 		{
 			// walk to the next Waypoint
-			pOverworld_Player->Start_Walk( waypoints[pOverworld_Player->current_waypoint]->direction_forward );
+			pOverworld_Player->Start_Walk( m_waypoints[pOverworld_Player->current_waypoint]->direction_forward );
 		}
 	}
 
 	Update_Camera();
+}
+
+bool cOverworld :: Load( void )
+{
+	Unload();
+
+	// set active for loading
+	pActive_Overworld = this;
+
+	// description
+	m_description->Load();
+
+	// layer
+	std::string layer_filename = m_description->Get_Full_Path() + "/layer.xml";
+
+	if( !File_Exists( layer_filename ) )
+	{
+		printf( "Couldn't find World Layer file : %s from %s\n", layer_filename.c_str(), m_description->path.c_str() );
+		return 0;
+	}
+
+	m_layer->Load( layer_filename );
+
+	// world
+	std::string world_filename = m_description->Get_Full_Path() + "/world.xml";
+
+	if( !File_Exists( world_filename ) )
+	{
+		printf( "Couldn't find World file : %s from %s\n", world_filename.c_str(), m_description->path.c_str() );
+		return 0;
+	}
+
+	try
+	{
+		// parse overworld
+		CEGUI::System::getSingleton().getXMLParser()->parseXMLFile( *this, world_filename.c_str(), DATA_DIR "/" GAME_SCHEMA_DIR "/World/World.xsd", "" );
+	}
+	// catch CEGUI Exceptions
+	catch( CEGUI::Exception &ex )
+	{
+		printf( "Loading World %s CEGUI Exception %s\n", world_filename.c_str(), ex.getMessage().c_str() );
+		pHud_Debug->Set_Text( _("World Loading failed : ") + (const std::string)ex.getMessage().c_str() );
+	}
+
+	// engine version entry not set
+	if( m_engine_version < 0 )
+	{
+		m_engine_version = 0;
+	}
+
+	m_hud_world_name->Set_Image( pFont->Render_Text( pFont->m_font_normal, m_description->name, yellow ), 1, 1 );
+
+	return 1;
+}
+
+void cOverworld :: Unload( void )
+{
+	// not loaded
+	if( !Is_Loaded() )
+	{
+		return;
+	}
+
+	// set active for unloading
+	pActive_Overworld = this;
+
+	// Waypoints
+	m_waypoints.clear();
+	// Layer
+	m_layer->Delete_All();
+	// Objects
+	m_sprite_manager->Delete_All();
+
+	// no engine version
+	m_engine_version = -1;
+	m_last_saved = 0;
+
+	pActive_Overworld = NULL;
+}
+
+void cOverworld :: Save( void )
+{
+	pAudio->Play_Sound( "editor/save.ogg" );
+
+	std::string save_dir = pResource_Manager->user_data_dir + USER_WORLD_DIR + "/" + m_description->path;
+	// Create directory if new world
+	if( !Dir_Exists( save_dir ) )
+	{
+		Create_Directory( save_dir );
+	}
+
+	std::string filename = save_dir + "/world.xml";
+
+	ofstream file( filename.c_str(), ios::out | ios::trunc );
+
+	if( !file )
+	{
+		pHud_Debug->Set_Text( _("Couldn't save world ") + filename );
+		return;
+	}
+
+	// xml info
+	file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;
+	// begin overworld
+	file << "<overworld>" << std::endl;
+
+	// begin info
+	file << "\t<information>" << std::endl;
+	// game version
+	file << "\t\t<Property name=\"game_version\" value=\"" << smc_version << "\" />" << std::endl;
+	// engine version
+	file << "\t\t<Property name=\"engine_version\" value=\"" << world_engine_version << "\" />" << std::endl;
+	// time ( seconds since 1970 )
+	file << "\t\t<Property name=\"save_time\" value=\"" << time( NULL ) << "\" />" << std::endl;
+	// end info
+	file << "\t</information>" << std::endl;
+
+	// begin settings
+	file << "\t<settings>" << std::endl;
+	// music
+	file << "\t\t<Property name=\"music\" value=\"" << string_to_xml_string( m_musicfile ) << "\" />" << std::endl;
+	// end settings
+	file << "\t</settings>" << std::endl;
+
+	// begin background
+	file << "\t<background>" << std::endl;
+	// color
+	file << "\t\t<Property name=\"color_red\" value=\"" << static_cast<int>(m_background_color.red) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"color_green\" value=\"" << static_cast<int>(m_background_color.green) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"color_blue\" value=\"" << static_cast<int>(m_background_color.blue) << "\" />" << std::endl;
+	// end background
+	file << "\t</background>" << std::endl;
+
+	// begin player
+	file << "\t<player>" << std::endl;
+	// start waypoint
+	file << "\t\t<Property name=\"waypoint\" value=\"" << m_player_start_waypoint << "\" />" << std::endl;
+	// moving state
+	file << "\t\t<Property name=\"moving_state\" value=\"" << static_cast<int>(m_player_moving_state) << "\" />" << std::endl;
+	// end player
+	file << "\t</player>" << std::endl;
+	// objects
+	for( cSprite_List::iterator itr = m_sprite_manager->objects.begin(), itr_end = m_sprite_manager->objects.end(); itr != itr_end; ++itr )
+	{
+		cSprite *obj = (*itr);
+
+		// skip spawned and destroyed objects
+		if( obj->m_spawned || obj->m_auto_destroy )
+		{
+			continue;
+		}
+
+		// save to file stream
+		obj->Save_To_Stream( file );
+	}
+
+	// end overworld
+	file << "</overworld>" << std::endl;
+	file.close();
+
+	// save Layer
+	if( m_layer->Save( save_dir + "/layer.xml" ) )
+	{
+		printf( "Saving World %s Layer failed\n", m_description->name.c_str() );
+	}
+
+	// save description
+	m_description->Save();
+
+	// show info
+	pHud_Debug->Set_Text( _("World ") + m_description->name + _(" saved") );
+}
+
+void cOverworld :: Draw( void )
+{
+	// Background
+	pVideo->Clear_Screen();
+	Draw_Layer_1();
+
+	// Player
+	pOverworld_Player->Draw();
+	// Hud
+	Draw_HUD();
+
+	// Editor
+	pWorld_Editor->Draw();
+}
+
+void cOverworld :: Draw_Layer_1( void )
+{
+	pVideo->Draw_Rect( NULL, 0.0001f, &m_background_color );
+
+	// Map
+	m_sprite_manager->Draw_Items();
+	// Animations
+	pAnimation_Manager->Draw();
+}
+
+void cOverworld :: Draw_HUD( void )
+{
+	// if not editor mode
+	if( !editor_world_enabled )
+	{
+		// Background
+		Color color = Color( static_cast<Uint8>(230), 170, 0, 128 );
+		pVideo->Draw_Rect( 0, 0, static_cast<float>(game_res_w), 30, 0.12f, &color );
+		// Line
+		color = Color( static_cast<Uint8>(200), 150, 0, 128 );
+		pVideo->Draw_Rect( 0, 30, static_cast<float>(game_res_w), 5, 0.121f, &color );
+
+		// Overworld name and level
+		m_hud_world_name->Draw();
+		m_hud_level_name->Draw();
+	}
+
+	// hud
+	pHud_Manager->Draw();
+}
+
+void cOverworld :: Update( void )
+{
+	// editor
+	pWorld_Editor->Process_Input();
+
+	if( !editor_world_enabled )
+	{
+		// Camera
+		Update_Camera();
+		// Map
+		m_sprite_manager->Update_Items();
+		// Player
+		pOverworld_Player->Update();
+		// Animations
+		pAnimation_Manager->Update();
+	}
+
+	// hud
+	pHud_Manager->Update();
+	// Editor
+	pWorld_Editor->Update();
+}
+
+void cOverworld :: Update_Camera( void )
+{
+	if( editor_world_enabled )
+	{
+		return;
+	}
+
+	// todo : move to a Process_Input function
+	if( pOverworld_Manager->cameramode )
+	{
+		if( pKeyboard->keys[pPreferences->m_key_right] || ( pJoystick->right && pPreferences->m_joy_enabled ) )
+		{
+			pActive_Camera->Move( pFramerate->m_speed_factor * 15, 0 );
+		}
+		else if( pKeyboard->keys[pPreferences->m_key_left] || ( pJoystick->left && pPreferences->m_joy_enabled ) )
+		{
+			pActive_Camera->Move( pFramerate->m_speed_factor * -15, 0 );
+		}
+		if( pKeyboard->keys[pPreferences->m_key_up] || ( pJoystick->up && pPreferences->m_joy_enabled ) )
+		{
+			pActive_Camera->Move( 0, pFramerate->m_speed_factor * -15 );
+		}
+		else if( pKeyboard->keys[pPreferences->m_key_down] || ( pJoystick->down && pPreferences->m_joy_enabled ) )
+		{
+			pActive_Camera->Move( 0, pFramerate->m_speed_factor * 15 );
+		}
+	}
+	// default player camera
+	else
+	{
+		pActive_Camera->Update();
+	}
 }
 
 bool cOverworld :: Key_Down( SDLKey key )
@@ -285,7 +559,7 @@ bool cOverworld :: Key_Down( SDLKey key )
 	{
 		pWorld_Editor->Toggle();
 	}
-	else if( key == SDLK_d && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
+	else if( key == SDLK_d && input_event.key.keysym.mod & KMOD_CTRL )
 	{
 		pOverworld_Manager->debugmode = !pOverworld_Manager->debugmode;
 		game_debug = pOverworld_Manager->debugmode;
@@ -298,7 +572,7 @@ bool cOverworld :: Key_Down( SDLKey key )
 	else if( pKeyboard->keys[SDLK_g] && pKeyboard->keys[SDLK_o] && pKeyboard->keys[SDLK_d] )
 	{
 		// all waypoint access
-		pActive_Overworld->Set_Progress( pActive_Overworld->waypoints.size(), 1 );
+		pActive_Overworld->Set_Progress( pActive_Overworld->m_waypoints.size(), 1 );
 	}
 	else if( key == SDLK_F3 && pOverworld_Manager->debugmode )
 	{
@@ -386,12 +660,12 @@ bool cOverworld :: Mouse_Up( Uint8 button )
 bool cOverworld :: Joy_Button_Down( Uint8 button )
 {
 	// Exit
-	if( button == pPreferences->joy_button_exit )
+	if( button == pPreferences->m_joy_button_exit )
 	{
 		pOverworld_Player->Action_Interact( INP_EXIT );
 	}
 	// Action
-	else if( button == pPreferences->joy_button_action )
+	else if( button == pPreferences->m_joy_button_action )
 	{
 		pOverworld_Player->Action_Interact( INP_ACTION );
 	}
@@ -422,166 +696,11 @@ bool cOverworld :: Joy_Button_Up( Uint8 button )
 	return 1;
 }
 
-bool cOverworld :: Load( void )
-{
-	Unload();
-
-	// set active for loading
-	pActive_Overworld = this;
-
-	// description
-	description->Load();
-
-	// layer
-	std::string layer_filename = description->Get_Full_Path() + "/layer.xml";
-
-	if( !File_Exists( layer_filename ) )
-	{
-		printf( "Couldn't find World Layer file : %s from %s\n", layer_filename.c_str(), description->path.c_str() );
-		return 0;
-	}
-
-	pLayer->Load( layer_filename );
-
-	// world
-	std::string world_filename = description->Get_Full_Path() + "/world.xml";
-
-	if( !File_Exists( world_filename ) )
-	{
-		printf( "Couldn't find World file : %s from %s\n", world_filename.c_str(), description->path.c_str() );
-		return 0;
-	}
-
-	try
-	{
-		// parse overworld
-		CEGUI::System::getSingleton().getXMLParser()->parseXMLFile( *this, world_filename.c_str(), DATA_DIR "/" GAME_SCHEMA_DIR "/World/World.xsd", "" );
-	}
-	// catch CEGUI Exceptions
-	catch( CEGUI::Exception &ex )
-	{
-		printf( "Loading World %s CEGUI Exception %s\n", world_filename.c_str(), ex.getMessage().c_str() );
-		pHud_Debug->Set_Text( _("World Loading failed : ") + (const std::string)ex.getMessage().c_str() );
-	}
-
-	hud_world_name->Set_Image( pFont->Render_Text( pFont->m_font_normal, description->name, yellow ), 1, 1 );
-
-	return 1;
-}
-
-void cOverworld :: Unload( void )
-{
-	// set active for unloading
-	pActive_Overworld = this;
-
-	// Waypoints
-	waypoints.clear();
-	// Layer
-	pLayer->Delete_All();
-	// Objects
-	sprite_manager->Delete_All();
-
-	pActive_Overworld = NULL;
-}
-
-void cOverworld :: Save( void )
-{
-	pAudio->Play_Sound( "editor/save.ogg" );
-
-	std::string save_dir = user_data_dir + USER_WORLD_DIR + "/" + description->path;
-	// Create directory if new world
-	if( !fs::exists( fs::path( save_dir, fs::native ) ) )
-	{
-		fs::create_directory( fs::path( save_dir, fs::native ) );
-	}
-
-	std::string filename = save_dir + "/world.xml";
-
-	ofstream file( filename.c_str(), ios::out | ios::trunc );
-
-	if( !file )
-	{
-		pHud_Debug->Set_Text( _("Couldn't save world ") + filename );
-		return;
-	}
-
-	// xml info
-	file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;
-	// begin overworld
-	file << "<overworld>" << std::endl;
-
-	// begin info
-	file << "\t<information>" << std::endl;
-		// game version
-		file << "\t\t<Property name=\"game_version\" value=\"" << smc_version << "\" />" << std::endl;
-		// engine version
-		file << "\t\t<Property name=\"engine_version\" value=\"" << 1 << "\" />" << std::endl;
-		// time ( seconds since 1970 )
-		file << "\t\t<Property name=\"save_time\" value=\"" << time( NULL ) << "\" />" << std::endl;
-	// end info
-	file << "\t</information>" << std::endl;
-
-	// begin settings
-	file << "\t<settings>" << std::endl;
-		// music
-		file << "\t\t<Property name=\"music\" value=\"" << string_to_xml_string( musicfile ) << "\" />" << std::endl;
-	// end settings
-	file << "\t</settings>" << std::endl;
-
-	// begin background
-	file << "\t<background>" << std::endl;
-		// color
-		file << "\t\t<Property name=\"color_red\" value=\"" << static_cast<int>(background_color.red) << "\" />" << std::endl;
-		file << "\t\t<Property name=\"color_green\" value=\"" << static_cast<int>(background_color.green) << "\" />" << std::endl;
-		file << "\t\t<Property name=\"color_blue\" value=\"" << static_cast<int>(background_color.blue) << "\" />" << std::endl;
-	// end background
-	file << "\t</background>" << std::endl;
-
-	// begin player
-	file << "\t<player>" << std::endl;
-		// start waypoint
-		file << "\t\t<Property name=\"waypoint\" value=\"" << player_start_waypoint << "\" />" << std::endl;
-		// moving state
-		file << "\t\t<Property name=\"moving_state\" value=\"" << static_cast<int>(player_moving_state) << "\" />" << std::endl;
-	// end player
-	file << "\t</player>" << std::endl;
-	// objects
-	for( cSprite_List::iterator itr = sprite_manager->objects.begin(), itr_end = sprite_manager->objects.end(); itr != itr_end; ++itr )
-	{
-		cSprite *obj = (*itr);
-
-		// skip spawned and destroyed objects
-		if( obj->m_spawned || obj->m_auto_destroy )
-		{
-			continue;
-		}
-
-		// save to file stream
-		obj->Save_To_Stream( file );
-	}
-
-	// end overworld
-	file << "</overworld>" << std::endl;
-	file.close();
-
-	// save Layer
-	if( pLayer->Save( save_dir + "/layer.xml" ) )
-	{
-		printf( "Saving World %s Layer failed\n", description->name.c_str() );
-	}
-
-	// save description
-	description->Save();
-
-	// show info
-	pHud_Debug->Set_Text( _("World ") + description->name + _(" saved") );
-}
-
 void cOverworld :: Set_Progress( unsigned int normal_level, bool force /* = 1 */ )
 {
 	unsigned int level_num = 0;
 
-	for( WaypointList::iterator itr = waypoints.begin(), itr_end = waypoints.end(); itr != itr_end; ++itr )
+	for( WaypointList::iterator itr = m_waypoints.begin(), itr_end = m_waypoints.end(); itr != itr_end; ++itr )
 	{
 		cWaypoint *obj = (*itr);
 
@@ -602,7 +721,7 @@ void cOverworld :: Set_Progress( unsigned int normal_level, bool force /* = 1 */
 
 cWaypoint *cOverworld :: Get_Waypoint( const std::string &name )
 {
-	for( WaypointList::iterator itr = waypoints.begin(), itr_end = waypoints.end(); itr != itr_end; ++itr )
+	for( WaypointList::iterator itr = m_waypoints.begin(), itr_end = m_waypoints.end(); itr != itr_end; ++itr )
 	{
 		cWaypoint *obj = (*itr);
 
@@ -618,14 +737,14 @@ cWaypoint *cOverworld :: Get_Waypoint( const std::string &name )
 
 cWaypoint *cOverworld :: Get_Waypoint( unsigned int num )
 {
-	if( num >= waypoints.size() )
+	if( num >= m_waypoints.size() )
 	{
 		// out of bounds
 		return NULL;
 	}
 
 	// available
-	return waypoints[num];
+	return m_waypoints[num];
 }
 
 int cOverworld :: Get_Level_Waypoint_Num( std::string level_name )
@@ -644,7 +763,7 @@ int cOverworld :: Get_Waypoint_Num( const std::string &name )
 	int count = 0;
 
 	// search waypoint
-	for( WaypointList::iterator itr = waypoints.begin(), itr_end = waypoints.end(); itr != itr_end; ++itr )
+	for( WaypointList::iterator itr = m_waypoints.begin(), itr_end = m_waypoints.end(); itr != itr_end; ++itr )
 	{
 		cWaypoint *obj = (*itr);
 
@@ -665,7 +784,7 @@ int cOverworld :: Get_Waypoint_Collision( const GL_rect &rect_2 )
 {
 	int count = 0;
 
-	for( WaypointList::iterator itr = waypoints.begin(), itr_end = waypoints.end(); itr != itr_end; ++itr )
+	for( WaypointList::iterator itr = m_waypoints.begin(), itr_end = m_waypoints.end(); itr != itr_end; ++itr )
 	{
 		cWaypoint *obj = (*itr);
 
@@ -683,14 +802,14 @@ int cOverworld :: Get_Waypoint_Collision( const GL_rect &rect_2 )
 int cOverworld :: Get_Last_Valid_Waypoint( void )
 {
 	// no waypoints
-	if( waypoints.empty() )
+	if( m_waypoints.empty() )
 	{
 		return -1;
 	}
 
-	for( int i = waypoints.size() - 1; i > 0; i-- )
+	for( int i = m_waypoints.size() - 1; i > 0; i-- )
 	{
-		if( waypoints[i]->access )
+		if( m_waypoints[i]->access )
 		{
 			return i;
 		}
@@ -702,7 +821,7 @@ int cOverworld :: Get_Last_Valid_Waypoint( void )
 void cOverworld :: Update_Waypoint_text( void )
 {
 	// get waypoint
-	cWaypoint *waypoint = waypoints[pOverworld_Player->current_waypoint];
+	cWaypoint *waypoint = m_waypoints[pOverworld_Player->current_waypoint];
 
 	// set color
 	Color color = static_cast<Uint8>(0);
@@ -716,7 +835,7 @@ void cOverworld :: Update_Waypoint_text( void )
 		color = green;
 	}
 	
-	hud_level_name->Set_Image( pFont->Render_Text( pFont->m_font_normal, waypoint->Get_Destination(), color ), 1, 1 );
+	m_hud_level_name->Set_Image( pFont->Render_Text( pFont->m_font_normal, waypoint->Get_Destination(), color ), 1, 1 );
 }
 
 bool cOverworld :: Goto_Next_Level( void )
@@ -724,11 +843,11 @@ bool cOverworld :: Goto_Next_Level( void )
 	// if not in overworld only goto next level on overworld enter
 	if( Game_Mode != MODE_OVERWORLD )
 	{
-		next_level = 1;
+		m_next_level = 1;
 		return 0;
 	}
 
-	next_level = 0;
+	m_next_level = 0;
 
 	cWaypoint *current_waypoint = pOverworld_Player->Get_Waypoint();
 
@@ -800,12 +919,23 @@ bool cOverworld :: Goto_Next_Level( void )
 
 void cOverworld :: Reset_Waypoints( void )
 {
-	for( WaypointList::iterator itr = waypoints.begin(), itr_end = waypoints.end(); itr != itr_end; ++itr )
+	for( WaypointList::iterator itr = m_waypoints.begin(), itr_end = m_waypoints.end(); itr != itr_end; ++itr )
 	{
 		cWaypoint *obj = (*itr);
 
 		obj->Set_Access( obj->access_default );
 	}
+}
+
+bool cOverworld :: Is_Loaded( void ) const
+{
+	// if not loaded version is -1
+	if( m_engine_version >= 0 )
+	{
+		return 1;
+	}
+
+	return 0;
 }
 
 // XML element start
@@ -814,7 +944,7 @@ void cOverworld :: elementStart( const CEGUI::String &element, const CEGUI::XMLA
 	// Property of an Element
 	if( element == "Property" )
 	{
-		xml_attributes.add( attributes.getValueAsString( "name" ), attributes.getValueAsString( "value" ) );
+		m_xml_attributes.add( attributes.getValueAsString( "name" ), attributes.getValueAsString( "value" ) );
 	}
 }
 
@@ -825,40 +955,40 @@ void cOverworld :: elementEnd( const CEGUI::String &element )
 	{
 		if( element == "information" )
 		{
-			//engine_version = xml_attributes.getValueAsInteger( "engine_version" );
-			//last_saved = xml_attributes.getValueAsInteger( "save_time" );
+			m_engine_version = m_xml_attributes.getValueAsInteger( "engine_version" );
+			m_last_saved = m_xml_attributes.getValueAsInteger( "save_time" );
 		}
 		else if( element == "settings" )
 		{
 			// Author
-			//author = xml_attributes.getValueAsString( "author" ).c_str();
+			//author = m_xml_attributes.getValueAsString( "author" ).c_str();
 			// Version
-			//version = xml_attributes.getValueAsString( "version" ).c_str();
+			//version = m_xml_attributes.getValueAsString( "version" ).c_str();
 			// Music
-			musicfile = xml_attributes.getValueAsString( "music" ).c_str();
+			m_musicfile = m_xml_attributes.getValueAsString( "music" ).c_str();
 			// Camera Limits
-			//pOverworld_Manager->camera->Set_Limits( GL_rect( static_cast<float>(xml_attributes.getValueAsInteger( "cam_limit_x" )), static_cast<float>(xml_attributes.getValueAsInteger( "cam_limit_y" )), static_cast<float>(xml_attributes.getValueAsInteger( "cam_limit_w" )), static_cast<float>(xml_attributes.getValueAsInteger( "cam_limit_h" )) ) );
+			//pOverworld_Manager->camera->Set_Limits( GL_rect( static_cast<float>(m_xml_attributes.getValueAsInteger( "cam_limit_x" )), static_cast<float>(m_xml_attributes.getValueAsInteger( "cam_limit_y" )), static_cast<float>(m_xml_attributes.getValueAsInteger( "cam_limit_w" )), static_cast<float>(m_xml_attributes.getValueAsInteger( "cam_limit_h" )) ) );
 		}
 		else if( element == "player" )
 		{
 			// Start Waypoint
-			player_start_waypoint = xml_attributes.getValueAsInteger( "waypoint" );
+			m_player_start_waypoint = m_xml_attributes.getValueAsInteger( "waypoint" );
 			// Moving State
-			player_moving_state = static_cast<Moving_state>(xml_attributes.getValueAsInteger( "moving_state" ));
+			m_player_moving_state = static_cast<Moving_state>(m_xml_attributes.getValueAsInteger( "moving_state" ));
 		}
 		else if( element == "background" )
 		{
-			background_color = Color( static_cast<Uint8>(xml_attributes.getValueAsInteger( "color_red" )), xml_attributes.getValueAsInteger( "color_green" ), xml_attributes.getValueAsInteger( "color_blue" ) );
+			m_background_color = Color( static_cast<Uint8>(m_xml_attributes.getValueAsInteger( "color_red" )), m_xml_attributes.getValueAsInteger( "color_green" ), m_xml_attributes.getValueAsInteger( "color_blue" ) );
 		}
 		else
 		{
 			// get World object
-			cSprite *object = Get_World_Object( element, xml_attributes );
+			cSprite *object = Get_World_Object( element, m_xml_attributes );
 			
 			// valid
 			if( object )
 			{
-				sprite_manager->Add( object );
+				m_sprite_manager->Add( object );
 			}
 			else if( element == "overworld" )
 			{
@@ -871,110 +1001,7 @@ void cOverworld :: elementEnd( const CEGUI::String &element )
 		}
 
 		// clear
-		xml_attributes = CEGUI::XMLAttributes();
-	}
-}
-
-void cOverworld :: Draw( void )
-{
-	// Background
-	pVideo->Clear_Screen();
-	Draw_Layer_1();
-
-	// Player
-	pOverworld_Player->Draw();
-	// Hud
-	Draw_HUD();
-
-	// Editor
-	pWorld_Editor->Draw();
-}
-
-void cOverworld :: Draw_Layer_1( void )
-{
-	pVideo->Draw_Rect( NULL, 0.0001f, &background_color );
-
-	// Map
-	sprite_manager->Draw_Items();
-	// Animations
-	pAnimation_Manager->Draw();
-}
-
-void cOverworld :: Draw_HUD( void )
-{
-	// if not editor mode
-	if( !editor_world_enabled )
-	{
-		// Background
-		Color color = Color( static_cast<Uint8>(230), 170, 0, 128 );
-		pVideo->Draw_Rect( 0, 0, static_cast<float>(game_res_w), 30, 0.12f, &color );
-		// Line
-		color = Color( static_cast<Uint8>(200), 150, 0, 128 );
-		pVideo->Draw_Rect( 0, 30, static_cast<float>(game_res_w), 5, 0.121f, &color );
-
-		// Overworld name and level
-		hud_world_name->Draw();
-		hud_level_name->Draw();
-	}
-
-	// hud
-	pHud_Manager->Draw();
-}
-
-void cOverworld :: Update( void )
-{
-	// editor
-	pWorld_Editor->Process_Input();
-
-	if( !editor_world_enabled )
-	{
-		// Camera
-		Update_Camera();
-		// Map
-		sprite_manager->Update_Items();
-		// Player
-		pOverworld_Player->Update();
-		// Animations
-		pAnimation_Manager->Update();
-	}
-
-	// hud
-	pHud_Manager->Update();
-	// Editor
-	pWorld_Editor->Update();
-}
-
-void cOverworld :: Update_Camera( void )
-{
-	if( editor_world_enabled )
-	{
-		return;
-	}
-
-	// todo : move to a Process_Input function
-	if( pOverworld_Manager->cameramode )
-	{
-		if( pKeyboard->keys[pPreferences->key_right] || ( pJoystick->right && pPreferences->joy_enabled ) )
-		{
-			pActive_Camera->Move( pFramerate->speedfactor * 15, 0 );
-		}
-		else if( pKeyboard->keys[pPreferences->key_left] || ( pJoystick->left && pPreferences->joy_enabled ) )
-		{
-			pActive_Camera->Move( pFramerate->speedfactor * -15, 0 );
-		}
-		if( pKeyboard->keys[pPreferences->key_up] || ( pJoystick->up && pPreferences->joy_enabled ) )
-		{
-			pActive_Camera->Move( 0, pFramerate->speedfactor * -15 );
-		}
-		else if( pKeyboard->keys[pPreferences->key_down] || ( pJoystick->down && pPreferences->joy_enabled ) )
-		{
-			pActive_Camera->Move( 0, pFramerate->speedfactor * 15 );
-		}
-	}
-	// default player camera
-	else
-	{
-		pActive_Camera->Update();
+		m_xml_attributes = CEGUI::XMLAttributes();
 	}
 }
 

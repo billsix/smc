@@ -129,8 +129,6 @@ public:
 	// Return true if a level is loaded
 	bool Is_Loaded( void ) const;
 
-
-
 	// level filename
 	std::string m_level_filename;
 	// if a new level should be loaded this is the next level filename
@@ -180,7 +178,7 @@ private:
 	virtual void elementEnd( const CEGUI::String &element );
 
 	// XML element Item Tag list
-	CEGUI::XMLAttributes xml_attributes;
+	CEGUI::XMLAttributes m_xml_attributes;
 };
 
 /* Return the Level Object if element name is available else NULL

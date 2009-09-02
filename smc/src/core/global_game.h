@@ -29,7 +29,7 @@ namespace SMC
 // Caption
 #define CAPTION "Secret Maryo Chronicles"
 // Version
-static const float smc_version = 1.8f;
+static const float smc_version = 1.9f;
 
 /* *** *** *** *** *** *** *** Object Direction *** *** *** *** *** *** *** *** *** *** */
 
@@ -180,6 +180,8 @@ static const int speedfactor_fps = 32;
 
 /* *** level engine version *** */
 static const int level_engine_version = 34;
+/* *** world engine version *** */
+static const int world_engine_version = 1;
 
 /* *** Sprite Types *** */
 
@@ -223,6 +225,7 @@ enum SpriteType
 	TYPE_GEE = 43,
 	TYPE_SPIKA = 31,
 	TYPE_STATIC_ENEMY = 50,
+	TYPE_SPIKEBALL = 64,
 	// items
 	TYPE_POWERUP = 23,
 	TYPE_MUSHROOM_DEFAULT = 25,
@@ -305,8 +308,8 @@ enum Col_Valid_Type
 	COL_VTYPE_INTERNAL = 1,
 	// blocking
 	COL_VTYPE_BLOCKING = 2,
-	// no validation for ghost
-	COL_VTYPE_NO_GHOST = 3
+	// no validation possible for a sub-function
+	COL_VTYPE_NOT_POSSIBLE = 3
 };
 
 /* *** Input identifier ***  */

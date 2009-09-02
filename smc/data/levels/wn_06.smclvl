@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.8" />
+		<Property name="game_version" value="1.9" />
 		<Property name="engine_version" value="34" />
-		<Property name="save_time" value="1236085418" />
+		<Property name="save_time" value="1241106135" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="SMC Team" />
 		<Property name="lvl_version" value="1.2" />
-		<Property name="lvl_music" value="land/cave_3.ogg" />
+		<Property name="lvl_music" value="land/hyper_1.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
 		<Property name="cam_limit_w" value="8164" />
@@ -2256,11 +2256,11 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="1333" />
-		<Property name="posy" value="375" />
-		<Property name="color" value="blue" />
-		<Property name="direction" value="left" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="1254" />
+		<Property name="posy" value="378" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="flyon" />
@@ -2311,17 +2311,17 @@
 		<Property name="speed" value="5.8" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="5427" />
-		<Property name="posy" value="-1009" />
-		<Property name="color" value="brown" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="5400" />
+		<Property name="posy" value="-1016" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="6072" />
-		<Property name="posy" value="-925" />
-		<Property name="color" value="brown" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="6019" />
+		<Property name="posy" value="-927" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
@@ -2332,24 +2332,24 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="4595" />
-		<Property name="posy" value="-951" />
-		<Property name="color" value="brown" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="4540" />
+		<Property name="posy" value="-947" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="3331" />
-		<Property name="posy" value="278" />
-		<Property name="color" value="brown" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="3386" />
+		<Property name="posy" value="275" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="4156" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="4177" />
 		<Property name="posy" value="330" />
-		<Property name="color" value="brown" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
@@ -4633,73 +4633,73 @@
 	</sprite>
 	<sprite>
 		<Property name="posx" value="3874" />
-		<Property name="posy" value="-3281" />
+		<Property name="posy" value="-3266" />
 		<Property name="image" value="ground/plastic_1/screw_block_green/up.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="3874" />
-		<Property name="posy" value="-3171" />
+		<Property name="posy" value="-3156" />
 		<Property name="image" value="ground/plastic_1/screw_block_green/down.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="3984" />
-		<Property name="posy" value="-3226" />
+		<Property name="posy" value="-3211" />
 		<Property name="image" value="ground/plastic_1/screw_block_green/right.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="3819" />
-		<Property name="posy" value="-3226" />
+		<Property name="posy" value="-3211" />
 		<Property name="image" value="ground/plastic_1/screw_block_green/left.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="3874" />
-		<Property name="posy" value="-3226" />
+		<Property name="posy" value="-3211" />
 		<Property name="image" value="ground/plastic_1/screw_block_green/middle.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="3819" />
-		<Property name="posy" value="-3281" />
+		<Property name="posy" value="-3266" />
 		<Property name="image" value="ground/plastic_1/screw_block_green/left_up.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="3984" />
-		<Property name="posy" value="-3281" />
+		<Property name="posy" value="-3266" />
 		<Property name="image" value="ground/plastic_1/screw_block_green/right_up.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="3819" />
-		<Property name="posy" value="-3171" />
+		<Property name="posy" value="-3156" />
 		<Property name="image" value="ground/plastic_1/screw_block_green/left_down.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="3984" />
-		<Property name="posy" value="-3171" />
+		<Property name="posy" value="-3156" />
 		<Property name="image" value="ground/plastic_1/screw_block_green/right_down.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="3929" />
-		<Property name="posy" value="-3281" />
+		<Property name="posy" value="-3266" />
 		<Property name="image" value="ground/plastic_1/screw_block_green/up.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="3929" />
-		<Property name="posy" value="-3171" />
+		<Property name="posy" value="-3156" />
 		<Property name="image" value="ground/plastic_1/screw_block_green/down.png" />
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="3929" />
-		<Property name="posy" value="-3226" />
+		<Property name="posy" value="-3211" />
 		<Property name="image" value="ground/plastic_1/screw_block_green/middle.png" />
 		<Property name="type" value="massive" />
 	</sprite>
@@ -7442,10 +7442,10 @@
 		<Property name="posy" value="-1280" />
 	</enemystopper>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="3733" />
-		<Property name="posy" value="-1316" />
-		<Property name="color" value="blue" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="3732" />
+		<Property name="posy" value="-1323" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<sprite>
@@ -7609,10 +7609,10 @@
 		<Property name="posy" value="-3246" />
 	</enemystopper>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="7845" />
-		<Property name="posy" value="-3279" />
-		<Property name="color" value="blue" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="7843" />
+		<Property name="posy" value="-3288" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemystopper>
@@ -7658,25 +7658,25 @@
 	</item>
 	<enemystopper>
 		<Property name="posx" value="3804" />
-		<Property name="posy" value="-3294" />
+		<Property name="posy" value="-3279" />
 	</enemystopper>
 	<enemystopper>
 		<Property name="posx" value="4038" />
-		<Property name="posy" value="-3294" />
+		<Property name="posy" value="-3279" />
 	</enemystopper>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="3861" />
-		<Property name="posy" value="-3326" />
-		<Property name="color" value="brown" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="3934" />
+		<Property name="posy" value="-3316" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="4611" />
-		<Property name="posy" value="-3704" />
-		<Property name="color" value="blue" />
-		<Property name="direction" value="left" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="4626" />
+		<Property name="posy" value="-3705" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="right" />
 	</enemy>
 	<enemystopper>
 		<Property name="posx" value="5030" />
@@ -7735,24 +7735,24 @@
 		<Property name="speed" value="7" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="5596" />
-		<Property name="posy" value="-3228" />
-		<Property name="color" value="brown" />
-		<Property name="direction" value="left" />
-	</enemy>
-	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="4290" />
-		<Property name="posy" value="-2997" />
-		<Property name="color" value="brown" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="5642" />
+		<Property name="posy" value="-3230" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="4816" />
-		<Property name="posy" value="-3704" />
-		<Property name="color" value="brown" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="4196" />
+		<Property name="posy" value="-3003" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="right" />
+	</enemy>
+	<enemy>
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="4820" />
+		<Property name="posy" value="-3705" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<sprite>
@@ -7786,25 +7786,25 @@
 		<Property name="posy" value="-2051" />
 	</enemystopper>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="1692" />
-		<Property name="posy" value="-2090" />
-		<Property name="color" value="brown" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="1653" />
+		<Property name="posy" value="-2092" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="right" />
+	</enemy>
+	<enemy>
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="1467" />
+		<Property name="posy" value="-2094" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="1489" />
-		<Property name="posy" value="-2090" />
-		<Property name="color" value="blue" />
-		<Property name="direction" value="left" />
-	</enemy>
-	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="2527" />
-		<Property name="posy" value="-2455" />
-		<Property name="color" value="blue" />
-		<Property name="direction" value="left" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="2603" />
+		<Property name="posy" value="-2458" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="right" />
 	</enemy>
 	<enemystopper>
 		<Property name="posx" value="2389" />
@@ -7889,22 +7889,6 @@
 		<Property name="level_name" value="wn_06_down" />
 		<Property name="direction" value="down" />
 	</levelexit>
-	<moving_platform>
-		<Property name="posx" value="6177" />
-		<Property name="posy" value="-3262" />
-		<Property name="move_type" value="0" />
-		<Property name="massive_type" value="halfmassive" />
-		<Property name="direction" value="right" />
-		<Property name="max_distance" value="150" />
-		<Property name="speed" value="0" />
-		<Property name="touch_time" value="16" />
-		<Property name="shake_time" value="12" />
-		<Property name="touch_move_time" value="0" />
-		<Property name="middle_img_count" value="4" />
-		<Property name="image_top_left" value="ground/green_1/slider/1/brown/left.png" />
-		<Property name="image_top_middle" value="ground/green_1/slider/1/brown/middle.png" />
-		<Property name="image_top_right" value="ground/green_1/slider/1/brown/right.png" />
-	</moving_platform>
 	<moving_platform>
 		<Property name="posx" value="7216" />
 		<Property name="posy" value="-210" />
@@ -9282,4 +9266,40 @@
 		<Property name="gravity_y" value="0.1" />
 		<Property name="gravity_y_rand" value="0" />
 	</particle_emitter>
+	<sprite>
+		<Property name="posx" value="6177" />
+		<Property name="posy" value="-3262" />
+		<Property name="image" value="ground/green_1/slider/1/brown/left.png" />
+		<Property name="type" value="halfmassive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="6195" />
+		<Property name="posy" value="-3262" />
+		<Property name="image" value="ground/green_1/slider/1/brown/middle.png" />
+		<Property name="type" value="halfmassive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="6213" />
+		<Property name="posy" value="-3262" />
+		<Property name="image" value="ground/green_1/slider/1/brown/middle.png" />
+		<Property name="type" value="halfmassive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="6231" />
+		<Property name="posy" value="-3262" />
+		<Property name="image" value="ground/green_1/slider/1/brown/middle.png" />
+		<Property name="type" value="halfmassive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="6249" />
+		<Property name="posy" value="-3262" />
+		<Property name="image" value="ground/green_1/slider/1/brown/middle.png" />
+		<Property name="type" value="halfmassive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="6267" />
+		<Property name="posy" value="-3262" />
+		<Property name="image" value="ground/green_1/slider/1/brown/right.png" />
+		<Property name="type" value="halfmassive" />
+	</sprite>
 </level>

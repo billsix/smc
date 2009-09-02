@@ -216,7 +216,7 @@ private:
 	// current savegame level objects for level parsing
 	Save_Level_ObjectList level_objects;
 
-	// temp Save used for loading
+	// temp save used for loading
 	cSave *save_temp;
 };
 

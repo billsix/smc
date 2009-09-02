@@ -114,36 +114,38 @@ public:
 	*/
 	virtual void Draw( cSurface_Request *request = NULL );
 
-	/* Check if moving the current position with the given values is valid
-	 * uses the collision rect
+	/* Check if moving the current collision rect position with the given values is valid
 	 * check_type : set which collision types are added to the list
 	 * objects : if set check these object instead of all
+	 * The collision data should be deleted if not used anymore
 	*/
 	cObjectCollisionType *Collision_Check_Relative( const float x, const float y, const float w = 0, const float h = 0, const ColCheckType check_type = COLLIDE_COMPLETE, cSprite_List *objects = NULL );
 	/* Check if the given position is valid
 	 * Creates a collision rect with the given values
 	 * check_type : set which collision types are added to the list
 	 * objects : if set check these object instead of all
+	 * The collision data should be deleted if not used anymore
 	*/
 	cObjectCollisionType *Collision_Check_Absolute( const float x, const float y, const float w = 0, const float h = 0, const ColCheckType check_type = COLLIDE_COMPLETE, cSprite_List *objects = NULL );
 	/* Check if the given position is valid
 	 * new_rect : this is the source collision rect
 	 * check_type : set which collision types are added to the list
 	 * objects : if set check these object instead of all
+	 * The collision data should be deleted if not used anymore
 	*/
 	cObjectCollisionType *Collision_Check( const GL_rect &new_rect, const ColCheckType check_type = COLLIDE_COMPLETE, cSprite_List *objects = NULL );
 
 	/* Check if the given movement goes out of the level rect
 	 * handle : if set handle out of level if valid
 	*/
-	bool Check_out_of_Level_Hor( const float move_x, const bool handle = 0 );
-	bool Check_out_of_Level_Ver( const float move_y, const bool handle = 0 );
+	bool Check_Out_Of_Level_Hor( const float move_x, const bool handle = 0 );
+	bool Check_Out_Of_Level_Ver( const float move_y, const bool handle = 0 );
 	// Set the ground object
-	virtual bool Set_on_Ground( cSprite *obj, bool set_on_top = 1 );
+	virtual bool Set_On_Ground( cSprite *obj, bool set_on_top = 1 );
 	// Check if the Object is onground and sets the state to onground
 	virtual void Check_on_Ground( void );
 	// object looses onground state
-	void Reset_on_Ground( void );
+	void Reset_On_Ground( void );
 	// Corrects the position if the object got stuck
 	void Update_Anti_Stuck( void );
 
@@ -159,7 +161,7 @@ public:
 	*/
 	virtual void DownGrade( bool force = 0 );
 
-	// updates the direction on the current velocity
+	// updates the direction based on the current velocity
 	void Update_Direction( void );
 	/* set the horizontal sprite rotation based on x velocity
 	 * if start_rotation is set also set the start/editor rotation

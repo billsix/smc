@@ -15,6 +15,7 @@
 
 #include "../core/globals.h"
 #include "../core/framerate.h"
+#include "../core/math/utilities.h"
 // SDL
 #include "SDL.h"
 
@@ -47,8 +48,8 @@ void cPerformance_Timer :: Update( void )
 
 	// add milliseconds
 	Uint32 new_ticks = SDL_GetTicks();
-	ms_counter += new_ticks - pFramerate->perf_last_ticks;
-	pFramerate->perf_last_ticks = new_ticks;
+	ms_counter += new_ticks - pFramerate->m_perf_last_ticks;
+	pFramerate->m_perf_last_ticks = new_ticks;
 
 	// counted 100 frames
 	if( frame_counter >= 100 )
@@ -64,20 +65,20 @@ void cPerformance_Timer :: Update( void )
 
 cFramerate :: cFramerate( const float tfps /* = DESIRED_FPS */ )
 {
-	speedfactor = 0.1f;
-	fps = 0.0f;
-	fps_best = 0.0f;
-	fps_worst = 100.0f;
-	fps_average = 0;
+	m_speed_factor = 0.1f;
+	m_fps = 0.0f;
+	m_fps_best = 0.0f;
+	m_fps_worst = 100.0f;
+	m_fps_average = 0;
 
-	force_speedfactor = 0.0f;
+	m_force_speed_factor = 0.0f;
 
-	perf_last_ticks = 0;
+	m_perf_last_ticks = 0;
 
 	// create performance timers
 	for( unsigned int i = 0; i < 24; i++ )
 	{
-		perf_timer.push_back( new cPerformance_Timer() );
+		m_perf_timer.push_back( new cPerformance_Timer() );
 	}
 
 	Init( tfps );
@@ -86,115 +87,118 @@ cFramerate :: cFramerate( const float tfps /* = DESIRED_FPS */ )
 cFramerate :: ~cFramerate( void )
 {
 	// clear performance timer
-	for( Performance_Timer_List::iterator itr = perf_timer.begin(), itr_end = perf_timer.end(); itr != itr_end; ++itr )
+	for( Performance_Timer_List::iterator itr = m_perf_timer.begin(), itr_end = m_perf_timer.end(); itr != itr_end; ++itr )
 	{
 		delete *itr;
 	}
 
-	perf_timer.clear();
+	m_perf_timer.clear();
 }
 
 void cFramerate :: Init( const float tfps )
 {
-	fps_target = tfps;
-	maxspeedfactor = tfps * 0.15f;
-	currentticks = SDL_GetTicks();
-	framedelay = currentticks;
-	fps_average_framedelay = currentticks;
-	frames_counted = 0;
+	m_fps_target = tfps;
+	m_max_elapsed_ticks = 100;
+
+	Reset();
 }
 
 void cFramerate :: Update( void )
 {
-	currentticks = SDL_GetTicks();
+	Uint32 current_ticks = SDL_GetTicks();
 
-	// if speedfactor is forced
-	if( force_speedfactor != 0.0f )
+	// if speed factor is forced
+	if( !Is_Float_Equal( m_force_speed_factor, 0.0f ) )
 	{
-		speedfactor = force_speedfactor;
+		m_speed_factor = m_force_speed_factor;
+		m_elapsed_ticks = static_cast<Uint32>(( m_force_speed_factor * 1000 ) / m_fps_target);
+
+		// change to minimum
+		if( m_elapsed_ticks == 0 )
+		{
+			m_elapsed_ticks = 1;
+		}
 	}
-	// default speedfactor measuring
+	// measure speed factor
 	else
 	{
-		// check if the update was too early for SDL
-		if( currentticks == framedelay )
-		{
-			// prevent division by 0
-			speedfactor = 0.001f;
-		}
-		else
-		{
-			// frame speedfactor calculation
-			speedfactor = static_cast<float>(( currentticks - framedelay ) / ( 1000 / fps_target ));
+		// set elapsed ticks
+		m_elapsed_ticks = current_ticks - m_last_ticks;
 
-			// minimum
-			if( speedfactor < 0.001f )
-			{
-				speedfactor = 0.001f;
-			}
-			// maximum
-			else if( speedfactor > maxspeedfactor ) 
-			{
-				speedfactor = maxspeedfactor;
-			}
+		// minimum
+		if( m_elapsed_ticks == 0 )
+		{
+			m_elapsed_ticks = 1;
 		}
+		// maximum
+		else if( m_elapsed_ticks > m_max_elapsed_ticks )
+		{
+			m_elapsed_ticks = m_max_elapsed_ticks;
+		}
+
+		// speed factor calculation for this frame
+		m_speed_factor = static_cast<float>(m_elapsed_ticks / ( 1000 / m_fps_target ));
 	}
 
-	// speedfactor based fps
-	fps = fps_target / speedfactor;
+	// speed factor based fps
+	m_fps = m_fps_target / m_speed_factor;
 	
 	// calculate average fps every second
-	if( currentticks - fps_average_framedelay > 1000 )
+	if( current_ticks - m_fps_average_framedelay > 1000 )
 	{
-		fps_average = frames_counted;
+		m_fps_average = m_frames_counted;
 
-		fps_average_framedelay += 1000;
-		frames_counted = 0;
+		m_fps_average_framedelay += 1000;
+		m_frames_counted = 0;
 	}
 	// count a fps
 	else
 	{
-		frames_counted++;
+		m_frames_counted++;
 	}
 
 	// best fps
-	if( fps > fps_best )
+	if( m_fps > m_fps_best )
 	{
-		fps_best = fps;
+		m_fps_best = m_fps;
 	}
 	// worst fps
-	else if( fps < fps_worst )
+	else if( m_fps < m_fps_worst )
 	{
-		fps_worst = fps;
+		m_fps_worst = m_fps;
 	}
 
-	framedelay = currentticks;
+	m_last_ticks = current_ticks;
 }
 
 void cFramerate :: Reset( void )
 {
-	framedelay = SDL_GetTicks();
-	speedfactor = 0.1f;
-	fps_best = 0;
-	fps_worst = 100000;
-	fps_average = 0;
+	m_last_ticks = SDL_GetTicks();
+	m_elapsed_ticks = 1;
+	m_speed_factor = 0.001f;
+	m_fps_best = 0;
+	m_fps_worst = 100000;
+	m_fps_average = 0;
+	m_frames_counted = 0;
 
 	// reset performance timer
-	for( Performance_Timer_List::iterator itr = perf_timer.begin(), itr_end = perf_timer.end(); itr != itr_end; ++itr )
+	for( Performance_Timer_List::iterator itr = m_perf_timer.begin(), itr_end = m_perf_timer.end(); itr != itr_end; ++itr )
 	{
 		(*itr)->Reset();
 	}
 }
 
-void cFramerate :: Set_Max_Speed_Factor( const float maximum )
+void cFramerate :: Set_Max_Elapsed_Ticks( const Uint32 ticks )
 {
-	maxspeedfactor = maximum;
+	m_max_elapsed_ticks = ticks;
 }
 
 void cFramerate :: Set_Fixed_Speedfacor( const float val )
 {
-	force_speedfactor = val;
+	m_force_speed_factor = val;
 }
+
+/* *** *** *** *** *** *** *** helper functions *** *** *** *** *** *** *** *** *** *** */
 
 void Correct_Frame_Time( const unsigned int fps )
 {

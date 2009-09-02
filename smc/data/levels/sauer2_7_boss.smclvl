@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.8" />
+		<Property name="game_version" value="1.9" />
 		<Property name="engine_version" value="34" />
-		<Property name="save_time" value="1238479881" />
+		<Property name="save_time" value="1241105721" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Guest_xD and FluXy" />
@@ -983,7 +983,7 @@
 		<Property name="posy" value="256" />
 		<Property name="image_dir" value="enemy/thromp/" />
 		<Property name="direction" value="down" />
-		<Property name="max_distance" value="300" />
+		<Property name="max_distance" value="289" />
 		<Property name="speed" value="8" />
 	</enemy>
 	<sprite>

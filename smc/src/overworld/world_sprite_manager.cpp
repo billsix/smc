@@ -49,12 +49,12 @@ void cWorld_Sprite_Manager :: Add( cSprite *sprite )
 	// Add to Waypoints array
 	if( sprite->m_type == TYPE_OW_WAYPOINT )
 	{
-		n_origin->waypoints.push_back( static_cast<cWaypoint *>(sprite) );
+		n_origin->m_waypoints.push_back( static_cast<cWaypoint *>(sprite) );
 	}
 	// Add layer line point start to the world layer
 	else if( sprite->m_type == TYPE_OW_LINE_START )
 	{
-		n_origin->pLayer->Add( static_cast<cLayer_Line_Point_Start *>(sprite) );
+		n_origin->m_layer->Add( static_cast<cLayer_Line_Point_Start *>(sprite) );
 	}
 }
 

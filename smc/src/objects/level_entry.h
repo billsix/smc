@@ -17,7 +17,7 @@
 #define SMC_LEVEL_ENTRY_H
 
 #include "../core/globals.h"
-#include "../objects/objectsprite.h"
+#include "../objects/animated_sprite.h"
 
 namespace SMC
 {
@@ -35,7 +35,7 @@ enum Level_Entry_type
 /* Level Entry
  * 
 */
-class cLevel_Entry : public cImageObjectSprite
+class cLevel_Entry : public cAnimated_Sprite
 {
 public:
 	// constructor

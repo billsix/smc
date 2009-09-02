@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.8" />
+		<Property name="game_version" value="1.9" />
 		<Property name="engine_version" value="34" />
-		<Property name="save_time" value="1238498487" />
+		<Property name="save_time" value="1241889751" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Sauer2 and SMC Team" />
@@ -396,11 +396,11 @@
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="207" />
-		<Property name="posy" value="180" />
-		<Property name="color" value="brown" />
+		<Property name="type" value="rokko" />
+		<Property name="posx" value="1211" />
+		<Property name="posy" value="-84" />
 		<Property name="direction" value="left" />
+		<Property name="speed" value="8.5" />
 	</enemy>
 	<sprite>
 		<Property name="posx" value="607" />
@@ -481,8 +481,8 @@
 	</box>
 	<enemy>
 		<Property name="type" value="rokko" />
-		<Property name="posx" value="1341" />
-		<Property name="posy" value="-148" />
+		<Property name="posx" value="2181" />
+		<Property name="posy" value="39" />
 		<Property name="direction" value="left" />
 		<Property name="speed" value="8.5" />
 	</enemy>
@@ -586,7 +586,7 @@
 		<Property name="posx" value="1682" />
 		<Property name="posy" value="413" />
 		<Property name="image" value="ground/green_3/ground/middle/left_top.png" />
-		<Property name="type" value="massive" />
+		<Property name="type" value="front_passive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1682" />
@@ -622,25 +622,25 @@
 		<Property name="posx" value="1490" />
 		<Property name="posy" value="477" />
 		<Property name="image" value="ground/green_3/ground/middle/1.png" />
-		<Property name="type" value="massive" />
+		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1554" />
 		<Property name="posy" value="477" />
 		<Property name="image" value="ground/green_3/ground/middle/1.png" />
-		<Property name="type" value="massive" />
+		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1618" />
 		<Property name="posy" value="477" />
 		<Property name="image" value="ground/green_3/ground/middle/1.png" />
-		<Property name="type" value="massive" />
+		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1682" />
 		<Property name="posy" value="477" />
 		<Property name="image" value="ground/green_3/ground/middle/1.png" />
-		<Property name="type" value="massive" />
+		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
 		<Property name="posx" value="1490" />
@@ -698,13 +698,6 @@
 		<Property name="type" value="furball" />
 		<Property name="posx" value="1522" />
 		<Property name="posy" value="354" />
-		<Property name="color" value="brown" />
-		<Property name="direction" value="left" />
-	</enemy>
-	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="1600" />
-		<Property name="posy" value="355" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
@@ -905,13 +898,6 @@
 	<enemy>
 		<Property name="type" value="furball" />
 		<Property name="posx" value="2206" />
-		<Property name="posy" value="495" />
-		<Property name="color" value="brown" />
-		<Property name="direction" value="right" />
-	</enemy>
-	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="2297" />
 		<Property name="posy" value="495" />
 		<Property name="color" value="brown" />
 		<Property name="direction" value="right" />
@@ -1508,13 +1494,6 @@
 		<Property name="color" value="brown" />
 		<Property name="direction" value="right" />
 	</enemy>
-	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="3493" />
-		<Property name="posy" value="457" />
-		<Property name="color" value="brown" />
-		<Property name="direction" value="right" />
-	</enemy>
 	<moving_platform>
 		<Property name="posx" value="3980" />
 		<Property name="posy" value="564" />
@@ -1720,7 +1699,7 @@
 		<Property name="rotation_speed" value="4" />
 		<Property name="image" value="enemy/static/blocks/spike_1/2_grey.png" />
 		<Property name="path" value="stone_1" />
-		<Property name="speed" value="5" />
+		<Property name="speed" value="5.5" />
 	</enemy>
 	<path>
 		<Property name="posx" value="3743" />
@@ -1747,24 +1726,6 @@
 		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="160" />
 		<Property name="speed" value="5.8" />
-	</enemy>
-	<enemy>
-		<Property name="type" value="spika" />
-		<Property name="posx" value="4812" />
-		<Property name="posy" value="265" />
-		<Property name="color" value="green" />
-	</enemy>
-	<enemy>
-		<Property name="type" value="spika" />
-		<Property name="posx" value="2583" />
-		<Property name="posy" value="138" />
-		<Property name="color" value="green" />
-	</enemy>
-	<enemy>
-		<Property name="type" value="spika" />
-		<Property name="posx" value="1071" />
-		<Property name="posy" value="76" />
-		<Property name="color" value="grey" />
 	</enemy>
 	<sprite>
 		<Property name="posx" value="393" />
@@ -1849,5 +1810,17 @@
 		<Property name="posy" value="332" />
 		<Property name="image" value="ground/green_3/ground/top/right.png" />
 		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="1426" />
+		<Property name="posy" value="413" />
+		<Property name="image" value="ground/green_3/ground/top/left.png" />
+		<Property name="type" value="front_passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="1490" />
+		<Property name="posy" value="413" />
+		<Property name="image" value="ground/green_3/ground/top/1.png" />
+		<Property name="type" value="front_passive" />
 	</sprite>
 </level>

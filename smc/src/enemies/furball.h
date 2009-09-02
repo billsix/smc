@@ -70,13 +70,20 @@ public:
 	 * force : usually dies or a complete downgrade
 	*/
 	virtual void DownGrade( bool force = 0 );
-	virtual void DieStep( void );
+	// dying animation update
+	virtual void Update_Dying( void );
+
+	// set the moving state
+	void Set_Moving_State( Moving_state new_state );
 
 	// update
 	virtual void Update( void );
 
 	// Generates Star Particles (only used if boss)
 	void Generate_Smoke( unsigned int amount = 1, float particle_scale = 0.4f ) const;
+
+	// update the current velocity
+	void Update_Velocity( void );
 
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
@@ -102,25 +109,25 @@ public:
 	bool Editor_Max_Downgrade_Count_Text_Changed( const CEGUI::EventArgs &event );
 
 	// Color
-	DefaultColor color_type;
+	DefaultColor m_color_type;
 
 private:
 	// Create the Name from the current settings
 	void Create_Name( void );
 
 	// walking speed (only used if boss)
-	float speed_walk;
+	float m_speed_walk;
 	// counter if hit (only used if boss)
-	float counter_hit;
+	float m_counter_hit;
 	// counter if running (only used if boss)
-	float counter_running;
+	float m_counter_running;
 	// particle counter if running (only used if boss)
-	float running_particle_counter;
+	float m_running_particle_counter;
 
 	// times downgraded (only used if boss)
-	int downgrade_count;
+	int m_downgrade_count;
 	// maximum downgrades until death (only used if boss)
-	int max_downgrade_count;
+	int m_max_downgrade_count;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

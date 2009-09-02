@@ -39,13 +39,13 @@ const float deg_to_rad = static_cast<float>(M_PI / 180.0f);
 /* *** *** *** *** *** *** *** cMoving_Platform *** *** *** *** *** *** *** *** *** *** */
 
 cMoving_Platform :: cMoving_Platform( float x, float y )
-: cImageObjectSprite( x, y )
+: cAnimated_Sprite( x, y )
 {
 	cMoving_Platform::Init();
 }
 
 cMoving_Platform :: cMoving_Platform( CEGUI::XMLAttributes &attributes )
-: cImageObjectSprite()
+: cAnimated_Sprite()
 {
 	cMoving_Platform::Init();
 	cMoving_Platform::Create_From_Stream( attributes );
@@ -90,9 +90,9 @@ void cMoving_Platform :: Init( void )
 
 	Set_Middle_Count( 4 );
 	// create default images
-	m_images.push_back( pVideo->Get_Surface( "ground/green_1/slider/1/brown/left.png" ) );
-	m_images.push_back( pVideo->Get_Surface( "ground/green_1/slider/1/brown/middle.png" ) );
-	m_images.push_back( pVideo->Get_Surface( "ground/green_1/slider/1/brown/right.png" ) );
+	Add_Image( pVideo->Get_Surface( "ground/green_1/slider/1/brown/left.png" ) );
+	Add_Image( pVideo->Get_Surface( "ground/green_1/slider/1/brown/middle.png" ) );
+	Add_Image( pVideo->Get_Surface( "ground/green_1/slider/1/brown/right.png" ) );
 	Set_Image_Num( 1, 1 );
 
 	Update_Rect();
@@ -119,9 +119,9 @@ cMoving_Platform *cMoving_Platform :: Copy( void )
 	moving_platform->Set_Shake_Time( shake_time );
 	moving_platform->Set_Touch_Move_Time( touch_move_time );
 	moving_platform->Set_Middle_Count( middle_count );
-	moving_platform->Set_Image_Top_Left( m_images[0] );
-	moving_platform->Set_Image_Top_Middle( m_images[1] );
-	moving_platform->Set_Image_Top_Right( m_images[2] );
+	moving_platform->Set_Image_Top_Left( m_images[0].m_image );
+	moving_platform->Set_Image_Top_Middle( m_images[1].m_image );
+	moving_platform->Set_Image_Top_Right( m_images[2].m_image );
 
 	return moving_platform;
 }
@@ -158,11 +158,11 @@ void cMoving_Platform :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 	// middle image count
 	Set_Middle_Count( attributes.getValueAsInteger( "middle_img_count", middle_count ) );
 	// image top left
-	Set_Image_Top_Left( pVideo->Get_Surface( attributes.getValueAsString( "image_top_left", m_images[0]->Get_Filename() ).c_str() ) );
+	Set_Image_Top_Left( pVideo->Get_Surface( attributes.getValueAsString( "image_top_left", m_images[0].m_image->Get_Filename() ).c_str() ) );
 	// image top middle
-	Set_Image_Top_Middle( pVideo->Get_Surface( attributes.getValueAsString( "image_top_middle", m_images[1]->Get_Filename() ).c_str() ) );
+	Set_Image_Top_Middle( pVideo->Get_Surface( attributes.getValueAsString( "image_top_middle", m_images[1].m_image->Get_Filename() ).c_str() ) );
 	// image top right
-	Set_Image_Top_Right( pVideo->Get_Surface( attributes.getValueAsString( "image_top_right", m_images[2]->Get_Filename() ).c_str() ) );
+	Set_Image_Top_Right( pVideo->Get_Surface( attributes.getValueAsString( "image_top_right", m_images[2].m_image->Get_Filename() ).c_str() ) );
 }
 
 void cMoving_Platform :: Save_To_Stream( ofstream &file )
@@ -205,11 +205,11 @@ void cMoving_Platform :: Save_To_Stream( ofstream &file )
 	// middle image count
 	file << "\t\t<Property name=\"middle_img_count\" value=\"" << middle_count << "\" />" << std::endl;
 	// image top left
-	file << "\t\t<Property name=\"image_top_left\" value=\"" << m_images[0]->Get_Filename( 1 ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"image_top_left\" value=\"" << m_images[0].m_image->Get_Filename( 1 ) << "\" />" << std::endl;
 	// image top middle
-	file << "\t\t<Property name=\"image_top_middle\" value=\"" << m_images[1]->Get_Filename( 1 ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"image_top_middle\" value=\"" << m_images[1].m_image->Get_Filename( 1 ) << "\" />" << std::endl;
 	// image top right
-	file << "\t\t<Property name=\"image_top_right\" value=\"" << m_images[2]->Get_Filename( 1 ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"image_top_right\" value=\"" << m_images[2].m_image->Get_Filename( 1 ) << "\" />" << std::endl;
 
 	// end moving_platform
 	file << "\t</moving_platform>" << std::endl;
@@ -353,7 +353,7 @@ void cMoving_Platform :: Set_Direction( const ObjectDirection dir, bool new_star
 	// save old direction
 	ObjectDirection start_direction_old = m_start_direction;
 	// set direction
-	cImageObjectSprite::Set_Direction( dir, new_start_direction );
+	cAnimated_Sprite::Set_Direction( dir, new_start_direction );
 
 	if( new_start_direction )
 	{
@@ -452,7 +452,7 @@ void cMoving_Platform :: Set_Image_Top_Left( cGL_Surface *surface )
 		return;
 	}
 
-	m_images[0] = surface;
+	m_images[0].m_image = surface;
 
 	// top left image sets main image
 	m_curr_img = -1;
@@ -468,7 +468,7 @@ void cMoving_Platform :: Set_Image_Top_Middle( cGL_Surface *surface )
 		return;
 	}
 
-	m_images[1] = surface;
+	m_images[1].m_image = surface;
 	Update_Rect();
 }
 
@@ -479,7 +479,7 @@ void cMoving_Platform :: Set_Image_Top_Right( cGL_Surface *surface )
 		return;
 	}
 
-	m_images[2] = surface;
+	m_images[2].m_image = surface;
 	Update_Rect();
 }
 
@@ -498,7 +498,7 @@ void cMoving_Platform :: Update( void )
 	{
 		if( m_platform_state == MOVING_PLATFORM_TOUCHED )
 		{
-			touch_counter += pFramerate->speedfactor;
+			touch_counter += pFramerate->m_speed_factor;
 		}
 	}
 
@@ -512,12 +512,12 @@ void cMoving_Platform :: Update( void )
 		}
 		else if( m_platform_state == MOVING_PLATFORM_SHAKE )
 		{
-			shake_counter += pFramerate->speedfactor;
+			shake_counter += pFramerate->m_speed_factor;
 
 			// move right
 			if( shake_dir == 0 )
 			{
-				shake_dir_counter += 8 * pFramerate->speedfactor;
+				shake_dir_counter += 8 * pFramerate->m_speed_factor;
 
 				if( shake_dir_counter > 3.0f )
 				{
@@ -529,7 +529,7 @@ void cMoving_Platform :: Update( void )
 			// move left
 			else
 			{
-				shake_dir_counter -= 8 * pFramerate->speedfactor;
+				shake_dir_counter -= 8 * pFramerate->m_speed_factor;
 
 				if( shake_dir_counter < -3.0f )
 				{
@@ -548,7 +548,7 @@ void cMoving_Platform :: Update( void )
 		{
 			if( m_vely < 25.0f )
 			{
-				m_vely += 2.1f * pFramerate->speedfactor;
+				m_vely += 2.1f * pFramerate->m_speed_factor;
 
 				// limit falling velocity
 				if( m_vely > 25.0f )
@@ -566,11 +566,11 @@ void cMoving_Platform :: Update( void )
 
 			if( m_pos_x > m_start_pos_x )
 			{
-				Add_Rotation_Z( 1.5f * pFramerate->speedfactor );
+				Add_Rotation_Z( 1.5f * pFramerate->m_speed_factor );
 			}
 			else
 			{
-				Add_Rotation_Z( -1.5f * pFramerate->speedfactor );
+				Add_Rotation_Z( -1.5f * pFramerate->m_speed_factor );
 			}
 
 			// below screen (+300 to be sure nothing can collide with it anymore)
@@ -654,7 +654,7 @@ void cMoving_Platform :: Update( void )
 						// slow down
 						if( m_vely > lowest_speed )
 						{
-							m_vely *= 1 - ( 0.05f * pFramerate->speedfactor );
+							m_vely *= 1 - ( 0.05f * pFramerate->m_speed_factor );
 
 							// reached lowest value
 							if( m_vely <= lowest_speed )
@@ -676,7 +676,7 @@ void cMoving_Platform :: Update( void )
 						// slow down
 						if( m_vely < -lowest_speed )
 						{
-							m_vely *= 1 - ( 0.05f * pFramerate->speedfactor );
+							m_vely *= 1 - ( 0.05f * pFramerate->m_speed_factor );
 
 							// reached lowest value
 							if( m_vely >= -lowest_speed )
@@ -698,7 +698,7 @@ void cMoving_Platform :: Update( void )
 						// slow down
 						if( m_velx < -lowest_speed )
 						{
-							m_velx *= 1 - ( 0.05f * pFramerate->speedfactor );
+							m_velx *= 1 - ( 0.05f * pFramerate->m_speed_factor );
 
 							// reached lowest value
 							if( m_velx >= -lowest_speed )
@@ -720,7 +720,7 @@ void cMoving_Platform :: Update( void )
 						// slow down
 						if( m_velx > lowest_speed )
 						{
-							m_velx *= 1 - ( 0.05f * pFramerate->speedfactor );
+							m_velx *= 1 - ( 0.05f * pFramerate->m_speed_factor );
 
 							// reached lowest value
 							if( m_velx <= lowest_speed )
@@ -747,7 +747,7 @@ void cMoving_Platform :: Update( void )
 			// increase angle
 			if( m_direction == DIR_RIGHT )
 			{
-				moving_angle += speed * pFramerate->speedfactor;
+				moving_angle += speed * pFramerate->m_speed_factor;
 
 				if( moving_angle > 360.0f )
 				{
@@ -756,7 +756,7 @@ void cMoving_Platform :: Update( void )
 			}
 			else
 			{
-				moving_angle -= speed * pFramerate->speedfactor;
+				moving_angle -= speed * pFramerate->m_speed_factor;
 
 				if( moving_angle < 0.0f )
 				{
@@ -776,10 +776,13 @@ void cMoving_Platform :: Update( void )
 			if( m_path_state.m_path )
 			{
 				// move along path
-				if( m_path_state.Path_Move( speed * pFramerate->speedfactor ) == 0 )
+				if( m_path_state.Path_Move( speed * pFramerate->m_speed_factor ) == 0 )
 				{
-					// if we can not move further along the path, reverse the direction
-					m_path_state.Move_Toggle();
+					if( !m_path_state.m_path->m_rewind )
+					{
+						// if we can not move further along the path, reverse the direction
+						m_path_state.Move_Toggle();
+					}
 				}
 
 				// get difference
@@ -817,49 +820,49 @@ void cMoving_Platform :: Draw( cSurface_Request *request /* = NULL */ )
 	}
 
 	// top left
-	if( m_images[0] )
+	if( m_images[0].m_image )
 	{
 		// Start
-		m_image = m_images[0];
-		m_start_image = m_images[0];
+		m_image = m_images[0].m_image;
+		m_start_image = m_image;
 		// create request
 
 		surface_request = new cSurface_Request();
 		// draw only first image complete
-		cImageObjectSprite::Draw( surface_request );
+		cAnimated_Sprite::Draw( surface_request );
 		surface_request->pos_x += x;
-		x += m_images[0]->m_w;
+		x += m_images[0].m_image->m_w;
 		// add request
 		pRenderer->Add( surface_request );
 	}
 
 	// top middle
-	if( m_images[1] )
+	if( m_images[1].m_image )
 	{
 		// Middle
-		m_image = m_images[1];
-		m_start_image = m_images[1];
+		m_image = m_images[1].m_image;
+		m_start_image = m_image;
 		for( unsigned int i = 0; i < middle_count; i++ )
 		{
 			// create request
 			surface_request = new cSurface_Request();
-			cImageObjectSprite::Draw_Image( surface_request);
+			cAnimated_Sprite::Draw_Image( surface_request);
 			surface_request->pos_x += x;
-			x += m_images[1]->m_w;
+			x += m_images[1].m_image->m_w;
 			// add request
 			pRenderer->Add( surface_request );
 		}
 	}
 
 	// top right
-	if( m_images[2] )
+	if( m_images[2].m_image )
 	{
 		// End
-		m_image = m_images[2];
-		m_start_image = m_images[2];
+		m_image = m_images[2].m_image;
+		m_start_image = m_image;
 		// create request
 		surface_request = new cSurface_Request();
-		cImageObjectSprite::Draw_Image( surface_request );
+		cAnimated_Sprite::Draw_Image( surface_request );
 		surface_request->pos_x += x;
 		//x += m_images[2]->w;
 		// add request
@@ -912,17 +915,17 @@ void cMoving_Platform :: Update_Rect( void )
 	m_rect.m_w = 0;
 
 	// get width
-	if( m_images[0] )
+	if( m_images[0].m_image )
 	{
-		m_rect.m_w += m_images[0]->m_w;
+		m_rect.m_w += m_images[0].m_image->m_w;
 	}
-	if( m_images[1] )
+	if( m_images[1].m_image )
 	{
-		m_rect.m_w += m_images[1]->m_w * middle_count;
+		m_rect.m_w += m_images[1].m_image->m_w * middle_count;
 	}
-	if( m_images[2] )
+	if( m_images[2].m_image )
 	{
-		m_rect.m_w += m_images[2]->m_w;
+		m_rect.m_w += m_images[2].m_image->m_w;
 	}
 
 	// set width
@@ -944,28 +947,28 @@ void cMoving_Platform :: Update_Velocity( void )
 		{
 			if( m_vely > -speed )
 			{
-				m_vely += -speed * 0.1f * pFramerate->speedfactor;
+				m_vely += -speed * 0.1f * pFramerate->m_speed_factor;
 			}
 		}
 		else if( m_direction == DIR_DOWN )
 		{
 			if( m_vely < speed )
 			{
-				m_vely += speed * 0.1f * pFramerate->speedfactor;
+				m_vely += speed * 0.1f * pFramerate->m_speed_factor;
 			}
 		}
 		else if( m_direction == DIR_LEFT )
 		{
 			if( m_velx > -speed )
 			{
-				m_velx += -speed * 0.1f * pFramerate->speedfactor;
+				m_velx += -speed * 0.1f * pFramerate->m_speed_factor;
 			}
 		}
 		else if( m_direction == DIR_RIGHT )
 		{
 			if( m_velx < speed )
 			{
-				m_velx += speed * 0.1f * pFramerate->speedfactor;
+				m_velx += speed * 0.1f * pFramerate->m_speed_factor;
 			}
 		}
 	}
@@ -989,13 +992,13 @@ bool cMoving_Platform :: Is_Update_Valid( void )
 
 bool cMoving_Platform :: Is_Draw_Valid( void )
 {
-	bool valid = cImageObjectSprite::Is_Draw_Valid();
+	bool valid = cAnimated_Sprite::Is_Draw_Valid();
 
 	// if editor enabled
 	if( editor_enabled )
 	{
 		// if active mouse object
-		if( pMouseCursor->active_object == this )
+		if( pMouseCursor->m_active_object == this )
 		{
 			return 1;
 		}
@@ -1012,7 +1015,7 @@ Col_Valid_Type cMoving_Platform :: Validate_Collision( cSprite *obj )
 
 		Col_Valid_Type validation = Validate_Collision_Object_On_Top( moving_sprite );
 
-		if( validation != COL_VTYPE_NO_GHOST )
+		if( validation != COL_VTYPE_NOT_POSSIBLE )
 		{
 			return validation;
 		}
@@ -1169,21 +1172,21 @@ void cMoving_Platform :: Editor_Activate( void )
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_image_top_left" ));
 	Editor_Add( UTF8_("Image top left"), UTF8_("Image top left"), editbox, 200 );
 
-	editbox->setText( m_images[0]->Get_Filename( 1 ) );
+	editbox->setText( m_images[0].m_image->Get_Filename( 1 ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Image_Top_Left_Text_Changed, this ) );
 
 	// image top middle
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_image_top_middle" ));
 	Editor_Add( UTF8_("Image top middle"), UTF8_("Image top middle"), editbox, 200 );
 
-	editbox->setText( m_images[1]->Get_Filename( 1 ) );
+	editbox->setText( m_images[1].m_image->Get_Filename( 1 ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Image_Top_Middle_Text_Changed, this ) );
 
 	// image top right
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_moving_platform_image_top_right" ));
 	Editor_Add( UTF8_("Image top right"), UTF8_("Image top right"), editbox, 200 );
 
-	editbox->setText( m_images[2]->Get_Filename( 1 ) );
+	editbox->setText( m_images[2].m_image->Get_Filename( 1 ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Image_Top_Right_Text_Changed, this ) );
 
 	// init

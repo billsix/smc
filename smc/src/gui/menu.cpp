@@ -76,11 +76,11 @@ void cMenu_Item :: Draw( cSurface_Request *request /* = NULL */ )
 		// rotation is used for the scale state
 		if( !m_rot_z )
 		{
-			Add_Scale( ( 1.2f / m_image->m_w ) * pFramerate->speedfactor );
+			Add_Scale( ( 1.2f / m_image->m_w ) * pFramerate->m_speed_factor );
 		}
 		else
 		{
-			Add_Scale( -( 1.2f / m_image->m_w ) * pFramerate->speedfactor );
+			Add_Scale( -( 1.2f / m_image->m_w ) * pFramerate->m_speed_factor );
 		}
 
 		if( m_image->m_w * m_scale_x > m_image->m_w + 10.0f )
@@ -118,7 +118,7 @@ cMenuHandler :: cMenuHandler( void )
 	m_player->Set_Massive_Type( MASS_PASSIVE );
 	Reset();
 
-	m_level->Load( pPreferences->menu_level );
+	m_level->Load( pPreferences->m_menu_level );
 
 	// SMC logo image
 	cHudSprite *sprite = new cHudSprite( pVideo->Get_Surface( "game/logo/smc_big_1.png" ), 180, 20 );
@@ -203,7 +203,7 @@ void cMenuHandler :: Update_Mouse( void )
 	// check
 	for( unsigned int i = 0; i < items.size(); i++ )
 	{
-		if( items[i]->m_col_rect.Intersects( static_cast<float>(pMouseCursor->x), static_cast<float>(pMouseCursor->y) ) )
+		if( items[i]->m_col_rect.Intersects( static_cast<float>(pMouseCursor->m_x), static_cast<float>(pMouseCursor->m_y) ) )
 		{
 			found = i;
 			break;
@@ -211,7 +211,7 @@ void cMenuHandler :: Update_Mouse( void )
 	}
 
 	// ignore mouse init
-	if( found < 0 && input_event.motion.x == pMouseCursor->x )
+	if( found < 0 && input_event.motion.x == pMouseCursor->m_x )
 	{
 		return;
 	}
@@ -369,7 +369,7 @@ bool cMenuCore :: Key_Down( SDLKey key )
 		}
 	}
 	// Fast Debug Level entering
-	else if( key == SDLK_x && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
+	else if( key == SDLK_x && input_event.key.keysym.mod & KMOD_CTRL )
 	{
 		// random level name
 		std::string lvl_name;
@@ -437,7 +437,7 @@ bool cMenuCore :: Key_Up( SDLKey key )
 bool cMenuCore :: Joy_Button_Down( Uint8 button )
 {
 	// Activate button
-	if( button == pPreferences->joy_button_action )
+	if( button == pPreferences->m_joy_button_action )
 	{
 		if( pMenu_Data )
 		{
@@ -445,7 +445,7 @@ bool cMenuCore :: Joy_Button_Down( Uint8 button )
 		}
 	}
 	// exit
-	else if( button == pPreferences->joy_button_exit )
+	else if( button == pPreferences->m_joy_button_exit )
 	{
 		pMenu_Data->Exit();
 	}
@@ -483,7 +483,7 @@ bool cMenuCore :: Mouse_Down( Uint8 button )
 	{
 		cMenu_Item *item = handler->Get_Active_Item();
 
-		if( item && item->m_col_rect.Intersects( static_cast<float>(pMouseCursor->x), static_cast<float>(pMouseCursor->y) ) )
+		if( item && item->m_col_rect.Intersects( static_cast<float>(pMouseCursor->m_x), static_cast<float>(pMouseCursor->m_y) ) )
 		{
 			pMenu_Data->action = 1;
 			return 1;
@@ -566,8 +566,8 @@ void cMenuCore :: Load( MenuID menu /* = MENU_MAIN */, GameMode exit_gamemode /*
 		// set camera position
 		camera->Set_Pos( 0, 0 );
 
-		// pre render
-		pFramerate->speedfactor = 4;
+		// pre update
+		pFramerate->m_speed_factor = 4.0f;
 
 		for( unsigned int i = 0; i < speedfactor_fps * 200; i++ )
 		{
@@ -676,7 +676,7 @@ void cMenuCore :: Draw( void )
 	pMenu_Data->Draw();
 
 	// if no vsync limit the fps for not stressing CPU usage
-	if( !pPreferences->video_vsync )
+	if( !pPreferences->m_video_vsync )
 	{
 		Correct_Frame_Time( 100 );
 	}

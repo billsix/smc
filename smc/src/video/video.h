@@ -35,7 +35,7 @@ class Color
 public:
 	Color( void );
 	Color( Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255 );
-	Color( float r, float g, float b, float a = 1 );
+	Color( float r, float g, float b, float a = 1.0f );
 	Color( Uint8 grey );
 	Color( const SDL_Color &color );
 

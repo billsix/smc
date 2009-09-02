@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.8" />
+		<Property name="game_version" value="1.9" />
 		<Property name="engine_version" value="34" />
-		<Property name="save_time" value="1233717409" />
+		<Property name="save_time" value="1241106062" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="SMC Team" />
@@ -4688,10 +4688,10 @@
 		<Property name="speed" value="7" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="3093" />
-		<Property name="posy" value="306" />
-		<Property name="color" value="blue" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="3107" />
+		<Property name="posy" value="302" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
@@ -4775,11 +4775,11 @@
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="8778" />
-		<Property name="posy" value="111" />
-		<Property name="color" value="blue" />
-		<Property name="direction" value="left" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="8759" />
+		<Property name="posy" value="104" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="turtle" />
@@ -4828,18 +4828,18 @@
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="5523" />
-		<Property name="posy" value="438" />
-		<Property name="color" value="blue" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="5559" />
+		<Property name="posy" value="434" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="5710" />
-		<Property name="posy" value="445" />
-		<Property name="color" value="blue" />
-		<Property name="direction" value="left" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="5830" />
+		<Property name="posy" value="436" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="right" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="flyon" />
@@ -9795,4 +9795,11 @@
 		<Property name="gravity_y" value="0.1" />
 		<Property name="gravity_y_rand" value="0" />
 	</particle_emitter>
+	<enemy>
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="5681" />
+		<Property name="posy" value="429" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="right" />
+	</enemy>
 </level>

@@ -24,6 +24,7 @@
 #include "../audio/audio.h"
 #include "../core/i18n.h"
 #include "../player/player.h"
+#include "../core/filesystem/filesystem.h"
 
 namespace SMC
 {
@@ -76,7 +77,7 @@ void cEditor_Level :: Enable( void )
 
 	// reset ground object
 	// player
-	pPlayer->Reset_on_Ground();
+	pPlayer->Reset_On_Ground();
 	// sprite manager
 	for( cSprite_List::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
 	{
@@ -94,7 +95,7 @@ void cEditor_Level :: Enable( void )
 		{
 			cMovingSprite *moving_sprite = static_cast<cMovingSprite *>(obj);
 
-			moving_sprite->Reset_on_Ground();
+			moving_sprite->Reset_On_Ground();
 		}
 	}
 
@@ -136,7 +137,7 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 		return 1;
 	}
 	// save level
-	else if( key == SDLK_s && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
+	else if( key == SDLK_s && input_event.key.keysym.mod & KMOD_CTRL )
 	{
 		pActive_Level->Save();
 	}
@@ -170,15 +171,15 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 	// modify selected objects state
 	else if( key == SDLK_m )
 	{
-		if( !pMouseCursor->selected_objects.empty() )
+		if( !pMouseCursor->m_selected_objects.empty() )
 		{
-			cSprite *mouse_obj = pMouseCursor->selected_objects[0]->obj;
+			cSprite *mouse_obj = pMouseCursor->m_selected_objects[0]->obj;
 
 			// change state of the base object
-			if( pLevel_Editor->Switch_Object_State( mouse_obj ) )
+			if( Switch_Object_State( mouse_obj ) )
 			{
 				// change all object states to the base object state
-				for( SelectedObjectList::iterator itr = pMouseCursor->selected_objects.begin(), itr_end = pMouseCursor->selected_objects.end(); itr != itr_end; ++itr )
+				for( SelectedObjectList::iterator itr = pMouseCursor->m_selected_objects.begin(), itr_end = pMouseCursor->m_selected_objects.end(); itr != itr_end; ++itr )
 				{
 					cSprite *obj = (*itr)->obj;
 
@@ -195,6 +196,16 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 						obj->m_sprite_array = mouse_obj->m_sprite_array;
 						obj->m_can_be_ground = mouse_obj->m_can_be_ground;
 					}
+					// special objects
+					else if( obj->m_type == TYPE_MOVING_PLATFORM )
+					{
+						// fall through
+					}
+					else
+					{
+						// massivetype change is not valid
+						continue;
+					}
 					
 					// set state
 					obj->Set_Massive_Type( mouse_obj->m_massive_type );
@@ -203,9 +214,9 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 		}
 	}
 	// modify mouse object state
-	else if( key == SDLK_m && pMouseCursor->mouse_object->obj )
+	else if( key == SDLK_m && pMouseCursor->m_hovering_object->obj )
 	{
-		Switch_Object_State( pMouseCursor->mouse_object->obj );
+		Switch_Object_State( pMouseCursor->m_hovering_object->obj );
 		pMouseCursor->Clear_Mouse_Object();
 	}
 	else
@@ -375,7 +386,7 @@ void cEditor_Level :: Function_Load( void )
 			Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
 			Game_Action_Data.add( "level", level_name.c_str() );
 
-			pHud_Debug->Set_Text( _("Loaded ") + Get_Filename( level_name, 0, 0 ) );
+			pHud_Debug->Set_Text( _("Loaded ") + Trim_Filename( level_name, 0, 0 ) );
 
 			break;
 		}
@@ -396,7 +407,7 @@ void cEditor_Level :: Function_Save( bool with_dialog /* = 0 */ )
 	}
 
 	// if denied
-	if( with_dialog && !Box_Question( _("Save ") + Get_Filename( pActive_Level->m_level_filename, 0, 0 ) + " ?" ) )
+	if( with_dialog && !Box_Question( _("Save ") + Trim_Filename( pActive_Level->m_level_filename, 0, 0 ) + " ?" ) )
 	{
 		return;
 	}
@@ -427,13 +438,13 @@ void cEditor_Level :: Function_Delete( void )
 	}
 
 	// if denied
-	if( !Box_Question( _("Delete and Unload ") + Get_Filename( filename, 0, 0 ) + " ?" ) )
+	if( !Box_Question( _("Delete and Unload ") + Trim_Filename( filename, 0, 0 ) + " ?" ) )
 	{
 		return;
 	}
 
 	pActive_Level->Delete();
-	pLevel_Editor->Disable();
+	Disable();
 
 	Game_Action = GA_ENTER_MENU;
 }
@@ -447,7 +458,7 @@ void cEditor_Level :: Function_Reload( void )
 	}
 
 	pActive_Level->Save();
-	if( pActive_Level->Load( Get_Filename( pActive_Level->data_file, 0 ) ) )
+	if( pActive_Level->Load( Trim_Filename( pActive_Level->data_file, 0 ) ) )
 	{
 		pActive_Level->Enter();
 	}

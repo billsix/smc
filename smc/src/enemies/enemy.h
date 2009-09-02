@@ -16,7 +16,7 @@
 #ifndef SMC_ENEMY_H
 #define SMC_ENEMY_H
 
-#include "../objects/objectsprite.h"
+#include "../objects/animated_sprite.h"
 #include "../core/framerate.h"
 #include "../audio/audio.h"
 
@@ -25,11 +25,11 @@ namespace SMC
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cEnemy : public cImageObjectSprite
+class cEnemy : public cAnimated_Sprite
 {
 public:
 	// constructor
-	cEnemy( float x = 0, float y = 0 );
+	cEnemy( float x = 0.0f, float y = 0.0f );
 	// destructor
 	virtual ~cEnemy( void );
 
@@ -41,8 +41,8 @@ public:
 	// Set Dead
 	virtual void Set_Dead( bool enable = 1 );
 
-	// death animation step
-	virtual void DieStep( void );
+	// dying animation update
+	virtual void Update_Dying( void );
 	// handle basic enemy updates
 	virtual void Update( void );
 	/* late update
@@ -53,7 +53,7 @@ public:
 	virtual void Update_Gravity( void );
 	
 	// Generates the default Hit Animation Particles
-	void Generate_Hit_Animation( cParticle_Emitter *anim = NULL );
+	void Generate_Hit_Animation( cParticle_Emitter *anim = NULL ) const;
 
 	// default collision handler
 	virtual void Handle_Collision( cObjectCollision *collision );
@@ -61,20 +61,25 @@ public:
 	virtual void Handle_out_of_Level( ObjectDirection dir );
 
 	// if dead
-	bool dead;
+	bool m_dead;
 
-	// counter for the walking animation
-	float walk_count;
 	// default counter for animations
-	float counter;
+	float m_counter;
 
 	// sound filename if got killed
-	std::string kill_sound;
+	std::string m_kill_sound;
 	// points if enemy got killed
-	unsigned int kill_points;
+	unsigned int m_kill_points;
 
 	// is fire able to kill this enemy
-	bool fire_resistant;
+	bool m_fire_resistant;
+
+	// if this can be hit from the top
+	//bool m_can_be_hit_from_top;
+	// if this can be hit from a shell
+	bool m_can_be_hit_from_shell;
+	// if this moves into an abyss
+	//bool m_moves_into_abyss;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

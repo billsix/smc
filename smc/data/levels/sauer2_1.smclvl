@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.8" />
+		<Property name="game_version" value="1.9" />
 		<Property name="engine_version" value="34" />
-		<Property name="save_time" value="1233810517" />
+		<Property name="save_time" value="1241104651" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Sauer2 and SMC Team" />
@@ -1559,9 +1559,10 @@
 		<Property name="type" value="passive" />
 	</sprite>
 	<enemy>
-		<Property name="type" value="krush" />
-		<Property name="posx" value="2330" />
-		<Property name="posy" value="403" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="2487" />
+		<Property name="posy" value="440" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="right" />
 	</enemy>
 	<sprite>
@@ -2254,11 +2255,11 @@
 		<Property name="force_best_item" value="0" />
 	</box>
 	<enemy>
-		<Property name="type" value="turtle" />
-		<Property name="posx" value="8712" />
-		<Property name="posy" value="236" />
-		<Property name="color" value="red" />
-		<Property name="direction" value="right" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="8673" />
+		<Property name="posy" value="262" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="left" />
 	</enemy>
 	<sprite>
 		<Property name="posx" value="9100" />
@@ -2554,5 +2555,19 @@
 		<Property name="direction" value="down" />
 		<Property name="max_distance" value="250" />
 		<Property name="speed" value="7" />
+	</enemy>
+	<enemy>
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="2361" />
+		<Property name="posy" value="439" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="right" />
+	</enemy>
+	<enemy>
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="8723" />
+		<Property name="posy" value="262" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="left" />
 	</enemy>
 </level>

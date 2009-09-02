@@ -196,6 +196,23 @@ public:
 	bool Editor_Show_Item_Images_Select( const CEGUI::EventArgs &event );
 	// editor item image size value changed event
 	bool Editor_Item_Image_Size_Select( const CEGUI::EventArgs &event );
+	// editor auto hide mouse option selected event
+	bool Editor_Auto_Hide_Mouse_Select( const CEGUI::EventArgs &event );
+	// Button reset game clicked event
+	bool Button_Reset_Game_Clicked( const CEGUI::EventArgs &event );
+	// Button reset editor clicked event
+	bool Button_Reset_Editor_Clicked( const CEGUI::EventArgs &event );
+
+	// game
+	CEGUI::Combobox *combo_always_run;
+	CEGUI::Spinner *spinner_camera_hor_speed;
+	CEGUI::Spinner *spinner_camera_ver_speed;
+	CEGUI::Combobox *combo_language;
+	CEGUI::Combobox *combo_menu_level;
+	// editor
+	CEGUI::Combobox *combo_editor_show_item_images;
+	CEGUI::Spinner *spinner_editor_item_image_size;
+	CEGUI::Combobox *combo_editor_mouse_auto_hide;
 };
 
 /* *** *** *** *** *** *** *** cMenu_Options_Video *** *** *** *** *** *** *** *** *** *** */
@@ -223,10 +240,19 @@ public:
 	bool Slider_Geometry_Quality_Changed( const CEGUI::EventArgs &event );
 	// Texture quality value changed event
 	bool Slider_Texture_Quality_Changed( const CEGUI::EventArgs &event );
+	// Button reset clicked event
+	bool Button_Reset_Clicked( const CEGUI::EventArgs &event );
 	// Button apply clicked event
 	bool Button_Apply_Clicked( const CEGUI::EventArgs &event );
 	// Button recreate cache clicked event
 	bool Button_Recreate_Cache_Clicked( const CEGUI::EventArgs &event );
+
+	CEGUI::Combobox *combo_resolution;
+	CEGUI::Combobox *combo_bpp;
+	CEGUI::Combobox *combo_fullscreen;
+	CEGUI::Combobox *combo_vsync;
+	CEGUI::Slider *slider_geometry_quality;
+	CEGUI::Slider *slider_texture_quality;
 
 	// video settings
 	unsigned int vid_w;
@@ -261,6 +287,14 @@ public:
 	bool Sound_Select( const CEGUI::EventArgs &event );
 	// sound volume changed event
 	bool Sound_Vol_Changed( const CEGUI::EventArgs &event );
+	// Button reset clicked event
+	bool Button_Reset_Clicked( const CEGUI::EventArgs &event );
+
+	CEGUI::Combobox *combo_audio_hz;
+	CEGUI::Combobox *combo_music;
+	CEGUI::Slider *slider_music;
+	CEGUI::Combobox *combo_sounds;
+	CEGUI::Slider *slider_sound;
 };
 
 /* *** *** *** *** *** *** *** cMenu_Options_Controls *** *** *** *** *** *** *** *** *** *** */
@@ -309,6 +343,10 @@ public:
 	bool Joystick_Spinner_Axis_Ver_Changed( const CEGUI::EventArgs &event );
 	// joystick listbox item double clicked event
 	bool Joystick_List_Double_Click( const CEGUI::EventArgs &event );
+	// Button reset keyboard clicked event
+	bool Button_Reset_Keyboard_Clicked( const CEGUI::EventArgs &event );
+	// Button reset joystick clicked event
+	bool Button_Reset_Joystick_Clicked( const CEGUI::EventArgs &event );
 
 	// Shortcut item
 	class cShortcut_item

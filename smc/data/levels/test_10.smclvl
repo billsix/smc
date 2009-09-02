@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.8" />
+		<Property name="game_version" value="1.9" />
 		<Property name="engine_version" value="34" />
-		<Property name="save_time" value="1238506739" />
+		<Property name="save_time" value="1250185366" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="SMC Team" />
@@ -11,7 +11,7 @@
 		<Property name="lvl_music" value="land/land_5.ogg" />
 		<Property name="cam_limit_x" value="0" />
 		<Property name="cam_limit_y" value="0" />
-		<Property name="cam_limit_w" value="2000" />
+		<Property name="cam_limit_w" value="2200" />
 		<Property name="cam_limit_h" value="-900" />
 		<Property name="cam_fixed_hor_vel" value="0" />
 	</settings>
@@ -870,6 +870,7 @@
 		<Property name="posx" value="327" />
 		<Property name="posy" value="113" />
 		<Property name="identifier" value="1" />
+		<Property name="rewind" value="0" />
 		<Property name="segment_0_x1" value="0" />
 		<Property name="segment_0_y1" value="0" />
 		<Property name="segment_0_x2" value="0" />
@@ -972,6 +973,7 @@
 		<Property name="posx" value="758" />
 		<Property name="posy" value="200" />
 		<Property name="identifier" value="mp" />
+		<Property name="rewind" value="1" />
 		<Property name="segment_0_x1" value="0" />
 		<Property name="segment_0_y1" value="0" />
 		<Property name="segment_0_x2" value="0" />
@@ -988,6 +990,10 @@
 		<Property name="segment_3_y1" value="200" />
 		<Property name="segment_3_x2" value="500" />
 		<Property name="segment_3_y2" value="0" />
+		<Property name="segment_4_x1" value="500" />
+		<Property name="segment_4_y1" value="0" />
+		<Property name="segment_4_x2" value="0" />
+		<Property name="segment_4_y2" value="0" />
 	</path>
 	<moving_platform>
 		<Property name="posx" value="643" />
@@ -1029,11 +1035,14 @@
 		<Property name="image" value="enemy/static/saw/default.png" />
 		<Property name="path" value="enemy" />
 		<Property name="speed" value="5" />
+		<Property name="fire_resistant" value="0" />
+		<Property name="ice_resistance" value="0" />
 	</enemy>
 	<path>
 		<Property name="posx" value="910" />
 		<Property name="posy" value="-40" />
 		<Property name="identifier" value="enemy" />
+		<Property name="rewind" value="0" />
 		<Property name="segment_0_x1" value="0" />
 		<Property name="segment_0_y1" value="0" />
 		<Property name="segment_0_x2" value="0" />
@@ -1053,5 +1062,59 @@
 		<Property name="posy" value="460" />
 		<Property name="color" value="red" />
 		<Property name="direction" value="right" />
+	</enemy>
+	<path>
+		<Property name="posx" value="1574" />
+		<Property name="posy" value="347" />
+		<Property name="identifier" value="saw_1" />
+		<Property name="rewind" value="0" />
+		<Property name="segment_0_x1" value="0" />
+		<Property name="segment_0_y1" value="0" />
+		<Property name="segment_0_x2" value="400" />
+		<Property name="segment_0_y2" value="0" />
+	</path>
+	<enemy>
+		<Property name="type" value="static" />
+		<Property name="posx" value="1570" />
+		<Property name="posy" value="343" />
+		<Property name="rotation_speed" value="-16" />
+		<Property name="image" value="enemy/static/saw/default.png" />
+		<Property name="path" value="saw_1" />
+		<Property name="speed" value="18" />
+		<Property name="fire_resistant" value="0" />
+		<Property name="ice_resistance" value="0" />
+	</enemy>
+	<enemy>
+		<Property name="type" value="static" />
+		<Property name="posx" value="2038" />
+		<Property name="posy" value="341" />
+		<Property name="rotation_speed" value="2.5" />
+		<Property name="image" value="enemy/static/blocks/spike_1/1_grey.png" />
+		<Property name="path" value="" />
+		<Property name="speed" value="0" />
+		<Property name="fire_resistant" value="0" />
+		<Property name="ice_resistance" value="0" />
+	</enemy>
+	<enemy>
+		<Property name="type" value="static" />
+		<Property name="posx" value="2038" />
+		<Property name="posy" value="384" />
+		<Property name="rotation_speed" value="2.5" />
+		<Property name="image" value="enemy/static/blocks/spike_1/1_grey.png" />
+		<Property name="path" value="" />
+		<Property name="speed" value="0" />
+		<Property name="fire_resistant" value="0" />
+		<Property name="ice_resistance" value="0" />
+	</enemy>
+	<enemy>
+		<Property name="type" value="static" />
+		<Property name="posx" value="2038" />
+		<Property name="posy" value="298" />
+		<Property name="rotation_speed" value="2.5" />
+		<Property name="image" value="enemy/static/blocks/spike_1/1_grey.png" />
+		<Property name="path" value="" />
+		<Property name="speed" value="0" />
+		<Property name="fire_resistant" value="0" />
+		<Property name="ice_resistance" value="0" />
 	</enemy>
 </level>

@@ -27,7 +27,7 @@ namespace SMC
 
 /* *** *** *** *** *** *** *** cOverworld_Player *** *** *** *** *** *** *** *** *** *** */
 
-class cOverworld_Player : public cImageObjectSprite
+class cOverworld_Player : public cAnimated_Sprite
 {
 public:
 	cOverworld_Player( void );
@@ -37,6 +37,14 @@ public:
 	void Load_Images( void );
 	// Unload images
 	void Unload_Images( void );
+
+	/* Set the direction
+	 * if new_start_direction is set also set the start/editor direction
+	*/
+	virtual void Set_Direction( const ObjectDirection dir, bool new_start_direction = 0 );
+
+	// Set the Type
+	void Set_Type( Maryo_type new_type );
 
 	// Update
 	virtual void Update( void );
@@ -93,7 +101,7 @@ public:
 	/* Automatically corrects Maryo's position to the walkable Layer Line
 	 * with the given size and the minimal distance to not-walkable area
 	*/
-	void Auto_Pos_Correction( float size = 1.7f, float min_distance = 5 );
+	void Auto_Pos_Correction( float size = 1.7f, float min_distance = 5.0f );
 
 	// state
 	Maryo_type maryo_state;
@@ -103,13 +111,6 @@ public:
 	unsigned int line_waypoint;
 	// current line ( if walking )
 	int current_line;
-
-	// Animation counter
-	float anim_counter;
-	// Animation Speed
-	float anim_speed;
-	// last image available for the animation
-	unsigned int anim_max;
 
 	// if touched a Waypoint use fixed walking
 	bool fixed_walking;

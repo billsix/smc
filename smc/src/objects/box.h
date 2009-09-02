@@ -17,7 +17,7 @@
 #define SMC_BOX_H
 
 #include "../core/globals.h"
-#include "../objects/objectsprite.h"
+#include "../objects/animated_sprite.h"
 
 namespace SMC
 {
@@ -38,7 +38,7 @@ enum Box_Invisible_Type
 
 /* *** *** *** *** *** *** *** *** cBaseBox *** *** *** *** *** *** *** *** *** */
 
-class cBaseBox : public cImageObjectSprite
+class cBaseBox : public cAnimated_Sprite
 {
 public:
 	cBaseBox( float x = 0, float y = 0 );
@@ -57,7 +57,7 @@ public:
 	/* Set the Animation Type
 	 * new_anim_type can be : Bonus, Default or Power
 	*/
-	void Set_Animation( const std::string &new_anim_type );
+	void Set_Animation_Type( const std::string &new_anim_type );
 	// sets the count this object can be activated
 	virtual void Set_Useable_Count( int count, bool new_startcount = 0 );
 	// Set invisible type
@@ -109,10 +109,6 @@ public:
 
 	// animation type
 	std::string anim_type;
-	// animation counter
-	float counter;
-	unsigned int anim_counter_min;
-	unsigned int anim_counter_max;
 	// box type
 	SpriteType box_type;
 

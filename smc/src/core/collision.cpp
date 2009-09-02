@@ -50,9 +50,9 @@ void cObjectCollisionType :: Add( cObjectCollision *obj )
 }
 
 // check if sprite
-struct check_if_sprite : public std::binary_function<cObjectCollision *, cSprite *, bool>
+struct check_if_sprite : public std::binary_function<cObjectCollision *, const cSprite *, bool>
 {
-	bool operator()( const cObjectCollision *col, cSprite *sprite ) const
+	bool operator()( const cObjectCollision *col, const cSprite *sprite ) const
 	{
 		return col->obj == sprite;
 	}

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <level>
 	<information>
-		<Property name="game_version" value="1.8" />
+		<Property name="game_version" value="1.9" />
 		<Property name="engine_version" value="34" />
-		<Property name="save_time" value="1233716240" />
+		<Property name="save_time" value="1241105892" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="SMC Team" />
@@ -976,12 +976,13 @@
 		<Property name="image" value="ground/green_1/hedges/small_2.png" />
 		<Property name="type" value="passive" />
 	</sprite>
-	<sprite>
-		<Property name="posx" value="5811" />
-		<Property name="posy" value="128" />
-		<Property name="image" value="ground/green_1/hedges/medium_1.png" />
-		<Property name="type" value="passive" />
-	</sprite>
+	<enemy>
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="5940" />
+		<Property name="posy" value="121" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="right" />
+	</enemy>
 	<sprite>
 		<Property name="posx" value="5341" />
 		<Property name="posy" value="-101" />
@@ -1198,10 +1199,10 @@
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="2373" />
-		<Property name="posy" value="295" />
-		<Property name="color" value="brown" />
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="2360" />
+		<Property name="posy" value="289" />
+		<Property name="color" value="grey" />
 		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
@@ -1225,13 +1226,12 @@
 		<Property name="color" value="brown" />
 		<Property name="direction" value="left" />
 	</enemy>
-	<enemy>
-		<Property name="type" value="furball" />
-		<Property name="posx" value="5916" />
-		<Property name="posy" value="117" />
-		<Property name="color" value="brown" />
-		<Property name="direction" value="right" />
-	</enemy>
+	<sprite>
+		<Property name="posx" value="5830" />
+		<Property name="posy" value="131" />
+		<Property name="image" value="ground/green_1/hedges/medium_2.png" />
+		<Property name="type" value="passive" />
+	</sprite>
 	<enemy>
 		<Property name="type" value="furball" />
 		<Property name="posx" value="7094" />
@@ -6669,4 +6669,11 @@
 		<Property name="image" value="ground/green_1/hedges/small_2.png" />
 		<Property name="type" value="passive" />
 	</sprite>
+	<enemy>
+		<Property name="type" value="spikeball" />
+		<Property name="posx" value="9312" />
+		<Property name="posy" value="88" />
+		<Property name="color" value="grey" />
+		<Property name="direction" value="left" />
+	</enemy>
 </level>

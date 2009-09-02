@@ -55,7 +55,7 @@ void cjStar :: Init( void )
 
 	m_velx = 5;
 
-	m_images.push_back( pVideo->Get_Surface( "game/items/star.png" ) );
+	Add_Image( pVideo->Get_Surface( "game/items/star.png" ) );
 	Set_Image_Num( 0, 1, 0 );
 
 	m_name = _("Star");
@@ -128,27 +128,27 @@ void cjStar :: Update( void )
 	}
 	
 	// rotate
-	if( m_vely < 0 )
+	if( m_vely < 0.0f )
 	{
-		Add_Rotation_Z( ( 5 - ( m_vely / 2.5f ) ) * pFramerate->speedfactor );
+		Add_Rotation_Z( ( 5 - ( m_vely / 2.5f ) ) * pFramerate->m_speed_factor );
 	}
 	// rotate back to 0 if falling
 	else
 	{
-		if( m_rot_z > 5 && m_rot_z <= 175 )
+		if( m_rot_z > 5.0f && m_rot_z <= 175.0f )
 		{
-			Add_Rotation_Z( ( 5 - ( m_vely / 1.2f ) ) * pFramerate->speedfactor );
+			Add_Rotation_Z( ( 5 - ( m_vely / 1.2f ) ) * pFramerate->m_speed_factor );
 		}
 		else if( m_rot_z < 355 && m_rot_z > 185 )
 		{
-			Add_Rotation_Z( ( -5 + ( m_vely / 1.2f ) ) * pFramerate->speedfactor );
+			Add_Rotation_Z( ( -5 + ( m_vely / 1.2f ) ) * pFramerate->m_speed_factor );
 		}
 	}
 
 	// generate small stars
-	anim_counter += 1.1f * pFramerate->speedfactor;
+	anim_counter += 1.1f * pFramerate->m_speed_factor;
 
-	if( anim_counter > 1 )
+	if( anim_counter > 1.0f )
 	{
 		Generate_Particles( m_pos_x, m_pos_y, 1, static_cast<int>(anim_counter) );
 		anim_counter -= static_cast<int>(anim_counter);
@@ -157,21 +157,21 @@ void cjStar :: Update( void )
 	// glim animation
 	if( glim_mod )
 	{
-		glim_counter += pFramerate->speedfactor * 0.2f;
+		glim_counter += pFramerate->m_speed_factor * 0.2f;
 
-		if( glim_counter > 1 ) 
+		if( glim_counter > 1.0f ) 
 		{
-			glim_counter = 1;
+			glim_counter = 1.0f;
 			glim_mod = 0;
 		}
 	}
 	else
 	{
-		glim_counter -= pFramerate->speedfactor * 0.2f;
+		glim_counter -= pFramerate->m_speed_factor * 0.2f;
 
-		if( glim_counter < 0 ) 
+		if( glim_counter < 0.0f ) 
 		{
-			glim_counter = 0;
+			glim_counter = 0.0f;
 			glim_mod = 1;
 		}
 	}

@@ -226,12 +226,12 @@ void cBackground :: Update( void )
 {
 	if( !Is_Float_Equal( m_const_vel_x, 0.0f ) )
 	{
-		m_pos_x += (m_const_vel_x * 2) * pFramerate->speedfactor;
+		m_pos_x += (m_const_vel_x * 2) * pFramerate->m_speed_factor;
 	}
 
 	if( !Is_Float_Equal( m_const_vel_y, 0.0f ) )
 	{
-		m_pos_y += (m_const_vel_y * 2) * pFramerate->speedfactor;
+		m_pos_y += (m_const_vel_y * 2) * pFramerate->m_speed_factor;
 	}
 }
 
@@ -246,7 +246,7 @@ void cBackground :: Draw( void )
 	else if( m_type == BG_IMG_BOTTOM || m_type == BG_IMG_ALL ) 
 	{
 		// if background images are disabled or no image
-		if( !pPreferences->level_background_images || !m_image_1 )
+		if( !pPreferences->m_level_background_images || !m_image_1 )
 		{
 			return;
 		}

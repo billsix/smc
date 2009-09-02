@@ -41,9 +41,6 @@ extern void *Game_Action_ptr;
 extern int game_res_w;
 extern int game_res_h;
 
-// user data directory
-extern std::string user_data_dir;
-
 // global debugging
 extern bool game_debug, game_debug_performance;
 
@@ -156,9 +153,6 @@ void Change_Game_Mode( const GameMode new_mode );
 // Return the given time as string
 std::string Time_to_String( time_t t, const char *format );
 
-// Return the filename with the given options
-std::string Get_Filename( std::string filename, bool with_dir = 1, bool with_end = 1 );
-
 // Clear the complete input event queue
 void Clear_Input_Events( void ); 
 
@@ -228,42 +222,9 @@ void Preload_Images( bool draw_gui = 0 );
  */
 void Preload_Sounds( bool draw_gui = 0 );
 
-/* Deletes the given file
- * Use with Caution
- *
- * Returns:
- * true on success
-*/
-bool Delete_File( const std::string &filename );
-// Check if the file exists
-bool File_Exists( const std::string &filename );
-// Check if the directory exists
-bool Dir_Exists( const std::string &dir );
-/* Get the file size in bytes 
-* returns 0 if the file does not exist
-*/
-size_t Get_File_Size( const std::string &filename );
-
-// Converts "\" and "!" to "/"
-void Convert_Path_Separators( std::string &str );
-
 // Changes the image path in the given xml attributes to the new one
 void Relocate_Image( CEGUI::XMLAttributes &xml_attributes, const std::string &filename_old, const std::string &filename_new, const CEGUI::String &attribute_name = "image" );
 
-/* Get all files from the directory
- * dir : the directory to scan
- * file_type : if set only this file type is returned
- * with_directories : if set adds directories to the returned objects
- * search_in_sub_directories : searches in every sub-directory
-*/
-vector<std::string> Get_Directory_Files( const std::string &dir, const std::string &file_type = "", bool with_directories = 0, bool search_in_sub_directories = 1 );
-
-// Return the operating system temporary files directory
-std::string Get_Temp_Directory( void );
-// Return the default smc user directory in the operating system application/home directory
-std::string Get_User_Directory( void );
-// Create the necessary folders in the user directory
-void Init_User_Directory( void );
 // Return the clipboard content
 std::string Get_Clipboard_Content( void );
 // Set the clipboard content

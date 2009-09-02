@@ -30,6 +30,7 @@
 #include "../core/sprite_manager.h"
 #include "../overworld/overworld.h"
 #include "../core/i18n.h"
+#include "../core/filesystem/filesystem.h"
 // boost filesystem
 #include "boost/filesystem/convenience.hpp"
 namespace fs = boost::filesystem;
@@ -88,7 +89,7 @@ void cEditor_Item_Object :: Init( void )
 	// string size_text = int_to_string( static_cast<int>(image->w) ) + "x" + int_to_string( static_cast<int>(image->h) );
 
 	// get scale
-	preview_scale = pVideo->Get_Scale( sprite_obj->m_start_image, static_cast<float>(pPreferences->editor_item_image_size) * 2, static_cast<float>(pPreferences->editor_item_image_size) );
+	preview_scale = pVideo->Get_Scale( sprite_obj->m_start_image, static_cast<float>(pPreferences->m_editor_item_image_size) * 2.0f, static_cast<float>(pPreferences->m_editor_item_image_size) );
 
 	// check if name is fitting
 	if( sprite_obj->m_name.length() > 25 )
@@ -98,7 +99,7 @@ void cEditor_Item_Object :: Init( void )
 	}
 
 	// set position
-	sprite_obj->Set_Pos_X( 20, 1 );
+	sprite_obj->Set_Pos_X( 20.0f, 1 );
 
 	/* Don't set sprite settings which could get copied
 	 * into the level if selected like shadow and z position
@@ -109,9 +110,9 @@ CEGUI::Size cEditor_Item_Object :: getPixelSize( void ) const
 {
 	CEGUI::Size tmp = list_text->getPixelSize();
 
-	if( pPreferences->editor_show_item_images )
+	if( pPreferences->m_editor_show_item_images )
 	{
-		tmp.d_height += (pPreferences->editor_item_image_size + 10) * global_upscaley;
+		tmp.d_height += (pPreferences->m_editor_item_image_size + 10) * global_upscaley;
 	}
 
 	return tmp;
@@ -132,7 +133,7 @@ void cEditor_Item_Object :: draw( CEGUI::RenderCache &cache, const CEGUI::Rect &
 void cEditor_Item_Object :: Draw_Image( void )
 {
 	// no image available to blit
-	if( !sprite_obj->m_start_image || !pPreferences->editor_show_item_images )
+	if( !sprite_obj->m_start_image || !pPreferences->m_editor_show_item_images )
 	{
 		return;
 	}
@@ -412,7 +413,7 @@ void cEditor :: Update( void )
 		if( menu_timer >= speedfactor_fps * 2 )
 		{
 			// fade out
-			float new_alpha = editor_window->getAlpha() - (pFramerate->speedfactor * 0.05f);
+			float new_alpha = editor_window->getAlpha() - (pFramerate->m_speed_factor * 0.05f);
 
 			if( new_alpha <= 0.0f )
 			{
@@ -436,7 +437,7 @@ void cEditor :: Update( void )
 			// fade in
 			if( editor_window->getAlpha() < 1.0f )
 			{
-				float new_alpha = editor_window->getAlpha() + pFramerate->speedfactor * 0.1f;
+				float new_alpha = editor_window->getAlpha() + pFramerate->m_speed_factor * 0.1f;
 
 				if( new_alpha > 1.0f )
 				{
@@ -456,7 +457,7 @@ void cEditor :: Update( void )
 				// inactive
 				else
 				{
-					menu_timer += pFramerate->speedfactor;
+					menu_timer += pFramerate->m_speed_factor;
 				}
 			}
 		}
@@ -575,9 +576,15 @@ void cEditor :: Process_Input( void )
 	}
 
 	// Drag Delete
-	if( ( pKeyboard->keys[SDLK_RCTRL] || pKeyboard->keys[SDLK_LCTRL] ) && pMouseCursor->right && pMouseCursor->Editor_Collsion_Check() )
+	if( ( pKeyboard->keys[SDLK_RCTRL] || pKeyboard->keys[SDLK_LCTRL] ) && pMouseCursor->m_right )
 	{
-		pMouseCursor->Delete( pMouseCursor->mouse_object->obj );
+		cObjectCollision *col = pMouseCursor->Get_First_Editor_Collsion();
+
+		if( col )
+		{
+			pMouseCursor->Delete( col->obj );
+			delete col;
+		}
 	}
 
 	// Camera Movement
@@ -585,44 +592,44 @@ void cEditor :: Process_Input( void )
 	{
 		if( pKeyboard->keys[SDLK_RSHIFT] || pKeyboard->keys[SDLK_LSHIFT] )
 		{
-			pActive_Camera->Move( camera_speed * pFramerate->speedfactor * 3 * pPreferences->scroll_speed, 0 );
+			pActive_Camera->Move( camera_speed * pFramerate->m_speed_factor * 3 * pPreferences->m_scroll_speed, 0 );
 		}
 		else
 		{
-			pActive_Camera->Move( camera_speed * pFramerate->speedfactor * pPreferences->scroll_speed, 0 );
+			pActive_Camera->Move( camera_speed * pFramerate->m_speed_factor * pPreferences->m_scroll_speed, 0 );
 		}
 	}
 	else if( pKeyboard->keys[SDLK_LEFT] || pJoystick->left )
 	{
 		if( pKeyboard->keys[SDLK_RSHIFT] || pKeyboard->keys[SDLK_LSHIFT] )
 		{
-			pActive_Camera->Move( -( camera_speed * pFramerate->speedfactor * 3 * pPreferences->scroll_speed ), 0 );
+			pActive_Camera->Move( -( camera_speed * pFramerate->m_speed_factor * 3 * pPreferences->m_scroll_speed ), 0 );
 		}
 		else
 		{
-			pActive_Camera->Move( -( camera_speed * pFramerate->speedfactor * pPreferences->scroll_speed ), 0 );
+			pActive_Camera->Move( -( camera_speed * pFramerate->m_speed_factor * pPreferences->m_scroll_speed ), 0 );
 		}
 	}
 	if( pKeyboard->keys[SDLK_UP] || pJoystick->up )
 	{
 		if( pKeyboard->keys[SDLK_RSHIFT] || pKeyboard->keys[SDLK_LSHIFT] )
 		{
-			pActive_Camera->Move( 0, -( camera_speed * pFramerate->speedfactor * 3 * pPreferences->scroll_speed ) );
+			pActive_Camera->Move( 0, -( camera_speed * pFramerate->m_speed_factor * 3 * pPreferences->m_scroll_speed ) );
 		}
 		else
 		{
-			pActive_Camera->Move( 0, -( camera_speed * pFramerate->speedfactor * pPreferences->scroll_speed ) );
+			pActive_Camera->Move( 0, -( camera_speed * pFramerate->m_speed_factor * pPreferences->m_scroll_speed ) );
 		}
 	}
 	else if( pKeyboard->keys[SDLK_DOWN] || pJoystick->down )
 	{
 		if( pKeyboard->keys[SDLK_RSHIFT] || pKeyboard->keys[SDLK_LSHIFT] )
 		{
-			pActive_Camera->Move( 0, camera_speed * pFramerate->speedfactor * 3 * pPreferences->scroll_speed );
+			pActive_Camera->Move( 0, camera_speed * pFramerate->m_speed_factor * 3 * pPreferences->m_scroll_speed );
 		}
 		else
 		{
-			pActive_Camera->Move( 0, camera_speed * pFramerate->speedfactor * pPreferences->scroll_speed );
+			pActive_Camera->Move( 0, camera_speed * pFramerate->m_speed_factor * pPreferences->m_scroll_speed );
 		}
 	}
 }
@@ -638,7 +645,7 @@ bool cEditor :: Handle_Event( SDL_Event *ev )
 	{
 	case SDL_MOUSEMOTION:
 	{
-		if( pMouseCursor->mover_mode )
+		if( pMouseCursor->m_mover_mode )
 		{
 			pMouseCursor->Mover_Update( input_event.motion.xrel, input_event.motion.yrel );
 		}
@@ -683,7 +690,7 @@ bool cEditor :: Key_Down( SDLKey key )
 	// push selected objects into the front
 	else if( key == SDLK_KP_PLUS )
 	{
-		for( SelectedObjectList::iterator itr = pMouseCursor->selected_objects.begin(), itr_end = pMouseCursor->selected_objects.end(); itr != itr_end; ++itr )
+		for( SelectedObjectList::iterator itr = pMouseCursor->m_selected_objects.begin(), itr_end = pMouseCursor->m_selected_objects.end(); itr != itr_end; ++itr )
 		{
 			cSelectedObject *sel_obj = (*itr);
 
@@ -693,18 +700,18 @@ bool cEditor :: Key_Down( SDLKey key )
 	// push selected objects into the back
 	else if( key == SDLK_KP_MINUS )
 	{
-		for( SelectedObjectList::iterator itr = pMouseCursor->selected_objects.begin(), itr_end = pMouseCursor->selected_objects.end(); itr != itr_end; ++itr )
+		for( SelectedObjectList::iterator itr = pMouseCursor->m_selected_objects.begin(), itr_end = pMouseCursor->m_selected_objects.end(); itr != itr_end; ++itr )
 		{
 			cSelectedObject *sel_obj = (*itr);
 
 			Change_Draw_Position( sel_obj->obj, 1 );
 		}
 	}
-	// ## only with mouse_object functions
 	// Precise Pixel-Positioning or copy into direction
-	if( ( key == SDLK_KP2 || key == SDLK_KP4 || key == SDLK_KP6 || key == SDLK_KP8 ) && pMouseCursor->mouse_object->obj )
+	// only with a hovering object functions
+	if( ( key == SDLK_KP2 || key == SDLK_KP4 || key == SDLK_KP6 || key == SDLK_KP8 ) && pMouseCursor->m_hovering_object->obj )
 	{
-		if( pMouseCursor->mode_fastcopy )
+		if( pMouseCursor->m_fastcopy_mode )
 		{
 			ObjectDirection dir = DIR_UNDEFINED;
 
@@ -774,8 +781,13 @@ bool cEditor :: Key_Down( SDLKey key )
 			}
 		}
 	}
-	// select all Sprites
-	else if( key == SDLK_a && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
+	// deselect everything
+	else if( key == SDLK_a && input_event.key.keysym.mod & KMOD_CTRL && input_event.key.keysym.mod & KMOD_SHIFT )
+	{
+		pMouseCursor->Clear_Selected_Objects();
+	}
+	// select everything
+	else if( key == SDLK_a && input_event.key.keysym.mod & KMOD_CTRL )
 	{
 		pMouseCursor->Clear_Selected_Objects();
 
@@ -790,16 +802,16 @@ bool cEditor :: Key_Down( SDLKey key )
 		}
 	}
 	// Paste copy buffer objects
-	else if( key == SDLK_INSERT || ( key == SDLK_v && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) ) )
+	else if( key == SDLK_INSERT || ( key == SDLK_v && input_event.key.keysym.mod & KMOD_CTRL ) )
 	{
 		pMouseCursor->Paste_Copy_Objects( static_cast<float>(static_cast<int>(pMouseCursor->m_pos_x)), static_cast<float>(static_cast<int>(pMouseCursor->m_pos_y)) );
 	}
 	// Cut selected Sprites to the copy buffer
-	else if( key == SDLK_x && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
+	else if( key == SDLK_x && input_event.key.keysym.mod & KMOD_CTRL )
 	{
 		pMouseCursor->Clear_Copy_Objects();
 
-		for( SelectedObjectList::iterator itr = pMouseCursor->selected_objects.begin(), itr_end = pMouseCursor->selected_objects.end(); itr != itr_end; ++itr )
+		for( SelectedObjectList::iterator itr = pMouseCursor->m_selected_objects.begin(), itr_end = pMouseCursor->m_selected_objects.end(); itr != itr_end; ++itr )
 		{
 			cSelectedObject *sel_obj = (*itr);
 
@@ -809,11 +821,11 @@ bool cEditor :: Key_Down( SDLKey key )
 		pMouseCursor->Delete_Selected_Objects();
 	}
 	// Add selected Sprites to the copy buffer
-	else if( key == SDLK_c && ( input_event.key.keysym.mod & KMOD_LCTRL || input_event.key.keysym.mod & KMOD_RCTRL ) )
+	else if( key == SDLK_c && input_event.key.keysym.mod & KMOD_CTRL )
 	{
 		pMouseCursor->Clear_Copy_Objects();
 
-		for( SelectedObjectList::iterator itr = pMouseCursor->selected_objects.begin(), itr_end = pMouseCursor->selected_objects.end(); itr != itr_end; ++itr )
+		for( SelectedObjectList::iterator itr = pMouseCursor->m_selected_objects.begin(), itr_end = pMouseCursor->m_selected_objects.end(); itr != itr_end; ++itr )
 		{
 			cSelectedObject *sel_obj = (*itr);
 
@@ -821,12 +833,12 @@ bool cEditor :: Key_Down( SDLKey key )
 		}
 	}
 	// Delete mouse object
-	else if( key == SDLK_DELETE && pMouseCursor->mouse_object->obj )
+	else if( key == SDLK_DELETE && pMouseCursor->m_hovering_object->obj )
 	{
-		pMouseCursor->Delete( pMouseCursor->mouse_object->obj );
+		pMouseCursor->Delete( pMouseCursor->m_hovering_object->obj );
 	}
 	// if shift got pressed remove mouse object for possible mouse selection
-	else if( ( key == SDLK_RSHIFT || key == SDLK_LSHIFT ) && pMouseCursor->mouse_object->obj )
+	else if( ( key == SDLK_RSHIFT || key == SDLK_LSHIFT ) && pMouseCursor->m_hovering_object->obj )
 	{
 		pMouseCursor->Clear_Mouse_Object();
 	}
@@ -858,7 +870,7 @@ bool cEditor :: Mouse_Down( Uint8 button )
 		pMouseCursor->Click();
 		
 		// auto hide if enabled
-		if( pMouseCursor->mouse_object->obj && pPreferences->editor_mouse_auto_hide )
+		if( pMouseCursor->m_hovering_object->obj && pPreferences->m_editor_mouse_auto_hide )
 		{
 			pMouseCursor->Set_Active( 0 );
 		}
@@ -867,9 +879,9 @@ bool cEditor :: Mouse_Down( Uint8 button )
 	else if( button == SDL_BUTTON_MIDDLE )
 	{
 		// Activate fast copy mode
-		if( pMouseCursor->mouse_object->obj )
+		if( pMouseCursor->m_hovering_object->obj )
 		{
-			pMouseCursor->mode_fastcopy = 1;
+			pMouseCursor->m_fastcopy_mode = 1;
 			return 1;
 		}
 		// Mover mode
@@ -882,9 +894,9 @@ bool cEditor :: Mouse_Down( Uint8 button )
 	// right
 	else if( button == SDL_BUTTON_RIGHT )
 	{
-		if( !pMouseCursor->left )
+		if( !pMouseCursor->m_left )
 		{
-			pMouseCursor->Delete( pMouseCursor->mouse_object->obj );
+			pMouseCursor->Delete( pMouseCursor->m_hovering_object->obj );
 			return 1;
 		}
 	}
@@ -911,7 +923,7 @@ bool cEditor :: Mouse_Up( Uint8 button )
 		pMouseCursor->End_Selection();
 
 		// unhide
-		if( pPreferences->editor_mouse_auto_hide )
+		if( pPreferences->m_editor_mouse_auto_hide )
 		{
 			pMouseCursor->Set_Active( 1 );
 		}
@@ -919,7 +931,7 @@ bool cEditor :: Mouse_Up( Uint8 button )
 	// middle
 	else if( button == SDL_BUTTON_MIDDLE )
 	{
-		pMouseCursor->mode_fastcopy = 0;
+		pMouseCursor->m_fastcopy_mode = 0;
 	}
 	else
 	{
@@ -1274,9 +1286,9 @@ void cEditor :: Activate_Item( cEditor_Item_Object *entry )
 	pActive_Sprite_Manager->Add( new_sprite );
 
 	// Set Mouse Objects
-	pMouseCursor->left = 1;
-	pMouseCursor->mouse_object->mouse_h = static_cast<int>( new_sprite->m_col_rect.m_h / 2 );
-	pMouseCursor->mouse_object->mouse_w = static_cast<int>( new_sprite->m_col_rect.m_w / 2 );
+	pMouseCursor->m_left = 1;
+	pMouseCursor->m_hovering_object->mouse_h = static_cast<int>( new_sprite->m_col_rect.m_h / 2 );
+	pMouseCursor->m_hovering_object->mouse_w = static_cast<int>( new_sprite->m_col_rect.m_w / 2 );
 	pMouseCursor->Set_Mouse_Object( new_sprite );
 }
 
@@ -1589,7 +1601,7 @@ cSprite *cEditor :: Copy_Direction( cSprite *obj, const ObjectDirection dir, int
 	}
 
 	// only move camera if obj is the mouse object
-	if( pMouseCursor->mouse_object->obj == obj )
+	if( pMouseCursor->m_hovering_object->obj == obj )
 	{
 		pActive_Camera->Move( w, h );
 	}
@@ -1600,7 +1612,7 @@ cSprite *cEditor :: Copy_Direction( cSprite *obj, const ObjectDirection dir, int
 bool cEditor :: Editor_Mouse_Enter( const CEGUI::EventArgs &event )
 {
 	// ignore if a button is pressed
-	if( pMouseCursor->left || pMouseCursor->middle || pMouseCursor->right )
+	if( pMouseCursor->m_left || pMouseCursor->m_middle || pMouseCursor->m_right )
 	{
 		return 1;
 	}

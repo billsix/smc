@@ -84,6 +84,24 @@ public:
 	* if delayed is set this overworld will be entered on the next game update
 	*/
 	void Enter( bool delayed = 0 );
+	// Load
+	bool Load( void );
+	// Unload
+	void Unload( void );
+	// Save
+	void Save( void );
+
+	// Draw
+	void Draw( void );
+	// Draw Layer 1 ( Backgrounds, World objects and Animations )
+	void Draw_Layer_1( void );
+	// Draws the HUD
+	void Draw_HUD( void );
+
+	// Update
+	void Update( void );
+	// Updates the Camera
+	void Update_Camera( void );
 
 	/* handle key down event
 	 * returns true if processed
@@ -109,25 +127,6 @@ public:
 	 * returns true if processed
 	*/
 	bool Joy_Button_Up( Uint8 button );
-
-	// Load
-	bool Load( void );
-	// Unload
-	void Unload( void );
-	// Save
-	void Save( void );
-
-	// Draw
-	void Draw( void );
-	// Draw Layer 1 ( Backgrounds, World objects and Animations )
-	void Draw_Layer_1( void );
-	// Draws the HUD
-	void Draw_HUD( void );
-
-	// Update
-	void Update( void );
-	// Updates the Camera
-	void Update_Camera( void );
 
 	/* Sets the current Waypoint progress
 	 * if force is set already accessible waypoints will be unset
@@ -162,31 +161,43 @@ public:
 	// Resets the Waypoint access to the default
 	void Reset_Waypoints( void );
 
-	// description
-	cOverworld_description *description;
+	// Return true if a world is loaded
+	bool Is_Loaded( void ) const;
 
 	// Map objects
-	cWorld_Sprite_Manager *sprite_manager;
+	cWorld_Sprite_Manager *m_sprite_manager;
 	// Waypoints
-	WaypointList waypoints;
-
+	WaypointList m_waypoints;
+	// description
+	cOverworld_description *m_description;
 	// current Layer for collision checking
-	cLayer *pLayer;
-	// Background Color
-	Color background_color;
-	// music filename
-	std::string musicfile;
-	// HUD world name
-	cHudSprite *hud_world_name;
-	// HUD current level name
-	cHudSprite *hud_level_name;
+	cLayer *m_layer;
 
-	// goto next level on overworld enter
-	bool next_level;
+	/* *** *** *** Settings *** *** *** *** */
+
+	// world engine version
+	int m_engine_version;
+	// last save time
+	time_t m_last_saved;
+
+	// Background Color
+	Color m_background_color;
+	// music filename
+	std::string m_musicfile;
 
 	// settings
-	unsigned int player_start_waypoint;
-	Moving_state player_moving_state;
+	unsigned int m_player_start_waypoint;
+	Moving_state m_player_moving_state;
+
+	/* *** *** ***  *** *** *** *** */
+
+	// goto next level on overworld enter
+	bool m_next_level;
+
+	// HUD world name
+	cHudSprite *m_hud_world_name;
+	// HUD current level name
+	cHudSprite *m_hud_level_name;
 
 private:
 	// XML element start
@@ -195,7 +206,7 @@ private:
 	virtual void elementEnd( const CEGUI::String &element );
  
 	// XML element Property list
-	CEGUI::XMLAttributes xml_attributes;
+	CEGUI::XMLAttributes m_xml_attributes;
 };
 
 // Returns a World Object if element name is available else NULL

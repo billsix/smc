@@ -23,6 +23,7 @@
 #include "../core/math/utilities.h"
 #include "../core/i18n.h"
 #include "../video/gl_surface.h"
+#include "../core/filesystem/filesystem.h"
 
 namespace SMC
 {
@@ -178,18 +179,18 @@ void cWaypoint :: Update( void )
 
 	if( glim )
 	{
-		gcolor += pFramerate->speedfactor * 3;
+		gcolor += pFramerate->m_speed_factor * 3;
 	}
 	else
 	{
-		gcolor -= pFramerate->speedfactor * 3;
+		gcolor -= pFramerate->m_speed_factor * 3;
 	}
 
-	if( gcolor > 120 )
+	if( gcolor > 120.0f )
 	{
 		glim = 0;
 	}
-	else if( gcolor < 7 )
+	else if( gcolor < 7.0f )
 	{
 		glim = 1;
 	}
@@ -350,7 +351,7 @@ void cWaypoint :: Set_Destination( std::string str )
 	if( waypoint_type == WAYPOINT_NORMAL )
 	{
 		// erase file type and directory  if set
-		str = Get_Filename( str, 0, 0 );
+		str = Trim_Filename( str, 0, 0 );
 	}
 	// world waypoint
 	else if( waypoint_type == WAYPOINT_WORLD_LINK && str.find( DATA_DIR "/" GAME_OVERWORLD_DIR "/" ) != std::string::npos )
@@ -368,7 +369,7 @@ std::string cWaypoint :: Get_Destination( bool with_dir /* = 0 */, bool with_end
 	if( waypoint_type == WAYPOINT_NORMAL )
 	{
 		pActive_Level->Get_Path( name );
-		name = Get_Filename( name, with_dir, with_end );
+		name = Trim_Filename( name, with_dir, with_end );
 	}
 	else if( waypoint_type == WAYPOINT_WORLD_LINK )
 	{

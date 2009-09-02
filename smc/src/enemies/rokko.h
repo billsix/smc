@@ -63,7 +63,8 @@ public:
 	 * force : usually dies or a complete downgrade
 	*/
 	virtual void DownGrade( bool force = 0 );
-	virtual void DieStep( void );
+	// dying animation update
+	virtual void Update_Dying( void );
 
 	// update
 	virtual void Update( void );
@@ -104,16 +105,16 @@ public:
 	bool Editor_Speed_Text_Changed( const CEGUI::EventArgs &event );
 
 	// smoke particle counter
-	float smoke_counter;
+	float m_smoke_counter;
 	// flying speed
-	float speed;
+	float m_speed;
 	// maximum and minimum detection distance for the front
-	float max_distance_front;
-	float min_distance_front;
+	float m_max_distance_front;
+	float m_min_distance_front;
 	// maximum detection distance for the sides
-	float max_distance_sides;
+	float m_max_distance_sides;
 	// detection distance rect
-	GL_rect distance_rect;
+	GL_rect m_distance_rect;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

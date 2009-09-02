@@ -59,27 +59,28 @@ void cRokko :: Init( void  )
 	Set_Rotation_Affects_Rect( 1 );
 	Set_Active( 0 );
 
-	fire_resistant = 1;
+	m_fire_resistant = 1;
 	m_ice_resistance = 1;
+	m_can_be_hit_from_shell = 0;
 
 	Set_Direction( DIR_LEFT );
 	Set_Speed( 8.5f );
-	min_distance_front = 200;
+	m_min_distance_front = 200;
 	Set_Max_Distance_Front( 1000 );
 	Set_Max_Distance_Sides( 400 );
 	m_state = STA_STAY;
 
-	smoke_counter = 0;
+	m_smoke_counter = 0;
 
-	kill_sound = "enemy/rokko/hit.wav";
-	kill_points = 250;
+	m_kill_sound = "enemy/rokko/hit.wav";
+	m_kill_points = 250;
 }
 
 cRokko *cRokko :: Copy( void )
 {
 	cRokko *rokko = new cRokko( m_start_pos_x, m_start_pos_y );
 	rokko->Set_Direction( m_start_direction );
-	rokko->Set_Speed( speed );
+	rokko->Set_Speed( m_speed );
 
 	return rokko;
 }
@@ -91,7 +92,7 @@ void cRokko :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 	// direction
 	Set_Direction( Get_Direction_Id( attributes.getValueAsString( "direction", Get_Direction_Name( m_start_direction ) ).c_str() ) );
 	// speed
-	Set_Speed( attributes.getValueAsFloat( "speed", speed ) );
+	Set_Speed( attributes.getValueAsFloat( "speed", m_speed ) );
 }
 
 void cRokko :: Save_To_Stream( ofstream &file )
@@ -107,7 +108,7 @@ void cRokko :: Save_To_Stream( ofstream &file )
 	// direction
 	file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( m_start_direction ) << "\" />" << std::endl;
 	// speed
-	file << "\t\t<Property name=\"speed\" value=\"" << speed << "\" />" << std::endl;
+	file << "\t\t<Property name=\"speed\" value=\"" << m_speed << "\" />" << std::endl;
 
 	// end enemy
 	file << "\t</enemy>" << std::endl;
@@ -118,7 +119,7 @@ void cRokko :: Load_From_Savegame( cSave_Level_Object *save_object )
 	cEnemy::Load_From_Savegame( save_object );
 
 	// Don't activate if dead
-	if( dead )
+	if( m_dead )
 	{
 		return;
 	}
@@ -145,24 +146,22 @@ void cRokko :: Set_Direction( const ObjectDirection dir )
 	m_name = "Rokko ";
 	m_name += _(Get_Direction_Name(m_start_direction).c_str());
 
+	Add_Image( pVideo->Get_Surface( "enemy/rokko/r.png" ) );
+
 	if( m_direction == DIR_LEFT )
 	{
-		m_images.push_back( pVideo->Get_Surface( "enemy/rokko/r.png" ) );
 		Set_Rotation( 0.0f, 180.0f, 0.0f, 1 );
 	}
 	else if( m_direction == DIR_RIGHT )
 	{
-		m_images.push_back( pVideo->Get_Surface( "enemy/rokko/r.png" ) );
 		Set_Rotation( 0.0f, 0.0f, 0.0f, 1 );
 	}
 	else if( m_direction == DIR_UP )
 	{
-		m_images.push_back( pVideo->Get_Surface( "enemy/rokko/r.png" ) );
 		Set_Rotation( 0.0f, 0.0f, 270.0f, 1 );
 	}
 	else if( m_direction == DIR_DOWN )
 	{
-		m_images.push_back( pVideo->Get_Surface( "enemy/rokko/r.png" ) );
 		Set_Rotation( 0.0f, 0.0f, 90.0f, 1 );
 	}
 	else
@@ -181,17 +180,17 @@ void cRokko :: Set_Speed( float nspeed )
 		nspeed = 2;
 	}
 
-	speed = nspeed;
+	m_speed = nspeed;
 }
 
 void cRokko :: Set_Max_Distance_Front( float distance )
 {
-	if( distance < min_distance_front )
+	if( distance < m_min_distance_front )
 	{
-		distance = min_distance_front;
+		distance = m_min_distance_front;
 	}
 
-	max_distance_front = distance;
+	m_max_distance_front = distance;
 
 	Update_Distance_rect();
 }
@@ -203,7 +202,7 @@ void cRokko :: Set_Max_Distance_Sides( float distance )
 		distance = 50;
 	}
 
-	max_distance_sides = distance;
+	m_max_distance_sides = distance;
 
 	Update_Distance_rect();
 }
@@ -213,25 +212,24 @@ void cRokko :: Activate( void )
 	pAudio->Play_Sound( "enemy/rokko/activate.wav" );
 
 	m_state = STA_FLY;
-	walk_count = 1;
 	m_massive_type = MASS_MASSIVE;
 	Set_Active( 1 );
 
 	if( m_direction == DIR_LEFT )
 	{
-		Set_Velocity( -speed, 0.0f );
+		Set_Velocity( -m_speed, 0.0f );
 	}
 	else	if( m_direction == DIR_RIGHT )
 	{
-		Set_Velocity( speed, 0.0f );
+		Set_Velocity( m_speed, 0.0f );
 	}
 	else if( m_direction == DIR_UP )
 	{
-		Set_Velocity( 0.0f, -speed );
+		Set_Velocity( 0.0f, -m_speed );
 	}
 	else if( m_direction == DIR_DOWN )
 	{
-		Set_Velocity( 0.0f, speed );
+		Set_Velocity( 0.0f, m_speed );
 	}
 }
 
@@ -255,7 +253,7 @@ void cRokko :: DownGrade( bool force /* = 0 */ )
 	}
 }
 
-void cRokko :: DieStep( void )
+void cRokko :: Update_Dying( void )
 {
 	// add gravity
 	if( m_vely < 25 )
@@ -267,16 +265,16 @@ void cRokko :: DieStep( void )
 
 	if( m_rot_z - m_start_rot_z < 90 )
 	{
-		Add_Rotation_Z( pFramerate->speedfactor );
+		Add_Rotation_Z( pFramerate->m_speed_factor );
 	}
 
 	// generate smoke
-	smoke_counter += pFramerate->speedfactor * 4;
-	if( smoke_counter >= 2 )
+	m_smoke_counter += pFramerate->m_speed_factor * 4;
+	if( m_smoke_counter >= 2 )
 	{
-		Generate_Smoke( static_cast<int>(smoke_counter) );
-		Generate_Sparks( static_cast<int>(smoke_counter * 0.5f) );
-		smoke_counter -= static_cast<int>(smoke_counter);
+		Generate_Smoke( static_cast<int>(m_smoke_counter) );
+		Generate_Sparks( static_cast<int>(m_smoke_counter * 0.5f) );
+		m_smoke_counter -= static_cast<int>(m_smoke_counter);
 	}
 
 	// below ground
@@ -315,11 +313,11 @@ void cRokko :: Update( void )
 	}
 
 	// generate smoke
-	smoke_counter += pFramerate->speedfactor * 4.0f;
-	if( smoke_counter >= 1.0f )
+	m_smoke_counter += pFramerate->m_speed_factor * 4.0f;
+	if( m_smoke_counter >= 1.0f )
 	{
-		Generate_Smoke( static_cast<int>(smoke_counter) );
-		smoke_counter -= static_cast<int>(smoke_counter);
+		Generate_Smoke( static_cast<int>(m_smoke_counter) );
+		m_smoke_counter -= static_cast<int>(m_smoke_counter);
 	}
 }
 
@@ -369,51 +367,51 @@ void cRokko :: Update_Distance_rect( void )
 {
 	if( m_start_direction == DIR_LEFT )
 	{
-		distance_rect.m_x = -max_distance_front;
-		distance_rect.m_y = ((m_col_pos.m_y + m_col_rect.m_h) * 0.5f) - (max_distance_sides * 0.5f);
-		distance_rect.m_w = max_distance_front;
-		distance_rect.m_h = max_distance_sides;
+		m_distance_rect.m_x = -m_max_distance_front;
+		m_distance_rect.m_y = ((m_col_pos.m_y + m_col_rect.m_h) * 0.5f) - (m_max_distance_sides * 0.5f);
+		m_distance_rect.m_w = m_max_distance_front;
+		m_distance_rect.m_h = m_max_distance_sides;
 
 		// add some space to not activate directly in front of the player
-		distance_rect.m_w -= min_distance_front;
+		m_distance_rect.m_w -= m_min_distance_front;
 	}
 	else if( m_start_direction == DIR_RIGHT )
 	{
-		distance_rect.m_x = m_rect.m_w;
-		distance_rect.m_y = ((m_col_pos.m_y + m_col_rect.m_h) * 0.5f) - (max_distance_sides * 0.5f);
-		distance_rect.m_w = max_distance_front;
-		distance_rect.m_h = max_distance_sides;
+		m_distance_rect.m_x = m_rect.m_w;
+		m_distance_rect.m_y = ((m_col_pos.m_y + m_col_rect.m_h) * 0.5f) - (m_max_distance_sides * 0.5f);
+		m_distance_rect.m_w = m_max_distance_front;
+		m_distance_rect.m_h = m_max_distance_sides;
 
 		// add some space to not activate directly in front of the player
-		distance_rect.m_x += min_distance_front;
-		distance_rect.m_w -= min_distance_front;
+		m_distance_rect.m_x += m_min_distance_front;
+		m_distance_rect.m_w -= m_min_distance_front;
 	}
 	else if( m_start_direction == DIR_UP )
 	{
-		distance_rect.m_x = ((m_col_pos.m_x + m_col_rect.m_w) * 0.5f) - (max_distance_sides * 0.5f);
-		distance_rect.m_y = -max_distance_front;
-		distance_rect.m_w = max_distance_sides;
-		distance_rect.m_h = max_distance_front;
+		m_distance_rect.m_x = ((m_col_pos.m_x + m_col_rect.m_w) * 0.5f) - (m_max_distance_sides * 0.5f);
+		m_distance_rect.m_y = -m_max_distance_front;
+		m_distance_rect.m_w = m_max_distance_sides;
+		m_distance_rect.m_h = m_max_distance_front;
 
 		// add some space to not activate directly in front of the player
-		distance_rect.m_h -= min_distance_front;
+		m_distance_rect.m_h -= m_min_distance_front;
 	}
 	else if( m_start_direction == DIR_DOWN )
 	{
-		distance_rect.m_x = ((m_col_pos.m_x + m_col_rect.m_w) * 0.5f) - (max_distance_sides * 0.5f);
-		distance_rect.m_y = m_rect.m_h;
-		distance_rect.m_w = max_distance_sides;
-		distance_rect.m_h = max_distance_front;
+		m_distance_rect.m_x = ((m_col_pos.m_x + m_col_rect.m_w) * 0.5f) - (m_max_distance_sides * 0.5f);
+		m_distance_rect.m_y = m_rect.m_h;
+		m_distance_rect.m_w = m_max_distance_sides;
+		m_distance_rect.m_h = m_max_distance_front;
 
 		// add some space to not activate directly in front of the player
-		distance_rect.m_y += min_distance_front;
-		distance_rect.m_h -= min_distance_front;
+		m_distance_rect.m_y += m_min_distance_front;
+		m_distance_rect.m_h -= m_min_distance_front;
 	}
 }
 
 GL_rect cRokko :: Get_Final_Distance_Rect( void ) const
 {
-	GL_rect final_distance = distance_rect;
+	GL_rect final_distance = m_distance_rect;
 
 	final_distance.m_x += m_rect.m_x;
 	final_distance.m_y += m_rect.m_y;
@@ -429,7 +427,7 @@ void cRokko :: Generate_Smoke( unsigned int amount /* = 10 */ ) const
 	anim = new cParticle_Emitter();
 
 	// not dead
-	if( !dead )
+	if( !m_dead )
 	{
 		if( m_direction == DIR_LEFT )
 		{
@@ -497,7 +495,7 @@ void cRokko :: Generate_Sparks( unsigned int amount /* = 5 */ ) const
 
 bool cRokko :: Is_Update_Valid( void )
 {
-	if( dead || m_freeze_counter )
+	if( m_dead || m_freeze_counter )
 	{
 		return 0;
 	}
@@ -513,7 +511,7 @@ bool cRokko :: Is_Draw_Valid( void )
 	if( editor_enabled )
 	{
 		// if active mouse object
-		if( pMouseCursor->active_object == this )
+		if( pMouseCursor->m_active_object == this )
 		{
 			return 1;
 		}
@@ -524,13 +522,25 @@ bool cRokko :: Is_Draw_Valid( void )
 
 Col_Valid_Type cRokko :: Validate_Collision( cSprite *obj )
 {
-	if( obj->m_type == TYPE_PLAYER )
+	if( obj->m_massive_type == MASS_MASSIVE )
 	{
-		return COL_VTYPE_INTERNAL;
-	}
-	if( obj->m_type == TYPE_BALL )
-	{
-		return COL_VTYPE_INTERNAL;
+		switch( obj->m_type )
+		{
+			case TYPE_PLAYER:
+			{
+				return COL_VTYPE_INTERNAL;
+			}
+			case TYPE_BALL:
+			{
+				return COL_VTYPE_INTERNAL;
+			}
+			default:
+			{
+				break;
+			}
+		}
+
+		return COL_VTYPE_NOT_VALID;
 	}
 
 	return COL_VTYPE_NOT_VALID;
@@ -554,8 +564,8 @@ void cRokko :: Handle_Collision_Player( cObjectCollision *collision )
 
 		if( collision->direction == DIR_TOP && pPlayer->m_state != STA_FLY )
 		{
-			pHud_Points->Add_Points( kill_points, pPlayer->m_pos_x + pPlayer->m_image->m_w / 3, pPlayer->m_pos_y - 5, "", static_cast<Uint8>(255), 1 );
-			pAudio->Play_Sound( kill_sound );
+			pHud_Points->Add_Points( m_kill_points, pPlayer->m_pos_x + pPlayer->m_image->m_w / 3, pPlayer->m_pos_y - 5, "", static_cast<Uint8>(255), 1 );
+			pAudio->Play_Sound( m_kill_sound );
 			pPlayer->Action_Jump( 1 );
 
 			pPlayer->Add_Kill_Multiplier();
@@ -570,8 +580,8 @@ void cRokko :: Handle_Collision_Player( cObjectCollision *collision )
 	{
 		if( ( collision->direction == DIR_LEFT || collision->direction == DIR_LEFT ) && pPlayer->m_state == STA_FLY )
 		{
-			pHud_Points->Add_Points( kill_points, pPlayer->m_pos_x + pPlayer->m_image->m_w / 3, pPlayer->m_pos_y - 5, "", static_cast<Uint8>(255), 1 );
-			pAudio->Play_Sound( kill_sound );
+			pHud_Points->Add_Points( m_kill_points, pPlayer->m_pos_x + pPlayer->m_image->m_w / 3, pPlayer->m_pos_y - 5, "", static_cast<Uint8>(255), 1 );
+			pAudio->Play_Sound( m_kill_sound );
 
 			pPlayer->Add_Kill_Multiplier();
 			DownGrade();
@@ -610,7 +620,7 @@ void cRokko :: Editor_Activate( void )
 	Editor_Add( UTF8_("Speed"), UTF8_("Speed when activated"), editbox, 120 );
 
 	editbox->setValidationString( "[+]?[0-9]*\\.?[0-9]*" );
-	editbox->setText( float_to_string( speed ) );
+	editbox->setText( float_to_string( m_speed ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cRokko::Editor_Speed_Text_Changed, this ) );
 
 	// init

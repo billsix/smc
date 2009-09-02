@@ -98,8 +98,40 @@
 		<Property Name="object_name" Value="enemy" />
 		<Property Name="object_tags" Value="level;enemy" />
 		<Property Name="type" Value="static" />
+		<Property Name="rotation_speed" Value="2.5" />
+		<Property Name="image" Value="enemy/static/blocks/spike_1/1_orange.png" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="enemy" />
+		<Property Name="object_tags" Value="level;enemy" />
+		<Property Name="type" Value="static" />
 		<Property Name="rotation_speed" Value="0" />
 		<Property Name="image" Value="enemy/static/blocks/spike_1/2_grey.png" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="enemy" />
+		<Property Name="object_tags" Value="level;enemy" />
+		<Property Name="type" Value="static" />
+		<Property Name="rotation_speed" Value="0" />
+		<Property Name="image" Value="enemy/static/blocks/desert/1.png" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="enemy" />
+		<Property Name="object_tags" Value="level;enemy" />
+		<Property Name="type" Value="static" />
+		<Property Name="rotation_speed" Value="0" />
+		<Property Name="fire_resistant" Value="1" />
+		<Property Name="ice_resistance" Value="1" />
+		<Property Name="image" Value="enemy/static/metal_1/1_up.png" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="enemy" />
+		<Property Name="object_tags" Value="level;enemy" />
+		<Property Name="type" Value="static" />
+		<Property Name="rotation_speed" Value="0" />
+		<Property Name="fire_resistant" Value="1" />
+		<Property Name="ice_resistance" Value="1" />
+		<Property Name="image" Value="enemy/static/metal_1/1.png" />
 	</Item>
 	<Item>
 		<Property Name="object_name" Value="enemy" />
@@ -319,6 +351,20 @@
 		<Property Name="object_tags" Value="level;enemy" />
 		<Property Name="type" Value="spika" />
 		<Property Name="color" Value="grey" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="enemy" />
+		<Property Name="object_tags" Value="level;enemy" />
+		<Property Name="type" Value="spikeball" />
+		<Property Name="color" Value="grey" />
+		<Property Name="direction" Value="left" />
+	</Item>
+	<Item>
+		<Property Name="object_name" Value="enemy" />
+		<Property Name="object_tags" Value="level;enemy" />
+		<Property Name="type" Value="spikeball" />
+		<Property Name="color" Value="grey" />
+		<Property Name="direction" Value="right" />
 	</Item>
 	<Item>
 		<Property Name="object_name" Value="enemy" />

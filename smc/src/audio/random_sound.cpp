@@ -57,8 +57,8 @@ void cRandom_Sound :: Init( void )
 	m_player_range = 0;
 	m_name = "Sound";
 
-	m_rect.m_w = 10;
-	m_rect.m_h = 10;
+	m_rect.m_w = 10.0f;
+	m_rect.m_h = 10.0f;
 	m_col_rect.m_w = m_rect.m_w;
 	m_col_rect.m_h = m_rect.m_h;
 	m_start_rect.m_w = m_rect.m_w;
@@ -68,14 +68,14 @@ void cRandom_Sound :: Init( void )
 	m_continuous = 0;
 	m_delay_min = 1000;
 	m_delay_max = 5000;
-	m_volume_min = 90;
-	m_volume_max = 100;
-	m_volume_reduction_begin = 400;
-	m_volume_reduction_end = 1000;
+	m_volume_min = 90.0f;
+	m_volume_max = 100.0f;
+	m_volume_reduction_begin = 400.0f;
+	m_volume_reduction_end = 1000.0f;
 	
-	m_distance_to_camera = 0;
-	m_next_play_delay = 0;
-	m_volume_update_counter = 0;
+	m_distance_to_camera = 0.0f;
+	m_next_play_delay = 0.0f;
+	m_volume_update_counter = 0.0f;
 
 	m_editor_color_volume_reduction_begin = Color( 0.1f, 0.5f, 0.1f, 0.2f );
 	m_editor_color_volume_reduction_end = Color( 0.2f, 0.4f, 0.1f, 0.2f );
@@ -212,9 +212,9 @@ void cRandom_Sound :: Set_Volume_Min( float volume )
 	{
 		volume = m_volume_max;
 	}
-	else if( volume > 100 )
+	else if( volume > 100.0f )
 	{
-		volume = 100;
+		volume = 100.0f;
 	}
 
 	m_volume_min = volume;
@@ -235,9 +235,9 @@ void cRandom_Sound :: Set_Volume_Max( float volume )
 	{
 		volume = m_volume_min;
 	}
-	else if( volume > 100 )
+	else if( volume > 100.0f )
 	{
-		volume = 100;
+		volume = 100.0f;
 	}
 
 	m_volume_max = volume;
@@ -250,9 +250,9 @@ float cRandom_Sound :: Get_Volume_Max( void ) const
 
 void cRandom_Sound :: Set_Volume_Reduction_Begin( float distance )
 {
-	if( distance < 1 )
+	if( distance < 1.0f )
 	{
-		distance = 1;
+		distance = 1.0f;
 	}
 	else if( distance > m_volume_reduction_end )
 	{
@@ -269,9 +269,9 @@ float cRandom_Sound :: Get_Volume_Reduction_Begin( void ) const
 
 void cRandom_Sound :: Set_Volume_Reduction_End( float distance )
 {
-	if( distance < 1 )
+	if( distance < 1.0f )
 	{
-		distance = 1;
+		distance = 1.0f;
 	}
 	else if( distance < m_volume_reduction_begin )
 	{
@@ -291,8 +291,8 @@ float cRandom_Sound :: Get_Distance_Volume_Mod( void ) const
 	// if in volume reduction range
 	if( m_distance_to_camera > m_volume_reduction_begin )
 	{
-		float distance = m_distance_to_camera - m_volume_reduction_begin;
-		return ( 1.0f - distance / ( m_volume_reduction_end - m_volume_reduction_begin ) );
+		const float distance = m_distance_to_camera - m_volume_reduction_begin;
+		return 1.0f - distance / ( m_volume_reduction_end - m_volume_reduction_begin );
 	}
 
 	// no reduction
@@ -312,7 +312,7 @@ void cRandom_Sound :: Update( void )
 
 	if( m_continuous )
 	{
-		m_volume_update_counter -= ( pFramerate->speedfactor * 1000 ) / static_cast<float>(speedfactor_fps);
+		m_volume_update_counter -= pFramerate->m_elapsed_ticks;
 
 		// get the sound
 		cAudio_Sound *sound = pAudio->Get_Playing_Sound( m_filename );
@@ -324,7 +324,7 @@ void cRandom_Sound :: Update( void )
 			play = 1;
 		}
 		// update volume
-		else if( m_volume_update_counter <= 0 )
+		else if( m_volume_update_counter <= 0.0f )
 		{
 			// volume based on maximum
 			float sound_volume = m_volume_max * 0.01f;
@@ -336,16 +336,16 @@ void cRandom_Sound :: Update( void )
 			pAudio->Set_Sound_Volume( static_cast<Uint8>(sound_volume), sound->m_channel );
 
 			// update volume every 100 ms
-			m_volume_update_counter = 100;
+			m_volume_update_counter = 100.0f;
 		}
 	}
 	else
 	{
 		// subtract duration of this frame in milliseconds
-		m_next_play_delay -= ( pFramerate->speedfactor * 1000 ) / static_cast<float>(speedfactor_fps);
+		m_next_play_delay -= pFramerate->m_elapsed_ticks;
 
 		// play it
-		if( m_next_play_delay <= 0 )
+		if( m_next_play_delay <= 0.0f )
 		{
 			play = 1;
 
@@ -354,14 +354,14 @@ void cRandom_Sound :: Update( void )
 
 			if( m_delay_max > m_delay_min )
 			{
-				m_next_play_delay += Get_Random_Float( 0, static_cast<float>(m_delay_max - m_delay_min) );
+				m_next_play_delay += Get_Random_Float( 0.0f, static_cast<float>(m_delay_max - m_delay_min) );
 			}
 		}
 	}
 
 	if( play )
 	{
-		float sound_volume = 0;
+		float sound_volume = 0.0f;
 
 		// always maximum volume
 		if( m_continuous )
@@ -459,7 +459,7 @@ bool cRandom_Sound :: Is_Draw_Valid( void )
 	}
 
 	// if not active on the screen or not mouse object
-	if( !m_active || ( !Is_Visible_On_Screen() && pMouseCursor->active_object != this ) )
+	if( !m_active || ( !Is_Visible_On_Screen() && pMouseCursor->m_active_object != this ) )
 	{
 		return 0;
 	}

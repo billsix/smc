@@ -1,5 +1,5 @@
 AC_PREREQ(2.57)
-AC_INIT(smc, 1.8)
+AC_INIT(smc, 1.9)
 AC_CANONICAL_TARGET
 AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE(foreign)
@@ -63,16 +63,16 @@ AM_GNU_GETTEXT([external])
 ### Check for header files ###
 
 AC_CHECK_HEADERS(SDL.h, ,
-		AC_MSG_ERROR([SDL include files not found. The SDL development package is needed.]))
+	AC_MSG_ERROR([SDL include files not found. The SDL development package is needed.]))
 
 AC_CHECK_HEADERS(SDL_image.h, ,
-		AC_MSG_ERROR([SDL_image include files not found. The SDL_image development package is needed.]))
+	AC_MSG_ERROR([SDL_image include files not found. The SDL_image development package is needed.]))
 
 AC_CHECK_HEADERS(SDL_mixer.h, ,
-		AC_MSG_ERROR([SDL_mixer include files not found. The SDL_mixer development package is needed.]))
+	AC_MSG_ERROR([SDL_mixer include files not found. The SDL_mixer development package is needed.]))
 
 AC_CHECK_HEADERS(SDL_ttf.h, ,
-		AC_MSG_ERROR([SDL_ttf include files not found. The SDL_ttf development package is needed.]))
+	AC_MSG_ERROR([SDL_ttf include files not found. The SDL_ttf development package is needed.]))
 
 ### Option to enable debug build ###
 AC_ARG_ENABLE(debug,
@@ -81,8 +81,8 @@ AC_ARG_ENABLE(debug,
 
 ### Allow running in-place for development ###
 AC_ARG_ENABLE(runinplace,
-        AC_HELP_STRING(--enable-runinplace, build to run inplace),
-        [runinplace=yes])
+	AC_HELP_STRING(--enable-runinplace, build to run inplace),
+	[runinplace=yes])
 AM_CONDITIONAL(RUNINPLACE, test "$runinplace" = yes)
 
 ### Create files ###

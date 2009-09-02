@@ -90,10 +90,10 @@ public:
 	// Handles the Image Settings Line
 	virtual bool HandleMessage( const std::string *parts, unsigned int count, unsigned int line );
 
-	// the surface pointer used
-	cImage_settings_data *settings;
+	// temp settings used for loading
+	cImage_settings_data *m_settings_temp;
 	// load base settings
-	bool load_base;
+	bool m_load_base;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

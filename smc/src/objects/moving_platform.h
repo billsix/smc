@@ -17,7 +17,7 @@
 #define SMC_MOVING_PLATFORM_H
 
 #include "../core/globals.h"
-#include "../objects/objectsprite.h"
+#include "../objects/animated_sprite.h"
 #include "../objects/path.h"
 
 namespace SMC
@@ -49,7 +49,7 @@ enum Moving_Platform_State
  * Move along a line, circle or path
  * todo : circle start angle and circle radius for height and width ?
 */
-class cMoving_Platform : public cImageObjectSprite
+class cMoving_Platform : public cAnimated_Sprite
 {
 public:
 	// constructor

@@ -244,7 +244,18 @@ bool cPath_State :: Path_Move( float distance )
 				// finished
 				if( current_segment + 1 >= m_path->segments.size() )
 				{
-					return 0;
+					// rewind
+					if( m_path->m_rewind )
+					{
+						current_segment = 0;
+						current_segment_pos = 0;
+						return 0;
+					}
+					// mirror
+					else
+					{
+						return 0;
+					}
 				}
 
 				// set current segment object
@@ -280,7 +291,19 @@ bool cPath_State :: Path_Move( float distance )
 				// finished
 				if( current_segment == 0 )
 				{
-					return 0;
+					// rewind
+					if( m_path->m_rewind )
+					{
+						current_segment = m_path->segments.size() - 1;
+						obj = m_path->segments[current_segment];
+						current_segment_pos = obj.m_distance;
+						return 0;
+					}
+					// mirror
+					else
+					{
+						return 0;
+					}
 				}
 
 				// set current segment object
@@ -429,6 +452,7 @@ void cPath :: Init( void )
 	m_start_rect.m_w = m_rect.m_w;
 	m_start_rect.m_h = m_rect.m_h;
 
+	m_rewind = 0;
 	editor_color = Color( static_cast<Uint8>(100), 150, 200, 128 );
 	editor_selected_segment = 0;
 }
@@ -439,6 +463,7 @@ cPath *cPath :: Copy( void )
 	path->Set_Pos( m_start_pos_x, m_start_pos_y, 1 );
 	path->segments = segments;
 	path->Set_Identifier( m_identifier );
+	path->Set_Rewind( m_rewind );
 
 	return path;
 }
@@ -451,6 +476,8 @@ void cPath :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// identifier
 	Set_Identifier( attributes.getValueAsString( "identifier" ).c_str() );
+	// rewind
+	Set_Rewind( attributes.getValueAsBool( "rewind", m_rewind ) );
 
 	unsigned int count = 0;
 	// load segments
@@ -484,6 +511,8 @@ void cPath :: Save_To_Stream( ofstream &file )
 	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(m_start_pos_y) << "\" />" << std::endl;
 	// identifier
 	file << "\t\t<Property name=\"identifier\" value=\"" << string_to_xml_string( m_identifier ) << "\" />" << std::endl;
+	// rewind
+	file << "\t\t<Property name=\"rewind\" value=\"" << m_rewind << "\" />" << std::endl;
 
 	// segments
 	unsigned int count = segments.size();
@@ -566,6 +595,28 @@ void cPath :: Set_Identifier( const std::string &identifier )
 				moving_platform->Init_Links();
 				//moving_platform->m_path_state.Set_Path_Identifier( m_identifier );
 			}
+		}
+	}
+}
+
+void cPath :: Set_Rewind( bool rewind )
+{
+	// already set
+	if( m_rewind == rewind )
+	{
+		return;
+	}
+
+	m_rewind = rewind;
+
+	for( PathStateList::iterator itr = linked_path_states.begin(), itr_end = linked_path_states.end(); itr != itr_end; ++itr )
+	{
+		cPath_State *obj = (*itr);
+
+		// reset backwards moving
+		if( !obj->forward )
+		{
+			obj->Move_From_Segment( obj->current_segment );
 		}
 	}
 }
@@ -659,7 +710,7 @@ bool cPath :: Is_Draw_Valid( void )
 	}
 
 	// if not active on the screen or not mouse object
-	if( !m_active || ( !Is_Visible_On_Screen() && pMouseCursor->active_object != this ) )
+	if( !m_active || ( !Is_Visible_On_Screen() && pMouseCursor->m_active_object != this ) )
 	{
 		return 0;
 	}
@@ -678,8 +729,27 @@ void cPath :: Editor_Activate( void )
 	editbox->setText( m_identifier.c_str() );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cPath::Editor_Identifier_Text_Changed, this ) );
 
+	// move type
+	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "path_move_type" ));
+	Editor_Add( UTF8_("Move Type"), UTF8_("Movement type. Mirror moves forth and back and rewind starts from the beginning again."), combobox, 100, 105 );
+
+	combobox->addItem( new CEGUI::ListboxTextItem( "mirror" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "rewind" ) );
+
+	if( m_rewind )
+	{
+		combobox->setText( "rewind" );
+	}
+	else
+	{
+		combobox->setText( "mirror" );
+	}
+
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cPath::Editor_Move_Type_Select, this ) );
+
+
 	// selected segment
-	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "path_selected_segment" ));
+	combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "path_selected_segment" ));
 	Editor_Add( UTF8_("Segment"), UTF8_("Select the Segment to edit."), combobox, 100, 105 );
 
 	for( unsigned int count = 0; count < segments.size(); count++ )
@@ -709,7 +779,7 @@ void cPath :: Editor_Activate( void )
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "path_segment_x1" ));
 	Editor_Add( UTF8_("Pos X1"), UTF8_("Line position X1"), editbox, 150 );
 
-	editbox->setValidationString( "^[-+]?\\d*$" );
+	editbox->setValidationString( "[-+]?[0-9]*\\.?[0-9]*" );
 	editbox->setText( int_to_string( static_cast<int>(segments[editor_selected_segment].m_x1) ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cPath::Editor_Pos_X1_Text_Changed, this ) );
 
@@ -717,7 +787,7 @@ void cPath :: Editor_Activate( void )
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "path_segment_y1" ));
 	Editor_Add( UTF8_("Y1"), UTF8_("Line position Y1"), editbox, 150, 28, 0 );
 
-	editbox->setValidationString( "^[-+]?\\d*$" );
+	editbox->setValidationString( "[-+]?[0-9]*\\.?[0-9]*" );
 	editbox->setText( int_to_string( static_cast<int>(segments[editor_selected_segment].m_y1) ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cPath::Editor_Pos_Y1_Text_Changed, this ) );
 
@@ -725,7 +795,7 @@ void cPath :: Editor_Activate( void )
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "path_segment_x2" ));
 	Editor_Add( UTF8_("Pos X2"), UTF8_("Line position X2"), editbox, 150 );
 
-	editbox->setValidationString( "^[-+]?\\d*$" );
+	editbox->setValidationString( "[-+]?[0-9]*\\.?[0-9]*" );
 	editbox->setText( int_to_string( static_cast<int>(segments[editor_selected_segment].m_x2) ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cPath::Editor_Pos_X2_Text_Changed, this ) );
 
@@ -733,7 +803,7 @@ void cPath :: Editor_Activate( void )
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "path_segment_y2" ));
 	Editor_Add( UTF8_("Y2"), UTF8_("Line position Y2"), editbox, 150, 28, 0 );
 
-	editbox->setValidationString( "^[-+]?\\d*$" );
+	editbox->setValidationString( "[-+]?[0-9]*\\.?[0-9]*" );
 	editbox->setText( int_to_string( static_cast<int>(segments[editor_selected_segment].m_y2) ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cPath::Editor_Pos_Y2_Text_Changed, this ) );
 
@@ -793,6 +863,24 @@ bool cPath :: Editor_Identifier_Text_Changed( const CEGUI::EventArgs &event )
 	return 1;
 }
 
+bool cPath :: Editor_Move_Type_Select( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
+	std::string str_text = item->getText().c_str();
+
+	if( str_text.compare( "mirror" ) == 0 )
+	{
+		Set_Rewind( 0 );
+	}
+	else
+	{
+		Set_Rewind( 1 );
+	}
+
+	return 1;
+}
+
 bool cPath :: Editor_Selected_Segment_Select( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
@@ -847,6 +935,7 @@ bool cPath :: Editor_Button_Delete_Segment_Clicked( const CEGUI::EventArgs &even
 		}
 	}
 
+	editor_selected_segment--;
 	Editor_State_Update();
 
 	return 1;

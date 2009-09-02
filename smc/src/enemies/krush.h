@@ -21,15 +21,6 @@
 namespace SMC
 {
 
-/* *** *** *** *** *** Krush states *** *** *** *** *** *** *** *** *** *** *** *** */
-
-enum Krush_state
-{
-	KRUSH_DEAD		= 0,
-	KRUSH_WALK		= 1,
-	KRUSH_SMALL		= 2
-};
-
 /* *** *** *** *** *** cKrush *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cKrush : public cEnemy
@@ -59,20 +50,30 @@ public:
 
 	// load from savegame
 	virtual void Load_From_Savegame( cSave_Level_Object *save_object );
-	// save to savegame
-	virtual cSave_Level_Object *Save_To_Savegame( void );
 
 	// Set Direction
 	void Set_Direction( const ObjectDirection dir );
+
+	/* Move into the opposite Direction
+	 * if col_dir is given only turns around if the collision direction is in front
+	 */
+	virtual void Turn_Around( ObjectDirection col_dir = DIR_UNDEFINED );
 
 	/* downgrade state ( if already weakest state : dies )
 	 * force : usually dies or a complete downgrade
 	*/
 	virtual void DownGrade( bool force = 0 );
-	virtual void DieStep( void );
+	// dying animation update
+	virtual void Update_Dying( void );
+
+	// set the moving state
+	void Set_Moving_State( Moving_state new_state );
 
 	// update
 	virtual void Update( void );
+
+	// update the current velocity
+	void Update_Velocity( void );
 
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
@@ -94,12 +95,6 @@ public:
 	virtual void Editor_Activate( void );
 	// editor direction option selected event
 	bool Editor_Direction_Select( const CEGUI::EventArgs &event );
-
-	// Krush state
-	Krush_state krush_state;
-
-	// speed when small
-	float m_small_speed;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

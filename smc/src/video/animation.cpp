@@ -20,6 +20,7 @@
 #include "../video/renderer.h"
 #include "../core/math/utilities.h"
 #include "../core/i18n.h"
+#include "../core/filesystem/filesystem.h"
 // CEGUI
 #include "CEGUIXMLAttributes.h"
 
@@ -28,8 +29,8 @@ namespace SMC
 
 /* *** *** *** *** *** *** *** Base Animation class *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation :: cAnimation( float x /* = 0 */, float y /* = 0 */ )
-: cImageObjectSprite( x, y )
+cAnimation :: cAnimation( float x /* = 0.0f */, float y /* = 0.0f */ )
+: cAnimated_Sprite( x, y )
 {
 	m_sprite_array = ARRAY_ANIM;
 	m_type = TYPE_ACTIVESPRITE;
@@ -38,11 +39,11 @@ cAnimation :: cAnimation( float x /* = 0 */, float y /* = 0 */ )
 	m_can_be_on_ground = 0;
 
 	m_pos_z = 0.07000f;
-	posz_rand = 0;
-	time_to_live = 0;
-	time_to_live_rand = 0;
+	posz_rand = 0.0f;
+	time_to_live = 0.0f;
+	time_to_live_rand = 0.0f;
 
-	fading_speed = 1;
+	fading_speed = 1.0f;
 	animtype = ANIM_UNDEFINED;
 }
 
@@ -66,7 +67,7 @@ void cAnimation :: Draw( cSurface_Request *request /* = NULL */ )
 }
 
 
-void cAnimation :: Set_Time_to_Live( float time, float time_rand /* = 0 */ )
+void cAnimation :: Set_Time_to_Live( float time, float time_rand /* = 0.0f */ )
 {
 	time_to_live = time;
 	time_to_live_rand = time_rand;
@@ -82,7 +83,7 @@ void cAnimation :: Set_Fading_Speed( float speed )
 	}
 }
 
-void cAnimation :: Set_Pos_Z( float pos, float pos_rand /* = 0 */ )
+void cAnimation :: Set_Pos_Z( float pos, float pos_rand /* = 0.0f */ )
 {
 	m_pos_z = pos;
 	posz_rand = pos_rand;
@@ -90,14 +91,14 @@ void cAnimation :: Set_Pos_Z( float pos, float pos_rand /* = 0 */ )
 
 /* *** *** *** *** *** *** *** cAnimation_Goldpiece *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation_Goldpiece :: cAnimation_Goldpiece( float posx, float posy, float height /* = 40 */, float width /* = 20 */ )
+cAnimation_Goldpiece :: cAnimation_Goldpiece( float posx, float posy, float height /* = 40.0f */, float width /* = 20.0f */ )
 : cAnimation( posx, posy )
 {
 	animtype = BLINKING_POINTS;
 
-	m_images.push_back( pVideo->Get_Surface( "animation/light_1/1.png" ) );
-	m_images.push_back( pVideo->Get_Surface( "animation/light_1/2.png" ) );
-	m_images.push_back( pVideo->Get_Surface( "animation/light_1/3.png" ) );
+	Add_Image( pVideo->Get_Surface( "animation/light_1/1.png" ) );
+	Add_Image( pVideo->Get_Surface( "animation/light_1/2.png" ) );
+	Add_Image( pVideo->Get_Surface( "animation/light_1/3.png" ) );
 
 	m_rect.m_w = width;
 	m_rect.m_h = height;
@@ -118,7 +119,7 @@ void cAnimation_Goldpiece :: Init_Anim( void )
 {
 	for( unsigned int i = 0; i < 4; i++ )
 	{
-		cSprite *obj = new cSprite( m_images[0], m_pos_x + Get_Random_Float( 0.0f, m_rect.m_w ), m_pos_y + Get_Random_Float( 0.0f, m_rect.m_h ) );
+		cSprite *obj = new cSprite( m_images[0].m_image, m_pos_x + Get_Random_Float( 0.0f, m_rect.m_w ), m_pos_y + Get_Random_Float( 0.0f, m_rect.m_h ) );
 		obj->m_pos_z = m_pos_z;
 		obj->Set_Scale_X( m_scale_x, 1 );
 		obj->Set_Scale_Y( m_scale_y, 1 );
@@ -131,7 +132,7 @@ void cAnimation_Goldpiece :: Init_Anim( void )
 
 void cAnimation_Goldpiece :: Update( void )
 {
-	time_to_live += pFramerate->speedfactor * fading_speed;
+	time_to_live += pFramerate->m_speed_factor * fading_speed;
 
 	unsigned int count = 0;
 
@@ -145,81 +146,81 @@ void cAnimation_Goldpiece :: Update( void )
 		{
 		case 0:
 		{
-			if( time_to_live < 3 )
+			if( time_to_live < 3.0f )
 			{
-				obj->Set_Image( m_images[0] );
+				obj->Set_Image( m_images[0].m_image );
 			}
-			else if( time_to_live < 6 )
+			else if( time_to_live < 6.0f )
 			{
-				obj->Set_Image( m_images[0] );
+				obj->Set_Image( m_images[0].m_image );
 			}
-			else if( time_to_live < 9 )
+			else if( time_to_live < 9.0f )
 			{
-				obj->Set_Image( m_images[1] );
+				obj->Set_Image( m_images[1].m_image );
 			}
-			else if( time_to_live < 12 )
+			else if( time_to_live < 12.0f )
 			{
-				obj->Set_Image( m_images[0] );
+				obj->Set_Image( m_images[0].m_image );
 			}
 			break;
 		}
 		case 1:
 		{
-			if( time_to_live < 3 )
+			if( time_to_live < 3.0f )
 			{
-				obj->Set_Image( m_images[0] );
+				obj->Set_Image( m_images[0].m_image );
 			}
-			else if( time_to_live < 6 )
+			else if( time_to_live < 6.0f )
 			{
-				obj->Set_Image( m_images[1] );
+				obj->Set_Image( m_images[1].m_image );
 			}
-			else if( time_to_live < 9 )
+			else if( time_to_live < 9.0f )
 			{
-				obj->Set_Image( m_images[2] );
+				obj->Set_Image( m_images[2].m_image );
 			}
-			else if( time_to_live < 12 )
+			else if( time_to_live < 12.0f )
 			{
-				obj->Set_Image( m_images[1] );
+				obj->Set_Image( m_images[1].m_image );
 			}
 			break;
 		}
 		case 2:
 		{
-			if( time_to_live < 3 )
+			if( time_to_live < 3.0f )
 			{
-				obj->Set_Image( m_images[1] );
+				obj->Set_Image( m_images[1].m_image );
 			}
-			else if( time_to_live < 6 )
+			else if( time_to_live < 6.0f )
 			{
-				obj->Set_Image( m_images[2] );
+				obj->Set_Image( m_images[2].m_image );
 			}
-			else if( time_to_live < 9 )
+			else if( time_to_live < 9.0f )
 			{
-				obj->Set_Image( m_images[0] );
+				obj->Set_Image( m_images[0].m_image );
 			}
-			else if( time_to_live < 12 )
+			else if( time_to_live < 12.0f )
 			{
-				obj->Set_Image( m_images[0] );
+				obj->Set_Image( m_images[0].m_image );
 			}
 			break;			
 		}
 		case 3:
 		{
-			if( time_to_live < 3 )
+			if( time_to_live < 3.0f )
 			{
-				obj->Set_Image( m_images[0] );
+				obj->Set_Image( m_images[0].m_image );
 			}
-			else if( time_to_live < 6 )
+			else if( time_to_live < 6.0f )
 			{
-				obj->Set_Image( m_images[1] );
+				obj->Set_Image( m_images[1].m_image );
 			}
-			else if( time_to_live < 9 )
+			else if( time_to_live < 9.0f )
 			{
-				obj->Set_Image( m_images[0] );
+				obj->Set_Image( m_images[0].m_image );
 			}
-			else if( time_to_live < 12 )
+			else if( time_to_live < 12.0f )
 			{
-				obj->Set_Image( m_images[0] );
+				obj->Set_Image( m_images[0].m_image );
 			}
 			break;
 		}
@@ -289,10 +290,10 @@ void cAnimation_Fireball :: Init_Anim( void )
 		cAnimation_Fireball_Item *obj = (*itr);
 
 		// images
-		obj->m_images.push_back( pVideo->Get_Surface( "animation/fire_1/4.png" ) );
-		obj->m_images.push_back( pVideo->Get_Surface( "animation/fire_1/3.png" ) );
-		obj->m_images.push_back( pVideo->Get_Surface( "animation/fire_1/2.png" ) );
-		obj->m_images.push_back( pVideo->Get_Surface( "animation/fire_1/1.png" ) );
+		obj->Add_Image( pVideo->Get_Surface( "animation/fire_1/4.png" ) );
+		obj->Add_Image( pVideo->Get_Surface( "animation/fire_1/3.png" ) );
+		obj->Add_Image( pVideo->Get_Surface( "animation/fire_1/2.png" ) );
+		obj->Add_Image( pVideo->Get_Surface( "animation/fire_1/1.png" ) );
 		obj->Set_Image_Num( 0 );
 
 		// velocity
@@ -318,7 +319,7 @@ void cAnimation_Fireball :: Update( void )
 		return;
 	}
 
-	time_to_live += pFramerate->speedfactor * fading_speed;
+	time_to_live += pFramerate->m_speed_factor * fading_speed;
 
 	// update objects
 	for( FireAnimList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
@@ -342,7 +343,7 @@ void cAnimation_Fireball :: Update( void )
 			obj->Set_Image_Num( 3 );
 		}
 
-		obj->counter -= pFramerate->speedfactor * fading_speed;
+		obj->counter -= pFramerate->m_speed_factor * fading_speed;
 
 		obj->Set_Scale( obj->counter / 10 );
 		obj->Move( obj->m_velx, obj->m_vely );
@@ -411,12 +412,12 @@ cParticle :: ~cParticle( void )
 void cParticle :: Update( void )
 {
 	// update fade modifier
-	fade_pos -= ( ( static_cast<float>(speedfactor_fps) * 0.001f ) * pFramerate->speedfactor ) / time_to_live;
+	fade_pos -= ( ( static_cast<float>(speedfactor_fps) * 0.001f ) * pFramerate->m_speed_factor ) / time_to_live;
 
 	// finished fading
-	if( fade_pos <= 0 )
+	if( fade_pos <= 0.0f )
 	{
-		fade_pos = 0;
+		fade_pos = 0.0f;
 		Set_Active( 0 );
 		return;
 	}
@@ -436,15 +437,15 @@ void cParticle :: Update( void )
 	// constant rotation
 	if( const_rotx != 0 )
 	{
-		Add_Rotation_X( const_rotx * pFramerate->speedfactor );
+		Add_Rotation_X( const_rotx * pFramerate->m_speed_factor );
 	}
 	if( const_roty != 0 )
 	{
-		Add_Rotation_Y( const_roty * pFramerate->speedfactor );
+		Add_Rotation_Y( const_roty * pFramerate->m_speed_factor );
 	}
 	if( const_rotz != 0 )
 	{
-		Add_Rotation_Z( const_rotz * pFramerate->speedfactor );
+		Add_Rotation_Z( const_rotz * pFramerate->m_speed_factor );
 	}
 }
 
@@ -868,7 +869,7 @@ void cParticle_Emitter :: Update( void )
 		return;
 	}
 	
-	emitter_living_time += pFramerate->speedfactor * ( static_cast<float>(speedfactor_fps) * 0.001f );
+	emitter_living_time += pFramerate->m_speed_factor * ( static_cast<float>(speedfactor_fps) * 0.001f );
 
 	// update objects
 	for( ParticleList::iterator itr = objects.begin(); itr != objects.end(); )
@@ -902,7 +903,7 @@ void cParticle_Emitter :: Update( void )
 			emit_counter -= emitter_iteration_interval;
 		}
 
-		emit_counter += pFramerate->speedfactor * ( static_cast<float>(speedfactor_fps) * 0.001f );
+		emit_counter += pFramerate->m_speed_factor * ( static_cast<float>(speedfactor_fps) * 0.001f );
 	}
 	// no particles are active
 	else if( objects.empty() )

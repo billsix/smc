@@ -53,10 +53,11 @@ void cStaticEnemy :: Init( void )
 	m_type = TYPE_STATIC_ENEMY;
 	m_pos_z = 0.094f;
 	m_can_be_on_ground = 0;
+	m_can_be_hit_from_shell = 0;
 
 	m_path_state = cPath_State();
-	Set_Rotation_Speed( 0 );
-    Set_Speed( 0 );
+	Set_Rotation_Speed( 0.0f );
+    Set_Speed( 0.0f );
 	Set_Static_Image( "enemy/static/blocks/spike_1/2_grey.png" );
 	Create_Name();
 }
@@ -74,6 +75,8 @@ cStaticEnemy *cStaticEnemy :: Copy( void )
 	static_enemy->Set_Rotation_Speed( m_rotation_speed );
     static_enemy->Set_Path_Identifier( m_path_state.m_path_identifier );
     static_enemy->Set_Speed( m_speed );
+	static_enemy->m_fire_resistant = m_fire_resistant;
+	static_enemy->m_ice_resistance = m_ice_resistance;
 
 	return static_enemy;
 }
@@ -90,6 +93,10 @@ void cStaticEnemy :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
     Set_Path_Identifier( attributes.getValueAsString( "path", "" ).c_str() );
     // movement speed
     Set_Speed( static_cast<float>( attributes.getValueAsFloat( "speed", m_speed ) ) );
+	// fire resistant
+	m_fire_resistant = attributes.getValueAsBool( "fire_resistant", m_fire_resistant );
+	// ice resistance
+	m_ice_resistance = static_cast<float>( attributes.getValueAsFloat( "ice_resistance", m_ice_resistance ) );
 }
 
 void cStaticEnemy :: Save_To_Stream( ofstream &file )
@@ -110,6 +117,10 @@ void cStaticEnemy :: Save_To_Stream( ofstream &file )
     file << "\t\t<Property name=\"path\" value=\"" << m_path_state.m_path_identifier << "\" />" << std::endl;
     // speed
     file << "\t\t<Property name=\"speed\" value=\"" << m_speed << "\" />" << std::endl;
+	// fire resistant
+	file << "\t\t<Property name=\"fire_resistant\" value=\"" << m_fire_resistant << "\" />" << std::endl;
+	// ice resistance
+	file << "\t\t<Property name=\"ice_resistance\" value=\"" <<  m_ice_resistance << "\" />" << std::endl;
 
 	// end enemy
 	file << "\t</enemy>" << std::endl;
@@ -151,7 +162,7 @@ void cStaticEnemy :: Set_Static_Image( const std::string &filename )
 		m_img_filename.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
 	}
 
-	m_images.push_back( pVideo->Get_Surface( filename ) );
+	Add_Image( pVideo->Get_Surface( filename ) );
 	Set_Image_Num( 0, 1 );
 	Create_Name();
 }
@@ -159,7 +170,7 @@ void cStaticEnemy :: Set_Static_Image( const std::string &filename )
 void cStaticEnemy :: Set_Path_Identifier( const std::string &path )
 {
     m_path_state.Set_Path_Identifier( path );
-	Set_Velocity( 0, 0 );
+	Set_Velocity( 0.0f, 0.0f );
 }
 
 void cStaticEnemy :: Set_Speed( float speed )
@@ -171,38 +182,38 @@ void cStaticEnemy :: DownGrade( bool force /* = 0 */ )
 {
 	Set_Dead( 1 );
 	m_massive_type = MASS_PASSIVE;
-	counter = 0;
-	m_velx = 0;
-	m_vely = 0;
+	m_counter = 0.0f;
+	m_velx = 0.0f;
+	m_vely = 0.0f;
 	Set_Scale_Directions( 1, 1, 1, 1 );
 
 	// falling death
-	Set_Rotation_Z( 180 );
+	Set_Rotation_Z( 180.0f );
 }
 
-void cStaticEnemy :: DieStep( void )
+void cStaticEnemy :: Update_Dying( void )
 {
-	counter += pFramerate->speedfactor * 0.1f;
+	m_counter += pFramerate->m_speed_factor * 0.1f;
 
 	// falling death
 
 	// a little bit upwards first
-	if( counter < 0.3 )
+	if( m_counter < 0.3f )
 	{
-		Move( 0, -5 );
+		Move( 0.0f, -5.0f );
 	}
 	// if not below the screen fall
 	else if( m_pos_y < game_res_h + m_col_rect.m_h )
 	{
-		Move( 0, 20 );
+		Move( 0.0f, 20.0f );
 
-		Add_Scale( -pFramerate->speedfactor * 0.01f );
+		Add_Scale( -pFramerate->m_speed_factor * 0.01f );
 	}
 	// if below disable
 	else
 	{
-		m_rot_z = 0;
-		Set_Scale( 1 );
+		m_rot_z = 0.0f;
+		Set_Scale( 1.0f );
 		Set_Active( 0 );
 	}
 }
@@ -219,16 +230,19 @@ void cStaticEnemy :: Update( void )
 	if( m_rotation_speed )
 	{
 		// update rotation
-		Add_Rotation_Z( m_rotation_speed * pFramerate->speedfactor );
+		Add_Rotation_Z( m_rotation_speed * pFramerate->m_speed_factor );
 	}
 
     if( m_path_state.m_path )
     {
 		// move along path
-        if( m_path_state.Path_Move( m_speed * pFramerate->speedfactor ) == 0 )
+        if( m_path_state.Path_Move( m_speed * pFramerate->m_speed_factor ) == 0 )
         {
-			// if we can not move further along the path, reverse the direction
-            m_path_state.Move_Toggle();
+			if( !m_path_state.m_path->m_rewind )
+			{
+				// if we can not move further along the path, reverse the direction
+				m_path_state.Move_Toggle();
+			}
         }
 
     	// get difference
@@ -259,7 +273,7 @@ void cStaticEnemy :: Draw( cSurface_Request *request /* = NULL */ )
 
 bool cStaticEnemy :: Is_Update_Valid( void )
 {
-	if( dead || m_freeze_counter )
+	if( m_dead || m_freeze_counter )
 	{
 		return 0;
 	}
@@ -271,24 +285,39 @@ Col_Valid_Type cStaticEnemy :: Validate_Collision( cSprite *obj )
 {
 	if( obj->m_massive_type == MASS_MASSIVE )
 	{
-		if( obj->m_type == TYPE_ROKKO )
+		switch( obj->m_type )
 		{
-			return COL_VTYPE_NOT_VALID;
-		}
-		if( obj->m_type == TYPE_GEE )
-		{
-			return COL_VTYPE_NOT_VALID;
-		}
-		if( obj->m_type == TYPE_TURTLE_BOSS )
-		{
-			return COL_VTYPE_NOT_VALID;
-		}
-		if( obj->m_type == TYPE_FURBALL_BOSS )
-		{
-			return COL_VTYPE_NOT_VALID;
+			case TYPE_ROKKO:
+			{
+				return COL_VTYPE_NOT_VALID;
+			}
+			case TYPE_GEE:
+			{
+				return COL_VTYPE_NOT_VALID;
+			}
+			case TYPE_TURTLE_BOSS:
+			{
+				return COL_VTYPE_NOT_VALID;
+			}
+			case TYPE_FURBALL_BOSS:
+			{
+				return COL_VTYPE_NOT_VALID;
+			}
+			case TYPE_SPIKEBALL:
+			{
+				return COL_VTYPE_NOT_VALID;
+			}
+			case TYPE_PLAYER:
+			{
+				return COL_VTYPE_INTERNAL;
+			}
+			default:
+			{
+				break;
+			}
 		}
 
-		if( obj->m_sprite_array == ARRAY_ENEMY || obj->m_type == TYPE_PLAYER )
+		if( obj->m_sprite_array == ARRAY_ENEMY )
 		{
 			return COL_VTYPE_INTERNAL;
 		}
@@ -315,14 +344,14 @@ void cStaticEnemy :: Handle_Collision_Enemy( cObjectCollision *collision )
 	cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
 
 	// already dead
-	if( enemy->dead )
+	if( enemy->m_dead )
 	{
 		return;
 	}
 
 	// kill enemy
-	pAudio->Play_Sound( enemy->kill_sound );
-	pHud_Points->Add_Points( enemy->kill_points, m_pos_x + m_image->m_w / 3, m_pos_y - 5, "", static_cast<Uint8>(255), 1 );
+	pAudio->Play_Sound( enemy->m_kill_sound );
+	pHud_Points->Add_Points( enemy->m_kill_points, m_pos_x + m_image->m_w / 3, m_pos_y - 5.0f, "", static_cast<Uint8>(255), 1 );
 	enemy->DownGrade( 1 );
 }
 
@@ -361,6 +390,31 @@ void cStaticEnemy :: Editor_Activate( void )
 	editbox->setText( float_to_string( m_speed ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cStaticEnemy::Editor_Speed_Text_Changed, this ) );
 
+	// fire resistant
+	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_static_enemy_fire_resistant" ));
+	Editor_Add( UTF8_("Fire Resistant"), UTF8_("If it is resistant against fire"), combobox, 120, 80 );
+
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Enabled") ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Disabled") ) );
+
+	if( m_fire_resistant )
+	{
+		combobox->setText( UTF8_("Enabled") );
+	}
+	else
+	{
+		combobox->setText( UTF8_("Disabled") );
+	}
+
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cStaticEnemy::Editor_Fire_Resistant_Select, this ) );
+
+	// ice resistance
+	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_static_enemy_ice_resistance" ));
+	Editor_Add( UTF8_("Ice Resistance"), UTF8_("Resistance against Ice (0.0-1.0)"), editbox, 120 );
+
+	editbox->setValidationString( "[+]?[0-9]*\\.?[0-9]*" );
+	editbox->setText( float_to_string( m_ice_resistance ) );
+	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cStaticEnemy::Editor_Ice_Resistance_Text_Changed, this ) );
     
 	// init
 	Editor_Init();
@@ -403,6 +457,38 @@ bool cStaticEnemy :: Editor_Speed_Text_Changed( const CEGUI::EventArgs &event )
 
 	Set_Speed( string_to_float( str_text ) );
 
+	return 1;
+}
+
+bool cStaticEnemy :: Editor_Fire_Resistant_Select( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
+
+	if( item->getText().compare( UTF8_("Enabled") ) == 0 )
+	{
+		m_fire_resistant = 1;
+	}
+	else
+	{
+		m_fire_resistant = 0;
+	}
+
+	return 1;
+}
+
+bool cStaticEnemy :: Editor_Ice_Resistance_Text_Changed( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
+
+	m_ice_resistance = string_to_float( str_text );
+
+	if( m_ice_resistance > 1.0f )
+	{
+		m_ice_resistance = 1.0f;
+	}
+	
 	return 1;
 }
 

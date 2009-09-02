@@ -25,8 +25,8 @@ namespace SMC
 
 /* *** *** *** *** *** *** cEnemy *** *** *** *** *** *** *** *** *** *** *** */
 
-cEnemy :: cEnemy( float x /* = 0 */, float y /* = 0 */ )
-: cImageObjectSprite( x, y )
+cEnemy :: cEnemy( float x /* = 0.0f */, float y /* = 0.0f */ )
+: cAnimated_Sprite( x, y )
 {
 	m_sprite_array = ARRAY_ENEMY;
 	m_type = TYPE_ENEMY;
@@ -35,16 +35,16 @@ cEnemy :: cEnemy( float x /* = 0 */, float y /* = 0 */ )
 
 	m_massive_type = MASS_MASSIVE;
 	m_state = STA_FALL;
-	dead = 0;
+	m_dead = 0;
 	m_can_be_ground = 1;
 
-	counter = 0;
-	walk_count = 0;
+	m_counter = 0.0f;
 
-	kill_sound = "enemy/furball/die.ogg";
-	kill_points = 10;
+	m_kill_sound = "enemy/furball/die.ogg";
+	m_kill_points = 10;
 
-	fire_resistant = 0;
+	m_fire_resistant = 0;
+	m_can_be_hit_from_shell = 1;
 }
 
 cEnemy :: ~cEnemy( void )
@@ -136,9 +136,9 @@ cSave_Level_Object *cEnemy :: Save_To_Savegame( void )
 	}
 
 	// dead ( only save if needed )
-	if( dead )
+	if( m_dead )
 	{
-		save_object->m_properties.push_back( cSave_Level_Object_Property( "dead", int_to_string( dead ) ) );
+		save_object->m_properties.push_back( cSave_Level_Object_Property( "dead", int_to_string( m_dead ) ) );
 	}
 
 	return save_object;
@@ -146,12 +146,12 @@ cSave_Level_Object *cEnemy :: Save_To_Savegame( void )
 
 void cEnemy :: Set_Dead( bool enable /* = 1 */ )
 {
-	dead = enable;
+	m_dead = enable;
 
 	Update_Valid_Update();
 }
 
-void cEnemy :: DieStep( void )
+void cEnemy :: Update_Dying( void )
 {
 	// virtual
 }
@@ -161,19 +161,19 @@ void cEnemy :: Update( void )
 	cMovingSprite::Update();
 
 	// dying animation
-	if( dead && m_active )
+	if( m_dead && m_active )
 	{
-		DieStep();
+		Update_Dying();
 	}
 
 	// frozen
 	if( m_freeze_counter )
 	{
 		// update gravity
-		if( m_type == TYPE_FURBALL || m_type == TYPE_TURTLE || m_type == TYPE_KRUSH || m_type == TYPE_SPIKA )
+		if( m_type == TYPE_FURBALL || m_type == TYPE_TURTLE || m_type == TYPE_KRUSH || m_type == TYPE_SPIKA || m_type == TYPE_SPIKEBALL )
 		{
 			Update_Gravity();
-			Col_Move( 0, m_vely );
+			Col_Move( 0.0f, m_vely );
 			// todo
 			/*Col_Move( m_velx, m_vely );
 
@@ -196,10 +196,11 @@ void cEnemy :: Update_Late( void )
 
 		// handle collisions manually
 		m_massive_type = MASS_MASSIVE;
-		Collision_Check( &m_col_rect );
+		cObjectCollisionType *col_list = Collision_Check( &m_col_rect );
+		Add_Collisions( col_list, 1 );
+		delete col_list;
 		Handle_Collisions();
 		m_massive_type = MASS_PASSIVE;
-		return;
 	}
 }
 
@@ -229,7 +230,7 @@ void cEnemy :: Update_Gravity( void )
 	}
 }
 
-void cEnemy :: Generate_Hit_Animation( cParticle_Emitter *anim /* = NULL */ )
+void cEnemy :: Generate_Hit_Animation( cParticle_Emitter *anim /* = NULL */ ) const
 {
 	bool create_anim = 0;
 
@@ -286,12 +287,12 @@ void cEnemy :: Generate_Hit_Animation( cParticle_Emitter *anim /* = NULL */ )
 
 void cEnemy :: Handle_Collision( cObjectCollision *collision )
 {
-	if( dead )
+	if( m_dead )
 	{
 		return;
 	}
 
-	cImageObjectSprite::Handle_Collision( collision );
+	cAnimated_Sprite::Handle_Collision( collision );
 }
 
 void cEnemy :: Handle_out_of_Level( ObjectDirection dir )
