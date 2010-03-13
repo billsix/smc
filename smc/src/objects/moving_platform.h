@@ -16,7 +16,7 @@
 #ifndef SMC_MOVING_PLATFORM_H
 #define SMC_MOVING_PLATFORM_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../objects/animated_sprite.h"
 #include "../objects/path.h"
 
@@ -53,9 +53,9 @@ class cMoving_Platform : public cAnimated_Sprite
 {
 public:
 	// constructor
-	cMoving_Platform( float x, float y );
+	cMoving_Platform( cSprite_Manager *sprite_manager );
 	// create from stream
-	cMoving_Platform( CEGUI::XMLAttributes &attributes );
+	cMoving_Platform( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	~cMoving_Platform( void );
 	
@@ -66,12 +66,15 @@ public:
 	*/
 	virtual void Init_Links( void );
 	// copy
-	virtual cMoving_Platform *Copy( void );
+	virtual cMoving_Platform *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
 	virtual void Save_To_Stream( ofstream &file );
+
+	// Set the parent sprite manager
+	virtual void Set_Sprite_Manager( cSprite_Manager *sprite_manager );
 
 	// load from savegame
 	virtual void Load_From_Savegame( cSave_Level_Object *save_object );
@@ -85,14 +88,14 @@ public:
 	*/
 	void Set_Path_Identifier( const std::string &identifier );
 	// Set Massive type
-	virtual void Set_Massive_Type( MassiveType mtype );
+	virtual void Set_Massive_Type( MassiveType new_type );
 	// Set Direction
 	void Set_Direction( const ObjectDirection dir, bool new_start_direction = 0 );
 	/* Set Maximum distance
 	 * if move type is line this is the length and if circle the radius
 	 * but not used if path
 	*/
-	void Set_Max_Distance( int nmax_distance );
+	void Set_Max_Distance( int new_max_distance );
 	// Set the Speed
 	void Set_Speed( float val );
 	// Set time when touched until it starts shaking
@@ -172,28 +175,28 @@ public:
 	Moving_Platform_State m_platform_state;
 
 	// current angle if move type is circle
-	float moving_angle;
+	float m_moving_angle;
 	// movement speed
-	float speed;
+	float m_speed;
 	// max moving distance
-	int max_distance;
+	int m_max_distance;
 	// how many times the middle image is drawn
-	unsigned int middle_count;
+	unsigned int m_middle_count;
 
 	// time when touched until it starts shaking
-	float touch_time;
+	float m_touch_time;
 	// time since the platform got touched
-	float touch_counter;
+	float m_touch_counter;
 	// time it's shaking until falling
-	float shake_time;
+	float m_shake_time;
 	// time since shaking started
-	float shake_counter;
+	float m_shake_counter;
 	// shaking direction
-	bool shake_dir;
+	bool m_shake_dir;
 	// shaking direction counter
-	float shake_dir_counter;
+	float m_shake_dir_counter;
 	// time when touched until it starts moving
-	float touch_move_time;
+	float m_touch_move_time;
 
 	// path state if linked to a path
 	cPath_State m_path_state;
@@ -203,11 +206,11 @@ private:
 	void Create_Name( void );
 
 	// position when movement should slow down
-	float max_distance_slow_down_pos;
+	float m_max_distance_slow_down_pos;
 	// lowest possible speed when moving
-	float lowest_speed;
+	float m_lowest_speed;
 	// editor color
-	Color editor_color;
+	Color m_editor_color;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

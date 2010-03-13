@@ -16,8 +16,9 @@
 #ifndef SMC_LEVEL_EXIT_H
 #define SMC_LEVEL_EXIT_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../objects/animated_sprite.h"
+#include "../core/camera.h"
 
 namespace SMC
 {
@@ -30,18 +31,6 @@ enum Level_Exit_type
 	LEVEL_EXIT_WARP = 1		// rotated player moves slowly into the destination direction
 };
 
-
-/* *** *** *** *** *** *** *** Level Exit motions *** *** *** *** *** *** *** *** *** *** */
-
-// Only used when destination level is the same level
-enum Level_Exit_motion
-{
-	LEVEL_EXIT_M_FLY = 0,	// Camera flys to entry point
-	LEVEL_EXIT_M_BLINK = 1,	// Camera fades out, then in at the entry
-	LEVEL_EXIT_M_PATH = 2,	// Camera moves along a defined path
-	LEVEL_EXIT_M_PATH_BACKWARDS = 3	// Camera moves along a defined path backwards
-};
-
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 /* Level exit
@@ -51,16 +40,16 @@ class cLevel_Exit : public cAnimated_Sprite
 {
 public:
 	// constructor
-	cLevel_Exit( float x, float y );
+	cLevel_Exit( cSprite_Manager *sprite_manager );
 	// create from stream
-	cLevel_Exit( CEGUI::XMLAttributes &attributes );
+	cLevel_Exit( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cLevel_Exit( void );
 
 	// init defaults
 	void Init( void );
 	// copy this sprite
-	virtual cLevel_Exit *Copy( void );
+	virtual cLevel_Exit *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -76,9 +65,9 @@ public:
 	void Activate( void );
 
 	// Set the type
-	void Set_Type( Level_Exit_type ltype );
-	// Set the motion
-	void Set_Motion( Level_Exit_motion motion );
+	void Set_Type( Level_Exit_type exit_type );
+	// Set the camera motion (only used when destination level is the same level)
+	void Set_Camera_Motion( Camera_movement camera_motion );
 
 	// Set the destination level
 	void Set_Level( std::string filename );
@@ -111,20 +100,20 @@ public:
 	bool Editor_Path_Identifier_Text_Changed( const CEGUI::EventArgs &event );
 
 	// level exit type
-	Level_Exit_type exit_type;
+	Level_Exit_type m_exit_type;
 	// motion type
-	Level_Exit_motion exit_motion;
+	Camera_movement m_exit_motion;
 	// destination level
-	std::string dest_level;
+	std::string m_dest_level;
 	// destination entry ( only used if in same level )
-	std::string dest_entry;
+	std::string m_dest_entry;
 	// string identifier of the linked path
 	std::string m_path_identifier;
 
 	// editor type color
-	Color editor_color;
+	Color m_editor_color;
 	// editor entry name text
-	cGL_Surface *editor_entry_name;
+	cGL_Surface *m_editor_entry_name;
 
 private:
 	void Create_Name( void );

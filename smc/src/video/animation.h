@@ -47,7 +47,7 @@ enum BlendingMode
 class cAnimation : public cAnimated_Sprite
 {
 public:
-	cAnimation( float x = 0.0f, float y = 0.0f );
+	cAnimation( cSprite_Manager *sprite_manager );
 	virtual ~cAnimation( void );
 
 	// initialize animation
@@ -61,7 +61,7 @@ public:
 	void Set_Time_to_Live( float time, float time_rand = 0.0f );
 	/* Set speed of fading out ( 0.01 - 100 )
 	* the lower the longer it takes
-	* Note : only useful for non particle animation Objects
+	* Note : only useful for non particle animation objects
 	*/
 	void Set_Fading_Speed( float speed );
 	// set z position
@@ -82,7 +82,7 @@ public:
 class cAnimation_Goldpiece : public cAnimation
 {
 public:
-	cAnimation_Goldpiece( float posx, float posy, float height = 40.0f, float width = 20.0f );
+	cAnimation_Goldpiece( cSprite_Manager *sprite_manager, float posx, float posy, float height = 40.0f, float width = 20.0f );
 	virtual ~cAnimation_Goldpiece( void );
 
 	// initialize animation
@@ -102,8 +102,8 @@ public:
 class cAnimation_Fireball_Item : public cAnimated_Sprite
 {
 public:
-	cAnimation_Fireball_Item( void )
-	: cAnimated_Sprite()
+	cAnimation_Fireball_Item( cSprite_Manager *sprite_manager )
+	: cAnimated_Sprite( sprite_manager )
 	{
 		counter = 0.0f;
 	}
@@ -117,7 +117,7 @@ public:
 class cAnimation_Fireball : public cAnimation
 {
 public:
-	cAnimation_Fireball( float posx, float posy, unsigned int power = 5 );
+	cAnimation_Fireball( cSprite_Manager *sprite_manager, float posx, float posy, unsigned int power = 5 );
 	virtual ~cAnimation_Fireball( void );
 
 	// initialize animation
@@ -154,14 +154,14 @@ public:
 	// parent particle emitter
 	cParticle_Emitter *m_parent;
 	// time to live
-	float time_to_live;
+	float m_time_to_live;
 	// constant rotation
-	float const_rotx, const_roty, const_rotz;
+	float m_const_rot_x, m_const_rot_y, m_const_rot_z;
 	// particle gravity
-	float gravity_x, gravity_y;
+	float m_gravity_x, m_gravity_y;
 
 	// fading position value
-	float fade_pos;
+	float m_fade_pos;
 };
 
 /* *** *** *** *** *** *** *** Particle Emitter *** *** *** *** *** *** *** *** *** *** */
@@ -170,9 +170,9 @@ class cParticle_Emitter : public cAnimation
 {
 public:
 	// constructor
-	cParticle_Emitter( void );
+	cParticle_Emitter( cSprite_Manager *sprite_manager );
 	// create from stream
-	cParticle_Emitter( CEGUI::XMLAttributes &attributes );
+	cParticle_Emitter( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cParticle_Emitter( void );
 
@@ -184,7 +184,7 @@ public:
 	// Init
 	virtual void Init( void );
 	// copy
-	virtual cParticle_Emitter *Copy( void );
+	virtual cParticle_Emitter *Copy( void ) const;
 	// initialize animation
 	virtual void Init_Anim( void );
 	// Emit Particles
@@ -203,7 +203,7 @@ public:
 	virtual bool Is_Draw_Valid( void );
 
 	// Set the Emitter rect
-	void Set_Emitter_Rect( float x, float y, float w = 0, float h = 0 );
+	void Set_Emitter_Rect( float x, float y, float w = 0.0f, float h = 0.0f );
 	void Set_Emitter_Rect( const GL_rect &r );
 	/* Set time to live for the Emitter in seconds
 	 * set -1 for infinite
@@ -214,25 +214,25 @@ public:
 	// Set Particle Count/Quota
 	void Set_Quota( unsigned int size );
 	// Set speed ( 0 - 100 )
-	void Set_Speed( float vel_base, float vel_random = 2 );
+	void Set_Speed( float vel_base, float vel_random = 2.0f );
 	// Set start rotation z uses start direction
 	void Set_Start_Rot_Z_Uses_Direction( bool enable );
 	// Set x constant rotation
-	void Set_Const_Rotation_X( float rot, float rot_random = 0 );
+	void Set_Const_Rotation_X( float rot, float rot_random = 0.0f );
 	// Set y constant rotation
-	void Set_Const_Rotation_Y( float rot, float rot_random = 0 );
+	void Set_Const_Rotation_Y( float rot, float rot_random = 0.0f );
 	// Set z constant rotation
-	void Set_Const_Rotation_Z( float rot, float rot_random = 0 );
+	void Set_Const_Rotation_Z( float rot, float rot_random = 0.0f );
 	/* Set direction range ( 0 - 360 )
 	 * 0 : Right, 90 Down, 180 Left, 270 Up
 	*/
-	void Set_Direction_Range( float start, float range = 0 );
+	void Set_Direction_Range( float start, float range = 0.0f );
 	// Set image scale ( 0.01 - 100 )
-	virtual void Set_Scale( float nscale, float scale_random = 0 );
+	virtual void Set_Scale( float nscale, float scale_random = 0.0f );
 	// Set horizontal gravity
-	void Set_Horizontal_Gravity( float start, float random = 0 );
+	void Set_Horizontal_Gravity( float start, float random = 0.0f );
 	// Set vertical gravity
-	void Set_Vertical_Gravity( float start, float random = 0 );
+	void Set_Vertical_Gravity( float start, float random = 0.0f );
 	// Set the Color
 	virtual void Set_Color( const Color &col, const Color &col_rand = Color( static_cast<Uint8>(0), 0, 0, 0 ) );
 	// Set fading type
@@ -340,7 +340,7 @@ public:
 	float gravity_y, gravity_y_rand;
 	// color random
 	Color color_rand;
-	// fading types todo : dest-color
+	// fading types (todo : dest-color)
 	bool fade_size, fade_alpha, fade_color;
 	// blending mode
 	BlendingMode blending;
@@ -368,13 +368,13 @@ public:
 	// Draw the objects
 	void Draw( void );
 
-	typedef vector<cAnimation *> AnimationList;
+	typedef vector<cAnimation *> cAnimation_List;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // The Animation Manager
-extern cAnimation_Manager *pAnimation_Manager;
+extern cAnimation_Manager *pActive_Animation_Manager;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

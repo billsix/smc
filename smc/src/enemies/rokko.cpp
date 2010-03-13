@@ -15,7 +15,7 @@
 
 #include "../enemies/rokko.h"
 #include "../core/game_core.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../video/animation.h"
 #include "../gui/hud.h"
 #include "../video/gl_surface.h"
@@ -30,14 +30,14 @@ namespace SMC
 
 /* *** *** *** *** *** *** cRokko *** *** *** *** *** *** *** *** *** *** *** */
 
-cRokko :: cRokko( float x, float y )
-: cEnemy( x, y )
+cRokko :: cRokko( cSprite_Manager *sprite_manager )
+: cEnemy( sprite_manager )
 {
 	cRokko::Init();
 }
 
-cRokko :: cRokko( CEGUI::XMLAttributes &attributes )
-: cEnemy()
+cRokko :: cRokko( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cEnemy( sprite_manager )
 {
 	cRokko::Init();
 	cRokko::Create_From_Stream( attributes );
@@ -53,9 +53,10 @@ void cRokko :: Init( void  )
 	m_type = TYPE_ROKKO;
 	m_massive_type = MASS_PASSIVE;
 	m_pos_z = 0.03f;
+	m_gravity_max = 26.0f;
 	m_editor_pos_z = 0.09f;
 	m_can_be_on_ground = 0;
-	m_player_range = 4000;
+	m_camera_range = 4000;
 	Set_Rotation_Affects_Rect( 1 );
 	Set_Active( 0 );
 
@@ -76,12 +77,12 @@ void cRokko :: Init( void  )
 	m_kill_points = 250;
 }
 
-cRokko *cRokko :: Copy( void )
+cRokko *cRokko :: Copy( void ) const
 {
-	cRokko *rokko = new cRokko( m_start_pos_x, m_start_pos_y );
+	cRokko *rokko = new cRokko( m_sprite_manager );
+	rokko->Set_Pos( m_start_pos_x, m_start_pos_y );
 	rokko->Set_Direction( m_start_direction );
 	rokko->Set_Speed( m_speed );
-
 	return rokko;
 }
 
@@ -127,7 +128,7 @@ void cRokko :: Load_From_Savegame( cSave_Level_Object *save_object )
 	// activate
 	if( m_state == STA_FLY )
 	{
-		Activate();
+		Activate( 0 );
 	}
 }
 
@@ -175,9 +176,9 @@ void cRokko :: Set_Direction( const ObjectDirection dir )
 
 void cRokko :: Set_Speed( float nspeed )
 {
-	if( nspeed < 2 )
+	if( nspeed < 2.0f )
 	{
-		nspeed = 2;
+		nspeed = 2.0f;
 	}
 
 	m_speed = nspeed;
@@ -197,9 +198,9 @@ void cRokko :: Set_Max_Distance_Front( float distance )
 
 void cRokko :: Set_Max_Distance_Sides( float distance )
 {
-	if( distance < 50 )
+	if( distance < 50.0f )
 	{
-		distance = 50;
+		distance = 50.0f;
 	}
 
 	m_max_distance_sides = distance;
@@ -207,9 +208,12 @@ void cRokko :: Set_Max_Distance_Sides( float distance )
 	Update_Distance_rect();
 }
 
-void cRokko :: Activate( void )
+void cRokko :: Activate( bool with_sound /* = 1 */ )
 {
-	pAudio->Play_Sound( "enemy/rokko/activate.wav" );
+	if( with_sound )
+	{
+		pAudio->Play_Sound( "enemy/rokko/activate.wav" );
+	}
 
 	m_state = STA_FLY;
 	m_massive_type = MASS_MASSIVE;
@@ -219,7 +223,7 @@ void cRokko :: Activate( void )
 	{
 		Set_Velocity( -m_speed, 0.0f );
 	}
-	else	if( m_direction == DIR_RIGHT )
+	else if( m_direction == DIR_RIGHT )
 	{
 		Set_Velocity( m_speed, 0.0f );
 	}
@@ -242,23 +246,22 @@ void cRokko :: DownGrade( bool force /* = 0 */ )
 	if( !force )
 	{
 		// animation
-		cParticle_Emitter *anim = new cParticle_Emitter();
+		cParticle_Emitter *anim = new cParticle_Emitter( m_sprite_manager );
 		Generate_Hit_Animation( anim );
 
 		anim->Set_Quota( 8 );
 		anim->Set_Speed( 4, 1 );
 		anim->Set_Scale( 0.9f );
 		// add animation
-		pAnimation_Manager->Add( anim );
+		pActive_Animation_Manager->Add( anim );
 	}
 }
 
 void cRokko :: Update_Dying( void )
 {
-	// add gravity
-	if( m_vely < 25 )
+	if( m_vely < m_gravity_max )
 	{
-		Add_Velocity( 0, 1.5f );
+		Add_Velocity_Y_Max( 1.5f, m_gravity_max );
 	}
 
 	Move( m_velx, m_vely );
@@ -278,7 +281,7 @@ void cRokko :: Update_Dying( void )
 	}
 
 	// below ground
-	if( m_col_rect.m_y - 200.0f > pActive_Camera->limit_rect.m_y + game_res_h )
+	if( m_col_rect.m_y - 200.0f > pActive_Camera->m_limit_rect.m_y + game_res_h )
 	{
 		m_rot_z = 0.0f;
 		m_massive_type = MASS_PASSIVE;
@@ -291,7 +294,7 @@ void cRokko :: Update( void )
 {
 	cEnemy::Update();
 
-	if( !m_valid_update || !Is_In_Player_Range() )
+	if( !m_valid_update || !Is_In_Range() )
 	{
 		return;
 	}
@@ -302,7 +305,7 @@ void cRokko :: Update( void )
 		GL_rect final_distance = Get_Final_Distance_Rect();
 
 		// if player is in front then activate
-		if( pPlayer->maryo_type != MARYO_GHOST && pPlayer->m_col_rect.Intersects( final_distance ) )
+		if( pLevel_Player->m_maryo_type != MARYO_GHOST && pLevel_Player->m_col_rect.Intersects( final_distance ) )
 		{
 			Activate();
 		}
@@ -332,8 +335,8 @@ void cRokko :: Draw( cSurface_Request *request /* = NULL */ )
 	if( editor_level_enabled )
 	{
 		GL_rect final_distance = Get_Final_Distance_Rect();
-		final_distance.m_x -= pActive_Camera->x;
-		final_distance.m_y -= pActive_Camera->y;
+		final_distance.m_x -= pActive_Camera->m_x;
+		final_distance.m_y -= pActive_Camera->m_y;
 
 		pVideo->Draw_Rect( &final_distance, m_pos_z - 0.00001f, &whitealpha128 );
 	}
@@ -424,7 +427,7 @@ void cRokko :: Generate_Smoke( unsigned int amount /* = 10 */ ) const
 	cParticle_Emitter *anim = NULL;
 
 	// moving smoke particle animation
-	anim = new cParticle_Emitter();
+	anim = new cParticle_Emitter( m_sprite_manager );
 
 	// not dead
 	if( !m_dead )
@@ -472,13 +475,13 @@ void cRokko :: Generate_Smoke( unsigned int amount /* = 10 */ ) const
 	anim->Set_Fading_Alpha( 1 );
 	
 	// add animation
-	pAnimation_Manager->Add( anim );
+	pActive_Animation_Manager->Add( anim );
 }
 
 void cRokko :: Generate_Sparks( unsigned int amount /* = 5 */ ) const
 {
 	// animation
-	cParticle_Emitter *anim = new cParticle_Emitter();
+	cParticle_Emitter *anim = new cParticle_Emitter( m_sprite_manager );
 	anim->Set_Emitter_Rect( m_pos_x + m_col_rect.m_w * 0.2f, m_pos_y + m_rect.m_h * 0.2f, m_col_rect.m_w * 0.6f, m_rect.m_h * 0.6f );
 	anim->Set_Pos_Z( m_pos_z + 0.00001f );
 	anim->Set_Quota( amount );
@@ -490,7 +493,7 @@ void cRokko :: Generate_Sparks( unsigned int amount /* = 5 */ ) const
 	anim->Set_Fading_Size( 1 );
 	anim->Set_Fading_Alpha( 0 );
 	// add animation
-	pAnimation_Manager->Add( anim );
+	pActive_Animation_Manager->Add( anim );
 }
 
 bool cRokko :: Is_Update_Valid( void )
@@ -549,7 +552,7 @@ Col_Valid_Type cRokko :: Validate_Collision( cSprite *obj )
 void cRokko :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// if invalid
-	if( collision->direction == DIR_UNDEFINED )
+	if( collision->m_direction == DIR_UNDEFINED )
 	{
 		return;
 	}
@@ -557,38 +560,38 @@ void cRokko :: Handle_Collision_Player( cObjectCollision *collision )
 	if( m_direction == DIR_LEFT || m_direction == DIR_RIGHT )
 	{
 		// if invincible
-		if( pPlayer->invincible > 0.0f )
+		if( pLevel_Player->m_invincible > 0.0f )
 		{
 			return;
 		}
 
-		if( collision->direction == DIR_TOP && pPlayer->m_state != STA_FLY )
+		if( collision->m_direction == DIR_TOP && pLevel_Player->m_state != STA_FLY )
 		{
-			pHud_Points->Add_Points( m_kill_points, pPlayer->m_pos_x + pPlayer->m_image->m_w / 3, pPlayer->m_pos_y - 5, "", static_cast<Uint8>(255), 1 );
+			pHud_Points->Add_Points( m_kill_points, pLevel_Player->m_pos_x + pLevel_Player->m_image->m_w / 3, pLevel_Player->m_pos_y - 5, "", static_cast<Uint8>(255), 1 );
 			pAudio->Play_Sound( m_kill_sound );
-			pPlayer->Action_Jump( 1 );
+			pLevel_Player->Action_Jump( 1 );
 
-			pPlayer->Add_Kill_Multiplier();
+			pLevel_Player->Add_Kill_Multiplier();
 			DownGrade();
 		}
 		else
 		{
-			pPlayer->DownGrade_Player();
+			pLevel_Player->DownGrade_Player();
 		}
 	}
 	else if( m_direction == DIR_UP || m_direction == DIR_DOWN )
 	{
-		if( ( collision->direction == DIR_LEFT || collision->direction == DIR_LEFT ) && pPlayer->m_state == STA_FLY )
+		if( ( collision->m_direction == DIR_LEFT || collision->m_direction == DIR_LEFT ) && pLevel_Player->m_state == STA_FLY )
 		{
-			pHud_Points->Add_Points( m_kill_points, pPlayer->m_pos_x + pPlayer->m_image->m_w / 3, pPlayer->m_pos_y - 5, "", static_cast<Uint8>(255), 1 );
+			pHud_Points->Add_Points( m_kill_points, pLevel_Player->m_pos_x + pLevel_Player->m_image->m_w / 3, pLevel_Player->m_pos_y - 5, "", static_cast<Uint8>(255), 1 );
 			pAudio->Play_Sound( m_kill_sound );
 
-			pPlayer->Add_Kill_Multiplier();
+			pLevel_Player->Add_Kill_Multiplier();
 			DownGrade();
 		}
 		else
 		{
-			pPlayer->DownGrade_Player();
+			pLevel_Player->DownGrade_Player();
 		}
 	}
 }

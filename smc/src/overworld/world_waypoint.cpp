@@ -30,17 +30,17 @@ namespace SMC
 
 /* *** *** *** *** *** *** *** *** cWaypoint *** *** *** *** *** *** *** *** *** */
 
-cWaypoint :: cWaypoint( void )
-: cSprite()
+cWaypoint :: cWaypoint( cSprite_Manager *sprite_manager )
+: cSprite( sprite_manager )
 {
-	Init();
+	cWaypoint::Init();
 }
 
-cWaypoint :: cWaypoint( CEGUI::XMLAttributes &attributes )
-: cSprite()
+cWaypoint :: cWaypoint( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cSprite( sprite_manager )
 {
-	Init();
-	Create_From_Stream( attributes );
+	cWaypoint::Init();
+	cWaypoint::Create_From_Stream( attributes );
 }
 
 
@@ -55,45 +55,35 @@ void cWaypoint :: Init( void )
 	m_type = TYPE_OW_WAYPOINT;
 	m_massive_type = MASS_PASSIVE;
 	m_pos_z = 0.08f;
-	m_player_range = 0;
+	m_camera_range = 0;
 	
-	waypoint_type = WAYPOINT_NORMAL;
+	m_waypoint_type = WAYPOINT_NORMAL;
 	m_name = _("Waypoint");
-
-	gcolor = Get_Random_Float( 0, 100 );
-	glim = 1;
 	
-	access = 0;
-	access_default = 0;
+	m_access = 0;
+	m_access_default = 0;
+	m_direction_forward = DIR_UNDEFINED;
+	m_direction_backward = DIR_UNDEFINED;
 
-	direction_backward = DIR_UNDEFINED;
-	direction_forward = DIR_UNDEFINED;
+	m_glim_color = Get_Random_Float( 0, 100 );
+	m_glim_mod = 1;
+
+	m_arrow_forward = NULL;
+	m_arrow_backward = NULL;
 
 	Set_Image( pVideo->Get_Surface( "world/waypoint/default_1.png" ) );
-
-	arrow_blue_l = pVideo->Get_Surface( "game/arrow/small/blue/left.png" );
-	arrow_blue_r = pVideo->Get_Surface( "game/arrow/small/blue/right.png" );
-	arrow_blue_u = pVideo->Get_Surface( "game/arrow/small/blue/up.png" );
-	arrow_blue_d = pVideo->Get_Surface( "game/arrow/small/blue/down.png" );
-
-	arrow_white_l = pVideo->Get_Surface( "game/arrow/small/white/left.png" );
-	arrow_white_r = pVideo->Get_Surface( "game/arrow/small/white/right.png" );
-	arrow_white_u = pVideo->Get_Surface( "game/arrow/small/white/up.png" );
-	arrow_white_d = pVideo->Get_Surface( "game/arrow/small/white/down.png" );
 }
 
-cWaypoint *cWaypoint :: Copy( void )
+cWaypoint *cWaypoint :: Copy( void ) const
 {
-	cWaypoint *waypoint = new cWaypoint();
-
+	cWaypoint *waypoint = new cWaypoint( m_sprite_manager );
 	waypoint->Set_Pos( m_start_pos_x, m_start_pos_y, 1 );
 	waypoint->Set_Image( m_start_image, 1 );
-	waypoint->waypoint_type = waypoint_type;
-	waypoint->Set_Destination( destination );
-	waypoint->direction_backward = direction_backward;
-	waypoint->direction_forward = direction_forward;
-	waypoint->Set_Access( access_default, 1 );
-
+	waypoint->m_waypoint_type = m_waypoint_type;
+	waypoint->Set_Destination( m_destination );
+	waypoint->Set_Direction_Forward( m_direction_forward );
+	waypoint->Set_Direction_Backward( m_direction_backward );
+	waypoint->Set_Access( m_access_default, 1 );
 	return waypoint;
 }
 
@@ -107,7 +97,7 @@ void cWaypoint :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 		Set_Image( pVideo->Get_Surface( attributes.getValueAsString( "image" ).c_str() ), 1 ) ;
 	}*/
 	// type
-	waypoint_type = static_cast<Waypoint_type>(attributes.getValueAsInteger( "type", WAYPOINT_NORMAL ));
+	m_waypoint_type = static_cast<Waypoint_type>(attributes.getValueAsInteger( "type", WAYPOINT_NORMAL ));
 	// destination
 	// pre 0.99.6 : world
 	if( attributes.exists( "world" ) )
@@ -125,9 +115,10 @@ void cWaypoint :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 		Set_Destination( attributes.getValueAsString( "destination" ).c_str() );
 	}
 	// backward direction
-	direction_backward = Get_Direction_Id( attributes.getValueAsString( "direction_backward", "left" ).c_str() );
+	Set_Direction_Backward( Get_Direction_Id( attributes.getValueAsString( "direction_backward", "left" ).c_str() ) );
 	// forward direction
-	direction_forward = Get_Direction_Id( attributes.getValueAsString( "direction_forward", "right" ).c_str() );
+	Set_Direction_Forward( Get_Direction_Id( attributes.getValueAsString( "direction_forward", "right" ).c_str() ) );
+
 	// access
 	Set_Access( attributes.getValueAsBool( "access", 1 ), 1 );
 }
@@ -154,15 +145,15 @@ void cWaypoint :: Save_To_Stream( ofstream &file )
 		file << "\t\t<Property name=\"image\" value=\"" << img_filename << "\" />" << std::endl;
 	}*/
 	// type
-	file << "\t\t<Property name=\"type\" value=\"" << static_cast<int>(waypoint_type) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"type\" value=\"" << static_cast<int>(m_waypoint_type) << "\" />" << std::endl;
 	// destination
-	file << "\t\t<Property name=\"destination\" value=\"" << destination << "\" />" << std::endl;
+	file << "\t\t<Property name=\"destination\" value=\"" << m_destination << "\" />" << std::endl;
 	// direction backward
-	file << "\t\t<Property name=\"direction_backward\" value=\"" << Get_Direction_Name( direction_backward ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"direction_backward\" value=\"" << Get_Direction_Name( m_direction_backward ) << "\" />" << std::endl;
 	// direction forward
-	file << "\t\t<Property name=\"direction_forward\" value=\"" << Get_Direction_Name( direction_forward ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"direction_forward\" value=\"" << Get_Direction_Name( m_direction_forward ) << "\" />" << std::endl;
 	// access
-	file << "\t\t<Property name=\"access\" value=\"" << access_default << "\" />" << std::endl;
+	file << "\t\t<Property name=\"access\" value=\"" << m_access_default << "\" />" << std::endl;
 
 	// end waypoint
 	file << "\t</waypoint>" << std::endl;
@@ -177,22 +168,22 @@ void cWaypoint :: Update( void )
 
 	cSprite::Update();
 
-	if( glim )
+	if( m_glim_mod )
 	{
-		gcolor += pFramerate->m_speed_factor * 3;
+		m_glim_color += pFramerate->m_speed_factor * 3.0f;
 	}
 	else
 	{
-		gcolor -= pFramerate->m_speed_factor * 3;
+		m_glim_color -= pFramerate->m_speed_factor * 3.0f;
 	}
 
-	if( gcolor > 120.0f )
+	if( m_glim_color > 120.0f )
 	{
-		glim = 0;
+		m_glim_mod = 0;
 	}
-	else if( gcolor < 7.0f )
+	else if( m_glim_color < 7.0f )
 	{
-		glim = 1;
+		m_glim_mod = 1;
 	}
 }
 
@@ -203,99 +194,90 @@ void cWaypoint :: Draw( cSurface_Request *request /* = NULL  */ )
 		return;
 	}
 
-	if( pOverworld_Manager->debugmode || editor_world_enabled )
+	if( pOverworld_Manager->m_debug_mode || editor_world_enabled )
 	{
-		// ## direction back
-		float x = m_rect.m_x - pActive_Camera->x;
-		float y = m_rect.m_y - pActive_Camera->y;
-		
-		// create request
-		cSurface_Request *surface_request = new cSurface_Request();
+		float x;
+		float y;
 
-		if( direction_backward == DIR_RIGHT )
+		// direction back arrow
+		if( m_direction_backward == DIR_RIGHT || m_direction_backward == DIR_LEFT || m_direction_backward == DIR_UP || m_direction_backward == DIR_DOWN )
 		{
-			x += m_rect.m_w;
-			y += (m_rect.m_h * 0.5f) - (arrow_blue_l->m_w * 0.5f);
+			x = m_rect.m_x - pActive_Camera->m_x;
+			y = m_rect.m_y - pActive_Camera->m_y;
 
-			// blit
-			arrow_blue_r->Blit( x, y, 0.089f, surface_request );
-		}
-		else if( direction_backward == DIR_LEFT )
-		{
-			x -= arrow_blue_l->m_w;
-			y += (m_rect.m_h * 0.5f) - (arrow_blue_l->m_w * 0.5f);
+			// create request
+			cSurface_Request *surface_request = new cSurface_Request();
 
-			// blit
-			arrow_blue_l->Blit( x, y, 0.089f, surface_request );
-		}
-		else if( direction_backward == DIR_UP )
-		{
-			y -= arrow_blue_u->m_h;
-			x += (m_rect.m_w * 0.5f) - (arrow_blue_u->m_h * 0.5f);
-
-			// blit
-			arrow_blue_u->Blit( x, y, 0.089f, surface_request );
-		}
-		// down
-		else
-		{
-			y += m_rect.m_h;
-			x += (m_rect.m_w * 0.5f) - (arrow_blue_u->m_h * 0.5f);
-
-			// blit
-			arrow_blue_d->Blit( x, y, 0.089f, surface_request );
-		}
-
-		surface_request->shadow_pos = 2;
-		surface_request->shadow_color = lightgreyalpha64;
-		// add request
-		pRenderer->Add( surface_request );
-
-		// ## direction forward
-		x = m_rect.m_x - pActive_Camera->x;
-		y = m_rect.m_y - pActive_Camera->y;
-
-		// create request
-		surface_request = new cSurface_Request();
-
-		if( direction_forward == DIR_RIGHT )
-		{
-			x += m_rect.m_w;
-			y += (m_rect.m_h * 0.5f) - (arrow_white_l->m_w * 0.5f);
-
-			arrow_white_r->Blit( x, y, 0.089f, surface_request );
-		}
-		else if( direction_forward == DIR_LEFT )
-		{
-			x -= arrow_white_l->m_w;
-			y += (m_rect.m_h * 0.5f) - (arrow_white_l->m_w * 0.5f);
-
-			arrow_white_l->Blit( x, y, 0.089f, surface_request );
-		}
-		else if( direction_forward == DIR_UP )
-		{
-			y -= arrow_white_u->m_h;
-			x += (m_rect.m_w * 0.5f) - (arrow_white_u->m_h * 0.5f);
-
-			arrow_white_u->Blit( x, y, 0.089f, surface_request );
-		}
-		// down
-		else
-		{
-			y += m_rect.m_h;
-			x += (m_rect.m_w * 0.5f) - (arrow_white_u->m_h * 0.5f);
-
-			arrow_white_d->Blit( x, y, 0.089f, surface_request );
+			if( m_direction_backward == DIR_RIGHT )
+			{
+				x += m_rect.m_w;
+				y += (m_rect.m_h * 0.5f) - (m_arrow_backward->m_w * 0.5f);
+			}
+			else if( m_direction_backward == DIR_LEFT )
+			{
+				x -= m_arrow_backward->m_w;
+				y += (m_rect.m_h * 0.5f) - (m_arrow_backward->m_w * 0.5f);
+			}
+			else if( m_direction_backward == DIR_UP )
+			{
+				y -= m_arrow_backward->m_h;
+				x += (m_rect.m_w * 0.5f) - (m_arrow_backward->m_h * 0.5f);
+			}
+			// down
+			else
+			{
+				y += m_rect.m_h;
+				x += (m_rect.m_w * 0.5f) - (m_arrow_backward->m_h * 0.5f);
+			}
+			
+			m_arrow_backward->Blit( x, y, 0.089f, surface_request );
+			surface_request->shadow_pos = 2;
+			surface_request->shadow_color = lightgreyalpha64;
+			// add request
+			pRenderer->Add( surface_request );
 		}
 
-		surface_request->shadow_pos = 2;
-		surface_request->shadow_color = lightgreyalpha64;
-		// add request
-		pRenderer->Add( surface_request );
+		// direction forward arrow
+		if( m_direction_forward == DIR_RIGHT || m_direction_forward == DIR_LEFT || m_direction_forward == DIR_UP || m_direction_forward == DIR_DOWN )
+		{
+			x = m_rect.m_x - pActive_Camera->m_x;
+			y = m_rect.m_y - pActive_Camera->m_y;
+
+			// create request
+			cSurface_Request *surface_request = new cSurface_Request();
+
+			if( m_direction_forward == DIR_RIGHT )
+			{
+				x += m_rect.m_w;
+				y += (m_rect.m_h * 0.5f) - (m_arrow_forward->m_w * 0.5f);
+			}
+			else if( m_direction_forward == DIR_LEFT )
+			{
+				x -= m_arrow_forward->m_w;
+				y += (m_rect.m_h * 0.5f) - (m_arrow_forward->m_w * 0.5f);
+			}
+			else if( m_direction_forward == DIR_UP )
+			{
+				y -= m_arrow_forward->m_h;
+				x += (m_rect.m_w * 0.5f) - (m_arrow_forward->m_h * 0.5f);
+			}
+			// down
+			else
+			{
+				y += m_rect.m_h;
+				x += (m_rect.m_w * 0.5f) - (m_arrow_forward->m_h * 0.5f);
+			}
+			
+			m_arrow_forward->Blit( x, y, 0.089f, surface_request );
+			surface_request->shadow_pos = 2;
+			surface_request->shadow_color = lightgreyalpha64;
+			// add request
+			pRenderer->Add( surface_request );
+		}
 	}
 
 	// draw waypoint
-	if( ( access && ( waypoint_type == 1 || waypoint_type == 2 ) ) || pOverworld_Manager->debugmode || editor_world_enabled )
+	if( ( m_access && ( m_waypoint_type == 1 || m_waypoint_type == 2 ) ) || pOverworld_Manager->m_debug_mode || editor_world_enabled )
 	{
 		bool create_request = 0;
 
@@ -310,20 +292,20 @@ void cWaypoint :: Draw( cSurface_Request *request /* = NULL  */ )
 		cSprite::Draw( request );
 
 		// default color
-		if( !pOverworld_Manager->debugmode )
+		if( !pOverworld_Manager->m_debug_mode )
 		{
-			request->color = Color( static_cast<Uint8>(255), 100 + static_cast<Uint8>(gcolor), 10 );
+			request->color = Color( static_cast<Uint8>(255), 100 + static_cast<Uint8>(m_glim_color), 10 );
 		}
 		// change to debug color
 		else
 		{
-			if( access )
+			if( m_access )
 			{
-				request->color = Color( static_cast<Uint8>(255), 100 + static_cast<Uint8>(gcolor), 200 );
+				request->color = Color( static_cast<Uint8>(255), 100 + static_cast<Uint8>(m_glim_color), 200 );
 			}
 			else
 			{
-				request->color =  Color( static_cast<Uint8>(20), 100 + static_cast<Uint8>(gcolor), 10 );
+				request->color =  Color( static_cast<Uint8>(20), 100 + static_cast<Uint8>(m_glim_color), 10 );
 			}
 		}
 
@@ -335,43 +317,87 @@ void cWaypoint :: Draw( cSurface_Request *request /* = NULL  */ )
 	}
 }
 
+void cWaypoint :: Set_Direction_Forward( ObjectDirection direction )
+{
+	m_direction_forward = direction;
+
+	if( direction == DIR_LEFT )
+	{
+		m_arrow_forward = pVideo->Get_Surface( "game/arrow/small/white/left.png" );
+	}
+	else if( direction == DIR_RIGHT )
+	{
+		m_arrow_forward = pVideo->Get_Surface( "game/arrow/small/white/right.png" );
+	}
+	else if( direction == DIR_UP )
+	{
+		m_arrow_forward = pVideo->Get_Surface( "game/arrow/small/white/up.png" );
+	}
+	else if( direction == DIR_DOWN )
+	{
+		m_arrow_forward = pVideo->Get_Surface( "game/arrow/small/white/down.png" );
+	}
+}
+
+void cWaypoint :: Set_Direction_Backward( ObjectDirection direction )
+{
+	m_direction_backward = direction;
+
+	if( direction == DIR_LEFT )
+	{
+		m_arrow_backward = pVideo->Get_Surface( "game/arrow/small/blue/left.png" );
+	}
+	else if( direction == DIR_RIGHT )
+	{
+		m_arrow_backward = pVideo->Get_Surface( "game/arrow/small/blue/right.png" );
+	}
+	else if( direction == DIR_UP )
+	{
+		m_arrow_backward = pVideo->Get_Surface( "game/arrow/small/blue/up.png" );
+	}
+	else if( direction == DIR_DOWN )
+	{
+		m_arrow_backward = pVideo->Get_Surface( "game/arrow/small/blue/down.png" );
+	}
+}
+
 void cWaypoint :: Set_Access( bool enabled, bool new_start_access /* = 0 */ )
 {
-	access = enabled;
+	m_access = enabled;
 	
 	if( new_start_access )
 	{
-		access_default = access;
+		m_access_default = m_access;
 	}
 }
 
 void cWaypoint :: Set_Destination( std::string str )
 {
 	// normal waypoint
-	if( waypoint_type == WAYPOINT_NORMAL )
+	if( m_waypoint_type == WAYPOINT_NORMAL )
 	{
 		// erase file type and directory  if set
 		str = Trim_Filename( str, 0, 0 );
 	}
 	// world waypoint
-	else if( waypoint_type == WAYPOINT_WORLD_LINK && str.find( DATA_DIR "/" GAME_OVERWORLD_DIR "/" ) != std::string::npos )
+	else if( m_waypoint_type == WAYPOINT_WORLD_LINK && str.find( DATA_DIR "/" GAME_OVERWORLD_DIR "/" ) != std::string::npos )
 	{
 		str.erase( 0, strlen( DATA_DIR "/" GAME_OVERWORLD_DIR "/" ) );
 	}
 
-	destination = str;
+	m_destination = str;
 }
 
 std::string cWaypoint :: Get_Destination( bool with_dir /* = 0 */, bool with_end /* = 0 */ ) const
 {
-	std::string name = destination;
+	std::string name = m_destination;
 
-	if( waypoint_type == WAYPOINT_NORMAL )
+	if( m_waypoint_type == WAYPOINT_NORMAL )
 	{
-		pActive_Level->Get_Path( name );
+		pLevel_Manager->Get_Path( name );
 		name = Trim_Filename( name, with_dir, with_end );
 	}
-	else if( waypoint_type == WAYPOINT_WORLD_LINK )
+	else if( m_waypoint_type == WAYPOINT_WORLD_LINK )
 	{
 		if( with_dir && name.find( DATA_DIR "/" GAME_OVERWORLD_DIR "/" ) == std::string::npos )
 		{
@@ -394,7 +420,7 @@ void cWaypoint :: Editor_Activate( void )
 	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Level") ) );
 	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("World") ) );
 
-	if( waypoint_type == WAYPOINT_NORMAL )
+	if( m_waypoint_type == WAYPOINT_NORMAL )
 	{
 		combobox->setText( UTF8_("Level") );
 	}
@@ -421,7 +447,7 @@ void cWaypoint :: Editor_Activate( void )
 	combobox->addItem( new CEGUI::ListboxTextItem( "down" ) );
 	combobox->addItem( new CEGUI::ListboxTextItem( "right" ) );
 	combobox->addItem( new CEGUI::ListboxTextItem( "left" ) );
-	combobox->setText( Get_Direction_Name( direction_backward ) );
+	combobox->setText( Get_Direction_Name( m_direction_backward ) );
 
 	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cWaypoint::Editor_Backward_Direction_Select, this ) );
 
@@ -433,7 +459,7 @@ void cWaypoint :: Editor_Activate( void )
 	combobox->addItem( new CEGUI::ListboxTextItem( "down" ) );
 	combobox->addItem( new CEGUI::ListboxTextItem( "right" ) );
 	combobox->addItem( new CEGUI::ListboxTextItem( "left" ) );
-	combobox->setText( Get_Direction_Name( direction_forward ) );
+	combobox->setText( Get_Direction_Name( m_direction_forward ) );
 
 	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cWaypoint::Editor_Forward_Direction_Select, this ) );
 
@@ -444,7 +470,7 @@ void cWaypoint :: Editor_Activate( void )
 	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Enabled") ) );
 	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Disabled") ) );
 
-	if( access_default )
+	if( m_access_default )
 	{
 		combobox->setText( UTF8_("Enabled") );
 	}
@@ -466,11 +492,11 @@ bool cWaypoint :: Editor_Type_Select( const CEGUI::EventArgs &event )
 
 	if( item->getText().compare( UTF8_("Level") ) == 0 )
 	{
-		waypoint_type = WAYPOINT_NORMAL;
+		m_waypoint_type = WAYPOINT_NORMAL;
 	}
 	else
 	{
-		waypoint_type = WAYPOINT_WORLD_LINK;
+		m_waypoint_type = WAYPOINT_WORLD_LINK;
 	}
 
 	return 1;
@@ -491,7 +517,7 @@ bool cWaypoint :: Editor_Backward_Direction_Select( const CEGUI::EventArgs &even
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
 	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
 
-	direction_backward = Get_Direction_Id( item->getText().c_str() );
+	Set_Direction_Backward( Get_Direction_Id( item->getText().c_str() ) );
 
 	return 1;
 }
@@ -501,7 +527,7 @@ bool cWaypoint :: Editor_Forward_Direction_Select( const CEGUI::EventArgs &event
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
 	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
 
-	direction_forward = Get_Direction_Id( item->getText().c_str() );
+	Set_Direction_Forward( Get_Direction_Id( item->getText().c_str() ) );
 
 	return 1;
 }

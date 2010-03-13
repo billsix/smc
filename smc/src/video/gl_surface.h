@@ -16,7 +16,7 @@
 #ifndef SMC_GL_SURFACE_H
 #define SMC_GL_SURFACE_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../core/math/point.h"
 // SDL
 #include "SDL.h"
@@ -41,7 +41,7 @@ public:
 	void Blit_Data( cSurface_Request *request ) const;
 
 	// Copy cGL_Surface and return it
-	cGL_Surface *Copy( void );
+	cGL_Surface *Copy( void ) const;
 
 	// Save the texture to a file
 	void Save( const std::string &filename );

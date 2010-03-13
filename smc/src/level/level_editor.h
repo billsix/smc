@@ -27,7 +27,7 @@ namespace SMC
 class cEditor_Level : public cEditor
 {
 public:
-	cEditor_Level( void );
+	cEditor_Level( cSprite_Manager *sprite_manager, cLevel *level );
 	virtual ~cEditor_Level( void );
 
 	// Initialize
@@ -40,15 +40,23 @@ public:
  	*/
 	virtual void Disable( bool native_mode = 0 );
 
+
 	/* handle key down event
 	 * returns true if the key was processed
 	*/
 	virtual bool Key_Down( SDLKey key );
 
+	// Set the parent level
+	void Set_Level( cLevel *level );
+	// Set the parent sprite manager
+	virtual void Set_Sprite_Manager( cSprite_Manager *sprite_manager );
+
 	// Set Active Menu Entry
 	virtual void Activate_Menu_Item( cEditor_Menu_Object *entry );
+	// return the sprite object
+	virtual cSprite *Get_Object( const CEGUI::String &element, CEGUI::XMLAttributes &attributes, int engine_version, cSprite_Manager *sprite_manager );
 
-	// #### LevelEditor Functions
+	// #### editor Functions
 	/* switch the object state of the given object
 	 * returns true if successful
 	*/
@@ -61,11 +69,12 @@ public:
 	virtual void Function_Save_as( void );
 	virtual void Function_Delete( void );
 	virtual void Function_Reload( void );
-	virtual void Function_Clear( void );
 	virtual void Function_Settings( void );
 
+	// parent level
+	cLevel *m_level;
 	// Level Settings
-	cLevel_Settings *pSettings;
+	cLevel_Settings *m_settings_screen;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

@@ -45,74 +45,6 @@ namespace fs = boost::filesystem;
 namespace SMC
 {
 
-/* *** *** *** *** *** *** *** *** Color struct *** *** *** *** *** *** *** *** *** */
-
-Color :: Color( void )
-{
-	red = 0;
-	green = 0;
-	blue = 0;
-	alpha = 255;
-};
-
-Color :: Color( Uint8 r, Uint8 g, Uint8 b, Uint8 a /* = 255 */ )
-{
-	red = r;
-	green = g;
-	blue = b;
-	alpha = a;
-};
-
-Color :: Color( float r, float g, float b, float a /* = 1.0f */ )
-{
-	red = static_cast<Uint8>(r * 255);
-	green = static_cast<Uint8>(g * 255);
-	blue = static_cast<Uint8>(b * 255);
-	alpha = static_cast<Uint8>(a * 255);
-}
-
-Color :: Color( Uint8 grey )
-{
-	red = grey;
-	green = grey;
-	blue = grey;
-	alpha = 255;
-};
-
-Color :: Color( const SDL_Color &color )
-{
-	red = color.r;
-	green = color.g;
-	blue = color.b;
-	alpha = 255;
-}
-
-SDL_Color Color :: Get_SDL_Color( void ) const
-{
-	SDL_Color color;
-	color.r = red;
-	color.g = green;
-	color.b = blue;
-	return color;
-}
-
-CEGUI::colour Color :: Get_cegui_Color( void ) const
-{
-	return CEGUI::colour( static_cast<float>(red) / 255, static_cast<float>(green) / 255, static_cast<float>(blue) / 255, static_cast<float>(alpha) / 255 );
-}
-
-/* *** *** *** *** *** *** *** CEGUI renderer fake class *** *** *** *** *** *** *** *** *** *** */
-
-cFake_Renderer :: cFake_Renderer( void )
-{
-	d_identifierString = "Fake Renderer";
-}
-
-cFake_Renderer :: ~cFake_Renderer( void )
-{
-
-}
-
 /* *** *** *** *** *** *** *** Video class *** *** *** *** *** *** *** *** *** *** */
 
 cVideo :: cVideo( void )
@@ -294,6 +226,9 @@ void cVideo :: Init_SDL( void )
 	{
 		m_audio_init_failed = 0;
 	}
+
+	// preload the sdl_image png library
+	IMG_Init( IMG_INIT_PNG );
 
 	SDL_EnableUNICODE( 1 );
 	// hide by default
@@ -803,7 +738,7 @@ void cVideo :: Init_Image_Cache( bool recreate /* = 0 */, bool draw_gui /* = 0 *
 	unsigned int file_count = image_files.size();
 
 	// create directories, load images and save to cache
-	for( vector<std::string>::iterator itr = image_files.begin(), itr_end = image_files.end(); itr != itr_end; ++itr )
+	for( vector<std::string>::iterator itr = image_files.begin(); itr != image_files.end(); ++itr )
 	{
 		// get filename
 		std::string filename = (*itr);
@@ -1951,19 +1886,19 @@ void Draw_Effect_Out( Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */, float spe
 		cGL_Surface *image = NULL;
 
 		// item based on the camera x position
-		if( pActive_Camera->x < 2000 )
+		if( pActive_Camera->m_x < 2000 )
 		{
 			image = pVideo->Get_Surface( "game/items/mushroom_red.png" );
 		}
-		else if( pActive_Camera->x < 5000 )
+		else if( pActive_Camera->m_x < 5000 )
 		{
 			image = pVideo->Get_Surface( "game/items/fireplant.png" );
 		}
-		else if( pActive_Camera->x < 10000 )
+		else if( pActive_Camera->m_x < 10000 )
 		{
 			image = pVideo->Get_Surface( "game/items/mushroom_green.png" );
 		}
-		else if( pActive_Camera->x < 20000 )
+		else if( pActive_Camera->m_x < 20000 )
 		{
 			image = pVideo->Get_Surface( "game/items/star.png" );
 		}

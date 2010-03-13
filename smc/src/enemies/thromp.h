@@ -22,24 +22,22 @@ namespace SMC
 {
 
 /* *** *** *** *** *** cThromp *** *** *** *** *** *** *** *** *** *** *** *** */
-
-/* Thromp
- * The falling Stone
+/* The falling Stone
 */
 class cThromp : public cEnemy
 {
 public:
 	// constructor
-	cThromp( float x, float y );
+	cThromp( cSprite_Manager *sprite_manager );
 	// create from stream
-	cThromp( CEGUI::XMLAttributes &attributes );
+	cThromp( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cThromp( void );
 
 	// init defaults
 	void Init( void );
 	// copy
-	virtual cThromp *Copy( void );
+	virtual cThromp *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );

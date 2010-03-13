@@ -29,15 +29,15 @@ namespace SMC
 
 /* *** *** *** *** *** cRandom_Sound *** *** *** *** *** *** *** *** *** *** *** */
 
-cRandom_Sound :: cRandom_Sound( void )
-: cSprite()
+cRandom_Sound :: cRandom_Sound( cSprite_Manager *sprite_manager )
+: cSprite( sprite_manager )
 {
 	// Set defaults
 	cRandom_Sound::Init();
 }
 
-cRandom_Sound :: cRandom_Sound( CEGUI::XMLAttributes &attributes )
-: cSprite()
+cRandom_Sound :: cRandom_Sound( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cSprite( sprite_manager )
 {
 	cRandom_Sound::Init();
 	cRandom_Sound::Create_From_Stream( attributes );
@@ -54,7 +54,7 @@ void cRandom_Sound :: Init( void )
 	m_type = TYPE_SOUND;
 	m_massive_type = MASS_PASSIVE;
 	m_editor_pos_z = 0.111f;
-	m_player_range = 0;
+	m_camera_range = 0;
 	m_name = "Sound";
 
 	m_rect.m_w = 10.0f;
@@ -81,9 +81,9 @@ void cRandom_Sound :: Init( void )
 	m_editor_color_volume_reduction_end = Color( 0.2f, 0.4f, 0.1f, 0.2f );
 }
 
-cRandom_Sound *cRandom_Sound :: Copy( void )
+cRandom_Sound *cRandom_Sound :: Copy( void ) const
 {
-	cRandom_Sound *random_sound = new cRandom_Sound();
+	cRandom_Sound *random_sound = new cRandom_Sound( m_sprite_manager );
 	random_sound->Set_Pos( m_start_pos_x, m_start_pos_y, 1 );
 	random_sound->Set_Filename( m_filename.c_str() );
 	random_sound->Set_Continuous( m_continuous );
@@ -93,7 +93,6 @@ cRandom_Sound *cRandom_Sound :: Copy( void )
 	random_sound->Set_Volume_Max( m_volume_max );
 	random_sound->Set_Volume_Reduction_Begin( m_volume_reduction_begin );
 	random_sound->Set_Volume_Reduction_End( m_volume_reduction_end );
-
 	return random_sound;
 }
 
@@ -411,16 +410,16 @@ void cRandom_Sound :: Draw( cSurface_Request *request /* = NULL */ )
 	}
 
 	// draw color rect
-	pVideo->Draw_Rect( m_col_rect.m_x - pActive_Camera->x, m_col_rect.m_y - pActive_Camera->y, m_col_rect.m_w, m_col_rect.m_h, m_editor_pos_z, &greenyellow );
+	pVideo->Draw_Rect( m_col_rect.m_x - pActive_Camera->m_x, m_col_rect.m_y - pActive_Camera->m_y, m_col_rect.m_w, m_col_rect.m_h, m_editor_pos_z, &greenyellow );
 	// volume reduction begin
 	cCircle_Request *circle_request = new cCircle_Request();
-	pVideo->Draw_Circle( m_col_rect.m_x - pActive_Camera->x, m_col_rect.m_y - pActive_Camera->y, m_volume_reduction_begin, m_editor_pos_z - 0.0001f, &m_editor_color_volume_reduction_begin, circle_request );
+	pVideo->Draw_Circle( m_col_rect.m_x - pActive_Camera->m_x, m_col_rect.m_y - pActive_Camera->m_y, m_volume_reduction_begin, m_editor_pos_z - 0.0001f, &m_editor_color_volume_reduction_begin, circle_request );
 	circle_request->line_width = 3;
 	// add request
 	pRenderer->Add( circle_request );
 	// volume reduction end
 	circle_request = new cCircle_Request();
-	pVideo->Draw_Circle( m_col_rect.m_x - pActive_Camera->x, m_col_rect.m_y - pActive_Camera->y, m_volume_reduction_end, m_editor_pos_z - 0.0002f, &m_editor_color_volume_reduction_end, circle_request  );
+	pVideo->Draw_Circle( m_col_rect.m_x - pActive_Camera->m_x, m_col_rect.m_y - pActive_Camera->m_y, m_volume_reduction_end, m_editor_pos_z - 0.0002f, &m_editor_color_volume_reduction_end, circle_request  );
 	circle_request->line_width = 3;
 	// add request
 	pRenderer->Add( circle_request );
@@ -435,8 +434,8 @@ bool cRandom_Sound :: Is_Update_Valid( void )
 	}
 
 	// get distance from camera center position
-	float dx = fabs( pActive_Camera->x + (game_res_w * 0.5f) - m_pos_x );
-	float dy = fabs( pActive_Camera->y + (game_res_h * 0.5f) - m_pos_y );
+	float dx = fabs( pActive_Camera->m_x + (game_res_w * 0.5f) - m_pos_x );
+	float dy = fabs( pActive_Camera->m_y + (game_res_h * 0.5f) - m_pos_y );
 
 	m_distance_to_camera = sqrt( dx * dx + dy * dy );
 

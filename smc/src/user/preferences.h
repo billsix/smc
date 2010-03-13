@@ -16,7 +16,7 @@
 #ifndef SMC_PREFERENCES_H
 #define SMC_PREFERENCES_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 // SDL
 #include "SDL.h"
 // CEGUI
@@ -70,21 +70,40 @@ public:
 	// force the given user data directory
 	std::string m_force_user_data_dir;
 	// smart camera speed
-	float m_camera_hor_speed, m_camera_ver_speed;
+	float m_camera_hor_speed;
+	float m_camera_ver_speed;
 
 	// Audio
-	bool m_audio_music, m_audio_sound;
+	bool m_audio_music;
+	bool m_audio_sound;
 	unsigned int m_audio_hz;
 
 	// Video
 	bool m_video_fullscreen;
-	Uint16 m_video_screen_w, m_video_screen_h;
+	Uint16 m_video_screen_w;
+	Uint16 m_video_screen_h;
 	Uint8 m_video_screen_bpp;
 	bool m_video_vsync;
 
 	// Keyboard
 	// key definitions
-	SDLKey m_key_up, m_key_down, m_key_left, m_key_right, m_key_jump, m_key_shoot, m_key_action;
+	SDLKey m_key_up;
+	SDLKey m_key_down;
+	SDLKey m_key_left;
+	SDLKey m_key_right;
+	SDLKey m_key_jump;
+	SDLKey m_key_shoot;
+	SDLKey m_key_item;
+	SDLKey m_key_action;
+	SDLKey m_key_screenshot;
+	SDLKey m_key_editor_fast_copy_up;
+	SDLKey m_key_editor_fast_copy_down;
+	SDLKey m_key_editor_fast_copy_left;
+	SDLKey m_key_editor_fast_copy_right;
+	SDLKey m_key_editor_pixel_move_up;
+	SDLKey m_key_editor_pixel_move_down;
+	SDLKey m_key_editor_pixel_move_left;
+	SDLKey m_key_editor_pixel_move_right;
 	// scroll speed
 	float m_scroll_speed;
 	// Joystick
@@ -94,11 +113,16 @@ public:
 	// jump with upwards
 	bool m_joy_analog_jump;
 	// hor/ver axis used
-	int m_joy_axis_hor, m_joy_axis_ver;
+	int m_joy_axis_hor;
+	int m_joy_axis_ver;
 	// axis threshold
 	Sint16 m_joy_axis_threshold;
 	// button definitions
-	Uint8 m_joy_button_jump, m_joy_button_shoot, m_joy_button_item, m_joy_button_action, m_joy_button_exit;
+	Uint8 m_joy_button_jump;
+	Uint8 m_joy_button_shoot;
+	Uint8 m_joy_button_item;
+	Uint8 m_joy_button_action;
+	Uint8 m_joy_button_exit;
 
 	// Editor
 	// hide mouse if clicked on an object
@@ -123,28 +147,52 @@ public:
 	// Game
 	static const bool m_always_run_default;
 	static const std::string m_menu_level_default;
-	static const float m_camera_hor_speed_default, m_camera_ver_speed_default;
+	static const float m_camera_hor_speed_default;
+	static const float m_camera_ver_speed_default;
 	// Audio
-	static const bool m_audio_music_default, m_audio_sound_default;
+	static const bool m_audio_music_default;
+	static const bool m_audio_sound_default;
 	static const unsigned int m_audio_hz_default;
 	static const Uint8 m_sound_volume_default;
 	static const Uint8 m_music_volume_default;
 	// Video
 	static const bool m_video_fullscreen_default;
-	static const Uint16 m_video_screen_w_default, m_video_screen_h_default;
+	static const Uint16 m_video_screen_w_default;
+	static const Uint16 m_video_screen_h_default;
 	static const Uint8 m_video_screen_bpp_default;
 	static const bool m_video_vsync_default;
 	static const float m_geometry_quality_default;
 	static const float m_texture_quality_default;
 	// Keyboard
-	static const SDLKey m_key_up_default, m_key_down_default, m_key_left_default, m_key_right_default, m_key_jump_default, m_key_shoot_default, m_key_action_default;
+	static const SDLKey m_key_up_default;
+	static const SDLKey m_key_down_default;
+	static const SDLKey m_key_left_default;
+	static const SDLKey m_key_right_default;
+	static const SDLKey m_key_jump_default;
+	static const SDLKey m_key_shoot_default;
+	static const SDLKey m_key_item_default;
+	static const SDLKey m_key_action_default;
+	static const SDLKey m_key_screenshot_default;
+	static const SDLKey m_key_editor_fast_copy_up_default;
+	static const SDLKey m_key_editor_fast_copy_down_default;
+	static const SDLKey m_key_editor_fast_copy_left_default;
+	static const SDLKey m_key_editor_fast_copy_right_default;
+	static const SDLKey m_key_editor_pixel_move_up_default;
+	static const SDLKey m_key_editor_pixel_move_down_default;
+	static const SDLKey m_key_editor_pixel_move_left_default;
+	static const SDLKey m_key_editor_pixel_move_right_default;
 	static const float m_scroll_speed_default;
 	// Joystick
 	static const bool m_joy_enabled_default;
 	static const bool m_joy_analog_jump_default;
-	static const int m_joy_axis_hor_default, m_joy_axis_ver_default;
+	static const int m_joy_axis_hor_default;
+	static const int m_joy_axis_ver_default;
 	static const Sint16 m_joy_axis_threshold_default;
-	static const Uint8 m_joy_button_jump_default, m_joy_button_shoot_default, m_joy_button_item_default, m_joy_button_action_default, m_joy_button_exit_default;
+	static const Uint8 m_joy_button_jump_default;
+	static const Uint8 m_joy_button_shoot_default;
+	static const Uint8 m_joy_button_item_default;
+	static const Uint8 m_joy_button_action_default;
+	static const Uint8 m_joy_button_exit_default;
 	// Editor
 	static const bool m_editor_mouse_auto_hide_default;
 	static const bool m_editor_show_item_images_default;

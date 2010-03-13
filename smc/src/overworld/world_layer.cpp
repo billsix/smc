@@ -18,6 +18,7 @@
 #include "../core/game_core.h"
 #include "../overworld/overworld.h"
 #include "../core/i18n.h"
+#include "../overworld/world_editor.h"
 // CEGUI
 #include "CEGUIXMLParser.h"
 
@@ -26,15 +27,16 @@ namespace SMC
 
 /* *** *** *** *** *** *** *** *** cLayer_Line_Point *** *** *** *** *** *** *** *** *** */
 
-cLayer_Line_Point :: cLayer_Line_Point( SpriteType ntype )
-: cSprite()
+cLayer_Line_Point :: cLayer_Line_Point( cSprite_Manager *sprite_manager, cOverworld *overworld, SpriteType new_type )
+: cSprite( sprite_manager )
 {
 	m_sprite_array = ARRAY_PASSIVE;
-	m_type = ntype;
+	m_type = new_type;
 	m_massive_type = MASS_PASSIVE;
 	m_pos_z = 0.087f;
 
-	linked_point = NULL;
+	m_overworld = overworld;
+	m_linked_point = NULL;
 
 	if( m_type == TYPE_OW_LINE_START )
 	{
@@ -57,7 +59,7 @@ cLayer_Line_Point :: cLayer_Line_Point( SpriteType ntype )
 
 	Update_Position_Rect();
 
-	m_player_range = 0;
+	m_camera_range = 0;
 }
 
 cLayer_Line_Point :: ~cLayer_Line_Point( void )
@@ -65,21 +67,21 @@ cLayer_Line_Point :: ~cLayer_Line_Point( void )
 	Destroy();
 
 	// remove linked point
-	if( linked_point )
+	if( m_linked_point )
 	{
-		linked_point->linked_point = NULL;
+		m_linked_point->m_linked_point = NULL;
 	}
 }
 
 void cLayer_Line_Point :: Draw( cSurface_Request *request /* = NULL */ )
 {
-	if( m_auto_destroy || !pOverworld_Manager->draw_layer )
+	if( m_auto_destroy || !pOverworld_Manager->m_draw_layer )
 	{
 		return;
 	}
 
 	// point rect
-	pVideo->Draw_Rect( m_col_rect.m_x - pActive_Camera->x, m_col_rect.m_y - pActive_Camera->y, m_col_rect.m_w, m_col_rect.m_h, m_pos_z, &m_color );
+	pVideo->Draw_Rect( m_col_rect.m_x - pActive_Camera->m_x, m_col_rect.m_y - pActive_Camera->m_y, m_col_rect.m_w, m_col_rect.m_h, m_pos_z, &m_color );
 }
 
 void cLayer_Line_Point :: Destroy( void )
@@ -91,15 +93,15 @@ void cLayer_Line_Point :: Destroy( void )
 
 	if( m_type == TYPE_OW_LINE_START )
 	{
-		pActive_Overworld->m_layer->Delete( static_cast<cLayer_Line_Point_Start *>(this), 0 );
+		m_overworld->m_layer->Delete( static_cast<cLayer_Line_Point_Start *>(this), 0 );
 	}
 
 	cSprite::Destroy();
 
 	// destroy linked point
-	if( linked_point && !linked_point->m_auto_destroy )
+	if( m_linked_point && !m_linked_point->m_auto_destroy )
 	{
-		linked_point->Destroy();
+		m_linked_point->Destroy();
 	}
 }
 
@@ -116,14 +118,14 @@ float cLayer_Line_Point :: Get_Line_Pos_Y( void ) const
 
 /* *** *** *** *** *** *** *** *** cLayer_Line_Point_Start *** *** *** *** *** *** *** *** *** */
 
-cLayer_Line_Point_Start :: cLayer_Line_Point_Start( void )
-: cLayer_Line_Point( TYPE_OW_LINE_START )
+cLayer_Line_Point_Start :: cLayer_Line_Point_Start( cSprite_Manager *sprite_manager, cOverworld *overworld )
+: cLayer_Line_Point( sprite_manager, overworld, TYPE_OW_LINE_START )
 {
 	cLayer_Line_Point_Start::Init();
 }
 
-cLayer_Line_Point_Start :: cLayer_Line_Point_Start( CEGUI::XMLAttributes &attributes )
-: cLayer_Line_Point( TYPE_OW_LINE_START )
+cLayer_Line_Point_Start :: cLayer_Line_Point_Start( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager, cOverworld *overworld )
+: cLayer_Line_Point( sprite_manager, overworld, TYPE_OW_LINE_START )
 {
 	cLayer_Line_Point_Start::Init();
 	cLayer_Line_Point_Start::Create_From_Stream( attributes );
@@ -134,35 +136,33 @@ cLayer_Line_Point_Start :: ~cLayer_Line_Point_Start( void )
 	Destroy();
 
 	// remove linked point
-	if( linked_point )
+	if( m_linked_point )
 	{
-		linked_point->linked_point = NULL;
+		m_linked_point->m_linked_point = NULL;
 	}
 }
 
 void cLayer_Line_Point_Start :: Init( void )
 {
-	anim_type = 0;
-	origin = 0;
+	m_anim_type = 0;
+	m_origin = 0;
 
 	// create end point
-	linked_point = new cLayer_Line_Point( TYPE_OW_LINE_END );
-	linked_point->linked_point = this;
+	m_linked_point = new cLayer_Line_Point( m_sprite_manager, m_overworld, TYPE_OW_LINE_END );
+	m_linked_point->m_linked_point = this;
 }
 
-cLayer_Line_Point_Start *cLayer_Line_Point_Start :: Copy( void )
+cLayer_Line_Point_Start *cLayer_Line_Point_Start :: Copy( void ) const
 {
 	// create layer line
-	cLayer_Line_Point_Start *layer_line = new cLayer_Line_Point_Start();
-
+	// hack : assume it's copied with the editor
+	cLayer_Line_Point_Start *layer_line = new cLayer_Line_Point_Start( m_sprite_manager, pWorld_Editor->m_overworld );
 	// start position
 	layer_line->Set_Pos( m_pos_x, m_pos_y, 1 );
 	// end position
-	layer_line->linked_point->Set_Pos( m_pos_x + 20, m_pos_y, 1 );
-
+	layer_line->m_linked_point->Set_Pos( m_pos_x + 20, m_pos_y, 1 );
 	// origin
-	layer_line->origin = origin;
-
+	layer_line->m_origin = m_origin;
 	return layer_line;
 }
 
@@ -171,15 +171,25 @@ void cLayer_Line_Point_Start :: Create_From_Stream( CEGUI::XMLAttributes &attrib
 	// Start
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "X1" )) - 2, static_cast<float>(attributes.getValueAsInteger( "Y1" )) - 2, 1 );
 	// End
-	linked_point->Set_Pos( static_cast<float>(attributes.getValueAsInteger( "X2" )) - 2, static_cast<float>(attributes.getValueAsInteger( "Y2" )) - 2, 1 );
+	m_linked_point->Set_Pos( static_cast<float>(attributes.getValueAsInteger( "X2" )) - 2, static_cast<float>(attributes.getValueAsInteger( "Y2" )) - 2, 1 );
 	// origin
-	origin = attributes.getValueAsInteger( "origin" );
+	m_origin = attributes.getValueAsInteger( "origin" );
+}
+
+void cLayer_Line_Point_Start :: Set_Sprite_Manager( cSprite_Manager *sprite_manager )
+{
+	cSprite::Set_Sprite_Manager( sprite_manager );
+
+	if( m_linked_point )
+	{
+		m_linked_point->Set_Sprite_Manager( sprite_manager );
+	}
 }
 
 void cLayer_Line_Point_Start :: Draw( cSurface_Request *request /* = NULL */ )
 {
 	// not a valid draw
-	if( m_auto_destroy || linked_point->m_auto_destroy || !pOverworld_Manager->draw_layer )
+	if( m_auto_destroy || m_linked_point->m_auto_destroy || !pOverworld_Manager->m_draw_layer )
 	{
 		return;
 	}
@@ -191,12 +201,12 @@ void cLayer_Line_Point_Start :: Draw( cSurface_Request *request /* = NULL */ )
 	Color color = darkgreen;
 
 	// if active
-	if( pOverworld_Player->current_line >= 0 && pActive_Overworld->m_layer->objects[pOverworld_Player->current_line] == this )
+	if( pOverworld_Player->m_current_line >= 0 && m_overworld->m_layer->objects[pOverworld_Player->m_current_line] == this )
 	{
 		color = lightblue;
 	}
 
-	pVideo->Draw_Line( Get_Line_Pos_X() - pActive_Camera->x, Get_Line_Pos_Y() - pActive_Camera->y, linked_point->Get_Line_Pos_X() - pActive_Camera->x, linked_point->Get_Line_Pos_Y() - pActive_Camera->y, 0.085f, &color, line_request );
+	pVideo->Draw_Line( Get_Line_Pos_X() - pActive_Camera->m_x, Get_Line_Pos_Y() - pActive_Camera->m_y, m_linked_point->Get_Line_Pos_X() - pActive_Camera->m_x, m_linked_point->Get_Line_Pos_Y() - pActive_Camera->m_y, 0.085f, &color, line_request );
 	line_request->line_width = 6;
 
 	// add request
@@ -208,18 +218,18 @@ void cLayer_Line_Point_Start :: Draw( cSurface_Request *request /* = NULL */ )
 
 GL_line cLayer_Line_Point_Start :: Get_Line( void ) const
 {
-	return GL_line( m_pos_x + ( m_col_rect.m_w * 0.5f ), m_pos_y + ( m_col_rect.m_h * 0.5f ), linked_point->m_pos_x + ( linked_point->m_col_rect.m_w * 0.5f ), linked_point->m_pos_y + ( linked_point->m_col_rect.m_h * 0.5f ) );
+	return GL_line( m_pos_x + ( m_col_rect.m_w * 0.5f ), m_pos_y + ( m_col_rect.m_h * 0.5f ), m_linked_point->m_pos_x + ( m_linked_point->m_col_rect.m_w * 0.5f ), m_linked_point->m_pos_y + ( m_linked_point->m_col_rect.m_h * 0.5f ) );
 }
 
 cWaypoint *cLayer_Line_Point_Start :: Get_End_Waypoint( void ) const
 {
 	// get waypoint number
-	int wp_num = pActive_Overworld->Get_Waypoint_Collision( linked_point->m_col_rect );
+	int wp_num = m_overworld->Get_Waypoint_Collision( m_linked_point->m_col_rect );
 
 	// no waypoint collision
 	if( wp_num < 0 )
 	{
-		cLayer_Line_Point_Start *line_col = pActive_Overworld->m_layer->Get_Line_Collision_Start( linked_point->m_col_rect );
+		cLayer_Line_Point_Start *line_col = m_overworld->m_layer->Get_Line_Collision_Start( m_linked_point->m_col_rect );
 
 		// line collision
 		if( line_col )
@@ -230,7 +240,7 @@ cWaypoint *cLayer_Line_Point_Start :: Get_End_Waypoint( void ) const
 	}
 
 	// return Waypoint
-	return pActive_Overworld->Get_Waypoint( wp_num );
+	return m_overworld->Get_Waypoint( wp_num );
 }
 
 void cLayer_Line_Point_Start :: Editor_Activate( void )
@@ -243,7 +253,7 @@ void cLayer_Line_Point_Start :: Editor_Activate( void )
 	Editor_Add( UTF8_("Waypoint origin"), UTF8_("Waypoint origin"), editbox, 100 );
 
 	editbox->setValidationString( "^[+]?\\d*$" );
-	editbox->setText( int_to_string( origin ) );
+	editbox->setText( int_to_string( m_origin ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cLayer_Line_Point_Start::Editor_Origin_Text_Changed, this ) );
 
 	// init
@@ -255,7 +265,7 @@ bool cLayer_Line_Point_Start :: Editor_Origin_Text_Changed( const CEGUI::EventAr
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
 	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
-	origin = string_to_int( str_text );
+	m_origin = string_to_int( str_text );
 
 	return 1;
 }
@@ -264,24 +274,16 @@ bool cLayer_Line_Point_Start :: Editor_Origin_Text_Changed( const CEGUI::EventAr
 
 cLine_collision :: cLine_collision( void )
 {
-	line = NULL;
-	line_number = -2;
-	difference = 0;
-}
-
-/* *** *** *** *** *** *** *** *** Near Line Collision *** *** *** *** *** *** *** *** *** */
-
-cNearLine_collision :: cNearLine_collision( void )
-{
-	line_number = -2;
-	start = 0;
+	m_line = NULL;
+	m_line_number = -2;
+	m_difference = 0;
 }
 
 /* *** *** *** *** *** *** *** *** Layer *** *** *** *** *** *** *** *** *** */
 
 cLayer :: cLayer( cOverworld *origin )
 {
-	n_origin = origin;
+	m_overworld = origin;
 }
 
 cLayer :: ~cLayer( void )
@@ -291,7 +293,7 @@ cLayer :: ~cLayer( void )
 
 void cLayer :: Add( cLayer_Line_Point_Start *line_point )
 {
-	for( LayerLineList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( LayerLineList::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		// get pointer
 		cLayer_Line_Point_Start *layer_line = (*itr);
@@ -306,16 +308,16 @@ void cLayer :: Add( cLayer_Line_Point_Start *line_point )
 	cObject_Manager<cLayer_Line_Point_Start>::Add( line_point );
 
 	// check if in sprite manager
-	if( n_origin->m_sprite_manager->Get_Array_Num( line_point ) == -1 )
+	if( m_overworld->m_sprite_manager->Get_Array_Num( line_point ) == -1 )
 	{
 		// add start point
-		n_origin->m_sprite_manager->Add( line_point );
+		m_overworld->m_sprite_manager->Add( line_point );
 	}
 	// check if in sprite manager
-	if( n_origin->m_sprite_manager->Get_Array_Num( line_point->linked_point ) == -1 )
+	if( m_overworld->m_sprite_manager->Get_Array_Num( line_point->m_linked_point ) == -1 )
 	{
 		// add end point
-		n_origin->m_sprite_manager->Add( line_point->linked_point );
+		m_overworld->m_sprite_manager->Add( line_point->m_linked_point );
 	}
 }
 
@@ -352,7 +354,7 @@ bool cLayer :: Save( const std::string &filename )
 	file << "<layer>" << std::endl;
 
 	// lines
-	for( LayerLineList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( LayerLineList::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		cLayer_Line_Point_Start *line = (*itr);
 
@@ -362,10 +364,10 @@ bool cLayer :: Save( const std::string &filename )
 			file << "\t\t<Property name=\"X1\" value=\"" << static_cast<int>(line->Get_Line_Pos_X()) << "\" />" << std::endl;
 			file << "\t\t<Property name=\"Y1\" value=\"" << static_cast<int>(line->Get_Line_Pos_Y()) << "\" />" << std::endl;
 			// end
-			file << "\t\t<Property name=\"X2\" value=\"" << static_cast<int>(line->linked_point->Get_Line_Pos_X()) << "\" />" << std::endl;
-			file << "\t\t<Property name=\"Y2\" value=\"" << static_cast<int>(line->linked_point->Get_Line_Pos_Y()) << "\" />" << std::endl;
+			file << "\t\t<Property name=\"X2\" value=\"" << static_cast<int>(line->m_linked_point->Get_Line_Pos_X()) << "\" />" << std::endl;
+			file << "\t\t<Property name=\"Y2\" value=\"" << static_cast<int>(line->m_linked_point->Get_Line_Pos_Y()) << "\" />" << std::endl;
 			// origin
-			file << "\t\t<Property name=\"origin\" value=\"" << line->origin << "\" />" << std::endl;
+			file << "\t\t<Property name=\"origin\" value=\"" << line->m_origin << "\" />" << std::endl;
 		// end line
 		file << "\t</line>" << std::endl;
 	}
@@ -385,7 +387,7 @@ void cLayer :: Delete_All( void )
 
 cLayer_Line_Point_Start *cLayer :: Get_Line_Collision_Start( const GL_rect &line_rect )
 {
-	for( LayerLineList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( LayerLineList::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		// get pointer
 		cLayer_Line_Point_Start *layer_line = (*itr);
@@ -421,11 +423,11 @@ cLine_collision cLayer :: Get_Line_Collision_Direction( float x, float y, Object
 
 	if( dir == DIR_LEFT || dir == DIR_RIGHT )
 	{
-		return n_origin->m_layer->Get_Nearest( x, y, DIR_VERTICAL, check_size );
+		return m_overworld->m_layer->Get_Nearest( x, y, DIR_VERTICAL, check_size );
 	}
 	else if( dir == DIR_UP || dir == DIR_DOWN )
 	{
-		return n_origin->m_layer->Get_Nearest( x, y, DIR_HORIZONTAL, check_size );
+		return m_overworld->m_layer->Get_Nearest( x, y, DIR_HORIZONTAL, check_size );
 	}
 
 	// invalid direction
@@ -434,13 +436,13 @@ cLine_collision cLayer :: Get_Line_Collision_Direction( float x, float y, Object
 
 cLine_collision cLayer :: Get_Nearest( float x, float y, ObjectDirection dir /* = DIR_HORIZONTAL */, unsigned int check_size /* = 15 */, int only_origin_id /* = -1 */ ) const
 {
-	for( LayerLineList::const_iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( LayerLineList::const_iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		// get pointer
 		cLayer_Line_Point_Start *layer_line = (*itr);
 
 		// line is not from waypoint
-		if( only_origin_id >= 0 && only_origin_id != layer_line->origin )
+		if( only_origin_id >= 0 && only_origin_id != layer_line->m_origin )
 		{
 			continue;
 		}
@@ -448,7 +450,7 @@ cLine_collision cLayer :: Get_Nearest( float x, float y, ObjectDirection dir /* 
 		cLine_collision col = Get_Nearest_Line( layer_line, x, y, dir, check_size );
 
 		// found
-		if( col.line )
+		if( col.m_line )
 		{
 			return col;
 		}
@@ -487,11 +489,11 @@ cLine_collision cLayer :: Get_Nearest_Line( cLayer_Line_Point_Start *map_layer_l
 		}
 
 		// debug drawing
-		if( pOverworld_Manager->debugmode && pOverworld_Manager->draw_layer )
+		if( pOverworld_Manager->m_debug_mode && pOverworld_Manager->m_draw_layer )
 		{
 			// create request
 			cLine_Request *line_request = new cLine_Request();
-			pVideo->Draw_Line( line_1.m_x1 - pActive_Camera->x, line_1.m_y1 - pActive_Camera->y, line_1.m_x2 - pActive_Camera->x, line_1.m_y2 - pActive_Camera->y, map_layer_line->m_pos_z + 0.001f, &white, line_request );
+			pVideo->Draw_Line( line_1.m_x1 - pActive_Camera->m_x, line_1.m_y1 - pActive_Camera->m_y, line_1.m_x2 - pActive_Camera->m_x, line_1.m_y2 - pActive_Camera->m_y, map_layer_line->m_pos_z + 0.001f, &white, line_request );
 			line_request->line_width = 2;
 			line_request->render_count = 50;
 			// add request
@@ -499,7 +501,7 @@ cLine_collision cLayer :: Get_Nearest_Line( cLayer_Line_Point_Start *map_layer_l
 
 			// create request
 			line_request = new cLine_Request();
-			pVideo->Draw_Line( line_2.m_x1 - pActive_Camera->x, line_2.m_y1 - pActive_Camera->y, line_2.m_x2 - pActive_Camera->x, line_2.m_y2 - pActive_Camera->y, map_layer_line->m_pos_z + 0.001f, &black, line_request );
+			pVideo->Draw_Line( line_2.m_x1 - pActive_Camera->m_x, line_2.m_y1 - pActive_Camera->m_y, line_2.m_x2 - pActive_Camera->m_x, line_2.m_y2 - pActive_Camera->m_y, map_layer_line->m_pos_z + 0.001f, &black, line_request );
 			line_request->line_width = 2;
 			line_request->render_count = 50;
 			// add request
@@ -511,9 +513,9 @@ cLine_collision cLayer :: Get_Nearest_Line( cLayer_Line_Point_Start *map_layer_l
 		{
 			cLine_collision col = cLine_collision();
 
-			col.line = map_layer_line;
-			col.line_number = Get_Array_Num( map_layer_line );
-			col.difference = csize;
+			col.m_line = map_layer_line;
+			col.m_line_number = Get_Array_Num( map_layer_line );
+			col.m_difference = csize;
 
 			// found
 			return col;
@@ -524,9 +526,9 @@ cLine_collision cLayer :: Get_Nearest_Line( cLayer_Line_Point_Start *map_layer_l
 		{
 			cLine_collision col = cLine_collision();
 
-			col.line = map_layer_line;
-			col.line_number = Get_Array_Num( map_layer_line );
-			col.difference = -csize;
+			col.m_line = map_layer_line;
+			col.m_line_number = Get_Array_Num( map_layer_line );
+			col.m_difference = -csize;
 
 			// found
 			return col;
@@ -543,7 +545,7 @@ void cLayer :: elementStart( const CEGUI::String &element, const CEGUI::XMLAttri
 	// Property of an Element
 	if( element == "Property" )
 	{
-		xml_attributes.add( attributes.getValueAsString( "name" ), attributes.getValueAsString( "value" ) );
+		m_xml_attributes.add( attributes.getValueAsString( "name" ), attributes.getValueAsString( "value" ) );
 	}
 }
 
@@ -554,8 +556,21 @@ void cLayer :: elementEnd( const CEGUI::String &element )
 	{
 		if( element == "line" )
 		{
+			// if V.1.9 and lower : move y coordinate bottom to 0
+			if( m_overworld->m_engine_version < 2 )
+			{
+				if( m_xml_attributes.exists( "Y1" ) )
+				{
+					m_xml_attributes.add( "Y1", CEGUI::PropertyHelper::floatToString( m_xml_attributes.getValueAsFloat( "Y1" ) - 600.0f ) );
+				}
+				if( m_xml_attributes.exists( "Y2" ) )
+				{
+					m_xml_attributes.add( "Y2", CEGUI::PropertyHelper::floatToString( m_xml_attributes.getValueAsFloat( "Y2" ) - 600.0f ) );
+				}
+			}
+
 			// add layer line
-			Add( new cLayer_Line_Point_Start( xml_attributes ) );
+			Add( new cLayer_Line_Point_Start( m_xml_attributes, m_overworld->m_sprite_manager, m_overworld ) );
 		}
 		else if( element == "layer" )
 		{
@@ -567,7 +582,7 @@ void cLayer :: elementEnd( const CEGUI::String &element )
 		}
 
 		// clear
-		xml_attributes = CEGUI::XMLAttributes();
+		m_xml_attributes = CEGUI::XMLAttributes();
 	}
 }
 

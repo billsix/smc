@@ -16,7 +16,7 @@
 #ifndef SMC_SPINBOX_H
 #define SMC_SPINBOX_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../objects/box.h"
 
 namespace SMC
@@ -28,9 +28,9 @@ class cSpinBox : public cBaseBox
 {
 public:
 	// constructor
-	cSpinBox( float x, float y );
+	cSpinBox( cSprite_Manager *sprite_manager );
 	// create from stream
-	cSpinBox( CEGUI::XMLAttributes &attributes );
+	cSpinBox( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cSpinBox( void );
 
@@ -38,7 +38,7 @@ public:
 	void Init( void );
 
 	// copy
-	virtual cSpinBox *Copy( void );
+	virtual cSpinBox *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -56,10 +56,10 @@ public:
 	virtual bool Is_Update_Valid( void );
 
 	// spin counter
-	float spin_counter;
+	float m_spin_counter;
 
 	// if spinning
-	bool spin;
+	bool m_spin;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

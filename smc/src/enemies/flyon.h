@@ -22,24 +22,22 @@ namespace SMC
 {
 
 /* *** *** *** *** *** cFlyon *** *** *** *** *** *** *** *** *** *** *** *** */
-
-/* Flyon
- * Eats your butt
+/*  Eats your butt in the sky.
 */
 class cFlyon : public cEnemy 
 {
 public:
 	// constructor
-	cFlyon( float x, float y );
+	cFlyon( cSprite_Manager *sprite_manager );
 	// create from stream
-	cFlyon( CEGUI::XMLAttributes &attributes );
+	cFlyon( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cFlyon( void );
 
 	// initialize defaults
 	void Init( void );
 	// copy
-	virtual cFlyon *Copy( void );
+	virtual cFlyon *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );

@@ -29,7 +29,7 @@ namespace SMC
 // Caption
 #define CAPTION "Secret Maryo Chronicles"
 // Version
-static const float smc_version = 1.9f;
+static const float smc_version = 2.0f;
 
 /* *** *** *** *** *** *** *** Object Direction *** *** *** *** *** *** *** *** *** *** */
 
@@ -173,15 +173,15 @@ enum LevelDrawType
 /* *** *** *** *** *** *** *** Pre-declare *** *** *** *** *** *** *** *** *** *** */
 
 // Allows use of pointers in header files without including individual headers
-// and decreases dependencies between files
+// which decreases dependencies between files
 
 /* *** speedfactor framerate *** */
 static const int speedfactor_fps = 32;
 
 /* *** level engine version *** */
-static const int level_engine_version = 34;
+static const int level_engine_version = 36;
 /* *** world engine version *** */
-static const int world_engine_version = 1;
+static const int world_engine_version = 2;
 
 /* *** Sprite Types *** */
 

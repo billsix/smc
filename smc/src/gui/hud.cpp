@@ -15,7 +15,7 @@
 
 #include "../gui/hud.h"
 #include "../core/game_core.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../audio/audio.h"
 #include "../video/font.h"
 #include "../core/framerate.h"
@@ -31,10 +31,10 @@ namespace SMC
 
 /* *** *** *** *** *** *** *** cHudSprite *** *** *** *** *** *** *** *** *** *** */
 
-cHudSprite :: cHudSprite( cGL_Surface *new_image /* = NULL */, float x /* = 0.0f */, float y /* = 0.0f */, bool del_img /* = 0 */ )
-: cSprite( new_image, x, y, del_img )
+cHudSprite :: cHudSprite( cSprite_Manager *sprite_manager )
+: cSprite( sprite_manager )
 {
-	m_player_range = 0;
+	m_camera_range = 0;
 	m_pos_z = 0.13f;
 
 	Set_Ignore_Camera( 1 );
@@ -45,28 +45,27 @@ cHudSprite :: ~cHudSprite( void )
 
 }
 
-cHudSprite *cHudSprite :: Copy( void )
+cHudSprite *cHudSprite :: Copy( void ) const
 {
-	cHudSprite *hud_sprite = new cHudSprite( m_start_image, m_pos_x, m_pos_y );
-
+	cHudSprite *hud_sprite = new cHudSprite( m_sprite_manager );
+	hud_sprite->Set_Image( m_start_image );
+	hud_sprite->Set_Pos( m_pos_x, m_pos_y );
 	hud_sprite->m_type = m_type;
 	hud_sprite->m_sprite_array = m_sprite_array;
 	hud_sprite->m_massive_type = m_massive_type;
 	hud_sprite->Set_Ignore_Camera( m_no_camera );
 	hud_sprite->Set_Shadow_Pos( m_shadow_pos );
 	hud_sprite->Set_Shadow_Color( m_shadow_color );
-
 	return hud_sprite;
 }
 
 /* *** *** *** *** *** *** *** cHud_Manager *** *** *** *** *** *** *** *** *** *** */
 
-cHud_Manager :: cHud_Manager( void )
+cHud_Manager :: cHud_Manager( cSprite_Manager *sprite_manager )
 : cObject_Manager<cHudSprite>()
 {
+	m_sprite_manager = sprite_manager;
 	m_loaded = 0;
-
-	Load();
 }
 
 cHud_Manager :: ~cHud_Manager( void )
@@ -86,25 +85,26 @@ void cHud_Manager :: Load( void )
 		return;
 	}
 
-	// Menu Background ( Maryo head and the Goldpiece )
-	Add( static_cast<cHudSprite *>(new cMenuBackground()) );
+	// Menu Background ( Maryo head and the Goldpiece image )
+	cMenuBackground *menu_background = new cMenuBackground( m_sprite_manager );
+	Add( static_cast<cHudSprite *>(menu_background) );
 	// Point Display
-	pHud_Points = new cPlayerPoints();
+	pHud_Points = new cPlayerPoints( m_sprite_manager );
 	Add( static_cast<cHudSprite *>(pHud_Points) );
 	// Time Display
-	pHud_Time = new cTimeDisplay();
+	pHud_Time = new cTimeDisplay( m_sprite_manager );
 	Add( static_cast<cHudSprite *>(pHud_Time) );
 	// Live Display
-	pHud_Lives = new cLiveDisplay();
+	pHud_Lives = new cLiveDisplay( m_sprite_manager );
 	Add( static_cast<cHudSprite *>(pHud_Lives) );
 	// Gold Display
-	pHud_Goldpieces = new cGoldDisplay();
+	pHud_Goldpieces = new cGoldDisplay( m_sprite_manager );
 	Add( static_cast<cHudSprite *>(pHud_Goldpieces) );
 	// Itembox
-	pHud_Itembox = new cItemBox();
+	pHud_Itembox = new cItemBox( m_sprite_manager );
 	Add( static_cast<cHudSprite *>(pHud_Itembox) );
 	// Debug Display
-	pHud_Debug = new cDebugDisplay();
+	pHud_Debug = new cDebugDisplay( m_sprite_manager );
 	Add( static_cast<cHudSprite *>(pHud_Debug) );
 
 	m_loaded = 1;
@@ -131,7 +131,7 @@ void cHud_Manager :: Unload( void )
 
 void cHud_Manager :: Update_Text( void )
 {
-	// note : update the life display before you update the timedisplay
+	// note : update the life display before updating the time display
 	
 	if( !objects.empty() )
 	{
@@ -213,7 +213,7 @@ void cHud_Manager :: Update_Text( void )
 void cHud_Manager :: Update( void )
 {
 	// update HUD objects
-	for( HudSpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( HudSpriteList::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		(*itr)->Update();
 	}
@@ -222,9 +222,20 @@ void cHud_Manager :: Update( void )
 void cHud_Manager :: Draw( void )
 {
 	// draw HUD objects
-	for( HudSpriteList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( HudSpriteList::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		(*itr)->Draw();
+	}
+}
+
+void cHud_Manager :: Set_Sprite_Manager( cSprite_Manager *sprite_manager )
+{
+	m_sprite_manager = sprite_manager;
+
+	// update HUD objects
+	for( HudSpriteList::iterator itr = objects.begin(); itr != objects.end(); ++itr )
+	{
+		(*itr)->Set_Sprite_Manager( m_sprite_manager );
 	}
 }
 
@@ -234,8 +245,8 @@ cHud_Manager *pHud_Manager = NULL;
 
 /* *** *** *** *** *** *** PointsText *** *** *** *** *** *** *** *** *** *** *** */
 
-PointsText :: PointsText( void )
-: cHudSprite()
+PointsText :: PointsText( cSprite_Manager *sprite_manager )
+: cHudSprite( sprite_manager )
 {
 	m_points = 0;
 	m_vely = 0.0f;
@@ -248,8 +259,8 @@ PointsText :: ~PointsText( void )
 
 /* *** *** *** *** *** *** cMenuBackground *** *** *** *** *** *** *** *** *** *** *** */
 
-cMenuBackground :: cMenuBackground( float x /* = 0.0f */, float y /* = 0.0f */ )
-: cHudSprite( NULL, x, y )
+cMenuBackground :: cMenuBackground( cSprite_Manager *sprite_manager )
+: cHudSprite( sprite_manager )
 {
 	m_type = TYPE_MENUBG;
 	m_sprite_array = ARRAY_HUD;
@@ -266,10 +277,10 @@ cMenuBackground :: cMenuBackground( float x /* = 0.0f */, float y /* = 0.0f */ )
 
 	// maryo head
 	m_rect_maryo_head.m_x = game_res_w * 0.933f;
-	m_rect_maryo_head.m_y = 15;
+	m_rect_maryo_head.m_y = 15.0f;
 	// goldpiece
-	m_rect_goldpiece.m_x = 250;
-	m_rect_goldpiece.m_y = 0;
+	m_rect_goldpiece.m_x = 250.0f;
+	m_rect_goldpiece.m_y = 0.0f;
 }
 
 cMenuBackground :: ~cMenuBackground( void )
@@ -296,8 +307,8 @@ void cMenuBackground :: Draw( cSurface_Request *request /* = NULL */ )
 
 /* *** *** *** *** *** *** cStatusText *** *** *** *** *** *** *** *** *** *** *** */
 
-cStatusText :: cStatusText( float x /* = 0.0f */, float y /* = 0.0f */ )
-: cHudSprite( NULL, x, y )
+cStatusText :: cStatusText( cSprite_Manager *sprite_manager )
+: cHudSprite( sprite_manager )
 {
 	m_type = TYPE_STATUSTEXT;
 	m_sprite_array = ARRAY_HUD;
@@ -322,14 +333,14 @@ void cStatusText :: Draw( cSurface_Request *request /* = NULL */ )
 
 /* *** *** *** *** *** *** cPlayerPoints *** *** *** *** *** *** *** *** *** *** *** */
 
-cPlayerPoints :: cPlayerPoints( float x /* = 0.0f */, float y /* = 0.0f */ )
-: cStatusText( x, y )
+cPlayerPoints :: cPlayerPoints( cSprite_Manager *sprite_manager )
+: cStatusText( sprite_manager )
 {
 	m_sprite_array = ARRAY_HUD;
 	m_type = TYPE_POINTDISPLAY;
 	m_name = "HUD Player points";
 	
-	Set_Points( pPlayer->points );
+	Set_Points( pLevel_Player->m_points );
 
 	m_points_objects.reserve( 50 );
 }
@@ -366,35 +377,41 @@ void cPlayerPoints :: Draw( cSurface_Request *request /* = NULL */ )
 			obj->m_vely -= obj->m_vely * 0.01f * pFramerate->m_speed_factor;
 			obj->m_pos_y += obj->m_vely * pFramerate->m_speed_factor;
 
+			// disable
 			if( obj->m_vely > -1.0f )
 			{
 				obj->Set_Image( NULL );
 				continue;
 			}
+			// fade out
+			else if( obj->m_vely > -1.2f )
+			{
+				obj->m_color.alpha = static_cast<Uint8>(255 * -(obj->m_vely + 1.0f) * 5);
+			}
 
-			float x = obj->m_pos_x - pActive_Camera->x;
-			float y = obj->m_pos_y - pActive_Camera->y;
+			float x = obj->m_pos_x - pActive_Camera->m_x;
+			float y = obj->m_pos_y - pActive_Camera->m_y;
 
 			// out in left
 			if( x < 0.0f )
 			{
-				x = 5.0f;
+				x = 3.0f;
 			}
 			// out in right
 			else if( x > game_res_w )
 			{
-				x = game_res_w - obj->m_col_rect.m_w - 2.0f; 
+				x = game_res_w - obj->m_col_rect.m_w - 3.0f; 
 			}
 
-			// out on bottom
+			// out on top
 			if( y < 0.0f )
 			{
-				y = 5.0f;
+				y = 3.0f;
 			}
-			// out on top
+			// out on bottom
 			else if( y > game_res_h )
 			{
-				y = game_res_h - obj->m_col_rect.m_h - 20.0f;
+				y = game_res_h - obj->m_col_rect.m_h - 3.0f;
 			}
 
 			// create request
@@ -403,10 +420,11 @@ void cPlayerPoints :: Draw( cSurface_Request *request /* = NULL */ )
 
 			// shadow
 			request->shadow_color = black;
+			request->shadow_color.alpha = obj->m_color.alpha;
 			request->shadow_pos = 1;
 
 			// color
-			request->color = Color( static_cast<Uint8>( 255 - ( obj->m_points / 150 ) ), static_cast<Uint8>( 255 - ( obj->m_points / 150 ) ), static_cast<Uint8>( 255 - ( obj->m_points / 30 ) ) );
+			request->color = Color( static_cast<Uint8>( 255 - ( obj->m_points / 150 ) ), static_cast<Uint8>( 255 - ( obj->m_points / 150 ) ), static_cast<Uint8>( 255 - ( obj->m_points / 30 ) ), obj->m_color.alpha );
 
 			// add request
 			pRenderer->Add( request );
@@ -418,10 +436,10 @@ void cPlayerPoints :: Draw( cSurface_Request *request /* = NULL */ )
 
 void cPlayerPoints :: Set_Points( long points )
 {
-	pPlayer->points = points;
+	pLevel_Player->m_points = points;
 
 	char text[70];
-	sprintf( text, _("Points %08d"), static_cast<int>(pPlayer->points) );
+	sprintf( text, _("Points %08d"), static_cast<int>(pLevel_Player->m_points) );
 	Set_Image( pFont->Render_Text( pFont->m_font_normal, text, white ), 0, 1 );
 }
 
@@ -429,12 +447,12 @@ void cPlayerPoints :: Add_Points( unsigned int points, float x /* = 0.0f */, flo
 {
 	if( allow_multiplier )
 	{
-		points = static_cast<unsigned int>( pPlayer->kill_multiplier * static_cast<float>(points) );
+		points = static_cast<unsigned int>( pLevel_Player->m_kill_multiplier * static_cast<float>(points) );
 	}
 
-	Set_Points( pPlayer->points + points );
+	Set_Points( pLevel_Player->m_points + points );
 
-	if( x == 0 || y == 0 || m_points_objects.size() > 50 )
+	if( Is_Float_Equal( x, 0.0f ) || Is_Float_Equal( y, 0.0f ) || m_points_objects.size() > 50 )
 	{
 		return;
 	}
@@ -445,7 +463,7 @@ void cPlayerPoints :: Add_Points( unsigned int points, float x /* = 0.0f */, flo
 		strtext = int_to_string( points );
 	}
 
-	PointsText *new_obj = new PointsText();
+	PointsText *new_obj = new PointsText( m_sprite_manager );
 	new_obj->Set_Image( pFont->Render_Text( pFont->m_font_small, strtext, color ), 1, 1 );
 
 	new_obj->Set_Pos( x, y );
@@ -469,7 +487,7 @@ void cPlayerPoints :: Add_Points( unsigned int points, float x /* = 0.0f */, flo
 
 void cPlayerPoints :: Clear( void )
 {
-	for( PointsTextList::iterator itr = m_points_objects.begin(), itr_end = m_points_objects.end(); itr != itr_end; ++itr )
+	for( PointsTextList::iterator itr = m_points_objects.begin(); itr != m_points_objects.end(); ++itr )
 	{
 		delete *itr;
 	}
@@ -479,14 +497,14 @@ void cPlayerPoints :: Clear( void )
 
 /* *** *** *** *** *** cGoldDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cGoldDisplay :: cGoldDisplay( float x /* = 0.0f */, float y /* = 0.0f */ )
-: cStatusText( x, y )
+cGoldDisplay :: cGoldDisplay( cSprite_Manager *sprite_manager )
+: cStatusText( sprite_manager )
 {
 	m_sprite_array = ARRAY_HUD;
 	m_type = TYPE_GOLDDISPLAY;
 	m_name = "HUD Goldpieces";
 
-	Set_Gold( pPlayer->goldpieces );
+	Set_Gold( pLevel_Player->m_goldpieces );
 }
 
 cGoldDisplay :: ~cGoldDisplay( void )
@@ -512,11 +530,11 @@ void cGoldDisplay :: Set_Gold( int gold )
 		pAudio->Play_Sound( "item/live_up_2.ogg", RID_1UP_MUSHROOM );	
 		pHud_Lives->Add_Lives( 1 );
 
-		pHud_Points->Add_Points( 0, pPlayer->m_pos_x + pPlayer->m_image->m_w/3, pPlayer->m_pos_y + 5, "1UP", lightred );
+		pHud_Points->Add_Points( 0, pLevel_Player->m_pos_x + pLevel_Player->m_image->m_w/3, pLevel_Player->m_pos_y + 5, "1UP", lightred );
 	}
 	
-	pPlayer->goldpieces = gold;
-	std::string text = int_to_string( pPlayer->goldpieces );
+	pLevel_Player->m_goldpieces = gold;
+	std::string text = int_to_string( pLevel_Player->m_goldpieces );
 
 	Color color = Color( static_cast<Uint8>(255), 255, 255 - ( gold * 2 ) );
 
@@ -525,19 +543,19 @@ void cGoldDisplay :: Set_Gold( int gold )
 
 void cGoldDisplay :: Add_Gold( int gold )
 {
-	Set_Gold( pPlayer->goldpieces + gold );
+	Set_Gold( pLevel_Player->m_goldpieces + gold );
 }
 
 /* *** *** *** *** *** cLiveDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLiveDisplay :: cLiveDisplay( float x /* = 0.0f */, float y /* = 0.0f */ )
-: cStatusText( x, y )
+cLiveDisplay :: cLiveDisplay( cSprite_Manager *sprite_manager )
+: cStatusText( sprite_manager )
 {
 	m_sprite_array = ARRAY_HUD;
 	m_type = TYPE_LIFEDISPLAY;
 	m_name = "HUD Lives";
 
-	Set_Lives( pPlayer->lives );
+	Set_Lives( pLevel_Player->m_lives );
 
 	Set_Image( NULL );
 }
@@ -559,7 +577,7 @@ void cLiveDisplay :: Draw( cSurface_Request *request /* = NULL */ )
 
 void cLiveDisplay :: Set_Lives( int lives )
 {
-	pPlayer->lives = lives;
+	pLevel_Player->m_lives = lives;
 	
 	if( lives < 0 )
 	{
@@ -571,11 +589,11 @@ void cLiveDisplay :: Set_Lives( int lives )
 	// if not in Overworld
 	if( Game_Mode != MODE_OVERWORLD )
 	{
-		text = int_to_string( pPlayer->lives ) + "x";
+		text = int_to_string( pLevel_Player->m_lives ) + "x";
 	}
 	else
 	{
-		text = _("Lives : ") + int_to_string( pPlayer->lives );
+		text = _("Lives : ") + int_to_string( pLevel_Player->m_lives );
 	}
 
 	Set_Image( pFont->Render_Text( pFont->m_font_normal, text, green ), 0, 1 );
@@ -591,13 +609,13 @@ void cLiveDisplay :: Set_Lives( int lives )
 
 void cLiveDisplay :: Add_Lives( int lives )
 {
-	Set_Lives( pPlayer->lives + lives );
+	Set_Lives( pLevel_Player->m_lives + lives );
 }
 
 /* *** *** *** *** *** *** *** cTimeDisplay *** *** *** *** *** *** *** *** *** *** */
 
-cTimeDisplay :: cTimeDisplay( float x /* = 0.0f */, float y /* = 0.0f */ )
-: cStatusText( x, y )
+cTimeDisplay :: cTimeDisplay( cSprite_Manager *sprite_manager )
+: cStatusText( sprite_manager )
 {
 	m_sprite_array = ARRAY_HUD;
 	m_type = TYPE_GAMETIMEDISPLAY;
@@ -662,8 +680,8 @@ void cTimeDisplay :: Reset( void )
 
 /* *** *** *** *** *** *** *** cItemBox *** *** *** *** *** *** *** *** *** *** */
 
-cItemBox :: cItemBox( float x /* = 0.0f */, float y /* = 0.0f */ )
-: cStatusText( x, y )
+cItemBox :: cItemBox( cSprite_Manager *sprite_manager )
+: cStatusText( sprite_manager )
 {
 	m_sprite_array = ARRAY_HUD;
 	m_type = TYPE_ITEMBOXDISPLAY;
@@ -679,9 +697,9 @@ cItemBox :: cItemBox( float x /* = 0.0f */, float y /* = 0.0f */ )
 	m_item_counter_mod = 0;
 	m_item_id = TYPE_UNDEFINED;
 
-	m_item = new cMovingSprite();
+	m_item = new cMovingSprite( sprite_manager );
 	m_item->Set_Ignore_Camera( 1 );
-	m_item->m_player_range = 0;
+	m_item->m_camera_range = 0;
 	m_item->Set_Massive_Type( MASS_MASSIVE );
 	m_item->m_pos_z = 0.1299f;
 }
@@ -689,6 +707,12 @@ cItemBox :: cItemBox( float x /* = 0.0f */, float y /* = 0.0f */ )
 cItemBox :: ~cItemBox( void )
 {
 	delete m_item;
+}
+
+void cItemBox :: Set_Sprite_Manager( cSprite_Manager *sprite_manager )
+{
+	cStatusText::Set_Sprite_Manager( sprite_manager );
+	m_item->Set_Sprite_Manager( sprite_manager );
 }
 
 void cItemBox :: Update( void )
@@ -718,7 +742,7 @@ void cItemBox :: Update( void )
 			}
 		}
 
-		if( m_item->m_pos_y > game_res_h )
+		if( m_item->m_pos_y > pLevel_Manager->m_camera->m_limit_rect.m_y )
 		{
 			Reset();
 		}
@@ -731,7 +755,7 @@ void cItemBox :: Update( void )
 			// player can send an item back
 			SpriteType item_id_temp = m_item_id;
 			Reset();
-			pPlayer->Get_Item( item_id_temp, 1 );
+			pLevel_Player->Get_Item( item_id_temp, 1 );
 		}
 
 		delete col_list;
@@ -812,7 +836,7 @@ void cItemBox :: Request_Item( void )
 	m_item_counter = 255.0f;
 	// draw item with camera
 	m_item->Set_Ignore_Camera( 0 );
-	m_item->Set_Pos( m_item->m_pos_x + pActive_Camera->x, m_item->m_pos_y + pActive_Camera->y );
+	m_item->Set_Pos( m_item->m_pos_x + pActive_Camera->m_x, m_item->m_pos_y + pActive_Camera->m_y );
 }
 
 void cItemBox :: Push_back( void )
@@ -837,8 +861,8 @@ void cItemBox :: Reset( void )
 
 /* *** *** *** *** *** *** cDebugDisplay *** *** *** *** *** *** *** *** *** *** *** */
 
-cDebugDisplay :: cDebugDisplay( float x /* = 0.0f */, float y /* = 0.0f */ )
-: cStatusText( x, y )
+cDebugDisplay :: cDebugDisplay( cSprite_Manager *sprite_manager )
+: cStatusText( sprite_manager )
 {
 	m_sprite_array = ARRAY_HUD;
 	m_type = TYPE_DEBUGDISPLAY;
@@ -865,12 +889,14 @@ cDebugDisplay :: cDebugDisplay( float x /* = 0.0f */, float y /* = 0.0f */ )
 	m_text_debug_text->setVisible( 0 );
 
 	// debug box positions
-	float tempx = static_cast<float>(game_res_w) - 200;
-	float tempy = static_cast<float>(game_res_h) / 2 - 250;
+	float tempx = static_cast<float>(game_res_w) - 200.0f;
+	float tempy = (static_cast<float>(game_res_h) / 2) - 250.0f;
 
 	for( unsigned int i = 0; i < 23; i++ )
 	{
-		m_sprites.push_back( new cHudSprite( NULL, tempx, tempy ) );
+		cHudSprite *hud_sprite = new cHudSprite( m_sprite_manager );
+		hud_sprite->Set_Pos( tempx, tempy );
+		m_sprites.push_back( hud_sprite );
 		m_sprites[i]->Set_Shadow( black, 1 );
 		m_sprites[i]->m_pos_z = m_pos_z;
 
@@ -906,7 +932,7 @@ cDebugDisplay :: ~cDebugDisplay( void )
 	pGuiSystem->getGUISheet()->removeChildWindow( m_window_debug_text );
 	CEGUI::WindowManager::getSingleton().destroyWindow( m_window_debug_text );
 
-	for( HudSpriteList::iterator itr = m_sprites.begin(), itr_end = m_sprites.end(); itr != itr_end; ++itr )
+	for( HudSpriteList::iterator itr = m_sprites.begin(); itr != m_sprites.end(); ++itr )
 	{
 		delete *itr;
 	}
@@ -994,7 +1020,7 @@ void cDebugDisplay :: Draw_fps( void )
 
 void cDebugDisplay :: Draw_Debug_Mode( void )
 {
-	if( !game_debug || ( Game_Mode == MODE_LEVEL && pPlayer->maryo_type == MARYO_DEAD ) ) 
+	if( !game_debug || ( Game_Mode == MODE_LEVEL && pLevel_Player->m_maryo_type == MARYO_DEAD ) ) 
 	{
 		return;
 	}
@@ -1025,7 +1051,7 @@ void cDebugDisplay :: Draw_Debug_Mode( void )
 	std::string temp_text;
 
 	// Camera position
-	temp_text = _("Camera : X ") + int_to_string( static_cast<int>(pActive_Camera->x) ) + ", Y " + int_to_string( static_cast<int>(pActive_Camera->y) );
+	temp_text = _("Camera : X ") + int_to_string( static_cast<int>(pActive_Camera->m_x) ) + ", Y " + int_to_string( static_cast<int>(pActive_Camera->m_y) );
 	m_sprites[3]->Set_Image( pFont->Render_Text( pFont->m_font_very_small, temp_text, white ), 0, 1 );
 
 	// Level information
@@ -1038,41 +1064,41 @@ void cDebugDisplay :: Draw_Debug_Mode( void )
 	}
 
 	// Level objects
-	if( m_obj_counter != static_cast<int>(pActive_Sprite_Manager->size()) )
+	if( m_obj_counter != static_cast<int>(m_sprite_manager->size()) )
 	{
-		m_obj_counter = pActive_Sprite_Manager->size();
+		m_obj_counter = m_sprite_manager->size();
 
 		temp_text = _("Objects : ") + int_to_string( m_obj_counter );
 		m_sprites[6]->Set_Image( pFont->Render_Text( pFont->m_font_very_small, temp_text, white ), 0, 1 );
 	}
 	// Passive
-	if( m_pass_counter != static_cast<int>(pActive_Sprite_Manager->Get_Size_Array( ARRAY_PASSIVE )) )
+	if( m_pass_counter != static_cast<int>(m_sprite_manager->Get_Size_Array( ARRAY_PASSIVE )) )
 	{
-		m_pass_counter = pActive_Sprite_Manager->Get_Size_Array( ARRAY_PASSIVE );
+		m_pass_counter = m_sprite_manager->Get_Size_Array( ARRAY_PASSIVE );
 
 		temp_text = _("Passive : ") + int_to_string( m_pass_counter );
 		m_sprites[7]->Set_Image( pFont->Render_Text( pFont->m_font_very_small, temp_text, white ), 0, 1 );
 	}
 	// Massive
-	if( m_mass_counter != static_cast<int>(pActive_Sprite_Manager->Get_Size_Array( ARRAY_MASSIVE )) )
+	if( m_mass_counter != static_cast<int>(m_sprite_manager->Get_Size_Array( ARRAY_MASSIVE )) )
 	{
-		m_mass_counter = pActive_Sprite_Manager->Get_Size_Array( ARRAY_MASSIVE );
+		m_mass_counter = m_sprite_manager->Get_Size_Array( ARRAY_MASSIVE );
 
 		temp_text = _("Massive : ") + int_to_string( m_mass_counter );
 		m_sprites[8]->Set_Image( pFont->Render_Text( pFont->m_font_very_small, temp_text, white ), 0, 1 );
 	}
 	// Enemy
-	if( m_enemy_counter != static_cast<int>(pActive_Sprite_Manager->Get_Size_Array( ARRAY_ENEMY )) ) 
+	if( m_enemy_counter != static_cast<int>(m_sprite_manager->Get_Size_Array( ARRAY_ENEMY )) ) 
 	{
-		m_enemy_counter = pActive_Sprite_Manager->Get_Size_Array( ARRAY_ENEMY );
+		m_enemy_counter = m_sprite_manager->Get_Size_Array( ARRAY_ENEMY );
 
 		temp_text = _("Enemy : ") + int_to_string( m_enemy_counter );
 		m_sprites[9]->Set_Image( pFont->Render_Text( pFont->m_font_very_small, temp_text, white ), 0, 1 );
 	}
 	// Active
-	if( m_active_counter != static_cast<int>(pActive_Sprite_Manager->Get_Size_Array( ARRAY_ACTIVE )) )
+	if( m_active_counter != static_cast<int>(m_sprite_manager->Get_Size_Array( ARRAY_ACTIVE )) )
 	{
-		m_active_counter = pActive_Sprite_Manager->Get_Size_Array( ARRAY_ACTIVE );
+		m_active_counter = m_sprite_manager->Get_Size_Array( ARRAY_ACTIVE );
 
 		temp_text = _("Active : ") + int_to_string( m_active_counter );
 		m_sprites[10]->Set_Image( pFont->Render_Text( pFont->m_font_very_small, temp_text, white ), 0, 1 );
@@ -1080,10 +1106,10 @@ void cDebugDisplay :: Draw_Debug_Mode( void )
 		// Halfmassive
 		unsigned int halfmassive = 0;
 
-		for( cSprite_List::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( cSprite_List::const_iterator itr = m_sprite_manager->objects.begin(); itr != m_sprite_manager->objects.end(); ++itr )
 		{
 			// get object pointer
-			cSprite *obj = (*itr);
+			const cSprite *obj = (*itr);
 
 			if( obj->m_type == TYPE_HALFMASSIVE )
 			{
@@ -1097,10 +1123,10 @@ void cDebugDisplay :: Draw_Debug_Mode( void )
 		// Moving Platform
 		unsigned int moving_platform = 0;
 
-		for( cSprite_List::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( cSprite_List::const_iterator itr = m_sprite_manager->objects.begin(); itr != m_sprite_manager->objects.end(); ++itr )
 		{
 			// get object pointer
-			cSprite *obj = (*itr);
+			const cSprite *obj = (*itr);
 
 			if( obj->m_type == TYPE_MOVING_PLATFORM )
 			{
@@ -1114,14 +1140,14 @@ void cDebugDisplay :: Draw_Debug_Mode( void )
 		// Goldbox
 		unsigned int goldbox = 0;
 
-		for( cSprite_List::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( cSprite_List::const_iterator itr = m_sprite_manager->objects.begin(); itr != m_sprite_manager->objects.end(); ++itr )
 		{
 			// get object pointer
-			cSprite *obj = (*itr);
+			const cSprite *obj = (*itr);
 
 			if( obj->m_type == TYPE_BONUSBOX )
 			{
-				cBonusBox *bonusbox = static_cast<cBonusBox *>(obj);
+				const cBonusBox *bonusbox = static_cast<const cBonusBox *>(obj);
 
 				if( bonusbox->box_type == TYPE_GOLDPIECE )
 				{
@@ -1136,14 +1162,14 @@ void cDebugDisplay :: Draw_Debug_Mode( void )
 		// Bonusbox
 		unsigned int bonusbox_count = 0;
 
-		for( cSprite_List::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( cSprite_List::const_iterator itr = m_sprite_manager->objects.begin(); itr != m_sprite_manager->objects.end(); ++itr )
 		{
 			// get object pointer
-			cSprite *obj = (*itr);
+			const cSprite *obj = (*itr);
 
 			if( obj->m_type == TYPE_BONUSBOX )
 			{
-				cBonusBox *bonusbox = static_cast<cBonusBox *>(obj);
+				const cBonusBox *bonusbox = static_cast<const cBonusBox *>(obj);
 
 				if( bonusbox->box_type != TYPE_GOLDPIECE )
 				{
@@ -1164,22 +1190,22 @@ void cDebugDisplay :: Draw_Debug_Mode( void )
 
 	// Player information
 	// position x
-	temp_text = "X1 " + float_to_string( pActive_Player->m_pos_x, 4 ) + "  X2 " + float_to_string( pPlayer->m_col_rect.m_x + pPlayer->m_col_rect.m_w, 4 );
+	temp_text = "X1 " + float_to_string( pActive_Player->m_pos_x, 4 ) + "  X2 " + float_to_string( pLevel_Player->m_col_rect.m_x + pLevel_Player->m_col_rect.m_w, 4 );
 	m_sprites[17]->Set_Image( pFont->Render_Text( pFont->m_font_very_small, temp_text, white ), 0, 1 );
 	// position y
-	temp_text = "Y1 " + float_to_string( pActive_Player->m_pos_y, 4 ) + "  Y2 " + float_to_string( pPlayer->m_col_rect.m_y + pPlayer->m_col_rect.m_h, 4 );
+	temp_text = "Y1 " + float_to_string( pActive_Player->m_pos_y, 4 ) + "  Y2 " + float_to_string( pLevel_Player->m_col_rect.m_y + pLevel_Player->m_col_rect.m_h, 4 );
 	m_sprites[18]->Set_Image( pFont->Render_Text( pFont->m_font_very_small, temp_text, white ), 0, 1 );
 	// velocity
-	temp_text = _("Velocity X ") + float_to_string( pPlayer->m_velx, 2 ) + " ,Y " + float_to_string( pPlayer->m_vely, 2 );
+	temp_text = _("Velocity X ") + float_to_string( pLevel_Player->m_velx, 2 ) + " ,Y " + float_to_string( pLevel_Player->m_vely, 2 );
 	m_sprites[19]->Set_Image( pFont->Render_Text( pFont->m_font_very_small, temp_text, white ), 0, 1 );
 	// moving state
-	temp_text = _("Moving State ") + int_to_string( static_cast<int>(pPlayer->m_state) );
+	temp_text = _("Moving State ") + int_to_string( static_cast<int>(pLevel_Player->m_state) );
 	m_sprites[20]->Set_Image( pFont->Render_Text( pFont->m_font_very_small, temp_text, white ), 0, 1 );
 	// ground type
 	std::string ground_type;
-	if( pPlayer->m_ground_object )
+	if( pLevel_Player->m_ground_object )
 	{
-		ground_type = int_to_string( pPlayer->m_ground_object->m_massive_type ) + " (" + Get_Massive_Type_Name( pPlayer->m_ground_object->m_massive_type ) + ")";
+		ground_type = int_to_string( pLevel_Player->m_ground_object->m_massive_type ) + " (" + Get_Massive_Type_Name( pLevel_Player->m_ground_object->m_massive_type ) + ")";
 	}
 	temp_text = _("Ground ") + ground_type;
 	m_sprites[21]->Set_Image( pFont->Render_Text( pFont->m_font_very_small, temp_text, white ), 0, 1 );
@@ -1190,7 +1216,7 @@ void cDebugDisplay :: Draw_Debug_Mode( void )
 	}
 
 	// draw text
-	for( HudSpriteList::iterator itr = m_sprites.begin(), itr_end = m_sprites.end(); itr != itr_end; ++itr )
+	for( HudSpriteList::iterator itr = m_sprites.begin(); itr != m_sprites.end(); ++itr )
 	{
 		(*itr)->Draw();
 	}
@@ -1324,7 +1350,7 @@ void cDebugDisplay :: Draw_Performance_Debug_Mode( void )
 
 	unsigned int pos = 0;
 
-	for( vector<std::string>::iterator itr = text_strings.begin(), itr_end = text_strings.end(); itr != itr_end; ++itr )
+	for( vector<std::string>::const_iterator itr = text_strings.begin(); itr != text_strings.end(); ++itr )
 	{
 		// sections
 		float xpos = 20;
@@ -1341,7 +1367,7 @@ void cDebugDisplay :: Draw_Performance_Debug_Mode( void )
 			ypos += 10;
 		}
 
-		std::string current_text = (*itr);
+		const std::string current_text = (*itr);
 
 		cGL_Surface *surface_temp = pFont->Render_Text( pFont->m_font_small, current_text, white );
 

@@ -22,27 +22,24 @@ namespace SMC
 {
 
 /* *** *** *** *** *** *** cSpika *** *** *** *** *** *** *** *** *** *** *** */
-
-class cSpika : public cEnemy 
-{
-/* Spika
- * Will wait for you and wheel you 
- * if you can't run fast enough :D
+/* Waits for you and wheel you if you can't run fast enough :D
  * 
  * Colors : Orange, Green and Grey
  */
+class cSpika : public cEnemy 
+{
 public:
 	// constructor
-	cSpika( float x, float y );
+	cSpika( cSprite_Manager *sprite_manager );
 	// create from stream
-	cSpika( CEGUI::XMLAttributes &attributes );
+	cSpika( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cSpika( void );
 
 	// init defaults
 	void Init( void );
 	// copy
-	virtual cSpika *Copy( void );
+	virtual cSpika *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );

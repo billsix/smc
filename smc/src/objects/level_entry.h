@@ -16,7 +16,7 @@
 #ifndef SMC_LEVEL_ENTRY_H
 #define SMC_LEVEL_ENTRY_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../objects/animated_sprite.h"
 
 namespace SMC
@@ -39,16 +39,16 @@ class cLevel_Entry : public cAnimated_Sprite
 {
 public:
 	// constructor
-	cLevel_Entry( float x, float y );
+	cLevel_Entry( cSprite_Manager *sprite_manager );
 	// create from stream
-	cLevel_Entry( CEGUI::XMLAttributes &attributes );
+	cLevel_Entry( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cLevel_Entry( void );
 
 	// init defaults
 	void Init( void );
 	// copy this sprite
-	virtual cLevel_Entry *Copy( void );
+	virtual cLevel_Entry *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -69,7 +69,7 @@ public:
 	void Activate( void );
 
 	// Set the type
-	void Set_Type( Level_Entry_type ltype );
+	void Set_Type( Level_Entry_type new_type );
 	// Set the name
 	void Set_Name( const std::string &str_name );
 
@@ -84,14 +84,14 @@ public:
 	bool Editor_Name_Text_Changed( const CEGUI::EventArgs &event );
 
 	// level entry type
-	Level_Entry_type entry_type;
+	Level_Entry_type m_entry_type;
 	// identification name
-	std::string entry_name;
+	std::string m_entry_name;
 
 	// editor type color
-	Color editor_color;
+	Color m_editor_color;
 	// editor entry name text
-	cGL_Surface *editor_entry_name;
+	cGL_Surface *m_editor_entry_name;
 
 private:
 	void Create_Name( void );

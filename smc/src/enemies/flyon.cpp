@@ -15,7 +15,7 @@
 
 #include "../enemies/flyon.h"
 #include "../core/game_core.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../video/animation.h"
 #include "../user/savegame.h"
 #include "../core/math/utilities.h"
@@ -34,14 +34,14 @@ namespace SMC
 
 /* *** *** *** *** *** *** cFlyon *** *** *** *** *** *** *** *** *** *** *** */
 
-cFlyon :: cFlyon( float x, float y )
-: cEnemy( x, y )
+cFlyon :: cFlyon( cSprite_Manager *sprite_manager )
+: cEnemy( sprite_manager )
 {
 	cFlyon::Init();
 }
 
-cFlyon :: cFlyon( CEGUI::XMLAttributes &attributes )
-: cEnemy()
+cFlyon :: cFlyon( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cEnemy( sprite_manager )
 {
 	cFlyon::Init();
 	cFlyon::Create_From_Stream( attributes );
@@ -58,7 +58,7 @@ void cFlyon :: Init( void  )
 	m_pos_z = 0.06f;
 	Set_Rotation_Affects_Rect( 1 );
 	m_editor_pos_z = 0.089f;
-	m_player_range = 1000;
+	m_camera_range = 1000;
 	m_can_be_on_ground = 0;
 	m_can_be_ground = 0;
 
@@ -75,9 +75,10 @@ void cFlyon :: Init( void  )
 	m_move_back = 0;
 }
 
-cFlyon *cFlyon :: Copy( void )
+cFlyon *cFlyon :: Copy( void ) const
 {
-	cFlyon *jpiranha = new cFlyon( m_start_pos_x, m_start_pos_y );
+	cFlyon *jpiranha = new cFlyon( m_sprite_manager );
+	jpiranha->Set_Pos( m_start_pos_x, m_start_pos_y );
 	jpiranha->Set_Direction( m_start_direction );
 	jpiranha->Set_Image_Dir( m_img_dir );
 	jpiranha->Set_Max_Distance( m_max_distance );
@@ -266,13 +267,13 @@ void cFlyon :: DownGrade( bool force /* = 0 */ )
 	if( !force )
 	{
 		// animation
-		cParticle_Emitter *anim = new cParticle_Emitter();
+		cParticle_Emitter *anim = new cParticle_Emitter( m_sprite_manager );
 		Generate_Hit_Animation( anim );
 
 		anim->Set_Speed( 5.0f, 0.6f );
 		anim->Set_Scale( 0.8f );
 		// add animation
-		pAnimation_Manager->Add( anim );
+		pActive_Animation_Manager->Add( anim );
 	}
 	else
 	{
@@ -297,8 +298,8 @@ void cFlyon :: Update_Dying( void )
 		{
 			Move( 0.0f, -5.0f );
 		}
-		// if not below the screen fall
-		else if( m_pos_y < game_res_h + m_col_rect.m_h )
+		// if not below the ground : fall
+		else if( m_col_rect.m_y < pActive_Camera->m_limit_rect.m_y )
 		{
 			Move( 0.0f, 20.0f );
 		}
@@ -344,7 +345,7 @@ void cFlyon :: Update( void )
 {
 	cEnemy::Update();
 
-	if( !m_valid_update || !Is_In_Player_Range() )
+	if( !m_valid_update || !Is_In_Range() )
 	{
 		return;
 	}
@@ -391,7 +392,7 @@ void cFlyon :: Update( void )
 			}
 
 			// if player is in front: wait again
-			if( pPlayer->maryo_type != MARYO_GHOST && pPlayer->m_col_rect.Intersects( rect1 ) )
+			if( pLevel_Player->m_maryo_type != MARYO_GHOST && pLevel_Player->m_col_rect.Intersects( rect1 ) )
 			{
 				m_wait_time = speedfactor_fps * 2;
 			}
@@ -522,19 +523,19 @@ void cFlyon :: Draw( cSurface_Request *request /* = NULL */ )
 	{
 		if( m_start_direction == DIR_RIGHT )
 		{
-			pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->x, m_start_pos_y + ( m_rect.m_h * 0.5f ) - 5.0f - pActive_Camera->y, m_max_distance + m_rect.m_w, 10.0f, m_editor_pos_z - 0.000001f, &whitealpha128 );
+			pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->m_x, m_start_pos_y + ( m_rect.m_h * 0.5f ) - 5.0f - pActive_Camera->m_y, m_max_distance + m_rect.m_w, 10.0f, m_editor_pos_z - 0.000001f, &whitealpha128 );
 		}
 		else if( m_start_direction == DIR_LEFT )
 		{
-			pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->x + m_rect.m_w, m_start_pos_y + ( m_rect.m_h * 0.5f ) - 5.0f - pActive_Camera->y, -( m_rect.m_w + m_max_distance ), 10.0f, m_editor_pos_z - 0.000001f, &whitealpha128 );
+			pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->m_x + m_rect.m_w, m_start_pos_y + ( m_rect.m_h * 0.5f ) - 5.0f - pActive_Camera->m_y, -( m_rect.m_w + m_max_distance ), 10.0f, m_editor_pos_z - 0.000001f, &whitealpha128 );
 		}
 		else if( m_start_direction == DIR_DOWN )
 		{
-			pVideo->Draw_Rect( m_start_pos_x + ( m_rect.m_w * 0.5f ) - 5.0f - pActive_Camera->x, m_start_pos_y - pActive_Camera->y, 10.0f, m_max_distance + m_rect.m_h, m_editor_pos_z - 0.000001f, &whitealpha128 );
+			pVideo->Draw_Rect( m_start_pos_x + ( m_rect.m_w * 0.5f ) - 5.0f - pActive_Camera->m_x, m_start_pos_y - pActive_Camera->m_y, 10.0f, m_max_distance + m_rect.m_h, m_editor_pos_z - 0.000001f, &whitealpha128 );
 		}
 		else if( m_start_direction == DIR_UP )
 		{
-			pVideo->Draw_Rect( m_start_pos_x + ( m_rect.m_w * 0.5f ) - 5.0f - pActive_Camera->x, m_start_pos_y - pActive_Camera->y + m_rect.m_h, 10.0f, -( m_rect.m_h + m_max_distance ), m_editor_pos_z - 0.000001f, &whitealpha128 );
+			pVideo->Draw_Rect( m_start_pos_x + ( m_rect.m_w * 0.5f ) - 5.0f - pActive_Camera->m_x, m_start_pos_y - pActive_Camera->m_y + m_rect.m_h, 10.0f, -( m_rect.m_h + m_max_distance ), m_editor_pos_z - 0.000001f, &whitealpha128 );
 		}
 	}
 
@@ -648,19 +649,19 @@ Col_Valid_Type cFlyon :: Validate_Collision( cSprite *obj )
 void cFlyon :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// unknown direction
-	if( collision->direction == DIR_UNDEFINED )
+	if( collision->m_direction == DIR_UNDEFINED )
 	{
 		return;
 	}
 
-	if( pPlayer->maryo_type != MARYO_SMALL && !pPlayer->invincible && collision->direction == m_direction )
+	if( pLevel_Player->m_maryo_type != MARYO_SMALL && !pLevel_Player->m_invincible && collision->m_direction == m_direction )
 	{
 		// todo : create again
 		//pAudio->PlaySound( "player/maryo_au.ogg", RID_MARYO_AU );
-		pPlayer->Action_Jump( 1 );
+		pLevel_Player->Action_Jump( 1 );
 	}
 
-	pPlayer->DownGrade_Player();
+	pLevel_Player->DownGrade_Player();
 }
 
 void cFlyon :: Editor_Activate( void )

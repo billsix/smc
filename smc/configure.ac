@@ -43,6 +43,8 @@ AC_CHECK_LIB(png, png_init_io, ,
 # Check for the SDL_image library
 AC_CHECK_LIB(SDL_image, IMG_LoadPNG_RW, ,
 	AC_MSG_ERROR([SDL_image library with PNG support not found]))
+AC_CHECK_LIB(SDL_image, IMG_Init, ,
+	AC_MSG_ERROR([SDL_image library must be >= 1.2.8]))
 
 # Check for the SDL_mixer library
 AC_CHECK_LIB(SDL_mixer, Mix_OpenAudio, ,

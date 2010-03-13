@@ -18,30 +18,32 @@
 #include "../video/animation.h"
 #include "../user/savegame.h"
 #include "../core/game_core.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 
 namespace SMC
 {
 
 /* *** *** *** *** *** *** cEnemy *** *** *** *** *** *** *** *** *** *** *** */
 
-cEnemy :: cEnemy( float x /* = 0.0f */, float y /* = 0.0f */ )
-: cAnimated_Sprite( x, y )
+cEnemy :: cEnemy( cSprite_Manager *sprite_manager )
+: cAnimated_Sprite( sprite_manager )
 {
 	m_sprite_array = ARRAY_ENEMY;
 	m_type = TYPE_ENEMY;
 
-	m_player_range = 1500;
+	m_camera_range = 1500;
 
 	m_massive_type = MASS_MASSIVE;
 	m_state = STA_FALL;
-	m_dead = 0;
 	m_can_be_ground = 1;
-
+	m_dead = 0;
 	m_counter = 0.0f;
 
 	m_kill_sound = "enemy/furball/die.ogg";
 	m_kill_points = 10;
+
+	m_velx_max = 0.0f;
+	m_velx_gain = 0.0f;
 
 	m_fire_resistant = 0;
 	m_can_be_hit_from_shell = 1;
@@ -151,11 +153,6 @@ void cEnemy :: Set_Dead( bool enable /* = 1 */ )
 	Update_Valid_Update();
 }
 
-void cEnemy :: Update_Dying( void )
-{
-	// virtual
-}
-
 void cEnemy :: Update( void )
 {
 	cMovingSprite::Update();
@@ -173,15 +170,14 @@ void cEnemy :: Update( void )
 		if( m_type == TYPE_FURBALL || m_type == TYPE_TURTLE || m_type == TYPE_KRUSH || m_type == TYPE_SPIKA || m_type == TYPE_SPIKEBALL )
 		{
 			Update_Gravity();
-			Col_Move( 0.0f, m_vely );
-			// todo
-			/*Col_Move( m_velx, m_vely );
+
+			Col_Move( m_velx, m_vely );
 
 			if( m_velx )
 			{
 				// slow down
-				m_velx -= (m_velx * 0.03f) * pFramerate->speedfactor;
-			}*/
+				m_velx -= (m_velx * 0.06f) * pFramerate->m_speed_factor;
+			}
 		}
 	}
 }
@@ -192,7 +188,7 @@ void cEnemy :: Update_Late( void )
 	if( m_state == STA_OBJ_LINKED )
 	{
 		// todo: have a parent pointer and use that instead of always the player
-		Move( pPlayer->m_velx, pPlayer->m_vely );
+		Move( pLevel_Player->m_velx, pLevel_Player->m_vely );
 
 		// handle collisions manually
 		m_massive_type = MASS_MASSIVE;
@@ -204,17 +200,47 @@ void cEnemy :: Update_Late( void )
 	}
 }
 
+void cEnemy :: Update_Velocity( void )
+{
+	// note: this is currently only useful for walker enemy types
+	if( m_direction == DIR_RIGHT )
+	{
+		if( m_velx < m_velx_max )
+		{
+			Add_Velocity_X_Max( m_velx_gain, m_velx_max );
+			Set_Animation_Speed( m_velx / m_velx_max );
+		}
+		else if( m_velx > m_velx_max )
+		{
+			Add_Velocity_X_Min( -m_velx_gain, m_velx_max );
+			Set_Animation_Speed( m_velx / m_velx_max );
+		}
+	}
+	else if( m_direction == DIR_LEFT )
+	{
+		if( m_velx > -m_velx_max )
+		{
+			Add_Velocity_X_Min( -m_velx_gain, -m_velx_max );
+			Set_Animation_Speed( m_velx / -m_velx_max );
+		}
+		else if( m_velx < -m_velx_max )
+		{
+			Add_Velocity_X_Max( m_velx_gain, -m_velx_max );
+			Set_Animation_Speed( m_velx / -m_velx_max );
+		}
+	}
+}
+
 void cEnemy :: Update_Gravity( void )
 {
 	if( !m_ground_object )
 	{
-		// add gravity
-		if( m_vely < 25 )
+		if( m_vely < m_gravity_max )
 		{
-			Add_Velocity( 0, 1.5f );
+			Add_Velocity_Y_Max( 1.5f, m_gravity_max );
 		}
 		// below ground
-		if( m_col_rect.m_y > pActive_Camera->limit_rect.m_y + game_res_h )
+		if( m_col_rect.m_y > pActive_Camera->m_limit_rect.m_y )
 		{
 			DownGrade( 1 );
 		}
@@ -223,9 +249,9 @@ void cEnemy :: Update_Gravity( void )
 	else
 	{
 		// stop falling
-		if( m_vely > 0 )
+		if( m_vely > 0.0f )
 		{
-			m_vely = 0;
+			m_vely = 0.0f;
 		}
 	}
 }
@@ -238,7 +264,7 @@ void cEnemy :: Generate_Hit_Animation( cParticle_Emitter *anim /* = NULL */ ) co
 	{
 		create_anim = 1;
 		// create animation
-		anim = new cParticle_Emitter();
+		anim = new cParticle_Emitter( m_sprite_manager );
 	}
 
 	anim->Set_Emitter_Rect( m_col_rect.m_x, m_pos_y + ( m_col_rect.m_h / 3 ), m_col_rect.m_w );
@@ -281,7 +307,7 @@ void cEnemy :: Generate_Hit_Animation( cParticle_Emitter *anim /* = NULL */ ) co
 	if( create_anim )
 	{
 		// add animation
-		pAnimation_Manager->Add( anim );
+		pActive_Animation_Manager->Add( anim );
 	}
 }
 
@@ -299,11 +325,11 @@ void cEnemy :: Handle_out_of_Level( ObjectDirection dir )
 {
 	if( dir == DIR_LEFT )
 	{
-		Set_Pos_X( pActive_Camera->limit_rect.m_x - m_col_pos.m_x );
+		Set_Pos_X( pActive_Camera->m_limit_rect.m_x - m_col_pos.m_x );
 	}
 	else if( dir == DIR_RIGHT )
 	{
-		Set_Pos_X( pActive_Camera->limit_rect.m_x + pActive_Camera->limit_rect.m_w - m_col_pos.m_x - m_col_rect.m_w - 0.01f );
+		Set_Pos_X( pActive_Camera->m_limit_rect.m_x + pActive_Camera->m_limit_rect.m_w - m_col_pos.m_x - m_col_rect.m_w - 0.01f );
 	}
 
 	Turn_Around( dir );

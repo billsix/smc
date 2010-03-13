@@ -14,7 +14,7 @@
 */
 
 #include "../objects/level_exit.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../core/game_core.h"
 #include "../user/preferences.h"
 #include "../audio/audio.h"
@@ -34,14 +34,14 @@ namespace SMC
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLevel_Exit :: cLevel_Exit( float x, float y )
-: cAnimated_Sprite( x, y )
+cLevel_Exit :: cLevel_Exit( cSprite_Manager *sprite_manager )
+: cAnimated_Sprite( sprite_manager )
 {
 	cLevel_Exit::Init();
 }
 
-cLevel_Exit :: cLevel_Exit( CEGUI::XMLAttributes &attributes )
-: cAnimated_Sprite()
+cLevel_Exit :: cLevel_Exit( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cAnimated_Sprite( sprite_manager )
 {
 	cLevel_Exit::Init();
 	cLevel_Exit::Create_From_Stream( attributes );
@@ -49,10 +49,10 @@ cLevel_Exit :: cLevel_Exit( CEGUI::XMLAttributes &attributes )
 
 cLevel_Exit :: ~cLevel_Exit( void )
 {
-	if( editor_entry_name )
+	if( m_editor_entry_name )
 	{
-		delete editor_entry_name;
-		editor_entry_name = NULL;
+		delete m_editor_entry_name;
+		m_editor_entry_name = NULL;
 	}
 }
 
@@ -62,7 +62,7 @@ void cLevel_Exit :: Init( void )
 	m_type = TYPE_LEVEL_EXIT;
 	m_massive_type = MASS_PASSIVE;
 	m_editor_pos_z = 0.111f;
-	m_player_range = 1000;
+	m_camera_range = 1000;
 
 	// size
 	m_rect.m_w = 10;
@@ -72,27 +72,27 @@ void cLevel_Exit :: Init( void )
 	m_start_rect.m_w = m_rect.m_w;
 	m_start_rect.m_h = m_rect.m_h;
 
-	exit_type = LEVEL_EXIT_BEAM;
-	exit_motion = LEVEL_EXIT_M_FLY;
+	m_exit_type = LEVEL_EXIT_BEAM;
+	m_exit_motion = CAMERA_MOVE_FLY;
 
 	Set_Direction( DIR_DOWN );
 
-	editor_color = red;
-	editor_color.alpha = 128;
+	m_editor_color = red;
+	m_editor_color.alpha = 128;
 
-	editor_entry_name = NULL;
+	m_editor_entry_name = NULL;
 }
 
-cLevel_Exit *cLevel_Exit :: Copy( void )
+cLevel_Exit *cLevel_Exit :: Copy( void ) const
 {
-	cLevel_Exit *level_exit = new cLevel_Exit( m_start_pos_x, m_start_pos_y );
-	level_exit->Set_Type( exit_type );
-	level_exit->Set_Motion( exit_motion );
+	cLevel_Exit *level_exit = new cLevel_Exit( m_sprite_manager );
+	level_exit->Set_Pos( m_start_pos_x, m_start_pos_y, 1 );
+	level_exit->Set_Type( m_exit_type );
+	level_exit->Set_Camera_Motion( m_exit_motion );
 	level_exit->Set_Path_Identifier( m_path_identifier );
 	level_exit->Set_Direction( m_start_direction );
-	level_exit->Set_Level( dest_level );
-	level_exit->Set_Entry( dest_entry );
-
+	level_exit->Set_Level( m_dest_level );
+	level_exit->Set_Entry( m_dest_entry );
 	return level_exit;
 }
 
@@ -101,20 +101,20 @@ void cLevel_Exit :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// type
-	Set_Type( static_cast<Level_Exit_type>(attributes.getValueAsInteger( "type", exit_type )) );
+	Set_Type( static_cast<Level_Exit_type>(attributes.getValueAsInteger( "type", m_exit_type )) );
 	// motion
-	Set_Motion( static_cast<Level_Exit_motion>(attributes.getValueAsInteger( "motion", exit_motion )) );
+	Set_Camera_Motion( static_cast<Camera_movement>(attributes.getValueAsInteger( "camera_motion", m_exit_motion )) );
 	// destination level
 	Set_Level( attributes.getValueAsString( "level_name" ).c_str() );
 	// destination entry
 	Set_Entry( attributes.getValueAsString( "entry" ).c_str() );
 	// path identifier
-	if( exit_motion == LEVEL_EXIT_M_PATH || exit_motion == LEVEL_EXIT_M_PATH_BACKWARDS )
+	if( m_exit_motion == CAMERA_MOVE_ALONG_PATH || m_exit_motion == CAMERA_MOVE_ALONG_PATH_BACKWARDS )
 	{
 		Set_Path_Identifier( attributes.getValueAsString( "path_identifier" ).c_str() );
 	}
 	// direction
-	if( exit_type == LEVEL_EXIT_WARP )
+	if( m_exit_type == LEVEL_EXIT_WARP )
 	{
 		Set_Direction( Get_Direction_Id( attributes.getValueAsString( "direction", Get_Direction_Name( m_start_direction ) ).c_str() ) );
 	}
@@ -129,9 +129,9 @@ void cLevel_Exit :: Save_To_Stream( ofstream &file )
 	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(m_start_pos_x) << "\" />" << std::endl;
 	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(m_start_pos_y) << "\" />" << std::endl;
 	// type
-	file << "\t\t<Property name=\"type\" value=\"" << exit_type << "\" />" << std::endl;
-	// motion
-	file << "\t\t<Property name=\"motion\" value=\"" << exit_motion << "\" />" << std::endl;
+	file << "\t\t<Property name=\"type\" value=\"" << m_exit_type << "\" />" << std::endl;
+	// camera motion
+	file << "\t\t<Property name=\"camera_motion\" value=\"" << m_exit_motion << "\" />" << std::endl;
 
 	// destination level name
 	std::string str_level = Get_Level( 0, 0 );
@@ -141,13 +141,13 @@ void cLevel_Exit :: Save_To_Stream( ofstream &file )
 	}
 
 	// destination entry name
-	if( !dest_entry.empty() )
+	if( !m_dest_entry.empty() )
 	{
-		file << "\t\t<Property name=\"entry\" value=\"" << string_to_xml_string( dest_entry ) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"entry\" value=\"" << string_to_xml_string( m_dest_entry ) << "\" />" << std::endl;
 	}
 
 	// path identifier
-	if( exit_motion == LEVEL_EXIT_M_PATH || exit_motion == LEVEL_EXIT_M_PATH_BACKWARDS )
+	if( m_exit_motion == CAMERA_MOVE_ALONG_PATH || m_exit_motion == CAMERA_MOVE_ALONG_PATH_BACKWARDS )
 	{
 		if( !m_path_identifier.empty() )
 		{
@@ -155,7 +155,7 @@ void cLevel_Exit :: Save_To_Stream( ofstream &file )
 		}
 	}
 
-	if( exit_type == LEVEL_EXIT_WARP )
+	if( m_exit_type == LEVEL_EXIT_WARP )
 	{
 		// direction
 		file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( m_start_direction ) << "\" />" << std::endl;
@@ -182,11 +182,11 @@ void cLevel_Exit :: Create_Name( void )
 {
 	m_name = _("Level Exit");
 
-	if( exit_type == LEVEL_EXIT_BEAM )
+	if( m_exit_type == LEVEL_EXIT_BEAM )
 	{
 		m_name += _(" Beam");
 	}
-	else if( exit_type == LEVEL_EXIT_WARP )
+	else if( m_exit_type == LEVEL_EXIT_WARP )
 	{
 		m_name += _(" Warp");
 
@@ -217,15 +217,15 @@ void cLevel_Exit :: Draw( cSurface_Request *request /* = NULL */ )
 	}
 
 	// draw color rect
-	pVideo->Draw_Rect( m_col_rect.m_x - pActive_Camera->x, m_col_rect.m_y - pActive_Camera->y, m_col_rect.m_w, m_col_rect.m_h, m_editor_pos_z, &editor_color );
+	pVideo->Draw_Rect( m_col_rect.m_x - pActive_Camera->m_x, m_col_rect.m_y - pActive_Camera->m_y, m_col_rect.m_w, m_col_rect.m_h, m_editor_pos_z, &m_editor_color );
 
 	// draw destination entry name
-	if( editor_entry_name )
+	if( m_editor_entry_name )
 	{
 		// create request
 		cSurface_Request *surface_request = new cSurface_Request();
 		// blit
-		editor_entry_name->Blit( m_col_rect.m_x + m_col_rect.m_w + 5 - pActive_Camera->x, m_col_rect.m_y - pActive_Camera->y, m_editor_pos_z, surface_request );
+		m_editor_entry_name->Blit( m_col_rect.m_x + m_col_rect.m_w + 5 - pActive_Camera->m_x, m_col_rect.m_y - pActive_Camera->m_y, m_editor_pos_z, surface_request );
 		surface_request->shadow_pos = 2;
 		surface_request->shadow_color = lightgreyalpha64;
 		// add request
@@ -236,45 +236,45 @@ void cLevel_Exit :: Draw( cSurface_Request *request /* = NULL */ )
 void cLevel_Exit :: Activate( void )
 {
 	// if leaving level
-	if( dest_level.empty() && dest_entry.empty() )
+	if( m_dest_level.empty() && m_dest_entry.empty() )
 	{
 		// fade out music
 		pAudio->Fadeout_Music( 500 );
 	}
 
 	// warp player out
-	if( exit_type == LEVEL_EXIT_WARP )
+	if( m_exit_type == LEVEL_EXIT_WARP )
 	{
 		pAudio->Play_Sound( "enter_pipe.ogg" );
 
-		pPlayer->Set_Moving_State( STA_FALL );
-		pPlayer->Set_Image_Num( pPlayer->Get_Image() + pPlayer->m_direction );
-		pPlayer->Stop_Ducking();
-		pPlayer->Reset_On_Ground();
+		pLevel_Player->Set_Moving_State( STA_FALL );
+		pLevel_Player->Set_Image_Num( pLevel_Player->Get_Image() + pLevel_Player->m_direction );
+		pLevel_Player->Stop_Ducking();
+		pLevel_Player->Reset_On_Ground();
 
 		// set position and image
 		if( m_direction == DIR_UP || m_direction == DIR_DOWN )
 		{
-			pPlayer->Set_Pos_X( m_col_rect.m_x - pPlayer->m_col_pos.m_x + ( m_col_rect.m_w * 0.5f ) - ( pPlayer->m_col_rect.m_w * 0.5f ) );
+			pLevel_Player->Set_Pos_X( m_col_rect.m_x - pLevel_Player->m_col_pos.m_x + ( m_col_rect.m_w * 0.5f ) - ( pLevel_Player->m_col_rect.m_w * 0.5f ) );
 		}
 		else if( m_direction == DIR_LEFT || m_direction == DIR_RIGHT )
 		{
-			pPlayer->Set_Pos_Y( m_col_rect.m_y - pPlayer->m_col_pos.m_y + ( m_col_rect.m_h * 0.5f ) - ( pPlayer->m_col_rect.m_h * 0.5f ) );
+			pLevel_Player->Set_Pos_Y( m_col_rect.m_y - pLevel_Player->m_col_pos.m_y + ( m_col_rect.m_h * 0.5f ) - ( pLevel_Player->m_col_rect.m_h * 0.5f ) );
 
 			// set rotation
 			if( m_direction == DIR_RIGHT )
 			{
-				pPlayer->Set_Rotation_Z( 90.0f );
+				pLevel_Player->Set_Rotation_Z( 90.0f );
 			}
 			else if( m_direction == DIR_LEFT )
 			{
-				pPlayer->Set_Rotation_Z( 270.0f );
+				pLevel_Player->Set_Rotation_Z( 270.0f );
 			}
 		}
 
-		float player_posz = pPlayer->m_pos_z;
+		float player_posz = pLevel_Player->m_pos_z;
 		// change position z to be behind massive for the animation
-		pPlayer->m_pos_z = 0.0799f;
+		pLevel_Player->m_pos_z = 0.0799f;
 
 		// set the speed
 		float speedx = 0.0f;
@@ -298,12 +298,12 @@ void cLevel_Exit :: Activate( void )
 		}
 
 		// size moved is the height
-		float maryo_size = pPlayer->m_col_rect.m_h;
+		float maryo_size = pLevel_Player->m_col_rect.m_h;
 
 		// move slowly in
 		while( maryo_size > 0.0f )
 		{
-			pPlayer->Move( speedx, speedy );
+			pLevel_Player->Move( speedx, speedy );
 
 			// reduce size
 			if( speedx > 0.0f )
@@ -337,88 +337,67 @@ void cLevel_Exit :: Activate( void )
 		}
 
 		// set position z back
-		pPlayer->m_pos_z = player_posz;
+		pLevel_Player->m_pos_z = player_posz;
 		// set invisible
-		pPlayer->Set_Active( 0 );
+		pLevel_Player->Set_Active( 0 );
 
 		if( m_direction == DIR_RIGHT || m_direction == DIR_LEFT )
 		{
-			pPlayer->Set_Rotation_Z( 0 );
+			pLevel_Player->Set_Rotation_Z( 0 );
 		}
 	}
 
-	pPlayer->Clear_Collisions();
+	pLevel_Player->Clear_Collisions();
 
 	// exit level
-	if( dest_level.empty() && dest_entry.empty() )
+	if( m_dest_level.empty() && m_dest_entry.empty() )
 	{
-		pAudio->Play_Music( "game/courseclear.ogg" );
-		pPlayer->Goto_Next_Level();
+		pLevel_Manager->Finish_Level( 1 );
 	}
 	// enter entry
 	else
 	{
-		// todo : is the Level_Exit_motion needed if we have Camera_movement ?
-		Camera_movement movement = CAMERA_MOVE_NONE;
-
-		if( exit_motion == LEVEL_EXIT_M_FLY )
-		{
-			movement = CAMERA_MOVE_FLY;
-		}
-		else if( exit_motion == LEVEL_EXIT_M_BLINK )
-		{
-			movement = CAMERA_MOVE_BLINK;
-		}
-		else if( exit_motion == LEVEL_EXIT_M_PATH )
-		{
-			movement = CAMERA_MOVE_ALONG_PATH;
-		}
-		else if( exit_motion == LEVEL_EXIT_M_PATH_BACKWARDS )
-		{
-			movement = CAMERA_MOVE_ALONG_PATH_BACKWARDS;
-		}
-
-		pPlayer->Goto_Sub_Level( dest_level, dest_entry, movement, m_path_identifier );
+		pLevel_Manager->Goto_Sub_Level( m_dest_level, m_dest_entry, m_exit_motion, m_path_identifier );
 	}
 }
 
-void cLevel_Exit :: Set_Type( Level_Exit_type ltype )
+void cLevel_Exit :: Set_Type( Level_Exit_type exit_type )
 {
-	exit_type = ltype;
+	m_exit_type = exit_type;
 
 	Create_Name();
 }
 
-void cLevel_Exit :: Set_Motion( Level_Exit_motion motion )
+void cLevel_Exit :: Set_Camera_Motion( Camera_movement camera_motion )
 {
-	exit_motion = motion;
+	m_exit_motion = camera_motion;
 }
 
 void cLevel_Exit :: Set_Level( std::string filename )
 {
-	if( filename.empty() && dest_entry.empty() )
+	if( filename.empty() && m_dest_entry.empty() )
 	{
-		dest_level.clear();
+		m_dest_level.clear();
 		// red for no destination level
-		editor_color = red;
-		editor_color.alpha = 128;
+		m_editor_color = red;
+		m_editor_color.alpha = 128;
 		return;
 	}
 
 	// lila for set destination level
-	editor_color = lila;
-	editor_color.alpha = 128;
+	m_editor_color = lila;
+	m_editor_color.alpha = 128;
 
 	// erase file type and directory if set
-	dest_level = Trim_Filename( filename, 0, 0 );
+	m_dest_level = Trim_Filename( filename, 0, 0 );
 }
 
 std::string cLevel_Exit :: Get_Level( bool with_dir /* = 1 */, bool with_end /* = 1 */ ) const
 {
-	std::string name = dest_level;
+	std::string name = m_dest_level;
 
-	// Get level
-	pActive_Level->Get_Path( name );
+	// Get level path
+	pLevel_Manager->Get_Path( name );
 
 	// return
 	return Trim_Filename( name, with_dir, with_end );
@@ -426,22 +405,22 @@ std::string cLevel_Exit :: Get_Level( bool with_dir /* = 1 */, bool with_end /* 
 
 void cLevel_Exit :: Set_Entry( const std::string &entry_name )
 {
-	if( editor_entry_name )
+	if( m_editor_entry_name )
 	{
-		delete editor_entry_name;
-		editor_entry_name = NULL;
+		delete m_editor_entry_name;
+		m_editor_entry_name = NULL;
 	}
 
 	// Set new name
-	dest_entry = entry_name;
+	m_dest_entry = entry_name;
 
 	// if empty don't create the editor image
-	if( dest_entry.empty() )
+	if( m_dest_entry.empty() )
 	{
 		return;
 	}
 
-	editor_entry_name = pFont->Render_Text( pFont->m_font_small, dest_entry, white );
+	m_editor_entry_name = pFont->Render_Text( pFont->m_font_small, m_dest_entry, white );
 }
 
 void cLevel_Exit :: Set_Path_Identifier( const std::string &identifier )
@@ -472,7 +451,7 @@ void cLevel_Exit :: Editor_Activate( void )
 	CEGUI::WindowManager &wmgr = CEGUI::WindowManager::getSingleton();
 
 	// warp
-	if( exit_type == LEVEL_EXIT_WARP )
+	if( m_exit_type == LEVEL_EXIT_WARP )
 	{
 		// direction
 		CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "level_exit_direction" ));
@@ -488,7 +467,7 @@ void cLevel_Exit :: Editor_Activate( void )
 	}
 
 	// motion
-	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "level_exit_motion" ));
+	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "CAMERA_MOVEotion" ));
 	Editor_Add( UTF8_("Motion"), UTF8_("Camera Motion"), combobox, 100, 105 );
 
 	combobox->addItem( new CEGUI::ListboxTextItem( "fly" ) );
@@ -496,15 +475,15 @@ void cLevel_Exit :: Editor_Activate( void )
 	combobox->addItem( new CEGUI::ListboxTextItem( "path" ) );
 	combobox->addItem( new CEGUI::ListboxTextItem( "path backwards" ) );
 
-	if( exit_motion == LEVEL_EXIT_M_FLY )
+	if( m_exit_motion == CAMERA_MOVE_FLY )
 	{
 		combobox->setText( "fly" );
 	}
-	else if( exit_motion == LEVEL_EXIT_M_BLINK )
+	else if( m_exit_motion == CAMERA_MOVE_BLINK )
 	{
 		combobox->setText( "blink" );
 	}
-	else if( exit_motion == LEVEL_EXIT_M_PATH_BACKWARDS )
+	else if( m_exit_motion == CAMERA_MOVE_ALONG_PATH_BACKWARDS )
 	{
 		combobox->setText( "path backwards" );
 	}
@@ -526,7 +505,7 @@ void cLevel_Exit :: Editor_Activate( void )
 	editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "level_exit_destination_entry" ));
 	Editor_Add( UTF8_("Destination Entry"), UTF8_("Name of the Entry in the destination level. If empty the entry point is the player start position."), editbox, 150 );
 
-	editbox->setText( dest_entry.c_str() );
+	editbox->setText( m_dest_entry.c_str() );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cLevel_Exit::Editor_Destination_Entry_Text_Changed, this ) );
 
 	// path identifier
@@ -554,12 +533,12 @@ void cLevel_Exit :: Editor_State_Update( void )
 	//CEGUI::Combobox *combobox_direction = static_cast<CEGUI::Combobox *>(wmgr.getWindow( "level_exit_direction" ));
 
 
-	if( exit_motion == LEVEL_EXIT_M_PATH || exit_motion == LEVEL_EXIT_M_PATH_BACKWARDS )
+	if( m_exit_motion == CAMERA_MOVE_ALONG_PATH || m_exit_motion == CAMERA_MOVE_ALONG_PATH_BACKWARDS )
 	{
 		editbox_path_identifier->setEnabled( 1 );
 		editbox_destination_level->setEnabled( 0 );
 	}
-	else if( exit_motion == LEVEL_EXIT_M_FLY )
+	else if( m_exit_motion == CAMERA_MOVE_FLY )
 	{
 		editbox_path_identifier->setEnabled( 0 );
 		editbox_destination_level->setEnabled( 0 );
@@ -570,7 +549,7 @@ void cLevel_Exit :: Editor_State_Update( void )
 		editbox_destination_level->setEnabled( 1 );
 	}
 
-	/*if( exit_type == LEVEL_EXIT_WARP )
+	/*if( m_exit_type == LEVEL_EXIT_WARP )
 	{
 		combobox_direction->setEnabled( 1 );
 	}
@@ -598,19 +577,19 @@ bool cLevel_Exit :: Editor_Motion_Select( const CEGUI::EventArgs &event )
 
 	if( str_text.compare( "fly" ) == 0 )
 	{
-		Set_Motion( LEVEL_EXIT_M_FLY );
+		Set_Camera_Motion( CAMERA_MOVE_FLY );
 	}
 	else if( str_text.compare( "blink" ) == 0 )
 	{
-		Set_Motion( LEVEL_EXIT_M_BLINK );
+		Set_Camera_Motion( CAMERA_MOVE_BLINK );
 	}
 	else if( str_text.compare( "path backwards" ) == 0 )
 	{
-		Set_Motion( LEVEL_EXIT_M_PATH_BACKWARDS );
+		Set_Camera_Motion( CAMERA_MOVE_ALONG_PATH_BACKWARDS );
 	}
 	else
 	{
-		Set_Motion( LEVEL_EXIT_M_PATH );
+		Set_Camera_Motion( CAMERA_MOVE_ALONG_PATH );
 	}
 
 	Editor_State_Update();

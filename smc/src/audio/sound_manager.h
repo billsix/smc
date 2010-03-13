@@ -16,7 +16,7 @@
 #ifndef SMC_SOUND_MANAGER_H
 #define SMC_SOUND_MANAGER_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../core/obj_manager.h"
 // SDL
 // also includes needed SDL headers

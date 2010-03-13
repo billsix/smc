@@ -27,9 +27,6 @@
 		#pragma warning ( disable : 4267 )
 	#endif
 
-	// disable needs to have dll-interface to be used by clients of class 'CEGUI::TreeItem'
-	#pragma warning ( disable : 4251 )
-
 	// disable Visual Studio 8 warnings
 	#if _MSC_VER >= 1400
 		#ifndef _CRT_SECURE_NO_DEPRECATE
@@ -45,7 +42,7 @@
 #ifdef _DEBUG
 	#define debug_print(format, ...) printf(format, ##__VA_ARGS__)
 #else
-	#define debug_print(format, ...) (0)
+	#define debug_print(format, ...)
 #endif
 
 /* *** *** *** *** *** *** *** Standard setup *** *** *** *** *** *** *** *** *** *** */

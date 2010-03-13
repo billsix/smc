@@ -16,7 +16,7 @@
 #ifndef SMC_GOLDPIECE_H
 #define SMC_GOLDPIECE_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../objects/animated_sprite.h"
 
 namespace SMC
@@ -28,9 +28,9 @@ class cGoldpiece : public cAnimated_Sprite
 {
 public:
 	// constructor
-	cGoldpiece( float x, float y );
+	cGoldpiece( cSprite_Manager *sprite_manager );
 	// create from stream
-	cGoldpiece( CEGUI::XMLAttributes &attributes );
+	cGoldpiece( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cGoldpiece( void );
 
@@ -42,7 +42,7 @@ public:
 	void Init( void );
 
 	// copy
-	virtual cGoldpiece *Copy( void );
+	virtual cGoldpiece *Copy( void ) const;
 
 	// load from savegame
 	virtual void Load_From_Savegame( cSave_Level_Object *save_object );
@@ -50,7 +50,7 @@ public:
 	virtual cSave_Level_Object *Save_To_Savegame( void );
 
 	// Set the gold color
-	virtual void Set_Gold_Color( DefaultColor ncolor );
+	virtual void Set_Gold_Color( DefaultColor color );
 
 	// activate the goldpiece
 	void Activate( void );
@@ -67,7 +67,7 @@ public:
 	virtual void Handle_Collision_Player( cObjectCollision *collision );
 
 	// gold color
-	DefaultColor color_type;
+	DefaultColor m_color_type;
 };
 
 /* *** *** *** *** *** cJGoldpiece *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -78,7 +78,7 @@ public:
 class cJGoldpiece : public cGoldpiece
 {
 public:
-	cJGoldpiece( float x, float y );
+	cJGoldpiece( cSprite_Manager *sprite_manager );
 	virtual ~cJGoldpiece( void );
 	
 	// update
@@ -100,7 +100,7 @@ public:
 class cFGoldpiece : public cGoldpiece
 {
 public:
-	cFGoldpiece( float x, float y, ObjectDirection dir = DIR_UNDEFINED );
+	cFGoldpiece( cSprite_Manager *sprite_manager, float x, float y, ObjectDirection dir = DIR_UNDEFINED );
 	virtual ~cFGoldpiece( void );
 
 	// update

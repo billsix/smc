@@ -22,24 +22,22 @@ namespace SMC
 {
 
 /* *** *** *** *** *** *** cSpikeball *** *** *** *** *** *** *** *** *** *** *** */
-
+/* Paranoid hard metal ball.
+ */
 class cSpikeball : public cEnemy 
 {
-/* Spikeball
- * 
- */
 public:
 	// constructor
-	cSpikeball( float x, float y );
+	cSpikeball( cSprite_Manager *sprite_manager );
 	// create from stream
-	cSpikeball( CEGUI::XMLAttributes &attributes );
+	cSpikeball( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cSpikeball( void );
 
 	// init defaults
 	void Init( void );
 	// copy
-	virtual cSpikeball *Copy( void );
+	virtual cSpikeball *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -74,8 +72,8 @@ public:
 	// update
 	virtual void Update( void );
 
-	// update the current velocity
-	void Update_Velocity( void );
+	// update maximum velocity values
+	void Update_Velocity_Max( void );
 
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
@@ -107,8 +105,6 @@ private:
 	// Create the Name from the current settings
 	void Create_Name( void );
 
-	// walking speed
-	float m_speed_walk;
 	// counter if staying
 	float m_counter_stay;
 	// counter if walking

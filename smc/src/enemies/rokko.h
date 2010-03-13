@@ -22,23 +22,22 @@ namespace SMC
 {
 
 /* *** *** *** *** *** *** cRokko *** *** *** *** *** *** *** *** *** *** *** */
-
 /*	A giant, slow-moving bullet
  */
 class cRokko : public cEnemy 
 {
 public:
 	// constructor
-	cRokko( float x, float y );
+	cRokko( cSprite_Manager *sprite_manager );
 	// create from stream
-	cRokko( CEGUI::XMLAttributes &attributes );
+	cRokko( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cRokko( void );
 
 	// init defaults
 	void Init( void );
 	// copy
-	virtual cRokko *Copy( void );
+	virtual cRokko *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -57,7 +56,7 @@ public:
 	// Set max detection distance for the sides
 	void Set_Max_Distance_Sides( float distance );
 	// activate
-	void Activate( void );
+	void Activate( bool with_sound = 1 );
 
 	/* downgrade state ( if already weakest state : dies )
 	 * force : usually dies or a complete downgrade

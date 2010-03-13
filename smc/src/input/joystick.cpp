@@ -13,12 +13,12 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../input/keyboard.h"
 #include "../input/joystick.h"
 #include "../user/preferences.h"
 #include "../core/game_core.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../gui/hud.h"
 #include "../gui/menu.h"
 #include "../level/level.h"
@@ -31,16 +31,16 @@ namespace SMC
 
 cJoystick :: cJoystick( void )
 {
-	joystick = NULL;
+	m_joystick = NULL;
 
-	stick_open = 0;
+	m_joystick_open = 0;
 
-	cur_stick = 0;
-	num_buttons = 0;
-	num_axes = 0;
-	num_balls = 0;
+	m_current_joystick = 0;
+	m_num_buttons = 0;
+	m_num_axes = 0;
+	m_num_balls = 0;
 
-	debug = 0;
+	m_debug = 0;
 
 	Reset_keys();
 
@@ -70,7 +70,7 @@ int cJoystick :: Init( void )
 		return 0;
 	}
 
-	if( debug )
+	if( m_debug )
 	{
 		printf( "Joysticks found : %d\n\n", joy_count );
 	}
@@ -97,7 +97,7 @@ int cJoystick :: Init( void )
 	SDL_JoystickEventState( SDL_ENABLE );
 	Stick_Open( default_joy );
 
-	if( debug )
+	if( m_debug )
 	{
 		printf( "Joypad System Initialized\n" );
 	}
@@ -113,79 +113,79 @@ void cJoystick :: Close( void )
 bool cJoystick :: Stick_Open( unsigned int index )
 {
 	// if a joystick is already opened close it first
-	if( stick_open )
+	if( m_joystick_open )
 	{
 		Stick_Close();
 	}
 
-	joystick = SDL_JoystickOpen( index );
+	m_joystick = SDL_JoystickOpen( index );
 
-	if( !joystick )
+	if( !m_joystick )
 	{
 		printf( "Couldn't open joystick %d\n", index );
-		stick_open = 0;
+		m_joystick_open = 0;
 		return 0;
 	}
 
-	cur_stick = index;
+	m_current_joystick = index;
 
-	num_buttons = SDL_JoystickNumButtons( joystick );
-	num_axes = SDL_JoystickNumAxes( joystick );
-	num_balls = SDL_JoystickNumBalls( joystick );
+	m_num_buttons = SDL_JoystickNumButtons( m_joystick );
+	m_num_axes = SDL_JoystickNumAxes( m_joystick );
+	m_num_balls = SDL_JoystickNumBalls( m_joystick );
 
 	// setup available buttons
-	buttons.assign( num_buttons, 0 );
+	m_buttons.assign( m_num_buttons, 0 );
 
-	if( debug )
+	if( m_debug )
 	{
-		printf( "Opened Joystick %d\n", cur_stick );
+		printf( "Opened Joystick %d\n", m_current_joystick );
 		printf( "Name: %s\n", Get_Name().c_str() );
-		printf( "Number of Buttons: %d\n", num_buttons );
-		printf( "Number of Axes: %d\n", num_axes );
-		printf( "Number of Balls: %d\n\n", num_balls );
+		printf( "Number of Buttons: %d\n", m_num_buttons );
+		printf( "Number of Axes: %d\n", m_num_axes );
+		printf( "Number of Balls: %d\n\n", m_num_balls );
 	}
 
-	stick_open = 1;
+	m_joystick_open = 1;
 	return 1;
 }
 
 void cJoystick :: Stick_Close( void )
 {
 	// not available
-	if( !joystick )
+	if( !m_joystick )
 	{
 		return;
 	}
 
-	SDL_JoystickClose( joystick );
-	joystick = NULL;
+	SDL_JoystickClose( m_joystick );
+	m_joystick = NULL;
 
 	Reset_keys();
 
-	num_buttons = 0;
-	num_axes = 0;
-	num_balls = 0;
+	m_num_buttons = 0;
+	m_num_axes = 0;
+	m_num_balls = 0;
 
-	buttons.clear();
-	stick_open = 0;
+	m_buttons.clear();
+	m_joystick_open = 0;
 
-	if( debug )
+	if( m_debug )
 	{
-		printf( "Joystick %d closed\n", cur_stick );
+		printf( "Joystick %d closed\n", m_current_joystick );
 	}
 
-	cur_stick = 0;
+	m_current_joystick = 0;
 }
 
 void cJoystick :: Reset_keys( void )
 {
 	// clear buttons
-	std::fill( buttons.begin(), buttons.end(), static_cast<bool>(0) );
+	std::fill( m_buttons.begin(), m_buttons.end(), static_cast<bool>(0) );
 	
-	left = 0;
-	right = 0;
-	up = 0;
-	down = 0;
+	m_left = 0;
+	m_right = 0;
+	m_up = 0;
+	m_down = 0;
 }
 
 void cJoystick :: Handle_Hat( SDL_Event *ev )
@@ -193,96 +193,96 @@ void cJoystick :: Handle_Hat( SDL_Event *ev )
 	// up
 	if( ev->jhat.value == SDL_HAT_UP )
 	{
-		if( !up )
+		if( !m_up )
 		{
 			pKeyboard->Key_Down( pPreferences->m_key_up );
-			up = 1;
+			m_up = 1;
 		}
 
-		if( down )
+		if( m_down )
 		{
 			pKeyboard->Key_Up( pPreferences->m_key_down );
-			down = 0;
+			m_down = 0;
 		}
 	}
 	else
 	{
-		if( up )
+		if( m_up )
 		{
 			pKeyboard->Key_Up( pPreferences->m_key_up );
-			up = 0;
+			m_up = 0;
 		}
 	}
 
 	// down
 	if( ev->jhat.value == SDL_HAT_DOWN )
 	{
-		if( !down )
+		if( !m_down )
 		{
 			pKeyboard->Key_Down( pPreferences->m_key_down );
-			down = 1;
+			m_down = 1;
 		}
 
-		if( up )
+		if( m_up )
 		{
 			pKeyboard->Key_Up( pPreferences->m_key_up );
-			up = 0;
+			m_up = 0;
 		}
 	}
 	else
 	{
-		if( down )
+		if( m_down )
 		{
 			pKeyboard->Key_Up( pPreferences->m_key_down );
-			down = 0;
+			m_down = 0;
 		}
 	}
 
 	// left
 	if( ev->jhat.value == SDL_HAT_LEFT )
 	{
-		if( !left )
+		if( !m_left )
 		{
 			pKeyboard->Key_Down( pPreferences->m_key_left );
-			left = 1;
+			m_left = 1;
 		}
 
-		if( right )
+		if( m_right )
 		{
 			pKeyboard->Key_Up( pPreferences->m_key_right );
-			right = 0;
+			m_right = 0;
 		}
 	}
 	else
 	{
-		if( left )
+		if( m_left )
 		{
 			pKeyboard->Key_Up( pPreferences->m_key_left );
-			left = 0;
+			m_left = 0;
 		}
 	}
 
 	// right
 	if( ev->jhat.value == SDL_HAT_RIGHT)
 	{
-		if( !right )
+		if( !m_right )
 		{
 			pKeyboard->Key_Down( pPreferences->m_key_right );
-			right = 1;
+			m_right = 1;
 		}
 
-		if( left )
+		if( m_left )
 		{
 			pKeyboard->Key_Up( pPreferences->m_key_left );
-			left = 0;
+			m_left = 0;
 		}
 	}
 	else
 	{
-		if( right )
+		if( m_right )
 		{
 			pKeyboard->Key_Up( pPreferences->m_key_right );
-			right = 0;
+			m_right = 0;
 		}
 	}
 }
@@ -295,56 +295,56 @@ void cJoystick :: Handle_Motion( SDL_Event *ev )
 		// Up
 		if( ev->jaxis.value < -pPreferences->m_joy_axis_threshold )
 		{
-			if( debug )
+			if( m_debug )
 			{
-				printf( "Joystick %d : Up Button pressed\n", cur_stick );
+				printf( "Joystick %d : Up Button pressed\n", m_current_joystick );
 			}
 
-			if( !up )
+			if( !m_up )
 			{
 				pKeyboard->Key_Down( pPreferences->m_key_up );
-				up = 1;
+				m_up = 1;
 			}
 
-			if( down )
+			if( m_down )
 			{
 				pKeyboard->Key_Up( pPreferences->m_key_down );
-				down = 0;
+				m_down = 0;
 			}
 		}
 		// Down
 		else if( ev->jaxis.value > pPreferences->m_joy_axis_threshold )
 		{
-			if( debug )
+			if( m_debug )
 			{
-				printf( "Joystick %d : Down Button pressed\n", cur_stick );
+				printf( "Joystick %d : Down Button pressed\n", m_current_joystick );
 			}
 
-			if( !down )
+			if( !m_down )
 			{
 				pKeyboard->Key_Down( pPreferences->m_key_down );
-				down = 1;
+				m_down = 1;
 			}
 
-			if( up )
+			if( m_up )
 			{
 				pKeyboard->Key_Up( pPreferences->m_key_up );
-				up = 0;
+				m_up = 0;
 			}
 		}
 		// No Down/Left
 		else
 		{
-			if( down )
+			if( m_down )
 			{
 				pKeyboard->Key_Up( pPreferences->m_key_down );
-				down = 0;
+				m_down = 0;
 			}
 
-			if( up )
+			if( m_up )
 			{
 				pKeyboard->Key_Up( pPreferences->m_key_up );
-				up = 0;
+				m_up = 0;
 			}
 		}
 	}
@@ -354,56 +354,56 @@ void cJoystick :: Handle_Motion( SDL_Event *ev )
 		// Left
 		if( ev->jaxis.value < -pPreferences->m_joy_axis_threshold )
 		{
-			if( debug )
+			if( m_debug )
 			{
-				printf( "Joystick %d : Left Button pressed\n", cur_stick );
+				printf( "Joystick %d : Left Button pressed\n", m_current_joystick );
 			}
 
-			if( !left )
+			if( !m_left )
 			{
 				pKeyboard->Key_Down( pPreferences->m_key_left );
-				left = 1;
+				m_left = 1;
 			}
 
-			if( right )
+			if( m_right )
 			{
 				pKeyboard->Key_Up( pPreferences->m_key_right );
-				right = 0;
+				m_right = 0;
 			}
 		}
 		// Right
 		else if( ev->jaxis.value > pPreferences->m_joy_axis_threshold )
 		{
-			if( debug )
+			if( m_debug )
 			{
-				printf( "Joystick %d : Right Button pressed\n", cur_stick );
+				printf( "Joystick %d : Right Button pressed\n", m_current_joystick );
 			}
 
-			if( !right )
+			if( !m_right )
 			{
 				pKeyboard->Key_Down( pPreferences->m_key_right );
-				right = 1;
+				m_right = 1;
 			}
 
-			if( left )
+			if( m_left )
 			{
 				pKeyboard->Key_Up( pPreferences->m_key_left );
-				left = 0;
+				m_left = 0;
 			}
 		}
 		// No Left/Right
 		else
 		{
-			if( left )
+			if( m_left )
 			{
 				pKeyboard->Key_Up( pPreferences->m_key_left );
-				left = 0;
+				m_left = 0;
 			}
 
-			if( right )
+			if( m_right )
 			{
 				pKeyboard->Key_Up( pPreferences->m_key_right );
-				right = 0;
+				m_right = 0;
 			}
 		}
 	}
@@ -412,7 +412,7 @@ void cJoystick :: Handle_Motion( SDL_Event *ev )
 bool cJoystick :: Handle_Button_Down_Event( SDL_Event *ev )
 {
 	// not enabled or opened
-	if( !pPreferences->m_joy_enabled || !stick_open )
+	if( !pPreferences->m_joy_enabled || !m_joystick_open )
 	{
 		return 0;
 	}
@@ -445,7 +445,7 @@ bool cJoystick :: Handle_Button_Down_Event( SDL_Event *ev )
 		}
 	}
 
-	if( ev->jbutton.button < buttons.size() )
+	if( ev->jbutton.button < m_buttons.size() )
 	{
 		// Jump
 		if( ev->jbutton.button == pPreferences->m_joy_button_jump )
@@ -490,7 +490,7 @@ bool cJoystick :: Handle_Button_Down_Event( SDL_Event *ev )
 bool cJoystick :: Handle_Button_Up_Event( SDL_Event *ev )
 {
 	// not enabled or opened
-	if( !pPreferences->m_joy_enabled || !stick_open )
+	if( !pPreferences->m_joy_enabled || !m_joystick_open )
 	{
 		return 0;
 	}
@@ -523,7 +523,7 @@ bool cJoystick :: Handle_Button_Up_Event( SDL_Event *ev )
 		}
 	}
 
-	if( ev->jbutton.button < buttons.size() )
+	if( ev->jbutton.button < m_buttons.size() )
 	{
 		if( ev->jbutton.button == pPreferences->m_joy_button_jump )
 		{
@@ -556,7 +556,7 @@ bool cJoystick :: Handle_Button_Up_Event( SDL_Event *ev )
 
 std::string cJoystick :: Get_Name( void ) const
 {
-	return SDL_JoystickName( cur_stick );
+	return SDL_JoystickName( m_current_joystick );
 }
 
 vector<std::string> cJoystick :: Get_Names( void ) const
@@ -577,56 +577,24 @@ vector<std::string> cJoystick :: Get_Names( void ) const
 void cJoystick :: Set_Button( Uint8 num, bool pressed )
 {
 	// not available
-	if( num >= buttons.size() )
+	if( num >= m_buttons.size() )
 	{
 		return;
 	}
 
-	if( debug )
+	if( m_debug )
 	{
 		if( pressed )
 		{
-			printf( "Joystick %d : Joy Button %d pressed\n", cur_stick, num );
+			printf( "Joystick %d : Joy Button %d pressed\n", m_current_joystick, num );
 		}
 		else
 		{
-			printf( "Joystick %d : Joy Button %d released\n", cur_stick, num );
+			printf( "Joystick %d : Joy Button %d released\n", m_current_joystick, num );
 		}
 	}
 
-	buttons[num] = pressed;
-}
-
-Uint8 *cJoystick :: Get_Shortcut( input_identifier shortcut_id ) const
-{
-	if( shortcut_id == INP_JUMP )
-	{
-		return &pPreferences->m_joy_button_jump;
-	}
-	else if( shortcut_id == INP_ITEM )
-	{
-		return &pPreferences->m_joy_button_item;
-	}
-	else if( shortcut_id == INP_SHOOT )
-	{
-		return &pPreferences->m_joy_button_shoot;
-	}
-	else if( shortcut_id == INP_ACTION )
-	{
-		return &pPreferences->m_joy_button_action;
-	}
-	else if( shortcut_id == INP_EXIT )
-	{
-		return &pPreferences->m_joy_button_exit;
-	}
-
-	return NULL;
-}
-
-void cJoystick :: Assign_Shortcut( input_identifier shortcut_id, Uint8 new_button )
-{
-	Uint8 *button = Get_Shortcut( shortcut_id );
-	*button = new_button;
+	m_buttons[num] = pressed;
 }
 
 bool cJoystick :: Left( void ) const
@@ -676,7 +644,7 @@ bool cJoystick :: Down( void ) const
 bool cJoystick :: Button( Uint8 num )
 {
 	// if available and pressed
-	if( num < buttons.size() && buttons[num] )
+	if( num < m_buttons.size() && m_buttons[num] )
 	{
 		return 1;
 	}

@@ -16,7 +16,7 @@
 #ifndef SMC_WORLD_WAYPOINT_H
 #define SMC_WORLD_WAYPOINT_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../video/video.h"
 #include "../objects/movingsprite.h"
 
@@ -37,9 +37,9 @@ class cWaypoint : public cSprite
 {
 public:
 	// constructor
-	cWaypoint( void );
+	cWaypoint( cSprite_Manager *sprite_manager );
 	// create from stream
-	cWaypoint( CEGUI::XMLAttributes &attributes );
+	cWaypoint( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cWaypoint( void );
 	
@@ -47,7 +47,7 @@ public:
 	void Init( void );
 
 	// copy this object
-	virtual cWaypoint *Copy( void );
+	virtual cWaypoint *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -59,6 +59,10 @@ public:
 	// Draw
 	virtual void Draw( cSurface_Request *request = NULL );
 
+	// Set direction forward
+	void Set_Direction_Forward( ObjectDirection direction );
+	// Set direction backward
+	void Set_Direction_Backward( ObjectDirection direction );
 	// Set Access
 	void Set_Access( bool enabled, bool new_start_access = 0 );
 
@@ -80,32 +84,32 @@ public:
 	// editor direction forward option selected event
 	bool Editor_Forward_Direction_Select( const CEGUI::EventArgs &event );
 
-	/* backward and forward direction
-	 */
-	ObjectDirection direction_backward, direction_forward;
+	// forward direction
+	ObjectDirection m_direction_forward;
+	// backward direction
+	ObjectDirection m_direction_backward;
 
 	/* The Waypoint type
 	 * see the definitions
 	*/
-	Waypoint_type waypoint_type;
+	Waypoint_type m_waypoint_type;
 	// destination
-	std::string destination;
+	std::string m_destination;
 
 	// if this waypoint is accessible
-	bool access;
+	bool m_access;
 	// the default access defined in the definition
-	bool access_default;
+	bool m_access_default;
 
 	// color for the glim effect
-	float gcolor;
+	float m_glim_color;
 	// glim effect type switch
-	bool glim;
+	bool m_glim_mod;
 
-
-	// white arrow
-	cGL_Surface *arrow_white_l, *arrow_white_r, *arrow_white_u, *arrow_white_d;
-	// blue arrow
-	cGL_Surface *arrow_blue_l, *arrow_blue_r, *arrow_blue_u, *arrow_blue_d;
+	// arrow forward
+	cGL_Surface *m_arrow_forward;
+	// arrow backward
+	cGL_Surface *m_arrow_backward;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

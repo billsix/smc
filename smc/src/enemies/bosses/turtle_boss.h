@@ -33,14 +33,16 @@ enum TurtleBoss_state
 };
 
 /* *** *** *** *** *** *** *** *** Turtle Boss *** *** *** *** *** *** *** *** *** */
-
+/* The uber-evolved walking Turtle
+ * Likes to play roller coaster with maryo and bursts out in fire if he gets mad.
+*/
 class cTurtleBoss : public cEnemy
 {
 public:
 	// constructor
-	cTurtleBoss( float x, float y );
+	cTurtleBoss( cSprite_Manager *sprite_manager );
 	// create from stream
-	cTurtleBoss( CEGUI::XMLAttributes &attributes );
+	cTurtleBoss( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cTurtleBoss( void );
 
@@ -48,7 +50,7 @@ public:
 	void Init( void );
 
 	// copy
-	virtual cTurtleBoss *Copy( void );
+	virtual cTurtleBoss *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -66,6 +68,8 @@ public:
 	void Set_Direction( const ObjectDirection dir, bool new_start_direction = 0 );
 	// set color
 	void Set_Color( DefaultColor col );
+	// Set if the level ends when killed
+	void Set_Level_Ends_If_Killed( bool level_ends_if_killed );
 
 	/* Move into the opposite Direction
 	 * if col_dir is given only turns around if the collision direction is in front
@@ -96,8 +100,8 @@ public:
 	// Generates Star Particles
 	void Generate_Stars( unsigned int amount = 1, float particle_scale = 0.4f ) const;
 
-	// update the current velocity
-	void Update_Velocity( void );
+	// update maximum velocity values
+	void Update_Velocity_Max( void );
 
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
@@ -125,12 +129,11 @@ public:
 	bool Editor_Max_Downgrade_Counts_Text_Changed( const CEGUI::EventArgs &event );
 	// editor max downgrades time text changed event
 	bool Editor_Shell_Time_Text_Changed( const CEGUI::EventArgs &event );
+	// editor level ends if killed option selected event
+	bool Editor_Level_Ends_If_Killed( const CEGUI::EventArgs &event );
 
 	// internal turtle state
 	TurtleBoss_state m_turtle_state;
-
-	// default speed
-	float m_speed_walk, m_speed_shell;
 
 	// times hit since the start or downgrade
 	int m_hits;
@@ -158,6 +161,8 @@ protected:
 	float m_shell_time;
 	// time running as shell counter
 	float m_run_time_counter;
+	// if the level ends when killed
+	bool m_level_ends_if_killed;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

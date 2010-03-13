@@ -16,7 +16,7 @@
 #ifndef SMC_LEVEL_SETTINGS_H
 #define SMC_LEVEL_SETTINGS_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../gui/hud.h"
 
 namespace SMC
@@ -26,14 +26,16 @@ namespace SMC
 class cLevel_Settings
 {
 public:
-	cLevel_Settings( void );
+	cLevel_Settings( cSprite_Manager *sprite_manager, cLevel *level );
 	~cLevel_Settings( void );
 
 	// Initializes Text Sprites and Graphics
 	void Init( void );
-	// Enter the Level Settings
+	// Enter
 	void Enter( void );
-	// Unload and save settings
+	// Leave (saves settings)
+	void Leave( void );
+	// Unload
 	void Unload( void );
 
 	// Update
@@ -45,6 +47,11 @@ public:
 	 * returns true if the key was processed
 	*/
 	bool Key_Down( SDLKey key );
+
+	// Set the parent level
+	void Set_Level( cLevel *level );
+	// Set the parent sprite manager
+	void Set_Sprite_Manager( cSprite_Manager *sprite_manager );
 
 	// Adds a Background image
 	bool Add_Background_Image( const CEGUI::EventArgs &event );
@@ -76,22 +83,25 @@ public:
 	bool Update_Global_Effect_Image( const CEGUI::EventArgs &event );
 
 	// true if menu is active
-	bool active;
+	bool m_active;
 
-	// Background colors
-	Color bg_color_1, bg_color_2;
-
+	// parent level
+	cLevel *m_level;
 	// settings camera
-	cCamera *camera;
+	cCamera *m_camera;
 	// GUI
-	CEGUI::Window *guiwindow;
-	CEGUI::TabControl *tabcontrol;
+	CEGUI::Window *m_gui_window;
+	CEGUI::TabControl *m_tabcontrol;
 
 	// background image preview
-	cHudSprite *background_preview;
+	cHudSprite *m_background_preview;
 
 	// global effect image preview
-	cHudSprite *global_effect_preview;
+	cHudSprite *m_global_effect_preview;
+
+	// Background colors
+	Color m_bg_color_1;
+	Color m_bg_color_2;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

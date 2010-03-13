@@ -16,7 +16,7 @@
 #ifndef SMC_WORLD_MANAGER_H
 #define SMC_WORLD_MANAGER_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../core/obj_manager.h"
 #include "../core/camera.h"
 // CEGUI
@@ -33,7 +33,7 @@ class cOverworld;
 class cOverworld_Manager : public CEGUI::XMLHandler, public cObject_Manager<cOverworld>
 {
 public:
-	cOverworld_Manager( void );
+	cOverworld_Manager( cSprite_Manager *sprite_manager );
 	virtual ~cOverworld_Manager( void );
 
 	/* Create a new world
@@ -42,15 +42,16 @@ public:
 	bool New( const std::string &name );
 
 	// Load all overworlds
-	void Load( void );
-	/* Load overworlds from given directory
+	// todo : should only load overworld info
+	void Init( void );
+	/* Load overworlds from the given directory
 	 * user_dir : if set overrides game worlds
 	*/
 	void Load_Dir( const std::string &dir, bool user_dir = 0 );
 
-	// Set Active Overworld from name or path
+	// Set active Overworld from name or path
 	bool Set_Active( const std::string &str );
-	// Set Active Overworld
+	// Set active Overworld
 	bool Set_Active( cOverworld *world );
 
 	// Reset to default world first Waypoint
@@ -67,17 +68,17 @@ public:
 	int Get_Array_Num( const std::string &path ) const;
 
 	// worlds descriptor filename
-	std::string worlds_filename;
+	std::string m_worlds_filename;
 
 	// shows additional information
-	bool debugmode;
+	bool m_debug_mode;
 	// draw the layer
-	bool draw_layer;
+	bool m_draw_layer;
 	// map scrolling with the arrow keys
-	bool cameramode;
+	bool m_camera_mode;
 
 	// world camera
-	cCamera *camera;
+	cCamera *m_camera;
 private:
 	// XML element start
 	virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
@@ -87,7 +88,7 @@ private:
 	void handle_world( const CEGUI::XMLAttributes &attributes );
 
 	// XML element Property list
-	CEGUI::XMLAttributes xml_attributes;
+	CEGUI::XMLAttributes m_xml_attributes;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

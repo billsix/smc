@@ -29,7 +29,7 @@ class cEnemy : public cAnimated_Sprite
 {
 public:
 	// constructor
-	cEnemy( float x = 0.0f, float y = 0.0f );
+	cEnemy( cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cEnemy( void );
 
@@ -42,13 +42,15 @@ public:
 	virtual void Set_Dead( bool enable = 1 );
 
 	// dying animation update
-	virtual void Update_Dying( void );
+	virtual void Update_Dying( void ) {};
 	// handle basic enemy updates
 	virtual void Update( void );
 	/* late update
 	 * use if it is needed that other objects are already updated
 	*/
 	virtual void Update_Late( void );
+	// update current velocity if needed
+	void Update_Velocity( void );
 	// update gravity velocity
 	virtual void Update_Gravity( void );
 	
@@ -71,9 +73,13 @@ public:
 	// points if enemy got killed
 	unsigned int m_kill_points;
 
+	// maximum velocity for the current state
+	float m_velx_max;
+	// velocity gain speed
+	float m_velx_gain;
+
 	// is fire able to kill this enemy
 	bool m_fire_resistant;
-
 	// if this can be hit from the top
 	//bool m_can_be_hit_from_top;
 	// if this can be hit from a shell

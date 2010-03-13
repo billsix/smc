@@ -2,86 +2,86 @@
 <layer>
 	<line>
 		<Property name="X1" value="266" />
-		<Property name="Y1" value="220" />
+		<Property name="Y1" value="-380" />
 		<Property name="X2" value="282" />
-		<Property name="Y2" value="325" />
+		<Property name="Y2" value="-275" />
 		<Property name="origin" value="0" />
 	</line>
 	<line>
 		<Property name="X1" value="292" />
-		<Property name="Y1" value="447" />
+		<Property name="Y1" value="-153" />
 		<Property name="X2" value="469" />
-		<Property name="Y2" value="425" />
+		<Property name="Y2" value="-175" />
 		<Property name="origin" value="2" />
 	</line>
 	<line>
 		<Property name="X1" value="480" />
-		<Property name="Y1" value="425" />
+		<Property name="Y1" value="-175" />
 		<Property name="X2" value="617" />
-		<Property name="Y2" value="399" />
+		<Property name="Y2" value="-201" />
 		<Property name="origin" value="3" />
 	</line>
 	<line>
 		<Property name="X1" value="1654" />
-		<Property name="Y1" value="379" />
+		<Property name="Y1" value="-221" />
 		<Property name="X2" value="1659" />
-		<Property name="Y2" value="312" />
+		<Property name="Y2" value="-288" />
 		<Property name="origin" value="9" />
 	</line>
 	<line>
 		<Property name="X1" value="1113" />
-		<Property name="Y1" value="392" />
-		<Property name="X2" value="1259" />
-		<Property name="Y2" value="408" />
+		<Property name="Y1" value="-208" />
+		<Property name="X2" value="1264" />
+		<Property name="Y2" value="-192" />
 		<Property name="origin" value="7" />
 	</line>
 	<line>
 		<Property name="X1" value="786" />
-		<Property name="Y1" value="389" />
+		<Property name="Y1" value="-211" />
 		<Property name="X2" value="920" />
-		<Property name="Y2" value="385" />
+		<Property name="Y2" value="-215" />
 		<Property name="origin" value="5" />
 	</line>
 	<line>
 		<Property name="X1" value="931" />
-		<Property name="Y1" value="385" />
+		<Property name="Y1" value="-215" />
 		<Property name="X2" value="1102" />
-		<Property name="Y2" value="392" />
+		<Property name="Y2" value="-208" />
 		<Property name="origin" value="6" />
 	</line>
 	<line>
 		<Property name="X1" value="627" />
-		<Property name="Y1" value="399" />
+		<Property name="Y1" value="-201" />
 		<Property name="X2" value="775" />
-		<Property name="Y2" value="389" />
+		<Property name="Y2" value="-211" />
 		<Property name="origin" value="4" />
 	</line>
 	<line>
 		<Property name="X1" value="282" />
-		<Property name="Y1" value="332" />
+		<Property name="Y1" value="-268" />
 		<Property name="X2" value="286" />
-		<Property name="Y2" value="444" />
+		<Property name="Y2" value="-156" />
 		<Property name="origin" value="1" />
 	</line>
 	<line>
-		<Property name="X1" value="1509" />
-		<Property name="Y1" value="421" />
+		<Property name="X1" value="1507" />
+		<Property name="Y1" value="-179" />
 		<Property name="X2" value="1610" />
-		<Property name="Y2" value="407" />
+		<Property name="Y2" value="-193" />
 		<Property name="origin" value="9" />
 	</line>
 	<line>
-		<Property name="X1" value="1277" />
-		<Property name="Y1" value="408" />
-		<Property name="X2" value="1490" />
-		<Property name="Y2" value="420" />
+		<Property name="X1" value="1272" />
+		<Property name="Y1" value="-192" />
+		<Property name="X2" value="1492" />
+		<Property name="Y2" value="-179" />
 		<Property name="origin" value="8" />
 	</line>
 	<line>
 		<Property name="X1" value="1610" />
-		<Property name="Y1" value="407" />
+		<Property name="Y1" value="-193" />
 		<Property name="X2" value="1654" />
-		<Property name="Y2" value="379" />
+		<Property name="Y2" value="-221" />
 		<Property name="origin" value="9" />
 	</line>
 </layer>

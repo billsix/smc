@@ -17,7 +17,7 @@
 #include "../../core/game_core.h"
 #include "../../objects/box.h"
 #include "../../video/animation.h"
-#include "../../player/player.h"
+#include "../../level/level_player.h"
 #include "../../level/level.h"
 #include "../../gui/hud.h"
 #include "../../video/gl_surface.h"
@@ -31,14 +31,14 @@ namespace SMC
 
 /* *** *** *** *** *** *** cTurtleBoss *** *** *** *** *** *** *** *** *** *** *** */
 
-cTurtleBoss :: cTurtleBoss( float x, float y )
-: cEnemy( x, y )
+cTurtleBoss :: cTurtleBoss( cSprite_Manager *sprite_manager )
+: cEnemy( sprite_manager )
 {
 	cTurtleBoss::Init();
 }
 
-cTurtleBoss :: cTurtleBoss( CEGUI::XMLAttributes &attributes )
-: cEnemy()
+cTurtleBoss :: cTurtleBoss( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cEnemy( sprite_manager )
 {
 	cTurtleBoss::Init();
 	cTurtleBoss::Create_From_Stream( attributes );
@@ -55,13 +55,6 @@ void cTurtleBoss :: Init( void )
 	m_pos_z = 0.092f;
 
 	m_player_counter = 0.0f;
-	m_turtle_state = TURTLEBOSS_DEAD;
-	Set_Turtle_Moving_State( TURTLEBOSS_WALK );
-
-	m_color_type = COL_DEFAULT;
-	Set_Color( COL_RED );
-	Set_Direction( DIR_RIGHT, 1 );
-
 	m_fire_resistant = 1;
 	m_ice_resistance = 1.0f;
 	m_kill_sound = "stomp_4.ogg";
@@ -74,18 +67,27 @@ void cTurtleBoss :: Init( void )
 	m_shell_time = 2.5f;
 
 	m_run_time_counter = 0.0f;
+	m_level_ends_if_killed = 1;
 	m_can_be_hit_from_shell = 0;
+
+	m_turtle_state = TURTLEBOSS_DEAD;
+	Set_Turtle_Moving_State( TURTLEBOSS_WALK );
+
+	m_color_type = COL_DEFAULT;
+	Set_Color( COL_RED );
+	Set_Direction( DIR_RIGHT, 1 );
 }
 
-cTurtleBoss *cTurtleBoss :: Copy( void )
+cTurtleBoss *cTurtleBoss :: Copy( void ) const
 {
-	cTurtleBoss *turtle = new cTurtleBoss( m_start_pos_x, m_start_pos_y );
+	cTurtleBoss *turtle = new cTurtleBoss( m_sprite_manager );
+	turtle->Set_Pos( m_start_pos_x, m_start_pos_y );
 	turtle->Set_Direction( m_start_direction, 1 );
 	turtle->Set_Color( m_color_type );
 	turtle->Set_Max_Hits( m_max_hits );
 	turtle->Set_Max_Downgrade_Counts( m_max_downgrade_count );
 	turtle->Set_Shell_Time( m_shell_time );
-
+	turtle->Set_Level_Ends_If_Killed( m_level_ends_if_killed );
 	return turtle;
 }
 
@@ -103,6 +105,8 @@ void cTurtleBoss :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 	Set_Max_Downgrade_Counts( attributes.getValueAsInteger( "max_downgrade_count", m_max_downgrade_count ) );
 	// shell time
 	Set_Shell_Time( attributes.getValueAsFloat( "shell_time", m_shell_time ) );
+	// level ends if killed
+	Set_Level_Ends_If_Killed( attributes.getValueAsBool( "level_ends_if_killed", m_level_ends_if_killed ) );
 }
 
 void cTurtleBoss :: Save_To_Stream( ofstream &file )
@@ -125,6 +129,8 @@ void cTurtleBoss :: Save_To_Stream( ofstream &file )
 	file << "\t\t<Property name=\"max_downgrade_count\" value=\"" << m_max_downgrade_count << "\" />" << std::endl;
 	// shell time
 	file << "\t\t<Property name=\"shell_time\" value=\"" << m_shell_time << "\" />" << std::endl;
+	// level ends if killed
+	file << "\t\t<Property name=\"level_ends_if_killed\" value=\"" << m_level_ends_if_killed << "\" />" << std::endl;
 
 	// end enemy
 	file << "\t</enemy>" << std::endl;
@@ -169,8 +175,7 @@ void cTurtleBoss :: Set_Direction( const ObjectDirection dir, bool new_start_dir
 	}
 
 	cEnemy::Set_Direction( dir, new_start_direction );
-	Update_Velocity();
-	Update_Rotation_Hor_velx( new_start_direction );
+	Update_Rotation_Hor( new_start_direction );
 
 	if( new_start_direction )
 	{
@@ -187,6 +192,8 @@ void cTurtleBoss :: Set_Color( DefaultColor col )
 	}
 
 	m_color_type = col;
+
+	Update_Velocity_Max();
 
 	Clear_Images();
 
@@ -207,8 +214,6 @@ void cTurtleBoss :: Set_Color( DefaultColor col )
 		Add_Image( pVideo->Get_Surface( "enemy/bosses/turtle/shell_move_3.png" ) );
 		Add_Image( pVideo->Get_Surface( "enemy/bosses/turtle/shell_active.png" ) );
 
-		m_speed_walk = 3.6f;
-		m_speed_shell = 14.0f;
 		m_kill_points = 750;
 	}
 	// unknown color
@@ -220,19 +225,25 @@ void cTurtleBoss :: Set_Color( DefaultColor col )
 	Set_Image_Num( 0, 1 );
 }
 
+void cTurtleBoss :: Set_Level_Ends_If_Killed( bool level_ends_if_killed )
+{
+	m_level_ends_if_killed = level_ends_if_killed;
+}
+
 void cTurtleBoss :: Turn_Around( ObjectDirection col_dir /* = DIR_UNDEFINED */ )
 {
 	cEnemy::Turn_Around( col_dir );
 
 	if( m_turtle_state == TURTLEBOSS_WALK )
 	{
+		m_velx *= 0.5f;
 		// hack : disable turn image
 		//Set_Image_Num( 4 );
 		//Set_Animation( 0 );
 		//Reset_Animation();
 	}
 
-	Update_Rotation_Hor_velx();
+	Update_Rotation_Hor();
 }
 
 void cTurtleBoss :: DownGrade( bool force /* = 0 */ )
@@ -243,7 +254,6 @@ void cTurtleBoss :: DownGrade( bool force /* = 0 */ )
 		if( m_turtle_state == TURTLEBOSS_WALK )
 		{
 			m_hits++;
-			m_speed_walk += 1.8f;
 
 			// state change
 			if( m_hits >= m_max_hits )
@@ -261,12 +271,10 @@ void cTurtleBoss :: DownGrade( bool force /* = 0 */ )
 				// downgrade
 				else
 				{
-					m_speed_shell += 3.0f;
 					Set_Turtle_Moving_State( TURTLEBOSS_STAND_ANGRY );
+					m_velx *= 0.5f;
 				}
 			}
-
-			Update_Velocity();
 		}
 		// staying
 		else if( m_turtle_state == TURTLEBOSS_SHELL_STAND )
@@ -288,10 +296,13 @@ void cTurtleBoss :: DownGrade( bool force /* = 0 */ )
 
 	if( m_dead )
 	{
-		// fade out music
-		pAudio->Fadeout_Music( 500 );
-		// play finish music
-		pAudio->Play_Music( "game/courseclear.ogg", 0, 0 );
+		if( m_level_ends_if_killed )
+		{
+			// fade out music
+			pAudio->Fadeout_Music( 500 );
+			// play finish music
+			pAudio->Play_Music( "game/courseclear.ogg", 0, 0 );
+		}
 
 		// set shell image
 		Set_Image_Num( 5 );
@@ -341,7 +352,7 @@ void cTurtleBoss :: Update_Dying( void )
 			// set empty image
 			cMovingSprite::Set_Image( NULL, 0, 0 );
 			// reset counter
-			m_counter = 0;
+			m_counter = 0.0f;
 		}
 	}
 	// after scale animation
@@ -353,9 +364,12 @@ void cTurtleBoss :: Update_Dying( void )
 			Set_Active( 0 );
 			m_turtle_state = TURTLEBOSS_DEAD;
 
-			// next level
-			pPlayer->Goto_Next_Level();
-
+			if( m_level_ends_if_killed )
+			{
+				// exit level
+				pLevel_Manager->Finish_Level();
+			}
+	
 			// reset scaling
 			Set_Scale_Affects_Rect( 0 );
 		}
@@ -372,7 +386,7 @@ void cTurtleBoss :: Set_Turtle_Moving_State( TurtleBoss_state new_state )
 	if( new_state == TURTLEBOSS_WALK )
 	{
 		m_state = STA_WALK;
-		m_player_range = 1500;
+		m_camera_range = 1500;
 
 		Set_Animation( 1 );
 		Set_Animation_Image_Range( 0, 3 );
@@ -383,14 +397,13 @@ void cTurtleBoss :: Set_Turtle_Moving_State( TurtleBoss_state new_state )
 	else if( new_state == TURTLEBOSS_STAND_ANGRY )
 	{
 		m_state = STA_STAY;
-		m_velx = 0.0f;
 
 		Set_Animation( 0 );
 	}
 	else if( new_state == TURTLEBOSS_SHELL_STAND )
 	{
 		m_state = STA_STAY;
-		m_player_range = 2000;
+		m_camera_range = 2000;
 
 		Set_Animation( 0 );
 		// set stay image
@@ -401,7 +414,7 @@ void cTurtleBoss :: Set_Turtle_Moving_State( TurtleBoss_state new_state )
 	{
 		m_counter = 0.0f;
 		m_state = STA_RUN;
-		m_player_range = 5000;
+		m_camera_range = 5000;
 
 		Set_Animation( 1 );
 		Set_Animation_Image_Range( 6, 9 );
@@ -412,23 +425,16 @@ void cTurtleBoss :: Set_Turtle_Moving_State( TurtleBoss_state new_state )
 
 	m_turtle_state = new_state;
 
-	if( m_turtle_state == TURTLEBOSS_WALK )
-	{
-		Update_Velocity();
-		Update_Rotation_Hor_velx();
-	}
-	else if( m_turtle_state == TURTLEBOSS_SHELL_RUN )
-	{
-		Update_Velocity();
-		Update_Rotation_Hor_velx();
-	}
+	Update_Velocity_Max();
+	// if in the first part of the turn around animation
+	Update_Rotation_Hor();
 }
 
 void cTurtleBoss :: Update( void )
 {
 	cEnemy::Update();
 
-	if( !m_valid_update || !Is_In_Player_Range() )
+	if( !m_valid_update || !Is_In_Range() )
 	{
 		return;
 	}
@@ -449,13 +455,17 @@ void cTurtleBoss :: Update( void )
 				Set_Animation( 1 );
 				Reset_Animation();
 				Set_Image_Num( m_anim_img_start );
-				Update_Rotation_Hor_velx();
+				Update_Rotation_Hor();
 			}
 			// rotate the turn image
 			else if( m_anim_counter >= 100 )
 			{
-				Update_Rotation_Hor_velx();
+				Update_Rotation_Hor();
 			}
+		}
+		else
+		{
+			Update_Velocity();
 		}
 	}
 	// standing shell
@@ -489,7 +499,7 @@ void cTurtleBoss :: Update( void )
 		// slow down
 		if( !Is_Float_Equal( m_velx, 0.0f ) )
 		{
-			Add_Velocity( -m_velx * 0.2f, 0.0f );
+			Add_Velocity_X( -m_velx * 0.2f );
 
 			if( m_velx < 0.3f && m_velx > -0.3f )
 			{
@@ -511,6 +521,8 @@ void cTurtleBoss :: Update( void )
 		}
 		else
 		{
+			Update_Velocity();
+
 			if( m_player_counter > 0.0f )
 			{
 				m_player_counter -= pFramerate->m_speed_factor;
@@ -518,7 +530,7 @@ void cTurtleBoss :: Update( void )
 				if( m_player_counter <= 0.0f )
 				{
 					// do not start collision detection if colliding with maryo
-					if( pPlayer->m_col_rect.Intersects( m_col_rect ) )
+					if( pLevel_Player->m_col_rect.Intersects( m_col_rect ) )
 					{
 						m_player_counter = 5.0f;
 					}
@@ -562,6 +574,17 @@ void cTurtleBoss :: Update( void )
 			}
 		}
 
+		// slow down
+		if( !Is_Float_Equal( m_velx, 0.0f ) )
+		{
+			Add_Velocity_X( -m_velx * 0.2f );
+
+			if( m_velx < 0.2f && m_velx > -0.2f )
+			{
+				m_velx = 0.0f;
+			}
+		}
+
 		// finished animation
 		if( m_counter > 60.0f )
 		{
@@ -572,12 +595,20 @@ void cTurtleBoss :: Update( void )
 			Set_Turtle_Moving_State( TURTLEBOSS_SHELL_RUN );
 			Col_Move( 0.0f, m_images[0].m_image->m_col_h - m_images[5].m_image->m_col_h, 1, 1 );
 
+			if( m_direction == DIR_RIGHT )
+			{
+				m_velx = m_velx_max;
+			}
+			else
+			{
+				m_velx = -m_velx_max;
+			}
+
 			// throw more fireballs with each downgrade
 			Throw_Fireballs( 6 + ( m_downgrade_count * 2 ) );
 		}
 	}
 
-	// gravity
 	Update_Gravity();
 }
 
@@ -625,7 +656,7 @@ bool cTurtleBoss :: Hit_Enemy( cEnemy *enemy ) const
 	pAudio->Play_Sound( enemy->m_kill_sound );
 	pHud_Points->Add_Points( enemy->m_kill_points, m_pos_x + m_image->m_w / 3, m_pos_y - 5.0f, "", static_cast<Uint8>(255), 1 );
 	enemy->DownGrade( 1 );
-	pPlayer->Add_Kill_Multiplier();
+	pLevel_Player->Add_Kill_Multiplier();
 
 	return 1;
 }
@@ -642,22 +673,31 @@ void cTurtleBoss :: Throw_Fireballs( unsigned int amount /* = 6 */ )
 		// add step size to angle
 		ball_angle += step_size;
 
-		cBall *ball = new cBall( m_pos_x + m_col_rect.m_w / 2, m_pos_y + m_col_rect.m_h / 2, this, FIREBALL_EXPLOSION );
-		ball->Set_Direction( ball_angle, 15 );
+		cBall *ball = new cBall( m_sprite_manager, m_pos_x + m_col_rect.m_w / 2, m_pos_y + m_col_rect.m_h / 2, this, FIREBALL_EXPLOSION );
+		ball->Set_Velocity_From_Angle( ball_angle, 15 );
+		if( ball->m_velx > 0.0f )
+		{
+			ball->m_direction = DIR_RIGHT;
+		}
+		else
+		{
+			ball->m_direction = DIR_LEFT;
+		}
+		
 		ball->Col_Move( ball->m_velx * 2.0f, ball->m_vely * 2.0f, 1 );
-		pActive_Sprite_Manager->Add( ball );
+		m_sprite_manager->Add( ball );
 	}
 
-	cAnimation_Fireball *anim = new cAnimation_Fireball( m_pos_x + ( m_col_rect.m_w / 2 ), m_pos_y + ( m_col_rect.m_h / 3 ), 10 );
+	cAnimation_Fireball *anim = new cAnimation_Fireball( m_sprite_manager, m_pos_x + ( m_col_rect.m_w / 2 ), m_pos_y + ( m_col_rect.m_h / 3 ), 10 );
 	anim->Set_Fading_Speed( 0.15f );
 	anim->Set_Pos_Z( m_pos_z + 0.000001f );
-	pAnimation_Manager->Add( anim );
+	pActive_Animation_Manager->Add( anim );
 }
 
 void cTurtleBoss :: Generate_Stars( unsigned int amount /* = 1 */, float particle_scale /* = 0.4f */ ) const
 {
 	// animation
-	cParticle_Emitter *anim = new cParticle_Emitter();
+	cParticle_Emitter *anim = new cParticle_Emitter( m_sprite_manager );
 	anim->Set_Pos( m_pos_x + ( m_col_rect.m_w * 0.5f ), m_pos_y + ( m_col_rect.m_h * 0.5f ) );
 	anim->Set_Image( pVideo->Get_Surface( "animation/particles/star.png" ) );
 	anim->Set_Quota( amount );
@@ -668,43 +708,34 @@ void cTurtleBoss :: Generate_Stars( unsigned int amount /* = 1 */, float particl
 	anim->Set_Scale( particle_scale, 0.3f );
 	anim->Set_Color( orange, Color( static_cast<Uint8>(6), 60, 20, 0 ) );
 	anim->Set_Blending( BLEND_ADD );
-	pAnimation_Manager->Add( anim );
+	pActive_Animation_Manager->Add( anim );
 }
 
-void cTurtleBoss :: Update_Velocity( void )
+void cTurtleBoss :: Update_Velocity_Max( void )
 {
-	// update velocity
-	if( m_direction == DIR_RIGHT )
+	if( m_color_type == COL_RED )
 	{
 		if( m_turtle_state == TURTLEBOSS_WALK )
 		{
-			m_velx = m_speed_walk;
+			const int speed_up = m_hits + ( m_downgrade_count * m_max_hits );
+			m_velx_max = 3.6f + ( speed_up * 1.8f );
+			m_velx_gain = 0.5f + ( speed_up * 0.15f );
+		}
+		else if( m_turtle_state == TURTLEBOSS_SHELL_STAND )
+		{
+			m_velx_max = 0.0f;
+			m_velx_gain = 0.0f;
 		}
 		else if( m_turtle_state == TURTLEBOSS_SHELL_RUN )
 		{
-			m_velx = m_speed_shell;
+			m_velx_max = 14.0f + ( m_downgrade_count * 3.0f );
+			m_velx_gain = 0.8f + ( m_downgrade_count * 0.18f );
 		}
 		else if( m_turtle_state == TURTLEBOSS_STAND_ANGRY )
 		{
-			m_velx = 0.0f;
+			m_velx_max = 0.0f;
+			m_velx_gain = 0.0f;
 		}
-		// shell stay does slow down automatically
-	}
-	else
-	{
-		if( m_turtle_state == TURTLEBOSS_WALK )
-		{
-			m_velx = -m_speed_walk;
-		}
-		else if( m_turtle_state == TURTLEBOSS_SHELL_RUN )
-		{
-			m_velx = -m_speed_shell;
-		}
-		else if( m_turtle_state == TURTLEBOSS_STAND_ANGRY )
-		{
-			m_velx = 0.0f;
-		}
-		// shell stay does slow down automatically
 	}
 }
 
@@ -736,7 +767,7 @@ Col_Valid_Type cTurtleBoss :: Validate_Collision( cSprite *obj )
 			case TYPE_PLAYER:
 			{
 				// player is invincible
-				if( pPlayer->invincible )
+				if( pLevel_Player->m_invincible )
 				{
 					return COL_VTYPE_NOT_VALID;
 				}
@@ -843,16 +874,16 @@ Col_Valid_Type cTurtleBoss :: Validate_Collision( cSprite *obj )
 
 void cTurtleBoss :: Handle_Collision_Player( cObjectCollision *collision )
 {
-	if( collision->direction == DIR_UNDEFINED || ( m_turtle_state == TURTLEBOSS_SHELL_RUN && m_player_counter > 0.0f ) || m_state == STA_OBJ_LINKED )
+	if( collision->m_direction == DIR_UNDEFINED || ( m_turtle_state == TURTLEBOSS_SHELL_RUN && m_player_counter > 0.0f ) || m_state == STA_OBJ_LINKED )
 	{
 		return;
 	}
 
-	if( collision->direction == DIR_TOP && pPlayer->m_state != STA_FLY )
+	if( collision->m_direction == DIR_TOP && pLevel_Player->m_state != STA_FLY )
 	{
 		if( m_turtle_state == TURTLEBOSS_WALK )
 		{
-			pHud_Points->Add_Points( 250, pPlayer->m_pos_x, pPlayer->m_pos_y );
+			pHud_Points->Add_Points( 250, pLevel_Player->m_pos_x, pLevel_Player->m_pos_y );
 
 			if( m_hits + 1 == m_max_hits )
 			{
@@ -865,24 +896,24 @@ void cTurtleBoss :: Handle_Collision_Player( cObjectCollision *collision )
 		}
 		else if( m_turtle_state == TURTLEBOSS_SHELL_STAND )
 		{
-			pHud_Points->Add_Points( 100, pPlayer->m_pos_x, pPlayer->m_pos_y );
+			pHud_Points->Add_Points( 100, pLevel_Player->m_pos_x, pLevel_Player->m_pos_y );
 			pAudio->Play_Sound( "enemy/turtle/shell/hit.ogg" );
 		}
 		else if( m_turtle_state == TURTLEBOSS_SHELL_RUN )
 		{
-			pHud_Points->Add_Points( 50, pPlayer->m_pos_x, pPlayer->m_pos_y );
+			pHud_Points->Add_Points( 50, pLevel_Player->m_pos_x, pLevel_Player->m_pos_y );
 			pAudio->Play_Sound( "enemy/turtle/shell/hit.ogg" );
 		}
 
 		// animation
-		cParticle_Emitter *anim = new cParticle_Emitter();
+		cParticle_Emitter *anim = new cParticle_Emitter( m_sprite_manager );
 		anim->Set_Pos( m_pos_x + ( m_col_rect.m_w / 2 ), m_pos_y + ( m_col_rect.m_h / 2 ) );
 		Generate_Hit_Animation( anim );
 
 		anim->Set_Speed( 4, 0.8f );
 		anim->Set_Scale( 0.9f );
 		// add animation
-		pAnimation_Manager->Add( anim );
+		pActive_Animation_Manager->Add( anim );
 
 		DownGrade();
 
@@ -890,34 +921,34 @@ void cTurtleBoss :: Handle_Collision_Player( cObjectCollision *collision )
 		if( m_turtle_state == TURTLEBOSS_SHELL_RUN )
 		{
 			// if player is on the left side
-			if( ( pPlayer->m_col_rect.m_w / 2 ) + pPlayer->m_pos_x < ( m_col_rect.m_w / 2 ) + m_pos_x )
+			if( ( pLevel_Player->m_col_rect.m_w / 2 ) + pLevel_Player->m_pos_x < ( m_col_rect.m_w / 2 ) + m_pos_x )
 			{
 				Set_Direction( DIR_RIGHT );
+				m_velx = m_velx_max;
 			}
 			// right side
 			else
 			{
 				Set_Direction( DIR_LEFT );
+				m_velx = -m_velx_max;
 			}
-
-			Update_Direction();
 		}
 
-		pPlayer->Action_Jump( 1 );
+		pLevel_Player->Action_Jump( 1 );
 	}
 	else
 	{
 		if( m_turtle_state == TURTLEBOSS_WALK )
 		{
-			pPlayer->DownGrade_Player();
-			Turn_Around( collision->direction );
+			pLevel_Player->DownGrade_Player();
+			Turn_Around( collision->m_direction );
 		}
 		else if( m_turtle_state == TURTLEBOSS_SHELL_STAND )
 		{
 			pAudio->Play_Sound( "enemy/turtle/shell/hit.ogg" );
 			DownGrade();
 
-			cParticle_Emitter *anim = new cParticle_Emitter();
+			cParticle_Emitter *anim = new cParticle_Emitter( m_sprite_manager );
 			anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
 			anim->Set_Quota( 4 );
 			anim->Set_Pos_Z( m_pos_z + 0.0001f );
@@ -927,13 +958,13 @@ void cTurtleBoss :: Handle_Collision_Player( cObjectCollision *collision )
 			anim->Set_Fading_Size( 1 );
 			anim->Set_Color( Color( static_cast<Uint8>(254), 200, 100 ) );
 
-			if( collision->direction == DIR_RIGHT )
+			if( collision->m_direction == DIR_RIGHT )
 			{
 				anim->Set_Pos( m_pos_x + m_col_pos.m_x + m_col_rect.m_w, m_pos_y + ( m_col_rect.m_h / 2 ) );
 				anim->Set_Direction_Range( 90.0f, 180.0f );
 				Set_Direction( DIR_LEFT );
 			}
-			else if( collision->direction == DIR_LEFT )
+			else if( collision->m_direction == DIR_LEFT )
 			{
 				anim->Set_Pos( m_pos_x, m_pos_y + ( m_col_rect.m_h / 2 ) );
 				anim->Set_Direction_Range( 270.0f, 180.0f );
@@ -945,42 +976,44 @@ void cTurtleBoss :: Handle_Collision_Player( cObjectCollision *collision )
 				anim->Set_Direction_Range( 180.0f, 180.0f );
 
 				// if player is on the left side
-				if( ( pPlayer->m_col_rect.m_w / 2 ) + pPlayer->m_pos_x < ( m_col_rect.m_w / 2 ) + m_pos_x )
+				if( ( pLevel_Player->m_col_rect.m_w / 2 ) + pLevel_Player->m_pos_x < ( m_col_rect.m_w / 2 ) + m_pos_x )
 				{
 					Set_Direction( DIR_RIGHT );
+					m_velx = m_velx_max;
 				}
 				// right side
 				else
 				{
 					Set_Direction( DIR_LEFT );
+					m_velx = -m_velx_max;
 				}
 
 				// small upwards kick
-				if( collision->direction == DIR_BOTTOM )
+				if( collision->m_direction == DIR_BOTTOM )
 				{
-					m_vely = -5.0f + (pPlayer->m_vely * 0.3f);
+					m_vely = -5.0f + (pLevel_Player->m_vely * 0.3f);
 				}
 			}
 
-			pAnimation_Manager->Add( anim );
+			pActive_Animation_Manager->Add( anim );
 			m_player_counter = speedfactor_fps * 0.13f;
 		}
 		else if( m_turtle_state == TURTLEBOSS_SHELL_RUN )
 		{
 			// bottom kicks upwards
-			if( collision->direction == DIR_BOTTOM )
+			if( collision->m_direction == DIR_BOTTOM )
 			{
 				// small upwards kick
-				m_vely = -5.0f + (pPlayer->m_vely * 0.3f);
+				m_vely = -5.0f + (pLevel_Player->m_vely * 0.3f);
 			}
 			// other directions downgrade
 			else
 			{
-				pPlayer->DownGrade_Player();
+				pLevel_Player->DownGrade_Player();
 
-				if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
+				if( collision->m_direction == DIR_RIGHT || collision->m_direction == DIR_LEFT )
 				{
-					Turn_Around( collision->direction );
+					Turn_Around( collision->m_direction );
 				}
 			}
 		}
@@ -989,7 +1022,7 @@ void cTurtleBoss :: Handle_Collision_Player( cObjectCollision *collision )
 
 void cTurtleBoss :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
-	cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
+	cEnemy *enemy = static_cast<cEnemy *>(m_sprite_manager->Get_Pointer( collision->m_number ));
 
 	if( m_turtle_state == TURTLEBOSS_SHELL_STAND )
 	{
@@ -1012,9 +1045,9 @@ void cTurtleBoss :: Handle_Collision_Enemy( cObjectCollision *collision )
 		}
 		else
 		{
-			if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
+			if( collision->m_direction == DIR_RIGHT || collision->m_direction == DIR_LEFT )
 			{
-				Turn_Around( collision->direction );
+				Turn_Around( collision->m_direction );
 			}
 
 			Send_Collision( collision );
@@ -1030,22 +1063,22 @@ void cTurtleBoss :: Handle_Collision_Massive( cObjectCollision *collision )
 	}
 	else if( m_turtle_state == TURTLEBOSS_SHELL_RUN )
 	{
-		if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
+		if( collision->m_direction == DIR_RIGHT || collision->m_direction == DIR_LEFT )
 		{
-			cSprite *col_object = pActive_Sprite_Manager->Get_Pointer( collision->number );
+			cSprite *col_object = m_sprite_manager->Get_Pointer( collision->m_number );
 
 			// animation
 			cParticle_Emitter *anim = NULL;
-			if( collision->direction == DIR_RIGHT )
+			if( collision->m_direction == DIR_RIGHT )
 			{
-				anim = new cParticle_Emitter();
-				anim->Set_Pos( col_object->m_pos_x + col_object->m_col_pos.m_x + 4, m_pos_y + ( m_col_rect.m_h / 1.35f ) );
+				anim = new cParticle_Emitter( m_sprite_manager );
+				anim->Set_Pos( col_object->m_pos_x + col_object->m_col_pos.m_x + 4, m_pos_y + ( m_col_rect.m_h / 1.35f ), 1 );
 				anim->Set_Direction_Range( 140.0f, 100.0f );
 			}
 			else
 			{
-				anim = new cParticle_Emitter();
-				anim->Set_Pos( col_object->m_pos_x + col_object->m_col_pos.m_x + col_object->m_col_rect.m_w - 4, m_pos_y + ( m_col_rect.m_h / 1.35f ) );
+				anim = new cParticle_Emitter( m_sprite_manager );
+				anim->Set_Pos( col_object->m_pos_x + col_object->m_col_pos.m_x + col_object->m_col_rect.m_w - 4, m_pos_y + ( m_col_rect.m_h / 1.35f ), 1 );
 				anim->Set_Direction_Range( 320.0f, 100.0f );
 			}
 
@@ -1056,7 +1089,7 @@ void cTurtleBoss :: Handle_Collision_Massive( cObjectCollision *collision )
 			anim->Set_Speed( 1.0f, 1.0f );
 			anim->Set_Scale( 0.5f, 0.4f );
 			// add animation
-			pAnimation_Manager->Add( anim );
+			pActive_Animation_Manager->Add( anim );
 		}
 
 		// active object collision
@@ -1074,7 +1107,7 @@ void cTurtleBoss :: Handle_Collision_Massive( cObjectCollision *collision )
 			if( collision->m_array == ARRAY_ACTIVE )
 			{
 				// get colliding object
-				cSprite *col_object = pActive_Sprite_Manager->Get_Pointer( collision->number );
+				cSprite *col_object = m_sprite_manager->Get_Pointer( collision->m_number );
 
 				if( col_object->m_type == TYPE_BONUSBOX || col_object->m_type == TYPE_SPINBOX )
 				{
@@ -1082,7 +1115,7 @@ void cTurtleBoss :: Handle_Collision_Massive( cObjectCollision *collision )
 					cBaseBox *box = static_cast<cBaseBox *>(col_object);
 
 					// if useable
-					if( box->useable_count != 0 )
+					if( box->m_useable_count != 0 )
 					{
 						pHud_Points->Add_Points( 50, m_pos_x + m_image->m_w / 3, m_pos_y - 5.0f );
 						Send_Collision( collision );
@@ -1093,23 +1126,23 @@ void cTurtleBoss :: Handle_Collision_Massive( cObjectCollision *collision )
 		}
 	}
 	
-	if( collision->direction == DIR_TOP )
-	{
-		if( m_vely > 0.0f )
-		{
-			m_vely = 0.0f;
-		}
-	}
-	else if( collision->direction == DIR_BOTTOM )
+	if( collision->m_direction == DIR_TOP )
 	{
 		if( m_vely < 0.0f )
 		{
 			m_vely = 0.0f;
 		}
 	}
-	else if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
+	else if( collision->m_direction == DIR_BOTTOM )
 	{
-		Turn_Around( collision->direction );
+		if( m_vely > 0.0f )
+		{
+			m_vely = 0.0f;
+		}
+	}
+	else if( collision->m_direction == DIR_RIGHT || collision->m_direction == DIR_LEFT )
+	{
+		Turn_Around( collision->m_direction );
 	}
 }
 
@@ -1152,6 +1185,23 @@ void cTurtleBoss :: Editor_Activate( void )
 	editbox->setText( float_to_string( m_shell_time ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cTurtleBoss::Editor_Shell_Time_Text_Changed, this ) );
 
+	// level ends if killed
+	combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "editor_turtle_boss_level_ends_if_killed" ));
+	Editor_Add( UTF8_("End Level"), UTF8_("End the level if it is killed."), combobox, 100, 75 );
+
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Enabled") ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Disabled") ) );
+
+	if( m_level_ends_if_killed )
+	{
+		combobox->setText( UTF8_("Enabled") );
+	}
+	else
+	{
+		combobox->setText( UTF8_("Disabled") );
+	}
+	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cTurtleBoss::Editor_Level_Ends_If_Killed, this ) );
+	
 	// init
 	Editor_Init();
 }
@@ -1192,6 +1242,23 @@ bool cTurtleBoss :: Editor_Shell_Time_Text_Changed( const CEGUI::EventArgs &even
 	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
 	Set_Shell_Time( string_to_float( str_text ) );
+
+	return 1;
+}
+
+bool cTurtleBoss :: Editor_Level_Ends_If_Killed( const CEGUI::EventArgs &event )
+{
+	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
+	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
+
+	if( item->getText().compare( UTF8_("Enabled") ) == 0 )
+	{
+		m_level_ends_if_killed = 1;
+	}
+	else
+	{
+		m_level_ends_if_killed = 0;
+	}
 
 	return 1;
 }

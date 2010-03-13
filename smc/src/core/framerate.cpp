@@ -13,7 +13,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../core/framerate.h"
 #include "../core/math/utilities.h"
 // SDL
@@ -87,7 +87,7 @@ cFramerate :: cFramerate( const float tfps /* = DESIRED_FPS */ )
 cFramerate :: ~cFramerate( void )
 {
 	// clear performance timer
-	for( Performance_Timer_List::iterator itr = m_perf_timer.begin(), itr_end = m_perf_timer.end(); itr != itr_end; ++itr )
+	for( Performance_Timer_List::iterator itr = m_perf_timer.begin(); itr != m_perf_timer.end(); ++itr )
 	{
 		delete *itr;
 	}
@@ -182,7 +182,7 @@ void cFramerate :: Reset( void )
 	m_frames_counted = 0;
 
 	// reset performance timer
-	for( Performance_Timer_List::iterator itr = m_perf_timer.begin(), itr_end = m_perf_timer.end(); itr != itr_end; ++itr )
+	for( Performance_Timer_List::iterator itr = m_perf_timer.begin(); itr != m_perf_timer.end(); ++itr )
 	{
 		(*itr)->Reset();
 	}

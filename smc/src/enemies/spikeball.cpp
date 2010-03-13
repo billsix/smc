@@ -15,10 +15,11 @@
 
 #include "../enemies/spikeball.h"
 #include "../core/game_core.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../gui/hud.h"
 #include "../core/i18n.h"
 #include "../video/animation.h"
+#include "../core/sprite_manager.h"
 // CEGUI
 #include "CEGUIXMLAttributes.h"
 
@@ -27,14 +28,14 @@ namespace SMC
 
 /* *** *** *** *** *** *** cSpikeball *** *** *** *** *** *** *** *** *** *** *** */
 
-cSpikeball :: cSpikeball( float x, float y )
-: cEnemy( x, y )
+cSpikeball :: cSpikeball( cSprite_Manager *sprite_manager )
+: cEnemy( sprite_manager )
 {
 	cSpikeball::Init();
 }
 
-cSpikeball :: cSpikeball( CEGUI::XMLAttributes &attributes )
-: cEnemy()
+cSpikeball :: cSpikeball( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cEnemy( sprite_manager )
 {
 	cSpikeball::Init();
 	cSpikeball::Create_From_Stream( attributes );
@@ -49,6 +50,7 @@ void cSpikeball :: Init( void )
 {
 	m_type = TYPE_SPIKEBALL;
 	m_pos_z = 0.09f;
+	m_gravity_max = 29.0f;
 
 	m_counter_stay = 0.0f;
 	m_counter_walk = 0.0f;
@@ -62,12 +64,12 @@ void cSpikeball :: Init( void )
 	Set_Direction( DIR_RIGHT );
 }
 
-cSpikeball *cSpikeball :: Copy( void )
+cSpikeball *cSpikeball :: Copy( void ) const
 {
-	cSpikeball *spikeball = new cSpikeball( m_start_pos_x, m_start_pos_y );
+	cSpikeball *spikeball = new cSpikeball( m_sprite_manager );
+	spikeball->Set_Pos( m_start_pos_x, m_start_pos_y );
 	spikeball->Set_Color( m_color_type );
 	spikeball->Set_Direction( m_start_direction );
-
 	return spikeball;
 }
 
@@ -104,7 +106,7 @@ void cSpikeball :: Load_From_Savegame( cSave_Level_Object *save_object )
 {
 	cEnemy::Load_From_Savegame( save_object );
 
-	Update_Rotation_Hor_velx();
+	Update_Rotation_Hor();
 }
 
 void cSpikeball :: Set_Direction( const ObjectDirection dir )
@@ -117,8 +119,7 @@ void cSpikeball :: Set_Direction( const ObjectDirection dir )
 
 	cEnemy::Set_Direction( dir, 1 );
 
-	Update_Velocity();
-	Update_Rotation_Hor_velx( 1 );
+	Update_Rotation_Hor( 1 );
 	Create_Name();
 }
 
@@ -140,7 +141,6 @@ void cSpikeball :: Set_Color( const DefaultColor &col )
 	{
 		filename_dir = "grey";
 
-		m_speed_walk = 1.5f;
 		m_kill_points = 400;
 		m_fire_resistant = 1;
 		m_ice_resistance = 1.0f;
@@ -152,8 +152,7 @@ void cSpikeball :: Set_Color( const DefaultColor &col )
 		return;
 	}
 
-	Update_Velocity();
-	Update_Rotation_Hor_velx();
+	Update_Velocity_Max();
 
 	Add_Image( pVideo->Get_Surface( "enemy/spikeball/" + filename_dir + "/walk_1.png" ) );
 	Add_Image( pVideo->Get_Surface( "enemy/spikeball/" + filename_dir + "/walk_2.png" ) );
@@ -176,13 +175,21 @@ void cSpikeball :: Turn_Around( ObjectDirection col_dir /* = DIR_UNDEFINED */ )
 
 	if( col_dir == DIR_LEFT || col_dir == DIR_RIGHT )
 	{
+		if( m_state == STA_WALK || m_state == STA_RUN )
+		{
+			m_velx *= 0.5f;
+		}
+
 		// set turn around image
 		Set_Image_Num( 8 );
 		Set_Animation( 0 );
 		Reset_Animation();
 	}
-
-	Update_Rotation_Hor_velx();
+	// only update rotation if no turn around image
+	else
+	{
+		Update_Rotation_Hor();
+	}
 }
 
 void cSpikeball :: DownGrade( bool force /* = 0 */ )
@@ -237,11 +244,10 @@ void cSpikeball :: Update_Dying( void )
 		{
 			Move( 0.0f, -5.0f );
 		}
-		// if not below the screen fall
-		else if( m_pos_y < game_res_h + m_col_rect.m_h )
+		// if not below the ground : fall
+		else if( m_col_rect.m_y < pActive_Camera->m_limit_rect.m_y )
 		{
 			Move( 0.0f, 20.0f );
-
 			Add_Scale( -pFramerate->m_speed_factor * 0.01f );
 		}
 		// if below disable
@@ -288,28 +294,16 @@ void cSpikeball :: Set_Moving_State( Moving_state new_state )
 
 	m_state = new_state;
 
-	if( m_state == STA_STAY )
-	{
-		Update_Velocity();
-		Update_Rotation_Hor_velx();
-	}
-	else if( m_state == STA_WALK )
-	{
-		Update_Velocity();
-		Update_Rotation_Hor_velx();
-	}
-	else if( m_state == STA_RUN )
-	{
-		Update_Velocity();
-		Update_Rotation_Hor_velx();
-	}
+	Update_Velocity_Max();
+	// if in the first part of the turn around animation
+	Update_Rotation_Hor();
 }
 
 void cSpikeball :: Update( void )
 {
 	cEnemy::Update();
 
-	if( !m_valid_update || !Is_In_Player_Range() )
+	if( !m_valid_update || !Is_In_Range() )
 	{
 		return;
 	}
@@ -323,7 +317,7 @@ void cSpikeball :: Update( void )
 		// slow down
 		if( !Is_Float_Equal( m_velx, 0.0f ) )
 		{
-			Add_Velocity( -m_velx * 0.25f, 0.0f );
+			Add_Velocity_X( -m_velx * 0.25f );
 
 			if( m_velx < 0.3f && m_velx > -0.3f )
 			{
@@ -341,7 +335,7 @@ void cSpikeball :: Update( void )
 			{
 				// turn around
 				m_direction = Get_Opposite_Direction( m_direction );
-				Update_Rotation_Hor_velx();
+				Update_Rotation_Hor();
 			}
 		}
 
@@ -381,8 +375,7 @@ void cSpikeball :: Update( void )
 		// create particles
 		while( m_running_particle_counter > 1.0f )
 		{
-			cParticle_Emitter *anim = new cParticle_Emitter();
-
+			cParticle_Emitter *anim = new cParticle_Emitter( m_sprite_manager );
 			anim->Set_Emitter_Rect( m_col_rect.m_x, m_col_rect.m_y + m_col_rect.m_h - 2.0f, m_col_rect.m_w );
 			anim->Set_Pos_Z( m_pos_z - 0.000001f );
 
@@ -412,7 +405,7 @@ void cSpikeball :: Update( void )
 			}
 
 			// add animation
-			pAnimation_Manager->Add( anim );
+			pActive_Animation_Manager->Add( anim );
 
 			m_running_particle_counter--;
 		}
@@ -431,45 +424,34 @@ void cSpikeball :: Update( void )
 				Reset_Animation();
 				Set_Image_Num( m_anim_img_start );
 				Set_Animation( 1 );
-				Update_Rotation_Hor_velx();
+				Update_Rotation_Hor();
 			}
 			// rotate the turn image
 			else if( m_anim_counter >= 100 )
 			{
-				Update_Rotation_Hor_velx();
+				Update_Rotation_Hor();
 			}
+		}
+		else
+		{
+			Update_Velocity();
 		}
 	}
 
-	// gravity
 	Update_Gravity();
 }
 
-void cSpikeball :: Update_Velocity( void )
+void cSpikeball :: Update_Velocity_Max( void )
 {
-	if( m_direction == DIR_RIGHT )
+	if( m_state == STA_WALK )
 	{
-		if( m_state == STA_WALK )
-		{
-			m_velx = m_speed_walk;
-		}
-		else if( m_state == STA_RUN )
-		{
-			m_velx = m_speed_walk * 2.5f;
-		}
-		// stay does slow down automatically
+		m_velx_max = 1.5f;
+		m_velx_gain = 0.3f;
 	}
-	else
+	else if( m_state == STA_RUN )
 	{
-		if( m_state == STA_WALK )
-		{
-			m_velx = -m_speed_walk;
-		}
-		else if( m_state == STA_RUN )
-		{
-			m_velx = -m_speed_walk * 2.5f;
-		}
-		// stay does slow down automatically
+		m_velx_max = 3.7f;
+		m_velx_gain = 0.6f;
 	}
 }
 
@@ -563,24 +545,24 @@ Col_Valid_Type cSpikeball :: Validate_Collision( cSprite *obj )
 void cSpikeball :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// invalid
-	if( collision->direction == DIR_UNDEFINED )
+	if( collision->m_direction == DIR_UNDEFINED )
 	{
 		return;
 	}
 
-	pPlayer->DownGrade_Player();
+	pLevel_Player->DownGrade_Player();
 
-	if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
+	if( collision->m_direction == DIR_RIGHT || collision->m_direction == DIR_LEFT )
 	{
-		Turn_Around( collision->direction );
+		Turn_Around( collision->m_direction );
 	}
 }
 
 void cSpikeball :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
-	if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
+	if( collision->m_direction == DIR_RIGHT || collision->m_direction == DIR_LEFT )
 	{
-		Turn_Around( collision->direction );
+		Turn_Around( collision->m_direction );
 	}
 
 	Send_Collision( collision );
@@ -593,29 +575,51 @@ void cSpikeball :: Handle_Collision_Massive( cObjectCollision *collision )
 		return;
 	}
 
-	if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
+	Send_Collision( collision );
+
+	// get colliding object
+	cSprite *col_object = m_sprite_manager->Get_Pointer( collision->m_number );
+
+	if( col_object->m_type == TYPE_BALL )
 	{
-		Turn_Around( collision->direction );
+		return;
 	}
 
-	Send_Collision( collision );
+	if( collision->m_direction == DIR_TOP )
+	{
+		if( m_vely < 0.0f )
+		{
+			m_vely = 0.0f;
+		}
+	}
+	else if( collision->m_direction == DIR_BOTTOM )
+	{
+		if( m_vely > 0.0f )
+		{
+			m_vely = 0.0f;
+		}
+	}
+	else if( collision->m_direction == DIR_RIGHT || collision->m_direction == DIR_LEFT )
+	{
+		Turn_Around( collision->m_direction );
+	}
 }
 
 void cSpikeball :: Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 )
 {
 	if( cdirection == DIR_DOWN )
 	{
-		m_vely = -10;
+		m_vely = -10.0f;
 
 		// left
 		if( m_pos_x > r2->m_x )
 		{
-			//m_velx += 10;
+			m_velx += 3.0f;
 		}
 		// right
 		else if( m_pos_x < r2->m_x )
 		{
-			//m_velx -= 10;
+			m_velx -= 3.0f;
 		}
 
 		Reset_On_Ground();

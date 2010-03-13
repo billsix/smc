@@ -74,7 +74,7 @@ cGL_Surface :: ~cGL_Surface( void )
 	}
 }
 
-cGL_Surface *cGL_Surface :: Copy( void )
+cGL_Surface *cGL_Surface :: Copy( void ) const
 {
 	// create copy image
 	cGL_Surface *new_surface = new cGL_Surface();
@@ -179,7 +179,7 @@ void cGL_Surface :: Set_Ground_Type( GroundType gtype )
 
 bool cGL_Surface :: Is_Texture_Use_Multiple( void ) const
 {
-	for( GL_Surface_List::iterator itr = pImage_Manager->objects.begin(), itr_end = pImage_Manager->objects.end(); itr != itr_end; ++itr )
+	for( GL_Surface_List::iterator itr = pImage_Manager->objects.begin(); itr != pImage_Manager->objects.end(); ++itr )
 	{
 		cGL_Surface *obj = (*itr);
 

@@ -74,7 +74,7 @@ void cImage_Manager :: Add( cGL_Surface *obj )
 
 cGL_Surface *cImage_Manager :: Get_Pointer( const std::string &path ) const
 {
-	for( GL_Surface_List::const_iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( GL_Surface_List::const_iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		cGL_Surface *obj = (*itr);
 
@@ -91,7 +91,7 @@ cGL_Surface *cImage_Manager :: Get_Pointer( const std::string &path ) const
 
 cGL_Surface *cImage_Manager :: Copy( const std::string &path )
 {
-	for( GL_Surface_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( GL_Surface_List::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		// get object
 		cGL_Surface *obj = (*itr);
@@ -125,7 +125,7 @@ void cImage_Manager :: Grab_Textures( bool from_file /* = 0 */, bool draw_gui /*
 	unsigned int file_count = objects.size();
 
 	// save all textures
-	for( GL_Surface_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( GL_Surface_List::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		// get surface
 		cGL_Surface *obj = (*itr);
@@ -176,7 +176,7 @@ void cImage_Manager :: Restore_Textures( bool draw_gui /* = 0 */ )
 	unsigned int file_count = saved_textures.size();
 
 	// load back into hardware textures
-	for( Saved_Texture_List::iterator itr = saved_textures.begin(), itr_end = saved_textures.end(); itr != itr_end; ++itr )
+	for( Saved_Texture_List::iterator itr = saved_textures.begin(); itr != saved_textures.end(); ++itr )
 	{
 		// get saved texture
 		cSaved_Texture *soft_tex = (*itr);
@@ -204,7 +204,7 @@ void cImage_Manager :: Restore_Textures( bool draw_gui /* = 0 */ )
 
 void cImage_Manager :: Delete_Image_Textures( void )
 {
-	for( GL_Surface_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr ) 
+	for( GL_Surface_List::iterator itr = objects.begin(); itr != objects.end(); ++itr ) 
 	{
 		// get object
 		cGL_Surface *obj = (*itr);

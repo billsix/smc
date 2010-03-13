@@ -21,10 +21,10 @@ namespace SMC
 
 /* *** *** *** *** *** *** cWorld_Sprite_Manager *** *** *** *** *** *** *** *** *** *** *** */
 
-cWorld_Sprite_Manager :: cWorld_Sprite_Manager( cOverworld *origin )
+cWorld_Sprite_Manager :: cWorld_Sprite_Manager( cOverworld *overworld )
 : cSprite_Manager( 500 )
 {
-	n_origin = origin;
+	m_overworld = overworld;
 }
 
 cWorld_Sprite_Manager :: ~cWorld_Sprite_Manager( void )
@@ -41,7 +41,7 @@ void cWorld_Sprite_Manager :: Add( cSprite *sprite )
 	}
 
 	// no player range
-	sprite->m_player_range = 0;
+	sprite->m_camera_range = 0;
 
 	// add
 	cSprite_Manager::Add( sprite );
@@ -49,12 +49,12 @@ void cWorld_Sprite_Manager :: Add( cSprite *sprite )
 	// Add to Waypoints array
 	if( sprite->m_type == TYPE_OW_WAYPOINT )
 	{
-		n_origin->m_waypoints.push_back( static_cast<cWaypoint *>(sprite) );
+		m_overworld->m_waypoints.push_back( static_cast<cWaypoint *>(sprite) );
 	}
 	// Add layer line point start to the world layer
 	else if( sprite->m_type == TYPE_OW_LINE_START )
 	{
-		n_origin->m_layer->Add( static_cast<cLayer_Line_Point_Start *>(sprite) );
+		m_overworld->m_layer->Add( static_cast<cLayer_Line_Point_Start *>(sprite) );
 	}
 }
 

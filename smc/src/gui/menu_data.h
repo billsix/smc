@@ -16,7 +16,7 @@
 #ifndef SMC_MENU_DATA_H
 #define SMC_MENU_DATA_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../gui/menu.h"
 #include "../gui/hud.h"
 
@@ -33,35 +33,37 @@ public:
 
 	virtual void Init( void );
 	virtual void Init_GUI( void );
+	// Enter
+	virtual void Enter( const GameMode old_mode = MODE_NOTHING );
+	// Exit
+	virtual void Exit( void );
 	virtual void Update( void );
 	virtual void Draw( void );
 	void Draw_End( void );
 
 	// Set the game mode to return on exit
 	void Set_Exit_To_Game_Mode( GameMode gamemode );
-	// Exit
-	virtual void Exit( void );
 
 	// gui layout filename
-	std::string layout_file;
+	std::string m_layout_file;
 	// CEGUI window
-	CEGUI::Window *guiwindow;
+	CEGUI::Window *m_gui_window;
 
 	// if button/key action
-	bool action;
+	bool m_action;
 
 	// menu position
-	float menu_posy;
+	float m_menu_pos_y;
 	// default text color
-	Color text_color;
+	Color m_text_color;
 	// value text color
-	Color text_color_value;
+	Color m_text_color_value;
 	// return to this game mode on exit
-	GameMode exit_to_gamemode;
+	GameMode m_exit_to_gamemode;
 
 	// current menu sprites
 	typedef vector<cHudSprite *> HudSpriteList;
-	HudSpriteList drawlist;
+	HudSpriteList m_draw_list;
 };
 
 /* *** *** *** *** *** *** *** cMenu_Main *** *** *** *** *** *** *** *** *** *** */
@@ -74,11 +76,10 @@ public:
 
 	virtual void Init( void );
 	virtual void Init_GUI( void );
-	virtual void Update( void );
-	virtual void Draw( void );
-
 	// Exit
 	virtual void Exit( void );
+	virtual void Update( void );
+	virtual void Draw( void );
 };
 
 /* *** *** *** *** *** *** *** cMenu_Start *** *** *** *** *** *** *** *** *** *** */
@@ -91,15 +92,18 @@ public:
 
 	virtual void Init( void );
 	virtual void Init_GUI( void );
-	virtual void Update( void );
-	virtual void Draw( void );
-
 	// Exit
 	virtual void Exit( void );
+	virtual void Update( void );
+	virtual void Draw( void );
 
 	// Get all levels from the given directory
 	void Get_Levels( std::string dir, CEGUI::colour color );
 
+	/* Highlight the given level
+	 * and activates level tab if needed
+	*/
+	bool Highlight_Level( std::string lvl_name );
 	/* Load the Selected Listbox item
 	 * and exit if successful
 	*/
@@ -145,9 +149,9 @@ public:
 	bool Button_Back_Clicked( const CEGUI::EventArgs &event );
 
 	// buffer if user types characters in the listbox
-	CEGUI::String listbox_search_buffer;
+	CEGUI::String m_listbox_search_buffer;
 	// counter until buffer is cleared
-	float listbox_search_buffer_counter;
+	float m_listbox_search_buffer_counter;
 };
 
 /* *** *** *** *** *** *** *** cMenu_Options *** *** *** *** *** *** *** *** *** *** */
@@ -160,11 +164,10 @@ public:
 
 	virtual void Init( void );
 	virtual void Init_GUI( void );
-	virtual void Update( void );
-	virtual void Draw( void );
-
 	// Exit
 	virtual void Exit( void );
+	virtual void Update( void );
+	virtual void Draw( void );
 };
 
 /* *** *** *** *** *** *** *** cMenu_Options_Game *** *** *** *** *** *** *** *** *** *** */
@@ -204,15 +207,15 @@ public:
 	bool Button_Reset_Editor_Clicked( const CEGUI::EventArgs &event );
 
 	// game
-	CEGUI::Combobox *combo_always_run;
-	CEGUI::Spinner *spinner_camera_hor_speed;
+	CEGUI::Combobox *m_combo_always_run;
+	CEGUI::Spinner *m_spinner_camera_hor_speed;
 	CEGUI::Spinner *spinner_camera_ver_speed;
-	CEGUI::Combobox *combo_language;
-	CEGUI::Combobox *combo_menu_level;
+	CEGUI::Combobox *m_combo_language;
+	CEGUI::Combobox *m_combo_menu_level;
 	// editor
-	CEGUI::Combobox *combo_editor_show_item_images;
-	CEGUI::Spinner *spinner_editor_item_image_size;
-	CEGUI::Combobox *combo_editor_mouse_auto_hide;
+	CEGUI::Combobox *m_combo_editor_show_item_images;
+	CEGUI::Spinner *m_spinner_editor_item_image_size;
+	CEGUI::Combobox *m_combo_editor_mouse_auto_hide;
 };
 
 /* *** *** *** *** *** *** *** cMenu_Options_Video *** *** *** *** *** *** *** *** *** *** */
@@ -247,21 +250,21 @@ public:
 	// Button recreate cache clicked event
 	bool Button_Recreate_Cache_Clicked( const CEGUI::EventArgs &event );
 
-	CEGUI::Combobox *combo_resolution;
-	CEGUI::Combobox *combo_bpp;
-	CEGUI::Combobox *combo_fullscreen;
-	CEGUI::Combobox *combo_vsync;
-	CEGUI::Slider *slider_geometry_quality;
-	CEGUI::Slider *slider_texture_quality;
+	CEGUI::Combobox *m_combo_resolution;
+	CEGUI::Combobox *m_combo_bpp;
+	CEGUI::Combobox *m_combo_fullscreen;
+	CEGUI::Combobox *m_combo_vsync;
+	CEGUI::Slider *m_slider_geometry_quality;
+	CEGUI::Slider *m_slider_texture_quality;
 
 	// video settings
-	unsigned int vid_w;
-	unsigned int vid_h;
-	unsigned int vid_bpp;
-	bool vid_fullscreen;
-	bool vid_vsync;
-	float vid_geometry_detail;
-	float vid_texture_detail;
+	unsigned int m_vid_w;
+	unsigned int m_vid_h;
+	unsigned int m_vid_bpp;
+	bool m_vid_fullscreen;
+	bool m_vid_vsync;
+	float m_vid_geometry_detail;
+	float m_vid_texture_detail;
 };
 
 /* *** *** *** *** *** *** *** cMenu_Options_Audio *** *** *** *** *** *** *** *** *** *** */
@@ -290,11 +293,11 @@ public:
 	// Button reset clicked event
 	bool Button_Reset_Clicked( const CEGUI::EventArgs &event );
 
-	CEGUI::Combobox *combo_audio_hz;
-	CEGUI::Combobox *combo_music;
-	CEGUI::Slider *slider_music;
-	CEGUI::Combobox *combo_sounds;
-	CEGUI::Slider *slider_sound;
+	CEGUI::Combobox *m_combo_audio_hz;
+	CEGUI::Combobox *m_combo_music;
+	CEGUI::Slider *m_slider_music;
+	CEGUI::Combobox *m_combo_sounds;
+	CEGUI::Slider *m_slider_sound;
 };
 
 /* *** *** *** *** *** *** *** cMenu_Options_Controls *** *** *** *** *** *** *** *** *** *** */
@@ -318,7 +321,7 @@ public:
 	 * and exit if successful
 	 * joystick : if true set it for joystick
 	*/
-	void Set_Shortcut( std::string shortcut_name, input_identifier shortcut_id, bool joystick = 0 );
+	void Set_Shortcut( std::string name, void *data, bool joystick = 0 );
 
 	// Select given Joystick
 	void Joy_Default( unsigned int index );
@@ -335,6 +338,8 @@ public:
 	bool Joystick_Analog_Jump_Click( const CEGUI::EventArgs &event );
 	// joystick name option selected event
 	bool Joystick_Name_Select( const CEGUI::EventArgs &event );
+	// joystick sensitivity value changed event
+	bool Joystick_Sensitivity_Changed( const CEGUI::EventArgs &event );
 	// joystick analog jump option selected event
 	bool Joystick_Analog_Jump_Select( const CEGUI::EventArgs &event );
 	// joystick axis horizontal changed event
@@ -352,14 +357,16 @@ public:
 	class cShortcut_item
 	{
 	public:
-		cShortcut_item( const CEGUI::String &name, const input_identifier id )
+		cShortcut_item( const CEGUI::String &name, void *key, const void *key_default )
 		{
 			m_name = name;
-			m_id = id;
+			m_key = key;
+			m_key_default = key_default;
 		}
 
 		CEGUI::String m_name;
-		input_identifier m_id;
+		void *m_key;
+		const void *m_key_default;
 	};
 };
 
@@ -368,16 +375,15 @@ public:
 class cMenu_Savegames : public cMenu_Base
 {
 public:
-	cMenu_Savegames( bool ntype_save );
+	cMenu_Savegames( bool type );
 	virtual ~cMenu_Savegames( void );
 
 	virtual void Init( void );
 	virtual void Init_GUI( void );
-	virtual void Update( void );
-	virtual void Draw( void );
-
 	// Exit
 	virtual void Exit( void );
+	virtual void Update( void );
+	virtual void Draw( void );
 
 	void Update_Load( void );
 	void Update_Save( void );
@@ -388,10 +394,10 @@ public:
 	void Update_Saved_Games_Text( void );
 
 	// Savegame images
-	HudSpriteList savegame_temp;
+	HudSpriteList m_savegame_temp;
 
 	// if save menu
-	bool type_save;
+	bool m_type_save;
 };
 
 /* *** *** *** *** *** *** *** cMenu_Credits *** *** *** *** *** *** *** *** *** *** */
@@ -404,14 +410,20 @@ public:
 
 	virtual void Init( void );
 	virtual void Init_GUI( void );
+	// Enter
+	virtual void Enter( const GameMode old_mode = MODE_NOTHING );
+	// Exit
+	virtual void Exit( void );
 	virtual void Update( void );
 	virtual void Draw( void );
 
-	// Exit
-	virtual void Exit( void );
 
-	// fade the credits menu in or out
-	void Fade( bool fadein = 1 );
+	// Add a line to the credits text
+	void Add_Credits_Line( const std::string &text, float posx, float posy, const Color &shadow_color = black, float shadow_pos = 0.0f );
+	/* fade from the normal menu to the the credits menu
+	 * fade_in : if set fade in instead of fade out
+	*/
+	void Menu_Fade( bool fade_in = 1 );
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

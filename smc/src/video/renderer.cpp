@@ -177,7 +177,7 @@ void cLine_Request :: Draw( void )
 	// set camera position
 	if( !no_camera )
 	{
-		glTranslatef( -pActive_Camera->x, -pActive_Camera->y, pos_z );
+		glTranslatef( -pActive_Camera->m_x, -pActive_Camera->m_y, pos_z );
 	}
 	else
 	{
@@ -273,8 +273,8 @@ void cRect_Request :: Draw( void )
 	// set camera position
 	if( !no_camera )
 	{
-		final_pos_x -= pActive_Camera->x;
-		final_pos_y -= pActive_Camera->y;
+		final_pos_x -= pActive_Camera->m_x;
+		final_pos_y -= pActive_Camera->m_y;
 	}
 
 	glTranslatef( final_pos_x, final_pos_y, pos_z );
@@ -373,7 +373,7 @@ void cGradient_Request :: Draw( void )
 	// set camera position
 	if( !no_camera )
 	{
-		glTranslatef( rect.m_x - pActive_Camera->x, rect.m_y - pActive_Camera->y, pos_z );
+		glTranslatef( rect.m_x - pActive_Camera->m_x, rect.m_y - pActive_Camera->m_y, pos_z );
 	}
 	// ignore camera position
 	else
@@ -444,7 +444,7 @@ void cCircle_Request :: Draw( void )
 	// set camera position
 	if( !no_camera )
 	{
-		glTranslatef( pos.m_x - pActive_Camera->x, pos.m_y - pActive_Camera->y, pos_z );
+		glTranslatef( pos.m_x - pActive_Camera->m_x, pos.m_y - pActive_Camera->m_y, pos_z );
 	}
 	// ignore camera position
 	else
@@ -612,8 +612,8 @@ void cSurface_Request :: Draw( void )
 	// set camera position
 	if( !no_camera )
 	{
-		final_pos_x -= pActive_Camera->x;
-		final_pos_y -= pActive_Camera->y;
+		final_pos_x -= pActive_Camera->m_x;
+		final_pos_y -= pActive_Camera->m_y;
 	}
 
 	glTranslatef( final_pos_x, final_pos_y, pos_z );
@@ -713,7 +713,7 @@ void cRenderQueue :: Render( bool clear /* = 1 */ )
 	last_bind_texture = 0;
 
 	// draw
-	for( RenderList::iterator itr = renderdata.begin(), itr_end = renderdata.end(); itr != itr_end; ++itr )
+	for( RenderList::iterator itr = renderdata.begin(); itr != renderdata.end(); ++itr )
 	{
 		// get object pointer
 		cRenderRequest *obj = (*itr);

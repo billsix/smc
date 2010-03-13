@@ -32,22 +32,24 @@ enum Turtle_state
 	TURTLE_FLY		= 4 // todo
 };
 
-/* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
-
+/* *** *** *** *** *** *** cTurtle *** *** *** *** *** *** *** *** *** *** *** */
+/* The evolved walking Turtle
+ * Likes to play roller coaster with maryo
+*/
 class cTurtle : public cEnemy
 {
 public:
 	// constructor
-	cTurtle( float x, float y );
+	cTurtle( cSprite_Manager *sprite_manager );
 	// create from stream
-	cTurtle( CEGUI::XMLAttributes &attributes );
+	cTurtle( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cTurtle( void );
 
 	// init defaults
 	void Init( void );
 	// copy
-	virtual cTurtle *Copy( void );
+	virtual cTurtle *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -89,8 +91,8 @@ public:
 	*/
 	bool Hit_Enemy( cEnemy *enemy );
 
-	// update the current velocity
-	void Update_Velocity( void );
+	// update maximum velocity values
+	void Update_Velocity_Max( void );
 
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
@@ -115,9 +117,6 @@ public:
 
 	// internal turtle state
 	Turtle_state m_turtle_state;
-
-	// default speed
-	float m_speed_walk, m_speed_shell;
 
 	/* If the player kicked the shell this counter is set.
 	 * if this counter is higher than 0

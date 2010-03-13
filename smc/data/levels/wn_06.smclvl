@@ -3,7 +3,7 @@
 	<information>
 		<Property name="game_version" value="1.9" />
 		<Property name="engine_version" value="34" />
-		<Property name="save_time" value="1241106135" />
+		<Property name="save_time" value="1263666253" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="SMC Team" />
@@ -2304,11 +2304,11 @@
 	<enemy>
 		<Property name="type" value="flyon" />
 		<Property name="posx" value="4756" />
-		<Property name="posy" value="381" />
+		<Property name="posy" value="393" />
 		<Property name="direction" value="up" />
 		<Property name="image_dir" value="enemy/flyon/orange/" />
 		<Property name="max_distance" value="200" />
-		<Property name="speed" value="5.8" />
+		<Property name="speed" value="4" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="spikeball" />
@@ -2406,8 +2406,8 @@
 		<Property name="posy" value="416" />
 	</enemystopper>
 	<box>
-		<Property name="posx" value="2699" />
-		<Property name="posy" value="138" />
+		<Property name="posx" value="2731" />
+		<Property name="posy" value="141" />
 		<Property name="type" value="bonus" />
 		<Property name="animation" value="Default" />
 		<Property name="item" value="8" />
@@ -2564,36 +2564,6 @@
 		<Property name="direction" value="right" />
 		<Property name="speed" value="11.5" />
 	</enemy>
-	<box>
-		<Property name="posx" value="2720" />
-		<Property name="posy" value="-268" />
-		<Property name="type" value="bonus" />
-		<Property name="animation" value="Bonus" />
-		<Property name="item" value="0" />
-		<Property name="invisible" value="1" />
-		<Property name="useable_count" value="1" />
-		<Property name="force_best_item" value="0" />
-	</box>
-	<box>
-		<Property name="posx" value="2690" />
-		<Property name="posy" value="-501" />
-		<Property name="type" value="bonus" />
-		<Property name="animation" value="Bonus" />
-		<Property name="item" value="0" />
-		<Property name="invisible" value="1" />
-		<Property name="useable_count" value="1" />
-		<Property name="force_best_item" value="0" />
-	</box>
-	<box>
-		<Property name="posx" value="2720" />
-		<Property name="posy" value="-731" />
-		<Property name="type" value="bonus" />
-		<Property name="animation" value="Bonus" />
-		<Property name="item" value="0" />
-		<Property name="invisible" value="1" />
-		<Property name="useable_count" value="1" />
-		<Property name="force_best_item" value="0" />
-	</box>
 	<sprite>
 		<Property name="posx" value="2467" />
 		<Property name="posy" value="-851" />
@@ -3242,12 +3212,12 @@
 		<Property name="color" value="orange" />
 	</enemy>
 	<moving_platform>
-		<Property name="posx" value="1895" />
-		<Property name="posy" value="-1825" />
+		<Property name="posx" value="1901" />
+		<Property name="posy" value="-1984" />
 		<Property name="move_type" value="0" />
 		<Property name="massive_type" value="massive" />
 		<Property name="direction" value="down" />
-		<Property name="max_distance" value="300" />
+		<Property name="max_distance" value="500" />
 		<Property name="speed" value="3" />
 		<Property name="touch_time" value="0" />
 		<Property name="shake_time" value="16" />
@@ -7381,7 +7351,7 @@
 	</box>
 	<item>
 		<Property name="type" value="goldpiece" />
-		<Property name="posx" value="2697" />
+		<Property name="posx" value="2658" />
 		<Property name="posy" value="-216" />
 		<Property name="color" value="yellow" />
 	</item>
@@ -7791,13 +7761,6 @@
 		<Property name="posy" value="-2092" />
 		<Property name="color" value="grey" />
 		<Property name="direction" value="right" />
-	</enemy>
-	<enemy>
-		<Property name="type" value="spikeball" />
-		<Property name="posx" value="1467" />
-		<Property name="posy" value="-2094" />
-		<Property name="color" value="grey" />
-		<Property name="direction" value="left" />
 	</enemy>
 	<enemy>
 		<Property name="type" value="spikeball" />
@@ -9302,4 +9265,44 @@
 		<Property name="image" value="ground/green_1/slider/1/brown/right.png" />
 		<Property name="type" value="halfmassive" />
 	</sprite>
+	<box>
+		<Property name="posx" value="2666" />
+		<Property name="posy" value="-43" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Bonus" />
+		<Property name="item" value="0" />
+		<Property name="invisible" value="2" />
+		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+	</box>
+	<box>
+		<Property name="posx" value="2720" />
+		<Property name="posy" value="-268" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Bonus" />
+		<Property name="item" value="0" />
+		<Property name="invisible" value="2" />
+		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+	</box>
+	<box>
+		<Property name="posx" value="2690" />
+		<Property name="posy" value="-501" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Bonus" />
+		<Property name="item" value="0" />
+		<Property name="invisible" value="2" />
+		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+	</box>
+	<box>
+		<Property name="posx" value="2720" />
+		<Property name="posy" value="-731" />
+		<Property name="type" value="bonus" />
+		<Property name="animation" value="Bonus" />
+		<Property name="item" value="0" />
+		<Property name="invisible" value="2" />
+		<Property name="useable_count" value="1" />
+		<Property name="force_best_item" value="0" />
+	</box>
 </level>

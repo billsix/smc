@@ -27,7 +27,7 @@ namespace SMC
 class cBall : public cMovingSprite
 {
 public:
-	cBall( float x, float y, const cSprite *origin_object = NULL, ball_effect btype = FIREBALL_DEFAULT );
+	cBall( cSprite_Manager *sprite_manager, float x, float y, const cSprite *origin_object = NULL, ball_effect btype = FIREBALL_DEFAULT );
 	virtual ~cBall( void );
 
 	// like Destroy but with sound option

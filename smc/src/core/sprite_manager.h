@@ -64,13 +64,37 @@ public:
 	void Get_Colliding_Objects( cSprite_List &col_objects, const GL_rect &rect, bool with_player = 0, const cSprite *exclude_sprite = NULL ) const;
 
 	// Update items drawing validation
-	void Update_Items_Valid_Draw( void );
+	inline void Update_Items_Valid_Draw( void )
+	{
+		for( cSprite_List::iterator itr = objects.begin(); itr != objects.end(); ++itr )
+		{
+			(*itr)->Update_Valid_Draw();
+		}
+	}
 	// Update items
-	void Update_Items( void );
+	inline void Update_Items( void )
+	{
+		for( cSprite_List::iterator itr = objects.begin(); itr != objects.end(); ++itr )
+		{
+			(*itr)->Update();
+		}
+	}
 	// Update_Late items
-	void Update_Items_Late( void );
+	inline void Update_Items_Late( void )
+	{
+		for( cSprite_List::iterator itr = objects.begin(); itr != objects.end(); ++itr )
+		{
+			(*itr)->Update_Late();
+		}
+	}
 	// Draw items
-	void Draw_Items( void );
+	inline void Draw_Items( void )
+	{
+		for( cSprite_List::iterator itr = objects.begin(); itr != objects.end(); ++itr )
+		{
+			(*itr)->Draw();
+		}
+	}
 	// Create Collision data and Handle the collisions
 	void Handle_Collision_Items( void );
 
@@ -91,9 +115,9 @@ public:
 
 	typedef vector<float> ZposList;
 	// biggest type z position
-	ZposList zposdata;
+	ZposList m_z_pos_data;
 	// biggest editor type z position
-	ZposList zposdata_editor;
+	ZposList m_z_pos_data_editor;
 
 	// Z position sort
 	struct zpos_sort

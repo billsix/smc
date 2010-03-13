@@ -16,7 +16,7 @@
 #ifndef SMC_ENEMYSTOPPER_H
 #define SMC_ENEMYSTOPPER_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../objects/animated_sprite.h"
 
 namespace SMC
@@ -28,16 +28,16 @@ class cEnemyStopper : public cAnimated_Sprite
 {
 public:
 	// constructor
-	cEnemyStopper( float x, float y );
+	cEnemyStopper( cSprite_Manager *sprite_manager );
 	// create from stream
-	cEnemyStopper( CEGUI::XMLAttributes &attributes );
+	cEnemyStopper( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cEnemyStopper( void );
 	
 	// init defaults
 	void Init( void );
 	// copy
-	virtual cEnemyStopper *Copy( void );
+	virtual cEnemyStopper *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -51,7 +51,7 @@ public:
 	virtual bool Is_Draw_Valid( void );
 
 	// editor color
-	Color editor_color;
+	Color m_editor_color;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

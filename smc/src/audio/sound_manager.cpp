@@ -72,7 +72,7 @@ cSound_Manager :: ~cSound_Manager( void )
 
 cSound *cSound_Manager :: Get_Pointer( const std::string &path ) const
 {
-	for( SoundList::const_iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( SoundList::const_iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		cSound *obj = (*itr);
 
@@ -95,7 +95,7 @@ void cSound_Manager :: Add( cSound *sound )
 
 void cSound_Manager :: Delete_Sounds( void )
 {
-	for( SoundList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( SoundList::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		cSound *obj = (*itr);
 

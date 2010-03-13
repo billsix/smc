@@ -37,6 +37,7 @@ smc_SOURCES = \
 	enemies/static.cpp \
 	enemies/thromp.cpp \
 	enemies/turtle.cpp \
+	gui/generic.cpp \
 	gui/hud.cpp \
 	gui/menu.cpp \
 	gui/menu_data.cpp \
@@ -48,6 +49,7 @@ smc_SOURCES = \
 	level/level.cpp \
 	level/level_editor.cpp \
 	level/level_manager.cpp \
+	level/level_player.cpp \
 	level/level_settings.cpp \
 	objects/animated_sprite.cpp \
 	objects/ball.cpp \
@@ -72,7 +74,6 @@ smc_SOURCES = \
 	overworld/world_editor.cpp \
 	overworld/world_manager.cpp \
 	overworld/world_sprite_manager.cpp \
-	player/player.cpp \
 	user/preferences.cpp \
 	user/savegame.cpp \
 	video/animation.cpp \

@@ -69,7 +69,17 @@ const SDLKey cPreferences::m_key_left_default = SDLK_LEFT;
 const SDLKey cPreferences::m_key_right_default = SDLK_RIGHT;
 const SDLKey cPreferences::m_key_jump_default = SDLK_s;
 const SDLKey cPreferences::m_key_shoot_default = SDLK_SPACE;
+const SDLKey cPreferences::m_key_item_default = SDLK_RETURN;
 const SDLKey cPreferences::m_key_action_default = SDLK_a;
+const SDLKey cPreferences::m_key_screenshot_default = SDLK_PRINT;
+const SDLKey cPreferences::m_key_editor_fast_copy_up_default = SDLK_KP8;
+const SDLKey cPreferences::m_key_editor_fast_copy_down_default = SDLK_KP2;
+const SDLKey cPreferences::m_key_editor_fast_copy_left_default = SDLK_KP4;
+const SDLKey cPreferences::m_key_editor_fast_copy_right_default = SDLK_KP6;
+const SDLKey cPreferences::m_key_editor_pixel_move_up_default = SDLK_KP8;
+const SDLKey cPreferences::m_key_editor_pixel_move_down_default = SDLK_KP2;
+const SDLKey cPreferences::m_key_editor_pixel_move_left_default = SDLK_KP4;
+const SDLKey cPreferences::m_key_editor_pixel_move_right_default = SDLK_KP6;
 const float cPreferences::m_scroll_speed_default = 1.0f;
 // Joystick
 const bool cPreferences::m_joy_enabled_default = 1;
@@ -117,7 +127,7 @@ bool cPreferences :: Load( const std::string &filename /* = "" */ )
 	{
 		m_config_filename.insert( 0, pResource_Manager->user_data_dir );
 		/* fixme : this crashes in CEGUI::DefaultResourceProvider::loadRawDataContainer because of the é
-		 * The CEGUI string encoding is UTF-8 but std::string seems to be ISO-8859-1 or Code page 1252
+		 * The CEGUI string encoding is UTF-8 but std::string seems to be ISO-8859-1 or Windows-1252
 		*/
 		//config_filename.insert( 0, "N:/Dokumente und Einstellungen/smc_Invité/Anwendungsdaten/smc/" );
 
@@ -174,8 +184,8 @@ void cPreferences :: Save( void )
 	file << "\t<Item Name=\"game_version\" Value=\"" << smc_version << "\" />" << std::endl;
 	file << "\t<Item Name=\"game_language\" Value=\"" << m_language << "\" />" << std::endl;
 	file << "\t<Item Name=\"game_always_run\" Value=\"" << m_always_run << "\" />" << std::endl;
-	file << "\t<Item Name=\"game_menu_level\" Value=\"" << m_menu_level << "\" />" << std::endl;
-	file << "\t<Item Name=\"game_user_data_dir\" Value=\"" << m_force_user_data_dir << "\" />" << std::endl;
+	file << "\t<Item Name=\"game_menu_level\" Value=\"" << string_to_xml_string( m_menu_level ) << "\" />" << std::endl;
+	file << "\t<Item Name=\"game_user_data_dir\" Value=\"" << string_to_xml_string( m_force_user_data_dir ) << "\" />" << std::endl;
 	file << "\t<Item Name=\"game_camera_hor_speed\" Value=\"" << m_camera_hor_speed << "\" />" << std::endl;
 	file << "\t<Item Name=\"game_camera_ver_speed\" Value=\"" << m_camera_ver_speed << "\" />" << std::endl;
 	// Video
@@ -199,8 +209,18 @@ void cPreferences :: Save( void )
 	file << "\t<Item Name=\"keyboard_key_right\" Value=\"" << m_key_right << "\" />" << std::endl;
 	file << "\t<Item Name=\"keyboard_key_jump\" Value=\"" << m_key_jump << "\" />" << std::endl;
 	file << "\t<Item Name=\"keyboard_key_shoot\" Value=\"" << m_key_shoot << "\" />" << std::endl;
+	file << "\t<Item Name=\"keyboard_key_item\" Value=\"" << m_key_item << "\" />" << std::endl;
 	file << "\t<Item Name=\"keyboard_key_action\" Value=\"" << m_key_action << "\" />" << std::endl;
 	file << "\t<Item Name=\"keyboard_scroll_speed\" Value=\"" << m_scroll_speed << "\" />" << std::endl;
+	file << "\t<Item Name=\"keyboard_key_screenshot\" Value=\"" << m_key_screenshot << "\" />" << std::endl;
+	file << "\t<Item Name=\"keyboard_key_editor_fast_copy_up\" Value=\"" << m_key_editor_fast_copy_up << "\" />" << std::endl;
+	file << "\t<Item Name=\"keyboard_key_editor_fast_copy_down\" Value=\"" << m_key_editor_fast_copy_down << "\" />" << std::endl;
+	file << "\t<Item Name=\"keyboard_key_editor_fast_copy_left\" Value=\"" << m_key_editor_fast_copy_left << "\" />" << std::endl;
+	file << "\t<Item Name=\"keyboard_key_editor_fast_copy_right\" Value=\"" << m_key_editor_fast_copy_right << "\" />" << std::endl;
+	file << "\t<Item Name=\"keyboard_key_editor_pixel_move_up\" Value=\"" << m_key_editor_pixel_move_up << "\" />" << std::endl;
+	file << "\t<Item Name=\"keyboard_key_editor_pixel_move_down\" Value=\"" << m_key_editor_pixel_move_down << "\" />" << std::endl;
+	file << "\t<Item Name=\"keyboard_key_editor_pixel_move_left\" Value=\"" << m_key_editor_pixel_move_left << "\" />" << std::endl;
+	file << "\t<Item Name=\"keyboard_key_editor_pixel_move_right\" Value=\"" << m_key_editor_pixel_move_right << "\" />" << std::endl;
 	// Joystick/Gamepad
 	file << "\t<Item Name=\"joy_enabled\" Value=\"" << m_joy_enabled << "\" />" << std::endl;
 	file << "\t<Item Name=\"joy_name\" Value=\"" << string_to_xml_string( m_joy_name ) << "\" />" << std::endl;
@@ -286,8 +306,18 @@ void cPreferences :: Reset_Keyboard( void )
 	m_key_right = m_key_right_default;
 	m_key_jump = m_key_jump_default;
 	m_key_shoot = m_key_shoot_default;
+	m_key_item = m_key_item_default;
 	m_key_action = m_key_action_default;
 	m_scroll_speed = m_scroll_speed_default;
+	m_key_screenshot = m_key_screenshot_default;
+	m_key_editor_fast_copy_up = m_key_editor_fast_copy_up_default;
+	m_key_editor_fast_copy_down = m_key_editor_fast_copy_down_default;
+	m_key_editor_fast_copy_left = m_key_editor_fast_copy_left_default;
+	m_key_editor_fast_copy_right = m_key_editor_fast_copy_right_default;
+	m_key_editor_pixel_move_up = m_key_editor_pixel_move_up_default;
+	m_key_editor_pixel_move_down = m_key_editor_pixel_move_down_default;
+	m_key_editor_pixel_move_left = m_key_editor_pixel_move_left_default;
+	m_key_editor_pixel_move_right = m_key_editor_pixel_move_right_default;
 }
 
 void cPreferences :: Reset_Joystick( void )
@@ -317,14 +347,14 @@ void cPreferences :: Reset_Editor( void )
 
 void cPreferences :: Update( void )
 {
-	m_camera_hor_speed = pLevel_Manager->camera->hor_offset_speed;
-	m_camera_ver_speed = pLevel_Manager->camera->ver_offset_speed;
+	m_camera_hor_speed = pLevel_Manager->m_camera->m_hor_offset_speed;
+	m_camera_ver_speed = pLevel_Manager->m_camera->m_ver_offset_speed;
 
 	m_audio_music = pAudio->m_music_enabled;
 	m_audio_sound = pAudio->m_sound_enabled;
 
 	// if not default joy used
-	if( pJoystick->cur_stick > 0 )
+	if( pJoystick->m_current_joystick > 0 )
 	{
 		m_joy_name = pJoystick->Get_Name();
 	}
@@ -337,8 +367,8 @@ void cPreferences :: Update( void )
 
 void cPreferences :: Apply( void )
 {
-	pLevel_Manager->camera->hor_offset_speed = m_camera_hor_speed;
-	pLevel_Manager->camera->ver_offset_speed = m_camera_ver_speed;
+	pLevel_Manager->m_camera->m_hor_offset_speed = m_camera_hor_speed;
+	pLevel_Manager->m_camera->m_ver_offset_speed = m_camera_ver_speed;
 	
 	// disable joystick if the joystick initialization failed
 	if( pVideo->m_joy_init_failed )
@@ -565,7 +595,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
-		if( val >= 0 && val <= 1000 )
+		if( val >= 0 && val <= SDLK_LAST )
 		{
 			m_key_up = static_cast<SDLKey>(val);
 		}
@@ -574,7 +604,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
-		if( val >= 0 && val <= 1000 )
+		if( val >= 0 && val <= SDLK_LAST )
 		{
 			m_key_down = static_cast<SDLKey>(val);
 		}
@@ -583,7 +613,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
-		if( val >= 0 && val <= 1000 )
+		if( val >= 0 && val <= SDLK_LAST )
 		{
 			m_key_left = static_cast<SDLKey>(val);
 		}
@@ -592,7 +622,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
-		if( val >= 0 && val <= 1000 )
+		if( val >= 0 && val <= SDLK_LAST )
 		{
 			m_key_right = static_cast<SDLKey>(val);
 		}
@@ -601,7 +631,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
-		if( val >= 0 && val <= 1000 )
+		if( val >= 0 && val <= SDLK_LAST )
 		{
 			m_key_jump = static_cast<SDLKey>(val);
 		}
@@ -610,24 +640,113 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
-		if( val >= 0 && val <= 1000 )
+		if( val >= 0 && val <= SDLK_LAST )
 		{
 			m_key_shoot = static_cast<SDLKey>(val);
+		}
+	}
+	else if( name.compare( "keyboard_key_item" ) == 0 )
+	{
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= SDLK_LAST )
+		{
+			m_key_item = static_cast<SDLKey>(val);
 		}
 	}
 	else if( name.compare( "keyboard_key_action" ) == 0 )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
-		if( val >= 0 && val <= 1000 )
+		if( val >= 0 && val <= SDLK_LAST )
 		{
 			m_key_action = static_cast<SDLKey>(val);
 		}
 	}
-	// scroll speed
 	else if( name.compare( "keyboard_scroll_speed" ) == 0 )
 	{
 		m_scroll_speed = attributes.getValueAsFloat( "Value" );
+	}
+	else if( name.compare( "keyboard_key_screenshot" ) == 0 )
+	{
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= SDLK_LAST )
+		{
+			m_key_screenshot = static_cast<SDLKey>(val);
+		}
+	}
+	else if( name.compare( "keyboard_key_editor_fast_copy_up" ) == 0 )
+	{
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= SDLK_LAST )
+		{
+			m_key_editor_fast_copy_up = static_cast<SDLKey>(val);
+		}
+	}
+	else if( name.compare( "keyboard_key_editor_fast_copy_down" ) == 0 )
+	{
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= SDLK_LAST )
+		{
+			m_key_editor_fast_copy_down = static_cast<SDLKey>(val);
+		}
+	}
+	else if( name.compare( "keyboard_key_editor_fast_copy_left" ) == 0 )
+	{
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= SDLK_LAST )
+		{
+			m_key_editor_fast_copy_left = static_cast<SDLKey>(val);
+		}
+	}
+	else if( name.compare( "keyboard_key_editor_fast_copy_right" ) == 0 )
+	{
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= SDLK_LAST )
+		{
+			m_key_editor_fast_copy_right = static_cast<SDLKey>(val);
+		}
+	}
+		else if( name.compare( "keyboard_key_editor_pixel_move_up" ) == 0 )
+	{
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= SDLK_LAST )
+		{
+			m_key_editor_pixel_move_up = static_cast<SDLKey>(val);
+		}
+	}
+	else if( name.compare( "keyboard_key_editor_pixel_move_down" ) == 0 )
+	{
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= SDLK_LAST )
+		{
+			m_key_editor_pixel_move_down = static_cast<SDLKey>(val);
+		}
+	}
+	else if( name.compare( "keyboard_key_editor_pixel_move_left" ) == 0 )
+	{
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= SDLK_LAST )
+		{
+			m_key_editor_pixel_move_left = static_cast<SDLKey>(val);
+		}
+	}
+	else if( name.compare( "keyboard_key_editor_pixel_move_right" ) == 0 )
+	{
+		int val = attributes.getValueAsInteger( "Value" );
+
+		if( val >= 0 && val <= SDLK_LAST )
+		{
+			m_key_editor_pixel_move_right = static_cast<SDLKey>(val);
+		}
 	}
 	// Joypad
 	else if( name.compare( "joy_enabled" ) == 0 )
@@ -646,7 +765,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
-		if( val >= 0 && val <= 15 )
+		if( val >= 0 && val <= 256 )
 		{
 			m_joy_axis_hor = val;
 		}
@@ -655,7 +774,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
-		if( val >= 0 && val <= 15 )
+		if( val >= 0 && val <= 256 )
 		{
 			m_joy_axis_ver = val;
 		}
@@ -664,7 +783,7 @@ void cPreferences :: handle_item( const CEGUI::XMLAttributes& attributes )
 	{
 		int val = attributes.getValueAsInteger( "Value" );
 
-		if( val >= 0 && val <= 32000 )
+		if( val >= 0 && val <= 32767 )
 		{
 			m_joy_axis_threshold = val;
 		}

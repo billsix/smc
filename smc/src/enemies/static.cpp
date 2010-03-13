@@ -15,13 +15,14 @@
 
 #include "../enemies/static.h"
 #include "../core/game_core.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../level/level.h"
 #include "../gui/hud.h"
 #include "../video/gl_surface.h"
 #include "../core/sprite_manager.h"
 #include "../core/i18n.h"
 #include "../objects/path.h"
+#include "../core/filesystem/filesystem.h"
 // CEGUI
 #include "CEGUIXMLAttributes.h"
 
@@ -30,14 +31,14 @@ namespace SMC
 
 /* *** *** *** *** *** *** cStaticEnemy *** *** *** *** *** *** *** *** *** *** *** */
 
-cStaticEnemy :: cStaticEnemy( float x, float y )
-: cEnemy( x, y )
+cStaticEnemy :: cStaticEnemy( cSprite_Manager *sprite_manager )
+: cEnemy( sprite_manager ), m_path_state( sprite_manager )
 {
 	cStaticEnemy::Init();
 }
 
-cStaticEnemy :: cStaticEnemy( CEGUI::XMLAttributes &attributes )
-: cEnemy()
+cStaticEnemy :: cStaticEnemy( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cEnemy( sprite_manager ), m_path_state( sprite_manager )
 {
 	cStaticEnemy::Init();
 	cStaticEnemy::Create_From_Stream( attributes );
@@ -55,7 +56,6 @@ void cStaticEnemy :: Init( void )
 	m_can_be_on_ground = 0;
 	m_can_be_hit_from_shell = 0;
 
-	m_path_state = cPath_State();
 	Set_Rotation_Speed( 0.0f );
     Set_Speed( 0.0f );
 	Set_Static_Image( "enemy/static/blocks/spike_1/2_grey.png" );
@@ -68,16 +68,16 @@ void cStaticEnemy :: Init_Links( void )
 	m_path_state.Set_Path_Identifier( m_path_state.m_path_identifier );
 }
 
-cStaticEnemy *cStaticEnemy :: Copy( void )
+cStaticEnemy *cStaticEnemy :: Copy( void ) const
 {
-	cStaticEnemy *static_enemy = new cStaticEnemy( m_start_pos_x, m_start_pos_y );
+	cStaticEnemy *static_enemy = new cStaticEnemy( m_sprite_manager );
+	static_enemy->Set_Pos( m_start_pos_x, m_start_pos_y, 1 );
 	static_enemy->Set_Static_Image( m_img_filename );
 	static_enemy->Set_Rotation_Speed( m_rotation_speed );
     static_enemy->Set_Path_Identifier( m_path_state.m_path_identifier );
     static_enemy->Set_Speed( m_speed );
 	static_enemy->m_fire_resistant = m_fire_resistant;
 	static_enemy->m_ice_resistance = m_ice_resistance;
-
 	return static_enemy;
 }
 
@@ -126,6 +126,12 @@ void cStaticEnemy :: Save_To_Stream( ofstream &file )
 	file << "\t</enemy>" << std::endl;
 }
 
+void cStaticEnemy :: Set_Sprite_Manager( cSprite_Manager *sprite_manager )
+{
+	cSprite::Set_Sprite_Manager( sprite_manager );
+	m_path_state.Set_Sprite_Manager( sprite_manager );
+}
+
 void cStaticEnemy :: Load_From_Savegame( cSave_Level_Object *save_object )
 {
 	cEnemy::Load_From_Savegame( save_object );
@@ -147,7 +153,7 @@ void cStaticEnemy :: Set_Rotation_Speed( float speed )
 
 void cStaticEnemy :: Set_Static_Image( const std::string &filename )
 {
-	if( filename.empty() )
+	if( filename.empty() || ( !File_Exists( filename ) && !File_Exists( DATA_DIR "/" GAME_PIXMAPS_DIR "/" + filename ) ) )
 	{
 		return;
 	}
@@ -202,11 +208,10 @@ void cStaticEnemy :: Update_Dying( void )
 	{
 		Move( 0.0f, -5.0f );
 	}
-	// if not below the screen fall
-	else if( m_pos_y < game_res_h + m_col_rect.m_h )
+	// if not below the ground : fall
+	else if( m_col_rect.m_y < pActive_Camera->m_limit_rect.m_y )
 	{
 		Move( 0.0f, 20.0f );
-
 		Add_Scale( -pFramerate->m_speed_factor * 0.01f );
 	}
 	// if below disable
@@ -222,7 +227,7 @@ void cStaticEnemy :: Update( void )
 {
 	cEnemy::Update();
 
-	if( !m_valid_update || !Is_In_Player_Range() )
+	if( !m_valid_update || !Is_In_Range() )
 	{
 		return;
 	}
@@ -246,8 +251,8 @@ void cStaticEnemy :: Update( void )
         }
 
     	// get difference
-		float diff_x = ( m_path_state.m_path->m_start_pos_x + m_path_state.pos_x ) - m_pos_x;
-		float diff_y = ( m_path_state.m_path->m_start_pos_y + m_path_state.pos_y ) - m_pos_y;
+		float diff_x = ( m_path_state.m_path->m_start_pos_x + m_path_state.m_pos_x ) - m_pos_x;
+		float diff_y = ( m_path_state.m_path->m_start_pos_y + m_path_state.m_pos_y ) - m_pos_y;
 
 		// move to position
         Set_Velocity( diff_x, diff_y );
@@ -330,18 +335,18 @@ Col_Valid_Type cStaticEnemy :: Validate_Collision( cSprite *obj )
 
 void cStaticEnemy :: Handle_Collision_Player( cObjectCollision *collision )
 {
-	pPlayer->DownGrade_Player();
+	pLevel_Player->DownGrade_Player();
 }
 
 void cStaticEnemy :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
 	// invalid
-	if( collision->number < 0 )
+	if( collision->m_number < 0 )
 	{
 		return;
 	}
 
-	cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
+	cEnemy *enemy = static_cast<cEnemy *>(m_sprite_manager->Get_Pointer( collision->m_number ));
 
 	// already dead
 	if( enemy->m_dead )

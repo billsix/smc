@@ -14,10 +14,11 @@
 */
 
 #include "../core/game_core.h"
+#include "../gui/generic.h"
 #include "../input/keyboard.h"
 #include "../input/mouse.h"
 #include "../input/joystick.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../gui/menu.h"
 #include "../overworld/overworld.h"
 #include "../core/framerate.h"
@@ -45,7 +46,7 @@ cKeyboard :: ~cKeyboard( void )
 void cKeyboard :: Reset_Keys( void )
 {
 	// set all keys to 0
-	memset( keys, 0, sizeof( keys ) );
+	memset( m_keys, 0, sizeof( m_keys ) );
 }
 
 bool cKeyboard :: CEGUI_Handle_Key_Up( SDLKey key ) const
@@ -63,7 +64,7 @@ bool cKeyboard :: CEGUI_Handle_Key_Up( SDLKey key ) const
 bool cKeyboard :: Key_Up( SDLKey key )
 {
 	// set key to 0
-	keys[key] = 0;
+	m_keys[key] = 0;
 
 	// input was processed by the gui system
 	if( CEGUI_Handle_Key_Up( key ) )
@@ -123,24 +124,24 @@ bool cKeyboard :: Key_Down( SDLKey key )
 	}
 
 	// set key to 1
-	keys[key] = 1;
+	m_keys[key] = 1;
 
 	// ## first the internal keys
 
 	// game exit
-	if( key == SDLK_F4 && input_event.key.keysym.mod & KMOD_ALT )
+	if( key == SDLK_F4 && pKeyboard->Is_Alt_Down() )
 	{
 		game_exit = 1;
 		return 1;
 	}
 	// fullscreen toggle
-	else if( key == SDLK_RETURN && input_event.key.keysym.mod & KMOD_ALT )
+	else if( key == SDLK_RETURN && pKeyboard->Is_Alt_Down() )
 	{
 		pVideo->Toggle_Fullscreen();
 		return 1;
 	}
 	// GUI copy
-	else if( key == SDLK_c && input_event.key.keysym.mod & KMOD_CTRL )
+	else if( key == SDLK_c && pKeyboard->Is_Ctrl_Down() )
 	{
 		if( GUI_Copy_To_Clipboard() )
 		{
@@ -148,7 +149,7 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		}
 	}
 	// GUI cut
-	else if( key == SDLK_x && input_event.key.keysym.mod & KMOD_CTRL )
+	else if( key == SDLK_x && pKeyboard->Is_Ctrl_Down() )
 	{
 		if( GUI_Copy_To_Clipboard( 1 ) )
 		{
@@ -156,7 +157,7 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		}
 	}
 	// GUI paste
-	else if( key == SDLK_v && input_event.key.keysym.mod & KMOD_CTRL )
+	else if( key == SDLK_v && pKeyboard->Is_Ctrl_Down() )
 	{
 		if( GUI_Paste_From_Clipboard() )
 		{
@@ -192,7 +193,7 @@ bool cKeyboard :: Key_Down( SDLKey key )
 	else if( Game_Mode == MODE_LEVEL_SETTINGS )
 	{
 		// processed by the level settings
-		if( pLevel_Editor->pSettings->Key_Down( key ) )
+		if( pLevel_Editor->m_settings_screen->Key_Down( key ) )
 		{
 			return 1;
 		}
@@ -222,7 +223,7 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		}
 	}
 	// take a screenshot
-	else if( key == SDLK_PRINT )
+	else if( key == pPreferences->m_key_screenshot )
 	{
 		pVideo->Save_Screenshot();
 	}
@@ -232,12 +233,12 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		Draw_Static_Text( "Pause", &yellow, &lightgreyalpha64 );
 	}
 	// load a level
-	else if( key == SDLK_l && input_event.key.keysym.mod & KMOD_CTRL && !( Game_Mode == MODE_OVERWORLD && pOverworld_Manager->debugmode ) && Game_Mode != MODE_LEVEL_SETTINGS )
+	else if( key == SDLK_l && pKeyboard->Is_Ctrl_Down() && !( Game_Mode == MODE_OVERWORLD && pOverworld_Manager->m_debug_mode ) && Game_Mode != MODE_LEVEL_SETTINGS )
 	{
 		pLevel_Editor->Function_Load();
 	}
 	// load an overworld
-	else if( key == SDLK_w && input_event.key.keysym.mod & KMOD_CTRL && !( Game_Mode == MODE_OVERWORLD && pOverworld_Manager->debugmode ) && Game_Mode != MODE_LEVEL_SETTINGS )
+	else if( key == SDLK_w && pKeyboard->Is_Ctrl_Down() && !( Game_Mode == MODE_OVERWORLD && pOverworld_Manager->m_debug_mode ) && Game_Mode != MODE_LEVEL_SETTINGS )
 	{
 		pWorld_Editor->Function_Load();
 	}
@@ -248,11 +249,11 @@ bool cKeyboard :: Key_Down( SDLKey key )
 
 		if( !pAudio->m_sound_enabled )
 		{
-			pHud_Debug->Set_Text( "Sound Disabled" );
+			pHud_Debug->Set_Text( "Sound disabled" );
 		}
 		else
 		{
-			pHud_Debug->Set_Text( "Sound Enabled" );
+			pHud_Debug->Set_Text( "Sound enabled" );
 		}
 	}
 	// music toggle
@@ -262,15 +263,15 @@ bool cKeyboard :: Key_Down( SDLKey key )
 
 		if( !pAudio->m_music_enabled )
 		{
-			pHud_Debug->Set_Text( "Music Disabled" );
+			pHud_Debug->Set_Text( "Music disabled" );
 		}
 		else
 		{
-			pHud_Debug->Set_Text( "Music Enabled" );
+			pHud_Debug->Set_Text( "Music enabled" );
 		}
 	}
 	// debug mode
-	else if( key == SDLK_d && input_event.key.keysym.mod & KMOD_CTRL )
+	else if( key == SDLK_d && pKeyboard->Is_Ctrl_Down() )
 	{
 		if( game_debug )
 		{
@@ -278,7 +279,7 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		}
 		else
 		{
-			pFramerate->m_fps_worst = 1000;
+			pFramerate->m_fps_worst = 100000;
 			pFramerate->m_fps_best = 0;
 			pHud_Debug->Set_Text( "Debug mode enabled" );
 		}
@@ -286,7 +287,7 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		game_debug = !game_debug;
 	}
 	// performance mode
-	else if( key == SDLK_p && input_event.key.keysym.mod & KMOD_CTRL )
+	else if( key == SDLK_p && pKeyboard->Is_Ctrl_Down() )
 	{
 		if( game_debug_performance )
 		{
@@ -294,55 +295,15 @@ bool cKeyboard :: Key_Down( SDLKey key )
 		}
 		else
 		{
-			pFramerate->m_fps_worst = 1000;
+			pFramerate->m_fps_worst = 100000;
 			pFramerate->m_fps_best = 0;
-			pHud_Debug->Set_Text( "Performance debug mode  enabled" );
+			pHud_Debug->Set_Text( "Performance debug mode enabled" );
 		}
 
 		game_debug_performance = !game_debug_performance;
 	}
 
 	return 0;
-}
-
-SDLKey *cKeyboard :: Get_Shortcut( const input_identifier shortcut_id ) const
-{
-	if( shortcut_id == INP_UP )
-	{
-		return &pPreferences->m_key_up;
-	}
-	else if( shortcut_id == INP_DOWN )
-	{
-		return &pPreferences->m_key_down;
-	}
-	else if( shortcut_id == INP_LEFT )
-	{
-		return &pPreferences->m_key_left;
-	}
-	else if( shortcut_id == INP_RIGHT )
-	{
-		return &pPreferences->m_key_right;
-	}
-	else if( shortcut_id == INP_JUMP )
-	{
-		return &pPreferences->m_key_jump;
-	}
-	else if( shortcut_id == INP_SHOOT )
-	{
-		return &pPreferences->m_key_shoot; 
-	}
-	else if( shortcut_id == INP_ACTION )
-	{
-		return &pPreferences->m_key_action; 
-	}
-
-	return NULL;
-}
-
-void cKeyboard :: Assign_Shortcut( const input_identifier shortcut_id, SDLKey new_key )
-{
-	SDLKey *key = Get_Shortcut( shortcut_id );
-	*key = new_key;
 }
 
 unsigned int cKeyboard :: SDLKey_to_CEGUIKey( const SDLKey key ) const

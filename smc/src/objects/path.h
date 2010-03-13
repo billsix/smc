@@ -16,7 +16,7 @@
 #ifndef SMC_PATH_H
 #define SMC_PATH_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../objects/sprite.h"
 
 namespace SMC
@@ -31,16 +31,21 @@ class cPath_State
 {
 public:
 	// constructor
-	cPath_State( void );
+	cPath_State( cSprite_Manager *sprite_manager );
 	~cPath_State( void );
 
 	// load from savegame
 	void Load_From_Savegame( cSave_Level_Object *save_object );
 	// save to an existing savegame object
 	void Save_To_Savegame( cSave_Level_Object *save_object );
+	// Set the parent sprite manager
+	void Set_Sprite_Manager( cSprite_Manager *sprite_manager );
 
 	// draw current position
 	void Draw( void );
+
+	// Get the level path object with the given identifier
+	cPath *Get_Path_Object( const std::string &identifier );
 
     /* Set the parent path identifier
 	 * sets the position back to the start
@@ -68,20 +73,24 @@ public:
 	*/
 	bool Path_Move( float distance );
 
+	// the parent sprite manager
+	cSprite_Manager *m_sprite_manager;
+
 	// parent path identifier
 	std::string m_path_identifier;
 	// parent path pointer ( auto removes the link if destroyed itself )
 	cPath *m_path;
 
 	// current position
-	float pos_x, pos_y;
+	float m_pos_x;
+	float m_pos_y;
 
 	// current direction
-	bool forward;
+	bool m_forward;
 	// current segment position
-	float current_segment_pos;
+	float m_current_segment_pos;
 	// current segment
-	unsigned int current_segment;
+	unsigned int m_current_segment;
 };
 
 /* *** *** *** *** *** *** *** cPath_Segment *** *** *** *** *** *** *** *** *** *** */
@@ -131,16 +140,16 @@ class cPath : public cSprite
 {
 public:
 	// constructor
-	cPath( void );
+	cPath( cSprite_Manager *sprite_manager );
 	// create from stream
-	cPath( CEGUI::XMLAttributes &attributes );
+	cPath( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cPath( void );
 
 	// initialize defaults
 	void Init( void );
 	// copy this sprite
-	virtual cPath *Copy( void );
+	virtual cPath *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -204,18 +213,17 @@ public:
 
 	// line segments
 	typedef vector<cPath_Segment> PathList;
-	PathList segments;
+	PathList m_segments;
 
 	// linked path states
 	typedef vector<cPath_State *> PathStateList;
-	PathStateList linked_path_states;
+	PathStateList m_linked_path_states;
 
 private:
-
 	// editor color
-	Color editor_color;
+	Color m_editor_color;
 	// editor selected segment
-	unsigned int editor_selected_segment;
+	unsigned int m_editor_selected_segment;
 };
 
 

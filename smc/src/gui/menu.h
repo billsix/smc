@@ -16,7 +16,7 @@
 #ifndef SMC_MENU_H
 #define SMC_MENU_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../video/animation.h"
 #include "../video/video.h"
 #include "../gui/hud.h"
@@ -51,25 +51,25 @@ enum OptionMenuID
 class cMenu_Item : public cHudSprite
 {
 public:
-	cMenu_Item( void );
+	cMenu_Item( cSprite_Manager *sprite_manager );
 	virtual ~cMenu_Item( void );
 
 	// Sets the Active Modifier
-	void Set_Active( bool nactive = 0 );
+	void Set_Active( bool active = 0 );
 	// Draws the Menu Item
 	virtual void Draw( cSurface_Request *request = NULL );
 
 	// The menu images
-	cHudSprite *image_default;
+	cHudSprite *m_image_default;
 	// The additional Menu Graphic
-	cHudSprite *image_menu;
+	cHudSprite *m_image_menu;
 	
 	// if this item quits the menu
-	bool isquit;
+	bool m_is_quit;
 
 private:
 	// Is this Item active
-	bool active;
+	bool m_active;
 };
 
 typedef vector<cMenu_Item *> MenuList;
@@ -109,18 +109,20 @@ public:
 	// Returns the number of loaded Menus
 	unsigned int Get_Size( void ) const;
 
+	// menu camera
+	cCamera *m_camera;
 	// menu level
 	cLevel *m_level;
 	// menu player (currently only used to set the pActive_Player)
 	cSprite *m_player;
 
-	/* The Currently Active Menu Item
+	/* The currently active Menu Item
 	* if set to -1 nothing is active
 	*/
-	int active;
+	int m_active;
 
 private:
-	MenuList items;
+	MenuList m_items;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -165,9 +167,14 @@ public:
 	/* Load the given Menu
 	 * exit_gamemode : return to this game mode on exit
 	*/
-	void Load( MenuID menu = MENU_MAIN, GameMode exit_gamemode = MODE_NOTHING );
+	void Load( const MenuID menu = MENU_MAIN, const GameMode exit_gamemode = MODE_NOTHING );
 	// Unload
 	void Unload( void );
+
+	// Enter
+	void Enter( const GameMode old_mode = MODE_NOTHING );
+	// Leave
+	void Leave( const GameMode next_mode = MODE_NOTHING );
 
 	// Update current Menu
 	void Update( void );
@@ -175,21 +182,19 @@ public:
 	void Draw( void );
 
 	// current menu id
-	MenuID menu_id;
+	MenuID m_menu_id;
 	// for entering another menu after leaving
-	MenuID next_menu;
+	MenuID m_next_menu;
 	// the current option menu
-	OptionMenuID options_menu_id;
+	OptionMenuID m_options_menu_id;
 
-	// menu camera
-	cCamera *camera;
 	// Menu class
-	cMenu_Base *pMenu_Data;
+	cMenu_Base *m_menu_data;
 
 	// Menu handler
-	cMenuHandler *handler;
+	cMenuHandler *m_handler;
 	// Menu Animation Manager
-	cAnimation_Manager *pMenu_AnimManager;
+	cAnimation_Manager *m_animation_manager;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

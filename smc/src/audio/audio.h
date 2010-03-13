@@ -16,7 +16,7 @@
 #ifndef SMC_AUDIO_H
 #define SMC_AUDIO_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../audio/sound_manager.h"
 
 namespace SMC
@@ -175,7 +175,7 @@ public:
 	// Set the Music Volume
 	void Set_Music_Volume( Uint8 volume ) const;
 
-	// Update the Audio Engine
+	// Update
 	void Update( void );
 
 	// is the audio engine initialized
@@ -190,7 +190,9 @@ public:
 	// current music and sound volume
 	Uint8 m_sound_volume, m_music_volume;
 
-	// current playing Music pointer
+	// current playing music filename
+	std::string m_music_filename;
+	// current playing music pointer
 	Mix_Music *m_music;
 	// if new music should play after the current this is the old data
 	Mix_Music *m_music_old;

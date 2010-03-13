@@ -16,7 +16,7 @@
 #ifndef SMC_IMG_SETTINGS_H
 #define SMC_IMG_SETTINGS_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../core/file_parser.h"
 #include "../video/gl_surface.h"
 #include "../core/math/rect.h"

@@ -19,7 +19,7 @@
 #include "../core/framerate.h"
 #include "../level/level.h"
 #include "../core/game_core.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../video/gl_surface.h"
 #include "../user/savegame.h"
 #include "../core/sprite_manager.h"
@@ -35,8 +35,8 @@ namespace SMC
 
 /* *** *** *** *** *** *** *** *** cBaseBox *** *** *** *** *** *** *** *** *** */
 
-cBaseBox :: cBaseBox( float x /* = 0 */, float y /* = 0 */ )
-: cAnimated_Sprite( x, y )
+cBaseBox :: cBaseBox( cSprite_Manager *sprite_manager )
+: cAnimated_Sprite( sprite_manager )
 {
 	m_type = TYPE_ACTIVESPRITE;
 	m_sprite_array = ARRAY_ACTIVE;
@@ -45,19 +45,19 @@ cBaseBox :: cBaseBox( float x /* = 0 */, float y /* = 0 */ )
 	Set_Scale_Directions( 1, 1, 1, 1 );
 
 	box_type = TYPE_UNDEFINED;
-	item_image = NULL;
+	m_item_image = NULL;
 	m_pos_z = 0.055f;
 
-	move_col_dir = DIR_UNDEFINED;
-	move_counter = 0.0f;
-	move_back = 0;
+	m_move_col_dir = DIR_UNDEFINED;
+	m_move_counter = 0.0f;
+	m_move_back = 0;
 	// default = usable once
-	useable_count = 1;
-	start_useable_count = 1;
+	m_useable_count = 1;
+	m_start_useable_count = 1;
 
-	box_invisible = BOX_VISIBLE;
+	m_box_invisible = BOX_VISIBLE;
 
-	particle_counter_active = 0.0f;
+	m_particle_counter_active = 0.0f;
 }
 
 cBaseBox :: ~cBaseBox( void )
@@ -72,12 +72,12 @@ void cBaseBox :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 	if( box_type != TYPE_SPINBOX && box_type != TYPE_TEXT_BOX )
 	{
 		// animation
-		Set_Animation_Type( attributes.getValueAsString( "animation", anim_type ).c_str() );
+		Set_Animation_Type( attributes.getValueAsString( "animation", m_anim_type ).c_str() );
 	}
 	// invisible
 	Set_Invisible( static_cast<Box_Invisible_Type>(attributes.getValueAsInteger( "invisible" )) );
 	// useable count
-	Set_Useable_Count( attributes.getValueAsInteger( "useable_count", start_useable_count ), 1 );
+	Set_Useable_Count( attributes.getValueAsInteger( "useable_count", m_start_useable_count ), 1 );
 }
 
 void cBaseBox :: Save_To_Stream( ofstream &file )
@@ -98,14 +98,14 @@ void cBaseBox :: Save_To_Stream( ofstream &file )
 	{
 		file << "\t\t<Property name=\"type\" value=\"bonus\" />" << std::endl;
 		// animation type
-		file << "\t\t<Property name=\"animation\" value=\"" << anim_type << "\" />" << std::endl;
+		file << "\t\t<Property name=\"animation\" value=\"" << m_anim_type << "\" />" << std::endl;
 		// best possible item
 		file << "\t\t<Property name=\"item\" value=\"" << box_type << "\" />" << std::endl;
 	}
 	// invisible
-	file << "\t\t<Property name=\"invisible\" value=\"" << box_invisible << "\" />" << std::endl;
+	file << "\t\t<Property name=\"invisible\" value=\"" << m_box_invisible << "\" />" << std::endl;
 	// useable count
-	file << "\t\t<Property name=\"useable_count\" value=\"" << start_useable_count << "\" />" << std::endl;
+	file << "\t\t<Property name=\"useable_count\" value=\"" << m_start_useable_count << "\" />" << std::endl;
 }
 
 void cBaseBox :: Load_From_Savegame( cSave_Level_Object *save_object )
@@ -118,7 +118,7 @@ void cBaseBox :: Load_From_Savegame( cSave_Level_Object *save_object )
 cSave_Level_Object *cBaseBox :: Save_To_Savegame( void )
 {
 	// only save if needed
-	if( useable_count == start_useable_count )
+	if( m_useable_count == m_start_useable_count )
 	{
 		return NULL;
 	}
@@ -131,7 +131,7 @@ cSave_Level_Object *cBaseBox :: Save_To_Savegame( void )
 	save_object->m_properties.push_back( cSave_Level_Object_Property( "posy", int_to_string( static_cast<int>(m_start_pos_y) ) ) );
 
 	// Useable Count
-	save_object->m_properties.push_back( cSave_Level_Object_Property( "useable_count", int_to_string( useable_count ) ) );
+	save_object->m_properties.push_back( cSave_Level_Object_Property( "useable_count", int_to_string( m_useable_count ) ) );
 
 	return save_object;
 }
@@ -139,15 +139,15 @@ cSave_Level_Object *cBaseBox :: Save_To_Savegame( void )
 void cBaseBox :: Set_Animation_Type( const std::string &new_anim_type )
 {
 	// already set
-	if( anim_type.compare( new_anim_type ) == 0 )
+	if( m_anim_type.compare( new_anim_type ) == 0 )
 	{
 		return;
 	}
 
 	Clear_Images();
-	anim_type = new_anim_type;
+	m_anim_type = new_anim_type;
 
-	if( anim_type.compare( "Bonus" ) == 0 )
+	if( m_anim_type.compare( "Bonus" ) == 0 )
 	{
 		// disabled image
 		Add_Image( pVideo->Get_Surface( "game/box/brown1_1.png" ) );
@@ -163,7 +163,7 @@ void cBaseBox :: Set_Animation_Type( const std::string &new_anim_type )
 		Set_Animation_Image_Range( 1, 6 );
 		Set_Time_All( 90, 1 );
 	}
-	else if( anim_type.compare( "Default" ) == 0 )
+	else if( m_anim_type.compare( "Default" ) == 0 )
 	{
 		// disabled image
 		Add_Image( pVideo->Get_Surface( "game/box/brown1_1.png" ) );
@@ -173,7 +173,7 @@ void cBaseBox :: Set_Animation_Type( const std::string &new_anim_type )
 		Set_Animation( 0 );
 		Set_Animation_Image_Range( 1, 1 );
 	}
-	else if( anim_type.compare( "Power" ) == 0 )
+	else if( m_anim_type.compare( "Power" ) == 0 )
 	{
 		// disabled image
 		Add_Image( pVideo->Get_Surface( "game/box/brown1_1.png" ) );
@@ -183,7 +183,7 @@ void cBaseBox :: Set_Animation_Type( const std::string &new_anim_type )
 		Set_Animation( 0 );
 		Set_Animation_Image_Range( 1, 1 );
 	}
-	else if( anim_type.compare( "Spin" ) == 0 )
+	else if( m_anim_type.compare( "Spin" ) == 0 )
 	{
 		// disabled image
 		Add_Image( pVideo->Get_Surface( "game/box/yellow/spin/disabled.png" ) );
@@ -201,7 +201,7 @@ void cBaseBox :: Set_Animation_Type( const std::string &new_anim_type )
 	}
 	else
 	{
-		printf( "Warning : Unknown Box Animation Type %s\n", anim_type.c_str() );
+		printf( "Warning : Unknown Box Animation Type %s\n", m_anim_type.c_str() );
 		Set_Animation_Type( "Bonus" );
 	}
 
@@ -212,16 +212,16 @@ void cBaseBox :: Set_Animation_Type( const std::string &new_anim_type )
 
 void cBaseBox :: Set_Useable_Count( int count, bool new_startcount /* = 0 */ )
 {
-	useable_count = count;
+	m_useable_count = count;
 
 	if( new_startcount )
 	{
-		start_useable_count = useable_count;
+		m_start_useable_count = m_useable_count;
 
 		// unlimited
-		if( start_useable_count < -1 )
+		if( m_start_useable_count < -1 )
 		{
-			start_useable_count = -1;
+			m_start_useable_count = -1;
 		}
 	}
 }
@@ -229,15 +229,15 @@ void cBaseBox :: Set_Useable_Count( int count, bool new_startcount /* = 0 */ )
 void cBaseBox :: Set_Invisible( Box_Invisible_Type type )
 {
 	// already set
-	if( box_invisible == type )
+	if( m_box_invisible == type )
 	{
 		return;
 	}
 
 	// remember old type
-	Box_Invisible_Type type_old = box_invisible;
+	Box_Invisible_Type type_old = m_box_invisible;
 	// set new type
-	box_invisible = type;
+	m_box_invisible = type;
 
 	// was invisible
 	if( type_old == BOX_INVISIBLE_MASSIVE || type_old == BOX_INVISIBLE_SEMI_MASSIVE )
@@ -275,75 +275,75 @@ void cBaseBox :: Set_Invisible( Box_Invisible_Type type )
 	Create_Name();
 }
 
-void cBaseBox :: Activate_Collision( ObjectDirection cdirection )
+void cBaseBox :: Activate_Collision( ObjectDirection col_direction )
 {
 	// if already active ignore event
-	if( move_col_dir != DIR_UNDEFINED )
+	if( m_move_col_dir != DIR_UNDEFINED )
 	{
 		return;
 	}
 
 	// not useable
-	if( useable_count == 0 )
+	if( m_useable_count == 0 )
 	{
 		return;
 	}
 
 	// if invisible go visible
-	if( box_invisible )
+	if( m_box_invisible )
 	{
 		// get massive
-		if( box_invisible == BOX_INVISIBLE_SEMI_MASSIVE )
+		if( m_box_invisible == BOX_INVISIBLE_SEMI_MASSIVE )
 		{
 			m_massive_type = MASS_MASSIVE;
 		}
 	}
 
 	// set scaling based on direction
-	if( cdirection == DIR_UP )
+	if( col_direction == DIR_UP )
 	{
 		Set_Scale_Directions( 1, 0, 1, 1 );
 	}
-	else if( cdirection == DIR_DOWN )
+	else if( col_direction == DIR_DOWN )
 	{
 		Set_Scale_Directions( 0, 1, 1, 1 );
 	}
-	else if( cdirection == DIR_LEFT )
+	else if( col_direction == DIR_LEFT )
 	{
 		Set_Scale_Directions( 1, 0, 1, 0 );
 	}
-	else if( cdirection == DIR_RIGHT )
+	else if( col_direction == DIR_RIGHT )
 	{
 		Set_Scale_Directions( 1, 0, 0, 1 );
 	}
 
 	// set collision direction
-	move_col_dir = cdirection;
+	m_move_col_dir = col_direction;
 	Update_Valid_Update();
 
-	Check_Collision( Get_Opposite_Direction( move_col_dir ) );
+	Check_Collision( Get_Opposite_Direction( m_move_col_dir ) );
 	Activate();
 
 	// set useable count
-	if( useable_count > 0 || useable_count == -1 )
+	if( m_useable_count > 0 || m_useable_count == -1 )
 	{
-		Set_Useable_Count( useable_count - 1 );
+		Set_Useable_Count( m_useable_count - 1 );
 	}
 }
 
 void cBaseBox :: Update_Collision( void )
 {
 	// not moving
-	if( move_col_dir == DIR_UNDEFINED )
+	if( m_move_col_dir == DIR_UNDEFINED )
 	{
 		return;
 	}
 
 	// invalid direction
-	if( move_col_dir != DIR_UP && move_col_dir != DIR_DOWN && move_col_dir != DIR_RIGHT && move_col_dir != DIR_LEFT )
+	if( m_move_col_dir != DIR_UP && m_move_col_dir != DIR_DOWN && m_move_col_dir != DIR_RIGHT && m_move_col_dir != DIR_LEFT )
 	{
-		printf( "Warning : wrong box collision direction %d\n", move_col_dir );
-		move_col_dir = DIR_UNDEFINED;
+		printf( "Warning : wrong box collision direction %d\n", m_move_col_dir );
+		m_move_col_dir = DIR_UNDEFINED;
 		Update_Valid_Update();
 		return;
 	}
@@ -351,10 +351,10 @@ void cBaseBox :: Update_Collision( void )
 	// speed mod
 	float mod = pFramerate->m_speed_factor * 0.05f;
 	// counter
-	move_counter += pFramerate->m_speed_factor * 0.2f;
+	m_move_counter += pFramerate->m_speed_factor * 0.2f;
 
 	// move into the given direction
-	if( !move_back )
+	if( !m_move_back )
 	{
 		// scale
 		Add_Scale( mod );
@@ -363,10 +363,10 @@ void cBaseBox :: Update_Collision( void )
 		Generate_Activation_Particles();
 
 		// check if reached final position
-		if( move_counter > 1.0f )
+		if( m_move_counter > 1.0f )
 		{
-			move_back = 1;
-			move_counter = 0.0f;
+			m_move_back = 1;
+			m_move_counter = 0.0f;
 		}
 	}
 	// move back to the original position
@@ -376,12 +376,12 @@ void cBaseBox :: Update_Collision( void )
 		Add_Scale( -mod );
 
 		// check if reached original position
-		if(	move_counter > 1.0f )
+		if(	m_move_counter > 1.0f )
 		{
-			move_col_dir = DIR_UNDEFINED;
+			m_move_col_dir = DIR_UNDEFINED;
 			Update_Valid_Update();
-			move_back = 0;
-			move_counter = 0.0f;
+			m_move_back = 0;
+			m_move_counter = 0.0f;
 
 			// reset rect
 			m_col_pos = m_image->m_col_pos;
@@ -394,26 +394,26 @@ void cBaseBox :: Update_Collision( void )
 	}
 }
 
-void cBaseBox :: Check_Collision( ObjectDirection cdirection )
+void cBaseBox :: Check_Collision( ObjectDirection col_direction )
 {
 	// additional direction based check position
 	float check_x = 0.0f;
 	float check_y = 0.0f;
 
 	// set the collision size based on the collision direction
-	if( cdirection == DIR_BOTTOM )
+	if( col_direction == DIR_BOTTOM )
 	{
 		check_y -= 10.0f;
 	}
-	else if( cdirection == DIR_TOP )
+	else if( col_direction == DIR_TOP )
 	{
 		check_y += 10.0f;
 	}
-	else if( cdirection == DIR_LEFT ) 
+	else if( col_direction == DIR_LEFT ) 
 	{
 		check_x += 5.0f;
 	}
-	else if( cdirection == DIR_RIGHT )
+	else if( col_direction == DIR_RIGHT )
 	{
 		check_x -= 5.0f;
 	}
@@ -422,17 +422,17 @@ void cBaseBox :: Check_Collision( ObjectDirection cdirection )
 	cObjectCollisionType *col_list = Collision_Check_Relative( check_x, check_y, m_col_rect.m_w - ( check_x * 0.5f ), m_col_rect.m_h - ( check_y * 0.5f ) );
 
 	// handle collisions
-	for( cObjectCollision_List::iterator itr = col_list->objects.begin(), itr_end = col_list->objects.end(); itr != itr_end; ++itr )
+	for( cObjectCollision_List::iterator itr = col_list->objects.begin(); itr != col_list->objects.end(); ++itr )
 	{
 		cObjectCollision *col_obj = (*itr);
 
 		// send box collision
-		col_obj->obj->Handle_Collision_Box( Get_Opposite_Direction( col_obj->direction ), &m_col_rect );
+		col_obj->m_obj->Handle_Collision_Box( Get_Opposite_Direction( col_obj->m_direction ), &m_col_rect );
 
 		// Enemy collision
 		if( col_obj->m_array == ARRAY_ENEMY )
 		{
-			Col_Enemy( col_obj->obj );
+			Col_Enemy( col_obj->m_obj );
 		}
 	}
 
@@ -458,10 +458,10 @@ void cBaseBox :: Activate( void )
 void cBaseBox :: Update( void )
 {
 	// animate only a visible box or an activated invisible box
-	if( box_invisible == BOX_VISIBLE || ( box_invisible == BOX_GHOST && pPlayer->maryo_type == MARYO_GHOST ) || useable_count != start_useable_count )
+	if( m_box_invisible == BOX_VISIBLE || ( m_box_invisible == BOX_GHOST && pLevel_Player->m_maryo_type == MARYO_GHOST ) || m_useable_count != m_start_useable_count )
 	{
 		// Spinbox animation handling
-		if( ( m_type == TYPE_SPINBOX || useable_count != 0 ) && m_anim_enabled )
+		if( ( m_type == TYPE_SPINBOX || m_useable_count != 0 ) && m_anim_enabled )
 		{
 			// Set_Image in Update_Animation overwrites col_pos
 			GL_point col_pos_temp = m_col_pos;
@@ -487,7 +487,7 @@ void cBaseBox :: Draw( cSurface_Request *request /* = NULL */ )
 	if( !editor_level_enabled )
 	{
 		// visible box or activated invisible box
-		if( box_invisible == BOX_VISIBLE || ( box_invisible == BOX_GHOST && pPlayer->maryo_type == MARYO_GHOST ) || useable_count != start_useable_count )
+		if( m_box_invisible == BOX_VISIBLE || ( m_box_invisible == BOX_GHOST && pLevel_Player->m_maryo_type == MARYO_GHOST ) || m_useable_count != m_start_useable_count )
 		{
 			cAnimated_Sprite::Draw( request );
 		}
@@ -496,27 +496,27 @@ void cBaseBox :: Draw( cSurface_Request *request /* = NULL */ )
 	else
 	{
 		// draw invisible box only in editor mode
-		if( box_invisible )
+		if( m_box_invisible )
 		{
 			Color color;
 
 			// default invisible
-			if( box_invisible == BOX_INVISIBLE_MASSIVE )
+			if( m_box_invisible == BOX_INVISIBLE_MASSIVE )
 			{
 				color = Color( static_cast<Uint8>(240), 0, 30, 128 );
 			}
 			// ghost
-			else if( box_invisible == BOX_GHOST )
+			else if( m_box_invisible == BOX_GHOST )
 			{
 				color = Color( static_cast<Uint8>(20), 20, 150, 128 );
 			}
 			// invisible semi massive
-			else if( box_invisible == BOX_INVISIBLE_SEMI_MASSIVE )
+			else if( m_box_invisible == BOX_INVISIBLE_SEMI_MASSIVE )
 			{
 				color = Color( static_cast<Uint8>(180), 0, 10, 128 );
 			}
 
-			pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->x, m_start_pos_y - pActive_Camera->y, m_rect.m_w, m_rect.m_h, m_pos_z, &color );
+			pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->m_x, m_start_pos_y - pActive_Camera->m_y, m_rect.m_w, m_rect.m_h, m_pos_z, &color );
 		}
 		// visible box
 		else
@@ -525,10 +525,10 @@ void cBaseBox :: Draw( cSurface_Request *request /* = NULL */ )
 		}
 
 		// draw item image
-		if( item_image )
+		if( m_item_image )
 		{
 			// auto position
-			item_image->Blit( m_start_pos_x - ( ( item_image->m_w - m_rect.m_w ) / 2 ) - pActive_Camera->x, m_start_pos_y - ( ( item_image->m_h - m_rect.m_h ) / 2 ) - pActive_Camera->y, m_pos_z + 0.000003f );
+			m_item_image->Blit( m_start_pos_x - ( ( m_item_image->m_w - m_rect.m_w ) / 2 ) - pActive_Camera->m_x, m_start_pos_y - ( ( m_item_image->m_h - m_rect.m_h ) / 2 ) - pActive_Camera->m_y, m_pos_z + 0.000003f );
 		}
 	}
 }
@@ -541,12 +541,12 @@ void cBaseBox :: Generate_Activation_Particles( void )
 		return;
 	}
 
-	particle_counter_active += pFramerate->m_speed_factor;
+	m_particle_counter_active += pFramerate->m_speed_factor;
 
-	while( particle_counter_active > 0.0f )
+	while( m_particle_counter_active > 0.0f )
 	{
-		cParticle_Emitter *anim = new cParticle_Emitter();
-		anim->Set_Pos( m_pos_x + Get_Random_Float( 0.0f, m_rect.m_w ), m_pos_y );
+		cParticle_Emitter *anim = new cParticle_Emitter( m_sprite_manager );
+		anim->Set_Pos( m_pos_x + Get_Random_Float( 0.0f, m_rect.m_w ), m_pos_y, 1 );
 		anim->Set_Pos_Z( m_pos_z - 0.000001f );
 		anim->Set_Direction_Range( 180, 180 );
 		anim->Set_Speed( 3.1f, 0.5f );
@@ -587,16 +587,16 @@ void cBaseBox :: Generate_Activation_Particles( void )
 		anim->Set_Color( color );
 		anim->Set_Blending( BLEND_ADD );
 		anim->Set_Image( pVideo->Get_Surface( "animation/particles/light.png" ) );
-		pAnimation_Manager->Add( anim );
+		pActive_Animation_Manager->Add( anim );
 
-		particle_counter_active--;
+		m_particle_counter_active--;
 	}
 }
 
 bool cBaseBox :: Is_Update_Valid( void )
 {
 	// if not activateable and not animating
-	if( !useable_count && move_col_dir == DIR_UNDEFINED )
+	if( !m_useable_count && m_move_col_dir == DIR_UNDEFINED )
 	{
 		return 0;
 	}
@@ -622,10 +622,10 @@ bool cBaseBox :: Is_Draw_Valid( void )
 		}
 
 		// ghost
-		if( box_invisible == BOX_GHOST )
+		if( m_box_invisible == BOX_GHOST )
 		{
 			// maryo is not ghost
-			if( pPlayer->maryo_type != MARYO_GHOST )
+			if( pLevel_Player->m_maryo_type != MARYO_GHOST )
 			{
 				return 0;
 			}
@@ -641,7 +641,7 @@ bool cBaseBox :: Is_Draw_Valid( void )
 		}
 
 		// no image
-		if( !m_start_image && !box_invisible )
+		if( !m_start_image && !m_box_invisible )
 		{
 			return 0;
 		}
@@ -694,11 +694,11 @@ Col_Valid_Type cBaseBox :: Validate_Collision( cSprite *obj )
 void cBaseBox :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// if player jumps from below or flies against it
-	if( collision->direction == DIR_BOTTOM && pPlayer->m_state != STA_FLY )
+	if( collision->m_direction == DIR_BOTTOM && pLevel_Player->m_state != STA_FLY )
 	{
-		if( useable_count != 0 )
+		if( m_useable_count != 0 )
 		{
-			Activate_Collision( Get_Opposite_Direction( collision->direction ) );
+			Activate_Collision( Get_Opposite_Direction( collision->m_direction ) );
 		}
 		else
 		{
@@ -712,7 +712,7 @@ void cBaseBox :: Handle_Collision_Player( cObjectCollision *collision )
 
 void cBaseBox :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
-	cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
+	cEnemy *enemy = static_cast<cEnemy *>(m_sprite_manager->Get_Pointer( collision->m_number ));
 
 	// if turtle
 	if( enemy->m_type == TYPE_TURTLE )
@@ -742,11 +742,11 @@ void cBaseBox :: Handle_Collision_Enemy( cObjectCollision *collision )
 		return;
 	}
 
-	if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT || collision->direction == DIR_BOTTOM )
+	if( collision->m_direction == DIR_RIGHT || collision->m_direction == DIR_LEFT || collision->m_direction == DIR_BOTTOM )
 	{
-		if( useable_count != 0 && m_type != TYPE_TEXT_BOX )
+		if( m_useable_count != 0 && m_type != TYPE_TEXT_BOX )
 		{
-			Activate_Collision( Get_Opposite_Direction( collision->direction ) );
+			Activate_Collision( Get_Opposite_Direction( collision->m_direction ) );
 		}
 		else
 		{
@@ -769,7 +769,7 @@ void cBaseBox :: Editor_Activate( void )
 		CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "editor_basebox_useable_count" ));
 		Editor_Add( UTF8_("Useable Count"), UTF8_("Useable Count"), editbox, 80 );
 
-		editbox->setText( int_to_string( start_useable_count ) );
+		editbox->setText( int_to_string( m_start_useable_count ) );
 		editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cBaseBox::Editor_Useable_Count_Text_Changed, this ) );
 	}
 
@@ -782,15 +782,15 @@ void cBaseBox :: Editor_Activate( void )
 	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Ghost") ) );
 	combobox->addItem( new CEGUI::ListboxTextItem( UTF8_("Semi Massive") ) );
 
-	if( box_invisible == BOX_INVISIBLE_MASSIVE )
+	if( m_box_invisible == BOX_INVISIBLE_MASSIVE )
 	{
 		combobox->setText( UTF8_("Massive") );
 	}
-	else if( box_invisible == BOX_GHOST )
+	else if( m_box_invisible == BOX_GHOST )
 	{
 		combobox->setText( UTF8_("Ghost") );
 	}
-	else if( box_invisible == BOX_INVISIBLE_SEMI_MASSIVE )
+	else if( m_box_invisible == BOX_INVISIBLE_SEMI_MASSIVE )
 	{
 		combobox->setText( UTF8_("Semi Massive") );
 	}
@@ -898,15 +898,15 @@ void cBaseBox :: Create_Name( void )
 		m_name = _("Box Unknown Item Type");
 	}
 
-	if( box_invisible == BOX_INVISIBLE_MASSIVE )
+	if( m_box_invisible == BOX_INVISIBLE_MASSIVE )
 	{
 		m_name.insert( 0, _("Invisible ") );
 	}
-	else if( box_invisible == BOX_GHOST )
+	else if( m_box_invisible == BOX_GHOST )
 	{
 		m_name.insert( 0, _("Ghost ") );
 	}
-	else if( box_invisible == BOX_INVISIBLE_SEMI_MASSIVE )
+	else if( m_box_invisible == BOX_INVISIBLE_SEMI_MASSIVE )
 	{
 		m_name.insert( 0, _("Invisible Semi Massive ") );
 	}

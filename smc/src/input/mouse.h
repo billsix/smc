@@ -16,7 +16,7 @@
 #ifndef SMC_MOUSE_H
 #define SMC_MOUSE_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../objects/movingsprite.h"
 #include "../core/math/rect.h"
 #include "../core/math/vector.h"
@@ -33,12 +33,13 @@ public:
 	~cSelectedObject( void );
 	
 	// base object
-	cSprite *obj;
+	cSprite *m_obj;
 	// additional selection mouse position
-	int mouse_w, mouse_h;
+	int m_mouse_offset_x;
+	int m_mouse_offset_y;
 
 	// if user controlled
-	bool user;
+	bool m_user;
 };
 
 typedef vector<cSelectedObject *> SelectedObjectList;
@@ -52,7 +53,7 @@ public:
 	~cCopyObject( void );
 	
 	// base object
-	cSprite *obj;
+	cSprite *m_obj;
 };
 
 typedef vector<cCopyObject *> CopyObjectList;
@@ -62,13 +63,18 @@ typedef vector<cCopyObject *> CopyObjectList;
 class cMouseCursor : public cMovingSprite
 {
 public:
-	cMouseCursor( void );
+	cMouseCursor( cSprite_Manager *sprite_manager );
 	virtual ~cMouseCursor( void );
 
 	// resets editor features
 	void Reset( bool clear_copy_buffer = 1 );
 	// only reset buttons
-	void Reset_Keys( void );
+	inline void Reset_Keys( void )
+	{
+		m_left = 0;
+		m_right = 0;
+		m_middle = 0;
+	}
 
 	// Handles the Mouse events
 	bool Handle_Event( SDL_Event *ev );
@@ -104,9 +110,9 @@ public:
 	// Update the Double Click event
 	void Update_Doubleclick( void );
 
-	// Editor default click
-	void Click( void );
-	// Editor default float click
+	// Editor left click
+	void Left_Click( void );
+	// Editor default float left click
 	void Double_Click( bool activate = 1 );
 
 	// ## Mouse Object
@@ -114,8 +120,12 @@ public:
 	void Set_Mouse_Object( cSprite *sprite );
 	// update the mouse object position
 	void Update_Mouse_Object( void );
+
 	// clear mouse object
-	void Clear_Mouse_Object( void );
+	inline void Clear_Mouse_Object( void )
+	{
+		Set_Mouse_Object( NULL );
+	}
 
 	// ## Copy Objects
 	// Add new copy object
@@ -136,6 +146,7 @@ public:
 
 	// ## Selected Objects
 	/* Add new selected_object
+	 * from_user : if the user selected this object
 	 * Returns true if object got added or changed to user object
 	*/
 	bool Add_Selected_Object( cSprite *sprite, bool from_user = 0 );
@@ -150,6 +161,24 @@ public:
 	void Clear_Selected_Objects( void );
 	// updates the selected objects positions
 	void Update_Selected_Objects( void );
+	// updates the selected object offset to the mouse position
+	inline void Update_Selected_Object_Offset( cSelectedObject *obj )
+	{
+		if( !obj )
+		{
+			return;
+		}
+
+		if( !obj->m_obj )
+		{
+			obj->m_mouse_offset_x = 0;
+			obj->m_mouse_offset_y = 0;
+			return;
+		}
+
+		obj->m_mouse_offset_x = static_cast<int>(m_pos_x) - static_cast<int>(obj->m_obj->m_start_pos_x);
+		obj->m_mouse_offset_y = static_cast<int>(m_pos_y) - static_cast<int>(obj->m_obj->m_start_pos_y);
+	}
 	/* returns true if the given object is a selected_object
 	 * if only_user is given only check user objects
 	*/
@@ -157,7 +186,10 @@ public:
 	// deletes the selected objects
 	void Delete_Selected_Objects( void );
 	// returns the selected objects size
-	unsigned int Get_Selected_Object_Size( void ) const;
+	inline unsigned int Get_Selected_Object_Size( void ) const
+	{
+		return m_selected_objects.size();
+	}
 
 	// ## Active Object
 	// Set new active object
@@ -169,7 +201,7 @@ public:
 	 * object is automatically added to the object manager
 	 * returns the new object
 	*/
-	cSprite *Copy( cSprite *ncopy_object, float px, float py ) const;
+	cSprite *Copy( const cSprite *copy_object, float px, float py ) const;
 	// Deletes the given Object
 	void Delete( cSprite *sprite );
 
@@ -187,11 +219,12 @@ public:
 	void Toggle_Mover_Mode( void );
 	// Updates the Mover Mode
 	void Mover_Update( Sint16 move_x, Sint16 move_y );
-	// Updates the Leveleditor Mouse
+	// Updates the editor Mouse
 	void Editor_Update( void );
 	
 	// current internal mouse position
-	int m_x, m_y;
+	int m_x;
+	int m_y;
 	
 	// selection mode
 	bool m_selection_mode;
@@ -215,7 +248,9 @@ public:
 	cSprite *m_active_object;
 
 	// buttons pressed state
-	bool m_left, m_right, m_middle;
+	bool m_left;
+	bool m_right;
+	bool m_middle;
 
 	// last clicked object
 	cSprite *m_last_clicked_object;

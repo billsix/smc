@@ -3,7 +3,7 @@
 	<information>
 		<Property name="game_version" value="1.9" />
 		<Property name="engine_version" value="34" />
-		<Property name="save_time" value="1241106148" />
+		<Property name="save_time" value="1253319636" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="SMC Team" />
@@ -60,10 +60,16 @@
 		<Property name="const_rotz_rand" value="10" />
 	</global_effect>
 	<player>
-		<Property name="posx" value="163" />
-		<Property name="posy" value="348" />
+		<Property name="posx" value="249" />
+		<Property name="posy" value="356" />
 		<Property name="direction" value="right" />
 	</player>
+	<sprite>
+		<Property name="posx" value="183" />
+		<Property name="posy" value="230" />
+		<Property name="image" value="game/level/door_castle_1.png" />
+		<Property name="type" value="passive" />
+	</sprite>
 	<sprite>
 		<Property name="posx" value="43" />
 		<Property name="posy" value="417" />
@@ -851,12 +857,6 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="170" />
-		<Property name="posy" value="318" />
-		<Property name="image" value="game/level/door_red_1.png" />
-		<Property name="type" value="passive" />
-	</sprite>
-	<sprite>
 		<Property name="posx" value="0" />
 		<Property name="posy" value="-786" />
 		<Property name="image" value="blocks/stone/1.png" />
@@ -913,6 +913,7 @@
 		<Property name="max_hit_count" value="3" />
 		<Property name="max_downgrade_count" value="3" />
 		<Property name="shell_time" value="5.5" />
+		<Property name="level_ends_if_killed" value="1" />
 	</enemy>
 	<sprite>
 		<Property name="posx" value="291" />
@@ -1071,25 +1072,25 @@
 		<Property name="type" value="massive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="457" />
+		<Property name="posx" value="542" />
 		<Property name="posy" value="385" />
 		<Property name="image" value="ground/desert_1/bones/rackabones_front.png" />
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="489" />
+		<Property name="posx" value="574" />
 		<Property name="posy" value="385" />
 		<Property name="image" value="ground/desert_1/bones/rackabones_middle.png" />
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="521" />
+		<Property name="posx" value="606" />
 		<Property name="posy" value="385" />
 		<Property name="image" value="ground/desert_1/bones/rackabones_middle.png" />
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="553" />
+		<Property name="posx" value="638" />
 		<Property name="posy" value="385" />
 		<Property name="image" value="ground/desert_1/bones/rackabones_back.png" />
 		<Property name="type" value="passive" />
@@ -1191,31 +1192,31 @@
 		<Property name="force_best_item" value="0" />
 	</box>
 	<sprite>
-		<Property name="posx" value="110" />
-		<Property name="posy" value="330" />
+		<Property name="posx" value="212" />
+		<Property name="posy" value="325" />
 		<Property name="image" value="ground/ghost_1/lamp_1.png" />
 		<Property name="type" value="passive" />
 	</sprite>
 	<sprite>
-		<Property name="posx" value="253" />
-		<Property name="posy" value="330" />
+		<Property name="posx" value="314" />
+		<Property name="posy" value="325" />
 		<Property name="image" value="ground/ghost_1/lamp_1.png" />
 		<Property name="type" value="passive" />
 	</sprite>
 	<particle_emitter>
 		<Property name="file" value="animation/fire_1/2.png" />
-		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z" value="0.02" />
 		<Property name="pos_z_rand" value="0" />
-		<Property name="pos_x" value="124" />
-		<Property name="pos_y" value="338" />
+		<Property name="pos_x" value="226" />
+		<Property name="pos_y" value="333" />
 		<Property name="size_x" value="5" />
 		<Property name="size_y" value="5" />
 		<Property name="emitter_time_to_live" value="-1" />
-		<Property name="emitter_interval" value="0.1" />
+		<Property name="emitter_interval" value="0.5" />
 		<Property name="quota" value="1" />
 		<Property name="time_to_live" value="0.3" />
 		<Property name="time_to_live_rand" value="0.5" />
-		<Property name="vel" value="2" />
+		<Property name="vel" value="0.1" />
 		<Property name="vel_rand" value="2" />
 		<Property name="rot_x" value="0" />
 		<Property name="rot_y" value="0" />
@@ -1238,18 +1239,18 @@
 	</particle_emitter>
 	<particle_emitter>
 		<Property name="file" value="animation/fire_1/2.png" />
-		<Property name="pos_z" value="0.009" />
+		<Property name="pos_z" value="0.02" />
 		<Property name="pos_z_rand" value="0" />
-		<Property name="pos_x" value="267" />
-		<Property name="pos_y" value="338" />
+		<Property name="pos_x" value="328" />
+		<Property name="pos_y" value="333" />
 		<Property name="size_x" value="5" />
 		<Property name="size_y" value="5" />
 		<Property name="emitter_time_to_live" value="-1" />
-		<Property name="emitter_interval" value="0.1" />
+		<Property name="emitter_interval" value="0.5" />
 		<Property name="quota" value="1" />
 		<Property name="time_to_live" value="0.3" />
 		<Property name="time_to_live_rand" value="0.5" />
-		<Property name="vel" value="2" />
+		<Property name="vel" value="0.1" />
 		<Property name="vel_rand" value="2" />
 		<Property name="rot_x" value="0" />
 		<Property name="rot_y" value="0" />
@@ -1287,5 +1288,29 @@
 		<Property name="posy" value="-142" />
 		<Property name="image" value="game/box/brown1_1.png" />
 		<Property name="type" value="massive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="398" />
+		<Property name="posy" value="357" />
+		<Property name="image" value="ground/castle_1/statue/plinth_1.png" />
+		<Property name="type" value="passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="396" />
+		<Property name="posy" value="302" />
+		<Property name="image" value="ground/castle_1/statue/objects/furball.png" />
+		<Property name="type" value="passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="98" />
+		<Property name="posy" value="357" />
+		<Property name="image" value="ground/castle_1/statue/plinth_1.png" />
+		<Property name="type" value="passive" />
+	</sprite>
+	<sprite>
+		<Property name="posx" value="96" />
+		<Property name="posy" value="302" />
+		<Property name="image" value="ground/castle_1/statue/objects/furball.png" />
+		<Property name="type" value="passive" />
 	</sprite>
 </level>

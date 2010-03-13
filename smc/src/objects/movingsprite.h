@@ -21,6 +21,12 @@
 namespace SMC
 {
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+const float deg_to_rad = static_cast<float>(M_PI / 180.0f);
+
 /* *** *** *** *** *** *** *** Movement states *** *** *** *** *** *** *** *** *** *** */
 
 enum Moving_state
@@ -53,17 +59,17 @@ enum ColCheckType
 class cMovingSprite : public cSprite
 {
 public:
-	// if del_img is set the given image will be deleted on change or class deletion
-	cMovingSprite( cGL_Surface *new_image = NULL, float x = 0, float y = 0, bool del_img = 0 );
+	// constructor
+	cMovingSprite( cSprite_Manager *sprite_manager );
 	// create from stream
-	cMovingSprite( CEGUI::XMLAttributes &attributes );
+	cMovingSprite( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cMovingSprite( void );
 	
 	// Init defaults
 	void Init( void );
 	// copy this object
-	virtual cMovingSprite *Copy( void );
+	virtual cMovingSprite *Copy( void ) const;
 
 	/* Sets the image for drawing
 	 * if new_start_image is set the default start_image will be set to the given image
@@ -75,8 +81,6 @@ public:
 	 * if new_start_direction is set also set the start/editor direction
 	*/
 	virtual void Set_Direction( const ObjectDirection dir, bool new_start_direction = 0 );
-	// Sets the direction/velocity from the given angle and speed
-	void Set_Direction( float angle, float speed, bool new_start_direction = 0 );
 
 	// automatically slows down until not moving anymore
 	void Auto_Slow_Down( float x_speed, float y_speed = 0 );
@@ -98,9 +102,72 @@ public:
 	void Move_With_Ground( void );
 
 	// Set velocity
-	void Set_Velocity( const float x, const float y );
-	// Add Velocity
+	inline void Set_Velocity( const float x, const float y )
+	{
+		m_velx = x;
+		m_vely = y;
+	};
+	// Sets the velocity from the given angle and speed
+	inline void Set_Velocity_From_Angle( const float angle, const float speed, const bool new_start_direction = 0 )
+	{
+		m_velx = cos( angle * deg_to_rad ) * speed;
+		m_vely = sin( angle * deg_to_rad ) * speed;
+
+		if( new_start_direction )
+		{
+			m_start_direction = m_direction;
+		}
+	};
+	/* Add Velocity
+	 * real : if set the speedfactor isn't used
+	*/
 	void Add_Velocity( const float x, const float y, const bool real = 0 );
+	void Add_Velocity_X( const float x, const bool real = 0 );
+	void Add_Velocity_Y( const float y, const bool real = 0 );
+	/* Add Velocity
+	* max : the maximum velocity
+	* real : if set the speedfactor isn't used
+	*/
+	inline void Add_Velocity_X_Max( const float x, const float max_x, const bool real = 0 )
+	{
+		Add_Velocity_X( x, real );
+
+		if( m_velx > max_x )
+		{
+			m_velx = max_x;
+		}
+	}
+	inline void Add_Velocity_Y_Max( const float y, const float max_y, const bool real = 0 )
+	{
+		Add_Velocity_Y( y, real );
+
+		if( m_vely > max_y )
+		{
+			m_vely = max_y;
+		}
+	}
+	/* Add Velocity
+	* min : the minimum velocity
+	* real : if set the speedfactor isn't used
+	*/
+	inline void Add_Velocity_X_Min( const float x, const float min_x, const bool real = 0 )
+	{
+		Add_Velocity_X( x, real );
+
+		if( m_velx < min_x )
+		{
+			m_velx = min_x;
+		}
+	}
+	inline void Add_Velocity_Y_Min( const float y, const float min_y, const bool real = 0 )
+	{
+		Add_Velocity_Y( y, real );
+
+		if( m_vely < min_y )
+		{
+			m_vely = min_y;
+		}
+	}
 
 	/* Move into the opposite Direction
 	 * if col_dir is given only turns around if the collision direction is in front
@@ -119,14 +186,17 @@ public:
 	 * objects : if set check these object instead of all
 	 * The collision data should be deleted if not used anymore
 	*/
-	cObjectCollisionType *Collision_Check_Relative( const float x, const float y, const float w = 0, const float h = 0, const ColCheckType check_type = COLLIDE_COMPLETE, cSprite_List *objects = NULL );
+	cObjectCollisionType *Collision_Check_Relative( const float x, const float y, const float w = 0.0f, const float h = 0.0f, const ColCheckType check_type = COLLIDE_COMPLETE, cSprite_List *objects = NULL )
+	{
+		return Collision_Check_Absolute( m_col_rect.m_x + x, m_col_rect.m_y + y, w, h, check_type, objects );
+	}
 	/* Check if the given position is valid
 	 * Creates a collision rect with the given values
 	 * check_type : set which collision types are added to the list
 	 * objects : if set check these object instead of all
 	 * The collision data should be deleted if not used anymore
 	*/
-	cObjectCollisionType *Collision_Check_Absolute( const float x, const float y, const float w = 0, const float h = 0, const ColCheckType check_type = COLLIDE_COMPLETE, cSprite_List *objects = NULL );
+	cObjectCollisionType *Collision_Check_Absolute( const float x, const float y, const float w = 0.0f, const float h = 0.0f, const ColCheckType check_type = COLLIDE_COMPLETE, cSprite_List *objects = NULL );
 	/* Check if the given position is valid
 	 * new_rect : this is the source collision rect
 	 * check_type : set which collision types are added to the list
@@ -145,7 +215,10 @@ public:
 	// Check if the Object is onground and sets the state to onground
 	virtual void Check_on_Ground( void );
 	// object looses onground state
-	void Reset_On_Ground( void );
+	inline void Reset_On_Ground( void )
+	{
+		m_ground_object = NULL;
+	};
 	// Corrects the position if the object got stuck
 	void Update_Anti_Stuck( void );
 
@@ -159,22 +232,15 @@ public:
 	/* downgrade state ( if already at weakest state it dies )
 	 * force : usually dies or a complete downgrade
 	*/
-	virtual void DownGrade( bool force = 0 );
+	virtual void DownGrade( bool force = 0 ) {};
 
-	// updates the direction based on the current velocity
-	void Update_Direction( void );
-	/* set the horizontal sprite rotation based on x velocity
+	/* set the horizontal sprite rotation based on the current direction
 	 * if start_rotation is set also set the start/editor rotation
 	*/
 	void Update_Rotation_Hor( bool start_rotation = 0 );
-	/* set the horizontal sprite rotation based on the current direction and velocity
+	/* set the horizontal sprite rotation based on the current direction
 	 * if start_rotation is set also set the start/editor rotation
 	*/
-	void Update_Rotation_Hor_velx( bool start_rotation = 0 );
-	/* set the horizontal sprite rotation based on y velocity
-	 * if start_rotation is set also set the start/editor rotation
-	*/
-	void Update_Rotation_Hor_vely( bool start_rotation = 0 );
 
 	/* handle collision with object that moves it with the current velocity
 	 * if moved object gets stuck it is downgraded
@@ -202,10 +268,13 @@ public:
 	// default collision handler
 	virtual void Handle_Collision( cObjectCollision *collision );
 	// handle moved out of Level event
-	virtual void Handle_out_of_Level( ObjectDirection dir );
+	virtual void Handle_out_of_Level( ObjectDirection dir ) {};
 
 	// velocity
-	float m_velx, m_vely;
+	float m_velx;
+	float m_vely;
+	// maximum gravity velocity
+	float m_gravity_max;
 
 	// current direction
 	ObjectDirection m_direction;

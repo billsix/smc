@@ -16,7 +16,7 @@
 #ifndef SMC_BOX_H
 #define SMC_BOX_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../objects/animated_sprite.h"
 
 namespace SMC
@@ -41,7 +41,7 @@ enum Box_Invisible_Type
 class cBaseBox : public cAnimated_Sprite
 {
 public:
-	cBaseBox( float x = 0, float y = 0 );
+	cBaseBox( cSprite_Manager *sprite_manager );
 	virtual ~cBaseBox( void );
 
 	// create from stream
@@ -64,12 +64,12 @@ public:
 	void Set_Invisible( Box_Invisible_Type type );
 
 	// activates collision movement
-	void Activate_Collision( ObjectDirection cdirection );
+	void Activate_Collision( ObjectDirection col_direction );
 	// updates the collision movement
 	void Update_Collision( void );
 
 	// check for collision with objects
-	void Check_Collision( ObjectDirection cdirection );
+	void Check_Collision( ObjectDirection col_direction );
 	// collision with the given enemy
 	void Col_Enemy( cSprite *obj );
 
@@ -108,31 +108,32 @@ public:
 	bool Editor_Invisible_Select( const CEGUI::EventArgs &event );
 
 	// animation type
-	std::string anim_type;
+	std::string m_anim_type;
 	// box type
 	SpriteType box_type;
 
 	// leveleditor item image
-	cGL_Surface *item_image;
+	cGL_Surface *m_item_image;
 
 	// moving direction when activated
-	ObjectDirection move_col_dir;
+	ObjectDirection m_move_col_dir;
 	// current moving counter ( if activated )
-	float move_counter;
+	float m_move_counter;
 	// if object is moving back to the original position
-	bool move_back;
+	bool m_move_back;
 	/* times the box object can be activated
 	 * if set to -1 it is infinite
 	 * the box is visible if useable_count != start_useable_count
 	 * for infinite this only once sets it to -2
 	*/
-	int useable_count, start_useable_count;
+	int m_start_useable_count;
+	int m_useable_count;
 
 	// box invisible type
-	Box_Invisible_Type box_invisible;
+	Box_Invisible_Type m_box_invisible;
 
 	// active particle animation counter
-	float particle_counter_active;
+	float m_particle_counter_active;
 
 protected:
 	// Create the Name from the current settings

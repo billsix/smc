@@ -85,6 +85,10 @@ int Get_Windows_Primary_Language( const std::string &language )
 	{
 		return LANG_NORWEGIAN;
 	}
+	else if( language.compare( "nl" ) == 0 )
+	{
+		return LANG_DUTCH;
+	}
 	else if( language.compare( "nn" ) == 0 )
 	{
 		return LANG_NORWEGIAN;

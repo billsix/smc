@@ -29,8 +29,11 @@ namespace SMC
 class cCollidingSprite
 {
 public:
-	cCollidingSprite( void );
+	cCollidingSprite( cSprite_Manager *sprite_manager );
 	virtual ~cCollidingSprite( void );
+
+	// Set the parent sprite manager
+	virtual void Set_Sprite_Manager( cSprite_Manager *sprite_manager );
 
 	// Handle collision data
 	void Handle_Collisions( void );
@@ -59,7 +62,16 @@ public:
 	 */
 	int Is_Collision_In_Direction( const ObjectDirection dir ) const;
 	// Returns the first added collision
-	cObjectCollision *Get_First_Collision( void ) const;
+	inline cObjectCollision *Get_First_Collision( void ) const
+	{
+		// no collision available
+		if( m_collisions.empty() )
+		{
+			return NULL;	
+		}
+
+		return *m_collisions.begin();
+	};
 	/* Returns the last added collision
 	 * if only_blocking is set only movement blocking collisions are returned
 	*/
@@ -72,18 +84,20 @@ public:
 	// default collision handler
 	virtual void Handle_Collision( cObjectCollision *collision );
 	// collision from player
-	virtual void Handle_Collision_Player( cObjectCollision *collision );
+	virtual void Handle_Collision_Player( cObjectCollision *collision ) {};
 	// collision from an enemy
-	virtual void Handle_Collision_Enemy( cObjectCollision *collision );
+	virtual void Handle_Collision_Enemy( cObjectCollision *collision ) {};
 	// collision with massive
-	virtual void Handle_Collision_Massive( cObjectCollision *collision );
+	virtual void Handle_Collision_Massive( cObjectCollision *collision ) {};
 	// collision with passive
-	virtual void Handle_Collision_Passive( cObjectCollision *collision );
+	virtual void Handle_Collision_Passive( cObjectCollision *collision ) {};
 	// collision from a box
-	virtual void Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 );
+	virtual void Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 ) {};
 
+	// the parent sprite manager
+	cSprite_Manager *m_sprite_manager;
 	// object collision list
-	cObjectCollision_List collisions;
+	cObjectCollision_List m_collisions;
 };
 
 /* *** *** *** *** *** *** *** cSprite *** *** *** *** *** *** *** *** *** *** */
@@ -91,10 +105,10 @@ public:
 class cSprite : public cCollidingSprite
 {
 public:
-	// if del_img is set the given image will be deleted on change or class deletion
-	cSprite( cGL_Surface *new_image = NULL, float x = 0, float y = 0, bool del_img = 0 );
+	// constructor
+	cSprite( cSprite_Manager *sprite_manager );
 	// create from stream
-	cSprite( CEGUI::XMLAttributes &attributes );
+	cSprite( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cSprite( void );
 
@@ -103,9 +117,9 @@ public:
 	/* late initialization
 	 * this needs linked objects to be already loaded
 	*/
-	virtual void Init_Links( void );
+	virtual void Init_Links( void ) {};
 	// copy this sprite
-	virtual cSprite *Copy( void );
+	virtual cSprite *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -113,9 +127,12 @@ public:
 	virtual void Save_To_Stream( ofstream &file );
 
 	// load from savegame
-	virtual void Load_From_Savegame( cSave_Level_Object *save_object );
+	virtual void Load_From_Savegame( cSave_Level_Object *save_object ) {};
 	// save to savegame
-	virtual cSave_Level_Object *Save_To_Savegame( void );
+	virtual cSave_Level_Object *Save_To_Savegame( void )
+	{
+		return NULL;
+	};
 
 	/* Sets the image for drawing
 	 * if new_start_image is set the default start_image will be set to the given image
@@ -124,7 +141,7 @@ public:
 	virtual void Set_Image( cGL_Surface *new_image, bool new_start_image = 0, bool del_img = 0 );
 
 	// Set the sprite type
-	void Set_Sprite_Type( SpriteType ntype );
+	void Set_Sprite_Type( SpriteType type );
 	// Returns the sprite type as string
 	std::string Get_Sprite_Type_String( void ) const;
 
@@ -142,16 +159,35 @@ public:
 	/* Set the shadow
 	 * if position is set to 0 the shadow is disabled
 	*/
-	void Set_Shadow( const Color &shadow, float pos );
+	inline void Set_Shadow( const Color &shadow, const float pos )
+	{
+		Set_Shadow_Pos( pos );
+		Set_Shadow_Color( shadow );
+	};
 	/* Set the shadow position
 	 * if set to 0 the shadow is disabled
 	*/
-	void Set_Shadow_Pos( float pos );
+	inline void Set_Shadow_Pos( const float pos )
+	{
+		m_shadow_pos = pos;
+	};
 	// Set the shadow color
-	void Set_Shadow_Color( const Color &shadow );
+	inline void Set_Shadow_Color( const Color &shadow )
+	{
+		m_shadow_color = shadow;
+	};
 	// Set image color
-	void Set_Color( Uint8 red, Uint8 green, Uint8 blue, Uint8 alpha = 255 );
-	void Set_Color( const Color &col );
+	inline void Set_Color( const Uint8 red, const Uint8 green, const Uint8 blue, const Uint8 alpha = 255 )
+	{
+		m_color.red = red;
+		m_color.green = green;
+		m_color.blue = blue;
+		m_color.alpha = alpha;
+	};
+	inline void Set_Color( const Color &col )
+	{
+		m_color = col;
+	};
 	/* Set a Color Combination ( GL_ADD, GL_MODULATE or GL_REPLACE )
 	 * Addition ( adds white to color )
 	 * 1.0 is the maximum and the given color will be white
@@ -169,16 +205,39 @@ public:
 	 * only supports 90° steps currently
 	 * if enabled col_pos, col_rect and rect must be reset manually before changing rotation
 	*/
-	void Set_Rotation_Affects_Rect( bool enable = 0 );
+	inline void Set_Rotation_Affects_Rect( bool enable = 0 )
+	{
+		m_rotation_affects_rect = enable;
+	};
 	/* Set the rect rotation
 	 * does not reset col_pos, col_rect and rect before rotation
 	 * default : disabled
 	*/
-	void Update_Rect_Rotation( void );
+	inline void Update_Rect_Rotation( void )
+	{
+		// Z must be first for correct rotation ( see Eato )
+		Update_Rect_Rotation_Z();
+		Update_Rect_Rotation_X();
+		Update_Rect_Rotation_Y();
+	};
 	// Set the X rect rotation
-	void Update_Rect_Rotation_X( void );
+	inline void Update_Rect_Rotation_X( void )
+	{
+		// mirror
+		if( m_rot_x >= 180.0f )
+		{
+			m_col_pos.m_y = m_rect.m_h - ( m_col_rect.m_h + m_col_pos.m_y );
+		}
+	};
 	// Set the Y rect rotation
-	void Update_Rect_Rotation_Y( void );
+	inline void Update_Rect_Rotation_Y( void )
+	{
+		// mirror
+		if( m_rot_y >= 180.0f )
+		{
+			m_col_pos.m_x = m_rect.m_w - ( m_col_rect.m_w + m_col_pos.m_x );
+		}
+	}
 	// Set the Z rect rotation
 	void Update_Rect_Rotation_Z( void );
 
@@ -189,36 +248,78 @@ public:
 	// Set the Z rotation
 	void Set_Rotation_Z( float rot, bool new_start_rot = 0 );
 	// Set the rotation
-	void Set_Rotation( float x, float y, float z, bool new_start_rot = 0 );
+	inline void Set_Rotation( float x, float y, float z, bool new_start_rot = 0 )
+	{
+		Set_Rotation_X( x, new_start_rot );
+		Set_Rotation_Y( y, new_start_rot );
+		Set_Rotation_Z( z, new_start_rot );
+	};
 
 	// Add X rotation
-	void Add_Rotation_X( float rot );
+	inline void Add_Rotation_X( float rot )
+	{
+		Set_Rotation_X( m_rot_x + rot );
+	};
 	// Add Y rotation
-	void Add_Rotation_Y( float rot );
+	inline void Add_Rotation_Y( float rot )
+	{
+		Set_Rotation_Y( m_rot_y + rot );
+	};
 	// Add Z rotation
-	void Add_Rotation_Z( float rot );
+	inline void Add_Rotation_Z( float rot )
+	{
+		Set_Rotation_Z( m_rot_z + rot );
+	};
 	// Add rotation
-	void Add_Rotation( float x, float y, float z );
+	inline void Add_Rotation( float x, float y, float z )
+	{
+		Set_Rotation_X( m_rot_x + x );
+		Set_Rotation_Y( m_rot_y + y );
+		Set_Rotation_Z( m_rot_z + z );
+	};
 
 	/* Set if scale affects the collision rect
 	 * if enabled previous scale is always undone from rect before setting the new value
 	 * default : disabled
 	*/
-	void Set_Scale_Affects_Rect( bool enable = 0 );
+	inline void Set_Scale_Affects_Rect( const bool enable = 0 )
+	{
+		m_scale_affects_rect = enable;
+	};
 	/* Set which directions of the image get scaled
 	 * if all are set scaling is centered and if all are not set scaling is disabled
 	 * todo : if enabled with scale_affects_rect it should also scale the rect position
 	*/
-	void Set_Scale_Directions( bool up = 0, bool down = 1, bool left = 0, bool right = 1 );
+	inline void Set_Scale_Directions( const bool up = 0, const bool down = 1, const bool left = 0, const bool right = 1 )
+	{
+		m_scale_up = up;
+		m_scale_down = down;
+		m_scale_left = left;
+		m_scale_right = right;
+	};
 	// Set the scale
 	void Set_Scale_X( const float scale, const bool new_startscale = 0 );
 	void Set_Scale_Y( const float scale, const bool new_startscale = 0 );
-	void Set_Scale( const float scale, const bool new_startscale = 0 );
+	inline void Set_Scale( const float scale, const bool new_startscale = 0 )
+	{
+		Set_Scale_X( scale, new_startscale );
+		Set_Scale_Y( scale, new_startscale );
+	};
 
 	// Add scale
-	void Add_Scale_X( const float val );
-	void Add_Scale_Y( const float val );
-	void Add_Scale( const float val );
+	inline void Add_Scale_X( const float val )
+	{
+		Set_Scale_X( m_scale_x + val );
+	};
+	inline void Add_Scale_Y( const float val )
+	{
+		Set_Scale_Y( m_scale_y + val );
+	};
+	inline void Add_Scale( const float val )
+	{
+		Set_Scale_X( m_scale_x + val );
+		Set_Scale_Y( m_scale_y + val );
+	};
 
 	// Set this sprite on top of the given one
 	void Set_On_Top( const cSprite *sprite, bool optimize_hor_pos = 1 );
@@ -229,16 +330,16 @@ public:
 	virtual void Move( float move_x, float move_y, const bool real = 0 );
 
 	// default collision and movement handling
-	virtual void Collide_Move( void );
+	virtual void Collide_Move( void ) {};
 
 	// Update the position rect values
 	void Update_Position_Rect( void );
 	// default update
-	virtual void Update( void );
+	virtual void Update( void ) {};
 	/* late update
 	 * use if it is needed that other objects are already updated
 	*/
-	virtual void Update_Late( void );
+	virtual void Update_Late( void ) {};
 	// update drawing validation
 	virtual void Update_Valid_Draw( void );
 	// update updating validation
@@ -263,13 +364,23 @@ public:
 
 	// if the sprite is visible on the screen
 	bool Is_Visible_On_Screen( void ) const;
-	// if the Object is in player range
-	bool Is_In_Player_Range( void ) const;
+	// if this is in range of the maximum camera distance
+	bool Is_In_Range( void ) const;
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
 	// if draw is valid for the current state and position
 	virtual bool Is_Draw_Valid( void );
 
+	// returns true if this is a basic sprite type
+	inline bool Is_Basic_Sprite( void ) const
+	{
+		if( m_type == TYPE_PASSIVE || m_type == TYPE_FRONT_PASSIVE || m_type == TYPE_MASSIVE || m_type == TYPE_CLIMBABLE || m_type == TYPE_HALFMASSIVE )
+		{
+			return 1;
+		}
+
+		return 0;
+	};
 	/* set this sprite to destroyed and completely disable it
 	 * sprite is still in the sprite manager but only to get possibly replaced
 	*/
@@ -286,7 +397,10 @@ public:
 	// editor position update
 	virtual void Editor_Position_Update( void );
 	// editor state update
-	virtual void Editor_State_Update( void );
+	virtual void Editor_State_Update( void ) {};
+
+	// editor image text changed event
+	bool Editor_Image_Text_Changed( const CEGUI::EventArgs &event );
 
 	// current image used for drawing
 	cGL_Surface *m_image;
@@ -303,9 +417,12 @@ public:
 	GL_point m_col_pos;
 
 	// current position
-	float m_pos_x, m_pos_y, m_pos_z;
+	float m_pos_x;
+	float m_pos_y;
+	float m_pos_z;
 	// start position
-	float m_start_pos_x, m_start_pos_y;
+	float m_start_pos_x;
+	float m_start_pos_y;
 	/* editor z position
 	 * it's only used if not 0
 	*/
@@ -314,19 +431,28 @@ public:
 	// if set rotation not only affects the image but also the rectangle
 	bool m_rotation_affects_rect;
 	// editor and start rotation
-	float m_start_rot_x, m_start_rot_y, m_start_rot_z;
+	float m_start_rot_x;
+	float m_start_rot_y;
+	float m_start_rot_z;
 	// rotation
-	float m_rot_x, m_rot_y, m_rot_z;
+	float m_rot_x;
+	float m_rot_y;
+	float m_rot_z;
 	// if set scale not only affects the image but also the rectangle
 	bool m_scale_affects_rect;
 	/* which parts of the image get scaled
 	 * if all are set scaling is centered
 	*/
-	bool m_scale_up, m_scale_down, m_scale_left, m_scale_right;
+	bool m_scale_up;
+	bool m_scale_down;
+	bool m_scale_left;
+	bool m_scale_right;
 	// editor and start scale
-	float m_start_scale_x, m_start_scale_y;
+	float m_start_scale_x;
+	float m_start_scale_y;
 	// scale
-	float m_scale_x, m_scale_y;
+	float m_scale_x;
+	float m_scale_y;
 
 	// color
 	Color m_color;
@@ -352,8 +478,8 @@ public:
 	bool m_active;
 	// if spawned it shouldn't be saved
 	bool m_spawned;
-	// range to the player to get updates
-	unsigned int m_player_range;
+	// maximum distance to the camera to get updated
+	unsigned int m_camera_range;
 	// can be used as ground object
 	bool m_can_be_ground;
 

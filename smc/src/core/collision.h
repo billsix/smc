@@ -21,6 +21,7 @@
 #include "../core/global_basic.h"
 #include "../core/global_game.h"
 #include "../core/obj_manager.h"
+#include "../core/math/rect.h"
 #include "SDL.h"
 
 namespace SMC
@@ -40,24 +41,22 @@ public:
 	 * col - the colliding sprite
 	*/
 	void Set_Direction( const cSprite *base, const cSprite *col );
-	// returns the colliding object rect
-	GL_rect Get_Collision_Object_Rect( void );
 
 	// valid type
-	Col_Valid_Type valid_type;
+	Col_Valid_Type m_valid_type;
 
 	/* if true this is a receiving collision
 	 * and not a normal self detected collision
 	*/
-	bool received;
+	bool m_received;
 
 	// the object colliding with (only use it in the same frame for now !)
-	cSprite *obj;
+	cSprite *m_obj;
 	// colliding object number
-	int number;
+	int m_number;
 
 	// direction
-	ObjectDirection direction;
+	ObjectDirection m_direction;
 	// Colliding object array type
 	ArrayType m_array;
 };
@@ -100,25 +99,100 @@ public:
 ObjectDirection Get_Collision_Direction( const cSprite *base, const cSprite *col );
 
 // returns true if a collision is on the top
-bool Is_Collision_Top( const GL_rect &base_rect, const GL_rect &col_rect );
+inline bool Is_Collision_Top( const GL_rect &base_rect, const GL_rect &col_rect )
+{
+	if( base_rect.m_y + 1 >= col_rect.m_y + col_rect.m_h && base_rect.m_x < col_rect.m_x + col_rect.m_w && base_rect.m_x + base_rect.m_w > col_rect.m_x )
+	{
+		return 1;
+	}
+
+	return 0;
+};
 // returns true if a collision is on the bottom
-bool Is_Collision_Bottom( const GL_rect &base_rect, const GL_rect &col_rect );
+inline bool Is_Collision_Bottom( const GL_rect &base_rect, const GL_rect &col_rect )
+{
+	if( base_rect.m_y + base_rect.m_h - 1 <= col_rect.m_y && base_rect.m_x < col_rect.m_x + col_rect.m_w && base_rect.m_x + base_rect.m_w > col_rect.m_x )
+	{
+		return 1;
+	}
+
+	return 0;
+};
 // returns true if a collision is on the left
-bool Is_Collision_Left( const GL_rect &base_rect, const GL_rect &col_rect );
+inline bool Is_Collision_Left( const GL_rect &base_rect, const GL_rect &col_rect )
+{
+	if( base_rect.m_x + 1 >= col_rect.m_x + col_rect.m_w && base_rect.m_y < col_rect.m_y + col_rect.m_h && base_rect.m_y + base_rect.m_h > col_rect.m_y )
+	{
+		return 1;
+	}
+
+	return 0;
+};
 // returns true if a collision is on the right
-bool Is_Collision_Right( const GL_rect &base_rect, const GL_rect &col_rect );
+inline bool Is_Collision_Right( const GL_rect &base_rect, const GL_rect &col_rect )
+{
+	if( base_rect.m_x + base_rect.m_w - 1 <= col_rect.m_x && base_rect.m_y < col_rect.m_y + col_rect.m_h && base_rect.m_y + base_rect.m_h > col_rect.m_y )
+	{
+		return 1;
+	}
+
+	return 0;
+};
 
 /*
  * Bounding box collision test
  * Checks if the first rect intersects with the second
 */
-bool Col_Box( const SDL_Rect &a, const GL_rect &b );
+inline bool Col_Box( const SDL_Rect &a, const GL_rect &b )
+{
+	// check if their bounding boxes touch
+	if( b.m_x + b.m_w < a.x )
+	{
+		return 0;
+	}
+	if( b.m_x > a.x + a.w )
+	{
+		return 0;
+	}
+
+	if( b.m_y + b.m_h < a.y )
+	{
+		return 0;
+	}
+	if( b.m_y > a.y + a.h )
+	{
+		return 0;
+	}
+
+	// bounding boxes intersect
+	return 1;
+};
 
 /*
  * Bounding box collision test (SDL_Rect)
  * Checks if the first rect intersects completely with the second
 */
-bool Col_Box_full( const SDL_Rect &a, const SDL_Rect &b );
+inline bool Col_Box_full( const SDL_Rect &a, const SDL_Rect &b )
+{
+	if( a.x <= b.x )
+	{
+		return 0;
+	}
+	if( a.x + a.w >= b.x + b.w )
+	{
+		return 0;
+	}
+	if( a.y <= b.y )
+	{
+		return 0;
+	}
+	if( a.y + a.h >= b.y + b.h )
+	{
+		return 0;
+	}
+
+	return 1;
+};
 
 /*
  * tests whether 2 circles intersect
@@ -135,7 +209,7 @@ bool Col_Circle( float x1, float y1, float r1, float x2, float y2, float r2, int
  * the circle and approximate the radius using the width and height
  * of the surface (for example a rect of 4x6 would have r = 2.5).
 */
-bool Col_Circle( cGL_Surface *surface1, SDL_Rect *a, cGL_Surface *surface2, SDL_Rect *b, int offset = 0 );
+
 bool Col_Circle( cGL_Surface *a, float x1, float y1, cGL_Surface *b, float x2, float y2, int offset );
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

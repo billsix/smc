@@ -15,7 +15,7 @@
 
 #include "../enemies/spika.h"
 #include "../core/game_core.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../level/level.h"
 #include "../gui/hud.h"
 #include "../video/gl_surface.h"
@@ -30,14 +30,14 @@ namespace SMC
 
 /* *** *** *** *** *** *** cSpika *** *** *** *** *** *** *** *** *** *** *** */
 
-cSpika :: cSpika( float x, float y )
-: cEnemy( x, y )
+cSpika :: cSpika( cSprite_Manager *sprite_manager )
+: cEnemy( sprite_manager )
 {
 	cSpika::Init();
 }
 
-cSpika :: cSpika( CEGUI::XMLAttributes &attributes )
-: cEnemy()
+cSpika :: cSpika( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cEnemy( sprite_manager )
 {
 	cSpika::Init();
 	cSpika::Create_From_Stream( attributes );
@@ -52,6 +52,7 @@ void cSpika :: Init( void )
 {
 	m_type = TYPE_SPIKA;
 	m_pos_z = 0.09f;
+	m_gravity_max = 25.0f;
 
 	m_speed = 0.0f;
 	m_detection_size = 0.0f;
@@ -61,11 +62,11 @@ void cSpika :: Init( void )
 	Set_Color( COL_ORANGE );
 }
 
-cSpika *cSpika :: Copy( void )
+cSpika *cSpika :: Copy( void ) const
 {
-	cSpika *spika = new cSpika( m_start_pos_x, m_start_pos_y );
+	cSpika *spika = new cSpika( m_sprite_manager );
+	spika->Set_Pos( m_start_pos_x, m_start_pos_y, 1 );
 	spika->Set_Color( m_color_type );
-
 	return spika;
 }
 
@@ -183,11 +184,10 @@ void cSpika :: Update_Dying( void )
 	{
 		Move( 0.0f, -5.0f );
 	}
-	// if not below the screen fall
-	else if( m_pos_y < game_res_h + m_col_rect.m_h )
+	// if not below the ground : fall
+	else if( m_col_rect.m_y < pActive_Camera->m_limit_rect.m_y )
 	{
 		Move( 0.0f, 20.0f );
-
 		Add_Scale( -pFramerate->m_speed_factor * 0.01f );
 	}
 	// if below disable
@@ -203,7 +203,7 @@ void cSpika :: Update( void )
 {
 	cEnemy::Update();
 
-	if( !m_valid_update || !Is_In_Player_Range() )
+	if( !m_valid_update || !Is_In_Range() )
 	{
 		return;
 	}
@@ -215,8 +215,8 @@ void cSpika :: Update( void )
 	}
 
 	// check for player
-	GL_rect player_rect = pPlayer->m_col_rect;
-	player_rect.m_x += ( pPlayer->m_col_rect.m_w / 2 );
+	GL_rect player_rect = pLevel_Player->m_col_rect;
+	player_rect.m_x += ( pLevel_Player->m_col_rect.m_w / 2 );
 	player_rect.m_w = 1;
 
 	// rect
@@ -234,7 +234,7 @@ void cSpika :: Update( void )
 
 
 	// if player is left
-	if( pPlayer->maryo_type != MARYO_GHOST && player_rect.Intersects( rect_left ) )
+	if( pLevel_Player->m_maryo_type != MARYO_GHOST && player_rect.Intersects( rect_left ) )
 	{
 		if( m_velx > -m_speed )
 		{
@@ -247,7 +247,7 @@ void cSpika :: Update( void )
 		}
 	}
 	// if player is right
-	else if( pPlayer->maryo_type != MARYO_GHOST && player_rect.Intersects( rect_right ) )
+	else if( pLevel_Player->m_maryo_type != MARYO_GHOST && player_rect.Intersects( rect_right ) )
 	{
 		if( m_velx < m_speed )
 		{
@@ -274,7 +274,6 @@ void cSpika :: Update( void )
 		m_walk_count = m_rot_z;
 	}
 
-	// gravity
 	Update_Gravity();
 }
 
@@ -362,9 +361,9 @@ Col_Valid_Type cSpika :: Validate_Collision( cSprite *obj )
 
 void cSpika :: Handle_Collision_Player( cObjectCollision *collision )
 {
-	pPlayer->DownGrade_Player();
+	pLevel_Player->DownGrade_Player();
 
-	if( collision->direction == DIR_LEFT || collision->direction == DIR_RIGHT )
+	if( collision->m_direction == DIR_LEFT || collision->m_direction == DIR_RIGHT )
 	{
 		m_velx = 0.0f;
 	}
@@ -373,12 +372,12 @@ void cSpika :: Handle_Collision_Player( cObjectCollision *collision )
 void cSpika :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
 	// invalid
-	if( collision->number < 0 )
+	if( collision->m_number < 0 )
 	{
 		return;
 	}
 
-	cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
+	cEnemy *enemy = static_cast<cEnemy *>(m_sprite_manager->Get_Pointer( collision->m_number ));
 
 	// already dead
 	if( enemy->m_dead )
@@ -451,29 +450,56 @@ void cSpika :: Handle_Collision_Enemy( cObjectCollision *collision )
 
 void cSpika :: Handle_Collision_Massive( cObjectCollision *collision )
 {
-	if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
+	if( m_state == STA_OBJ_LINKED )
 	{
-		m_velx = 0;
+		return;
 	}
 
 	Send_Collision( collision );
+
+	// get colliding object
+	cSprite *col_object = m_sprite_manager->Get_Pointer( collision->m_number );
+
+	if( col_object->m_type == TYPE_BALL )
+	{
+		return;
+	}
+
+	if( collision->m_direction == DIR_TOP )
+	{
+		if( m_vely < 0.0f )
+		{
+			m_vely = 0.0f;
+		}
+	}
+	else if( collision->m_direction == DIR_BOTTOM )
+	{
+		if( m_vely > 0.0f )
+		{
+			m_vely = 0.0f;
+		}
+	}
+	else if( collision->m_direction == DIR_RIGHT || collision->m_direction == DIR_LEFT )
+	{
+		m_velx = 0.0f;
+	}
 }
 
 void cSpika :: Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 )
 {
 	if( cdirection == DIR_DOWN )
 	{
-		m_vely = -10;
+		m_vely = -10.0f;
 
 		// left
 		if( m_pos_x > r2->m_x )
 		{
-			m_velx += 10;
+			m_velx += 10.0f;
 		}
 		// right
 		else if( m_pos_x < r2->m_x )
 		{
-			m_velx -= 10;
+			m_velx -= 10.0f;
 		}
 
 		Reset_On_Ground();

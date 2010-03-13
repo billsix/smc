@@ -21,7 +21,7 @@
 #include "../video/renderer.h"
 #include "../user/savegame.h"
 #include "../core/i18n.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../core/sprite_manager.h"
 #include "../level/level.h"
 #include "../objects/path.h"
@@ -30,22 +30,16 @@
 namespace SMC
 {
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
-const float deg_to_rad = static_cast<float>(M_PI / 180.0f);
-
 /* *** *** *** *** *** *** *** cMoving_Platform *** *** *** *** *** *** *** *** *** *** */
 
-cMoving_Platform :: cMoving_Platform( float x, float y )
-: cAnimated_Sprite( x, y )
+cMoving_Platform :: cMoving_Platform( cSprite_Manager *sprite_manager )
+: cAnimated_Sprite( sprite_manager ), m_path_state( sprite_manager )
 {
 	cMoving_Platform::Init();
 }
 
-cMoving_Platform :: cMoving_Platform( CEGUI::XMLAttributes &attributes )
-: cAnimated_Sprite()
+cMoving_Platform :: cMoving_Platform( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cAnimated_Sprite( sprite_manager ), m_path_state( sprite_manager )
 {
 	cMoving_Platform::Init();
 	cMoving_Platform::Create_From_Stream( attributes );
@@ -61,23 +55,23 @@ void cMoving_Platform :: Init( void )
 	m_sprite_array = ARRAY_ACTIVE;
 	m_type = TYPE_MOVING_PLATFORM;
 	m_pos_z = 0.085f;
+	m_gravity_max = 25.0f;
 	m_can_be_on_ground = 0;
 
-	m_player_range = 3000;
+	m_camera_range = 3000;
 	m_can_be_ground = 1;
 
 	m_move_type = MOVING_PLATFORM_TYPE_LINE;
 	m_platform_state = MOVING_PLATFORM_STAY;
-	moving_angle = 0.0f;
-	touch_counter = 0.0f;
-	shake_dir_counter = 0.0f;
-	shake_dir = 0;
-	shake_counter = 0.0f;
-	m_path_state = cPath_State();
+	m_moving_angle = 0.0f;
+	m_touch_counter = 0.0f;
+	m_shake_dir_counter = 0.0f;
+	m_shake_dir = 0;
+	m_shake_counter = 0.0f;
 
-	max_distance_slow_down_pos = 0.0f;
-	lowest_speed = 0.0f;
-	editor_color = Color( static_cast<Uint8>(100), 150, 200, 128 );
+	m_max_distance_slow_down_pos = 0.0f;
+	m_lowest_speed = 0.0f;
+	m_editor_color = Color( static_cast<Uint8>(100), 150, 200, 128 );
 
 	Set_Massive_Type( MASS_HALFMASSIVE );
 	Set_Max_Distance( 150 );
@@ -106,23 +100,23 @@ void cMoving_Platform :: Init_Links( void )
 	m_path_state.Set_Path_Identifier( m_path_state.m_path_identifier );
 }
 
-cMoving_Platform *cMoving_Platform :: Copy( void )
+cMoving_Platform *cMoving_Platform :: Copy( void ) const
 {
-	cMoving_Platform *moving_platform = new cMoving_Platform( m_start_pos_x, m_start_pos_y );
+	cMoving_Platform *moving_platform = new cMoving_Platform( m_sprite_manager );
+	moving_platform->Set_Pos( m_start_pos_x, m_start_pos_y, 1 );
 	moving_platform->Set_Move_Type( m_move_type );
 	moving_platform->Set_Path_Identifier( m_path_state.m_path_identifier );
 	moving_platform->Set_Massive_Type( m_massive_type );
 	moving_platform->Set_Direction( m_start_direction, 1 );
-	moving_platform->Set_Max_Distance( max_distance );
-	moving_platform->Set_Speed( speed );
-	moving_platform->Set_Touch_Time( touch_time );
-	moving_platform->Set_Shake_Time( shake_time );
-	moving_platform->Set_Touch_Move_Time( touch_move_time );
-	moving_platform->Set_Middle_Count( middle_count );
+	moving_platform->Set_Max_Distance( m_max_distance );
+	moving_platform->Set_Speed( m_speed );
+	moving_platform->Set_Touch_Time( m_touch_time );
+	moving_platform->Set_Shake_Time( m_shake_time );
+	moving_platform->Set_Touch_Move_Time( m_touch_move_time );
+	moving_platform->Set_Middle_Count( m_middle_count );
 	moving_platform->Set_Image_Top_Left( m_images[0].m_image );
 	moving_platform->Set_Image_Top_Middle( m_images[1].m_image );
 	moving_platform->Set_Image_Top_Right( m_images[2].m_image );
-
 	return moving_platform;
 }
 
@@ -140,7 +134,7 @@ void cMoving_Platform :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 		// direction
 		Set_Direction( Get_Direction_Id( attributes.getValueAsString( "direction", Get_Direction_Name( m_start_direction ) ).c_str() ), 1 );
 		// max distance
-		Set_Max_Distance( attributes.getValueAsInteger( "max_distance", max_distance ) );
+		Set_Max_Distance( attributes.getValueAsInteger( "max_distance", m_max_distance ) );
 	}
 	// path identifier
 	if( m_move_type == MOVING_PLATFORM_TYPE_PATH || m_move_type == MOVING_PLATFORM_TYPE_PATH_BACKWARDS )
@@ -148,15 +142,15 @@ void cMoving_Platform :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 		Set_Path_Identifier( attributes.getValueAsString( "path_identifier" ).c_str() );
 	}
 	// speed
-	Set_Speed( attributes.getValueAsFloat( "speed", speed ) );
+	Set_Speed( attributes.getValueAsFloat( "speed", m_speed ) );
 	// touch_time
-	Set_Touch_Time( attributes.getValueAsFloat( "touch_time", touch_time ) );
+	Set_Touch_Time( attributes.getValueAsFloat( "touch_time", m_touch_time ) );
 	// shake time
-	Set_Shake_Time( attributes.getValueAsFloat( "shake_time", shake_time ) );
+	Set_Shake_Time( attributes.getValueAsFloat( "shake_time", m_shake_time ) );
 	// touch move time
-	Set_Touch_Move_Time( attributes.getValueAsFloat( "touch_move_time", touch_move_time ) );
+	Set_Touch_Move_Time( attributes.getValueAsFloat( "touch_move_time", m_touch_move_time ) );
 	// middle image count
-	Set_Middle_Count( attributes.getValueAsInteger( "middle_img_count", middle_count ) );
+	Set_Middle_Count( attributes.getValueAsInteger( "middle_img_count", m_middle_count ) );
 	// image top left
 	Set_Image_Top_Left( pVideo->Get_Surface( attributes.getValueAsString( "image_top_left", m_images[0].m_image->Get_Filename() ).c_str() ) );
 	// image top middle
@@ -192,18 +186,18 @@ void cMoving_Platform :: Save_To_Stream( ofstream &file )
 		// direction
 		file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( m_start_direction ) << "\" />" << std::endl;
 		// max distance
-		file << "\t\t<Property name=\"max_distance\" value=\"" << max_distance << "\" />" << std::endl;
+		file << "\t\t<Property name=\"max_distance\" value=\"" << m_max_distance << "\" />" << std::endl;
 	}
 	// speed
-	file << "\t\t<Property name=\"speed\" value=\"" << speed << "\" />" << std::endl;
+	file << "\t\t<Property name=\"speed\" value=\"" << m_speed << "\" />" << std::endl;
 	// touch time
-	file << "\t\t<Property name=\"touch_time\" value=\"" << touch_time << "\" />" << std::endl;
+	file << "\t\t<Property name=\"touch_time\" value=\"" << m_touch_time << "\" />" << std::endl;
 	// shake time
-	file << "\t\t<Property name=\"shake_time\" value=\"" << shake_time << "\" />" << std::endl;
+	file << "\t\t<Property name=\"shake_time\" value=\"" << m_shake_time << "\" />" << std::endl;
 	// touch move time
-	file << "\t\t<Property name=\"touch_move_time\" value=\"" << touch_move_time << "\" />" << std::endl;
+	file << "\t\t<Property name=\"touch_move_time\" value=\"" << m_touch_move_time << "\" />" << std::endl;
 	// middle image count
-	file << "\t\t<Property name=\"middle_img_count\" value=\"" << middle_count << "\" />" << std::endl;
+	file << "\t\t<Property name=\"middle_img_count\" value=\"" << m_middle_count << "\" />" << std::endl;
 	// image top left
 	file << "\t\t<Property name=\"image_top_left\" value=\"" << m_images[0].m_image->Get_Filename( 1 ) << "\" />" << std::endl;
 	// image top middle
@@ -213,6 +207,12 @@ void cMoving_Platform :: Save_To_Stream( ofstream &file )
 
 	// end moving_platform
 	file << "\t</moving_platform>" << std::endl;
+}
+
+void cMoving_Platform :: Set_Sprite_Manager( cSprite_Manager *sprite_manager )
+{
+	cSprite::Set_Sprite_Manager( sprite_manager );
+	m_path_state.Set_Sprite_Manager( sprite_manager );
 }
 
 void cMoving_Platform :: Load_From_Savegame( cSave_Level_Object *save_object )
@@ -324,9 +324,9 @@ void cMoving_Platform :: Set_Path_Identifier( const std::string &identifier )
 	Set_Velocity( 0, 0 );
 }
 
-void cMoving_Platform :: Set_Massive_Type( MassiveType mtype )
+void cMoving_Platform :: Set_Massive_Type( MassiveType new_type )
 {
-	m_massive_type = mtype;
+	m_massive_type = new_type;
 
 	if( m_massive_type == MASS_MASSIVE )
 	{
@@ -373,22 +373,22 @@ void cMoving_Platform :: Set_Direction( const ObjectDirection dir, bool new_star
 	Update_Velocity();
 }
 
-void cMoving_Platform :: Set_Max_Distance( int nmax_distance )
+void cMoving_Platform :: Set_Max_Distance( int new_max_distance )
 {
-	if( nmax_distance < 0 )
+	if( new_max_distance < 0 )
 	{
-		nmax_distance = 0;
+		new_max_distance = 0;
 	}
 
-	max_distance = nmax_distance;
+	m_max_distance = new_max_distance;
 	// set slow down position
-	max_distance_slow_down_pos = max_distance * 0.2f;
+	m_max_distance_slow_down_pos = m_max_distance * 0.2f;
 }
 
 void cMoving_Platform :: Set_Speed( float val )
 {
-	speed = val;
-	lowest_speed = speed * 0.3f;
+	m_speed = val;
+	m_lowest_speed = m_speed * 0.3f;
 
 	// set velocity
 	Update_Velocity();
@@ -398,11 +398,11 @@ void cMoving_Platform :: Set_Speed( float val )
 
 void cMoving_Platform :: Set_Touch_Time( float val )
 {
-	touch_time = val;
+	m_touch_time = val;
 
-	if( touch_time < 0 )
+	if( m_touch_time < 0 )
 	{
-		touch_time = 0;
+		m_touch_time = 0;
 	}
 
 	Create_Name();
@@ -410,21 +410,21 @@ void cMoving_Platform :: Set_Touch_Time( float val )
 
 void cMoving_Platform :: Set_Shake_Time( float val )
 {
-	shake_time = val;
+	m_shake_time = val;
 
-	if( shake_time < 0 )
+	if( m_shake_time < 0 )
 	{
-		shake_time = 0;
+		m_shake_time = 0;
 	}
 }
 
 void cMoving_Platform :: Set_Touch_Move_Time( float val )
 {
-	touch_move_time = val;
+	m_touch_move_time = val;
 
-	if( touch_move_time < 0 )
+	if( m_touch_move_time < 0 )
 	{
-		touch_move_time = 0;
+		m_touch_move_time = 0;
 	}
 
 	// set back start position
@@ -437,11 +437,11 @@ void cMoving_Platform :: Set_Touch_Move_Time( float val )
 
 void cMoving_Platform :: Set_Middle_Count( const unsigned int val )
 {
-	middle_count = val;
+	m_middle_count = val;
 
-	if( middle_count > 128 )
+	if( m_middle_count > 128 )
 	{
-		middle_count = 128;
+		m_middle_count = 128;
 	}
 }
 
@@ -485,7 +485,7 @@ void cMoving_Platform :: Set_Image_Top_Right( cGL_Surface *surface )
 
 void cMoving_Platform :: Update( void )
 {
-	if( !m_valid_update || !Is_In_Player_Range() )
+	if( !m_valid_update || !Is_In_Range() )
 	{
 		return;
 	}
@@ -494,67 +494,61 @@ void cMoving_Platform :: Update( void )
 	// because it should start moving (if it is moving) before shaking starts.
 	// if larger than touch time then the platform state will change 
 	// and touch_counter will never be more than move_time
-	if( touch_time > 0.0f || touch_move_time > 0.0f )
+	if( m_touch_time > 0.0f || m_touch_move_time > 0.0f )
 	{
 		if( m_platform_state == MOVING_PLATFORM_TOUCHED )
 		{
-			touch_counter += pFramerate->m_speed_factor;
+			m_touch_counter += pFramerate->m_speed_factor;
 		}
 	}
 
 	// if able to fall
-	if( touch_time > 0.0f )
+	if( m_touch_time > 0.0f )
 	{
-		if( m_platform_state == MOVING_PLATFORM_TOUCHED && touch_counter > touch_time )
+		if( m_platform_state == MOVING_PLATFORM_TOUCHED && m_touch_counter > m_touch_time )
 		{
 			m_platform_state = MOVING_PLATFORM_SHAKE;
-			shake_dir = 0;
+			m_shake_dir = 0;
 		}
 		else if( m_platform_state == MOVING_PLATFORM_SHAKE )
 		{
-			shake_counter += pFramerate->m_speed_factor;
+			m_shake_counter += pFramerate->m_speed_factor;
 
 			// move right
-			if( shake_dir == 0 )
+			if( m_shake_dir == 0 )
 			{
-				shake_dir_counter += 8 * pFramerate->m_speed_factor;
+				m_shake_dir_counter += 8 * pFramerate->m_speed_factor;
 
-				if( shake_dir_counter > 3.0f )
+				if( m_shake_dir_counter > 3.0f )
 				{
-					shake_dir_counter = 3.0f;
+					m_shake_dir_counter = 3.0f;
 					// reverse
-					shake_dir = !shake_dir;
+					m_shake_dir = !m_shake_dir;
 				}
 			}
 			// move left
 			else
 			{
-				shake_dir_counter -= 8 * pFramerate->m_speed_factor;
+				m_shake_dir_counter -= 8 * pFramerate->m_speed_factor;
 
-				if( shake_dir_counter < -3.0f )
+				if( m_shake_dir_counter < -3.0f )
 				{
-					shake_dir_counter = -3.0f;
+					m_shake_dir_counter = -3.0f;
 					// reverse
-					shake_dir = !shake_dir;
+					m_shake_dir = !m_shake_dir;
 				}
 			}
 			
-			if( shake_counter > shake_time )
+			if( m_shake_counter > m_shake_time )
 			{
 				m_platform_state = MOVING_PLATFORM_FALL;
 			}
 		}
 		else if( m_platform_state == MOVING_PLATFORM_FALL )
 		{
-			if( m_vely < 25.0f )
+			if( m_vely < m_gravity_max )
 			{
-				m_vely += 2.1f * pFramerate->m_speed_factor;
-
-				// limit falling velocity
-				if( m_vely > 25.0f )
-				{
-					m_vely = 25.0f;
-				}
+				Add_Velocity_Y_Max( 2.1f, m_gravity_max );
 			}
 
 			// drop objects when falling fast
@@ -574,7 +568,7 @@ void cMoving_Platform :: Update( void )
 			}
 
 			// below screen (+300 to be sure nothing can collide with it anymore)
-			if( m_col_rect.m_y > pActive_Camera->limit_rect.m_y + game_res_h + 300.0f )
+			if( m_col_rect.m_y > pActive_Camera->m_limit_rect.m_y + game_res_h + 300.0f )
 			{
 				m_platform_state = MOVING_PLATFORM_STAY;
 				m_can_be_ground = 0;
@@ -584,18 +578,18 @@ void cMoving_Platform :: Update( void )
 	}
 
 	// if moving
-	if( speed && m_platform_state != MOVING_PLATFORM_FALL && ( !touch_move_time || touch_counter > touch_move_time ) )
+	if( m_speed && m_platform_state != MOVING_PLATFORM_FALL && ( !m_touch_move_time || m_touch_counter > m_touch_move_time ) )
 	{
-		// distance to final position
-		float dist_to_final_pos = 0.0f;
-
 		if( m_move_type == MOVING_PLATFORM_TYPE_LINE )
 		{
+			// distance to final position
+			float dist_to_final_pos = 0.0f;
+
 			if( m_start_direction == DIR_LEFT )
 			{
 				if( m_direction == DIR_LEFT )
 				{
-					dist_to_final_pos = max_distance - ( m_start_pos_x - m_pos_x );
+					dist_to_final_pos = m_max_distance - ( m_start_pos_x - m_pos_x );
 				}
 				else if( m_direction == DIR_RIGHT )
 				{
@@ -610,14 +604,14 @@ void cMoving_Platform :: Update( void )
 				}
 				else if( m_direction == DIR_RIGHT )
 				{
-					dist_to_final_pos = max_distance + ( m_start_pos_x - m_pos_x );
+					dist_to_final_pos = m_max_distance + ( m_start_pos_x - m_pos_x );
 				}
 			}
 			if( m_start_direction == DIR_UP )
 			{
 				if( m_direction == DIR_UP )
 				{
-					dist_to_final_pos = max_distance - ( m_start_pos_y - m_pos_y );
+					dist_to_final_pos = m_max_distance - ( m_start_pos_y - m_pos_y );
 				}
 				else if( m_direction == DIR_DOWN )
 				{
@@ -632,7 +626,7 @@ void cMoving_Platform :: Update( void )
 				}
 				else if( m_direction == DIR_DOWN )
 				{
-					dist_to_final_pos = max_distance + ( m_start_pos_y - m_pos_y );
+					dist_to_final_pos = m_max_distance + ( m_start_pos_y - m_pos_y );
 				}
 			}
 
@@ -645,94 +639,94 @@ void cMoving_Platform :: Update( void )
 				Set_Direction( Get_Opposite_Direction( m_direction ) );
 			}
 			// slow down near final position
-			else if( dist_to_final_pos < max_distance_slow_down_pos )
+			else if( dist_to_final_pos < m_max_distance_slow_down_pos )
 			{
 				if( m_direction == DIR_DOWN )
 				{
-					if( m_vely > 0 )
+					if( m_vely > 0.0f )
 					{
 						// slow down
-						if( m_vely > lowest_speed )
+						if( m_vely > m_lowest_speed )
 						{
 							m_vely *= 1 - ( 0.05f * pFramerate->m_speed_factor );
 
 							// reached lowest value
-							if( m_vely <= lowest_speed )
+							if( m_vely <= m_lowest_speed )
 							{
-								m_vely = lowest_speed;
+								m_vely = m_lowest_speed;
 							}
 						}
 					}
 					else
 					{
 						// set lowest value
-						m_vely = lowest_speed;
+						m_vely = m_lowest_speed;
 					}
 				}
 				else if( m_direction == DIR_UP )
 				{
-					if( m_vely < 0 )
+					if( m_vely < 0.0f )
 					{
 						// slow down
-						if( m_vely < -lowest_speed )
+						if( m_vely < -m_lowest_speed )
 						{
 							m_vely *= 1 - ( 0.05f * pFramerate->m_speed_factor );
 
 							// reached lowest value
-							if( m_vely >= -lowest_speed )
+							if( m_vely >= -m_lowest_speed )
 							{
-								m_vely = -lowest_speed;
+								m_vely = -m_lowest_speed;
 							}
 						}
 					}
 					else
 					{
 						// set lowest value
-						m_vely = -lowest_speed;
+						m_vely = -m_lowest_speed;
 					}
 				}
 				else if( m_direction == DIR_LEFT )
 				{
-					if( m_velx < 0 )
+					if( m_velx < 0.0f )
 					{
 						// slow down
-						if( m_velx < -lowest_speed )
+						if( m_velx < -m_lowest_speed )
 						{
 							m_velx *= 1 - ( 0.05f * pFramerate->m_speed_factor );
 
 							// reached lowest value
-							if( m_velx >= -lowest_speed )
+							if( m_velx >= -m_lowest_speed )
 							{
-								m_velx = -lowest_speed;
+								m_velx = -m_lowest_speed;
 							}
 						}
 					}
 					else
 					{
 						// set lowest value
-						m_velx = -lowest_speed;
+						m_velx = -m_lowest_speed;
 					}
 				}
 				else if( m_direction == DIR_RIGHT )
 				{
-					if( m_velx > 0 )
+					if( m_velx > 0.0f )
 					{
 						// slow down
-						if( m_velx > lowest_speed )
+						if( m_velx > m_lowest_speed )
 						{
 							m_velx *= 1 - ( 0.05f * pFramerate->m_speed_factor );
 
 							// reached lowest value
-							if( m_velx <= lowest_speed )
+							if( m_velx <= m_lowest_speed )
 							{
-								m_velx = lowest_speed;
+								m_velx = m_lowest_speed;
 							}
 						}
 					}
 					else
 					{
 						// set lowest value
-						m_velx = lowest_speed;
+						m_velx = m_lowest_speed;
 					}
 				}
 			}
@@ -747,26 +741,26 @@ void cMoving_Platform :: Update( void )
 			// increase angle
 			if( m_direction == DIR_RIGHT )
 			{
-				moving_angle += speed * pFramerate->m_speed_factor;
+				m_moving_angle += m_speed * pFramerate->m_speed_factor;
 
-				if( moving_angle > 360.0f )
+				if( m_moving_angle > 360.0f )
 				{
-					moving_angle -= 360.0f;
+					m_moving_angle -= 360.0f;
 				}
 			}
 			else
 			{
-				moving_angle -= speed * pFramerate->m_speed_factor;
+				m_moving_angle -= m_speed * pFramerate->m_speed_factor;
 
-				if( moving_angle < 0.0f )
+				if( m_moving_angle < 0.0f )
 				{
-					moving_angle += 360.0f;
+					m_moving_angle += 360.0f;
 				}
 			}
 
 			// get difference to new position
-			float diff_x = ( m_start_pos_x + ( max_distance * sin( moving_angle * deg_to_rad ) ) ) - m_pos_x;
-			float diff_y = ( m_start_pos_y - max_distance + ( max_distance * cos( moving_angle * deg_to_rad ) ) ) - m_pos_y;
+			float diff_x = ( m_start_pos_x + ( m_max_distance * sin( m_moving_angle * deg_to_rad ) ) ) - m_pos_x;
+			float diff_y = ( m_start_pos_y - m_max_distance + ( m_max_distance * cos( m_moving_angle * deg_to_rad ) ) ) - m_pos_y;
 
 			// move to position
 			Set_Velocity( diff_x, diff_y );
@@ -776,7 +770,7 @@ void cMoving_Platform :: Update( void )
 			if( m_path_state.m_path )
 			{
 				// move along path
-				if( m_path_state.Path_Move( speed * pFramerate->m_speed_factor ) == 0 )
+				if( m_path_state.Path_Move( m_speed * pFramerate->m_speed_factor ) == 0 )
 				{
 					if( !m_path_state.m_path->m_rewind )
 					{
@@ -786,8 +780,8 @@ void cMoving_Platform :: Update( void )
 				}
 
 				// get difference
-				float diff_x = ( m_path_state.m_path->m_start_pos_x + m_path_state.pos_x ) - m_pos_x;
-				float diff_y = ( m_path_state.m_path->m_start_pos_y + m_path_state.pos_y ) - m_pos_y;
+				float diff_x = ( m_path_state.m_path->m_start_pos_x + m_path_state.m_pos_x ) - m_pos_x;
+				float diff_y = ( m_path_state.m_path->m_start_pos_y + m_path_state.m_pos_y ) - m_pos_y;
 
 				// move to position
 				Set_Velocity( diff_x, diff_y );
@@ -816,7 +810,7 @@ void cMoving_Platform :: Draw( cSurface_Request *request /* = NULL */ )
 	if( !editor_level_enabled )
 	{
 		// shake
-		x += shake_dir_counter;
+		x += m_shake_dir_counter;
 	}
 
 	// top left
@@ -842,7 +836,7 @@ void cMoving_Platform :: Draw( cSurface_Request *request /* = NULL */ )
 		// Middle
 		m_image = m_images[1].m_image;
 		m_start_image = m_image;
-		for( unsigned int i = 0; i < middle_count; i++ )
+		for( unsigned int i = 0; i < m_middle_count; i++ )
 		{
 			// create request
 			surface_request = new cSurface_Request();
@@ -873,34 +867,34 @@ void cMoving_Platform :: Draw( cSurface_Request *request /* = NULL */ )
 	Update_Position_Rect();
 
 	// draw distance rect
-	if( editor_level_enabled && speed )
+	if( editor_level_enabled && m_speed )
 	{
 		if( m_move_type == MOVING_PLATFORM_TYPE_LINE )
 		{
 			if( m_start_direction == DIR_RIGHT )
 			{
-				pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->x, m_start_pos_y - pActive_Camera->y, max_distance + m_col_rect.m_w, 2, m_pos_z - 0.0001f, &editor_color );
+				pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->m_x, m_start_pos_y - pActive_Camera->m_y, m_max_distance + m_col_rect.m_w, 2, m_pos_z - 0.0001f, &m_editor_color );
 			}
 			else if( m_start_direction == DIR_DOWN )
 			{
-				pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->x, m_start_pos_y - pActive_Camera->y, 2, max_distance + m_col_rect.m_h, m_pos_z - 0.0001f, &editor_color );
+				pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->m_x, m_start_pos_y - pActive_Camera->m_y, 2, m_max_distance + m_col_rect.m_h, m_pos_z - 0.0001f, &m_editor_color );
 			}
 			// added in version 1.7
 			else if( m_start_direction == DIR_UP )
 			{
-				pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->x, m_start_pos_y - pActive_Camera->y - max_distance, 2, max_distance + m_col_rect.m_h, m_pos_z - 0.0001f, &editor_color );
+				pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->m_x, m_start_pos_y - pActive_Camera->m_y - m_max_distance, 2, m_max_distance + m_col_rect.m_h, m_pos_z - 0.0001f, &m_editor_color );
 			}
 			// added in version 1.7
 			else if( m_start_direction == DIR_LEFT )
 			{
-				pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->x - max_distance, m_start_pos_y - pActive_Camera->y, max_distance + m_col_rect.m_w, 2, m_pos_z - 0.0001f, &editor_color );
+				pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->m_x - m_max_distance, m_start_pos_y - pActive_Camera->m_y, m_max_distance + m_col_rect.m_w, 2, m_pos_z - 0.0001f, &m_editor_color );
 			}
 		}
 		else if( m_move_type == MOVING_PLATFORM_TYPE_CIRCLE )
 		{
 			// circle
 			cCircle_Request *circle_request = new cCircle_Request();
-			pVideo->Draw_Circle( m_start_pos_x - pActive_Camera->x, m_start_pos_y - max_distance - pActive_Camera->y, static_cast<float>(max_distance), m_pos_z - 0.0001f, &editor_color, circle_request );
+			pVideo->Draw_Circle( m_start_pos_x - pActive_Camera->m_x, m_start_pos_y - m_max_distance - pActive_Camera->m_y, static_cast<float>(m_max_distance), m_pos_z - 0.0001f, &m_editor_color, circle_request );
 			circle_request->line_width = 2;
 			// add request
 			pRenderer->Add( circle_request );
@@ -921,7 +915,7 @@ void cMoving_Platform :: Update_Rect( void )
 	}
 	if( m_images[1].m_image )
 	{
-		m_rect.m_w += m_images[1].m_image->m_w * middle_count;
+		m_rect.m_w += m_images[1].m_image->m_w * m_middle_count;
 	}
 	if( m_images[2].m_image )
 	{
@@ -941,34 +935,34 @@ void cMoving_Platform :: Update_Velocity( void )
 	}
 
 	// set velocity
-	if( speed > 0 && ( !touch_move_time || touch_counter > touch_move_time ) )
+	if( m_speed > 0 && ( !m_touch_move_time || m_touch_counter > m_touch_move_time ) )
 	{
 		if( m_direction == DIR_UP )
 		{
-			if( m_vely > -speed )
+			if( m_vely > -m_speed )
 			{
-				m_vely += -speed * 0.1f * pFramerate->m_speed_factor;
+				m_vely += -m_speed * 0.1f * pFramerate->m_speed_factor;
 			}
 		}
 		else if( m_direction == DIR_DOWN )
 		{
-			if( m_vely < speed )
+			if( m_vely < m_speed )
 			{
-				m_vely += speed * 0.1f * pFramerate->m_speed_factor;
+				m_vely += m_speed * 0.1f * pFramerate->m_speed_factor;
 			}
 		}
 		else if( m_direction == DIR_LEFT )
 		{
-			if( m_velx > -speed )
+			if( m_velx > -m_speed )
 			{
-				m_velx += -speed * 0.1f * pFramerate->m_speed_factor;
+				m_velx += -m_speed * 0.1f * pFramerate->m_speed_factor;
 			}
 		}
 		else if( m_direction == DIR_RIGHT )
 		{
-			if( m_velx < speed )
+			if( m_velx < m_speed )
 			{
-				m_velx += speed * 0.1f * pFramerate->m_speed_factor;
+				m_velx += m_speed * 0.1f * pFramerate->m_speed_factor;
 			}
 		}
 	}
@@ -1045,10 +1039,10 @@ Col_Valid_Type cMoving_Platform :: Validate_Collision( cSprite *obj )
 
 void cMoving_Platform :: Handle_Collision_Player( cObjectCollision *collision )
 {
-	if( collision->direction == DIR_TOP )
+	if( collision->m_direction == DIR_TOP )
 	{
 		// set to touched
-		if( ( touch_time > 0.0f || touch_move_time > 0.0f ) && m_platform_state == MOVING_PLATFORM_STAY )
+		if( ( m_touch_time > 0.0f || m_touch_move_time > 0.0f ) && m_platform_state == MOVING_PLATFORM_STAY )
 		{
 			m_platform_state = MOVING_PLATFORM_TOUCHED;
 		}
@@ -1125,7 +1119,7 @@ void cMoving_Platform :: Editor_Activate( void )
 	Editor_Add( UTF8_("Distance"), UTF8_("Movable distance into its direction if type is line or radius if circle."), editbox, 120 );
 
 	editbox->setValidationString( "^[+]?\\d*$" );
-	editbox->setText( int_to_string( max_distance ) );
+	editbox->setText( int_to_string( m_max_distance ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Max_Distance_Text_Changed, this ) );
 
 	// speed
@@ -1133,7 +1127,7 @@ void cMoving_Platform :: Editor_Activate( void )
 	Editor_Add( UTF8_("Speed"), UTF8_("Maximum speed"), editbox, 120 );
 
 	editbox->setValidationString( "[+]?[0-9]*\\.?[0-9]*" );
-	editbox->setText( float_to_string( speed ) );
+	editbox->setText( float_to_string( m_speed ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Speed_Text_Changed, this ) );
 
 	// touch time
@@ -1141,7 +1135,7 @@ void cMoving_Platform :: Editor_Activate( void )
 	Editor_Add( UTF8_("Touch time"), UTF8_("Time when touched until shaking starts"), editbox, 120 );
 
 	editbox->setValidationString( "[+]?[0-9]*\\.?[0-9]*" );
-	editbox->setText( float_to_string( touch_time ) );
+	editbox->setText( float_to_string( m_touch_time ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Touch_Time_Text_Changed, this ) );
 
 	// shake time
@@ -1149,7 +1143,7 @@ void cMoving_Platform :: Editor_Activate( void )
 	Editor_Add( UTF8_("Shake time"), UTF8_("Time it's shaking until falling"), editbox, 120 );
 
 	editbox->setValidationString( "[+]?[0-9]*\\.?[0-9]*" );
-	editbox->setText( float_to_string( shake_time ) );
+	editbox->setText( float_to_string( m_shake_time ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Shake_Time_Text_Changed, this ) );
 
 	// touch move time
@@ -1157,7 +1151,7 @@ void cMoving_Platform :: Editor_Activate( void )
 	Editor_Add( UTF8_("Touch move time"), UTF8_("If set does not move until this time has elapsed after touched"), editbox, 120 );
 
 	editbox->setValidationString( "[+]?[0-9]*\\.?[0-9]*" );
-	editbox->setText( float_to_string( touch_move_time ) );
+	editbox->setText( float_to_string( m_touch_move_time ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Touch_Move_Time_Text_Changed, this ) );
 
 	// horizontal middle image count
@@ -1165,7 +1159,7 @@ void cMoving_Platform :: Editor_Activate( void )
 	Editor_Add( UTF8_("Hor image count"), UTF8_("Horizontal middle image count"), editbox, 120 );
 
 	editbox->setValidationString( "^[+]?\\d*$" );
-	editbox->setText( int_to_string( middle_count ) );
+	editbox->setText( int_to_string( m_middle_count ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cMoving_Platform::Editor_Hor_Middle_Count_Text_Changed, this ) );
 
 	// image top left
@@ -1397,15 +1391,15 @@ void cMoving_Platform :: Create_Name( void )
 {
 	m_name.clear();
 
-	if( touch_time )
+	if( m_touch_time )
 	{
 		m_name = _("Falling ");
 	}
-	if( touch_move_time )
+	if( m_touch_move_time )
 	{
 		m_name += _("Delayed ");
 	}
-	if( speed )
+	if( m_speed )
 	{
 		m_name += _("Moving ");
 	}

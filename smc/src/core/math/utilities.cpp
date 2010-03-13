@@ -14,8 +14,6 @@
 */
 
 #include "../../core/math/utilities.h"
-// for rand()
-#include <cstdlib>
 // for find_if()
 #include <algorithm>
 // for isdigit()
@@ -39,23 +37,6 @@ namespace SMC
 
 /* *** *** *** *** *** *** *** *** Math utility functions *** *** *** *** *** *** *** *** *** */
 
-float Get_Random_Float( float min, float max )
-{
-	 return min + (max - min) * static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-}
-
-unsigned int Get_Power_of_2( unsigned int size )
-{
-	unsigned int value = 1;
-
-	while( value < size )
-	{
-		value <<= 1;
-	}
-
-	return value;
-}
-
 bool Is_Valid_Number( std::string num, bool accept_floating_point /* = 1 */ )
 {
 	// accept negative numbers
@@ -76,16 +57,6 @@ bool Is_Valid_Number( std::string num, bool accept_floating_point /* = 1 */ )
 	}
 
 	if( std::find_if( num.begin(), num.end(), nondigit() ) == num.end() )
-	{
-		return 1;
-	}
-
-	return 0;
-}
-
-bool Is_Float_Equal( float a, float b, float tolerance /* = 0.0001f */ )
-{
-	if( fabs(b - a) <= tolerance )
 	{
 		return 1;
 	}

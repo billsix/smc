@@ -27,11 +27,11 @@ namespace SMC
 class cHudSprite : public cSprite
 {
 public:
-	cHudSprite( cGL_Surface *new_image = NULL, float x = 0.0f, float y = 0.0f, bool del_img = 0 );
+	cHudSprite( cSprite_Manager *sprite_manager );
 	virtual ~cHudSprite( void );
 	
 	// copy this sprite
-	virtual cHudSprite *Copy( void );
+	virtual cHudSprite *Copy( void ) const;
 };
 
 /* *** *** *** *** *** *** *** cHud_Manager *** *** *** *** *** *** *** *** *** *** */
@@ -39,7 +39,7 @@ public:
 class cHud_Manager : public cObject_Manager<cHudSprite>
 {
 public:
-	cHud_Manager( void );
+	cHud_Manager( cSprite_Manager *sprite_manager );
 	virtual ~cHud_Manager( void );
 
 	// Load the complete HUD
@@ -53,6 +53,12 @@ public:
 	void Update( void );
 	// Draw the objects
 	void Draw( void );
+
+	// Set the parent sprite manager
+	void Set_Sprite_Manager( cSprite_Manager *sprite_manager );
+
+	// the parent sprite manager
+	cSprite_Manager *m_sprite_manager;
 
 	typedef vector<cHudSprite *> HudSpriteList;
 
@@ -70,7 +76,7 @@ extern cHud_Manager *pHud_Manager;
 struct PointsText : public cHudSprite
 {
 public:
-	PointsText( void );
+	PointsText( cSprite_Manager *sprite_manager );
 	virtual ~PointsText( void );
 
 	float m_vely;
@@ -82,7 +88,7 @@ public:
 class cMenuBackground : public cHudSprite
 {
 public:
-	cMenuBackground( float x = 0.0f, float y = 0.0f );
+	cMenuBackground( cSprite_Manager *sprite_manager );
 	virtual ~cMenuBackground( void );
 
 	virtual void Draw( cSurface_Request *request = NULL );
@@ -99,7 +105,7 @@ public:
 class cStatusText : public cHudSprite
 {
 public:
-	cStatusText( float x = 0.0f, float y = 0.0f );
+	cStatusText( cSprite_Manager *sprite_manager );
 	virtual ~cStatusText( void );
 	
 	virtual void Draw( cSurface_Request *request = NULL );
@@ -110,7 +116,7 @@ public:
 class cPlayerPoints : public cStatusText
 {
 public:
-	cPlayerPoints( float x = 0.0f, float y = 0.0f );
+	cPlayerPoints( cSprite_Manager *sprite_manager );
 	virtual ~cPlayerPoints( void );
 
 	void Set_Points( long points );
@@ -130,7 +136,7 @@ public:
 class cGoldDisplay : public cStatusText
 {
 public:
-	cGoldDisplay( float x = 0.0f, float y = 0.0f );
+	cGoldDisplay( cSprite_Manager *sprite_manager );
 	virtual ~cGoldDisplay( void );
 
 	void Set_Gold( int gold );
@@ -144,7 +150,7 @@ public:
 class cLiveDisplay : public cStatusText
 {
 public:
-	cLiveDisplay( float x = 0.0f, float y = 0.0f );
+	cLiveDisplay( cSprite_Manager *sprite_manager );
 	virtual ~cLiveDisplay( void );
 
 	void Set_Lives( int lives );
@@ -158,7 +164,7 @@ public:
 class cTimeDisplay : public cStatusText
 {
 public:
-	cTimeDisplay( float x = 0.0f, float y = 0.0f );
+	cTimeDisplay( cSprite_Manager *sprite_manager );
 	virtual ~cTimeDisplay( void );
 
 	// update
@@ -179,8 +185,11 @@ public:
 class cItemBox : public cStatusText
 {
 public:
-	cItemBox( float x = 0.0f, float y = 0.0f );
+	cItemBox( cSprite_Manager *sprite_manager );
 	virtual ~cItemBox( void );
+
+	// Set the parent sprite manager
+	virtual void Set_Sprite_Manager( cSprite_Manager *sprite_manager );
 
 	// update
 	virtual void Update( void );
@@ -220,7 +229,7 @@ public:
 class cDebugDisplay : public cStatusText
 {
 public:
-	cDebugDisplay( float x = 0.0f, float y = 0.0f );
+	cDebugDisplay( cSprite_Manager *sprite_manager );
 	virtual ~cDebugDisplay( void );
 
 	// update

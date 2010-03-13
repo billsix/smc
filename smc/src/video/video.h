@@ -16,7 +16,8 @@
 #ifndef SMC_VIDEO_H
 #define SMC_VIDEO_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
+#include "../core/global_game.h"
 // SDL
 // also includes SDL.h
 #include "SDL_image.h"
@@ -33,15 +34,60 @@ namespace SMC
 class Color
 {
 public:
-	Color( void );
-	Color( Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255 );
-	Color( float r, float g, float b, float a = 1.0f );
-	Color( Uint8 grey );
-	Color( const SDL_Color &color );
+	Color( void )
+	{
+		red = 0;
+		green = 0;
+		blue = 0;
+		alpha = 255;
+	}
 
-	// Returns a matching Color value
-	SDL_Color Get_SDL_Color( void ) const;
-	CEGUI::colour Get_cegui_Color( void ) const;
+	Color( Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255 )
+	{
+		red = r;
+		green = g;
+		blue = b;
+		alpha = a;
+	}
+
+	Color( float r, float g, float b, float a = 1.0f )
+	{
+		red = static_cast<Uint8>(r * 255);
+		green = static_cast<Uint8>(g * 255);
+		blue = static_cast<Uint8>(b * 255);
+		alpha = static_cast<Uint8>(a * 255);
+	}
+
+	Color( Uint8 grey )
+	{
+		red = grey;
+		green = grey;
+		blue = grey;
+		alpha = 255;
+	}
+
+	Color( const SDL_Color &color )
+	{
+		red = color.r;
+		green = color.g;
+		blue = color.b;
+		alpha = 255;
+	}
+
+	// Returns it as SDL_Color
+	inline SDL_Color Get_SDL_Color( void ) const
+	{
+		SDL_Color color;
+		color.r = red;
+		color.g = green;
+		color.b = blue;
+		return color;
+	}
+
+	inline CEGUI::colour Get_cegui_Color( void ) const
+	{
+		return CEGUI::colour( static_cast<float>(red) / 255, static_cast<float>(green) / 255, static_cast<float>(blue) / 255, static_cast<float>(alpha) / 255 );
+	}
 
 	// += operator
 	inline void operator += ( const Color &c )
@@ -134,8 +180,11 @@ enum Effect_Fadein
 class cFake_Renderer : public CEGUI::Renderer
 {
 public:
-	cFake_Renderer( void );
-	virtual ~cFake_Renderer( void );
+	cFake_Renderer( void )
+	{
+		d_identifierString = "Fake Renderer";
+	}
+	virtual ~cFake_Renderer( void ) {};
 
 	virtual	void addQuad(const CEGUI::Rect& dest_rect, float z, const CEGUI::Texture* tex, const CEGUI::Rect& texture_rect, const CEGUI::ColourRect& colours, CEGUI::QuadSplitMode quad_split_mode) {};
 	virtual	void doRender(void) {};
@@ -294,7 +343,7 @@ public:
 
 	/* Downscale an image
 	 * Can be used for creating MIPmaps
-	 * The incoming image should be a power-of-two sized
+	 * The incoming image should have a power-of-two size
 	*/
 	bool Downscale_Image( const unsigned char *const orig, int width, int height, int channels, unsigned char *resampled, int block_size_x, int block_size_y ) const;
 

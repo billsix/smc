@@ -173,14 +173,9 @@
 		<Property Name="color" Value="FFFF7000" />
 	</Item>
 	<Item>
-		<Property Name="name" Value="Save &amp; Reload" />
+		<Property Name="name" Value="Reload" />
 		<Property Name="tags" Value="function:reload" />
 		<Property Name="color" Value="FFAF8A4F" />
-	</Item>
-	<Item>
-		<Property Name="name" Value="Clear" />
-		<Property Name="tags" Value="function:clear" />
-		<Property Name="color" Value="FFFFC35F" />
 	</Item>
 	<Item>
 		<Property Name="name" Value="Settings" />

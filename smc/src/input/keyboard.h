@@ -16,7 +16,8 @@
 #ifndef SMC_KEYBOARD_H
 #define SMC_KEYBOARD_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
+#include "../core/global_game.h"
 // SDL
 #include "SDL.h"
 
@@ -58,16 +59,27 @@ public:
 	*/
 	bool Key_Down( SDLKey key );
 
-	// Get the assigned shortcut
-	SDLKey *Get_Shortcut( const input_identifier shortcut_id ) const;
-	// Assign a shortcut
-	void Assign_Shortcut( const input_identifier shortcut_id, SDLKey new_key );
+	// Is the CTRL key pressed
+	inline bool Is_Ctrl_Down( void ) const
+	{
+		return m_keys[SDLK_RCTRL] || m_keys[SDLK_LCTRL];
+	};
+	// Is the SHIFT key pressed
+	inline bool Is_Shift_Down( void ) const
+	{
+		return m_keys[SDLK_RSHIFT] || m_keys[SDLK_LSHIFT];
+	};
+	// Is the ALT key pressed
+	inline bool Is_Alt_Down( void ) const
+	{
+		return m_keys[SDLK_RALT] || m_keys[SDLK_LALT];
+	};
 
 	// Translate a SDLKey to the proper CEGUI::Key
 	unsigned int SDLKey_to_CEGUIKey( const SDLKey key ) const;
 
 	// Pressed keys
-	Uint8 keys[SDLK_LAST];
+	Uint8 m_keys[SDLK_LAST];
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

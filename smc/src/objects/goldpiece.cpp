@@ -15,7 +15,7 @@
 
 #include "../objects/goldpiece.h"
 #include "../core/game_core.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../audio/audio.h"
 #include "../core/framerate.h"
 #include "../video/animation.h"
@@ -29,14 +29,14 @@ namespace SMC
 
 /* *** *** *** *** *** *** cGoldpiece *** *** *** *** *** *** *** *** *** *** *** */
 
-cGoldpiece :: cGoldpiece( float x, float y )
-: cAnimated_Sprite( x, y )
+cGoldpiece :: cGoldpiece( cSprite_Manager *sprite_manager )
+: cAnimated_Sprite( sprite_manager )
 {
 	cGoldpiece::Init();
 }
 
-cGoldpiece :: cGoldpiece( CEGUI::XMLAttributes &attributes )
-: cAnimated_Sprite()
+cGoldpiece :: cGoldpiece( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cAnimated_Sprite( sprite_manager )
 {
 	cGoldpiece::Init();
 	cGoldpiece::Create_From_Stream( attributes );
@@ -58,11 +58,11 @@ void cGoldpiece :: Init( void )
 	Set_Gold_Color( COL_YELLOW );
 }
 
-cGoldpiece *cGoldpiece :: Copy( void )
+cGoldpiece *cGoldpiece :: Copy( void ) const
 {
-	cGoldpiece *goldpiece = new cGoldpiece( m_start_pos_x, m_start_pos_y );
-	goldpiece->Set_Gold_Color( color_type );
-
+	cGoldpiece *goldpiece = new cGoldpiece( m_sprite_manager );
+	goldpiece->Set_Pos( m_start_pos_x, m_start_pos_y, 1 );
+	goldpiece->Set_Gold_Color( m_color_type );
 	return goldpiece;
 }
 
@@ -71,7 +71,7 @@ void cGoldpiece :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
 	// gold color
-	Set_Gold_Color( Get_Color_Id( attributes.getValueAsString( "color", Get_Color_Name( color_type ) ).c_str() ) );
+	Set_Gold_Color( Get_Color_Id( attributes.getValueAsString( "color", Get_Color_Name( m_color_type ) ).c_str() ) );
 }
 
 void cGoldpiece :: Save_To_Stream( ofstream &file )
@@ -85,7 +85,7 @@ void cGoldpiece :: Save_To_Stream( ofstream &file )
 	file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(m_start_pos_x) << "\" />" << std::endl;
 	file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(m_start_pos_y) << "\" />" << std::endl;
 	// color
-	file << "\t\t<Property name=\"color\" value=\"" << Get_Color_Name( color_type ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"color\" value=\"" << Get_Color_Name( m_color_type ) << "\" />" << std::endl;
 
 	// end item
 	file << "\t</item>" << std::endl;
@@ -121,16 +121,16 @@ cSave_Level_Object *cGoldpiece :: Save_To_Savegame( void )
 	return save_object;
 }
 
-void cGoldpiece :: Set_Gold_Color( DefaultColor ncolor )
+void cGoldpiece :: Set_Gold_Color( DefaultColor color )
 {
-	color_type = ncolor;
+	m_color_type = color;
 
 	// clear images
 	Clear_Images();
 
 	if( m_type == TYPE_FGOLDPIECE )
 	{
-		if( color_type == COL_RED )
+		if( m_color_type == COL_RED )
 		{
 			Add_Image( pVideo->Get_Surface( "game/items/goldpiece/red/1_falling.png" ) );
 			Add_Image( pVideo->Get_Surface( "game/items/goldpiece/red/2_falling.png" ) );
@@ -164,7 +164,7 @@ void cGoldpiece :: Set_Gold_Color( DefaultColor ncolor )
 	}
 	else
 	{
-		if( color_type == COL_RED )
+		if( m_color_type == COL_RED )
 		{
 			Add_Image( pVideo->Get_Surface( "game/items/goldpiece/red/1.png" ) );
 			Add_Image( pVideo->Get_Surface( "game/items/goldpiece/red/2.png" ) );
@@ -221,12 +221,12 @@ void cGoldpiece :: Activate( void )
 	}
 
 	// animation
-	cAnimation_Goldpiece *anim = new cAnimation_Goldpiece( m_pos_x + ( m_col_rect.m_w / 10 ), m_pos_y + ( m_col_rect.m_h / 10 ) );
+	cAnimation_Goldpiece *anim = new cAnimation_Goldpiece( m_sprite_manager, m_pos_x + ( m_col_rect.m_w / 10 ), m_pos_y + ( m_col_rect.m_h / 10 ) );
 
 	// gold
 	unsigned int points = 0;
 
-	if( color_type == COL_RED )
+	if( m_color_type == COL_RED )
 	{
 		pHud_Goldpieces->Add_Gold( 5 );
 		points = 100;
@@ -239,7 +239,7 @@ void cGoldpiece :: Activate( void )
 		points = 5;
 	}
 
-	pAnimation_Manager->Add( anim );
+	pActive_Animation_Manager->Add( anim );
 
 	// if jumping double the points
 	if( m_type == TYPE_JGOLDPIECE )
@@ -248,7 +248,7 @@ void cGoldpiece :: Activate( void )
 	}
 	else
 	{
-		if( color_type == COL_RED )
+		if( m_color_type == COL_RED )
 		{
 			pAudio->Play_Sound( "item/goldpiece_red.wav" );
 		}
@@ -312,7 +312,7 @@ bool cGoldpiece :: Is_Update_Valid( void )
 void cGoldpiece :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// invalid
-	if( collision->direction == DIR_UNDEFINED )
+	if( collision->m_direction == DIR_UNDEFINED )
 	{
 		return;
 	}
@@ -322,8 +322,8 @@ void cGoldpiece :: Handle_Collision_Player( cObjectCollision *collision )
 
 /* *** *** *** *** *** *** cJGoldpiecee *** *** *** *** *** *** *** *** *** *** *** */
 
-cJGoldpiece :: cJGoldpiece( float x, float y )
-: cGoldpiece( x, y )
+cJGoldpiece :: cJGoldpiece( cSprite_Manager *sprite_manager )
+: cGoldpiece( sprite_manager )
 {
 	m_type = TYPE_JGOLDPIECE;
 	m_spawned = 1;
@@ -350,7 +350,7 @@ void cJGoldpiece :: Update( void )
 	// add velocity downwards
 	if( m_vely < 8.0f )
 	{
-		Add_Velocity( 0, 1.62f );
+		Add_Velocity_Y_Max( 1.62f, 8.0f );
 	}
 	// finished animation
 	else
@@ -366,13 +366,16 @@ Col_Valid_Type cJGoldpiece :: Validate_Collision( cSprite *obj )
 
 /* *** *** *** *** *** *** cFGoldpiecee *** *** *** *** *** *** *** *** *** *** *** */
 
-cFGoldpiece :: cFGoldpiece( float x, float y, ObjectDirection dir /* = DIR_NOTHING */ )
-: cGoldpiece( x, y )
+cFGoldpiece :: cFGoldpiece( cSprite_Manager *sprite_manager, float x, float y, ObjectDirection dir /* = DIR_NOTHING */ )
+: cGoldpiece( sprite_manager )
 {
 	m_type = TYPE_FGOLDPIECE;
 	m_spawned = 1;
-	m_player_range = 2000;
+	m_camera_range = 2000;
+	m_gravity_max = 25.0f;
 	m_can_be_on_ground = 1;
+
+	Set_Pos( x, y, 1 );
 
 	// direction set
 	if( dir == DIR_LEFT || dir == DIR_RIGHT )
@@ -411,7 +414,7 @@ cFGoldpiece :: ~cFGoldpiece( void )
 
 void cFGoldpiece :: Update( void )
 {
-	if( !m_valid_update || !Is_In_Player_Range() )
+	if( !m_valid_update || !Is_In_Range() )
 	{
 		return;
 	}
@@ -419,9 +422,9 @@ void cFGoldpiece :: Update( void )
 	Update_Animation();
 
 	// Add Gravitation
-	if( !m_ground_object && m_vely < 25.0f )
+	if( !m_ground_object && m_vely < m_gravity_max )
 	{
-		Add_Velocity( 0, 1.2f );
+		Add_Velocity_Y_Max( 1.2f, m_gravity_max );
 	}
 }
 
@@ -475,15 +478,15 @@ Col_Valid_Type cFGoldpiece :: Validate_Collision( cSprite *obj )
 
 void cFGoldpiece :: Handle_Collision_Massive( cObjectCollision *collision )
 {
-	if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
+	if( collision->m_direction == DIR_RIGHT || collision->m_direction == DIR_LEFT )
 	{
-		Turn_Around( collision->direction );
+		Turn_Around( collision->m_direction );
 	}
-	else if( collision->direction == DIR_UP )
+	else if( collision->m_direction == DIR_UP )
 	{
 		m_vely = -( m_vely * 0.3f );
 	}
-	else if( collision->direction == DIR_DOWN )
+	else if( collision->m_direction == DIR_DOWN )
 	{
 		// minimal value for a jump
 		if( m_vely > 0.5f )

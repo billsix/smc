@@ -35,8 +35,8 @@ cAnimation_Surface :: ~cAnimation_Surface( void )
 
 /* *** *** *** *** *** *** *** cAnimated_Sprite *** *** *** *** *** *** *** *** *** *** */
 
-cAnimated_Sprite :: cAnimated_Sprite( float x /* = 0.0f */, float y /* = 0.0f */ )
-: cMovingSprite( NULL, x, y )
+cAnimated_Sprite :: cAnimated_Sprite( cSprite_Manager *sprite_manager )
+: cMovingSprite( sprite_manager )
 {
 	m_curr_img = -1;
 
@@ -45,6 +45,7 @@ cAnimated_Sprite :: cAnimated_Sprite( float x /* = 0.0f */, float y /* = 0.0f */
 	m_anim_img_end = 0;
 	m_anim_time_default = 1000;
 	m_anim_counter = 0;
+	m_anim_mod = 1.0f;
 }
 
 cAnimated_Sprite :: ~cAnimated_Sprite( void )
@@ -65,12 +66,6 @@ void cAnimated_Sprite :: Add_Image( cGL_Surface *image, Uint32 time /* = 0 */ )
 	obj.m_time = time;
 
 	m_images.push_back( obj );
-}
-
-void cAnimated_Sprite :: Set_Animation_Image_Range( int start, int end )
-{
-	m_anim_img_start = start;
-	m_anim_img_end = end;
 }
 
 void cAnimated_Sprite :: Set_Image_Num( const int num, const bool new_startimage /* = 0 */, const bool del_img /* = 0 */ )
@@ -112,16 +107,6 @@ void cAnimated_Sprite :: Clear_Images( void )
 	m_images.clear();
 }
 
-void cAnimated_Sprite :: Set_Animation( bool enable /* = 0 */ )
-{
-	m_anim_enabled = enable;
-}
-
-void cAnimated_Sprite :: Reset_Animation( void )
-{
-	m_anim_counter = 0;
-}
-
 void cAnimated_Sprite :: Update_Animation( void )
 {
 	// if not valid
@@ -141,7 +126,7 @@ void cAnimated_Sprite :: Update_Animation( void )
 
 	cAnimation_Surface image = m_images[m_curr_img];
 
-	if( m_anim_counter >= image.m_time )
+	if( static_cast<Uint32>(m_anim_counter * m_anim_mod) >= image.m_time )
 	{
 		if( m_curr_img >= m_anim_img_end )
 		{
@@ -152,18 +137,13 @@ void cAnimated_Sprite :: Update_Animation( void )
 			Set_Image_Num( m_curr_img + 1 );
 		}
 		
-		m_anim_counter -= image.m_time;
+		m_anim_counter = static_cast<Uint32>(m_anim_counter * m_anim_mod) - image.m_time;
 	}
 }
 
-void cAnimated_Sprite :: Set_Default_Time( Uint32 time /* = 1000 */ )
+void cAnimated_Sprite :: Set_Time_All( const Uint32 time, const bool default_time /* = 0 */ )
 {
-	m_anim_time_default = time;
-}
-
-void cAnimated_Sprite :: Set_Time_All( Uint32 time, bool default_time /* = 0 */ )
-{
-	for( cAnimation_Surface_List::iterator itr = m_images.begin(), itr_end = m_images.end(); itr != itr_end; ++itr )
+	for( cAnimation_Surface_List::iterator itr = m_images.begin(); itr != m_images.end(); ++itr )
 	{
 		cAnimation_Surface &obj = (*itr);
 		obj.m_time = time;

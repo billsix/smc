@@ -18,6 +18,8 @@
 
 #include "../../core/global_basic.h"
 #include "../../core/global_game.h"
+// for rand()
+#include <cstdlib>
 
 namespace SMC
 {
@@ -25,10 +27,23 @@ namespace SMC
 /* *** *** *** *** *** *** *** *** Math utility functions *** *** *** *** *** *** *** *** *** */
 
 // return a random floating point value between the given values
-float Get_Random_Float( float min, float max );
+inline float Get_Random_Float( float min, float max )
+{
+	return min + (max - min) * static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+}
 
 // Checks if number is power of 2 and if not returns the next power of two size
-unsigned int Get_Power_of_2( unsigned int size );
+inline unsigned int Get_Power_of_2( unsigned int size )
+{
+	unsigned int value = 1;
+
+	while( value < size )
+	{
+		value <<= 1;
+	}
+
+	return value;
+};
 
 /* Returns true if the number is valid
  * accept_floating_point: if is set also accept floating point values
@@ -36,7 +51,15 @@ unsigned int Get_Power_of_2( unsigned int size );
 bool Is_Valid_Number( std::string num, bool accept_floating_point = 1 );
 
 // Returns true if the floats are equal with the given tolerance
-bool Is_Float_Equal( float a, float b, float tolerance = 0.0001f );
+inline bool Is_Float_Equal( float a, float b, float tolerance = 0.0001f )
+{
+	if( fabs(b - a) <= tolerance )
+	{
+		return 1;
+	}
+
+	return 0;
+}
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

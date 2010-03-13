@@ -32,14 +32,14 @@ namespace SMC
 static unsigned int text_box_window_width = 300;
 static unsigned int text_box_window_height = 200;
 
-cText_Box :: cText_Box( float x, float y )
-: cBaseBox( x, y )
+cText_Box :: cText_Box( cSprite_Manager *sprite_manager )
+: cBaseBox( sprite_manager )
 {
 	cText_Box::Init();
 }
 
-cText_Box :: cText_Box( CEGUI::XMLAttributes &attributes )
-: cBaseBox()
+cText_Box :: cText_Box( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cBaseBox( sprite_manager )
 {
 	cText_Box::Init();
 	cText_Box::Create_From_Stream( attributes );
@@ -67,12 +67,12 @@ void cText_Box :: Init( void )
 	Create_Name();
 }
 
-cText_Box *cText_Box :: Copy( void )
+cText_Box *cText_Box :: Copy( void ) const
 {
-	cText_Box *text_box = new cText_Box( m_start_pos_x, m_start_pos_y );
-	text_box->Set_Text( text );
-	text_box->Set_Invisible( box_invisible );
-
+	cText_Box *text_box = new cText_Box( m_sprite_manager );
+	text_box->Set_Pos( m_start_pos_x, m_start_pos_y );
+	text_box->Set_Text( m_text );
+	text_box->Set_Invisible( m_box_invisible );
 	return text_box;
 }
 
@@ -92,7 +92,7 @@ void cText_Box :: Save_To_Stream( ofstream &file )
 	cBaseBox::Save_To_Stream( file );
 
 	// text
-	file << "\t\t<Property name=\"text\" value=\"" << string_to_xml_string( text ) << "\" />" << std::endl;
+	file << "\t\t<Property name=\"text\" value=\"" << string_to_xml_string( m_text ) << "\" />" << std::endl;
 
 	// end box
 	file << "\t</box>" << std::endl;
@@ -120,20 +120,20 @@ void cText_Box :: Activate( void )
 		text_pos_x = 0;
 	}
 	// if not on screen on the right side
-	if( text_pos_x > pActive_Camera->limit_rect.m_x + pActive_Camera->limit_rect.m_w - text_box_window_width )
+	if( text_pos_x > pActive_Camera->m_limit_rect.m_x + pActive_Camera->m_limit_rect.m_w - text_box_window_width )
 	{
 		// put it on screen
-		text_pos_x = pActive_Camera->limit_rect.m_x + pActive_Camera->limit_rect.m_w - text_box_window_width;
+		text_pos_x = pActive_Camera->m_limit_rect.m_x + pActive_Camera->m_limit_rect.m_w - text_box_window_width;
 	}
 
-	editbox->setXPosition( CEGUI::UDim( 0, ( text_pos_x - pActive_Camera->x ) * global_upscalex ) );
-	editbox->setYPosition( CEGUI::UDim( 0, ( text_pos_y - pActive_Camera->y ) * global_upscaley ) );
+	editbox->setXPosition( CEGUI::UDim( 0, ( text_pos_x - pActive_Camera->m_x ) * global_upscalex ) );
+	editbox->setYPosition( CEGUI::UDim( 0, ( text_pos_y - pActive_Camera->m_y ) * global_upscaley ) );
 	// set size
 	editbox->setWidth( CEGUI::UDim( 0, text_box_window_width * global_upscalex ) );
 	editbox->setHeight( CEGUI::UDim( 0, text_box_window_height * global_upscaley ) );
 
 	// set text
-	editbox->setText( reinterpret_cast<const CEGUI::utf8*>(text.c_str()) );
+	editbox->setText( reinterpret_cast<const CEGUI::utf8*>(m_text.c_str()) );
 	// always hide horizontal scrollbar
 	editbox->getHorzScrollbar()->hide();
 
@@ -145,7 +145,7 @@ void cText_Box :: Activate( void )
 		{
 			if( input_event.type == SDL_KEYDOWN )
 			{
-				pKeyboard->keys[input_event.key.keysym.sym] = 1;
+				pKeyboard->m_keys[input_event.key.keysym.sym] = 1;
 
 				// exit keys
 				if( input_event.key.keysym.sym == pPreferences->m_key_action || input_event.key.keysym.sym == SDLK_ESCAPE || input_event.key.keysym.sym == SDLK_RETURN || input_event.key.keysym.sym == SDLK_SPACE )
@@ -161,7 +161,7 @@ void cText_Box :: Activate( void )
 			}
 			else if( input_event.type == SDL_KEYUP )
 			{
-				pKeyboard->keys[input_event.key.keysym.sym] = 0;
+				pKeyboard->m_keys[input_event.key.keysym.sym] = 0;
 
 				// handled keys
 				if( input_event.key.keysym.sym == pPreferences->m_key_right || input_event.key.keysym.sym == pPreferences->m_key_left )
@@ -201,7 +201,7 @@ void cText_Box :: Activate( void )
 		// if joystick enabled
 		if( pPreferences->m_joy_enabled )
 		{
-			joy_ver_axis = SDL_JoystickGetAxis( pJoystick->joystick, pPreferences->m_joy_axis_ver );
+			joy_ver_axis = SDL_JoystickGetAxis( pJoystick->m_joystick, pPreferences->m_joy_axis_ver );
 		}
 
 		// down
@@ -216,15 +216,15 @@ void cText_Box :: Activate( void )
 		}
 
 		// move camera because text could not be completely visible
-		if( pActive_Camera->y_offset > 0 )
+		if( pActive_Camera->m_y_offset > 0 )
 		{
-			pActive_Camera->y_offset -= 2;
+			pActive_Camera->m_y_offset -= 2;
 			// set position
 			pActive_Camera->Center();
 
 			// set position
-			editbox->setXPosition( CEGUI::UDim( 0, ( text_pos_x - pActive_Camera->x ) * global_upscalex ) );
-			editbox->setYPosition( CEGUI::UDim( 0, ( text_pos_y - pActive_Camera->y ) * global_upscaley ) );
+			editbox->setXPosition( CEGUI::UDim( 0, ( text_pos_x - pActive_Camera->m_x ) * global_upscalex ) );
+			editbox->setYPosition( CEGUI::UDim( 0, ( text_pos_y - pActive_Camera->m_y ) * global_upscaley ) );
 		}
 
 		// update animation
@@ -244,7 +244,7 @@ void cText_Box :: Activate( void )
 
 void cText_Box :: Update( void )
 {
-	if( !m_valid_update || !Is_In_Player_Range() )
+	if( !m_valid_update || !Is_In_Range() )
 	{
 		return;
 	}
@@ -254,7 +254,7 @@ void cText_Box :: Update( void )
 
 void cText_Box :: Set_Text( const std::string &str_text )
 {
-	text = str_text;
+	m_text = str_text;
 }
 
 void cText_Box :: Editor_Activate( void )
@@ -269,7 +269,7 @@ void cText_Box :: Editor_Activate( void )
 	CEGUI::MultiLineEditbox *editbox = static_cast<CEGUI::MultiLineEditbox *>(wmgr.createWindow( "TaharezLook/MultiLineEditbox", "text_box_text" ));
 	Editor_Add( UTF8_("Text"), UTF8_("Text to display when activated"), editbox, static_cast<float>(text_box_window_width), static_cast<float>(text_box_window_height) );
 
-	editbox->setText( reinterpret_cast<const CEGUI::utf8*>(text.c_str()) );
+	editbox->setText( reinterpret_cast<const CEGUI::utf8*>(m_text.c_str()) );
 	editbox->subscribeEvent( CEGUI::MultiLineEditbox::EventTextChanged, CEGUI::Event::Subscriber( &cText_Box::Editor_Text_Text_Changed, this ) );
 
 	// init

@@ -19,6 +19,7 @@
 #include "../core/camera.h"
 #include "../core/game_core.h"
 #include "../video/gl_surface.h"
+#include "../core/filesystem/filesystem.h"
 // CEGUI
 #include "CEGUIXMLAttributes.h"
 
@@ -27,14 +28,14 @@ namespace SMC
 
 /* *** *** *** *** *** cGlobal_effect *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cGlobal_effect :: cGlobal_effect( void )
-: cParticle_Emitter()
+cGlobal_effect :: cGlobal_effect( cSprite_Manager *sprite_manager )
+: cParticle_Emitter( sprite_manager )
 {
 	cGlobal_effect::Clear();
 }
 
-cGlobal_effect :: cGlobal_effect( CEGUI::XMLAttributes &attributes )
-: cParticle_Emitter()
+cGlobal_effect :: cGlobal_effect( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cParticle_Emitter( sprite_manager )
 {
 	cGlobal_effect::Clear();
 	cGlobal_effect::Create_From_Stream( attributes );
@@ -215,7 +216,7 @@ void cGlobal_effect :: Update( void )
 		return;
 	}
 	
-	Set_Pos( m_start_pos_x + pActive_Camera->x, m_start_pos_y + pActive_Camera->y );
+	Set_Pos( m_start_pos_x + pActive_Camera->m_x, m_start_pos_y + pActive_Camera->m_y );
 	// update particles
 	Update_Particles();
 	// update particle animation
@@ -224,11 +225,11 @@ void cGlobal_effect :: Update( void )
 
 void cGlobal_effect :: Update_Particles( void )
 {
-	GL_rect camera_rect = GL_rect( pActive_Camera->x, pActive_Camera->y, static_cast<float>(game_res_w), static_cast<float>(game_res_h) );
+	GL_rect camera_rect = pActive_Camera->Get_Rect();
 	// temporary animation rect
 	GL_rect anim_rect;
 
-	for( ParticleList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( ParticleList::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		// get animation particle pointer
 		cParticle *obj = static_cast<cParticle *>(*itr);
@@ -305,9 +306,10 @@ void cGlobal_effect :: Set_Type( const std::string &str_type )
 	}
 }
 
-void cGlobal_effect :: Set_Image( const std::string &nimg_file )
+void cGlobal_effect :: Set_Image( const std::string &img_file )
 {
-	m_image_filename = nimg_file;
+	m_image_filename = img_file;
+	Convert_Path_Separators( m_image_filename );
 }
 
 std::string cGlobal_effect :: Get_Type_Name( void ) const

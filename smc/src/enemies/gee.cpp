@@ -16,7 +16,7 @@
 #include "../enemies/gee.h"
 #include "../core/game_core.h"
 #include "../video/animation.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../gui/hud.h"
 #include "../input/mouse.h"
 #include "../core/i18n.h"
@@ -28,14 +28,14 @@ namespace SMC
 
 /* *** *** *** *** *** *** cGee *** *** *** *** *** *** *** *** *** *** *** */
 
-cGee :: cGee( float x, float y )
-: cEnemy( x, y )
+cGee :: cGee( cSprite_Manager *sprite_manager )
+: cEnemy( sprite_manager )
 {
 	cGee::Init();
 }
 
-cGee :: cGee( CEGUI::XMLAttributes &attributes )
-: cEnemy()
+cGee :: cGee( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cEnemy( sprite_manager )
 {
 	cGee::Init();
 	cGee::Create_From_Stream( attributes );
@@ -49,7 +49,7 @@ cGee :: ~cGee( void )
 void cGee :: Init( void  )
 {
 	m_type = TYPE_GEE;
-	m_player_range = 1000;
+	m_camera_range = 1000;
 	m_pos_z = 0.088f;
 	m_can_be_on_ground = 0;
 
@@ -71,16 +71,16 @@ void cGee :: Init( void  )
 	m_clouds_counter = 0.0f;
 }
 
-cGee *cGee :: Copy( void )
+cGee *cGee :: Copy( void ) const
 {
-	cGee *gee = new cGee( m_start_pos_x, m_start_pos_y );
+	cGee *gee = new cGee( m_sprite_manager  );
+	gee->Set_Pos( m_start_pos_x, m_start_pos_y );
 	gee->Set_Direction( m_start_direction );
 	gee->Set_Max_Distance( m_max_distance );
 	gee->m_always_fly = m_always_fly;
 	gee->m_wait_time = m_wait_time;
 	gee->m_fly_distance = m_fly_distance;
 	gee->Set_Color( m_color_type );
-
 	return gee;
 }
 
@@ -133,7 +133,7 @@ void cGee :: Load_From_Savegame( cSave_Level_Object *save_object )
 {
 	cEnemy::Load_From_Savegame( save_object );
 
-	Update_Rotation_Hor_velx();
+	Update_Rotation_Hor();
 }
 
 void cGee :: Set_Direction( const ObjectDirection dir )
@@ -336,27 +336,38 @@ void cGee :: Set_Moving_State( Moving_state new_state )
 		// set velocity
 		if( m_start_direction == DIR_HORIZONTAL )
 		{
-			m_velx = m_speed_fly;
-			m_vely = 0.0f;
 			// randomize direction
 			if( rand() % 2 != 1 )
 			{
-				m_velx *= -1;
+				m_direction = DIR_RIGHT;
+				m_velx = m_speed_fly;
 			}
+			else
+			{
+				m_direction = DIR_LEFT;
+				m_velx = -m_speed_fly;
+			}
+			
+			m_vely = 0.0f;
 		}
 		else
 		{
 			m_velx = 0.0f;
-			m_vely = m_speed_fly;
+			
 			// randomize direction
 			if( rand() % 2 != 1 )
 			{
-				m_vely *= -1;
+				m_direction = DIR_DOWN;
+				m_vely = m_speed_fly;
+			}
+			else
+			{
+				m_direction = DIR_UP;
+				m_vely = -m_speed_fly;
 			}
 		}
 
-		// update rotation
-		Update_Direction();
+		Update_Rotation_Hor();
 	}
 
 	m_state = new_state;
@@ -366,7 +377,7 @@ void cGee :: Update( void )
 {
 	cEnemy::Update();
 
-	if( !m_valid_update || !Is_In_Player_Range() )
+	if( !m_valid_update || !Is_In_Range() )
 	{
 		return;
 	}
@@ -434,11 +445,11 @@ void cGee :: Draw( cSurface_Request *request /* = NULL */ )
 	{
 		if( m_start_direction == DIR_HORIZONTAL )
 		{
-			pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->x - m_max_distance, m_start_pos_y + ( m_rect.m_h * 0.5f ) - 5.0f - pActive_Camera->y, m_col_rect.m_w + ( m_max_distance * 2.0f ), 10.0f, m_pos_z - 0.000001f, &whitealpha128 );
+			pVideo->Draw_Rect( m_start_pos_x - pActive_Camera->m_x - m_max_distance, m_start_pos_y + ( m_rect.m_h * 0.5f ) - 5.0f - pActive_Camera->m_y, m_col_rect.m_w + ( m_max_distance * 2.0f ), 10.0f, m_pos_z - 0.000001f, &whitealpha128 );
 		}
 		else if( m_start_direction == DIR_VERTICAL )
 		{
-			pVideo->Draw_Rect( m_start_pos_x + ( m_rect.m_w * 0.5f ) - 5.0f - pActive_Camera->x, m_start_pos_y - pActive_Camera->y - m_max_distance, 10.0f, m_col_rect.m_h + ( m_max_distance * 2.0f ), m_pos_z - 0.000001f, &whitealpha128 );
+			pVideo->Draw_Rect( m_start_pos_x + ( m_rect.m_w * 0.5f ) - 5.0f - pActive_Camera->m_x, m_start_pos_y - pActive_Camera->m_y - m_max_distance, 10.0f, m_col_rect.m_h + ( m_max_distance * 2.0f ), m_pos_z - 0.000001f, &whitealpha128 );
 		}
 	}
 
@@ -461,11 +472,6 @@ void cGee :: Activate( void )
 		// turn around also updates the direction rotation
 		Turn_Around();
 	}
-	else
-	{
-		// update direction rotation
-		Update_Rotation_Hor();
-	}
 }
 
 void cGee :: Stop( void )
@@ -475,7 +481,7 @@ void cGee :: Stop( void )
 
 void cGee :: Generate_Particles( unsigned int amount /* = 4 */ ) const
 {
-	cParticle_Emitter *anim = new cParticle_Emitter();
+	cParticle_Emitter *anim = new cParticle_Emitter( m_sprite_manager );
 	anim->Set_Emitter_Rect( m_col_rect.m_x + ( m_col_rect.m_w * 0.3f ), m_col_rect.m_y + ( m_col_rect.m_h * 0.2f ), m_col_rect.m_w * 0.4f, m_col_rect.m_h * 0.3f );
 	anim->Set_Quota( amount );
 	anim->Set_Image( pVideo->Get_Surface( "animation/particles/cloud.png" ) );
@@ -517,7 +523,7 @@ void cGee :: Generate_Particles( unsigned int amount /* = 4 */ ) const
 	anim->Set_Time_to_Live( 2.0f );
 	anim->Set_Fading_Alpha( 1 );
 	anim->Set_Blending( BLEND_ADD );
-	pAnimation_Manager->Add( anim );
+	pActive_Animation_Manager->Add( anim );
 }
 
 bool cGee :: Is_At_Max_Distance( void ) const
@@ -610,47 +616,47 @@ Col_Valid_Type cGee :: Validate_Collision( cSprite *obj )
 void cGee :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// unknown direction
-	if( collision->direction == DIR_UNDEFINED )
+	if( collision->m_direction == DIR_UNDEFINED )
 	{
 		return;
 	}
 
-	if( collision->direction == DIR_TOP && pPlayer->m_state != STA_FLY )
+	if( collision->m_direction == DIR_TOP && pLevel_Player->m_state != STA_FLY )
 	{
 		pAudio->Play_Sound( m_kill_sound );
 
 		DownGrade();
-		pPlayer->Action_Jump( 1 );
+		pLevel_Player->Action_Jump( 1 );
 
-		pHud_Points->Add_Points( m_kill_points, pPlayer->m_pos_x, pPlayer->m_pos_y, "", static_cast<Uint8>(255), 1 );
-		pPlayer->Add_Kill_Multiplier();
+		pHud_Points->Add_Points( m_kill_points, pLevel_Player->m_pos_x, pLevel_Player->m_pos_y, "", static_cast<Uint8>(255), 1 );
+		pLevel_Player->Add_Kill_Multiplier();
 	}
-	else if( !pPlayer->invincible )
+	else if( !pLevel_Player->m_invincible )
 	{
-		if( pPlayer->maryo_type != MARYO_SMALL )
+		if( pLevel_Player->m_maryo_type != MARYO_SMALL )
 		{
 			// todo : create again
 			//pAudio->PlaySound( "player/maryo_au.ogg", RID_MARYO_AU );
 
-			if( collision->direction == DIR_BOTTOM  )
+			if( collision->m_direction == DIR_BOTTOM  )
 			{
-				pPlayer->Action_Jump( 1 );
+				pLevel_Player->Action_Jump( 1 );
 			}
-			else if( collision->direction == DIR_LEFT )
+			else if( collision->m_direction == DIR_LEFT )
 			{
-				pPlayer->m_velx = -7.0f;
+				pLevel_Player->m_velx = -7.0f;
 			}
-			else if( collision->direction == DIR_RIGHT )
+			else if( collision->m_direction == DIR_RIGHT )
 			{
-				pPlayer->m_velx = 7.0f;
+				pLevel_Player->m_velx = 7.0f;
 			}
 		}
 
-		pPlayer->DownGrade_Player();
+		pLevel_Player->DownGrade_Player();
 
-		if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
+		if( collision->m_direction == DIR_RIGHT || collision->m_direction == DIR_LEFT )
 		{
-			Turn_Around( collision->direction );
+			Turn_Around( collision->m_direction );
 		}
 	}
 }

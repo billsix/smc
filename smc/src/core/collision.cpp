@@ -17,7 +17,7 @@
 #include "../core/collision.h"
 #include "../core/game_core.h"
 #include "../level/level.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../video/gl_surface.h"
 #include "../core/sprite_manager.h"
 // for binary_function and bind2nd
@@ -54,7 +54,7 @@ struct check_if_sprite : public std::binary_function<cObjectCollision *, const c
 {
 	bool operator()( const cObjectCollision *col, const cSprite *sprite ) const
 	{
-		return col->obj == sprite;
+		return col->m_obj == sprite;
 	}
 };
 bool cObjectCollisionType :: Is_Included( const cSprite *obj )
@@ -67,7 +67,7 @@ struct check_if_sprite_array : public std::binary_function<cObjectCollision *, A
 {
 	bool operator()( const cObjectCollision *col, ArrayType type ) const
 	{
-		return col->obj->m_sprite_array == type;
+		return col->m_obj->m_sprite_array == type;
 	}
 };
 bool cObjectCollisionType :: Is_Included( const ArrayType type )
@@ -80,7 +80,7 @@ struct check_if_sprite_type : public std::binary_function<cObjectCollision *, Sp
 {
 	bool operator()( const cObjectCollision *col, SpriteType type ) const
 	{
-		return col->obj->m_type == type;
+		return col->m_obj->m_type == type;
 	}
 };
 bool cObjectCollisionType :: Is_Included( const SpriteType type )
@@ -93,7 +93,7 @@ struct check_if_valid_type : public std::binary_function<cObjectCollision *, Col
 {
 	bool operator()( const cObjectCollision *col, Col_Valid_Type type ) const
 	{
-		return col->valid_type == type;
+		return col->m_valid_type == type;
 	}
 };
 bool cObjectCollisionType :: Is_Included( const Col_Valid_Type type )
@@ -115,12 +115,12 @@ cObjectCollision *cObjectCollisionType :: Find_First( const SpriteType type )
 
 cObjectCollision :: cObjectCollision( void )
 {
-	valid_type = COL_VTYPE_NOT_VALID;
-	received = 0;
+	m_valid_type = COL_VTYPE_NOT_VALID;
+	m_received = 0;
+	m_obj = NULL;
+	m_number = 0;
+	m_direction = DIR_UNDEFINED;
 	m_array = ARRAY_UNDEFINED;
-	obj = NULL;
-	number = 0;
-	direction = DIR_UNDEFINED;
 }
 
 cObjectCollision :: ~cObjectCollision( void )
@@ -130,19 +130,7 @@ cObjectCollision :: ~cObjectCollision( void )
 
 void cObjectCollision :: Set_Direction( const cSprite *base, const cSprite *col )
 {
-	direction = Get_Collision_Direction( base, col );
-}
-
-GL_rect cObjectCollision :: Get_Collision_Object_Rect( void )
-{
-	// player
-	if( m_array == ARRAY_PLAYER )
-	{
-		return pActive_Player->m_col_rect;
-	}
-
-	// sprite manager
-	return pActive_Sprite_Manager->objects[number]->m_col_rect;
+	m_direction = Get_Collision_Direction( base, col );
 }
 
 /* *** *** *** *** *** *** *** functions *** *** *** *** *** *** *** *** *** *** */
@@ -287,93 +275,6 @@ ObjectDirection Get_Collision_Direction( const cSprite *base, const cSprite *col
 	}
 }
 
-bool Is_Collision_Top( const GL_rect &base_rect, const GL_rect &col_rect )
-{
-	if( base_rect.m_y + 1 >= col_rect.m_y + col_rect.m_h && base_rect.m_x < col_rect.m_x + col_rect.m_w && base_rect.m_x + base_rect.m_w > col_rect.m_x )
-	{
-		return 1;
-	}
-
-	return 0;
-}
-
-bool Is_Collision_Bottom( const GL_rect &base_rect, const GL_rect &col_rect )
-{
-	if( base_rect.m_y + base_rect.m_h - 1 <= col_rect.m_y && base_rect.m_x < col_rect.m_x + col_rect.m_w && base_rect.m_x + base_rect.m_w > col_rect.m_x )
-	{
-		return 1;
-	}
-
-	return 0;
-}
-
-bool Is_Collision_Left( const GL_rect &base_rect, const GL_rect &col_rect )
-{
-	if( base_rect.m_x + 1 >= col_rect.m_x + col_rect.m_w && base_rect.m_y < col_rect.m_y + col_rect.m_h && base_rect.m_y + base_rect.m_h > col_rect.m_y )
-	{
-		return 1;
-	}
-
-	return 0;
-}
-
-bool Is_Collision_Right( const GL_rect &base_rect, const GL_rect &col_rect )
-{
-	if( base_rect.m_x + base_rect.m_w - 1 <= col_rect.m_x && base_rect.m_y < col_rect.m_y + col_rect.m_h && base_rect.m_y + base_rect.m_h > col_rect.m_y )
-	{
-		return 1;
-	}
-
-	return 0;
-}
-
-bool Col_Box( const SDL_Rect &a, const GL_rect &b )
-{
-	// check if their bounding boxes touch
-	if( b.m_x + b.m_w < a.x )
-	{
-		return 0;
-	}
-	if( b.m_x > a.x + a.w )
-	{
-		return 0;
-	}
-
-	if( b.m_y + b.m_h < a.y )
-	{
-		return 0;
-	}
-	if( b.m_y > a.y + a.h )
-	{
-		return 0;
-	}
-
-	// bounding boxes intersect
-	return 1;
-}
-
-bool Col_Box_full( const SDL_Rect &a, const SDL_Rect &b )
-{
-	if( a.x <= b.x )
-	{
-		return 0;
-	}
-	if( a.x + a.w >= b.x + b.w )
-	{
-		return 0;
-	}
-	if( a.y <= b.y )
-	{
-		return 0;
-	}
-	if( a.y + a.h >= b.y + b.h )
-	{
-		return 0;
-	}
-
-	return 1;
-}
-
 // from SDL_collide ( Copyright (C) 2005 Amir Taaki ) - MIT License
 bool Col_Circle( float x1, float y1, float r1, float x2, float y2, float r2, int offset )
 {
@@ -388,11 +289,6 @@ bool Col_Circle( float x1, float y1, float r1, float x2, float y2, float r2, int
 	r_sum_sq *= r_sum_sq;	// dont recompute r1 + r2
 
 	return ( dcentre_sq - r_sum_sq <= ( offset * offset ) );
-}
-
-bool Col_Circle( cGL_Surface *surface1, SDL_Rect *a, cGL_Surface *surface2, SDL_Rect *b, int offset )
-{
-	return Col_Circle( surface1, a->x, a->y, surface2, b->x, b->y, offset );
 }
 
 // from SDL_collide ( Copyright (C) 2005 Amir Taaki ) - MIT License

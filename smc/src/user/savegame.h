@@ -26,7 +26,7 @@ namespace SMC
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-#define SAVEGAME_VERSION 8
+#define SAVEGAME_VERSION 9
 #define SAVEGAME_VERSION_UNSUPPORTED 5
 
 /* *** *** *** *** *** *** *** cSave_Overworld_Waypoint *** *** *** *** *** *** *** *** *** *** */
@@ -39,8 +39,8 @@ public:
 	cSave_Overworld_Waypoint( void );
 	~cSave_Overworld_Waypoint( void );
 
-	std::string destination;
-	bool access;
+	std::string m_destination;
+	bool m_access;
 };
 
 typedef vector<cSave_Overworld_Waypoint *> Save_Overworld_WaypointList;
@@ -56,7 +56,7 @@ public:
 	cSave_Overworld( void );
 	~cSave_Overworld( void );
 
-	std::string name;
+	std::string m_name;
 
 	// waypoint data
 	Save_Overworld_WaypointList m_waypoints;
@@ -70,7 +70,7 @@ typedef vector<cSave_Overworld *> Save_OverworldList;
 class cSave_Level_Object_Property
 {
 public:
-	cSave_Level_Object_Property( const std::string &n_name = "", const std::string &nv_alue = "" );
+	cSave_Level_Object_Property( const std::string &new_name = "", const std::string &new_value = "" );
 
 	std::string m_name;
 	std::string m_value;
@@ -117,43 +117,44 @@ public:
 
 	// ## Save Information
 	// description
-	std::string description;
+	std::string m_description;
 	// savegame version
-	int version;
-	// time  ( seconds since 1970 )
-	time_t save_time;
+	int m_version;
+	// time ( seconds since 1970 )
+	time_t m_save_time;
 
 	// ## Player Information
 	// lives
-	unsigned int lives;
+	unsigned int m_lives;
 	// points
-	unsigned int points;
+	long m_points;
 	// goldpieces
-	unsigned int goldpieces;
+	unsigned int m_goldpieces;
 	// player type
-	unsigned int player_type;
+	unsigned int m_player_type;
 	// player state
-	unsigned int player_state;
+	unsigned int m_player_state;
 	// item in the itembox
-	unsigned int itembox_item;
+	unsigned int m_itembox_item;
 
 	// ## Level Information
 	/* level name
-	 * only saved if player is in a level
+	 * this is only saved if player is in a level
 	*/
-	std::string level_name;
+	std::string m_level_name;
 	// level position
-	float level_posx, level_posy;
+	float m_level_pos_x;
+	float m_level_pos_y;
 	// objects data
-	Save_Level_ObjectList level_objects;
+	Save_Level_ObjectList m_level_objects;
 
 	// ## Overworld Information
 	/* active overworld
 	 * if not set game mode is custom level
 	*/
-	std::string overworld_active;
+	std::string m_overworld_active;
 	// current waypoint
-	unsigned int overworld_current_waypoint;
+	unsigned int m_overworld_current_waypoint;
 
 	// overworld data
 	Save_OverworldList m_overworlds;
@@ -179,7 +180,7 @@ public:
 	// Load a Save
 	cSave *Load( unsigned int save_slot );
 	// Save a Save
-	int Save( unsigned int save_slot, cSave *Save_info );
+	int Save( unsigned int save_slot, cSave *savegame );
 
 	// Returns only the Savegame Description
 	std::string Get_Description( unsigned int save_slot, bool only_description = 0 );
@@ -187,14 +188,8 @@ public:
 	// Returns true if the Savegame is valid
 	bool Is_Valid( unsigned int save_slot ) const;
 
-	// debug messages enabled
-	bool debug;
-
-	// current error count
-	unsigned int error_count;
-
 	// savegame directory
-	std::string savegame_dir;
+	std::string m_savegame_dir;
 private:
 	// XML element start
 	virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
@@ -209,15 +204,15 @@ private:
 	void Handle_Overworld_Level( const CEGUI::XMLAttributes &attributes );
 
 	// XML element Item Tag list
-	CEGUI::XMLAttributes xml_attributes;
+	CEGUI::XMLAttributes m_xml_attributes;
 
 	// current savegame overworld waypoints for overworld parsing
-	Save_Overworld_WaypointList active_waypoints;
+	Save_Overworld_WaypointList m_active_waypoints;
 	// current savegame level objects for level parsing
-	Save_Level_ObjectList level_objects;
+	Save_Level_ObjectList m_level_objects;
 
 	// temp save used for loading
-	cSave *save_temp;
+	cSave *m_save_temp;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

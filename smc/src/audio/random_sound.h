@@ -16,7 +16,7 @@
 #ifndef SMC_RANDOM_SOUND_H
 #define SMC_RANDOM_SOUND_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../objects/sprite.h"
 
 namespace SMC
@@ -28,16 +28,16 @@ class cRandom_Sound : public cSprite
 {
 public:
 	// constructor
-	cRandom_Sound( void );
+	cRandom_Sound( cSprite_Manager *sprite_manager );
 	// create from stream
-	cRandom_Sound( CEGUI::XMLAttributes &attributes );
+	cRandom_Sound( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cRandom_Sound( void );
 
 	// initialize defaults
 	void Init( void );
 	// copy
-	virtual cRandom_Sound *Copy( void );
+	virtual cRandom_Sound *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );

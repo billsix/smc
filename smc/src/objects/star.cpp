@@ -14,7 +14,7 @@
 */
 
 #include "../objects/star.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../core/framerate.h"
 #include "../video/animation.h"
 #include "../core/i18n.h"
@@ -26,14 +26,14 @@ namespace SMC
 
 /* *** *** *** *** *** *** cjStar *** *** *** *** *** *** *** *** *** *** *** */
 
-cjStar :: cjStar( float x, float y )
-: cPowerUp( x, y )
+cjStar :: cjStar( cSprite_Manager *sprite_manager )
+: cPowerUp( sprite_manager )
 {
 	cjStar::Init();
 }
 
-cjStar :: cjStar( CEGUI::XMLAttributes &attributes )
-: cPowerUp()
+cjStar :: cjStar( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cPowerUp( sprite_manager )
 {
 	cjStar::Init();
 	cjStar::Create_From_Stream( attributes );
@@ -47,11 +47,12 @@ cjStar :: ~cjStar( void )
 void cjStar :: Init( void )
 {
 	m_type = TYPE_JSTAR;
+	m_pos_z = 0.053f;
 
 	m_direction = DIR_RIGHT;
-	anim_counter = 0;
-	glim_mod = 1;
-	glim_counter = 0;
+	m_anim_counter = 0;
+	m_glim_mod = 1;
+	m_glim_counter = 0;
 
 	m_velx = 5;
 
@@ -61,10 +62,10 @@ void cjStar :: Init( void )
 	m_name = _("Star");
 }
 
-cjStar *cjStar :: Copy( void )
+cjStar *cjStar :: Copy( void ) const
 {
-	cjStar *star = new cjStar( m_start_pos_x, m_start_pos_y );
-
+	cjStar *star = new cjStar( m_sprite_manager );
+	star->Set_Pos( m_start_pos_x, m_start_pos_y, 1 );
 	return star;
 }
 
@@ -100,7 +101,7 @@ void cjStar :: Activate( void )
 	Generate_Particles( m_pos_x + m_col_rect.m_w * 0.5f, m_pos_y + m_col_rect.m_h * 0.5f, 1, 20 );
 
 	// activate star
-	pPlayer->Get_Item( TYPE_JSTAR );
+	pLevel_Player->Get_Item( TYPE_JSTAR );
 
 	// if spawned destroy
 	if( m_spawned )
@@ -116,15 +117,15 @@ void cjStar :: Activate( void )
 
 void cjStar :: Update( void )
 {
-	if( !m_valid_update || !Is_In_Player_Range() )
+	if( !m_valid_update || !Is_In_Range() )
 	{
 		return;
 	}
 
 	// Add Gravitation
-	if( m_vely < 25 )
+	if( m_vely < m_gravity_max )
 	{
-		Add_Velocity( 0, 1.8f );
+		Add_Velocity_Y_Max( 1.8f, m_gravity_max );
 	}
 	
 	// rotate
@@ -146,33 +147,33 @@ void cjStar :: Update( void )
 	}
 
 	// generate small stars
-	anim_counter += 1.1f * pFramerate->m_speed_factor;
+	m_anim_counter += 1.1f * pFramerate->m_speed_factor;
 
-	if( anim_counter > 1.0f )
+	if( m_anim_counter > 1.0f )
 	{
-		Generate_Particles( m_pos_x, m_pos_y, 1, static_cast<int>(anim_counter) );
-		anim_counter -= static_cast<int>(anim_counter);
+		Generate_Particles( m_pos_x, m_pos_y, 1, static_cast<int>(m_anim_counter) );
+		m_anim_counter -= static_cast<int>(m_anim_counter);
 	}
 
 	// glim animation
-	if( glim_mod )
+	if( m_glim_mod )
 	{
-		glim_counter += pFramerate->m_speed_factor * 0.2f;
+		m_glim_counter += pFramerate->m_speed_factor * 0.2f;
 
-		if( glim_counter > 1.0f ) 
+		if( m_glim_counter > 1.0f ) 
 		{
-			glim_counter = 1.0f;
-			glim_mod = 0;
+			m_glim_counter = 1.0f;
+			m_glim_mod = 0;
 		}
 	}
 	else
 	{
-		glim_counter -= pFramerate->m_speed_factor * 0.2f;
+		m_glim_counter -= pFramerate->m_speed_factor * 0.2f;
 
-		if( glim_counter < 0.0f ) 
+		if( m_glim_counter < 0.0f ) 
 		{
-			glim_counter = 0.0f;
-			glim_mod = 1;
+			m_glim_counter = 0.0f;
+			m_glim_mod = 1;
 		}
 	}
 }
@@ -184,7 +185,7 @@ void cjStar :: Draw( cSurface_Request *request /* = NULL */ )
 		return;
 	}
 
-	Set_Color_Combine( glim_counter / 0.8f, glim_counter / 0.9f, glim_counter, GL_ADD );
+	Set_Color_Combine( m_glim_counter / 0.8f, m_glim_counter / 0.9f, m_glim_counter, GL_ADD );
 
 	cPowerUp::Draw();
 }
@@ -203,11 +204,11 @@ void cjStar :: Generate_Particles( float x /* = 0 */, float y /* = 0 */, bool ra
 
 	// set particle color
 	Color particle_color = orange;
-	particle_color.green += static_cast<Uint8>( glim_counter / 5 );
-	particle_color.blue += static_cast<Uint8>( glim_counter / 1.5f );
+	particle_color.green += static_cast<Uint8>( m_glim_counter / 5 );
+	particle_color.blue += static_cast<Uint8>( m_glim_counter / 1.5f );
 
 	// create emitter
-	cParticle_Emitter *anim = new cParticle_Emitter();
+	cParticle_Emitter *anim = new cParticle_Emitter( m_sprite_manager );
 	if( random )
 	{
 		anim->Set_Emitter_Rect( x, y, m_col_rect.m_w * 0.9f, m_col_rect.m_h * 0.9f );
@@ -229,20 +230,20 @@ void cjStar :: Generate_Particles( float x /* = 0 */, float y /* = 0 */, bool ra
 	anim->Set_Color( particle_color );
 	anim->Set_Blending( BLEND_ADD );
 	anim->Set_Const_Rotation_Z( -5, 10 );
-	pAnimation_Manager->Add( anim );
+	pActive_Animation_Manager->Add( anim );
 }
 
 void cjStar :: Handle_Collision_Massive( cObjectCollision *collision )
 {
-	if( collision->direction == DIR_RIGHT || collision->direction == DIR_LEFT )
+	if( collision->m_direction == DIR_RIGHT || collision->m_direction == DIR_LEFT )
 	{
-		Turn_Around( collision->direction );
+		Turn_Around( collision->m_direction );
 	}
-	else if( collision->direction == DIR_UP )
+	else if( collision->m_direction == DIR_UP )
 	{
 		m_vely = -( m_vely * 0.3f );
 	}
-	else if( collision->direction == DIR_DOWN )
+	else if( collision->m_direction == DIR_DOWN )
 	{
 		if( m_ground_object )
 		{
@@ -270,7 +271,7 @@ void cjStar :: Handle_Collision_Massive( cObjectCollision *collision )
 void cjStar :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// invalid
-	if( collision->direction == DIR_UNDEFINED )
+	if( collision->m_direction == DIR_UNDEFINED )
 	{
 		return;
 	}

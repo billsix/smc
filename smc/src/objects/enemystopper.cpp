@@ -23,14 +23,14 @@ namespace SMC
 
 /* *** *** *** *** *** cEnemyStopper *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cEnemyStopper :: cEnemyStopper( float x, float y )
-: cAnimated_Sprite( x, y )
+cEnemyStopper :: cEnemyStopper( cSprite_Manager *sprite_manager )
+: cAnimated_Sprite( sprite_manager )
 {
 	cEnemyStopper::Init();
 }
 
-cEnemyStopper :: cEnemyStopper( CEGUI::XMLAttributes &attributes )
-: cAnimated_Sprite()
+cEnemyStopper :: cEnemyStopper( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cAnimated_Sprite( sprite_manager )
 {
 	cEnemyStopper::Init();
 	cEnemyStopper::Create_From_Stream( attributes );
@@ -41,10 +41,10 @@ cEnemyStopper :: ~cEnemyStopper( void )
 
 }
 
-cEnemyStopper *cEnemyStopper :: Copy( void )
+cEnemyStopper *cEnemyStopper :: Copy( void ) const
 {
-	cEnemyStopper *enemystopper = new cEnemyStopper( m_start_pos_x, m_start_pos_y );
-
+	cEnemyStopper *enemystopper = new cEnemyStopper( m_sprite_manager );
+	enemystopper->Set_Pos( m_start_pos_x, m_start_pos_y, 1 );
 	return enemystopper;
 }
 
@@ -58,14 +58,14 @@ void cEnemyStopper :: Init( void )
 	m_name = _("Enemystopper");
 
 	// size
-	m_rect.m_w = 15;
-	m_rect.m_h = 15;
+	m_rect.m_w = 15.0f;
+	m_rect.m_h = 15.0f;
 	m_col_rect.m_w = m_rect.m_w;
 	m_col_rect.m_h = m_rect.m_h;
 	m_start_rect.m_w = m_rect.m_w;
 	m_start_rect.m_h = m_rect.m_h;
 
-	editor_color = Color( static_cast<Uint8>(0), 0, 255, 128 );
+	m_editor_color = Color( static_cast<Uint8>(0), 0, 255, 128 );
 }
 
 void cEnemyStopper :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
@@ -93,7 +93,7 @@ void cEnemyStopper :: Draw( cSurface_Request *request /* = NULL */ )
 		return;
 	}
 
-	pVideo->Draw_Rect( m_col_rect.m_x - pActive_Camera->x, m_col_rect.m_y - pActive_Camera->y, m_col_rect.m_w, m_col_rect.m_h, m_editor_pos_z, &editor_color );
+	pVideo->Draw_Rect( m_col_rect.m_x - pActive_Camera->m_x, m_col_rect.m_y - pActive_Camera->m_y, m_col_rect.m_w, m_col_rect.m_h, m_editor_pos_z, &m_editor_color );
 }
 
 bool cEnemyStopper :: Is_Draw_Valid( void )

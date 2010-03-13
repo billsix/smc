@@ -3,7 +3,7 @@
 	<information>
 		<Property name="game_version" value="1.9" />
 		<Property name="engine_version" value="34" />
-		<Property name="save_time" value="1241105721" />
+		<Property name="save_time" value="1250937478" />
 	</information>
 	<settings>
 		<Property name="lvl_author" value="Guest_xD and FluXy" />
@@ -37,7 +37,7 @@
 	</background>
 	<global_effect>
 		<Property name="type" value="1" />
-		<Property name="image" value="animation\fire_1\3.png" />
+		<Property name="image" value="animation/fire_1/3.png" />
 		<Property name="rect_x" value="0" />
 		<Property name="rect_y" value="606" />
 		<Property name="rect_w" value="800" />
@@ -247,7 +247,7 @@
 		<Property name="speed" value="7.6" />
 		<Property name="touch_time" value="84" />
 		<Property name="shake_time" value="22" />
-		<Property name="touch_move_time" value="1e-05" />
+		<Property name="touch_move_time" value="1e-005" />
 		<Property name="middle_img_count" value="5" />
 		<Property name="image_top_left" value="ground/green_1/slider/1/brown/left.png" />
 		<Property name="image_top_middle" value="ground/green_1/slider/1/brown/middle.png" />
@@ -630,6 +630,7 @@
 		<Property name="color" value="black" />
 		<Property name="direction" value="right" />
 		<Property name="max_downgrade_count" value="15" />
+		<Property name="level_ends_if_killed" value="1" />
 	</enemy>
 	<box>
 		<Property name="posx" value="1882" />
@@ -681,6 +682,7 @@
 		<Property name="posx" value="317" />
 		<Property name="posy" value="-265" />
 		<Property name="identifier" value="1" />
+		<Property name="rewind" value="0" />
 		<Property name="segment_0_x1" value="0" />
 		<Property name="segment_0_y1" value="0" />
 		<Property name="segment_0_x2" value="700" />
@@ -964,6 +966,8 @@
 		<Property name="image" value="enemy/static/blocks/spike_1/1_grey.png" />
 		<Property name="path" value="" />
 		<Property name="speed" value="0" />
+		<Property name="fire_resistant" value="0" />
+		<Property name="ice_resistance" value="0" />
 	</enemy>
 	<sound>
 		<Property name="file" value="ambient/thunder_1.ogg" />

@@ -34,9 +34,8 @@
 #include "../user/savegame.h"
 #include "../input/keyboard.h"
 #include "../video/renderer.h"
-#include "../objects/level_exit.h"
 #include "../core/i18n.h"
-#include "../gui/menu_data.h"
+#include "../gui/generic.h"
 #ifdef __APPLE__
 // needed for datapath detection
 #include <CoreFoundation/CoreFoundation.h>
@@ -187,17 +186,14 @@ int main( int argc, char **argv )
 	// command line level loading
 	if( argc > 2 && ( arguments[1] == "--level" || arguments[1] == "-l" ) && !arguments[2].empty() )
 	{
-		// set start menu active
-		pMenuCore->Load( MENU_START );
 		// enter level
 		Game_Action = GA_ENTER_LEVEL;
+		Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
 		Game_Action_Data.add( "level", arguments[2] );
 	}
 	// command line world loading
 	else if( argc > 2 && ( arguments[1] == "--world" || arguments[1] == "-w" ) && !arguments[2].empty() )
 	{
-		// set start menu active
-		pMenuCore->Load( MENU_START );
 		// enter level
 		Game_Action = GA_ENTER_WORLD;
 		Game_Action_Data.add( "world", arguments[2] );
@@ -205,9 +201,7 @@ int main( int argc, char **argv )
 	// enter main menu
 	else
 	{
-		Draw_Effect_Out( EFFECT_OUT_BLACK, 1.5f );
-		pMenuCore->Load();
-		Draw_Effect_In( EFFECT_IN_BLACK, 1.5f );
+		Game_Action = GA_ENTER_MENU;
 	}
 
 	// game loop
@@ -284,14 +278,14 @@ void Init_Game( void )
 	// audio init
 	pAudio->Init();
 
-	pPlayer = new cPlayer();
+	pLevel_Player = new cLevel_Player( NULL );
 	// set the first active player available
-	pActive_Player = pPlayer;
+	pActive_Player = pLevel_Player;
 	pLevel_Manager = new cLevel_Manager();
+	// set the first animation manager available
+	pActive_Animation_Manager = pActive_Level->m_animation_manager;
 	// set the first active sprite manager available
-	pActive_Sprite_Manager = pActive_Level->m_sprite_manager;
-	// set the first camera available
-	pActive_Camera = pLevel_Manager->camera;
+	pLevel_Player->Set_Sprite_Manager( pActive_Level->m_sprite_manager );
 
 	// apply preferences
 	pPreferences->Apply();
@@ -302,20 +296,26 @@ void Init_Game( void )
 	pVideo->Init_Image_Cache( 0, 1 );
 
 	// Init Stage 3 - game classes
-	pPlayer->Init();
-	pLevel_Editor = new cEditor_Level();
-	pWorld_Editor = new cEditor_World();
-	pMouseCursor = new cMouseCursor();
+	// note : set any sprite manager as it is set again on game mode switch
+	pHud_Manager = new cHud_Manager( pActive_Level->m_sprite_manager );
+	pLevel_Player->Init();
+	pLevel_Editor = new cEditor_Level( pActive_Level->m_sprite_manager, pActive_Level );
+	/* note : set any sprite manager as cOverworld_Manager::Load sets it again 
+	 * parent overworld is also set from there again
+	*/
+	pWorld_Editor = new cEditor_World( pActive_Level->m_sprite_manager, NULL );
+	pMouseCursor = new cMouseCursor( pActive_Level->m_sprite_manager );
 	pKeyboard = new cKeyboard();
 	pJoystick = new cJoystick();
 	pLevel_Manager->Init();
-	pOverworld_Player = new cOverworld_Player();
-	pOverworld_Manager = new cOverworld_Manager();
-
-	pHud_Manager = new cHud_Manager();
-	pAnimation_Manager = new cAnimation_Manager();
+	// note : set any sprite manager as cOverworld_Manager::Load sets it again
+	pOverworld_Player = new cOverworld_Player( pActive_Level->m_sprite_manager, NULL );
+	pOverworld_Manager = new cOverworld_Manager( pActive_Level->m_sprite_manager );
+	// set default overworld active
+	pOverworld_Player->Set_Overworld( pOverworld_Manager->Get( "World 1" ) );
+	pOverworld_Manager->Set_Active( "World 1" );
+	pHud_Manager->Load();
 	pMenuCore = new cMenuCore();
-
 	pSavegame = new cSavegame();
 
 	// cache
@@ -332,7 +332,7 @@ void Exit_Game( void )
 	}
 
 	pLevel_Manager->Unload();
-	pMenuCore->handler->m_level->Unload();
+	pMenuCore->m_handler->m_level->Unload();
 
 	if( pAudio )
 	{
@@ -340,10 +340,10 @@ void Exit_Game( void )
 		pAudio = NULL;
 	}
 
-	if( pPlayer )
+	if( pLevel_Player )
 	{
-		delete pPlayer;
-		pPlayer = NULL;
+		delete pLevel_Player;
+		pLevel_Player = NULL;
 	}
 
 	if( pHud_Manager )
@@ -356,12 +356,6 @@ void Exit_Game( void )
 	{
 		delete pSound_Manager;
 		pSound_Manager = NULL;
-	}
-
-	if( pAnimation_Manager )
-	{
-		delete pAnimation_Manager;
-		pAnimation_Manager = NULL;
 	}
 
 	if( pLevel_Editor )
@@ -490,6 +484,9 @@ void Exit_Game( void )
 		printf( "Last known SDL Error : %s\n", last_sdl_error );
 	}
 
+	// unload the sdl_image preloaded libraries
+	IMG_Quit();
+
 	SDL_Quit();
 }
 
@@ -586,7 +583,7 @@ bool Handle_Input_Global( SDL_Event *ev )
 			if( Game_Mode == MODE_LEVEL )
 			{
 				// editor events
-				if( pLevel_Editor->enabled )
+				if( pLevel_Editor->m_enabled )
 				{
 					if( pLevel_Editor->Handle_Event( ev ) )
 					{
@@ -597,7 +594,7 @@ bool Handle_Input_Global( SDL_Event *ev )
 			else if( Game_Mode == MODE_OVERWORLD )
 			{
 				// editor events
-				if( pWorld_Editor->enabled )
+				if( pWorld_Editor->m_enabled )
 				{
 					if( pWorld_Editor->Handle_Event( ev ) )
 					{
@@ -628,459 +625,7 @@ void Update_Game( void )
 	}
 
 	// ## game events
-	// level mode
-	if( Game_Mode == MODE_LEVEL )
-	{
-		// if Game Action set
-		while( Game_Action != GA_NONE )
-		{
-			// get current data
-			GameAction Current_Game_Action = Game_Action;
-			CEGUI::XMLAttributes Current_Game_Action_Data = Game_Action_Data;
-			void *Current_Game_Action_ptr = Game_Action_ptr;
-			// clear
-			Game_Action = GA_NONE;
-			Game_Action_Data = CEGUI::XMLAttributes();
-			Game_Action_ptr = NULL;
-
-			// handle player downgrade
-			if( Current_Game_Action == GA_DOWNGRADE_PLAYER )
-			{
-				pPlayer->DownGrade_Player( 0, Current_Game_Action_Data.getValueAsBool( "force" ) );
-			}
-			// activate level exit
-			else if( Current_Game_Action == GA_ACTIVATE_LEVEL_EXIT )
-			{
-				cLevel_Exit *level_exit = static_cast<cLevel_Exit *>(Current_Game_Action_ptr);
-				level_exit->Activate();
-			}
-			// Enter Level
-			else if( Current_Game_Action == GA_ENTER_LEVEL )
-			{
-				// fade out
-				if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM )
-				{
-					Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
-				}
-				else
-				{
-					Draw_Effect_Out();
-				}
-
-				// change game mode
-				Change_Game_Mode( MODE_LEVEL );
-				std::string str_level = Current_Game_Action_Data.getValueAsString( "level" ).c_str();
-				// load new level
-				if( pActive_Level->Load( str_level ) )
-				{
-					pActive_Level->Enter();
-				}
-				// if failed to load exit level
-				else
-				{
-					pPlayer->Goto_Next_Level();
-					continue;
-				}
-
-				// load entry
-				std::string str_entry = Current_Game_Action_Data.getValueAsString( "entry" ).c_str();
-				cLevel_Entry *entry = pActive_Level->Get_Entry( str_entry );
-
-				if( !entry && !str_entry.empty() )
-				{
-					printf( "Warning : Level entry %s not found\n", str_entry.c_str() );
-				}
-
-				// set camera position to the entry 
-				if( entry )
-				{
-					// set position
-					pPlayer->Set_Pos( entry->Get_Player_Pos_X(), entry->Get_Player_Pos_Y() );
-					// center camera position
-					pActive_Camera->Center();
-					// set invisible for warp animation
-					pPlayer->Set_Active( 0 );
-				}
-
-				// fade in
-				if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM )
-				{
-					Draw_Effect_In( EFFECT_IN_BLACK, 3 );
-				}
-				else
-				{
-					Draw_Effect_In();
-				}
-
-				// activate entry
-				if( entry )
-				{
-					pPlayer->Goto_Sub_Level( str_level, str_entry, CAMERA_MOVE_NONE );
-				}
-			}
-			// Enter World
-			else if( Current_Game_Action == GA_ENTER_WORLD )
-			{
-				// Random fade out effect
-				Draw_Effect_Out();
-				// delay unload level
-				pActive_Level->Unload( 1 );
-				// set active world
-				if( Current_Game_Action_Data.exists( "world" ) )
-				{
-					pOverworld_Manager->Set_Active( Current_Game_Action_Data.getValueAsString( "world" ).c_str() );
-				}
-				// set player waypoint
-				if( Current_Game_Action_Data.exists( "player_waypoint" ) )
-				{
-					// get world waypoint
-					int waypoint_num = pActive_Overworld->Get_Waypoint_Num( Current_Game_Action_Data.getValueAsString( "player_waypoint" ).c_str() );
-
-					// waypoint available
-					if( waypoint_num >= 0 )
-					{
-						// set all levels accessible until the world link
-						pActive_Overworld->Set_Progress( waypoint_num, 0 );
-						pOverworld_Player->Set_Waypoint( waypoint_num );
-					}
-				}
-				// enter world
-				pActive_Overworld->Enter();
-				// draw fade in
-				Draw_Effect_In();
-			}
-			// Enter Menu
-			else if( Current_Game_Action == GA_ENTER_MENU )
-			{
-				// check if level is active
-				bool level_active = 0;
-
-				// if level is loaded and active
-				if( pActive_Level->Is_Loaded() && !pActive_Level->m_delayed_unload )
-				{
-					level_active = 1;
-				}
-
-				// set exit game mode
-				GameMode exit_gamemode = MODE_NOTHING;
-
-				if( level_active )
-				{
-					exit_gamemode = MODE_LEVEL;
-				}
-				else
-				{
-					// fade out
-					Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
-				}
-
-				// custom level
-				if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM && Current_Game_Action_Data.exists( "level" ) )
-				{
-					std::string lvl_name = Current_Game_Action_Data.getValueAsString( "level" ).c_str();
-
-					pMenuCore->Load( MENU_START, exit_gamemode );
-
-					// Get Tab Control
-					CEGUI::TabControl *tabcontrol = static_cast<CEGUI::TabControl *>(CEGUI::WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
-					// Select Level Tab
-					tabcontrol->setSelectedTab( "tab_level" );
-
-					// Get Levels Listbox
-					CEGUI::Listbox *listbox_levels = static_cast<CEGUI::Listbox *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_levels" ));
-					// Get Item
-					CEGUI::ListboxItem *list_item = listbox_levels->findItemWithText( lvl_name, NULL );
-					// select level
-					if( list_item )
-					{
-						listbox_levels->setItemSelectState( list_item, 1 );
-						listbox_levels->ensureItemIsVisible( list_item );
-					}
-				}
-				// default menu
-				else
-				{
-					pMenuCore->Load( MENU_MAIN, exit_gamemode );
-				}
-				
-				if( !level_active )
-				{
-					// fade in
-					Draw_Effect_In( EFFECT_IN_BLACK, 3 );
-				}
-			}
-			// Enter Settings
-			else if( Current_Game_Action == GA_ENTER_LEVEL_SETTINGS )
-			{
-				// fade out
-				Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
-				// enter
-				pLevel_Editor->pSettings->Enter();
-				// fade in
-				Draw_Effect_In( EFFECT_IN_BLACK, 3 );
-			}
-		}
-	}
-	// world mode
-	else if( Game_Mode == MODE_OVERWORLD )
-	{
-		// if Game Action set
-		while( Game_Action != GA_NONE )
-		{
-			// get current data
-			GameAction Current_Game_Action = Game_Action;
-			CEGUI::XMLAttributes Current_Game_Action_Data = Game_Action_Data;
-			void *Current_Game_Action_ptr = Game_Action_ptr;
-			// clear
-			Game_Action = GA_NONE;
-			Game_Action_Data = CEGUI::XMLAttributes();
-			Game_Action_ptr = NULL;
-
-			// Enter Level
-			if( Current_Game_Action == GA_ENTER_LEVEL )
-			{
-				// fade out
-				Draw_Effect_Out( EFFECT_OUT_FIXED_COLORBOX );
-				// change game mode
-				Change_Game_Mode( MODE_LEVEL );
-				// load new level
-				if( Current_Game_Action_Data.exists( "level" ) )
-				{
-					std::string lvl_name = Current_Game_Action_Data.getValueAsString( "level" ).c_str();
-
-					// load level
-					if( pActive_Level->Load( lvl_name ) )
-					{
-						pActive_Level->Enter();
-					}
-					// not a valid level
-					else
-					{
-						printf( "Error : Level not found %s\n", lvl_name.c_str() );
-						pHud_Debug->Set_Text( _("Loading Level failed : ") + lvl_name );
-
-						// back to overworld
-						pActive_Overworld->Enter();
-						// walk to the next waypoint
-						pActive_Overworld->Goto_Next_Level();
-					}
-				}
-				// reset player
-				pPlayer->Reset();
-				// fade in
-				Draw_Effect_In();
-			}
-			// Enter World
-			else if( Current_Game_Action == GA_ENTER_WORLD )
-			{
-				// Random fade out effect
-				Draw_Effect_Out( EFFECT_OUT_BLACK_TILED_RECTS );
-				// set active world
-				if( Current_Game_Action_Data.exists( "world" ) )
-				{
-					pOverworld_Manager->Set_Active( Current_Game_Action_Data.getValueAsString( "world" ).c_str() );
-				}
-				// set player waypoint
-				if( Current_Game_Action_Data.exists( "player_waypoint" ) )
-				{
-					// get world waypoint
-					int waypoint_num = pActive_Overworld->Get_Waypoint_Num( Current_Game_Action_Data.getValueAsString( "player_waypoint" ).c_str() );
-
-					// waypoint available
-					if( waypoint_num >= 0 )
-					{
-						// set all levels accessible until the world link
-						pActive_Overworld->Set_Progress( waypoint_num, 0 );
-						pOverworld_Player->Set_Waypoint( waypoint_num );
-					}
-				}
-				// enter world
-				pActive_Overworld->Enter();
-				// draw fade in
-				Draw_Effect_In();
-			}
-			// Enter Menu
-			else if( Current_Game_Action == GA_ENTER_MENU )
-			{
-				pMenuCore->Load( MENU_MAIN, MODE_OVERWORLD );
-			}
-			// Enter Credits Menu
-			else if( Current_Game_Action == GA_ENTER_MENU_CREDITS )
-			{
-				pMenuCore->Load( MENU_CREDITS );
-			}
-		}
-	}
-	// menu mode
-	else if( Game_Mode == MODE_MENU )
-	{
-		// if Game Action set
-		while( Game_Action != GA_NONE )
-		{
-			// get current data
-			GameAction Current_Game_Action = Game_Action;
-			CEGUI::XMLAttributes Current_Game_Action_Data = Game_Action_Data;
-			void *Current_Game_Action_ptr = Game_Action_ptr;
-			// clear
-			Game_Action = GA_NONE;
-			Game_Action_Data = CEGUI::XMLAttributes();
-			Game_Action_ptr = NULL;
-
-			// Enter World
-			if( Current_Game_Action == GA_ENTER_WORLD )
-			{
-				// check if world is active
-				bool world_active = 0;
-
-				// if world loaded and not entering a new world
-				if( (pMenuCore->pMenu_Data && pMenuCore->pMenu_Data->exit_to_gamemode == MODE_OVERWORLD) && !Current_Game_Action_Data.exists( "world" ) )
-				{
-					world_active = 1;
-				}
-				else
-				{
-					// fade out
-					Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
-				}
-
-				// todo : fade only out if not same music
-				// if origin menu is start menu
-				if( pMenuCore->menu_id == MENU_START )
-				{
-					// fade music out
-					pAudio->Fadeout_Music( 1000 );
-				}
-				// unload menu
-				pMenuCore->Unload();
-				// set active world
-				if( Current_Game_Action_Data.getValueAsBool( "reset_save" ) )
-				{
-					// reset data
-					pPlayer->Reset_Save();
-				}
-				if( Current_Game_Action_Data.exists( "world" ) )
-				{
-					pOverworld_Manager->Set_Active( Current_Game_Action_Data.getValueAsString( "world" ).c_str() );
-				}
-				// set player waypoint
-				if( Current_Game_Action_Data.exists( "player_waypoint" ) )
-				{
-					// get world waypoint
-					int waypoint_num = pActive_Overworld->Get_Waypoint_Num( Current_Game_Action_Data.getValueAsString( "player_waypoint" ).c_str() );
-
-					// waypoint available
-					if( waypoint_num >= 0 )
-					{
-						// set all levels accessible until the world link
-						pActive_Overworld->Set_Progress( waypoint_num, 0 );
-						pOverworld_Player->Set_Waypoint( waypoint_num );
-					}
-				}
-				// enter world
-				pActive_Overworld->Enter();
-				if( !world_active )
-				{
-					// fade in
-					Draw_Effect_In( EFFECT_IN_BLACK, 3 );
-				}
-			}
-			// Enter Level
-			else if( Current_Game_Action == GA_ENTER_LEVEL )
-			{
-				// check if level is active
-				bool orig_level_active = 0;
-
-				// if level loaded and not entering custom level
-				if( (pMenuCore->pMenu_Data && pMenuCore->pMenu_Data->exit_to_gamemode == MODE_LEVEL) && !Current_Game_Action_Data.exists( "level" ) )
-				{
-					orig_level_active = 1;
-				}
-				else
-				{
-					// fade music out
-					pAudio->Fadeout_Music( 1000 );
-					// fade out
-					Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
-				}
-
-				// unload menu
-				pMenuCore->Unload();
-				/* change mode
-				 * should be done before loading a level as the correct sprite manager is needed
-				*/
-				Change_Game_Mode( MODE_LEVEL );
-				// load custom level
-				if( Current_Game_Action_Data.exists( "level" ) )
-				{
-					// reset state
-					if( Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM )
-					{
-						pPlayer->Reset_Save();
-					}
-					// reset player
-					else
-					{
-						pPlayer->Reset( 0 );
-					}
-
-					// load new level
-					if( pActive_Level->Load( Current_Game_Action_Data.getValueAsString( "level" ).c_str() ) )
-					{
-						pActive_Level->Enter();
-					}
-				}
-
-				if( !orig_level_active )
-				{
-					// fade in
-					Draw_Effect_In( EFFECT_IN_BLACK, 3 );
-				}
-			}
-			// Enter Menu
-			else if( Current_Game_Action == GA_ENTER_MENU )
-			{
-				if( pMenuCore->next_menu != MENU_NOTHING )
-				{
-					GameMode exit_gamemode = MODE_NOTHING;
-
-					if( pMenuCore->pMenu_Data )
-					{
-						exit_gamemode = pMenuCore->pMenu_Data->exit_to_gamemode;
-					}
-
-					pMenuCore->Load( pMenuCore->next_menu, exit_gamemode );
-				}
-			}
-		}
-	}
-	// level settings mode
-	else if( Game_Mode == MODE_LEVEL_SETTINGS )
-	{
-		// if Game Action set
-		while( Game_Action != GA_NONE )
-		{
-			// get current data
-			GameAction Current_Game_Action = Game_Action;
-			CEGUI::XMLAttributes Current_Game_Action_Data = Game_Action_Data;
-			void *Current_Game_Action_ptr = Game_Action_ptr;
-			// clear
-			Game_Action = GA_NONE;
-			Game_Action_Data = CEGUI::XMLAttributes();
-			Game_Action_ptr = NULL;
-
-			// Enter Level
-			if( Current_Game_Action == GA_ENTER_LEVEL )
-			{
-				// fade out
-				Draw_Effect_Out( EFFECT_OUT_BLACK, 3 );
-				// change mode
-				pLevel_Editor->pSettings->Unload();
-				Change_Game_Mode( MODE_LEVEL );
-				// fade in
-				Draw_Effect_In( EFFECT_IN_BLACK, 3 );
-			}
-		}
-	}
+	Handle_Game_Events();
 
 	// ## input
 	while( SDL_PollEvent( &input_event ) )
@@ -1101,89 +646,19 @@ void Update_Game( void )
 	// ## update
 	if( Game_Mode == MODE_LEVEL )
 	{
-		// input
-		pActive_Level->Process_Input();
-		pLevel_Editor->Process_Input();
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_UPDATE_PROCESS_INPUT]->Update();
-
-		// update
-		pActive_Level->Update();
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_UPDATE_LEVEL]->Update();
-
-		// editor
-		pLevel_Editor->Update();
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_EDITOR]->Update();
-
-		// hud
-		pHud_Manager->Update();
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_UPDATE_HUD]->Update();
-
-		// player
-		pPlayer->Update();
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_UPDATE_PLAYER]->Update();
-
-		// player collisions
-		if( !editor_enabled )
-		{
-			pPlayer->Collide_Move();
-			pPlayer->Handle_Collisions();
-		}
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_UPDATE_PLAYER_COLLISIONS]->Update();
-
-		// late update for level objects
-		pActive_Level->Update_Late();
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_UPDATE_LATE_LEVEL]->Update();
-
-		// level collisions
-		if( !editor_enabled )
-		{
-			pActive_Sprite_Manager->Handle_Collision_Items();
-		}
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_COLLISIONS]->Update();
-
-		// Camera ( update after new player position was set )
-		pActive_Camera->Update();
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_UPDATE_CAMERA]->Update();
-
+		pLevel_Manager->Update();
 	}
 	else if( Game_Mode == MODE_OVERWORLD )
 	{
 		pActive_Overworld->Update();
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_UPDATE_OVERWORLD]->Update();
 	}
 	else if( Game_Mode == MODE_MENU )
 	{
 		pMenuCore->Update();
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_UPDATE_MENU]->Update();
 	}
 	else if( Game_Mode == MODE_LEVEL_SETTINGS )
 	{
-		pLevel_Editor->pSettings->Update();
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_SETTINGS]->Update();
+		pLevel_Editor->m_settings_screen->Update();
 	}
 
 	// gui
@@ -1203,58 +678,19 @@ void Draw_Game( void )
 
 	if( Game_Mode == MODE_LEVEL )
 	{
-		// draw level layer 1
-		pActive_Level->Draw_Layer_1();
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_DRAW_LEVEL_LAYER1]->Update();
-
-		// player draw
-		pPlayer->Draw();
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_DRAW_LEVEL_PLAYER]->Update();
-
-		// draw level layer 2
-		pActive_Level->Draw_Layer_2();
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_DRAW_LEVEL_LAYER2]->Update();
-
-		// hud
-		pHud_Manager->Draw();
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_DRAW_LEVEL_HUD]->Update();
-
-		// level editor
-		pLevel_Editor->Draw();
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_DRAW_LEVEL_EDITOR]->Update();
-
+		pLevel_Manager->Draw();
 	}
 	else if( Game_Mode == MODE_OVERWORLD )
 	{
-		// world
 		pActive_Overworld->Draw();
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_DRAW_OVERWORLD]->Update();
 	}
 	else if( Game_Mode == MODE_MENU )
 	{
 		pMenuCore->Draw();
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_DRAW_MENU]->Update();
 	}
 	else if( Game_Mode == MODE_LEVEL_SETTINGS )
 	{
-		pLevel_Editor->pSettings->Draw();
-
-		// update performance timer
-		pFramerate->m_perf_timer[PERF_DRAW_LEVEL_SETTINGS]->Update();
+		pLevel_Editor->m_settings_screen->Draw();
 	}
 
 	// Mouse

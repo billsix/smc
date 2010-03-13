@@ -16,7 +16,7 @@
 #include "../enemies/thromp.h"
 #include "../core/game_core.h"
 #include "../video/animation.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../level/level.h"
 #include "../gui/hud.h"
 #include "../video/gl_surface.h"
@@ -36,14 +36,14 @@ namespace SMC
 
 /* *** *** *** *** *** *** cThromp *** *** *** *** *** *** *** *** *** *** *** */
 
-cThromp :: cThromp( float x, float y )
-: cEnemy( x, y )
+cThromp :: cThromp( cSprite_Manager *sprite_manager )
+: cEnemy( sprite_manager )
 {
 	cThromp::Init();
 }
 
-cThromp :: cThromp( CEGUI::XMLAttributes &attributes )
-: cEnemy()
+cThromp :: cThromp( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cEnemy( sprite_manager )
 {
 	cThromp::Init();
 	cThromp::Create_From_Stream( attributes );
@@ -58,7 +58,7 @@ void cThromp :: Init( void  )
 {
 	m_type = TYPE_THROMP;
 	m_pos_z = 0.093f;
-	m_player_range = 1000;
+	m_camera_range = 1000;
 	m_can_be_on_ground = 0;
 
 	m_fire_resistant = 1;
@@ -76,14 +76,14 @@ void cThromp :: Init( void  )
 	m_kill_points = 200;
 }
 
-cThromp *cThromp :: Copy( void )
+cThromp *cThromp :: Copy( void ) const
 {
-	cThromp *thromp = new cThromp( m_start_pos_x, m_start_pos_y );
+	cThromp *thromp = new cThromp( m_sprite_manager );
+	thromp->Set_Pos( m_start_pos_x, m_start_pos_y );
 	thromp->Set_Image_Dir( m_img_dir );
 	thromp->Set_Direction( m_start_direction );
 	thromp->Set_Max_Distance( m_max_distance );
 	thromp->Set_Speed( m_speed );
-
 	return thromp;
 }
 
@@ -261,24 +261,24 @@ void cThromp :: DownGrade( bool force /* = 0 */ )
 {
 	Set_Dead( 1 );
 	m_massive_type = MASS_PASSIVE;
-	m_counter = 0;
-	m_velx = 0;
-	m_vely = 0;
+	m_counter = 0.0f;
+	m_velx = 0.0f;
+	m_vely = 0.0f;
 
 	if( !force )
 	{
 		// animation
-		cParticle_Emitter *anim = new cParticle_Emitter();
+		cParticle_Emitter *anim = new cParticle_Emitter( m_sprite_manager );
 		Generate_Hit_Animation( anim );
 
 		anim->Set_Scale( 0.8f );
-		anim->Set_Direction_Range( 0, 360 );
+		anim->Set_Direction_Range( 0.0f, 360.0f );
 		// add animation
-		pAnimation_Manager->Add( anim );
+		pActive_Animation_Manager->Add( anim );
 	}
 	else
 	{
-		Set_Rotation_Z( 180 );
+		Set_Rotation_Z( 180.0f );
 	}
 }
 
@@ -299,8 +299,8 @@ void cThromp :: Update_Dying( void )
 		{
 			Move( 0.0f, -5.0f );
 		}
-		// if not below the screen fall
-		else if( m_pos_y < game_res_h + m_col_rect.m_h )
+		// if not below the ground : fall
+		else if( m_col_rect.m_y < pActive_Camera->m_limit_rect.m_y )
 		{
 			Move( 0.0f, 20.0f );
 		}
@@ -317,7 +317,7 @@ void cThromp :: Update( void )
 {
 	cEnemy::Update();
 
-	if( !m_valid_update || !Is_In_Player_Range() )
+	if( !m_valid_update || !Is_In_Range() )
 	{
 		return;
 	}
@@ -328,7 +328,7 @@ void cThromp :: Update( void )
 		GL_rect final_distance = Get_Final_Distance_Rect();
 
 		// if player is in front then activate
-		if( pPlayer->maryo_type != MARYO_GHOST && pPlayer->m_col_rect.Intersects( final_distance ) )
+		if( pLevel_Player->m_maryo_type != MARYO_GHOST && pLevel_Player->m_col_rect.Intersects( final_distance ) )
 		{
 			Activate();
 		}
@@ -432,8 +432,8 @@ void cThromp :: Draw( cSurface_Request *request /* = NULL */ )
 	if( editor_level_enabled )
 	{
 		GL_rect final_distance = Get_Final_Distance_Rect();
-		final_distance.m_x -= pActive_Camera->x;
-		final_distance.m_y -= pActive_Camera->y;
+		final_distance.m_x -= pActive_Camera->m_x;
+		final_distance.m_y -= pActive_Camera->m_y;
 
 		pVideo->Draw_Rect( &final_distance, m_pos_z - 0.000001f, &whitealpha128 );
 	}
@@ -611,7 +611,7 @@ void cThromp :: Generate_Smoke( unsigned int amount /* = 20 */ ) const
 	}
 
 	// animation
-	cParticle_Emitter *anim = new cParticle_Emitter();
+	cParticle_Emitter *anim = new cParticle_Emitter( m_sprite_manager );
 	anim->Set_Emitter_Rect( smoke_x, smoke_y, smoke_width, smoke_height );
 	anim->Set_Image( pVideo->Get_Surface( "animation/particles/smoke.png" ) );
 	anim->Set_Quota( amount );
@@ -622,7 +622,7 @@ void cThromp :: Generate_Smoke( unsigned int amount /* = 20 */ ) const
 	anim->Set_Fading_Alpha( 1 );
 	anim->Set_Const_Rotation_Z( -2, 4 );
 	// add animation
-	pAnimation_Manager->Add( anim );
+	pActive_Animation_Manager->Add( anim );
 }
 
 Col_Valid_Type cThromp :: Validate_Collision( cSprite *obj )
@@ -692,9 +692,9 @@ Col_Valid_Type cThromp :: Validate_Collision( cSprite *obj )
 void cThromp :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// front
-	if( collision->direction == m_direction )
+	if( collision->m_direction == m_direction )
 	{
-		pPlayer->DownGrade_Player();
+		pLevel_Player->DownGrade_Player();
 
 		if( !m_move_back )
 		{
@@ -713,12 +713,12 @@ void cThromp :: Handle_Collision_Player( cObjectCollision *collision )
 void cThromp :: Handle_Collision_Enemy( cObjectCollision *collision )
 {
 	// destination direction collision
-	if( collision->direction == m_direction )
+	if( collision->m_direction == m_direction )
 	{
 		// if active
 		if( m_state == STA_FLY )
 		{
-			cEnemy *enemy = static_cast<cEnemy *>(pActive_Sprite_Manager->Get_Pointer( collision->number ));
+			cEnemy *enemy = static_cast<cEnemy *>(m_sprite_manager->Get_Pointer( collision->m_number ));
 
 			// enemies that only hit us
 			if( enemy->m_type == TYPE_SPIKEBALL )
@@ -751,7 +751,7 @@ void cThromp :: Handle_Collision_Massive( cObjectCollision *collision )
 {
 	Send_Collision( collision );
 
-	cSprite *col_obj = pActive_Sprite_Manager->Get_Pointer( collision->number );
+	cSprite *col_obj = m_sprite_manager->Get_Pointer( collision->m_number );
 
 	// ignore ball
 	if( col_obj->m_type == TYPE_BALL )

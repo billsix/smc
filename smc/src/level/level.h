@@ -16,7 +16,7 @@
 #ifndef SMC_LEVEL_H
 #define SMC_LEVEL_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../level/global_effect.h"
 #include "../level/level_background.h"
 #include "../core/file_parser.h"
@@ -32,7 +32,7 @@ namespace SMC
 
 /* *** *** *** *** *** cLevel *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cLevel : public cFile_parser, public CEGUI::XMLHandler
+class cLevel : public CEGUI::XMLHandler
 {
 public:
 	cLevel( void );
@@ -42,10 +42,8 @@ public:
 	 * returns true if successful
 	*/
 	bool New( std::string filename );
-	/* Load a Level
-	 * if delayed is given the level will be loaded on the next update
-	*/
-	bool Load( std::string filename, bool delayed = 0 );
+	// Load
+	bool Load( std::string filename );
 	/* Unload the current Level
 	 * if delayed is given unloads the on the next update
 	*/
@@ -57,8 +55,14 @@ public:
 	// reset settings data
 	void Reset_Settings( void );
 
+	// Init
+	void Init( void );
+	// Set this sprite manager active
+	void Set_Sprite_Manager( void );
 	// Enter
-	void Enter( void );
+	void Enter( const GameMode old_mode = MODE_NOTHING );
+	// Leave
+	void Leave( const GameMode next_mode = MODE_NOTHING );
 
 	// update level
 	void Update( void );
@@ -112,10 +116,6 @@ public:
 	 * delete_old : if set delete the old level name
 	*/
 	void Set_Levelfile( std::string filename, bool delete_old = 1 );
-	/* Return the level path if level is valid else empty
-	 * check_only_user_dir : only check user directory for the level
-	*/
-	bool Get_Path( std::string &filename, bool check_only_user_dir = 0 ) const;
 	// Set the Level Author
 	void Set_Author( const std::string &name );
 	// Set the Level Version
@@ -123,8 +123,6 @@ public:
 
 	// Get entry with the given name
 	cLevel_Entry *Get_Entry( const std::string &name );
-	// Get the path object with the given identifier
-	cPath *Get_Path_Object( const std::string &identifier );
 
 	// Return true if a level is loaded
 	bool Is_Loaded( void ) const;
@@ -141,6 +139,8 @@ public:
 	cBackground_Manager *m_background_manager;
 	// global effect
 	cGlobal_effect *m_global_effect;
+	// animation manager
+	cAnimation_Manager *m_animation_manager;
 	// sprite manager
 	cSprite_Manager *m_sprite_manager;
 
@@ -168,10 +168,6 @@ public:
 	float m_fixed_camera_hor_vel;
 
 private:
-	// Handles the old txt level format command
-	virtual bool HandleMessage( const std::string *parts, unsigned int count, unsigned int line );
-	bool Read_Color_Data( const std::string *parts, unsigned int count, unsigned int line, Color &read_color );
-
 	// XML element start
 	virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
 	// XML element end
@@ -182,10 +178,10 @@ private:
 };
 
 /* Return the Level Object if element name is available else NULL
- * engine_version : engine version of the data and if below the current version it converts it
+ * engine_version : engine version of the data and if it's below the current version it converts it
  * sprite_manager : needed if the engine version is below the current version and data conversion creates multiple objects
 */
-cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttributes &attributes, int engine_version = level_engine_version, cSprite_Manager *sprite_manager = NULL );
+cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttributes &attributes, int engine_version, cSprite_Manager *sprite_manager );
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

@@ -18,6 +18,8 @@
 #include "../overworld/overworld.h"
 #include "../core/filesystem/filesystem.h"
 #include "../core/filesystem/resource_manager.h"
+#include "../overworld/world_editor.h"
+#include "../input/mouse.h"
 // boost filesystem
 #include "boost/filesystem/convenience.hpp"
 namespace fs = boost::filesystem;
@@ -29,25 +31,25 @@ namespace SMC
 
 /* *** *** *** *** *** *** *** *** cOverworld_Manager *** *** *** *** *** *** *** *** *** */
 
-cOverworld_Manager :: cOverworld_Manager( void )
+cOverworld_Manager :: cOverworld_Manager( cSprite_Manager *sprite_manager )
 : cObject_Manager<cOverworld>()
 {
-	worlds_filename = DATA_DIR "/" GAME_OVERWORLD_DIR "/worlds.xml";
+	m_worlds_filename = DATA_DIR "/" GAME_OVERWORLD_DIR "/worlds.xml";
 
-	debugmode = 0;
-	draw_layer = 0;
-	cameramode = 0;
+	m_debug_mode = 0;
+	m_draw_layer = 0;
+	m_camera_mode = 0;
 
-	camera = new cCamera();
+	m_camera = new cCamera( sprite_manager );
 
-	Load();
+	Init();
 }
 
 cOverworld_Manager :: ~cOverworld_Manager( void )
 {
 	Delete_All();
 
-	delete camera;
+	delete m_camera;
 }
 
 bool cOverworld_Manager :: New( const std::string &name )
@@ -67,20 +69,16 @@ bool cOverworld_Manager :: New( const std::string &name )
 	cOverworld *overworld = new cOverworld();
 
 	// set path
-	overworld->m_description->path = name;
+	overworld->m_description->m_path = name;
 	// default name is the path
-	overworld->m_description->name = name;
+	overworld->m_description->m_name = name;
 
 	objects.push_back( overworld );
-
-	pActive_Overworld = overworld;
-
-	pOverworld_Player->Reset();
 
 	return 1;
 }
 
-void cOverworld_Manager :: Load( void )
+void cOverworld_Manager :: Init( void )
 {
 	// if already loaded
 	if( !objects.empty() )
@@ -92,20 +90,17 @@ void cOverworld_Manager :: Load( void )
 	Load_Dir( pResource_Manager->user_data_dir + USER_WORLD_DIR, 1 );
 	Load_Dir( DATA_DIR "/" GAME_OVERWORLD_DIR );
 
-	// Get Overworld User Comments
-	if( File_Exists( worlds_filename ) )
+	// Get Overworld user comments
+	if( File_Exists( m_worlds_filename ) )
 	{
 		// Parse
-		CEGUI::System::getSingleton().getXMLParser()->parseXMLFile( *this, worlds_filename.c_str(), DATA_DIR "/" GAME_SCHEMA_DIR "/Worlds_User_Data.xsd", "" );
+		CEGUI::System::getSingleton().getXMLParser()->parseXMLFile( *this, m_worlds_filename.c_str(), DATA_DIR "/" GAME_SCHEMA_DIR "/Worlds_User_Data.xsd", "" );
 	}
 	else
 	{
 		// filename not valid
-		printf( "Warning : Couldn't open Worlds description file : %s\n", worlds_filename.c_str() );
+		printf( "Warning : Couldn't open Worlds description file : %s\n", m_worlds_filename.c_str() );
 	}
-
-	// set default overworld
-	Set_Active( "World 1" );
 }
 
 void cOverworld_Manager :: Load_Dir( const std::string &dir, bool user_dir /* = 0 */ ) 
@@ -132,11 +127,11 @@ void cOverworld_Manager :: Load_Dir( const std::string &dir, bool user_dir /* = 
 				cOverworld *overworld = new cOverworld();
 
 				// set path
-				overworld->m_description->path = current_dir;
+				overworld->m_description->m_path = current_dir;
 				// default name is the path
-				overworld->m_description->name = current_dir;
+				overworld->m_description->m_name = current_dir;
 				// set user
-				overworld->m_description->user = user_dir;
+				overworld->m_description->m_user = user_dir;
 
 				objects.push_back( overworld );
 
@@ -164,9 +159,12 @@ bool cOverworld_Manager :: Set_Active( cOverworld *world )
 
 	pActive_Overworld = world;
 
-	// set player start waypoint
+	pWorld_Editor->Set_Sprite_Manager( world->m_sprite_manager );
+	pWorld_Editor->Set_Overworld( world );
+	m_camera->Set_Sprite_Manager( world->m_sprite_manager );
+	pOverworld_Player->Set_Sprite_Manager( world->m_sprite_manager );
+	pOverworld_Player->Set_Overworld( world );
 	pOverworld_Player->Reset();
-	pOverworld_Player->Set_Waypoint( pActive_Overworld->m_player_start_waypoint, 1 );
 
 	return 1;
 }
@@ -180,7 +178,7 @@ void cOverworld_Manager :: Reset( void )
 	pOverworld_Player->Set_Waypoint( pActive_Overworld->m_player_start_waypoint );
 
 	// Reset all Waypoints
-	for( vector<cOverworld *>::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( vector<cOverworld *>::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		(*itr)->Reset_Waypoints();
 	}
@@ -200,11 +198,11 @@ cOverworld *cOverworld_Manager :: Get( const std::string &str )
 
 cOverworld *cOverworld_Manager :: Get_from_Path( const std::string &path )
 {
-	for( vector<cOverworld *>::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( vector<cOverworld *>::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		cOverworld *obj = (*itr);
 
-		if( obj->m_description->path.compare( path ) == 0 )
+		if( obj->m_description->m_path.compare( path ) == 0 )
 		{
 			return obj;
 		}
@@ -215,11 +213,11 @@ cOverworld *cOverworld_Manager :: Get_from_Path( const std::string &path )
 
 cOverworld *cOverworld_Manager :: Get_from_Name( const std::string &name )
 {
-	for( vector<cOverworld *>::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( vector<cOverworld *>::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		cOverworld *obj = (*itr);
 
-		if( obj->m_description->name.compare( name ) == 0 )
+		if( obj->m_description->m_name.compare( name ) == 0 )
 		{
 			return obj;
 		}
@@ -232,7 +230,7 @@ int cOverworld_Manager :: Get_Array_Num( const std::string &path ) const
 {
 	for( unsigned int i = 0; i < objects.size(); i++ )
 	{
-		if( objects[i]->m_description->path.compare( path ) == 0 )
+		if( objects[i]->m_description->m_path.compare( path ) == 0 )
 		{
 			return i;
 		}
@@ -247,7 +245,7 @@ void cOverworld_Manager :: elementStart( const CEGUI::String &element, const CEG
 	// Property of an Element
 	if( element == "Property" )
 	{
-		xml_attributes.add( attributes.getValueAsString( "Name" ), attributes.getValueAsString( "Value" ) );
+		m_xml_attributes.add( attributes.getValueAsString( "Name" ), attributes.getValueAsString( "Value" ) );
 	}
 }
 
@@ -258,7 +256,7 @@ void cOverworld_Manager :: elementEnd( const CEGUI::String &element )
 	{
 		if( element == "World" )
 		{
-			handle_world( xml_attributes );
+			handle_world( m_xml_attributes );
 		}
 		else if( element == "Worlds" )
 		{
@@ -270,7 +268,7 @@ void cOverworld_Manager :: elementEnd( const CEGUI::String &element )
 		}
 
 		// clear
-		xml_attributes = CEGUI::XMLAttributes();
+		m_xml_attributes = CEGUI::XMLAttributes();
 	}
 }
 
@@ -285,7 +283,7 @@ void cOverworld_Manager :: handle_world( const CEGUI::XMLAttributes &attributes 
 	// set comment
 	if( overworld )
 	{
-		overworld->m_description->comment = ow_comment;
+		overworld->m_description->m_comment = ow_comment;
 	}
 }
 

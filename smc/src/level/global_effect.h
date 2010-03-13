@@ -16,7 +16,7 @@
 #ifndef SMC_GLOBAL_EFFECT_H
 #define SMC_GLOBAL_EFFECT_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../core/math/rect.h"
 #include "../video/animation.h"
 
@@ -37,9 +37,9 @@ class cGlobal_effect : public cParticle_Emitter
 {
 public:
 	// default constructor
-	cGlobal_effect( void );
+	cGlobal_effect( cSprite_Manager *sprite_manager );
 	// create from stream
-	cGlobal_effect( CEGUI::XMLAttributes &attributes );
+	cGlobal_effect( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cGlobal_effect( void );
 
@@ -64,7 +64,7 @@ public:
 	void Set_Type( const GlobalEffectType type );
 	void Set_Type( const std::string &str_type );
 	// Set image
-	void Set_Image( const std::string &nimg_file );
+	void Set_Image( const std::string &img_file );
 
 	// Return the type name
 	std::string Get_Type_Name( void ) const;

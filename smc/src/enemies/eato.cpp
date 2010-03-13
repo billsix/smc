@@ -16,7 +16,7 @@
 #include "../enemies/eato.h"
 #include "../core/game_core.h"
 #include "../video/animation.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../video/gl_surface.h"
 #include "../core/i18n.h"
 #include "../core/filesystem/filesystem.h"
@@ -31,14 +31,14 @@ namespace SMC
 
 /* *** *** *** *** *** *** cEato *** *** *** *** *** *** *** *** *** *** *** */
 
-cEato :: cEato( float x, float y )
-: cEnemy( x, y )
+cEato :: cEato( cSprite_Manager *sprite_manager )
+: cEnemy( sprite_manager )
 {
 	cEato::Init();
 }
 
-cEato :: cEato( CEGUI::XMLAttributes &attributes )
-: cEnemy()
+cEato :: cEato( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cEnemy( sprite_manager )
 {
 	cEato::Init();
 	cEato::Create_From_Stream( attributes );
@@ -52,7 +52,7 @@ cEato :: ~cEato( void )
 void cEato :: Init( void )
 {
 	m_type = TYPE_EATO;
-	m_player_range = 1000;
+	m_camera_range = 1000;
 	m_pos_z = 0.087f;
 	m_can_be_on_ground = 0;
 	Set_Rotation_Affects_Rect( 1 );
@@ -66,12 +66,12 @@ void cEato :: Init( void )
 	m_kill_points = 150;
 }
 
-cEato *cEato :: Copy( void )
+cEato *cEato :: Copy( void ) const
 {
-	cEato *eato = new cEato( m_start_pos_x, m_start_pos_y );
+	cEato *eato = new cEato( m_sprite_manager );
+	eato->Set_Pos( m_start_pos_x, m_start_pos_y );
 	eato->Set_Image_Dir( m_img_dir );
 	eato->Set_Direction( m_start_direction );
-
 	return eato;
 }
 
@@ -210,13 +210,13 @@ void cEato :: DownGrade( bool force /* = 0 */ )
 	if( !force )
 	{
 		// animation
-		cParticle_Emitter *anim = new cParticle_Emitter();
+		cParticle_Emitter *anim = new cParticle_Emitter( m_sprite_manager );
 		Generate_Hit_Animation( anim );
 
 		anim->Set_Scale( 0.8f );
 		anim->Set_Direction_Range( 0.0f, 360.0f );
 		// add animation
-		pAnimation_Manager->Add( anim );
+		pActive_Animation_Manager->Add( anim );
 	}
 	else
 	{
@@ -241,8 +241,8 @@ void cEato :: Update_Dying( void )
 		{
 			Move( 0.0f, -5.0f );
 		}
-		// if not below the screen fall
-		else if( m_pos_y < game_res_h + m_col_rect.m_h )
+		// if not below the ground : fall
+		else if( m_col_rect.m_y < pActive_Camera->m_limit_rect.m_y )
 		{
 			Move( 0.0f, 20.0f );
 		}
@@ -259,7 +259,7 @@ void cEato :: Update( void )
 {
 	cEnemy::Update();
 
-	if( !m_valid_update || !Is_In_Player_Range() )
+	if( !m_valid_update || !Is_In_Range() )
 	{
 		return;
 	}
@@ -306,23 +306,23 @@ Col_Valid_Type cEato :: Validate_Collision( cSprite *obj )
 void cEato :: Handle_Collision_Player( cObjectCollision *collision )
 {
 	// unknown direction
-	if( collision->direction == DIR_UNDEFINED )
+	if( collision->m_direction == DIR_UNDEFINED )
 	{
 		return;
 	}
 
 	// only if not invincible
-	if( pPlayer->invincible <= 0.0f )
+	if( pLevel_Player->m_invincible <= 0.0f )
 	{
 		// if player is big and not a bottom collision
-		if( pPlayer->maryo_type != MARYO_SMALL && ( collision->direction != DIR_BOTTOM ) )
+		if( pLevel_Player->m_maryo_type != MARYO_SMALL && ( collision->m_direction != DIR_BOTTOM ) )
 		{
 			// todo : create again
 			//pAudio->PlaySound( "player/maryo_au.ogg", RID_MARYO_AU );
-			pPlayer->Action_Jump( 1 );
+			pLevel_Player->Action_Jump( 1 );
 		}
 
-		pPlayer->DownGrade_Player();
+		pLevel_Player->DownGrade_Player();
 	}
 }
 

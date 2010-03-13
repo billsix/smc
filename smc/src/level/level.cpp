@@ -19,7 +19,7 @@
 #include "../gui/menu.h"
 #include "../user/preferences.h"
 #include "../audio/audio.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../objects/goldpiece.h"
 #include "../objects/level_exit.h"
 #include "../video/font.h"
@@ -54,6 +54,7 @@
 #include "../objects/path.h"
 #include "../core/filesystem/filesystem.h"
 #include "../core/filesystem/resource_manager.h"
+#include "../overworld/world_editor.h"
 // CEGUI
 #include "CEGUIXMLParser.h"
 
@@ -63,19 +64,19 @@ namespace SMC
 /* *** *** *** *** *** cLevel *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cLevel :: cLevel( void )
-: cFile_parser()
 {
 	// settings
 	Reset_Settings();
 
 	m_delayed_unload = 0;
 
-	m_background_manager = new cBackground_Manager();
-	m_global_effect = new cGlobal_effect();
 	m_sprite_manager = new cSprite_Manager();
+	m_background_manager = new cBackground_Manager();
+	m_global_effect = new cGlobal_effect( m_sprite_manager );
+	m_animation_manager = new cAnimation_Manager();
 
 	// add default gradient layer
-	cBackground *gradient_background = new cBackground();
+	cBackground *gradient_background = new cBackground( m_sprite_manager );
 	gradient_background->Set_Type( BG_GR_VER );
 	gradient_background->m_pos_z = 0.0001f;
 	m_background_manager->Add( gradient_background );
@@ -88,6 +89,7 @@ cLevel :: ~cLevel( void )
 	// delete
 	delete m_background_manager;
 	delete m_global_effect;
+	delete m_animation_manager;
 	delete m_sprite_manager;
 }
 
@@ -149,8 +151,6 @@ bool cLevel :: New( std::string filename )
 	{
 		// set filename
 		m_level_filename = filename;
-		data_file = Trim_Filename( filename, 0, 1 );
-
 		m_engine_version = level_engine_version;
 
 		return 1;
@@ -161,26 +161,18 @@ bool cLevel :: New( std::string filename )
 	return 0;
 }
 
-bool cLevel :: Load( std::string filename, bool delayed /* = 0 */ )
+bool cLevel :: Load( std::string filename )
 {
 	m_next_level_filename.clear();
 
-	if( !Get_Path( filename ) )
+	if( !pLevel_Manager->Get_Path( filename ) )
 	{
 		// show error without directory and file type
 		printf( "Couldn't load level : %s\n", Trim_Filename( filename, 0, 0 ).c_str() );
 		return 0;
 	}
 
-	if( delayed )
-	{
-		m_next_level_filename = filename;
-		return 1;
-	}
-
 	Unload();
-
-	m_level_filename = filename;
 
 	// new level format
 	if( filename.rfind( ".smclvl" ) != std::string::npos )
@@ -196,25 +188,25 @@ bool cLevel :: Load( std::string filename, bool delayed /* = 0 */ )
 			pHud_Debug->Set_Text( _("Loading Level failed : ") + (const std::string)ex.getMessage().c_str() );
 			return 0;
 		}
-
-		// set parser filename for compatibility
-		data_file = filename;
-
-		/* late initialization
-		 * needed to create links to other objects
-		*/
-		for( cSprite_List::iterator itr = m_sprite_manager->objects.begin(), itr_end = m_sprite_manager->objects.end(); itr != itr_end; ++itr )
-		{
-			cSprite *obj = (*itr);
-
-			obj->Init_Links();
-		}
 	}
-	// parse old level format
+	// old level format
 	else
 	{
-		Parse( filename );
+		pHud_Debug->Set_Text( _("Unsupported Level format : ") + (const std::string)filename.c_str() );
+		return 0;
 	}
+
+	/* late initialization
+	 * needed to create links to other objects
+	*/
+	for( cSprite_List::iterator itr = m_sprite_manager->objects.begin(); itr != m_sprite_manager->objects.end(); ++itr )
+	{
+		cSprite *obj = (*itr);
+
+		obj->Init_Links();
+	}
+
+	m_level_filename = filename;
 
 	// engine version entry not set
 	if( m_engine_version < 0 )
@@ -247,7 +239,7 @@ void cLevel :: Unload( bool delayed /* = 0 */ )
 	m_background_manager->Delete_All();
 
 	// add default gradient layer
-	cBackground *gradient_background = new cBackground();
+	cBackground *gradient_background = new cBackground( m_sprite_manager );
 	gradient_background->Set_Type( BG_GR_VER );
 	gradient_background->m_pos_z = 0.0001f;
 	m_background_manager->Add( gradient_background );
@@ -259,27 +251,12 @@ void cLevel :: Unload( bool delayed /* = 0 */ )
 	m_author.clear();
 	m_version.clear();
 
-	// reset camera limits
-	pLevel_Manager->camera->Reset_Limits();
-	pLevel_Manager->camera->fixed_hor_vel = 0.0f;
-
 	// clear global effect
 	m_global_effect->Clear();
-
-	// reset time display
-	if( pHud_Time )
-	{
-		pHud_Time->Reset();
-	}
-	// reset mouse
-	pMouseCursor->Reset( 0 );
-	// reset player
-	pPlayer->Reset( 0 );
 
 	// no version
 	m_engine_version = -1;
 
-	data_file.clear();
 	m_level_filename.clear();
 
 	Reset_Settings();
@@ -293,13 +270,6 @@ void cLevel :: Unload( bool delayed /* = 0 */ )
 void cLevel :: Save( void )
 {
 	pAudio->Play_Sound( "editor/save.ogg" );
-
-	// check if old filename ending
-	if( m_level_filename.rfind( ".txt" ) != std::string::npos )
-	{
-		m_level_filename.erase( m_level_filename.rfind( ".txt" ) );
-		m_level_filename.insert( m_level_filename.length(), ".smclvl" );
-	}
 
 	// use user level dir
 	if( m_level_filename.find( pResource_Manager->user_data_dir + USER_LEVEL_DIR + "/" ) == std::string::npos )
@@ -354,7 +324,7 @@ void cLevel :: Save( void )
 	file << "\t</settings>" << std::endl;
 
 	// backgrounds
-	for( vector<cBackground *>::iterator itr = m_background_manager->objects.begin(), itr_end = m_background_manager->objects.end(); itr != itr_end; ++itr )
+	for( vector<cBackground *>::iterator itr = m_background_manager->objects.begin(); itr != m_background_manager->objects.end(); ++itr )
 	{
 		(*itr)->Save_To_Stream( file );
 	}
@@ -365,15 +335,15 @@ void cLevel :: Save( void )
 	// begin player
 	file << "\t<player>" << std::endl;
 		// position
-		file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(pPlayer->m_start_pos_x) << "\" />" << std::endl;
-		file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(pPlayer->m_start_pos_y) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"posx\" value=\"" << static_cast<int>(pLevel_Player->m_start_pos_x) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"posy\" value=\"" << static_cast<int>(pLevel_Player->m_start_pos_y) << "\" />" << std::endl;
 		// direction
-		file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( pPlayer->m_start_direction ) << "\" />" << std::endl;
+		file << "\t\t<Property name=\"direction\" value=\"" << Get_Direction_Name( pLevel_Player->m_start_direction ) << "\" />" << std::endl;
 	// end player
 	file << "\t</player>" << std::endl;
 
 	// objects
-	for( cSprite_List::iterator itr = m_sprite_manager->objects.begin(), itr_end = m_sprite_manager->objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::iterator itr = m_sprite_manager->objects.begin(); itr != m_sprite_manager->objects.end(); ++itr )
 	{
 		cSprite *obj = (*itr);
 
@@ -391,7 +361,7 @@ void cLevel :: Save( void )
 	file << "</level>" << std::endl;
 	file.close();
 
-	pHud_Debug->Set_Text( _("Level ") + Trim_Filename( data_file, 0, 0 ) + _(" saved") );
+	pHud_Debug->Set_Text( _("Level ") + Trim_Filename( m_level_filename, 0, 0 ) + _(" saved") );
 }
 
 void cLevel :: Delete( void )
@@ -413,16 +383,16 @@ void cLevel :: Reset_Settings( void )
 	Set_Musicfile( DATA_DIR "/" GAME_MUSIC_DIR "/" LEVEL_DEFAULT_MUSIC );
 
 	// player
-	m_player_start_pos_x = cPlayer::m_default_pos_x;
-	m_player_start_pos_y = cPlayer::m_default_pos_y;
+	m_player_start_pos_x = cLevel_Player::m_default_pos_x;
+	m_player_start_pos_y = cLevel_Player::m_default_pos_y;
 	m_player_start_direction = DIR_RIGHT;
 
 	// camera
-	m_camera_limits = cCamera::default_limits;
+	m_camera_limits = cCamera::m_default_limits;
 	m_fixed_camera_hor_vel = 0.0f;
 }
 
-void cLevel :: Enter( void )
+void cLevel :: Init( void )
 {
 	// if not loaded
 	if( !Is_Loaded() )
@@ -430,27 +400,127 @@ void cLevel :: Enter( void )
 		return;
 	}
 
-	// camera
-	pLevel_Manager->camera->Set_Limits( m_camera_limits );
-	pLevel_Manager->camera->fixed_hor_vel = m_fixed_camera_hor_vel;
-
 	// player position
-	pPlayer->Set_Pos( m_player_start_pos_x, m_player_start_pos_y, 1 );
-	pPlayer->Reset_Position();
-
+	pLevel_Player->Set_Pos( m_player_start_pos_x, m_player_start_pos_y, 1 );
 	// player direction
-	pPlayer->Set_Direction( m_player_start_direction, 1 );
-
-	// camera position
-	pActive_Camera->Center();
+	pLevel_Player->Set_Direction( m_player_start_direction, 1 );
+	// player reset
+	pLevel_Player->Reset();
 
 	// init global effect
 	m_global_effect->Init_Anim();
+}
 
-	// play new music
+void cLevel :: Set_Sprite_Manager( void )
+{
+	pHud_Manager->Set_Sprite_Manager( m_sprite_manager );
+	pMouseCursor->Set_Sprite_Manager( m_sprite_manager );
+	pLevel_Editor->Set_Sprite_Manager( m_sprite_manager );
+	pLevel_Editor->Set_Level( this );
+	// camera
+	pLevel_Manager->m_camera->Set_Sprite_Manager( m_sprite_manager );
+	pLevel_Manager->m_camera->Set_Limits( m_camera_limits );
+	pLevel_Manager->m_camera->m_fixed_hor_vel = m_fixed_camera_hor_vel;
+
+	pLevel_Player->Set_Sprite_Manager( m_sprite_manager );
+}
+
+void cLevel :: Enter( const GameMode old_mode /* = MODE_NOTHING */ )
+{
+	// if not loaded
+	if( !Is_Loaded() )
+	{
+		return;
+	}
+
+	Set_Sprite_Manager();
+	// set active camera
+	pActive_Camera = pLevel_Manager->m_camera;
+	// set active player
+	pActive_Player = pLevel_Player;
+	// set animation manager
+	pActive_Animation_Manager = m_animation_manager;
+
+	// camera position
+	pLevel_Manager->m_camera->Center();
+
+	// play music
 	if( m_valid_music )
 	{
 		pAudio->Play_Music( m_musicfile, -1, 0, 1000 );
+	}
+	else if( pAudio->m_music_enabled )
+	{
+		printf( "Warning : Music file not found %s\n", pActive_Level->m_musicfile.c_str() );
+	}
+
+	// disable world editor
+	pWorld_Editor->Disable();
+
+	// set editor enabled state
+	editor_enabled = pLevel_Editor->m_enabled;
+
+	if( pLevel_Editor->m_enabled )
+	{
+		if( !pLevel_Editor->m_editor_window->isVisible() )
+		{
+			pLevel_Editor->m_editor_window->show();
+			pMouseCursor->Set_Active( 1 );
+		}
+	}
+	// enable editor
+	else if( Game_Mode_Type == MODE_TYPE_LEVEL_CUSTOM_EDITOR )
+	{
+		Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
+		pLevel_Editor->Enable();
+	}
+
+	// Update Hud Text and position
+	pHud_Manager->Update_Text();
+
+	// reset speedfactor
+	pFramerate->Reset();
+}
+
+void cLevel :: Leave( const GameMode next_mode /* = MODE_NOTHING */ )
+{
+	// if not in level mode
+	if( Game_Mode != MODE_LEVEL )
+	{
+		return;
+	}
+
+	// reset camera limits
+	pLevel_Manager->m_camera->Reset_Limits();
+	pLevel_Manager->m_camera->m_fixed_hor_vel = 0.0f;
+
+	// reset mouse
+	pMouseCursor->Reset( 0 );
+
+	// level to level
+	if( next_mode == MODE_LEVEL )
+	{
+		// fade out music
+		pAudio->Fadeout_Music( 500 );
+		return;
+	}
+
+	pJoystick->Reset_keys();
+
+	// hide editor window if visible
+	if( pLevel_Editor->m_enabled )
+	{
+		if( pLevel_Editor->m_editor_window->isVisible() )
+		{
+			pLevel_Editor->m_editor_window->hide();
+		}
+	}
+
+	// if new mode should play different music
+	if( next_mode != MODE_MENU && next_mode != MODE_LEVEL_SETTINGS )
+	{
+		// fade out music
+		pAudio->Fadeout_Music( 1000 );
 	}
 }
 
@@ -471,17 +541,15 @@ void cLevel :: Update( void )
 	if( !editor_level_enabled )
 	{
 		// backgrounds
-		for( vector<cBackground *>::iterator itr = m_background_manager->objects.begin(), itr_end = m_background_manager->objects.end(); itr != itr_end; ++itr )
+		for( vector<cBackground *>::iterator itr = m_background_manager->objects.begin(); itr != m_background_manager->objects.end(); ++itr )
 		{
 			(*itr)->Update();
 		}
 
 		// objects
 		m_sprite_manager->Update_Items();
-
 		// animations
-		pAnimation_Manager->Update();
-
+		m_animation_manager->Update();
 		// global effect
 		m_global_effect->Update();
 	}
@@ -502,7 +570,7 @@ void cLevel :: Draw_Layer_1( LevelDrawType type /* = LVL_DRAW */ )
 	// with background
 	if( type != LVL_DRAW_NO_BG )
 	{
-		for( vector<cBackground *>::iterator itr = m_background_manager->objects.begin(), itr_end = m_background_manager->objects.end(); itr != itr_end; ++itr )
+		for( vector<cBackground *>::iterator itr = m_background_manager->objects.begin(); itr != m_background_manager->objects.end(); ++itr )
 		{
 			(*itr)->Draw();
 		}
@@ -517,7 +585,7 @@ void cLevel :: Draw_Layer_1( LevelDrawType type /* = LVL_DRAW */ )
 	// Objects
 	m_sprite_manager->Draw_Items();
 	// Animations
-	pAnimation_Manager->Draw();
+	m_animation_manager->Draw();
 }
 
 void cLevel :: Draw_Layer_2( LevelDrawType type /* = LVL_DRAW */ )
@@ -535,7 +603,7 @@ void cLevel :: Draw_Layer_2( LevelDrawType type /* = LVL_DRAW */ )
 	}
 
 	// ghost
-	if( pPlayer->maryo_type == MARYO_GHOST )
+	if( pLevel_Player->m_maryo_type == MARYO_GHOST )
 	{
 		// create request
 		cRect_Request *request = new cRect_Request();
@@ -543,14 +611,14 @@ void cLevel :: Draw_Layer_2( LevelDrawType type /* = LVL_DRAW */ )
 		Color color = Color( 0.5f, 0.5f, 0.5f, 0.3f );
 
 		// fade alpha in
-		if( pPlayer->ghost_time > 220 )
+		if( pLevel_Player->m_ghost_time > 220 )
 		{
-			color.alpha = static_cast<Uint8>(color.alpha * ( ( -pPlayer->ghost_time + 320 ) * 0.01f ));
+			color.alpha = static_cast<Uint8>(color.alpha * ( ( -pLevel_Player->m_ghost_time + 320 ) * 0.01f ));
 		}
 		// fade alpha out
-		else if( pPlayer->ghost_time < 100 )
+		else if( pLevel_Player->m_ghost_time < 100 )
 		{
-			color.alpha = static_cast<Uint8>(color.alpha * ( pPlayer->ghost_time * 0.01f ));
+			color.alpha = static_cast<Uint8>(color.alpha * ( pLevel_Player->m_ghost_time * 0.01f ));
 		}
 
 		pVideo->Draw_Rect( 0, 0, static_cast<float>(game_res_w), static_cast<float>(game_res_h), 0.12f, &color, request );
@@ -560,7 +628,6 @@ void cLevel :: Draw_Layer_2( LevelDrawType type /* = LVL_DRAW */ )
 		request->combine_col[0] = 0.9f;
 		request->combine_col[1] = 0.6f;
 		request->combine_col[2] = 0.8f;
-
 
 		// add request
 		pRenderer->Add( request );
@@ -581,17 +648,17 @@ bool cLevel :: Key_Down( const SDLKey key )
 	// debug key F2
 	if( key == SDLK_F2 && game_debug && !editor_level_enabled )
 	{
-		pPlayer->Set_Type( MARYO_CAPE, 0 );
+		pLevel_Player->Set_Type( MARYO_CAPE, 0 );
 	}
 	// debug key F3
 	else if( key == SDLK_F3 && !editor_level_enabled )
 	{
-		//pPlayer->GotoNextLevel();
+		//pLevel_Player->GotoNextLevel();
 		//DrawEffect( HORIZONTAL_VERTICAL_FADE );
-		//pPlayer->Draw_Animation( MARYO_FIRE );
+		//pLevel_Player->Draw_Animation( MARYO_FIRE );
 
-		cParticle_Emitter *anim = new cParticle_Emitter();
-		anim->Set_Emitter_Rect( pPlayer->m_pos_x + static_cast<float>( pPlayer->m_col_rect.m_w / 2 ), pPlayer->m_pos_y - 100, 10, 10 );
+		cParticle_Emitter *anim = new cParticle_Emitter( m_sprite_manager );
+		anim->Set_Emitter_Rect( pLevel_Player->m_pos_x + static_cast<float>( pLevel_Player->m_col_rect.m_w / 2 ), pLevel_Player->m_pos_y - 100, 10, 10 );
 		anim->Set_Emitter_Time_to_Live( -1 );
 		anim->Set_Emitter_Iteration_Interval( 5 );
 		anim->Set_Quota( 200 );
@@ -601,13 +668,13 @@ bool cLevel :: Key_Down( const SDLKey key )
 		anim->Set_Speed( 1, 4 );
 		anim->Set_Scale( 0.5f );
 		anim->Set_Const_Rotation_Z( -5, 10 );
-		pAnimation_Manager->Add( anim );
+		m_animation_manager->Add( anim );
 	}
 	// debug key F4
 	else if( key == SDLK_F4 )
 	{
 		Draw_Effect_Out( EFFECT_OUT_FIXED_COLORBOX );
-		//pPlayer->Get_Item( TYPE_MUSHROOM_DEFAULT );
+		//pLevel_Player->Get_Item( TYPE_MUSHROOM_DEFAULT );
 
 		/*if( m_global_effect->type != GL_EFF_FALLING )
 		{
@@ -631,47 +698,47 @@ bool cLevel :: Key_Down( const SDLKey key )
 	// Shoot
 	else if( key == pPreferences->m_key_shoot && !editor_enabled )
 	{
-		pPlayer->Action_Shoot();
+		pLevel_Player->Action_Shoot();
 	}
 	// Jump
 	else if( key == pPreferences->m_key_jump && !editor_enabled )
 	{
-		pPlayer->Action_Jump();
+		pLevel_Player->Action_Jump();
 	}
 	// Action
 	else if( key == pPreferences->m_key_action && !editor_enabled )
 	{
-		pPlayer->Action_Interact( INP_ACTION );
+		pLevel_Player->Action_Interact( INP_ACTION );
 	}
 	// Up
 	else if( key == pPreferences->m_key_up && !editor_enabled )
 	{
-		pPlayer->Action_Interact( INP_UP );
+		pLevel_Player->Action_Interact( INP_UP );
 	}
 	// Down
 	else if( key == pPreferences->m_key_down && !editor_enabled )
 	{
-		pPlayer->Action_Interact( INP_DOWN );
+		pLevel_Player->Action_Interact( INP_DOWN );
 	}
 	// Left
 	else if( key == pPreferences->m_key_left && !editor_enabled )
 	{
-		pPlayer->Action_Interact( INP_LEFT );
+		pLevel_Player->Action_Interact( INP_LEFT );
 	}
 	// Right
 	else if( key == pPreferences->m_key_right && !editor_enabled )
 	{
-		pPlayer->Action_Interact( INP_RIGHT );
+		pLevel_Player->Action_Interact( INP_RIGHT );
 	}
 	// Request Item
-	else if( key == SDLK_RETURN && !editor_enabled )
+	else if( key == pPreferences->m_key_item && !editor_enabled )
 	{
-		pPlayer->Action_Interact( INP_ITEM );
+		pLevel_Player->Action_Interact( INP_ITEM );
 	}
 	// God Mode
-	else if( pKeyboard->keys[SDLK_g] && pKeyboard->keys[SDLK_o] && pKeyboard->keys[SDLK_d] && !editor_enabled )
+	else if( pKeyboard->m_keys[SDLK_g] && pKeyboard->m_keys[SDLK_o] && pKeyboard->m_keys[SDLK_d] && !editor_enabled )
 	{
-		if( pPlayer->godmode )
+		if( pLevel_Player->m_god_mode )
 		{
 			pHud_Debug->Set_Text( "Funky God Mode disabled" );
 		}
@@ -680,17 +747,17 @@ bool cLevel :: Key_Down( const SDLKey key )
 			pHud_Debug->Set_Text( "Funky God Mode enabled" );
 		}
 
-		pPlayer->godmode = !pPlayer->godmode;
+		pLevel_Player->m_god_mode = !pLevel_Player->m_god_mode;
 	}
 	// Set Small state
-	else if( pKeyboard->keys[SDLK_k] && pKeyboard->keys[SDLK_i] && pKeyboard->keys[SDLK_d] && !editor_enabled )
+	else if( pKeyboard->m_keys[SDLK_k] && pKeyboard->m_keys[SDLK_i] && pKeyboard->m_keys[SDLK_d] && !editor_enabled )
 	{
-		pPlayer->Set_Type( MARYO_SMALL, 0 );
+		pLevel_Player->Set_Type( MARYO_SMALL, 0 );
 	}
 	// Exit
 	else if( key == SDLK_ESCAPE )
 	{
-		pPlayer->Action_Interact( INP_EXIT );
+		pLevel_Player->Action_Interact( INP_EXIT );
 	}
 	// ## editor
 	else if( pLevel_Editor->Key_Down( key ) )
@@ -719,34 +786,33 @@ bool cLevel :: Key_Up( const SDLKey key )
 	// Interaction keys
 	if( key == pPreferences->m_key_right )
 	{
-		pPlayer->Action_Stop_Interact( INP_RIGHT );
+		pLevel_Player->Action_Stop_Interact( INP_RIGHT );
 	}
 	else if( key == pPreferences->m_key_left )
 	{
-		pPlayer->Action_Stop_Interact( INP_LEFT );
+		pLevel_Player->Action_Stop_Interact( INP_LEFT );
 	}
 	else if( key == pPreferences->m_key_down )
 	{
-		pPlayer->Action_Stop_Interact( INP_DOWN );
+		pLevel_Player->Action_Stop_Interact( INP_DOWN );
 	}
 	else if( key == pPreferences->m_key_jump )
 	{
-		pPlayer->Action_Stop_Interact( INP_JUMP );
+		pLevel_Player->Action_Stop_Interact( INP_JUMP );
 	}
 	else if( key == pPreferences->m_key_shoot )
 	{
-		pPlayer->Action_Stop_Interact( INP_SHOOT );
+		pLevel_Player->Action_Stop_Interact( INP_SHOOT );
 	}
 	else if( key == pPreferences->m_key_action )
 	{
-		pPlayer->Action_Stop_Interact( INP_ACTION );
+		pLevel_Player->Action_Stop_Interact( INP_ACTION );
 	}
 	else
 	{
 		// not processed
 		return 0;
 	}
-
 
 	// key got processed
 	return 1;
@@ -793,27 +859,27 @@ bool cLevel :: Joy_Button_Down( Uint8 button )
 	// Shoot
 	if( button == pPreferences->m_joy_button_shoot && !editor_enabled )
 	{
-		pPlayer->Action_Interact( INP_SHOOT );
+		pLevel_Player->Action_Interact( INP_SHOOT );
 	}
 	// Jump
 	else if( button == pPreferences->m_joy_button_jump && !editor_enabled )
 	{
-		pPlayer->Action_Interact( INP_JUMP );
+		pLevel_Player->Action_Interact( INP_JUMP );
 	}
 	// Interaction keys
 	else if( button == pPreferences->m_joy_button_action && !editor_enabled )
 	{
-		pPlayer->Action_Interact( INP_ACTION );
+		pLevel_Player->Action_Interact( INP_ACTION );
 	}
 	// Request Itembox Item
 	else if( button == pPreferences->m_joy_button_item && !editor_enabled )
 	{
-		pPlayer->Action_Interact( INP_ITEM );
+		pLevel_Player->Action_Interact( INP_ITEM );
 	}
 	// Enter menu
 	else if( button == pPreferences->m_joy_button_exit )
 	{
-		pPlayer->Action_Interact( INP_EXIT );
+		pLevel_Player->Action_Interact( INP_EXIT );
 	}
 	else
 	{
@@ -835,22 +901,21 @@ bool cLevel :: Joy_Button_Up( Uint8 button )
 
 	if( button == pPreferences->m_joy_button_jump )
 	{
-		pPlayer->Action_Stop_Interact( INP_JUMP );
+		pLevel_Player->Action_Stop_Interact( INP_JUMP );
 	}
 	else if( button == pPreferences->m_joy_button_shoot )
 	{
-		pPlayer->Action_Stop_Interact( INP_SHOOT );
+		pLevel_Player->Action_Stop_Interact( INP_SHOOT );
 	}
 	else if( button == pPreferences->m_joy_button_action )
 	{
-		pPlayer->Action_Stop_Interact( INP_ACTION );
+		pLevel_Player->Action_Stop_Interact( INP_ACTION );
 	}
 	else
 	{
 		// not processed
 		return 0;
 	}
-
 
 	// key got processed
 	return 1;
@@ -938,7 +1003,6 @@ void cLevel :: Set_Levelfile( std::string filename, bool delete_old /* = 1 */ )
 	}
 
 	m_level_filename = filename;
-	data_file = filename;
 
 	// add level dir
 	if( m_level_filename.find( pResource_Manager->user_data_dir + USER_LEVEL_DIR + "/" ) == std::string::npos )
@@ -948,70 +1012,6 @@ void cLevel :: Set_Levelfile( std::string filename, bool delete_old /* = 1 */ )
 
 	// save with new filename
 	Save();
-}
-
-bool cLevel :: Get_Path( std::string &filename, bool check_only_user_dir /* = 0 */ ) const
-{
-	filename = Trim_Filename( filename, 0, 0 );
-
-	// user level directory as default
-	filename.insert( 0, pResource_Manager->user_data_dir + USER_LEVEL_DIR + "/" );
-	// use new file type as default
-	filename.insert( filename.length(), ".smclvl" );
-
-	if( File_Exists( filename ) )
-	{
-		// found
-		return 1;
-	}
-
-	// use old file type
-	filename.erase( filename.rfind( "." ) );
-	filename.insert( filename.length(), ".txt" );
-
-	if( File_Exists( filename ) )
-	{
-		// found
-		return 1;
-	}
-
-	if( !check_only_user_dir )
-	{
-		// use new file type
-		filename.erase( filename.rfind( "." ) );
-		filename.insert( filename.length(), ".smclvl" );
-
-		// erase user level directory
-		filename.erase( 0, pResource_Manager->user_data_dir.length() + strlen( USER_LEVEL_DIR "/" ) );
-
-		// game level directory
-		if( filename.find( DATA_DIR "/" GAME_LEVEL_DIR "/" ) == std::string::npos )
-		{
-			filename.insert( 0, DATA_DIR "/" GAME_LEVEL_DIR "/" );
-		}
-
-		if( File_Exists( filename ) )
-		{
-			// found
-			return 1;
-		}
-
-		// use old file type
-		filename.erase( filename.rfind( "." ) );
-		filename.insert( filename.length(), ".txt" );
-
-		if( File_Exists( filename ) )
-		{
-			// found
-			return 1;
-		}
-	}
-
-	// erase file type and directory
-	filename = Trim_Filename( filename, 0, 0 );
-
-	// not found
-	return 0;
 }
 
 void cLevel :: Set_Author( const std::string &name )
@@ -1032,7 +1032,7 @@ cLevel_Entry *cLevel :: Get_Entry( const std::string &name )
 	}
 
 	// Search for entry
-	for( cSprite_List::iterator itr = m_sprite_manager->objects.begin(), itr_end = m_sprite_manager->objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::iterator itr = m_sprite_manager->objects.begin(); itr != m_sprite_manager->objects.end(); ++itr )
 	{
 		cSprite *obj = (*itr);
 
@@ -1044,38 +1044,9 @@ cLevel_Entry *cLevel :: Get_Entry( const std::string &name )
 		cLevel_Entry *level_entry = static_cast<cLevel_Entry *>(obj);
 
 		// found
-		if( level_entry->entry_name.compare( name ) == 0 )
+		if( level_entry->m_entry_name.compare( name ) == 0 )
 		{
 			return level_entry;
-		}
-	}
-
-	return NULL;
-}
-
-cPath *cLevel :: Get_Path_Object( const std::string &identifier )
-{
-	if( identifier.empty() )
-	{
-		return NULL;
-	}
-
-	// Search for path
-	for( cSprite_List::iterator itr = m_sprite_manager->objects.begin(), itr_end = m_sprite_manager->objects.end(); itr != itr_end; ++itr )
-	{
-		cSprite *obj = (*itr);
-
-		if( obj->m_type != TYPE_PATH || obj->m_auto_destroy )
-		{
-			continue;
-		}
-
-		cPath *path = static_cast<cPath *>(obj);
-
-		// found
-		if( path->m_identifier.compare( identifier ) == 0 )
-		{
-			return path;
 		}
 	}
 
@@ -1091,1206 +1062,6 @@ bool cLevel :: Is_Loaded( void ) const
 	}
 
 	return 0;
-}
-
-bool cLevel :: HandleMessage( const std::string *parts, unsigned int count, unsigned int line )
-{
-	if( parts[0].compare( "Player" ) == 0 )
-	{
-		if( count != 3 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Error : %s %s\n", parts[0].c_str(), "needs 3 parameters" );
-			return 0; // error
-		}
-
-		if( !Is_Valid_Number( parts[1] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[1].c_str() );
-			return 0; // error
-		}
-		if( !Is_Valid_Number( parts[2] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[2].c_str() );
-			return 0; // error
-		}
-
-		m_player_start_pos_x = static_cast<float>(string_to_int( parts[1] ));
-		m_player_start_pos_y = static_cast<float>(game_res_h) - static_cast<float>( string_to_int( parts[2] ) );
-	}
-	else if( parts[0].compare( "author" ) == 0 )
-	{
-		if( count != 2 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
-			return 0; // error
-		}
-
-		m_author = parts[1];
-	}
-	else if( parts[0].compare( "version" ) == 0 )
-	{
-		if( count != 2 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
-			return 0; // error
-		}
-
-		m_version = parts[1];
-	}
-	/***************************************************************************/
-	else if( parts[0].compare( "Music" ) == 0 )
-	{
-		if( count != 2 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
-			return 0; // error
-		}
-
-		if( parts[1].length() < 3 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "No valid Music file\n" );
-			return 0;  // error
-		}
-
-		Set_Musicfile( parts[1] );
-	}
-	/***************************************************************************/
-	else if( parts[0].compare( "Mod_Camera" ) == 0 )
-	{
-		// ignore
-	}
-	/***************************************************************************/
-	// compatibility with old levels
-	else if( parts[0].compare( "Background_Color" ) == 0 )
-	{
-		Color color;
-
-		if( Read_Color_Data( parts, count, line, color ) == 0 )
-		{
-			return 0;
-		}
-
-		m_background_manager->Get_Pointer(0)->Set_Color_1( color );
-		m_background_manager->Get_Pointer(0)->Set_Color_2( color );
-	}
-	// top background color
-	else if( parts[0].compare( "Background_color_1" ) == 0 )
-	{
-		Color color;
-
-		if( !Read_Color_Data( parts, count, line, color ) )
-		{
-			return 0;
-		}
-
-		m_background_manager->Get_Pointer(0)->Set_Color_1( color );
-	}
-	// bottom background color
-	else if( parts[0].compare( "Background_color_2" ) == 0 )
-	{
-		Color color;
-
-		if( !Read_Color_Data( parts, count, line, color ) )
-		{
-			return 0;
-		}
-
-		m_background_manager->Get_Pointer(0)->Set_Color_2( color );
-	}
-	/***************************************************************************/
-	else if( parts[0].find( "Background_image" ) == 0 && parts[0].length() <= 18 )
-	{
-		if( count < 2 || count > 6 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s %s\n", parts[0].c_str(), "needs 2-6 parameters" );
-			return 0; // error
-		}
-
-		if( parts[1].length() < 3 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Not a valid %s file\n", parts[0].c_str() );
-			return 0;  // error
-		}
-
-		std::string filename;
-
-		filename.reserve( parts[1].length() + 50 );
-		filename = parts[1];
-
-		if( filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == std::string::npos )
-		{
-			filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
-		}
-
-		if( !File_Exists( filename ) )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s file not found : %s\n", parts[0].c_str(), filename.c_str() );
-
-			return 0; // error
-		}
-
-		cBackground *background = new cBackground();
-		background->Set_Image( parts[1] );
-
-		// type is given
-		if( count > 2 )
-		{
-			unsigned int bg_type = string_to_int( parts[2] );
-
-			if( bg_type > 200 )
-			{
-				printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "Not a valid Background image type ( %d )\n", bg_type );
-				delete background;
-				return 0;  // error
-			}
-
-			background->Set_Type( static_cast<BackgroundType>(bg_type) );
-		}
-		// default type
-		else
-		{
-			background->Set_Type( BG_IMG_BOTTOM );
-		}
-
-		// x speed is given
-		if( count > 3 )
-		{
-			float speedx = string_to_float( parts[3] );
-			float speedy = 1;
-
-			// y speed is given
-			if( count > 4 )
-			{
-				speedy = string_to_float( parts[3] );
-			}
-
-			// set speed
-			background->Set_Scroll_Speed( speedx, speedy );
-		}
-
-		// z position is given
-		if( count > 5 )
-		{
-			background->Set_Pos_Z( string_to_float( parts[4] ) );
-		}
-
-		m_background_manager->Add( background );
-	}
-	/***************************************************************************/
-	else if( parts[0].find( "Background_image_type" ) == 0 )
-	{
-		// ignore
-	}
-	/***************************************************************************/
-	else if( parts[0].compare( "camera_limits" ) == 0 )
-	{
-		if( count < 5 || count > 5 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Error : %s %s\n", parts[0].c_str(), "needs 5 parameters" );
-			return 0; // error
-		}
-
-		m_camera_limits = GL_rect( (float)string_to_int( parts[1] ), (float)string_to_int( parts[2] ), (float)string_to_int( parts[3] ), (float)string_to_int( parts[4] ) );
-	}
-	/***************************************************************************/
-	else if( parts[0].find( "global_effect" ) == 0 || parts[0].find( "ge_base" ) == 0 )
-	{
-		if( count < 3 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s %s\n", parts[0].c_str(), "needs 3 parameters" );
-			return 0; // error
-		}
-
-		if( parts[2].length() < 3 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Not a valid %s file\n", parts[0].c_str() );
-			return 0;  // error
-		}
-
-		if( !Is_Valid_Number( parts[1] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[1].c_str() );
-			return 0; // error
-		}
-
-		std::string filename;
-
-		filename.reserve( parts[2].length() + 50 );
-		filename = parts[2];
-
-		if( filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == std::string::npos )
-		{
-			filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
-		}
-
-		if( !File_Exists( filename ) )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s file not found : %s\n", parts[0].c_str(), filename.c_str() );
-
-			return 0; // error
-		}
-
-		// remove pixmaps dir
-		if( filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == 0 )
-		{
-			filename.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
-		}
-
-		int effect_type = string_to_int( parts[1] );
-
-		m_global_effect->Set_Type( (GlobalEffectType)effect_type );
-		m_global_effect->Set_Image( filename );
-	}
-	/***************************************************************************/
-	else if( parts[0].find( "ge_rect" ) == 0 )
-	{
-		m_global_effect->Set_Emitter_Rect( GL_rect( string_to_float( parts[1] ), string_to_float( parts[2] ), string_to_float( parts[3] ), string_to_float( parts[4] ) ) );
-	}
-	else if( parts[0].find( "ge_lifetime_mod" ) == 0 )
-	{
-		m_global_effect->Set_Time_to_Live( string_to_float( parts[1] ) * 0.3f );
-	}
-	else if( parts[0].find( "ge_creation_speed" ) == 0 )
-	{
-		m_global_effect->Set_Emitter_Iteration_Interval( ( 1 / string_to_float( parts[1] ) ) * 0.032f );
-	}
-	else if( parts[0].find( "ge_scale" ) == 0 )
-	{
-		m_global_effect->Set_Scale( string_to_float( parts[1] ), string_to_float( parts[2] ) );
-	}
-	else if( parts[0].find( "ge_speed" ) == 0 )
-	{
-		m_global_effect->Set_Speed( string_to_float( parts[1] ), string_to_float( parts[2] ) );
-	}
-	else if( parts[0].find( "ge_dir_range" ) == 0 )
-	{
-		m_global_effect->Set_Direction( string_to_float( parts[1] ), string_to_float( parts[2] ) );
-	}
-	else if( parts[0].find( "ge_const_rotz" ) == 0 )
-	{
-		m_global_effect->Set_Const_Rotation_Z( string_to_float( parts[1] ), string_to_float( parts[2] ) );
-	}
-	/***************************************************************************/
-	else if( parts[0].compare( "Levelengine_version" ) == 0 )
-	{
-		if( count != 2 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Error : %s %s\n", parts[0].c_str(), "needs 2 parameters" );
-			return 0; // error
-		}
-
-		if( !Is_Valid_Number( parts[1] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[1].c_str() );
-			return 0; // error
-		}
-
-		// multiply with 10 as the format changed from float back to integer in 1.8
-		m_engine_version = string_to_int( parts[1] ) * 10;
-	}
-	/***************************************************************************/
-	else if( parts[0].compare( "Sprite" ) == 0 || parts[0].compare( "ClimbSprite" ) == 0 )
-	{
-		if( count != 5 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Error : %s %s\n", parts[0].c_str(), "needs 5 parameters" );
-			return 0; // error
-		}
-
-		// check if the image file exists
-		std::string filename = parts[1];
-
-		while( filename.find( "/" ) == 0 )
-		{
-			filename.erase( 0, 1 );
-		}
-
-		if( filename.find( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) == std::string::npos )
-		{
-			filename.insert( 0, DATA_DIR "/" GAME_PIXMAPS_DIR "/" );
-		}
-
-		std::string settings_file = filename;
-		settings_file.erase( settings_file.rfind( "." ) + 1 );
-		settings_file.insert( settings_file.rfind( "." ) + 1, "settings" );
-
-		if( !File_Exists( filename ) && !File_Exists( settings_file ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "file not found : %s\n", parts[1].c_str() );
-			return 0; // error
-		}
-
-		if( !Is_Valid_Number( parts[2] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[2].c_str() );
-			return 0; // error
-		}
-		if( !Is_Valid_Number( parts[3] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[3].c_str() );
-			return 0; // error
-		}
-		if( !parts[4].compare( "MASSIVE" ) == 0 && !parts[4].compare( "PASSIVE" ) == 0 && !parts[4].compare( "FRONT_PASSIVE" ) == 0 && !parts[4].compare( "HALFMASSIVE" ) == 0 )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "parameter five has to be MASSIVE, PASSIVE, or HALFMASSIVE\n" );
-			return 0; // error
-		}
-
-		std::string getimage_path = filename;
-		getimage_path.erase( 0, strlen( DATA_DIR "/" GAME_PIXMAPS_DIR "/" ) );
-
-		cGL_Surface *surface = pVideo->Get_Surface( getimage_path );
-		int posx = string_to_int( parts[2] );
-		int posy = game_res_h - string_to_int( parts[3] );
-
-		// if image is obsolete show a warning
-		if( surface->m_obsolete )
-		{
-			printf( "%s : line %d Warning :\n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "using obsolete image : %s\nAt position x : %d, y : %d\n", getimage_path.c_str(), posx, posy );
-		}
-
-		cSprite *temp = new cSprite( surface, static_cast<float>(posx), static_cast<float>(posy) );
-
-		if( parts[4].compare( "MASSIVE" ) == 0 )
-		{
-			temp->Set_Sprite_Type( TYPE_MASSIVE );
-		}
-		else if( parts[4].compare( "PASSIVE" ) == 0 )
-		{
-			temp->Set_Sprite_Type( TYPE_PASSIVE );
-		}
-		else if( parts[4].compare( "FRONT_PASSIVE" ) == 0 )
-		{
-			temp->Set_Sprite_Type( TYPE_FRONT_PASSIVE );
-		}
-		else if( parts[4].compare( "HALFMASSIVE" ) == 0 )
-		{
-			// Climbable
-			if( parts[0].compare( "ClimbSprite" ) == 0 )
-			{
-				temp->Set_Sprite_Type( TYPE_CLIMBABLE );
-			}
-			// Halfmassive
-			else
-			{
-				temp->Set_Sprite_Type( TYPE_HALFMASSIVE );
-			}
-		}
-
-		m_sprite_manager->Add( temp );
-	}
-	/***************************************************************************/
-	else if( parts[0].compare( "Enemy" ) == 0 )
-	{
-		if( count < 3 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Error : %s %s\n", parts[0].c_str(), "needs more than 2 parameters" );
-			return 0; // error
-		}
-
-		if( !Is_Valid_Number( parts[2] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[2].c_str() );
-			return 0; // error
-		}
-		if( !Is_Valid_Number( parts[3] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[3].c_str() );
-			return 0; // error
-		}
-
-		// Goomba changed to Gumba and since 1.5 changed to Furball
-		if( parts[1].compare( "GOOMBA" ) == 0 )
-		{
-			/* 3 and 4 is a very old description
-			 * 5 is lower than V.0.98
-			*/
-			if( !( count == 3 || count == 4 || count == 5 || count == 6 ) )
-			{
-				printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "Error : %s %s\n", parts[1].c_str(), "needs 5 parameters" );
-				return 0; // error
-			}
-
-			if( count >= 5 ) // color support
-			{
-				cFurball *temp = NULL;
-				DefaultColor color = static_cast<DefaultColor>(string_to_int( parts[4] ));
-
-				// correct old color types
-				if( count == 5 )
-				{
-					// Blue
-					if( color == 1 )
-					{
-						color = COL_BLUE;
-					}
-					// Brown
-					else
-					{
-						color = COL_BROWN;
-					}
-				}
-
-				temp = new cFurball( (float)string_to_int( parts[2] ), (float)( game_res_h - string_to_int( parts[3] ) ) );
-				temp->Set_Color( color );
-
-				// direction support
-				if( count >= 6 )
-				{
-					if( !Is_Valid_Number( parts[5] ) )
-					{
-						printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-						printf( "%s is not a valid integer value\n", parts[5].c_str() );
-						delete temp;
-						return 0; // error
-					}
-
-					ObjectDirection direction = DIR_RIGHT;
-					direction = (ObjectDirection)string_to_int( parts[5] );
-
-					if( direction == DIR_LEFT || direction == DIR_RIGHT )
-					{
-						temp->Set_Direction( direction );
-					}
-				}
-
-				m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
-			}
-			// support for old levels ( lower than V.0.8 )
-			else
-			{
-				cFurball *temp = new cFurball( (float)string_to_int( parts[2] ), (float)( game_res_h - string_to_int( parts[3] ) ) );
-				m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
-			}
-		}
-		// Turtle
-		// RTURTLE for old level support
-		else if( parts[1].compare( "RTURTLE" ) == 0 || parts[1].compare( "TURTLE" ) == 0 )
-		{
-			if( count < 4 || count > 5 )
-			{
-				printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "Error : %s %s\n", parts[1].c_str(), "needs 4-5 parameters" );
-				return 0; // error
-			}
-
-			ObjectDirection direction = DIR_RIGHT;
-
-			// with direction
-			if( count > 4 )
-			{
-				direction = (ObjectDirection)string_to_int( parts[4] );
-			}
-
-			cTurtle *temp = new cTurtle( (float)string_to_int( parts[2] ), (float)( game_res_h - string_to_int( parts[3] ) ) );
-			temp->Set_Direction( direction );
-			m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
-		}
-		// Jumping Piranha and since 1.8 changed to Flyon
-		else if( parts[1].compare( "JPIRANHA" ) == 0 )
-		{
-			if( count < 4 || count > 7 )
-			{
-				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "Error : %s %s\n", parts[1].c_str(), "needs 4-7 parameters" );
-				return 0; // error
-			}
-
-			ObjectDirection direction = DIR_UP;
-			float max_distance = 200;
-			float speed = 5.8f;
-
-			// with direction and max_distance
-			if( count > 5 )
-			{
-				if( !Is_Valid_Number( parts[4] ) )
-				{
-					printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-					printf( "%s is not a valid integer value\n", parts[4].c_str() );
-					return 0; // error
-				}
-
-				if( !Is_Valid_Number( parts[5] ) )
-				{
-					printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-					printf( "%s is not a valid integer value\n", parts[5].c_str() );
-					return 0; // error
-				}
-
-				direction = (ObjectDirection)string_to_int( parts[4] );
-				max_distance = (float)string_to_int( parts[5] );
-
-				// fix wrong values
-				if( max_distance <= 0 )
-				{
-					max_distance = 200;
-				}
-			}
-
-			// with speed
-			if( count > 6 )
-			{
-				speed = string_to_float( parts[6] );
-			}
-
-			cFlyon *temp = new cFlyon( (float)string_to_int( parts[2] ), (float)( game_res_h - string_to_int( parts[3] ) ) );
-			temp->Set_Direction( direction );
-			temp->Set_Max_Distance( max_distance );
-			temp->Set_Speed( speed );
-			m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
-		}
-		// Rokko
-		// BANZAI_BILL was the old name
-		else if( parts[1].compare( "ROKKO" ) == 0 || parts[1].compare( "BANZAI_BILL" ) == 0 )
-		{
-			if( count < 5 || count > 6 )
-			{
-				printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "Line %d, error : %s %s\n", line, parts[1].c_str(), "needs 5-6 parameters" );
-				return 0; // error
-			}
-
-			float speed = 8.5f;
-
-			// with speed
-			if( count > 5 )
-			{
-				speed = string_to_float( parts[5] );
-			}
-
-			cRokko *temp = new cRokko( (float)string_to_int( parts[2] ), (float)( game_res_h - string_to_int( parts[3] ) ) );
-			temp->Set_Direction( (ObjectDirection)string_to_int( parts[4] ) );
-			temp->Set_Speed( speed );
-			m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
-		}
-		// Rex and since 1.5 changed to Krush
-		else if( parts[1].compare( "REX" ) == 0 )
-		{
-			if( count < 4 || count > 5 )
-			{
-				printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "Line %d, error : %s %s\n", line, parts[1].c_str(), "needs 4-5 parameters" );
-				return 0; // error
-			}
-
-			ObjectDirection direction = DIR_RIGHT;
-
-			// with direction
-			if( count > 4 )
-			{
-				direction = (ObjectDirection)string_to_int( parts[4] );
-			}
-
-			cKrush *temp = new cKrush( (float)string_to_int( parts[2] ), (float)( game_res_h - string_to_int( parts[3] ) ) );
-			temp->Set_Direction( direction );
-			m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
-		}
-		// Thromp
-		// Thwomp was the old name
-		else if( parts[1].compare( "THROMP" ) == 0 || parts[1].compare( "THWOMP" ) == 0 )
-		{
-			if( count < 6 || count > 7 )
-			{
-				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "Error : %s %s\n", parts[1].c_str(), "needs 6-7 parameters" );
-				return 0; // error
-			}
-
-			if( !Is_Valid_Number( parts[4] ) )
-			{
-				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "%s is not a valid integer value\n", parts[4].c_str() );
-				return 0; // error
-			}
-
-			if( !Is_Valid_Number( parts[5] ) )
-			{
-				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "%s is not a valid integer value\n", parts[5].c_str() );
-				return 0; // error
-			}
-
-			ObjectDirection direction = (ObjectDirection)string_to_int( parts[4] );
-			int max_distance = string_to_int( parts[5] );
-			float speed = 7;
-
-			// fix wrong values
-			if( max_distance <= 0 )
-			{
-				max_distance = 200;
-			}
-
-			// with speed
-			if( count > 6 )
-			{
-				speed = string_to_float( parts[6] );
-			}
-
-			cThromp *temp = new cThromp( (float)string_to_int( parts[2] ), (float)( game_res_h - string_to_int( parts[3] ) ) );
-			temp->Set_Direction( direction );
-			temp->Set_Max_Distance( static_cast<float>(max_distance) );
-			temp->Set_Speed( speed );
-
-			m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
-		}
-		// Eato
-		else if( parts[1].compare( "EATO" ) == 0 )
-		{
-			if( count != 5 )
-			{
-				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "Error : %s %s\n", parts[1].c_str(), "needs 5 parameters" );
-				return 0; // error
-			}
-
-			if( !Is_Valid_Number( parts[4] ) )
-			{
-				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "%s is not a valid integer value\n", parts[4].c_str() );
-				return 0; // error
-			}
-
-			ObjectDirection direction = (ObjectDirection)string_to_int( parts[4] );
-
-			cEato *temp = new cEato( (float)string_to_int( parts[2] ), (float)( game_res_h - string_to_int( parts[3] ) ) );
-			temp->Set_Direction( direction );
-			m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
-		}
-		// Gee
-		else if( parts[1].compare( "GEE" ) == 0 )
-		{
-			if( count < 6 || count > 7 )
-			{
-				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "Error : %s %s\n", parts[1].c_str(), "needs 6-7 parameters" );
-				return 0; // error
-			}
-
-			if( !Is_Valid_Number( parts[4] ) )
-			{
-				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "%s is not a valid integer value\n", parts[4].c_str() );
-				return 0; // error
-			}
-
-			if( !Is_Valid_Number( parts[5] ) )
-			{
-				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "%s is not a valid integer value\n", parts[5].c_str() );
-				return 0; // error
-			}
-
-			ObjectDirection direction = (ObjectDirection)string_to_int( parts[4] );
-			DefaultColor color = COL_YELLOW;
-			unsigned int max_distance = 400;
-
-			// convert old gee type to color
-			unsigned int gtype = string_to_int( parts[5] );
-
-			if( gtype == 1 )
-			{
-				color = COL_YELLOW;
-			}
-			else if( gtype == 2 )
-			{
-				color = COL_RED;
-			}
-			else if( gtype == 3 )
-			{
-				color = COL_GREEN;
-			}
-
-			// with max distance
-			if( count > 6 )
-			{
-				max_distance = string_to_int( parts[6] );
-			}
-
-			cGee *temp = new cGee( (float)string_to_int( parts[2] ), (float)( game_res_h - string_to_int( parts[3] ) ) );
-			temp->Set_Direction( direction );
-			temp->Set_Max_Distance( max_distance );
-			temp->Set_Color( color );
-			m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
-		}
-		else
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Line %d, error : %s %s\n", line, parts[1].c_str(), "Unknown Enemy type" );
-			return 0; // error
-		}
-	}
-	/***************************************************************************/
-	else if( parts[0].compare( "Goldpiece" ) == 0 )
-	{
-		if( count < 3 || count > 4 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Error : %s %s\n", parts[0].c_str(), "needs 3-4 parameters" );
-			return 0; // error
-		}
-
-		if( !Is_Valid_Number( parts[1] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[1].c_str() );
-			return 0; // error
-		}
-
-		if( !Is_Valid_Number( parts[2] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[2].c_str() );
-			return 0; // error
-		}
-
-		DefaultColor color = COL_YELLOW;
-
-		// with color information
-		if( count > 3 )
-		{
-			if( !Is_Valid_Number( parts[3] ) )
-			{
-				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "%s is not a valid integer value\n", parts[3].c_str() );
-				return 0; // error
-			}
-
-			color = static_cast<DefaultColor>(string_to_int( parts[3] ));
-		}
-
-		cGoldpiece *temp = new cGoldpiece( (float)string_to_int( parts[1] ), (float)( game_res_h - string_to_int( parts[2] ) ) );
-		temp->Set_Gold_Color( color );
-		m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
-	}
-	/***************************************************************************/
-	else if( parts[0].compare( "Moon" ) == 0 )
-	{
-		if( count != 3 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Error : %s %s\n", parts[0].c_str(), "needs 3 parameters" );
-			return 0; // error
-		}
-
-		if( !Is_Valid_Number( parts[1] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[1].c_str() );
-			return 0; // error
-		}
-
-		if( !Is_Valid_Number( parts[2] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[2].c_str() );
-			return 0; // error
-		}
-
-		cMoon *temp = new cMoon( (float)string_to_int( parts[1] ), (float)( game_res_h - string_to_int( parts[2] ) ) );
-		m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
-	}
-	/***************************************************************************/
-	else if( parts[0].compare( "Levelexit" ) == 0 )
-	{
-		if( count < 3 || count > 5 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Error : %s %s\n", parts[0].c_str(), "needs 3-5 parameters" );
-			return 0; // error
-		}
-
-		if( !Is_Valid_Number( parts[1] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[1].c_str() );
-			return 0; // error
-		}
-		if( !Is_Valid_Number( parts[2] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[2].c_str() );
-			return 0; // error
-		}
-
-		cLevel_Exit *temp = NULL;
-
-		// with type and level
-		if( count == 4 || count == 5 )
-		{
-			if( !Is_Valid_Number( parts[3] ) )
-			{
-				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "%s is not a valid integer value\n", parts[2].c_str() );
-				return 0; // error
-			}
-
-			temp = new cLevel_Exit( (float)string_to_int( parts[1] ), (float)( game_res_h - string_to_int( parts[2] ) ) );
-
-			// type
-			temp->Set_Type( (Level_Exit_type)string_to_int( parts[3] ) );
-
-			// with a given level
-			if( count == 5 )
-			{
-				temp->Set_Level( parts[4] );
-			}
-		}
-		// older level support
-		else
-		{
-			// add a door sprite
-			cMovingSprite *door_sprite = new cMovingSprite( pVideo->Get_Surface( "game/level/door_yellow_1.png" ), (float)string_to_int( parts[1] ), (float)( game_res_h - string_to_int( parts[2] ) ) );
-			door_sprite->Set_Sprite_Type( TYPE_PASSIVE );
-			m_sprite_manager->Add( door_sprite );
-			// add the levelexit
-			temp = new cLevel_Exit( (float)( string_to_int( parts[1] ) + 13 ), (float)( game_res_h - string_to_int( parts[2] ) + 60 ) );
-		}
-
-		m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
-	}
-	/***************************************************************************/
-	else if( parts[0].compare( "BonusBox" ) == 0 )
-	{
-		if( !( count == 3 || count == 4 ) )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Error : %s %s\n", parts[0].c_str(), "needs 3-4 parameters" );
-			return 0; // error
-		}
-
-		// old level support
-		if( count == 3 )
-		{
-			if( !Is_Valid_Number( parts[1] ) )
-			{
-				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "%s is not a valid integer value\n", parts[1].c_str() );
-				return 0; // error
-			}
-			if( !Is_Valid_Number( parts[2] ) )
-			{
-				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "%s is not a valid integer value\n", parts[2].c_str() );
-				return 0; // error
-			}
-
-			cBonusBox *temp = new cBonusBox( (float)string_to_int( parts[1] ), (float)( game_res_h - string_to_int( parts[2] ) ) );
-			m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
-		}
-		else if( count == 4 )
-		{
-			if( !Is_Valid_Number( parts[1] ) )
-			{
-				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "%s is not a valid integer value\n", parts[1].c_str() );
-				return 0; // error
-			}
-			if ( !Is_Valid_Number( parts[2] ) )
-			{
-				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "%s is not a valid integer value\n", parts[2].c_str() );
-				return 0; // error
-			}
-
-			cBonusBox *temp = new cBonusBox( (float)string_to_int( parts[1] ), (float)( game_res_h - string_to_int( parts[2] ) ) );
-
-			// Auto Mushroom or Fireplant
-			if( parts[3].compare( "AUTO" ) == 0 )
-			{
-				temp->Set_Bonus_Type( TYPE_FIREPLANT );
-			}
-			// Life Mushroom
-			else if( parts[3].compare( "LIFE" ) == 0 )
-			{
-				 temp->Set_Bonus_Type( TYPE_MUSHROOM_LIVE_1 );
-			}
-			// Jumping Star
-			else if( parts[3].compare( "STAR" ) == 0 )
-			{
-				 temp->Set_Bonus_Type( TYPE_JSTAR );
-			}
-			// unknown Bonus item
-			else
-			{
-				delete temp;
-				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "Bonusbox type Error %s\n", parts[3].c_str() );
-				return 0; // error
-			}
-
-			m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
-		}
-		else
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Bonusbox count Error %d\n", count );
-			return 0; // error
-		}
-	}
-	/***************************************************************************/
-	else if( parts[0].compare( "GoldBox" ) == 0 )
-	{
-		if( count < 3 || count > 5 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Error : %s %s\n", parts[0].c_str(), "needs 3-5 parameters" );
-			return 0; // error
-		}
-
-		if( !Is_Valid_Number( parts[1] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[1].c_str() );
-			return 0; // error
-		}
-
-		if( !Is_Valid_Number( parts[2] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[2].c_str() );
-			return 0; // error
-		}
-
-		DefaultColor color = COL_YELLOW;
-
-		// with color information
-		if( count > 3 )
-		{
-			if( !Is_Valid_Number( parts[3] ) )
-			{
-				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "%s is not a valid integer value\n", parts[3].c_str() );
-				return 0; // error
-			}
-
-			color = static_cast<DefaultColor>(string_to_int( parts[3] ));
-		}
-
-		cBonusBox *temp = new cBonusBox( (float)string_to_int( parts[1] ), (float)( game_res_h - string_to_int( parts[2] ) ) );
-		temp->Set_Animation_Type( "Default" );
-		temp->Set_Bonus_Type( TYPE_GOLDPIECE );
-		temp->Set_Goldcolor( color );
-		m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
-
-		// with useable times information
-		if( count > 4 )
-		{
-			if( !Is_Valid_Number( parts[4] ) )
-			{
-				printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-				printf( "%s is not a valid integer value\n", parts[4].c_str() );
-				return 0; // error
-			}
-
-			temp->Set_Useable_Count( string_to_int( parts[4] ), 1 );
-		}
-	}
-	/***************************************************************************/
-	else if( parts[0].compare( "SpinBox" ) == 0 )
-	{
-		if( count != 3 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Error : %s %s\n", parts[0].c_str(), "needs 3 parameters" );
-			return 0; // error
-		}
-
-		if( !Is_Valid_Number( parts[1] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[1].c_str() );
-			return 0; // error
-		}
-
-		if( !Is_Valid_Number( parts[2] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[2].c_str() );
-			return 0; // error
-		}
-
-		cSpinBox *temp = new cSpinBox( (float)string_to_int( parts[1] ), (float)( game_res_h - string_to_int( parts[2] ) ) );
-		m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
-	}
-	/***************************************************************************/
-	else if( parts[0].compare( "Cloud" ) == 0 )
-	{
-		if( count < 3 || count > 5 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Error : %s %s\n", parts[0].c_str(), "needs 3-5 parameters" );
-			return 0; // error
-		}
-
-		if( !Is_Valid_Number( parts[1] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[1].c_str() );
-			return 0; // error
-		}
-
-		if( !Is_Valid_Number( parts[2] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[2].c_str() );
-			return 0; // error
-		}
-
-		// convert to halfmassive
-		cMovingSprite *temp = new cMovingSprite( pVideo->Get_Surface( "clouds/default_1/1_middle.png" ), (float)string_to_int( parts[1] ), (float)( game_res_h - string_to_int( parts[2] ) ) );
-		temp->Set_Sprite_Type( TYPE_HALFMASSIVE );
-
-		m_sprite_manager->Add( temp );
-	}
-	/***************************************************************************/
-	else if( parts[0].compare( "EnemyStopper" ) == 0 )
-	{
-		if( count != 3 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Error : %s %s\n", parts[0].c_str(), "needs 3 parameters" );
-			return 0; // error
-		}
-		if( !Is_Valid_Number( parts[1] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[1].c_str() );
-			return 0; // error
-		}
-		if( !Is_Valid_Number( parts[2] ) )
-		{
-			printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "%s is not a valid integer value\n", parts[2].c_str() );
-			return 0; // error
-		}
-
-		cEnemyStopper *temp = new cEnemyStopper( (float)string_to_int( parts[1] ), (float)( game_res_h - string_to_int( parts[2] ) ) );
-		m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
-	}
-	/***************************************************************************/
-	else if( parts[0].compare( "movingplatform" ) == 0 )
-	{
-		if( count < 10 || count > 10 )
-		{
-			printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-			printf( "Error : %s %s\n", parts[0].c_str(), "needs 10 parameters" );
-			return 0; // error
-		}
-
-		cMoving_Platform *temp = new cMoving_Platform( (float)string_to_int( parts[1] ), (float)(game_res_h - string_to_int( parts[2] )) );
-
-		if( string_to_int( parts[3] ) == 1 )
-		{
-			temp->Set_Direction( DIR_DOWN );
-		}
-		else
-		{
-			temp->Set_Direction( DIR_RIGHT );
-		}
-
-		temp->Set_Max_Distance( string_to_int( parts[4] ) );
-		temp->Set_Speed( string_to_float( parts[5] ) );
-		temp->Set_Middle_Count( string_to_int( parts[6] ) );
-
-		temp->Set_Image_Top_Left( pVideo->Get_Surface( parts[7] ) );
-		temp->Set_Image_Top_Middle( pVideo->Get_Surface( parts[8] ) );
-		temp->Set_Image_Top_Right( pVideo->Get_Surface( parts[9] ) );
-
-		m_sprite_manager->Add( static_cast<cMovingSprite *>(temp) );
-	}
-	/***************************************************************************/
-	else
-	{
-		printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-		printf( "Unknown Command : %s\n", parts[0].c_str() );
-		return 0; // error
-	}
-
-	// Successful
-	return 1;
-}
-
-bool cLevel :: Read_Color_Data( const std::string *parts, unsigned int count, unsigned int line, Color &color )
-{
-	if( count != 4 )
-	{
-		printf( "%s : line %d Error : \n", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-		printf( "Error : %s %s\n", parts[0].c_str(), "needs 4 parameters" );
-		return 0; // error
-	}
-
-	if( !Is_Valid_Number( parts[1] ) )
-	{
-		printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-		printf( "%s is not a valid integer value\n", parts[1].c_str() );
-		return 0; // error
-	}
-	if( !Is_Valid_Number( parts[2] ) )
-	{
-		printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-		printf( "%s is not a valid integer value\n", parts[2].c_str() );
-		return 0; // error
-	}
-	if( !Is_Valid_Number( parts[3] ) )
-	{
-		printf( "%s : line %d Error : ", Trim_Filename( data_file, 0, 0 ).c_str(), line );
-		printf( "%s is not a valid integer value\n", parts[3].c_str() );
-		return 0; // error
-	}
-
-	int background_red = string_to_int( parts[1] );
-	int background_green = string_to_int( parts[2] );
-	int background_blue = string_to_int( parts[3] );
-
-	if( background_red < 0 || background_red > 255 )
-	{
-		printf( "Warning : Background color red is not between 0 - 255\n" );
-		background_red = 0;
-	}
-	else if( background_green < 0 || background_green > 255 )
-	{
-		printf( "Warning : Background color green is not between 0 - 255\n" );
-		background_green = 0;
-	}
-	else if( background_blue < 0 || background_blue > 255 )
-	{
-		printf( "Warning : Background color blue is not between 0 - 255\n" );
-		background_blue = 0;
-	}
-
-	color.red = background_red;
-	color.green = background_green;
-	color.blue = background_blue;
-
-	return 1;  // success
 }
 
 // XML element start
@@ -2325,6 +1096,15 @@ void cLevel :: elementEnd( const CEGUI::String &element )
 		}
 		else if( element == "settings" )
 		{
+			// if V.1.9 and lower : move y coordinate bottom to 0
+			if( m_engine_version < 35 )
+			{
+				if( m_xml_attributes.exists( "cam_limit_h" ) )
+				{
+					m_xml_attributes.add( "cam_limit_h", CEGUI::PropertyHelper::floatToString( m_xml_attributes.getValueAsFloat( "cam_limit_h" ) - 600.0f ) );
+				}
+			}
+
 			// Author
 			m_author = m_xml_attributes.getValueAsString( "lvl_author" ).c_str();
 			// Version
@@ -2348,7 +1128,7 @@ void cLevel :: elementEnd( const CEGUI::String &element )
 			// default background
 			else
 			{
-				m_background_manager->Add( new cBackground( m_xml_attributes ) );
+				m_background_manager->Add( new cBackground( m_xml_attributes, m_sprite_manager ) );
 			}
 		}
 		else if( element == "global_effect" )
@@ -2358,8 +1138,14 @@ void cLevel :: elementEnd( const CEGUI::String &element )
 		else if( element == "player" )
 		{
 			// position
-			m_player_start_pos_x = static_cast<float>(m_xml_attributes.getValueAsInteger( "posx", static_cast<int>(cPlayer::m_default_pos_x) ));
-			m_player_start_pos_y = static_cast<float>(m_xml_attributes.getValueAsInteger( "posy", static_cast<int>(cPlayer::m_default_pos_y) ));
+			m_player_start_pos_x = static_cast<float>(m_xml_attributes.getValueAsInteger( "posx", static_cast<int>(cLevel_Player::m_default_pos_x) ));
+			m_player_start_pos_y = static_cast<float>(m_xml_attributes.getValueAsInteger( "posy", static_cast<int>(cLevel_Player::m_default_pos_y) ));
+
+			// if V.1.9 and lower : move y coordinate bottom to 0
+			if( m_engine_version < 35 )
+			{
+				m_player_start_pos_y = m_player_start_pos_y - 600.0f;
+			}
 
 			// check level engine version
 			// 10 and lower
@@ -2407,13 +1193,27 @@ void cLevel :: elementEnd( const CEGUI::String &element )
 	}
 }
 
-cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttributes &attributes, int engine_version /* = level_engine_version */, cSprite_Manager *sprite_manager /* = NULL */ )
+cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttributes &attributes, int engine_version /* = level_engine_version */, cSprite_Manager *sprite_manager )
 {
 	// element could change
 	CEGUI::String element = xml_element;
 
 	if( element == "sprite" )
 	{
+		// always : fix sprite with undefined massive-type
+		if( attributes.exists( "type" ) && attributes.getValueAsString( "type" ) == "undefined" )
+		{
+			// change to passive
+			attributes.add( "type", "passive" );
+		}
+		// if V.1.9 and lower : move y coordinate bottom to 0
+		if( engine_version < 35 )
+		{
+			if( attributes.exists( "posy" ) )
+			{
+				attributes.add( "posy", CEGUI::PropertyHelper::floatToString( attributes.getValueAsFloat( "posy" ) - 600.0f ) );
+			}
+		}
 		// if V.1.7 and lower : change green_1 ground to green_3 ground image paths
 		if( engine_version < 34 )
 		{
@@ -2476,7 +1276,7 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 			Relocate_Image( attributes, "ground/yoshi_1/rope_1_leftright.png", "ground/jungle_2/rope_1_hor.png" );
 		}
 
-		cSprite *sprite = new cSprite( attributes );
+		cSprite *sprite = new cSprite( attributes, sprite_manager );
 
 		// if image not available display its filename
 		if( !sprite->m_start_image )
@@ -2621,23 +1421,69 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 	}
 	else if( element == "enemystopper" )
 	{
-		return new cEnemyStopper( attributes );
+		// if V.1.9 and lower : move y coordinate bottom to 0
+		if( engine_version < 35 )
+		{
+			if( attributes.exists( "posy" ) )
+			{
+				attributes.add( "posy", CEGUI::PropertyHelper::floatToString( attributes.getValueAsFloat( "posy" ) - 600.0f ) );
+			}
+		}
+
+		return new cEnemyStopper( attributes, sprite_manager );
 	}
 	else if( element == "levelexit" )
 	{
-		return new cLevel_Exit( attributes );
+		// if V.1.9 and lower : move y coordinate bottom to 0
+		if( engine_version < 35 )
+		{
+			if( attributes.exists( "posy" ) )
+			{
+				attributes.add( "posy", CEGUI::PropertyHelper::floatToString( attributes.getValueAsFloat( "posy" ) - 600.0f ) );
+			}
+		}
+
+		// if V.1.9 and lower : change "motion" to "camera_motion"
+		if( engine_version < 36 )
+		{
+			if( attributes.exists( "motion" ) )
+			{
+				attributes.add( "camera_motion", CEGUI::PropertyHelper::intToString( attributes.getValueAsInteger( "motion" ) + 1 ) );
+				attributes.remove( "motion" );
+			}
+		}
+
+		return new cLevel_Exit( attributes, sprite_manager );
 	}
 	else if( element == "level_entry" )
 	{
-		return new cLevel_Entry( attributes );
+		// if V.1.9 and lower : move y coordinate bottom to 0
+		if( engine_version < 35 )
+		{
+			if( attributes.exists( "posy" ) )
+			{
+				attributes.add( "posy", CEGUI::PropertyHelper::floatToString( attributes.getValueAsFloat( "posy" ) - 600.0f ) );
+			}
+		}
+
+		return new cLevel_Entry( attributes, sprite_manager );
 	}
 	else if( element == "box" )
 	{
+		// if V.1.9 and lower : move y coordinate bottom to 0
+		if( engine_version < 35 )
+		{
+			if( attributes.exists( "posy" ) )
+			{
+				attributes.add( "posy", CEGUI::PropertyHelper::floatToString( attributes.getValueAsFloat( "posy" ) - 600.0f ) );
+			}
+		}
+
 		CEGUI::String str_type = attributes.getValueAsString( "type" );
 
 		if( str_type == "bonus" )
 		{
-			return new cBonusBox( attributes );
+			return new cBonusBox( attributes, sprite_manager );
 		}
 		// gold is somewhere pre 0.99.5
 		else if( str_type == "gold" )
@@ -2653,15 +1499,15 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 				attributes.remove( "color" );
 			}
 
-			return new cBonusBox( attributes );
+			return new cBonusBox( attributes, sprite_manager );
 		}
 		else if( str_type == "spin" )
 		{
-			return new cSpinBox( attributes );
+			return new cSpinBox( attributes, sprite_manager );
 		}
 		else if( str_type == "text" )
 		{
-			return new cText_Box( attributes );
+			return new cText_Box( attributes, sprite_manager );
 		}
 		// pre 0.99.4
 		else if ( str_type == "empty" )
@@ -2670,7 +1516,7 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 			attributes.add( "type", "bonus" );
 			attributes.add( "item", "0" );
 
-			return new cBonusBox( attributes );
+			return new cBonusBox( attributes, sprite_manager );
 		}
 		// pre 0.99.4
 		else if ( str_type == "invisible" )
@@ -2680,7 +1526,7 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 			attributes.add( "item", "0" );
 			attributes.add( "invisible", "1" );
 
-			return new cBonusBox( attributes );
+			return new cBonusBox( attributes, sprite_manager );
 		}
 		else
 		{
@@ -2690,27 +1536,36 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 	// powerup is pre 0.99.5
 	else if( element == "item" || element == "powerup" )
 	{
+		// if V.1.9 and lower : move y coordinate bottom to 0
+		if( engine_version < 35 )
+		{
+			if( attributes.exists( "posy" ) )
+			{
+				attributes.add( "posy", CEGUI::PropertyHelper::floatToString( attributes.getValueAsFloat( "posy" ) - 600.0f ) );
+			}
+		}
+
 		CEGUI::String str_type = attributes.getValueAsString( "type" );
 
 		if( str_type == "goldpiece" )
 		{
-			return new cGoldpiece( attributes );
+			return new cGoldpiece( attributes, sprite_manager );
 		}
 		else if( str_type == "mushroom" )
 		{
-			return new cMushroom( attributes );
+			return new cMushroom( attributes, sprite_manager );
 		}
 		else if( str_type == "fireplant" )
 		{
-			return new cFirePlant( attributes );
+			return new cFirePlant( attributes, sprite_manager );
 		}
 		else if( str_type == "jstar" )
 		{
-			return new cjStar( attributes );
+			return new cjStar( attributes, sprite_manager );
 		}
 		else if( str_type == "moon" )
 		{
-			return new cMoon( attributes );
+			return new cMoon( attributes, sprite_manager );
 		}
 		else
 		{
@@ -2719,6 +1574,14 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 	}
 	else if( element == "moving_platform" )
 	{
+		// if V.1.9 and lower : move y coordinate bottom to 0
+		if( engine_version < 35 )
+		{
+			if( attributes.exists( "posy" ) )
+			{
+				attributes.add( "posy", CEGUI::PropertyHelper::floatToString(  attributes.getValueAsFloat( "posy" ) - 600.0f ) );
+			}
+		}
 		// if V.1.7 and lower : change slider grey_1 to green_1 brown slider image paths
 		if( engine_version < 32 )
 		{
@@ -2727,18 +1590,18 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 			Relocate_Image( attributes, "slider/grey_1/slider_right.png", "ground/green_1/slider/1/brown/right.png", "image_top_right" );
 		}
 
-		cMoving_Platform *moving_platform = new cMoving_Platform( attributes );
+		cMoving_Platform *moving_platform = new cMoving_Platform( attributes, sprite_manager );
 
 		// if V.1.7 and lower : change new slider middle count because start and end image is now half the width
 		if( engine_version < 32 )
 		{
 			if( moving_platform->m_images[0].m_image->m_filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "ground/green_1/slider/1/brown/left.png" ) == 0 )
 			{
-				moving_platform->Set_Middle_Count( moving_platform->middle_count + 1 );
+				moving_platform->Set_Middle_Count( moving_platform->m_middle_count + 1 );
 			}
 			if( moving_platform->m_images[0].m_image->m_filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "ground/green_1/slider/1/brown/right.png" ) == 0 )
 			{
-				moving_platform->Set_Middle_Count( moving_platform->middle_count + 1 );
+				moving_platform->Set_Middle_Count( moving_platform->m_middle_count + 1 );
 			}
 		}
 
@@ -2747,6 +1610,15 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 	// pre 1.5
 	else if( element == "falling_platform" )
 	{
+		// if V.1.9 and lower : move y coordinate bottom to 0
+		if( engine_version < 35 )
+		{
+			if( attributes.exists( "posy" ) )
+			{
+				attributes.add( "posy", CEGUI::PropertyHelper::floatToString( attributes.getValueAsFloat( "posy" ) - 600.0f ) );
+			}
+		}
+
 		// no moving
 		attributes.add( "speed", "0" );
 		// renamed time_fall to touch_time and change to the new value
@@ -2770,18 +1642,18 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 			Relocate_Image( attributes, "slider/grey_1/slider_right.png", "ground/green_1/slider/1/brown/right.png", "image_top_right" );
 		}
 
-		cMoving_Platform *moving_platform = new cMoving_Platform( attributes );
+		cMoving_Platform *moving_platform = new cMoving_Platform( attributes, sprite_manager );
 
 		// if V.1.7 and lower : change new slider middle count because start and end image is now half the width
 		if( engine_version < 32 )
 		{
 			if( moving_platform->m_images[0].m_image->m_filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "ground/green_1/slider/1/brown/left.png" ) == 0 )
 			{
-				moving_platform->Set_Middle_Count( moving_platform->middle_count + 1 );
+				moving_platform->Set_Middle_Count( moving_platform->m_middle_count + 1 );
 			}
 			if( moving_platform->m_images[0].m_image->m_filename.compare( DATA_DIR "/" GAME_PIXMAPS_DIR "/" "ground/green_1/slider/1/brown/right.png" ) == 0 )
 			{
-				moving_platform->Set_Middle_Count( moving_platform->middle_count + 1 );
+				moving_platform->Set_Middle_Count( moving_platform->m_middle_count + 1 );
 			}
 		}
 
@@ -2789,6 +1661,15 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 	}
 	else if( element == "enemy" )
 	{
+		// if V.1.9 and lower : move y coordinate bottom to 0
+		if( engine_version < 35 )
+		{
+			if( attributes.exists( "posy" ) )
+			{
+				attributes.add( "posy", CEGUI::PropertyHelper::floatToString( attributes.getValueAsFloat( "posy" ) - 600.0f ) );
+			}
+		}
+
 		CEGUI::String str_type = attributes.getValueAsString( "type" );
 
 		// if V.1.5 and lower
@@ -2842,15 +1723,15 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 
 		if( str_type == "eato" )
 		{
-			return new cEato( attributes );
+			return new cEato( attributes, sprite_manager );
 		}
 		else if( str_type == "furball" )
 		{
-			return new cFurball( attributes );
+			return new cFurball( attributes, sprite_manager );
 		}
 		else if( str_type == "turtle" )
 		{
-			return new cTurtle( attributes );
+			return new cTurtle( attributes, sprite_manager );
 		}
 		else if( str_type == "turtleboss" )
 		{
@@ -2864,15 +1745,15 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 				}
 			}
 
-			return new cTurtleBoss( attributes );
+			return new cTurtleBoss( attributes, sprite_manager );
 		}
 		else if( str_type == "flyon" )
 		{
-			return new cFlyon( attributes );
+			return new cFlyon( attributes, sprite_manager );
 		}
 		else if( str_type == "thromp" )
 		{
-			cThromp *thromp = new cThromp( attributes );
+			cThromp *thromp = new cThromp( attributes, sprite_manager );
 
 			// if V.1.4 and lower : fix thromp distance was smaller
 			if( engine_version < 25 )
@@ -2884,27 +1765,27 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 		}
 		else if( str_type == "rokko" )
 		{
-			return new cRokko( attributes );
+			return new cRokko( attributes, sprite_manager );
 		}
 		else if( str_type == "krush" )
 		{
-			return new cKrush( attributes );
+			return new cKrush( attributes, sprite_manager );
 		}
 		else if( str_type == "gee" )
 		{
-			return new cGee( attributes );
+			return new cGee( attributes, sprite_manager );
 		}
 		else if( str_type == "spika" )
 		{
-			return new cSpika( attributes );
+			return new cSpika( attributes, sprite_manager );
 		}
 		else if( str_type == "static" )
 		{
-			return new cStaticEnemy( attributes );
+			return new cStaticEnemy( attributes, sprite_manager );
 		}
 		else if( str_type == "spikeball" )
 		{
-			return new cSpikeball( attributes );
+			return new cSpikeball( attributes, sprite_manager );
 		}
 		else
 		{
@@ -2913,11 +1794,29 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 	}
 	else if( element == "sound" )
 	{
-		return new cRandom_Sound( attributes );
+		// if V.1.9 and lower : move y coordinate bottom to 0
+		if( engine_version < 35 )
+		{
+			if( attributes.exists( "pos_y" ) )
+			{
+				attributes.add( "pos_y", CEGUI::PropertyHelper::floatToString( attributes.getValueAsFloat( "pos_y" ) - 600.0f ) );
+			}
+		}
+
+		return new cRandom_Sound( attributes, sprite_manager );
 	}
 	else if( element == "particle_emitter" )
 	{
-		cParticle_Emitter *particle_emitter = new cParticle_Emitter( attributes );
+		// if V.1.9 and lower : move y coordinate bottom to 0
+		if( engine_version < 35 )
+		{
+			if( attributes.exists( "pos_y" ) )
+			{
+				attributes.add( "pos_y", CEGUI::PropertyHelper::floatToString( attributes.getValueAsFloat( "pos_y" ) - 600.0f ) );
+			}
+		}
+
+		cParticle_Emitter *particle_emitter = new cParticle_Emitter( attributes, sprite_manager );
 		// set to not spawned
 		particle_emitter->m_spawned = 0;
 		// init animation
@@ -2927,7 +1826,16 @@ cSprite *Get_Level_Object( const CEGUI::String &xml_element, CEGUI::XMLAttribute
 	}
 	else if( element == "path" )
 	{
-		return new cPath( attributes );
+		// if V.1.9 and lower : move y coordinate bottom to 0
+		if( engine_version < 35 )
+		{
+			if( attributes.exists( "posy" ) )
+			{
+				attributes.add( "posy", CEGUI::PropertyHelper::floatToString( attributes.getValueAsFloat( "posy" ) - 600.0f ) );
+			}
+		}
+
+		return new cPath( attributes, sprite_manager );
 	}
 
 	return NULL;

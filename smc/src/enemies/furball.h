@@ -22,26 +22,24 @@ namespace SMC
 {
 
 /* *** *** *** *** *** *** cFurball *** *** *** *** *** *** *** *** *** *** *** */
-
-class cFurball : public cEnemy 
-{
-/* Furball
- * Secret attacks: Furball's lull you into a false sense of security so that you will
+/* Secret attacks: Lulls you into a false sense of security so that you will
  * forget to do anything and just stupidly run into them.
  * Don't fall for it! Take them very seriously! Pay attention!
  */
+class cFurball : public cEnemy 
+{
 public:
 	// constructor
-	cFurball( float x, float y );
+	cFurball( cSprite_Manager *sprite_manager );
 	// create from stream
-	cFurball( CEGUI::XMLAttributes &attributes );
+	cFurball( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cFurball( void );
 
 	// init defaults
 	void Init( void );
 	// copy
-	virtual cFurball *Copy( void );
+	virtual cFurball *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -52,7 +50,9 @@ public:
 	virtual void Load_From_Savegame( cSave_Level_Object *save_object );
 
 	// maximum downgrades until death
-	void Set_Max_Downgrade_Count( int nmax_downgrade_count );
+	void Set_Max_Downgrade_Count( int max_downgrade_count );
+	// Set if the level ends when killed
+	void Set_Level_Ends_If_Killed( bool level_ends_if_killed );
 
 	// Set Direction
 	void Set_Direction( const ObjectDirection dir );
@@ -82,8 +82,8 @@ public:
 	// Generates Star Particles (only used if boss)
 	void Generate_Smoke( unsigned int amount = 1, float particle_scale = 0.4f ) const;
 
-	// update the current velocity
-	void Update_Velocity( void );
+	// update maximum velocity values
+	void Update_Velocity_Max( void );
 
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );
@@ -107,6 +107,8 @@ public:
 	bool Editor_Direction_Select( const CEGUI::EventArgs &event );
 	// editor max downgrades text changed event
 	bool Editor_Max_Downgrade_Count_Text_Changed( const CEGUI::EventArgs &event );
+	// editor level ends if killed
+	bool Editor_Level_Ends_If_Killed( const CEGUI::EventArgs &event );
 
 	// Color
 	DefaultColor m_color_type;
@@ -115,8 +117,6 @@ private:
 	// Create the Name from the current settings
 	void Create_Name( void );
 
-	// walking speed (only used if boss)
-	float m_speed_walk;
 	// counter if hit (only used if boss)
 	float m_counter_hit;
 	// counter if running (only used if boss)
@@ -128,6 +128,8 @@ private:
 	int m_downgrade_count;
 	// maximum downgrades until death (only used if boss)
 	int m_max_downgrade_count;
+	// if the level ends when killed (only used if boss)
+	bool m_level_ends_if_killed;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

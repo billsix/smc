@@ -16,7 +16,7 @@
 #ifndef SMC_TEXT_BOX_H
 #define SMC_TEXT_BOX_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../objects/box.h"
 
 namespace SMC
@@ -28,16 +28,16 @@ class cText_Box : public cBaseBox
 {
 public:
 	// constructor
-	cText_Box( float x, float y );
+	cText_Box( cSprite_Manager *sprite_manager );
 	// create from stream
-	cText_Box( CEGUI::XMLAttributes &attributes );
+	cText_Box( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cText_Box( void );
 
 	// init defaults
 	void Init( void );
 	// copy
-	virtual cText_Box *Copy( void );
+	virtual cText_Box *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -59,7 +59,7 @@ public:
 	bool Editor_Text_Text_Changed( const CEGUI::EventArgs &event );
 
 	// the text
-	std::string text;
+	std::string m_text;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

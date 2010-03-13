@@ -24,15 +24,17 @@ namespace SMC
 
 /* *** *** *** *** *** *** *** cBackground *** *** *** *** *** *** *** *** *** *** */
 
-cBackground :: cBackground( void )
+cBackground :: cBackground( cSprite_Manager *sprite_manager )
 {
-	Init();
+	cBackground::Init();
+	cBackground::Set_Sprite_Manager( sprite_manager );
 }
 
-cBackground :: cBackground( CEGUI::XMLAttributes &attributes )
+cBackground :: cBackground( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
 {
-	Init();
-	Create_From_Stream( attributes );
+	cBackground::Init();
+	cBackground::Set_Sprite_Manager( sprite_manager );
+	cBackground::Create_From_Stream( attributes );
 }
 
 cBackground :: ~cBackground( void )
@@ -42,6 +44,7 @@ cBackground :: ~cBackground( void )
 
 void cBackground :: Init( void )
 {
+	m_sprite_manager = NULL;
 	m_type = BG_NONE;
 
 	m_pos_x = 0.0f;
@@ -134,28 +137,45 @@ void cBackground :: Save_To_Stream( ofstream &file )
 	file << "\t</background>" << std::endl;
 }
 
-void cBackground :: Set_Type( const BackgroundType ntype )
+void cBackground :: Set_Sprite_Manager( cSprite_Manager *sprite_manager )
 {
-	m_type = ntype;
+	m_sprite_manager = sprite_manager;
 }
 
-void cBackground :: Set_Type( const std::string &ntype ) 
+void cBackground :: Set_Type( const BackgroundType type )
 {
-	if( ntype.compare( "Disabled" ) == 0 )
+	m_type = type;
+}
+
+void cBackground :: Set_Type( const std::string &type ) 
+{
+	if( type.compare( "Disabled" ) == 0 )
 	{
 		m_type = BG_NONE;
 	}
-	else if( ntype.compare( "Bottom" ) == 0 )
+	else if( type.compare( "Top" ) == 0 )
+	{
+		m_type = BG_IMG_TOP;
+	}
+	else if( type.compare( "Bottom" ) == 0 )
 	{
 		m_type = BG_IMG_BOTTOM;
 	}
-	else if( ntype.compare( "All" ) == 0 )
+	else if( type.compare( "All" ) == 0 )
 	{
 		m_type = BG_IMG_ALL;
 	}
+	else if( type.compare( "Gradient Vertical" ) == 0 )
+	{
+		m_type = BG_GR_VER;
+	}
+	else if( type.compare( "Gradient Horizontal" ) == 0 )
+	{
+		m_type = BG_GR_HOR;
+	}
 	else
 	{
-		printf( "Warning : Unknown Background type %s\n", ntype.c_str() );
+		printf( "Warning : Unknown Background type %s\n", type.c_str() );
 	}
 }
 
@@ -169,9 +189,9 @@ void cBackground :: Set_Color_2( const Color &color )
 	m_color_2 = color; 
 }
 
-void cBackground :: Set_Image( const std::string &nimg_file_1 )
+void cBackground :: Set_Image( const std::string &img_file_1 )
 {
-	m_image_1_filename = nimg_file_1;
+	m_image_1_filename = img_file_1;
 
 	// empty
 	if( m_image_1_filename.empty() )
@@ -243,7 +263,7 @@ void cBackground :: Draw( void )
 		Draw_Gradient();
 	}
 	// image
-	else if( m_type == BG_IMG_BOTTOM || m_type == BG_IMG_ALL ) 
+	else if( m_type == BG_IMG_BOTTOM || m_type == BG_IMG_TOP || m_type == BG_IMG_ALL ) 
 	{
 		// if background images are disabled or no image
 		if( !pPreferences->m_level_background_images || !m_image_1 )
@@ -252,8 +272,8 @@ void cBackground :: Draw( void )
 		}
 
 		// get position
-		float posx_final = m_pos_x - ( ( pActive_Camera->x * 0.2f ) * m_speed_x );
-		float posy_final = m_pos_y - ( ( pActive_Camera->y * 0.3f ) * m_speed_y );
+		float posx_final = m_pos_x - ( ( pActive_Camera->m_x * 0.2f ) * m_speed_x );
+		float posy_final = m_pos_y - ( ( ( pActive_Camera->m_y + game_res_h ) * 0.3f ) * m_speed_y );
 
 		if( m_type == BG_IMG_BOTTOM || m_type == BG_IMG_ALL )
 		{
@@ -275,7 +295,7 @@ void cBackground :: Draw( void )
 		if( m_type == BG_IMG_ALL )
 		{
 			// to top
-			while( posy_final > 0 )
+			while( posy_final > 0.0f )
 			{
 				posy_final -= m_image_1->m_h;
 			}
@@ -323,14 +343,14 @@ void cBackground :: Draw_Gradient( void )
 	}
 	else
 	{
-		Color color, color_start;
+		// gradient start color
+		Color color_start = m_color_1;
+		// get camera bottom position
+		const float camera_bottom = pActive_Camera->m_y + game_res_h;
 
-		// set color start
-		color_start = m_color_1;
-
-		if( pActive_Camera->y < -1.0f )
+		if( camera_bottom < -0.1f )
 		{
-			float power = ( -pActive_Camera->y / 10000 );
+			float power = -camera_bottom / 10000;
 
 			if( power > 1.0f )
 			{
@@ -355,17 +375,41 @@ void cBackground :: Draw_Gradient( void )
 
 std::string cBackground :: Get_Type_Name( void ) const
 {
-	if( m_type == BG_NONE )
+	return Get_Type_Name( m_type );
+}
+
+std::string cBackground :: Get_Type_Name( const BackgroundType type )
+{
+	switch( type )
 	{
-		return "Disabled";
-	}
-	else if( m_type == BG_IMG_BOTTOM )
-	{
-		return "Bottom";
-	}
-	else if( m_type == BG_IMG_ALL )
-	{
-		return "All";
+		case BG_NONE:
+		{
+			return "Disabled";
+		}
+		case BG_IMG_TOP:
+		{
+			return "Top";
+		}
+		case BG_IMG_BOTTOM:
+		{
+			return "Bottom";
+		}
+		case BG_IMG_ALL:
+		{
+			return "All";
+		}
+		case BG_GR_VER:
+		{
+			return "Gradient Vertical";
+		}
+		case BG_GR_HOR:
+		{
+			return "Gradient Horizontal";
+		}
+		default:
+		{
+			break;
+		}
 	}
 
 	return "Unknown";

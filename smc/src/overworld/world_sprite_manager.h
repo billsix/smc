@@ -16,7 +16,7 @@
 #ifndef SMC_WORLD_SPRITE_MANAGER_H
 #define SMC_WORLD_SPRITE_MANAGER_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../core/sprite_manager.h"
 #include "../overworld/overworld.h"
 
@@ -28,14 +28,14 @@ namespace SMC
 class cWorld_Sprite_Manager : public cSprite_Manager
 {
 public:
-	cWorld_Sprite_Manager( cOverworld *origin );
+	cWorld_Sprite_Manager( cOverworld *overworld );
 	virtual ~cWorld_Sprite_Manager( void );
 
 	// Add a sprite
 	virtual void Add( cSprite *sprite );
 
-	// origin overworld
-	cOverworld *n_origin;
+	// parent overworld
+	cOverworld *m_overworld;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

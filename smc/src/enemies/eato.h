@@ -22,24 +22,23 @@ namespace SMC
 {
 
 /* *** *** *** *** *** cEato *** *** *** *** *** *** *** *** *** *** *** *** */
-
-/*
- * Eats your Butt !
+/* Eats your Butt !
+ * Secret attack: Merges visually with the background and becomes an anti-maryo mine.
 */
 class cEato : public cEnemy
 {
 public:
 	// constructor
-	cEato( float x, float y );
+	cEato( cSprite_Manager *sprite_manager );
 	// create from stream
-	cEato( CEGUI::XMLAttributes &attributes );
+	cEato( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cEato( void );
 
 	// init defaults
 	void Init( void );
 	// copy
-	virtual cEato *Copy( void );
+	virtual cEato *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );

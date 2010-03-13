@@ -22,14 +22,14 @@ namespace SMC
 
 /* *** *** *** *** *** *** *** *** cSpinBox *** *** *** *** *** *** *** *** *** */
 
-cSpinBox :: cSpinBox( float x, float y )
-: cBaseBox( x, y )
+cSpinBox :: cSpinBox( cSprite_Manager *sprite_manager )
+: cBaseBox( sprite_manager )
 {
 	cSpinBox::Init();
 }
 
-cSpinBox :: cSpinBox( CEGUI::XMLAttributes &attributes )
-: cBaseBox()
+cSpinBox :: cSpinBox( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cBaseBox( sprite_manager )
 {
 	cSpinBox::Init();
 	cSpinBox::Create_From_Stream( attributes );
@@ -44,11 +44,11 @@ void cSpinBox :: Init( void )
 {
 	m_type = TYPE_SPINBOX;
 	box_type = m_type;
-	m_player_range = 5000;
+	m_camera_range = 5000;
 	m_can_be_on_ground = 0;
 
-	spin_counter = 0.0f;
-	spin = 0;
+	m_spin_counter = 0.0f;
+	m_spin = 0;
 
 	// default is infinite times activate-able
 	Set_Useable_Count( -1, 1 );
@@ -56,17 +56,17 @@ void cSpinBox :: Init( void )
 	Set_Animation_Type( "Spin" );
 
 	// editor image
-	item_image = pVideo->Get_Surface( "game/arrow/small/white/up.png" );
+	m_item_image = pVideo->Get_Surface( "game/arrow/small/white/up.png" );
 
 	Create_Name();
 }
 
-cSpinBox *cSpinBox :: Copy( void )
+cSpinBox *cSpinBox :: Copy( void ) const
 {
-	cSpinBox *spinbox = new cSpinBox( m_start_pos_x, m_start_pos_y );
-	spinbox->Set_Invisible( box_invisible );
-	spinbox->Set_Useable_Count( start_useable_count, 1 );
-
+	cSpinBox *spinbox = new cSpinBox( m_sprite_manager );
+	spinbox->Set_Pos( m_start_pos_x, m_start_pos_y, 1 );
+	spinbox->Set_Invisible( m_box_invisible );
+	spinbox->Set_Useable_Count( m_start_useable_count, 1 );
 	return spinbox;
 }
 
@@ -89,17 +89,17 @@ void cSpinBox :: Save_To_Stream( ofstream &file )
 void cSpinBox :: Activate( void )
 {
 	// already spinning
-	if( spin )
+	if( m_spin )
 	{
 		return;
 	}
 
-	spin = 1;
+	m_spin = 1;
 	Update_Valid_Update();
 	// passive box for spinning
 	m_massive_type = MASS_PASSIVE;
 
-	spin_counter = 0.0f;
+	m_spin_counter = 0.0f;
 	// enable animation
 	Set_Animation( 1 );
 	Reset_Animation();
@@ -108,13 +108,13 @@ void cSpinBox :: Activate( void )
 void cSpinBox :: Stop( void )
 {
 	// already stopped spinning
-	if( !spin )
+	if( !m_spin )
 	{
 		return;
 	}
 
 	// disabled image
-	if( !useable_count )
+	if( !m_useable_count )
 	{
 		Set_Image_Num( 0 );
 	}
@@ -124,9 +124,9 @@ void cSpinBox :: Stop( void )
 		Set_Image_Num( 1 );
 	}
 	// reset
-	spin = 0;
+	m_spin = 0;
 	Update_Valid_Update();
-	spin_counter = 0.0f;
+	m_spin_counter = 0.0f;
 
 	// back to a massive box
 	m_massive_type = MASS_MASSIVE;
@@ -137,25 +137,25 @@ void cSpinBox :: Stop( void )
 
 void cSpinBox :: Update( void )
 {
-	if( !m_valid_update || !Is_In_Player_Range() )
+	if( !m_valid_update || !Is_In_Range() )
 	{
 		return;
 	}
 
 	cBaseBox::Update();
 
-	if( spin )
+	if( m_spin )
 	{
-		spin_counter += pFramerate->m_speed_factor;
+		m_spin_counter += pFramerate->m_speed_factor;
 
 		// spinning animation finished
 		if( m_curr_img == 1 )
 		{
 			// spinning time finished
-			if( spin_counter > speedfactor_fps * 5 )
+			if( m_spin_counter > speedfactor_fps * 5 )
 			{
 				// reset spin counter
-				spin_counter = 0.0f;
+				m_spin_counter = 0.0f;
 				// set to massive for collision check
 				m_massive_type = MASS_MASSIVE;
 				// collision data
@@ -172,7 +172,7 @@ void cSpinBox :: Update( void )
 				// colliding with an active object
 				else if( col_list->Is_Included( ARRAY_ACTIVE ) )
 				{
-					cSprite *col_obj = col_list->Find_First( ARRAY_ACTIVE )->obj;
+					cSprite *col_obj = col_list->Find_First( ARRAY_ACTIVE )->m_obj;
 					
 					// check for items
 					if( col_obj->m_type == TYPE_MUSHROOM_LIVE_1 || col_obj->m_type == TYPE_MUSHROOM_DEFAULT || 
@@ -190,7 +190,7 @@ void cSpinBox :: Update( void )
 				if( spin_again )
 				{
 					// spin some time again
-					spin_counter = speedfactor_fps * 2;
+					m_spin_counter = speedfactor_fps * 2;
 					// passive for spinning
 					m_massive_type = MASS_PASSIVE;
 				}
@@ -206,7 +206,7 @@ void cSpinBox :: Update( void )
 
 bool cSpinBox :: Is_Update_Valid( void )
 {
-	if( spin )
+	if( m_spin )
 	{
 		return 1;
 	}

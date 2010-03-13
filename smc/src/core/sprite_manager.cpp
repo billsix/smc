@@ -15,7 +15,7 @@
 
 #include "../core/sprite_manager.h"
 #include "../core/game_core.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../input/mouse.h"
 #include "../overworld/world_player.h"
 #include <algorithm>
@@ -30,8 +30,8 @@ cSprite_Manager :: cSprite_Manager( unsigned int reserve_items /* = 2000 */, uns
 {
 	objects.reserve( reserve_items );
 
-	zposdata.assign( zpos_items, 0.0f );
-	zposdata_editor.assign( zpos_items,0.0f );
+	m_z_pos_data.assign( zpos_items, 0.0f );
+	m_z_pos_data_editor.assign( zpos_items,0.0f );
 }
 
 cSprite_Manager :: ~cSprite_Manager( void )
@@ -50,7 +50,7 @@ void cSprite_Manager :: Add( cSprite *sprite )
 	Set_Pos_Z( sprite );
 
 	// Check if an destroyed object can be replaced
-	for( cSprite_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		// get object pointer
 		cSprite *obj = (*itr);
@@ -85,7 +85,7 @@ void cSprite_Manager :: Delete_All( bool delayed /* = 0 */ )
 	// delayed
 	if( delayed )
 	{
-		for( cSprite_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+		for( cSprite_List::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 		{
 			// get object pointer
 			cSprite *obj = (*itr);
@@ -100,28 +100,16 @@ void cSprite_Manager :: Delete_All( bool delayed /* = 0 */ )
 		cObject_Manager<cSprite>::Delete_All();
 	}
 
-	// todo : pPlayer and pMouseCursor should be elsewhere !
-	// clear collision data
-	if( pPlayer )
-	{
-		pPlayer->Clear_Collisions();
-		pPlayer->Reset_On_Ground();
-	}
-	if( pMouseCursor )
-	{
-		pMouseCursor->Clear_Collisions();
-	}
-
 	// clear z position data
-	std::fill( zposdata.begin(), zposdata.end(), 0.0f );
-	std::fill( zposdata_editor.begin(), zposdata_editor.end(), 0.0f );
+	std::fill( m_z_pos_data.begin(), m_z_pos_data.end(), 0.0f );
+	std::fill( m_z_pos_data_editor.begin(), m_z_pos_data_editor.end(), 0.0f );
 }
 
 cSprite *cSprite_Manager :: Get_First( const SpriteType type ) const
 {
 	cSprite *first = NULL;
 
-	for( cSprite_List::const_iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::const_iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		// get object pointer
 		cSprite *obj = (*itr);
@@ -140,7 +128,7 @@ cSprite *cSprite_Manager :: Get_Last( const SpriteType type ) const
 {
 	cSprite *last = NULL;
 
-	for( cSprite_List::const_iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::const_iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		// get object pointer
 		cSprite *obj = (*itr);
@@ -157,7 +145,7 @@ cSprite *cSprite_Manager :: Get_Last( const SpriteType type ) const
 
 cSprite *cSprite_Manager :: Get_from_Position( int posx, int posy, const SpriteType type /* = TYPE_UNDEFINED */ ) const
 {
-	for( cSprite_List::const_iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::const_iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		// get object pointer
 		cSprite *obj = (*itr);
@@ -209,7 +197,7 @@ void cSprite_Manager :: Get_Objects_sorted( cSprite_List &new_objects, bool edit
 void cSprite_Manager :: Get_Colliding_Objects( cSprite_List &col_objects, const GL_rect &rect, bool with_player /* = 0 */, const cSprite *exclude_sprite /* = NULL */ ) const
 {
 	// Check objects
-	for( cSprite_List::const_iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::const_iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		// get object pointer
 		cSprite *obj = (*itr);
@@ -238,48 +226,16 @@ void cSprite_Manager :: Get_Colliding_Objects( cSprite_List &col_objects, const 
 	}
 }
 
-void cSprite_Manager :: Update_Items_Valid_Draw( void )
-{
-	for( cSprite_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
-	{
-		(*itr)->Update_Valid_Draw();
-	}
-}
-
-void cSprite_Manager :: Update_Items( void )
-{
-	for( cSprite_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
-	{
-		(*itr)->Update();
-	}
-}
-
-void cSprite_Manager :: Update_Items_Late( void )
-{
-	for( cSprite_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
-	{
-		(*itr)->Update_Late();
-	}
-}
-
-void cSprite_Manager :: Draw_Items( void )
-{
-	for( cSprite_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
-	{
-		(*itr)->Draw();
-	}
-}
-
 void cSprite_Manager :: Handle_Collision_Items( void )
 {
-	for( cSprite_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		cSprite *obj = (*itr);
 
 		// invalid
 		if( obj->m_auto_destroy )
 		{
-			if( obj->collisions.size() )
+			if( obj->m_collisions.size() )
 			{
 				debug_print( "Collision with a destroyed object (%s)\n", obj->m_name.c_str() );
 				obj->Clear_Collisions();
@@ -299,7 +255,7 @@ unsigned int cSprite_Manager :: Get_Size_Array( const ArrayType sprite_array )
 {
 	unsigned int count = 0;
 
-	for( cSprite_List::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::const_iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		if( (*itr)->m_sprite_array == sprite_array )
 		{
@@ -319,31 +275,31 @@ void cSprite_Manager :: Set_Pos_Z( cSprite *sprite )
 	}
 
 	// set new z position if unset
-	if( sprite->m_pos_z <= zposdata[sprite->m_type] )
+	if( sprite->m_pos_z <= m_z_pos_data[sprite->m_type] )
 	{
-		sprite->m_pos_z = zposdata[sprite->m_type] + 0.000001f;
+		sprite->m_pos_z = m_z_pos_data[sprite->m_type] + 0.000001f;
 	}
 	// if editor Z position is given
 	if( sprite->m_editor_pos_z > 0 )
 	{
-		if( sprite->m_editor_pos_z <= zposdata_editor[sprite->m_type] )
+		if( sprite->m_editor_pos_z <= m_z_pos_data_editor[sprite->m_type] )
 		{
-			sprite->m_editor_pos_z = zposdata_editor[sprite->m_type] + 0.000001f;
+			sprite->m_editor_pos_z = m_z_pos_data_editor[sprite->m_type] + 0.000001f;
 		}
 	}
 
 
 	// update z position
-	if( sprite->m_pos_z > zposdata[sprite->m_type] )
+	if( sprite->m_pos_z > m_z_pos_data[sprite->m_type] )
 	{
-		zposdata[sprite->m_type] = sprite->m_pos_z;
+		m_z_pos_data[sprite->m_type] = sprite->m_pos_z;
 	}
 	// if editor Z position is given
 	if( sprite->m_editor_pos_z > 0 )
 	{
-		if( sprite->m_editor_pos_z > zposdata_editor[sprite->m_type] )
+		if( sprite->m_editor_pos_z > m_z_pos_data_editor[sprite->m_type] )
 		{
-			zposdata_editor[sprite->m_type] = sprite->m_editor_pos_z;
+			m_z_pos_data_editor[sprite->m_type] = sprite->m_editor_pos_z;
 		}
 	}
 }

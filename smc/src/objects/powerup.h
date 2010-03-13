@@ -16,7 +16,7 @@
 #ifndef SMC_POWERUP_H
 #define SMC_POWERUP_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../objects/animated_sprite.h"
 
 namespace SMC
@@ -28,7 +28,7 @@ class cPowerUp : public cAnimated_Sprite
 {
 public:
 	// constructor
-	cPowerUp( float x = 0, float y = 0 );
+	cPowerUp( cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cPowerUp( void );
 
@@ -54,7 +54,7 @@ public:
 	// handle moved out of Level event
 	virtual void Handle_out_of_Level( ObjectDirection dir );
 
-	float counter;
+	float m_counter;
 };
 
 /* *** *** *** *** *** cMushroom *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -63,9 +63,9 @@ class cMushroom : public cPowerUp
 {
 public:
 	// constructor
-	cMushroom( float x, float y );
+	cMushroom( cSprite_Manager *sprite_manager );
 	// create from stream
-	cMushroom( CEGUI::XMLAttributes &attributes );
+	cMushroom( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cMushroom( void );
 
@@ -73,7 +73,7 @@ public:
 	void Init( void );
 
 	// copy
-	virtual cMushroom *Copy( void );
+	virtual cMushroom *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -81,7 +81,7 @@ public:
 	virtual void Save_To_Stream( ofstream &file );
 
 	// Set the Mushroom Type
-	void Set_Type( SpriteType ntype );
+	void Set_Type( SpriteType new_type );
 
 	// Activates the item
 	virtual void Activate( void );
@@ -97,7 +97,7 @@ public:
 	virtual void Handle_Collision_Box( ObjectDirection cdirection, GL_rect *r2 );
 
 	// glim animation modifier
-	bool glim_mod;
+	bool m_glim_mod;
 };
 
 /* *** *** *** *** *** cFirePlant *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -106,16 +106,16 @@ class cFirePlant : public cPowerUp
 {
 public:
 	// constructor
-	cFirePlant( float x, float y );
+	cFirePlant( cSprite_Manager *sprite_manager );
 	// create from stream
-	cFirePlant( CEGUI::XMLAttributes &attributes );
+	cFirePlant( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cFirePlant( void );
 
 	// init defaults
 	void Init( void );
 	// copy
-	virtual cFirePlant *Copy( void );
+	virtual cFirePlant *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -131,7 +131,7 @@ public:
 	// collision from player
 	virtual void Handle_Collision_Player( cObjectCollision *collision );
 
-	float particle_counter;
+	float m_particle_counter;
 };
 
 /* *** *** *** *** *** cMoon *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -140,9 +140,9 @@ class cMoon : public cPowerUp
 {
 public:
 	// constructor
-	cMoon( float x, float y );
+	cMoon( cSprite_Manager *sprite_manager );
 	// create from stream
-	cMoon( CEGUI::XMLAttributes &attributes );
+	cMoon( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cMoon( void );
 
@@ -150,7 +150,7 @@ public:
 	void Init( void );
 
 	// copy
-	virtual cMoon *Copy( void );
+	virtual cMoon *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -166,7 +166,7 @@ public:
 	// collision from player
 	virtual void Handle_Collision_Player( cObjectCollision *collision );
 
-	float particle_counter;
+	float m_particle_counter;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

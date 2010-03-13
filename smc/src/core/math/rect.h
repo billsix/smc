@@ -39,7 +39,7 @@ public:
 	: m_x( x ), m_y( y ), m_w( w ), m_h( h ) {}
 
 	// returns a SDL_Rect
-	SDL_Rect Get_Rect( void ) const
+	inline SDL_Rect Get_Rect( void ) const
 	{
 		SDL_Rect rect;
 		rect.x = static_cast<Sint16>(m_x);
@@ -63,13 +63,13 @@ public:
 	}
 
 	// returns the point in the middle of the rect
-	GL_point Get_pos_middle( void ) const
+	inline GL_point Get_pos_middle( void ) const
 	{
 		return GL_point( m_x + ( m_w / 2 ), m_y + ( m_h / 2 ) );
 	}
 
 	// clears the data
-	void clear( void )
+	inline void clear( void )
 	{
 		m_x = 0;
 		m_y = 0;

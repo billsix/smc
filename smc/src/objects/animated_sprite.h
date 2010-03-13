@@ -40,7 +40,7 @@ public:
 class cAnimated_Sprite : public cMovingSprite
 {
 public:
-	cAnimated_Sprite( float x = 0.0f, float y = 0.0f );
+	cAnimated_Sprite( cSprite_Manager *sprite_manager );
 	virtual ~cAnimated_Sprite( void );
 	
 	/* Add an image to the animation
@@ -49,7 +49,11 @@ public:
 	*/
 	void Add_Image( cGL_Surface *image, Uint32 time = 0 );
 	// Set the animation start and end image
-	void Set_Animation_Image_Range( int start, int end );
+	inline void Set_Animation_Image_Range( const int start, const int end )
+	{
+		m_anim_img_start = start;
+		m_anim_img_end = end;
+	};
 	/* Set the image using the given array number
 	 * if new_start_image is set the default start_image will be set to the given image
 	 * if del_img is set the given image will be deleted
@@ -63,19 +67,40 @@ public:
 	/* Set if the animation is enabled
 	 * default : disabled
 	*/
-	void Set_Animation( bool enabled = 0 );
+	inline void Set_Animation( const bool enabled = 0 )
+	{
+		m_anim_enabled = enabled;
+	};
 	// Reset animation back to the first image
-	void Reset_Animation( void );
+	inline void Reset_Animation( void )
+	{
+		m_anim_counter = 0;
+	};
 
 	// update animation
 	void Update_Animation( void );
 
 	// Set default image display time
-	void Set_Default_Time( Uint32 time = 1000 );
+	inline void Set_Default_Time( const Uint32 time = 1000 )
+	{
+		m_anim_time_default = time;
+	};
 	/* Set display time for all images
 	 * default_time: if set also make it the default time
 	*/
-	void Set_Time_All( Uint32 time, bool default_time = 0 );
+	void Set_Time_All( const Uint32 time, const bool default_time = 0 );
+	/* Set the animation speed modifier
+	 * 1.0 is the normal speed
+	*/
+	inline void Set_Animation_Speed( const float anim_mod )
+	{
+		m_anim_mod = anim_mod;
+
+		if( m_anim_mod < 0.0f )
+		{
+			m_anim_mod = 0.0f;
+		}
+	};
 
 	// currently set image array number
 	int m_curr_img;
@@ -89,6 +114,8 @@ public:
 	Uint32 m_anim_time_default;
 	// animation counter
 	Uint32 m_anim_counter;
+	// animation speed modifier
+	float m_anim_mod;
 
 	// Surface list
 	typedef vector<cAnimation_Surface> cAnimation_Surface_List;

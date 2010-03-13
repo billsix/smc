@@ -29,15 +29,16 @@ namespace SMC
 
 /* *** *** *** *** *** *** *** Path state class *** *** *** *** *** *** *** *** *** *** */
 
-cPath_State :: cPath_State( void )
+cPath_State :: cPath_State( cSprite_Manager *sprite_manager )
 {
+	m_sprite_manager = sprite_manager;
 	m_path = NULL;
-	forward = 1;
-	pos_x = 0;
-	pos_y = 0;
+	m_forward = 1;
+	m_pos_x = 0;
+	m_pos_y = 0;
 
-	current_segment_pos = 0;
-	current_segment = 0;
+	m_current_segment_pos = 0;
+	m_current_segment = 0;
 }
 
 cPath_State :: ~cPath_State( void )
@@ -54,41 +55,46 @@ void cPath_State :: Load_From_Savegame( cSave_Level_Object *save_object )
 	// path position
 	if( save_object->exists( "new_pos_x" ) )
 	{
-		pos_x = string_to_float( save_object->Get_Value( "new_pos_x" ) );
+		m_pos_x = string_to_float( save_object->Get_Value( "new_pos_x" ) );
 	}
 	if( save_object->exists( "new_pos_y" ) )
 	{
-		pos_y = string_to_float( save_object->Get_Value( "new_pos_y" ) );
+		m_pos_y = string_to_float( save_object->Get_Value( "new_pos_y" ) );
 	}
 	// current segment
 	if( save_object->exists( "current_segment" ) )
 	{
-		current_segment = string_to_int( save_object->Get_Value( "current_segment" ) );
+		m_current_segment = string_to_int( save_object->Get_Value( "current_segment" ) );
 	}
 	if( save_object->exists( "current_segment_pos" ) )
 	{
-		current_segment_pos = string_to_float( save_object->Get_Value( "current_segment_pos" ) );
+		m_current_segment_pos = string_to_float( save_object->Get_Value( "current_segment_pos" ) );
 	}
 	if( save_object->exists( "forward" ) )
 	{
-		forward = string_to_int( save_object->Get_Value( "forward" ) ) > 0;
+		m_forward = string_to_int( save_object->Get_Value( "forward" ) ) > 0;
 	}
 }
 
 void cPath_State :: Save_To_Savegame( cSave_Level_Object *save_object )
 {
 	// path position
-	save_object->m_properties.push_back( cSave_Level_Object_Property( "new_pos_x", float_to_string( pos_x ) ) );
-	save_object->m_properties.push_back( cSave_Level_Object_Property( "new_pos_y", float_to_string( pos_y ) ) );
+	save_object->m_properties.push_back( cSave_Level_Object_Property( "new_pos_x", float_to_string( m_pos_x ) ) );
+	save_object->m_properties.push_back( cSave_Level_Object_Property( "new_pos_y", float_to_string( m_pos_y ) ) );
 
 	// current segment
-	save_object->m_properties.push_back( cSave_Level_Object_Property( "current_segment", int_to_string( current_segment ) ) );
+	save_object->m_properties.push_back( cSave_Level_Object_Property( "current_segment", int_to_string( m_current_segment ) ) );
 
 	// current segment position
-	save_object->m_properties.push_back( cSave_Level_Object_Property( "current_segment_pos", float_to_string( current_segment_pos ) ) );
+	save_object->m_properties.push_back( cSave_Level_Object_Property( "current_segment_pos", float_to_string( m_current_segment_pos ) ) );
 
 	// forward
-	save_object->m_properties.push_back( cSave_Level_Object_Property( "forward", int_to_string( static_cast<int>(forward) ) ) );
+	save_object->m_properties.push_back( cSave_Level_Object_Property( "forward", int_to_string( static_cast<int>(m_forward) ) ) );
+}
+
+void cPath_State :: Set_Sprite_Manager( cSprite_Manager *sprite_manager )
+{
+	m_sprite_manager = sprite_manager;
 }
 
 void cPath_State :: Draw( void )
@@ -98,7 +104,36 @@ void cPath_State :: Draw( void )
 		return;
 	}
 	
-	pVideo->Draw_Rect( m_path->m_col_rect.m_x + pos_x - 4 - pActive_Camera->x, m_path->m_col_rect.m_y + pos_y - 4 - pActive_Camera->y, 8, 8, m_path->m_editor_pos_z + 0.00002f, &orange );
+	pVideo->Draw_Rect( m_path->m_col_rect.m_x + m_pos_x - 4 - pActive_Camera->m_x, m_path->m_col_rect.m_y + m_pos_y - 4 - pActive_Camera->m_y, 8, 8, m_path->m_editor_pos_z + 0.00002f, &orange );
+}
+
+cPath *cPath_State :: Get_Path_Object( const std::string &identifier )
+{
+	if( identifier.empty() )
+	{
+		return NULL;
+	}
+
+	// Search for path
+	for( cSprite_List::iterator itr = m_sprite_manager->objects.begin(); itr != m_sprite_manager->objects.end(); ++itr )
+	{
+		cSprite *obj = (*itr);
+
+		if( obj->m_type != TYPE_PATH || obj->m_auto_destroy )
+		{
+			continue;
+		}
+
+		cPath *path = static_cast<cPath *>(obj);
+
+		// found
+		if( path->m_identifier.compare( identifier ) == 0 )
+		{
+			return path;
+		}
+	}
+
+	return NULL;
 }
 
 void cPath_State :: Set_Path_Identifier( const std::string &path )
@@ -111,7 +146,7 @@ void cPath_State :: Set_Path_Identifier( const std::string &path )
 
 	// set path
 	m_path_identifier = path;
-	m_path = pActive_Level->Get_Path_Object( m_path_identifier );
+	m_path = Get_Path_Object( m_path_identifier );
 
 	// not found
 	if( !m_path )
@@ -133,7 +168,7 @@ void cPath_State :: Path_Destroyed_Event( void )
 
 void cPath_State :: Move_Toggle( void )
 {
-	if( forward )
+	if( m_forward )
 	{
 		Move_Start_Backward();
 	}
@@ -145,7 +180,7 @@ void cPath_State :: Move_Toggle( void )
 
 void cPath_State :: Move_Reset( void )
 {
-	if( forward )
+	if( m_forward )
 	{
 		Move_Start_Forward();
 	}
@@ -157,29 +192,29 @@ void cPath_State :: Move_Reset( void )
 
 void cPath_State :: Move_Reverse( void )
 {
-	forward = !forward;
+	m_forward = !m_forward;
 }
 
 void cPath_State :: Move_Start_Forward( void )
 {
-	if( !m_path || m_path->segments.empty() )
+	if( !m_path || m_path->m_segments.empty() )
 	{
 		return;
 	}
 
-	forward = 1;
+	m_forward = 1;
 	Move_From_Segment( 0 );
 }
 
 void cPath_State :: Move_Start_Backward( void )
 {
-	if( !m_path || m_path->segments.empty() )
+	if( !m_path || m_path->m_segments.empty() )
 	{
 		return;
 	}
 
-	forward = 0;
-	Move_From_Segment( m_path->segments.size() - 1 );
+	m_forward = 0;
+	Move_From_Segment( m_path->m_segments.size() - 1 );
 }
 
 void cPath_State :: Move_From_Segment( unsigned int segment )
@@ -190,25 +225,25 @@ void cPath_State :: Move_From_Segment( unsigned int segment )
 	}
 
 	// invalid segment
-	if( segment >= m_path->segments.size() )
+	if( segment >= m_path->m_segments.size() )
 	{
 		return;
 	}
 
-	current_segment = segment;
+	m_current_segment = segment;
 	
-	if( forward )
+	if( m_forward )
 	{
-		current_segment_pos = 0;
-		pos_x = m_path->segments[current_segment].m_x1;
-		pos_y = m_path->segments[current_segment].m_y1;
+		m_current_segment_pos = 0;
+		m_pos_x = m_path->m_segments[m_current_segment].m_x1;
+		m_pos_y = m_path->m_segments[m_current_segment].m_y1;
 	}
 	// backward
 	else
 	{
-		current_segment_pos = m_path->segments[current_segment].m_distance;
-		pos_x = m_path->segments[current_segment].m_x2;
-		pos_y = m_path->segments[current_segment].m_y2;
+		m_current_segment_pos = m_path->m_segments[m_current_segment].m_distance;
+		m_pos_x = m_path->m_segments[m_current_segment].m_x2;
+		m_pos_y = m_path->m_segments[m_current_segment].m_y2;
 	}
 }
 
@@ -220,35 +255,35 @@ bool cPath_State :: Path_Move( float distance )
 	}
 	
 	// invalid slot
-	if( current_segment >= m_path->segments.size() )
+	if( m_current_segment >= m_path->m_segments.size() )
 	{
 		return 0;
 	}
 
 	// get current segment object
-	cPath_Segment obj = m_path->segments[current_segment];
+	cPath_Segment obj = m_path->m_segments[m_current_segment];
 
 	// walk forward
-	if( forward )
+	if( m_forward )
 	{
 		while( 1 )
 		{
 			// how much is left
-			float remaining = obj.m_distance - current_segment_pos;
+			float remaining = obj.m_distance - m_current_segment_pos;
 
 			if( distance > remaining )
 			{
-				pos_x = obj.m_x2;
-				pos_y = obj.m_y2;
+				m_pos_x = obj.m_x2;
+				m_pos_y = obj.m_y2;
 
 				// finished
-				if( current_segment + 1 >= m_path->segments.size() )
+				if( m_current_segment + 1 >= m_path->m_segments.size() )
 				{
 					// rewind
 					if( m_path->m_rewind )
 					{
-						current_segment = 0;
-						current_segment_pos = 0;
+						m_current_segment = 0;
+						m_current_segment_pos = 0;
 						return 0;
 					}
 					// mirror
@@ -259,17 +294,17 @@ bool cPath_State :: Path_Move( float distance )
 				}
 
 				// set current segment object
-				current_segment++;
-				obj = m_path->segments[current_segment];
+				m_current_segment++;
+				obj = m_path->m_segments[m_current_segment];
 
-				current_segment_pos = 0;
+				m_current_segment_pos = 0;
 				distance -= remaining;
 			}
 			else
 			{
-				current_segment_pos += distance;
-				pos_x = obj.m_x1 + obj.m_ux * current_segment_pos;
-				pos_y = obj.m_y1 + obj.m_uy * current_segment_pos;
+				m_current_segment_pos += distance;
+				m_pos_x = obj.m_x1 + obj.m_ux * m_current_segment_pos;
+				m_pos_y = obj.m_y1 + obj.m_uy * m_current_segment_pos;
 
 				return 1;
 			}
@@ -281,22 +316,22 @@ bool cPath_State :: Path_Move( float distance )
 		while( 1 )
 		{
 			// how much is left
-			float remaining = current_segment_pos;
+			float remaining = m_current_segment_pos;
 
 			if( distance > remaining )
 			{
-				pos_x = obj.m_x1;
-				pos_y = obj.m_y1;
+				m_pos_x = obj.m_x1;
+				m_pos_y = obj.m_y1;
 
 				// finished
-				if( current_segment == 0 )
+				if( m_current_segment == 0 )
 				{
 					// rewind
 					if( m_path->m_rewind )
 					{
-						current_segment = m_path->segments.size() - 1;
-						obj = m_path->segments[current_segment];
-						current_segment_pos = obj.m_distance;
+						m_current_segment = m_path->m_segments.size() - 1;
+						obj = m_path->m_segments[m_current_segment];
+						m_current_segment_pos = obj.m_distance;
 						return 0;
 					}
 					// mirror
@@ -307,17 +342,17 @@ bool cPath_State :: Path_Move( float distance )
 				}
 
 				// set current segment object
-				current_segment--;
-				obj = m_path->segments[current_segment];
+				m_current_segment--;
+				obj = m_path->m_segments[m_current_segment];
 
-				current_segment_pos = obj.m_distance;
+				m_current_segment_pos = obj.m_distance;
 				distance -= remaining;
 			}
 			else
 			{
-				current_segment_pos -= distance;
-				pos_x = obj.m_x1 + obj.m_ux * current_segment_pos;
-				pos_y = obj.m_y1 + obj.m_uy * current_segment_pos;
+				m_current_segment_pos -= distance;
+				m_pos_x = obj.m_x1 + obj.m_ux * m_current_segment_pos;
+				m_pos_y = obj.m_y1 + obj.m_uy * m_current_segment_pos;
 
 				return 1;
 			}
@@ -416,15 +451,15 @@ void cPath_Segment :: Update( void )
 
 /* *** *** *** *** *** *** *** Path class *** *** *** *** *** *** *** *** *** *** */
 
-cPath :: cPath( void )
-: cSprite()
+cPath :: cPath( cSprite_Manager *sprite_manager )
+: cSprite( sprite_manager )
 {
 	// Set defaults
 	cPath::Init();
 }
 
-cPath :: cPath( CEGUI::XMLAttributes &attributes )
-: cSprite()
+cPath :: cPath( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cSprite( sprite_manager )
 {
 	cPath::Init();
 	cPath::Create_From_Stream( attributes );
@@ -453,24 +488,23 @@ void cPath :: Init( void )
 	m_start_rect.m_h = m_rect.m_h;
 
 	m_rewind = 0;
-	editor_color = Color( static_cast<Uint8>(100), 150, 200, 128 );
-	editor_selected_segment = 0;
+	m_editor_color = Color( static_cast<Uint8>(100), 150, 200, 128 );
+	m_editor_selected_segment = 0;
 }
 
-cPath *cPath :: Copy( void )
+cPath *cPath :: Copy( void ) const
 {
-	cPath *path = new cPath();
+	cPath *path = new cPath( m_sprite_manager );
 	path->Set_Pos( m_start_pos_x, m_start_pos_y, 1 );
-	path->segments = segments;
+	path->m_segments = m_segments;
 	path->Set_Identifier( m_identifier );
 	path->Set_Rewind( m_rewind );
-
 	return path;
 }
 
 void cPath :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 {
-	segments.clear();
+	m_segments.clear();
 
 	// position
 	Set_Pos( static_cast<float>(attributes.getValueAsInteger( "posx" )), static_cast<float>(attributes.getValueAsInteger( "posy" )), 1 );
@@ -495,7 +529,7 @@ void cPath :: Create_From_Stream( CEGUI::XMLAttributes &attributes )
 		
 		obj.Set_Pos( attributes.getValueAsFloat( "segment_" + str_pos + "_x1" ), attributes.getValueAsFloat( "segment_" + str_pos + "_y1" ), attributes.getValueAsFloat( "segment_" + str_pos + "_x2" ), attributes.getValueAsFloat( "segment_" + str_pos + "_y2" ) );
 
-		segments.push_back( obj );
+		m_segments.push_back( obj );
 
 		count++;
 	}
@@ -515,16 +549,16 @@ void cPath :: Save_To_Stream( ofstream &file )
 	file << "\t\t<Property name=\"rewind\" value=\"" << m_rewind << "\" />" << std::endl;
 
 	// segments
-	unsigned int count = segments.size();
+	unsigned int count = m_segments.size();
 
 	for( unsigned int pos = 0; pos < count; pos++ )
 	{
 		std::string str_pos = int_to_string( pos );
 
-		file << "\t\t<Property name=\"" << "segment_" + str_pos + "_x1" << "\" value=\"" << segments[pos].m_x1 << "\" />" << std::endl;
-		file << "\t\t<Property name=\"" << "segment_" + str_pos + "_y1" << "\" value=\"" << segments[pos].m_y1 << "\" />" << std::endl;
-		file << "\t\t<Property name=\"" << "segment_" + str_pos + "_x2" << "\" value=\"" << segments[pos].m_x2 << "\" />" << std::endl;
-		file << "\t\t<Property name=\"" << "segment_" + str_pos + "_y2" << "\" value=\"" << segments[pos].m_y2 << "\" />" << std::endl;
+		file << "\t\t<Property name=\"" << "segment_" + str_pos + "_x1" << "\" value=\"" << m_segments[pos].m_x1 << "\" />" << std::endl;
+		file << "\t\t<Property name=\"" << "segment_" + str_pos + "_y1" << "\" value=\"" << m_segments[pos].m_y1 << "\" />" << std::endl;
+		file << "\t\t<Property name=\"" << "segment_" + str_pos + "_x2" << "\" value=\"" << m_segments[pos].m_x2 << "\" />" << std::endl;
+		file << "\t\t<Property name=\"" << "segment_" + str_pos + "_y2" << "\" value=\"" << m_segments[pos].m_y2 << "\" />" << std::endl;
 	}
 
 	// end path
@@ -563,7 +597,7 @@ void cPath :: Set_Identifier( const std::string &identifier )
 	/* search for linked objects
 	 * needed to update the links
 	*/
-	for( cSprite_List::iterator itr = pActive_Level->m_sprite_manager->objects.begin(), itr_end = pActive_Level->m_sprite_manager->objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::iterator itr = pActive_Level->m_sprite_manager->objects.begin(); itr != pActive_Level->m_sprite_manager->objects.end(); ++itr )
 	{
 		cSprite *obj = (*itr);
 
@@ -609,14 +643,14 @@ void cPath :: Set_Rewind( bool rewind )
 
 	m_rewind = rewind;
 
-	for( PathStateList::iterator itr = linked_path_states.begin(), itr_end = linked_path_states.end(); itr != itr_end; ++itr )
+	for( PathStateList::iterator itr = m_linked_path_states.begin(); itr != m_linked_path_states.end(); ++itr )
 	{
 		cPath_State *obj = (*itr);
 
 		// reset backwards moving
-		if( !obj->forward )
+		if( !obj->m_forward )
 		{
-			obj->Move_From_Segment( obj->current_segment );
+			obj->Move_From_Segment( obj->m_current_segment );
 		}
 	}
 }
@@ -628,7 +662,7 @@ void cPath :: Create_Link( cPath_State *path_state )
 		return;
 	}
 	
-	linked_path_states.push_back( path_state );
+	m_linked_path_states.push_back( path_state );
 }
 
 void cPath :: Remove_Link( cPath_State *path_state )
@@ -639,19 +673,19 @@ void cPath :: Remove_Link( cPath_State *path_state )
 	}
 	
 	// get iterator
-	PathStateList::iterator itr = std::find( linked_path_states.begin(), linked_path_states.end(), path_state );
+	PathStateList::iterator itr = std::find( m_linked_path_states.begin(), m_linked_path_states.end(), path_state );
 
 	// if available
-	if( itr != linked_path_states.end() )
+	if( itr != m_linked_path_states.end() )
 	{
 		// erase
-		linked_path_states.erase( itr );
+		m_linked_path_states.erase( itr );
 	}
 }
 
 void cPath :: Remove_Links( void )
 {
-	for( PathStateList::iterator itr = linked_path_states.begin(), itr_end = linked_path_states.end(); itr != itr_end; ++itr )
+	for( PathStateList::iterator itr = m_linked_path_states.begin(); itr != m_linked_path_states.end(); ++itr )
 	{
 		cPath_State *obj = (*itr);
 
@@ -675,15 +709,15 @@ void cPath :: Draw( cSurface_Request *request /* = NULL */ )
 	}
 
 	// draw color rect
-	pVideo->Draw_Rect( m_col_rect.m_x - pActive_Camera->x, m_col_rect.m_y - pActive_Camera->y, m_col_rect.m_w, m_col_rect.m_h, m_editor_pos_z, &editor_color );
+	pVideo->Draw_Rect( m_col_rect.m_x - pActive_Camera->m_x, m_col_rect.m_y - pActive_Camera->m_y, m_col_rect.m_w, m_col_rect.m_h, m_editor_pos_z, &m_editor_color );
 
 	// draw segments
 	int count = 0;
-	for( PathList::iterator itr = segments.begin(), itr_end = segments.end(); itr != itr_end; ++itr )
+	for( PathList::iterator itr = m_segments.begin(); itr != m_segments.end(); ++itr )
 	{
 		cPath_Segment obj = (*itr);
 
-		Color line_color = editor_color;
+		Color line_color = m_editor_color;
 
 		if( count % 2 != 1 )
 		{
@@ -692,7 +726,7 @@ void cPath :: Draw( cSurface_Request *request /* = NULL */ )
 
 		// create request
 		cLine_Request *line_request = new cLine_Request();
-		pVideo->Draw_Line( m_col_rect.m_x + obj.m_x1 - pActive_Camera->x, m_col_rect.m_y + obj.m_y1 - pActive_Camera->y, m_col_rect.m_x + obj.m_x2 - pActive_Camera->x, m_col_rect.m_y + obj.m_y2 - pActive_Camera->y, m_editor_pos_z + 0.00001f, &line_color, line_request );
+		pVideo->Draw_Line( m_col_rect.m_x + obj.m_x1 - pActive_Camera->m_x, m_col_rect.m_y + obj.m_y1 - pActive_Camera->m_y, m_col_rect.m_x + obj.m_x2 - pActive_Camera->m_x, m_col_rect.m_y + obj.m_y2 - pActive_Camera->m_y, m_editor_pos_z + 0.00001f, &line_color, line_request );
 		line_request->line_width = 2;
 		// add request
 		pRenderer->Add( line_request );
@@ -752,12 +786,12 @@ void cPath :: Editor_Activate( void )
 	combobox = static_cast<CEGUI::Combobox *>(wmgr.createWindow( "TaharezLook/Combobox", "path_selected_segment" ));
 	Editor_Add( UTF8_("Segment"), UTF8_("Select the Segment to edit."), combobox, 100, 105 );
 
-	for( unsigned int count = 0; count < segments.size(); count++ )
+	for( unsigned int count = 0; count < m_segments.size(); count++ )
 	{
 		combobox->addItem( new CEGUI::ListboxTextItem( int_to_string( count ) ) );
 	}
 
-	combobox->setText( int_to_string( editor_selected_segment ) );
+	combobox->setText( int_to_string( m_editor_selected_segment ) );
 
 	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cPath::Editor_Selected_Segment_Select, this ) );
 
@@ -780,7 +814,7 @@ void cPath :: Editor_Activate( void )
 	Editor_Add( UTF8_("Pos X1"), UTF8_("Line position X1"), editbox, 150 );
 
 	editbox->setValidationString( "[-+]?[0-9]*\\.?[0-9]*" );
-	editbox->setText( int_to_string( static_cast<int>(segments[editor_selected_segment].m_x1) ) );
+	editbox->setText( int_to_string( static_cast<int>(m_segments[m_editor_selected_segment].m_x1) ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cPath::Editor_Pos_X1_Text_Changed, this ) );
 
 	// selected segment y1
@@ -788,7 +822,7 @@ void cPath :: Editor_Activate( void )
 	Editor_Add( UTF8_("Y1"), UTF8_("Line position Y1"), editbox, 150, 28, 0 );
 
 	editbox->setValidationString( "[-+]?[0-9]*\\.?[0-9]*" );
-	editbox->setText( int_to_string( static_cast<int>(segments[editor_selected_segment].m_y1) ) );
+	editbox->setText( int_to_string( static_cast<int>(m_segments[m_editor_selected_segment].m_y1) ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cPath::Editor_Pos_Y1_Text_Changed, this ) );
 
 	// selected segment x2
@@ -796,7 +830,7 @@ void cPath :: Editor_Activate( void )
 	Editor_Add( UTF8_("Pos X2"), UTF8_("Line position X2"), editbox, 150 );
 
 	editbox->setValidationString( "[-+]?[0-9]*\\.?[0-9]*" );
-	editbox->setText( int_to_string( static_cast<int>(segments[editor_selected_segment].m_x2) ) );
+	editbox->setText( int_to_string( static_cast<int>(m_segments[m_editor_selected_segment].m_x2) ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cPath::Editor_Pos_X2_Text_Changed, this ) );
 
 	// selected segment y2
@@ -804,7 +838,7 @@ void cPath :: Editor_Activate( void )
 	Editor_Add( UTF8_("Y2"), UTF8_("Line position Y2"), editbox, 150, 28, 0 );
 
 	editbox->setValidationString( "[-+]?[0-9]*\\.?[0-9]*" );
-	editbox->setText( int_to_string( static_cast<int>(segments[editor_selected_segment].m_y2) ) );
+	editbox->setText( int_to_string( static_cast<int>(m_segments[m_editor_selected_segment].m_y2) ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cPath::Editor_Pos_Y2_Text_Changed, this ) );
 
 	// init
@@ -819,29 +853,29 @@ void cPath :: Editor_State_Update( void )
 	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(wmgr.getWindow( "path_selected_segment" ));
 	combobox->resetList();
 
-	for( unsigned int count = 0; count < segments.size(); count++ )
+	for( unsigned int count = 0; count < m_segments.size(); count++ )
 	{
 		combobox->addItem( new CEGUI::ListboxTextItem( int_to_string( count ) ) );
 	}
 
-	combobox->setText( int_to_string( editor_selected_segment ) );
+	combobox->setText( int_to_string( m_editor_selected_segment ) );
 
 	// Set selected segment values
 	// x1
 	CEGUI::Editbox *editbox_x1 = static_cast<CEGUI::Editbox *>(wmgr.getWindow( "path_segment_x1" ));
-	editbox_x1->setText( float_to_string( segments[editor_selected_segment].m_x1 ) );
+	editbox_x1->setText( float_to_string( m_segments[m_editor_selected_segment].m_x1 ) );
 	// y1
 	CEGUI::Editbox *editbox_y1 = static_cast<CEGUI::Editbox *>(wmgr.getWindow( "path_segment_y1" ));
-	editbox_y1->setText( float_to_string( segments[editor_selected_segment].m_y1 ) );
+	editbox_y1->setText( float_to_string( m_segments[m_editor_selected_segment].m_y1 ) );
 	// x2
 	CEGUI::Editbox *editbox_x2 = static_cast<CEGUI::Editbox *>(wmgr.getWindow( "path_segment_x2" ));
-	editbox_x2->setText( float_to_string( segments[editor_selected_segment].m_x2 ) );
+	editbox_x2->setText( float_to_string( m_segments[m_editor_selected_segment].m_x2 ) );
 	// y2
 	CEGUI::Editbox *editbox_y2 = static_cast<CEGUI::Editbox *>(wmgr.getWindow( "path_segment_y2" ));
-	editbox_y2->setText( float_to_string( segments[editor_selected_segment].m_y2 ) );
+	editbox_y2->setText( float_to_string( m_segments[m_editor_selected_segment].m_y2 ) );
 
 	// do not allow to change the start point position
-	if( editor_selected_segment == 0 )
+	if( m_editor_selected_segment == 0 )
 	{
 		editbox_x1->setEnabled( 0 );
 		editbox_y1->setEnabled( 0 );
@@ -885,12 +919,12 @@ bool cPath :: Editor_Selected_Segment_Select( const CEGUI::EventArgs &event )
 {
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
 	CEGUI::ListboxItem *item = static_cast<CEGUI::Combobox *>( windowEventArgs.window )->getSelectedItem();
-	editor_selected_segment = string_to_int( item->getText().c_str() );
+	m_editor_selected_segment = string_to_int( item->getText().c_str() );
 
 	// invalid selected segment
-	if( editor_selected_segment >= segments.size() )
+	if( m_editor_selected_segment >= m_segments.size() )
 	{
-		editor_selected_segment = segments.size() - 1;
+		m_editor_selected_segment = m_segments.size() - 1;
 	}
 
 	Editor_State_Update();
@@ -900,11 +934,11 @@ bool cPath :: Editor_Selected_Segment_Select( const CEGUI::EventArgs &event )
 
 bool cPath :: Editor_Button_Add_Segment_Clicked( const CEGUI::EventArgs &event )
 {
-	cPath_Segment new_segment = segments[editor_selected_segment];
+	cPath_Segment new_segment = m_segments[m_editor_selected_segment];
 	new_segment.Set_Pos( new_segment.m_x2, new_segment.m_y2, new_segment.m_x2 + 20, new_segment.m_y2 - 20 );
-	segments.insert( segments.begin() + editor_selected_segment + 1, new_segment );
+	m_segments.insert( m_segments.begin() + m_editor_selected_segment + 1, new_segment );
 
-	editor_selected_segment++;
+	m_editor_selected_segment++;
 	Editor_State_Update();
 
 	return 1;
@@ -913,29 +947,29 @@ bool cPath :: Editor_Button_Add_Segment_Clicked( const CEGUI::EventArgs &event )
 bool cPath :: Editor_Button_Delete_Segment_Clicked( const CEGUI::EventArgs &event )
 {
 	// always keep one
-	if( segments.size() == 1 )
+	if( m_segments.size() == 1 )
 	{
 		return 1;
 	}
 
-	segments.erase( segments.begin() + editor_selected_segment );
+	m_segments.erase( m_segments.begin() + m_editor_selected_segment );
 
-	for( PathStateList::iterator itr = linked_path_states.begin(), itr_end = linked_path_states.end(); itr != itr_end; ++itr )
+	for( PathStateList::iterator itr = m_linked_path_states.begin(); itr != m_linked_path_states.end(); ++itr )
 	{
 		cPath_State *obj = (*itr);
 
-		if( editor_selected_segment == obj->current_segment )
+		if( m_editor_selected_segment == obj->m_current_segment )
 		{
-			if( obj->current_segment > 0 )
+			if( obj->m_current_segment > 0 )
 			{
-				obj->current_segment--;
+				obj->m_current_segment--;
 			}
 
-			obj->Move_From_Segment( obj->current_segment );
+			obj->Move_From_Segment( obj->m_current_segment );
 		}
 	}
 
-	editor_selected_segment--;
+	m_editor_selected_segment--;
 	Editor_State_Update();
 
 	return 1;
@@ -946,7 +980,7 @@ bool cPath :: Editor_Pos_X1_Text_Changed( const CEGUI::EventArgs &event )
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
 	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
-	segments[editor_selected_segment].Set_Pos_Start_X( string_to_float( str_text ) );
+	m_segments[m_editor_selected_segment].Set_Pos_Start_X( string_to_float( str_text ) );
 
 	Editor_Segment_Pos_Changed();
 
@@ -958,7 +992,7 @@ bool cPath :: Editor_Pos_Y1_Text_Changed( const CEGUI::EventArgs &event )
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
 	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
-	segments[editor_selected_segment].Set_Pos_Start_Y( string_to_float( str_text ) );
+	m_segments[m_editor_selected_segment].Set_Pos_Start_Y( string_to_float( str_text ) );
 
 	Editor_Segment_Pos_Changed();
 
@@ -970,7 +1004,7 @@ bool cPath :: Editor_Pos_X2_Text_Changed( const CEGUI::EventArgs &event )
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
 	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
-	segments[editor_selected_segment].Set_Pos_End_X( string_to_float( str_text ) );
+	m_segments[m_editor_selected_segment].Set_Pos_End_X( string_to_float( str_text ) );
 
 	Editor_Segment_Pos_Changed();
 
@@ -982,7 +1016,7 @@ bool cPath :: Editor_Pos_Y2_Text_Changed( const CEGUI::EventArgs &event )
 	const CEGUI::WindowEventArgs &windowEventArgs = static_cast<const CEGUI::WindowEventArgs&>( event );
 	std::string str_text = static_cast<CEGUI::Editbox *>( windowEventArgs.window )->getText().c_str();
 
-	segments[editor_selected_segment].Set_Pos_End_Y( string_to_float( str_text ) );
+	m_segments[m_editor_selected_segment].Set_Pos_End_Y( string_to_float( str_text ) );
 
 	Editor_Segment_Pos_Changed();
 
@@ -991,13 +1025,13 @@ bool cPath :: Editor_Pos_Y2_Text_Changed( const CEGUI::EventArgs &event )
 
 void cPath :: Editor_Segment_Pos_Changed( void )
 {
-	for( PathStateList::iterator itr = linked_path_states.begin(), itr_end = linked_path_states.end(); itr != itr_end; ++itr )
+	for( PathStateList::iterator itr = m_linked_path_states.begin(); itr != m_linked_path_states.end(); ++itr )
 	{
 		cPath_State *obj = (*itr);
 
-		if( editor_selected_segment == obj->current_segment )
+		if( m_editor_selected_segment == obj->m_current_segment )
 		{
-			obj->Move_From_Segment( editor_selected_segment );
+			obj->Move_From_Segment( m_editor_selected_segment );
 		}
 	}
 }

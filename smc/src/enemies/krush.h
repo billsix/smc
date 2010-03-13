@@ -22,26 +22,24 @@ namespace SMC
 {
 
 /* *** *** *** *** *** cKrush *** *** *** *** *** *** *** *** *** *** *** *** */
-
-class cKrush : public cEnemy
-{
-/* Krush
- * Walking all Day and doesn't stop even if you hit him the first time :O
+/* Walking all Day and doesn't stop even if you hit him the first time :O
  * but the second time he's out.
  * Colors : Red
  */
+class cKrush : public cEnemy
+{
 public:
 	// constructor
-	cKrush( float x, float y );
+	cKrush( cSprite_Manager *sprite_manager );
 	// create from stream
-	cKrush( CEGUI::XMLAttributes &attributes );
+	cKrush( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cKrush( void );
 
 	// init defaults
 	void Init( void );
 	// copy
-	virtual cKrush *Copy( void );
+	virtual cKrush *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -72,8 +70,8 @@ public:
 	// update
 	virtual void Update( void );
 
-	// update the current velocity
-	void Update_Velocity( void );
+	// update maximum velocity values
+	void Update_Velocity_Max( void );
 
 	// if update is valid for the current state
 	virtual bool Is_Update_Valid( void );

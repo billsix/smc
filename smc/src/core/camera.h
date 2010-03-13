@@ -22,28 +22,43 @@
 namespace SMC
 {
 
+/* *** *** *** *** *** *** *** How to move the camera *** *** *** *** *** *** *** *** */
+enum Camera_movement
+{
+	CAMERA_MOVE_NONE = 0,	// No movement
+	CAMERA_MOVE_FLY = 1,	// Move the camera to the destination position
+	CAMERA_MOVE_BLINK = 2,	// Fade out at the current position and fade back in at the destination position
+	CAMERA_MOVE_ALONG_PATH = 3, // Move the camera along a given path
+	CAMERA_MOVE_ALONG_PATH_BACKWARDS = 4 // Move the camera along a given path backwards
+};
+
 /* *** *** *** *** *** cCamera *** *** *** *** *** *** *** *** *** *** *** *** */
 
 class cCamera
 {
 public:
-	cCamera( void );
+	cCamera( cSprite_Manager *sprite_manager );
 	~cCamera( void );
 
+	// Set the parent sprite manager
+	void Set_Sprite_Manager( cSprite_Manager *sprite_manager );
+
 	// set camera position
-	void Set_Pos( float nx, float ny );
-	void Set_Pos_X( float nx );
-	void Set_Pos_Y( float ny );
+	void Set_Pos( float x, float y );
+	void Set_Pos_X( float x );
+	void Set_Pos_Y( float y );
+	// set start position
+	void Reset_Pos( void );
 	// move the camera
 	void Move( const float move_x, const float move_y );
 	/* moves to the given position with the given frames gradually
 	 * returns 0 if reached the nearest possible position
 	*/
-	bool Move_to_Position_Gradually( const float px, const float py, const unsigned int frames = 200 );
+	bool Move_to_Position_Gradually( const float pos_x, const float pos_y, const unsigned int frames = 200 );
 	/* move one step to the given position gradually
 	 * returns 0 if reached the nearest possible position
 	*/
-	bool Step_to_Position_Gradually( const float px, const float py );
+	bool Step_to_Position_Gradually( const float pos_x, const float pos_y );
 
 	// update
 	void Update( void );
@@ -54,36 +69,59 @@ public:
 	float Get_Center_Pos_X( void ) const;
 	// get centered player position y
 	float Get_Center_Pos_Y( void ) const;
+	// get camera rect
+	GL_rect Get_Rect( void ) const;
 
 	// reset limits
-	void Reset_Limits( void );
+	inline void Reset_Limits( void )
+	{
+		m_limit_rect = m_default_limits;
+	};
 	// set limits
 	void Set_Limits( const GL_rect &rect );
-	void Set_Limit_X( const float val );
-	void Set_Limit_Y( const float val );
-	void Set_Limit_W( const float val );
-	void Set_Limit_H( const float val );
+	inline void Set_Limit_X( const float val )
+	{
+		m_limit_rect.m_x = val;
+	};
+	inline void Set_Limit_Y( const float val )
+	{
+		m_limit_rect.m_y = val;
+	};
+	inline void Set_Limit_W( const float val )
+	{
+		m_limit_rect.m_w = val;
+	};
+	inline void Set_Limit_H( const float val )
+	{
+		m_limit_rect.m_h = val;
+	};
 	// update limit with the given position
-	void Update_Limit( float &nx, float &ny ) const;
-	void Update_Limit_X( float &nx ) const;
-	void Update_Limit_Y( float &ny ) const;
+	inline void Update_Limit( float &x, float &y ) const
+	{
+		Update_Limit_X( x );
+		Update_Limit_Y( y );
+	};
+	void Update_Limit_X( float &x ) const;
+	void Update_Limit_Y( float &y ) const;
 	// update if position changed
 	void Update_Position( void ) const;
 
+	// the parent sprite manager
+	cSprite_Manager *m_sprite_manager;
 	// position
-	float x, y;
+	float m_x, m_y;
 	// additional position offset
-	float x_offset, y_offset;
+	float m_x_offset, m_y_offset;
 	// position offset speed
-	float hor_offset_speed, ver_offset_speed;
+	float m_hor_offset_speed, m_ver_offset_speed;
 	// limits
-	GL_rect limit_rect;
+	GL_rect m_limit_rect;
 
 	// fixed horizontal scrolling velocity
-	float fixed_hor_vel;
+	float m_fixed_hor_vel;
 
 	// default limits
-	static const GL_rect default_limits;
+	static const GL_rect m_default_limits;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

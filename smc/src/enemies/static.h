@@ -23,17 +23,15 @@ namespace SMC
 {
 
 /* *** *** *** *** *** *** cStaticEnemy *** *** *** *** *** *** *** *** *** *** *** */
-
+/* It doesn't move but will hit you if you touch it.
+ */
 class cStaticEnemy : public cEnemy 
 {
-/* Static enemies don't move but will
- * hit you if you touch them.
- */
 public:
 	// constructor
-	cStaticEnemy( float x, float y );
+	cStaticEnemy( cSprite_Manager *sprite_manager );
 	// create from stream
-	cStaticEnemy( CEGUI::XMLAttributes &attributes );
+	cStaticEnemy( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cStaticEnemy( void );
 
@@ -44,12 +42,15 @@ public:
 	*/
 	virtual void Init_Links( void );
 	// copy
-	virtual cStaticEnemy *Copy( void );
+	virtual cStaticEnemy *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
 	// save to stream
 	virtual void Save_To_Stream( ofstream &file );
+
+	// Set the parent sprite manager
+	virtual void Set_Sprite_Manager( cSprite_Manager *sprite_manager );
 
 	// load from savegame
 	virtual void Load_From_Savegame( cSave_Level_Object *save_object );

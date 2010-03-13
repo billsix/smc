@@ -104,7 +104,7 @@ void cFont_Manager :: Add_Ref( cGL_Surface *surface )
 
 void cFont_Manager :: Delete_Ref( cGL_Surface *surface )
 {
-	for( ActiveFontList::iterator itr = m_active_fonts.begin(), itr_end = m_active_fonts.end(); itr != itr_end; ++itr )
+	for( ActiveFontList::iterator itr = m_active_fonts.begin(); itr != m_active_fonts.end(); ++itr )
 	{
 		cGL_Surface *obj = (*itr);
 
@@ -142,7 +142,7 @@ cGL_Surface *cFont_Manager :: Render_Text( TTF_Font *font, const std::string &te
 void cFont_Manager :: Grab_Textures( void )
 {
 	// save to software memory
-	for( ActiveFontList::iterator itr = m_active_fonts.begin(), itr_end = m_active_fonts.end(); itr != itr_end; ++itr )
+	for( ActiveFontList::iterator itr = m_active_fonts.begin(); itr != m_active_fonts.end(); ++itr )
 	{
 		cGL_Surface *obj = (*itr);
 
@@ -160,7 +160,7 @@ void cFont_Manager :: Grab_Textures( void )
 void cFont_Manager :: Restore_Textures( void )
 {
 	// load back into hardware textures
-	for( Saved_Texture_List::iterator itr = m_software_textures.begin(), itr_end = m_software_textures.end(); itr != itr_end; ++itr )
+	for( Saved_Texture_List::iterator itr = m_software_textures.begin(); itr != m_software_textures.end(); ++itr )
 	{
 		// get saved texture
 		cSaved_Texture *soft_tex = (*itr);
@@ -169,7 +169,7 @@ void cFont_Manager :: Restore_Textures( void )
 	}
 
 	// delete software textures
-	for( Saved_Texture_List::iterator itr = m_software_textures.begin(), itr_end = m_software_textures.end(); itr != itr_end; ++itr )
+	for( Saved_Texture_List::iterator itr = m_software_textures.begin(); itr != m_software_textures.end(); ++itr )
 	{
 		delete *itr;
 	}

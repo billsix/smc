@@ -48,16 +48,16 @@ public:
 	std::string Get_Full_Path( void ) const;
 
 	// directory name
-	std::string path;
+	std::string m_path;
 	// world name
-	std::string name;
+	std::string m_name;
 	// is visible on selection
-	bool visible;
+	bool m_visible;
 	// from user directory
-	bool user;
+	bool m_user;
 
 	// world comment
-	std::string comment;
+	std::string m_comment;
 private:
 	// XML element start
 	virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
@@ -67,10 +67,13 @@ private:
 	void handle_world( const CEGUI::XMLAttributes& attributes );
 
 	// XML element Property list
-	CEGUI::XMLAttributes xml_attributes;
+	CEGUI::XMLAttributes m_xml_attributes;
 };
 
 /* *** *** *** *** *** *** *** *** cOverworld *** *** *** *** *** *** *** *** *** */
+
+// pre declare
+class cAnimation_Manager;
 
 typedef vector<cWaypoint *> WaypointList;
 
@@ -80,16 +83,16 @@ public:
 	cOverworld( void );
 	virtual ~cOverworld( void );
 
-	/* Enter
-	* if delayed is set this overworld will be entered on the next game update
-	*/
-	void Enter( bool delayed = 0 );
 	// Load
 	bool Load( void );
 	// Unload
 	void Unload( void );
 	// Save
 	void Save( void );
+	// Enter
+	void Enter( const GameMode old_mode = MODE_NOTHING );
+	// Leave
+	void Leave( const GameMode next_mode = MODE_NOTHING );
 
 	// Draw
 	void Draw( void );
@@ -164,9 +167,11 @@ public:
 	// Return true if a world is loaded
 	bool Is_Loaded( void ) const;
 
-	// Map objects
+	// map objects
 	cWorld_Sprite_Manager *m_sprite_manager;
-	// Waypoints
+	// animation manager
+	cAnimation_Manager *m_animation_manager;
+	// waypoints
 	WaypointList m_waypoints;
 	// description
 	cOverworld_description *m_description;
@@ -180,7 +185,7 @@ public:
 	// last save time
 	time_t m_last_saved;
 
-	// Background Color
+	// background color
 	Color m_background_color;
 	// music filename
 	std::string m_musicfile;
@@ -209,8 +214,12 @@ private:
 	CEGUI::XMLAttributes m_xml_attributes;
 };
 
-// Returns a World Object if element name is available else NULL
-cSprite *Get_World_Object( const CEGUI::String &element, CEGUI::XMLAttributes &attributes );
+/* Returns a World Object if element name is available else NULL
+ * engine_version : engine version of the data and if it's below the current version it converts it
+ * sprite_manager : needed if the engine version is below the current version and data conversion creates multiple objects
+ * overworld : the parent overworld
+*/
+cSprite *Get_World_Object( const CEGUI::String &element, CEGUI::XMLAttributes &attributes, int engine_version, cSprite_Manager *sprite_manager, cOverworld *overworld );
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

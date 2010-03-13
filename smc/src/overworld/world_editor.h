@@ -26,7 +26,7 @@ namespace SMC
 class cEditor_World : public cEditor
 {
 public:
-	cEditor_World( void );
+	cEditor_World( cSprite_Manager *sprite_manager, cOverworld *overworld );
 	virtual ~cEditor_World( void );
 
 	// Initialize
@@ -44,8 +44,12 @@ public:
 	*/
 	virtual bool Key_Down( SDLKey key );
 
+	// Set the parent overworld
+	void Set_Overworld( cOverworld *overworld );
 	// Set Active Menu Entry
 	virtual void Activate_Menu_Item( cEditor_Menu_Object *entry );
+	// return the sprite object
+	virtual cSprite *Get_Object( const CEGUI::String &element, CEGUI::XMLAttributes &attributes, int engine_version, cSprite_Manager *sprite_manager );
 
 	// Menu functions
 	virtual bool Function_New( void );
@@ -53,8 +57,10 @@ public:
 	virtual void Function_Save( bool with_dialog = 0 );
 	//virtual void Function_Save_as( void );
 	virtual void Function_Reload( void );
-	virtual void Function_Clear( void );
 	//void Function_Settings( void );
+
+	// parent overworld
+	cOverworld *m_overworld;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

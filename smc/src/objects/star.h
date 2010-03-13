@@ -16,7 +16,7 @@
 #ifndef SMC_STAR_H
 #define SMC_STAR_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../objects/powerup.h"
 
 namespace SMC
@@ -28,16 +28,16 @@ class cjStar : public cPowerUp
 {
 public:
 	// constructor
-	cjStar( float x, float y );
+	cjStar( cSprite_Manager *sprite_manager );
 	// create from stream
-	cjStar( CEGUI::XMLAttributes &attributes );
+	cjStar( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cjStar( void );
 	
 	// init defaults
 	void Init( void );
 	// copy
-	virtual cjStar *Copy( void );
+	virtual cjStar *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -61,12 +61,12 @@ public:
 	virtual void Handle_Collision_Massive( cObjectCollision *collision );
 
 	// small stars animation counter
-	float anim_counter;
+	float m_anim_counter;
 
 	// glim animation modifier
-	bool glim_mod;
+	bool m_glim_mod;
 	// glim animation counter
-	float glim_counter;
+	float m_glim_counter;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

@@ -83,7 +83,7 @@ public:
 	// Delete all objects
 	virtual void Delete_All( void )
 	{
-		for( typename vector<T *>::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+		for( typename vector<T *>::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 		{
 			delete *itr;
 		}

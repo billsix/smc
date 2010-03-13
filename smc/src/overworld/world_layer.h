@@ -16,7 +16,7 @@
 #ifndef SMC_WORLD_LAYER_H
 #define SMC_WORLD_LAYER_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../objects/movingsprite.h"
 #include "../core/obj_manager.h"
 #include "../overworld/world_waypoint.h"
@@ -35,7 +35,7 @@ class cLayer_Line_Point : public cSprite
 {
 public:
 	// constructor
-	cLayer_Line_Point( SpriteType ntype );
+	cLayer_Line_Point( cSprite_Manager *sprite_manager, cOverworld *overworld, SpriteType new_type );
 	// destructor
 	virtual ~cLayer_Line_Point( void );
 
@@ -55,8 +55,10 @@ public:
 	// Get center position y
 	float Get_Line_Pos_Y( void ) const;
 
+	// parent overworld
+	cOverworld *m_overworld;
 	// the linked start/end point
-	cLayer_Line_Point *linked_point;
+	cLayer_Line_Point *m_linked_point;
 };
 
 // Layer line start point class
@@ -64,20 +66,23 @@ class cLayer_Line_Point_Start : public cLayer_Line_Point
 {
 public:
 	// constructor
-	cLayer_Line_Point_Start( void );
+	cLayer_Line_Point_Start( cSprite_Manager *sprite_manager, cOverworld *overworld );
 	// destructor
 	virtual ~cLayer_Line_Point_Start( void );
 	// create from stream
-	cLayer_Line_Point_Start( CEGUI::XMLAttributes &attributes );
+	cLayer_Line_Point_Start( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager, cOverworld *overworld );
 
 	// init defaults
 	void Init( void );
 
 	// copy (end point can not be copied)
-	virtual cLayer_Line_Point_Start *Copy( void );
+	virtual cLayer_Line_Point_Start *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
+
+	// Set the parent sprite manager
+	virtual void Set_Sprite_Manager( cSprite_Manager *sprite_manager );
 
 	// Draw
 	virtual void Draw( cSurface_Request *request = NULL );
@@ -98,9 +103,9 @@ public:
 	/* animation type 
 	 * 0 = normal walking, 1 = swimming
 	 */
-	unsigned int anim_type;
+	unsigned int m_anim_type;
 	// waypoint origin identifier
-	unsigned int origin;
+	unsigned int m_origin;
 };
 
 /* *** *** *** *** *** *** *** Layer *** *** *** *** *** *** *** *** *** *** */
@@ -112,23 +117,11 @@ public:
 	cLine_collision( void );
 
 	// nearest line pointer
-	cLayer_Line_Point_Start *line;
+	cLayer_Line_Point_Start *m_line;
 	// nearest line number
-	int line_number;
+	int m_line_number;
 	// position difference
-	float difference;
-};
-
-// Layer Nearest Line Collision data
-class cNearLine_collision
-{
-public:
-	cNearLine_collision( void );
-
-	// nearest line number
-	int line_number;
-	// line start collision else end collision
-	bool start;
+	float m_difference;
 };
 
 typedef vector<cLayer_Line_Point_Start *> LayerLineList;
@@ -170,8 +163,8 @@ public:
 	// Return the collision data between the given line and position
 	cLine_collision Get_Nearest_Line( cLayer_Line_Point_Start *map_layer_line, float x, float y, ObjectDirection dir = DIR_HORIZONTAL, unsigned int check_size = 15 ) const;
 
-	// origin overworld
-	cOverworld *n_origin;
+	// parent overworld
+	cOverworld *m_overworld;
 
 private:
 	// XML element start
@@ -180,7 +173,7 @@ private:
 	virtual void elementEnd( const CEGUI::String &element );
 
 	// XML element Property list
-	CEGUI::XMLAttributes xml_attributes;
+	CEGUI::XMLAttributes m_xml_attributes;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

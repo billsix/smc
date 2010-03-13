@@ -29,8 +29,8 @@ namespace SMC
 
 /* *** *** *** *** *** *** *** Base Animation class *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation :: cAnimation( float x /* = 0.0f */, float y /* = 0.0f */ )
-: cAnimated_Sprite( x, y )
+cAnimation :: cAnimation( cSprite_Manager *sprite_manager )
+: cAnimated_Sprite( sprite_manager )
 {
 	m_sprite_array = ARRAY_ANIM;
 	m_type = TYPE_ACTIVESPRITE;
@@ -64,8 +64,8 @@ void cAnimation :: Update( void )
 
 void cAnimation :: Draw( cSurface_Request *request /* = NULL */ )
 {
-}
 
+}
 
 void cAnimation :: Set_Time_to_Live( float time, float time_rand /* = 0.0f */ )
 {
@@ -77,7 +77,7 @@ void cAnimation :: Set_Fading_Speed( float speed )
 {
 	fading_speed = speed;
 
-	if( fading_speed <= 0 )
+	if( fading_speed <= 0.0f )
 	{
 		fading_speed = 0.1f;
 	}
@@ -91,8 +91,8 @@ void cAnimation :: Set_Pos_Z( float pos, float pos_rand /* = 0.0f */ )
 
 /* *** *** *** *** *** *** *** cAnimation_Goldpiece *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation_Goldpiece :: cAnimation_Goldpiece( float posx, float posy, float height /* = 40.0f */, float width /* = 20.0f */ )
-: cAnimation( posx, posy )
+cAnimation_Goldpiece :: cAnimation_Goldpiece( cSprite_Manager *sprite_manager, float posx, float posy, float height /* = 40.0f */, float width /* = 20.0f */ )
+: cAnimation( sprite_manager )
 {
 	animtype = BLINKING_POINTS;
 
@@ -100,6 +100,7 @@ cAnimation_Goldpiece :: cAnimation_Goldpiece( float posx, float posy, float heig
 	Add_Image( pVideo->Get_Surface( "animation/light_1/2.png" ) );
 	Add_Image( pVideo->Get_Surface( "animation/light_1/3.png" ) );
 
+	Set_Pos( posx, posy, 1 );
 	m_rect.m_w = width;
 	m_rect.m_h = height;
 }
@@ -107,7 +108,7 @@ cAnimation_Goldpiece :: cAnimation_Goldpiece( float posx, float posy, float heig
 cAnimation_Goldpiece :: ~cAnimation_Goldpiece( void )
 {
 	// clear
-	for( BlinkPointList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( BlinkPointList::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		delete *itr;
 	}
@@ -119,7 +120,9 @@ void cAnimation_Goldpiece :: Init_Anim( void )
 {
 	for( unsigned int i = 0; i < 4; i++ )
 	{
-		cSprite *obj = new cSprite( m_images[0].m_image, m_pos_x + Get_Random_Float( 0.0f, m_rect.m_w ), m_pos_y + Get_Random_Float( 0.0f, m_rect.m_h ) );
+		cSprite *obj = new cSprite( m_sprite_manager );
+		obj->Set_Image( m_images[0].m_image );
+		obj->Set_Pos( m_pos_x + Get_Random_Float( 0.0f, m_rect.m_w ), m_pos_y + Get_Random_Float( 0.0f, m_rect.m_h ) );
 		obj->m_pos_z = m_pos_z;
 		obj->Set_Scale_X( m_scale_x, 1 );
 		obj->Set_Scale_Y( m_scale_y, 1 );
@@ -137,7 +140,7 @@ void cAnimation_Goldpiece :: Update( void )
 	unsigned int count = 0;
 
 	// update the fixed points
-	for( BlinkPointList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( BlinkPointList::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		// get object
 		cSprite *obj = (*itr);
@@ -243,7 +246,7 @@ void cAnimation_Goldpiece :: Draw( cSurface_Request *request /* = NULL */ )
 	}
 
 	// draw the fixed points
-	for( BlinkPointList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( BlinkPointList::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		// get object
 		cSprite *obj = (*itr);
@@ -259,15 +262,16 @@ void cAnimation_Goldpiece :: Draw( cSurface_Request *request /* = NULL */ )
 
 /* *** *** *** *** *** *** *** cAnimation_Fireball *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation_Fireball :: cAnimation_Fireball( float posx, float posy, unsigned int power /* = 5 */ )
-: cAnimation( posx, posy )
+cAnimation_Fireball :: cAnimation_Fireball( cSprite_Manager *sprite_manager, float posx, float posy, unsigned int power /* = 5 */ )
+: cAnimation( sprite_manager )
 {
 	animtype = FIRE_EXPLOSION;
+	Set_Pos( posx, posy, 1 );
 
 	// create objects
 	for( unsigned int i = 0; i < power; i++ )
 	{
-		cAnimation_Fireball_Item *obj = new cAnimation_Fireball_Item();
+		cAnimation_Fireball_Item *obj = new cAnimation_Fireball_Item( sprite_manager );
 		objects.push_back( obj );
 	}
 }
@@ -275,7 +279,7 @@ cAnimation_Fireball :: cAnimation_Fireball( float posx, float posy, unsigned int
 cAnimation_Fireball :: ~cAnimation_Fireball( void )
 {
 	// clear
-	for( FireAnimList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( FireAnimList::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		delete *itr;
 	}
@@ -285,7 +289,7 @@ cAnimation_Fireball :: ~cAnimation_Fireball( void )
 
 void cAnimation_Fireball :: Init_Anim( void )
 {
-	for( FireAnimList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( FireAnimList::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		cAnimation_Fireball_Item *obj = (*itr);
 
@@ -322,7 +326,7 @@ void cAnimation_Fireball :: Update( void )
 	time_to_live += pFramerate->m_speed_factor * fading_speed;
 
 	// update objects
-	for( FireAnimList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( FireAnimList::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		cAnimation_Fireball_Item *obj = (*itr);
 
@@ -363,13 +367,13 @@ void cAnimation_Fireball :: Draw( cSurface_Request *request /* = NULL */ )
 	}
 
 	// draw objects
-	for( FireAnimList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( FireAnimList::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		cAnimation_Fireball_Item *obj = (*itr);
 
 		// create request
 		cSurface_Request *request = new cSurface_Request();
-		obj->m_image->Blit( obj->m_pos_x - ( pActive_Camera->x - m_pos_x ), obj->m_pos_y - ( pActive_Camera->y - m_pos_y ), obj->m_pos_z, request );
+		obj->m_image->Blit( obj->m_pos_x - ( pActive_Camera->m_x - m_pos_x ), obj->m_pos_y - ( pActive_Camera->m_y - m_pos_y ), obj->m_pos_z, request );
 
 		// scale
 		request->scale_x = obj->m_scale_x;
@@ -386,20 +390,20 @@ void cAnimation_Fireball :: Draw( cSurface_Request *request /* = NULL */ )
 /* *** *** *** *** *** *** *** cParticle *** *** *** *** *** *** *** *** *** *** */
 
 cParticle :: cParticle( cParticle_Emitter *parent )
-: cMovingSprite()
+: cMovingSprite( parent->m_sprite_manager )
 {
 	m_can_be_on_ground = 0;
 	// scale centered
 	Set_Scale_Directions( 1, 1, 1, 1 );
 
-	time_to_live = 0;
-	const_rotx = 0;
-	const_roty = 0;
-	const_rotz = 0;
-	gravity_x = 0;
-	gravity_y = 0;
+	m_time_to_live = 0.0f;
+	m_const_rot_x = 0.0f;
+	m_const_rot_y = 0.0f;
+	m_const_rot_z = 0.0f;
+	m_gravity_x = 0.0f;
+	m_gravity_y = 0.0f;
 
-	fade_pos = 1;
+	m_fade_pos = 1.0f;
 
 	m_parent = parent;
 }
@@ -412,12 +416,12 @@ cParticle :: ~cParticle( void )
 void cParticle :: Update( void )
 {
 	// update fade modifier
-	fade_pos -= ( ( static_cast<float>(speedfactor_fps) * 0.001f ) * pFramerate->m_speed_factor ) / time_to_live;
+	m_fade_pos -= ( ( static_cast<float>(speedfactor_fps) * 0.001f ) * pFramerate->m_speed_factor ) / m_time_to_live;
 
 	// finished fading
-	if( fade_pos <= 0.0f )
+	if( m_fade_pos <= 0.0f )
 	{
-		fade_pos = 0.0f;
+		m_fade_pos = 0.0f;
 		Set_Active( 0 );
 		return;
 	}
@@ -425,27 +429,27 @@ void cParticle :: Update( void )
 	// with size fading
 	if( m_parent->fade_size )
 	{
-		m_scale_x = m_start_scale_x * fade_pos;
+		m_scale_x = m_start_scale_x * m_fade_pos;
 		m_scale_y = m_scale_x;
 	}
 
 	// move
 	Move( m_velx, m_vely );
-	// add gravity velocity
-	Add_Velocity( gravity_x, gravity_y );
+	// todo : gravity maximum
+	Add_Velocity( m_gravity_x, m_gravity_y );
 
 	// constant rotation
-	if( const_rotx != 0 )
+	if( !Is_Float_Equal( m_const_rot_x, 0.0f ) )
 	{
-		Add_Rotation_X( const_rotx * pFramerate->m_speed_factor );
+		Add_Rotation_X( m_const_rot_x * pFramerate->m_speed_factor );
 	}
-	if( const_roty != 0 )
+	if( !Is_Float_Equal( m_const_rot_y, 0.0f ) )
 	{
-		Add_Rotation_Y( const_roty * pFramerate->m_speed_factor );
+		Add_Rotation_Y( m_const_rot_y * pFramerate->m_speed_factor );
 	}
-	if( const_rotz != 0 )
+	if( !Is_Float_Equal( m_const_rot_z, 0.0f ) )
 	{
-		Add_Rotation_Z( const_rotz * pFramerate->m_speed_factor );
+		Add_Rotation_Z( m_const_rot_z * pFramerate->m_speed_factor );
 	}
 }
 
@@ -482,16 +486,16 @@ void cParticle :: Draw( cSurface_Request *request /* = NULL */ )
 	// color fading
 	if( m_parent->fade_color )
 	{
-		request->color.red = static_cast<Uint8>(m_color.red * fade_pos);
-		request->color.green = static_cast<Uint8>(m_color.green * fade_pos);
-		request->color.blue = static_cast<Uint8>(m_color.blue * fade_pos);
+		request->color.red = static_cast<Uint8>(m_color.red * m_fade_pos);
+		request->color.green = static_cast<Uint8>(m_color.green * m_fade_pos);
+		request->color.blue = static_cast<Uint8>(m_color.blue * m_fade_pos);
 		request->color.alpha = m_color.alpha;
 	}
 
 	// alpha fading
 	if( m_parent->fade_alpha )
 	{
-		request->color.alpha = static_cast<Uint8>(request->color.alpha * fade_pos);
+		request->color.alpha = static_cast<Uint8>(request->color.alpha * m_fade_pos);
 	}
 
 	if( create_request )
@@ -503,20 +507,20 @@ void cParticle :: Draw( cSurface_Request *request /* = NULL */ )
 
 void cParticle :: Set_Gravity( float x, float y )
 {
-	gravity_x = x;
-	gravity_y = y;
+	m_gravity_x = x;
+	m_gravity_y = y;
 }
 
 /* *** *** *** *** *** *** *** cParticle_Emitter *** *** *** *** *** *** *** *** *** *** */
 
-cParticle_Emitter :: cParticle_Emitter( void )
-: cAnimation()
+cParticle_Emitter :: cParticle_Emitter( cSprite_Manager *sprite_manager )
+: cAnimation( sprite_manager )
 {
 	cParticle_Emitter::Init();
 }
 
-cParticle_Emitter :: cParticle_Emitter( CEGUI::XMLAttributes &attributes )
-: cAnimation()
+cParticle_Emitter :: cParticle_Emitter( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager )
+: cAnimation( sprite_manager )
 {
 	cParticle_Emitter::Init();
 	cParticle_Emitter::Create_From_Stream( attributes );
@@ -628,45 +632,45 @@ void cParticle_Emitter :: Init( void )
 	m_type = TYPE_ANIMATION;
 	m_name = "Particle Emitter";
 
-	m_rect.m_w = 0;
-	m_rect.m_h = 0;
+	m_rect.m_w = 0.0f;
+	m_rect.m_h = 0.0f;
 	m_col_rect.m_w = m_rect.m_w;
 	m_col_rect.m_h = m_rect.m_h;
 	m_start_rect.m_w = m_rect.m_w;
 	m_start_rect.m_h = m_rect.m_h;
 
 	// 0 = 1 emit
-	emitter_time_to_live = 0;
+	emitter_time_to_live = 0.0f;
 	emitter_iteration_interval = 0.2f;
 	emitter_quota = 1;
 
 	// velocity
-	vel = 2;
-	vel_rand = 2;
+	vel = 2.0f;
+	vel_rand = 2.0f;
 	// rotation
 	start_rot_z_uses_direction = 0;
-	const_rotx = 0;
-	const_roty = 0;
-	const_rotz = 0;
-	const_rotx_rand = 0;
-	const_roty_rand = 0;
-	const_rotz_rand = 0;
+	const_rotx = 0.0f;
+	const_roty = 0.0f;
+	const_rotz = 0.0f;
+	const_rotx_rand = 0.0f;
+	const_roty_rand = 0.0f;
+	const_rotz_rand = 0.0f;
 	// angle
-	angle_start = 0;
-	angle_range = 360;
+	angle_start = 0.0f;
+	angle_range = 360.0f;
 	// scale
-	size_scale = 1;
-	size_scale_rand = 0;
+	size_scale = 1.0f;
+	size_scale_rand = 0.0f;
 	// gravity
-	gravity_x = 0;
-	gravity_x_rand = 0;
-	gravity_y = 0;
-	gravity_y_rand = 0;
+	gravity_x = 0.0f;
+	gravity_x_rand = 0.0f;
+	gravity_y = 0.0f;
+	gravity_y_rand = 0.0f;
 
 	// color
 	color_rand = Color( static_cast<Uint8>(0), 0, 0, 0 );
 	// default 1 second
-	time_to_live = 1;
+	time_to_live = 1.0f;
 	// default fading is alpha
 	fade_size = 0;
 	fade_alpha = 1;
@@ -675,13 +679,13 @@ void cParticle_Emitter :: Init( void )
 	blending = BLEND_NONE;
 
 	// animation data
-	emit_counter = 0;
-	emitter_living_time = 0;
+	emit_counter = 0.0f;
+	emitter_living_time = 0.0f;
 }
 
-cParticle_Emitter *cParticle_Emitter :: Copy( void )
+cParticle_Emitter *cParticle_Emitter :: Copy( void ) const
 {
-	cParticle_Emitter *particle_animation = new cParticle_Emitter();
+	cParticle_Emitter *particle_animation = new cParticle_Emitter( m_sprite_manager );
 	particle_animation->Set_Pos( m_start_pos_x, m_start_pos_y, 1 );
 	particle_animation->Set_Pos_Z( m_pos_z, posz_rand );
 	particle_animation->Set_Filename( filename.c_str() );
@@ -702,7 +706,6 @@ cParticle_Emitter *cParticle_Emitter :: Copy( void )
 	particle_animation->Set_Horizontal_Gravity( gravity_x, gravity_x_rand );
 	particle_animation->Set_Vertical_Gravity( gravity_y, gravity_y_rand );
 	particle_animation->m_spawned = m_spawned;
-
 	return particle_animation;
 }
 
@@ -763,7 +766,7 @@ void cParticle_Emitter :: Emit( void )
 			speed += Get_Random_Float( 0.0f, vel_rand );
 		}
 		// set Velocity
-		particle->Set_Direction( dir_angle, speed, 1 );
+		particle->Set_Velocity_From_Angle( dir_angle, speed, 1 );
 
 		// Start rotation
 		particle->m_rot_x = m_start_rot_x;
@@ -777,20 +780,20 @@ void cParticle_Emitter :: Emit( void )
 		}
 
 		// Constant rotation
-		particle->const_rotx = const_rotx;
-		particle->const_roty = const_roty;
-		particle->const_rotz = const_rotz;
+		particle->m_const_rot_x = const_rotx;
+		particle->m_const_rot_y = const_roty;
+		particle->m_const_rot_z = const_rotz;
 		if( const_rotx_rand > 0.0f )
 		{
-			particle->const_rotx += Get_Random_Float( 0.0f, const_rotx_rand );
+			particle->m_const_rot_x += Get_Random_Float( 0.0f, const_rotx_rand );
 		}
 		if( const_roty_rand > 0.0f )
 		{
-			particle->const_roty += Get_Random_Float( 0.0f, const_roty_rand );
+			particle->m_const_rot_y += Get_Random_Float( 0.0f, const_roty_rand );
 		}
 		if( const_rotz_rand > 0.0f )
 		{
-			particle->const_rotz += Get_Random_Float( 0.0f, const_rotz_rand );
+			particle->m_const_rot_z += Get_Random_Float( 0.0f, const_rotz_rand );
 		}
 
 		// Scale
@@ -835,10 +838,10 @@ void cParticle_Emitter :: Emit( void )
 		}
 
 		// Time to life
-		particle->time_to_live = time_to_live;
+		particle->m_time_to_live = time_to_live;
 		if( time_to_live_rand > 0.0f )
 		{
-			particle->time_to_live += Get_Random_Float( 0.0f, time_to_live_rand );
+			particle->m_time_to_live += Get_Random_Float( 0.0f, time_to_live_rand );
 		}
 
 		objects.push_back( particle );
@@ -848,7 +851,7 @@ void cParticle_Emitter :: Emit( void )
 void cParticle_Emitter :: Clear( void )
 {
 	// clear particles
-	for( ParticleList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( ParticleList::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		delete *itr;
 	}
@@ -921,7 +924,7 @@ void cParticle_Emitter :: Draw( cSurface_Request *request /* = NULL */ )
 
 	if( !editor_enabled )
 	{
-		for( ParticleList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+		for( ParticleList::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 		{
 			(*itr)->Draw();
 		}
@@ -931,16 +934,16 @@ void cParticle_Emitter :: Draw( cSurface_Request *request /* = NULL */ )
 		if( !m_spawned )
 		{
 			// draw color rect
-			GL_rect color_rect = GL_rect( m_col_rect.m_x - pActive_Camera->x, m_col_rect.m_y - pActive_Camera->y, m_col_rect.m_w, m_col_rect.m_h );
+			GL_rect color_rect = GL_rect( m_col_rect.m_x - pActive_Camera->m_x, m_col_rect.m_y - pActive_Camera->m_y, m_col_rect.m_w, m_col_rect.m_h );
 
 			// minimum visible rect size
-			if( color_rect.m_w < 5 )
+			if( color_rect.m_w < 5.0f )
 			{
-				color_rect.m_w = 5;
+				color_rect.m_w = 5.0f;
 			}
-			if( color_rect.m_h < 5 )
+			if( color_rect.m_h < 5.0f )
 			{
-				color_rect.m_h = 5;
+				color_rect.m_h = 5.0f;
 			}
 
 			cRect_Request *rect_request = new cRect_Request();
@@ -959,8 +962,8 @@ bool cParticle_Emitter :: Is_Update_Valid( void )
 		return 0;
 	}
 
-	// if not in player range and not visible on the screen
-	if( !Is_In_Player_Range() && !Is_Visible_On_Screen() )
+	// if not in camera range
+	if( !Is_In_Range() )
 	{
 		return 0;
 	}
@@ -976,8 +979,8 @@ bool cParticle_Emitter :: Is_Draw_Valid( void )
 		return 0;
 	}
 
-	// if not in player range and not visible on the screen
-	if( !Is_In_Player_Range() && !Is_Visible_On_Screen() )
+	// if not in camera range
+	if( !Is_In_Range() )
 	{
 		return 0;
 	}
@@ -987,7 +990,7 @@ bool cParticle_Emitter :: Is_Draw_Valid( void )
 
 void cParticle_Emitter :: Set_Emitter_Rect( float x, float y, float w /* = 0 */, float h /* = 0 */ )
 {
-	// don't set x/y to 0 or the next Set_Pos call will overwrite the start position
+	// hack: don't set x/y to 0 or the next Set_Pos call will overwrite the start position
 	if( Is_Float_Equal( x, 0.0f ) && Is_Float_Equal( y, 0.0f ) )
 	{
 		y = -1;
@@ -1280,7 +1283,7 @@ void cParticle_Emitter :: Editor_Activate( void )
 	/*editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_const_rotation_x_base" ));
 	Editor_Add( UTF8_("Const. rotation x"), UTF8_("Constant rotation x base"), editbox, 150 );
 
-	editbox->setText( float_to_string( const_rotx ) );
+	editbox->setText( float_to_string( m_const_rot_x ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Const_Rotation_X_Base_Text_Changed, this ) );
 	*/
 	// constant rotation x rand
@@ -1294,7 +1297,7 @@ void cParticle_Emitter :: Editor_Activate( void )
 	/*editbox = static_cast<CEGUI::Editbox *>(wmgr.createWindow( "TaharezLook/Editbox", "emitter_const_rotation_y_base" ));
 	Editor_Add( UTF8_("Const. rotation y"), UTF8_("Constant rotation y base"), editbox, 150 );
 
-	editbox->setText( float_to_string( const_roty ) );
+	editbox->setText( float_to_string( m_const_rot_y ) );
 	editbox->subscribeEvent( CEGUI::Editbox::EventTextChanged, CEGUI::Event::Subscriber( &cParticle_Emitter::Editor_Const_Rotation_Y_Base_Text_Changed, this ) );
 	*/
 	// constant rotation y rand
@@ -1693,7 +1696,7 @@ cAnimation_Manager :: ~cAnimation_Manager( void )
 
 void cAnimation_Manager :: Update( void )
 {
-	for( AnimationList::iterator itr = objects.begin(); itr != objects.end(); )
+	for( cAnimation_List::iterator itr = objects.begin(); itr != objects.end(); )
 	{
 		// get object pointer
 		cAnimation *obj = (*itr);
@@ -1717,7 +1720,7 @@ void cAnimation_Manager :: Update( void )
 
 void cAnimation_Manager :: Draw( void )
 {
-	for( AnimationList::iterator itr = objects.begin(), itr_end = objects.end(); itr != itr_end; ++itr )
+	for( cAnimation_List::iterator itr = objects.begin(); itr != objects.end(); ++itr )
 	{
 		(*itr)->Draw();
 	}
@@ -1739,7 +1742,7 @@ void cAnimation_Manager :: Add( cAnimation *animation )
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation_Manager *pAnimation_Manager = NULL;
+cAnimation_Manager *pActive_Animation_Manager = NULL;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

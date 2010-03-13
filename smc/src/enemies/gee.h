@@ -22,24 +22,22 @@ namespace SMC
 {
 
 /* *** *** *** *** *** cGee *** *** *** *** *** *** *** *** *** *** *** *** */
-
-/*
- * Shocks you with Electro, Lava or Gift
+/* Shocks you with Electro, Lava or Gift
 */
 class cGee : public cEnemy
 {
 public:
 	// constructor
-	cGee( float x, float y );
+	cGee( cSprite_Manager *sprite_manager );
 	// create from stream
-	cGee( CEGUI::XMLAttributes &attributes );
+	cGee( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cGee( void );
 
 	// init defaults
 	void Init( void );
 	// copy
-	virtual cGee *Copy( void );
+	virtual cGee *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );

@@ -16,7 +16,7 @@
 #ifndef SMC_FONT_H
 #define SMC_FONT_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../video/img_manager.h"
 // SDL
 // also includes SDL.h

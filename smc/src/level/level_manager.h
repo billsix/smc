@@ -16,7 +16,7 @@
 #ifndef SMC_LEVEL_MANAGER_H
 #define SMC_LEVEL_MANAGER_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../core/obj_manager.h"
 #include "../core/camera.h"
 #include "../level/level.h"
@@ -41,14 +41,39 @@ public:
 	// Unload
 	void Unload( void );
 
-	/* Load level
-	 * delayed : if set the level will be loaded on the next update
-	 * sub_level : if set previous level isn't unloaded
+	/* Load level and returns it if successful
+	 * If the level is already loaded it is returned but not reloaded.
+	 * The loaded level is not set active.
 	*/
-	bool Load( std::string filename, bool delayed = 0, bool sub_level = 0 );
+	cLevel *Load( std::string filename );
+	// Set active level
+	bool Set_Active( cLevel *level );
+	// Get level pointer
+	cLevel *Get( const std::string &str );
+	/* Return the level path if level is valid else empty
+	* check_only_user_dir : only check user directory for the level
+	*/
+	bool Get_Path( std::string &filename, bool check_only_user_dir = 0 ) const;
+	// update
+	void Update( void );
+	// draw
+	void Draw( void );
+
+	/* Exits the level and
+	* - walks to the next Overworld waypoint if a world level
+	* - enters the menu if a custom level
+	* win_music : play the level finished music
+	*/
+	void Finish_Level( bool win_music = 0 );
+	/* Enters the given level on the entry
+	* move_camera: set how to move the camera to the new position
+	* path_identifier: set the identifier of the path to move the camera along
+	*/
+	void Goto_Sub_Level( std::string str_level, const std::string &str_entry, Camera_movement move_camera = CAMERA_MOVE_FLY, const std::string &path_identifier = "" );
+
 
 	// level camera
-	cCamera *camera;
+	cCamera *m_camera;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

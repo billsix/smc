@@ -16,7 +16,7 @@
 #ifndef SMC_BONUSBOX_H
 #define SMC_BONUSBOX_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../objects/box.h"
 #include "../objects/powerup.h"
 
@@ -29,9 +29,9 @@ class cBonusBox : public cBaseBox
 {
 public:
 	// constructor
-	cBonusBox( float x, float y );
+	cBonusBox( cSprite_Manager *sprite_manager );
 	// create from stream
-	cBonusBox( CEGUI::XMLAttributes &attributes );
+	cBonusBox( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
 	// destructor
 	virtual ~cBonusBox( void );
 
@@ -39,7 +39,7 @@ public:
 	void Init( void );
 
 	// copy
-	virtual cBonusBox *Copy( void );
+	virtual cBonusBox *Copy( void ) const;
 
 	// create from stream
 	virtual void Create_From_Stream( CEGUI::XMLAttributes &attributes );
@@ -59,13 +59,13 @@ public:
 	 * TYPE_GOLDPIECE			for Goldpiece
 	 * TYPE_MUSHROOM_POISON		for Poison Mushroom
 	*/
-	void Set_Bonus_Type( SpriteType nbonus_type );
+	void Set_Bonus_Type( SpriteType bonus_type );
 	/* Set if to force the best possible item
 	 * and not to use lower items automatically
 	*/
 	void Set_Force_Best_Item( bool enable );
 	// Set the gold color
-	void Set_Goldcolor( DefaultColor ncolor );
+	void Set_Goldcolor( DefaultColor new_color );
 
 	// Activates the bonus item
 	virtual void Activate( void );
@@ -92,16 +92,16 @@ public:
 	bool Editor_Gold_Color_Select( const CEGUI::EventArgs &event );
 
 	// force best possible item
-	bool force_best_item;
+	bool m_force_best_item;
 
 	/* active items
 	 * list of active item is available
 	 * and gets added to the level objects if finished
 	*/
 	typedef vector<cMovingSprite *> MovingSpriteList;
-	MovingSpriteList active_items;
+	MovingSpriteList m_active_items;
 	// Goldpiece color
-	DefaultColor gold_color;
+	DefaultColor m_gold_color;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

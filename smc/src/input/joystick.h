@@ -16,7 +16,7 @@
 #ifndef SMC_JOYSTICK_H
 #define SMC_JOYSTICK_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 // SDL
 #include "SDL.h"
 
@@ -61,11 +61,6 @@ public:
 	// Sets the given button state
 	void Set_Button( Uint8 button, bool pressed );
 
-	// Get the assigned shortcut
-	Uint8 *Get_Shortcut( input_identifier shortcut_id ) const;
-	// Assign a shortcut
-	void Assign_Shortcut( input_identifier shortcut_id, Uint8 new_button );
-
 	// check if the analog direction is pressed
 	bool Left( void ) const;
 	bool Right( void ) const;
@@ -75,31 +70,32 @@ public:
 	bool Button( Uint8 button );
 
 	// current joystick pointer
-	SDL_Joystick *joystick;
-	// current Joystick name
-	std::string joy_name;
+	SDL_Joystick *m_joystick;
 
 	// button state array
 	typedef vector<bool> ButtonList;
-	ButtonList buttons;
+	ButtonList m_buttons;
 	
 	// analog directions
-	bool left, right, up, down;
+	bool m_left;
+	bool m_right;
+	bool m_up;
+	bool m_down;
 
 	// current opened joystick
-	int cur_stick;
+	int m_current_joystick;
 	// if true the current joystick is available/loaded
-	bool stick_open;
+	bool m_joystick_open;
 	
 	// available buttons
-	unsigned int num_buttons;
+	unsigned int m_num_buttons;
 	// available axes
-	unsigned int num_axes;
+	unsigned int m_num_axes;
 	// available balls
-	unsigned int num_balls;
+	unsigned int m_num_balls;
 
 	// if true print debug output
-	bool debug;
+	bool m_debug;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

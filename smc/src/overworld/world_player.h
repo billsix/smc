@@ -1,5 +1,5 @@
 /***************************************************************************
- * ow_player.h  -  header for the corresponding cpp file
+ * world_player.h  -  header for the corresponding cpp file
  *
  * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
@@ -16,10 +16,10 @@
 #ifndef SMC_WORLD_PLAYER_H
 #define SMC_WORLD_PLAYER_H
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../gui/hud.h"
 #include "../overworld/world_layer.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../overworld/world_waypoint.h"
 
 namespace SMC
@@ -30,7 +30,7 @@ namespace SMC
 class cOverworld_Player : public cAnimated_Sprite
 {
 public:
-	cOverworld_Player( void );
+	cOverworld_Player( cSprite_Manager *sprite_manager, cOverworld *overworld );
 	virtual ~cOverworld_Player( void );
 
 	// Load images
@@ -38,6 +38,8 @@ public:
 	// Unload images
 	void Unload_Images( void );
 
+	// Set the parent overworld
+	void Set_Overworld( cOverworld *overworld );
 	/* Set the direction
 	 * if new_start_direction is set also set the start/editor direction
 	*/
@@ -93,7 +95,7 @@ public:
 	/* Checks how much Maryo can walk into all directions
 	 * and sets the size into the path directions
 	*/
-	void Update_Path_Diff( unsigned int csize = 25 );
+	void Update_Path_Diff( unsigned int check_size = 25 );
 
 	// Maryo changes direction if a near path is found or turns around 
 	void Change_Direction( void );
@@ -103,31 +105,34 @@ public:
 	*/
 	void Auto_Pos_Correction( float size = 1.7f, float min_distance = 5.0f );
 
+	// parent overworld
+	cOverworld *m_overworld;
 	// state
-	Maryo_type maryo_state;
+	Maryo_type m_maryo_state;
 	// current waypoint
-	int current_waypoint;
+	int m_current_waypoint;
 	// line waypoint
-	unsigned int line_waypoint;
+	unsigned int m_line_waypoint;
 	// current line ( if walking )
-	int current_line;
+	int m_current_line;
 
 	// if touched a Waypoint use fixed walking
-	bool fixed_walking;
+	bool m_fixed_walking;
 
 	// valid path detection lines
-	cLine_collision line_hor, line_ver;
+	cLine_collision m_line_hor;
+	cLine_collision m_line_ver;
 
 private:
-	// Debug Last Set Data
-	int debug_current_line_last;
-	int debug_lines_last;
-	int debug_current_waypoint_last;
+	// Debug last set data
+	int m_debug_current_line_last;
+	int m_debug_lines_last;
+	int m_debug_current_waypoint_last;
 
-	// Debug Text Sprites
-	cHudSprite *debug_current_waypoint;
-	cHudSprite *debug_lines;
-	cHudSprite *debug_current_line;
+	// Debug text sprites
+	cHudSprite *m_debug_current_waypoint;
+	cHudSprite *m_debug_lines;
+	cHudSprite *m_debug_current_line;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

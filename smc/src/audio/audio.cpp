@@ -1,5 +1,5 @@
 /***************************************************************************
- * audio.cpp  -  Audio Engine
+ * audio.cpp  -  Audio class
  *
  * Copyright (C) 2003 - 2009 Florian Richter
  ***************************************************************************/
@@ -29,7 +29,7 @@ namespace SMC
 void Finished_Sound( const int channel )
 {
 	// find the finished sound and free the data
-	for( AudioSoundList::iterator itr = pAudio->m_active_sounds.begin(), itr_end = pAudio->m_active_sounds.end(); itr != itr_end; ++itr )
+	for( AudioSoundList::iterator itr = pAudio->m_active_sounds.begin(); itr != pAudio->m_active_sounds.end(); ++itr )
 	{
 		cAudio_Sound *obj = (*itr);
 
@@ -88,7 +88,7 @@ int cAudio_Sound :: Play( int use_res_id /* = -1 */, int loops /* = 0 */ )
 
 	if( use_res_id >= 0 )
 	{
-		for( AudioSoundList::iterator itr = pAudio->m_active_sounds.begin(), itr_end = pAudio->m_active_sounds.end(); itr != itr_end; ++itr )
+		for( AudioSoundList::iterator itr = pAudio->m_active_sounds.begin(); itr != pAudio->m_active_sounds.end(); ++itr )
 		{
 			// get object pointer
 			cAudio_Sound *obj = (*itr);
@@ -219,7 +219,7 @@ bool cAudio :: Init( void )
 			// different format
 			if( dev_format != MIX_DEFAULT_FORMAT )
 			{
-				char *format_str;
+				const char *format_str;
 
 				switch( dev_format )
 				{
@@ -316,7 +316,7 @@ void cAudio :: Close( void )
 			Stop_Sounds();
 
 			// clear sounds
-			for( AudioSoundList::iterator itr = m_active_sounds.begin(), itr_end = m_active_sounds.end(); itr != itr_end; ++itr )
+			for( AudioSoundList::iterator itr = m_active_sounds.begin(); itr != m_active_sounds.end(); ++itr )
 			{
 				delete *itr;
 			}
@@ -518,11 +518,6 @@ bool cAudio :: Play_Sound( std::string filename, int res_id /* = -1 */, int volu
 
 bool cAudio :: Play_Music( std::string filename, int loops /* = 0 */, bool force /* = 1 */, unsigned int fadein_ms /* = 0 */ )
 {
-	if( !m_music_enabled || !m_initialised )
-	{
-		return 0;
-	}
-
 	if( filename.find( DATA_DIR "/" GAME_MUSIC_DIR "/" ) == std::string::npos )
 	{
 		filename.insert( 0, DATA_DIR "/" GAME_MUSIC_DIR "/" );
@@ -532,6 +527,14 @@ bool cAudio :: Play_Music( std::string filename, int loops /* = 0 */, bool force
 	if( !File_Exists( filename ) )
 	{
 		printf( "Couldn't find music file : %s\n", filename.c_str() );
+		return 0;
+	}
+
+	// save music filename
+	m_music_filename = filename;
+
+	if( !m_music_enabled || !m_initialised )
+	{
 		return 0;
 	}
 
@@ -624,7 +627,7 @@ cAudio_Sound *cAudio :: Get_Playing_Sound( std::string filename )
 	}
 
 	// get all sounds
-	for( AudioSoundList::iterator itr = m_active_sounds.begin(), itr_end = m_active_sounds.end(); itr != itr_end; ++itr )
+	for( AudioSoundList::const_iterator itr = m_active_sounds.begin(); itr != m_active_sounds.end(); ++itr )
 	{
 		// get object pointer
 		cAudio_Sound *obj = (*itr);
@@ -650,7 +653,7 @@ cAudio_Sound *cAudio :: Get_Playing_Sound( std::string filename )
 cAudio_Sound *cAudio :: Create_Sound_Channel( void )
 {
 	// get all sounds
-	for( AudioSoundList::iterator itr = m_active_sounds.begin(), itr_end = m_active_sounds.end(); itr != itr_end; ++itr )
+	for( AudioSoundList::iterator itr = m_active_sounds.begin(); itr != m_active_sounds.end(); ++itr )
 	{
 		// get object pointer
 		cAudio_Sound *obj = (*itr);
@@ -682,29 +685,9 @@ void cAudio :: Toggle_Music( void )
 	Init();
 
 	// play music
-	if( m_music_enabled )
+	if( m_music_enabled && !m_music_filename.empty() )
 	{
-		// valid level music available
-		if( pActive_Level->m_valid_music )
-		{
-			Play_Music( pActive_Level->m_musicfile, -1, 1, 2000 );
-		}
-		// in overworld
-		else if( Game_Mode == MODE_OVERWORLD )
-		{
-			Play_Music( pActive_Overworld->m_musicfile, -1, 1, 2000 );
-		}
-		// in menu
-		else
-		{
-			Play_Music( "game/menu.ogg", -1, 1, 2000 );
-		}
-
-		// Warning if no music pack is installed and music got enabled
-		if( !File_Exists( std::string(DATA_DIR "/" GAME_MUSIC_DIR "/game/menu.ogg") ) && !File_Exists( std::string(DATA_DIR "/" GAME_MUSIC_DIR "/land/land_1.ogg") ) )
-		{
-			Draw_Static_Text( _("Music addon not detected.\nYou can download it from the Website."), &orange );
-		}
+		Play_Music( m_music_filename, -1, 1, 2000 );
 	}
 }
 
@@ -793,10 +776,10 @@ void cAudio :: Fadeout_Sounds( unsigned int ms, std::string filename, bool overw
 	}
 
 	// get all sounds
-	for( AudioSoundList::iterator itr = m_active_sounds.begin(), itr_end = m_active_sounds.end(); itr != itr_end; ++itr )
+	for( AudioSoundList::const_iterator itr = m_active_sounds.begin(); itr != m_active_sounds.end(); ++itr )
 	{
 		// get object pointer
-		cAudio_Sound *obj = (*itr);
+		const cAudio_Sound *obj = (*itr);
 
 		// filename does not match
 		if( obj->m_data->m_filename.compare( filename ) != 0 )

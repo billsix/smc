@@ -13,17 +13,18 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../level/level_editor.h"
 #include "../level/level.h"
 #include "../core/game_core.h"
+#include "../gui/generic.h"
 #include "../core/sprite_manager.h"
 #include "../user/preferences.h"
 #include "../input/mouse.h"
 #include "../input/keyboard.h"
 #include "../audio/audio.h"
 #include "../core/i18n.h"
-#include "../player/player.h"
+#include "../level/level_player.h"
 #include "../core/filesystem/filesystem.h"
 
 namespace SMC
@@ -31,26 +32,27 @@ namespace SMC
 
 /* *** *** *** *** *** *** *** cEditor_Level *** *** *** *** *** *** *** *** *** *** */
 
-cEditor_Level :: cEditor_Level( void )
-: cEditor()
+cEditor_Level :: cEditor_Level( cSprite_Manager *sprite_manager, cLevel *level )
+: cEditor( sprite_manager )
 {
-	menu_filename = DATA_DIR "/" GAME_EDITOR_DIR "/level_menu.xml";
-	items_filename = DATA_DIR "/" GAME_EDITOR_DIR "/level_items.xml";
+	m_menu_filename = DATA_DIR "/" GAME_EDITOR_DIR "/level_menu.xml";
+	m_items_filename = DATA_DIR "/" GAME_EDITOR_DIR "/level_items.xml";
 
-	editor_item_tag = "level";
+	m_editor_item_tag = "level";
 
-	pSettings = new cLevel_Settings();
+	m_level = level;
+	m_settings_screen = new cLevel_Settings( sprite_manager, m_level );
 }
 
 cEditor_Level :: ~cEditor_Level( void )
 {
-	delete pSettings;
+	delete m_settings_screen;
 }
 
 void cEditor_Level :: Init( void )
 {
 	// already loaded
-	if( editor_window )
+	if( m_editor_window )
 	{
 		return;
 	}
@@ -63,7 +65,7 @@ void cEditor_Level :: Init( void )
 void cEditor_Level :: Enable( void )
 {
 	// already enabled
-	if( enabled )
+	if( m_enabled )
 	{
 		return;
 	}
@@ -77,9 +79,9 @@ void cEditor_Level :: Enable( void )
 
 	// reset ground object
 	// player
-	pPlayer->Reset_On_Ground();
+	pLevel_Player->Reset_On_Ground();
 	// sprite manager
-	for( cSprite_List::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
+	for( cSprite_List::iterator itr = m_sprite_manager->objects.begin(); itr != m_sprite_manager->objects.end(); ++itr )
 	{
 		// get object pointer
 		cSprite *obj = (*itr);
@@ -105,7 +107,7 @@ void cEditor_Level :: Enable( void )
 void cEditor_Level :: Disable( bool native_mode /* = 0 */ )
 {
 	// already disabled
-	if( !enabled )
+	if( !m_enabled )
 	{
 		return;
 	}
@@ -125,7 +127,7 @@ void cEditor_Level :: Disable( bool native_mode /* = 0 */ )
 
 bool cEditor_Level :: Key_Down( SDLKey key )
 {
-	if( !enabled )
+	if( !m_enabled )
 	{
 		return 0;
 	}
@@ -136,18 +138,13 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 	{
 		return 1;
 	}
-	// save level
-	else if( key == SDLK_s && input_event.key.keysym.mod & KMOD_CTRL )
-	{
-		pActive_Level->Save();
-	}
 	// focus last levelexit
 	else if( key == SDLK_END )
 	{
-		float new_cameraposx = 0;
-		float new_cameraposy = 0;
+		float new_camera_posx = 0.0f;
+		float new_camera_posy = 0.0f;
 
-		for( cSprite_List::iterator itr = pActive_Sprite_Manager->objects.begin(), itr_end = pActive_Sprite_Manager->objects.end(); itr != itr_end; ++itr )
+		for( cSprite_List::iterator itr = m_sprite_manager->objects.begin(); itr != m_sprite_manager->objects.end(); ++itr )
 		{
 			cSprite *obj = (*itr);
 
@@ -156,16 +153,16 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 				continue;
 			}
 
-			if( obj->m_type == TYPE_LEVEL_EXIT && new_cameraposx < obj->m_pos_x )
+			if( obj->m_type == TYPE_LEVEL_EXIT && new_camera_posx < obj->m_pos_x )
 			{
-				new_cameraposx = obj->m_pos_x;
-				new_cameraposy = obj->m_pos_y;
+				new_camera_posx = obj->m_pos_x;
+				new_camera_posy = obj->m_pos_y;
 			}
 		}
 
-		if( new_cameraposx != 0 || new_cameraposy != 0 )
+		if( !Is_Float_Equal( new_camera_posx, 0.0f ) || !Is_Float_Equal( new_camera_posy, 0.0f ) )
 		{
-			pActive_Camera->Set_Pos( new_cameraposx - ( game_res_w * 0.5f ), new_cameraposy - ( game_res_h * 0.5f ) );
+			pActive_Camera->Set_Pos( new_camera_posx - ( game_res_w * 0.5f ), new_camera_posy - ( game_res_h * 0.5f ) );
 		}
 	}
 	// modify selected objects state
@@ -173,15 +170,15 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 	{
 		if( !pMouseCursor->m_selected_objects.empty() )
 		{
-			cSprite *mouse_obj = pMouseCursor->m_selected_objects[0]->obj;
+			cSprite *mouse_obj = pMouseCursor->m_selected_objects[0]->m_obj;
 
 			// change state of the base object
 			if( Switch_Object_State( mouse_obj ) )
 			{
 				// change all object states to the base object state
-				for( SelectedObjectList::iterator itr = pMouseCursor->m_selected_objects.begin(), itr_end = pMouseCursor->m_selected_objects.end(); itr != itr_end; ++itr )
+				for( SelectedObjectList::iterator itr = pMouseCursor->m_selected_objects.begin(); itr != pMouseCursor->m_selected_objects.end(); ++itr )
 				{
-					cSprite *obj = (*itr)->obj;
+					cSprite *obj = (*itr)->m_obj;
 
 					// skip base object
 					if( obj == mouse_obj )
@@ -190,7 +187,7 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 					}
 
 					// sprites need additional data
-					if( obj->m_type == TYPE_PASSIVE || obj->m_type == TYPE_FRONT_PASSIVE || obj->m_type == TYPE_MASSIVE || obj->m_type == TYPE_CLIMBABLE || obj->m_type == TYPE_HALFMASSIVE )
+					if( obj->Is_Basic_Sprite() )
 					{
 						obj->m_type = mouse_obj->m_type;
 						obj->m_sprite_array = mouse_obj->m_sprite_array;
@@ -214,9 +211,9 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 		}
 	}
 	// modify mouse object state
-	else if( key == SDLK_m && pMouseCursor->m_hovering_object->obj )
+	else if( key == SDLK_m && pMouseCursor->m_hovering_object->m_obj )
 	{
-		Switch_Object_State( pMouseCursor->m_hovering_object->obj );
+		Switch_Object_State( pMouseCursor->m_hovering_object->m_obj );
 		pMouseCursor->Clear_Mouse_Object();
 	}
 	else
@@ -227,6 +224,18 @@ bool cEditor_Level :: Key_Down( SDLKey key )
 
 	// key got processed
 	return 1;
+}
+
+void cEditor_Level :: Set_Level( cLevel *level )
+{
+	m_level = level;
+	m_settings_screen->Set_Level( level );
+}
+
+void cEditor_Level :: Set_Sprite_Manager( cSprite_Manager *sprite_manager )
+{
+	cEditor::Set_Sprite_Manager( sprite_manager );
+	m_settings_screen->Set_Sprite_Manager( sprite_manager );
 }
 
 void cEditor_Level :: Activate_Menu_Item( cEditor_Menu_Object *entry )
@@ -258,10 +267,6 @@ void cEditor_Level :: Activate_Menu_Item( cEditor_Menu_Object *entry )
 		{
 			Function_Reload();
 		}
-		else if( entry->tags.compare( "clear" ) == 0 )
-		{
-			Function_Clear();
-		}
 		else if( entry->tags.compare( "settings" ) == 0 )
 		{
 			Function_Settings();
@@ -277,6 +282,11 @@ void cEditor_Level :: Activate_Menu_Item( cEditor_Menu_Object *entry )
 	{
 		cEditor::Activate_Menu_Item( entry );
 	}
+}
+
+cSprite *cEditor_Level :: Get_Object( const CEGUI::String &element, CEGUI::XMLAttributes &attributes, int engine_version, cSprite_Manager *sprite_manager )
+{
+	return Get_Level_Object( element, attributes, engine_version, m_sprite_manager );
 }
 
 bool cEditor_Level :: Switch_Object_State( cSprite *obj ) const
@@ -380,11 +390,12 @@ void cEditor_Level :: Function_Load( void )
 		}
 
 		// if available
-		if( pActive_Level->Get_Path( level_name ) )
+		if( pLevel_Manager->Get_Path( level_name ) )
 		{
 			Game_Action = GA_ENTER_LEVEL;
 			Game_Mode_Type = MODE_TYPE_LEVEL_CUSTOM;
 			Game_Action_Data.add( "level", level_name.c_str() );
+			Game_Action_Data.add( "reset_save", "1" );
 
 			pHud_Debug->Set_Text( _("Loaded ") + Trim_Filename( level_name, 0, 0 ) );
 
@@ -432,7 +443,7 @@ void cEditor_Level :: Function_Save_as( void )
 void cEditor_Level :: Function_Delete( void )
 {
 	std::string filename = pActive_Level->m_level_filename;
-	if( !pActive_Level->Get_Path( filename, 1 ) )
+	if( !pLevel_Manager->Get_Path( filename, 1 ) )
 	{
 		return;
 	}
@@ -457,22 +468,10 @@ void cEditor_Level :: Function_Reload( void )
 		return;
 	}
 
-	pActive_Level->Save();
-	if( pActive_Level->Load( Trim_Filename( pActive_Level->data_file, 0 ) ) )
+	if( pActive_Level->Load( Trim_Filename( pActive_Level->m_level_filename, 0 ) ) )
 	{
-		pActive_Level->Enter();
+		pActive_Level->Init();
 	}
-}
-
-void cEditor_Level :: Function_Clear( void )
-{
-	// if denied
-	if( !Box_Question( _("Clear Level ?") ) )
-	{
-		return;
-	}
-
-	pActive_Sprite_Manager->Delete_All();
 }
 
 void cEditor_Level :: Function_Settings( void )

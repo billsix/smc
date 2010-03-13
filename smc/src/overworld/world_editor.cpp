@@ -13,9 +13,10 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../overworld/world_editor.h"
 #include "../core/game_core.h"
+#include "../gui/generic.h"
 #include "../overworld/overworld.h"
 #include "../audio/audio.h"
 #include "../core/i18n.h"
@@ -26,14 +27,15 @@ namespace SMC
 
 /* *** *** *** *** *** *** *** cEditor_World *** *** *** *** *** *** *** *** *** *** */
 
-cEditor_World :: cEditor_World( void )
-: cEditor()
+cEditor_World :: cEditor_World( cSprite_Manager *sprite_manager, cOverworld *overworld )
+: cEditor( sprite_manager )
 {
-	menu_filename = DATA_DIR "/" GAME_EDITOR_DIR "/world_menu.xml";
-	items_filename = DATA_DIR "/" GAME_EDITOR_DIR "/world_items.xml";
+	m_overworld = overworld;
+	m_menu_filename = DATA_DIR "/" GAME_EDITOR_DIR "/world_menu.xml";
+	m_items_filename = DATA_DIR "/" GAME_EDITOR_DIR "/world_items.xml";
 
-	editor_item_tag = "world";
-	camera_speed = 20;
+	m_editor_item_tag = "world";
+	m_camera_speed = 20;
 }
 
 cEditor_World :: ~cEditor_World( void )
@@ -44,7 +46,7 @@ cEditor_World :: ~cEditor_World( void )
 void cEditor_World :: Init( void )
 {
 	// already loaded
-	if( editor_window )
+	if( m_editor_window )
 	{
 		return;
 	}
@@ -57,13 +59,13 @@ void cEditor_World :: Init( void )
 void cEditor_World :: Enable( void )
 {
 	// already enabled
-	if( enabled )
+	if( m_enabled )
 	{
 		return;
 	}
 	
 	editor_world_enabled = 1;
-	pOverworld_Manager->draw_layer = 1;
+	pOverworld_Manager->m_draw_layer = 1;
 
 	if( Game_Mode == MODE_OVERWORLD )
 	{
@@ -76,7 +78,7 @@ void cEditor_World :: Enable( void )
 void cEditor_World :: Disable( bool native_mode /* = 0 */ )
 {
 	// already disabled
-	if( !enabled )
+	if( !m_enabled )
 	{
 		return;
 	}
@@ -84,8 +86,8 @@ void cEditor_World :: Disable( bool native_mode /* = 0 */ )
 	pHud_Debug->Set_Text( _("World Editor disabled") );
 
 	editor_world_enabled = 0;
-	pOverworld_Manager->draw_layer = 0;
-	pOverworld_Manager->cameramode = 0;
+	pOverworld_Manager->m_draw_layer = 0;
+	pOverworld_Manager->m_camera_mode = 0;
 
 	if( Game_Mode == MODE_OVERWORLD )
 	{
@@ -98,7 +100,7 @@ void cEditor_World :: Disable( bool native_mode /* = 0 */ )
 
 bool cEditor_World :: Key_Down( SDLKey key )
 {
-	if( !enabled )
+	if( !m_enabled )
 	{
 		return 0;
 	}
@@ -109,11 +111,6 @@ bool cEditor_World :: Key_Down( SDLKey key )
 	{
 		return 1;
 	}
-	// save level
-	else if( key == SDLK_s && input_event.key.keysym.mod & KMOD_CTRL )
-	{
-		pActive_Overworld->Save();
-	}
 	else
 	{
 		// not processed
@@ -122,6 +119,11 @@ bool cEditor_World :: Key_Down( SDLKey key )
 
 	// key got processed
 	return 1;
+}
+
+void cEditor_World :: Set_Overworld( cOverworld *overworld )
+{
+	m_overworld = overworld;
 }
 
 void cEditor_World :: Activate_Menu_Item( cEditor_Menu_Object *entry )
@@ -149,10 +151,6 @@ void cEditor_World :: Activate_Menu_Item( cEditor_Menu_Object *entry )
 		{
 			Function_Reload();
 		}
-		else if( entry->tags.compare( "clear" ) == 0 )
-		{
-			Function_Clear();
-		}
 		/*else if( entry->tags.compare( "settings" ) == 0 )
 		{
 			Function_Settings();
@@ -170,6 +168,11 @@ void cEditor_World :: Activate_Menu_Item( cEditor_Menu_Object *entry )
 	}
 }
 
+cSprite *cEditor_World :: Get_Object( const CEGUI::String &element, CEGUI::XMLAttributes &attributes, int engine_version, cSprite_Manager *sprite_manager )
+{
+	return Get_World_Object( element, attributes, engine_version, m_sprite_manager, m_overworld );
+}
+
 bool cEditor_World :: Function_New( void )
 {
 	std::string world_name = Box_Text_Input( _("Create a new World"), _("Name") );
@@ -182,6 +185,7 @@ bool cEditor_World :: Function_New( void )
 
 	if( pOverworld_Manager->New( world_name ) )
 	{
+		pOverworld_Manager->Set_Active( world_name );
 		pHud_Debug->Set_Text( _("Created ") + world_name );
 		return 1;
 	}
@@ -230,12 +234,12 @@ void cEditor_World :: Function_Load( void )
 void cEditor_World :: Function_Save( bool with_dialog /* = 0 */ )
 {
 	// if denied
-	if( with_dialog && !Box_Question( _("Save ") + Trim_Filename( pActive_Overworld->m_description->name, 0, 0 ) + " ?" ) )
+	if( with_dialog && !Box_Question( _("Save ") + Trim_Filename( m_overworld->m_description->m_name, 0, 0 ) + " ?" ) )
 	{
 		return;
 	}
 
-	pActive_Overworld->Save();
+	m_overworld->Save();
 }
 
 void cEditor_World :: Function_Reload( void )
@@ -246,21 +250,7 @@ void cEditor_World :: Function_Reload( void )
 		return;
 	}
 
-	pActive_Overworld->Save();
-	pActive_Overworld->Load();
-}
-
-void cEditor_World :: Function_Clear( void )
-{
-	// if denied
-	if( !Box_Question( _("Clear World ?") ) )
-	{
-		return;
-	}
-
-	pActive_Sprite_Manager->Delete_All();
-	pActive_Overworld->m_waypoints.clear();
-	pOverworld_Player->Reset();
+	m_overworld->Load();
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

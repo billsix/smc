@@ -13,7 +13,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../core/globals.h"
+#include "../core/global_basic.h"
 #include "../core/game_core.h"
 #include "../level/level_settings.h"
 #include "../input/mouse.h"
@@ -21,76 +21,86 @@
 #include "../video/font.h"
 #include "../video/renderer.h"
 #include "../core/filesystem/filesystem.h"
+#include "../core/framerate.h"
 
 namespace SMC
 {
 
 /* *** *** *** *** *** cLevel_Settings *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLevel_Settings :: cLevel_Settings( void )
+cLevel_Settings :: cLevel_Settings( cSprite_Manager *sprite_manager, cLevel *level )
 {
-	// Main
-	background_preview = new cHudSprite();
-	// Global Effects
-	global_effect_preview = new cHudSprite( NULL, game_res_w * 0.75f, game_res_h * 0.2f );
-	global_effect_preview->Set_Shadow( lightgrey, 2 );
-	
-	camera = new cCamera();
-	guiwindow = NULL;
-	tabcontrol = NULL;
+	m_active = 0;
 
-	active = 0;
+	// Main
+	m_background_preview = new cHudSprite( sprite_manager );
+	// Global Effects
+	m_global_effect_preview = new cHudSprite( sprite_manager );
+	m_global_effect_preview->Set_Pos( game_res_w * 0.75f, game_res_h * 0.2f );
+	m_global_effect_preview->Set_Shadow( lightgrey, 2 );
+
+	m_level = level;
+	m_camera = new cCamera( sprite_manager );
+	m_gui_window = NULL;
+	m_tabcontrol = NULL;
 }
 
 cLevel_Settings :: ~cLevel_Settings( void )
 {
-	delete background_preview;
-	delete global_effect_preview;
-	delete camera;
+	Unload();
+
+	delete m_background_preview;
+	delete m_global_effect_preview;
+	delete m_camera;
 }
 
 void cLevel_Settings :: Init( void )
 {
+	if( m_gui_window )
+	{
+		Unload();
+	}
+	
 	// GUI
-	guiwindow = CEGUI::WindowManager::getSingleton().loadWindowLayout( "level_settings/main.layout" );
-	pGuiSystem->getGUISheet()->addChildWindow( guiwindow );
+	m_gui_window = CEGUI::WindowManager::getSingleton().loadWindowLayout( "level_settings/main.layout" );
+	pGuiSystem->getGUISheet()->addChildWindow( m_gui_window );
 	
 	// Tab Control
-	tabcontrol = static_cast<CEGUI::TabControl *>(CEGUI::WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
+	m_tabcontrol = static_cast<CEGUI::TabControl *>(CEGUI::WindowManager::getSingleton().getWindow( "tabcontrol_main" ));
 	// tab main
 	CEGUI::Window *tabwindow = CEGUI::WindowManager::getSingleton().loadWindowLayout( "level_settings/tab_main.layout" );
-	tabcontrol->addTab( tabwindow );
+	m_tabcontrol->addTab( tabwindow );
 	// Tab background
 	tabwindow = CEGUI::WindowManager::getSingleton().loadWindowLayout( "level_settings/tab_background.layout" );
-	tabcontrol->addTab( tabwindow );
+	m_tabcontrol->addTab( tabwindow );
 	// tab global effects
 	tabwindow = CEGUI::WindowManager::getSingleton().loadWindowLayout( "level_settings/tab_global_effect.layout" );
-	tabcontrol->addTab( tabwindow );
+	m_tabcontrol->addTab( tabwindow );
 
 	// Main
 	// level filename
 	CEGUI::Editbox *editbox_level_filename = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_level_filename" ));
-	editbox_level_filename->setText( Trim_Filename( pActive_Level->data_file, 0, 0 ).c_str() );
+	editbox_level_filename->setText( Trim_Filename( m_level->m_level_filename, 0, 0 ).c_str() );
 	// music filename
 	CEGUI::Editbox *editbox_music_filename = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_music_filename" ));
-	editbox_music_filename->setText( pActive_Level->Get_Musicfile( 1 ).c_str() );
+	editbox_music_filename->setText( m_level->Get_Musicfile( 1 ).c_str() );
 	// author
 	CEGUI::Editbox *editbox_author = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_author" ));
-	editbox_author->setText( reinterpret_cast<const CEGUI::utf8*>(pActive_Level->m_author.c_str()) );
+	editbox_author->setText( reinterpret_cast<const CEGUI::utf8*>(m_level->m_author.c_str()) );
 	// version
 	CEGUI::Editbox *editbox_version = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_version" ));
-	editbox_version->setText( pActive_Level->m_version.c_str() );
+	editbox_version->setText( m_level->m_version.c_str() );
 	// camera limits
 	CEGUI::Spinner *spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_camera_limit_w" ));
-	spinner->setCurrentValue( pActive_Level->m_camera_limits.m_w );
+	spinner->setCurrentValue( m_level->m_camera_limits.m_w );
 	spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_camera_limit_h" ));
-	spinner->setCurrentValue( pActive_Level->m_camera_limits.m_h );
+	spinner->setCurrentValue( m_level->m_camera_limits.m_h );
 	// fixed camera horizontal velocity
 	spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_camera_hor_vel" ));
-	spinner->setCurrentValue( pActive_Level->m_fixed_camera_hor_vel );
+	spinner->setCurrentValue( m_level->m_fixed_camera_hor_vel );
 	// last save time
 	CEGUI::Editbox *editbox_save_time = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_save_time" ));
-	editbox_save_time->setText( Time_to_String( pActive_Level->m_last_saved, "%Y-%m-%d  %H:%M:%S" ) );
+	editbox_save_time->setText( Time_to_String( m_level->m_last_saved, "%Y-%m-%d  %H:%M:%S" ) );
 
 
 	// add background image button
@@ -110,12 +120,10 @@ void cLevel_Settings :: Init( void )
 	listbox->subscribeEvent( CEGUI::Listbox::EventSelectionChanged, CEGUI::Event::Subscriber( &cLevel_Settings::Set_Background_Image, this ) );
 	// type
 	CEGUI::Combobox *combobox = static_cast<CEGUI::Combobox *>(CEGUI::WindowManager::getSingleton().getWindow( "combo_bg_image_type" ));
-	CEGUI::ListboxTextItem *item = new CEGUI::ListboxTextItem( "Disabled", 1 );
-	combobox->addItem( item );
-	item = new CEGUI::ListboxTextItem( "Bottom", 2 );
-	combobox->addItem( item );
-	item = new CEGUI::ListboxTextItem( "All", 3 );
-	combobox->addItem( item );
+	combobox->addItem( new CEGUI::ListboxTextItem( cBackground::Get_Type_Name( BG_NONE ) ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( cBackground::Get_Type_Name( BG_IMG_TOP ) ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( cBackground::Get_Type_Name( BG_IMG_BOTTOM ) ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( cBackground::Get_Type_Name( BG_IMG_ALL ) ) );
 	combobox->subscribeEvent( CEGUI::Combobox::EventListSelectionAccepted, CEGUI::Event::Subscriber( &cLevel_Settings::Update_BG_Image, this ) );
 	// filename
 	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_bg_image_name" ));
@@ -138,33 +146,33 @@ void cLevel_Settings :: Init( void )
 	spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_bg_image_const_vel_y" ));
 	spinner->subscribeEvent( CEGUI::Spinner::EventKeyUp, CEGUI::Event::Subscriber( &cLevel_Settings::Update_BG_Image, this ) );
 	// Gradient colors
-	bg_color_1 = Color( pActive_Level->m_background_manager->Get_Pointer(0)->m_color_1.red, pActive_Level->m_background_manager->Get_Pointer(0)->m_color_1.green, pActive_Level->m_background_manager->Get_Pointer(0)->m_color_1.blue, 255 );
-	bg_color_2 = Color( pActive_Level->m_background_manager->Get_Pointer(0)->m_color_2.red, pActive_Level->m_background_manager->Get_Pointer(0)->m_color_2.green, pActive_Level->m_background_manager->Get_Pointer(0)->m_color_2.blue, 255 );
+	m_bg_color_1 = Color( m_level->m_background_manager->Get_Pointer(0)->m_color_1.red, m_level->m_background_manager->Get_Pointer(0)->m_color_1.green, m_level->m_background_manager->Get_Pointer(0)->m_color_1.blue, 255 );
+	m_bg_color_2 = Color( m_level->m_background_manager->Get_Pointer(0)->m_color_2.red, m_level->m_background_manager->Get_Pointer(0)->m_color_2.green, m_level->m_background_manager->Get_Pointer(0)->m_color_2.blue, 255 );
 
 	// color 1
 	editbox = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_bg_color_start_red" ));
 	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cLevel_Settings::Update_BG_Colors, this ) );
-	editbox->setText( int_to_string( bg_color_1.red ).c_str() );
+	editbox->setText( int_to_string( m_bg_color_1.red ).c_str() );
 	editbox = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_bg_color_start_green" ));
 	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cLevel_Settings::Update_BG_Colors, this ) );
-	editbox->setText( int_to_string( bg_color_1.green ).c_str() );
+	editbox->setText( int_to_string( m_bg_color_1.green ).c_str() );
 	editbox = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_bg_color_start_blue" ));
 	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cLevel_Settings::Update_BG_Colors, this ) );
-	editbox->setText( int_to_string( bg_color_1.blue ).c_str() );
+	editbox->setText( int_to_string( m_bg_color_1.blue ).c_str() );
 	// color 2
 	editbox = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_bg_color_end_red" ));
 	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cLevel_Settings::Update_BG_Colors, this ) );
-	editbox->setText( int_to_string( bg_color_2.red ).c_str() );
+	editbox->setText( int_to_string( m_bg_color_2.red ).c_str() );
 	editbox = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_bg_color_end_green" ));
 	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cLevel_Settings::Update_BG_Colors, this ) );
-	editbox->setText( int_to_string( bg_color_2.green ).c_str() );
+	editbox->setText( int_to_string( m_bg_color_2.green ).c_str() );
 	editbox = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_bg_color_end_blue" ));
 	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cLevel_Settings::Update_BG_Colors, this ) );
-	editbox->setText( int_to_string( bg_color_2.blue ).c_str() );
+	editbox->setText( int_to_string( m_bg_color_2.blue ).c_str() );
 	// preview window
 	CEGUI::Window *window_background_preview = CEGUI::WindowManager::getSingleton().getWindow( "window_background_preview" );
-	background_preview->Set_Pos_X( window_background_preview->getUnclippedPixelRect().d_left * global_downscalex, 1 );
-	background_preview->Set_Pos_Y( window_background_preview->getUnclippedPixelRect().d_top * global_downscaley, 1 );
+	m_background_preview->Set_Pos_X( window_background_preview->getUnclippedPixelRect().d_left * global_downscalex, 1 );
+	m_background_preview->Set_Pos_Y( window_background_preview->getUnclippedPixelRect().d_top * global_downscaley, 1 );
 
 	Update_BG_Colors( CEGUI::EventArgs() );
 
@@ -174,53 +182,51 @@ void cLevel_Settings :: Init( void )
 	editbox->subscribeEvent( CEGUI::Editbox::EventKeyUp, CEGUI::Event::Subscriber( &cLevel_Settings::Update_Global_Effect_Image, this ) );
 	// type
 	combobox = static_cast<CEGUI::Combobox *>(CEGUI::WindowManager::getSingleton().getWindow( "combo_global_effect_type" ));
-	item = new CEGUI::ListboxTextItem( "Disabled", 1 );
-	combobox->addItem( item );
-	item = new CEGUI::ListboxTextItem( "Default", 2 );
-	combobox->addItem( item );
+	combobox->addItem( new CEGUI::ListboxTextItem( "Disabled" ) );
+	combobox->addItem( new CEGUI::ListboxTextItem( "Default" ) );
 	// Z Position
 	editbox = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z" ));
-	editbox->setText( float_to_string( pActive_Level->m_global_effect->m_pos_z ) );
+	editbox->setText( float_to_string( m_level->m_global_effect->m_pos_z ) );
 	editbox = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z_rand" ));
-	editbox->setText( float_to_string( pActive_Level->m_global_effect->posz_rand ) );
+	editbox->setText( float_to_string( m_level->m_global_effect->posz_rand ) );
 	// creation rect
 	spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_x" ));
-	spinner->setCurrentValue( pActive_Level->m_global_effect->m_start_pos_x );
+	spinner->setCurrentValue( m_level->m_global_effect->m_start_pos_x );
 	spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_y" ));
-	spinner->setCurrentValue( pActive_Level->m_global_effect->m_start_pos_y );
+	spinner->setCurrentValue( m_level->m_global_effect->m_start_pos_y );
 	spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_w" ));
-	spinner->setCurrentValue( pActive_Level->m_global_effect->m_rect.m_w );
+	spinner->setCurrentValue( m_level->m_global_effect->m_rect.m_w );
 	spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_h" ));
-	spinner->setCurrentValue( pActive_Level->m_global_effect->m_rect.m_h );
+	spinner->setCurrentValue( m_level->m_global_effect->m_rect.m_h );
 	// time to live
 	spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_time_to_live" ));
-	spinner->setCurrentValue( pActive_Level->m_global_effect->time_to_live );
+	spinner->setCurrentValue( m_level->m_global_effect->time_to_live );
 	// scale
 	spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_scale" ));
-	spinner->setCurrentValue( pActive_Level->m_global_effect->size_scale );
+	spinner->setCurrentValue( m_level->m_global_effect->size_scale );
 	spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_scale_rand" ));
-	spinner->setCurrentValue( pActive_Level->m_global_effect->size_scale_rand );
+	spinner->setCurrentValue( m_level->m_global_effect->size_scale_rand );
 	// emitter iteration interval
 	spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_emitter_iteration_interval" ));
-	spinner->setCurrentValue( pActive_Level->m_global_effect->emitter_iteration_interval );
+	spinner->setCurrentValue( m_level->m_global_effect->emitter_iteration_interval );
 	// velocity
 	spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_vel" ));
-	spinner->setCurrentValue( pActive_Level->m_global_effect->vel );
+	spinner->setCurrentValue( m_level->m_global_effect->vel );
 	spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_vel_rand" ));
-	spinner->setCurrentValue( pActive_Level->m_global_effect->vel_rand );
+	spinner->setCurrentValue( m_level->m_global_effect->vel_rand );
 	// angle
 	spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_angle_start" ));
-	spinner->setCurrentValue( pActive_Level->m_global_effect->angle_start );
+	spinner->setCurrentValue( m_level->m_global_effect->angle_start );
 	spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_angle_range" ));
-	spinner->setCurrentValue( pActive_Level->m_global_effect->angle_range );
+	spinner->setCurrentValue( m_level->m_global_effect->angle_range );
 	// rotation z
 	spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_rot_z" ));
-	spinner->setCurrentValue( pActive_Level->m_global_effect->m_rot_z );
+	spinner->setCurrentValue( m_level->m_global_effect->m_rot_z );
 	// constant rotation z
 	spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z" ));
-	spinner->setCurrentValue( pActive_Level->m_global_effect->const_rotz );
+	spinner->setCurrentValue( m_level->m_global_effect->const_rotz );
 	spinner = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z_rand" ));
-	spinner->setCurrentValue( pActive_Level->m_global_effect->const_rotz_rand );
+	spinner->setCurrentValue( m_level->m_global_effect->const_rotz_rand );
 
 	Clear_Layer_Field();
 
@@ -232,95 +238,119 @@ void cLevel_Settings :: Init( void )
 
 void cLevel_Settings :: Enter( void )
 {
+	// set active camera
+	pActive_Camera = m_camera;
+
+	editor_enabled = 0;
+
+	if( pMouseCursor->m_active_object )
+	{
+		pMouseCursor->Clear_Active_Object();
+	}
+
 	// Initialize level data
 	Init();
-	// change mode
-	Change_Game_Mode( MODE_LEVEL_SETTINGS );
 	// set active
-	active = 1;
+	m_active = 1;
+
+	// update camera
+	m_camera->Update_Position();
 }
 
-void cLevel_Settings :: Unload( void )
+void cLevel_Settings :: Leave( void )
 {
 	// # Main Tab
 	// filename
-	if( Trim_Filename( pActive_Level->data_file, 0, 0 ).compare( CEGUI::WindowManager::getSingleton().getWindow( "editbox_level_filename" )->getText().c_str() ) != 0 )
+	if( Trim_Filename( m_level->m_level_filename, 0, 0 ).compare( CEGUI::WindowManager::getSingleton().getWindow( "editbox_level_filename" )->getText().c_str() ) != 0 )
 	{
-		pActive_Level->Set_Levelfile( CEGUI::WindowManager::getSingleton().getWindow( "editbox_level_filename" )->getText().c_str() );
+		m_level->Set_Levelfile( CEGUI::WindowManager::getSingleton().getWindow( "editbox_level_filename" )->getText().c_str() );
 		// show no level saved info text
 		pHud_Debug->Set_Text( "", 0 );
 	}
 	// musicfile
-	pActive_Level->Set_Musicfile( CEGUI::WindowManager::getSingleton().getWindow( "editbox_music_filename" )->getText().c_str() );
+	m_level->Set_Musicfile( CEGUI::WindowManager::getSingleton().getWindow( "editbox_music_filename" )->getText().c_str() );
 	// Author
-	pActive_Level->Set_Author( CEGUI::WindowManager::getSingleton().getWindow( "editbox_author" )->getText().c_str() );
+	m_level->Set_Author( CEGUI::WindowManager::getSingleton().getWindow( "editbox_author" )->getText().c_str() );
 	// Version
-	pActive_Level->Set_Version( CEGUI::WindowManager::getSingleton().getWindow( "editbox_version" )->getText().c_str() );
+	m_level->Set_Version( CEGUI::WindowManager::getSingleton().getWindow( "editbox_version" )->getText().c_str() );
 	// Camera Limits
-	pLevel_Manager->camera->Set_Limit_W( (static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_camera_limit_w" )))->getCurrentValue() );
-	pLevel_Manager->camera->Set_Limit_H( (static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_camera_limit_h" )))->getCurrentValue() );
-	pActive_Level->m_camera_limits.m_w = pLevel_Manager->camera->limit_rect.m_w;
-	pActive_Level->m_camera_limits.m_h = pLevel_Manager->camera->limit_rect.m_h;
+	pLevel_Manager->m_camera->Set_Limit_W( (static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_camera_limit_w" )))->getCurrentValue() );
+	pLevel_Manager->m_camera->Set_Limit_H( (static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_camera_limit_h" )))->getCurrentValue() );
+	m_level->m_camera_limits.m_w = pLevel_Manager->m_camera->m_limit_rect.m_w;
+	m_level->m_camera_limits.m_h = pLevel_Manager->m_camera->m_limit_rect.m_h;
 	// fixed camera horizontal velocity
-	pLevel_Manager->camera->fixed_hor_vel = (static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_camera_hor_vel" )))->getCurrentValue();
-	pActive_Level->m_fixed_camera_hor_vel = pLevel_Manager->camera->fixed_hor_vel;
+	pLevel_Manager->m_camera->m_fixed_hor_vel = (static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_camera_hor_vel" )))->getCurrentValue();
+	m_level->m_fixed_camera_hor_vel = pLevel_Manager->m_camera->m_fixed_hor_vel;
 
 	// # Background Tab
 	// Gradient
-	pActive_Level->m_background_manager->Get_Pointer(0)->Set_Color_1( bg_color_1 );
-	pActive_Level->m_background_manager->Get_Pointer(0)->Set_Color_2( bg_color_2 );
+	m_level->m_background_manager->Get_Pointer(0)->Set_Color_1( m_bg_color_1 );
+	m_level->m_background_manager->Get_Pointer(0)->Set_Color_2( m_bg_color_2 );
 
 	// # Global Effect Tab
-	pActive_Level->m_global_effect->m_image_filename = CEGUI::WindowManager::getSingleton().getWindow( "editbox_global_effect_file" )->getText().c_str();
-	pActive_Level->m_global_effect->Set_Pos_Z( string_to_float( ( static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z" )))->getText().c_str() ), string_to_float( ( static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z_rand" )))->getText().c_str() ) );
-	pActive_Level->m_global_effect->Set_Type( CEGUI::WindowManager::getSingleton().getWindow( "combo_global_effect_type" )->getText().c_str() );
-	pActive_Level->m_global_effect->Init_Anim();
+	m_level->m_global_effect->m_image_filename = CEGUI::WindowManager::getSingleton().getWindow( "editbox_global_effect_file" )->getText().c_str();
+	m_level->m_global_effect->Set_Pos_Z( string_to_float( ( static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z" )))->getText().c_str() ), string_to_float( ( static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_global_effect_pos_z_rand" )))->getText().c_str() ) );
+	m_level->m_global_effect->Set_Type( CEGUI::WindowManager::getSingleton().getWindow( "combo_global_effect_type" )->getText().c_str() );
+	m_level->m_global_effect->Init_Anim();
 	// creation rect
 	CEGUI::Spinner *spinner_rect_x = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_x" ));
 	CEGUI::Spinner *spinner_rect_y = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_y" ));
 	CEGUI::Spinner *spinner_rect_w = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_w" ));
 	CEGUI::Spinner *spinner_rect_h = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_rect_h" ));
-	pActive_Level->m_global_effect->Set_Emitter_Rect( spinner_rect_x->getCurrentValue(), spinner_rect_y->getCurrentValue(), spinner_rect_w->getCurrentValue(), spinner_rect_h->getCurrentValue() );
+	m_level->m_global_effect->Set_Emitter_Rect( spinner_rect_x->getCurrentValue(), spinner_rect_y->getCurrentValue(), spinner_rect_w->getCurrentValue(), spinner_rect_h->getCurrentValue() );
 	// lifetime
 	CEGUI::Spinner *spinner_time_to_live = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_time_to_live" ));
-	pActive_Level->m_global_effect->Set_Time_to_Live( spinner_time_to_live->getCurrentValue() );
+	m_level->m_global_effect->Set_Time_to_Live( spinner_time_to_live->getCurrentValue() );
 	// scale
 	CEGUI::Spinner *spinner_scale = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_scale" ));
 	CEGUI::Spinner *spinner_scale_rand = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_scale_rand" ));
-	pActive_Level->m_global_effect->Set_Scale( spinner_scale->getCurrentValue(), spinner_scale_rand->getCurrentValue() );
+	m_level->m_global_effect->Set_Scale( spinner_scale->getCurrentValue(), spinner_scale_rand->getCurrentValue() );
 	// Emitter Iteration Interval
 	CEGUI::Spinner *spinner_emitter_iteration_interval = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_emitter_iteration_interval" ));
-	pActive_Level->m_global_effect->Set_Emitter_Iteration_Interval( spinner_emitter_iteration_interval->getCurrentValue() );
+	m_level->m_global_effect->Set_Emitter_Iteration_Interval( spinner_emitter_iteration_interval->getCurrentValue() );
 	// velocity
 	CEGUI::Spinner *spinner_vel = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_vel" ));
 	CEGUI::Spinner *spinner_vel_rand = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_vel_rand" ));
-	pActive_Level->m_global_effect->Set_Speed( spinner_vel->getCurrentValue(), spinner_vel_rand->getCurrentValue() );
+	m_level->m_global_effect->Set_Speed( spinner_vel->getCurrentValue(), spinner_vel_rand->getCurrentValue() );
 	// direction
 	CEGUI::Spinner *spinner_angle_start = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_angle_start" ));
 	CEGUI::Spinner *spinner_angle_range = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_angle_range" ));
-	pActive_Level->m_global_effect->Set_Direction_Range( spinner_angle_start->getCurrentValue(), spinner_angle_range->getCurrentValue() );
+	m_level->m_global_effect->Set_Direction_Range( spinner_angle_start->getCurrentValue(), spinner_angle_range->getCurrentValue() );
 	// rotation z
 	CEGUI::Spinner *spinner_rot_z = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_rot_z" ));
-	pActive_Level->m_global_effect->Set_Rotation_Z( spinner_rot_z->getCurrentValue(), 1 );
+	m_level->m_global_effect->Set_Rotation_Z( spinner_rot_z->getCurrentValue(), 1 );
 	// constant rotation z
 	CEGUI::Spinner *spinner_const_rot_z = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z" ));
 	CEGUI::Spinner *spinner_const_rot_z_rand = static_cast<CEGUI::Spinner *>(CEGUI::WindowManager::getSingleton().getWindow( "spinner_global_effect_const_rot_z_rand" ));
-	pActive_Level->m_global_effect->Set_Const_Rotation_Z( spinner_const_rot_z->getCurrentValue(), spinner_const_rot_z_rand->getCurrentValue() );
+	m_level->m_global_effect->Set_Const_Rotation_Z( spinner_const_rot_z->getCurrentValue(), spinner_const_rot_z_rand->getCurrentValue() );
+}
 
+void cLevel_Settings :: Unload( void )
+{
+	if( !m_gui_window )
+	{
+		return;
+	}
+	
 	// destroy CEGUI window
-	pGuiSystem->getGUISheet()->removeChildWindow( guiwindow );
-	CEGUI::WindowManager::getSingleton().destroyWindow( guiwindow );
+	pGuiSystem->getGUISheet()->removeChildWindow( m_gui_window );
+	CEGUI::WindowManager::getSingleton().destroyWindow( m_gui_window );
+	m_gui_window = NULL;
+	m_tabcontrol = NULL;
 
 	// clear preview images
-	background_preview->Set_Image( NULL, 1 );
-	global_effect_preview->Set_Image( NULL, 1 );
+	m_background_preview->Set_Image( NULL, 1 );
+	m_global_effect_preview->Set_Image( NULL, 1 );
 
-	active = 0;
+	m_active = 0;
 }
 
 void cLevel_Settings :: Update( void )
 {
+	// uhm...
 
+	// update performance timer
+	pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_SETTINGS]->Update();
 }
 
 void cLevel_Settings :: Draw( void )
@@ -329,18 +359,18 @@ void cLevel_Settings :: Draw( void )
 	pVideo->Draw_Rect( NULL, 0.00001f, &black );
 
 	// background Tab
-	if( tabcontrol->getSelectedTabIndex() == 1 )
+	if( m_tabcontrol->getSelectedTabIndex() == 1 )
 	{
 		// create request
 		cGradient_Request *gradient_request = new cGradient_Request();
 		// draw background gradient
-		pVideo->Draw_Gradient( &background_preview->m_rect, 0.0001f, &bg_color_1, &bg_color_2, DIR_VERTICAL, gradient_request );
+		pVideo->Draw_Gradient( &m_background_preview->m_rect, 0.0001f, &m_bg_color_1, &m_bg_color_2, DIR_VERTICAL, gradient_request );
 		// scale with image
-		if( background_preview->m_image )
+		if( m_background_preview->m_image )
 		{
 			// set scale
-			gradient_request->rect.m_w *= background_preview->m_scale_x;
-			gradient_request->rect.m_h *= background_preview->m_scale_y;
+			gradient_request->rect.m_w *= m_background_preview->m_scale_x;
+			gradient_request->rect.m_h *= m_background_preview->m_scale_y;
 		}
 		// add request
 		pRenderer_GUI->Add( gradient_request );
@@ -348,25 +378,28 @@ void cLevel_Settings :: Draw( void )
 		// create request
 		cSurface_Request *request = new cSurface_Request();
 		// draw background image preview
-		background_preview->Draw( request );
+		m_background_preview->Draw( request );
 		// add request
 		pRenderer_GUI->Add( request );
 	}
 	// Global Effect Tab
-	else if( tabcontrol->getSelectedTabIndex() == 2 )
+	else if( m_tabcontrol->getSelectedTabIndex() == 2 )
 	{
 		// create request
 		cSurface_Request *request = new cSurface_Request();
 		// draw global effect preview
-		global_effect_preview->Draw( request );
+		m_global_effect_preview->Draw( request );
 		// add request
 		pRenderer_GUI->Add( request );
 	}
+
+	// update performance timer
+	pFramerate->m_perf_timer[PERF_DRAW_LEVEL_SETTINGS]->Update();
 }
 
 bool cLevel_Settings :: Key_Down( SDLKey key )
 {
-	if( !active )
+	if( !m_active )
 	{
 		return 0;
 	}
@@ -386,13 +419,25 @@ bool cLevel_Settings :: Key_Down( SDLKey key )
 	return 1;
 }
 
+void cLevel_Settings :: Set_Level( cLevel *level )
+{
+	m_level = level;
+}
+
+void cLevel_Settings :: Set_Sprite_Manager( cSprite_Manager *sprite_manager )
+{
+	m_background_preview->Set_Sprite_Manager( sprite_manager );
+	m_global_effect_preview->Set_Sprite_Manager( sprite_manager );
+	m_camera->Set_Sprite_Manager( sprite_manager );
+}
+
 bool cLevel_Settings :: Add_Background_Image( const CEGUI::EventArgs &event )
 {
-	cBackground *background = new cBackground();
+	cBackground *background = new cBackground( m_level->m_sprite_manager );
 	background->Set_Type( BG_IMG_BOTTOM );
 	background->Set_Image( LEVEL_DEFAULT_BACKGROUND );
 
-	pActive_Level->m_background_manager->Add( background );
+	m_level->m_background_manager->Add( background );
 
 	Load_BG_Image_List();
 
@@ -412,7 +457,7 @@ bool cLevel_Settings :: Delete_Background_Image( const CEGUI::EventArgs &event )
 	// get background
 	cBackground *background = static_cast<cBackground *>(item->getUserData());
 	// delete it
-	pActive_Level->m_background_manager->Delete( background );
+	m_level->m_background_manager->Delete( background );
 
 	// update list
 	Load_BG_Image_List();
@@ -487,27 +532,27 @@ bool cLevel_Settings :: Update_BG_Colors( const CEGUI::EventArgs &event )
 	CEGUI::Editbox *color_end_green = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_bg_color_end_green" ));
 	CEGUI::Editbox *color_end_blue = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_bg_color_end_blue" ));
 
-	bg_color_1.red = string_to_int( color_start_red->getText().c_str() );
-	bg_color_1.green = string_to_int( color_start_green->getText().c_str() );
-	bg_color_1.blue = string_to_int( color_start_blue->getText().c_str() );
-	bg_color_2.red = string_to_int( color_end_red->getText().c_str() );
-	bg_color_2.green = string_to_int( color_end_green->getText().c_str() );
-	bg_color_2.blue = string_to_int( color_end_blue->getText().c_str() );
+	m_bg_color_1.red = string_to_int( color_start_red->getText().c_str() );
+	m_bg_color_1.green = string_to_int( color_start_green->getText().c_str() );
+	m_bg_color_1.blue = string_to_int( color_start_blue->getText().c_str() );
+	m_bg_color_2.red = string_to_int( color_end_red->getText().c_str() );
+	m_bg_color_2.green = string_to_int( color_end_green->getText().c_str() );
+	m_bg_color_2.blue = string_to_int( color_end_blue->getText().c_str() );
 
 
 	// color start
-	color_start_red->setProperty( "NormalTextColour", CEGUI::PropertyHelper::colourToString( CEGUI::colour( 1, 1 - ( static_cast<float>(bg_color_1.red) / 255 ), 1 - ( static_cast<float>(bg_color_1.red) / 255 ), 1 ) ) );
-	color_start_green->setProperty( "NormalTextColour", CEGUI::PropertyHelper::colourToString( CEGUI::colour( 1 - ( static_cast<float>(bg_color_1.green) / 255 ), 1, 1 - ( static_cast<float>(bg_color_1.green) / 255 ), 1 ) ) );
-	color_start_blue->setProperty( "NormalTextColour", CEGUI::PropertyHelper::colourToString( CEGUI::colour( 1 - ( static_cast<float>(bg_color_1.blue) / 255 ), 1 - ( static_cast<float>(bg_color_1.blue) / 255 ), 1, 1 ) ) );
+	color_start_red->setProperty( "NormalTextColour", CEGUI::PropertyHelper::colourToString( CEGUI::colour( 1, 1 - ( static_cast<float>(m_bg_color_1.red) / 255 ), 1 - ( static_cast<float>(m_bg_color_1.red) / 255 ), 1 ) ) );
+	color_start_green->setProperty( "NormalTextColour", CEGUI::PropertyHelper::colourToString( CEGUI::colour( 1 - ( static_cast<float>(m_bg_color_1.green) / 255 ), 1, 1 - ( static_cast<float>(m_bg_color_1.green) / 255 ), 1 ) ) );
+	color_start_blue->setProperty( "NormalTextColour", CEGUI::PropertyHelper::colourToString( CEGUI::colour( 1 - ( static_cast<float>(m_bg_color_1.blue) / 255 ), 1 - ( static_cast<float>(m_bg_color_1.blue) / 255 ), 1, 1 ) ) );
 	// color end
-	color_end_red->setProperty( "NormalTextColour", CEGUI::PropertyHelper::colourToString( CEGUI::colour( 1, 1 - ( static_cast<float>(bg_color_2.red) / 255 ), 1 - ( static_cast<float>(bg_color_2.red) / 255 ), 1 ) ) );
-	color_end_green->setProperty( "NormalTextColour", CEGUI::PropertyHelper::colourToString( CEGUI::colour( 1 - ( static_cast<float>(bg_color_2.green) / 255 ), 1, 1 - ( static_cast<float>(bg_color_2.green) / 255 ), 1 ) ) );
-	color_end_blue->setProperty( "NormalTextColour", CEGUI::PropertyHelper::colourToString( CEGUI::colour( 1 - ( static_cast<float>(bg_color_2.blue) / 255 ), 1 - ( static_cast<float>(bg_color_2.blue) / 255 ), 1, 1 ) ) );
+	color_end_red->setProperty( "NormalTextColour", CEGUI::PropertyHelper::colourToString( CEGUI::colour( 1, 1 - ( static_cast<float>(m_bg_color_2.red) / 255 ), 1 - ( static_cast<float>(m_bg_color_2.red) / 255 ), 1 ) ) );
+	color_end_green->setProperty( "NormalTextColour", CEGUI::PropertyHelper::colourToString( CEGUI::colour( 1 - ( static_cast<float>(m_bg_color_2.green) / 255 ), 1, 1 - ( static_cast<float>(m_bg_color_2.green) / 255 ), 1 ) ) );
+	color_end_blue->setProperty( "NormalTextColour", CEGUI::PropertyHelper::colourToString( CEGUI::colour( 1 - ( static_cast<float>(m_bg_color_2.blue) / 255 ), 1 - ( static_cast<float>(m_bg_color_2.blue) / 255 ), 1, 1 ) ) );
 
 	CEGUI::Window *statictext = CEGUI::WindowManager::getSingleton().getWindow( "text_color_start" );
-	statictext->setProperty( "TextColours", CEGUI::PropertyHelper::colourToString( bg_color_1.Get_cegui_Color() ) );
+	statictext->setProperty( "TextColours", CEGUI::PropertyHelper::colourToString( m_bg_color_1.Get_cegui_Color() ) );
 	statictext = CEGUI::WindowManager::getSingleton().getWindow( "text_color_end" );
-	statictext->setProperty( "TextColours", CEGUI::PropertyHelper::colourToString( bg_color_2.Get_cegui_Color() ) );
+	statictext->setProperty( "TextColours", CEGUI::PropertyHelper::colourToString( m_bg_color_2.Get_cegui_Color() ) );
 
 	return 1;
 }
@@ -517,7 +562,7 @@ void cLevel_Settings :: Load_BG_Image_List( void )
 	CEGUI::Listbox *listbox = static_cast<CEGUI::Listbox *>(CEGUI::WindowManager::getSingleton().getWindow( "listbox_backgrounds" ));
 	listbox->resetList();
 
-	for( vector<cBackground *>::iterator itr = pActive_Level->m_background_manager->objects.begin(), itr_end = pActive_Level->m_background_manager->objects.end(); itr != itr_end; ++itr )
+	for( vector<cBackground *>::iterator itr = m_level->m_background_manager->objects.begin(); itr != m_level->m_background_manager->objects.end(); ++itr )
 	{
 		cBackground *background = (*itr);
 
@@ -536,7 +581,7 @@ void cLevel_Settings :: Load_BG_Image_List( void )
 	CEGUI::PushButton *button_add = static_cast<CEGUI::PushButton *>(CEGUI::WindowManager::getSingleton().getWindow( "button_add_background_image" ));
 	
 	// 9 layers + default background is the maximum
-	if( pActive_Level->m_background_manager->size() >= 10 )
+	if( m_level->m_background_manager->size() >= 10 )
 	{
 		button_add->disable();
 	}
@@ -551,12 +596,12 @@ void cLevel_Settings :: Set_Background_Image_Preview( std::string filename )
 	Convert_Path_Separators( filename );
 
 	// unset image
-	background_preview->Set_Image( NULL );
+	m_background_preview->Set_Image( NULL );
 
 	// set default rect
 	CEGUI::Window *window_background_preview = CEGUI::WindowManager::getSingleton().getWindow( "window_background_preview" );
-	background_preview->m_rect.m_w = window_background_preview->getUnclippedPixelRect().getWidth() * global_downscalex;
-	background_preview->m_rect.m_h = window_background_preview->getUnclippedPixelRect().getHeight() * global_downscaley;
+	m_background_preview->m_rect.m_w = window_background_preview->getUnclippedPixelRect().getWidth() * global_downscalex;
+	m_background_preview->m_rect.m_h = window_background_preview->getUnclippedPixelRect().getHeight() * global_downscaley;
 
 	if( !File_Exists( filename ) )
 	{
@@ -571,15 +616,15 @@ void cLevel_Settings :: Set_Background_Image_Preview( std::string filename )
 	}
 
 	// reset scale
-	background_preview->m_scale_x = 1;
-	background_preview->m_scale_y = 1;
+	m_background_preview->m_scale_x = 1.0f;
+	m_background_preview->m_scale_y = 1.0f;
 	// Get zoom before setting image
-	float zoom = pVideo->Get_Scale( temp, background_preview->m_rect.m_w, background_preview->m_rect.m_h );
+	float zoom = pVideo->Get_Scale( temp, m_background_preview->m_rect.m_w, m_background_preview->m_rect.m_h );
 	// Set image
-	background_preview->Set_Image( temp );
+	m_background_preview->Set_Image( temp );
 	// Set Zoom
-	background_preview->m_scale_x *= zoom;
-	background_preview->m_scale_y *= zoom;
+	m_background_preview->m_scale_x *= zoom;
+	m_background_preview->m_scale_y *= zoom;
 }
 
 bool cLevel_Settings :: Update_BG_Image( const CEGUI::EventArgs &event )
@@ -662,10 +707,10 @@ void cLevel_Settings :: Clear_Layer_Field( void )
 void cLevel_Settings :: Load_Global_Effect( void )
 {
 	CEGUI::Editbox *editbox = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "editbox_global_effect_file" ));
-	editbox->setText( pActive_Level->m_global_effect->m_image_filename.c_str() );
+	editbox->setText( m_level->m_global_effect->m_image_filename.c_str() );
 
 	editbox = static_cast<CEGUI::Editbox *>(CEGUI::WindowManager::getSingleton().getWindow( "combo_global_effect_type" ));
-	editbox->setText( pActive_Level->m_global_effect->Get_Type_Name().c_str() );
+	editbox->setText( m_level->m_global_effect->Get_Type_Name().c_str() );
 }
 
 void cLevel_Settings :: Set_Global_Effect_Image_Preview( std::string filename )
@@ -674,7 +719,7 @@ void cLevel_Settings :: Set_Global_Effect_Image_Preview( std::string filename )
 
 	if( !File_Exists( filename ) )
 	{
-		global_effect_preview->Set_Image( NULL );
+		m_global_effect_preview->Set_Image( NULL );
 		return;
 	}
 
@@ -686,14 +731,14 @@ void cLevel_Settings :: Set_Global_Effect_Image_Preview( std::string filename )
 	}
 
 	// reset scale
-	global_effect_preview->m_scale_x = 1;
-	global_effect_preview->m_scale_y = 1;
+	m_global_effect_preview->m_scale_x = 1.0f;
+	m_global_effect_preview->m_scale_y = 1.0f;
 	// Set image
-	global_effect_preview->Set_Image( temp );
+	m_global_effect_preview->Set_Image( temp );
 	// Set Zoom
-	float zoom = pVideo->Get_Scale( temp, 100, 100 );
-	global_effect_preview->m_scale_x *= zoom;
-	global_effect_preview->m_scale_y *= zoom;
+	float zoom = pVideo->Get_Scale( temp, 100.0f, 100.0f );
+	m_global_effect_preview->m_scale_x *= zoom;
+	m_global_effect_preview->m_scale_y *= zoom;
 }
 
 bool cLevel_Settings :: Update_Global_Effect_Image( const CEGUI::EventArgs &event )

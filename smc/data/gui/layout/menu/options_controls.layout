@@ -14,13 +14,13 @@
             <Property Name="UnifiedAreaRect" Value="{{0.25,0},{0.25,0},{0.95,0},{0.79,0}}" />
             <Window Type="DefaultWindow" Name="controls_tab_keyboard" >
                 <Property Name="Text" Value="Keyboard" />
-                <Property Name="Visible" Value="True" />
+				<Property Name="Visible" Value="True" />
                 <Property Name="InheritsAlpha" Value="False" />
                 <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
                 <Property Name="UnifiedAreaRect" Value="{{0,0},{0,0},{1,0},{1,0}}" />
                 <Window Type="TaharezLook/MultiColumnList" Name="listbox_keyboard" >
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-                    <Property Name="UnifiedAreaRect" Value="{{0.05,0},{0.15,0},{0.4,0},{0.88,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.05,0},{0.15,0},{0.8,0},{0.88,0}}" />
                 </Window>
                 <Window Type="TaharezLook/StaticText" Name="text_keyboard_shortcuts" >
                     <Property Name="Text" Value="Shortcuts" />
@@ -70,7 +70,7 @@
                     <Property Name="ReadOnly" Value="True" />
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
                     <Property Name="ClippedByParent" Value="False" />
-                    <Property Name="UnifiedAreaRect" Value="{{0.3,0},{0.2,0},{0.45,0},{0.45,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.81,0},{0.42,0},{0.96,0},{0.67,0}}" />
                     <Property Name="MaxEditTextLength" Value="1073741823" />
                 </Window>
                 <Window Type="TaharezLook/StaticText" Name="text_joystick_name" >
@@ -84,7 +84,7 @@
                     <Property Name="Text" Value="Analog Jump" />
                     <Property Name="FrameEnabled" Value="False" />
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-                    <Property Name="UnifiedAreaRect" Value="{{0.01,0},{0.2,0},{0.25,0},{0.3,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.42,0},{0.42,0},{0.66,0},{0.52,0}}" />
                     <Property Name="BackgroundEnabled" Value="False" />
                 </Window>
                 <Window Type="TaharezLook/StaticText" Name="text_joystick_shortcuts" >
@@ -105,7 +105,7 @@
                     <Property Name="MaximumValue" Value="32767" />
                     <Property Name="MinimumValue" Value="-32768" />
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-                    <Property Name="UnifiedAreaRect" Value="{{0.635,0},{0.2,0},{0.735,0},{0.28,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.58,0},{0.55,0},{0.68,0},{0.63,0}}" />
                 </Window>
                 <Window Type="TaharezLook/Spinner" Name="spinner_joystick_axis_ver" >
                     <Property Name="StepSize" Value="1" />
@@ -113,14 +113,14 @@
                     <Property Name="MaximumValue" Value="32767" />
                     <Property Name="MinimumValue" Value="-32768" />
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-                    <Property Name="UnifiedAreaRect" Value="{{0.825,0},{0.2,0},{0.925,0},{0.28,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.81,0},{0.55,0},{0.91,0},{0.63,0}}" />
                 </Window>
                 <Window Type="TaharezLook/StaticText" Name="text_joystick_axis_hor" >
                     <Property Name="Text" Value="Axis Hor" />
                     <Property Name="Tooltip" Value="Joystick horizontal axis." />
                     <Property Name="FrameEnabled" Value="False" />
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-                    <Property Name="UnifiedAreaRect" Value="{{0.48,0},{0.2,0},{0.63,0},{0.28,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.42,0},{0.55,0},{0.57,0},{0.63,0}}" />
                     <Property Name="BackgroundEnabled" Value="False" />
                 </Window>
                 <Window Type="TaharezLook/StaticText" Name="text_joystick_axis_ver" >
@@ -128,13 +128,27 @@
                     <Property Name="Tooltip" Value="Joystick vertical axis." />
                     <Property Name="FrameEnabled" Value="False" />
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
-                    <Property Name="UnifiedAreaRect" Value="{{0.74,0},{0.2,0},{0.82,0},{0.28,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.71,0},{0.55,0},{0.79,0},{0.63,0}}" />
                     <Property Name="BackgroundEnabled" Value="False" />
                 </Window>
                 <Window Type="TaharezLook/Button" Name="button_reset_joystick" >
                     <Property Name="Text" Value="Reset" />
                     <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
                     <Property Name="UnifiedAreaRect" Value="{{0.02,0},{0.9,0},{0.16,0},{0.98,0}}" />
+                </Window>
+                <Window Type="TaharezLook/StaticText" Name="text_joystick_sensitivity" >
+                    <Property Name="Text" Value="Sensitivity" />
+                    <Property Name="FrameEnabled" Value="False" />
+                    <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.01,0},{0.19,0},{0.25,0},{0.3,0}}" />
+                    <Property Name="BackgroundEnabled" Value="False" />
+                </Window>
+                <Window Type="TaharezLook/Slider" Name="slider_joystick_sensitivity" >
+                    <Property Name="CurrentValue" Value="0" />
+                    <Property Name="MaximumValue" Value="32767" />
+                    <Property Name="ClickStepSize" Value="1000" />
+                    <Property Name="UnifiedMaxSize" Value="{{1,0},{1,0}}" />
+                    <Property Name="UnifiedAreaRect" Value="{{0.3,0},{0.19,0},{0.55,0},{0.29,0}}" />
                 </Window>
             </Window>
         </Window>
