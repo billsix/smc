@@ -1,9 +1,11 @@
 # Reformat smc/src with clang-format (google style, 80 columns), as one commit before any other work
 
-**Status:** proposed — go-ahead given in principle (William Emerison Six <billsix@gmail.com>,
-2026-09-23: "yes, I do want to reformat, yes only smc/src, and yes git blame ignore revs";
-banner protection yes; column limit 80). Execute on the word; it must land **before** the
-pre-modernization fixes and the C++ modernization.
+**Status:** in progress — infrastructure ready, awaiting the maintainer's `make format`
+(William Emerison Six <billsix@gmail.com>, 2026-09-23: "yes, I do want to reformat, yes only
+smc/src, and yes git blame ignore revs"; banner protection yes; column limit 80; ".clang-format
+like gltron's, sortincludes never and google style"). The `.clang-format` is written and the
+preview proved the pass is token-identical; it must land **before** the pre-modernization fixes and
+the C++ modernization.
 **Priority:** 3 · **Difficulty:** 3 (mechanical, but the preview + region-protection + blame-ignore
 steps need care)
 **Do before:** `tasks/smc-pre-modernization-fixes.md` and `tasks/smc-modernize-cpp.md` — a clean,
@@ -12,12 +14,12 @@ consistent base means every later fix and rewrite diffs cleanly on top.
 ## BLUF
 
 Give the game's own source (`smc/src` only, never `third_party/`) a one-time clang-format pass with
-gltron's exact `.clang-format` (google style, `SortIncludes: Never`, 80-column), as a single
-standalone commit, then register that commit in `.git-blame-ignore-revs` so `git blame` still
-reaches the reconstructed 2006–2014 history. The `/* *** *** */` banners survive because they are
-~76 chars (under 80); any banner or aligned region the preview shows getting mangled is protected
-with a `// clang-format off` marker. Done = `smc/src` is uniformly google-formatted, the game builds
-and runs identically (the diff is whitespace-only), and blame skips the reformat commit.
+a google-based `.clang-format` (gltron's base + 80-column + three keys that make it layout-only), as
+a single standalone commit, then register that commit in `.git-blame-ignore-revs` so `git blame`
+still reaches the reconstructed 2006–2014 history. The `/* *** *** */` banners (546 of 565 exceed 80
+cols) are kept intact by `ReflowComments: false`. Done = `smc/src` is uniformly google-formatted,
+the reformat is **provably token-identical** (changes layout only — verified on a scratch preview),
+the game builds and runs the same, and blame skips the reformat commit.
 
 ## Context
 
@@ -45,32 +47,42 @@ and runs identically (the diff is whitespace-only), and blame skips the reformat
   record it in the commit message (`clang-format --version`) — re-running a different version later
   would produce spurious churn.
 
-## The `.clang-format` (new file at `smc/smc/.clang-format`)
+## The `.clang-format` (new file at `smc/smc/.clang-format`, already written)
 
-Gltron's file, verbatim (maintainer, 2026-09-23: "like gltron's, sortincludes never and google
-style") — no tuning, so the 80-column google default stands:
+gltron's google base + 80-column, with three keys added so the pass is **layout-only** — the
+preview proved that gltron's 2-line file plus these three changes **no tokens at all** across
+`smc/src` (whitespace-stripped files are byte-identical before/after). Each added key stops a google
+default that would rewrite/reorder tokens, which is against the maintainer's "keep it as written"
+intent (the same reason they set `SortIncludes: Never`):
 
 ```yaml
 BasedOnStyle: google
-SortIncludes: Never
+SortIncludes: Never            # keep include order
+ReflowComments: false          # keep the /* *** *** */ banners (546 of 565 exceed 80 cols) intact
+SortUsingDeclarations: false   # don't alphabetize `using std::x;`
+BreakStringLiterals: false     # don't split long string literals across lines
 ```
+
+Findings that forced each added key (preview, clang-format 22.1.8, 2026-09-23): without
+`ReflowComments: false`, 546 banners reflow into ugly two-liners; without `SortUsingDeclarations:
+false`, google alphabetizes the `using std::…` block in `global_basic.h`; without
+`BreakStringLiterals: false`, ~19 files get long strings split into adjacent literals (safe, but a
+token rewrite). With all three, the reformat is provably layout-only.
 
 ## Plan (one work commit; the archive/blame follow-ups are separate)
 
-- [ ] Add `smc/smc/.clang-format` as above.
-- [ ] **Preview first** (do not commit yet): on a copy or a throwaway branch, run
-      `entrypoint/format.sh`, then `git diff` — scan for hunks where intentional column alignment
-      got collapsed. Surface each to the maintainer for keep-or-reflow; `SDLKey_to_CEGUIKey` is the
-      known candidate.
-- [ ] Wrap each region the maintainer wants kept in `// clang-format off` … `// clang-format on`
-      (permanent committed comments). Keep the list short — protect alignment that aids reading, not
-      merely-neat blocks.
-- [ ] Apply for real: `make format` (or `entrypoint/format.sh`) over `smc/src`.
-- [ ] **Prove it is whitespace-only:** `git diff -w -- smc/src` must be empty except inside the
-      `clang-format off` regions (which are unchanged anyway). This is the gate that it changed no
-      tokens.
-- [ ] Build + run gate: `make image` green, `tools/smoke_headless.sh` passes (clang-format cannot
-      change behaviour, but confirm). Stage `smc/src` + the new `.clang-format`.
+- [x] `smc/smc/.clang-format` written (the 5-line file above), staged.
+- [x] **Preview done** (2026-09-23, on a scratch copy, clang-format 22.1.8): with the 5-line config
+      the whitespace-stripped tree is byte-identical before/after — **no `// clang-format off`
+      markers are needed**. Banners are handled by `ReflowComments: false`; the only "alignment" that
+      changes is column padding (e.g. the `SDLKey_to_CEGUIKey` returns) collapsing to single spaces,
+      which is acceptable whitespace normalization, not content loss.
+- [ ] Maintainer runs `make format` over `smc/src` (formats in place on the host).
+- [ ] **Prove it is layout-only:** the strong check is token equivalence, not `git diff -w` (which
+      flags brace-moves and rewraps because they add newlines). Confirm the whitespace-stripped
+      files are unchanged: for each file, `diff <(tr -d '[:space:]' <new) <(tr -d '[:space:]' <old)`
+      is empty. (The preview already proved this for the committed config; re-confirm on the real run.)
+- [ ] Build + run gate: `make image` green, `tools/smoke_headless.sh` passes. Stage `smc/src`.
 - [ ] **Maintainer commits it as ONE standalone commit** titled e.g. "reformat smc/src with
       clang-format (google, 80 col)"; the commit message records the `clang-format --version`.
 - [ ] **After the commit exists, capture its SHA into `.git-blame-ignore-revs`** at the repo root
@@ -85,9 +97,10 @@ SortIncludes: Never
 ## Notes / decisions (all settled 2026-09-23)
 
 - Scope: `smc/src` only. Never `third_party/cegui-0.7.9` (vendored dependency).
-- Style: gltron's `.clang-format` verbatim — `BasedOnStyle: google` + `SortIncludes: Never`, no
-  other keys, so the 80-column google default applies. Banners/aligned regions are protected with
-  `// clang-format off` markers only where the preview shows a need (most survive untouched).
+- Style: google + `SortIncludes: Never` (gltron's base) + three keys that make the pass layout-only
+  (`ReflowComments: false`, `SortUsingDeclarations: false`, `BreakStringLiterals: false`). 80-column
+  stands. See the `.clang-format` section for why each was added; the preview proved token-identity,
+  so no `// clang-format off` markers are needed anywhere.
 - Own single commit, **before** fixes and modernization.
 - `.git-blame-ignore-revs` at repo root, with the reformat SHA, to preserve history-provenance blame.
 - Split of duties: agent writes `.clang-format`, runs the preview, sets up the `clang-format off`
