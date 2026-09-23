@@ -614,6 +614,13 @@ void cAudio ::Toggle_Sounds(void) {
   pPreferences->m_audio_sound = !pPreferences->m_audio_sound;
   Init();
 
+  // Init() unconditionally Close()s the device, which frees the current music; unlike
+  // Toggle_Music, toggling sounds must therefore restart the music itself, or it stays
+  // silent until the next Play_Music.
+  if (m_music_enabled && !m_music_filename.empty()) {
+    Play_Music(m_music_filename, -1, 1, 2000);
+  }
+
   // play test sound
   if (m_sound_enabled) {
     Play_Sound("audio_on.ogg");

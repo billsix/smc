@@ -1,8 +1,11 @@
 # Bug: toggling sound effects off/on silences the music
 
-**Status:** proposed — needs go-ahead (found in the source analysis, 2026-09-23)
+**Status:** DONE 2026-09-23 (branch `pre-modernization-fixes`). **Done:** `Toggle_Sounds` now
+restarts the music after `Init()` (which `Close()`s the device and frees `m_music`), mirroring
+`Toggle_Music` — `if (m_music_enabled && !m_music_filename.empty()) Play_Music(m_music_filename, -1,
+1, 2000)`. Compiles green. Chose the targeted-replay fix (not reworking `Init`'s unconditional
+`Close`), as the task recommended.
 **Priority:** 4 · **Difficulty:** 2
-**Do before:** `tasks/smc-modernize-cpp.md`.
 
 ## BLUF
 
