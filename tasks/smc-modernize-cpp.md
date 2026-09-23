@@ -11,6 +11,10 @@ type tags, 35 global raw pointers; each step must keep the game playable)
 image` + `tools/smoke_headless.sh` are the regression check for every step here. **Grounded in**
 the verified reference set `tasks/reference/smc/` (built by `tasks/archive/2026/09/23/smc-source-analysis-reference-set.md`,
 done 2026-09-23) — the Context below is reconciled to it; read the set before starting.
+**Recommended first:** the standalone bug/dead-code fixes indexed by
+`tasks/smc-pre-modernization-fixes.md` — landing them on the current tree keeps this rewrite from
+carrying known bugs and dead code. Step 3 (Boost drop) and `smc-remove-dead-code.md` both touch the
+dead `SMC_RENDER_THREAD_TEST` block — coordinate so it goes once.
 
 ## BLUF
 
