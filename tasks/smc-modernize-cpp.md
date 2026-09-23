@@ -7,8 +7,8 @@ excellent example of refactoring to modern C++"). Not to be started until the co
 task is green (it is the gate this work runs under).
 **Priority:** 4 · **Difficulty:** 8 (77 `.cpp` / 85 `.h`, a 6-deep sprite hierarchy dispatched by
 type tags, 35 global raw pointers; each step must keep the game playable)
-**Depends on:** `tasks/smc-container-build.md` (the build + headless smoke run are the regression
-check for every step here).
+**Depends on:** the container build (done: `tasks/archive/2026/09/23/smc-container-build.md`); `make
+image` + `tools/smoke_headless.sh` are the regression check for every step here.
 
 ## BLUF
 
@@ -60,7 +60,7 @@ overrider, and a reference doc that reads as a worked example of "refactoring to
 - **Object model:** `cCollidingSprite` → `cSprite` → `cMovingSprite` → `cAnimated_Sprite` →
   `cEnemy` → concrete (depth 5–6); 96 derived classes, 25 directly off a sprite base. No
   `Get_Type()`; dispatch is on the public data members `m_type` (349 uses) and `m_sprite_array`.
-- The SDL 2 port (`tasks/adhoc/container-build/patch_sdl2.py`) is already applied and must be kept
+- The SDL 2 port (commit `d438165`; its script: `git show d438165:tasks/adhoc/container-build/patch_sdl2.py`) is already applied and must be kept
   as-is underneath — this task starts from that tree.
 
 ## Goal

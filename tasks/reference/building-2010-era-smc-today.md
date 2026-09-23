@@ -1,7 +1,7 @@
 # Building 2010-era SMC on a 2026 toolchain — what had to change, and why
 
 **Status:** reference (durable). Written 2026-09-23 by the agent for the maintainer (William
-Emerison Six <billsix@gmail.com>) from the work in `tasks/smc-container-build.md`. States what is
+Emerison Six <billsix@gmail.com>) from the work in `tasks/archive/2026/09/23/smc-container-build.md`. States what is
 TRUE of the build after that task; the task doc holds the chronology.
 
 ## In one paragraph
@@ -50,8 +50,9 @@ on-screen runs are `entrypoint/02-install-graphics.sh` (`USE_GRAPHICS`, default 
 
 ## The SDL 1.2 → SDL 2 port
 
-Applied and recorded by `tasks/adhoc/container-build/patch_sdl2.py` (exact-match pairs, idempotent:
-a second run leaves `git diff` unchanged). The mapping, so a reader of the diff knows why each
+Applied by one exact-match, idempotent script, `patch_sdl2.py`, removed once the port was
+committed (read it with `git show d438165:tasks/adhoc/container-build/patch_sdl2.py`; the port
+itself is the `smc/` diff of that commit). The mapping, so a reader of the diff knows why each
 hunk exists:
 
 | SDL 1.2 | SDL 2 in this port |

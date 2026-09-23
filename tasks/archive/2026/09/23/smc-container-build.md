@@ -2,9 +2,10 @@
 
 **Status:** COMPLETE 2026-09-23 — verified on the maintainer's host (William Emerison Six
 <billsix@gmail.com>: "so that's working now"; then playing the tutorial with an Xbox controller:
-"it's working"). **Archive owed:** move to `tasks/archive/2026/09/23/` in its own commit after
-the work commit, and `git rm` the one-shot `tasks/adhoc/container-build/patch_sdl2.py` and the
-`data/smoke-*.log` worklogs there (the screenshot stays — the reference doc cites it).
+"it's working"). Archived 2026-09-23 after the work commit `d438165`; the one-shot port script
+`tasks/adhoc/container-build/patch_sdl2.py` and the `data/smoke-*.log` worklogs were removed in
+the archive commit (the script stays readable as `git show d438165:tasks/adhoc/container-build/
+patch_sdl2.py`; the screenshot stays — the reference doc cites it).
 **Priority:** 2 · **Difficulty:** 6
 **Started:** 2026-09-23 (maintainer: "use the standard build system I use with dockerfile and
 makefile to get an environment to build this project, smc, and do the minimal changes necessary
@@ -43,7 +44,7 @@ the work record.
    provenance in `third_party/README.md`). `Samples/` stays because `configure.ac` names their
    Makefiles (`./bootstrap` fails without them; `--disable-samples` keeps them unbuilt). It
    compiled unpatched under GCC 16 (0 errors, 231 warnings) — no `PATCHES.md` needed.
-3. **SDL 1.2 → SDL 2 port**, `tasks/adhoc/container-build/patch_sdl2.py` (exact-match pairs,
+3. **SDL 1.2 → SDL 2 port**, `patch_sdl2.py` (in history, see the status line; exact-match pairs,
    idempotent: a second run leaves `git diff` unchanged). 16 files, ~258 lines each way. The
    mapping table is in the reference doc. Pre-flighted in the sandbox before the image existed
    (`g++ -fsyntax-only` over all 77 `.cpp` → 0 errors), which also caught: `SDL_GetError` is
