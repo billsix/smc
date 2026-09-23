@@ -3427,11 +3427,13 @@ void cLevel_Player ::Ball_Clear(void) const {
 void cLevel_Player ::Add_Kill_Multiplier(void) {
   m_kill_multiplier += 0.1f;
 
-  // give lives after 10 continuous kills
+  // give a reward after 10 continuous kills
   if (m_kill_multiplier >= 2) {
-    // only every fifth kill
-    if (static_cast<int>(m_kill_multiplier * 10) % 5 == 0) {
-      // add 1 live
+    // only every fifth kill. Round before the modulo: m_kill_multiplier accumulates by
+    // += 0.1f, so a bare (int)(x*10) truncates 1.9999.. -> 19 and misses the multiple.
+    if (static_cast<int>(m_kill_multiplier * 10.0f + 0.5f) % 5 == 0) {
+      // NOTE: comment says "1 life" but the code awards 100 gold; which is intended is
+      // an open question for the maintainer (tasks/.../smc-fix-latent-correctness-smells.md).
       pHud_Goldpieces->Add_Gold(100);
     }
   }

@@ -200,8 +200,9 @@ void cImage_Manager ::Delete_Image_Textures(void) {
 }
 
 void cImage_Manager ::Delete_Hardware_Textures(void) {
-  // delete all hardware surfaces
-  for (GLuint i = 0; i < m_high_texture_id; i++) {
+  // delete all hardware surfaces (<= : the highest id, recorded by Create_Texture,
+  // was never visited with a bare <)
+  for (GLuint i = 0; i <= m_high_texture_id; i++) {
     if (glIsTexture(i)) {
       printf("ImageManager : deleting texture %d\n", i);
       glDeleteTextures(1, &i);

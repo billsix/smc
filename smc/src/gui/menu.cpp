@@ -339,29 +339,35 @@ bool cMenuCore ::Key_Down(SDLKey key) {
       // get levels listbox
       CEGUI::Listbox* listbox_levels = static_cast<CEGUI::Listbox*>(
           CEGUI::WindowManager::getSingleton().getWindow("listbox_levels"));
-      // select random level
-      listbox_levels->setItemSelectState(
-          rand() % listbox_levels->getItemCount(), 1);
-      // get level name
-      lvl_name = listbox_levels->getFirstSelectedItem()->getText().c_str();
-      menu_start->Load_Level(lvl_name);
+      // select random level (guard rand() % 0 on an empty list)
+      if (listbox_levels->getItemCount() > 0) {
+        listbox_levels->setItemSelectState(
+            rand() % listbox_levels->getItemCount(), 1);
+        // get level name
+        lvl_name = listbox_levels->getFirstSelectedItem()->getText().c_str();
+        menu_start->Load_Level(lvl_name);
+      }
       // destroy menu
       delete menu_start;
     } else {
       // Get levels listbox
       CEGUI::Listbox* listbox_levels = static_cast<CEGUI::Listbox*>(
           CEGUI::WindowManager::getSingleton().getWindow("listbox_levels"));
-      // select random level
-      listbox_levels->setItemSelectState(
-          rand() % listbox_levels->getItemCount(), 1);
-      // get level name
-      lvl_name = listbox_levels->getFirstSelectedItem()->getText().c_str();
-      static_cast<cMenu_Start*>(pMenuCore->m_menu_data)->Load_Level(lvl_name);
+      // select random level (guard rand() % 0 on an empty list)
+      if (listbox_levels->getItemCount() > 0) {
+        listbox_levels->setItemSelectState(
+            rand() % listbox_levels->getItemCount(), 1);
+        // get level name
+        lvl_name = listbox_levels->getFirstSelectedItem()->getText().c_str();
+        static_cast<cMenu_Start*>(pMenuCore->m_menu_data)->Load_Level(lvl_name);
+      }
     }
   }
   // exit
   else if (key == SDLK_ESCAPE) {
-    m_menu_data->Exit();
+    if (m_menu_data) {
+      m_menu_data->Exit();
+    }
   } else {
     // not processed
     return 0;
@@ -393,7 +399,9 @@ bool cMenuCore ::Joy_Button_Down(Uint8 button) {
   }
   // exit
   else if (button == pPreferences->m_joy_button_exit) {
-    m_menu_data->Exit();
+    if (m_menu_data) {
+      m_menu_data->Exit();
+    }
   } else {
     // not processed
     return 0;

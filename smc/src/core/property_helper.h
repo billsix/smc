@@ -44,7 +44,9 @@ inline void string_erase_all(std::string& str, const char search) {
  * todo : use boost::algorithm::trim_left ?
 */
 inline void string_trim_from_begin(std::string& str, const char search) {
-  str.erase(str.find_last_not_of(search) + 1);
+  // remove LEADING `search` chars (was find_last_not_of, which trimmed the END —
+  // so string_trim never removed leading characters)
+  str.erase(0, str.find_first_not_of(search));
 };
 /* Trim the string from the end with the given character
  * todo : use boost::algorithm::trim_right ?
@@ -55,7 +57,8 @@ std::string string_trim_from_end(std::string str, const char search);
 */
 inline void string_trim(std::string& str, const char search) {
   string_trim_from_begin(str, search);
-  string_trim_from_end(str, search);
+  // string_trim_from_end returns a trimmed copy; assign it back (the result was discarded)
+  str = string_trim_from_end(str, search);
 };
 
 // Return the number as a string

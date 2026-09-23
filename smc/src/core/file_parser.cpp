@@ -62,8 +62,8 @@ bool cFile_parser ::Parse_Line(std::string str_line, int line_num) {
   string_replace_all(str_line, "\t", " ");
   // remove beginning spaces
   string_trim_from_begin(str_line, ' ');
-  // remove trailing spaces
-  string_trim_from_end(str_line, ' ');
+  // remove trailing spaces (result was discarded before)
+  str_line = string_trim_from_end(str_line, ' ');
 
   // ignore empty lines and comments
   if (str_line.empty() || *str_line.begin() == '#') {

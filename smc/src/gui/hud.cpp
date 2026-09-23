@@ -893,7 +893,7 @@ void cDebugDisplay ::Set_Text(
 
   if (m_text.empty()) {
     m_text = m_text_old;
-    m_text_old.empty();
+    m_text_old.clear();  // was m_text_old.empty() (a no-op query)
 
     m_counter = 0;
     return;

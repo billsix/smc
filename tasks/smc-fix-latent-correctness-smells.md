@@ -1,8 +1,18 @@
 # Fix the small latent correctness bugs (not user-visible, but wrong)
 
-**Status:** proposed — needs go-ahead (found in the source analysis, 2026-09-23)
+**Status:** DONE 2026-09-23 (branch `pre-modernization-fixes`). **Done** (all compile green):
+(1) `string_trim_from_begin` now trims the LEADING chars (was find_last_not_of = trailing), and
+`string_trim` / `file_parser` now assign the `string_trim_from_end` result instead of discarding it;
+(3) `cLevel_Manager::Load` checks `cLevel::Load` and deletes + returns NULL on failure instead of
+adding a broken level; (4) `Delete_Hardware_Textures` loop is `<=` (visited the highest id);
+(5) `Downscale_Image` uses `block_size_x` for the x-block (was `block_size_y`); (6)
+`Color::Get_SDL_Color` sets `.a`; (7) the Ctrl+X random-level select guards `rand() % 0`;
+(8) `cMenuCore` ESC/joy-exit guard `m_menu_data` before `Exit()`; (9) `cDebugDisplay::Set_Text`
+uses `m_text_old.clear()` (was `.empty()`); (10) `Add_Kill_Multiplier` rounds before the
+every-fifth modulo (float drift missed multiples) — reward kept as `Add_Gold(100)`, see the open
+question. **Item 2** (`cObject_Manager::Delete(size_t)`/`Switch_Array_Num`) is dead code, handled
+by `tasks/smc-remove-dead-code.md`, not here.
 **Priority:** 6 · **Difficulty:** 3
-**Do before:** `tasks/smc-modernize-cpp.md` (start the rewrite on correct code).
 
 ## BLUF
 

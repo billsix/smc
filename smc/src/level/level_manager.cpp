@@ -106,7 +106,11 @@ cLevel* cLevel_Manager ::Load(std::string filename) {
 
   // load
   level = new cLevel();
-  level->Load(filename);
+  if (!level->Load(filename)) {
+    // failed to load: don't Add a broken, unloaded cLevel to the list
+    delete level;
+    return NULL;
+  }
   Add(level);
   return level;
 }
