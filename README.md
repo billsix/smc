@@ -9,6 +9,23 @@ new game based on SMC:
 
 https://github.com/secretchronicles/TSC
 
+Building and running (2026, containerized)
+------------------------------------------
+
+This checkout builds and runs on a current Fedora via Podman; the game is
+ported to SDL 2 and the CEGUI 0.7.9 it needs is vendored under `third_party/`.
+
+    [HOST]  make image      # Fedora 44 image; compiles CEGUI + the game into /usr/local
+    [HOST]  make run        # runs /usr/local/bin/smc on your display (XWayland on Wayland);
+                            # gamepads pass through -- plug in first (USE_CONTROLLER=0 to skip)
+    [HOST]  make shell      # dev shell, repo mounted at /smc; then in it:
+    [CONTAINER]  build.sh game && run.sh
+    [HOST]  make help       # every target
+
+> Needs `podman`. The first `make image` downloads ~400 MiB of packages and
+> compiles CEGUI; later builds reuse the layers. Why each source change was
+> needed: `tasks/reference/building-2010-era-smc-today.md`.
+
 What is it?
 -----------
 

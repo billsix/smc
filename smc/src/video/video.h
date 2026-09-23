@@ -254,12 +254,8 @@ public:
 	// texture quality level 0.0 - 1.0
 	float m_texture_quality;
 
-	// window manager information
-	SDL_SysWMinfo wm_info;
-#ifdef __unix__
-	// current opengl context
-	GLXContext glx_context;
-#endif
+	// the OpenGL context of the window (SDL 2 port; replaces the WM-specific GLX/WGL handles)
+	SDL_GLContext m_gl_context;
 	// rendering thread
 	boost::thread m_render_thread;
 
@@ -296,8 +292,8 @@ extern cVideo *pVideo;
 extern CEGUI::OpenGLRenderer *pGuiRenderer;
 extern CEGUI::System *pGuiSystem;
 
-// Screen
-extern SDL_Surface *screen;
+// The game window (SDL 2 port: was the SDL 1.2 screen surface)
+extern SDL_Window *screen;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

@@ -48,6 +48,18 @@
 #include <vector>
 #include <time.h>
 #include <math.h>
+#include "SDL.h"
+// SDL 2 port: SDL 1.2's SDLKey enum became SDL_Keycode; the code keeps the old name.
+typedef SDL_Keycode SDLKey;
+#include "SDL.h"
+// SDL 2 port: SDL 1.2's SDLKey enum became SDL_Keycode; the code keeps the old name.
+typedef SDL_Keycode SDLKey;
+#include "SDL.h"
+// SDL 2 port: SDL 1.2's SDLKey enum became SDL_Keycode; the code keeps the old name.
+typedef SDL_Keycode SDLKey;
+#include "SDL.h"
+// SDL 2 port: SDL 1.2's SDLKey enum became SDL_Keycode; the code keeps the old name.
+typedef SDL_Keycode SDLKey;
 
 using std::vector;
 using std::ifstream;

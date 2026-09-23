@@ -2300,7 +2300,7 @@ void cMenu_Options :: Set_Shortcut( std::string name, void *data, bool joystick 
 void cMenu_Options :: Joy_Default( unsigned int index )
 {
 	pPreferences->m_joy_enabled = 1;
-	pPreferences->m_joy_name = SDL_JoystickName( index );
+	pPreferences->m_joy_name = SDL_JoystickNameForIndex( index );
 
 	// initialize and if no joystick available disable
 	pJoystick->Init();
@@ -2580,7 +2580,7 @@ bool cMenu_Options :: Video_Button_Apply_Clicked( const CEGUI::EventArgs &event 
 
 	pGuiSystem->renderGUI();
 	pRenderer->Render();
-	SDL_GL_SwapBuffers();
+	SDL_GL_SwapWindow( screen );
 
 	// apply new settings
 	pPreferences->Apply_Video( m_vid_w, m_vid_h, m_vid_bpp, m_vid_fullscreen, m_vid_vsync, m_vid_geometry_detail, m_vid_texture_detail );

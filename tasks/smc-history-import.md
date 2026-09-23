@@ -1,10 +1,14 @@
 # Import Secret Maryo Chronicles' history from SourceForge and GitHub into this repository
 
-**Status:** first pass DONE 2026-09-23 — `master` holds 223 commits (12 SourceForge release
-commits 2006–2009 + the 211-commit GitHub history 2010–2014 grafted on top), verified; **open:**
-the six missing SourceForge releases and the unreachable CVS (below). Nothing pushed anywhere.
-**Priority:** 3 · **Difficulty:** 3 (the remaining work is fetching files SourceForge only serves
-to a browser, then re-running the import)
+**Status:** blocked — first pass DONE 2026-09-23 (`master` = 223 commits: 12 SourceForge release
+commits 2006–2009 + the 211-commit GitHub history 2010–2014 grafted on top, verified, committed by
+the maintainer as `2a1354a`); the CVS gap is accepted. What remains needs the maintainer's hands.
+**Blocked on:** the six missing SourceForge source archives (`0.99.1 0.99.2 0.99.3 0.99.4 0.99.5
+1.5`) downloaded in a browser (SourceForge serves nothing to scripts) into `$SMC_WORK/smc-tarballs/`.
+**Recheck:** `ls "$SMC_WORK"/smc-tarballs/ | grep -E '0\.99\.[1-5]|1\.5'` — cleared when it lists
+any of them; then re-run the import (rewrites `master`, so before any push — see the Plan).
+**Priority:** 8 · **Difficulty:** 3 (add the archives to `ORDER`/`DATE` in `import_smc.sh`, re-run,
+re-verify)
 **Started:** 2026-09-23 (William Emerison Six <billsix@gmail.com>: "port all of the history from
 the project … preserving all the history"; then "if sourceforge has a bunch of pre 2010 source
 releases, version control those first, and then merge the github history in")

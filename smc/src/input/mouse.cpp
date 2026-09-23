@@ -169,6 +169,17 @@ bool cMouseCursor :: Handle_Event( SDL_Event *ev )
 
 			break;
 		}
+		case SDL_MOUSEWHEEL:
+		{
+			// SDL 1.2 delivered the wheel as button 4/5 presses
+			if( ev->wheel.y != 0 && Handle_Mouse_Down( ev->wheel.y > 0 ? SDL_BUTTON_WHEELUP : SDL_BUTTON_WHEELDOWN ) )
+			{
+				// processed
+				return 1;
+			}
+
+			break;
+		}
 		default:
 		{
 			break;
@@ -1638,10 +1649,10 @@ void cMouseCursor :: Mover_Update( Sint16 move_x, Sint16 move_y )
 	// mouse moves the camera
 	pActive_Camera->Move( move_x, move_y );
 	// keep mouse at it's position
-	SDL_WarpMouse( static_cast<Uint16>(m_x * global_upscalex), static_cast<Uint16>(m_y * global_upscaley) );
+	SDL_WarpMouseInWindow( screen, static_cast<int>(m_x * global_upscalex), static_cast<int>(m_y * global_upscaley) );
 
 	SDL_Event inEvent;
-	SDL_PeepEvents( &inEvent, 1, SDL_GETEVENT, SDL_MOUSEMOTIONMASK );
+	SDL_PeepEvents( &inEvent, 1, SDL_GETEVENT, SDL_MOUSEMOTION, SDL_MOUSEMOTION );
 
 	while( SDL_PollEvent( &inEvent ) )
 	{

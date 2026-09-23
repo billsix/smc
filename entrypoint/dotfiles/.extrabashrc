@@ -1,0 +1,3 @@
+PS1='\[\e[36m\]┌─(\t) \[\e[32m\]\u@\h:\w\n\[\e[36m\]└─λ \[\e[0m\]'
+alias ls='ls --color=auto'
+# smc: no formatting on shell exit -- the game keeps upstream's hand style; `make format` is opt-in.

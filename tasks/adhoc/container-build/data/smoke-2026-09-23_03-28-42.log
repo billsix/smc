@@ -1,0 +1,2 @@
+CEGUI::RendererException in file CEGUIOpenGLRenderer.cpp(641) : OpenGLRenderer failed to initialise the GLEW library. Unknown error
+CEGUI Exception occurred : OpenGLRenderer failed to initialise the GLEW library. Unknown error

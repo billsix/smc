@@ -21,6 +21,11 @@
 #include "../core/math/rect.h"
 #include "../core/math/vector.h"
 
+// SDL 1.2 wheel "buttons", kept so Handle_Mouse_Down keeps its wheel cases; SDL 2 delivers the
+// wheel as SDL_MOUSEWHEEL, which cMouseCursor::Handle_Event translates into these
+#define SDL_BUTTON_WHEELUP 4
+#define SDL_BUTTON_WHEELDOWN 5
+
 namespace SMC
 {
 

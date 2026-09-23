@@ -49,7 +49,7 @@ case "${host}" in
 esac
 
 # Check for the SDL library
-PKG_CHECK_MODULES([SDL], [sdl >= 1.2.10])
+PKG_CHECK_MODULES([SDL], [sdl2 >= 2.0.0])
 CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
 LIBS="$LIBS $SDL_LIBS"
 
@@ -58,17 +58,17 @@ AC_CHECK_LIB([png], [png_init_io], ,
 	[AC_MSG_ERROR([libpng library not found])])
 
 # Check for the SDL_image library
-AC_CHECK_LIB([SDL_image], [IMG_LoadPNG_RW], ,
+AC_CHECK_LIB([SDL2_image], [IMG_LoadPNG_RW], ,
 	[AC_MSG_ERROR([SDL_image library with PNG support not found])])
-AC_CHECK_LIB([SDL_image], [IMG_Init], ,
+AC_CHECK_LIB([SDL2_image], [IMG_Init], ,
 	[AC_MSG_ERROR([SDL_image library must be >= 1.2.8])])
 
 # Check for the SDL_mixer library
-AC_CHECK_LIB([SDL_mixer], [Mix_OpenAudio], ,
+AC_CHECK_LIB([SDL2_mixer], [Mix_OpenAudio], ,
 	[AC_MSG_ERROR([SDL_mixer library not found])])
 
 # Check for the SDL_ttf library
-AC_CHECK_LIB([SDL_ttf], [TTF_Init], ,
+AC_CHECK_LIB([SDL2_ttf], [TTF_Init], ,
 	[AC_MSG_ERROR([SDL_ttf library not found])])
 
 # Check for the CEGUI library

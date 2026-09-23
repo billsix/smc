@@ -521,26 +521,12 @@ std::string Get_Clipboard_Content( void )
 
 	delete[] buffer;
 #elif __unix__
-	// only works with the cut-buffer method (xterm) and not with the more recent selections method
-	SDL_SysWMinfo sdlinfo;
-	SDL_VERSION( &sdlinfo.version );
-	if( SDL_GetWMInfo( &sdlinfo ) )
+	// SDL 2 has a clipboard of its own (the X11 cut-buffer code this replaced only spoke to xterm)
+	char *text = SDL_GetClipboardText();
+	if( text )
 	{
-		sdlinfo.info.x11.lock_func();
-		Display *display = sdlinfo.info.x11.display;
-		int count = 0;
-		char *msg = XFetchBytes( display, &count );
-		if( msg )
-		{
-			if( count > 0 )
-			{
-				content.append( msg, count );
-			}
-
-			XFree( msg );
-		}
-
-		sdlinfo.info.x11.unlock_func();
+		content = text;
+		SDL_free( text );
 	}
 #endif
 	return content;
@@ -593,23 +579,7 @@ void Set_Clipboard_Content( std::string str )
 #elif __APPLE__
 	// not implemented
 #elif __unix__
-	SDL_SysWMinfo sdlinfo;
-	SDL_VERSION( &sdlinfo.version );
-	if( SDL_GetWMInfo( &sdlinfo ) )
-	{
-		sdlinfo.info.x11.lock_func();
-		Display *display = sdlinfo.info.x11.display;
-		Window window = sdlinfo.info.x11.window;
-
-		XChangeProperty( display, DefaultRootWindow(display), XA_CUT_BUFFER0, XA_STRING, 8, PropModeReplace, static_cast<const unsigned char *>(static_cast<const void *>(str.c_str())), str.length() );
-
-		if( XGetSelectionOwner( display, XA_PRIMARY ) != window )
-		{
-			XSetSelectionOwner( display, XA_PRIMARY, window, CurrentTime );
-		}
-
-		sdlinfo.info.x11.unlock_func();
-	}
+	SDL_SetClipboardText( str.c_str() );
 #endif
 }
 

@@ -397,9 +397,9 @@ animation_end:
 				}
 			}
 
-			Uint8 *keys = SDL_GetKeyState( NULL );
+			const Uint8 *keys = SDL_GetKeyboardState( NULL );
 			// Escape stops
-			if( keys[SDLK_ESCAPE] || keys[SDLK_RETURN] || keys[SDLK_SPACE] || keys[pPreferences->m_key_action] )
+			if( keys[SDL_SCANCODE_ESCAPE] || keys[SDL_SCANCODE_RETURN] || keys[SDL_SCANCODE_SPACE] || keys[SDL_GetScancodeFromKey( pPreferences->m_key_action )] )
 			{
 				break;
 			}

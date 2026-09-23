@@ -16,7 +16,7 @@
 #include "../../core/filesystem/filesystem.h"
 #include "../../core/game_core.h"
 // boost filesystem
-#include "boost/filesystem/convenience.hpp"
+#include "boost/filesystem.hpp"
 namespace fs = boost::filesystem;
 // needed for the stat function and to get the user directory on unix
 #include <sys/stat.h>

@@ -55,6 +55,11 @@ public:
 	*/
 	bool Key_Down( SDLKey key );
 
+	/* Typed text (SDL 2 SDL_TEXTINPUT, UTF-8) handler
+	 * returns true if the gui system processed any of it
+	*/
+	bool Text_Input( const char *text ) const;
+
 	// Is the CTRL key pressed
 	inline bool Is_Ctrl_Down( void ) const
 	{
@@ -74,8 +79,16 @@ public:
 	// Translate a SDLKey to the proper CEGUI::Key
 	unsigned int SDLKey_to_CEGUIKey( const SDLKey key ) const;
 
-	// Pressed keys
-	Uint8 m_keys[SDLK_LAST];
+	/* Pressed keys. SDL 2 keycodes are sparse (bit 30 set for non-character keys), so the
+	 * state lives in a scancode-indexed array; operator[] keeps every `m_keys[SDLK_x]` in the
+	 * game compiling unchanged by translating the keycode. */
+	struct cKey_State
+	{
+		Uint8 m_state[SDL_NUM_SCANCODES];
+		Uint8 &operator[]( SDLKey key ) { return m_state[SDL_GetScancodeFromKey( key )]; }
+		const Uint8 &operator[]( SDLKey key ) const { return m_state[SDL_GetScancodeFromKey( key )]; }
+	};
+	cKey_State m_keys;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
