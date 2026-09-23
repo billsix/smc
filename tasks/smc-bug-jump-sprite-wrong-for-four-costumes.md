@@ -1,8 +1,10 @@
 # Bug: fire/ice/flying/ghost Maryo shows the fall sprite while jumping
 
-**Status:** proposed — needs go-ahead (found in the source analysis, 2026-09-23)
+**Status:** DONE 2026-09-23 (branch `pre-modernization-fixes`). **Done:** the `// jumping`
+jump-right slot in `cLevel_Player::Load_Images` for fire/ice/flying/ghost now loads
+`maryo/<costume>/jump_right` (was `fall_right`); jump_left was already correct. Verified all four
+`jump_right.png` assets exist; small/big were already right. Compiles green.
 **Priority:** 5 · **Difficulty:** 2
-**Do before:** `tasks/smc-modernize-cpp.md`.
 
 ## BLUF
 
