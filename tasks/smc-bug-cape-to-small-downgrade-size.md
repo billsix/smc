@@ -1,9 +1,10 @@
 # Bug: CAPE → SMALL downgrade never shrinks Maryo's collision size
 
-**Status:** proposed — needs go-ahead (found in the source analysis, 2026-09-23)
+**Status:** DONE 2026-09-23 (branch `pre-modernization-fixes`). **Done:** in
+`cLevel_Player::Draw_Animation`, the CAPE→SMALL branch's fourth term was `new_mtype == MARYO_CAPE`
+(impossible with `new_mtype == MARYO_SMALL`); changed to `maryo_type_old == MARYO_CAPE`, so a
+caped Maryo downgraded to small now runs `Change_Size(5.0f, 12.0f)`. Compiles green.
 **Priority:** 5 · **Difficulty:** 2
-**Do before:** `tasks/smc-modernize-cpp.md` (a one-line correctness fix, cleaner to land on the
-current tree than mid-rewrite).
 
 ## BLUF
 

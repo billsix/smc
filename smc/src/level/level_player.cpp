@@ -2262,7 +2262,7 @@ void cLevel_Player ::Draw_Animation(Maryo_type new_mtype) {
   }
   // correct position for small maryo
   else if ((maryo_type_old == MARYO_BIG || maryo_type_old == MARYO_FIRE ||
-            maryo_type_old == MARYO_ICE || new_mtype == MARYO_CAPE ||
+            maryo_type_old == MARYO_ICE || maryo_type_old == MARYO_CAPE ||
             maryo_type_old == MARYO_GHOST) &&
            new_mtype == MARYO_SMALL) {
     Change_Size(5.0f, 12.0f);
