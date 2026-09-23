@@ -8,10 +8,9 @@ task is green (it is the gate this work runs under).
 **Priority:** 4 · **Difficulty:** 8 (77 `.cpp` / 85 `.h`, a 6-deep sprite hierarchy dispatched by
 type tags, 35 global raw pointers; each step must keep the game playable)
 **Depends on:** the container build (done: `tasks/archive/2026/09/23/smc-container-build.md`); `make
-image` + `tools/smoke_headless.sh` are the regression check for every step here. **Preceded by**
-`tasks/smc-source-analysis-reference-set.md` (proposed), whose last step rewrites this task's
-Context and Plan from the verified reference set — the counts below are a one-pass survey until
-then.
+image` + `tools/smoke_headless.sh` are the regression check for every step here. **Grounded in**
+the verified reference set `tasks/reference/smc/` (built by `tasks/smc-source-analysis-reference-set.md`,
+done 2026-09-23) — the Context below is reconciled to it; read the set before starting.
 
 ## BLUF
 
@@ -25,46 +24,50 @@ overrider, and a reference doc that reads as a worked example of "refactoring to
 
 ## Context
 
-- Read first: `tasks/reference/building-2010-era-smc-today.md` (how the tree builds now, the SDL 2
-  port), then `smc/src/core/obj_manager.h` (the template every manager is built from),
-  `smc/src/core/main.cpp:250-506` (the hand-ordered `new`/`delete` of every singleton), and
-  `smc/src/core/global_game.h` (`SpriteType`, `ArrayType`, the `#define` constants).
+- Read first: the reference set `tasks/reference/smc/README.md` and its cross-cutting docs
+  [[ownership-and-lifetime]], [[object-model]], [[game-loop-and-modes]] — they hold the verified
+  detail this plan compresses. Then `tasks/reference/building-2010-era-smc-today.md` (build + SDL 2 port).
 - **The standard today is accidental.** `smc/configure.ac` sets only `-Wall`; no `-std=` anywhere,
-  so the code is C++98/03 compiled under whatever GCC defaults to (gnu++17 on GCC 11+). Step 0
-  is pinning it (`AX_CXX_COMPILE_STDCXX([23], [noext], [mandatory])` or `-std=c++23`).
-- **The managers** (survey 2026-09-23, counts from `rg` in `smc/src`): one template base
-  `cObject_Manager<T>` (`core/obj_manager.h:27`, an owning `vector<T*>` with manual `delete`,
-  and two real bugs — `Delete(size_t)` erases then deletes the shifted element, and
-  `Switch_Array_Num` assigns to an iterator under a `// todo: does that work ?`), and twelve
-  concrete managers: `cResource_Manager`, `cFont_Manager`, `cImage_Manager`, `cSound_Manager`,
-  `cSprite_Manager` (+ `cWorld_Sprite_Manager`), `cBackground_Manager`, `cAnimation_Manager`,
-  `cHud_Manager`, `cLevel_Manager`, `cOverworld_Manager`, `cCampaign_Manager`. Nine are
-  process-wide singletons behind `extern cX *pX` globals, `new`ed in `main.cpp:250-338` and
-  `delete`d in `main.cpp:358-506` in an order that already disagrees with construction. Eight of
-  the twelve are typed instantiations of the template — they collapse to
-  `std::vector<std::unique_ptr<T>>` members on their real owner.
-- **Global raw pointers:** 35 `extern cX *pX` (`pVideo`, `pAudio`, `pPreferences`, `pKeyboard`,
-  `pMouseCursor`, `pRenderer`, `pActive_Level`, `pActive_Player`, six `pHud_*`, …).
-- **Old-pattern counts** (`rg`, 2026-09-23): raw `new` 621, `delete` 195 (+10 `delete[]`);
-  `NULL` 487; `typedef` 40 (25 are `typedef vector<cX*> XList`); explicit-iterator `for` loops
-  217 (23 `delete *itr` inside); `virtual` 688 vs `override` 0 (`final` 0); unscoped `enum` 36
-  (`enum class` 0; `SpriteType` has 58 `TYPE_`-prefixed enumerators, dispatched by 21
-  `switch( m_type )` sites and 90 tag-guarded `static_cast<cX *>` downcasts); `#define`
-  constants 37; int-as-bool (`bool x = 0`, `return 1;` in bool functions) ~350; 38 `virtual cX
-  *Copy() const` clone methods returning raw owning pointers; `sprintf` into `char[]` 3
-  (`gui/hud.cpp:442,657,673`); home-grown `int_to_string`/`float_to_string` + `ostringstream`
-  277; CEGUI `subscribeEvent` 216, all fire-and-forget (connections never stored or
-  disconnected — a dangling-`this` risk). No smart pointers anywhere; no `auto_ptr`, no dynamic
-  exception specs, C-style pointer casts 3.
-- **Boost** is three link-time dependencies (`configure.ac:22-30`: filesystem, thread, system)
-  for **nine call sites**: `boost::algorithm` ×5 (`core/property_helper.h`), `boost::thread` ×3
-  (`video/video.{h,cpp}`), `boost::filesystem` ×1 (`core/filesystem/filesystem.cpp`) — all
-  replaceable by `<filesystem>`, `<thread>` and three lines of string trim/case.
-- **Object model:** `cCollidingSprite` → `cSprite` → `cMovingSprite` → `cAnimated_Sprite` →
-  `cEnemy` → concrete (depth 5–6); 96 derived classes, 25 directly off a sprite base. No
-  `Get_Type()`; dispatch is on the public data members `m_type` (349 uses) and `m_sprite_array`.
-- The SDL 2 port (commit `d438165`; its script: `git show d438165:tasks/adhoc/container-build/patch_sdl2.py`) is already applied and must be kept
-  as-is underneath — this task starts from that tree.
+  so the code is C++98/03 compiled under GCC's default (gnu++17 on GCC 11+). Step 0 pins it.
+- **The managers** (verified 2026-09-23): one template base `cObject_Manager<T>`
+  (`core/obj_manager.h`, an owning public `vector<T*>` read directly at ~63 sites, with two real
+  bugs both dead-by-nonuse — `Delete(size_t)` erases-then-deletes the shifted slot;
+  `Switch_Array_Num` assigns a `T*` to an iterator under `// todo: does that work ?`, no caller).
+  Its **13 subclasses**: `cSprite_Manager` (+ `cWorld_Sprite_Manager`), `cCampaign_Manager`,
+  `cObjectCollisionType`, `cLevel_Manager`, `cBackground_Manager`, `cHud_Manager`, `cSound_Manager`,
+  `cImage_Manager`, `cAnimation_Manager`, `cOverworld_Manager`, `cLayer`. (`cResource_Manager` and
+  `cFont_Manager` are *not* `cObject_Manager`s — they hold a string / three fonts.) The container
+  managers collapse to `std::vector<std::unique_ptr<T>>` members on their real owner.
+- **24 global singletons**, `new`ed in one order in `main.cpp:Init_Game`, `delete`d in another in
+  `Exit_Game`; the order disagrees in ≥5 places and `pFramerate` is never deleted (a leak). Plus
+  the non-owning "active" aliases (`pActive_Camera/Player/Level/Overworld/Animation_Manager`).
+  The fix is one `cApplication` owning them as `unique_ptr` members in dependency order.
+- **Old-pattern counts** (verified, `rg`, 2026-09-23): raw `new` ~621 / `delete` ~195; `NULL` ~487;
+  `typedef` ~40 (mostly `vector<cX*> XList`); explicit-iterator loops ~217; `virtual` ~740 vs
+  **`override` 0** / `final` 0; unscoped `enum` ~36 (`enum class` 0); `SpriteType` = 58
+  `TYPE_`-prefixed values, dispatched by ~20 `switch/if( m_type )` sites and ~90 tag-guarded
+  `static_cast<cX*>`; `#define` constants ~37; int-as-bool (`bool x = 0`, `return 1;`) ~350; ~40
+  `virtual cX *Copy() const` clones; 3 `sprintf` into `char[]` (`gui/hud.cpp`); `int_to_string`/
+  `ostringstream` ~277; **CEGUI `subscribeEvent` ~216, all fire-and-forget** (no `Event::Connection`
+  stored or disconnected). No smart pointers anywhere; no `auto_ptr`, no dynamic exception specs.
+- **Boost — corrected from the first survey:** it is *not* 9 live call sites. The five
+  `// todo : use boost::algorithm` comments in `property_helper` are **never acted on** (Boost.StringAlgo
+  is unused). Real use is `boost::filesystem` in `core/filesystem/filesystem.cpp` only, and
+  `boost::thread` in `video/video.{h,cpp}` behind the **disabled** `SMC_RENDER_THREAD_TEST`
+  (dead). So `<filesystem>` alone replaces the one live Boost user; dropping the dead render
+  experiment removes `boost::thread`; then all three `configure.ac` Boost link deps go.
+- **Object model:** `cCollidingSprite → cSprite → cMovingSprite → cAnimated_Sprite → cEnemy →`
+  concrete (depth 5–6). Dispatch is on `m_type`/`m_sprite_array`, not virtual. Biggest single dedup:
+  a `cWalkingEnemy` base (the 13 enemies share a method shape; `cTurtleBoss` duplicates 22 methods
+  of `cTurtle`). See [[object-model]], [[enemies]].
+- The SDL 2 port (commit `d438165`; `git show d438165:tasks/adhoc/container-build/patch_sdl2.py`)
+  is applied and stays underneath; this task starts from that tree.
+- **Real bugs the analysis found** (fix opportunistically, note each; some deserve their own task):
+  `Draw_Animation` CAPE→SMALL condition that can never fire; `Load_Images` fall-in-jump-slot for 4
+  costumes; the `Finished_Sound` mixer-thread data race; `Fadeout_Sounds(filename)` fading all
+  channels; `Toggle_Sounds` silencing music; `Apply_Max_Texture_Size` aspect ratio; `Joystick_Name_Click`
+  wrong window name → uncaught throw; `main.cpp` arg-parse `option = i + i`. Full list: the ledger in
+  `tasks/reference/smc/README.md`.
 
 ## Goal
 
@@ -83,23 +86,33 @@ library instead of Boost.
 - [ ] **2. `NULL` → `nullptr`, int-as-bool → `true`/`false`, `typedef` → `using`, `#define`
       constants → `constexpr`/`inline constexpr std::string_view`** (mechanical; a codemod under
       `tasks/adhoc/modernize-cpp/`, idempotent and proven).
-- [ ] **3. Drop Boost:** `<filesystem>`, `<thread>`, string helpers; remove the three
+- [ ] **3. Drop Boost:** delete the dead `SMC_RENDER_THREAD_TEST` render-thread code (removes
+      `boost::thread`); port `core/filesystem/filesystem.cpp` + `cResource_Manager`'s path
+      concatenation to `std::filesystem` (the one live Boost user; also retires the 9 `#ifdef _WIN32`
+      twin bodies and the `Trim_Filename`/`File_Exists` string surgery); then remove the three
       `AC_CHECK_LIB`s and `boost-devel` from `entrypoint/01-install-base.sh` (and from the two
       sandbox base lists only if nothing else there needs it).
-- [ ] **4. Ownership:** `cObject_Manager<T>` → `std::vector<std::unique_ptr<T>>` (fixes the two
-      bugs); the 38 `Copy()` clones → `std::unique_ptr<cSprite> Clone() const override`; the 23
-      delete-inside loops disappear; every remaining owning `new`/`delete` → `make_unique`.
-- [ ] **5. The managers and globals:** one `cGame`/application object owning the former
-      singletons as `unique_ptr` members in declaration order (teardown order guaranteed); the
-      eight container-managers become plain members of their owner; the 35 `extern` globals go
-      through it (or become references passed down where the call graph is shallow).
-- [ ] **6. Enums and dispatch:** `SpriteType`/`ArrayType` → `enum class` (drop the `TYPE_`
-      prefixes); then the 21 `switch( m_type )` sites and 90 downcasts → virtual functions (or
-      `std::variant` where the set is closed).
-- [ ] **7. Loops and strings:** 217 iterator loops → range-for/`<algorithm>`/`<ranges>`;
-      `int_to_string`/`ostringstream`/`sprintf` → `std::to_string`/`std::format`.
-- [ ] **8. CEGUI events:** lambdas instead of `Event::Subscriber(&cX::f, this)`; keep the
-      `Event::Connection`s and disconnect in the destructor.
+- [ ] **4. Ownership:** `cObject_Manager<T>` → `std::vector<std::unique_ptr<T>>` (fixes both
+      verified bugs by construction; the ~63 `->objects` loops become range-for); the ~40 `Copy()`
+      clones → `std::unique_ptr<cSprite> Clone() const override`; the delete-inside loops disappear;
+      remaining owning `new`/`delete` → `make_unique`. Also the render queue's per-frame `new
+      *_Request` (the hottest allocation site) and the savegame pointer graph → values/`unique_ptr`.
+- [ ] **5. The singletons and globals:** one `cApplication` owning the 24 former singletons as
+      `unique_ptr` members in dependency (declaration) order — teardown then reverses automatically,
+      fixing the ≥5 order hazards and the `pFramerate` leak. The container managers become plain
+      members of their owner; the `extern cX *pX` globals become accessors, then owned members.
+- [ ] **6. Enums and dispatch:** `SpriteType`/`ArrayType`/`Maryo_type`/`BackgroundType`/… → `enum
+      class`; then the closed-set `m_type` switches and tag-guarded downcasts → virtual methods on
+      `cSprite` (a `virtual Col_Valid_Type Validate_Player_Collision(...)` removes the level player's
+      downcasts), guided by the author's own todos (`objects/box.cpp:453`, `enemies/spika.cpp:404`).
+      Keep a serialization map where the raw int is the file format (`BackgroundType`).
+- [ ] **7. Loops, strings, input:** iterator loops → range-for/`<ranges>`; `int_to_string`/
+      `ostringstream`/`sprintf` → `std::to_string`/`std::format` (survives translator-reordered args
+      in `hud.cpp`); sample input once per frame into a `PlayerInput` struct passed to
+      `cLevel_Player::Update` (removes the 26 poll sites and the `Validate_Collision` input read).
+- [ ] **8. CEGUI events + enemy dedup:** lambdas with stored `Event::Connection`s disconnected in
+      the destructor (~216 sites; removes ~40 identical preambles); a `cWalkingEnemy` base folding
+      `cTurtleBoss` onto `cTurtle` and the shared enemy method shape.
 - [ ] **9.** Reference doc `tasks/reference/refactoring-to-modern-cpp.md` — the worked example:
       per step, the before/after pattern, the feature that replaced it, what it caught.
 

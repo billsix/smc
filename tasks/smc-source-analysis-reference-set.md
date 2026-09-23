@@ -1,12 +1,20 @@
 # Full source analysis of the game — an in-depth reference set, then feed the modernization task
 
-**Status:** proposed — needs go-ahead (William Emerison Six <billsix@gmail.com>, 2026-09-23: "make
-a task to do a full source analysis of the codebase, making reference docs, in depth, and at the
-end, update the task of upgrading C++ versions")
-**Priority:** 3 · **Difficulty:** 5 (73k lines of C++ in 13 directories; the reading is broad, the
-verification is the work)
-**Next:** `tasks/smc-modernize-cpp.md` (proposed) — this task's last step rewrites its Context and
-Plan from what the analysis finds.
+**Status:** COMPLETE 2026-09-23 (William Emerison Six <billsix@gmail.com>: "go ahead and do the
+study of the source"). The reference set is `tasks/reference/smc/` (17 docs: the map `README.md`,
+6 cross-cutting — object-model, ownership-and-lifetime, game-loop-and-modes, data-formats,
+input-flow, editors — and 10 subsystem docs). `tasks/smc-modernize-cpp.md` rewritten from the
+findings. **Archive owed:** move this task to `tasks/archive/2026/09/23/` in its own commit after
+the work commit; the reference set stays (never archived).
+**Started / finished:** 2026-09-23
+**Method note:** ten subsystem readers ran in parallel; six (`core`, `level`, `video`, `gui`,
+`user`, `audio`) finished on Fable before a rate-limit; the other four (`objects`, `enemies`,
+`overworld`, `input`) and all synthesis were done directly on Opus 4.8. Each reader's report became
+its subsystem doc (promoted into the set, not kept as a separate worklog); the two `cObject_Manager`
+bugs were re-verified independently against the source.
+**Priority:** 3 · **Difficulty:** 5 (done)
+**Next:** `tasks/smc-modernize-cpp.md` (proposed) — its Context and Plan were rewritten from this
+analysis (step 6 below).
 
 ## BLUF
 
@@ -69,16 +77,16 @@ in what order the rewrite is safe.
 
 ## Plan
 
-- [ ] **0. Scaffold** `tasks/reference/smc/README.md` (the map: provenance = commit `d438165`
+- [x] **0. Scaffold** `tasks/reference/smc/README.md` (the map: provenance = commit `d438165`
       + the SDL 2 port; one L0 per topic below; a status board). Keep the existing
       `building-2010-era-smc-today.md` and `history-provenance.md` where they are and link them.
-- [ ] **1. Fan-out reading** (one reader per row of the table above, in parallel, read-only),
+- [x] **1. Fan-out reading** (one reader per row of the table above, in parallel, read-only),
       each returning a structured report anchored to `file:symbol`: public surface, owned data
       and its lifetime (who `new`s/`delete`s), globals touched, dispatch points (`m_type` /
       `m_sprite_array` switches, virtuals overridden), CEGUI subscriptions and their owners,
       XML formats read/written, dead or vestigial code with the evidence, and the top three
       modern-C++ hot spots with counts.
-- [ ] **2. Cross-cutting topics** (the author, from the reports + code): the object model
+- [x] **2. Cross-cutting topics** (the author, from the reports + code): the object model
       (hierarchy diagram, which virtuals each level adds, `Copy()`/clone semantics, collision
       dispatch); ownership and lifetime (the singleton construction/teardown order in
       `main.cpp`, who owns sprites — `cSprite_Manager` vs level vs editor — and the
@@ -87,23 +95,23 @@ in what order the rewrite is safe.
       world XML, savegame XML, preferences; the `property_helper` layer); input flow (SDL
       event → `cKeyboard`/`cJoystick` → CEGUI injection → mode handler → player state
       machine); the editor (level + world editors, object menus, the settings screens).
-- [ ] **3. Verify** before writing anything durable: every "dead code" claim by build + grep +
+- [x] **3. Verify** before writing anything durable: every "dead code" claim by build + grep +
       `git log -S`; every ownership claim by reading both ends (allocation and deallocation);
       the two `cObject_Manager<T>` bugs from the survey (`Delete(size_t)` use-after-erase,
       `Switch_Array_Num`) by a minimal reproduction or a written proof from the code; the
       "0 `override`" and "construction vs teardown order disagree" claims by listing them.
-- [ ] **4. Write the set deepest-first**: L2 per subsystem (mechanism, anchored), then L1 where
+- [x] **4. Write the set deepest-first**: L2 per subsystem (mechanism, anchored), then L1 where
       the model is non-obvious (object model, ownership, game loop, editor), then compress to
       L0s in the map. Each doc compares to a baseline the maintainer knows (gltron's C, the
       imps ports' patterns, TSC's later refactor of the same code).
-- [ ] **5. Live vs dead ledger**: one table in the map — every file/class judged live, vestigial,
+- [x] **5. Live vs dead ledger**: one table in the map — every file/class judged live, vestigial,
       or dead, with the evidence — because the modernization deletes before it rewrites.
-- [ ] **6. Rewrite `tasks/smc-modernize-cpp.md`** from the findings: corrected counts, the
+- [x] **6. Rewrite `tasks/smc-modernize-cpp.md`** from the findings: corrected counts, the
       concrete manager-collapse plan (which of the 12 become members of what), the global-pointer
       ownership map, the closed-vs-open `m_type` dispatch sites, the CEGUI subscription owners,
       a step order justified by the dependency graph, and the risks the reading found. Link
       every claim to the reference doc that verifies it.
-- [ ] **7.** Archive this task (its own commit after the work commit); the set stays.
+- [x] **7.** Archive this task (its own commit after the work commit); the set stays.
 
 ## Notes / decisions
 
