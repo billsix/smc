@@ -39,6 +39,8 @@ standalone fixes that make sense first.
 
 - Every child task is grounded in `tasks/reference/smc/` and re-verifies its finding against current
   source before touching it (a 2026-09-23 lead is not proof at fix time).
+- **The reformat goes first of all.** `tasks/smc-reformat-with-clang-format.md` (clang-format over
+  `smc/src`, its own commit) lands before these fixes so every fix diffs cleanly on the new style.
 - Ordering: pick by priority number, easy wins first (per the triage convention). The two crash/race
   tasks (P3) are the ones actually worth doing promptly; the rest are polish.
 - Coordinate `smc-remove-dead-code.md` with `smc-modernize-cpp.md` step 3 (both touch the dead
