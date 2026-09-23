@@ -3,7 +3,7 @@
 > **Provenance:** the game's own source, `smc/src` at commit `d438165` (2026-09-23: the SDL 2 port
 > applied; upstream's last commit is 2014, tag `import/github-fluxy-master`). Third-party code
 > (`third_party/cegui-0.7.9`, SDL 2, Boost) is out of scope and appears only as the seams the game
-> calls. Built by `tasks/smc-source-analysis-reference-set.md` (ten parallel readers, then
+> calls. Built by `tasks/archive/2026/09/23/smc-source-analysis-reference-set.md` (ten parallel readers, then
 > synthesis; every durable claim verified against the source). Companions outside this set:
 > `../building-2010-era-smc-today.md` (how it builds/runs today, the SDL 2 port) and
 > `../history-provenance.md` (where `master` came from). Re-sync check: `git -C .. rev-parse HEAD`

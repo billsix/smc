@@ -9,7 +9,7 @@ task is green (it is the gate this work runs under).
 type tags, 35 global raw pointers; each step must keep the game playable)
 **Depends on:** the container build (done: `tasks/archive/2026/09/23/smc-container-build.md`); `make
 image` + `tools/smoke_headless.sh` are the regression check for every step here. **Grounded in**
-the verified reference set `tasks/reference/smc/` (built by `tasks/smc-source-analysis-reference-set.md`,
+the verified reference set `tasks/reference/smc/` (built by `tasks/archive/2026/09/23/smc-source-analysis-reference-set.md`,
 done 2026-09-23) — the Context below is reconciled to it; read the set before starting.
 
 ## BLUF
