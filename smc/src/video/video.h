@@ -186,9 +186,6 @@ class cVideo {
   void Create_GL_Texture(unsigned int width, unsigned int height,
                          const void* pixels, bool mipmap = 0) const;
 
-  // Get pixel color of the given position on the screen
-  Color Get_Pixel(int x, int y) const;
-
   // Reset and clear the screen
   void Clear_Screen(void) const;
   /* Draw a rectangle

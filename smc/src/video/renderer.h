@@ -30,7 +30,6 @@ enum RenderType {
   REND_RECT = 2,
   REND_GRADIENT = 3,
   REND_SURFACE = 4,
-  REND_TEXT = 5,  // todo
   REND_LINE = 6,
   REND_CIRCLE = 7
 };

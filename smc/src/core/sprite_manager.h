@@ -34,9 +34,6 @@ class cSprite_Manager : public cObject_Manager<cSprite> {
 	 */
   virtual void Add(cSprite* sprite);
 
-  // Return a sprite copy
-  cSprite* Copy(unsigned int identifier);
-
   // Set the sprite z position and update the z pos list
   void Set_Pos_Z(cSprite* sprite);
 

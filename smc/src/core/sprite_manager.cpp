@@ -63,14 +63,6 @@ void cSprite_Manager ::Add(cSprite* sprite) {
   cObject_Manager<cSprite>::Add(sprite);
 }
 
-cSprite* cSprite_Manager ::Copy(unsigned int identifier) {
-  if (identifier >= objects.size()) {
-    return NULL;
-  }
-
-  return objects[identifier]->Copy();
-}
-
 void cSprite_Manager ::Set_Pos_Z(cSprite* sprite) {
   // don't set particle effect z position
   if (sprite->m_type == TYPE_ANIMATION ||

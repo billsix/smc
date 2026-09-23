@@ -71,9 +71,6 @@ class cImage_Manager : public cObject_Manager<cGL_Surface> {
   // Return the surface by path
   cGL_Surface* Get_Pointer(const std::string& path) const;
 
-  // Return the copied image
-  cGL_Surface* Copy(const std::string& path);
-
   cGL_Surface* operator[](unsigned int identifier) {
     return cObject_Manager<cGL_Surface>::Get_Pointer(identifier);
   }

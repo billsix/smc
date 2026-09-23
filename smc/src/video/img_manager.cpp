@@ -79,22 +79,6 @@ cGL_Surface* cImage_Manager ::Get_Pointer(const std::string& path) const {
   return NULL;
 }
 
-cGL_Surface* cImage_Manager ::Copy(const std::string& path) {
-  for (GL_Surface_List::iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
-    // get object
-    cGL_Surface* obj = (*itr);
-
-    // first match
-    if (obj->m_filename.compare(path) == 0) {
-      return obj->Copy();
-    }
-  }
-
-  // not found
-  return NULL;
-}
-
 void cImage_Manager ::Grab_Textures(bool from_file /* = 0 */,
                                     bool draw_gui /* = 0 */) {
   // progress bar

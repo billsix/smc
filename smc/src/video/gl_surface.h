@@ -41,9 +41,6 @@ class cGL_Surface {
   // Copy cGL_Surface and return it
   cGL_Surface* Copy(void) const;
 
-  // Save the texture to a file
-  void Save(const std::string& filename);
-
   // Set the ground type
   void Set_Ground_Type(GroundType gtype);
 

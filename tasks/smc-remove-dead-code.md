@@ -15,6 +15,9 @@ first pass is done; a documented remainder is deferred (below). NOT archived.
 - `cAudio::Resume_Sound`, the `Fadeout_Sounds(ms, channel, overwrite)` overload (kept the
   filename overload, used), `Set_Music_Position`, `Is_Music_Paused`, `Halt_Sounds`;
   `cSound_Manager::Delete_Sounds` (audio.*, sound_manager.*).
+- Second pass (verified zero-caller, compiles green): `cVideo::Get_Pixel`, `cGL_Surface::Save`
+  (kept `Copy`, used), `cImage_Manager::Copy(path)` (kept `Get_Pointer`), `cSprite_Manager::Copy`,
+  the unused `REND_TEXT` render-type enum value.
 
 ## CORRECTION to the ledger (verify, don't trust)
 

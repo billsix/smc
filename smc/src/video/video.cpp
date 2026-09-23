@@ -1350,19 +1350,6 @@ void cVideo ::Create_GL_Texture(unsigned int width, unsigned int height,
   }
 }
 
-Color cVideo ::Get_Pixel(int x, int y) const {
-  GLubyte* pixel = new GLubyte[3];
-  // read it
-  glReadPixels(x, y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
-
-  // convert to color
-  Color color = Color(pixel[0], pixel[1], pixel[2]);
-  // delete data
-  delete[] pixel;
-
-  return color;
-}
-
 void cVideo ::Clear_Screen(void) const { pRenderer->Add(new cClear_Request()); }
 
 void cVideo ::Draw_Rect(const GL_rect* rect, float z, const Color* color,
