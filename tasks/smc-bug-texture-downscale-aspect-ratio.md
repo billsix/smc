@@ -1,8 +1,11 @@
 # Bug: oversized textures are distorted (aspect ratio not preserved) when clamped to GL_MAX_TEXTURE_SIZE
 
-**Status:** proposed — needs go-ahead (found in the source analysis, 2026-09-23)
+**Status:** DONE 2026-09-23 (branch `pre-modernization-fixes`). **Done:**
+`cVideo::Apply_Max_Texture_Size` now scales the other dimension by a float ratio
+(`m_max_texture_size / dimension`) instead of an integer `scale_down` that truncated to 1 and
+squashed images wider/taller than the GPU cap. Both branches fixed, with a `>= 1` floor. Compiles
+green. (Rarely hit on modern hardware; wrong when it fires.)
 **Priority:** 6 · **Difficulty:** 2
-**Do before:** `tasks/smc-modernize-cpp.md`.
 
 ## BLUF
 
