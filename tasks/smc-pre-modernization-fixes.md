@@ -1,8 +1,20 @@
 # Pre-modernization fixes — the index (do these before the C++ upgrade)
 
-**Status:** proposed — needs go-ahead (William Emerison Six <billsix@gmail.com>, 2026-09-23: "make a
-task for each of those things you found that you recommend fixing, before we do the C++ upgrade work")
+**Status:** IN PROGRESS 2026-09-23 (branch `pre-modernization-fixes`, unsigned commits per the
+maintainer's say-so). All 8 bug tasks + the latent-smells task are DONE and archived (each: a fix
+commit + a separate archive commit, compiles green). The dead-code task is a substantial verified
+first pass, left IN PROGRESS with a documented remainder. The clang-format reformat that precedes
+these already landed on `master` (the maintainer ran `make format`). This umbrella archives when
+the dead-code task completes.
 **Priority:** 4 · **Difficulty:** — (umbrella; the work is in the child tasks)
+
+## Progress (2026-09-23)
+
+Done + archived (`tasks/archive/2026/09/23/`): joystick-name-click-crash, audio-finished-callback-race,
+fadeout-sounds-fades-all-channels, toggle-sounds-silences-music, cape-to-small-downgrade-size,
+jump-sprite-wrong-for-four-costumes, texture-downscale-aspect-ratio, command-line-argument-parsing,
+fix-latent-correctness-smells. In progress: `smc-remove-dead-code.md` (first pass done; remainder
+deferred, incl. the render-thread block that coordinates with the modernization).
 
 ## BLUF
 
