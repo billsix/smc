@@ -8,7 +8,10 @@ task is green (it is the gate this work runs under).
 **Priority:** 4 · **Difficulty:** 8 (77 `.cpp` / 85 `.h`, a 6-deep sprite hierarchy dispatched by
 type tags, 35 global raw pointers; each step must keep the game playable)
 **Depends on:** the container build (done: `tasks/archive/2026/09/23/smc-container-build.md`); `make
-image` + `tools/smoke_headless.sh` are the regression check for every step here.
+image` + `tools/smoke_headless.sh` are the regression check for every step here. **Preceded by**
+`tasks/smc-source-analysis-reference-set.md` (proposed), whose last step rewrites this task's
+Context and Plan from the verified reference set — the counts below are a one-pass survey until
+then.
 
 ## BLUF
 
