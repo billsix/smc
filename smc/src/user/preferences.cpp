@@ -419,21 +419,6 @@ void cPreferences ::Apply_Video(Uint16 screen_w, Uint16 screen_h,
   }
 }
 
-void cPreferences ::Apply_Audio(bool sound, bool music) {
-  // disable sound and music if the audio initialization failed
-  if (pVideo->m_audio_init_failed) {
-    m_audio_sound = 0;
-    m_audio_music = 0;
-    return;
-  }
-
-  m_audio_sound = sound;
-  m_audio_music = music;
-
-  // init audio settings
-  pAudio->Init();
-}
-
 void cPreferences ::elementStart(const CEGUI::String& element,
                                  const CEGUI::XMLAttributes& attributes) {
   if (element == "property" || element == "Item") {

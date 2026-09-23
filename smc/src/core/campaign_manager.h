@@ -32,9 +32,6 @@ class cCampaign {
   cCampaign(void);
   ~cCampaign(void);
 
-  // save
-  bool Save(const std::string& filename);
-
   // name
   std::string m_name;
   // target

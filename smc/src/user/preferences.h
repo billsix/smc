@@ -53,8 +53,6 @@ class cPreferences : public CEGUI::XMLHandler {
   void Apply_Video(Uint16 screen_w, Uint16 screen_h, Uint8 screen_bpp,
                    bool fullscreen, bool vsync, float geometry_detail,
                    float texture_detail);
-  // Set new audio settings
-  void Apply_Audio(bool sound, bool music);
 
   /* *** *** *** Settings *** *** *** *** */
 

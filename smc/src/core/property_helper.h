@@ -76,8 +76,6 @@ Uint64 string_to_int64(const std::string& str);
 long string_to_long(const std::string& str);
 // Return the string as a float
 float string_to_float(const std::string& str);
-// Return the string as a double
-double string_to_double(const std::string& str);
 // Return the version number
 unsigned int string_to_version_number(std::string str);
 // Return the non-xml string
@@ -113,8 +111,6 @@ MassiveType Get_Massive_Type_Id(const std::string& str_massivetype);
 // Return the Color of the given Massivetype
 Color Get_Massive_Type_Color(const MassiveType mtype);
 
-// Return the ground type name
-std::string Get_Ground_Type_Name(const GroundType gtype);
 // Return the ground type identifier
 GroundType Get_Ground_Type_Id(const std::string& str_groundtype);
 

@@ -73,15 +73,6 @@ void cSound_Manager ::Add(cSound* sound) {
   cObject_Manager<cSound>::Add(sound);
 }
 
-void cSound_Manager ::Delete_Sounds(void) {
-  for (SoundList::iterator itr = objects.begin(); itr != objects.end(); ++itr) {
-    cSound* obj = (*itr);
-
-    delete obj;
-    obj = NULL;
-  }
-}
-
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cSound_Manager* pSound_Manager = NULL;

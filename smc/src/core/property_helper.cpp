@@ -250,13 +250,6 @@ float string_to_float(const std::string& str) {
   return num;
 }
 
-double string_to_double(const std::string& str) {
-  double num = 0.0;
-  // use helper
-  from_string<double>(num, str, std::dec);
-  return num;
-}
-
 unsigned int string_to_version_number(std::string str) {
   if (str.empty()) {
     return 0;
@@ -571,27 +564,6 @@ Color Get_Massive_Type_Color(MassiveType mtype) {
   }
 
   return white;
-}
-
-std::string Get_Ground_Type_Name(const GroundType gtype) {
-  switch (gtype) {
-    case GROUND_NORMAL:
-      return "normal";
-    case GROUND_EARTH:
-      return "earth";
-    case GROUND_ICE:
-      return "ice";
-    case GROUND_SAND:
-      return "sand";
-    case GROUND_STONE:
-      return "stone";
-    case GROUND_PLASTIC:
-      return "plastic";
-    default:
-      break;
-  }
-
-  return "";
 }
 
 GroundType Get_Ground_Type_Id(const std::string& str_groundtype) {

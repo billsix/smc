@@ -122,20 +122,9 @@ class cAudio {
   // Pause Music
   void Pause_Music(void) const;
 
-  /* Resume halted sound
-	 * if channel is -1 all halted sounds will be resumed
-	*/
-  void Resume_Sound(int channel = -1) const;
   // Resume Music
   void Resume_Music(void) const;
 
-  /* Fade out Sound(s)
-	 * ms : the time to fade out
-	 * channel : if set only fade this channel out or if -1 all channels
-	 * overwrite_fading : overwrite an already existing fade out
-	*/
-  void Fadeout_Sounds(unsigned int ms = 200, int channel = -1,
-                      bool overwrite_fading = 0) const;
   /* Fade out Sound(s)
 	 * ms : the time to fade out
 	 * filename : fade all sounds with this filename out
@@ -149,8 +138,6 @@ class cAudio {
 	*/
   void Fadeout_Music(unsigned int ms = 500, bool overwrite_fading = 0) const;
 
-  // Set the Music position ( if .ogg in seconds )
-  void Set_Music_Position(float position) const;
 
   /* Returns
 	* 0 if not fading
@@ -165,13 +152,9 @@ class cAudio {
 	*/
   Mix_Fading Is_Sound_Fading(int sound_channel) const;
 
-  // Returns true if the Music is paused
-  bool Is_Music_Paused(void) const;
   // Returns true if the Music is playing
   bool Is_Music_Playing(void) const;
 
-  // Halt the given sounds
-  void Halt_Sounds(int channel = -1) const;
   // Halt the Music
   void Halt_Music(void) const;
 

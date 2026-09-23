@@ -638,15 +638,6 @@ void cAudio ::Pause_Music(void) const {
   }
 }
 
-void cAudio ::Resume_Sound(int channel /* = -1 */) const {
-  if (!m_sound_enabled || !m_initialised) {
-    return;
-  }
-
-  // resume playback on all previously active channels
-  Mix_Resume(channel);
-}
-
 void cAudio ::Resume_Music(void) const {
   if (!m_music_enabled || !m_initialised) {
     return;
@@ -656,27 +647,6 @@ void cAudio ::Resume_Music(void) const {
   if (Mix_PausedMusic()) {
     Mix_ResumeMusic();
   }
-}
-
-void cAudio ::Fadeout_Sounds(unsigned int ms /* = 200 */,
-                             int channel /* = -1 */,
-                             bool overwrite_fading /* = 0 */) const {
-  if (!m_sound_enabled || !m_initialised) {
-    return;
-  }
-
-  // if not playing
-  if (Mix_Playing(channel) <= 0) {
-    return;
-  }
-
-  // Do not fade-out the sound again
-  if (channel >= 0 && !overwrite_fading &&
-      Is_Sound_Fading(channel) == MIX_FADING_OUT) {
-    return;
-  }
-
-  Mix_FadeOutChannel(channel, ms);
 }
 
 void cAudio ::Fadeout_Sounds(unsigned int ms, std::string filename,
@@ -751,15 +721,6 @@ void cAudio ::Fadeout_Music(unsigned int ms /* = 500 */,
   }
 }
 
-void cAudio ::Set_Music_Position(float position) const {
-  if (!m_music_enabled || !m_initialised ||
-      Is_Music_Fading() == MIX_FADING_OUT) {
-    return;
-  }
-
-  Mix_SetMusicPosition(position);
-}
-
 Mix_Fading cAudio ::Is_Music_Fading(void) const {
   if (!m_music_enabled || !m_initialised) {
     return MIX_NO_FADING;
@@ -776,18 +737,6 @@ Mix_Fading cAudio ::Is_Sound_Fading(int sound_channel) const {
   return Mix_FadingChannel(sound_channel);
 }
 
-bool cAudio ::Is_Music_Paused(void) const {
-  if (!m_music_enabled || !m_initialised) {
-    return 0;
-  }
-
-  if (Mix_PausedMusic()) {
-    return 1;
-  }
-
-  return 0;
-}
-
 bool cAudio ::Is_Music_Playing(void) const {
   if (!m_music_enabled || !m_initialised) {
     return 0;
@@ -798,17 +747,6 @@ bool cAudio ::Is_Music_Playing(void) const {
   }
 
   return 0;
-}
-
-void cAudio ::Halt_Sounds(int channel /* = -1 */) const {
-  if (!m_sound_enabled || !m_initialised) {
-    return;
-  }
-
-  // Check all Channels
-  if (Mix_Playing(channel)) {
-    Mix_HaltChannel(channel);
-  }
 }
 
 void cAudio ::Halt_Music(void) const {

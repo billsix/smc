@@ -32,20 +32,6 @@ class cObject_Manager {
   //	Add the given object
   virtual void Add(T* obj) { objects.push_back(obj); }
 
-  // Delete the object from given array number
-  virtual bool Delete(size_t array_num, bool delete_data = 1) {
-    // if in vector
-    if (array_num < objects.size()) {
-      objects.erase(objects.begin() + array_num);
-    }
-
-    if (delete_data) {
-      delete objects[array_num];
-    }
-
-    return 1;
-  }
-
   // Delete the given object
   virtual bool Delete(T* obj, bool delete_data = 1) {
     // empty object
@@ -91,41 +77,6 @@ class cObject_Manager {
 
     // available
     return objects[identifier];
-  }
-
-  // Switch objects array position
-  bool Switch_Array_Num(T* obj1, T* obj2) {
-    // empty object
-    if (!obj1 || !obj2) {
-      return 0;
-    }
-
-    // if the same
-    if (obj1 == obj2) {
-      return 0;
-    }
-
-    typename vector<T*>::iterator itr1 =
-        std::find(objects.begin(), objects.end(), obj1);
-
-    // not in vector
-    if (itr1 == objects.end()) {
-      return 0;
-    }
-
-    typename vector<T*>::iterator itr2 =
-        std::find(objects.begin(), objects.end(), obj2);
-
-    // not in vector
-    if (itr2 == objects.end()) {
-      return 0;
-    }
-
-    // todo: does that work ?
-    itr1 = obj2;
-    itr2 = obj1;
-
-    return 1;
   }
 
   /* Return the object array number

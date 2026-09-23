@@ -39,7 +39,6 @@ bool Delete_File(const std::string& filename);
  * Use with caution.
  * Returns true on success
 */
-bool Delete_Dir(const std::string& dir);
 /* Deletes the given directory including the contents.
  * Use with caution.
  * Returns true on success
@@ -59,11 +58,6 @@ bool Create_Directory(const std::string& dir);
 * Returns 1 if the directories were created, otherwise 0
 */
 bool Create_Directories(const std::string& dir);
-
-/* Get the file size in bytes.
-* returns 0 if the file does not exist
-*/
-size_t Get_File_Size(const std::string& filename);
 
 // Converts "\" and "!" to "/"
 void Convert_Path_Separators(std::string& str);

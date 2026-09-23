@@ -34,52 +34,6 @@ cCampaign ::cCampaign(void) {
 
 cCampaign ::~cCampaign(void) {}
 
-bool cCampaign ::Save(const std::string& filename) {
-// fixme : Check if there is a more portable way f.e. with imbue()
-#ifdef _WIN32
-  ofstream file(utf8_to_ucs2(filename).c_str(), ios::out | ios::trunc);
-#else
-  ofstream file(filename.c_str(), ios::out | ios::trunc);
-#endif
-
-  if (!file.is_open()) {
-    printf(
-        "Error : Couldn't open campaign file for saving. Is the file read-only ?");
-    pHud_Debug->Set_Text(_("Couldn't save campaign ") + filename,
-                         speedfactor_fps * 5.0f);
-    return 0;
-  }
-
-  CEGUI::XMLSerializer stream(file);
-
-  // begin
-  stream.openTag("campaign");
-
-  // begin
-  stream.openTag("information");
-  Write_Property(stream, "name", m_name);
-  Write_Property(stream, "description", m_description);
-  Write_Property(stream, "save_time", static_cast<Uint64>(time(NULL)));
-  // end information
-  stream.closeTag();
-
-  // begin
-  stream.openTag("target");
-  Write_Property(stream, "name", m_target);
-  Write_Property(stream, "is_level", m_is_target_level);
-  // end target
-  stream.closeTag();
-
-  // end campaign
-  stream.closeTag();
-
-  file.close();
-
-  debug_print("Saved campaign %s\n", filename.c_str());
-
-  return 1;
-}
-
 /* *** *** *** *** *** *** *** cCampaign_Manager *** *** *** *** *** *** *** *** *** *** */
 
 cCampaign_Manager ::cCampaign_Manager(void) { Load(); }

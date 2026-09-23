@@ -83,9 +83,17 @@ Everything below is verified (grep + read). "Dead" = no caller found in `src/`.
 - `cAudio::Resume_Sound`, `Fadeout_Sounds(ms,channel,overwrite)`, `Set_Music_Position`, `Is_Music_Paused`, `Halt_Sounds`; `cSound_Manager::Delete_Sounds` (buggy), `m_load_count`, both `operator[]` — `audio/`.
 - `cPreferences::Apply_Audio`; `cLevel_Player::Copy` (returns NULL), `Action_Stop_Shoot` (empty); `cLevel::Process_Input`, `cLevel_Manager::Init` (empty); `cLevel::m_next_level_filename`/`m_delayed_unload` (never set); `cMenu_Options::Change_*_Setting` (~250 lines, unreachable); `cMenu_Item::m_is_quit` (written, never read); `cMenuCore::Key_Up`/`Joy_Button_Up`/`Mouse_Up` stubs; `cMenu_Start::Level_Select` (todo body).
 
-**Dead globals / branches:** `editor_level_enabled`, `editor_world_enabled` never written → every
-`if(editor_level_enabled)` reader is dead (14 files); `game_res_w/h` never reassigned (constants);
-`cAudio::m_debug` never set true → 9 audio `printf`s unreachable.
+**Dead globals / branches:** `game_res_w/h` never reassigned (constants); `cAudio::m_debug` never
+set true → 9 audio `printf`s unreachable. (**Correction, 2026-09-23:** an earlier draft listed
+`editor_level_enabled`/`editor_world_enabled` as never-written/dead — that was WRONG. Both are set
+in the level/world editors' Enable/Disable; their reader branches are live. Verify, don't trust the
+ledger.)
+
+**Removed 2026-09-23** (branch `pre-modernization-fixes`, `tasks/smc-remove-dead-code.md`):
+`cObject_Manager::Delete(size_t)`/`Switch_Array_Num`, `string_to_double`, `Get_Ground_Type_Name`,
+`Delete_Dir`, `Get_File_Size`, `cPreferences::Apply_Audio`, `cCampaign::Save`, `cAudio::Resume_Sound`/
+`Fadeout_Sounds(channel)`/`Set_Music_Position`/`Is_Music_Paused`/`Halt_Sounds`,
+`cSound_Manager::Delete_Sounds`. The rest of the dead list is deferred (see that task).
 
 **Never freed (leak):** `pFramerate`.
 

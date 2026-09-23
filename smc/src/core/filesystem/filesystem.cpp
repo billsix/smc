@@ -74,15 +74,6 @@ bool Delete_File(const std::string& filename) {
 #endif
 }
 
-bool Delete_Dir(const std::string& dir) {
-// fixme : boost should use a codecvt_facet but for now we convert to UCS-2
-#ifdef _WIN32
-  return RemoveDirectory(utf8_to_ucs2(dir).c_str()) != 0;
-#else
-  return rmdir(dir.c_str()) == 0;
-#endif
-}
-
 bool Delete_Dir_And_Content(const std::string& dir) {
 // fixme : boost should use a codecvt_facet but for now we convert to UCS-2
 #ifdef _WIN32
@@ -124,26 +115,6 @@ bool Create_Directories(const std::string& dir) {
 #else
   return fs::create_directories(fs::path(dir));
 #endif
-}
-
-size_t Get_File_Size(const std::string& filename) {
-  struct stat file_info;
-
-  // if file exists
-  if (stat(filename.c_str(), &file_info) == 0) {
-    // if regular file
-#ifdef _WIN32
-    if ((file_info.st_mode & S_IFREG) > 0)
-#else
-    if (!S_ISDIR(file_info.st_mode))
-#endif
-    {
-      // return size
-      return file_info.st_size;
-    }
-  }
-
-  return 0;
 }
 
 void Convert_Path_Separators(std::string& str) {

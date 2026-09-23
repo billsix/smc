@@ -73,9 +73,6 @@ class cSound_Manager : public cObject_Manager<cSound> {
     return Get_Pointer(path);
   }
 
-  // Delete all Sounds, but keep object vector entries
-  void Delete_Sounds(void);
-
  private:
   // sounds loaded since initialization
   unsigned int m_load_count;
