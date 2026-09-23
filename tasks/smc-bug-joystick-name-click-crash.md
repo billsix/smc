@@ -1,8 +1,11 @@
 # Bug: clicking the "Joystick" options label crashes the game (uncaught CEGUI exception)
 
-**Status:** proposed — needs go-ahead (found in the source analysis, 2026-09-23)
+**Status:** DONE 2026-09-23 (branch `pre-modernization-fixes`, unsigned per the maintainer's
+say-so). **Done:** `cMenu_Options::Joystick_Name_Click` in `gui/menu_data.cpp` now calls
+`getWindow("joystick_combo")` (was `"combo_joy"`, which threw `UnknownObjectException` and
+terminated). One-line name fix + a comment; compiles green (`build.sh game`). On-screen verify of
+the Options → Joystick label click is still the maintainer's to do.
 **Priority:** 3 · **Difficulty:** 2 (a crash, but a one-word fix)
-**Do before:** `tasks/smc-modernize-cpp.md`.
 
 ## BLUF
 

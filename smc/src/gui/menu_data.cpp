@@ -2889,9 +2889,10 @@ bool cMenu_Options ::Keyboard_Button_Reset_Clicked(
 }
 
 bool cMenu_Options ::Joystick_Name_Click(const CEGUI::EventArgs& event) {
-  // Get Joystick Combo
+  // Get Joystick Combo (the layout names it "joystick_combo"; "combo_joy" was a
+  // typo that made getWindow throw UnknownObjectException -> terminate on click)
   CEGUI::Combobox* combo_joy = static_cast<CEGUI::Combobox*>(
-      CEGUI::WindowManager::getSingleton().getWindow("combo_joy"));
+      CEGUI::WindowManager::getSingleton().getWindow("joystick_combo"));
 
   // selected item id
   int selected_item = 0;
