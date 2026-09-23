@@ -25,8 +25,10 @@ release dates, tagged `v<version>`), then the 211 commits of github.com/FluXy/SM
   Read it before working on a subsystem; it holds what owns what, the type-tag dispatch, and the
   known bugs. The three ideas it opens with: identity is a runtime `m_type` tag (not the C++ type),
   there are 24 hand-ordered global singletons, and there are zero `override` keywords.
-- **No formatter runs on shell exit** — the game keeps upstream's hand style; `make format` is
-  opt-in and would drown the minimal-change diffs. The modernization task
+- **`smc/src` is clang-format google style** (`smc/smc/.clang-format`; `make format` maintains it).
+  The whole-tree reformat commit is listed in `.git-blame-ignore-revs`, so run
+  `git config blame.ignoreRevsFile .git-blame-ignore-revs` once per clone and `git blame` skips it
+  to the real author (GitHub does this automatically). The modernization task
   (`tasks/smc-modernize-cpp.md`, proposed) is where wholesale style changes belong.
 - **Do not rewrite `master` casually** — but note it *will* be rewritten once more if the six
   missing SourceForge releases (or the CVS) turn up: `tasks/smc-history-import.md`.

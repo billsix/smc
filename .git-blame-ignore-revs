@@ -1,0 +1,7 @@
+# Revisions git blame should skip (whole-tree reformats etc.), so blame points at the
+# real authoring commit instead of the reformat. Enable locally with:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+# GitHub honours this file automatically.
+
+# reformat smc/src with clang-format (google, layout-only) — 2026-09-23
+bec58406b5a43df913df67ee9581e95e14fe0b83
