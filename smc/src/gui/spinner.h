@@ -21,36 +21,34 @@
 #include "elements/CEGUISpinner.h"
 #include "CEGUIWindowFactory.h"
 
-namespace CEGUI
-{
+namespace CEGUI {
 
 /* *** *** *** *** *** *** *** *** SMC_Spinner *** *** *** *** *** *** *** *** *** */
 
-class SMC_Spinner : public Spinner
-{
-public:
-	SMC_Spinner( const String& type, const String& name );
-	virtual ~SMC_Spinner( void );
+class SMC_Spinner : public Spinner {
+ public:
+  SMC_Spinner(const String& type, const String& name);
+  virtual ~SMC_Spinner(void);
 
-    /*!
+  /*!
     \brief
         Returns the textual representation of the current spinner value.
 
     \return
         String object that is equivalent to the the numerical value of the spinner.
     */
-    virtual String getTextFromValue( void ) const;
+  virtual String getTextFromValue(void) const;
 
-	// Events
-	//bool Mouse_Wheel( const CEGUI::EventArgs &event );
+  // Events
+  //bool Mouse_Wheel( const CEGUI::EventArgs &event );
 
-	static const String WidgetTypeName;
+  static const String WidgetTypeName;
 };
 
 CEGUI_DECLARE_WINDOW_FACTORY(SMC_Spinner)
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-} // namespace CEGUI
+}  // namespace CEGUI
 
 #endif

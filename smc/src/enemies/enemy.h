@@ -20,76 +20,74 @@
 #include "../core/framerate.h"
 #include "../audio/audio.h"
 
-namespace SMC
-{
+namespace SMC {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cEnemy : public cAnimated_Sprite
-{
-public:
-	// constructor
-	cEnemy( cSprite_Manager *sprite_manager );
-	// destructor
-	virtual ~cEnemy( void );
+class cEnemy : public cAnimated_Sprite {
+ public:
+  // constructor
+  cEnemy(cSprite_Manager* sprite_manager);
+  // destructor
+  virtual ~cEnemy(void);
 
-	// load from savegame
-	virtual void Load_From_Savegame( cSave_Level_Object *save_object );
-	// save to savegame
-	virtual cSave_Level_Object *Save_To_Savegame( void );
+  // load from savegame
+  virtual void Load_From_Savegame(cSave_Level_Object* save_object);
+  // save to savegame
+  virtual cSave_Level_Object* Save_To_Savegame(void);
 
-	// Set Dead
-	virtual void Set_Dead( bool enable = 1 );
+  // Set Dead
+  virtual void Set_Dead(bool enable = 1);
 
-	// dying animation update
-	virtual void Update_Dying( void ) {};
-	// handle basic enemy updates
-	virtual void Update( void );
-	/* late update
+  // dying animation update
+  virtual void Update_Dying(void) {};
+  // handle basic enemy updates
+  virtual void Update(void);
+  /* late update
 	 * use if it is needed that other objects are already updated
 	*/
-	virtual void Update_Late( void );
-	// update current velocity if needed
-	void Update_Velocity( void );
-	// update gravity velocity
-	virtual void Update_Gravity( void );
-	
-	// Generates the default Hit Animation Particles
-	void Generate_Hit_Animation( cParticle_Emitter *anim = NULL ) const;
+  virtual void Update_Late(void);
+  // update current velocity if needed
+  void Update_Velocity(void);
+  // update gravity velocity
+  virtual void Update_Gravity(void);
 
-	// default collision handler
-	virtual void Handle_Collision( cObjectCollision *collision );
-	// handle moved out of Level event
-	virtual void Handle_out_of_Level( ObjectDirection dir );
+  // Generates the default Hit Animation Particles
+  void Generate_Hit_Animation(cParticle_Emitter* anim = NULL) const;
 
-	// if dead
-	bool m_dead;
+  // default collision handler
+  virtual void Handle_Collision(cObjectCollision* collision);
+  // handle moved out of Level event
+  virtual void Handle_out_of_Level(ObjectDirection dir);
 
-	// default counter for animations
-	float m_counter;
+  // if dead
+  bool m_dead;
 
-	// sound filename if got killed
-	std::string m_kill_sound;
-	// points if enemy got killed
-	unsigned int m_kill_points;
+  // default counter for animations
+  float m_counter;
 
-	// maximum velocity for the current state
-	float m_velx_max;
-	// velocity gain speed
-	float m_velx_gain;
+  // sound filename if got killed
+  std::string m_kill_sound;
+  // points if enemy got killed
+  unsigned int m_kill_points;
 
-	// is fire able to kill this enemy
-	bool m_fire_resistant;
-	// if this can be hit from the top
-	//bool m_can_be_hit_from_top;
-	// if this can be hit from a shell
-	bool m_can_be_hit_from_shell;
-	// if this moves into an abyss
-	//bool m_moves_into_abyss;
+  // maximum velocity for the current state
+  float m_velx_max;
+  // velocity gain speed
+  float m_velx_gain;
+
+  // is fire able to kill this enemy
+  bool m_fire_resistant;
+  // if this can be hit from the top
+  //bool m_can_be_hit_from_top;
+  // if this can be hit from a shell
+  bool m_can_be_hit_from_shell;
+  // if this moves into an abyss
+  //bool m_moves_into_abyss;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-} // namespace SMC
+}  // namespace SMC
 
 #endif

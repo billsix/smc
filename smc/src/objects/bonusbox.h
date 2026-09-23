@@ -20,35 +20,33 @@
 #include "../objects/box.h"
 #include "../objects/powerup.h"
 
-namespace SMC
-{
+namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cBonusBox *** *** *** *** *** *** *** *** *** */
 
-class cBonusBox : public cBaseBox
-{
-public:
-	// constructor
-	cBonusBox( cSprite_Manager *sprite_manager );
-	// create from stream
-	cBonusBox( CEGUI::XMLAttributes &attributes, cSprite_Manager *sprite_manager );
-	// destructor
-	virtual ~cBonusBox( void );
+class cBonusBox : public cBaseBox {
+ public:
+  // constructor
+  cBonusBox(cSprite_Manager* sprite_manager);
+  // create from stream
+  cBonusBox(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  // destructor
+  virtual ~cBonusBox(void);
 
-	// init defaults
-	void Init( void );
+  // init defaults
+  void Init(void);
 
-	// copy
-	virtual cBonusBox *Copy( void ) const;
+  // copy
+  virtual cBonusBox* Copy(void) const;
 
-	// load from stream
-	virtual void Load_From_XML( CEGUI::XMLAttributes &attributes );
-	// save to stream
-	virtual void Save_To_XML( CEGUI::XMLSerializer &stream );
+  // load from stream
+  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  // save to stream
+  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
 
-	// sets the count this object can be activated
-	virtual void Set_Useable_Count( int count, bool new_startcount = 0 );
-	/* Set the bonus type
+  // sets the count this object can be activated
+  virtual void Set_Useable_Count(int count, bool new_startcount = 0);
+  /* Set the bonus type
 	 * TYPE_UNDEFINED			for empty
 	 * TYPE_MUSHROOM_DEFAULT	for Mushroom
 	 * TYPE_FIREPLANT			for Mushroom or Fireplant
@@ -59,53 +57,53 @@ public:
 	 * TYPE_GOLDPIECE			for Goldpiece
 	 * TYPE_MUSHROOM_POISON		for Poison Mushroom
 	*/
-	void Set_Bonus_Type( SpriteType bonus_type );
-	/* Set if to force the best possible item
+  void Set_Bonus_Type(SpriteType bonus_type);
+  /* Set if to force the best possible item
 	 * and not to use lower items automatically
 	*/
-	void Set_Force_Best_Item( bool enable );
-	// Set the gold color
-	void Set_Goldcolor( DefaultColor new_color );
+  void Set_Force_Best_Item(bool enable);
+  // Set the gold color
+  void Set_Goldcolor(DefaultColor new_color);
 
-	// Activates the bonus item
-	virtual void Activate( void );
+  // Activates the bonus item
+  virtual void Activate(void);
 
-	// update
-	virtual void Update( void );
-	// draw
-	virtual void Draw( cSurface_Request *request = NULL );
+  // update
+  virtual void Update(void);
+  // draw
+  virtual void Draw(cSurface_Request* request = NULL);
 
-	// if update is valid for the current state
-	virtual bool Is_Update_Valid( void );
+  // if update is valid for the current state
+  virtual bool Is_Update_Valid(void);
 
-	// editor activation
-	virtual void Editor_Activate( void );
-	// editor state update
-	virtual void Editor_State_Update( void );
-	// editor animation option selected event
-	bool Editor_Animation_Select( const CEGUI::EventArgs &event );
-	// editor item option selected event
-	bool Editor_Item_Select( const CEGUI::EventArgs &event );
-	// editor force best item option selected event
-	bool Editor_Force_best_item_Select( const CEGUI::EventArgs &event );
-	// editor gold color option selected event
-	bool Editor_Gold_Color_Select( const CEGUI::EventArgs &event );
+  // editor activation
+  virtual void Editor_Activate(void);
+  // editor state update
+  virtual void Editor_State_Update(void);
+  // editor animation option selected event
+  bool Editor_Animation_Select(const CEGUI::EventArgs& event);
+  // editor item option selected event
+  bool Editor_Item_Select(const CEGUI::EventArgs& event);
+  // editor force best item option selected event
+  bool Editor_Force_best_item_Select(const CEGUI::EventArgs& event);
+  // editor gold color option selected event
+  bool Editor_Gold_Color_Select(const CEGUI::EventArgs& event);
 
-	// force best possible item
-	bool m_force_best_item;
+  // force best possible item
+  bool m_force_best_item;
 
-	/* active items
+  /* active items
 	 * list of active item is available
 	 * and gets added to the level objects if finished
 	*/
-	typedef vector<cMovingSprite *> MovingSpriteList;
-	MovingSpriteList m_active_items;
-	// Goldpiece color
-	DefaultColor m_gold_color;
+  typedef vector<cMovingSprite*> MovingSpriteList;
+  MovingSpriteList m_active_items;
+  // Goldpiece color
+  DefaultColor m_gold_color;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-} // namespace SMC
+}  // namespace SMC
 
 #endif

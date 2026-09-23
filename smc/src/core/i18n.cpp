@@ -18,138 +18,102 @@
 #include "SDL.h"
 #include "SDL_opengl.h"
 
-namespace SMC
-{
+namespace SMC {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-void I18N_Init( void )
-{
-	const char *sys_locale = setlocale( LC_ALL, "" );
+void I18N_Init(void) {
+  const char* sys_locale = setlocale(LC_ALL, "");
 
-	if( sys_locale == NULL )
-	{
-		debug_print( "Failed to set translation locale\n" );
-	}
-	else
-	{
-		debug_print( "Translation locale is %s\n", sys_locale );
-	}
+  if (sys_locale == NULL) {
+    debug_print("Failed to set translation locale\n");
+  } else {
+    debug_print("Translation locale is %s\n", sys_locale);
+  }
 
-	const char *textdomain_directory = bindtextdomain( CAPTION, DATA_DIR "/" GAME_TRANSLATION_DIR );
+  const char* textdomain_directory =
+      bindtextdomain(CAPTION, DATA_DIR "/" GAME_TRANSLATION_DIR);
 
-	if( !textdomain_directory )
-	{
-		printf( "Warning: bindtextdomain failed for %s\n", DATA_DIR "/" GAME_TRANSLATION_DIR );
-	}
+  if (!textdomain_directory) {
+    printf("Warning: bindtextdomain failed for %s\n",
+           DATA_DIR "/" GAME_TRANSLATION_DIR);
+  }
 
-	const char *textdomain_codeset = bind_textdomain_codeset( CAPTION, "UTF-8" );
-	const char *textdomain_default = textdomain( CAPTION );
+  const char* textdomain_codeset = bind_textdomain_codeset(CAPTION, "UTF-8");
+  const char* textdomain_default = textdomain(CAPTION);
 
-	debug_print( "Translation support with gettext set to:\n\tDirectory %s\n\tCodeset: %s\n\tText domain: %s\n",
-		textdomain_directory, textdomain_codeset, textdomain_default );
+  debug_print(
+      "Translation support with gettext set to:\n\tDirectory %s\n\tCodeset: %s\n\tText domain: %s\n",
+      textdomain_directory, textdomain_codeset, textdomain_default);
 }
 
 #ifdef _WIN32
-int Get_Windows_Primary_Language( const std::string &language )
-{
-	if( language.compare( "en" ) == 0 )
-	{
-		return LANG_ENGLISH;
-	}
-	else if( language.compare( "de" ) == 0 )
-	{
-		return LANG_GERMAN;
-	}
-	else if( language.compare( "el" ) == 0 )
-	{
-		return LANG_GREEK;
-	}
-	else if( language.compare( "es" ) == 0 )
-	{
-		return LANG_SPANISH;
-	}
-	else if( language.compare( "fi" ) == 0 )
-	{
-		return LANG_FINNISH;
-	}
-	else if( language.compare( "fr" ) == 0 )
-	{
-		return LANG_FRENCH;
-	}
-	else if( language.compare( "it" ) == 0 )
-	{
-		return LANG_ITALIAN;
-	}
-	else if( language.compare( "nb" ) == 0 )
-	{
-		return LANG_NORWEGIAN;
-	}
-	else if( language.compare( "nl" ) == 0 )
-	{
-		return LANG_DUTCH;
-	}
-	else if( language.compare( "nn" ) == 0 )
-	{
-		return LANG_NORWEGIAN;
-	}
-	else if( language.compare( "pl" ) == 0 )
-	{
-		return LANG_POLISH;
-	}
-	else if( language.compare( "ru" ) == 0 )
-	{
-		return LANG_RUSSIAN;
-	}
-	else if( language.compare( "sv" ) == 0 )
-	{
-		return LANG_SWEDISH;
-	}
-	else if( language.compare( "zh_TW" ) == 0 )
-	{
-		return LANG_CHINESE;
-	}
+int Get_Windows_Primary_Language(const std::string& language) {
+  if (language.compare("en") == 0) {
+    return LANG_ENGLISH;
+  } else if (language.compare("de") == 0) {
+    return LANG_GERMAN;
+  } else if (language.compare("el") == 0) {
+    return LANG_GREEK;
+  } else if (language.compare("es") == 0) {
+    return LANG_SPANISH;
+  } else if (language.compare("fi") == 0) {
+    return LANG_FINNISH;
+  } else if (language.compare("fr") == 0) {
+    return LANG_FRENCH;
+  } else if (language.compare("it") == 0) {
+    return LANG_ITALIAN;
+  } else if (language.compare("nb") == 0) {
+    return LANG_NORWEGIAN;
+  } else if (language.compare("nl") == 0) {
+    return LANG_DUTCH;
+  } else if (language.compare("nn") == 0) {
+    return LANG_NORWEGIAN;
+  } else if (language.compare("pl") == 0) {
+    return LANG_POLISH;
+  } else if (language.compare("ru") == 0) {
+    return LANG_RUSSIAN;
+  } else if (language.compare("sv") == 0) {
+    return LANG_SWEDISH;
+  } else if (language.compare("zh_TW") == 0) {
+    return LANG_CHINESE;
+  }
 
-	return LANG_NEUTRAL;
+  return LANG_NEUTRAL;
 }
 
-int Get_Windows_Sub_Language( const std::string &language )
-{
-	if( language.compare( "nn" ) == 0 )
-	{
-		return SUBLANG_NORWEGIAN_NYNORSK;
-	}
-	else if( language.compare( "zh_TW" ) == 0 )
-	{
-		return SUBLANG_CHINESE_TRADITIONAL;
-	}
+int Get_Windows_Sub_Language(const std::string& language) {
+  if (language.compare("nn") == 0) {
+    return SUBLANG_NORWEGIAN_NYNORSK;
+  } else if (language.compare("zh_TW") == 0) {
+    return SUBLANG_CHINESE_TRADITIONAL;
+  }
 
-	return SUBLANG_NEUTRAL;
+  return SUBLANG_NEUTRAL;
 }
 #endif
 
-void I18N_Set_Language( const std::string &language )
-{
+void I18N_Set_Language(const std::string& language) {
 #ifdef _WIN32
-	int primary_language = Get_Windows_Primary_Language( language );
-	int sub_language = Get_Windows_Sub_Language( language );
+  int primary_language = Get_Windows_Primary_Language(language);
+  int sub_language = Get_Windows_Sub_Language(language);
 
-	bool success = SUCCEEDED( SetThreadLocale( MAKELCID( MAKELANGID( primary_language, sub_language ), SORT_DEFAULT ) ) );
+  bool success = SUCCEEDED(SetThreadLocale(
+      MAKELCID(MAKELANGID(primary_language, sub_language), SORT_DEFAULT)));
 
-	if( !success )
-	{
-		debug_print("Failed to set translation locale to %d %d\n", primary_language, sub_language);
-	}
-	else
-	{
-		debug_print("Translation locale set to %d %d\n", primary_language, sub_language);
-	}
-	//putenv(("LANG=" + std::string(_nl_locale_name_default())).c_str());
+  if (!success) {
+    debug_print("Failed to set translation locale to %d %d\n", primary_language,
+                sub_language);
+  } else {
+    debug_print("Translation locale set to %d %d\n", primary_language,
+                sub_language);
+  }
+  //putenv(("LANG=" + std::string(_nl_locale_name_default())).c_str());
 #else
-	setenv( "LANGUAGE", language.c_str(), 1 );
+  setenv("LANGUAGE", language.c_str(), 1);
 #endif
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-} // namespace SMC
+}  // namespace SMC

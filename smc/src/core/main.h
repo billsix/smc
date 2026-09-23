@@ -18,36 +18,35 @@
 
 #include "SDL.h"
 
-namespace SMC
-{
+namespace SMC {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // Initialize everything, called before everything else
 // Seed random numbers, init SDL, OpenGL, CEGUI, load preferences, and create globals
-void Init_Game( void );
+void Init_Game(void);
 
 // Save preferences, delete globals, and closes SDL
-void Exit_Game( void );
+void Exit_Game(void);
 
 /* Top-level input function.
  * Calls either KeyDown, KeyUp, or passes control to pMouseCursor or pJoystick
  * Returns true if the event was handled.
-*/ 
-bool Handle_Input_Global( SDL_Event *ev );
+*/
+bool Handle_Input_Global(SDL_Event* ev);
 
 /* Update current game state
  * Should be called continuously from Game Loop.
 */
-void Update_Game( void );
+void Update_Game(void);
 
 /* Draw current game state
  * Should be called continuously from Game Loop.
 */
-void Draw_Game( void );
+void Draw_Game(void);
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-} // namespace SMC
+}  // namespace SMC
 
 #endif

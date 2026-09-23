@@ -19,8 +19,7 @@
 #include "../core/global_game.h"
 #include <libintl.h>
 
-namespace SMC
-{
+namespace SMC {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -32,12 +31,12 @@ namespace SMC
 #define N_(String) String
 
 // init internationalization
-void I18N_Init( void );
+void I18N_Init(void);
 // set language
-void I18N_Set_Language( const std::string &default_language );
+void I18N_Set_Language(const std::string& default_language);
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-} // namespace SMC
+}  // namespace SMC
 
 #endif
