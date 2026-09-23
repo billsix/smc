@@ -1,8 +1,11 @@
 # Bug: command-line argument parsing is broken (`option = i + i`, `arguments[1]`)
 
-**Status:** proposed — needs go-ahead (found in the source analysis, 2026-09-23)
+**Status:** DONE 2026-09-23 (branch `pre-modernization-fixes`). **Done:** the `--debug` value loop
+now iterates `option = i + 1 .. size` (was `i + i` with the outer counter, re-reading
+`arguments[2*i]`), consuming each token via `i = option`; and the `--world` branch tests
+`arguments[i]` (was `arguments[1]`). Compiles green. The later `--level`/`--world` value handling
+(reading `arguments[1]`/`[2]` directly) was already correct and untouched.
 **Priority:** 6 · **Difficulty:** 2
-**Do before:** `tasks/smc-modernize-cpp.md`.
 
 ## BLUF
 

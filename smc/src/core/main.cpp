@@ -127,7 +127,9 @@ int main(int argc, char** argv) {
         }
         // with value
         else {
-          for (unsigned int option = i + i; i < arguments.size(); i++) {
+          // consume the following tokens as debug options (was `option = i + i`
+          // with the wrong loop counter, so it re-read arguments[2*i] forever)
+          for (unsigned int option = i + 1; option < arguments.size(); option++) {
             std::string option_str = arguments[option];
 
             if (option_str == "game") {
@@ -138,6 +140,8 @@ int main(int argc, char** argv) {
               printf("Unknown debug option %s\n", option_str.c_str());
               return EXIT_FAILURE;
             }
+            // consume this token so the outer loop does not re-parse it
+            i = option;
           }
         }
       }
@@ -146,7 +150,7 @@ int main(int argc, char** argv) {
         // skip
       }
       // world loading is handled later
-      else if (arguments[1] == "--world" || arguments[1] == "-w") {
+      else if (arguments[i] == "--world" || arguments[i] == "-w") {
         // skip
       }
       // unknown argument
