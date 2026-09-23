@@ -20,6 +20,11 @@ release dates, tagged `v<version>`), then the 211 commits of github.com/FluXy/SM
   or the build). Verification is the nested `make image` plus the headless smoke run
   `tools/smoke_headless.sh` (`make shell-exec SCRIPT=tools/smoke_headless.sh`; hard-kill + `ps`
   audit — never leave a GUI process behind).
+- **Understanding the code:** the verified source reference set is `tasks/reference/smc/`
+  (`README.md` is the map — a live/dead ledger plus six cross-cutting docs and ten subsystem docs).
+  Read it before working on a subsystem; it holds what owns what, the type-tag dispatch, and the
+  known bugs. The three ideas it opens with: identity is a runtime `m_type` tag (not the C++ type),
+  there are 24 hand-ordered global singletons, and there are zero `override` keywords.
 - **No formatter runs on shell exit** — the game keeps upstream's hand style; `make format` is
   opt-in and would drown the minimal-change diffs. The modernization task
   (`tasks/smc-modernize-cpp.md`, proposed) is where wholesale style changes belong.
