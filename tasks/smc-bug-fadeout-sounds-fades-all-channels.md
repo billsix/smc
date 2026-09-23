@@ -1,8 +1,10 @@
 # Bug: Fadeout_Sounds(filename) can fade every channel via channel −1
 
-**Status:** proposed — needs go-ahead (found in the source analysis, 2026-09-23)
+**Status:** DONE 2026-09-23 (branch `pre-modernization-fixes`). **Done:** `Fadeout_Sounds(ms,
+filename)` now skips pool entries with `m_channel < 0` before the filename check, so an idle entry
+no longer reaches `Mix_FadeOutChannel(-1, ms)` (channel -1 = all channels). The guard also prevents
+a latent NULL deref, since a freed/idle entry can have a null `m_data`. Compiles green.
 **Priority:** 4 · **Difficulty:** 2
-**Do before:** `tasks/smc-modernize-cpp.md`.
 
 ## BLUF
 

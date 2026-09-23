@@ -689,6 +689,13 @@ void cAudio ::Fadeout_Sounds(unsigned int ms, std::string filename,
     // get object pointer
     const cAudio_Sound* obj = (*itr);
 
+    // skip idle pool entries: m_channel -1 means "not playing", and passing it to
+    // Mix_FadeOutChannel(-1, ...) would fade EVERY channel. (Also guards the m_data
+    // deref below, since a freed/idle entry can have a null m_data.)
+    if (obj->m_channel < 0) {
+      continue;
+    }
+
     // filename does not match
     if (obj->m_data->m_filename.compare(filename) != 0) {
       continue;
