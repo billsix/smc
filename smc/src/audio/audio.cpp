@@ -20,20 +20,25 @@
 #include "../user/preferences.h"
 #include "../core/i18n.h"
 #include "../core/filesystem/filesystem.h"
+#include <atomic>
 
 namespace SMC {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-void Finished_Sound(const int channel) {
-  // find the finished sound and free the data
-  for (AudioSoundList::iterator itr = pAudio->m_active_sounds.begin();
-       itr != pAudio->m_active_sounds.end(); ++itr) {
-    cAudio_Sound* obj = (*itr);
+// Highest SDL_mixer channel the finished-callback tracks; m_max_sounds stays well under
+// this. Zero-initialised (static storage) to false.
+static const int SMC_MAX_MIX_CHANNELS = 256;
+// Set by Finished_Sound (which SDL_mixer may call from its audio thread) and reaped on the
+// main thread in cAudio::Update, so m_active_sounds is only ever touched from one thread.
+static std::atomic<bool> g_channel_finished[SMC_MAX_MIX_CHANNELS];
 
-    if (obj->m_channel == channel) {
-      obj->Finished();
-    }
+void Finished_Sound(const int channel) {
+  // Runs on SDL_mixer's audio thread (or synchronously from Mix_HaltChannel): it must NOT
+  // touch game state / the m_active_sounds vector. Just flag the channel; cAudio::Update
+  // reaps it on the main thread. (Was: iterate + mutate the vector from this thread = a race.)
+  if (channel >= 0 && channel < SMC_MAX_MIX_CHANNELS) {
+    g_channel_finished[channel].store(true, std::memory_order_relaxed);
   }
 }
 
@@ -92,8 +97,7 @@ int cAudio_Sound ::Play(int use_res_id /* = -1 */, int loops /* = 0 */) {
   m_resource_id = use_res_id;
   // play sound
   m_channel = Mix_PlayChannel(-1, m_data->m_chunk, loops);
-  // add callback if sound finished playing
-  Mix_ChannelFinished(&Finished_Sound);
+  // (the finished-channel callback is registered once in cAudio::Init, not here)
 
   return m_channel;
 }
@@ -228,6 +232,10 @@ bool cAudio ::Init(void) {
     }
 
     m_initialised = 1;
+
+    // Register the finished-channel callback ONCE per device-open (not per Play, as
+    // before). It only flags the channel; cAudio::Update reaps it on the main thread.
+    Mix_ChannelFinished(&Finished_Sound);
   }
 
   if (m_debug) {
@@ -842,6 +850,23 @@ void cAudio ::Set_Music_Volume(Uint8 volume) const {
 void cAudio ::Update(void) {
   if (!m_initialised) {
     return;
+  }
+
+  // Reap channels the finished-callback flagged on the audio thread. Done here on the main
+  // thread so m_active_sounds is only ever touched from one thread. Mix_Playing guards
+  // against a channel that was reused before we got here.
+  for (int ch = 0; ch < SMC_MAX_MIX_CHANNELS; ++ch) {
+    if (g_channel_finished[ch].exchange(false, std::memory_order_relaxed)) {
+      if (!Mix_Playing(ch)) {
+        for (AudioSoundList::iterator itr = m_active_sounds.begin();
+             itr != m_active_sounds.end(); ++itr) {
+          if ((*itr)->m_channel == ch) {
+            (*itr)->Finished();
+            break;
+          }
+        }
+      }
+    }
   }
 
   // if music is enabled

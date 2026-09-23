@@ -1,9 +1,13 @@
 # Bug: the SDL_mixer finished-channel callback mutates game state from the audio thread
 
-**Status:** proposed — needs go-ahead (found in the source analysis, 2026-09-23)
-**Priority:** 3 · **Difficulty:** 4 (a real data race; the fix is small but needs care)
-**Do before:** `tasks/smc-modernize-cpp.md` (the modernization's audio step should build on the fix,
-not inherit the race).
+**Status:** DONE 2026-09-23 (branch `pre-modernization-fixes`). **Done:** `Finished_Sound` no
+longer walks/mutates `m_active_sounds` from SDL_mixer's audio thread — it now only sets a lock-free
+`std::atomic<bool> g_channel_finished[256]` flag. `cAudio::Update` (main thread) reaps flagged
+channels, guarded by `Mix_Playing` against channel reuse, and is the only place that touches the
+vector. `Mix_ChannelFinished` is registered once in `cAudio::Init` (was re-registered on every
+`Play`). Added `#include <atomic>`. Compiles green. The race is fixed by construction (no shared
+mutable state crosses the thread boundary); no runtime repro was attempted, as noted below.
+**Priority:** 3 · **Difficulty:** 4
 
 ## BLUF
 
