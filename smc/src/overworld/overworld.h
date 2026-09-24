@@ -34,7 +34,7 @@ namespace SMC {
 class cOverworld_description : public CEGUI::XMLHandler {
  public:
   cOverworld_description(void);
-  virtual ~cOverworld_description(void);
+  ~cOverworld_description(void) override;
 
   // Load
   void Load(void);
@@ -62,10 +62,10 @@ class cOverworld_description : public CEGUI::XMLHandler {
 
  private:
   // XML element start
-  virtual void elementStart(const CEGUI::String& element,
-                            const CEGUI::XMLAttributes& attributes);
+  void elementStart(const CEGUI::String& element,
+                    const CEGUI::XMLAttributes& attributes) override;
   // XML element end
-  virtual void elementEnd(const CEGUI::String& element);
+  void elementEnd(const CEGUI::String& element) override;
   // handle world description
   void handle_world(const CEGUI::XMLAttributes& attributes);
 
@@ -83,7 +83,7 @@ typedef vector<cWaypoint*> WaypointList;
 class cOverworld : public CEGUI::XMLHandler {
  public:
   cOverworld(void);
-  virtual ~cOverworld(void);
+  ~cOverworld(void) override;
 
   // New
   bool New(std::string name);
@@ -210,10 +210,10 @@ class cOverworld : public CEGUI::XMLHandler {
 
  private:
   // XML element start
-  virtual void elementStart(const CEGUI::String& element,
-                            const CEGUI::XMLAttributes& attributes);
+  void elementStart(const CEGUI::String& element,
+                    const CEGUI::XMLAttributes& attributes) override;
   // XML element end
-  virtual void elementEnd(const CEGUI::String& element);
+  void elementEnd(const CEGUI::String& element) override;
 
   // XML element property list
   CEGUI::XMLAttributes m_xml_attributes;

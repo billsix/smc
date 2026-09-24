@@ -125,7 +125,7 @@ class cBackground {
 class cBackground_Manager : public cObject_Manager<cBackground> {
  public:
   cBackground_Manager(void);
-  virtual ~cBackground_Manager(void);
+  ~cBackground_Manager(void) override;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

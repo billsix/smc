@@ -30,34 +30,34 @@ class cjStar : public cPowerUp {
   // create from stream
   cjStar(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cjStar(void);
+  ~cjStar(void) override;
 
   // init defaults
-  void Init(void);
+  void Init(void) override;
   // copy
-  virtual cjStar* Copy(void) const;
+  cjStar* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // Activate the star
   void Activate(void);
 
   // update the Star
-  virtual void Update(void);
+  void Update(void) override;
   // draw the Star
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
 
   // Adds Star Particles
   void Generate_Particles(float x = 0.0f, float y = 0.0f, bool random = 1,
                           unsigned int quota = 2) const;
 
   // collision from player
-  virtual void Handle_Collision_Player(cObjectCollision* collision);
+  void Handle_Collision_Player(cObjectCollision* collision) override;
   // collision with massive
-  virtual void Handle_Collision_Massive(cObjectCollision* collision);
+  void Handle_Collision_Massive(cObjectCollision* collision) override;
 
   // small stars animation counter
   float m_anim_counter;

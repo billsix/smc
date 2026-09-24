@@ -71,13 +71,13 @@ class cMenu_Base {
 class cMenu_Main : public cMenu_Base {
  public:
   cMenu_Main(void);
-  virtual ~cMenu_Main(void);
+  ~cMenu_Main(void) override;
 
-  virtual void Init(void);
-  virtual void Init_GUI(void);
-  virtual void Exit(void);
-  virtual void Update(void);
-  virtual void Draw(void);
+  void Init(void) override;
+  void Init_GUI(void) override;
+  void Exit(void) override;
+  void Update(void) override;
+  void Draw(void) override;
 };
 
 /* *** *** *** *** *** *** *** cMenu_Start *** *** *** *** *** *** *** *** *** *** */
@@ -85,13 +85,13 @@ class cMenu_Main : public cMenu_Base {
 class cMenu_Start : public cMenu_Base {
  public:
   cMenu_Start(void);
-  virtual ~cMenu_Start(void);
+  ~cMenu_Start(void) override;
 
-  virtual void Init(void);
-  virtual void Init_GUI(void);
-  virtual void Exit(void);
-  virtual void Update(void);
-  virtual void Draw(void);
+  void Init(void) override;
+  void Init_GUI(void) override;
+  void Exit(void) override;
+  void Update(void) override;
+  void Draw(void) override;
 
   // Get all levels from the given directory
   void Get_Levels(std::string dir, CEGUI::colour color);
@@ -164,25 +164,25 @@ class cMenu_Start : public cMenu_Base {
 class cMenu_Options : public cMenu_Base {
  public:
   cMenu_Options(void);
-  virtual ~cMenu_Options(void);
+  ~cMenu_Options(void) override;
 
-  virtual void Init(void);
-  virtual void Init_GUI(void);
+  void Init(void) override;
+  void Init_GUI(void) override;
   void Init_GUI_Game(void);
   void Init_GUI_Video(void);
   void Init_GUI_Audio(void);
   void Init_GUI_Keyboard(void);
   void Init_GUI_Joystick(void);
   void Init_GUI_Editor(void);
-  virtual void Exit(void);
-  virtual void Update(void);
+  void Exit(void) override;
+  void Update(void) override;
   void Change_Game_Setting(int setting);
   void Change_Video_Setting(int setting);
   void Change_Audio_Setting(int setting);
   void Change_Keyboard_Setting(int setting);
   void Change_Joystick_Setting(int setting);
   void Change_Editor_Setting(int setting);
-  virtual void Draw(void);
+  void Draw(void) override;
 
   /* Build the shortcut list
 	 * joystick : if true build it for joystick
@@ -300,13 +300,13 @@ class cMenu_Options : public cMenu_Base {
 class cMenu_Savegames : public cMenu_Base {
  public:
   cMenu_Savegames(bool type);
-  virtual ~cMenu_Savegames(void);
+  ~cMenu_Savegames(void) override;
 
-  virtual void Init(void);
-  virtual void Init_GUI(void);
-  virtual void Exit(void);
-  virtual void Update(void);
-  virtual void Draw(void);
+  void Init(void) override;
+  void Init_GUI(void) override;
+  void Exit(void) override;
+  void Update(void) override;
+  void Draw(void) override;
 
   void Update_Load(void);
   void Update_Save(void);
@@ -328,15 +328,15 @@ class cMenu_Savegames : public cMenu_Base {
 class cMenu_Credits : public cMenu_Base {
  public:
   cMenu_Credits(void);
-  virtual ~cMenu_Credits(void);
+  ~cMenu_Credits(void) override;
 
-  virtual void Init(void);
-  virtual void Init_GUI(void);
-  virtual void Enter(const GameMode old_mode = MODE_NOTHING);
-  virtual void Leave(const GameMode next_mode = MODE_NOTHING);
-  virtual void Exit(void);
-  virtual void Update(void);
-  virtual void Draw(void);
+  void Init(void) override;
+  void Init_GUI(void) override;
+  void Enter(const GameMode old_mode = MODE_NOTHING) override;
+  void Leave(const GameMode next_mode = MODE_NOTHING) override;
+  void Exit(void) override;
+  void Update(void) override;
+  void Draw(void) override;
 
   // Add a line to the credits text
   void Add_Credits_Line(const std::string& text, float posx, float posy,

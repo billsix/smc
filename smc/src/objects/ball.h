@@ -30,21 +30,21 @@ class cBall : public cAnimated_Sprite {
   // create from stream
   cBall(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cBall(void);
+  ~cBall(void) override;
 
   // init defaults
-  void Init(void);
+  void Init(void) override;
   // copy
-  virtual cBall* Copy(void) const;
+  cBall* Copy(void) const override;
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // load from savegame
-  virtual void Load_From_Savegame(cSave_Level_Object* save_object);
+  void Load_From_Savegame(cSave_Level_Object* save_object) override;
   // save to savegame
-  virtual cSave_Level_Object* Save_To_Savegame(void);
+  cSave_Level_Object* Save_To_Savegame(void) override;
 
   // set type
   void Set_Ball_Type(ball_effect type);
@@ -56,12 +56,12 @@ class cBall : public cAnimated_Sprite {
   /* set this sprite to destroyed and completely disable it
 	 * sprite is still in the sprite manager but only to get possibly replaced
 	*/
-  virtual void Destroy(void);
+  void Destroy(void) override;
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
   // draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
 
   // Generate the default animation Particles
   void Generate_Particles(cParticle_Emitter* anim = NULL) const;
@@ -71,17 +71,17 @@ class cBall : public cAnimated_Sprite {
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-  virtual Col_Valid_Type Validate_Collision(cSprite* obj);
+  Col_Valid_Type Validate_Collision(cSprite* obj) override;
   // default collision handler
-  virtual void Handle_Collision(cObjectCollision* collision);
+  void Handle_Collision(cObjectCollision* collision) override;
   // collision from player
-  virtual void Handle_Collision_Player(cObjectCollision* collision);
+  void Handle_Collision_Player(cObjectCollision* collision) override;
   // collision from an enemy
-  virtual void Handle_Collision_Enemy(cObjectCollision* collision);
+  void Handle_Collision_Enemy(cObjectCollision* collision) override;
   // collision with massive
-  virtual void Handle_Collision_Massive(cObjectCollision* collision);
+  void Handle_Collision_Massive(cObjectCollision* collision) override;
   // handle moved out of Level event
-  virtual void Handle_out_of_Level(ObjectDirection dir);
+  void Handle_out_of_Level(ObjectDirection dir) override;
 
   // origin
   ArrayType m_origin_array;

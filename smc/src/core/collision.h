@@ -67,10 +67,10 @@ typedef vector<cObjectCollision*> cObjectCollision_List;
 class cObjectCollisionType : public cObject_Manager<cObjectCollision> {
  public:
   cObjectCollisionType(void);
-  virtual ~cObjectCollisionType(void);
+  ~cObjectCollisionType(void) override;
 
   // Add an object collision
-  virtual void Add(cObjectCollision* obj);
+  void Add(cObjectCollision* obj) override;
 
   // returns true if the given object was found in the list
   bool Is_Included(const cSprite* obj);

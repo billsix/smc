@@ -55,7 +55,7 @@ typedef vector<cSound*> SoundList;
 class cSound_Manager : public cObject_Manager<cSound> {
  public:
   cSound_Manager(void);
-  virtual ~cSound_Manager(void);
+  ~cSound_Manager(void) override;
 
   // Return the Sound from Path
   virtual cSound* Get_Pointer(const std::string& path) const;
@@ -63,7 +63,7 @@ class cSound_Manager : public cObject_Manager<cSound> {
   /* Add a Sound
 	 * Should always have the path set
 	 */
-  void Add(cSound* item);
+  void Add(cSound* item) override;
 
   cSound* operator[](unsigned int identifier) const {
     return cObject_Manager<cSound>::Get_Pointer(identifier);

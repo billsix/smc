@@ -54,29 +54,29 @@ class cMoving_Platform : public cAnimated_Sprite {
   cMoving_Platform(CEGUI::XMLAttributes& attributes,
                    cSprite_Manager* sprite_manager);
   // destructor
-  ~cMoving_Platform(void);
+  ~cMoving_Platform(void) override;
 
   // init defaults
-  void Init(void);
+  void Init(void) override;
   /* late initialization
 	 * this needs linked objects to be already loaded
 	*/
-  virtual void Init_Links(void);
+  void Init_Links(void) override;
   // copy
-  virtual cMoving_Platform* Copy(void) const;
+  cMoving_Platform* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // Set the parent sprite manager
-  virtual void Set_Sprite_Manager(cSprite_Manager* sprite_manager);
+  void Set_Sprite_Manager(cSprite_Manager* sprite_manager) override;
 
   // load from savegame
-  virtual void Load_From_Savegame(cSave_Level_Object* save_object);
+  void Load_From_Savegame(cSave_Level_Object* save_object) override;
   // save to savegame
-  virtual cSave_Level_Object* Save_To_Savegame(void);
+  cSave_Level_Object* Save_To_Savegame(void) override;
 
   // Set move type
   void Set_Move_Type(Moving_Platform_Type move_type);
@@ -85,9 +85,10 @@ class cMoving_Platform : public cAnimated_Sprite {
 	*/
   void Set_Path_Identifier(const std::string& identifier);
   // Set Massive type
-  virtual void Set_Massive_Type(MassiveType new_type);
+  void Set_Massive_Type(MassiveType new_type) override;
   // Set Direction
-  void Set_Direction(const ObjectDirection dir, bool new_start_direction = 0);
+  void Set_Direction(const ObjectDirection dir,
+                     bool new_start_direction = 0) override;
   /* Set Maximum distance
 	 * if move type is line this is the length and if circle the radius
 	 * but not used if path
@@ -112,9 +113,9 @@ class cMoving_Platform : public cAnimated_Sprite {
   void Set_Image_Top_Right(cGL_Surface* surface);
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
   // draw
-  virtual void Draw(cSurface_Request* request /* = NULL */);
+  void Draw(cSurface_Request* request /* = NULL */) override;
 
   // Update rect
   void Update_Rect(void);
@@ -122,25 +123,25 @@ class cMoving_Platform : public cAnimated_Sprite {
   void Update_Velocity(void);
 
   // if update is valid for the current state
-  virtual bool Is_Update_Valid(void);
+  bool Is_Update_Valid(void) override;
   // if draw is valid for the current state and position
-  virtual bool Is_Draw_Valid(void);
+  bool Is_Draw_Valid(void) override;
 
   /* Validate the given collision object
 	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-  virtual Col_Valid_Type Validate_Collision(cSprite* obj);
+  Col_Valid_Type Validate_Collision(cSprite* obj) override;
   // collision from player
-  virtual void Handle_Collision_Player(cObjectCollision* collision);
+  void Handle_Collision_Player(cObjectCollision* collision) override;
   // collision from an enemy
-  virtual void Handle_Collision_Enemy(cObjectCollision* collision);
+  void Handle_Collision_Enemy(cObjectCollision* collision) override;
 
   // editor activation
-  virtual void Editor_Activate(void);
+  void Editor_Activate(void) override;
   // editor state update
-  virtual void Editor_State_Update(void);
+  void Editor_State_Update(void) override;
   // editor events
   bool Editor_Move_Type_Select(const CEGUI::EventArgs& event);
   bool Editor_Path_Identifier_Text_Changed(const CEGUI::EventArgs& event);

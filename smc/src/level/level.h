@@ -33,7 +33,7 @@ namespace SMC {
 class cLevel : public CEGUI::XMLHandler {
  public:
   cLevel(void);
-  virtual ~cLevel(void);
+  ~cLevel(void) override;
 
   /* Create a new level
 	 * returns true if successful
@@ -192,10 +192,10 @@ class cLevel : public CEGUI::XMLHandler {
 
  private:
   // XML element start
-  virtual void elementStart(const CEGUI::String& element,
-                            const CEGUI::XMLAttributes& attributes);
+  void elementStart(const CEGUI::String& element,
+                    const CEGUI::XMLAttributes& attributes) override;
   // XML element end
-  virtual void elementEnd(const CEGUI::String& element);
+  void elementEnd(const CEGUI::String& element) override;
 
   // XML element Item Tag list
   CEGUI::XMLAttributes m_xml_attributes;

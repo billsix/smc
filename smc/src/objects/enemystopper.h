@@ -31,23 +31,23 @@ class cEnemyStopper : public cAnimated_Sprite {
   cEnemyStopper(CEGUI::XMLAttributes& attributes,
                 cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cEnemyStopper(void);
+  ~cEnemyStopper(void) override;
 
   // init defaults
-  void Init(void);
+  void Init(void) override;
   // copy
-  virtual cEnemyStopper* Copy(void) const;
+  cEnemyStopper* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
 
   // if draw is valid for the current state and position
-  virtual bool Is_Draw_Valid(void);
+  bool Is_Draw_Valid(void) override;
 
   // editor color
   Color m_editor_color;

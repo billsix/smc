@@ -140,22 +140,22 @@ class cPath : public cSprite {
   // create from stream
   cPath(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cPath(void);
+  ~cPath(void) override;
 
   // initialize defaults
-  void Init(void);
+  void Init(void) override;
   // copy this sprite
-  virtual cPath* Copy(void) const;
+  cPath* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // load from savegame
-  virtual void Load_From_Savegame(cSave_Level_Object* save_object);
+  void Load_From_Savegame(cSave_Level_Object* save_object) override;
   // save to savegame
-  virtual cSave_Level_Object* Save_To_Savegame(void);
+  cSave_Level_Object* Save_To_Savegame(void) override;
 
   // Set the identifier
   void Set_Identifier(const std::string& identifier);
@@ -172,17 +172,17 @@ class cPath : public cSprite {
   void Remove_Links(void);
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
   // draw
-  virtual void Draw(cSurface_Request* request /* = NULL */);
+  void Draw(cSurface_Request* request /* = NULL */) override;
 
   // if draw is valid for the current state and position
-  virtual bool Is_Draw_Valid(void);
+  bool Is_Draw_Valid(void) override;
 
   // level editor activation
-  virtual void Editor_Activate(void);
+  void Editor_Activate(void) override;
   // editor state update
-  virtual void Editor_State_Update(void);
+  void Editor_State_Update(void) override;
   // editor identifier text changed event
   bool Editor_Identifier_Text_Changed(const CEGUI::EventArgs& event);
   // editor show line option selected event

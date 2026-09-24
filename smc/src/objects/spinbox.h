@@ -30,28 +30,28 @@ class cSpinBox : public cBaseBox {
   // create from stream
   cSpinBox(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cSpinBox(void);
+  ~cSpinBox(void) override;
 
   // init defaults
-  void Init(void);
+  void Init(void) override;
 
   // copy
-  virtual cSpinBox* Copy(void) const;
+  cSpinBox* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // Activate the Spinning
-  virtual void Activate(void);
+  void Activate(void) override;
   // Stop the Spinning
   void Stop(void);
   // update
-  virtual void Update(void);
+  void Update(void) override;
 
   // if update is valid for the current state
-  virtual bool Is_Update_Valid(void);
+  bool Is_Update_Valid(void) override;
 
   // spin counter
   float m_spin_counter;

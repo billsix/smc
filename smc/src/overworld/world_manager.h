@@ -32,7 +32,7 @@ class cOverworld;
 class cOverworld_Manager : public cObject_Manager<cOverworld> {
  public:
   cOverworld_Manager(cSprite_Manager* sprite_manager);
-  virtual ~cOverworld_Manager(void);
+  ~cOverworld_Manager(void) override;
 
   /* Create a new overworld
 	 * returns true if successful

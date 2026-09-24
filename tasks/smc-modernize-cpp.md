@@ -13,7 +13,11 @@ for the singletons (step 5).
   -Wall -Wextra` in `configure.ac`; compiles clean (0 errors). Warning baseline: 4662
   (`-Wdeprecated-copy` 2036, `-Wunused-parameter` 1604, `-Wdeprecated-declarations` 304, …) — the
   metric later steps reduce.
-- [ ] Step 1 — `override`/`final` sweep.
+- [x] **Step 1** — `override` sweep (`smc-modernize-step-1-override-sweep.md`, DONE 2026-09-24):
+  clang-tidy `modernize-use-override -fix` (codemod kept at `tasks/adhoc/modernize/tidy_override.sh`)
+  added **611** `override` across 59 files (redundant `virtual` dropped); reformatted; compiles
+  clean; warnings 4662 → 4496. No signature-mismatch surprises (clang-tidy only annotates real
+  overrides).
 - [ ] Step 2 — `NULL`→`nullptr`, int-as-bool→`true/false`, `typedef`→`using`, `#define`→`constexpr`.
 - [ ] Step 3 — drop Boost (coordinate the dead render-thread block with `smc-remove-dead-code.md`).
 - [ ] Step 4 — ownership → `unique_ptr` / value.

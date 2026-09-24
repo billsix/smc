@@ -53,7 +53,7 @@ class cDialogBox {
 class cDialogBox_Text : public cDialogBox {
  public:
   cDialogBox_Text(void);
-  virtual ~cDialogBox_Text(void);
+  ~cDialogBox_Text(void) override;
 
   // initialize
   void Init(std::string title_text);
@@ -74,7 +74,7 @@ class cDialogBox_Text : public cDialogBox {
 class cDialogBox_Question : public cDialogBox {
  public:
   cDialogBox_Question(void);
-  virtual ~cDialogBox_Question(void);
+  ~cDialogBox_Question(void) override;
 
   // initialize
   void Init(bool with_cancel);

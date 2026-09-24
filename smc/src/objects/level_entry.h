@@ -42,22 +42,22 @@ class cLevel_Entry : public cAnimated_Sprite {
   cLevel_Entry(CEGUI::XMLAttributes& attributes,
                cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cLevel_Entry(void);
+  ~cLevel_Entry(void) override;
 
   // init defaults
-  void Init(void);
+  void Init(void) override;
   // copy this sprite
-  virtual cLevel_Entry* Copy(void) const;
+  cLevel_Entry* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
   // Set direction
   void Set_Direction(const ObjectDirection dir);
 
   // draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
 
   // Get centered player position y
   float Get_Player_Pos_X(void) const;
@@ -73,10 +73,10 @@ class cLevel_Entry : public cAnimated_Sprite {
   void Set_Name(const std::string& str_name);
 
   // if draw is valid for the current state and position
-  virtual bool Is_Draw_Valid(void);
+  bool Is_Draw_Valid(void) override;
 
   // editor activation
-  virtual void Editor_Activate(void);
+  void Editor_Activate(void) override;
   // editor direction option selected event
   bool Editor_Direction_Select(const CEGUI::EventArgs& event);
   // editor name text changed event

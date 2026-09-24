@@ -32,17 +32,17 @@ class cSpika : public cEnemy {
   // create from stream
   cSpika(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cSpika(void);
+  ~cSpika(void) override;
 
   // init defaults
-  void Init(void);
+  void Init(void) override;
   // copy
-  virtual cSpika* Copy(void) const;
+  cSpika* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // set color
   void Set_Color(DefaultColor col);
@@ -50,30 +50,30 @@ class cSpika : public cEnemy {
   /* downgrade state ( if already weakest state : dies )
 	 * force : usually dies or a complete downgrade
 	*/
-  virtual void DownGrade(bool force = 0);
+  void DownGrade(bool force = 0) override;
   // dying animation update
-  virtual void Update_Dying(void);
+  void Update_Dying(void) override;
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
 
   // if update is valid for the current state
-  virtual bool Is_Update_Valid(void);
+  bool Is_Update_Valid(void) override;
 
   /* Validate the given collision object
 	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-  virtual Col_Valid_Type Validate_Collision(cSprite* obj);
+  Col_Valid_Type Validate_Collision(cSprite* obj) override;
   // collision from player
-  virtual void Handle_Collision_Player(cObjectCollision* collision);
+  void Handle_Collision_Player(cObjectCollision* collision) override;
   // collision from an enemy
-  virtual void Handle_Collision_Enemy(cObjectCollision* collision);
+  void Handle_Collision_Enemy(cObjectCollision* collision) override;
   // collision with massive
-  virtual void Handle_Collision_Massive(cObjectCollision* collision);
+  void Handle_Collision_Massive(cObjectCollision* collision) override;
   // collision from a box
-  virtual void Handle_Collision_Box(ObjectDirection cdirection, GL_rect* r2);
+  void Handle_Collision_Box(ObjectDirection cdirection, GL_rect* r2) override;
 
   // Color
   DefaultColor m_color_type;

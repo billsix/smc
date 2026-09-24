@@ -26,10 +26,10 @@ namespace SMC {
 class cHudSprite : public cSprite {
  public:
   cHudSprite(cSprite_Manager* sprite_manager);
-  virtual ~cHudSprite(void);
+  ~cHudSprite(void) override;
 
   // copy this sprite
-  virtual cHudSprite* Copy(void) const;
+  cHudSprite* Copy(void) const override;
 };
 
 /* *** *** *** *** *** *** *** cHud_Manager *** *** *** *** *** *** *** *** *** *** */
@@ -37,7 +37,7 @@ class cHudSprite : public cSprite {
 class cHud_Manager : public cObject_Manager<cHudSprite> {
  public:
   cHud_Manager(cSprite_Manager* sprite_manager);
-  virtual ~cHud_Manager(void);
+  ~cHud_Manager(void) override;
 
   // Load the complete HUD
   void Load(void);
@@ -73,7 +73,7 @@ extern cHud_Manager* pHud_Manager;
 struct PointsText : public cHudSprite {
  public:
   PointsText(cSprite_Manager* sprite_manager);
-  virtual ~PointsText(void);
+  ~PointsText(void) override;
 
   float m_vely;
   unsigned int m_points;
@@ -84,9 +84,9 @@ struct PointsText : public cHudSprite {
 class cMenuBackground : public cHudSprite {
  public:
   cMenuBackground(cSprite_Manager* sprite_manager);
-  virtual ~cMenuBackground(void);
+  ~cMenuBackground(void) override;
 
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
 
   cGL_Surface* m_maryo_head;
   cGL_Surface* m_goldpiece;
@@ -100,9 +100,9 @@ class cMenuBackground : public cHudSprite {
 class cStatusText : public cHudSprite {
  public:
   cStatusText(cSprite_Manager* sprite_manager);
-  virtual ~cStatusText(void);
+  ~cStatusText(void) override;
 
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
 };
 
 /* *** *** *** *** *** cPlayerPoints *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -110,7 +110,7 @@ class cStatusText : public cHudSprite {
 class cPlayerPoints : public cStatusText {
  public:
   cPlayerPoints(cSprite_Manager* sprite_manager);
-  virtual ~cPlayerPoints(void);
+  ~cPlayerPoints(void) override;
 
   void Set_Points(long points);
   void Add_Points(unsigned int points, float x = 0.0f, float y = 0.0f,
@@ -121,7 +121,7 @@ class cPlayerPoints : public cStatusText {
   // removes all point texts
   void Clear(void);
 
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
 
   typedef vector<PointsText*> PointsTextList;
   PointsTextList m_points_objects;
@@ -132,12 +132,12 @@ class cPlayerPoints : public cStatusText {
 class cGoldDisplay : public cStatusText {
  public:
   cGoldDisplay(cSprite_Manager* sprite_manager);
-  virtual ~cGoldDisplay(void);
+  ~cGoldDisplay(void) override;
 
   void Set_Gold(int gold);
   void Add_Gold(int gold);
 
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
 };
 
 /* *** *** *** *** *** cLiveDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -145,12 +145,12 @@ class cGoldDisplay : public cStatusText {
 class cLiveDisplay : public cStatusText {
  public:
   cLiveDisplay(cSprite_Manager* sprite_manager);
-  virtual ~cLiveDisplay(void);
+  ~cLiveDisplay(void) override;
 
   void Set_Lives(int lives);
   void Add_Lives(int lives);
 
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
 };
 
 /* *** *** *** *** *** cTimeDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -158,12 +158,12 @@ class cLiveDisplay : public cStatusText {
 class cTimeDisplay : public cStatusText {
  public:
   cTimeDisplay(cSprite_Manager* sprite_manager);
-  virtual ~cTimeDisplay(void);
+  ~cTimeDisplay(void) override;
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
   // draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
 
   // Set time
   void Set_Time(Uint32 milliseconds);
@@ -181,15 +181,15 @@ class cTimeDisplay : public cStatusText {
 class cItemBox : public cStatusText {
  public:
   cItemBox(cSprite_Manager* sprite_manager);
-  virtual ~cItemBox(void);
+  ~cItemBox(void) override;
 
   // Set the parent sprite manager
-  virtual void Set_Sprite_Manager(cSprite_Manager* sprite_manager);
+  void Set_Sprite_Manager(cSprite_Manager* sprite_manager) override;
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
   // draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
 
   /* Set the item
 	* sound : if set the box sound is played
@@ -224,12 +224,12 @@ class cItemBox : public cStatusText {
 class cDebugDisplay : public cStatusText {
  public:
   cDebugDisplay(cSprite_Manager* sprite_manager);
-  virtual ~cDebugDisplay(void);
+  ~cDebugDisplay(void) override;
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
   // draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
   // draw the frames per second info
   void Draw_fps(void);
   // draw the debug mode info

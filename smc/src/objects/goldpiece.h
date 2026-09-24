@@ -30,22 +30,22 @@ class cGoldpiece : public cAnimated_Sprite {
   // create from stream
   cGoldpiece(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cGoldpiece(void);
+  ~cGoldpiece(void) override;
 
   // init defaults
-  void Init(void);
+  void Init(void) override;
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // copy
-  virtual cGoldpiece* Copy(void) const;
+  cGoldpiece* Copy(void) const override;
 
   // load from savegame
-  virtual void Load_From_Savegame(cSave_Level_Object* save_object);
+  void Load_From_Savegame(cSave_Level_Object* save_object) override;
   // save to savegame
-  virtual cSave_Level_Object* Save_To_Savegame(void);
+  cSave_Level_Object* Save_To_Savegame(void) override;
 
   // Set the gold color
   virtual void Set_Gold_Color(DefaultColor color);
@@ -54,15 +54,15 @@ class cGoldpiece : public cAnimated_Sprite {
   void Activate(void);
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
   // draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
 
   // if update is valid for the current state
-  virtual bool Is_Update_Valid(void);
+  bool Is_Update_Valid(void) override;
 
   // collision from player
-  virtual void Handle_Collision_Player(cObjectCollision* collision);
+  void Handle_Collision_Player(cObjectCollision* collision) override;
 
   // gold color
   DefaultColor m_color_type;
@@ -76,17 +76,17 @@ class cGoldpiece : public cAnimated_Sprite {
 class cJGoldpiece : public cGoldpiece {
  public:
   cJGoldpiece(cSprite_Manager* sprite_manager);
-  virtual ~cJGoldpiece(void);
+  ~cJGoldpiece(void) override;
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
 
   /* Validate the given collision object
 	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-  virtual Col_Valid_Type Validate_Collision(cSprite* obj);
+  Col_Valid_Type Validate_Collision(cSprite* obj) override;
 };
 
 /* *** *** *** *** *** cFGoldpiece *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -97,21 +97,21 @@ class cFGoldpiece : public cGoldpiece {
   // if direction is undefined it moves into a random direction
   cFGoldpiece(cSprite_Manager* sprite_manager,
               ObjectDirection dir = DIR_UNDEFINED);
-  virtual ~cFGoldpiece(void);
+  ~cFGoldpiece(void) override;
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
 
   /* Validate the given collision object
 	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-  virtual Col_Valid_Type Validate_Collision(cSprite* obj);
+  Col_Valid_Type Validate_Collision(cSprite* obj) override;
   // collision with massive
-  virtual void Handle_Collision_Massive(cObjectCollision* collision);
+  void Handle_Collision_Massive(cObjectCollision* collision) override;
   // collision from a box
-  virtual void Handle_Collision_Box(ObjectDirection cdirection, GL_rect* r2);
+  void Handle_Collision_Box(ObjectDirection cdirection, GL_rect* r2) override;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

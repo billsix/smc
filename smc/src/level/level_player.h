@@ -58,29 +58,29 @@ class cLevel_Player : public cAnimated_Sprite {
   // constructor
   cLevel_Player(cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cLevel_Player(void);
+  ~cLevel_Player(void) override;
 
   // copy
-  virtual cLevel_Player* Copy(void) const;
+  cLevel_Player* Copy(void) const override;
 
   // Init
-  virtual void Init(void);
+  void Init(void) override;
   // lets the Player hold in
   void Hold(void);
 
   /* Set the direction
 	 * if new_start_direction is set also set the start/editor direction
 	*/
-  virtual void Set_Direction(const ObjectDirection dir,
-                             bool new_start_direction = 0);
+  void Set_Direction(const ObjectDirection dir,
+                     bool new_start_direction = 0) override;
 
   // Set the ground object
-  virtual bool Set_On_Ground(cSprite* obj, bool set_on_top = 1);
+  bool Set_On_Ground(cSprite* obj, bool set_on_top = 1) override;
 
   /* downgrade state ( if small maryo : dies )
 	 * force : dies or a complete downgrade
 	*/
-  virtual void DownGrade(bool force = 0);
+  void DownGrade(bool force = 0) override;
   /* downgrade state ( if small maryo : dies )
 	 * if delayed is set the downgrade is handled on the next game update
 	 * force : dies or a complete downgrade
@@ -154,10 +154,10 @@ class cLevel_Player : public cAnimated_Sprite {
   void Set_Moving_State(Moving_state new_state);
 
   // default update
-  virtual void Update(void);
+  void Update(void) override;
 
   // Draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
   /* Draw an animation using the given new type
 	 * ends with the new type set
 	*/
@@ -227,19 +227,19 @@ class cLevel_Player : public cAnimated_Sprite {
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-  virtual Col_Valid_Type Validate_Collision(cSprite* obj);
+  Col_Valid_Type Validate_Collision(cSprite* obj) override;
 
   // collision from an enemy
-  virtual void Handle_Collision_Enemy(cObjectCollision* collision);
+  void Handle_Collision_Enemy(cObjectCollision* collision) override;
   // collision with massive
-  virtual void Handle_Collision_Massive(cObjectCollision* collision);
+  void Handle_Collision_Massive(cObjectCollision* collision) override;
   // collision with passive
-  virtual void Handle_Collision_Passive(cObjectCollision* collision);
+  void Handle_Collision_Passive(cObjectCollision* collision) override;
   // handle moved out of Level event
-  virtual void Handle_out_of_Level(ObjectDirection dir);
+  void Handle_out_of_Level(ObjectDirection dir) override;
 
   // editor activation
-  virtual void Editor_Activate(void);
+  void Editor_Activate(void) override;
   // editor direction option selected event
   bool Editor_Direction_Select(const CEGUI::EventArgs& event);
 

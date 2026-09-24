@@ -29,7 +29,7 @@ namespace SMC {
 class cOverworld_Player : public cAnimated_Sprite {
  public:
   cOverworld_Player(cSprite_Manager* sprite_manager, cOverworld* overworld);
-  virtual ~cOverworld_Player(void);
+  ~cOverworld_Player(void) override;
 
   // Load images
   void Load_Images(void);
@@ -41,16 +41,16 @@ class cOverworld_Player : public cAnimated_Sprite {
   /* Set the direction
 	 * if new_start_direction is set also set the start/editor direction
 	*/
-  virtual void Set_Direction(const ObjectDirection dir,
-                             bool new_start_direction = 0);
+  void Set_Direction(const ObjectDirection dir,
+                     bool new_start_direction = 0) override;
 
   // Set the Type
   void Set_Type(Maryo_type new_type);
 
   // Update
-  virtual void Update(void);
+  void Update(void) override;
   // Draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
   // Draw debug text
   void Draw_Debug_Text(void);
 

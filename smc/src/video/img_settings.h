@@ -75,7 +75,7 @@ class cImage_Settings_Data {
 class cImage_Settings_Parser : public cFile_parser {
  public:
   cImage_Settings_Parser(void);
-  virtual ~cImage_Settings_Parser(void);
+  ~cImage_Settings_Parser(void) override;
 
   /* Returns the settings from the given file
 	 * load_base_settings : if set will overwrite settings with all base settings if available
@@ -85,8 +85,8 @@ class cImage_Settings_Parser : public cFile_parser {
                             bool load_base_settings = 1);
 
   // Handle one tokenized line
-  virtual bool HandleMessage(const std::string* parts, unsigned int count,
-                             unsigned int line);
+  bool HandleMessage(const std::string* parts, unsigned int count,
+                     unsigned int line) override;
 
   // temp settings used for loading
   cImage_Settings_Data* m_settings_temp;

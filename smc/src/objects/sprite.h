@@ -110,7 +110,7 @@ class cSprite : public cCollidingSprite {
   cSprite(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager,
           const std::string type_name = "sprite");
   // destructor
-  virtual ~cSprite(void);
+  ~cSprite(void) override;
 
   // initialize defaults
   virtual void Init(void);

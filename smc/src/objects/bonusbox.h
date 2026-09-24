@@ -31,21 +31,21 @@ class cBonusBox : public cBaseBox {
   // create from stream
   cBonusBox(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cBonusBox(void);
+  ~cBonusBox(void) override;
 
   // init defaults
-  void Init(void);
+  void Init(void) override;
 
   // copy
-  virtual cBonusBox* Copy(void) const;
+  cBonusBox* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // sets the count this object can be activated
-  virtual void Set_Useable_Count(int count, bool new_startcount = 0);
+  void Set_Useable_Count(int count, bool new_startcount = 0) override;
   /* Set the bonus type
 	 * TYPE_UNDEFINED			for empty
 	 * TYPE_MUSHROOM_DEFAULT	for Mushroom
@@ -66,20 +66,20 @@ class cBonusBox : public cBaseBox {
   void Set_Goldcolor(DefaultColor new_color);
 
   // Activates the bonus item
-  virtual void Activate(void);
+  void Activate(void) override;
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
   // draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
 
   // if update is valid for the current state
-  virtual bool Is_Update_Valid(void);
+  bool Is_Update_Valid(void) override;
 
   // editor activation
-  virtual void Editor_Activate(void);
+  void Editor_Activate(void) override;
   // editor state update
-  virtual void Editor_State_Update(void);
+  void Editor_State_Update(void) override;
   // editor animation option selected event
   bool Editor_Animation_Select(const CEGUI::EventArgs& event);
   // editor item option selected event

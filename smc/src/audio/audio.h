@@ -138,7 +138,6 @@ class cAudio {
 	*/
   void Fadeout_Music(unsigned int ms = 500, bool overwrite_fading = 0) const;
 
-
   /* Returns
 	* 0 if not fading
 	* 1 if fading out

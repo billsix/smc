@@ -1547,7 +1547,8 @@ void cVideo ::Apply_Max_Texture_Size(int& width, int& height) const {
     // scale height by the same ratio to keep aspect ratio. A float ratio is required:
     // an integer width / m_max_texture_size truncates to 1 for e.g. 1500 on a 1024 cap,
     // leaving height unchanged and squashing the image.
-    float scale = static_cast<float>(m_max_texture_size) / static_cast<float>(width);
+    float scale =
+        static_cast<float>(m_max_texture_size) / static_cast<float>(width);
     height = static_cast<int>(static_cast<float>(height) * scale);
     if (height < 1) {
       height = 1;
@@ -1556,7 +1557,8 @@ void cVideo ::Apply_Max_Texture_Size(int& width, int& height) const {
   }
   if (height > m_max_texture_size) {
     // scale width by the same ratio to keep aspect ratio
-    float scale = static_cast<float>(m_max_texture_size) / static_cast<float>(height);
+    float scale =
+        static_cast<float>(m_max_texture_size) / static_cast<float>(height);
     width = static_cast<int>(static_cast<float>(width) * scale);
     if (width < 1) {
       width = 1;

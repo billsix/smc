@@ -39,7 +39,7 @@ class cAnimated_Sprite : public cMovingSprite {
  public:
   cAnimated_Sprite(cSprite_Manager* sprite_manager,
                    std::string type_name = "sprite");
-  virtual ~cAnimated_Sprite(void);
+  ~cAnimated_Sprite(void) override;
 
   /* Add an image to the animation
 	 * NULL image is allowed

@@ -30,20 +30,20 @@ class cRokko : public cEnemy {
   // create from stream
   cRokko(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cRokko(void);
+  ~cRokko(void) override;
 
   // init defaults
-  void Init(void);
+  void Init(void) override;
   // copy
-  virtual cRokko* Copy(void) const;
+  cRokko* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // load from savegame
-  virtual void Load_From_Savegame(cSave_Level_Object* save_object);
+  void Load_From_Savegame(cSave_Level_Object* save_object) override;
 
   // Set Direction
   void Set_Direction(const ObjectDirection dir);
@@ -59,14 +59,14 @@ class cRokko : public cEnemy {
   /* downgrade state ( if already weakest state : dies )
 	 * force : usually dies or a complete downgrade
 	*/
-  virtual void DownGrade(bool force = 0);
+  void DownGrade(bool force = 0) override;
   // dying animation update
-  virtual void Update_Dying(void);
+  void Update_Dying(void) override;
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
   // draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
 
   // update the distance rect
   void Update_Distance_rect(void);
@@ -79,23 +79,23 @@ class cRokko : public cEnemy {
   void Generate_Sparks(unsigned int amount = 5) const;
 
   // if update is valid for the current state
-  virtual bool Is_Update_Valid(void);
+  bool Is_Update_Valid(void) override;
   // if draw is valid for the current state and position
-  virtual bool Is_Draw_Valid(void);
+  bool Is_Draw_Valid(void) override;
 
   /* Validate the given collision object
 	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-  virtual Col_Valid_Type Validate_Collision(cSprite* obj);
+  Col_Valid_Type Validate_Collision(cSprite* obj) override;
   // collision from player
-  virtual void Handle_Collision_Player(cObjectCollision* collision);
+  void Handle_Collision_Player(cObjectCollision* collision) override;
   // handle moved out of Level event
-  virtual void Handle_out_of_Level(ObjectDirection dir);
+  void Handle_out_of_Level(ObjectDirection dir) override;
 
   // editor activation
-  virtual void Editor_Activate(void);
+  void Editor_Activate(void) override;
   // editor direction option selected event
   bool Editor_Direction_Select(const CEGUI::EventArgs& event);
   // editor speed text changed event

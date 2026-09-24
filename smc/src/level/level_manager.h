@@ -32,7 +32,7 @@ namespace SMC {
 class cLevel_Manager : public cObject_Manager<cLevel> {
  public:
   cLevel_Manager(void);
-  virtual ~cLevel_Manager(void);
+  ~cLevel_Manager(void) override;
 
   // Load level descriptions
   void Init(void);

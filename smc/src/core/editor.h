@@ -52,7 +52,7 @@ class cEditor_CEGUI_Texture : public CEGUI::OpenGLTexture {
  public:
   cEditor_CEGUI_Texture(CEGUI::OpenGLRenderer& owner, GLuint tex,
                         const CEGUI::Size& size);
-  ~cEditor_CEGUI_Texture(void);
+  ~cEditor_CEGUI_Texture(void) override;
 
   void cleanupOpenGLTexture(void);
 };
@@ -62,16 +62,16 @@ class cEditor_CEGUI_Texture : public CEGUI::OpenGLTexture {
 class cEditor_Item_Object : public CEGUI::ListboxItem {
  public:
   cEditor_Item_Object(const std::string& text, const CEGUI::Listbox* parent);
-  virtual ~cEditor_Item_Object(void);
+  ~cEditor_Item_Object(void) override;
 
   // Initialize
   void Init(cSprite* sprite);
 
   // overridden from base class
-  virtual CEGUI::Size getPixelSize(void) const;
+  CEGUI::Size getPixelSize(void) const override;
   // overridden from base class
   void draw(CEGUI::GeometryBuffer& buffer, const CEGUI::Rect& targetRect,
-            float alpha, const CEGUI::Rect* clipper) const;
+            float alpha, const CEGUI::Rect* clipper) const override;
 
   // parent
   const CEGUI::Listbox* m_parent;
@@ -90,7 +90,7 @@ class cEditor_Item_Object : public CEGUI::ListboxItem {
 class cEditor_Menu_Object : public CEGUI::ListboxTextItem {
  public:
   cEditor_Menu_Object(const std::string& text);
-  virtual ~cEditor_Menu_Object(void);
+  ~cEditor_Menu_Object(void) override;
 
   // Initialize
   void Init(void);
@@ -111,7 +111,7 @@ class cEditor_Menu_Object : public CEGUI::ListboxTextItem {
 class cEditor : public CEGUI::XMLHandler {
  public:
   cEditor(cSprite_Manager* sprite_manager);
-  virtual ~cEditor(void);
+  ~cEditor(void) override;
 
   // Initialize Editor
   virtual void Init(void);
@@ -252,10 +252,10 @@ class cEditor : public CEGUI::XMLHandler {
 
  private:
   // XML element start
-  virtual void elementStart(const CEGUI::String& element,
-                            const CEGUI::XMLAttributes& attributes);
+  void elementStart(const CEGUI::String& element,
+                    const CEGUI::XMLAttributes& attributes) override;
   // XML element end
-  virtual void elementEnd(const CEGUI::String& element);
+  void elementEnd(const CEGUI::String& element) override;
 
   void Handle_Item(const CEGUI::XMLAttributes& attributes);
   void Handle_Menu(const CEGUI::XMLAttributes& attributes);

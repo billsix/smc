@@ -28,11 +28,11 @@ class cSprite_Manager : public cObject_Manager<cSprite> {
  public:
   cSprite_Manager(unsigned int reserve_items = 2000,
                   unsigned int zpos_items = 100);
-  virtual ~cSprite_Manager(void);
+  ~cSprite_Manager(void) override;
 
   /* Add a sprite
 	 */
-  virtual void Add(cSprite* sprite);
+  void Add(cSprite* sprite) override;
 
   // Set the sprite z position and update the z pos list
   void Set_Pos_Z(cSprite* sprite);

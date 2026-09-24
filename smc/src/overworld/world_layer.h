@@ -36,18 +36,18 @@ class cLayer_Line_Point : public cSprite {
   cLayer_Line_Point(cSprite_Manager* sprite_manager, cOverworld* overworld,
                     SpriteType new_type);
   // destructor
-  virtual ~cLayer_Line_Point(void);
+  ~cLayer_Line_Point(void) override;
 
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream) {};
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override {};
 
   // draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
 
   /* set this sprite to destroyed and completely disable it
 	 * sprite is still in the sprite manager but only to get possibly replaced
 	*/
-  virtual void Destroy(void);
+  void Destroy(void) override;
 
   // Get center position x
   float Get_Line_Pos_X(void) const;
@@ -67,26 +67,26 @@ class cLayer_Line_Point_Start : public cLayer_Line_Point {
   cLayer_Line_Point_Start(cSprite_Manager* sprite_manager,
                           cOverworld* overworld);
   // destructor
-  virtual ~cLayer_Line_Point_Start(void);
+  ~cLayer_Line_Point_Start(void) override;
   // create from stream
   cLayer_Line_Point_Start(CEGUI::XMLAttributes& attributes,
                           cSprite_Manager* sprite_manager,
                           cOverworld* overworld);
 
   // init defaults
-  void Init(void);
+  void Init(void) override;
 
   // copy (end point can not be copied)
-  virtual cLayer_Line_Point_Start* Copy(void) const;
+  cLayer_Line_Point_Start* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
 
   // Set the parent sprite manager
-  virtual void Set_Sprite_Manager(cSprite_Manager* sprite_manager);
+  void Set_Sprite_Manager(cSprite_Manager* sprite_manager) override;
 
   // Draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
 
   // return a normal line
   GL_line Get_Line(void) const;
@@ -97,7 +97,7 @@ class cLayer_Line_Point_Start : public cLayer_Line_Point {
   cWaypoint* Get_End_Waypoint(void) const;
 
   // editor activation
-  virtual void Editor_Activate(void);
+  void Editor_Activate(void) override;
   // editor origin text changed event
   bool Editor_Origin_Text_Changed(const CEGUI::EventArgs& event);
 
@@ -132,10 +132,10 @@ class cLayer : public CEGUI::XMLHandler,
                public cObject_Manager<cLayer_Line_Point_Start> {
  public:
   cLayer(cOverworld* origin);
-  virtual ~cLayer(void);
+  ~cLayer(void) override;
 
   // Add a layer line
-  virtual void Add(cLayer_Line_Point_Start* line_point);
+  void Add(cLayer_Line_Point_Start* line_point) override;
 
   // Load from file
   void Load(const std::string& filename);
@@ -144,7 +144,7 @@ class cLayer : public CEGUI::XMLHandler,
   bool Save(const std::string& filename);
 
   // Delete all objects
-  virtual void Delete_All(void);
+  void Delete_All(void) override;
 
   /* Returns the colliding Line start point
 	 * if not found returns NULL
@@ -176,10 +176,10 @@ class cLayer : public CEGUI::XMLHandler,
 
  private:
   // XML element start
-  virtual void elementStart(const CEGUI::String& element,
-                            const CEGUI::XMLAttributes& attributes);
+  void elementStart(const CEGUI::String& element,
+                    const CEGUI::XMLAttributes& attributes) override;
   // XML element end
-  virtual void elementEnd(const CEGUI::String& element);
+  void elementEnd(const CEGUI::String& element) override;
 
   // XML element property list
   CEGUI::XMLAttributes m_xml_attributes;

@@ -65,10 +65,10 @@ typedef vector<cCopyObject*> CopyObjectList;
 class cMouseCursor : public cMovingSprite {
  public:
   cMouseCursor(cSprite_Manager* sprite_manager);
-  virtual ~cMouseCursor(void);
+  ~cMouseCursor(void) override;
 
   // Set active/visible
-  virtual void Set_Active(bool enabled);
+  void Set_Active(bool enabled) override;
   // resets editor features
   void Reset(bool clear_copy_buffer = 1);
   // only reset buttons
@@ -101,7 +101,7 @@ class cMouseCursor : public cMovingSprite {
   cObjectCollision* Get_First_Mouse_Collision(const GL_rect& mouse_rect);
 
   // Update
-  virtual void Update(void);
+  void Update(void) override;
   // Draw
   virtual void Draw(void);
 

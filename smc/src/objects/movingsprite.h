@@ -63,19 +63,19 @@ class cMovingSprite : public cSprite {
                 cSprite_Manager* sprite_manager,
                 std::string type_name = "sprite");
   // destructor
-  virtual ~cMovingSprite(void);
+  ~cMovingSprite(void) override;
 
   // Init defaults
-  void Init(void);
+  void Init(void) override;
   // copy this object
-  virtual cMovingSprite* Copy(void) const;
+  cMovingSprite* Copy(void) const override;
 
   /* Sets the image for drawing
 	 * if new_start_image is set the default start_image will be set to the given image
 	 * if del_img is set the given image will be deleted
 	*/
-  virtual void Set_Image(cGL_Surface* new_image, bool new_start_image = 0,
-                         bool del_img = 0);
+  void Set_Image(cGL_Surface* new_image, bool new_start_image = 0,
+                 bool del_img = 0) override;
 
   /* Set the direction
 	 * if new_start_direction is set also set the start/editor direction
@@ -89,7 +89,7 @@ class cMovingSprite : public cSprite {
   /* Moves this object
 	 * real : if set the speedfactor is not used
 	*/
-  virtual void Move(float move_x, float move_y, const bool real = 0);
+  void Move(float move_x, float move_y, const bool real = 0) override;
   /* Collision Move
 	 * if real is set the speedfactor will not be used
 	 * if force is set no collision detection will be performed
@@ -171,11 +171,11 @@ class cMovingSprite : public cSprite {
   virtual void Turn_Around(ObjectDirection col_dir = DIR_UNDEFINED);
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
   /* draw
 	* if request is NULL automatically creates the request
 	*/
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
 
   /* Check if moving the current collision rect position with the given values is valid
 	 * check_type : set which collision types are added to the list
@@ -226,7 +226,7 @@ class cMovingSprite : public cSprite {
   void Update_Anti_Stuck(void);
 
   // default collision and movement handling
-  virtual void Collide_Move(void);
+  void Collide_Move(void) override;
 
   /* Freeze for the given time
 	*/
@@ -267,7 +267,7 @@ class cMovingSprite : public cSprite {
   virtual void Send_Collision(const cObjectCollision* collision,
                               bool handle_now = 0);
   // default collision handler
-  virtual void Handle_Collision(cObjectCollision* collision);
+  void Handle_Collision(cObjectCollision* collision) override;
   // handle moved out of Level event
   virtual void Handle_out_of_Level(ObjectDirection dir) {};
 

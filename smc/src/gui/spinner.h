@@ -28,7 +28,7 @@ namespace CEGUI {
 class SMC_Spinner : public Spinner {
  public:
   SMC_Spinner(const String& type, const String& name);
-  virtual ~SMC_Spinner(void);
+  ~SMC_Spinner(void) override;
 
   /*!
     \brief
@@ -37,7 +37,7 @@ class SMC_Spinner : public Spinner {
     \return
         String object that is equivalent to the the numerical value of the spinner.
     */
-  virtual String getTextFromValue(void) const;
+  String getTextFromValue(void) const override;
 
   // Events
   //bool Mouse_Wheel( const CEGUI::EventArgs &event );

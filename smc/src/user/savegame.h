@@ -201,7 +201,7 @@ class cSavegame {
 class cSavegame_XML_Handler : public CEGUI::XMLHandler {
  public:
   cSavegame_XML_Handler(const std::string& filename);
-  virtual ~cSavegame_XML_Handler(void);
+  ~cSavegame_XML_Handler(void) override;
 
   /* Returns the savegame data
 	 * The returned savegame should be deleted if not used anymore
@@ -209,10 +209,10 @@ class cSavegame_XML_Handler : public CEGUI::XMLHandler {
   cSave* Acquire_Savegame(void);
 
   // XML element start
-  virtual void elementStart(const CEGUI::String& element,
-                            const CEGUI::XMLAttributes& attributes);
+  void elementStart(const CEGUI::String& element,
+                    const CEGUI::XMLAttributes& attributes) override;
   // XML element end
-  virtual void elementEnd(const CEGUI::String& element);
+  void elementEnd(const CEGUI::String& element) override;
 
   void Handle_Level(const CEGUI::XMLAttributes& attributes);
   void Handle_Level_Object(const CEGUI::XMLAttributes& attributes);

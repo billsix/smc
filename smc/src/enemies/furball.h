@@ -32,20 +32,20 @@ class cFurball : public cEnemy {
   // create from stream
   cFurball(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cFurball(void);
+  ~cFurball(void) override;
 
   // init defaults
-  void Init(void);
+  void Init(void) override;
   // copy
-  virtual cFurball* Copy(void) const;
+  cFurball* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // load from savegame
-  virtual void Load_From_Savegame(cSave_Level_Object* save_object);
+  void Load_From_Savegame(cSave_Level_Object* save_object) override;
 
   // maximum downgrades until death
   void Set_Max_Downgrade_Count(int max_downgrade_count);
@@ -62,20 +62,20 @@ class cFurball : public cEnemy {
   /* Move into the opposite Direction
 	 * if col_dir is given only turns around if the collision direction is in front
 	 */
-  virtual void Turn_Around(ObjectDirection col_dir = DIR_UNDEFINED);
+  void Turn_Around(ObjectDirection col_dir = DIR_UNDEFINED) override;
 
   /* downgrade state ( if already weakest state : dies )
 	 * force : usually dies or a complete downgrade
 	*/
-  virtual void DownGrade(bool force = 0);
+  void DownGrade(bool force = 0) override;
   // dying animation update
-  virtual void Update_Dying(void);
+  void Update_Dying(void) override;
 
   // set the moving state
   void Set_Moving_State(Moving_state new_state);
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
 
   // Generates Star Particles (only used if boss)
   void Generate_Smoke(unsigned int amount = 1,
@@ -85,23 +85,23 @@ class cFurball : public cEnemy {
   void Update_Velocity_Max(void);
 
   // if update is valid for the current state
-  virtual bool Is_Update_Valid(void);
+  bool Is_Update_Valid(void) override;
 
   /* Validate the given collision object
 	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-  virtual Col_Valid_Type Validate_Collision(cSprite* obj);
+  Col_Valid_Type Validate_Collision(cSprite* obj) override;
   // collision from player
-  virtual void Handle_Collision_Player(cObjectCollision* collision);
+  void Handle_Collision_Player(cObjectCollision* collision) override;
   // collision from an enemy
-  virtual void Handle_Collision_Enemy(cObjectCollision* collision);
+  void Handle_Collision_Enemy(cObjectCollision* collision) override;
   // collision with massive
-  virtual void Handle_Collision_Massive(cObjectCollision* collision);
+  void Handle_Collision_Massive(cObjectCollision* collision) override;
 
   // editor activation
-  virtual void Editor_Activate(void);
+  void Editor_Activate(void) override;
   // editor direction option selected event
   bool Editor_Direction_Select(const CEGUI::EventArgs& event);
   // editor max downgrades text changed event

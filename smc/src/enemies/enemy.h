@@ -29,12 +29,12 @@ class cEnemy : public cAnimated_Sprite {
   // constructor
   cEnemy(cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cEnemy(void);
+  ~cEnemy(void) override;
 
   // load from savegame
-  virtual void Load_From_Savegame(cSave_Level_Object* save_object);
+  void Load_From_Savegame(cSave_Level_Object* save_object) override;
   // save to savegame
-  virtual cSave_Level_Object* Save_To_Savegame(void);
+  cSave_Level_Object* Save_To_Savegame(void) override;
 
   // Set Dead
   virtual void Set_Dead(bool enable = 1);
@@ -42,11 +42,11 @@ class cEnemy : public cAnimated_Sprite {
   // dying animation update
   virtual void Update_Dying(void) {};
   // handle basic enemy updates
-  virtual void Update(void);
+  void Update(void) override;
   /* late update
 	 * use if it is needed that other objects are already updated
 	*/
-  virtual void Update_Late(void);
+  void Update_Late(void) override;
   // update current velocity if needed
   void Update_Velocity(void);
   // update gravity velocity
@@ -56,9 +56,9 @@ class cEnemy : public cAnimated_Sprite {
   void Generate_Hit_Animation(cParticle_Emitter* anim = NULL) const;
 
   // default collision handler
-  virtual void Handle_Collision(cObjectCollision* collision);
+  void Handle_Collision(cObjectCollision* collision) override;
   // handle moved out of Level event
-  virtual void Handle_out_of_Level(ObjectDirection dir);
+  void Handle_out_of_Level(ObjectDirection dir) override;
 
   // if dead
   bool m_dead;

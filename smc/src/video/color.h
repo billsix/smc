@@ -68,7 +68,8 @@ class Color {
     color.r = red;
     color.g = green;
     color.b = blue;
-    color.a = alpha;  // SDL 2's SDL_Color has an alpha member; was left uninitialised
+    color.a =
+        alpha;  // SDL 2's SDL_Color has an alpha member; was left uninitialised
     return color;
   }
 

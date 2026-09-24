@@ -63,10 +63,10 @@ typedef vector<cGL_Surface*> GL_Surface_List;
 class cImage_Manager : public cObject_Manager<cGL_Surface> {
  public:
   cImage_Manager(void);
-  virtual ~cImage_Manager(void);
+  ~cImage_Manager(void) override;
 
   // Add a surface
-  virtual void Add(cGL_Surface* obj);
+  void Add(cGL_Surface* obj) override;
 
   // Return the surface by path
   cGL_Surface* Get_Pointer(const std::string& path) const;
@@ -96,7 +96,7 @@ class cImage_Manager : public cObject_Manager<cGL_Surface> {
   void Delete_Hardware_Textures(void);
 
   // Delete all Surfaces
-  virtual void Delete_All(void);
+  void Delete_All(void) override;
 
   // highest opengl texture id found
   GLuint m_high_texture_id;

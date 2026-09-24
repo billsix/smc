@@ -29,12 +29,12 @@ namespace SMC {
 class cMenu_Item : public cHudSprite {
  public:
   cMenu_Item(cSprite_Manager* sprite_manager);
-  virtual ~cMenu_Item(void);
+  ~cMenu_Item(void) override;
 
   // Sets the Active Modifier
-  void Set_Active(bool active = 0);
+  void Set_Active(bool active = 0) override;
   // Draws the Menu Item
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = NULL) override;
 
   // The menu images
   cHudSprite* m_image_default;

@@ -30,7 +30,7 @@ namespace SMC {
 class cPreferences : public CEGUI::XMLHandler {
  public:
   cPreferences(void);
-  virtual ~cPreferences(void);
+  ~cPreferences(void) override;
 
   // Load the preferences from a file
   bool Load(const std::string& filename = "");
@@ -200,10 +200,10 @@ class cPreferences : public CEGUI::XMLHandler {
 
  private:
   // XML element start
-  virtual void elementStart(const CEGUI::String& element,
-                            const CEGUI::XMLAttributes& attributes);
+  void elementStart(const CEGUI::String& element,
+                    const CEGUI::XMLAttributes& attributes) override;
   // XML element end
-  virtual void elementEnd(const CEGUI::String& element);
+  void elementEnd(const CEGUI::String& element) override;
   // handles an item
   void handle_item(CEGUI::XMLAttributes attributes);
 };
