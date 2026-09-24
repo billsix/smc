@@ -1,11 +1,10 @@
 # Reformat smc/src with clang-format (google style, 80 columns), as one commit before any other work
 
-**Status:** in progress — infrastructure ready, awaiting the maintainer's `make format`
-(William Emerison Six <billsix@gmail.com>, 2026-09-23: "yes, I do want to reformat, yes only
-smc/src, and yes git blame ignore revs"; banner protection yes; column limit 80; ".clang-format
-like gltron's, sortincludes never and google style"). The `.clang-format` is written and the
-preview proved the pass is token-identical; it must land **before** the pre-modernization fixes and
-the C++ modernization.
+**Status:** DONE — the reformat landed as `bec5840` "make format" (an ancestor of master and every
+work branch); `.git-blame-ignore-revs` lists it; `smc/smc/.clang-format` is in place and
+`make format` maintains it; `CLAUDE.md` records "smc/src is clang-format google style". Verified
+token-identical at the time and the game has built + smoked green through all later work
+(William Emerison Six <billsix@gmail.com>, 2026-09-23 landed; archived 2026-09-24).
 **Priority:** 3 · **Difficulty:** 3 (mechanical, but the preview + region-protection + blame-ignore
 steps need care)
 **Do before:** `tasks/smc-pre-modernization-fixes.md` and `tasks/smc-modernize-cpp.md` — a clean,
