@@ -1048,7 +1048,7 @@ cSprite* Create_World_Object_From_XML(const CEGUI::String& element,
           sprite->m_start_pos_x = sprite->m_pos_x;
 
           // create other tiles now
-          cSprite* copy = sprite->Copy();
+          cSprite* copy = sprite->Copy().release();
 
           // middle
           copy->Set_Image(pVideo->Get_Surface(
@@ -1057,7 +1057,7 @@ cSprite* Create_World_Object_From_XML(const CEGUI::String& element,
           copy->Set_Pos_Y(copy->m_start_pos_y + 32, true);
           sprite_manager->Add(copy);
           // end
-          copy = copy->Copy();
+          copy = copy->Copy().release();
           copy->Set_Image(
               pVideo->Get_Surface("world/objects/bridge/bridge_1_ver_end.png"),
               true);

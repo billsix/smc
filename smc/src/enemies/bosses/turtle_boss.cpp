@@ -79,7 +79,7 @@ void cTurtleBoss ::Init(void) {
   Set_Direction(DIR_RIGHT, true);
 }
 
-cTurtleBoss* cTurtleBoss ::Copy(void) const {
+std::unique_ptr<cSprite> cTurtleBoss ::Copy(void) const {
   cTurtleBoss* turtle = new cTurtleBoss(m_sprite_manager);
   turtle->Set_Pos(m_start_pos_x, m_start_pos_y);
   turtle->Set_Direction(m_start_direction, true);
@@ -88,7 +88,7 @@ cTurtleBoss* cTurtleBoss ::Copy(void) const {
   turtle->Set_Max_Downgrade_Counts(m_max_downgrade_count);
   turtle->Set_Shell_Time(m_shell_time);
   turtle->Set_Level_Ends_If_Killed(m_level_ends_if_killed);
-  return turtle;
+  return std::unique_ptr<cSprite>(turtle);
 }
 
 void cTurtleBoss ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

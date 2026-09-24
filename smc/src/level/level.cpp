@@ -1342,7 +1342,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
 
           // add middle tiles
           for (unsigned int i = 0; i < 4; i++) {
-            copy = copy->Copy();
+            copy = copy->Copy().release();
             copy->Set_Image(pVideo->Get_Surface("ground/jungle_1/slider/2_" +
                                                 color + "_middle.png"),
                             true);
@@ -1351,7 +1351,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
           }
 
           // add end tile
-          copy = copy->Copy();
+          copy = copy->Copy().release();
           copy->Set_Image(pVideo->Get_Surface("ground/jungle_1/slider/2_" +
                                               color + "_right.png"),
                           true);
@@ -1370,7 +1370,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
                  DATA_DIR "/" GAME_PIXMAPS_DIR "/"
                           "ground/green_1/slider/1/brown/right.png") == 0)) {
           // add middle tile
-          cSprite* copy = sprite->Copy();
+          cSprite* copy = sprite->Copy().release();
           copy->Set_Image(
               pVideo->Get_Surface("ground/green_1/slider/1/brown/middle.png"),
               true);

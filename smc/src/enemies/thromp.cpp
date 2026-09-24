@@ -71,14 +71,14 @@ void cThromp ::Init(void) {
   m_kill_points = 200;
 }
 
-cThromp* cThromp ::Copy(void) const {
+std::unique_ptr<cSprite> cThromp ::Copy(void) const {
   cThromp* thromp = new cThromp(m_sprite_manager);
   thromp->Set_Pos(m_start_pos_x, m_start_pos_y);
   thromp->Set_Image_Dir(m_img_dir);
   thromp->Set_Direction(m_start_direction);
   thromp->Set_Max_Distance(m_max_distance);
   thromp->Set_Speed(m_speed);
-  return thromp;
+  return std::unique_ptr<cSprite>(thromp);
 }
 
 void cThromp ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

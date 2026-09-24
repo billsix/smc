@@ -82,7 +82,7 @@ void cLevel_Exit ::Init(void) {
   m_editor_entry_name = nullptr;
 }
 
-cLevel_Exit* cLevel_Exit ::Copy(void) const {
+std::unique_ptr<cSprite> cLevel_Exit ::Copy(void) const {
   cLevel_Exit* level_exit = new cLevel_Exit(m_sprite_manager);
   level_exit->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   level_exit->Set_Type(m_exit_type);
@@ -91,7 +91,7 @@ cLevel_Exit* cLevel_Exit ::Copy(void) const {
   level_exit->Set_Direction(m_start_direction);
   level_exit->Set_Level(m_dest_level);
   level_exit->Set_Entry(m_dest_entry);
-  return level_exit;
+  return std::unique_ptr<cSprite>(level_exit);
 }
 
 void cLevel_Exit ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

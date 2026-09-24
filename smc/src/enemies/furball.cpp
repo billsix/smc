@@ -66,7 +66,7 @@ void cFurball ::Init(void) {
   Set_Direction(DIR_RIGHT);
 }
 
-cFurball* cFurball ::Copy(void) const {
+std::unique_ptr<cSprite> cFurball ::Copy(void) const {
   cFurball* furball = new cFurball(m_sprite_manager);
   furball->Set_Pos(m_start_pos_x, m_start_pos_y);
   furball->Set_Color(m_color_type);
@@ -75,7 +75,7 @@ cFurball* cFurball ::Copy(void) const {
     furball->Set_Max_Downgrade_Count(m_max_downgrade_count);
     furball->Set_Level_Ends_If_Killed(m_level_ends_if_killed);
   }
-  return furball;
+  return std::unique_ptr<cSprite>(furball);
 }
 
 void cFurball ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

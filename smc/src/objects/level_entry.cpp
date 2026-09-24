@@ -79,13 +79,13 @@ void cLevel_Entry ::Init(void) {
   m_editor_entry_name = nullptr;
 }
 
-cLevel_Entry* cLevel_Entry ::Copy(void) const {
+std::unique_ptr<cSprite> cLevel_Entry ::Copy(void) const {
   cLevel_Entry* level_entry = new cLevel_Entry(m_sprite_manager);
   level_entry->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   level_entry->Set_Type(m_entry_type);
   level_entry->Set_Direction(m_start_direction);
   level_entry->Set_Name(m_entry_name);
-  return level_entry;
+  return std::unique_ptr<cSprite>(level_entry);
 }
 
 void cLevel_Entry ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

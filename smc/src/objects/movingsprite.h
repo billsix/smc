@@ -68,7 +68,7 @@ class cMovingSprite : public cSprite {
   // Init defaults
   void Init(void) override;
   // copy this object
-  cMovingSprite* Copy(void) const override;
+  std::unique_ptr<cSprite> Copy(void) const override;
 
   /* Sets the image for drawing
 	 * if new_start_image is set the default start_image will be set to the given image

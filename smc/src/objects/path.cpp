@@ -420,13 +420,13 @@ void cPath ::Init(void) {
   m_editor_selected_segment = 0;
 }
 
-cPath* cPath ::Copy(void) const {
+std::unique_ptr<cSprite> cPath ::Copy(void) const {
   cPath* path = new cPath(m_sprite_manager);
   path->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   path->m_segments = m_segments;
   path->Set_Identifier(m_identifier);
   path->Set_Rewind(m_rewind);
-  return path;
+  return std::unique_ptr<cSprite>(path);
 }
 
 void cPath ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

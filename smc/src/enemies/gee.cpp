@@ -69,7 +69,7 @@ void cGee ::Init(void) {
   m_clouds_counter = 0.0f;
 }
 
-cGee* cGee ::Copy(void) const {
+std::unique_ptr<cSprite> cGee ::Copy(void) const {
   cGee* gee = new cGee(m_sprite_manager);
   gee->Set_Pos(m_start_pos_x, m_start_pos_y);
   gee->Set_Direction(m_start_direction);
@@ -78,7 +78,7 @@ cGee* cGee ::Copy(void) const {
   gee->m_wait_time = m_wait_time;
   gee->m_fly_distance = m_fly_distance;
   gee->Set_Color(m_color_type);
-  return gee;
+  return std::unique_ptr<cSprite>(gee);
 }
 
 void cGee ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

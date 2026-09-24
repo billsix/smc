@@ -61,12 +61,12 @@ void cEato ::Init(void) {
   m_kill_points = 150;
 }
 
-cEato* cEato ::Copy(void) const {
+std::unique_ptr<cSprite> cEato ::Copy(void) const {
   cEato* eato = new cEato(m_sprite_manager);
   eato->Set_Pos(m_start_pos_x, m_start_pos_y);
   eato->Set_Image_Dir(m_img_dir);
   eato->Set_Direction(m_start_direction);
-  return eato;
+  return std::unique_ptr<cSprite>(eato);
 }
 
 void cEato ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

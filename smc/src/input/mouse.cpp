@@ -517,7 +517,7 @@ void cMouseCursor ::Add_Copy_Object(cSprite* sprite) {
     }
   }
 
-  cSprite* copy = sprite->Copy();
+  cSprite* copy = sprite->Copy().release();
 
   // can't be copied
   if (!copy) {
@@ -1114,7 +1114,7 @@ cSprite* cMouseCursor ::Copy(const cSprite* copy_object, float px,
   }
 
   // copy
-  cSprite* new_sprite = copy_object->Copy();
+  cSprite* new_sprite = copy_object->Copy().release();
 
   // failed to copy
   if (!new_sprite) {

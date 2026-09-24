@@ -65,12 +65,12 @@ void cTurtle ::Init(void) {
   m_kill_sound = "stomp_4.ogg";
 }
 
-cTurtle* cTurtle ::Copy(void) const {
+std::unique_ptr<cSprite> cTurtle ::Copy(void) const {
   cTurtle* turtle = new cTurtle(m_sprite_manager);
   turtle->Set_Pos(m_start_pos_x, m_start_pos_y);
   turtle->Set_Direction(m_start_direction, true);
   turtle->Set_Color(m_color_type);
-  return turtle;
+  return std::unique_ptr<cSprite>(turtle);
 }
 
 void cTurtle ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

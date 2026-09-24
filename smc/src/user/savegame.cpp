@@ -406,7 +406,7 @@ bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
         }
 
         // add
-        save_level->m_spawned_objects.push_back(obj->Copy());
+        save_level->m_spawned_objects.push_back(obj->Copy().release());
       }
 
       // save object status

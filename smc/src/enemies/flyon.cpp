@@ -71,14 +71,14 @@ void cFlyon ::Init(void) {
   m_move_back = false;
 }
 
-cFlyon* cFlyon ::Copy(void) const {
+std::unique_ptr<cSprite> cFlyon ::Copy(void) const {
   cFlyon* jpiranha = new cFlyon(m_sprite_manager);
   jpiranha->Set_Pos(m_start_pos_x, m_start_pos_y);
   jpiranha->Set_Direction(m_start_direction);
   jpiranha->Set_Image_Dir(m_img_dir);
   jpiranha->Set_Max_Distance(m_max_distance);
   jpiranha->Set_Speed(m_speed);
-  return jpiranha;
+  return std::unique_ptr<cSprite>(jpiranha);
 }
 
 void cFlyon ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

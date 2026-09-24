@@ -68,7 +68,7 @@ void cBonusBox ::Init(void) {
   Create_Name();
 }
 
-cBonusBox* cBonusBox ::Copy(void) const {
+std::unique_ptr<cSprite> cBonusBox ::Copy(void) const {
   cBonusBox* bonusbox = new cBonusBox(m_sprite_manager);
   bonusbox->Set_Pos(m_start_pos_x, m_start_pos_y);
   bonusbox->Set_Animation_Type(m_anim_type);
@@ -77,7 +77,7 @@ cBonusBox* cBonusBox ::Copy(void) const {
   bonusbox->Set_Force_Best_Item(m_force_best_item);
   bonusbox->Set_Goldcolor(m_gold_color);
   bonusbox->Set_Useable_Count(m_start_useable_count, true);
-  return bonusbox;
+  return std::unique_ptr<cSprite>(bonusbox);
 }
 
 void cBonusBox ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

@@ -114,7 +114,7 @@ cLevel_Player ::cLevel_Player(cSprite_Manager* sprite_manager)
 
 cLevel_Player ::~cLevel_Player(void) { Ball_Clear(); }
 
-cLevel_Player* cLevel_Player ::Copy(void) const {
+std::unique_ptr<cSprite> cLevel_Player ::Copy(void) const {
   // not copyable
   return nullptr;
 }

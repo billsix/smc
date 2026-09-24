@@ -43,7 +43,7 @@ cHudSprite ::cHudSprite(cSprite_Manager* sprite_manager)
 
 cHudSprite ::~cHudSprite(void) = default;
 
-cHudSprite* cHudSprite ::Copy(void) const {
+std::unique_ptr<cSprite> cHudSprite ::Copy(void) const {
   cHudSprite* hud_sprite = new cHudSprite(m_sprite_manager);
   hud_sprite->Set_Image(m_start_image);
   hud_sprite->Set_Pos(m_start_pos_x, m_start_pos_y, true);
@@ -53,7 +53,7 @@ cHudSprite* cHudSprite ::Copy(void) const {
   hud_sprite->Set_Ignore_Camera(m_no_camera);
   hud_sprite->Set_Shadow_Pos(m_shadow_pos);
   hud_sprite->Set_Shadow_Color(m_shadow_color);
-  return hud_sprite;
+  return std::unique_ptr<cSprite>(hud_sprite);
 }
 
 /* *** *** *** *** *** *** *** cHud_Manager *** *** *** *** *** *** *** *** *** *** */

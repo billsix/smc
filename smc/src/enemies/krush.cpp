@@ -68,11 +68,11 @@ void cKrush ::Init(void) {
   m_kill_sound = "enemy/krush/die.ogg";
 }
 
-cKrush* cKrush ::Copy(void) const {
+std::unique_ptr<cSprite> cKrush ::Copy(void) const {
   cKrush* krush = new cKrush(m_sprite_manager);
   krush->Set_Pos(m_start_pos_x, m_start_pos_y);
   krush->Set_Direction(m_start_direction);
-  return krush;
+  return std::unique_ptr<cSprite>(krush);
 }
 
 void cKrush ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

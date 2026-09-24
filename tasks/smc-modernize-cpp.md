@@ -40,30 +40,34 @@ for the singletons (step 5).
   codemod → reviewed pass. `loop-convert` excluded (names range-for locals after the container →
   `m_`-prefixed locals) → moved to step 8. Warnings unchanged (4496). Last purely-mechanical step.
 
-**--- the steps below are architectural/behavioral rewrites; their real gate is GAMEPLAY, which the
-30s headless smoke run cannot certify. They are staged for a maintainer-reviewed pass (play-test
-each), NOT autonomous batching. Recommended: build each with AddressSanitizer + run the smoke, and
-for the enum step add a level/save round-trip check, before trusting "done". ---**
+**--- WORKFLOW (maintainer, 2026-09-24): distinct single-purpose commits; the maintainer
+play-tests + bisects the whole branch at the END, not per commit. So autonomous batching IS the
+method; each commit must build + link + pass the headless smoke on its own. Descriptive-variable
+names (`tasks/smc-descriptive-variable-names.md`) come AFTER all cpp modernization. ---**
 
-- [~] Step 5 — ownership → `unique_ptr` / value (`smc-modernize-step-5-ownership.md`, IN PROGRESS
-  on branch `modernize-cpp-2` off master). **5.1** render queue owns its requests via `unique_ptr`
-  (done, `8ac4af3`). **Base flip DEFERRED and reordered after step 8**: the recon (in the step-task)
-  found the `cObject_Manager<T>` → `vector<unique_ptr<T>>` conversion is not mechanical — real
-  double-ownership (`cLayer`/`cWorld_Sprite_Manager` vs `cSprite_Manager`), reorder-holding-raw, and
-  move/alias hazards, all atomic because the 12 subclasses share one typed member. Doing step 8's
-  range-for pass first converts the ~95 read-only `->objects` loops (they work with `T*` or
-  `unique_ptr<T>`), shrinking the flip to the hazards. One open design question: make `cLayer`
-  non-owning (recommended).
-
-- **REORDER (2026-09-24):** step 8's range-for is pulled ahead of the step-5 base flip because it
-  de-risks it (see above). Everything else keeps its planned order.
-- [ ] Step 6 — one `cApplication` owning the 24 former singletons (fixes the destruction-order
-  hazards + `pFramerate` leak by member-declaration order).
+- [~] Step 5 — ownership → `unique_ptr` / value (`smc-modernize-step-5-ownership.md`). Branches:
+  5.1+8+5.2a+5.2/5.3 were on `modernize-cpp-2` (MERGED to master); 5.4+ on `modernize-cpp-3`.
+  - [x] **5.1** render queue owns requests via `unique_ptr`.
+  - [x] **5.2a** `cLayer` un-derived (non-owning; removed the double-ownership blocker).
+  - [x] **5.2/5.3** `cObject_Manager<T>` → `vector<unique_ptr<T>>` across all 12 managers +
+    `cSprite_Manager` semantics + collision lambdas/move-transfers (a runtime double-free was
+    caught by smoke+gdb and fixed).
+  - [x] **5.4** `Copy()` returns `std::unique_ptr<cSprite>` (34 methods).
+  - [ ] **5.5** savegame graph (`cSave_*` owning lists + `m_spawned_objects`) → `unique_ptr`. NOTE:
+    the save structures' raw ownership is CORRECT today (destructors free them) — this is
+    cleanliness, not a bug fix; has parser→struct ownership transfers (use `release`/move).
+  - [ ] **5.6** remaining owning `new`/`delete` in touched areas → `make_unique` (incl. the
+    `make_unique` polish inside the `Copy()` bodies).
+- [x] Step 8 (loops) — ~252 iterator loops → range-for (MERGED). Remaining under step 8:
+  `std::format` for `int_to_string`/`ostringstream`/`sprintf`, and the once-per-frame `PlayerInput`
+  struct (behavioral).
+- [ ] Step 6 — one `cApplication` owning the 24 former singletons (fixes destruction-order hazards
+  + `pFramerate` leak by member-declaration order). Pragmatic form: own them as `unique_ptr`
+  members in dependency order and keep the `extern cX* pX` globals as borrowed aliases set once, so
+  the thousands of `pX->` sites are untouched.
 - [ ] Step 7 — `enum class` + virtual dispatch replacing the type-tag switches. **Entangled with
-  the level/save FILE FORMAT** (the enum ints are serialized) — keep a serialization boundary and
-  round-trip test; smoke does not load user levels.
-- [ ] Step 8 — loops/strings/input (the residue clang-tidy left in step 4; `std::format`; the
-  once-per-frame `PlayerInput` struct — the input change is behavioral, needs play-test).
+  the level/save FILE FORMAT** (the enum ints are serialized) — keep a serialization boundary; do
+  the non-serialized enums first.
 - [ ] Step 9 — CEGUI event lambdas + enemy dedup (`cWalkingEnemy` base).
 - [ ] Step 10 — the `refactoring-to-modern-cpp.md` reference doc (write last, after the steps land).
 **Priority:** 4 · **Difficulty:** 8 (77 `.cpp` / 85 `.h`, a 6-deep sprite hierarchy dispatched by

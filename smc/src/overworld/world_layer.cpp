@@ -143,7 +143,7 @@ void cLayer_Line_Point_Start ::Init(void) {
   m_linked_point->m_linked_point = this;
 }
 
-cLayer_Line_Point_Start* cLayer_Line_Point_Start ::Copy(void) const {
+std::unique_ptr<cSprite> cLayer_Line_Point_Start ::Copy(void) const {
   // create layer line
   // hack : assume it's copied with the editor
   cLayer_Line_Point_Start* layer_line =
@@ -154,7 +154,7 @@ cLayer_Line_Point_Start* cLayer_Line_Point_Start ::Copy(void) const {
   layer_line->m_linked_point->Set_Pos(m_pos_x + 20, m_pos_y, true);
   // origin
   layer_line->m_origin = m_origin;
-  return layer_line;
+  return std::unique_ptr<cSprite>(layer_line);
 }
 
 void cLayer_Line_Point_Start ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

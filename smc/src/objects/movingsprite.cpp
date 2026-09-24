@@ -65,7 +65,7 @@ void cMovingSprite ::Init(void) {
   m_freeze_counter = 0.0f;
 }
 
-cMovingSprite* cMovingSprite ::Copy(void) const {
+std::unique_ptr<cSprite> cMovingSprite ::Copy(void) const {
   cMovingSprite* moving_sprite = new cMovingSprite(m_sprite_manager);
   moving_sprite->Set_Image(m_start_image, true);
   moving_sprite->Set_Pos(m_start_pos_x, m_start_pos_y, true);
@@ -77,7 +77,7 @@ cMovingSprite* cMovingSprite ::Copy(void) const {
   moving_sprite->Set_Ignore_Camera(m_no_camera);
   moving_sprite->Set_Shadow_Pos(m_shadow_pos);
   moving_sprite->Set_Shadow_Color(m_shadow_color);
-  return moving_sprite;
+  return std::unique_ptr<cSprite>(moving_sprite);
 }
 
 void cMovingSprite ::Set_Image(cGL_Surface* new_image,

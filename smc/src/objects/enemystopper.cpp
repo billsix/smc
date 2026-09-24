@@ -36,10 +36,10 @@ cEnemyStopper ::cEnemyStopper(CEGUI::XMLAttributes& attributes,
 
 cEnemyStopper ::~cEnemyStopper(void) = default;
 
-cEnemyStopper* cEnemyStopper ::Copy(void) const {
+std::unique_ptr<cSprite> cEnemyStopper ::Copy(void) const {
   cEnemyStopper* enemystopper = new cEnemyStopper(m_sprite_manager);
   enemystopper->Set_Pos(m_start_pos_x, m_start_pos_y, true);
-  return enemystopper;
+  return std::unique_ptr<cSprite>(enemystopper);
 }
 
 void cEnemyStopper ::Init(void) {

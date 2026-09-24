@@ -67,12 +67,12 @@ void cBall ::Init(void) {
   Set_Ball_Type(FIREBALL_DEFAULT);
 }
 
-cBall* cBall ::Copy(void) const {
+std::unique_ptr<cSprite> cBall ::Copy(void) const {
   cBall* ball = new cBall(m_sprite_manager);
   ball->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   ball->Set_Origin(m_origin_array, m_origin_type);
   ball->Set_Ball_Type(m_ball_type);
-  return ball;
+  return std::unique_ptr<cSprite>(ball);
 }
 
 void cBall ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

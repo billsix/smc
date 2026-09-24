@@ -57,11 +57,11 @@ void cSpika ::Init(void) {
   Set_Color(COL_ORANGE);
 }
 
-cSpika* cSpika ::Copy(void) const {
+std::unique_ptr<cSprite> cSpika ::Copy(void) const {
   cSpika* spika = new cSpika(m_sprite_manager);
   spika->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   spika->Set_Color(m_color_type);
-  return spika;
+  return std::unique_ptr<cSprite>(spika);
 }
 
 void cSpika ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

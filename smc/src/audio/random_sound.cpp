@@ -78,7 +78,7 @@ void cRandom_Sound ::Init(void) {
   m_editor_color_volume_reduction_end = Color(0.2f, 0.4f, 0.1f, 0.2f);
 }
 
-cRandom_Sound* cRandom_Sound ::Copy(void) const {
+std::unique_ptr<cSprite> cRandom_Sound ::Copy(void) const {
   cRandom_Sound* random_sound = new cRandom_Sound(m_sprite_manager);
   random_sound->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   random_sound->Set_Filename(m_filename.c_str());
@@ -89,7 +89,7 @@ cRandom_Sound* cRandom_Sound ::Copy(void) const {
   random_sound->Set_Volume_Max(m_volume_max);
   random_sound->Set_Volume_Reduction_Begin(m_volume_reduction_begin);
   random_sound->Set_Volume_Reduction_End(m_volume_reduction_end);
-  return random_sound;
+  return std::unique_ptr<cSprite>(random_sound);
 }
 
 void cRandom_Sound ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

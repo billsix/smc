@@ -1112,7 +1112,7 @@ bool cEditor ::Load_Item_Menu(std::string item_tags) {
       // found all tags
       if (tag_pos >= array_tags.size()) {
         // Add Objects
-        Add_Item_Object(object->Copy());
+        Add_Item_Object(object->Copy().release());
 
         break;
       }
@@ -1247,7 +1247,7 @@ void cEditor ::Activate_Item(cEditor_Item_Object* entry) {
   }
 
   // create copy from editor item
-  cSprite* new_sprite = entry->sprite_obj->Copy();
+  cSprite* new_sprite = entry->sprite_obj->Copy().release();
 
   // if copying failed
   if (!new_sprite) {

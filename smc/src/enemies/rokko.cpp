@@ -76,12 +76,12 @@ void cRokko ::Init(void) {
   m_kill_points = 250;
 }
 
-cRokko* cRokko ::Copy(void) const {
+std::unique_ptr<cSprite> cRokko ::Copy(void) const {
   cRokko* rokko = new cRokko(m_sprite_manager);
   rokko->Set_Pos(m_start_pos_x, m_start_pos_y);
   rokko->Set_Direction(m_start_direction);
   rokko->Set_Speed(m_speed);
-  return rokko;
+  return std::unique_ptr<cSprite>(rokko);
 }
 
 void cRokko ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
