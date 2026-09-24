@@ -614,14 +614,14 @@ void cLevel_Settings ::Load_BG_Image_List(void) {
       CEGUI::WindowManager::getSingleton().getWindow("listbox_backgrounds"));
   listbox->resetList();
 
-  for (auto background : m_level->m_background_manager->objects) {
+  for (auto& background : m_level->m_background_manager->objects) {
     // skip gradients
     if (background->m_type == BG_GR_HOR || background->m_type == BG_GR_VER) {
       continue;
     }
 
     CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(
-        float_to_string(background->m_pos_z).c_str(), 0, background);
+        float_to_string(background->m_pos_z).c_str(), 0, background.get());
     item->setSelectionColours(CEGUI::colour(0.33f, 0.33f, 0.33f));
     item->setSelectionBrushImage("TaharezLook", "ListboxSelectionBrush");
     listbox->addItem(static_cast<CEGUI::ListboxItem*>(item));

@@ -40,13 +40,42 @@ two `cObject_Manager` bugs are gone by construction. Grounded in
   Behavior-identical (`objects` stays `vector<raw*>`); build + smoke green. Confirmed
   `cWorld_Sprite_Manager::Add` also feeds the SAME pointer to the sprite manager (owner) and the
   layer (borrower).
-- [ ] 5.2 `cObject_Manager<T>` base → `vector<unique_ptr<T>>` (now that cLayer is out): update the
-  base API + the remaining index/copy/alias sites. Fixes both dead bugs by construction.
-- [ ] 5.3 `cSprite_Manager` storage → `unique_ptr`, preserving the player exemption + auto-destroy
-  + z-order semantics (highest risk; own commit).
+- [x] **5.2/5.3 `cObject_Manager<T>` base → `vector<unique_ptr<T>>`** (done together — the 12
+  subclasses share the one typed member, so the flip is atomic; 28 files). Base: `Add` adopts
+  (`emplace_back(raw)`), `Delete` erases (frees) or `release()`s when `delete_data=false`,
+  `Delete_All`=`clear()`, `Get_Pointer` returns `.get()`, `Get_Array_Num` `find_if` over
+  `unique_ptr`. `cSprite_Manager`: auto-destroy `reset()`, `Move_To_Front/Back` move-out/erase/
+  reinsert, `m_disallow_managed_delete` `release()` before erase, `Get_Objects_sorted` `.get()`
+  copy. `cObjectCollisionType` predicates → lambdas (retires `binary_function`/`bind2nd`, gone in
+  C++17). Collision-vector transfers (movingsprite) → `make_move_iterator`; the
+  `Collision_Check(&mgr->objects)` alias → a lambda called from two loops. `cLayer` was un-derived
+  in 5.2a. ~95 read loops mechanically `auto&`'d (codemod `fix_objects_loops.py`), residue `.get()`
+  by hand (compiler-driven). Compiles + links; smoke green.
+  - **Runtime double-free found by the smoke + gdb (fixed):** `Add_Collisions` MOVES collisions
+    from the temporary `col_list` into the sprite's raw-owning `m_collisions`, then
+    `col_list->objects.clear()`. With `.get()` the borrowed pointer went into `m_collisions` (which
+    frees it) AND `clear()` freed it too. Fix: `col.release()` — transfer ownership. **Lesson: a
+    container-to-container move that relied on a raw `vector::clear()` NOT freeing must become an
+    explicit `release()`/`move` when the source becomes owning.** (harness: `debug_doublefree.sh`.)
 - [ ] 5.4 `Copy()` → `unique_ptr<cSprite> Clone() const override` across the sprite hierarchy.
 - [ ] 5.5 Savegame pointer graph → values / `unique_ptr`.
 - [ ] 5.6 Remaining owning `new`/`delete` in the touched areas → `make_unique`.
+- [ ] **Harvest learnings to `~/.claude/reference/` (cross-project, per the maintainer 2026-09-24):**
+  the "compiler as oracle" method for a large type migration (flip the shared type, fix the base +
+  known hazards, then build-iterate on what the compiler flags — the refactor analogue of the
+  instrumentation-driven / "tool as oracle" lesson in `print-debugging.md`); the mechanical-vs-
+  ownership-hazard split (recon first); the clang-tidy warts on old code (loop-convert's
+  container-named locals; use-equals-default botching copy ctors / changing copy-assign); and the
+  raw→`unique_ptr` migration idioms (Add adopts via `emplace_back(raw)`; erase frees;
+  remove-without-free = `release()` then erase; reorder = move-out/erase/reinsert; `std::erase_if`;
+  `find_if` with a lambda over `unique_ptr&` + `.get()`; `binary_function`/`bind2nd` gone in C++17 →
+  lambdas). **Write to the sandbox repos where these docs live (maintainer 2026-09-24):**
+  canonical home is `runClaudeInContainer/tasks/reference/` (19 docs, mounted to
+  `~/.claude/reference/`) — extend `print-debugging.md` with the compiler-as-oracle refactor method
+  and add a new `cpp-ownership-migration.md` (+ a pointer line in `code-style-conventions.md`); then
+  MIRROR into `runCrushInContainer/tasks/reference/` (it mirrors only a subset today — 15 docs, no
+  `print-debugging.md` yet — but the maintainer wants these there too). Both repos are workable
+  (runClaude origin = Pi; runCrush github = billsix).
 
 ## Notes / decisions
 

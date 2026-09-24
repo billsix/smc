@@ -40,65 +40,50 @@ void cObjectCollisionType ::Add(cObjectCollision* obj) {
   cObject_Manager<cObjectCollision>::Add(obj);
 }
 
-// check if sprite
-struct check_if_sprite
-    : public std::binary_function<cObjectCollision*, const cSprite*, bool> {
-  bool operator()(const cObjectCollision* col, const cSprite* sprite) const {
-    return col->m_obj == sprite;
-  }
-};
+// The elements are owned unique_ptrs now, so these predicates take a unique_ptr ref; this also
+// retires the std::binary_function / std::bind2nd functors (both removed in C++17).
 bool cObjectCollisionType ::Is_Included(const cSprite* obj) {
   return std::find_if(objects.begin(), objects.end(),
-                      std::bind2nd(check_if_sprite(), obj)) != objects.end();
+                      [obj](const std::unique_ptr<cObjectCollision>& col) {
+                        return col->m_obj == obj;
+                      }) != objects.end();
 }
 
-// check if array type
-struct check_if_sprite_array
-    : public std::binary_function<cObjectCollision*, ArrayType, bool> {
-  bool operator()(const cObjectCollision* col, ArrayType type) const {
-    return col->m_obj->m_sprite_array == type;
-  }
-};
 bool cObjectCollisionType ::Is_Included(const ArrayType type) {
   return std::find_if(objects.begin(), objects.end(),
-                      std::bind2nd(check_if_sprite_array(), type)) !=
-         objects.end();
+                      [type](const std::unique_ptr<cObjectCollision>& col) {
+                        return col->m_obj->m_sprite_array == type;
+                      }) != objects.end();
 }
 
-// check if sprite type
-struct check_if_sprite_type
-    : public std::binary_function<cObjectCollision*, SpriteType, bool> {
-  bool operator()(const cObjectCollision* col, SpriteType type) const {
-    return col->m_obj->m_type == type;
-  }
-};
 bool cObjectCollisionType ::Is_Included(const SpriteType type) {
   return std::find_if(objects.begin(), objects.end(),
-                      std::bind2nd(check_if_sprite_type(), type)) !=
-         objects.end();
+                      [type](const std::unique_ptr<cObjectCollision>& col) {
+                        return col->m_obj->m_type == type;
+                      }) != objects.end();
 }
 
-// check if validation type
-struct check_if_valid_type
-    : public std::binary_function<cObjectCollision*, Col_Valid_Type, bool> {
-  bool operator()(const cObjectCollision* col, Col_Valid_Type type) const {
-    return col->m_valid_type == type;
-  }
-};
 bool cObjectCollisionType ::Is_Included(const Col_Valid_Type type) {
   return std::find_if(objects.begin(), objects.end(),
-                      std::bind2nd(check_if_valid_type(), type)) !=
-         objects.end();
+                      [type](const std::unique_ptr<cObjectCollision>& col) {
+                        return col->m_valid_type == type;
+                      }) != objects.end();
 }
 
 cObjectCollision* cObjectCollisionType ::Find_First(const ArrayType type) {
-  return *std::find_if(objects.begin(), objects.end(),
-                       std::bind2nd(check_if_sprite_array(), type));
+  return std::find_if(objects.begin(), objects.end(),
+                      [type](const std::unique_ptr<cObjectCollision>& col) {
+                        return col->m_obj->m_sprite_array == type;
+                      })
+      ->get();
 }
 
 cObjectCollision* cObjectCollisionType ::Find_First(const SpriteType type) {
-  return *std::find_if(objects.begin(), objects.end(),
-                       std::bind2nd(check_if_sprite_type(), type));
+  return std::find_if(objects.begin(), objects.end(),
+                      [type](const std::unique_ptr<cObjectCollision>& col) {
+                        return col->m_obj->m_type == type;
+                      })
+      ->get();
 }
 
 /* *** *** *** *** *** *** *** cObjectCollision *** *** *** *** *** *** *** *** *** *** */

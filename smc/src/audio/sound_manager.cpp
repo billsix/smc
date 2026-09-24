@@ -54,10 +54,10 @@ cSound_Manager ::cSound_Manager(void) : cObject_Manager<cSound>() {
 cSound_Manager ::~cSound_Manager(void) { cSound_Manager::Delete_All(); }
 
 cSound* cSound_Manager ::Get_Pointer(const std::string& path) const {
-  for (auto obj : objects) {
-    if (obj->m_filename.compare(path) == 0) {
+  for (const auto& sound : objects) {
+    if (sound->m_filename.compare(path) == 0) {
       // return first found
-      return obj;
+      return sound.get();
     }
   }
 

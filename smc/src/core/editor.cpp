@@ -790,7 +790,7 @@ bool cEditor ::Key_Down(SDLKey key) {
     }
 
     // deselect old objects
-    for (auto obj : objects) {
+    for (auto& obj : objects) {
       pMouseCursor->Remove_Selected_Object(obj);
     }
   }
@@ -822,8 +822,8 @@ bool cEditor ::Key_Down(SDLKey key) {
     // player
     pMouseCursor->Add_Selected_Object(pActive_Player, true);
     // sprite manager
-    for (auto obj : m_sprite_manager->objects) {
-      pMouseCursor->Add_Selected_Object(obj, true);
+    for (const auto& sprite : m_sprite_manager->objects) {
+      pMouseCursor->Add_Selected_Object(sprite.get(), true);
     }
   }
   // Paste copy buffer objects
@@ -1341,7 +1341,7 @@ cSprite_List cEditor ::Copy_Direction(const cSprite_List& objects,
   // new copied objects
   cSprite_List new_objects;
 
-  for (auto obj : objects) {
+  for (auto& obj : objects) {
     new_objects.push_back(Copy_Direction(obj, dir, offset));
   }
 
@@ -1405,7 +1405,7 @@ void cEditor ::Select_Same_Object_Types(const cSprite* obj) {
   }
 
   // sprite manager
-  for (auto game_obj : m_sprite_manager->objects) {
+  for (const auto& game_obj : m_sprite_manager->objects) {
     if (game_obj->m_type != obj->m_type) {
       continue;
     }
@@ -1414,7 +1414,7 @@ void cEditor ::Select_Same_Object_Types(const cSprite* obj) {
       continue;
     }
 
-    pMouseCursor->Add_Selected_Object(game_obj, true);
+    pMouseCursor->Add_Selected_Object(game_obj.get(), true);
   }
 }
 

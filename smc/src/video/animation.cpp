@@ -2291,17 +2291,13 @@ cAnimation_Manager ::~cAnimation_Manager(void) {
 }
 
 void cAnimation_Manager ::Update(void) {
-  for (cAnimation_List::iterator itr = objects.begin(); itr != objects.end();) {
-    // get object pointer
-    cAnimation* obj = (*itr);
-
+  for (OwningList::iterator itr = objects.begin(); itr != objects.end();) {
     // update
-    obj->Update();
+    (*itr)->Update();
 
-    // delete if finished
-    if (!obj->m_active) {
+    // delete if finished (erase frees it)
+    if (!(*itr)->m_active) {
       itr = objects.erase(itr);
-      delete obj;
     }
     // increment
     else {

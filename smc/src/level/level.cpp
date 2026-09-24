@@ -196,7 +196,7 @@ bool cLevel ::Load(std::string filename) {
   /* late initialization
 	 * needed to create links to other objects
 	*/
-  for (auto obj : m_sprite_manager->objects) {
+  for (auto& obj : m_sprite_manager->objects) {
     obj->Init_Links();
   }
 
@@ -343,7 +343,7 @@ void cLevel ::Save(void) {
   stream.closeTag();
 
   // objects
-  for (auto obj : m_sprite_manager->objects) {
+  for (auto& obj : m_sprite_manager->objects) {
     // skip spawned and destroyed objects
     if (obj->m_spawned || obj->m_auto_destroy) {
       continue;
@@ -405,9 +405,9 @@ void cLevel ::Init(void) {
   pLevel_Player->Reset();
 
   // pre-update animations
-  for (auto obj : m_sprite_manager->objects) {
+  for (auto& obj : m_sprite_manager->objects) {
     if (obj->m_type == TYPE_PARTICLE_EMITTER) {
-      cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(obj);
+      cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(obj.get());
       emitter->Pre_Update();
     }
   }
@@ -535,7 +535,7 @@ void cLevel ::Update(void) {
   // if level-editor enabled
   else {
     // only update particle emitters
-    for (auto obj : m_sprite_manager->objects) {
+    for (auto& obj : m_sprite_manager->objects) {
       if (obj->m_type == TYPE_PARTICLE_EMITTER) {
         obj->Update();
       }
@@ -926,12 +926,12 @@ cLevel_Entry* cLevel ::Get_Entry(const std::string& name) {
   }
 
   // Search for entry
-  for (auto obj : m_sprite_manager->objects) {
+  for (auto& obj : m_sprite_manager->objects) {
     if (obj->m_type != TYPE_LEVEL_ENTRY || obj->m_auto_destroy) {
       continue;
     }
 
-    cLevel_Entry* level_entry = static_cast<cLevel_Entry*>(obj);
+    cLevel_Entry* level_entry = static_cast<cLevel_Entry*>(obj.get());
 
     // found
     if (level_entry->m_entry_name.compare(name) == 0) {

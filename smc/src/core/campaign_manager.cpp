@@ -107,9 +107,9 @@ cCampaign* cCampaign_Manager ::Load_Campaign(const std::string& filename) {
 }
 
 cCampaign* cCampaign_Manager ::Get_from_Name(const std::string& name) {
-  for (auto obj : objects) {
-    if (obj->m_name.compare(name) == 0) {
-      return obj;
+  for (const auto& campaign : objects) {
+    if (campaign->m_name.compare(name) == 0) {
+      return campaign.get();
     }
   }
 

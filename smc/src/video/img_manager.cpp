@@ -65,10 +65,10 @@ void cImage_Manager ::Add(cGL_Surface* obj) {
 }
 
 cGL_Surface* cImage_Manager ::Get_Pointer(const std::string& path) const {
-  for (auto obj : objects) {
+  for (auto& obj : objects) {
     // return first match
     if (obj->m_filename.compare(path) == 0) {
-      return obj;
+      return obj.get();
     }
   }
 
@@ -94,7 +94,7 @@ void cImage_Manager ::Grab_Textures(bool from_file /* = 0 */,
   unsigned int file_count = objects.size();
 
   // save all textures
-  for (auto obj : objects) {
+  for (auto& obj : objects) {
     // get surface
     // skip surfaces with an already deleted texture
     if (!glIsTexture(obj->m_image)) {
@@ -163,7 +163,7 @@ void cImage_Manager ::Restore_Textures(bool draw_gui /* = 0 */) {
 }
 
 void cImage_Manager ::Delete_Image_Textures(void) {
-  for (auto obj : objects) {
+  for (auto& obj : objects) {
     // get object
     if (obj->m_auto_del_img && glIsTexture(obj->m_image)) {
       glDeleteTextures(1, &obj->m_image);

@@ -55,17 +55,10 @@ void cLevel_Manager ::Unload(void) {
   // disable fixed camera velocity
   pLevel_Manager->m_camera->m_fixed_hor_vel = 0.0f;
 
-  // always keep one level
+  // always keep one level (erasing the rest frees them)
   if (size() > 1) {
-    for (vector<cLevel*>::iterator itr = objects.begin();
-         itr != objects.end() - 1;) {
-      cLevel* obj = (*itr);
-
-      itr = objects.erase(itr);
-      delete obj;
-    }
-
-    pActive_Level = objects.front();
+    objects.erase(objects.begin(), objects.end() - 1);
+    pActive_Level = objects.front().get();
   }
 
   // keep the managers valid
@@ -126,9 +119,10 @@ bool cLevel_Manager ::Set_Active(cLevel* level) {
 }
 
 cLevel* cLevel_Manager ::Get(const std::string& str) {
-  for (auto obj : objects) {
-    if (Trim_Filename(obj->m_level_filename, false, false).compare(str) == 0) {
-      return obj;
+  for (const auto& level : objects) {
+    if (Trim_Filename(level->m_level_filename, false, false).compare(str) ==
+        0) {
+      return level.get();
     }
   }
 
@@ -410,10 +404,11 @@ void cLevel_Manager ::Goto_Sub_Level(
                                       start_path_pos_y + path_state.m_pos_y);
 
               // keep particles on screen
-              for (auto obj : pActive_Level->m_sprite_manager->objects) {
-                if (obj->m_type == TYPE_PARTICLE_EMITTER) {
+              for (const auto& sprite :
+                   pActive_Level->m_sprite_manager->objects) {
+                if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
                   cParticle_Emitter* emitter =
-                      static_cast<cParticle_Emitter*>(obj);
+                      static_cast<cParticle_Emitter*>(sprite.get());
                   emitter->Update_Position();
                 }
               }

@@ -120,7 +120,7 @@ void cHud_Manager ::Update_Text(void) {
   // note : update the life display before updating the time display
 
   if (!objects.empty()) {
-    cMenuBackground* item = static_cast<cMenuBackground*>(objects[0]);
+    cMenuBackground* item = static_cast<cMenuBackground*>(objects[0].get());
 
     if (Game_Mode != MODE_OVERWORLD) {
       // goldpiece
@@ -1026,7 +1026,7 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
     // Halfmassive
     unsigned int halfmassive = 0;
 
-    for (auto obj : m_sprite_manager->objects) {
+    for (auto& obj : m_sprite_manager->objects) {
       // get object pointer
       if (obj->m_type == TYPE_HALFMASSIVE) {
         halfmassive++;
@@ -1041,7 +1041,7 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
     // Moving Platform
     unsigned int moving_platform = 0;
 
-    for (auto obj : m_sprite_manager->objects) {
+    for (auto& obj : m_sprite_manager->objects) {
       // get object pointer
       if (obj->m_type == TYPE_MOVING_PLATFORM) {
         moving_platform++;
@@ -1056,10 +1056,10 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
     // Goldbox
     unsigned int goldbox = 0;
 
-    for (auto obj : m_sprite_manager->objects) {
+    for (auto& obj : m_sprite_manager->objects) {
       // get object pointer
       if (obj->m_type == TYPE_BONUS_BOX) {
-        const cBonusBox* bonusbox = static_cast<const cBonusBox*>(obj);
+        const cBonusBox* bonusbox = static_cast<const cBonusBox*>(obj.get());
 
         if (bonusbox->box_type == TYPE_GOLDPIECE) {
           goldbox++;
@@ -1075,10 +1075,10 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
     // Bonusbox
     unsigned int bonusbox_count = 0;
 
-    for (auto obj : m_sprite_manager->objects) {
+    for (auto& obj : m_sprite_manager->objects) {
       // get object pointer
       if (obj->m_type == TYPE_BONUS_BOX) {
-        const cBonusBox* bonusbox = static_cast<const cBonusBox*>(obj);
+        const cBonusBox* bonusbox = static_cast<const cBonusBox*>(obj.get());
 
         if (bonusbox->box_type != TYPE_GOLDPIECE) {
           bonusbox_count++;

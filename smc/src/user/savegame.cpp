@@ -382,7 +382,7 @@ bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
   if (pActive_Level->Is_Loaded()) {
     savegame->m_level_time = pHud_Time->m_milliseconds;
 
-    for (auto level : pLevel_Manager->objects) {
+    for (auto& level : pLevel_Manager->objects) {
       if (!level->Is_Loaded()) {
         continue;
       }
@@ -393,13 +393,13 @@ bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
       save_level->m_name = Trim_Filename(level->m_level_filename, false, false);
 
       // save position if active level
-      if (pActive_Level == level) {
+      if (pActive_Level == level.get()) {
         save_level->m_level_pos_x = pLevel_Player->m_pos_x;
         save_level->m_level_pos_y = pLevel_Player->m_pos_y - 5.0f;
       }
 
       // spawned objects
-      for (auto obj : level->m_sprite_manager->objects) {
+      for (auto& obj : level->m_sprite_manager->objects) {
         // if spawned and active
         if (!obj->m_spawned || obj->m_auto_destroy) {
           continue;
@@ -410,7 +410,7 @@ bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
       }
 
       // save object status
-      for (auto obj : level->m_sprite_manager->objects) {
+      for (auto& obj : level->m_sprite_manager->objects) {
         // get save data
         cSave_Level_Object* save_obj = obj->Save_To_Savegame();
 
@@ -434,7 +434,7 @@ bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
   savegame->m_itembox_item = pHud_Itembox->m_item_id;
 
   // save overworld progress
-  for (auto overworld : pOverworld_Manager->objects) {
+  for (auto& overworld : pOverworld_Manager->objects) {
     // Get Overworld
     // create Overworld
     cSave_Overworld* save_overworld = new cSave_Overworld();
@@ -443,7 +443,7 @@ bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
     // Waypoints
     for (auto& object : overworld->m_sprite_manager->objects) {
       // get waypoint
-      cSprite* obj = static_cast<cSprite*>(object);
+      cSprite* obj = object.get();
 
       if (obj->m_type != TYPE_OW_WAYPOINT) {
         continue;

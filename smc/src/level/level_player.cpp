@@ -438,7 +438,7 @@ void cLevel_Player ::Move_Player(float velocity, float vel_wrongway) {
   bool is_col = false;
 
   // check collisions
-  for (auto col_obj : col_list->objects) {
+  for (auto& col_obj : col_list->objects) {
     // massive object is blocking
     if (col_obj->m_obj->m_massive_type == MASS_MASSIVE) {
       is_col = true;
@@ -886,9 +886,8 @@ void cLevel_Player ::Start_Falling(void) {
       Collision_Check_Relative(0.0f, move_y, 0.0f, 0.0f, COLLIDE_ONLY_BLOCKING);
 
   // check possible new ground objects
-  for (cObjectCollision_List::iterator itr = col_list->objects.begin();
-       itr != col_list->objects.end(); ++itr) {
-    cObjectCollision* col_obj = (*itr);
+  for (auto& col_obj_ptr : col_list->objects) {
+    cObjectCollision* col_obj = col_obj_ptr.get();
 
     // blocked by new ground object
     if (col_obj->m_obj != m_ground_object && col_obj->m_obj->m_can_be_ground) {
@@ -1109,9 +1108,8 @@ bool cLevel_Player ::Is_On_Climbable(float move_y /* = 0.0f */) {
       Collision_Check(&climb_rect, COLLIDE_ONLY_INTERNAL);
 
   // check objects
-  for (cObjectCollision_List::iterator itr = col_list->objects.begin();
-       itr != col_list->objects.end(); ++itr) {
-    cObjectCollision* col_obj = (*itr);
+  for (auto& col_obj_ptr : col_list->objects) {
+    cObjectCollision* col_obj = col_obj_ptr.get();
 
     // collision with climbable object
     if (col_obj->m_obj->m_massive_type == MASS_CLIMBABLE) {
@@ -1352,7 +1350,7 @@ void cLevel_Player ::Update_Item(void) {
         (m_direction == DIR_LEFT) ? (-check_x) : (check_x));
 
     // possible objects
-    for (auto col : col_list->objects) {
+    for (auto& col : col_list->objects) {
       // enemy item
       if (col->m_array == ARRAY_ENEMY) {
         if (col->m_obj->m_type == TYPE_TURTLE) {
@@ -2969,7 +2967,7 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
   // Up
   if (key_type == INP_UP) {
     // Search for colliding level exit objects
-    for (auto obj : m_sprite_manager->objects) {
+    for (auto& obj : m_sprite_manager->objects) {
       // skip destroyed objects
       if (obj->m_auto_destroy) {
         continue;
@@ -2981,7 +2979,7 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
 
       // level exit
       if (obj->m_type == TYPE_LEVEL_EXIT) {
-        cLevel_Exit* level_exit = static_cast<cLevel_Exit*>(obj);
+        cLevel_Exit* level_exit = static_cast<cLevel_Exit*>(obj.get());
 
         // beam
         if (level_exit->m_exit_type == LEVEL_EXIT_BEAM) {
@@ -3018,7 +3016,7 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
   // Down
   else if (key_type == INP_DOWN) {
     // Search for colliding level exit objects
-    for (auto obj : m_sprite_manager->objects) {
+    for (auto& obj : m_sprite_manager->objects) {
       // skip destroyed objects
       if (obj->m_auto_destroy) {
         continue;
@@ -3030,7 +3028,7 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
 
       // level exit
       if (obj->m_type == TYPE_LEVEL_EXIT) {
-        cLevel_Exit* level_exit = static_cast<cLevel_Exit*>(obj);
+        cLevel_Exit* level_exit = static_cast<cLevel_Exit*>(obj.get());
 
         // warp
         if (level_exit->m_exit_type == LEVEL_EXIT_WARP) {
@@ -3066,7 +3064,7 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
   // Left
   else if (key_type == INP_LEFT) {
     // Search for colliding level exit objects
-    for (auto obj : m_sprite_manager->objects) {
+    for (auto& obj : m_sprite_manager->objects) {
       // skip destroyed objects
       if (obj->m_auto_destroy) {
         continue;
@@ -3078,7 +3076,7 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
 
       // level exit
       if (obj->m_type == TYPE_LEVEL_EXIT) {
-        cLevel_Exit* level_exit = static_cast<cLevel_Exit*>(obj);
+        cLevel_Exit* level_exit = static_cast<cLevel_Exit*>(obj.get());
 
         // warp
         if (level_exit->m_exit_type == LEVEL_EXIT_WARP) {
@@ -3113,7 +3111,7 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
   // Right
   else if (key_type == INP_RIGHT) {
     // Search for colliding level exit objects
-    for (auto obj : m_sprite_manager->objects) {
+    for (auto& obj : m_sprite_manager->objects) {
       // skip destroyed objects
       if (obj->m_auto_destroy) {
         continue;
@@ -3125,7 +3123,7 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
 
       // level exit
       if (obj->m_type == TYPE_LEVEL_EXIT) {
-        cLevel_Exit* level_exit = static_cast<cLevel_Exit*>(obj);
+        cLevel_Exit* level_exit = static_cast<cLevel_Exit*>(obj.get());
 
         // warp
         if (level_exit->m_exit_type == LEVEL_EXIT_WARP) {
@@ -3392,9 +3390,9 @@ bool cLevel_Player ::Ball_Add(ball_effect effect_type /* = FIREBALL_DEFAULT */,
 
 void cLevel_Player ::Ball_Clear(void) const {
   // destroy all fireballs from the player
-  for (auto obj : m_sprite_manager->objects) {
+  for (auto& obj : m_sprite_manager->objects) {
     if (obj->m_type == TYPE_BALL) {
-      cBall* ball = static_cast<cBall*>(obj);
+      cBall* ball = static_cast<cBall*>(obj.get());
 
       // if from player
       if (ball->m_origin_type == TYPE_PLAYER) {

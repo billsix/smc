@@ -120,9 +120,10 @@ bool cCollidingSprite ::Add_Collision(cObjectCollision* collision,
 
 void cCollidingSprite ::Add_Collisions(cObjectCollisionType* col_list,
                                        bool add_if_new /* = 0 */) {
-  // insert all objects
-  for (auto col : col_list->objects) {
-    Add_Collision(col, add_if_new);
+  // move ownership of each collision out of col_list into m_collisions (a raw-owning list that
+  // frees them itself in Handle_Collisions); release() so the following clear() frees nothing
+  for (auto& col : col_list->objects) {
+    Add_Collision(col.release(), add_if_new);
   }
 
   col_list->objects.clear();
@@ -621,7 +622,7 @@ void cSprite ::Set_Color_Combine(const float red, const float green,
 }
 
 void cSprite ::Update_Rect_Rotation_Z(void) {
-  // rotate 270°
+  // rotate 270ï¿½
   if (m_rot_z >= 270.0f) {
     // rotate collision position
     float orig_x = m_col_pos.m_x;
@@ -642,7 +643,7 @@ void cSprite ::Update_Rect_Rotation_Z(void) {
     m_col_pos.m_x = m_rect.m_w - (m_col_rect.m_w + m_col_pos.m_x);
     m_col_pos.m_y = m_rect.m_h - (m_col_rect.m_h + m_col_pos.m_y);
   }
-  // rotate 90°
+  // rotate 90ï¿½
   else if (m_rot_z >= 0.00001f) {
     // rotate collision position
     float orig_x = m_col_pos.m_x;

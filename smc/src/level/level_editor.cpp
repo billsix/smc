@@ -71,7 +71,7 @@ void cEditor_Level ::Enable(void) {
   // player
   pLevel_Player->Reset_On_Ground();
   // sprite manager
-  for (auto obj : m_sprite_manager->objects) {
+  for (auto& obj : m_sprite_manager->objects) {
     // get object pointer
     // skip destroyed objects
     if (obj->m_auto_destroy) {
@@ -80,7 +80,7 @@ void cEditor_Level ::Enable(void) {
 
     // enemies
     if (obj->m_sprite_array == ARRAY_ENEMY) {
-      cMovingSprite* moving_sprite = static_cast<cMovingSprite*>(obj);
+      cMovingSprite* moving_sprite = static_cast<cMovingSprite*>(obj.get());
 
       moving_sprite->Reset_On_Ground();
     }
@@ -121,7 +121,7 @@ bool cEditor_Level ::Key_Down(SDLKey key) {
     float new_camera_posx = 0.0f;
     float new_camera_posy = 0.0f;
 
-    for (auto obj : m_sprite_manager->objects) {
+    for (auto& obj : m_sprite_manager->objects) {
       if (obj->m_sprite_array != ARRAY_ACTIVE) {
         continue;
       }

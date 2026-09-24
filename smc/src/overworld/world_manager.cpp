@@ -60,7 +60,7 @@ bool cOverworld_Manager ::New(std::string name) {
 
   cOverworld* overworld = new cOverworld();
   overworld->New(name);
-  objects.push_back(overworld);
+  objects.emplace_back(overworld);
 
   return true;
 }
@@ -107,7 +107,7 @@ void cOverworld_Manager ::Load_Dir(const std::string& dir,
         // set user
         overworld->m_description->m_user = user_dir;
 
-        objects.push_back(overworld);
+        objects.emplace_back(overworld);
 
         overworld->Load();
       }
@@ -136,9 +136,9 @@ bool cOverworld_Manager ::Set_Active(cOverworld* world) {
   pOverworld_Player->Reset();
 
   // pre-update animations
-  for (auto obj : world->m_sprite_manager->objects) {
+  for (auto& obj : world->m_sprite_manager->objects) {
     if (obj->m_type == TYPE_PARTICLE_EMITTER) {
-      cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(obj);
+      cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(obj.get());
       emitter->Pre_Update();
     }
   }
@@ -170,9 +170,9 @@ cOverworld* cOverworld_Manager ::Get(const std::string& str) {
 }
 
 cOverworld* cOverworld_Manager ::Get_from_Path(const std::string& path) {
-  for (auto obj : objects) {
+  for (auto& obj : objects) {
     if (obj->m_description->m_path.compare(path) == 0) {
-      return obj;
+      return obj.get();
     }
   }
 
@@ -180,9 +180,9 @@ cOverworld* cOverworld_Manager ::Get_from_Path(const std::string& path) {
 }
 
 cOverworld* cOverworld_Manager ::Get_from_Name(const std::string& name) {
-  for (auto obj : objects) {
+  for (auto& obj : objects) {
     if (obj->m_description->m_name.compare(name) == 0) {
-      return obj;
+      return obj.get();
     }
   }
 
