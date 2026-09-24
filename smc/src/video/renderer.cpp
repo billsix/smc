@@ -619,13 +619,13 @@ void cRenderQueue ::Add(cRender_Request* obj) {
     return;
   }
 
-  // if no type
-  if (obj->m_type == REND_NOTHING) {
-    delete obj;
+  // adopt ownership immediately; a typeless request is then dropped (and freed) on return
+  std::unique_ptr<cRender_Request> request(obj);
+  if (request->m_type == REND_NOTHING) {
     return;
   }
 
-  m_render_data.push_back(obj);
+  m_render_data.push_back(std::move(request));
 }
 
 void cRenderQueue ::Render(bool clear /* = 1 */) {
@@ -634,10 +634,7 @@ void cRenderQueue ::Render(bool clear /* = 1 */) {
   // reset last texture
   last_bind_texture = 0;
 
-  for (RenderList::iterator itr = m_render_data.begin();
-       itr != m_render_data.end(); ++itr) {
-    cRender_Request* obj = (*itr);
-
+  for (auto& obj : m_render_data) {
     obj->Draw();
     obj->m_render_count--;
   }
@@ -649,9 +646,7 @@ void cRenderQueue ::Render(bool clear /* = 1 */) {
 
 void cRenderQueue ::Fake_Render(unsigned int amount /* = 1 */,
                                 bool clear /* = 1 */) {
-  for (RenderList::iterator itr = m_render_data.begin();
-       itr != m_render_data.end(); ++itr) {
-    cRender_Request* obj = (*itr);
+  for (auto& obj : m_render_data) {
     obj->m_render_count -= amount;
   }
 
@@ -661,20 +656,15 @@ void cRenderQueue ::Fake_Render(unsigned int amount /* = 1 */,
 }
 
 void cRenderQueue ::Clear(bool force /* = 1 */) {
-  for (RenderList::iterator itr = m_render_data.begin();
-       itr != m_render_data.end();) {
-    cRender_Request* obj = (*itr);
-
-    // if forced or finished rendering
-    if (force || obj->m_render_count <= 0) {
-      itr = m_render_data.erase(itr);
-      delete obj;
-    }
-    // increment
-    else {
-      ++itr;
-    }
+  // erasing a request frees it (unique_ptr); force clears everything, otherwise drop the finished
+  if (force) {
+    m_render_data.clear();
+    return;
   }
+
+  std::erase_if(m_render_data, [](const std::unique_ptr<cRender_Request>& obj) {
+    return obj->m_render_count <= 0;
+  });
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
