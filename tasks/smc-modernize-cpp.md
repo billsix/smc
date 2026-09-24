@@ -46,10 +46,17 @@ each), NOT autonomous batching. Recommended: build each with AddressSanitizer + 
 for the enum step add a level/save round-trip check, before trusting "done". ---**
 
 - [~] Step 5 — ownership → `unique_ptr` / value (`smc-modernize-step-5-ownership.md`, IN PROGRESS
-  on branch `modernize-cpp-2` off master). Landed as distinct bisectable commits: **5.1** render
-  queue owns its requests via `unique_ptr` (done, `8ac4af3`). Remaining: `cObject_Manager<T>` →
-  `vector<unique_ptr<T>>` + the ~63 read sites; `cSprite_Manager` semantics; `Copy()` → `Clone()`;
-  savegame graph. Deep; the maintainer play-tests the branch at the end and bisects.
+  on branch `modernize-cpp-2` off master). **5.1** render queue owns its requests via `unique_ptr`
+  (done, `8ac4af3`). **Base flip DEFERRED and reordered after step 8**: the recon (in the step-task)
+  found the `cObject_Manager<T>` → `vector<unique_ptr<T>>` conversion is not mechanical — real
+  double-ownership (`cLayer`/`cWorld_Sprite_Manager` vs `cSprite_Manager`), reorder-holding-raw, and
+  move/alias hazards, all atomic because the 12 subclasses share one typed member. Doing step 8's
+  range-for pass first converts the ~95 read-only `->objects` loops (they work with `T*` or
+  `unique_ptr<T>`), shrinking the flip to the hazards. One open design question: make `cLayer`
+  non-owning (recommended).
+
+- **REORDER (2026-09-24):** step 8's range-for is pulled ahead of the step-5 base flip because it
+  de-risks it (see above). Everything else keeps its planned order.
 - [ ] Step 6 — one `cApplication` owning the 24 former singletons (fixes the destruction-order
   hazards + `pFramerate` leak by member-declaration order).
 - [ ] Step 7 — `enum class` + virtual dispatch replacing the type-tag switches. **Entangled with
