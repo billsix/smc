@@ -32,10 +32,13 @@ for the singletons (step 5).
   `entrypoint/01-install-base.sh`. Compiles + **links with no Boost**, and the image builds with
   boost-devel absent. (Left: `Render_Finish` is now an empty no-op with dead call sites; the
   `pRenderer_current` double-buffer is now unused — both minor cleanups for later.)
-- [ ] **Step 4** — safe clang-tidy modernize sweep (`smc-modernize-step-4-safe-clang-tidy-sweep.md`):
-  the remaining behavior-preserving, compiler-enforced `modernize-*` checks (`loop-convert` →
-  range-for, `use-emplace`, `use-equals-default`, `use-equals-delete`, `deprecated-headers`).
-  Last purely-mechanical step; done autonomously like steps 1–2.
+- [x] **Step 4** — safe clang-tidy modernize sweep
+  (`tasks/archive/2026/09/24/smc-modernize-step-4-safe-clang-tidy-sweep.md`, DONE 2026-09-24):
+  `modernize-use-emplace` (247) + `modernize-use-equals-default` (37, dtor/default-ctor only);
+  34 files, +354/−385; compiles+links clean, image builds, smoke green. `use-equals-default`'s 4
+  copy/assign conversions (botched `GL_point` ctor; 3 hand-written `operator=`) reverted by the
+  codemod → reviewed pass. `loop-convert` excluded (names range-for locals after the container →
+  `m_`-prefixed locals) → moved to step 8. Warnings unchanged (4496). Last purely-mechanical step.
 
 **--- the steps below are architectural/behavioral rewrites; their real gate is GAMEPLAY, which the
 30s headless smoke run cannot certify. They are staged for a maintainer-reviewed pass (play-test
