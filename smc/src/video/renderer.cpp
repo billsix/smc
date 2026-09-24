@@ -634,9 +634,9 @@ void cRenderQueue ::Render(bool clear /* = 1 */) {
   // reset last texture
   last_bind_texture = 0;
 
-  for (auto& obj : m_render_data) {
-    obj->Draw();
-    obj->m_render_count--;
+  for (auto& request : m_render_data) {
+    request->Draw();
+    request->m_render_count--;
   }
 
   if (clear) {
@@ -646,8 +646,8 @@ void cRenderQueue ::Render(bool clear /* = 1 */) {
 
 void cRenderQueue ::Fake_Render(unsigned int amount /* = 1 */,
                                 bool clear /* = 1 */) {
-  for (auto& obj : m_render_data) {
-    obj->m_render_count -= amount;
+  for (auto& request : m_render_data) {
+    request->m_render_count -= amount;
   }
 
   if (clear) {

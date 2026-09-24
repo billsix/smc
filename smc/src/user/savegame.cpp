@@ -58,8 +58,8 @@ cSave_Level_Object ::cSave_Level_Object(void) { m_type = TYPE_UNDEFINED; }
 cSave_Level_Object ::~cSave_Level_Object(void) { m_properties.clear(); }
 
 bool cSave_Level_Object ::exists(const std::string& val_name) {
-  for (auto& propertie : m_properties) {
-    cSave_Level_Object_Property obj = propertie;
+  for (auto& property : m_properties) {
+    cSave_Level_Object_Property obj = property;
 
     if (obj.m_name.compare(val_name) == 0) {
       // found
@@ -72,8 +72,8 @@ bool cSave_Level_Object ::exists(const std::string& val_name) {
 }
 
 std::string cSave_Level_Object ::Get_Value(const std::string& val_name) {
-  for (auto& propertie : m_properties) {
-    cSave_Level_Object_Property obj = propertie;
+  for (auto& property : m_properties) {
+    cSave_Level_Object_Property obj = property;
 
     if (obj.m_name.compare(val_name) == 0) {
       // found
@@ -366,20 +366,20 @@ bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
       }
 
       // spawned objects
-      for (auto& obj : level->m_sprite_manager->objects) {
+      for (auto& sprite : level->m_sprite_manager->objects) {
         // if spawned and active
-        if (!obj->m_spawned || obj->m_auto_destroy) {
+        if (!sprite->m_spawned || sprite->m_auto_destroy) {
           continue;
         }
 
         // add (Copy() already returns an owning unique_ptr)
-        save_level->m_spawned_objects.push_back(obj->Copy());
+        save_level->m_spawned_objects.push_back(sprite->Copy());
       }
 
       // save object status
-      for (auto& obj : level->m_sprite_manager->objects) {
+      for (auto& sprite : level->m_sprite_manager->objects) {
         // get save data
-        cSave_Level_Object* save_obj = obj->Save_To_Savegame();
+        cSave_Level_Object* save_obj = sprite->Save_To_Savegame();
 
         // nothing to save
         if (!save_obj) {
@@ -408,9 +408,9 @@ bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
     save_overworld->m_name = overworld->m_description->m_name;
 
     // Waypoints
-    for (auto& object : overworld->m_sprite_manager->objects) {
+    for (auto& sprite : overworld->m_sprite_manager->objects) {
       // get waypoint
-      cSprite* obj = object.get();
+      cSprite* obj = sprite.get();
 
       if (obj->m_type != TYPE_OW_WAYPOINT) {
         continue;
@@ -551,8 +551,8 @@ int cSavegame ::Save(unsigned int save_slot, cSave* savegame) {
     // begin
     stream.openTag("spawned_objects");
 
-    for (auto& obj : level->m_spawned_objects) {
-      obj->Save_To_XML(stream);
+    for (auto& sprite : level->m_spawned_objects) {
+      sprite->Save_To_XML(stream);
     }
 
     // end spawned_objects
@@ -561,16 +561,16 @@ int cSavegame ::Save(unsigned int save_slot, cSave* savegame) {
     // begin
     stream.openTag("objects_data");
 
-    for (auto& obj : level->m_level_objects) {
+    for (auto& save_object : level->m_level_objects) {
       // begin
       stream.openTag("object");
 
       // type
-      Write_Property(stream, "type", obj->m_type);
+      Write_Property(stream, "type", save_object->m_type);
 
       // Properties
-      for (auto& propertie : obj->m_properties) {
-        cSave_Level_Object_Property Property = propertie;
+      for (auto& property : save_object->m_properties) {
+        cSave_Level_Object_Property Property = property;
         Write_Property(stream, Property.m_name, Property.m_value);
       }
 
@@ -846,8 +846,8 @@ void cSavegame_XML_Handler ::Handle_Level_Object(
   }
 
   // remove used properties
-  for (auto& propertie : object->m_properties) {
-    cSave_Level_Object_Property Property = propertie;
+  for (auto& property : object->m_properties) {
+    cSave_Level_Object_Property Property = property;
 
     m_xml_attributes.remove(Property.m_name);
   }

@@ -65,10 +65,10 @@ void cImage_Manager ::Add(cGL_Surface* obj) {
 }
 
 cGL_Surface* cImage_Manager ::Get_Pointer(const std::string& path) const {
-  for (auto& obj : objects) {
+  for (auto& surface : objects) {
     // return first match
-    if (obj->m_filename.compare(path) == 0) {
-      return obj.get();
+    if (surface->m_filename.compare(path) == 0) {
+      return surface.get();
     }
   }
 
@@ -94,18 +94,18 @@ void cImage_Manager ::Grab_Textures(bool from_file /* = 0 */,
   unsigned int file_count = objects.size();
 
   // save all textures
-  for (auto& obj : objects) {
+  for (auto& surface : objects) {
     // get surface
     // skip surfaces with an already deleted texture
-    if (!glIsTexture(obj->m_image)) {
+    if (!glIsTexture(surface->m_image)) {
       continue;
     }
 
     // get software texture and save it to software memory
-    m_saved_textures.push_back(obj->Get_Software_Texture(from_file));
+    m_saved_textures.push_back(surface->Get_Software_Texture(from_file));
     // delete hardware texture
-    if (glIsTexture(obj->m_image)) {
-      glDeleteTextures(1, &obj->m_image);
+    if (glIsTexture(surface->m_image)) {
+      glDeleteTextures(1, &surface->m_image);
     }
 
     // count files
@@ -163,10 +163,10 @@ void cImage_Manager ::Restore_Textures(bool draw_gui /* = 0 */) {
 }
 
 void cImage_Manager ::Delete_Image_Textures(void) {
-  for (auto& obj : objects) {
+  for (auto& surface : objects) {
     // get object
-    if (obj->m_auto_del_img && glIsTexture(obj->m_image)) {
-      glDeleteTextures(1, &obj->m_image);
+    if (surface->m_auto_del_img && glIsTexture(surface->m_image)) {
+      glDeleteTextures(1, &surface->m_image);
     }
   }
 }

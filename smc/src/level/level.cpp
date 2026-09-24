@@ -196,8 +196,8 @@ bool cLevel ::Load(std::string filename) {
   /* late initialization
 	 * needed to create links to other objects
 	*/
-  for (auto& obj : m_sprite_manager->objects) {
-    obj->Init_Links();
+  for (auto& sprite : m_sprite_manager->objects) {
+    sprite->Init_Links();
   }
 
   m_level_filename = filename;
@@ -325,8 +325,8 @@ void cLevel ::Save(void) {
   stream.closeTag();
 
   // backgrounds
-  for (auto& object : m_background_manager->objects) {
-    object->Save_To_XML(stream);
+  for (auto& background : m_background_manager->objects) {
+    background->Save_To_XML(stream);
   }
 
   // begin
@@ -343,14 +343,14 @@ void cLevel ::Save(void) {
   stream.closeTag();
 
   // objects
-  for (auto& obj : m_sprite_manager->objects) {
+  for (auto& sprite : m_sprite_manager->objects) {
     // skip spawned and destroyed objects
-    if (obj->m_spawned || obj->m_auto_destroy) {
+    if (sprite->m_spawned || sprite->m_auto_destroy) {
       continue;
     }
 
     // save to file stream
-    obj->Save_To_XML(stream);
+    sprite->Save_To_XML(stream);
   }
 
   // end level
@@ -405,9 +405,9 @@ void cLevel ::Init(void) {
   pLevel_Player->Reset();
 
   // pre-update animations
-  for (auto& obj : m_sprite_manager->objects) {
-    if (obj->m_type == TYPE_PARTICLE_EMITTER) {
-      cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(obj.get());
+  for (auto& sprite : m_sprite_manager->objects) {
+    if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
+      cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(sprite.get());
       emitter->Pre_Update();
     }
   }
@@ -523,8 +523,8 @@ void cLevel ::Update(void) {
   // if level-editor is not active
   if (!editor_level_enabled) {
     // backgrounds
-    for (auto& object : m_background_manager->objects) {
-      object->Update();
+    for (auto& background : m_background_manager->objects) {
+      background->Update();
     }
 
     // objects
@@ -535,9 +535,9 @@ void cLevel ::Update(void) {
   // if level-editor enabled
   else {
     // only update particle emitters
-    for (auto& obj : m_sprite_manager->objects) {
-      if (obj->m_type == TYPE_PARTICLE_EMITTER) {
-        obj->Update();
+    for (auto& sprite : m_sprite_manager->objects) {
+      if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
+        sprite->Update();
       }
     }
   }
@@ -554,8 +554,8 @@ void cLevel ::Update_Late(void) {
 void cLevel ::Draw_Layer_1(LevelDrawType type /* = LVL_DRAW */) {
   // with background
   if (type != LVL_DRAW_NO_BG) {
-    for (auto& object : m_background_manager->objects) {
-      object->Draw();
+    for (auto& background : m_background_manager->objects) {
+      background->Draw();
     }
   }
 
@@ -926,12 +926,12 @@ cLevel_Entry* cLevel ::Get_Entry(const std::string& name) {
   }
 
   // Search for entry
-  for (auto& obj : m_sprite_manager->objects) {
-    if (obj->m_type != TYPE_LEVEL_ENTRY || obj->m_auto_destroy) {
+  for (auto& sprite : m_sprite_manager->objects) {
+    if (sprite->m_type != TYPE_LEVEL_ENTRY || sprite->m_auto_destroy) {
       continue;
     }
 
-    cLevel_Entry* level_entry = static_cast<cLevel_Entry*>(obj.get());
+    cLevel_Entry* level_entry = static_cast<cLevel_Entry*>(sprite.get());
 
     // found
     if (level_entry->m_entry_name.compare(name) == 0) {

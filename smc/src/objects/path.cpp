@@ -112,12 +112,12 @@ cPath* cPath_State ::Get_Path_Object(const std::string& identifier) {
   }
 
   // Search for path
-  for (auto& obj : m_sprite_manager->objects) {
-    if (obj->m_type != TYPE_PATH || obj->m_auto_destroy) {
+  for (auto& sprite : m_sprite_manager->objects) {
+    if (sprite->m_type != TYPE_PATH || sprite->m_auto_destroy) {
       continue;
     }
 
-    cPath* path = static_cast<cPath*>(obj.get());
+    cPath* path = static_cast<cPath*>(sprite.get());
 
     // found
     if (path->m_identifier.compare(identifier) == 0) {
@@ -523,13 +523,13 @@ void cPath ::Set_Identifier(const std::string& identifier) {
   /* search for linked objects
 	 * needed to update the links
 	*/
-  for (auto& obj : pActive_Level->m_sprite_manager->objects) {
-    if (obj->m_auto_destroy) {
+  for (auto& sprite : pActive_Level->m_sprite_manager->objects) {
+    if (sprite->m_auto_destroy) {
       continue;
     }
 
-    if (obj->m_type == TYPE_STATIC_ENEMY) {
-      cStaticEnemy* static_enemy = static_cast<cStaticEnemy*>(obj.get());
+    if (sprite->m_type == TYPE_STATIC_ENEMY) {
+      cStaticEnemy* static_enemy = static_cast<cStaticEnemy*>(sprite.get());
 
       // found
       if (static_enemy->m_path_state.m_path_identifier.compare(m_identifier) ==
@@ -538,9 +538,9 @@ void cPath ::Set_Identifier(const std::string& identifier) {
         static_enemy->Init_Links();
         //static_enemy->m_path_state.Set_Path_Identifier( m_identifier );
       }
-    } else if (obj->m_type == TYPE_MOVING_PLATFORM) {
+    } else if (sprite->m_type == TYPE_MOVING_PLATFORM) {
       cMoving_Platform* moving_platform =
-          static_cast<cMoving_Platform*>(obj.get());
+          static_cast<cMoving_Platform*>(sprite.get());
 
       // found
       if (moving_platform->m_path_state.m_path_identifier.compare(
@@ -563,10 +563,10 @@ void cPath ::Set_Rewind(bool rewind) {
 
   m_rewind = rewind;
 
-  for (auto obj : m_linked_path_states) {
+  for (auto path_state : m_linked_path_states) {
     // reset backwards moving
-    if (!obj->m_forward) {
-      obj->Move_From_Segment(obj->m_current_segment);
+    if (!path_state->m_forward) {
+      path_state->Move_From_Segment(path_state->m_current_segment);
     }
   }
 }
@@ -596,8 +596,8 @@ void cPath ::Remove_Link(cPath_State* path_state) {
 }
 
 void cPath ::Remove_Links(void) {
-  for (auto obj : m_linked_path_states) {
-    obj->Path_Destroyed_Event();
+  for (auto path_state : m_linked_path_states) {
+    path_state->Path_Destroyed_Event();
   }
 }
 
@@ -938,13 +938,13 @@ bool cPath ::Editor_Button_Delete_Segment_Clicked(
 
   m_segments.erase(m_segments.begin() + m_editor_selected_segment);
 
-  for (auto obj : m_linked_path_states) {
-    if (m_editor_selected_segment == obj->m_current_segment) {
-      if (obj->m_current_segment > 0) {
-        obj->m_current_segment--;
+  for (auto path_state : m_linked_path_states) {
+    if (m_editor_selected_segment == path_state->m_current_segment) {
+      if (path_state->m_current_segment > 0) {
+        path_state->m_current_segment--;
       }
 
-      obj->Move_From_Segment(obj->m_current_segment);
+      path_state->Move_From_Segment(path_state->m_current_segment);
     }
   }
 
@@ -1011,9 +1011,9 @@ bool cPath ::Editor_Pos_Y2_Text_Changed(const CEGUI::EventArgs& event) {
 }
 
 void cPath ::Editor_Segment_Pos_Changed(void) {
-  for (auto obj : m_linked_path_states) {
-    if (m_editor_selected_segment == obj->m_current_segment) {
-      obj->Move_From_Segment(m_editor_selected_segment);
+  for (auto path_state : m_linked_path_states) {
+    if (m_editor_selected_segment == path_state->m_current_segment) {
+      path_state->Move_From_Segment(m_editor_selected_segment);
     }
   }
 }

@@ -179,15 +179,15 @@ void cHud_Manager ::Update_Text(void) {
 
 void cHud_Manager ::Update(void) {
   // update HUD objects
-  for (auto& object : objects) {
-    object->Update();
+  for (auto& hud_sprite : objects) {
+    hud_sprite->Update();
   }
 }
 
 void cHud_Manager ::Draw(void) {
   // draw HUD objects
-  for (auto& object : objects) {
-    object->Draw();
+  for (auto& hud_sprite : objects) {
+    hud_sprite->Draw();
   }
 }
 
@@ -195,8 +195,8 @@ void cHud_Manager ::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
   m_sprite_manager = sprite_manager;
 
   // update HUD objects
-  for (auto& object : objects) {
-    object->Set_Sprite_Manager(m_sprite_manager);
+  for (auto& hud_sprite : objects) {
+    hud_sprite->Set_Sprite_Manager(m_sprite_manager);
   }
 }
 
@@ -410,10 +410,10 @@ void cPlayerPoints ::Add_Points(
   new_obj->m_points = points;
 
   // check if it collides with an already active points text
-  for (auto obj : m_points_objects) {
+  for (auto points_text : m_points_objects) {
     // get object pointer
-    if (new_obj->m_rect.Intersects(obj->m_col_rect)) {
-      new_obj->Move(obj->m_col_rect.m_w + 5, 0, true);
+    if (new_obj->m_rect.Intersects(points_text->m_col_rect)) {
+      new_obj->Move(points_text->m_col_rect.m_w + 5, 0, true);
     }
   }
 
@@ -1028,9 +1028,9 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
     // Halfmassive
     unsigned int halfmassive = 0;
 
-    for (auto& obj : m_sprite_manager->objects) {
+    for (auto& sprite : m_sprite_manager->objects) {
       // get object pointer
-      if (obj->m_type == TYPE_HALFMASSIVE) {
+      if (sprite->m_type == TYPE_HALFMASSIVE) {
         halfmassive++;
       }
     }
@@ -1043,9 +1043,9 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
     // Moving Platform
     unsigned int moving_platform = 0;
 
-    for (auto& obj : m_sprite_manager->objects) {
+    for (auto& sprite : m_sprite_manager->objects) {
       // get object pointer
-      if (obj->m_type == TYPE_MOVING_PLATFORM) {
+      if (sprite->m_type == TYPE_MOVING_PLATFORM) {
         moving_platform++;
       }
     }
@@ -1058,10 +1058,10 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
     // Goldbox
     unsigned int goldbox = 0;
 
-    for (auto& obj : m_sprite_manager->objects) {
+    for (auto& sprite : m_sprite_manager->objects) {
       // get object pointer
-      if (obj->m_type == TYPE_BONUS_BOX) {
-        const cBonusBox* bonusbox = static_cast<const cBonusBox*>(obj.get());
+      if (sprite->m_type == TYPE_BONUS_BOX) {
+        const cBonusBox* bonusbox = static_cast<const cBonusBox*>(sprite.get());
 
         if (bonusbox->box_type == TYPE_GOLDPIECE) {
           goldbox++;
@@ -1077,10 +1077,10 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
     // Bonusbox
     unsigned int bonusbox_count = 0;
 
-    for (auto& obj : m_sprite_manager->objects) {
+    for (auto& sprite : m_sprite_manager->objects) {
       // get object pointer
-      if (obj->m_type == TYPE_BONUS_BOX) {
-        const cBonusBox* bonusbox = static_cast<const cBonusBox*>(obj.get());
+      if (sprite->m_type == TYPE_BONUS_BOX) {
+        const cBonusBox* bonusbox = static_cast<const cBonusBox*>(sprite.get());
 
         if (bonusbox->box_type != TYPE_GOLDPIECE) {
           bonusbox_count++;

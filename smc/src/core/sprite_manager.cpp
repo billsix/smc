@@ -44,10 +44,10 @@ void cSprite_Manager ::Add(cSprite* sprite) {
   Set_Pos_Z(sprite);
 
   // Check if an destroyed object can be replaced
-  for (auto& object : objects) {
+  for (auto& slot : objects) {
     // if destroy is set, reuse the slot (reset frees the old sprite and adopts the new)
-    if (object->m_auto_destroy) {
-      object.reset(sprite);
+    if (slot->m_auto_destroy) {
+      slot.reset(sprite);
       return;
     }
   }
@@ -154,9 +154,9 @@ void cSprite_Manager ::Move_To_Back(cSprite* sprite) {
 void cSprite_Manager ::Delete_All(bool delayed /* = 0 */) {
   // delayed
   if (delayed) {
-    for (auto& obj : objects) {
-      // get object pointer
-      obj->Destroy();
+    for (auto& sprite : objects) {
+      // get sprite pointer
+      sprite->Destroy();
     }
   }
   // instant
@@ -185,10 +185,10 @@ void cSprite_Manager ::Delete_All(bool delayed /* = 0 */) {
 cSprite* cSprite_Manager ::Get_First(const SpriteType type) const {
   cSprite* first = nullptr;
 
-  for (const auto& obj_ptr : objects) {
-    cSprite* obj = obj_ptr.get();
-    if (obj->m_type == type && (!first || obj->m_pos_z < first->m_pos_z)) {
-      first = obj;
+  for (const auto& sprite_ptr : objects) {
+    cSprite* sprite = sprite_ptr.get();
+    if (sprite->m_type == type && (!first || sprite->m_pos_z < first->m_pos_z)) {
+      first = sprite;
     }
   }
 
@@ -199,10 +199,10 @@ cSprite* cSprite_Manager ::Get_First(const SpriteType type) const {
 cSprite* cSprite_Manager ::Get_Last(const SpriteType type) const {
   cSprite* last = nullptr;
 
-  for (const auto& obj_ptr : objects) {
-    cSprite* obj = obj_ptr.get();
-    if (obj->m_type == type && (!last || obj->m_pos_z > last->m_pos_z)) {
-      last = obj;
+  for (const auto& sprite_ptr : objects) {
+    cSprite* sprite = sprite_ptr.get();
+    if (sprite->m_type == type && (!last || sprite->m_pos_z > last->m_pos_z)) {
+      last = sprite;
     }
   }
 
@@ -214,31 +214,31 @@ cSprite* cSprite_Manager ::Get_from_Position(
     int start_pos_x, int start_pos_y,
     const SpriteType type /* = TYPE_UNDEFINED */,
     int check_pos /* = 0 */) const {
-  for (const auto& obj_ptr : objects) {
-    cSprite* obj = obj_ptr.get();
-    if (static_cast<int>(obj->m_start_pos_x) != start_pos_x ||
-        static_cast<int>(obj->m_start_pos_y) != start_pos_y) {
-      if (check_pos != 2 || (static_cast<int>(obj->m_pos_x) != start_pos_x &&
-                             static_cast<int>(obj->m_pos_y) != start_pos_y)) {
+  for (const auto& sprite_ptr : objects) {
+    cSprite* sprite = sprite_ptr.get();
+    if (static_cast<int>(sprite->m_start_pos_x) != start_pos_x ||
+        static_cast<int>(sprite->m_start_pos_y) != start_pos_y) {
+      if (check_pos != 2 || (static_cast<int>(sprite->m_pos_x) != start_pos_x &&
+                             static_cast<int>(sprite->m_pos_y) != start_pos_y)) {
         continue;
       }
     }
 
-    if (check_pos == 1 && (static_cast<int>(obj->m_pos_x) != start_pos_x ||
-                           static_cast<int>(obj->m_pos_y) != start_pos_y)) {
+    if (check_pos == 1 && (static_cast<int>(sprite->m_pos_x) != start_pos_x ||
+                           static_cast<int>(sprite->m_pos_y) != start_pos_y)) {
       continue;
     }
 
     // if type is given
     if (type != TYPE_UNDEFINED) {
       // skip invalid type
-      if (obj->m_type != type) {
+      if (sprite->m_type != type) {
         continue;
       }
     }
 
     // found
-    return obj;
+    return sprite;
   }
 
   return nullptr;
@@ -250,8 +250,8 @@ void cSprite_Manager ::Get_Objects_sorted(cSprite_List& new_objects,
   // copy the borrowed pointers (the manager keeps ownership via unique_ptr)
   new_objects.clear();
   new_objects.reserve(objects.size());
-  for (const auto& obj_ptr : objects) {
-    new_objects.push_back(obj_ptr.get());
+  for (const auto& sprite_ptr : objects) {
+    new_objects.push_back(sprite_ptr.get());
   }
 
   if (with_player) {
@@ -272,19 +272,19 @@ void cSprite_Manager ::Get_Colliding_Objects(
     cSprite_List& col_objects, const GL_rect& rect, bool with_player /* = 0 */,
     const cSprite* exclude_sprite /* = NULL */) const {
   // Check objects
-  for (const auto& obj_ptr : objects) {
-    cSprite* obj = obj_ptr.get();
-    // if destroyed object
-    if (obj == exclude_sprite || obj->m_auto_destroy) {
+  for (const auto& sprite_ptr : objects) {
+    cSprite* sprite = sprite_ptr.get();
+    // if destroyed sprite
+    if (sprite == exclude_sprite || sprite->m_auto_destroy) {
       continue;
     }
 
     // if rects don't touch
-    if (!rect.Intersects(obj->m_col_rect)) {
+    if (!rect.Intersects(sprite->m_col_rect)) {
       continue;
     }
 
-    col_objects.push_back(obj);
+    col_objects.push_back(sprite);
   }
 
   if (with_player && pActive_Player != exclude_sprite) {
@@ -295,30 +295,30 @@ void cSprite_Manager ::Get_Colliding_Objects(
 }
 
 void cSprite_Manager ::Handle_Collision_Items(void) {
-  for (const auto& obj_ptr : objects) {
-    cSprite* obj = obj_ptr.get();
-    if (obj->m_auto_destroy) {
-      if (obj->m_collisions.size()) {
-        debug_print("Collision with a destroyed object (%s)\n",
-                    obj->m_name.c_str());
-        obj->Clear_Collisions();
+  for (const auto& sprite_ptr : objects) {
+    cSprite* sprite = sprite_ptr.get();
+    if (sprite->m_auto_destroy) {
+      if (sprite->m_collisions.size()) {
+        debug_print("Collision with a destroyed sprite (%s)\n",
+                    sprite->m_name.c_str());
+        sprite->Clear_Collisions();
       }
 
       continue;
     }
 
     // collision and movement handling
-    obj->Collide_Move();
+    sprite->Collide_Move();
     // handle found collisions
-    obj->Handle_Collisions();
+    sprite->Handle_Collisions();
   }
 }
 
 unsigned int cSprite_Manager ::Get_Size_Array(const ArrayType sprite_array) {
   unsigned int count = 0;
 
-  for (const auto& object : objects) {
-    if (object->m_sprite_array == sprite_array) {
+  for (const auto& sprite : objects) {
+    if (sprite->m_sprite_array == sprite_array) {
       count++;
     }
   }

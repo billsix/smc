@@ -71,16 +71,16 @@ void cEditor_Level ::Enable(void) {
   // player
   pLevel_Player->Reset_On_Ground();
   // sprite manager
-  for (auto& obj : m_sprite_manager->objects) {
+  for (auto& sprite : m_sprite_manager->objects) {
     // get object pointer
     // skip destroyed objects
-    if (obj->m_auto_destroy) {
+    if (sprite->m_auto_destroy) {
       continue;
     }
 
     // enemies
-    if (obj->m_sprite_array == ARRAY_ENEMY) {
-      cMovingSprite* moving_sprite = static_cast<cMovingSprite*>(obj.get());
+    if (sprite->m_sprite_array == ARRAY_ENEMY) {
+      cMovingSprite* moving_sprite = static_cast<cMovingSprite*>(sprite.get());
 
       moving_sprite->Reset_On_Ground();
     }
@@ -121,14 +121,14 @@ bool cEditor_Level ::Key_Down(SDLKey key) {
     float new_camera_posx = 0.0f;
     float new_camera_posy = 0.0f;
 
-    for (auto& obj : m_sprite_manager->objects) {
-      if (obj->m_sprite_array != ARRAY_ACTIVE) {
+    for (auto& sprite : m_sprite_manager->objects) {
+      if (sprite->m_sprite_array != ARRAY_ACTIVE) {
         continue;
       }
 
-      if (obj->m_type == TYPE_LEVEL_EXIT && new_camera_posx < obj->m_pos_x) {
-        new_camera_posx = obj->m_pos_x;
-        new_camera_posy = obj->m_pos_y;
+      if (sprite->m_type == TYPE_LEVEL_EXIT && new_camera_posx < sprite->m_pos_x) {
+        new_camera_posx = sprite->m_pos_x;
+        new_camera_posy = sprite->m_pos_y;
       }
     }
 

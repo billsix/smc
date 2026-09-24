@@ -373,12 +373,12 @@ void cBonusBox ::Draw(cSurface_Request* request /* = NULL */) {
     return;
   }
 
-  for (auto obj : m_active_items) {
-    if (!obj->m_active) {
+  for (auto item : m_active_items) {
+    if (!item->m_active) {
       continue;
     }
 
-    obj->Draw();
+    item->Draw();
   }
 
   cBaseBox::Draw(request);

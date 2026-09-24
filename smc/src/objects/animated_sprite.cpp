@@ -127,8 +127,8 @@ void cAnimated_Sprite ::Update_Animation(void) {
 
 void cAnimated_Sprite ::Set_Time_All(const Uint32 time,
                                      const bool default_time /* = 0 */) {
-  for (auto& obj : m_images) {
-    obj.m_time = time;
+  for (auto& image : m_images) {
+    image.m_time = time;
   }
 
   if (default_time) {
