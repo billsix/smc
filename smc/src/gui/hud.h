@@ -29,7 +29,7 @@ class cHudSprite : public cSprite {
   ~cHudSprite(void) override;
 
   // copy this sprite
-  cHudSprite* Copy(void) const override;
+  std::unique_ptr<cSprite> Copy(void) const override;
 };
 
 /* *** *** *** *** *** *** *** cHud_Manager *** *** *** *** *** *** *** *** *** *** */

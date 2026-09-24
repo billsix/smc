@@ -4,6 +4,13 @@ Cross-cutting synthesis over `core/main.cpp`, `core/obj_manager.h`, `core/sprite
 every subsystem's manager. Provenance: commit `d438165`. Baseline: a game that predates smart
 pointers — every owner is a raw pointer or a `vector<T*>`, freed by hand.
 
+> **SUPERSEDED by the `modernize-cpp-3` branch (2026-09-24), not yet merged.** The ownership model
+> below is the PRE-modernization state. On that branch it is now `unique_ptr`: `cObject_Manager<T>`
+> holds `vector<unique_ptr<T>>`, the render queue / sprite clones / savegame graph own via
+> `unique_ptr`, and the 24 singletons are owned by a `cApplication` as `unique_ptr` members (the
+> `pFramerate` leak is fixed). What each part became, and why, is in
+> `tasks/reference/refactoring-to-modern-cpp.md`. Re-sync this doc when the branch merges.
+
 ## L1 — the mental model
 
 There are **24 process-global singletons**, each an `extern cX *pX` declared in its subsystem

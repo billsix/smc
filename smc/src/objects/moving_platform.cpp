@@ -102,7 +102,7 @@ void cMoving_Platform ::Init_Links(void) {
   m_path_state.Set_Path_Identifier(m_path_state.m_path_identifier);
 }
 
-cMoving_Platform* cMoving_Platform ::Copy(void) const {
+std::unique_ptr<cSprite> cMoving_Platform ::Copy(void) const {
   cMoving_Platform* moving_platform = new cMoving_Platform(m_sprite_manager);
   moving_platform->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   moving_platform->Set_Move_Type(m_move_type);
@@ -118,7 +118,7 @@ cMoving_Platform* cMoving_Platform ::Copy(void) const {
   moving_platform->Set_Image_Top_Left(m_images[0].m_image);
   moving_platform->Set_Image_Top_Middle(m_images[1].m_image);
   moving_platform->Set_Image_Top_Right(m_images[2].m_image);
-  return moving_platform;
+  return std::unique_ptr<cSprite>(moving_platform);
 }
 
 void cMoving_Platform ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

@@ -40,7 +40,7 @@ class cGoldpiece : public cAnimated_Sprite {
   void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // copy
-  cGoldpiece* Copy(void) const override;
+  std::unique_ptr<cSprite> Copy(void) const override;
 
   // load from savegame
   void Load_From_Savegame(cSave_Level_Object* save_object) override;

@@ -1,11 +1,18 @@
 # Modernize the game's C++ to the newest standard, replacing the old patterns with the features made for them
 
-**Status:** IN PROGRESS (umbrella) — started 2026-09-24 on branch `modernize-cpp` (off
-`pre-modernization-fixes`), William Emerison Six <billsix@gmail.com>: "start on the C++ upgrades,
-make a branch, work on your own with the same workflow ... commit yourself, archive a task, repeat".
-This is now the **umbrella**; each Plan step below is its own step-task (`smc-modernize-step-N-*.md`),
-done → committed → archived in turn. Decisions settled: **C++23**, and **one application object**
-for the singletons (step 5).
+**Status:** COMPLETE / archived 2026-09-24 (William Emerison Six <billsix@gmail.com>). The
+safe, high-value modernization is done on branch `modernize-cpp-3` (steps 0-6, step 8 loops +
+`sprintf`→`snprintf`, step 10 reference doc), play-test-verified through the first levels. The
+remaining plan items were deliberately DEFERRED by cost/risk, each spun into its own standalone
+task: `smc-modernize-step-7-enums-dispatch.md`, `smc-modernize-step-9-dedup-cegui.md`, and
+`smc-modernize-step-8-strings-input.md`. The worked-example write-up is
+`tasks/reference/refactoring-to-modern-cpp.md`. Descriptive-variable renames
+(`smc-descriptive-variable-names.md`) come after the maintainer merges `modernize-cpp-3` to master.
+
+Started 2026-09-24 on branch `modernize-cpp` (off `pre-modernization-fixes`): "start on the C++
+upgrades, make a branch, work on your own with the same workflow ... commit yourself, archive a
+task, repeat". Umbrella; each Plan step was its own step-task. Decisions settled: **C++23**, and
+**one application object** for the singletons.
 
 ## Step-task index (archive each on completion; archive this umbrella when the last lands)
 
@@ -40,32 +47,66 @@ for the singletons (step 5).
   codemod → reviewed pass. `loop-convert` excluded (names range-for locals after the container →
   `m_`-prefixed locals) → moved to step 8. Warnings unchanged (4496). Last purely-mechanical step.
 
-**--- the steps below are architectural/behavioral rewrites; their real gate is GAMEPLAY, which the
-30s headless smoke run cannot certify. They are staged for a maintainer-reviewed pass (play-test
-each), NOT autonomous batching. Recommended: build each with AddressSanitizer + run the smoke, and
-for the enum step add a level/save round-trip check, before trusting "done". ---**
+**--- WORKFLOW (maintainer, 2026-09-24): distinct single-purpose commits; the maintainer
+play-tests + bisects the whole branch at the END, not per commit. So autonomous batching IS the
+method; each commit must build + link + pass the headless smoke on its own. Descriptive-variable
+names (`tasks/smc-descriptive-variable-names.md`) come AFTER all cpp modernization. ---**
 
-- [~] Step 5 — ownership → `unique_ptr` / value (`smc-modernize-step-5-ownership.md`, IN PROGRESS
-  on branch `modernize-cpp-2` off master). **5.1** render queue owns its requests via `unique_ptr`
-  (done, `8ac4af3`). **Base flip DEFERRED and reordered after step 8**: the recon (in the step-task)
-  found the `cObject_Manager<T>` → `vector<unique_ptr<T>>` conversion is not mechanical — real
-  double-ownership (`cLayer`/`cWorld_Sprite_Manager` vs `cSprite_Manager`), reorder-holding-raw, and
-  move/alias hazards, all atomic because the 12 subclasses share one typed member. Doing step 8's
-  range-for pass first converts the ~95 read-only `->objects` loops (they work with `T*` or
-  `unique_ptr<T>`), shrinking the flip to the hazards. One open design question: make `cLayer`
-  non-owning (recommended).
+- [~] Step 5 — ownership → `unique_ptr` / value (`smc-modernize-step-5-ownership.md`). Branches:
+  5.1+8+5.2a+5.2/5.3 were on `modernize-cpp-2` (MERGED to master); 5.4+ on `modernize-cpp-3`.
+  - [x] **5.1** render queue owns requests via `unique_ptr`.
+  - [x] **5.2a** `cLayer` un-derived (non-owning; removed the double-ownership blocker).
+  - [x] **5.2/5.3** `cObject_Manager<T>` → `vector<unique_ptr<T>>` across all 12 managers +
+    `cSprite_Manager` semantics + collision lambdas/move-transfers (a runtime double-free was
+    caught by smoke+gdb and fixed).
+  - [x] **5.4** `Copy()` returns `std::unique_ptr<cSprite>` (34 methods).
+  - [x] **5.5** savegame graph → `unique_ptr` (`566ba74`): the `cSave_*` owning lists + the two
+    spawned-sprite lists; parser→struct handoffs via `swap`/`release`. Builds + smoke green (smoke
+    doesn't load a save; save/load correctness is for the play-test).
+  - [~] **5.6** remaining owning `new`/`delete` → `make_unique`: the managers/render-queue/Copy/
+    savegame owning new/delete are all done; the leftover raw owning `new`s are the 24 singletons
+    (that IS step 6) plus the transient `new` inside `Copy()` bodies (wrapped at return — an
+    optional `make_unique` polish, low value). Treated as subsumed by step 6.
+  - **STEP 5 (ownership migration) COMPLETE on `modernize-cpp-3`** (unmerged; commits `63564af`
+    `566ba74` + the earlier merged ones). Managers, render queue, sprite clones, and the savegame
+    graph all own via `unique_ptr`; no hand-`delete` in those paths; the two dead cObject_Manager
+    bugs gone by construction.
+- [~] Step 8 — loops DONE (MERGED, ~252 → range-for). **Strings:** the 3 `sprintf` in `hud.cpp` →
+  `snprintf` with `sizeof` (buffer-overflow safety; `std::format` was rejected — the format strings
+  come from gettext `_()` as printf-style `%08d`, so `std::format` would break the translation
+  catalogs). `int_to_string`/`ostringstream` → `std::to_string`/`std::format` left UNDONE
+  deliberately: ~277 sites of low-value churn and the gettext printf issue. **Input:** the
+  once-per-frame `PlayerInput` struct is behavioral (26 poll sites) — deferred as risky.
+- [x] **Step 6 — `cApplication` owns the 24 singletons via `unique_ptr`** (main.cpp; branch
+  `modernize-cpp-3`). A `cApplication` holds all 24 as `unique_ptr` members; `Init_Game` creates
+  each into a member and sets the `extern cX* pX` global as a borrowed alias (so the thousands of
+  `pX->` sites are untouched); `Exit_Game` `reset()`s them **in the original teardown order**
+  (preserved deliberately — reverse-declaration auto-teardown is smoke-invisible and left as a
+  follow-up) and the `pFramerate` that used to LEAK is now freed (`~cFramerate` is self-contained).
+  Builds + links; startup verified by smoke. **Teardown is not smoke-verified** (the smoke SIGKILLs,
+  skipping `Exit_Game`); it is preserved-order plus one new safe free, so risk is minimal — the
+  maintainer's quit-the-game play-test is the teardown gate.
+- **Step 7 — `enum class` + virtual dispatch: DEFERRED to its own task**
+  (`smc-modernize-step-7-enums-dispatch.md`), parked at the maintainer's call (2026-09-24: skip
+  enums for now). Recon done there (~860-edit enum-class churn; ~17 file-format-serialized enums;
+  high-risk dispatch rewrite). Not in the current run; resume on request.
+- [~] Step 9 — enemy dedup + CEGUI event lambdas (`smc-modernize-step-9-dedup-cegui.md`, ASSESSED,
+  deferred). **9a enemy dedup** is a real behavioral refactor (cTurtle/cTurtleBoss share method
+  *names* but the boss has extra state/logic + a different state enum — not a clean fold); best in
+  small per-method play-testable commits. **9b CEGUI lambdas** (~216 sites, fire-and-forget → stored
+  connections) is high-churn/modest-value like the enums → defer. Parked for a deliberate pass.
+- [x] **Step 10 — the `refactoring-to-modern-cpp.md` reference doc** (`tasks/reference/refactoring-
+  to-modern-cpp.md`): a per-pattern worked example of the whole modernization (setup, mechanical
+  sweeps, Boost drop, the ownership migration + the double-free lesson, the cApplication, the
+  snprintf win) AND an honest "deliberately not done" section (enum class, dispatch, dedup, CEGUI
+  lambdas, int_to_string, #define). This is the deliverable the original goal asked for.
 
-- **REORDER (2026-09-24):** step 8's range-for is pulled ahead of the step-5 base flip because it
-  de-risks it (see above). Everything else keeps its planned order.
-- [ ] Step 6 — one `cApplication` owning the 24 former singletons (fixes the destruction-order
-  hazards + `pFramerate` leak by member-declaration order).
-- [ ] Step 7 — `enum class` + virtual dispatch replacing the type-tag switches. **Entangled with
-  the level/save FILE FORMAT** (the enum ints are serialized) — keep a serialization boundary and
-  round-trip test; smoke does not load user levels.
-- [ ] Step 8 — loops/strings/input (the residue clang-tidy left in step 4; `std::format`; the
-  once-per-frame `PlayerInput` struct — the input change is behavioral, needs play-test).
-- [ ] Step 9 — CEGUI event lambdas + enemy dedup (`cWalkingEnemy` base).
-- [ ] Step 10 — the `refactoring-to-modern-cpp.md` reference doc (write last, after the steps land).
+**STATUS (2026-09-24):** the mechanically-safe and ownership modernization is DONE on
+`modernize-cpp-3` (steps 0-6, 8-loops, 8-sprintf, 10) — play-test-verified through the first levels.
+The remaining plan items are all deferred by cost/risk: step 7 (enum class + dispatch), step 9
+(enemy dedup + CEGUI lambdas), and the step-8 residue (int_to_string churn, input struct) — each
+parked in its own task with the reasoning. `tasks/smc-descriptive-variable-names.md` is the agreed
+LAST item once the maintainer calls the cpp modernization done.
 **Priority:** 4 · **Difficulty:** 8 (77 `.cpp` / 85 `.h`, a 6-deep sprite hierarchy dispatched by
 type tags, 35 global raw pointers; each step must keep the game playable)
 **Depends on:** the container build (done: `tasks/archive/2026/09/23/smc-container-build.md`); `make

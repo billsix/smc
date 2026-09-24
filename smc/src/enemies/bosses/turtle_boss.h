@@ -48,7 +48,7 @@ class cTurtleBoss : public cEnemy {
   void Init(void) override;
 
   // copy
-  cTurtleBoss* Copy(void) const override;
+  std::unique_ptr<cSprite> Copy(void) const override;
 
   // load from stream
   void Load_From_XML(CEGUI::XMLAttributes& attributes) override;

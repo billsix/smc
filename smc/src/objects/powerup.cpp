@@ -212,11 +212,11 @@ void cMushroom ::Init(void) {
   m_glim_mod = true;
 }
 
-cMushroom* cMushroom ::Copy(void) const {
+std::unique_ptr<cSprite> cMushroom ::Copy(void) const {
   cMushroom* mushroom = new cMushroom(m_sprite_manager);
   mushroom->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   mushroom->Set_Type(m_type);
-  return mushroom;
+  return std::unique_ptr<cSprite>(mushroom);
 }
 
 void cMushroom ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -478,10 +478,10 @@ void cFirePlant ::Init(void) {
   m_particle_counter = 0.0f;
 }
 
-cFirePlant* cFirePlant ::Copy(void) const {
+std::unique_ptr<cSprite> cFirePlant ::Copy(void) const {
   cFirePlant* fireplant = new cFirePlant(m_sprite_manager);
   fireplant->Set_Pos(m_start_pos_x, m_start_pos_y, true);
-  return fireplant;
+  return std::unique_ptr<cSprite>(fireplant);
 }
 
 void cFirePlant ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -617,10 +617,10 @@ void cMoon ::Init(void) {
   m_particle_counter = 0.0f;
 }
 
-cMoon* cMoon ::Copy(void) const {
+std::unique_ptr<cSprite> cMoon ::Copy(void) const {
   cMoon* moon = new cMoon(m_sprite_manager);
   moon->Set_Pos(m_start_pos_x, m_start_pos_y);
-  return moon;
+  return std::unique_ptr<cSprite>(moon);
 }
 
 void cMoon ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

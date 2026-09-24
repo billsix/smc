@@ -1,6 +1,6 @@
 # Modernize step 8 (pulled ahead) — iterator loops → range-for
 
-**Status:** in-progress — branch `modernize-cpp-2`, William Emerison Six <billsix@gmail.com>,
+**Status:** DONE (loops = range-for, merged) — William Emerison Six <billsix@gmail.com>,
 2026-09-24
 **Priority:** 4 · **Difficulty:** 4
 **Part of:** `smc-modernize-cpp.md` (umbrella step 8, loops/strings/input — this task is the LOOPS

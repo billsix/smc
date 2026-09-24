@@ -54,11 +54,11 @@ void cGoldpiece ::Init(void) {
   Set_Gold_Color(COL_YELLOW);
 }
 
-cGoldpiece* cGoldpiece ::Copy(void) const {
+std::unique_ptr<cSprite> cGoldpiece ::Copy(void) const {
   cGoldpiece* goldpiece = new cGoldpiece(m_sprite_manager);
   goldpiece->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   goldpiece->Set_Gold_Color(m_color_type);
-  return goldpiece;
+  return std::unique_ptr<cSprite>(goldpiece);
 }
 
 void cGoldpiece ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

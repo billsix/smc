@@ -65,12 +65,12 @@ void cText_Box ::Init(void) {
   Create_Name();
 }
 
-cText_Box* cText_Box ::Copy(void) const {
+std::unique_ptr<cSprite> cText_Box ::Copy(void) const {
   cText_Box* text_box = new cText_Box(m_sprite_manager);
   text_box->Set_Pos(m_start_pos_x, m_start_pos_y);
   text_box->Set_Text(m_text);
   text_box->Set_Invisible(m_box_invisible);
-  return text_box;
+  return std::unique_ptr<cSprite>(text_box);
 }
 
 void cText_Box ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

@@ -74,7 +74,7 @@ void cWaypoint ::Init(void) {
   Set_Image(pVideo->Get_Surface("world/waypoint/default_1.png"));
 }
 
-cWaypoint* cWaypoint ::Copy(void) const {
+std::unique_ptr<cSprite> cWaypoint ::Copy(void) const {
   cWaypoint* waypoint = new cWaypoint(m_sprite_manager);
   waypoint->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   waypoint->Set_Image(m_start_image, true);
@@ -83,7 +83,7 @@ cWaypoint* cWaypoint ::Copy(void) const {
   waypoint->Set_Direction_Forward(m_direction_forward);
   waypoint->Set_Direction_Backward(m_direction_backward);
   waypoint->Set_Access(m_access_default, true);
-  return waypoint;
+  return std::unique_ptr<cSprite>(waypoint);
 }
 
 void cWaypoint ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

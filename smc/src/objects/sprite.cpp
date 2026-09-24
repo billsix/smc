@@ -354,7 +354,7 @@ void cSprite ::Init(void) {
   m_editor_window_name_width = 0.0f;
 }
 
-cSprite* cSprite ::Copy(void) const {
+std::unique_ptr<cSprite> cSprite ::Copy(void) const {
   cSprite* basic_sprite = new cSprite(m_sprite_manager);
   basic_sprite->Set_Image(m_start_image, true);
   basic_sprite->Set_Pos(m_start_pos_x, m_start_pos_y, true);
@@ -370,7 +370,7 @@ cSprite* cSprite ::Copy(void) const {
   basic_sprite->Set_Shadow_Pos(m_shadow_pos);
   basic_sprite->Set_Shadow_Color(m_shadow_color);
   basic_sprite->Set_Spawned(m_spawned);
-  return basic_sprite;
+  return std::unique_ptr<cSprite>(basic_sprite);
 }
 
 void cSprite ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

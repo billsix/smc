@@ -55,12 +55,12 @@ void cSpinBox ::Init(void) {
   Create_Name();
 }
 
-cSpinBox* cSpinBox ::Copy(void) const {
+std::unique_ptr<cSprite> cSpinBox ::Copy(void) const {
   cSpinBox* spinbox = new cSpinBox(m_sprite_manager);
   spinbox->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   spinbox->Set_Invisible(m_box_invisible);
   spinbox->Set_Useable_Count(m_start_useable_count, true);
-  return spinbox;
+  return std::unique_ptr<cSprite>(spinbox);
 }
 
 void cSpinBox ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

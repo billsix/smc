@@ -24,12 +24,17 @@ release dates, tagged `v<version>`), then the 211 commits of github.com/FluXy/SM
   (`README.md` is the map — a live/dead ledger plus six cross-cutting docs and ten subsystem docs).
   Read it before working on a subsystem; it holds what owns what, the type-tag dispatch, and the
   known bugs. The three ideas it opens with: identity is a runtime `m_type` tag (not the C++ type),
-  there are 24 hand-ordered global singletons, and there are zero `override` keywords.
+  there are 24 hand-ordered global singletons, and there are zero `override` keywords. (The last two
+  describe the pre-modernization code; the `modernize-cpp-3` branch replaced the singletons with a
+  `cApplication` owning them as `unique_ptr` members and added `override` throughout — see
+  `tasks/reference/refactoring-to-modern-cpp.md`.)
 - **`smc/src` is clang-format google style** (`smc/smc/.clang-format`; `make format` maintains it).
   The whole-tree reformat commit is listed in `.git-blame-ignore-revs`, so run
   `git config blame.ignoreRevsFile .git-blame-ignore-revs` once per clone and `git blame` skips it
-  to the real author (GitHub does this automatically). The modernization task
-  (`tasks/smc-modernize-cpp.md`, proposed) is where wholesale style changes belong.
+  to the real author (GitHub does this automatically). The C++ modernization is DONE on the
+  `modernize-cpp-3` branch (umbrella archived at `tasks/archive/2026/09/24/smc-modernize-cpp.md`;
+  worked example in `tasks/reference/refactoring-to-modern-cpp.md`); its deferred pieces live in
+  `tasks/smc-modernize-step-{7-enums-dispatch,8-strings-input,9-dedup-cegui}.md`.
 - **Do not rewrite `master` casually** — but note it *will* be rewritten once more if the six
   missing SourceForge releases (or the CVS) turn up: `tasks/smc-history-import.md`.
 - Layout follows the maintainer's conventions: `tasks/` (task docs), `tasks/reference/` (durable

@@ -1,6 +1,6 @@
 # Modernize step 5 — ownership: raw owning pointers → `unique_ptr` / value
 
-**Status:** in-progress — branch `modernize-cpp-2` (off `master`), William Emerison Six
+**Status:** DONE 2026-09-24 (ownership migration complete; merged/on modernize-cpp-3) — William Emerison Six
 <billsix@gmail.com>, 2026-09-24
 **Priority:** 4 · **Difficulty:** 8
 **Part of:** `smc-modernize-cpp.md` (umbrella step 5)
@@ -57,8 +57,26 @@ two `cObject_Manager` bugs are gone by construction. Grounded in
     frees it) AND `clear()` freed it too. Fix: `col.release()` — transfer ownership. **Lesson: a
     container-to-container move that relied on a raw `vector::clear()` NOT freeing must become an
     explicit `release()`/`move` when the source becomes owning.** (harness: `debug_doublefree.sh`.)
-- [ ] 5.4 `Copy()` → `unique_ptr<cSprite> Clone() const override` across the sprite hierarchy.
-- [ ] 5.5 Savegame pointer graph → values / `unique_ptr`.
+- [x] **5.4 `Copy()` returns `std::unique_ptr<cSprite>`** (branch `modernize-cpp-3` off the merged
+  master; 69 files). The 34 cSprite-hierarchy `Copy()` signatures (impl + decl) rewritten by
+  `fix_copy_clone.py` (excludes `cGL_Surface`, a texture not a sprite); each body's `return <var>;`
+  wrapped by `fix_copy_returns.py` (`return std::unique_ptr<cSprite>(var)`) — the local stays raw so
+  no body use breaks, and the `new` is owned by the returned `unique_ptr` the instant it returns.
+  The ~10 call sites `.release()` into the raw-adopting `Add`/save vectors (ownership flow
+  unchanged). Kept the name `Copy` (rename to `Clone` is cosmetic and would collide with the
+  descriptive-names task). Builds + smoke green. (A `make_unique` polish inside the bodies is
+  optional follow-up; ownership is already expressed by the return type.)
+- [x] **5.5 Savegame graph → `unique_ptr`** (savegame.{h,cpp}). The owning save lists
+  (`Save_LevelList`, `Save_OverworldList`, `Save_Level_ObjectList`, `Save_Overworld_WaypointList`)
+  and the two spawned-sprite lists became `vector<unique_ptr<…>>`; destructors → `= default`;
+  `new cSave_*` → `make_unique` + `std::move` into the vectors; the parser→struct handoffs use
+  `swap` (both are unique_ptr vectors now) and the spawned-objects load `release()`s each into the
+  level's sprite manager. Builds + links; smoke green (smoke doesn't load a save, so save/load
+  correctness is for the maintainer's play-test). NOTE: the shared `cSprite_List` alias stayed raw
+  (it's a non-owning view elsewhere); the save's owning spawn lists use `vector<unique_ptr<cSprite>>`
+  directly. **Nested-podman op note:** the RAM store (32G tmpfs) hit 100% from this session's many
+  image rebuilds and wedged podman (prune couldn't write); recovered with
+  `rm -rf /var/lib/containers/storage` (it's ephemeral) → full rebuild.
 - [ ] 5.6 Remaining owning `new`/`delete` in the touched areas → `make_unique`.
 - [x] **Harvest learnings DONE (2026-09-24):** wrote `cpp-ownership-migration.md` (new) + extended
   `print-debugging.md` (compiler-as-oracle for a type migration) + a pointer in

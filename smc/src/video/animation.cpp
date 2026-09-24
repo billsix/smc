@@ -502,7 +502,7 @@ void cParticle_Emitter ::Init(void) {
   m_emitter_living_time = 0.0f;
 }
 
-cParticle_Emitter* cParticle_Emitter ::Copy(void) const {
+std::unique_ptr<cSprite> cParticle_Emitter ::Copy(void) const {
   cParticle_Emitter* particle_animation =
       new cParticle_Emitter(m_sprite_manager);
   particle_animation->Set_Based_On_Camera_Pos(m_emitter_based_on_camera_pos);
@@ -533,7 +533,7 @@ cParticle_Emitter* cParticle_Emitter ::Copy(void) const {
   particle_animation->Set_Spawned(m_spawned);
   particle_animation->Set_Clip_Rect(m_clip_rect);
   particle_animation->Set_Clip_Mode(m_clip_mode);
-  return particle_animation;
+  return std::unique_ptr<cSprite>(particle_animation);
 }
 
 void cParticle_Emitter ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

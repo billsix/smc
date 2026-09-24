@@ -39,7 +39,8 @@ class cSave_Overworld_Waypoint {
   bool m_access;
 };
 
-using Save_Overworld_WaypointList = vector<cSave_Overworld_Waypoint*>;
+using Save_Overworld_WaypointList =
+    vector<std::unique_ptr<cSave_Overworld_Waypoint>>;
 
 /* *** *** *** *** *** *** *** cSave_Overworld *** *** *** *** *** *** *** *** *** *** */
 // Overworld save data
@@ -54,7 +55,7 @@ class cSave_Overworld {
   Save_Overworld_WaypointList m_waypoints;
 };
 
-using Save_OverworldList = vector<cSave_Overworld*>;
+using Save_OverworldList = vector<std::unique_ptr<cSave_Overworld>>;
 
 /* *** *** *** *** *** *** *** cSave_Level_Object_Property *** *** *** *** *** *** *** *** *** *** */
 // Level object string property
@@ -88,7 +89,7 @@ class cSave_Level_Object {
   Save_Level_Object_ProprtyList m_properties;
 };
 
-using Save_Level_ObjectList = vector<cSave_Level_Object*>;
+using Save_Level_ObjectList = vector<std::unique_ptr<cSave_Level_Object>>;
 
 /* *** *** *** *** *** *** *** cSave_Level *** *** *** *** *** *** *** *** *** *** */
 // Level save data
@@ -104,11 +105,11 @@ class cSave_Level {
 
   // objects data
   Save_Level_ObjectList m_level_objects;
-  // spawned objects
-  cSprite_List m_spawned_objects;
+  // spawned objects (owned: freed with this save-level)
+  vector<std::unique_ptr<cSprite>> m_spawned_objects;
 };
 
-using Save_LevelList = vector<cSave_Level*>;
+using Save_LevelList = vector<std::unique_ptr<cSave_Level>>;
 
 /* *** *** *** *** *** *** *** cSave *** *** *** *** *** *** *** *** *** *** */
 class cSave {
@@ -233,8 +234,8 @@ class cSavegame_XML_Handler : public CEGUI::XMLHandler {
   Save_Overworld_WaypointList m_active_waypoints;
   // level objects for parsing
   Save_Level_ObjectList m_level_objects;
-  // level spawned objects for parsing
-  cSprite_List m_level_spawned_objects;
+  // level spawned objects for parsing (owned until moved into the cSave_Level)
+  vector<std::unique_ptr<cSprite>> m_level_spawned_objects;
 
   // object we are constructing
   cSave* m_savegame;

@@ -35,7 +35,7 @@ class cThromp : public cEnemy {
   // init defaults
   void Init(void) override;
   // copy
-  cThromp* Copy(void) const override;
+  std::unique_ptr<cSprite> Copy(void) const override;
 
   // load from stream
   void Load_From_XML(CEGUI::XMLAttributes& attributes) override;

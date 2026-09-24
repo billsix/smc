@@ -43,7 +43,7 @@ cHudSprite ::cHudSprite(cSprite_Manager* sprite_manager)
 
 cHudSprite ::~cHudSprite(void) = default;
 
-cHudSprite* cHudSprite ::Copy(void) const {
+std::unique_ptr<cSprite> cHudSprite ::Copy(void) const {
   cHudSprite* hud_sprite = new cHudSprite(m_sprite_manager);
   hud_sprite->Set_Image(m_start_image);
   hud_sprite->Set_Pos(m_start_pos_x, m_start_pos_y, true);
@@ -53,7 +53,7 @@ cHudSprite* cHudSprite ::Copy(void) const {
   hud_sprite->Set_Ignore_Camera(m_no_camera);
   hud_sprite->Set_Shadow_Pos(m_shadow_pos);
   hud_sprite->Set_Shadow_Color(m_shadow_color);
-  return hud_sprite;
+  return std::unique_ptr<cSprite>(hud_sprite);
 }
 
 /* *** *** *** *** *** *** *** cHud_Manager *** *** *** *** *** *** *** *** *** *** */
@@ -374,7 +374,8 @@ void cPlayerPoints ::Set_Points(long points) {
   pLevel_Player->m_points = points;
 
   char text[70];
-  sprintf(text, _("Points %08d"), static_cast<int>(pLevel_Player->m_points));
+  snprintf(text, sizeof(text), _("Points %08d"),
+           static_cast<int>(pLevel_Player->m_points));
   Set_Image(pFont->Render_Text(pFont->m_font_normal, text, white), false, true);
 }
 
@@ -564,7 +565,8 @@ void cTimeDisplay ::Update(void) {
   const Uint32 minutes = seconds / 60;
 
   // Set new time
-  sprintf(m_text, _("Time %02d:%02d"), minutes, seconds - (minutes * 60));
+  snprintf(m_text, sizeof(m_text), _("Time %02d:%02d"), minutes,
+           seconds - (minutes * 60));
   Set_Image(pFont->Render_Text(pFont->m_font_normal, m_text, white), false,
             true);
 }
@@ -578,7 +580,7 @@ void cTimeDisplay ::Draw(cSurface_Request* request /* = NULL */) {
 }
 
 void cTimeDisplay ::Reset(void) {
-  sprintf(m_text, "Time");
+  snprintf(m_text, sizeof(m_text), "Time");
   m_last_update_seconds = 1000;
   m_milliseconds = 0;
 }

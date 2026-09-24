@@ -63,12 +63,12 @@ void cSpikeball ::Init(void) {
   Set_Direction(DIR_RIGHT);
 }
 
-cSpikeball* cSpikeball ::Copy(void) const {
+std::unique_ptr<cSprite> cSpikeball ::Copy(void) const {
   cSpikeball* spikeball = new cSpikeball(m_sprite_manager);
   spikeball->Set_Pos(m_start_pos_x, m_start_pos_y);
   spikeball->Set_Color(m_color_type);
   spikeball->Set_Direction(m_start_direction);
-  return spikeball;
+  return std::unique_ptr<cSprite>(spikeball);
 }
 
 void cSpikeball ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

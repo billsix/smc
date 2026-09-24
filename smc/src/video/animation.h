@@ -168,7 +168,7 @@ class cParticle_Emitter : public cAnimation {
   // Init
   void Init(void) override;
   // copy
-  cParticle_Emitter* Copy(void) const override;
+  std::unique_ptr<cSprite> Copy(void) const override;
 
   // load from stream
   void Load_From_XML(CEGUI::XMLAttributes& attributes) override;

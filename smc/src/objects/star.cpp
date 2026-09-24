@@ -58,10 +58,10 @@ void cjStar ::Init(void) {
   m_name = _("Star");
 }
 
-cjStar* cjStar ::Copy(void) const {
+std::unique_ptr<cSprite> cjStar ::Copy(void) const {
   cjStar* star = new cjStar(m_sprite_manager);
   star->Set_Pos(m_start_pos_x, m_start_pos_y, true);
-  return star;
+  return std::unique_ptr<cSprite>(star);
 }
 
 void cjStar ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

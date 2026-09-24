@@ -67,7 +67,7 @@ void cStaticEnemy ::Init_Links(void) {
   m_path_state.Set_Path_Identifier(m_path_state.m_path_identifier);
 }
 
-cStaticEnemy* cStaticEnemy ::Copy(void) const {
+std::unique_ptr<cSprite> cStaticEnemy ::Copy(void) const {
   cStaticEnemy* static_enemy = new cStaticEnemy(m_sprite_manager);
   static_enemy->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   static_enemy->Set_Static_Image(m_img_filename);
@@ -76,7 +76,7 @@ cStaticEnemy* cStaticEnemy ::Copy(void) const {
   static_enemy->Set_Speed(m_speed);
   static_enemy->m_fire_resistant = m_fire_resistant;
   static_enemy->m_ice_resistance = m_ice_resistance;
-  return static_enemy;
+  return std::unique_ptr<cSprite>(static_enemy);
 }
 
 void cStaticEnemy ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

@@ -20,6 +20,7 @@
 #include "../core/math/rect.h"
 #include "../video/video.h"
 #include "../core/collision.h"
+#include <memory>
 // CEGUI
 #include "CEGUIXMLSerializer.h"
 
@@ -118,8 +119,8 @@ class cSprite : public cCollidingSprite {
 	 * this needs linked objects to be already loaded
 	*/
   virtual void Init_Links(void) {};
-  // copy this sprite
-  virtual cSprite* Copy(void) const;
+  // copy this sprite (the caller owns the clone)
+  virtual std::unique_ptr<cSprite> Copy(void) const;
 
   // load from stream
   virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
@@ -197,7 +198,7 @@ class cSprite : public cCollidingSprite {
                          const GLint com_type);
 
   /* Set if rotation affects the collision rect
-	 * only supports 90° steps currently
+	 * only supports 90ï¿½ steps currently
 	 * if enabled col_pos, col_rect and rect must be reset manually before changing rotation
 	*/
   inline void Set_Rotation_Affects_Rect(bool enable = false) {

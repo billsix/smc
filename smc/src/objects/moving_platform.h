@@ -63,7 +63,7 @@ class cMoving_Platform : public cAnimated_Sprite {
 	*/
   void Init_Links(void) override;
   // copy
-  cMoving_Platform* Copy(void) const override;
+  std::unique_ptr<cSprite> Copy(void) const override;
 
   // load from stream
   void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
