@@ -60,7 +60,12 @@ two `cObject_Manager` bugs are gone by construction. Grounded in
 - [ ] 5.4 `Copy()` → `unique_ptr<cSprite> Clone() const override` across the sprite hierarchy.
 - [ ] 5.5 Savegame pointer graph → values / `unique_ptr`.
 - [ ] 5.6 Remaining owning `new`/`delete` in the touched areas → `make_unique`.
-- [ ] **Harvest learnings to `~/.claude/reference/` (cross-project, per the maintainer 2026-09-24):**
+- [x] **Harvest learnings DONE (2026-09-24):** wrote `cpp-ownership-migration.md` (new) + extended
+  `print-debugging.md` (compiler-as-oracle for a type migration) + a pointer in
+  `code-style-conventions.md` in `runClaudeInContainer/tasks/reference/`, and mirrored the two docs
+  into `runCrushInContainer/tasks/reference/`. Staged in both repos (not committed — the maintainer
+  commits those). Original note:
+- [ ] **(reference) Harvest learnings to `~/.claude/reference/` (cross-project):**
   the "compiler as oracle" method for a large type migration (flip the shared type, fix the base +
   known hazards, then build-iterate on what the compiler flags — the refactor analogue of the
   instrumentation-driven / "tool as oracle" lesson in `print-debugging.md`); the mechanical-vs-
