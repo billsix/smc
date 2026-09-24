@@ -53,11 +53,17 @@ names (`tasks/smc-descriptive-variable-names.md`) come AFTER all cpp modernizati
     `cSprite_Manager` semantics + collision lambdas/move-transfers (a runtime double-free was
     caught by smoke+gdb and fixed).
   - [x] **5.4** `Copy()` returns `std::unique_ptr<cSprite>` (34 methods).
-  - [ ] **5.5** savegame graph (`cSave_*` owning lists + `m_spawned_objects`) → `unique_ptr`. NOTE:
-    the save structures' raw ownership is CORRECT today (destructors free them) — this is
-    cleanliness, not a bug fix; has parser→struct ownership transfers (use `release`/move).
-  - [ ] **5.6** remaining owning `new`/`delete` in touched areas → `make_unique` (incl. the
-    `make_unique` polish inside the `Copy()` bodies).
+  - [x] **5.5** savegame graph → `unique_ptr` (`566ba74`): the `cSave_*` owning lists + the two
+    spawned-sprite lists; parser→struct handoffs via `swap`/`release`. Builds + smoke green (smoke
+    doesn't load a save; save/load correctness is for the play-test).
+  - [~] **5.6** remaining owning `new`/`delete` → `make_unique`: the managers/render-queue/Copy/
+    savegame owning new/delete are all done; the leftover raw owning `new`s are the 24 singletons
+    (that IS step 6) plus the transient `new` inside `Copy()` bodies (wrapped at return — an
+    optional `make_unique` polish, low value). Treated as subsumed by step 6.
+  - **STEP 5 (ownership migration) COMPLETE on `modernize-cpp-3`** (unmerged; commits `63564af`
+    `566ba74` + the earlier merged ones). Managers, render queue, sprite clones, and the savegame
+    graph all own via `unique_ptr`; no hand-`delete` in those paths; the two dead cObject_Manager
+    bugs gone by construction.
 - [x] Step 8 (loops) — ~252 iterator loops → range-for (MERGED). Remaining under step 8:
   `std::format` for `int_to_string`/`ostringstream`/`sprintf`, and the once-per-frame `PlayerInput`
   struct (behavioral).
