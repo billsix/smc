@@ -67,7 +67,7 @@ cLevel ::cLevel(void) {
   // settings
   Reset_Settings();
 
-  m_delayed_unload = 0;
+  m_delayed_unload = false;
 
   m_sprite_manager = new cSprite_Manager();
   m_background_manager = new cBackground_Manager();
@@ -100,7 +100,7 @@ bool cLevel ::New(std::string filename) {
     unsigned int i = 1;
 
     // search for a not existing file
-    while (1) {
+    while (true) {
       // set name
       filename = pResource_Manager->user_data_dir + USER_LEVEL_DIR + "/new_" +
                  int_to_string(i) + ".smclvl";
@@ -114,7 +114,7 @@ bool cLevel ::New(std::string filename) {
 
       // stop on 99
       if (i > 99) {
-        return 0;
+        return false;
       }
 
       ifs.close();
@@ -143,12 +143,12 @@ bool cLevel ::New(std::string filename) {
     m_level_filename = filename;
     m_engine_version = level_engine_version;
 
-    return 1;
+    return true;
   }
 
   // level already exists
   ifs.close();
-  return 0;
+  return false;
 }
 
 bool cLevel ::Load(std::string filename) {
@@ -156,8 +156,9 @@ bool cLevel ::Load(std::string filename) {
 
   if (!pLevel_Manager->Get_Path(filename)) {
     // show error without directory and file type
-    printf("Couldn't load level : %s\n", Trim_Filename(filename, 0, 0).c_str());
-    return 0;
+    printf("Couldn't load level : %s\n",
+           Trim_Filename(filename, false, false).c_str());
+    return false;
   }
 
   Unload();
@@ -182,14 +183,14 @@ bool cLevel ::Load(std::string filename) {
              ex.getMessage().c_str());
       pHud_Debug->Set_Text(_("Loading Level failed : ") +
                            (const std::string)ex.getMessage().c_str());
-      return 0;
+      return false;
     }
   }
   // old level format
   else {
     pHud_Debug->Set_Text(_("Unsupported Level format : ") +
                          (const std::string)filename.c_str());
-    return 0;
+    return false;
   }
 
   /* late initialization
@@ -209,15 +210,15 @@ bool cLevel ::Load(std::string filename) {
     m_engine_version = 0;
   }
 
-  return 1;
+  return true;
 }
 
 void cLevel ::Unload(bool delayed /* = 0 */) {
   if (delayed) {
-    m_delayed_unload = 1;
+    m_delayed_unload = true;
     return;
   } else {
-    m_delayed_unload = 0;
+    m_delayed_unload = false;
   }
 
   // not loaded
@@ -236,7 +237,7 @@ void cLevel ::Unload(bool delayed /* = 0 */) {
 
   // reset music
   m_musicfile.clear();
-  m_valid_music = 0;
+  m_valid_music = false;
 
   m_author.clear();
   m_version.clear();
@@ -261,7 +262,7 @@ void cLevel ::Save(void) {
   if (m_level_filename.find(pResource_Manager->user_data_dir + USER_LEVEL_DIR +
                             "/") == std::string::npos) {
     // erase old directory
-    m_level_filename = Trim_Filename(m_level_filename, 0, 1);
+    m_level_filename = Trim_Filename(m_level_filename, false, true);
     // set user directory
     m_level_filename.insert(
         0, pResource_Manager->user_data_dir + USER_LEVEL_DIR + "/");
@@ -297,7 +298,7 @@ void cLevel ::Save(void) {
   // engine version
   Write_Property(stream, "engine_version", level_engine_version);
   // time ( seconds since 1970 )
-  Write_Property(stream, "save_time", static_cast<Uint64>(time(NULL)));
+  Write_Property(stream, "save_time", static_cast<Uint64>(time(nullptr)));
   // end information
   stream.closeTag();
 
@@ -364,7 +365,8 @@ void cLevel ::Save(void) {
   stream.closeTag();
 
   file.close();
-  pHud_Debug->Set_Text(_("Level ") + Trim_Filename(m_level_filename, 0, 0) +
+  pHud_Debug->Set_Text(_("Level ") +
+                       Trim_Filename(m_level_filename, false, false) +
                        _(" saved"));
 }
 
@@ -404,9 +406,9 @@ void cLevel ::Init(void) {
   }
 
   // player position
-  pLevel_Player->Set_Pos(m_player_start_pos_x, m_player_start_pos_y, 1);
+  pLevel_Player->Set_Pos(m_player_start_pos_x, m_player_start_pos_y, true);
   // player direction
-  pLevel_Player->Set_Direction(m_player_start_direction, 1);
+  pLevel_Player->Set_Direction(m_player_start_direction, true);
   // player reset
   pLevel_Player->Reset();
 
@@ -458,7 +460,7 @@ void cLevel ::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
   if (pLevel_Editor->m_enabled) {
     if (!pLevel_Editor->m_editor_window->isVisible()) {
       pLevel_Editor->m_editor_window->show();
-      pMouseCursor->Set_Active(1);
+      pMouseCursor->Set_Active(true);
     }
   }
 
@@ -471,8 +473,8 @@ void cLevel ::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
 
   // play music
   if (m_valid_music) {
-    if (pAudio->m_music_filename.compare(Get_Music_Filename(2, 1)) != 0) {
-      pAudio->Play_Music(m_musicfile, -1, 0, 1000);
+    if (pAudio->m_music_filename.compare(Get_Music_Filename(2, true)) != 0) {
+      pAudio->Play_Music(m_musicfile, -1, false, 1000);
     }
   } else if (pAudio->m_music_enabled) {
     printf("Warning : Music file not found %s\n",
@@ -497,7 +499,7 @@ void cLevel ::Leave(const GameMode next_mode /* = MODE_NOTHING */) {
   pLevel_Manager->m_camera->m_fixed_hor_vel = 0.0f;
 
   // reset mouse
-  pMouseCursor->Reset(0);
+  pMouseCursor->Reset(false);
 
   // level to level
   if (next_mode == MODE_LEVEL) {
@@ -634,7 +636,7 @@ void cLevel ::Process_Input(void) {
 bool cLevel ::Key_Down(const SDLKey key) {
   // debug key F2
   if (key == SDLK_F2 && game_debug && !editor_level_enabled) {
-    pLevel_Player->Set_Type(MARYO_CAPE, 0);
+    pLevel_Player->Set_Type(MARYO_CAPE, false);
   }
   // special key F3
   else if (key == SDLK_F3 && !editor_level_enabled) {
@@ -652,7 +654,7 @@ bool cLevel ::Key_Down(const SDLKey key) {
     anim->Set_Quota(200);
     anim->Set_Image(pVideo->Get_Surface("animation/particles/star.png"));
     anim->Set_Time_to_Live(3, 3);
-    anim->Set_Fading_Alpha(1);
+    anim->Set_Fading_Alpha(true);
     anim->Set_Speed(1, 4);
     anim->Set_Scale(0.5f);
     anim->Set_Const_Rotation_Z(-5, 10);
@@ -714,7 +716,7 @@ bool cLevel ::Key_Down(const SDLKey key) {
   // Set Small state
   else if (pKeyboard->m_keys[SDLK_k] && pKeyboard->m_keys[SDLK_i] &&
            pKeyboard->m_keys[SDLK_d] && !editor_enabled) {
-    pLevel_Player->Set_Type(MARYO_SMALL, 0);
+    pLevel_Player->Set_Type(MARYO_SMALL, false);
   }
   // Exit
   else if (key == SDLK_ESCAPE) {
@@ -723,20 +725,20 @@ bool cLevel ::Key_Down(const SDLKey key) {
   // ## editor
   else if (pLevel_Editor->Key_Down(key)) {
     // processed by the editor
-    return 1;
+    return true;
   } else {
     // not processed
-    return 0;
+    return false;
   }
 
   // key got processed
-  return 1;
+  return true;
 }
 
 bool cLevel ::Key_Up(const SDLKey key) {
   // only if not in Editor
   if (editor_level_enabled) {
-    return 0;
+    return false;
   }
 
   // Interaction keys
@@ -754,39 +756,39 @@ bool cLevel ::Key_Up(const SDLKey key) {
     pLevel_Player->Action_Stop_Interact(INP_ACTION);
   } else {
     // not processed
-    return 0;
+    return false;
   }
 
   // key got processed
-  return 1;
+  return true;
 }
 
 bool cLevel ::Mouse_Down(Uint8 button) {
   // ## editor
   if (pLevel_Editor->Mouse_Down(button)) {
     // processed by the editor
-    return 1;
+    return true;
   } else {
     // not processed
-    return 0;
+    return false;
   }
 
   // button got processed
-  return 1;
+  return true;
 }
 
 bool cLevel ::Mouse_Up(Uint8 button) {
   // ## editor
   if (pLevel_Editor->Mouse_Up(button)) {
     // processed by the editor
-    return 1;
+    return true;
   } else {
     // not processed
-    return 0;
+    return false;
   }
 
   // button got processed
-  return 1;
+  return true;
 }
 
 bool cLevel ::Joy_Button_Down(Uint8 button) {
@@ -811,17 +813,17 @@ bool cLevel ::Joy_Button_Down(Uint8 button) {
     pLevel_Player->Action_Interact(INP_EXIT);
   } else {
     // not processed
-    return 0;
+    return false;
   }
 
   // key got processed
-  return 1;
+  return true;
 }
 
 bool cLevel ::Joy_Button_Up(Uint8 button) {
   // only if not in Editor
   if (editor_level_enabled) {
-    return 0;
+    return false;
   }
 
   if (button == pPreferences->m_joy_button_jump) {
@@ -832,11 +834,11 @@ bool cLevel ::Joy_Button_Up(Uint8 button) {
     pLevel_Player->Action_Stop_Interact(INP_ACTION);
   } else {
     // not processed
-    return 0;
+    return false;
   }
 
   // key got processed
-  return 1;
+  return true;
 }
 
 std::string cLevel ::Get_Music_Filename(int with_dir /* = 2 */,
@@ -887,7 +889,7 @@ void cLevel ::Set_Filename(std::string filename, bool rename_old /* = 1 */) {
   Convert_Path_Separators(filename);
 
   // erase file type and directory
-  filename = Trim_Filename(filename, 0, 0);
+  filename = Trim_Filename(filename, false, false);
 
   // if invalid
   if (filename.length() < 2) {
@@ -938,7 +940,7 @@ void cLevel ::Set_Land_Type(const LevelLandType level_land_type) {
 
 cLevel_Entry* cLevel ::Get_Entry(const std::string& name) {
   if (name.empty()) {
-    return NULL;
+    return nullptr;
   }
 
   // Search for entry
@@ -958,16 +960,16 @@ cLevel_Entry* cLevel ::Get_Entry(const std::string& name) {
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 bool cLevel ::Is_Loaded(void) const {
   // if not loaded version is -1
   if (m_engine_version >= 0) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 void cLevel ::elementStart(const CEGUI::String& element,
@@ -1223,11 +1225,11 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
       cGL_Surface* text_image = pFont->Render_Text(pFont->m_font_small, text);
       text_image->m_filename = text;
       // set text image
-      sprite->Set_Image(text_image, 1, 1);
+      sprite->Set_Image(text_image, true, true);
       // display it as front passive
       sprite->Set_Sprite_Type(TYPE_FRONT_PASSIVE);
       // only display it in the editor
-      sprite->Set_Active(0);
+      sprite->Set_Active(false);
     }
 
     // needs image
@@ -1270,7 +1272,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
             sprite->m_image->m_filename.compare(DATA_DIR
                                                 "/" GAME_PIXMAPS_DIR "/"
                                                 "pipes/grey/down.png") == 0) {
-          sprite->Move(-6, 0, 1);
+          sprite->Move(-6, 0, true);
           sprite->m_start_pos_x = sprite->m_pos_x;
         } else if (sprite->m_image->m_filename.compare(
                        DATA_DIR "/" GAME_PIXMAPS_DIR "/"
@@ -1308,7 +1310,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
                    sprite->m_image->m_filename.compare(
                        DATA_DIR "/" GAME_PIXMAPS_DIR "/"
                                 "pipes/grey/left.png") == 0) {
-          sprite->Move(0, -6, 1);
+          sprite->Move(0, -6, true);
           sprite->m_start_pos_y = sprite->m_pos_y;
         }
       }
@@ -1320,7 +1322,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
             sprite->m_image->m_filename.compare(
                 DATA_DIR "/" GAME_PIXMAPS_DIR "/"
                          "hills/light_blue_1/head.png") == 0) {
-          sprite->Move(0, -6, 1);
+          sprite->Move(0, -6, true);
           sprite->m_start_pos_y = sprite->m_pos_y;
         }
       }
@@ -1364,8 +1366,8 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
             copy = copy->Copy();
             copy->Set_Image(pVideo->Get_Surface("ground/jungle_1/slider/2_" +
                                                 color + "_middle.png"),
-                            1);
-            copy->Set_Pos_X(copy->m_start_pos_x + 22, 1);
+                            true);
+            copy->Set_Pos_X(copy->m_start_pos_x + 22, true);
             sprite_manager->Add(copy);
           }
 
@@ -1373,8 +1375,8 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
           copy = copy->Copy();
           copy->Set_Image(pVideo->Get_Surface("ground/jungle_1/slider/2_" +
                                               color + "_right.png"),
-                          1);
-          copy->Set_Pos_X(copy->m_start_pos_x + 22, 1);
+                          true);
+          copy->Set_Pos_X(copy->m_start_pos_x + 22, true);
           sprite_manager->Add(copy);
         }
       }
@@ -1392,12 +1394,12 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
           cSprite* copy = sprite->Copy();
           copy->Set_Image(
               pVideo->Get_Surface("ground/green_1/slider/1/brown/middle.png"),
-              1);
+              true);
           // if from left tile it must be moved
           if (sprite->m_image->m_filename.compare(
                   DATA_DIR "/" GAME_PIXMAPS_DIR "/"
                            "ground/green_1/slider/1/brown/left.png") == 0) {
-            copy->Set_Pos_X(copy->m_start_pos_x + 18, 1);
+            copy->Set_Pos_X(copy->m_start_pos_x + 18, true);
           }
           sprite_manager->Add(copy);
         }
@@ -1405,7 +1407,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
         if (sprite->m_image->m_filename.compare(
                 DATA_DIR "/" GAME_PIXMAPS_DIR "/"
                          "ground/green_1/slider/1/brown/right.png") == 0) {
-          sprite->Move(18, 0, 1);
+          sprite->Move(18, 0, true);
           sprite->m_start_pos_x = sprite->m_pos_x;
         }
       }
@@ -1777,7 +1779,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
     cParticle_Emitter* particle_emitter =
         new cParticle_Emitter(attributes, sprite_manager);
     // set to not spawned
-    particle_emitter->Set_Spawned(0);
+    particle_emitter->Set_Spawned(false);
 
     return particle_emitter;
   } else if (element == "path") {
@@ -1890,14 +1892,14 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
 
     cParticle_Emitter* emitter =
         new cParticle_Emitter(attributes, sprite_manager);
-    emitter->Set_Spawned(0);
+    emitter->Set_Spawned(false);
 
     // clip to the camera
     emitter->Set_Clip_Rect(
         GL_rect(0.0f, 0.0f, static_cast<float>(game_res_w),
                 static_cast<float>(game_res_h) +
                     (attributes.getValueAsInteger("rect_y", 0) * -1)));
-    emitter->Set_Based_On_Camera_Pos(1);
+    emitter->Set_Based_On_Camera_Pos(true);
 
     return emitter;
   } else if (element == "ball") {
@@ -1905,12 +1907,12 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
   }
   // keep in synch with cLevel::Is_Level_Object_Element()
 
-  return NULL;
+  return nullptr;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLevel* pActive_Level = NULL;
+cLevel* pActive_Level = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

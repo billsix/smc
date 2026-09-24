@@ -23,8 +23,8 @@ namespace SMC {
 /* *** *** *** *** *** filesystem functions *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // Return the trimmed filename with the given options
-std::string Trim_Filename(std::string filename, bool keep_dir = 1,
-                          bool keep_end = 1);
+std::string Trim_Filename(std::string filename, bool keep_dir = true,
+                          bool keep_end = true);
 
 // Check if the file exists
 bool File_Exists(const std::string& filename);
@@ -70,8 +70,8 @@ void Convert_Path_Separators(std::string& str);
 */
 vector<std::string> Get_Directory_Files(const std::string& dir,
                                         const std::string& file_type = "",
-                                        bool with_directories = 0,
-                                        bool search_in_sub_directories = 1);
+                                        bool with_directories = false,
+                                        bool search_in_sub_directories = true);
 
 // Return the operating system temporary files directory
 std::string Get_Temp_Directory(void);

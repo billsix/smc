@@ -58,39 +58,39 @@ class cLevel_Player : public cAnimated_Sprite {
   // constructor
   cLevel_Player(cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cLevel_Player(void);
+  ~cLevel_Player(void) override;
 
   // copy
-  virtual cLevel_Player* Copy(void) const;
+  cLevel_Player* Copy(void) const override;
 
   // Init
-  virtual void Init(void);
+  void Init(void) override;
   // lets the Player hold in
   void Hold(void);
 
   /* Set the direction
 	 * if new_start_direction is set also set the start/editor direction
 	*/
-  virtual void Set_Direction(const ObjectDirection dir,
-                             bool new_start_direction = 0);
+  void Set_Direction(const ObjectDirection dir,
+                     bool new_start_direction = false) override;
 
   // Set the ground object
-  virtual bool Set_On_Ground(cSprite* obj, bool set_on_top = 1);
+  bool Set_On_Ground(cSprite* obj, bool set_on_top = true) override;
 
   /* downgrade state ( if small maryo : dies )
 	 * force : dies or a complete downgrade
 	*/
-  virtual void DownGrade(bool force = 0);
+  void DownGrade(bool force = false) override;
   /* downgrade state ( if small maryo : dies )
 	 * if delayed is set the downgrade is handled on the next game update
 	 * force : dies or a complete downgrade
 	*/
-  void DownGrade_Player(bool delayed = 1, bool force = 0);
+  void DownGrade_Player(bool delayed = true, bool force = false);
 
   // moves in the current direction
   void Move_Player(float velocity, float vel_wrongway);
   // generate foot clouds
-  void Generate_Feet_Clouds(cParticle_Emitter* anim = NULL);
+  void Generate_Feet_Clouds(cParticle_Emitter* anim = nullptr);
   // Update the walking
   void Update_Walking(void);
   // Update the running
@@ -102,7 +102,7 @@ class cLevel_Player : public cAnimated_Sprite {
   /* Stop flying
 	 * parachute : if set fall slowly with a parachute
 	*/
-  void Stop_Flying(bool parachute = 1);
+  void Stop_Flying(bool parachute = true);
   /* Set the parachute for flying
 	 * doesn't reload images
 	*/
@@ -139,25 +139,25 @@ class cLevel_Player : public cAnimated_Sprite {
 	 * if set_position is set the active item will be set in front of the player
 	 * if no_action is set the item will just be released
 	*/
-  void Release_Item(bool set_position = 1, bool no_action = 0);
+  void Release_Item(bool set_position = true, bool no_action = false);
 
   /* Set the Type
 	 * animate : show type change animation
 	 * sound : if set the upgrade sound is played
 	 * temp_power : set the temp power item
 	*/
-  void Set_Type(Maryo_type new_type, bool animation = 1, bool sound = 1,
-                bool temp_power = 0);
-  void Set_Type(SpriteType item_type, bool animation = 1, bool sound = 1,
-                bool temp_power = 0);
+  void Set_Type(Maryo_type new_type, bool animation = true, bool sound = true,
+                bool temp_power = false);
+  void Set_Type(SpriteType item_type, bool animation = true, bool sound = true,
+                bool temp_power = false);
   // set the moving state
   void Set_Moving_State(Moving_state new_state);
 
   // default update
-  virtual void Update(void);
+  void Update(void) override;
 
   // Draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = nullptr) override;
   /* Draw an animation using the given new type
 	 * ends with the new type set
 	*/
@@ -171,21 +171,21 @@ class cLevel_Player : public cAnimated_Sprite {
   /* Sets the best position to advance in size
 	 * if only_check is set position is unchanged
 	*/
-  bool Change_Size(float x, float y, bool only_check = 0);
+  bool Change_Size(float x, float y, bool only_check = false);
 
   /* Player gets the given Item
 	 * force : if true the player will use the item immediately
 	 * and it will not be placed in the itembox
 	 * base : must be given on non-item objects ( like shell )
 	 */
-  void Get_Item(SpriteType item_type, bool force = 0,
-                cMovingSprite* base = NULL);
+  void Get_Item(SpriteType item_type, bool force = false,
+                cMovingSprite* base = nullptr);
 
   // returns the current velocity modifier
   float Get_Vel_Modifier(void) const;
 
   // Start a jump
-  void Action_Jump(bool enemy_jump = 0);
+  void Action_Jump(bool enemy_jump = false);
   // General input interact event
   void Action_Interact(input_identifier key_type);
   // Shoot if available
@@ -213,7 +213,7 @@ class cLevel_Player : public cAnimated_Sprite {
   /* Reset state and status
 	 * if full is set reset item and camera state
 	*/
-  void Reset(bool full = 1);
+  void Reset(bool full = true);
   // Reset position to start position
   void Reset_Position(void);
 
@@ -227,19 +227,19 @@ class cLevel_Player : public cAnimated_Sprite {
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-  virtual Col_Valid_Type Validate_Collision(cSprite* obj);
+  Col_Valid_Type Validate_Collision(cSprite* obj) override;
 
   // collision from an enemy
-  virtual void Handle_Collision_Enemy(cObjectCollision* collision);
+  void Handle_Collision_Enemy(cObjectCollision* collision) override;
   // collision with massive
-  virtual void Handle_Collision_Massive(cObjectCollision* collision);
+  void Handle_Collision_Massive(cObjectCollision* collision) override;
   // collision with passive
-  virtual void Handle_Collision_Passive(cObjectCollision* collision);
+  void Handle_Collision_Passive(cObjectCollision* collision) override;
   // handle moved out of Level event
-  virtual void Handle_out_of_Level(ObjectDirection dir);
+  void Handle_out_of_Level(ObjectDirection dir) override;
 
   // editor activation
-  virtual void Editor_Activate(void);
+  void Editor_Activate(void) override;
   // editor direction option selected event
   bool Editor_Direction_Select(const CEGUI::EventArgs& event);
 

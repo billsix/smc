@@ -39,20 +39,20 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** Variables *** *** *** *** *** *** *** *** *** */
 
-bool game_exit = 0;
+bool game_exit = false;
 GameMode Game_Mode = MODE_NOTHING;
 GameModeType Game_Mode_Type = MODE_TYPE_DEFAULT;
 GameAction Game_Action = GA_NONE;
 CEGUI::XMLAttributes Game_Action_Data_Start;
 CEGUI::XMLAttributes Game_Action_Data_Middle;
 CEGUI::XMLAttributes Game_Action_Data_End;
-void* Game_Action_ptr = NULL;
+void* Game_Action_ptr = nullptr;
 
 int game_res_w = 800;
 int game_res_h = 600;
 
-bool game_debug = 0;
-bool game_debug_performance = 0;
+bool game_debug = false;
+bool game_debug_performance = false;
 
 SDL_Event input_event;
 
@@ -61,12 +61,12 @@ float global_upscaley = 1.0f;
 float global_downscalex = 1.0f;
 float global_downscaley = 1.0f;
 
-bool editor_enabled = 0;
-bool editor_level_enabled = 0;
-bool editor_world_enabled = 0;
+bool editor_enabled = false;
+bool editor_level_enabled = false;
+bool editor_world_enabled = false;
 
-cCamera* pActive_Camera = NULL;
-cSprite* pActive_Player = NULL;
+cCamera* pActive_Camera = nullptr;
+cSprite* pActive_Player = nullptr;
 
 /* *** *** *** *** *** *** *** Functions *** *** *** *** *** *** *** *** *** *** */
 
@@ -89,13 +89,14 @@ void Handle_Game_Events(void) {
     Game_Action_Data_Start = CEGUI::XMLAttributes();
     Game_Action_Data_Middle = CEGUI::XMLAttributes();
     Game_Action_Data_End = CEGUI::XMLAttributes();
-    Game_Action_ptr = NULL;
+    Game_Action_ptr = nullptr;
 
     // handle player downgrade
     if (current_game_action == GA_DOWNGRADE_PLAYER) {
       Handle_Generic_Game_Events(current_game_action_data_start);
       pLevel_Player->DownGrade_Player(
-          0, current_game_action_data_middle.getValueAsBool("downgrade_force"));
+          false,
+          current_game_action_data_middle.getValueAsBool("downgrade_force"));
       Handle_Generic_Game_Events(current_game_action_data_middle);
       Handle_Generic_Game_Events(current_game_action_data_end);
     }
@@ -171,7 +172,7 @@ void Handle_Generic_Game_Events(const CEGUI::XMLAttributes& action_data) {
     // waypoint available
     if (waypoint_num >= 0) {
       // set the previous waypoints accessible
-      pActive_Overworld->Set_Progress(waypoint_num, 0);
+      pActive_Overworld->Set_Progress(waypoint_num, false);
       pOverworld_Player->Set_Waypoint(waypoint_num);
     }
   }
@@ -207,7 +208,7 @@ void Handle_Generic_Game_Events(const CEGUI::XMLAttributes& action_data) {
           // center camera position
           pActive_Camera->Center();
           // set invisible for warp animation
-          pLevel_Player->Set_Active(0);
+          pLevel_Player->Set_Active(false);
         } else {
           printf("Warning : Level entry %s not found\n", str_entry.c_str());
         }
@@ -227,7 +228,7 @@ void Handle_Generic_Game_Events(const CEGUI::XMLAttributes& action_data) {
   if (action_data.exists("play_music")) {
     pAudio->Play_Music(action_data.getValueAsString("play_music").c_str(),
                        action_data.getValueAsInteger("music_loops"),
-                       action_data.getValueAsBool("music_force", 1),
+                       action_data.getValueAsBool("music_force", true),
                        action_data.getValueAsInteger("music_fadein"));
   }
   if (action_data.exists("screen_fadeout")) {
@@ -308,7 +309,7 @@ void Clear_Input_Events(void) {
 
 void Preload_Images(bool draw_gui /* = 0 */) {
   // progress bar
-  CEGUI::ProgressBar* progress_bar = NULL;
+  CEGUI::ProgressBar* progress_bar = nullptr;
 
   if (draw_gui) {
     // get progress bar
@@ -324,15 +325,15 @@ void Preload_Images(bool draw_gui /* = 0 */) {
 
   // player
   vector<std::string> player_small_images = Get_Directory_Files(
-      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/small", ".png", 0, 0);
+      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/small", ".png", false, false);
   vector<std::string> player_big_images = Get_Directory_Files(
-      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/big", ".png", 0, 0);
+      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/big", ".png", false, false);
   vector<std::string> player_fire_images = Get_Directory_Files(
-      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/fire", ".png", 0, 0);
+      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/fire", ".png", false, false);
   vector<std::string> player_ice_images = Get_Directory_Files(
-      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/ice", ".png", 0, 0);
+      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/ice", ".png", false, false);
   vector<std::string> player_ghost_images = Get_Directory_Files(
-      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/ghost", ".png", 0, 0);
+      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/ghost", ".png", false, false);
 
   image_files.insert(image_files.end(), player_small_images.begin(),
                      player_small_images.end());
@@ -346,89 +347,89 @@ void Preload_Images(bool draw_gui /* = 0 */) {
                      player_ghost_images.end());
 
   // Mushrooms
-  image_files.push_back("game/items/mushroom_red.png");
-  image_files.push_back("game/items/mushroom_green.png");
-  image_files.push_back("game/items/mushroom_blue.png");
-  image_files.push_back("game/items/mushroom_ghost.png");
+  image_files.emplace_back("game/items/mushroom_red.png");
+  image_files.emplace_back("game/items/mushroom_green.png");
+  image_files.emplace_back("game/items/mushroom_blue.png");
+  image_files.emplace_back("game/items/mushroom_ghost.png");
   // Fireplant
-  image_files.push_back("game/items/fireplant.png");
-  image_files.push_back("game/items/fireplant_left.png");
-  image_files.push_back("game/items/fireplant_right.png");
+  image_files.emplace_back("game/items/fireplant.png");
+  image_files.emplace_back("game/items/fireplant_left.png");
+  image_files.emplace_back("game/items/fireplant_right.png");
   // Star
-  image_files.push_back("game/items/star.png");
+  image_files.emplace_back("game/items/star.png");
   // Feather
   //image_files.push_back( "game/items/feather_1.png" );
   // Yellow Goldpiece
-  image_files.push_back("game/items/goldpiece/yellow/1.png");
-  image_files.push_back("game/items/goldpiece/yellow/2.png");
-  image_files.push_back("game/items/goldpiece/yellow/3.png");
-  image_files.push_back("game/items/goldpiece/yellow/4.png");
-  image_files.push_back("game/items/goldpiece/yellow/5.png");
-  image_files.push_back("game/items/goldpiece/yellow/6.png");
-  image_files.push_back("game/items/goldpiece/yellow/7.png");
-  image_files.push_back("game/items/goldpiece/yellow/8.png");
-  image_files.push_back("game/items/goldpiece/yellow/9.png");
-  image_files.push_back("game/items/goldpiece/yellow/10.png");
-  image_files.push_back("game/items/goldpiece/yellow/1_falling.png");
-  image_files.push_back("game/items/goldpiece/yellow/2_falling.png");
-  image_files.push_back("game/items/goldpiece/yellow/3_falling.png");
-  image_files.push_back("game/items/goldpiece/yellow/4_falling.png");
-  image_files.push_back("game/items/goldpiece/yellow/5_falling.png");
-  image_files.push_back("game/items/goldpiece/yellow/6_falling.png");
-  image_files.push_back("game/items/goldpiece/yellow/7_falling.png");
-  image_files.push_back("game/items/goldpiece/yellow/8_falling.png");
-  image_files.push_back("game/items/goldpiece/yellow/9_falling.png");
-  image_files.push_back("game/items/goldpiece/yellow/10_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/1.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/2.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/3.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/4.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/5.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/6.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/7.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/8.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/9.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/10.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/1_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/2_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/3_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/4_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/5_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/6_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/7_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/8_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/9_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/10_falling.png");
   // Red Goldpiece
-  image_files.push_back("game/items/goldpiece/red/1.png");
-  image_files.push_back("game/items/goldpiece/red/2.png");
-  image_files.push_back("game/items/goldpiece/red/3.png");
-  image_files.push_back("game/items/goldpiece/red/4.png");
-  image_files.push_back("game/items/goldpiece/red/5.png");
-  image_files.push_back("game/items/goldpiece/red/6.png");
-  image_files.push_back("game/items/goldpiece/red/7.png");
-  image_files.push_back("game/items/goldpiece/red/8.png");
-  image_files.push_back("game/items/goldpiece/red/9.png");
-  image_files.push_back("game/items/goldpiece/red/10.png");
-  image_files.push_back("game/items/goldpiece/red/1_falling.png");
-  image_files.push_back("game/items/goldpiece/red/2_falling.png");
-  image_files.push_back("game/items/goldpiece/red/3_falling.png");
-  image_files.push_back("game/items/goldpiece/red/4_falling.png");
-  image_files.push_back("game/items/goldpiece/red/5_falling.png");
-  image_files.push_back("game/items/goldpiece/red/6_falling.png");
-  image_files.push_back("game/items/goldpiece/red/7_falling.png");
-  image_files.push_back("game/items/goldpiece/red/8_falling.png");
-  image_files.push_back("game/items/goldpiece/red/9_falling.png");
-  image_files.push_back("game/items/goldpiece/red/10_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/1.png");
+  image_files.emplace_back("game/items/goldpiece/red/2.png");
+  image_files.emplace_back("game/items/goldpiece/red/3.png");
+  image_files.emplace_back("game/items/goldpiece/red/4.png");
+  image_files.emplace_back("game/items/goldpiece/red/5.png");
+  image_files.emplace_back("game/items/goldpiece/red/6.png");
+  image_files.emplace_back("game/items/goldpiece/red/7.png");
+  image_files.emplace_back("game/items/goldpiece/red/8.png");
+  image_files.emplace_back("game/items/goldpiece/red/9.png");
+  image_files.emplace_back("game/items/goldpiece/red/10.png");
+  image_files.emplace_back("game/items/goldpiece/red/1_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/2_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/3_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/4_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/5_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/6_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/7_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/8_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/9_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/10_falling.png");
 
   // Brown Box
-  image_files.push_back("game/box/brown1_1.png");
+  image_files.emplace_back("game/box/brown1_1.png");
 
   // Light animation
-  image_files.push_back("animation/light_1/1.png");
-  image_files.push_back("animation/light_1/2.png");
-  image_files.push_back("animation/light_1/3.png");
+  image_files.emplace_back("animation/light_1/1.png");
+  image_files.emplace_back("animation/light_1/2.png");
+  image_files.emplace_back("animation/light_1/3.png");
   // Particle animations
-  image_files.push_back("animation/particles/fire_1.png");
-  image_files.push_back("animation/particles/fire_2.png");
-  image_files.push_back("animation/particles/fire_3.png");
-  image_files.push_back("animation/particles/fire_4.png");
-  image_files.push_back("animation/particles/smoke.png");
-  image_files.push_back("animation/particles/smoke_black.png");
-  image_files.push_back("animation/particles/light.png");
-  image_files.push_back("animation/particles/dirt.png");
-  image_files.push_back("animation/particles/ice_1.png");
-  image_files.push_back("animation/particles/cloud.png");
-  image_files.push_back("animation/particles/axis.png");
+  image_files.emplace_back("animation/particles/fire_1.png");
+  image_files.emplace_back("animation/particles/fire_2.png");
+  image_files.emplace_back("animation/particles/fire_3.png");
+  image_files.emplace_back("animation/particles/fire_4.png");
+  image_files.emplace_back("animation/particles/smoke.png");
+  image_files.emplace_back("animation/particles/smoke_black.png");
+  image_files.emplace_back("animation/particles/light.png");
+  image_files.emplace_back("animation/particles/dirt.png");
+  image_files.emplace_back("animation/particles/ice_1.png");
+  image_files.emplace_back("animation/particles/cloud.png");
+  image_files.emplace_back("animation/particles/axis.png");
 
   // Ball
-  image_files.push_back("animation/fireball/1.png");
-  image_files.push_back("animation/iceball/1.png");
+  image_files.emplace_back("animation/fireball/1.png");
+  image_files.emplace_back("animation/iceball/1.png");
 
   // HUD
-  image_files.push_back("game/maryo_l.png");
-  image_files.push_back("game/gold_m.png");
-  image_files.push_back("game/itembox.png");
+  image_files.emplace_back("game/maryo_l.png");
+  image_files.emplace_back("game/gold_m.png");
+  image_files.emplace_back("game/itembox.png");
 
   unsigned int loaded_files = 0;
   unsigned int file_count = image_files.size();
@@ -462,7 +463,7 @@ void Preload_Sounds(bool draw_gui /* = 0 */) {
   }
 
   // progress bar
-  CEGUI::ProgressBar* progress_bar = NULL;
+  CEGUI::ProgressBar* progress_bar = nullptr;
 
   if (draw_gui) {
     // get progress bar
@@ -477,88 +478,88 @@ void Preload_Sounds(bool draw_gui /* = 0 */) {
   vector<std::string> sound_files;
 
   // player
-  sound_files.push_back("wall_hit.wav");
-  sound_files.push_back("player/dead.ogg");
-  sound_files.push_back("itembox_get.ogg");
-  sound_files.push_back("itembox_set.ogg");
-  sound_files.push_back("player/pickup_item.wav");
-  sound_files.push_back("player/jump_small.ogg");
-  sound_files.push_back("player/jump_small_power.ogg");
-  sound_files.push_back("player/jump_big.ogg");
-  sound_files.push_back("player/jump_big_power.ogg");
-  sound_files.push_back("player/jump_ghost.ogg");
+  sound_files.emplace_back("wall_hit.wav");
+  sound_files.emplace_back("player/dead.ogg");
+  sound_files.emplace_back("itembox_get.ogg");
+  sound_files.emplace_back("itembox_set.ogg");
+  sound_files.emplace_back("player/pickup_item.wav");
+  sound_files.emplace_back("player/jump_small.ogg");
+  sound_files.emplace_back("player/jump_small_power.ogg");
+  sound_files.emplace_back("player/jump_big.ogg");
+  sound_files.emplace_back("player/jump_big_power.ogg");
+  sound_files.emplace_back("player/jump_ghost.ogg");
   // todo : create again
   //sound_files.push_back( "player/maryo_au.ogg" );
-  sound_files.push_back("player/powerdown.ogg");
-  sound_files.push_back("player/ghost_end.ogg");
-  sound_files.push_back("player/run_stop.ogg");
-  sound_files.push_back("enter_pipe.ogg");
-  sound_files.push_back("leave_pipe.ogg");
+  sound_files.emplace_back("player/powerdown.ogg");
+  sound_files.emplace_back("player/ghost_end.ogg");
+  sound_files.emplace_back("player/run_stop.ogg");
+  sound_files.emplace_back("enter_pipe.ogg");
+  sound_files.emplace_back("leave_pipe.ogg");
 
   // items
-  sound_files.push_back("item/star_kill.ogg");
-  sound_files.push_back("item/fireball.ogg");
-  sound_files.push_back("item/iceball.wav");
-  sound_files.push_back("item/ice_kill.wav");
-  sound_files.push_back("item/fireball_explode.wav");
-  sound_files.push_back("item/fireball_repelled.wav");
-  sound_files.push_back("item/fireball_explosion.wav");
-  sound_files.push_back("item/iceball_explosion.wav");
-  sound_files.push_back("item/fireplant.ogg");
-  sound_files.push_back("item/goldpiece_1.ogg");
-  sound_files.push_back("item/goldpiece_red.wav");
-  sound_files.push_back("item/live_up.ogg");
-  sound_files.push_back("item/live_up_2.ogg");
-  sound_files.push_back("item/mushroom.ogg");
-  sound_files.push_back("item/mushroom_ghost.ogg");
-  sound_files.push_back("item/mushroom_blue.wav");
-  sound_files.push_back("item/moon.ogg");
+  sound_files.emplace_back("item/star_kill.ogg");
+  sound_files.emplace_back("item/fireball.ogg");
+  sound_files.emplace_back("item/iceball.wav");
+  sound_files.emplace_back("item/ice_kill.wav");
+  sound_files.emplace_back("item/fireball_explode.wav");
+  sound_files.emplace_back("item/fireball_repelled.wav");
+  sound_files.emplace_back("item/fireball_explosion.wav");
+  sound_files.emplace_back("item/iceball_explosion.wav");
+  sound_files.emplace_back("item/fireplant.ogg");
+  sound_files.emplace_back("item/goldpiece_1.ogg");
+  sound_files.emplace_back("item/goldpiece_red.wav");
+  sound_files.emplace_back("item/live_up.ogg");
+  sound_files.emplace_back("item/live_up_2.ogg");
+  sound_files.emplace_back("item/mushroom.ogg");
+  sound_files.emplace_back("item/mushroom_ghost.ogg");
+  sound_files.emplace_back("item/mushroom_blue.wav");
+  sound_files.emplace_back("item/moon.ogg");
 
   // box
-  sound_files.push_back("item/empty_box.wav");
+  sound_files.emplace_back("item/empty_box.wav");
 
   // enemies
   // eato
-  sound_files.push_back("enemy/eato/die.ogg");
+  sound_files.emplace_back("enemy/eato/die.ogg");
   // gee
-  sound_files.push_back("enemy/gee/die.ogg");
+  sound_files.emplace_back("enemy/gee/die.ogg");
   // furball
-  sound_files.push_back("enemy/furball/die.ogg");
+  sound_files.emplace_back("enemy/furball/die.ogg");
   // furball boss
-  sound_files.push_back("enemy/boss/furball/hit.wav");
-  sound_files.push_back("enemy/boss/furball/hit_failed.wav");
+  sound_files.emplace_back("enemy/boss/furball/hit.wav");
+  sound_files.emplace_back("enemy/boss/furball/hit_failed.wav");
   // flyon
-  sound_files.push_back("enemy/flyon/die.ogg");
+  sound_files.emplace_back("enemy/flyon/die.ogg");
   // krush
-  sound_files.push_back("enemy/krush/die.ogg");
+  sound_files.emplace_back("enemy/krush/die.ogg");
   // rokko
-  sound_files.push_back("enemy/rokko/activate.wav");
-  sound_files.push_back("enemy/rokko/hit.wav");
+  sound_files.emplace_back("enemy/rokko/activate.wav");
+  sound_files.emplace_back("enemy/rokko/hit.wav");
   // spika
-  sound_files.push_back("enemy/spika/move.ogg");
+  sound_files.emplace_back("enemy/spika/move.ogg");
   // thromp
-  sound_files.push_back("enemy/thromp/hit.ogg");
-  sound_files.push_back("enemy/thromp/die.ogg");
+  sound_files.emplace_back("enemy/thromp/hit.ogg");
+  sound_files.emplace_back("enemy/thromp/die.ogg");
   // turtle
-  sound_files.push_back("enemy/turtle/hit.ogg");
-  sound_files.push_back("enemy/turtle/shell/hit.ogg");
-  sound_files.push_back("enemy/turtle/stand_up.wav");
+  sound_files.emplace_back("enemy/turtle/hit.ogg");
+  sound_files.emplace_back("enemy/turtle/shell/hit.ogg");
+  sound_files.emplace_back("enemy/turtle/stand_up.wav");
   // turtle boss
-  sound_files.push_back("enemy/boss/turtle/big_hit.ogg");
-  sound_files.push_back("enemy/boss/turtle/shell_attack.ogg");
-  sound_files.push_back("enemy/boss/turtle/power_up.ogg");
+  sound_files.emplace_back("enemy/boss/turtle/big_hit.ogg");
+  sound_files.emplace_back("enemy/boss/turtle/shell_attack.ogg");
+  sound_files.emplace_back("enemy/boss/turtle/power_up.ogg");
 
   // default
-  sound_files.push_back("sprout_1.ogg");
-  sound_files.push_back("stomp_1.ogg");
-  sound_files.push_back("stomp_4.ogg");
+  sound_files.emplace_back("sprout_1.ogg");
+  sound_files.emplace_back("stomp_1.ogg");
+  sound_files.emplace_back("stomp_4.ogg");
 
   // savegame
-  sound_files.push_back("savegame_load.ogg");
-  sound_files.push_back("savegame_save.ogg");
+  sound_files.emplace_back("savegame_load.ogg");
+  sound_files.emplace_back("savegame_save.ogg");
 
   // overworld
-  sound_files.push_back("waypoint_reached.ogg");
+  sound_files.emplace_back("waypoint_reached.ogg");
 
   unsigned int loaded_files = 0;
   unsigned int file_count = sound_files.size();

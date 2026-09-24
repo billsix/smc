@@ -52,17 +52,17 @@ class cRender_Request {
   int m_render_count;
 };
 
-typedef vector<cRender_Request*> RenderList;
+using RenderList = vector<cRender_Request*>;
 
 /* *** *** *** *** *** *** cClear_Request *** *** *** *** *** *** *** *** *** *** *** */
 
 class cClear_Request : public cRender_Request {
  public:
   cClear_Request(void);
-  virtual ~cClear_Request(void);
+  ~cClear_Request(void) override;
 
   // draw
-  virtual void Draw(void);
+  void Draw(void) override;
 };
 
 /* *** *** *** *** *** *** cRender_Request_Advanced *** *** *** *** *** *** *** *** *** *** *** */
@@ -70,7 +70,7 @@ class cClear_Request : public cRender_Request {
 class cRender_Request_Advanced : public cRender_Request {
  public:
   cRender_Request_Advanced(void);
-  virtual ~cRender_Request_Advanced(void);
+  ~cRender_Request_Advanced(void) override;
 
   // render basic state
   void Render_Basic(void);
@@ -110,10 +110,10 @@ class cRender_Request_Advanced : public cRender_Request {
 class cLine_Request : public cRender_Request_Advanced {
  public:
   cLine_Request(void);
-  virtual ~cLine_Request(void);
+  ~cLine_Request(void) override;
 
   // draw
-  virtual void Draw(void);
+  void Draw(void) override;
 
   // color
   Color m_color;
@@ -130,10 +130,10 @@ class cLine_Request : public cRender_Request_Advanced {
 class cRect_Request : public cRender_Request_Advanced {
  public:
   cRect_Request(void);
-  virtual ~cRect_Request(void);
+  ~cRect_Request(void) override;
 
   // draw
-  virtual void Draw(void);
+  void Draw(void) override;
   // color
   Color m_color;
   // rect
@@ -155,10 +155,10 @@ class cRect_Request : public cRender_Request_Advanced {
 class cGradient_Request : public cRender_Request_Advanced {
  public:
   cGradient_Request(void);
-  virtual ~cGradient_Request(void);
+  ~cGradient_Request(void) override;
 
   // draw
-  virtual void Draw(void);
+  void Draw(void) override;
 
   // rect
   GL_rect m_rect;
@@ -174,10 +174,10 @@ class cGradient_Request : public cRender_Request_Advanced {
 class cCircle_Request : public cRender_Request_Advanced {
  public:
   cCircle_Request(void);
-  virtual ~cCircle_Request(void);
+  ~cCircle_Request(void) override;
 
   // draw
-  virtual void Draw(void);
+  void Draw(void) override;
   // color
   Color m_color;
   // position
@@ -193,10 +193,10 @@ class cCircle_Request : public cRender_Request_Advanced {
 class cSurface_Request : public cRender_Request_Advanced {
  public:
   cSurface_Request(void);
-  virtual ~cSurface_Request(void);
+  ~cSurface_Request(void) override;
 
   // Draw
-  virtual void Draw(void);
+  void Draw(void) override;
 
   // texture id
   GLuint m_texture_id;
@@ -232,18 +232,18 @@ class cRenderQueue {
   /* Render current data
 	 * clear: if set clear the finished data after rendering
 	*/
-  void Render(bool clear = 1);
+  void Render(bool clear = true);
 
   /* Reduce the render count
 	 * amount : render count decrease amount
 	 * clear: if set clear the finished data after rendering
 	*/
-  void Fake_Render(unsigned int amount = 1, bool clear = 1);
+  void Fake_Render(unsigned int amount = 1, bool clear = true);
 
   /* clear the render data
 	 * if force is given all objects will be removed
 	*/
-  void Clear(bool force = 1);
+  void Clear(bool force = true);
 
   // render data array
   RenderList m_render_data;

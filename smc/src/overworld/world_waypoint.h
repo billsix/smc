@@ -38,38 +38,39 @@ class cWaypoint : public cSprite {
   // create from stream
   cWaypoint(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cWaypoint(void);
+  ~cWaypoint(void) override;
 
   // Init defaults
-  void Init(void);
+  void Init(void) override;
 
   // copy this object
-  virtual cWaypoint* Copy(void) const;
+  cWaypoint* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // Update
-  virtual void Update(void);
+  void Update(void) override;
   // Draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // Set direction forward
   void Set_Direction_Forward(ObjectDirection direction);
   // Set direction backward
   void Set_Direction_Backward(ObjectDirection direction);
   // Set Access
-  void Set_Access(bool enabled, bool new_start_access = 0);
+  void Set_Access(bool enabled, bool new_start_access = false);
 
   // Set the Destination
   void Set_Destination(std::string str);
   // Returns the Destination
-  std::string Get_Destination(bool with_dir = 0, bool with_end = 0) const;
+  std::string Get_Destination(bool with_dir = false,
+                              bool with_end = false) const;
 
   // editor activation
-  virtual void Editor_Activate(void);
+  void Editor_Activate(void) override;
   // editor type option selected event
   bool Editor_Type_Select(const CEGUI::EventArgs& event);
   // editor destination text changed event

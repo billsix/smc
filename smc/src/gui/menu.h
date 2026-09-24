@@ -29,12 +29,12 @@ namespace SMC {
 class cMenu_Item : public cHudSprite {
  public:
   cMenu_Item(cSprite_Manager* sprite_manager);
-  virtual ~cMenu_Item(void);
+  ~cMenu_Item(void) override;
 
   // Sets the Active Modifier
-  void Set_Active(bool active = 0);
+  void Set_Active(bool active = false) override;
   // Draws the Menu Item
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // The menu images
   cHudSprite* m_image_default;
@@ -49,7 +49,7 @@ class cMenu_Item : public cHudSprite {
   bool m_active;
 };
 
-typedef vector<cMenu_Item*> MenuList;
+using MenuList = vector<cMenu_Item*>;
 
 /* *** *** *** *** *** *** cMenuHandler *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -79,7 +79,7 @@ class cMenuHandler {
   // Update
   void Update(void);
   // Draw
-  void Draw(bool with_background = 1);
+  void Draw(bool with_background = true);
 
   // Returns the currently active Menu Item
   cMenu_Item* Get_Active_Item(void);
@@ -138,7 +138,7 @@ class cMenuCore {
 
   // Returns a Menu with the common image filenames
   cMenu_Item* Auto_Menu(std::string imagename, std::string imagename_menu,
-                        float ypos = 0, bool is_quit = 0);
+                        float ypos = 0, bool is_quit = false);
 
   /* Load the given Menu
 	 * exit_gamemode : return to this game mode on exit

@@ -29,7 +29,7 @@ namespace SMC {
 class cOverworld_Player : public cAnimated_Sprite {
  public:
   cOverworld_Player(cSprite_Manager* sprite_manager, cOverworld* overworld);
-  virtual ~cOverworld_Player(void);
+  ~cOverworld_Player(void) override;
 
   // Load images
   void Load_Images(void);
@@ -41,16 +41,16 @@ class cOverworld_Player : public cAnimated_Sprite {
   /* Set the direction
 	 * if new_start_direction is set also set the start/editor direction
 	*/
-  virtual void Set_Direction(const ObjectDirection dir,
-                             bool new_start_direction = 0);
+  void Set_Direction(const ObjectDirection dir,
+                     bool new_start_direction = false) override;
 
   // Set the Type
   void Set_Type(Maryo_type new_type);
 
   // Update
-  virtual void Update(void);
+  void Update(void) override;
   // Draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = nullptr) override;
   // Draw debug text
   void Draw_Debug_Text(void);
 
@@ -84,7 +84,7 @@ class cOverworld_Player : public cAnimated_Sprite {
   void Update_Waypoint_Walk(void);
 
   // Set Maryo to the given Waypoint position
-  bool Set_Waypoint(int waypoint, bool new_startpos = 0);
+  bool Set_Waypoint(int waypoint, bool new_startpos = false);
   // Get current Waypoint
   cWaypoint* Get_Waypoint(void);
 

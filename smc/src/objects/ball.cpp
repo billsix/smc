@@ -54,7 +54,7 @@ void cBall ::Init(void) {
   m_pos_z = 0.095f;
   m_gravity_max = 20.0f;
 
-  Set_Spawned(1);
+  Set_Spawned(true);
   m_camera_range = 2000;
 
   m_massive_type = MASS_MASSIVE;
@@ -69,7 +69,7 @@ void cBall ::Init(void) {
 
 cBall* cBall ::Copy(void) const {
   cBall* ball = new cBall(m_sprite_manager);
-  ball->Set_Pos(m_start_pos_x, m_start_pos_y, 1);
+  ball->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   ball->Set_Origin(m_origin_array, m_origin_type);
   ball->Set_Ball_Type(m_ball_type);
   return ball;
@@ -78,7 +78,7 @@ cBall* cBall ::Copy(void) const {
 void cBall ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
   // direction
   m_direction =
       static_cast<ObjectDirection>(attributes.getValueAsInteger("direction"));
@@ -143,26 +143,24 @@ cSave_Level_Object* cBall ::Save_To_Savegame(void) {
 
   // default values
   save_object->m_type = m_type;
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "posx", int_to_string(static_cast<int>(m_start_pos_x))));
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "posy", int_to_string(static_cast<int>(m_start_pos_y))));
+  save_object->m_properties.emplace_back(
+      "posx", int_to_string(static_cast<int>(m_start_pos_x)));
+  save_object->m_properties.emplace_back(
+      "posy", int_to_string(static_cast<int>(m_start_pos_y)));
 
   // new position
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "new_posx", int_to_string(static_cast<int>(m_pos_x))));
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "new_posy", int_to_string(static_cast<int>(m_pos_y))));
+  save_object->m_properties.emplace_back(
+      "new_posx", int_to_string(static_cast<int>(m_pos_x)));
+  save_object->m_properties.emplace_back(
+      "new_posy", int_to_string(static_cast<int>(m_pos_y)));
 
   // direction
-  save_object->m_properties.push_back(
-      cSave_Level_Object_Property("direction", int_to_string(m_direction)));
+  save_object->m_properties.emplace_back("direction",
+                                         int_to_string(m_direction));
 
   // velocity
-  save_object->m_properties.push_back(
-      cSave_Level_Object_Property("velx", float_to_string(m_velx)));
-  save_object->m_properties.push_back(
-      cSave_Level_Object_Property("vely", float_to_string(m_vely)));
+  save_object->m_properties.emplace_back("velx", float_to_string(m_velx));
+  save_object->m_properties.emplace_back("vely", float_to_string(m_vely));
 
   return save_object;
 }
@@ -297,10 +295,10 @@ void cBall ::Draw(cSurface_Request* request /* = NULL */) {
 }
 
 void cBall ::Generate_Particles(cParticle_Emitter* anim /* = NULL */) const {
-  bool create_anim = 0;
+  bool create_anim = false;
 
   if (!anim) {
-    create_anim = 1;
+    create_anim = true;
     // create animation
     anim = new cParticle_Emitter(m_sprite_manager);
   }
@@ -429,8 +427,8 @@ void cBall ::Handle_Collision_Enemy(cObjectCollision* collision) {
     cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
     anim->Set_Image(pVideo->Get_Surface("animation/particles/light.png"));
     anim->Set_Time_to_Live(0.2f, 0.4f);
-    anim->Set_Fading_Alpha(1);
-    anim->Set_Fading_Size(1);
+    anim->Set_Fading_Alpha(true);
+    anim->Set_Fading_Size(true);
     anim->Set_Speed(0.5f, 2.2f);
     anim->Set_Blending(BLEND_DRIVE);
 
@@ -462,23 +460,23 @@ void cBall ::Handle_Collision_Enemy(cObjectCollision* collision) {
     if (m_ball_type == FIREBALL_DEFAULT) {
       // get points
       pHud_Points->Add_Points(enemy->m_kill_points, m_pos_x, m_pos_y, "",
-                              static_cast<Uint8>(255), 1);
+                              static_cast<Uint8>(255), true);
 
       // create goldpiece
       cMovingSprite* goldpiece =
           new cFGoldpiece(m_sprite_manager, collision->m_direction);
-      goldpiece->Set_Spawned(1);
+      goldpiece->Set_Spawned(true);
       // set optimal position
       goldpiece->Set_Pos(enemy->m_rect.m_x + ((enemy->m_rect.m_w / 2) -
                                               (goldpiece->m_rect.m_w / 2)),
                          enemy->m_rect.m_y + ((enemy->m_rect.m_h / 2) -
                                               (goldpiece->m_rect.m_h / 2)),
-                         1);
+                         true);
       // add goldpiece
       m_sprite_manager->Add(goldpiece);
 
-      enemy->Set_Active(0);
-      enemy->DownGrade(1);
+      enemy->Set_Active(false);
+      enemy->DownGrade(true);
       pLevel_Player->Add_Kill_Multiplier();
     } else if (m_ball_type == ICEBALL_DEFAULT) {
       enemy->Freeze();
@@ -492,7 +490,7 @@ void cBall ::Handle_Collision_Massive(cObjectCollision* collision) {
   if (collision->m_direction == DIR_DOWN) {
     // if directly hitting the ground
     if (m_velx < 0.1f && m_velx > -0.1f) {
-      Destroy_Ball(1);
+      Destroy_Ball(true);
       return;
     }
 
@@ -511,7 +509,7 @@ void cBall ::Handle_Collision_Massive(cObjectCollision* collision) {
       // create animation
       cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
       anim->Set_Pos(m_pos_x + m_col_rect.m_w / 2, m_pos_y + m_col_rect.m_h / 2,
-                    1);
+                    true);
       anim->Set_Image(pVideo->Get_Surface("animation/particles/cloud.png"));
       anim->Set_Direction_Range(0, 180);
       anim->Set_Quota(3);
@@ -527,7 +525,7 @@ void cBall ::Handle_Collision_Massive(cObjectCollision* collision) {
   }
   // other directions
   else {
-    Destroy_Ball(1);
+    Destroy_Ball(true);
   }
 }
 
@@ -537,7 +535,7 @@ void cBall ::Handle_out_of_Level(ObjectDirection dir) {
     return;
   }
 
-  Destroy_Ball(1);
+  Destroy_Ball(true);
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

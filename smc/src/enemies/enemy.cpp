@@ -34,8 +34,8 @@ cEnemy ::cEnemy(cSprite_Manager* sprite_manager)
 
   m_massive_type = MASS_MASSIVE;
   m_state = STA_FALL;
-  m_can_be_ground = 1;
-  m_dead = 0;
+  m_can_be_ground = true;
+  m_dead = false;
   m_counter = 0.0f;
 
   m_kill_sound = "enemy/furball/die.ogg";
@@ -44,11 +44,11 @@ cEnemy ::cEnemy(cSprite_Manager* sprite_manager)
   m_velx_max = 0.0f;
   m_velx_gain = 0.0f;
 
-  m_fire_resistant = 0;
-  m_can_be_hit_from_shell = 1;
+  m_fire_resistant = false;
+  m_can_be_hit_from_shell = true;
 }
 
-cEnemy ::~cEnemy(void) {}
+cEnemy ::~cEnemy(void) = default;
 
 void cEnemy ::Load_From_Savegame(cSave_Level_Object* save_object) {
   // state
@@ -99,44 +99,39 @@ cSave_Level_Object* cEnemy ::Save_To_Savegame(void) {
 
   // default values
   save_object->m_type = m_type;
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "posx", int_to_string(static_cast<int>(m_start_pos_x))));
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "posy", int_to_string(static_cast<int>(m_start_pos_y))));
+  save_object->m_properties.emplace_back(
+      "posx", int_to_string(static_cast<int>(m_start_pos_x)));
+  save_object->m_properties.emplace_back(
+      "posy", int_to_string(static_cast<int>(m_start_pos_y)));
 
   // state
-  save_object->m_properties.push_back(
-      cSave_Level_Object_Property("state", int_to_string(m_state)));
+  save_object->m_properties.emplace_back("state", int_to_string(m_state));
 
   // new position ( only save if needed )
   if (!Is_Float_Equal(m_start_pos_x, m_pos_x) ||
       !Is_Float_Equal(m_start_pos_y, m_pos_y)) {
-    save_object->m_properties.push_back(cSave_Level_Object_Property(
-        "new_posx", int_to_string(static_cast<int>(m_pos_x))));
-    save_object->m_properties.push_back(cSave_Level_Object_Property(
-        "new_posy", int_to_string(static_cast<int>(m_pos_y))));
+    save_object->m_properties.emplace_back(
+        "new_posx", int_to_string(static_cast<int>(m_pos_x)));
+    save_object->m_properties.emplace_back(
+        "new_posy", int_to_string(static_cast<int>(m_pos_y)));
   }
 
   // direction
-  save_object->m_properties.push_back(
-      cSave_Level_Object_Property("direction", int_to_string(m_direction)));
+  save_object->m_properties.emplace_back("direction",
+                                         int_to_string(m_direction));
 
   // velocity
-  save_object->m_properties.push_back(
-      cSave_Level_Object_Property("velx", float_to_string(m_velx)));
-  save_object->m_properties.push_back(
-      cSave_Level_Object_Property("vely", float_to_string(m_vely)));
+  save_object->m_properties.emplace_back("velx", float_to_string(m_velx));
+  save_object->m_properties.emplace_back("vely", float_to_string(m_vely));
 
   // active ( only save if needed )
   if (!m_active) {
-    save_object->m_properties.push_back(
-        cSave_Level_Object_Property("active", int_to_string(m_active)));
+    save_object->m_properties.emplace_back("active", int_to_string(m_active));
   }
 
   // dead ( only save if needed )
   if (m_dead) {
-    save_object->m_properties.push_back(
-        cSave_Level_Object_Property("dead", int_to_string(m_dead)));
+    save_object->m_properties.emplace_back("dead", int_to_string(m_dead));
   }
 
   return save_object;
@@ -183,7 +178,7 @@ void cEnemy ::Update_Late(void) {
     // handle collisions manually
     m_massive_type = MASS_MASSIVE;
     cObjectCollisionType* col_list = Collision_Check(&m_col_rect);
-    Add_Collisions(col_list, 1);
+    Add_Collisions(col_list, true);
     delete col_list;
     Handle_Collisions();
     m_massive_type = MASS_PASSIVE;
@@ -218,7 +213,7 @@ void cEnemy ::Update_Gravity(void) {
     }
     // below ground
     if (m_col_rect.m_y > pActive_Camera->m_limit_rect.m_y) {
-      DownGrade(1);
+      DownGrade(true);
     }
   }
   // has ground object
@@ -232,10 +227,10 @@ void cEnemy ::Update_Gravity(void) {
 
 void cEnemy ::Generate_Hit_Animation(
     cParticle_Emitter* anim /* = NULL */) const {
-  bool create_anim = 0;
+  bool create_anim = false;
 
   if (!anim) {
-    create_anim = 1;
+    create_anim = true;
     // create animation
     anim = new cParticle_Emitter(m_sprite_manager);
   }
@@ -275,7 +270,7 @@ void cEnemy ::Generate_Hit_Animation(
   anim->Set_Speed(0.5f, 2.6f);
   anim->Set_Scale(0.2f, 0.6f);
   anim->Set_Direction_Range(220, 100);
-  anim->Set_Fading_Alpha(1);
+  anim->Set_Fading_Alpha(true);
   //anim->Set_Fading_Size( 1 );
   anim->Set_Blending(BLEND_ADD);
 

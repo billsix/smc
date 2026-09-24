@@ -50,8 +50,8 @@ class cSaved_Texture {
   GLint m_wrap_t;
 };
 
-typedef vector<cSaved_Texture*> Saved_Texture_List;
-typedef vector<cGL_Surface*> GL_Surface_List;
+using Saved_Texture_List = vector<cSaved_Texture*>;
+using GL_Surface_List = vector<cGL_Surface*>;
 
 /* *** *** *** *** *** *** cImage_Manager *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -63,10 +63,10 @@ typedef vector<cGL_Surface*> GL_Surface_List;
 class cImage_Manager : public cObject_Manager<cGL_Surface> {
  public:
   cImage_Manager(void);
-  virtual ~cImage_Manager(void);
+  ~cImage_Manager(void) override;
 
   // Add a surface
-  virtual void Add(cGL_Surface* obj);
+  void Add(cGL_Surface* obj) override;
 
   // Return the surface by path
   cGL_Surface* Get_Pointer(const std::string& path) const;
@@ -81,13 +81,13 @@ class cImage_Manager : public cObject_Manager<cGL_Surface> {
 	 * from_file: if set don't store in software memory but load again from file
 	 * draw_gui : if set use the loading screen gui for drawing
 	*/
-  void Grab_Textures(bool from_file = 0, bool draw_gui = 0);
+  void Grab_Textures(bool from_file = false, bool draw_gui = false);
 
   /* Load the saved software textures back into hardware textures or
 	 * load textures from file if set
 	 * draw_gui : if set use the loading screen gui for drawing
 	*/
-  void Restore_Textures(bool draw_gui = 0);
+  void Restore_Textures(bool draw_gui = false);
 
   // Delete all surface textures, but keep object vector entries
   void Delete_Image_Textures(void);
@@ -96,7 +96,7 @@ class cImage_Manager : public cObject_Manager<cGL_Surface> {
   void Delete_Hardware_Textures(void);
 
   // Delete all Surfaces
-  virtual void Delete_All(void);
+  void Delete_All(void) override;
 
   // highest opengl texture id found
   GLuint m_high_texture_id;

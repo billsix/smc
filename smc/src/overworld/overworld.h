@@ -34,7 +34,7 @@ namespace SMC {
 class cOverworld_description : public CEGUI::XMLHandler {
  public:
   cOverworld_description(void);
-  virtual ~cOverworld_description(void);
+  ~cOverworld_description(void) override;
 
   // Load
   void Load(void);
@@ -62,10 +62,10 @@ class cOverworld_description : public CEGUI::XMLHandler {
 
  private:
   // XML element start
-  virtual void elementStart(const CEGUI::String& element,
-                            const CEGUI::XMLAttributes& attributes);
+  void elementStart(const CEGUI::String& element,
+                    const CEGUI::XMLAttributes& attributes) override;
   // XML element end
-  virtual void elementEnd(const CEGUI::String& element);
+  void elementEnd(const CEGUI::String& element) override;
   // handle world description
   void handle_world(const CEGUI::XMLAttributes& attributes);
 
@@ -78,12 +78,12 @@ class cOverworld_description : public CEGUI::XMLHandler {
 // forward declare
 class cAnimation_Manager;
 
-typedef vector<cWaypoint*> WaypointList;
+using WaypointList = vector<cWaypoint*>;
 
 class cOverworld : public CEGUI::XMLHandler {
  public:
   cOverworld(void);
-  virtual ~cOverworld(void);
+  ~cOverworld(void) override;
 
   // New
   bool New(std::string name);
@@ -138,7 +138,7 @@ class cOverworld : public CEGUI::XMLHandler {
   /* Sets the current Waypoint progress
 	 * if force is set already accessible waypoints will be unset
 	*/
-  void Set_Progress(unsigned int normal_level, bool force = 1);
+  void Set_Progress(unsigned int normal_level, bool force = true);
 
   /* Returns a pointer to the Waypoint
 	 * if not found returns NULL
@@ -210,10 +210,10 @@ class cOverworld : public CEGUI::XMLHandler {
 
  private:
   // XML element start
-  virtual void elementStart(const CEGUI::String& element,
-                            const CEGUI::XMLAttributes& attributes);
+  void elementStart(const CEGUI::String& element,
+                    const CEGUI::XMLAttributes& attributes) override;
   // XML element end
-  virtual void elementEnd(const CEGUI::String& element);
+  void elementEnd(const CEGUI::String& element) override;
 
   // XML element property list
   CEGUI::XMLAttributes m_xml_attributes;

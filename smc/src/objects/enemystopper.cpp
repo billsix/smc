@@ -34,11 +34,11 @@ cEnemyStopper ::cEnemyStopper(CEGUI::XMLAttributes& attributes,
   cEnemyStopper::Load_From_XML(attributes);
 }
 
-cEnemyStopper ::~cEnemyStopper(void) {}
+cEnemyStopper ::~cEnemyStopper(void) = default;
 
 cEnemyStopper* cEnemyStopper ::Copy(void) const {
   cEnemyStopper* enemystopper = new cEnemyStopper(m_sprite_manager);
-  enemystopper->Set_Pos(m_start_pos_x, m_start_pos_y, 1);
+  enemystopper->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   return enemystopper;
 }
 
@@ -63,7 +63,7 @@ void cEnemyStopper ::Init(void) {
 
 void cEnemyStopper ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
 }
 
 void cEnemyStopper ::Save_To_XML(CEGUI::XMLSerializer& stream) {
@@ -91,15 +91,15 @@ void cEnemyStopper ::Draw(cSurface_Request* request /* = NULL */) {
 bool cEnemyStopper ::Is_Draw_Valid(void) {
   // if editor not enabled
   if (!editor_enabled) {
-    return 0;
+    return false;
   }
 
   // if not active or not on the screen
   if (!m_active || !Is_Visible_On_Screen()) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

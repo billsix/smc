@@ -60,7 +60,7 @@ class cFont_Manager {
   TTF_Font* m_font_very_small;
 
   // current active loaded font list
-  typedef vector<cGL_Surface*> ActiveFontList;
+  using ActiveFontList = vector<cGL_Surface*>;
   ActiveFontList m_active_fonts;
 
   // saved software textures only used for reloading

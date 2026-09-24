@@ -56,7 +56,7 @@ namespace SMC {
 cVideo ::cVideo(void) {
   m_opengl_version = 0;
 
-  m_double_buffer = 0;
+  m_double_buffer = false;
 
   m_rgb_size[0] = 0;
   m_rgb_size[1] = 0;
@@ -65,18 +65,17 @@ cVideo ::cVideo(void) {
   m_default_buffer = GL_BACK;
   m_max_texture_size = 512;
 
-  m_audio_init_failed = 0;
-  m_joy_init_failed = 0;
+  m_audio_init_failed = false;
+  m_joy_init_failed = false;
   m_geometry_quality = cPreferences::m_geometry_quality_default;
   m_texture_quality = cPreferences::m_texture_quality_default;
 
-  m_gl_context = NULL;
-  m_render_thread = boost::thread();
+  m_gl_context = nullptr;
 
-  m_initialised = 0;
+  m_initialised = false;
 }
 
-cVideo ::~cVideo(void) {}
+cVideo ::~cVideo(void) = default;
 
 void cVideo ::Init_CEGUI_Fake(void) const {
   // create fake Resource Provider
@@ -95,8 +94,9 @@ void cVideo ::Init_CEGUI_Fake(void) const {
   CEGUI::String log_dump_dir = "/dev/null";
 #endif
   // create fake system and renderer
-  pGuiSystem = &CEGUI::System::create(CEGUI::NullRenderer::create(), rp, NULL,
-                                      NULL, NULL, "", log_dump_dir);
+  pGuiSystem =
+      &CEGUI::System::create(CEGUI::NullRenderer::create(), rp, nullptr,
+                             nullptr, nullptr, "", log_dump_dir);
 }
 
 void cVideo ::Delete_CEGUI_Fake(void) const {
@@ -104,7 +104,7 @@ void cVideo ::Delete_CEGUI_Fake(void) const {
   CEGUI::Renderer* renderer = pGuiSystem->getRenderer();
 
   pGuiSystem->destroy();
-  pGuiSystem = NULL;
+  pGuiSystem = nullptr;
   delete renderer;
   delete rp;
 }
@@ -123,7 +123,7 @@ void cVideo ::Init_CEGUI(void) const {
     exit(EXIT_FAILURE);
   }
 
-  pGuiRenderer->enableExtraStateSettings(1);
+  pGuiRenderer->enableExtraStateSettings(true);
 
   // create Resource Provider
   CEGUI::DefaultResourceProvider* rp = new CEGUI::DefaultResourceProvider();
@@ -166,7 +166,7 @@ void cVideo ::Init_CEGUI(void) const {
                                  .c_str()));
 #else
     pGuiSystem =
-        &CEGUI::System::create(*pGuiRenderer, rp, NULL, NULL, NULL, "",
+        &CEGUI::System::create(*pGuiRenderer, rp, nullptr, nullptr, nullptr, "",
                                pResource_Manager->user_data_dir + "cegui.log");
 #endif
   }
@@ -223,17 +223,17 @@ void cVideo ::Init_SDL(void) {
   if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1) {
     printf("Warning : SDL Joystick initialization failed\nReason : %s\n",
            SDL_GetError());
-    m_joy_init_failed = 1;
+    m_joy_init_failed = true;
   } else {
-    m_joy_init_failed = 0;
+    m_joy_init_failed = false;
   }
 
   if (SDL_InitSubSystem(SDL_INIT_AUDIO) == -1) {
     printf("Warning : SDL Audio initialization failed\nReason : %s\n",
            SDL_GetError());
-    m_audio_init_failed = 1;
+    m_audio_init_failed = true;
   } else {
-    m_audio_init_failed = 0;
+    m_audio_init_failed = false;
   }
 
   // preload the sdl_image png library
@@ -345,7 +345,7 @@ void cVideo ::Init_Video(bool reload_textures_from_file /* = 0 */,
   // if reinitialization
   if (m_initialised) {
     // check if CEGUI is initialized
-    bool cegui_initialized = pGuiSystem->getGUISheet() != NULL;
+    bool cegui_initialized = pGuiSystem->getGUISheet() != nullptr;
 
     // show loading screen
     if (cegui_initialized) {
@@ -489,7 +489,7 @@ void cVideo ::Init_Video(bool reload_textures_from_file /* = 0 */,
         static_cast<float>(screen_w), static_cast<float>(screen_h)));
 
     // check if CEGUI is initialized
-    bool cegui_initialized = pGuiSystem->getGUISheet() != NULL;
+    bool cegui_initialized = pGuiSystem->getGUISheet() != nullptr;
 
     // show loading screen
     if (cegui_initialized) {
@@ -498,7 +498,7 @@ void cVideo ::Init_Video(bool reload_textures_from_file /* = 0 */,
 
     // initialize new image cache
     if (reload_textures_from_file) {
-      Init_Image_Cache(0, cegui_initialized);
+      Init_Image_Cache(false, cegui_initialized);
     }
 
     // restore textures
@@ -531,7 +531,7 @@ void cVideo ::Init_Video(bool reload_textures_from_file /* = 0 */,
       }
     }
 
-    m_initialised = 1;
+    m_initialised = true;
   }
 }
 
@@ -703,7 +703,7 @@ void cVideo ::Init_Image_Cache(bool recreate /* = 0 */,
   float real_texture_detail = m_texture_quality;
   m_texture_quality = 1;
 
-  CEGUI::ProgressBar* progress_bar = NULL;
+  CEGUI::ProgressBar* progress_bar = nullptr;
 
   if (draw_gui) {
     // get progress bar
@@ -717,7 +717,7 @@ void cVideo ::Init_Image_Cache(bool recreate /* = 0 */,
 
   // get all files
   vector<std::string> image_files =
-      Get_Directory_Files(DATA_DIR "/" GAME_PIXMAPS_DIR, ".settings", 1);
+      Get_Directory_Files(DATA_DIR "/" GAME_PIXMAPS_DIR, ".settings", true);
 
   unsigned int loaded_files = 0;
   unsigned int file_count = image_files.size();
@@ -741,11 +741,11 @@ void cVideo ::Init_Image_Cache(bool recreate /* = 0 */,
       continue;
     }
 
-    bool settings_file = 0;
+    bool settings_file = false;
 
     // Don't use .settings file type directly for image loading
     if (filename.rfind(".settings") != std::string::npos) {
-      settings_file = 1;
+      settings_file = true;
       filename.erase(filename.rfind(".settings"));
       filename.insert(filename.length(), ".png");
     }
@@ -867,11 +867,11 @@ vector<cSize_Int> cVideo ::Get_Supported_Resolutions(
   vector<cSize_Int> valid_resolutions;
 
   // SDL 2: the display modes of the primary display (sizes only, deduplicated)
-  bool create_default_list = 0;
+  bool create_default_list = false;
   int num_modes = SDL_GetNumDisplayModes(0);
 
   if (num_modes <= 0) {
-    create_default_list = 1;
+    create_default_list = true;
   } else {
     for (int i = 0; i < num_modes; ++i) {
       SDL_DisplayMode mode;
@@ -879,11 +879,11 @@ vector<cSize_Int> cVideo ::Get_Supported_Resolutions(
         continue;
       }
       cSize_Int size(mode.w, mode.h);
-      bool known = 0;
+      bool known = false;
       for (vector<cSize_Int>::const_iterator itr = valid_resolutions.begin();
            itr != valid_resolutions.end(); ++itr) {
         if (itr->m_width == size.m_width && itr->m_height == size.m_height) {
-          known = 1;
+          known = true;
           break;
         }
       }
@@ -894,102 +894,37 @@ vector<cSize_Int> cVideo ::Get_Supported_Resolutions(
   }
 
   if (create_default_list) {
-    valid_resolutions.push_back(cSize_Int(2048, 1536));
-    valid_resolutions.push_back(cSize_Int(1600, 1200));
-    valid_resolutions.push_back(cSize_Int(1280, 1024));
-    valid_resolutions.push_back(cSize_Int(1024, 768));
-    valid_resolutions.push_back(cSize_Int(800, 600));
-    valid_resolutions.push_back(cSize_Int(640, 480));
+    valid_resolutions.emplace_back(2048, 1536);
+    valid_resolutions.emplace_back(1600, 1200);
+    valid_resolutions.emplace_back(1280, 1024);
+    valid_resolutions.emplace_back(1024, 768);
+    valid_resolutions.emplace_back(800, 600);
+    valid_resolutions.emplace_back(640, 480);
   }
 
   return valid_resolutions;
 }
 
-void cVideo ::Make_GL_Context_Current(void) {
-  // SDL 2 owns the context; the same call works on every platform
-  if (m_gl_context != NULL && SDL_GL_GetCurrentContext() != m_gl_context) {
-    SDL_GL_MakeCurrent(screen, m_gl_context);
-  }
-}
-
-void cVideo ::Make_GL_Context_Inactive(void) {
-  SDL_GL_MakeCurrent(screen, NULL);
-}
-
-void cVideo ::Render_From_Thread(void) {
-  Make_GL_Context_Current();
-
-  pRenderer_current->Render();
-  // under linux with sofware mesa 7.9 it only showed the rendered output with SDL_GL_SwapBuffers()
+void cVideo ::Render(void) {
+  pRenderer->Render();
 
   // update performance timer
-  //pFramerate->m_perf_timer[PERF_RENDER_GAME]->Update();
+  pFramerate->m_perf_timer[PERF_RENDER_GAME]->Update();
 
-  Make_GL_Context_Inactive();
+  pGuiSystem->renderGUI();
+
+  // update performance timer
+  pFramerate->m_perf_timer[PERF_RENDER_GUI]->Update();
+
+  SDL_GL_SwapWindow(screen);
+
+  // update performance timer
+  pFramerate->m_perf_timer[PERF_RENDER_BUFFER]->Update();
 }
 
-void cVideo ::Render(bool threaded /* = 0 */) {
-  Render_Finish();
-
-  if (threaded) {
-    pGuiSystem->renderGUI();
-
-    // update performance timer
-    pFramerate->m_perf_timer[PERF_RENDER_GUI]->Update();
-
-    SDL_GL_SwapWindow(screen);
-
-    // update performance timer
-    pFramerate->m_perf_timer[PERF_RENDER_BUFFER]->Update();
-
-    // switch active renderer
-    cRenderQueue* new_render = pRenderer;
-    pRenderer = pRenderer_current;
-    pRenderer_current = new_render;
-
-    // move objects that should render more than once
-    if (!pRenderer->m_render_data.empty()) {
-      pRenderer_current->m_render_data.insert(
-          pRenderer_current->m_render_data.begin(),
-          pRenderer->m_render_data.begin(), pRenderer->m_render_data.end());
-      pRenderer->m_render_data.clear();
-    }
-
-    // make main thread inactive
-    Make_GL_Context_Inactive();
-    // start render thread
-    m_render_thread = boost::thread(&cVideo::Render_From_Thread, this);
-  }
-  // single thread mode
-  else {
-    pRenderer->Render();
-
-    // update performance timer
-    pFramerate->m_perf_timer[PERF_RENDER_GAME]->Update();
-
-    pGuiSystem->renderGUI();
-
-    // update performance timer
-    pFramerate->m_perf_timer[PERF_RENDER_GUI]->Update();
-
-    SDL_GL_SwapWindow(screen);
-
-    // update performance timer
-    pFramerate->m_perf_timer[PERF_RENDER_BUFFER]->Update();
-  }
-}
-
-void cVideo ::Render_Finish(void) {
-#ifndef SMC_RENDER_THREAD_TEST
-  return;
-#endif
-  if (m_render_thread.joinable()) {
-    m_render_thread.join();
-  }
-
-  // todo : use opengl in only one thread
-  Make_GL_Context_Current();
-}
+// No-op since the threaded renderer (boost::thread, never enabled) was removed. Kept so its
+// call sites still compile; they are dead cruft to sweep in a later cleanup.
+void cVideo ::Render_Finish(void) {}
 
 void cVideo ::Toggle_Fullscreen(void) {
   Render_Finish();
@@ -1030,7 +965,7 @@ cGL_Surface* cVideo ::Get_Surface(std::string filename,
   }
 
   // load new image
-  image = Load_GL_Surface(filename, 1, print_errors);
+  image = Load_GL_Surface(filename, true, print_errors);
   // add new image
   if (image) {
     pImage_Manager->Add(image);
@@ -1048,8 +983,8 @@ cVideo::cSoftware_Image cVideo ::Load_Image(std::string filename,
   }
 
   cSoftware_Image software_image = cSoftware_Image();
-  SDL_Surface* sdl_surface = NULL;
-  cImage_Settings_Data* settings = NULL;
+  SDL_Surface* sdl_surface = nullptr;
+  cImage_Settings_Data* settings = nullptr;
 
   // load settings if available
   if (load_settings) {
@@ -1106,7 +1041,7 @@ cVideo::cSoftware_Image cVideo ::Load_Image(std::string filename,
   if (!sdl_surface) {
     if (settings) {
       delete settings;
-      settings = NULL;
+      settings = nullptr;
     }
 
     if (print_errors) {
@@ -1137,7 +1072,7 @@ cGL_Surface* cVideo ::Load_GL_Surface(std::string filename,
   cImage_Settings_Data* settings = software_image.m_settings;
 
   // final surface
-  cGL_Surface* image = NULL;
+  cGL_Surface* image = nullptr;
 
   // with settings
   if (settings) {
@@ -1190,7 +1125,7 @@ SDL_Surface* cVideo ::Convert_To_Final_Software_Image(
     // copy the pixels as they are, alpha included (SDL 1.2: SDL_SetAlpha with no SDL_SRCALPHA)
     SDL_SetSurfaceBlendMode(surface, SDL_BLENDMODE_NONE);
     // blit to 32 bit surface
-    SDL_BlitSurface(surface, NULL, final, NULL);
+    SDL_BlitSurface(surface, nullptr, final, nullptr);
     // delete original surface
     SDL_FreeSurface(surface);
     // set new surface
@@ -1205,7 +1140,7 @@ cGL_Surface* cVideo ::Create_Texture(
     unsigned int force_width /* = 0 */,
     unsigned int force_height /* = 0 */) const {
   if (!surface) {
-    return NULL;
+    return nullptr;
   }
 
   // create final image
@@ -1224,7 +1159,7 @@ cGL_Surface* cVideo ::Create_Texture(
   if (!image_num) {
     printf("Error : GL image generation failed\n");
     SDL_FreeSurface(surface);
-    return NULL;
+    return nullptr;
   }
 
   // set highest texture id
@@ -1369,10 +1304,10 @@ void cVideo ::Draw_Rect(float x, float y, float width, float height, float z,
     return;
   }
 
-  bool create_request = 0;
+  bool create_request = false;
 
   if (!request) {
-    create_request = 1;
+    create_request = true;
     // create request
     request = new cRect_Request();
   }
@@ -1416,10 +1351,10 @@ void cVideo ::Draw_Gradient(float x, float y, float width, float height,
     return;
   }
 
-  bool create_request = 0;
+  bool create_request = false;
 
   if (!request) {
-    create_request = 1;
+    create_request = true;
     // create request
     request = new cGradient_Request();
   }
@@ -1453,10 +1388,10 @@ void cVideo ::Draw_Circle(float x, float y, float radius, float z,
     return;
   }
 
-  bool create_request = 0;
+  bool create_request = false;
 
   if (!request) {
-    create_request = 1;
+    create_request = true;
     // create request
     request = new cCircle_Request();
   }
@@ -1495,10 +1430,10 @@ void cVideo ::Draw_Line(float x1, float y1, float x2, float y2, float z,
     return;
   }
 
-  bool create_request = 0;
+  bool create_request = false;
 
   if (!request) {
-    create_request = 1;
+    create_request = true;
     // create request
     request = new cLine_Request();
   }
@@ -1547,7 +1482,8 @@ void cVideo ::Apply_Max_Texture_Size(int& width, int& height) const {
     // scale height by the same ratio to keep aspect ratio. A float ratio is required:
     // an integer width / m_max_texture_size truncates to 1 for e.g. 1500 on a 1024 cap,
     // leaving height unchanged and squashing the image.
-    float scale = static_cast<float>(m_max_texture_size) / static_cast<float>(width);
+    float scale =
+        static_cast<float>(m_max_texture_size) / static_cast<float>(width);
     height = static_cast<int>(static_cast<float>(height) * scale);
     if (height < 1) {
       height = 1;
@@ -1556,7 +1492,8 @@ void cVideo ::Apply_Max_Texture_Size(int& width, int& height) const {
   }
   if (height > m_max_texture_size) {
     // scale width by the same ratio to keep aspect ratio
-    float scale = static_cast<float>(m_max_texture_size) / static_cast<float>(height);
+    float scale =
+        static_cast<float>(m_max_texture_size) / static_cast<float>(height);
     width = static_cast<int>(static_cast<float>(width) * scale);
     if (width < 1) {
       width = 1;
@@ -1574,10 +1511,10 @@ bool cVideo ::Downscale_Image(const unsigned char* const orig, int width,
                               unsigned char* resampled, int block_size_x,
                               int block_size_y) const {
   // error check
-  if (width <= 0 || height <= 0 || channels <= 0 || orig == NULL ||
-      resampled == NULL || block_size_x <= 0 || block_size_y <= 0) {
+  if (width <= 0 || height <= 0 || channels <= 0 || orig == nullptr ||
+      resampled == nullptr || block_size_x <= 0 || block_size_y <= 0) {
     // invalid argument
-    return 0;
+    return false;
   }
 
   int mip_width = width / block_size_x;
@@ -1632,7 +1569,7 @@ bool cVideo ::Downscale_Image(const unsigned char* const orig, int width,
     }
   }
 
-  return 1;
+  return true;
 }
 
 void cVideo ::Save_Screenshot(void) {
@@ -1654,7 +1591,7 @@ void cVideo ::Save_Screenshot(void) {
                    static_cast<GLvoid*>(data));
       // save
       Save_Surface(filename, data, pPreferences->m_video_screen_w,
-                   pPreferences->m_video_screen_h, 3, 1);
+                   pPreferences->m_video_screen_h, 3, true);
       // clear data
       delete[] data;
 
@@ -1672,7 +1609,7 @@ void cVideo ::Save_Surface(const std::string& filename,
                            const unsigned char* data, unsigned int width,
                            unsigned int height, unsigned int bpp /* = 4 */,
                            bool reverse_data /* = 0 */) const {
-  FILE* fp = NULL;
+  FILE* fp = nullptr;
 
 // fixme : Check if there is a more portable way f.e. with imbue()
 #ifdef _WIN32
@@ -1701,7 +1638,7 @@ void cVideo ::Save_Surface(const std::string& filename,
   }
 
   png_structp png_ptr =
-      png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+      png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
   png_infop info_ptr = png_create_info_struct(png_ptr);
 
   png_init_io(png_ptr, fp);
@@ -1764,7 +1701,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
 
         // create request
         cRect_Request* request = new cRect_Request();
-        pVideo->Draw_Rect(NULL, 0.9f, &color, request);
+        pVideo->Draw_Rect(nullptr, 0.9f, &color, request);
 
         request->m_render_count = 2;
 
@@ -1870,7 +1807,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
     }
     case EFFECT_OUT_BIG_ITEM: {
       float f = 0.1f;
-      cGL_Surface* image = NULL;
+      cGL_Surface* image = nullptr;
 
       // item based on the camera x position
       if (pActive_Camera->m_x < 2000) {
@@ -1919,7 +1856,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
 
         // create request
         cRect_Request* rect_request = new cRect_Request();
-        pVideo->Draw_Rect(NULL, 0.901f, &color, rect_request);
+        pVideo->Draw_Rect(nullptr, 0.901f, &color, rect_request);
 
         // add request
         pRenderer->Add(rect_request);
@@ -2154,7 +2091,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
         rect_color.alpha = static_cast<Uint8>(rect_size * 3);
         // create request
         cRect_Request* request = new cRect_Request();
-        pVideo->Draw_Rect(NULL, 0.9f, &rect_color, request);
+        pVideo->Draw_Rect(nullptr, 0.9f, &rect_color, request);
 
         request->m_render_count = 2;
 
@@ -2181,7 +2118,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
 void Draw_Effect_In(Effect_Fadein effect /* = EFFECT_IN_RANDOM */,
                     float speed /* = 1 */) {
   // Clear render cache
-  pRenderer->Clear(1);
+  pRenderer->Clear(true);
 
   if (effect == EFFECT_IN_RANDOM) {
     effect = static_cast<Effect_Fadein>((rand() % (EFFECT_IN_AMOUNT - 1)) + 1);
@@ -2196,7 +2133,7 @@ void Draw_Effect_In(Effect_Fadein effect /* = EFFECT_IN_RANDOM */,
 
         // create request
         cRect_Request* request = new cRect_Request();
-        pVideo->Draw_Rect(NULL, 0.9f, &color, request);
+        pVideo->Draw_Rect(nullptr, 0.9f, &color, request);
 
         // add request
         pRenderer->Add(request);
@@ -2266,7 +2203,7 @@ void Loading_Screen_Draw(void) {
 
   // clear screen
   pVideo->Clear_Screen();
-  pVideo->Draw_Rect(NULL, 0.00001f, &black);
+  pVideo->Draw_Rect(nullptr, 0.00001f, &black);
 
   // Render
   pRenderer->Render();
@@ -2297,12 +2234,12 @@ void Loading_Screen_Exit(void) {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cVideo* pVideo = NULL;
+cVideo* pVideo = nullptr;
 
-CEGUI::OpenGLRenderer* pGuiRenderer = NULL;
-CEGUI::System* pGuiSystem = NULL;
+CEGUI::OpenGLRenderer* pGuiRenderer = nullptr;
+CEGUI::System* pGuiSystem = nullptr;
 
-SDL_Window* screen = NULL;
+SDL_Window* screen = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

@@ -1,10 +1,61 @@
 # Modernize the game's C++ to the newest standard, replacing the old patterns with the features made for them
 
-**Status:** proposed — needs go-ahead (asked for by William Emerison Six <billsix@gmail.com>,
-2026-09-23: "modernize the c++ to the newest available version, using features intended to
-replace older patterns. If I remember correctly, too many manager classes. This would be an
-excellent example of refactoring to modern C++"). Not to be started until the container build
-task is green (it is the gate this work runs under).
+**Status:** IN PROGRESS (umbrella) — started 2026-09-24 on branch `modernize-cpp` (off
+`pre-modernization-fixes`), William Emerison Six <billsix@gmail.com>: "start on the C++ upgrades,
+make a branch, work on your own with the same workflow ... commit yourself, archive a task, repeat".
+This is now the **umbrella**; each Plan step below is its own step-task (`smc-modernize-step-N-*.md`),
+done → committed → archived in turn. Decisions settled: **C++23**, and **one application object**
+for the singletons (step 5).
+
+## Step-task index (archive each on completion; archive this umbrella when the last lands)
+
+- [x] **Step 0** — pin C++23 (`smc-modernize-step-0-pin-cpp23.md`, DONE 2026-09-24): `-std=c++23
+  -Wall -Wextra` in `configure.ac`; compiles clean (0 errors). Warning baseline: 4662
+  (`-Wdeprecated-copy` 2036, `-Wunused-parameter` 1604, `-Wdeprecated-declarations` 304, …) — the
+  metric later steps reduce.
+- [x] **Step 1** — `override` sweep (`smc-modernize-step-1-override-sweep.md`, DONE 2026-09-24):
+  clang-tidy `modernize-use-override -fix` (codemod kept at `tasks/adhoc/modernize/tidy_override.sh`)
+  added **611** `override` across 59 files (redundant `virtual` dropped); reformatted; compiles
+  clean; warnings 4662 → 4496. No signature-mismatch surprises (clang-tidy only annotates real
+  overrides).
+- [~] **Step 2** — `nullptr`/`using`/bool-literals (`smc-modernize-step-2-nullptr-using-bool.md`,
+  DONE 2026-09-24): clang-tidy `modernize-use-nullptr,use-using,use-bool-literals -fix`
+  (`tasks/adhoc/modernize/tidy_step2.sh`); NULL 487→87 (400→`nullptr`; the 87 are macro/ambiguous
+  contexts clang-tidy leaves), all `typedef`→`using`, bool literals fixed. 141 files, compiles
+  clean. **`#define`→`constexpr` deferred** (clang-tidy can't do it safely; a later manual pass).
+- [x] **Step 3** — drop Boost (`smc-modernize-step-3-drop-boost.md`, DONE 2026-09-24):
+  `boost::filesystem` → `std::filesystem` in `filesystem.cpp` (namespace + file_type enum names);
+  removed the never-enabled threaded renderer (`boost::thread` member/include, `Render_From_Thread`,
+  `Make_GL_Context_*`, the `threaded` branch of `Render`, the `SMC_RENDER_THREAD_TEST` ifdef in
+  main) — this also clears the render-thread item the dead-code task deferred; removed the three
+  Boost `AC_CHECK_LIB`s + the mac `-lboost_system` from `configure.ac`, and `boost-devel` from
+  `entrypoint/01-install-base.sh`. Compiles + **links with no Boost**, and the image builds with
+  boost-devel absent. (Left: `Render_Finish` is now an empty no-op with dead call sites; the
+  `pRenderer_current` double-buffer is now unused — both minor cleanups for later.)
+- [x] **Step 4** — safe clang-tidy modernize sweep
+  (`tasks/archive/2026/09/24/smc-modernize-step-4-safe-clang-tidy-sweep.md`, DONE 2026-09-24):
+  `modernize-use-emplace` (247) + `modernize-use-equals-default` (37, dtor/default-ctor only);
+  34 files, +354/−385; compiles+links clean, image builds, smoke green. `use-equals-default`'s 4
+  copy/assign conversions (botched `GL_point` ctor; 3 hand-written `operator=`) reverted by the
+  codemod → reviewed pass. `loop-convert` excluded (names range-for locals after the container →
+  `m_`-prefixed locals) → moved to step 8. Warnings unchanged (4496). Last purely-mechanical step.
+
+**--- the steps below are architectural/behavioral rewrites; their real gate is GAMEPLAY, which the
+30s headless smoke run cannot certify. They are staged for a maintainer-reviewed pass (play-test
+each), NOT autonomous batching. Recommended: build each with AddressSanitizer + run the smoke, and
+for the enum step add a level/save round-trip check, before trusting "done". ---**
+
+- [ ] Step 5 — ownership → `unique_ptr` / value (`cObject_Manager<T>` → `vector<unique_ptr<T>>`,
+  `Copy()` → `Clone()`, render-queue + savegame graph). Deep; verify with ASan.
+- [ ] Step 6 — one `cApplication` owning the 24 former singletons (fixes the destruction-order
+  hazards + `pFramerate` leak by member-declaration order).
+- [ ] Step 7 — `enum class` + virtual dispatch replacing the type-tag switches. **Entangled with
+  the level/save FILE FORMAT** (the enum ints are serialized) — keep a serialization boundary and
+  round-trip test; smoke does not load user levels.
+- [ ] Step 8 — loops/strings/input (the residue clang-tidy left in step 4; `std::format`; the
+  once-per-frame `PlayerInput` struct — the input change is behavioral, needs play-test).
+- [ ] Step 9 — CEGUI event lambdas + enemy dedup (`cWalkingEnemy` base).
+- [ ] Step 10 — the `refactoring-to-modern-cpp.md` reference doc (write last, after the steps land).
 **Priority:** 4 · **Difficulty:** 8 (77 `.cpp` / 85 `.h`, a 6-deep sprite hierarchy dispatched by
 type tags, 35 global raw pointers; each step must keep the game playable)
 **Depends on:** the container build (done: `tasks/archive/2026/09/23/smc-container-build.md`); `make

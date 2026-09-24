@@ -48,10 +48,10 @@ bool Is_Valid_Number(std::string num, bool accept_floating_point /* = 1 */) {
   }
 
   if (std::find_if(num.begin(), num.end(), nondigit()) == num.end()) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

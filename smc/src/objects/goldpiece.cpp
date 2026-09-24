@@ -49,14 +49,14 @@ void cGoldpiece ::Init(void) {
   m_massive_type = MASS_PASSIVE;
   m_type = TYPE_GOLDPIECE;
   m_pos_z = 0.041f;
-  m_can_be_on_ground = 0;
+  m_can_be_on_ground = false;
 
   Set_Gold_Color(COL_YELLOW);
 }
 
 cGoldpiece* cGoldpiece ::Copy(void) const {
   cGoldpiece* goldpiece = new cGoldpiece(m_sprite_manager);
-  goldpiece->Set_Pos(m_start_pos_x, m_start_pos_y, 1);
+  goldpiece->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   goldpiece->Set_Gold_Color(m_color_type);
   return goldpiece;
 }
@@ -64,7 +64,7 @@ cGoldpiece* cGoldpiece ::Copy(void) const {
 void cGoldpiece ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
   // gold color
   Set_Gold_Color(Get_Color_Id(
       attributes.getValueAsString("color", Get_Color_Name(m_color_type))
@@ -109,24 +109,23 @@ cSave_Level_Object* cGoldpiece ::Save_To_Savegame(void) {
 
   // default values
   save_object->m_type = m_type;
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "posx", int_to_string(static_cast<int>(m_start_pos_x))));
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "posy", int_to_string(static_cast<int>(m_start_pos_y))));
+  save_object->m_properties.emplace_back(
+      "posx", int_to_string(static_cast<int>(m_start_pos_x)));
+  save_object->m_properties.emplace_back(
+      "posy", int_to_string(static_cast<int>(m_start_pos_y)));
 
   // new position ( only save if needed )
   if (!Is_Float_Equal(m_start_pos_x, m_pos_x) ||
       !Is_Float_Equal(m_start_pos_y, m_pos_y)) {
-    save_object->m_properties.push_back(cSave_Level_Object_Property(
-        "new_posx", int_to_string(static_cast<int>(m_pos_x))));
-    save_object->m_properties.push_back(cSave_Level_Object_Property(
-        "new_posy", int_to_string(static_cast<int>(m_pos_y))));
+    save_object->m_properties.emplace_back(
+        "new_posx", int_to_string(static_cast<int>(m_pos_x)));
+    save_object->m_properties.emplace_back(
+        "new_posy", int_to_string(static_cast<int>(m_pos_y)));
   }
 
   // active
   if (!m_active) {
-    save_object->m_properties.push_back(
-        cSave_Level_Object_Property("active", int_to_string(m_active)));
+    save_object->m_properties.emplace_back("active", int_to_string(m_active));
   }
 
   return save_object;
@@ -210,14 +209,14 @@ void cGoldpiece ::Set_Gold_Color(DefaultColor color) {
     }
   }
 
-  Set_Image_Num(0, 1);
-  Set_Animation(1);
+  Set_Image_Num(0, true);
+  Set_Animation(true);
   Set_Animation_Image_Range(0, 9);
 
   if (m_type == TYPE_JUMPING_GOLDPIECE || m_type == TYPE_FALLING_GOLDPIECE) {
-    Set_Time_All(70, 1);
+    Set_Time_All(70, true);
   } else {
-    Set_Time_All(80, 1);
+    Set_Time_All(80, true);
   }
 
   Reset_Animation();
@@ -240,7 +239,7 @@ void cGoldpiece ::Activate(void) {
     pHud_Goldpieces->Add_Gold(5);
     points = 100;
 
-    anim->Set_Scale(1.2f, 1);
+    anim->Set_Scale(1.2f, true);
   } else {
     pHud_Goldpieces->Add_Gold(1);
     points = 5;
@@ -267,7 +266,7 @@ void cGoldpiece ::Activate(void) {
   }
   // hide
   else {
-    Set_Active(0);
+    Set_Active(false);
   }
 }
 
@@ -295,10 +294,10 @@ void cGoldpiece ::Draw(cSurface_Request* request /* = NULL */) {
 bool cGoldpiece ::Is_Update_Valid(void) {
   // if not visible
   if (!m_active) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 void cGoldpiece ::Handle_Collision_Player(cObjectCollision* collision) {
@@ -315,7 +314,7 @@ void cGoldpiece ::Handle_Collision_Player(cObjectCollision* collision) {
 cJGoldpiece ::cJGoldpiece(cSprite_Manager* sprite_manager)
     : cGoldpiece(sprite_manager) {
   m_type = TYPE_JUMPING_GOLDPIECE;
-  Set_Spawned(1);
+  Set_Spawned(true);
 
   cJGoldpiece::Set_Gold_Color(COL_YELLOW);
 
@@ -355,7 +354,7 @@ cFGoldpiece ::cFGoldpiece(cSprite_Manager* sprite_manager,
   m_type = TYPE_FALLING_GOLDPIECE;
   m_camera_range = 2000;
   m_gravity_max = 25.0f;
-  m_can_be_on_ground = 1;
+  m_can_be_on_ground = true;
 
   // direction set
   if (dir == DIR_LEFT || dir == DIR_RIGHT) {

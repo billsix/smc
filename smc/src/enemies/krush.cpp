@@ -78,7 +78,7 @@ cKrush* cKrush ::Copy(void) const {
 void cKrush ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
   // direction
   Set_Direction(Get_Direction_Id(
       attributes
@@ -124,12 +124,12 @@ void cKrush ::Set_Direction(const ObjectDirection dir) {
     return;
   }
 
-  cEnemy::Set_Direction(dir, 1);
+  cEnemy::Set_Direction(dir, true);
 
   m_name = "Krush ";
   m_name += _(Get_Direction_Name(m_start_direction).c_str());
 
-  Update_Rotation_Hor(1);
+  Update_Rotation_Hor(true);
 }
 
 void cKrush ::Turn_Around(ObjectDirection col_dir /* = DIR_UNDEFINED */) {
@@ -149,19 +149,19 @@ void cKrush ::DownGrade(bool force /* = 0 */) {
       Set_Moving_State(STA_RUN);
 
       Col_Move(0.0f,
-               m_images[3].m_image->m_col_h - m_images[4].m_image->m_col_h, 1,
-               1);
+               m_images[3].m_image->m_col_h - m_images[4].m_image->m_col_h,
+               true, true);
 
       // animation
       cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
       Generate_Hit_Animation(anim);
       anim->Set_Speed(3.5f, 0.6f);
-      anim->Set_Fading_Alpha(1);
+      anim->Set_Fading_Alpha(true);
       anim->Emit();
       pActive_Animation_Manager->Add(anim);
     } else if (m_state == STA_RUN) {
-      Set_Scale_Directions(1, 0, 1, 1);
-      Set_Dead(1);
+      Set_Scale_Directions(true, false, true, true);
+      Set_Dead(true);
 
       // animation
       cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
@@ -174,7 +174,7 @@ void cKrush ::DownGrade(bool force /* = 0 */) {
   }
   // falling death
   else {
-    Set_Dead(1);
+    Set_Dead(true);
     Set_Rotation_Z(180.0f);
   }
 
@@ -198,7 +198,7 @@ void cKrush ::Update_Dying(void) {
 
     if (m_scale_y < 0.01f) {
       Set_Scale(1.0f);
-      Set_Active(0);
+      Set_Active(false);
     }
   }
   // falling death
@@ -214,7 +214,7 @@ void cKrush ::Update_Dying(void) {
     // if below disable
     else {
       m_rot_z = 0.0f;
-      Set_Active(0);
+      Set_Active(false);
     }
   }
 }
@@ -225,17 +225,17 @@ void cKrush ::Set_Moving_State(Moving_state new_state) {
   }
 
   if (new_state == STA_WALK) {
-    Set_Animation(1);
+    Set_Animation(true);
     Set_Animation_Image_Range(0, 3);
-    Set_Time_All(120, 1);
+    Set_Time_All(120, true);
     Reset_Animation();
     Set_Image_Num(m_anim_img_start);
 
     m_kill_points = 20;
   } else if (new_state == STA_RUN) {
-    Set_Animation(1);
+    Set_Animation(true);
     Set_Animation_Image_Range(4, 7);
-    Set_Time_All(70, 1);
+    Set_Time_All(70, true);
     Reset_Animation();
     Set_Image_Num(m_anim_img_start);
 
@@ -271,10 +271,10 @@ void cKrush ::Update_Velocity_Max(void) {
 
 bool cKrush ::Is_Update_Valid(void) {
   if (m_dead || m_freeze_counter) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 Col_Valid_Type cKrush ::Validate_Collision(cSprite* obj) {
@@ -330,7 +330,7 @@ void cKrush ::Handle_Collision_Player(cObjectCollision* collision) {
 
   if (collision->m_direction == DIR_TOP && pLevel_Player->m_state != STA_FLY) {
     pHud_Points->Add_Points(m_kill_points, m_pos_x, m_pos_y - 5.0f, "",
-                            static_cast<Uint8>(255), 1);
+                            static_cast<Uint8>(255), true);
     pAudio->Play_Sound(m_kill_sound);
 
     // big walking
@@ -343,7 +343,7 @@ void cKrush ::Handle_Collision_Player(cObjectCollision* collision) {
       pLevel_Player->Add_Kill_Multiplier();
     }
 
-    pLevel_Player->Action_Jump(1);
+    pLevel_Player->Action_Jump(true);
   } else {
     pLevel_Player->DownGrade_Player();
     Turn_Around(collision->m_direction);
@@ -418,7 +418,7 @@ bool cKrush ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()));
 
-  return 1;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

@@ -46,16 +46,16 @@ cGL_Surface ::cGL_Surface(void) {
   m_col_w = 0;
   m_col_h = 0;
 
-  m_auto_del_img = 1;
-  m_managed = 0;
-  m_obsolete = 0;
+  m_auto_del_img = true;
+  m_managed = false;
+  m_obsolete = false;
 
   // default type is passive
   m_type = TYPE_PASSIVE;
 
   m_ground_type = GROUND_NORMAL;
 
-  destruction_function = NULL;
+  destruction_function = nullptr;
 }
 
 cGL_Surface ::~cGL_Surface(void) {
@@ -104,10 +104,10 @@ cGL_Surface* cGL_Surface ::Copy(void) const {
 
 void cGL_Surface ::Blit(float x, float y, float z,
                         cSurface_Request* request /* = NULL */) const {
-  bool create_request = 0;
+  bool create_request = false;
 
   if (!request) {
-    create_request = 1;
+    create_request = true;
     // create request
     request = new cSurface_Request();
   }
@@ -143,7 +143,6 @@ void cGL_Surface ::Blit_Data(cSurface_Request* request) const {
   request->m_rot_z += m_base_rot_z;
 }
 
-
 void cGL_Surface ::Set_Ground_Type(GroundType gtype) { m_ground_type = gtype; }
 
 bool cGL_Surface ::Is_Texture_Use_Multiple(void) const {
@@ -156,11 +155,11 @@ bool cGL_Surface ::Is_Texture_Use_Multiple(void) const {
     }
 
     if (obj->m_image == m_image) {
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 cSaved_Texture* cGL_Surface ::Get_Software_Texture(
@@ -232,11 +231,11 @@ void cGL_Surface ::Load_Software_Texture(cSaved_Texture* soft_tex) {
                     soft_tex->m_mag_filter);
 
     // check if mipmaps are enabled
-    bool mipmaps = 0;
+    bool mipmaps = false;
 
     // if mipmaps are enabled
     if (soft_tex->m_min_filter == GL_LINEAR_MIPMAP_LINEAR) {
-      mipmaps = 1;
+      mipmaps = true;
     }
 
     // Create Hardware Texture
@@ -261,7 +260,7 @@ void cGL_Surface ::Load_Software_Texture(cSaved_Texture* soft_tex) {
     m_tex_w = surface_copy->m_tex_w;
     m_tex_h = surface_copy->m_tex_h;
     // keep hardware texture
-    surface_copy->m_auto_del_img = 0;
+    surface_copy->m_auto_del_img = false;
     // delete copy
     delete surface_copy;
   }

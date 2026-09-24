@@ -40,7 +40,7 @@ cBackground ::~cBackground(void) {
 }
 
 void cBackground ::Init(void) {
-  m_sprite_manager = NULL;
+  m_sprite_manager = nullptr;
   m_type = BG_NONE;
 
   m_pos_x = 0.0f;
@@ -52,7 +52,7 @@ void cBackground ::Init(void) {
   m_color_1 = static_cast<Uint8>(0);
   m_color_2 = static_cast<Uint8>(0);
 
-  m_image_1 = NULL;
+  m_image_1 = nullptr;
 
   m_speed_x = 0.5f;
   m_speed_y = 0.5f;
@@ -167,7 +167,7 @@ void cBackground ::Set_Image(const std::string& img_file_1) {
 
   // empty
   if (m_image_1_filename.empty()) {
-    m_image_1 = NULL;
+    m_image_1 = nullptr;
     return;
   }
 
@@ -286,7 +286,7 @@ void cBackground ::Draw(void) {
 void cBackground ::Draw_Gradient(void) {
   // no need to draw a gradient if both colors are the same
   if (m_color_1 == m_color_2) {
-    pVideo->Draw_Rect(NULL, m_pos_z, &m_color_1);
+    pVideo->Draw_Rect(nullptr, m_pos_z, &m_color_1);
   } else {
     // gradient start color
     Color color_start = m_color_1;
@@ -309,10 +309,10 @@ void cBackground ::Draw_Gradient(void) {
     }
 
     if (m_type == BG_GR_VER) {
-      pVideo->Draw_Gradient(NULL, m_pos_z, &color_start, &m_color_2,
+      pVideo->Draw_Gradient(nullptr, m_pos_z, &color_start, &m_color_2,
                             DIR_VERTICAL);
     } else if (m_type == BG_GR_HOR) {
-      pVideo->Draw_Gradient(NULL, m_pos_z, &color_start, &m_color_2,
+      pVideo->Draw_Gradient(nullptr, m_pos_z, &color_start, &m_color_2,
                             DIR_HORIZONTAL);
     }
   }

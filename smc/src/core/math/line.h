@@ -59,7 +59,7 @@ class GL_line {
 
   // returns true if the lines intersect
   // from ClanLib ( Copyright (C) 2005 Magnus Norddahl ) - BSD License
-  bool Intersects(GL_line* line2, bool collinear_intersect = 0) const {
+  bool Intersects(GL_line* line2, bool collinear_intersect = false) const {
     float denominator = ((m_x2 - m_x1) * (line2->m_y2 - line2->m_y1) -
                          (m_y2 - m_y1) * (line2->m_x2 - line2->m_x1));
 
@@ -70,13 +70,13 @@ class GL_line {
           0)  // collinear
       {
         if (collinear_intersect) {
-          return 1;
+          return true;
         } else {
-          return 0;
+          return false;
         }
       }
 
-      return 0;
+      return false;
     }
 
     float r = ((m_y1 - line2->m_y1) * (line2->m_x2 - line2->m_x1) -
@@ -88,15 +88,15 @@ class GL_line {
 
     if (line2->m_y1 < line2->m_y2) {
       if ((s >= 0.0f && s < 1.0f) && (r >= 0.0f && r <= 1.0f)) {
-        return 1;
+        return true;
       }
     } else {
       if ((s > 0.0f && s <= 1.0f) && (r >= 0.0f && r <= 1.0f)) {
-        return 1;
+        return true;
       }
     }
 
-    return 0;
+    return false;
   }
 
   // returns the distance from a point to this line

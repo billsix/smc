@@ -54,7 +54,7 @@ class cCampaign {
 class cCampaign_Manager : public cObject_Manager<cCampaign> {
  public:
   cCampaign_Manager(void);
-  virtual ~cCampaign_Manager(void);
+  ~cCampaign_Manager(void) override;
 
   // load all campaigns
   void Load(void);
@@ -70,13 +70,13 @@ class cCampaign_Manager : public cObject_Manager<cCampaign> {
 class cCampaign_XML_Handler : public CEGUI::XMLHandler {
  public:
   cCampaign_XML_Handler(const CEGUI::String& filename);
-  virtual ~cCampaign_XML_Handler(void);
+  ~cCampaign_XML_Handler(void) override;
 
   // XML element start
-  virtual void elementStart(const CEGUI::String& element,
-                            const CEGUI::XMLAttributes& attributes);
+  void elementStart(const CEGUI::String& element,
+                    const CEGUI::XMLAttributes& attributes) override;
   // XML element end
-  virtual void elementEnd(const CEGUI::String& element);
+  void elementEnd(const CEGUI::String& element) override;
 
   // XML attributes list
   CEGUI::XMLAttributes m_xml_attributes;

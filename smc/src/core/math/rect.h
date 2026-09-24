@@ -73,40 +73,40 @@ class GL_rect {
   // returns true if we intersect with the point
   bool Intersects(const float x, const float y) const {
     if (x > m_x + m_w) {
-      return 0;
+      return false;
     }
     if (x < m_x) {
-      return 0;
+      return false;
     }
     if (y > m_y + m_h) {
-      return 0;
+      return false;
     }
     if (y < m_y) {
-      return 0;
+      return false;
     }
 
     // they intersect
-    return 1;
+    return true;
   }
 
   // returns true if we intersect with the rect
   bool Intersects(const GL_rect& b) const {
     if (b.m_x + b.m_w < m_x) {
-      return 0;
+      return false;
     }
     if (b.m_x > m_x + m_w) {
-      return 0;
+      return false;
     }
 
     if (b.m_y + b.m_h < m_y) {
-      return 0;
+      return false;
     }
     if (b.m_y > m_y + m_h) {
-      return 0;
+      return false;
     }
 
     // they intersect
-    return 1;
+    return true;
   }
 
   // += operator

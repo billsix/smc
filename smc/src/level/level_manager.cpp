@@ -30,10 +30,10 @@ namespace SMC {
 /* *** *** *** *** *** cLevel_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cLevel_Manager ::cLevel_Manager(void) : cObject_Manager<cLevel>() {
-  m_camera = new cCamera(NULL);
+  m_camera = new cCamera(nullptr);
 
   // set the first camera available
-  if (pActive_Camera == NULL) {
+  if (pActive_Camera == nullptr) {
     pActive_Camera = m_camera;
   }
 
@@ -82,15 +82,15 @@ void cLevel_Manager ::Unload(void) {
 
 cLevel* cLevel_Manager ::New(std::string filename) {
   // if it already exists
-  if (Get_Path(filename, 1)) {
-    return NULL;
+  if (Get_Path(filename, true)) {
+    return nullptr;
   }
 
   cLevel* level = new cLevel();
   // if failed to create
   if (!level->New(filename)) {
     delete level;
-    return NULL;
+    return nullptr;
   }
 
   Add(level);
@@ -109,7 +109,7 @@ cLevel* cLevel_Manager ::Load(std::string filename) {
   if (!level->Load(filename)) {
     // failed to load: don't Add a broken, unloaded cLevel to the list
     delete level;
-    return NULL;
+    return nullptr;
   }
   Add(level);
   return level;
@@ -117,12 +117,12 @@ cLevel* cLevel_Manager ::Load(std::string filename) {
 
 bool cLevel_Manager ::Set_Active(cLevel* level) {
   if (!level) {
-    return 0;
+    return false;
   }
 
   pActive_Level = level;
 
-  return 1;
+  return true;
 }
 
 cLevel* cLevel_Manager ::Get(const std::string& str) {
@@ -130,17 +130,17 @@ cLevel* cLevel_Manager ::Get(const std::string& str) {
        ++itr) {
     cLevel* obj = (*itr);
 
-    if (Trim_Filename(obj->m_level_filename, 0, 0).compare(str) == 0) {
+    if (Trim_Filename(obj->m_level_filename, false, false).compare(str) == 0) {
       return obj;
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 bool cLevel_Manager ::Get_Path(std::string& filename,
                                bool check_only_user_dir /* = 0 */) const {
-  filename = Trim_Filename(filename, 0, 0);
+  filename = Trim_Filename(filename, false, false);
 
   // user level directory as default
   filename.insert(0, pResource_Manager->user_data_dir + USER_LEVEL_DIR + "/");
@@ -149,7 +149,7 @@ bool cLevel_Manager ::Get_Path(std::string& filename,
 
   if (File_Exists(filename)) {
     // found
-    return 1;
+    return true;
   }
 
   // use old file type
@@ -158,7 +158,7 @@ bool cLevel_Manager ::Get_Path(std::string& filename,
 
   if (File_Exists(filename)) {
     // found
-    return 1;
+    return true;
   }
 
   if (!check_only_user_dir) {
@@ -177,7 +177,7 @@ bool cLevel_Manager ::Get_Path(std::string& filename,
 
     if (File_Exists(filename)) {
       // found
-      return 1;
+      return true;
     }
 
     // use old file type
@@ -186,15 +186,15 @@ bool cLevel_Manager ::Get_Path(std::string& filename,
 
     if (File_Exists(filename)) {
       // found
-      return 1;
+      return true;
     }
   }
 
   // erase file type and directory
-  filename = Trim_Filename(filename, 0, 0);
+  filename = Trim_Filename(filename, false, false);
 
   // not found
-  return 0;
+  return false;
 }
 
 void cLevel_Manager ::Update(void) {
@@ -305,7 +305,7 @@ void cLevel_Manager ::Finish_Level(bool win_music /* = 0 */) {
     Game_Action_Data_Middle.add("load_menu", int_to_string(MENU_MAIN));
     Game_Action_Data_Middle.add(
         "menu_start_current_level",
-        Trim_Filename(pActive_Level->m_level_filename, 0, 0));
+        Trim_Filename(pActive_Level->m_level_filename, false, false));
     Game_Action_Data_End.add("screen_fadein_speed", "1.5");
   }
   // normal level
@@ -334,15 +334,15 @@ void cLevel_Manager ::Goto_Sub_Level(
     const std::string& path_identifier /* = "" */) {
   // if empty use same level
   if (str_level.empty()) {
-    str_level = Trim_Filename(pActive_Level->m_level_filename, 0, 0);
+    str_level = Trim_Filename(pActive_Level->m_level_filename, false, false);
   }
 
   // same level
-  if (str_level.compare(Trim_Filename(pActive_Level->m_level_filename, 0, 0)) ==
-      0) {
-    pLevel_Player->Release_Item(1, 1);
+  if (str_level.compare(
+          Trim_Filename(pActive_Level->m_level_filename, false, false)) == 0) {
+    pLevel_Player->Release_Item(true, true);
     // fixme: reset does not release active_object correctly
-    pLevel_Player->Reset(0);
+    pLevel_Player->Reset(false);
 
     // get entry
     cLevel_Entry* entry = pActive_Level->Get_Entry(str_entry);
@@ -352,7 +352,7 @@ void cLevel_Manager ::Goto_Sub_Level(
       pLevel_Player->Set_Pos(entry->Get_Player_Pos_X(),
                              entry->Get_Player_Pos_Y());
       // set invisible for warp animation
-      pLevel_Player->Set_Active(0);
+      pLevel_Player->Set_Active(false);
     }
     // not found
     else if (!str_entry.empty()) {
@@ -399,7 +399,7 @@ void cLevel_Manager ::Goto_Sub_Level(
             //pActive_Camera->x_offset = 0;
             //pActive_Camera->y_offset = 0;
 
-            while (1) {
+            while (true) {
               // move along path
               if (path_state.Path_Move(30 * pFramerate->m_speed_factor) == 0) {
                 // we can not move further along the path
@@ -458,7 +458,7 @@ void cLevel_Manager ::Goto_Sub_Level(
     // warp animation
     if (entry) {
       // set back visible
-      pLevel_Player->Set_Active(1);
+      pLevel_Player->Set_Active(true);
       // activate entry
       entry->Activate();
     }
@@ -491,7 +491,7 @@ void cLevel_Manager ::Goto_Sub_Level(
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // Level information handler
-cLevel_Manager* pLevel_Manager = NULL;
+cLevel_Manager* pLevel_Manager = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

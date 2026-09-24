@@ -26,34 +26,34 @@ namespace SMC {
 class cEditor_Level : public cEditor {
  public:
   cEditor_Level(cSprite_Manager* sprite_manager, cLevel* level);
-  virtual ~cEditor_Level(void);
+  ~cEditor_Level(void) override;
 
   // Initialize
-  virtual void Init(void);
+  void Init(void) override;
 
   // Enable
-  virtual void Enable(void);
+  void Enable(void) override;
   /* Disable
 	 * native_mode : if unset the current game mode isn't altered
  	*/
-  virtual void Disable(bool native_mode = 0);
+  void Disable(bool native_mode = false) override;
 
   /* handle key down event
 	 * returns true if the key was processed
 	*/
-  virtual bool Key_Down(SDLKey key);
+  bool Key_Down(SDLKey key) override;
 
   // Set the parent level
   void Set_Level(cLevel* level);
   // Set the parent sprite manager
-  virtual void Set_Sprite_Manager(cSprite_Manager* sprite_manager);
+  void Set_Sprite_Manager(cSprite_Manager* sprite_manager) override;
 
   // Set Active Menu Entry
-  virtual void Activate_Menu_Item(cEditor_Menu_Object* entry);
+  void Activate_Menu_Item(cEditor_Menu_Object* entry) override;
   // return the sprite object
-  virtual cSprite* Get_Object(const CEGUI::String& element,
-                              CEGUI::XMLAttributes& attributes,
-                              int engine_version);
+  cSprite* Get_Object(const CEGUI::String& element,
+                      CEGUI::XMLAttributes& attributes,
+                      int engine_version) override;
 
   // #### editor Functions
   /* switch the object state of the given object
@@ -62,13 +62,13 @@ class cEditor_Level : public cEditor {
   bool Switch_Object_State(cSprite* obj) const;
 
   // Menu functions
-  virtual bool Function_New(void);
-  virtual void Function_Load(void);
-  virtual void Function_Save(bool with_dialog = 0);
-  virtual void Function_Save_as(void);
-  virtual void Function_Delete(void);
-  virtual void Function_Reload(void);
-  virtual void Function_Settings(void);
+  bool Function_New(void) override;
+  void Function_Load(void) override;
+  void Function_Save(bool with_dialog = false) override;
+  void Function_Save_as(void) override;
+  void Function_Delete(void) override;
+  void Function_Reload(void) override;
+  void Function_Settings(void) override;
 
   // parent level
   cLevel* m_level;

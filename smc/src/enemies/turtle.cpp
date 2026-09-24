@@ -60,7 +60,7 @@ void cTurtle ::Init(void) {
 
   m_color_type = COL_DEFAULT;
   Set_Color(COL_RED);
-  Set_Direction(DIR_RIGHT, 1);
+  Set_Direction(DIR_RIGHT, true);
 
   m_kill_sound = "stomp_4.ogg";
 }
@@ -68,7 +68,7 @@ void cTurtle ::Init(void) {
 cTurtle* cTurtle ::Copy(void) const {
   cTurtle* turtle = new cTurtle(m_sprite_manager);
   turtle->Set_Pos(m_start_pos_x, m_start_pos_y);
-  turtle->Set_Direction(m_start_direction, 1);
+  turtle->Set_Direction(m_start_direction, true);
   turtle->Set_Color(m_color_type);
   return turtle;
 }
@@ -76,14 +76,14 @@ cTurtle* cTurtle ::Copy(void) const {
 void cTurtle ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
   // direction
   Set_Direction(Get_Direction_Id(
                     attributes
                         .getValueAsString("direction",
                                           Get_Direction_Name(m_start_direction))
                         .c_str()),
-                1);
+                true);
   // color
   Set_Color(static_cast<DefaultColor>(Get_Color_Id(
       attributes.getValueAsString("color", Get_Color_Name(m_color_type))
@@ -133,8 +133,8 @@ cSave_Level_Object* cTurtle ::Save_To_Savegame(void) {
 
   // turtle_state ( only save if needed )
   if (m_turtle_state != TURTLE_WALK) {
-    save_object->m_properties.push_back(cSave_Level_Object_Property(
-        "turtle_state", int_to_string(m_turtle_state)));
+    save_object->m_properties.emplace_back("turtle_state",
+                                           int_to_string(m_turtle_state));
   }
 
   return save_object;
@@ -217,7 +217,7 @@ void cTurtle ::Set_Color(DefaultColor col) {
                                 "/shell_look_3.png"));
   Add_Image(pVideo->Get_Surface("enemy/turtle/" + filename_dir + "/roll.png"));
 
-  Set_Image_Num(0, 1);
+  Set_Image_Num(0, true);
   Create_Name();
 }
 
@@ -228,7 +228,7 @@ void cTurtle ::Turn_Around(ObjectDirection col_dir /* = DIR_UNDEFINED */) {
     m_velx *= 0.5f;
     // hack : disable turn image
     Set_Image_Num(4 + 5);
-    Set_Animation(0);
+    Set_Animation(false);
     Reset_Animation();
   }
 
@@ -243,7 +243,7 @@ void cTurtle ::DownGrade(bool force /* = 0 */) {
     if (m_turtle_state == TURTLE_WALK) {
       Set_Turtle_Moving_State(TURTLE_SHELL_STAND);
       Col_Move(0, m_images[0].m_image->m_col_h - m_images[5].m_image->m_col_h,
-               1, 1);
+               true, true);
       m_counter = 0.0f;
     }
     // staying
@@ -259,13 +259,13 @@ void cTurtle ::DownGrade(bool force /* = 0 */) {
   // falling death
   else {
     m_counter = 8.0f;
-    Set_Dead(1);
+    Set_Dead(true);
     m_massive_type = MASS_PASSIVE;
     m_velx = 0.0f;
     m_vely = 0.0f;
 
     if (m_turtle_state == TURTLE_WALK) {
-      Move(0.0f, m_images[0].m_image->m_h - m_images[5].m_image->m_h, 1);
+      Move(0.0f, m_images[0].m_image->m_h - m_images[5].m_image->m_h, true);
     }
 
     Set_Image_Num(5 + 5);
@@ -299,7 +299,7 @@ void cTurtle ::Update_Dying(void) {
   }
   // if below disable
   else {
-    Set_Active(0);
+    Set_Active(false);
     m_rot_z = 0.0f;
     m_state = STA_STAY;
     m_turtle_state = TURTLE_DEAD;
@@ -316,9 +316,9 @@ void cTurtle ::Set_Turtle_Moving_State(Turtle_state new_state) {
     m_camera_range = 1500;
     Set_Rotation_Z(0.0f);
 
-    Set_Animation(1);
+    Set_Animation(true);
     Set_Animation_Image_Range(0, 3 + 5);
-    Set_Time_All(80, 1);
+    Set_Time_All(80, true);
     Reset_Animation();
     Set_Image_Num(m_anim_img_start);
   } else if (new_state == TURTLE_SHELL_STAND) {
@@ -326,7 +326,7 @@ void cTurtle ::Set_Turtle_Moving_State(Turtle_state new_state) {
     m_camera_range = 2000;
     Set_Rotation_Y(0.0f);
 
-    Set_Animation(0);
+    Set_Animation(false);
     // set stay image
     Set_Animation_Image_Range(5 + 5, 5 + 5);
     Set_Image_Num(m_anim_img_start);
@@ -335,7 +335,7 @@ void cTurtle ::Set_Turtle_Moving_State(Turtle_state new_state) {
     m_camera_range = 5000;
     Set_Rotation_Y(0.0f);
 
-    Set_Animation(0);
+    Set_Animation(false);
     Set_Animation_Image_Range(6 - 1 + 5, 6 - 1 + 5);
     Set_Image_Num(m_anim_img_start);
   }
@@ -362,7 +362,7 @@ void cTurtle ::Update(void) {
 
       // set normal image back
       if (m_anim_counter >= 200) {
-        Set_Animation(1);
+        Set_Animation(true);
         Reset_Animation();
         Set_Image_Num(m_anim_img_start);
         Update_Rotation_Hor();
@@ -457,28 +457,28 @@ void cTurtle ::Stand_Up(void) {
   delete col_list;
 
   pAudio->Play_Sound("enemy/turtle/stand_up.wav");
-  Col_Move(0.0f, move_y, 1, 1);
+  Col_Move(0.0f, move_y, true, true);
   Set_Turtle_Moving_State(TURTLE_WALK);
 }
 
 bool cTurtle ::Hit_Enemy(cEnemy* enemy) {
   // invalid
   if (!enemy) {
-    return 0;
+    return false;
   }
 
   // don't collide with already dead enemies
   if (enemy->m_dead) {
-    return 0;
+    return false;
   }
   // shell can not hit it
   if (!enemy->m_can_be_hit_from_shell) {
     // enemies that only hit us
     if (enemy->m_type == TYPE_SPIKEBALL) {
-      DownGrade(1);
+      DownGrade(true);
     }
 
-    return 0;
+    return false;
   }
 
   // if red shell check if colliding turtle is green and also running
@@ -487,23 +487,23 @@ bool cTurtle ::Hit_Enemy(cEnemy* enemy) {
 
     // red shell can't kill the green shell
     if (turtle->m_color_type == COL_GREEN && turtle->m_state == STA_RUN) {
-      return 0;
+      return false;
     }
   }
 
   // hit enemy
   pAudio->Play_Sound(enemy->m_kill_sound);
   pHud_Points->Add_Points(enemy->m_kill_points, m_pos_x + m_image->m_w / 3,
-                          m_pos_y - 5.0f, "", static_cast<Uint8>(255), 1);
-  enemy->DownGrade(1);
+                          m_pos_y - 5.0f, "", static_cast<Uint8>(255), true);
+  enemy->DownGrade(true);
   pLevel_Player->Add_Kill_Multiplier();
 
   // enemies that also hit us
   if (enemy->m_type == TYPE_SPIKA) {
-    DownGrade(1);
+    DownGrade(true);
   }
 
-  return 1;
+  return true;
 }
 
 void cTurtle ::Update_Velocity_Max(void) {
@@ -531,10 +531,10 @@ void cTurtle ::Update_Velocity_Max(void) {
 
 bool cTurtle ::Is_Update_Valid(void) {
   if (m_dead || m_freeze_counter || m_state == STA_OBJ_LINKED) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 Col_Valid_Type cTurtle ::Validate_Collision(cSprite* obj) {
@@ -693,7 +693,7 @@ void cTurtle ::Handle_Collision_Player(cObjectCollision* collision) {
       }
     }
 
-    pLevel_Player->Action_Jump(1);
+    pLevel_Player->Action_Jump(true);
   } else {
     if (m_turtle_state == TURTLE_WALK) {
       pLevel_Player->DownGrade_Player();
@@ -713,7 +713,7 @@ void cTurtle ::Handle_Collision_Player(cObjectCollision* collision) {
       anim->Set_Time_to_Live(0.3f);
       anim->Set_Speed(4.0f, 0.5f);
       anim->Set_Scale(0.6f);
-      anim->Set_Fading_Size(1);
+      anim->Set_Fading_Size(true);
       anim->Set_Color(Color(static_cast<Uint8>(254), 200, 100));
 
       if (collision->m_direction == DIR_RIGHT) {
@@ -780,7 +780,7 @@ void cTurtle ::Handle_Collision_Enemy(cObjectCollision* collision) {
     // if able to collide
     if (m_state == STA_OBJ_LINKED || m_vely < -5.0f) {
       if (Hit_Enemy(enemy)) {
-        DownGrade(1);
+        DownGrade(true);
       }
     }
   } else if (m_turtle_state == TURTLE_SHELL_RUN) {
@@ -799,7 +799,7 @@ void cTurtle ::Handle_Collision_Enemy(cObjectCollision* collision) {
       anim->Set_Time_to_Live(0.3f);
       anim->Set_Speed(1.2f, 0.8f);
       anim->Set_Scale(0.7f);
-      anim->Set_Fading_Alpha(1);
+      anim->Set_Fading_Alpha(true);
       anim->Set_Blending(BLEND_ADD);
 
       if (collision->m_direction == DIR_RIGHT) {
@@ -831,17 +831,17 @@ void cTurtle ::Handle_Collision_Massive(cObjectCollision* collision) {
     if (collision->m_direction == DIR_RIGHT ||
         collision->m_direction == DIR_LEFT) {
       // animation
-      cParticle_Emitter* anim = NULL;
+      cParticle_Emitter* anim = nullptr;
       if (collision->m_direction == DIR_RIGHT) {
         anim = new cParticle_Emitter(m_sprite_manager);
         anim->Set_Pos(col_object->m_pos_x + col_object->m_col_pos.m_x + 4.0f,
-                      m_pos_y + (m_col_rect.m_h / 1.35f), 1);
+                      m_pos_y + (m_col_rect.m_h / 1.35f), true);
         anim->Set_Direction_Range(140.0f, 100.0f);
       } else {
         anim = new cParticle_Emitter(m_sprite_manager);
         anim->Set_Pos(col_object->m_pos_x + col_object->m_col_pos.m_x +
                           col_object->m_col_rect.m_w - 4.0f,
-                      m_pos_y + (m_col_rect.m_h / 1.35f), 1);
+                      m_pos_y + (m_col_rect.m_h / 1.35f), true);
         anim->Set_Direction_Range(320.0f, 100.0f);
       }
 
@@ -874,7 +874,7 @@ void cTurtle ::Handle_Collision_Massive(cObjectCollision* collision) {
             Send_Collision(collision);
 
             if (m_state == STA_OBJ_LINKED) {
-              DownGrade(1);
+              DownGrade(true);
             } else {
               m_vely = 0.0f;
             }
@@ -938,9 +938,9 @@ bool cTurtle ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   CEGUI::ListboxItem* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
-  Set_Direction(Get_Direction_Id(item->getText().c_str()), 1);
+  Set_Direction(Get_Direction_Id(item->getText().c_str()), true);
 
-  return 1;
+  return true;
 }
 
 void cTurtle ::Create_Name(void) {

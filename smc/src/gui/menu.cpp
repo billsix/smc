@@ -38,9 +38,9 @@ namespace SMC {
 
 cMenu_Item ::cMenu_Item(cSprite_Manager* sprite_manager)
     : cHudSprite(sprite_manager) {
-  Set_Scale_Directions(1, 1, 1, 1);
-  m_active = 0;
-  m_is_quit = 0;
+  Set_Scale_Directions(true, true, true, true);
+  m_active = false;
+  m_is_quit = false;
 
   m_image_default = new cHudSprite(sprite_manager);
   m_image_menu = new cHudSprite(sprite_manager);
@@ -164,16 +164,16 @@ void cMenuHandler ::Set_Active(int num) {
   if (num >= 0 && static_cast<unsigned int>(num) < m_items.size()) {
     // set last active item un-active
     if (m_active >= 0 && static_cast<unsigned int>(m_active) < m_items.size()) {
-      m_items[m_active]->Set_Active(0);
+      m_items[m_active]->Set_Active(false);
     }
   } else if (num == -1) {
-    m_items[m_active]->Set_Active(0);
+    m_items[m_active]->Set_Active(false);
   }
 
   m_active = num;
 
   if (m_active >= 0) {
-    m_items[m_active]->Set_Active(1);
+    m_items[m_active]->Set_Active(true);
   }
 }
 
@@ -219,7 +219,7 @@ void cMenuHandler ::Draw(bool with_background /* = 1 */) {
 
 cMenu_Item* cMenuHandler ::Get_Active_Item(void) {
   if (m_active < 0 || static_cast<unsigned int>(m_active) > m_items.size()) {
-    return NULL;
+    return nullptr;
   }
 
   return m_items[m_active];
@@ -234,7 +234,7 @@ unsigned int cMenuHandler ::Get_Size(void) const {
 cMenuCore ::cMenuCore(void) {
   m_menu_id = MENU_NOTHING;
 
-  m_menu_data = NULL;
+  m_menu_data = nullptr;
   m_handler = new cMenuHandler();
 
   // particle animation
@@ -250,7 +250,7 @@ cMenuCore ::cMenuCore(void) {
   anim->Set_Emitter_Iteration_Interval(16);
   anim->Set_Direction_Range(350, 20);
   anim->Set_Time_to_Live(800);
-  anim->Set_Fading_Alpha(0);
+  anim->Set_Fading_Alpha(false);
   anim->Set_Scale(0.2f, 0.2f);
   anim->Set_Color(Color(static_cast<Uint8>(255), 255, 255, 200),
                   Color(static_cast<Uint8>(0), 0, 0, 55));
@@ -269,7 +269,7 @@ cMenuCore ::cMenuCore(void) {
   anim->Set_Emitter_Iteration_Interval(16);
   anim->Set_Direction_Range(170, 20);
   anim->Set_Time_to_Live(800);
-  anim->Set_Fading_Alpha(0);
+  anim->Set_Fading_Alpha(false);
   anim->Set_Scale(0.2f, 0.2f);
   anim->Set_Color(Color(static_cast<Uint8>(255), 255, 255, 200),
                   Color(static_cast<Uint8>(0), 0, 0, 55));
@@ -298,7 +298,7 @@ bool cMenuCore ::Handle_Event(SDL_Event* ev) {
     }
   }
 
-  return 0;
+  return false;
 }
 
 bool cMenuCore ::Key_Down(SDLKey key) {
@@ -322,7 +322,7 @@ bool cMenuCore ::Key_Down(SDLKey key) {
   // Activate Button
   else if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
     if (m_menu_data) {
-      m_menu_data->m_action = 1;
+      m_menu_data->m_action = true;
     }
   }
   // Fast Debug Level entering
@@ -342,7 +342,7 @@ bool cMenuCore ::Key_Down(SDLKey key) {
       // select random level (guard rand() % 0 on an empty list)
       if (listbox_levels->getItemCount() > 0) {
         listbox_levels->setItemSelectState(
-            rand() % listbox_levels->getItemCount(), 1);
+            rand() % listbox_levels->getItemCount(), true);
         // get level name
         lvl_name = listbox_levels->getFirstSelectedItem()->getText().c_str();
         menu_start->Load_Level(lvl_name);
@@ -356,7 +356,7 @@ bool cMenuCore ::Key_Down(SDLKey key) {
       // select random level (guard rand() % 0 on an empty list)
       if (listbox_levels->getItemCount() > 0) {
         listbox_levels->setItemSelectState(
-            rand() % listbox_levels->getItemCount(), 1);
+            rand() % listbox_levels->getItemCount(), true);
         // get level name
         lvl_name = listbox_levels->getFirstSelectedItem()->getText().c_str();
         static_cast<cMenu_Start*>(pMenuCore->m_menu_data)->Load_Level(lvl_name);
@@ -370,31 +370,31 @@ bool cMenuCore ::Key_Down(SDLKey key) {
     }
   } else {
     // not processed
-    return 0;
+    return false;
   }
 
   // key got processed
-  return 1;
+  return true;
 }
 
 bool cMenuCore ::Key_Up(SDLKey key) {
   // nothing yet
-  if (0) {
+  if (false) {
     //
   } else {
     // not processed
-    return 0;
+    return false;
   }
 
   // key got processed
-  return 1;
+  return true;
 }
 
 bool cMenuCore ::Joy_Button_Down(Uint8 button) {
   // Activate button
   if (button == pPreferences->m_joy_button_action) {
     if (m_menu_data) {
-      m_menu_data->m_action = 1;
+      m_menu_data->m_action = true;
     }
   }
   // exit
@@ -404,24 +404,24 @@ bool cMenuCore ::Joy_Button_Down(Uint8 button) {
     }
   } else {
     // not processed
-    return 0;
+    return false;
   }
 
   // key got processed
-  return 1;
+  return true;
 }
 
 bool cMenuCore ::Joy_Button_Up(Uint8 button) {
   // nothing yet
-  if (0) {
+  if (false) {
     //
   } else {
     // not processed
-    return 0;
+    return false;
   }
 
   // key got processed
-  return 1;
+  return true;
 }
 
 bool cMenuCore ::Mouse_Down(Uint8 button) {
@@ -432,29 +432,29 @@ bool cMenuCore ::Mouse_Down(Uint8 button) {
     if (item &&
         item->m_col_rect.Intersects(static_cast<float>(pMouseCursor->m_x),
                                     static_cast<float>(pMouseCursor->m_y))) {
-      m_menu_data->m_action = 1;
-      return 1;
+      m_menu_data->m_action = true;
+      return true;
     }
   } else {
     // not processed
-    return 0;
+    return false;
   }
 
   // button got processed
-  return 1;
+  return true;
 }
 
 bool cMenuCore ::Mouse_Up(Uint8 button) {
   // nothing yet
-  if (0) {
+  if (false) {
     //
   } else {
     // not processed
-    return 0;
+    return false;
   }
 
   // button got processed
-  return 1;
+  return true;
 }
 
 cMenu_Item* cMenuCore ::Auto_Menu(std::string imagename,
@@ -468,14 +468,14 @@ cMenu_Item* cMenuCore ::Auto_Menu(std::string imagename,
     temp_item->m_image_menu->Set_Image(
         pVideo->Get_Surface(DATA_DIR "/" GAME_PIXMAPS_DIR "/menu/items/" +
                             imagefilename_menu),
-        1);
+        true);
   }
 
   // the active image
   if (imagename.length() > 0) {
     temp_item->m_image_default->Set_Image(
         pVideo->Get_Surface(DATA_DIR "/" GAME_PIXMAPS_DIR "/menu/" + imagename),
-        1);
+        true);
   }
 
   // position and initialization
@@ -494,7 +494,7 @@ void cMenuCore ::Load(const MenuID menu /* = MENU_MAIN */,
   m_handler->Reset();
 
   // clear mouse active object
-  pMouseCursor->Double_Click(0);
+  pMouseCursor->Double_Click(false);
 
   // default background color to white
   glClearColor(1, 1, 1, 1);
@@ -517,11 +517,11 @@ void cMenuCore ::Load(const MenuID menu /* = MENU_MAIN */,
   }
   // Load
   else if (m_menu_id == MENU_LOAD) {
-    m_menu_data = static_cast<cMenu_Base*>(new cMenu_Savegames(0));
+    m_menu_data = static_cast<cMenu_Base*>(new cMenu_Savegames(false));
   }
   // Save
   else if (m_menu_id == MENU_SAVE) {
-    m_menu_data = static_cast<cMenu_Base*>(new cMenu_Savegames(1));
+    m_menu_data = static_cast<cMenu_Base*>(new cMenu_Savegames(true));
   }
   // Credits
   else if (m_menu_id == MENU_CREDITS) {
@@ -540,12 +540,12 @@ void cMenuCore ::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
   // set animation manager
   pActive_Animation_Manager = m_animation_manager;
 
-  editor_enabled = 0;
+  editor_enabled = false;
 
   pHud_Manager->Set_Sprite_Manager(m_handler->m_level->m_sprite_manager);
   pMouseCursor->Set_Sprite_Manager(m_handler->m_level->m_sprite_manager);
   // show mouse
-  pMouseCursor->Set_Active(1);
+  pMouseCursor->Set_Active(true);
   // camera
   m_handler->m_camera->Reset_Pos();
   // position HUD
@@ -591,16 +591,16 @@ void cMenuCore ::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
   if (!pAudio->Is_Music_Playing() ||
       pAudio->Is_Music_Fading() == MIX_FADING_OUT) {
     if (m_menu_id == MENU_CREDITS) {
-      pAudio->Play_Music("land/hyper_1.ogg", -1, 0, 1500);
+      pAudio->Play_Music("land/hyper_1.ogg", -1, false, 1500);
     } else if (m_menu_data && m_menu_data->m_exit_to_gamemode == MODE_LEVEL &&
                pActive_Level->Is_Loaded()) {
-      pAudio->Play_Music(pActive_Level->m_musicfile, -1, 0, 1500);
+      pAudio->Play_Music(pActive_Level->m_musicfile, -1, false, 1500);
     } else if (m_menu_data &&
                m_menu_data->m_exit_to_gamemode == MODE_OVERWORLD &&
                pActive_Overworld->Is_Loaded()) {
-      pAudio->Play_Music(pActive_Overworld->m_musicfile, -1, 0, 1500);
+      pAudio->Play_Music(pActive_Overworld->m_musicfile, -1, false, 1500);
     } else {
-      pAudio->Play_Music("game/menu.ogg", -1, 0, 1500);
+      pAudio->Play_Music("game/menu.ogg", -1, false, 1500);
     }
   }
 }
@@ -613,7 +613,7 @@ void cMenuCore ::Leave(const GameMode next_mode /* = MODE_NOTHING */) {
 
   // hide mouse
   if (!editor_enabled) {
-    pMouseCursor->Set_Active(0);
+    pMouseCursor->Set_Active(false);
   }
 
   if (m_menu_data) {
@@ -626,7 +626,7 @@ void cMenuCore ::Unload(void) {
 
   if (m_menu_data) {
     delete m_menu_data;
-    m_menu_data = NULL;
+    m_menu_data = nullptr;
   }
 }
 
@@ -659,7 +659,7 @@ void cMenuCore ::Draw(void) {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cMenuCore* pMenuCore = NULL;
+cMenuCore* pMenuCore = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

@@ -47,27 +47,27 @@ void cjStar ::Init(void) {
 
   m_direction = DIR_RIGHT;
   m_anim_counter = 0;
-  m_glim_mod = 1;
+  m_glim_mod = true;
   m_glim_counter = 0;
 
   m_velx = 5;
 
   Add_Image(pVideo->Get_Surface("game/items/star.png"));
-  Set_Image_Num(0, 1, 0);
+  Set_Image_Num(0, true, false);
 
   m_name = _("Star");
 }
 
 cjStar* cjStar ::Copy(void) const {
   cjStar* star = new cjStar(m_sprite_manager);
-  star->Set_Pos(m_start_pos_x, m_start_pos_y, 1);
+  star->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   return star;
 }
 
 void cjStar ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
 }
 
 void cjStar ::Save_To_XML(CEGUI::XMLSerializer& stream) {
@@ -91,7 +91,7 @@ void cjStar ::Activate(void) {
 
   // animation
   Generate_Particles(m_pos_x + m_col_rect.m_w * 0.5f,
-                     m_pos_y + m_col_rect.m_h * 0.5f, 1, 20);
+                     m_pos_y + m_col_rect.m_h * 0.5f, true, 20);
 
   // activate star
   pLevel_Player->Get_Item(TYPE_STAR);
@@ -102,7 +102,7 @@ void cjStar ::Activate(void) {
   }
   // disable
   else {
-    Set_Active(0);
+    Set_Active(false);
   }
 }
 
@@ -133,7 +133,8 @@ void cjStar ::Update(void) {
   m_anim_counter += 1.1f * pFramerate->m_speed_factor;
 
   if (m_anim_counter > 1.0f) {
-    Generate_Particles(m_pos_x, m_pos_y, 1, static_cast<int>(m_anim_counter));
+    Generate_Particles(m_pos_x, m_pos_y, true,
+                       static_cast<int>(m_anim_counter));
     m_anim_counter -= static_cast<int>(m_anim_counter);
   }
 
@@ -143,14 +144,14 @@ void cjStar ::Update(void) {
 
     if (m_glim_counter > 1.0f) {
       m_glim_counter = 1.0f;
-      m_glim_mod = 0;
+      m_glim_mod = false;
     }
   } else {
     m_glim_counter -= pFramerate->m_speed_factor * 0.2f;
 
     if (m_glim_counter < 0.0f) {
       m_glim_counter = 0.0f;
-      m_glim_mod = 1;
+      m_glim_mod = true;
     }
   }
 }
@@ -198,8 +199,8 @@ void cjStar ::Generate_Particles(float x /* = 0.0f */, float y /* = 0.0f */,
   }
   anim->Set_Quota(quota);
   anim->Set_Time_to_Live(0.4f);
-  anim->Set_Fading_Alpha(1);
-  anim->Set_Fading_Size(1);
+  anim->Set_Fading_Alpha(true);
+  anim->Set_Fading_Size(true);
   anim->Set_Speed(1.5f, 0.5f);
   anim->Set_Scale(0.15f);
   anim->Set_Color(particle_color);
@@ -221,7 +222,7 @@ void cjStar ::Handle_Collision_Massive(cObjectCollision* collision) {
       const float clamped_x = Clamp(
           m_rect.m_x + (m_rect.m_w / 2), m_ground_object->m_col_rect.m_x,
           m_ground_object->m_col_rect.m_x + m_ground_object->m_col_rect.m_w);
-      Generate_Particles(clamped_x, m_ground_object->m_col_rect.m_y, 0, 5);
+      Generate_Particles(clamped_x, m_ground_object->m_col_rect.m_y, false, 5);
     }
 
     m_vely = -25.0f;

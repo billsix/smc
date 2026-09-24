@@ -25,38 +25,38 @@ namespace SMC {
 class cEditor_World : public cEditor {
  public:
   cEditor_World(cSprite_Manager* sprite_manager, cOverworld* overworld);
-  virtual ~cEditor_World(void);
+  ~cEditor_World(void) override;
 
   // Initialize
-  virtual void Init(void);
+  void Init(void) override;
 
   // Enable
-  virtual void Enable(void);
+  void Enable(void) override;
   /* Disable
 	 * native_mode : if unset the current game mode isn't altered
  	*/
-  virtual void Disable(bool native_mode = 0);
+  void Disable(bool native_mode = false) override;
 
   /* handle key down event
 	 * returns true if the key was processed
 	*/
-  virtual bool Key_Down(SDLKey key);
+  bool Key_Down(SDLKey key) override;
 
   // Set the parent overworld
   void Set_Overworld(cOverworld* overworld);
   // Set Active Menu Entry
-  virtual void Activate_Menu_Item(cEditor_Menu_Object* entry);
+  void Activate_Menu_Item(cEditor_Menu_Object* entry) override;
   // return the sprite object
-  virtual cSprite* Get_Object(const CEGUI::String& element,
-                              CEGUI::XMLAttributes& attributes,
-                              int engine_version);
+  cSprite* Get_Object(const CEGUI::String& element,
+                      CEGUI::XMLAttributes& attributes,
+                      int engine_version) override;
 
   // Menu functions
-  virtual bool Function_New(void);
-  virtual void Function_Load(void);
-  virtual void Function_Save(bool with_dialog = 0);
+  bool Function_New(void) override;
+  void Function_Load(void) override;
+  void Function_Save(bool with_dialog = false) override;
   //virtual void Function_Save_as( void );
-  virtual void Function_Reload(void);
+  void Function_Reload(void) override;
   //void Function_Settings( void );
 
   // parent overworld

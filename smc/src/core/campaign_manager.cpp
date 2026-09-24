@@ -28,11 +28,11 @@ namespace SMC {
 /* *** *** *** *** *** *** *** cCampaign *** *** *** *** *** *** *** *** *** *** */
 
 cCampaign ::cCampaign(void) {
-  m_is_target_level = 0;
+  m_is_target_level = false;
   m_user = 0;
 }
 
-cCampaign ::~cCampaign(void) {}
+cCampaign ::~cCampaign(void) = default;
 
 /* *** *** *** *** *** *** *** cCampaign_Manager *** *** *** *** *** *** *** *** *** *** */
 
@@ -44,10 +44,11 @@ void cCampaign_Manager ::Load(void) {
   std::string user_dir = pResource_Manager->user_data_dir + USER_CAMPAIGN_DIR;
   std::string game_dir = DATA_DIR "/" GAME_CAMPAIGN_DIR;
 
-  vector<std::string> user_files = Get_Directory_Files(
-      pResource_Manager->user_data_dir + USER_CAMPAIGN_DIR, "smccpn", 0, 0);
-  vector<std::string> game_files =
-      Get_Directory_Files(DATA_DIR "/" GAME_CAMPAIGN_DIR, "smccpn", 0, 0);
+  vector<std::string> user_files =
+      Get_Directory_Files(pResource_Manager->user_data_dir + USER_CAMPAIGN_DIR,
+                          "smccpn", false, false);
+  vector<std::string> game_files = Get_Directory_Files(
+      DATA_DIR "/" GAME_CAMPAIGN_DIR, "smccpn", false, false);
 
   // get directory length for erasing
   int user_dir_length = user_dir.length() + 1;
@@ -96,12 +97,12 @@ void cCampaign_Manager ::Load(void) {
 cCampaign* cCampaign_Manager ::Load_Campaign(const std::string& filename) {
   if (!File_Exists(filename)) {
     printf("Error : Campaign loading failed : %s\n", filename.c_str());
-    return NULL;
+    return nullptr;
   }
 
   cCampaign_XML_Handler* loader = new cCampaign_XML_Handler(filename);
   cCampaign* campaign = loader->m_campaign;
-  loader->m_campaign = NULL;
+  loader->m_campaign = nullptr;
   delete loader;
 
   return campaign;
@@ -117,7 +118,7 @@ cCampaign* cCampaign_Manager ::Get_from_Name(const std::string& name) {
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 /* *** *** *** *** *** *** *** cCampaign_XML_Handler *** *** *** *** *** *** *** *** *** *** */
@@ -192,7 +193,7 @@ void cCampaign_XML_Handler ::elementEnd(const CEGUI::String& element) {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cCampaign_Manager* pCampaign_Manager = NULL;
+cCampaign_Manager* pCampaign_Manager = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

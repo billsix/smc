@@ -24,7 +24,7 @@ namespace SMC {
 /* *** *** *** *** *** *** cImage_Settings_Data *** *** *** *** *** *** *** *** *** *** *** */
 
 cImage_Settings_Data ::cImage_Settings_Data(void) {
-  m_base_settings = 0;
+  m_base_settings = false;
 
   m_int_x = 0;
   m_int_y = 0;
@@ -34,14 +34,14 @@ cImage_Settings_Data ::cImage_Settings_Data(void) {
   m_rotation_x = 0;
   m_rotation_y = 0;
   m_rotation_z = 0;
-  m_mipmap = 0;
+  m_mipmap = false;
 
   m_type = -1;
   m_ground_type = GROUND_NORMAL;
-  m_obsolete = 0;
+  m_obsolete = false;
 }
 
-cImage_Settings_Data ::~cImage_Settings_Data(void) {}
+cImage_Settings_Data ::~cImage_Settings_Data(void) = default;
 
 cSize_Int cImage_Settings_Data ::Get_Surface_Size(
     const SDL_Surface* sdl_surface) const {
@@ -229,15 +229,15 @@ void cImage_Settings_Data ::Apply_Base(
 
   // only set if this isn't obsolete
   if (!m_obsolete && base_settings_data->m_obsolete) {
-    m_obsolete = 1;
+    m_obsolete = true;
   }
 }
 
 /* *** *** *** *** *** *** cImage_Settings_Parser *** *** *** *** *** *** *** *** *** *** *** */
 
 cImage_Settings_Parser ::cImage_Settings_Parser(void) : cFile_parser() {
-  m_settings_temp = NULL;
-  m_load_base = 1;
+  m_settings_temp = nullptr;
+  m_load_base = true;
 }
 
 cImage_Settings_Parser ::~cImage_Settings_Parser(void) {
@@ -251,7 +251,7 @@ cImage_Settings_Data* cImage_Settings_Parser ::Get(
 
   Parse(filename);
   cImage_Settings_Data* settings = m_settings_temp;
-  m_settings_temp = NULL;
+  m_settings_temp = nullptr;
   return settings;
 }
 
@@ -260,17 +260,17 @@ bool cImage_Settings_Parser ::HandleMessage(const std::string* parts,
                                             unsigned int line) {
   if (parts[0].compare("base") == 0) {
     if (count < 2 || count > 3) {
-      printf("%s : line %d Error :\n", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error :\n",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("Error : %s %s\n", parts[0].c_str(), "needs 2-3 parameters");
-      return 0;
+      return false;
     }
 
     if (!Is_Valid_Number(parts[2])) {
-      printf("%s : line %d Error : ", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error : ",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("%s is not a valid integer value\n", parts[1].c_str());
-      return 0;
+      return false;
     }
 
     m_settings_temp->m_base =
@@ -278,7 +278,7 @@ bool cImage_Settings_Parser ::HandleMessage(const std::string* parts,
 
     // with settings option
     if (count == 3 && string_to_int(parts[2])) {
-      m_settings_temp->m_base_settings = 1;
+      m_settings_temp->m_base_settings = true;
 
       if (m_load_base) {
         std::string settings_file = m_settings_temp->m_base;
@@ -321,50 +321,50 @@ bool cImage_Settings_Parser ::HandleMessage(const std::string* parts,
     }
   } else if (parts[0].compare("int_x") == 0) {
     if (count != 2) {
-      printf("%s : line %d Error :\n", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error :\n",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("Error : %s %s\n", parts[0].c_str(), "needs 2 parameters");
-      return 0;
+      return false;
     }
 
     if (!Is_Valid_Number(parts[1])) {
-      printf("%s : line %d Error : ", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error : ",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("%s is not a valid integer value\n", parts[1].c_str());
-      return 0;
+      return false;
     }
 
     m_settings_temp->m_int_x = string_to_int(parts[1]);
   } else if (parts[0].compare("int_y") == 0) {
     if (count != 2) {
-      printf("%s : line %d Error :\n", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error :\n",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("Error : %s %s\n", parts[0].c_str(), "needs 2 parameters");
-      return 0;
+      return false;
     }
 
     if (!Is_Valid_Number(parts[1])) {
-      printf("%s : line %d Error : ", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error : ",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("%s is not a valid integer value\n", parts[1].c_str());
-      return 0;
+      return false;
     }
 
     m_settings_temp->m_int_y = string_to_int(parts[1]);
   } else if (parts[0].compare("col_rect") == 0) {
     if (count != 5) {
-      printf("%s : line %d Error :\n", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error :\n",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("Error : %s %s\n", parts[0].c_str(), "needs 5 parameters");
-      return 0;
+      return false;
     }
 
     for (unsigned int i = 1; i < 5; i++) {
       if (!Is_Valid_Number(parts[i])) {
-        printf("%s : line %d Error : ", Trim_Filename(data_file, 0, 0).c_str(),
-               line);
+        printf("%s : line %d Error : ",
+               Trim_Filename(data_file, false, false).c_str(), line);
         printf("%s is not a valid integer value\n", parts[1].c_str());
-        return 0;
+        return false;
       }
     }
 
@@ -376,49 +376,49 @@ bool cImage_Settings_Parser ::HandleMessage(const std::string* parts,
                 static_cast<float>(string_to_int(parts[4])));
   } else if (parts[0].compare("width") == 0) {
     if (count != 2) {
-      printf("%s : line %d Error :\n", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error :\n",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("Error : %s %s\n", parts[0].c_str(), "needs 2 parameters");
-      return 0;
+      return false;
     }
 
     if (!Is_Valid_Number(parts[1])) {
-      printf("%s : line %d Error : ", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error : ",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("%s is not a valid integer value\n", parts[1].c_str());
-      return 0;
+      return false;
     }
 
     m_settings_temp->m_width = string_to_int(parts[1]);
   } else if (parts[0].compare("height") == 0) {
     if (count != 2) {
-      printf("%s : line %d Error :\n", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error :\n",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("Error : %s %s\n", parts[0].c_str(), "needs 2 parameters");
-      return 0;
+      return false;
     }
 
     if (!Is_Valid_Number(parts[1])) {
-      printf("%s : line %d Error : ", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error : ",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("%s is not a valid integer value\n", parts[1].c_str());
-      return 0;
+      return false;
     }
 
     m_settings_temp->m_height = string_to_int(parts[1]);
   } else if (parts[0].compare("rotation") == 0) {
     if (count < 2 || count > 5) {
-      printf("%s : line %d Error :\n", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error :\n",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("Error : %s %s\n", parts[0].c_str(), "needs 2-5 parameters");
-      return 0;
+      return false;
     }
 
     if (!Is_Valid_Number(parts[1])) {
-      printf("%s : line %d Error : ", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error : ",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("%s is not a valid integer value\n", parts[1].c_str());
-      return 0;
+      return false;
     }
 
     // x
@@ -427,10 +427,10 @@ bool cImage_Settings_Parser ::HandleMessage(const std::string* parts,
     // y
     if (count > 2) {
       if (!Is_Valid_Number(parts[2])) {
-        printf("%s : line %d Error : ", Trim_Filename(data_file, 0, 0).c_str(),
-               line);
+        printf("%s : line %d Error : ",
+               Trim_Filename(data_file, false, false).c_str(), line);
         printf("%s is not a valid integer value\n", parts[2].c_str());
-        return 0;  // error
+        return false;  // error
       }
 
       m_settings_temp->m_rotation_y = string_to_int(parts[2]);
@@ -438,110 +438,110 @@ bool cImage_Settings_Parser ::HandleMessage(const std::string* parts,
     // z
     if (count > 3) {
       if (!Is_Valid_Number(parts[3])) {
-        printf("%s : line %d Error : ", Trim_Filename(data_file, 0, 0).c_str(),
-               line);
+        printf("%s : line %d Error : ",
+               Trim_Filename(data_file, false, false).c_str(), line);
         printf("%s is not a valid integer value\n", parts[3].c_str());
-        return 0;
+        return false;
       }
 
       m_settings_temp->m_rotation_z = string_to_int(parts[3]);
     }
   } else if (parts[0].compare("mipmap") == 0) {
     if (count != 2) {
-      printf("%s : line %d Error :\n", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error :\n",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("Error : %s %s\n", parts[0].c_str(), "needs 2 parameters");
-      return 0;
+      return false;
     }
 
     if (!Is_Valid_Number(parts[1])) {
-      printf("%s : line %d Error : ", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error : ",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("%s is not a valid integer value\n", parts[1].c_str());
-      return 0;
+      return false;
     }
 
     // if mipmaps enabled
     if (string_to_int(parts[1])) {
-      m_settings_temp->m_mipmap = 1;
+      m_settings_temp->m_mipmap = true;
     }
   } else if (parts[0].compare("editor_tags") == 0) {
     if (count != 2) {
-      printf("%s : line %d Error :\n", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error :\n",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("Error : %s %s\n", parts[0].c_str(), "needs 2 parameters");
-      return 0;
+      return false;
     }
 
     m_settings_temp->m_editor_tags = parts[1];
   } else if (parts[0].compare("name") == 0) {
     if (count != 2) {
-      printf("%s : line %d Error :\n", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error :\n",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("Error : %s %s\n", parts[0].c_str(), "needs 2 parameters");
-      return 0;
+      return false;
     }
 
     m_settings_temp->m_name = parts[1];
   } else if (parts[0].compare("type") == 0) {
     if (count != 2) {
-      printf("%s : line %d Error :\n", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error :\n",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("Error : %s %s\n", parts[0].c_str(), "needs 2 parameters");
-      return 0;
+      return false;
     }
 
     m_settings_temp->m_type = Get_Sprite_Type_Id(parts[1]);
   } else if (parts[0].compare("ground_type") == 0) {
     if (count != 2) {
-      printf("%s : line %d Error :\n", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error :\n",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("Error : %s %s\n", parts[0].c_str(), "needs 2 parameters");
-      return 0;
+      return false;
     }
 
     m_settings_temp->m_ground_type = Get_Ground_Type_Id(parts[1]);
   } else if (parts[0].compare("author") == 0) {
     if (count != 2) {
-      printf("%s : line %d Error :\n", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error :\n",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("Error : %s %s\n", parts[0].c_str(), "needs 2 parameters");
-      return 0;
+      return false;
     }
 
     m_settings_temp->m_author = parts[1];
   } else if (parts[0].compare("obsolete") == 0) {
     if (count != 2) {
-      printf("%s : line %d Error :\n", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error :\n",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("Error : %s %s\n", parts[0].c_str(), "needs 2 parameters");
-      return 0;
+      return false;
     }
 
     if (!Is_Valid_Number(parts[1])) {
-      printf("%s : line %d Error : ", Trim_Filename(data_file, 0, 0).c_str(),
-             line);
+      printf("%s : line %d Error : ",
+             Trim_Filename(data_file, false, false).c_str(), line);
       printf("%s is not a valid integer value\n", parts[1].c_str());
-      return 0;  // error
+      return false;  // error
     }
 
     // if tagged obsolete
     if (string_to_int(parts[1])) {
-      m_settings_temp->m_obsolete = 1;
+      m_settings_temp->m_obsolete = true;
     }
   } else {
-    printf("%s : line %d Error : ", Trim_Filename(data_file, 0, 0).c_str(),
-           line);
+    printf("%s : line %d Error : ",
+           Trim_Filename(data_file, false, false).c_str(), line);
     printf("Unknown Command : %s\n", parts[0].c_str());
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cImage_Settings_Parser* pSettingsParser = NULL;
+cImage_Settings_Parser* pSettingsParser = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

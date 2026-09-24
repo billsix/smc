@@ -24,7 +24,6 @@ dnf install -y \
     autoconf \
     automake \
     bison \
-    boost-devel \
     ccache \
     clang-tools-extra \
     expat-devel \

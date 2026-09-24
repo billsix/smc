@@ -38,15 +38,15 @@ cHudSprite ::cHudSprite(cSprite_Manager* sprite_manager)
   m_camera_range = 0;
   m_pos_z = 0.13f;
 
-  Set_Ignore_Camera(1);
+  Set_Ignore_Camera(true);
 }
 
-cHudSprite ::~cHudSprite(void) {}
+cHudSprite ::~cHudSprite(void) = default;
 
 cHudSprite* cHudSprite ::Copy(void) const {
   cHudSprite* hud_sprite = new cHudSprite(m_sprite_manager);
   hud_sprite->Set_Image(m_start_image);
-  hud_sprite->Set_Pos(m_start_pos_x, m_start_pos_y, 1);
+  hud_sprite->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   hud_sprite->m_type = m_type;
   hud_sprite->m_sprite_array = m_sprite_array;
   hud_sprite->m_massive_type = m_massive_type;
@@ -61,7 +61,7 @@ cHudSprite* cHudSprite ::Copy(void) const {
 cHud_Manager ::cHud_Manager(cSprite_Manager* sprite_manager)
     : cObject_Manager<cHudSprite>() {
   m_sprite_manager = sprite_manager;
-  m_loaded = 0;
+  m_loaded = false;
 }
 
 cHud_Manager ::~cHud_Manager(void) { Unload(); }
@@ -96,7 +96,7 @@ void cHud_Manager ::Load(void) {
   pHud_Debug = new cDebugDisplay(m_sprite_manager);
   Add(static_cast<cHudSprite*>(pHud_Debug));
 
-  m_loaded = 1;
+  m_loaded = true;
 }
 
 void cHud_Manager ::Unload(void) {
@@ -106,14 +106,14 @@ void cHud_Manager ::Unload(void) {
 
   Delete_All();
 
-  pHud_Lives = NULL;
-  pHud_Goldpieces = NULL;
-  pHud_Points = NULL;
-  pHud_Time = NULL;
-  pHud_Debug = NULL;
-  pHud_Itembox = NULL;
+  pHud_Lives = nullptr;
+  pHud_Goldpieces = nullptr;
+  pHud_Points = nullptr;
+  pHud_Time = nullptr;
+  pHud_Debug = nullptr;
+  pHud_Itembox = nullptr;
 
-  m_loaded = 0;
+  m_loaded = false;
 }
 
 void cHud_Manager ::Update_Text(void) {
@@ -205,7 +205,7 @@ void cHud_Manager ::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cHud_Manager* pHud_Manager = NULL;
+cHud_Manager* pHud_Manager = nullptr;
 
 /* *** *** *** *** *** *** PointsText *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -320,7 +320,7 @@ void cPlayerPoints ::Draw(cSurface_Request* request /* = NULL */) {
 
       // disable
       if (obj->m_vely > -1.0f) {
-        obj->Set_Image(NULL);
+        obj->Set_Image(nullptr);
         continue;
       }
       // fade out
@@ -378,7 +378,7 @@ void cPlayerPoints ::Set_Points(long points) {
 
   char text[70];
   sprintf(text, _("Points %08d"), static_cast<int>(pLevel_Player->m_points));
-  Set_Image(pFont->Render_Text(pFont->m_font_normal, text, white), 0, 1);
+  Set_Image(pFont->Render_Text(pFont->m_font_normal, text, white), false, true);
 }
 
 void cPlayerPoints ::Add_Points(
@@ -404,8 +404,8 @@ void cPlayerPoints ::Add_Points(
   }
 
   PointsText* new_obj = new PointsText(m_sprite_manager);
-  new_obj->Set_Image(pFont->Render_Text(pFont->m_font_small, strtext, color), 1,
-                     1);
+  new_obj->Set_Image(pFont->Render_Text(pFont->m_font_small, strtext, color),
+                     true, true);
 
   new_obj->Set_Pos(x, y);
   new_obj->m_vely = -1.4f;
@@ -418,7 +418,7 @@ void cPlayerPoints ::Add_Points(
     PointsText* obj = (*itr);
 
     if (new_obj->m_rect.Intersects(obj->m_col_rect)) {
-      new_obj->Move(obj->m_col_rect.m_w + 5, 0, 1);
+      new_obj->Move(obj->m_col_rect.m_w + 5, 0, true);
     }
   }
 
@@ -472,7 +472,7 @@ void cGoldDisplay ::Set_Gold(int gold) {
 
   Color color = Color(static_cast<Uint8>(255), 255, 255 - (gold * 2));
 
-  Set_Image(pFont->Render_Text(pFont->m_font_normal, text, color), 0, 1);
+  Set_Image(pFont->Render_Text(pFont->m_font_normal, text, color), false, true);
 }
 
 void cGoldDisplay ::Add_Gold(int gold) {
@@ -488,7 +488,7 @@ cLiveDisplay ::cLiveDisplay(cSprite_Manager* sprite_manager)
 
   Set_Lives(pLevel_Player->m_lives);
 
-  Set_Image(NULL);
+  Set_Image(nullptr);
 }
 
 cLiveDisplay ::~cLiveDisplay(void) {
@@ -519,7 +519,7 @@ void cLiveDisplay ::Set_Lives(int lives) {
     text = _("Lives : ") + int_to_string(pLevel_Player->m_lives);
   }
 
-  Set_Image(pFont->Render_Text(pFont->m_font_normal, text, green), 0, 1);
+  Set_Image(pFont->Render_Text(pFont->m_font_normal, text, green), false, true);
 
   // set position
   int w, h;
@@ -572,7 +572,8 @@ void cTimeDisplay ::Update(void) {
 
   // Set new time
   sprintf(m_text, _("Time %02d:%02d"), minutes, seconds - (minutes * 60));
-  Set_Image(pFont->Render_Text(pFont->m_font_normal, m_text, white), 0, 1);
+  Set_Image(pFont->Render_Text(pFont->m_font_normal, m_text, white), false,
+            true);
 }
 
 void cTimeDisplay ::Draw(cSurface_Request* request /* = NULL */) {
@@ -608,11 +609,11 @@ cItemBox ::cItemBox(cSprite_Manager* sprite_manager)
   m_box_color = white;
 
   m_item_counter = 0;
-  m_item_counter_mod = 0;
+  m_item_counter_mod = false;
   m_item_id = TYPE_UNDEFINED;
 
   m_item = new cMovingSprite(sprite_manager);
-  m_item->Set_Ignore_Camera(1);
+  m_item->Set_Ignore_Camera(true);
   m_item->m_camera_range = 0;
   m_item->Set_Massive_Type(MASS_MASSIVE);
   m_item->m_pos_z = 0.1299f;
@@ -636,14 +637,14 @@ void cItemBox ::Update(void) {
     m_item_counter += pFramerate->m_speed_factor * 10.0f;
 
     if (m_item_counter >= 90.0f) {
-      m_item_counter_mod = 0;
+      m_item_counter_mod = false;
       m_item_counter = 90.0f;
     }
   } else {
     m_item_counter -= pFramerate->m_speed_factor * 10.0f;
 
     if (m_item_counter <= 0.0f) {
-      m_item_counter_mod = 1;
+      m_item_counter_mod = true;
       m_item_counter = 1.0f;
     }
   }
@@ -660,7 +661,7 @@ void cItemBox ::Update(void) {
     // player can send an item back
     SpriteType item_id_temp = m_item_id;
     Reset();
-    pLevel_Player->Get_Item(item_id_temp, 1);
+    pLevel_Player->Get_Item(item_id_temp, true);
   }
 
   delete col_list;
@@ -694,7 +695,7 @@ void cItemBox ::Set_Item(SpriteType item_type, bool sound /* = 1 */) {
   Reset();
 
   // reset startposition
-  m_item->Set_Pos(0.0f, 0.0f, 1);
+  m_item->Set_Pos(0.0f, 0.0f, true);
   // reset color
   m_item->Set_Color(white);
 
@@ -726,26 +727,26 @@ void cItemBox ::Request_Item(void) {
 
   m_item_counter = 255.0f;
   // draw item with camera
-  m_item->Set_Ignore_Camera(0);
+  m_item->Set_Ignore_Camera(false);
   m_item->Set_Pos(m_item->m_pos_x + pActive_Camera->m_x,
                   m_item->m_pos_y + pActive_Camera->m_y);
 }
 
 void cItemBox ::Push_back(void) {
   m_item_counter = 0.0f;
-  m_item_counter_mod = 0;
+  m_item_counter_mod = false;
 
   // draw item without camera
-  m_item->Set_Ignore_Camera(1);
+  m_item->Set_Ignore_Camera(true);
   m_item->Set_Pos(m_item->m_start_pos_x, m_item->m_start_pos_y);
   m_item->Set_Color(white);
 }
 
 void cItemBox ::Reset(void) {
-  m_item->Set_Ignore_Camera(1);
+  m_item->Set_Ignore_Camera(true);
   m_item_id = TYPE_UNDEFINED;
   m_item_counter = 0.0f;
-  m_item_counter_mod = 0;
+  m_item_counter_mod = false;
   m_box_color = white;
 }
 
@@ -776,7 +777,7 @@ cDebugDisplay ::cDebugDisplay(cSprite_Manager* sprite_manager)
   m_text_debug_text = static_cast<CEGUI::Window*>(
       CEGUI::WindowManager::getSingleton().getWindow("text_debugmessage"));
   // hide
-  m_text_debug_text->setVisible(0);
+  m_text_debug_text->setVisible(false);
 
   // debug box positions
   float tempx = static_cast<float>(game_res_w) - 200.0f;
@@ -796,22 +797,24 @@ cDebugDisplay ::cDebugDisplay(cSprite_Manager* sprite_manager)
 
     // active box
     if (i > 10 && i < 16) {
-      m_sprites[i]->Set_Pos_X(m_sprites[i]->m_start_pos_x + 5.0f, 1);
+      m_sprites[i]->Set_Pos_X(m_sprites[i]->m_start_pos_x + 5.0f, true);
     }
   }
 
   // fps display position
-  m_sprites[0]->Set_Pos(15.0f, 5.0f, 1);
+  m_sprites[0]->Set_Pos(15.0f, 5.0f, true);
   // average
-  m_sprites[1]->Set_Pos(290.0f, 5.0f, 1);
+  m_sprites[1]->Set_Pos(290.0f, 5.0f, true);
   // speed factor
-  m_sprites[2]->Set_Pos(480.0f, 5.0f, 1);
+  m_sprites[2]->Set_Pos(480.0f, 5.0f, true);
 
   // Debug type text
   m_sprites[4]->Set_Image(
-      pFont->Render_Text(pFont->m_font_small, _("Level"), lightblue), 0, 1);
+      pFont->Render_Text(pFont->m_font_small, _("Level"), lightblue), false,
+      true);
   m_sprites[16]->Set_Image(
-      pFont->Render_Text(pFont->m_font_small, _("Player"), lightblue), 0, 1);
+      pFont->Render_Text(pFont->m_font_small, _("Player"), lightblue), false,
+      true);
 
   m_counter = 0.0f;
 }
@@ -839,7 +842,7 @@ void cDebugDisplay ::Update(void) {
     m_text.clear();
     m_text_old.clear();
 
-    m_text_debug_text->setVisible(0);
+    m_text_debug_text->setVisible(false);
     return;
   }
 
@@ -854,7 +857,7 @@ void cDebugDisplay ::Update(void) {
 
     // display the new text
     m_text_debug_text->setText(gui_text);
-    m_text_debug_text->setVisible(1);
+    m_text_debug_text->setVisible(true);
 
     // update position
     CEGUI::Font* font =
@@ -914,21 +917,21 @@ void cDebugDisplay ::Draw_fps(void) {
               _(", current ") +
               int_to_string(static_cast<int>(pFramerate->m_fps)),
           white),
-      0, 1);
+      false, true);
   // average
   m_sprites[1]->Set_Image(
       pFont->Render_Text(pFont->m_font_very_small,
                          _("average ") + int_to_string(static_cast<int>(
                                              pFramerate->m_fps_average)),
                          white),
-      0, 1);
+      false, true);
   // speed factor
   m_sprites[2]->Set_Image(
       pFont->Render_Text(
           pFont->m_font_very_small,
           _("Speed factor ") + float_to_string(pFramerate->m_speed_factor, 4),
           white),
-      0, 1);
+      false, true);
 }
 
 void cDebugDisplay ::Draw_Debug_Mode(void) {
@@ -951,7 +954,7 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
   cRect_Request* request = new cRect_Request();
   pVideo->Draw_Rect(m_sprites[11]->m_pos_x - 4, m_sprites[11]->m_pos_y - 4, 135,
                     95, m_pos_z, &white, request);
-  request->m_filled = 0;
+  request->m_filled = false;
   pRenderer->Add(request);
 
   // fps
@@ -964,16 +967,19 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
               int_to_string(static_cast<int>(pActive_Camera->m_x)) + ", Y " +
               int_to_string(static_cast<int>(pActive_Camera->m_y));
   m_sprites[3]->Set_Image(
-      pFont->Render_Text(pFont->m_font_very_small, temp_text, white), 0, 1);
+      pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false,
+      true);
 
   // Level information
   if (pActive_Level->m_level_filename.compare(m_level_old) != 0) {
     std::string lvl_text =
-        _("Name : ") + Trim_Filename(pActive_Level->m_level_filename, 0, 0);
+        _("Name : ") +
+        Trim_Filename(pActive_Level->m_level_filename, false, false);
     m_level_old = pActive_Level->m_level_filename;
 
     m_sprites[5]->Set_Image(
-        pFont->Render_Text(pFont->m_font_very_small, lvl_text, white), 0, 1);
+        pFont->Render_Text(pFont->m_font_very_small, lvl_text, white), false,
+        true);
   }
 
   // Level objects
@@ -982,7 +988,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
 
     temp_text = _("Objects : ") + int_to_string(m_obj_counter);
     m_sprites[6]->Set_Image(
-        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), 0, 1);
+        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false,
+        true);
   }
   // Passive
   if (m_pass_counter !=
@@ -991,7 +998,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
 
     temp_text = _("Passive : ") + int_to_string(m_pass_counter);
     m_sprites[7]->Set_Image(
-        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), 0, 1);
+        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false,
+        true);
   }
   // Massive
   if (m_mass_counter !=
@@ -1000,7 +1008,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
 
     temp_text = _("Massive : ") + int_to_string(m_mass_counter);
     m_sprites[8]->Set_Image(
-        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), 0, 1);
+        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false,
+        true);
   }
   // Enemy
   if (m_enemy_counter !=
@@ -1009,7 +1018,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
 
     temp_text = _("Enemy : ") + int_to_string(m_enemy_counter);
     m_sprites[9]->Set_Image(
-        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), 0, 1);
+        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false,
+        true);
   }
   // Active
   if (m_active_counter !=
@@ -1018,7 +1028,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
 
     temp_text = _("Active : ") + int_to_string(m_active_counter);
     m_sprites[10]->Set_Image(
-        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), 0, 1);
+        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false,
+        true);
 
     // Halfmassive
     unsigned int halfmassive = 0;
@@ -1035,7 +1046,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
 
     temp_text = _("Halfmassive : ") + int_to_string(halfmassive);
     m_sprites[11]->Set_Image(
-        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), 0, 1);
+        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false,
+        true);
 
     // Moving Platform
     unsigned int moving_platform = 0;
@@ -1052,7 +1064,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
 
     temp_text = _("Moving Platform : ") + int_to_string(moving_platform);
     m_sprites[12]->Set_Image(
-        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), 0, 1);
+        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false,
+        true);
 
     // Goldbox
     unsigned int goldbox = 0;
@@ -1073,7 +1086,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
 
     temp_text = _("Goldbox : ") + int_to_string(goldbox);
     m_sprites[13]->Set_Image(
-        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), 0, 1);
+        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false,
+        true);
 
     // Bonusbox
     unsigned int bonusbox_count = 0;
@@ -1094,7 +1108,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
 
     temp_text = _("Bonusbox : ") + int_to_string(bonusbox_count);
     m_sprites[14]->Set_Image(
-        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), 0, 1);
+        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false,
+        true);
 
     // Other
     unsigned int active_other = m_active_counter - halfmassive -
@@ -1102,7 +1117,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
 
     temp_text = _("Other : ") + int_to_string(active_other);
     m_sprites[15]->Set_Image(
-        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), 0, 1);
+        pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false,
+        true);
   }
 
   // Player information
@@ -1112,24 +1128,28 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
       float_to_string(
           pLevel_Player->m_col_rect.m_x + pLevel_Player->m_col_rect.m_w, 4);
   m_sprites[17]->Set_Image(
-      pFont->Render_Text(pFont->m_font_very_small, temp_text, white), 0, 1);
+      pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false,
+      true);
   // position y
   temp_text =
       "Y1 " + float_to_string(pActive_Player->m_pos_y, 4) + "  Y2 " +
       float_to_string(
           pLevel_Player->m_col_rect.m_y + pLevel_Player->m_col_rect.m_h, 4);
   m_sprites[18]->Set_Image(
-      pFont->Render_Text(pFont->m_font_very_small, temp_text, white), 0, 1);
+      pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false,
+      true);
   // velocity
   temp_text = _("Velocity X ") + float_to_string(pLevel_Player->m_velx, 2) +
               " ,Y " + float_to_string(pLevel_Player->m_vely, 2);
   m_sprites[19]->Set_Image(
-      pFont->Render_Text(pFont->m_font_very_small, temp_text, white), 0, 1);
+      pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false,
+      true);
   // moving state
   temp_text = _("Moving State ") +
               int_to_string(static_cast<int>(pLevel_Player->m_state));
   m_sprites[20]->Set_Image(
-      pFont->Render_Text(pFont->m_font_very_small, temp_text, white), 0, 1);
+      pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false,
+      true);
   // ground type
   std::string ground_type;
   if (pLevel_Player->m_ground_object) {
@@ -1140,13 +1160,14 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
   }
   temp_text = _("Ground ") + ground_type;
   m_sprites[21]->Set_Image(
-      pFont->Render_Text(pFont->m_font_very_small, temp_text, white), 0, 1);
+      pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false,
+      true);
   // game mode
   if (Game_Mode != m_game_mode_last) {
     m_sprites[22]->Set_Image(
         pFont->Render_Text(pFont->m_font_very_small,
                            _("Game Mode : ") + int_to_string(Game_Mode), white),
-        0, 1);
+        false, true);
   }
 
   // draw text
@@ -1179,36 +1200,36 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
 
   vector<std::string> text_strings;
   // draw
-  text_strings.push_back(_("Draw"));
+  text_strings.emplace_back(_("Draw"));
   // overworld
   if (Game_Mode == MODE_OVERWORLD) {
     text_strings.push_back(
         _("World : ") +
         int_to_string(pFramerate->m_perf_timer[PERF_DRAW_OVERWORLD]->ms));
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
   }
   // menu
   else if (Game_Mode == MODE_MENU) {
     text_strings.push_back(
         _("Menu : ") +
         int_to_string(pFramerate->m_perf_timer[PERF_DRAW_MENU]->ms));
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
   }
   // level settings
   else if (Game_Mode == MODE_LEVEL_SETTINGS) {
     text_strings.push_back(
         _("Level Settings : ") +
         int_to_string(pFramerate->m_perf_timer[PERF_DRAW_LEVEL_SETTINGS]->ms));
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
   }
   // level (default)
   else {
@@ -1232,34 +1253,34 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
       _("Mouse : ") +
       int_to_string(pFramerate->m_perf_timer[PERF_DRAW_MOUSE]->ms));
   // update
-  text_strings.push_back(_("Update"));
+  text_strings.emplace_back(_("Update"));
   // overworld
   if (Game_Mode == MODE_OVERWORLD) {
     text_strings.push_back(
         _("World : ") +
         int_to_string(pFramerate->m_perf_timer[PERF_UPDATE_OVERWORLD]->ms));
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
   }
   // menu
   else if (Game_Mode == MODE_MENU) {
     text_strings.push_back(
         _("Menu : ") +
         int_to_string(pFramerate->m_perf_timer[PERF_UPDATE_MENU]->ms));
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
   }
   // level settings
   else if (Game_Mode == MODE_LEVEL_SETTINGS) {
@@ -1267,14 +1288,14 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
         _("Level Settings : ") +
         int_to_string(
             pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_SETTINGS]->ms));
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
   }
   // level (default)
   else {
@@ -1310,7 +1331,7 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
   }
 
   // render
-  text_strings.push_back(_("Render"));
+  text_strings.emplace_back(_("Render"));
   text_strings.push_back(
       _("Game : ") +
       int_to_string(pFramerate->m_perf_timer[PERF_RENDER_GAME]->ms));
@@ -1346,7 +1367,7 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
     // create request
     cSurface_Request* request = new cSurface_Request();
     surface_temp->Blit(xpos, ypos, m_pos_z, request);
-    request->m_delete_texture = 1;
+    request->m_delete_texture = true;
 
     // shadow
     request->m_shadow_pos = 1;
@@ -1355,7 +1376,7 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
     // add request
     pRenderer->Add(request);
 
-    surface_temp->m_auto_del_img = 0;
+    surface_temp->m_auto_del_img = false;
     delete surface_temp;
 
     pos++;
@@ -1364,12 +1385,12 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cPlayerPoints* pHud_Points = NULL;
-cDebugDisplay* pHud_Debug = NULL;
-cGoldDisplay* pHud_Goldpieces = NULL;
-cLiveDisplay* pHud_Lives = NULL;
-cTimeDisplay* pHud_Time = NULL;
-cItemBox* pHud_Itembox = NULL;
+cPlayerPoints* pHud_Points = nullptr;
+cDebugDisplay* pHud_Debug = nullptr;
+cGoldDisplay* pHud_Goldpieces = nullptr;
+cLiveDisplay* pHud_Lives = nullptr;
+cTimeDisplay* pHud_Time = nullptr;
+cItemBox* pHud_Itembox = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

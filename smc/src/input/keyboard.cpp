@@ -34,7 +34,7 @@ namespace SMC {
 
 cKeyboard ::cKeyboard(void) { Reset_Keys(); }
 
-cKeyboard ::~cKeyboard(void) {}
+cKeyboard ::~cKeyboard(void) = default;
 
 void cKeyboard ::Reset_Keys(void) {
   // set all keys to 0
@@ -45,10 +45,10 @@ bool cKeyboard ::CEGUI_Handle_Key_Up(SDLKey key) const {
   // inject the scancode directly
   if (pGuiSystem->injectKeyUp(SDLKey_to_CEGUIKey(key))) {
     // input was processed by the gui system
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 bool cKeyboard ::Key_Up(SDLKey key) {
@@ -57,39 +57,39 @@ bool cKeyboard ::Key_Up(SDLKey key) {
 
   // input was processed by the gui system
   if (CEGUI_Handle_Key_Up(key)) {
-    return 1;
+    return true;
   }
 
   // handle key in the current mode
   if (Game_Mode == MODE_LEVEL) {
     // got processed
     if (pActive_Level->Key_Up(key)) {
-      return 1;
+      return true;
     }
   } else if (Game_Mode == MODE_MENU) {
     // got processed
     if (pMenuCore->Key_Up(key)) {
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 bool cKeyboard ::CEGUI_Handle_Key_Down(SDLKey key) const {
   // inject the scancode
   if (pGuiSystem->injectKeyDown(SDLKey_to_CEGUIKey(key)) == 1) {
     // input got processed by the gui system
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 bool cKeyboard ::Text_Input(const char* text) const {
   // SDL 2 delivers typed text as UTF-8 in SDL_TEXTINPUT events (SDL 1.2 put one unicode
   // value into each key event); decode and hand each code point to the gui system
-  bool processed = 0;
+  bool processed = false;
   const unsigned char* p = reinterpret_cast<const unsigned char*>(text);
   while (*p) {
     CEGUI::utf32 cp;
@@ -112,7 +112,7 @@ bool cKeyboard ::Text_Input(const char* text) const {
       cp = (cp << 6) | (*p & 0x3F);
     }
     if (pGuiSystem->injectChar(cp)) {
-      processed = 1;
+      processed = true;
     }
   }
   return processed;
@@ -121,7 +121,7 @@ bool cKeyboard ::Text_Input(const char* text) const {
 bool cKeyboard ::Key_Down(SDLKey key) {
   // input was processed by the gui system
   if (CEGUI_Handle_Key_Down(key)) {
-    return 1;
+    return true;
   }
 
   // set key to 1
@@ -131,30 +131,30 @@ bool cKeyboard ::Key_Down(SDLKey key) {
 
   // game exit
   if (key == SDLK_F4 && pKeyboard->Is_Alt_Down()) {
-    game_exit = 1;
-    return 1;
+    game_exit = true;
+    return true;
   }
   // fullscreen toggle
   else if (key == SDLK_RETURN && pKeyboard->Is_Alt_Down()) {
     pVideo->Toggle_Fullscreen();
-    return 1;
+    return true;
   }
   // GUI copy
   else if (key == SDLK_c && pKeyboard->Is_Ctrl_Down()) {
     if (GUI_Copy_To_Clipboard()) {
-      return 1;
+      return true;
     }
   }
   // GUI cut
   else if (key == SDLK_x && pKeyboard->Is_Ctrl_Down()) {
-    if (GUI_Copy_To_Clipboard(1)) {
-      return 1;
+    if (GUI_Copy_To_Clipboard(true)) {
+      return true;
     }
   }
   // GUI paste
   else if (key == SDLK_v && pKeyboard->Is_Ctrl_Down()) {
     if (GUI_Paste_From_Clipboard()) {
-      return 1;
+      return true;
     }
   }
 
@@ -162,22 +162,22 @@ bool cKeyboard ::Key_Down(SDLKey key) {
   if (Game_Mode == MODE_LEVEL) {
     // processed by the level
     if (pActive_Level->Key_Down(key)) {
-      return 1;
+      return true;
     }
   } else if (Game_Mode == MODE_OVERWORLD) {
     // processed by the overworld
     if (pActive_Overworld->Key_Down(key)) {
-      return 1;
+      return true;
     }
   } else if (Game_Mode == MODE_MENU) {
     // processed by the menu
     if (pMenuCore->Key_Down(key)) {
-      return 1;
+      return true;
     }
   } else if (Game_Mode == MODE_LEVEL_SETTINGS) {
     // processed by the level settings
     if (pLevel_Editor->m_settings_screen->Key_Down(key)) {
-      return 1;
+      return true;
     }
   }
 
@@ -185,7 +185,7 @@ bool cKeyboard ::Key_Down(SDLKey key) {
   if (key == SDLK_F6) {
     float fixed_speedfactor = string_to_float(
         Box_Text_Input(float_to_string(pFramerate->m_force_speed_factor, 2),
-                       "Set Fixed Speedfactor", 1));
+                       "Set Fixed Speedfactor", true));
 
     // disable
     if (Is_Float_Equal(fixed_speedfactor, 0.0f)) {
@@ -267,7 +267,7 @@ bool cKeyboard ::Key_Down(SDLKey key) {
     game_debug_performance = !game_debug_performance;
   }
 
-  return 0;
+  return false;
 }
 
 unsigned int cKeyboard ::SDLKey_to_CEGUIKey(const SDLKey key) const {
@@ -493,7 +493,7 @@ unsigned int cKeyboard ::SDLKey_to_CEGUIKey(const SDLKey key) const {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cKeyboard* pKeyboard = NULL;
+cKeyboard* pKeyboard = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

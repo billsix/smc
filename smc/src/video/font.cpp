@@ -25,9 +25,9 @@ void Font_Delete_Ref(cGL_Surface* surface) { pFont->Delete_Ref(surface); }
 /* *** *** *** *** *** *** *** Font Manager class *** *** *** *** *** *** *** *** *** *** */
 
 cFont_Manager ::cFont_Manager(void) {
-  m_font_normal = NULL;
-  m_font_small = NULL;
-  m_font_very_small = NULL;
+  m_font_normal = nullptr;
+  m_font_small = nullptr;
+  m_font_very_small = nullptr;
 }
 
 cFont_Manager ::~cFont_Manager(void) {
@@ -38,17 +38,17 @@ cFont_Manager ::~cFont_Manager(void) {
 
   if (m_font_normal) {
     TTF_CloseFont(m_font_normal);
-    m_font_normal = NULL;
+    m_font_normal = nullptr;
   }
 
   if (m_font_small) {
     TTF_CloseFont(m_font_small);
-    m_font_small = NULL;
+    m_font_small = nullptr;
   }
 
   if (m_font_very_small) {
     TTF_CloseFont(m_font_very_small);
-    m_font_very_small = NULL;
+    m_font_very_small = nullptr;
   }
 
   TTF_Quit();
@@ -113,7 +113,7 @@ cGL_Surface* cFont_Manager ::Render_Text(TTF_Font* font,
       TTF_RenderUTF8_Blended(font, text.c_str(), sdlcolor));
 
   if (!surface) {
-    return NULL;
+    return nullptr;
   }
 
   surface->m_filename = text;
@@ -163,7 +163,7 @@ void cFont_Manager ::Restore_Textures(void) {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cFont_Manager* pFont = NULL;
+cFont_Manager* pFont = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

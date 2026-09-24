@@ -53,14 +53,14 @@ class cDialogBox {
 class cDialogBox_Text : public cDialogBox {
  public:
   cDialogBox_Text(void);
-  virtual ~cDialogBox_Text(void);
+  ~cDialogBox_Text(void) override;
 
   // initialize
   void Init(std::string title_text);
 
   // enter
   std::string Enter(std::string default_text, std::string title_text,
-                    bool auto_no_text = 1);
+                    bool auto_no_text = true);
 
   // CEGUI events
   // window quit button clicked event
@@ -74,13 +74,13 @@ class cDialogBox_Text : public cDialogBox {
 class cDialogBox_Question : public cDialogBox {
  public:
   cDialogBox_Question(void);
-  virtual ~cDialogBox_Question(void);
+  ~cDialogBox_Question(void) override;
 
   // initialize
   void Init(bool with_cancel);
 
   // enter
-  int Enter(std::string text, bool with_cancel = 0);
+  int Enter(std::string text, bool with_cancel = false);
 
   // CEGUI events
   // yes button clicked event
@@ -106,7 +106,8 @@ void Gui_Handle_Time(void);
  * if wait_for_input is given draws the text until the user pressed a key
  */
 void Draw_Static_Text(const std::string& text, const Color* color_text = &white,
-                      const Color* color_bg = NULL, bool wait_for_input = 1);
+                      const Color* color_bg = nullptr,
+                      bool wait_for_input = true);
 
 /* CEGUI EditBox with header
  *
@@ -117,7 +118,7 @@ void Draw_Static_Text(const std::string& text, const Color* color_text = &white,
  */
 std::string Box_Text_Input(const std::string& default_text,
                            const std::string& title_text,
-                           bool auto_no_text = 1);
+                           bool auto_no_text = true);
 
 /* Button Question Box
  * returns 1 for Yes, 0 for No and -1 if canceled
@@ -125,7 +126,7 @@ std::string Box_Text_Input(const std::string& default_text,
  * text : box question text
  * with_cancel : add the cancel button
 */
-int Box_Question(const std::string& text, bool with_cancel = 0);
+int Box_Question(const std::string& text, bool with_cancel = false);
 
 // Return the clipboard content
 std::string Get_Clipboard_Content(void);
@@ -134,7 +135,7 @@ void Set_Clipboard_Content(std::string str);
 /* Copy selected GUI text to the Clipboard
  * cut: if set cut the text
 */
-bool GUI_Copy_To_Clipboard(bool cut = 0);
+bool GUI_Copy_To_Clipboard(bool cut = false);
 // Paste text from the clipboard to the GUI
 bool GUI_Paste_From_Clipboard(void);
 

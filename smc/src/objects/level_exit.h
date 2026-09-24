@@ -43,22 +43,22 @@ class cLevel_Exit : public cAnimated_Sprite {
   cLevel_Exit(CEGUI::XMLAttributes& attributes,
               cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cLevel_Exit(void);
+  ~cLevel_Exit(void) override;
 
   // init defaults
-  void Init(void);
+  void Init(void) override;
   // copy this sprite
-  virtual cLevel_Exit* Copy(void) const;
+  cLevel_Exit* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
   // Set direction
   void Set_Direction(const ObjectDirection dir);
 
   // draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // Activate
   void Activate(void);
@@ -71,7 +71,7 @@ class cLevel_Exit : public cAnimated_Sprite {
   // Set the destination level
   void Set_Level(std::string filename);
   // Return the destination level
-  std::string Get_Level(bool with_dir = 1, bool with_end = 1) const;
+  std::string Get_Level(bool with_dir = true, bool with_end = true) const;
 
   // Set the destination entry
   void Set_Entry(const std::string& entry_name);
@@ -81,12 +81,12 @@ class cLevel_Exit : public cAnimated_Sprite {
   void Set_Path_Identifier(const std::string& identifier);
 
   // if draw is valid for the current state and position
-  virtual bool Is_Draw_Valid(void);
+  bool Is_Draw_Valid(void) override;
 
   // editor activation
-  virtual void Editor_Activate(void);
+  void Editor_Activate(void) override;
   // editor state update
-  virtual void Editor_State_Update(void);
+  void Editor_State_Update(void) override;
   // editor direction option selected event
   bool Editor_Direction_Select(const CEGUI::EventArgs& event);
   // editor motion option selected event

@@ -27,10 +27,10 @@ namespace SMC {
 class cWorld_Sprite_Manager : public cSprite_Manager {
  public:
   cWorld_Sprite_Manager(cOverworld* overworld);
-  virtual ~cWorld_Sprite_Manager(void);
+  ~cWorld_Sprite_Manager(void) override;
 
   // Add a sprite
-  virtual void Add(cSprite* sprite);
+  void Add(cSprite* sprite) override;
 
   // parent overworld
   cOverworld* m_overworld;

@@ -25,8 +25,8 @@ namespace SMC {
 /* *** *** *** *** *** cSaved_Texture *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cSaved_Texture ::cSaved_Texture(void) {
-  m_base = NULL;
-  m_pixels = NULL;
+  m_base = nullptr;
+  m_pixels = nullptr;
 
   m_width = 0;
   m_height = 0;
@@ -58,7 +58,7 @@ void cImage_Manager ::Add(cGL_Surface* obj) {
   }
 
   // it is now managed
-  obj->m_managed = 1;
+  obj->m_managed = true;
 
   // Add
   cObject_Manager<cGL_Surface>::Add(obj);
@@ -76,13 +76,13 @@ cGL_Surface* cImage_Manager ::Get_Pointer(const std::string& path) const {
   }
 
   // not found
-  return NULL;
+  return nullptr;
 }
 
 void cImage_Manager ::Grab_Textures(bool from_file /* = 0 */,
                                     bool draw_gui /* = 0 */) {
   // progress bar
-  CEGUI::ProgressBar* progress_bar = NULL;
+  CEGUI::ProgressBar* progress_bar = nullptr;
 
   if (draw_gui) {
     // get progress bar
@@ -130,7 +130,7 @@ void cImage_Manager ::Grab_Textures(bool from_file /* = 0 */,
 
 void cImage_Manager ::Restore_Textures(bool draw_gui /* = 0 */) {
   // progress bar
-  CEGUI::ProgressBar* progress_bar = NULL;
+  CEGUI::ProgressBar* progress_bar = nullptr;
 
   if (draw_gui) {
     // get progress bar
@@ -204,7 +204,7 @@ void cImage_Manager ::Delete_All(void) {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cImage_Manager* pImage_Manager = NULL;
+cImage_Manager* pImage_Manager = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

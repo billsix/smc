@@ -19,7 +19,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** Sound *** *** *** *** *** *** *** *** *** */
 
-cSound ::cSound(void) { m_chunk = NULL; }
+cSound ::cSound(void) { m_chunk = nullptr; }
 
 cSound ::~cSound(void) { Free(); }
 
@@ -30,16 +30,16 @@ bool cSound ::Load(const std::string& filename) {
 
   if (m_chunk) {
     m_filename = filename;
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 void cSound ::Free(void) {
   if (m_chunk) {
     Mix_FreeChunk(m_chunk);
-    m_chunk = NULL;
+    m_chunk = nullptr;
   }
 
   m_filename.clear();
@@ -65,7 +65,7 @@ cSound* cSound_Manager ::Get_Pointer(const std::string& path) const {
   }
 
   // not found
-  return NULL;
+  return nullptr;
 }
 
 void cSound_Manager ::Add(cSound* sound) {
@@ -75,7 +75,7 @@ void cSound_Manager ::Add(cSound* sound) {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cSound_Manager* pSound_Manager = NULL;
+cSound_Manager* pSound_Manager = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

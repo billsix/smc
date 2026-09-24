@@ -35,14 +35,14 @@ enum BlendingMode {
 class cAnimation : public cAnimated_Sprite {
  public:
   cAnimation(cSprite_Manager* sprite_manager, std::string type_name = "sprite");
-  virtual ~cAnimation(void);
+  ~cAnimation(void) override;
 
   // initialize animation
   virtual void Init_Anim(void);
   // update animation
-  virtual void Update(void);
+  void Update(void) override;
   // draw animation
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // Set time to live for Objects in seconds
   void Set_Time_to_Live(float time, float time_rand = 0.0f);
@@ -69,14 +69,14 @@ class cAnimation_Goldpiece : public cAnimation {
  public:
   cAnimation_Goldpiece(cSprite_Manager* sprite_manager, float posx, float posy,
                        float height = 40.0f, float width = 20.0f);
-  virtual ~cAnimation_Goldpiece(void);
+  ~cAnimation_Goldpiece(void) override;
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
   // draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = nullptr) override;
 
-  typedef vector<cSprite*> BlinkPointList;
+  using BlinkPointList = vector<cSprite*>;
   BlinkPointList m_objects;
 };
 
@@ -89,7 +89,7 @@ class cAnimation_Fireball_Item : public cAnimated_Sprite {
     m_counter = 0.0f;
   }
 
-  virtual ~cAnimation_Fireball_Item(void) {}
+  ~cAnimation_Fireball_Item(void) override = default;
 
   // lifetime
   float m_counter;
@@ -99,14 +99,14 @@ class cAnimation_Fireball : public cAnimation {
  public:
   cAnimation_Fireball(cSprite_Manager* sprite_manager, float posx, float posy,
                       unsigned int power = 5);
-  virtual ~cAnimation_Fireball(void);
+  ~cAnimation_Fireball(void) override;
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
   // draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = nullptr) override;
 
-  typedef vector<cAnimation_Fireball_Item*> FireAnimList;
+  using FireAnimList = vector<cAnimation_Fireball_Item*>;
   FireAnimList m_objects;
 };
 
@@ -119,12 +119,12 @@ class cParticle_Emitter;
 class cParticle : public cMovingSprite {
  public:
   cParticle(cParticle_Emitter* parent);
-  virtual ~cParticle(void);
+  ~cParticle(void) override;
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
   // draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // set gravity
   void Set_Gravity(float x, float y);
@@ -163,27 +163,27 @@ class cParticle_Emitter : public cAnimation {
   cParticle_Emitter(CEGUI::XMLAttributes& attributes,
                     cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cParticle_Emitter(void);
+  ~cParticle_Emitter(void) override;
 
   // Init
-  virtual void Init(void);
+  void Init(void) override;
   // copy
-  virtual cParticle_Emitter* Copy(void) const;
+  cParticle_Emitter* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // pre-update animation
   void Pre_Update(void);
   // Emit Particles
   virtual void Emit(void);
   // Clear particles and animation data
-  virtual void Clear(bool reset = 1);
+  virtual void Clear(bool reset = true);
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
   /* update and emit particles
 	 * does not update emitter living time
 	*/
@@ -191,16 +191,16 @@ class cParticle_Emitter : public cAnimation {
   // update position and clipping
   void Update_Position(void);
   // Draw everything
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // keep particles in the given rectangle
   void Keep_Particles_In_Rect(const GL_rect& clip_rect,
                               ParticleClipMode mode = PCM_MOVE);
 
   // if update is valid for the current state
-  virtual bool Is_Update_Valid(void);
+  bool Is_Update_Valid(void) override;
   // if draw is valid for the current state and position
-  virtual bool Is_Draw_Valid(void);
+  bool Is_Draw_Valid(void) override;
 
   /* Set image
 	 * does not set the image filename
@@ -211,7 +211,7 @@ class cParticle_Emitter : public cAnimation {
   /* set if spawned
 	 * if set it is not saved in the level/world file
 	*/
-  virtual void Set_Spawned(bool enable = 0);
+  void Set_Spawned(bool enable = false) override;
   // Set if the position is based on the camera position
   void Set_Based_On_Camera_Pos(bool enable);
   // Set if particles position is based on the emitter position
@@ -265,7 +265,7 @@ class cParticle_Emitter : public cAnimation {
 
   // editor todo : start rotation x/y/z rand, color, color_rand
   // editor activation
-  virtual void Editor_Activate(void);
+  void Editor_Activate(void) override;
   // editor events
   bool Editor_Pos_Z_Base_Text_Changed(const CEGUI::EventArgs& event);
   bool Editor_Pos_Z_Rand_Text_Changed(const CEGUI::EventArgs& event);
@@ -310,7 +310,7 @@ class cParticle_Emitter : public cAnimation {
   bool Editor_Clip_Mode_Select(const CEGUI::EventArgs& event);
 
   // Particle items
-  typedef vector<cParticle*> ParticleList;
+  using ParticleList = vector<cParticle*>;
   ParticleList m_objects;
 
   // filename of the particle
@@ -376,17 +376,17 @@ class cParticle_Emitter : public cAnimation {
 class cAnimation_Manager : public cObject_Manager<cAnimation> {
  public:
   cAnimation_Manager(void);
-  virtual ~cAnimation_Manager(void);
+  ~cAnimation_Manager(void) override;
 
   // Add an animation object with the given settings
-  virtual void Add(cAnimation* animation);
+  void Add(cAnimation* animation) override;
 
   // Update the objects
   void Update(void);
   // Draw the objects
   void Draw(void);
 
-  typedef vector<cAnimation*> cAnimation_List;
+  using cAnimation_List = vector<cAnimation*>;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

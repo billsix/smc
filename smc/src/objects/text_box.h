@@ -30,29 +30,29 @@ class cText_Box : public cBaseBox {
   // create from stream
   cText_Box(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cText_Box(void);
+  ~cText_Box(void) override;
 
   // init defaults
-  void Init(void);
+  void Init(void) override;
   // copy
-  virtual cText_Box* Copy(void) const;
+  cText_Box* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // Activate
-  virtual void Activate(void);
+  void Activate(void) override;
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
 
   // Set Text
   void Set_Text(const std::string& str_text);
 
   // editor activation
-  virtual void Editor_Activate(void);
+  void Editor_Activate(void) override;
   // editor text text changed event
   bool Editor_Text_Text_Changed(const CEGUI::EventArgs& event);
 

@@ -81,34 +81,31 @@ cSave_Level_Object* cPowerUp ::Save_To_Savegame(void) {
 
   // default values
   save_object->m_type = m_type;
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "posx", int_to_string(static_cast<int>(m_start_pos_x))));
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "posy", int_to_string(static_cast<int>(m_start_pos_y))));
+  save_object->m_properties.emplace_back(
+      "posx", int_to_string(static_cast<int>(m_start_pos_x)));
+  save_object->m_properties.emplace_back(
+      "posy", int_to_string(static_cast<int>(m_start_pos_y)));
 
   // new position ( only save if needed )
   if (!Is_Float_Equal(m_start_pos_x, m_pos_x) ||
       !Is_Float_Equal(m_start_pos_y, m_pos_y)) {
-    save_object->m_properties.push_back(cSave_Level_Object_Property(
-        "new_posx", int_to_string(static_cast<int>(m_pos_x))));
-    save_object->m_properties.push_back(cSave_Level_Object_Property(
-        "new_posy", int_to_string(static_cast<int>(m_pos_y))));
+    save_object->m_properties.emplace_back(
+        "new_posx", int_to_string(static_cast<int>(m_pos_x)));
+    save_object->m_properties.emplace_back(
+        "new_posy", int_to_string(static_cast<int>(m_pos_y)));
   }
 
   // direction
-  save_object->m_properties.push_back(
-      cSave_Level_Object_Property("direction", int_to_string(m_direction)));
+  save_object->m_properties.emplace_back("direction",
+                                         int_to_string(m_direction));
 
   // velocity
-  save_object->m_properties.push_back(
-      cSave_Level_Object_Property("velx", float_to_string(m_velx)));
-  save_object->m_properties.push_back(
-      cSave_Level_Object_Property("vely", float_to_string(m_vely)));
+  save_object->m_properties.emplace_back("velx", float_to_string(m_velx));
+  save_object->m_properties.emplace_back("vely", float_to_string(m_vely));
 
   // active
   if (!m_active) {
-    save_object->m_properties.push_back(
-        cSave_Level_Object_Property("active", int_to_string(m_active)));
+    save_object->m_properties.emplace_back("active", int_to_string(m_active));
   }
 
   return save_object;
@@ -130,10 +127,10 @@ void cPowerUp ::Draw(cSurface_Request* request /* = NULL */) {
 bool cPowerUp ::Is_Update_Valid(void) {
   // if not visible
   if (!m_active) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 Col_Valid_Type cPowerUp ::Validate_Collision(cSprite* obj) {
@@ -212,12 +209,12 @@ void cMushroom ::Init(void) {
   m_type = TYPE_UNDEFINED;
   Set_Type(TYPE_MUSHROOM_DEFAULT);
 
-  m_glim_mod = 1;
+  m_glim_mod = true;
 }
 
 cMushroom* cMushroom ::Copy(void) const {
   cMushroom* mushroom = new cMushroom(m_sprite_manager);
-  mushroom->Set_Pos(m_start_pos_x, m_start_pos_y, 1);
+  mushroom->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   mushroom->Set_Type(m_type);
   return mushroom;
 }
@@ -278,7 +275,7 @@ void cMushroom ::Set_Type(SpriteType new_type) {
 
   m_type = new_type;
 
-  Set_Image_Num(0, 1, 0);
+  Set_Image_Num(0, true, false);
 }
 
 void cMushroom ::Activate(void) {
@@ -306,7 +303,7 @@ void cMushroom ::Activate(void) {
   }
   // hide
   else {
-    Set_Active(0);
+    Set_Active(false);
   }
 }
 
@@ -367,14 +364,14 @@ void cMushroom ::Update(void) {
 
         if (new_glim > 0.5f) {
           new_glim = 1.0f;
-          m_glim_mod = 0;
+          m_glim_mod = false;
         }
       } else {
         new_glim -= pFramerate->m_speed_factor * 0.02f;
 
         if (new_glim < 0.0f) {
           new_glim = 0.0f;
-          m_glim_mod = 1;
+          m_glim_mod = true;
         }
       }
 
@@ -467,14 +464,14 @@ cFirePlant ::~cFirePlant(void) {
 
 void cFirePlant ::Init(void) {
   m_type = TYPE_FIREPLANT;
-  m_can_be_on_ground = 0;
+  m_can_be_on_ground = false;
   m_pos_z = 0.051f;
 
   Add_Image(pVideo->Get_Surface("game/items/fireplant.png"));
   Add_Image(pVideo->Get_Surface("game/items/fireplant_left.png"));
   Add_Image(pVideo->Get_Surface("game/items/fireplant_right.png"));
 
-  Set_Image_Num(0, 1, 0);
+  Set_Image_Num(0, true, false);
 
   m_name = _("Fireplant");
 
@@ -483,14 +480,14 @@ void cFirePlant ::Init(void) {
 
 cFirePlant* cFirePlant ::Copy(void) const {
   cFirePlant* fireplant = new cFirePlant(m_sprite_manager);
-  fireplant->Set_Pos(m_start_pos_x, m_start_pos_y, 1);
+  fireplant->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   return fireplant;
 }
 
 void cFirePlant ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
 }
 
 void cFirePlant ::Save_To_XML(CEGUI::XMLSerializer& stream) {
@@ -522,7 +519,7 @@ void cFirePlant ::Activate(void) {
   }
   // hide
   else {
-    Set_Active(0);
+    Set_Active(false);
   }
 }
 
@@ -544,11 +541,11 @@ void cFirePlant ::Update(void) {
   if (m_counter > speedfactor_fps * 2.5f) {
     // if no direction image set
     if (m_curr_img == 0) {
-      Set_Image_Num(1 + (rand() % 2), 0, 0);
+      Set_Image_Num(1 + (rand() % 2), false, false);
     }
     // direction image is set
     else {
-      Set_Image_Num(0, 0, 0);
+      Set_Image_Num(0, false, false);
     }
 
     m_counter = 0.0f;
@@ -605,14 +602,14 @@ cMoon ::~cMoon(void) {
 
 void cMoon ::Init(void) {
   m_type = TYPE_MOON;
-  m_can_be_on_ground = 0;
+  m_can_be_on_ground = false;
   m_pos_z = 0.052f;
 
   Add_Image(pVideo->Get_Surface("game/items/moon_1.png"), 4800);
   Add_Image(pVideo->Get_Surface("game/items/moon_2.png"), 150);
 
-  Set_Image_Num(0, 1);
-  Set_Animation(1);
+  Set_Image_Num(0, true);
+  Set_Animation(true);
   Set_Animation_Image_Range(0, 1);
   Reset_Animation();
 
@@ -661,7 +658,7 @@ void cMoon ::Activate(void) {
   }
   // hide
   else {
-    Set_Active(0);
+    Set_Active(false);
   }
 }
 

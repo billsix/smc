@@ -33,7 +33,7 @@ namespace SMC {
 class cLevel : public CEGUI::XMLHandler {
  public:
   cLevel(void);
-  virtual ~cLevel(void);
+  ~cLevel(void) override;
 
   /* Create a new level
 	 * returns true if successful
@@ -44,7 +44,7 @@ class cLevel : public CEGUI::XMLHandler {
   /* Unload the current Level
 	 * if delayed is given unloads the on the next update
 	*/
-  void Unload(bool delayed = 0);
+  void Unload(bool delayed = false);
   // Save the Level
   void Save(void);
   // Delete and unload
@@ -106,13 +106,13 @@ class cLevel : public CEGUI::XMLHandler {
 	 * if set to 1 the music directory is cut out
 	 * if set to 2 the full directory will be returned
 	*/
-  std::string Get_Music_Filename(int with_dir = 2, bool with_end = 1) const;
+  std::string Get_Music_Filename(int with_dir = 2, bool with_end = true) const;
   // Set the Music filename
   void Set_Music(std::string filename);
   /* Set the filename
 	 * rename_old : if set also rename the level file in the user folder
 	*/
-  void Set_Filename(std::string filename, bool rename_old = 1);
+  void Set_Filename(std::string filename, bool rename_old = true);
   // Set the level author
   void Set_Author(const std::string& name);
   // Set the level version
@@ -140,10 +140,10 @@ class cLevel : public CEGUI::XMLHandler {
         element == "level_entry" || element == "enemystopper" ||
         element == "box" || element == "moving_platform" ||
         element == "falling_platform" || element == "ball") {
-      return 1;
+      return true;
     }
 
-    return 0;
+    return false;
   };
 
   // level filename
@@ -192,10 +192,10 @@ class cLevel : public CEGUI::XMLHandler {
 
  private:
   // XML element start
-  virtual void elementStart(const CEGUI::String& element,
-                            const CEGUI::XMLAttributes& attributes);
+  void elementStart(const CEGUI::String& element,
+                    const CEGUI::XMLAttributes& attributes) override;
   // XML element end
-  virtual void elementEnd(const CEGUI::String& element);
+  void elementEnd(const CEGUI::String& element) override;
 
   // XML element Item Tag list
   CEGUI::XMLAttributes m_xml_attributes;

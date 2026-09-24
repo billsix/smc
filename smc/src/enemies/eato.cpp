@@ -49,9 +49,9 @@ void cEato ::Init(void) {
   m_type = TYPE_EATO;
   m_camera_range = 1000;
   m_pos_z = 0.087f;
-  m_can_be_on_ground = 0;
-  Set_Rotation_Affects_Rect(1);
-  m_fire_resistant = 1;
+  m_can_be_on_ground = false;
+  Set_Rotation_Affects_Rect(true);
+  m_fire_resistant = true;
 
   m_state = STA_STAY;
   Set_Image_Dir("enemy/eato/brown/");
@@ -72,7 +72,7 @@ cEato* cEato ::Copy(void) const {
 void cEato ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
   // image directory
   Set_Image_Dir(attributes.getValueAsString("image_dir", m_img_dir).c_str());
   // direction
@@ -133,11 +133,11 @@ void cEato ::Set_Image_Dir(std::string dir) {
   Add_Image(pVideo->Get_Surface(m_img_dir + "3.png"));
   Add_Image(pVideo->Get_Surface(m_img_dir + "2.png"));
   // set start image
-  Set_Image_Num(0, 1);
+  Set_Image_Num(0, true);
 
-  Set_Animation(1);
+  Set_Animation(true);
   Set_Animation_Image_Range(0, 3);
-  Set_Time_All(180, 1);
+  Set_Time_All(180, true);
   Reset_Animation();
 
   Create_Name();
@@ -149,36 +149,36 @@ void cEato ::Set_Direction(const ObjectDirection dir) {
     return;
   }
 
-  cEnemy::Set_Direction(dir, 1);
+  cEnemy::Set_Direction(dir, true);
 
   // clear
-  Set_Rotation(0.0f, 0.0f, 0.0f, 1);
+  Set_Rotation(0.0f, 0.0f, 0.0f, true);
 
   if (m_start_direction == DIR_UP_LEFT) {
-    Set_Rotation_Y(180.0f, 1);
+    Set_Rotation_Y(180.0f, true);
   } else if (m_start_direction == DIR_UP_RIGHT) {
     // default
   } else if (m_start_direction == DIR_LEFT_UP) {
-    Set_Rotation_Z(90.0f, 1);
-    Set_Rotation_X(180.0f, 1);
+    Set_Rotation_Z(90.0f, true);
+    Set_Rotation_X(180.0f, true);
   } else if (m_start_direction == DIR_LEFT_DOWN) {
-    Set_Rotation_Z(90.0f, 1);
+    Set_Rotation_Z(90.0f, true);
   } else if (m_start_direction == DIR_RIGHT_UP) {
-    Set_Rotation_Z(270.0f, 1);
+    Set_Rotation_Z(270.0f, true);
   } else if (m_start_direction == DIR_RIGHT_DOWN) {
-    Set_Rotation_Z(270.0f, 1);
-    Set_Rotation_X(180.0f, 1);
+    Set_Rotation_Z(270.0f, true);
+    Set_Rotation_X(180.0f, true);
   } else if (m_start_direction == DIR_DOWN_LEFT) {
-    Set_Rotation_X(180.0f, 1);
+    Set_Rotation_X(180.0f, true);
   } else if (m_start_direction == DIR_DOWN_RIGHT) {
-    Set_Rotation_Z(180.0f, 1);
+    Set_Rotation_Z(180.0f, true);
   }
 
   Create_Name();
 }
 
 void cEato ::DownGrade(bool force /* = 0 */) {
-  Set_Dead(1);
+  Set_Dead(true);
   m_massive_type = MASS_PASSIVE;
   m_counter = 0.0f;
 
@@ -201,7 +201,7 @@ void cEato ::Update_Dying(void) {
 
   // default death
   if (!Is_Float_Equal(m_rot_z, 180.0f)) {
-    Set_Active(0);
+    Set_Active(false);
   }
   // falling death
   else {
@@ -216,7 +216,7 @@ void cEato ::Update_Dying(void) {
     // if below disable
     else {
       m_rot_z = 0.0f;
-      Set_Active(0);
+      Set_Active(false);
     }
   }
 }
@@ -233,10 +233,10 @@ void cEato ::Update(void) {
 
 bool cEato ::Is_Update_Valid(void) {
   if (m_dead || m_freeze_counter) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 Col_Valid_Type cEato ::Validate_Collision(cSprite* obj) {
@@ -272,7 +272,7 @@ void cEato ::Handle_Collision_Player(cObjectCollision* collision) {
         (collision->m_direction != DIR_BOTTOM)) {
       // todo : create again
       //pAudio->PlaySound( "player/maryo_au.ogg", RID_MARYO_AU );
-      pLevel_Player->Action_Jump(1);
+      pLevel_Player->Action_Jump(true);
     }
 
     pLevel_Player->DownGrade_Player();
@@ -324,7 +324,7 @@ bool cEato ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()));
 
-  return 1;
+  return true;
 }
 
 bool cEato ::Editor_Image_Dir_Text_Changed(const CEGUI::EventArgs& event) {
@@ -335,7 +335,7 @@ bool cEato ::Editor_Image_Dir_Text_Changed(const CEGUI::EventArgs& event) {
 
   Set_Image_Dir(str_text);
 
-  return 1;
+  return true;
 }
 
 void cEato ::Create_Name(void) {

@@ -45,7 +45,7 @@ void Finished_Sound(const int channel) {
 /* *** *** *** *** *** *** *** *** Audio Sound *** *** *** *** *** *** *** *** *** */
 
 cAudio_Sound ::cAudio_Sound(void) {
-  m_data = NULL;
+  m_data = nullptr;
   m_channel = -1;
   m_resource_id = -1;
 }
@@ -62,7 +62,7 @@ void cAudio_Sound ::Free(void) {
   Stop();
 
   if (m_data) {
-    m_data = NULL;
+    m_data = nullptr;
   }
 
   m_channel = -1;
@@ -115,17 +115,17 @@ void cAudio_Sound ::Stop(void) {
 /* *** *** *** *** *** *** *** *** Audio *** *** *** *** *** *** *** *** *** */
 
 cAudio ::cAudio(void) {
-  m_initialised = 0;
-  m_sound_enabled = 0;
-  m_music_enabled = 0;
+  m_initialised = false;
+  m_sound_enabled = false;
+  m_music_enabled = false;
 
-  m_debug = 0;
+  m_debug = false;
 
   m_sound_volume = cPreferences::m_sound_volume_default;
   m_music_volume = cPreferences::m_music_volume_default;
 
-  m_music = NULL;
-  m_music_old = NULL;
+  m_music = nullptr;
+  m_music_old = nullptr;
 
   m_max_sounds = 0;
 
@@ -149,14 +149,14 @@ bool cAudio ::Init(void) {
   // if no change
   if (numtimesopened && m_music_enabled == music && m_sound_enabled == sound &&
       dev_frequency == pPreferences->m_audio_hz) {
-    return 1;
+    return true;
   }
 
   Close();
 
   // if no audio
   if (!music && !sound) {
-    return 1;
+    return true;
   }
 
   // if audio system is not initialized
@@ -179,7 +179,7 @@ bool cAudio ::Init(void) {
                       m_audio_channels, m_audio_buffer) < 0) {
       printf("Warning : Could not init 16-bit Audio\n- Reason : %s\n",
              SDL_GetError());
-      return 0;
+      return false;
     }
 
     numtimesopened = Mix_QuerySpec(&dev_frequency, &dev_format, &dev_channels);
@@ -231,7 +231,7 @@ bool cAudio ::Init(void) {
       }
     }
 
-    m_initialised = 1;
+    m_initialised = true;
 
     // Register the finished-channel callback ONCE per device-open (not per Play, as
     // before). It only flags the channel; cAudio::Update reaps it on the main thread.
@@ -244,7 +244,7 @@ bool cAudio ::Init(void) {
 
   // music initialization
   if (music && !m_music_enabled) {
-    m_music_enabled = 1;
+    m_music_enabled = true;
 
     // set music volume
     Set_Music_Volume(m_music_volume);
@@ -253,12 +253,12 @@ bool cAudio ::Init(void) {
   else if (!music && m_music_enabled) {
     Halt_Music();
 
-    m_music_enabled = 0;
+    m_music_enabled = false;
   }
 
   // sound initialization
   if (sound && !m_sound_enabled) {
-    m_sound_enabled = 1;
+    m_sound_enabled = true;
 
     // create sound array
     Set_Max_Sounds();
@@ -269,10 +269,10 @@ bool cAudio ::Init(void) {
   else if (!sound && m_sound_enabled) {
     Stop_Sounds();
 
-    m_sound_enabled = 0;
+    m_sound_enabled = false;
   }
 
-  return 1;
+  return true;
 }
 
 void cAudio ::Close(void) {
@@ -294,7 +294,7 @@ void cAudio ::Close(void) {
 
       Mix_AllocateChannels(0);
       m_max_sounds = 0;
-      m_sound_enabled = 0;
+      m_sound_enabled = false;
     }
 
     if (m_music_enabled) {
@@ -302,20 +302,20 @@ void cAudio ::Close(void) {
 
       if (m_music) {
         Mix_FreeMusic(m_music);
-        m_music = NULL;
+        m_music = nullptr;
       }
 
       if (m_music_old) {
         Mix_FreeMusic(m_music_old);
-        m_music_old = NULL;
+        m_music_old = nullptr;
       }
 
-      m_music_enabled = 0;
+      m_music_enabled = false;
     }
 
     Mix_CloseAudio();
 
-    m_initialised = 0;
+    m_initialised = false;
   }
 }
 
@@ -353,7 +353,7 @@ void cAudio ::Set_Max_Sounds(unsigned int limit /* = 10 */) {
 
 cSound* cAudio ::Get_Sound_File(std::string filename) const {
   if (!m_initialised || !m_sound_enabled) {
-    return NULL;
+    return nullptr;
   }
 
   // not available
@@ -384,7 +384,7 @@ cSound* cAudio ::Get_Sound_File(std::string filename) const {
              SDL_GetError());
 
       delete sound;
-      return NULL;
+      return nullptr;
     }
   }
 
@@ -394,7 +394,7 @@ cSound* cAudio ::Get_Sound_File(std::string filename) const {
 bool cAudio ::Play_Sound(std::string filename, int res_id /* = -1 */,
                          int volume /* = -1 */, int loops /* = 0 */) {
   if (!m_initialised || !m_sound_enabled) {
-    return 0;
+    return false;
   }
 
   // not available
@@ -407,7 +407,7 @@ bool cAudio ::Play_Sound(std::string filename, int res_id /* = -1 */,
     // not found
     if (!File_Exists(filename)) {
       printf("Could not find sound file : %s\n", filename.c_str());
-      return 0;
+      return false;
     }
   }
 
@@ -416,7 +416,7 @@ bool cAudio ::Play_Sound(std::string filename, int res_id /* = -1 */,
   // failed loading
   if (!sound_data) {
     printf("Warning : Could not load sound file : %s\n", filename.c_str());
-    return 0;
+    return false;
   }
 
   // create channel
@@ -424,7 +424,7 @@ bool cAudio ::Play_Sound(std::string filename, int res_id /* = -1 */,
 
   if (!sound) {
     // no free channel available
-    return 0;
+    return false;
   }
 
   // load data
@@ -438,7 +438,7 @@ bool cAudio ::Play_Sound(std::string filename, int res_id /* = -1 */,
       printf("Could not play sound file : %s\n", filename.c_str());
     }
 
-    return 0;
+    return false;
   }
   // playing successfully
   else {
@@ -456,7 +456,7 @@ bool cAudio ::Play_Sound(std::string filename, int res_id /* = -1 */,
     Mix_Volume(sound->m_channel, volume);
   }
 
-  return 1;
+  return true;
 }
 
 bool cAudio ::Play_Music(std::string filename, int loops /* = 0 */,
@@ -469,14 +469,14 @@ bool cAudio ::Play_Music(std::string filename, int loops /* = 0 */,
   // no valid file
   if (!File_Exists(filename)) {
     printf("Couldn't find music file : %s\n", filename.c_str());
-    return 0;
+    return false;
   }
 
   // save music filename
   m_music_filename = filename;
 
   if (!m_music_enabled || !m_initialised) {
-    return 0;
+    return false;
   }
 
   // if music is stopped resume it
@@ -492,7 +492,7 @@ bool cAudio ::Play_Music(std::string filename, int loops /* = 0 */,
     // free old music
     if (m_music_old) {
       Mix_FreeMusic(m_music_old);
-      m_music_old = NULL;
+      m_music_old = nullptr;
     }
 
     // load the given music
@@ -516,7 +516,7 @@ bool cAudio ::Play_Music(std::string filename, int loops /* = 0 */,
       }
 
       // failed to play
-      return 0;
+      return false;
     }
   }
   // music is playing and is not forced
@@ -526,12 +526,12 @@ bool cAudio ::Play_Music(std::string filename, int loops /* = 0 */,
       // if old music is loaded free the wanted next playing music data
       if (m_music_old) {
         Mix_FreeMusic(m_music);
-        m_music = NULL;
+        m_music = nullptr;
       }
       // if no old music move current to old music
       else {
         m_music_old = m_music;
-        m_music = NULL;
+        m_music = nullptr;
       }
     }
 
@@ -539,12 +539,12 @@ bool cAudio ::Play_Music(std::string filename, int loops /* = 0 */,
     m_music = Mix_LoadMUS(filename.c_str());
   }
 
-  return 1;
+  return true;
 }
 
 cAudio_Sound* cAudio ::Get_Playing_Sound(std::string filename) {
   if (!m_sound_enabled || !m_initialised) {
-    return NULL;
+    return nullptr;
   }
 
   // add sound directory
@@ -571,7 +571,7 @@ cAudio_Sound* cAudio ::Get_Playing_Sound(std::string filename) {
   }
 
   // not found
-  return NULL;
+  return nullptr;
 }
 
 cAudio_Sound* cAudio ::Create_Sound_Channel(void) {
@@ -597,7 +597,7 @@ cAudio_Sound* cAudio ::Create_Sound_Channel(void) {
   }
 
   // none found
-  return NULL;
+  return nullptr;
 }
 
 void cAudio ::Toggle_Music(void) {
@@ -606,7 +606,7 @@ void cAudio ::Toggle_Music(void) {
 
   // play music
   if (m_music_enabled && !m_music_filename.empty()) {
-    Play_Music(m_music_filename, -1, 1, 2000);
+    Play_Music(m_music_filename, -1, true, 2000);
   }
 }
 
@@ -618,7 +618,7 @@ void cAudio ::Toggle_Sounds(void) {
   // Toggle_Music, toggling sounds must therefore restart the music itself, or it stays
   // silent until the next Play_Music.
   if (m_music_enabled && !m_music_filename.empty()) {
-    Play_Music(m_music_filename, -1, 1, 2000);
+    Play_Music(m_music_filename, -1, true, 2000);
   }
 
   // play test sound
@@ -739,14 +739,14 @@ Mix_Fading cAudio ::Is_Sound_Fading(int sound_channel) const {
 
 bool cAudio ::Is_Music_Playing(void) const {
   if (!m_music_enabled || !m_initialised) {
-    return 0;
+    return false;
   }
 
   if (Mix_PlayingMusic()) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 void cAudio ::Halt_Music(void) const {
@@ -830,7 +830,7 @@ void cAudio ::Update(void) {
       // delete old music if available
       if (m_music_old) {
         Mix_FreeMusic(m_music_old);
-        m_music_old = NULL;
+        m_music_old = nullptr;
       }
     }
   }
@@ -838,7 +838,7 @@ void cAudio ::Update(void) {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cAudio* pAudio = NULL;
+cAudio* pAudio = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

@@ -34,7 +34,8 @@ class cGL_Surface {
   /* Blit the surface on the given position
 	 * if request is NULL automatically creates the request
 	*/
-  void Blit(float x, float y, float z, cSurface_Request* request = NULL) const;
+  void Blit(float x, float y, float z,
+            cSurface_Request* request = nullptr) const;
   // Blit only the surface data on the given request
   void Blit_Data(cSurface_Request* request) const;
 
@@ -50,12 +51,12 @@ class cGL_Surface {
   /* Return a software texture copy
 	 * only_filename: if set doesn't save the software texture but only the filename
 	*/
-  cSaved_Texture* Get_Software_Texture(bool only_filename = 0);
+  cSaved_Texture* Get_Software_Texture(bool only_filename = false);
   // Load a software texture
   void Load_Software_Texture(cSaved_Texture* soft_tex);
 
   // Return the filename
-  std::string Get_Filename(int with_dir = 2, bool with_end = 1) const;
+  std::string Get_Filename(int with_dir = 2, bool with_end = true) const;
   // Set a function called on destruction
   void Set_Destruction_Function(void (*nfunction)(cGL_Surface*));
 

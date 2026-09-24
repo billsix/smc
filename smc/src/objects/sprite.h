@@ -48,11 +48,11 @@ class cCollidingSprite {
 	 * returns true if successful
 	 * add_if_new : add the collision only if the collision object doesn't already collide with us and is deleted if it does
 	 */
-  bool Add_Collision(cObjectCollision* collision, bool add_if_new = 0);
+  bool Add_Collision(cObjectCollision* collision, bool add_if_new = false);
   /* Add the collision objects to the collision list
 	 * add_if_new : add each collision only if the collision object doesn't already collide with us and is deleted if it does
 	 */
-  void Add_Collisions(cObjectCollisionType* col_list, bool add_if_new = 0);
+  void Add_Collisions(cObjectCollisionType* col_list, bool add_if_new = false);
 
   // Delete the given collision from the list
   void Delete_Collision(cObjectCollision* collision);
@@ -66,7 +66,7 @@ class cCollidingSprite {
   inline cObjectCollision* Get_First_Collision(void) const {
     // no collision available
     if (m_collisions.empty()) {
-      return NULL;
+      return nullptr;
     }
 
     return *m_collisions.begin();
@@ -74,7 +74,7 @@ class cCollidingSprite {
   /* Returns the last added collision
 	 * if only_blocking is set only movement blocking collisions are returned
 	*/
-  cObjectCollision* Get_Last_Collision(bool only_blocking = 0) const;
+  cObjectCollision* Get_Last_Collision(bool only_blocking = false) const;
   // returns true if the given collision obj was found in the list
   bool Is_Collision_Included(const cSprite* obj) const;
   // Clear the Collision list
@@ -110,7 +110,7 @@ class cSprite : public cCollidingSprite {
   cSprite(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager,
           const std::string type_name = "sprite");
   // destructor
-  virtual ~cSprite(void);
+  ~cSprite(void) override;
 
   // initialize defaults
   virtual void Init(void);
@@ -129,14 +129,14 @@ class cSprite : public cCollidingSprite {
   // load from savegame
   virtual void Load_From_Savegame(cSave_Level_Object* save_object) {};
   // save to savegame
-  virtual cSave_Level_Object* Save_To_Savegame(void) { return NULL; };
+  virtual cSave_Level_Object* Save_To_Savegame(void) { return nullptr; };
 
   /* Sets the image for drawing
 	 * if new_start_image is set the default start_image will be set to the given image
 	 * if del_img is set the given image will be deleted
 	*/
-  virtual void Set_Image(cGL_Surface* new_image, bool new_start_image = 0,
-                         bool del_img = 0);
+  virtual void Set_Image(cGL_Surface* new_image, bool new_start_image = false,
+                         bool del_img = false);
 
   // Set the sprite type
   void Set_Sprite_Type(SpriteType type);
@@ -146,16 +146,16 @@ class cSprite : public cCollidingSprite {
   /* Set if the camera should be ignored
 	 * default : disabled
 	*/
-  void Set_Ignore_Camera(bool enable = 0);
+  void Set_Ignore_Camera(bool enable = false);
   /* set if spawned
 	 * if set it is not saved in the level/world file
 	*/
-  virtual void Set_Spawned(bool enable = 0) { m_spawned = enable; };
+  virtual void Set_Spawned(bool enable = false) { m_spawned = enable; };
 
   // Sets the Position
-  void Set_Pos(float x, float y, bool new_startpos = 0);
-  void Set_Pos_X(float x, bool new_startpos = 0);
-  void Set_Pos_Y(float y, bool new_startpos = 0);
+  void Set_Pos(float x, float y, bool new_startpos = false);
+  void Set_Pos_X(float x, bool new_startpos = false);
+  void Set_Pos_Y(float y, bool new_startpos = false);
   // Set if active
   virtual void Set_Active(bool enabled);
   /* Set the shadow
@@ -200,7 +200,7 @@ class cSprite : public cCollidingSprite {
 	 * only supports 90° steps currently
 	 * if enabled col_pos, col_rect and rect must be reset manually before changing rotation
 	*/
-  inline void Set_Rotation_Affects_Rect(bool enable = 0) {
+  inline void Set_Rotation_Affects_Rect(bool enable = false) {
     m_rotation_affects_rect = enable;
   };
   /* Set the rect rotation
@@ -231,13 +231,14 @@ class cSprite : public cCollidingSprite {
   void Update_Rect_Rotation_Z(void);
 
   // Set the X rotation
-  void Set_Rotation_X(float rot, bool new_start_rot = 0);
+  void Set_Rotation_X(float rot, bool new_start_rot = false);
   // Set the Y rotation
-  void Set_Rotation_Y(float rot, bool new_start_rot = 0);
+  void Set_Rotation_Y(float rot, bool new_start_rot = false);
   // Set the Z rotation
-  void Set_Rotation_Z(float rot, bool new_start_rot = 0);
+  void Set_Rotation_Z(float rot, bool new_start_rot = false);
   // Set the rotation
-  inline void Set_Rotation(float x, float y, float z, bool new_start_rot = 0) {
+  inline void Set_Rotation(float x, float y, float z,
+                           bool new_start_rot = false) {
     Set_Rotation_X(x, new_start_rot);
     Set_Rotation_Y(y, new_start_rot);
     Set_Rotation_Z(z, new_start_rot);
@@ -260,24 +261,26 @@ class cSprite : public cCollidingSprite {
 	 * if enabled previous scale is always undone from rect before setting the new value
 	 * default : disabled
 	*/
-  inline void Set_Scale_Affects_Rect(const bool enable = 0) {
+  inline void Set_Scale_Affects_Rect(const bool enable = false) {
     m_scale_affects_rect = enable;
   };
   /* Set which directions of the image get scaled
 	 * if all are set scaling is centered and if all are not set scaling is disabled
 	 * todo : if enabled with scale_affects_rect it should also scale the rect position
 	*/
-  inline void Set_Scale_Directions(const bool up = 0, const bool down = 1,
-                                   const bool left = 0, const bool right = 1) {
+  inline void Set_Scale_Directions(const bool up = false,
+                                   const bool down = true,
+                                   const bool left = false,
+                                   const bool right = true) {
     m_scale_up = up;
     m_scale_down = down;
     m_scale_left = left;
     m_scale_right = right;
   };
   // Set the scale
-  void Set_Scale_X(const float scale, const bool new_startscale = 0);
-  void Set_Scale_Y(const float scale, const bool new_startscale = 0);
-  inline void Set_Scale(const float scale, const bool new_startscale = 0) {
+  void Set_Scale_X(const float scale, const bool new_startscale = false);
+  void Set_Scale_Y(const float scale, const bool new_startscale = false);
+  inline void Set_Scale(const float scale, const bool new_startscale = false) {
     Set_Scale_X(scale, new_startscale);
     Set_Scale_Y(scale, new_startscale);
   };
@@ -291,12 +294,12 @@ class cSprite : public cCollidingSprite {
   };
 
   // Set this sprite on top of the given one
-  void Set_On_Top(const cSprite* sprite, bool optimize_hor_pos = 1);
+  void Set_On_Top(const cSprite* sprite, bool optimize_hor_pos = true);
 
   /* Move this object
 	 * real : if set the speedfactor is not used
 	*/
-  virtual void Move(float move_x, float move_y, const bool real = 0);
+  virtual void Move(float move_x, float move_y, const bool real = false);
 
   // default collision and movement handling
   virtual void Collide_Move(void) {};
@@ -317,21 +320,21 @@ class cSprite : public cCollidingSprite {
   /* Draw
 	* if request is NULL automatically creates the request
 	*/
-  virtual void Draw(cSurface_Request* request = NULL);
+  virtual void Draw(cSurface_Request* request = nullptr);
   /* draws the image only.
 	 * using start/editor data if editor is enabled.
 	*/
-  void Draw_Image(cSurface_Request* request = NULL) const;
+  void Draw_Image(cSurface_Request* request = nullptr) const;
   /* draws the image only.
 	 * doesn't check if draw is valid and requires a set drawing request
 	 * does not use start/editor data even if editor is enabled.
 	*/
-  void Draw_Image_Normal(cSurface_Request* request = NULL) const;
+  void Draw_Image_Normal(cSurface_Request* request = nullptr) const;
   /* draws the image only.
 	 * doesn't check if draw is valid and requires a set drawing request
 	 * uses start/editor data even if editor is disabled.
 	*/
-  void Draw_Image_Editor(cSurface_Request* request = NULL) const;
+  void Draw_Image_Editor(cSurface_Request* request = nullptr) const;
 
   /* Set the massive type
 	 * should be called after setting the new array
@@ -355,19 +358,19 @@ class cSprite : public cCollidingSprite {
     if (m_type == TYPE_PASSIVE || m_type == TYPE_FRONT_PASSIVE ||
         m_type == TYPE_MASSIVE || m_type == TYPE_CLIMBABLE ||
         m_type == TYPE_HALFMASSIVE) {
-      return 1;
+      return true;
     }
 
-    return 0;
+    return false;
   };
   // returns true if this is a sprite that is in the sprite manager
   inline bool Is_Sprite_Managed(void) const {
     if (m_sprite_array == ARRAY_MASSIVE || m_sprite_array == ARRAY_PASSIVE ||
         m_sprite_array == ARRAY_ENEMY || m_sprite_array == ARRAY_ACTIVE) {
-      return 1;
+      return true;
     }
 
-    return 0;
+    return false;
   };
 
   /* set this sprite to destroyed and completely disable it
@@ -378,7 +381,7 @@ class cSprite : public cCollidingSprite {
   // editor add window object
   void Editor_Add(const CEGUI::String& name, const CEGUI::String& tooltip,
                   CEGUI::Window* window_setting, float obj_width,
-                  float obj_height = 28, bool advance_row = 1);
+                  float obj_height = 28, bool advance_row = true);
   // editor activation
   virtual void Editor_Activate(void);
   // editor deactivation
@@ -497,7 +500,7 @@ class cSprite : public cCollidingSprite {
   bool m_valid_update;
 
   // editor active window list
-  typedef vector<cEditor_Object_Settings_Item*> Editor_Object_Settings_List;
+  using Editor_Object_Settings_List = vector<cEditor_Object_Settings_Item*>;
   Editor_Object_Settings_List m_editor_windows;
   // width for all name windows based on largest name text width
   float m_editor_window_name_width;
@@ -509,7 +512,7 @@ class cSprite : public cCollidingSprite {
   static const float m_pos_z_halfmassive_start;
 };
 
-typedef vector<cSprite*> cSprite_List;
+using cSprite_List = vector<cSprite*>;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

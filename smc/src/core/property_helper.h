@@ -26,7 +26,6 @@
 namespace SMC {
 
 /* Replace all occurrences of the search with the format string
- * todo : use boost::algorithm::replace_all ?
 */
 void string_replace_all(std::string& str, const std::string& search,
                         const std::string& format);
@@ -34,14 +33,12 @@ void cegui_string_replace_all(CEGUI::String& str, const CEGUI::String& search,
                               const CEGUI::String& format);
 
 /* Remove all occurrences of the search in the string
- * todo : use boost::algorithm::erase_all ?
 */
 inline void string_erase_all(std::string& str, const char search) {
   str.erase(std::remove(str.begin(), str.end(), search), str.end());
 };
 
 /* Trim the string from the beginning with the given character
- * todo : use boost::algorithm::trim_left ?
 */
 inline void string_trim_from_begin(std::string& str, const char search) {
   // remove LEADING `search` chars (was find_last_not_of, which trimmed the END —
@@ -49,11 +46,9 @@ inline void string_trim_from_begin(std::string& str, const char search) {
   str.erase(0, str.find_first_not_of(search));
 };
 /* Trim the string from the end with the given character
- * todo : use boost::algorithm::trim_right ?
 */
 std::string string_trim_from_end(std::string str, const char search);
 /* Trim the string from the beginning and end with the given character
- * todo : use boost::algorithm::trim ?
 */
 inline void string_trim(std::string& str, const char search) {
   string_trim_from_begin(str, search);
@@ -69,7 +64,7 @@ std::string long_to_string(const long number);
  * prec: the precision after the decimal point
  * keep_zeros: keep trailing zeros in the fractional part
 */
-std::string float_to_string(double value, int prec = 6, bool keep_zeros = 1);
+std::string float_to_string(double value, int prec = 6, bool keep_zeros = true);
 // Return the string as a number
 int string_to_int(const std::string& str);
 Uint64 string_to_int64(const std::string& str);

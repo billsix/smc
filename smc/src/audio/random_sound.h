@@ -31,17 +31,17 @@ class cRandom_Sound : public cSprite {
   cRandom_Sound(CEGUI::XMLAttributes& attributes,
                 cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cRandom_Sound(void);
+  ~cRandom_Sound(void) override;
 
   // initialize defaults
-  void Init(void);
+  void Init(void) override;
   // copy
-  virtual cRandom_Sound* Copy(void) const;
+  cRandom_Sound* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // Set filename
   void Set_Filename(const std::string& str);
@@ -81,20 +81,20 @@ class cRandom_Sound : public cSprite {
   float Get_Distance_Volume_Mod(void) const;
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
   // draw
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // if update is valid for the current state
-  virtual bool Is_Update_Valid(void);
+  bool Is_Update_Valid(void) override;
   // if draw is valid for the current state and position
-  virtual bool Is_Draw_Valid(void);
+  bool Is_Draw_Valid(void) override;
 
   // if camera went out of range
   void Event_Out_Of_Range(void) const;
 
   // editor activation
-  virtual void Editor_Activate(void);
+  void Editor_Activate(void) override;
   // editor filename text changed event
   bool Editor_Filename_Text_Changed(const CEGUI::EventArgs& event);
   // editor continuous changed event

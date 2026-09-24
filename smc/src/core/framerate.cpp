@@ -25,7 +25,7 @@ namespace SMC {
 
 cPerformance_Timer ::cPerformance_Timer(void) { Reset(); }
 
-cPerformance_Timer ::~cPerformance_Timer(void) {}
+cPerformance_Timer ::~cPerformance_Timer(void) = default;
 
 void cPerformance_Timer ::Reset(void) {
   frame_counter = 0;
@@ -187,16 +187,16 @@ bool Is_Frame_Time(const unsigned int fps) {
   static Uint32 static_time = 0;
 
   if (SDL_GetTicks() - static_time < 1000 / fps) {
-    return 0;
+    return false;
   }
 
   static_time = SDL_GetTicks();
-  return 1;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cFramerate* pFramerate = NULL;
+cFramerate* pFramerate = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

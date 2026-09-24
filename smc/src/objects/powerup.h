@@ -28,29 +28,29 @@ class cPowerUp : public cAnimated_Sprite {
   // constructor
   cPowerUp(cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cPowerUp(void);
+  ~cPowerUp(void) override;
 
   // load from savegame
-  virtual void Load_From_Savegame(cSave_Level_Object* save_object);
+  void Load_From_Savegame(cSave_Level_Object* save_object) override;
   // save to savegame
-  virtual cSave_Level_Object* Save_To_Savegame(void);
+  cSave_Level_Object* Save_To_Savegame(void) override;
 
   /* draw
 	 * a spawned powerup doesn't draw in editor mode
 	*/
-  virtual void Draw(cSurface_Request* request = NULL);
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // if update is valid for the current state
-  virtual bool Is_Update_Valid(void);
+  bool Is_Update_Valid(void) override;
 
   /* Validate the given collision object
 	 * returns 0 if not valid
 	 * returns 1 if an internal collision with this object is valid
 	 * returns 2 if the given object collides with this object (blocking)
 	*/
-  virtual Col_Valid_Type Validate_Collision(cSprite* obj);
+  Col_Valid_Type Validate_Collision(cSprite* obj) override;
   // handle moved out of Level event
-  virtual void Handle_out_of_Level(ObjectDirection dir);
+  void Handle_out_of_Level(ObjectDirection dir) override;
 
   float m_counter;
 };
@@ -64,17 +64,17 @@ class cMushroom : public cPowerUp {
   // create from stream
   cMushroom(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cMushroom(void);
+  ~cMushroom(void) override;
 
   // init defaults
-  void Init(void);
+  void Init(void) override;
   // copy
-  virtual cMushroom* Copy(void) const;
+  cMushroom* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // Set the Mushroom Type
   void Set_Type(SpriteType new_type);
@@ -83,14 +83,14 @@ class cMushroom : public cPowerUp {
   virtual void Activate(void);
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
 
   // collision from player
-  virtual void Handle_Collision_Player(cObjectCollision* collision);
+  void Handle_Collision_Player(cObjectCollision* collision) override;
   // collision with massive
-  virtual void Handle_Collision_Massive(cObjectCollision* collision);
+  void Handle_Collision_Massive(cObjectCollision* collision) override;
   // collision from a box
-  virtual void Handle_Collision_Box(ObjectDirection cdirection, GL_rect* r2);
+  void Handle_Collision_Box(ObjectDirection cdirection, GL_rect* r2) override;
 
   // glim animation modifier
   bool m_glim_mod;
@@ -105,26 +105,26 @@ class cFirePlant : public cPowerUp {
   // create from stream
   cFirePlant(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cFirePlant(void);
+  ~cFirePlant(void) override;
 
   // init defaults
-  void Init(void);
+  void Init(void) override;
   // copy
-  virtual cFirePlant* Copy(void) const;
+  cFirePlant* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // Activates the item
   virtual void Activate(void);
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
 
   // collision from player
-  virtual void Handle_Collision_Player(cObjectCollision* collision);
+  void Handle_Collision_Player(cObjectCollision* collision) override;
 
   float m_particle_counter;
 };
@@ -138,26 +138,26 @@ class cMoon : public cPowerUp {
   // create from stream
   cMoon(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
   // destructor
-  virtual ~cMoon(void);
+  ~cMoon(void) override;
 
   // init defaults
-  void Init(void);
+  void Init(void) override;
   // copy
-  virtual cMoon* Copy(void) const;
+  cMoon* Copy(void) const override;
 
   // load from stream
-  virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
+  void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
-  virtual void Save_To_XML(CEGUI::XMLSerializer& stream);
+  void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // Activates the item
   virtual void Activate(void);
 
   // update
-  virtual void Update(void);
+  void Update(void) override;
 
   // collision from player
-  virtual void Handle_Collision_Player(cObjectCollision* collision);
+  void Handle_Collision_Player(cObjectCollision* collision) override;
 
   float m_particle_counter;
 };

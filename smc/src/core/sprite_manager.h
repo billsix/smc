@@ -28,11 +28,11 @@ class cSprite_Manager : public cObject_Manager<cSprite> {
  public:
   cSprite_Manager(unsigned int reserve_items = 2000,
                   unsigned int zpos_items = 100);
-  virtual ~cSprite_Manager(void);
+  ~cSprite_Manager(void) override;
 
   /* Add a sprite
 	 */
-  virtual void Add(cSprite* sprite);
+  void Add(cSprite* sprite) override;
 
   // Set the sprite z position and update the z pos list
   void Set_Pos_Z(cSprite* sprite);
@@ -51,7 +51,7 @@ class cSprite_Manager : public cObject_Manager<cSprite> {
   /* Delete all objects
 	 * if delayed is set deletion will only occur if replaced
 	 */
-  virtual void Delete_All(bool delayed = 0);
+  virtual void Delete_All(bool delayed = false);
 
   // Return the first z position object from the given type
   cSprite* Get_First(const SpriteType type) const;
@@ -70,15 +70,15 @@ class cSprite_Manager : public cObject_Manager<cSprite> {
 	 * editor_sort : if set sorts from editor z pos
 	 * with_player : include player
 	*/
-  void Get_Objects_sorted(cSprite_List& new_objects, bool editor_sort = 0,
-                          bool with_player = 0) const;
+  void Get_Objects_sorted(cSprite_List& new_objects, bool editor_sort = false,
+                          bool with_player = false) const;
   /* Get objects colliding with the given rectangle
 	 * with_player : include player in check
 	 * exclude_sprite : exclude the given sprite from check
 	*/
   void Get_Colliding_Objects(cSprite_List& col_objects, const GL_rect& rect,
-                             bool with_player = 0,
-                             const cSprite* exclude_sprite = NULL) const;
+                             bool with_player = false,
+                             const cSprite* exclude_sprite = nullptr) const;
 
   // Update items drawing validation
   inline void Update_Items_Valid_Draw(void) {
@@ -122,7 +122,7 @@ class cSprite_Manager : public cObject_Manager<cSprite> {
     return Get_Pointer(identifier);
   }
 
-  typedef vector<float> ZposList;
+  using ZposList = vector<float>;
   // biggest type z position
   ZposList m_z_pos_data;
   // biggest editor type z position

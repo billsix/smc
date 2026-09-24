@@ -44,7 +44,7 @@ cRandom_Sound ::cRandom_Sound(CEGUI::XMLAttributes& attributes,
   cRandom_Sound::Load_From_XML(attributes);
 }
 
-cRandom_Sound ::~cRandom_Sound(void) {}
+cRandom_Sound ::~cRandom_Sound(void) = default;
 
 void cRandom_Sound ::Init(void) {
   m_sprite_array = ARRAY_ACTIVE;
@@ -62,7 +62,7 @@ void cRandom_Sound ::Init(void) {
   m_start_rect.m_h = m_rect.m_h;
 
   // default values
-  m_continuous = 0;
+  m_continuous = false;
   m_delay_min = 1000;
   m_delay_max = 5000;
   m_volume_min = 90.0f;
@@ -80,7 +80,7 @@ void cRandom_Sound ::Init(void) {
 
 cRandom_Sound* cRandom_Sound ::Copy(void) const {
   cRandom_Sound* random_sound = new cRandom_Sound(m_sprite_manager);
-  random_sound->Set_Pos(m_start_pos_x, m_start_pos_y, 1);
+  random_sound->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   random_sound->Set_Filename(m_filename.c_str());
   random_sound->Set_Continuous(m_continuous);
   random_sound->Set_Delay_Min(m_delay_min);
@@ -97,7 +97,7 @@ void cRandom_Sound ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   Set_Filename(attributes.getValueAsString("file").c_str());
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("pos_x")),
-          static_cast<float>(attributes.getValueAsInteger("pos_y")), 1);
+          static_cast<float>(attributes.getValueAsInteger("pos_y")), true);
   //
   Set_Continuous(attributes.getValueAsBool("continuous", m_continuous));
   // delay
@@ -256,7 +256,7 @@ void cRandom_Sound ::Update(void) {
     return;
   }
 
-  bool play = 0;
+  bool play = false;
 
   if (m_continuous) {
     m_volume_update_counter -= pFramerate->m_elapsed_ticks;
@@ -267,7 +267,7 @@ void cRandom_Sound ::Update(void) {
     // if not playing
     if (!sound) {
       // play it
-      play = 1;
+      play = true;
     }
     // update volume
     else if (m_volume_update_counter <= 0.0f) {
@@ -290,7 +290,7 @@ void cRandom_Sound ::Update(void) {
 
     // play it
     if (m_next_play_delay <= 0.0f) {
-      play = 1;
+      play = true;
 
       // set next delay
       m_next_play_delay = static_cast<float>(m_delay_min);
@@ -372,7 +372,7 @@ void cRandom_Sound ::Draw(cSurface_Request* request /* = NULL */) {
 bool cRandom_Sound ::Is_Update_Valid(void) {
   // if destroyed
   if (m_auto_destroy) {
-    return 0;
+    return false;
   }
 
   // get distance from camera center position
@@ -384,25 +384,25 @@ bool cRandom_Sound ::Is_Update_Valid(void) {
   // if outside the range
   if (m_distance_to_camera >= m_volume_reduction_end) {
     Event_Out_Of_Range();
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 bool cRandom_Sound ::Is_Draw_Valid(void) {
   // if editor not enabled
   if (!editor_enabled) {
-    return 0;
+    return false;
   }
 
   // if not active on the screen or not mouse object
   if (!m_active ||
       (!Is_Visible_On_Screen() && pMouseCursor->m_active_object != this)) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 void cRandom_Sound ::Event_Out_Of_Range(void) const {
@@ -456,7 +456,7 @@ void cRandom_Sound ::Editor_Activate(void) {
   editbox = static_cast<CEGUI::Editbox*>(
       wmgr.createWindow("TaharezLook/Editbox", "editor_sound_delay_max"));
   Editor_Add(UTF8_("Maximum"), UTF8_("Maximal delay until played again"),
-             editbox, 90, 28, 0);
+             editbox, 90, 28, false);
 
   editbox->setValidationString("^[+]?\\d*$");
   editbox->setText(int_to_string(m_delay_max));
@@ -482,7 +482,7 @@ void cRandom_Sound ::Editor_Activate(void) {
   editbox = static_cast<CEGUI::Editbox*>(
       wmgr.createWindow("TaharezLook/Editbox", "editor_sound_volume_max"));
   Editor_Add(UTF8_("Maximum"), UTF8_("Maximal random volume for each play"),
-             editbox, 90, 28, 0);
+             editbox, 90, 28, false);
 
   editbox->setValidationString("^[+]?\\d*$");
   editbox->setText(int_to_string(static_cast<int>(m_volume_max)));
@@ -512,7 +512,7 @@ void cRandom_Sound ::Editor_Activate(void) {
       UTF8_("End"),
       UTF8_(
           "Volume reduction ends at this distance. Sound is not played beyond this."),
-      editbox, 90, 28, 0);
+      editbox, 90, 28, false);
 
   editbox->setValidationString("^[+]?\\d*$");
   editbox->setText(int_to_string(static_cast<int>(m_volume_reduction_end)));
@@ -532,7 +532,7 @@ bool cRandom_Sound ::Editor_Filename_Text_Changed(
   Set_Filename(
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str());
 
-  return 1;
+  return true;
 }
 
 bool cRandom_Sound ::Editor_Continuous_Changed(const CEGUI::EventArgs& event) {
@@ -543,7 +543,7 @@ bool cRandom_Sound ::Editor_Continuous_Changed(const CEGUI::EventArgs& event) {
 
   Set_Continuous(enabled);
 
-  return 1;
+  return true;
 }
 
 bool cRandom_Sound ::Editor_Delay_Min_Text_Changed(
@@ -555,7 +555,7 @@ bool cRandom_Sound ::Editor_Delay_Min_Text_Changed(
 
   Set_Delay_Min(string_to_int(str_text));
 
-  return 1;
+  return true;
 }
 
 bool cRandom_Sound ::Editor_Delay_Max_Text_Changed(
@@ -567,7 +567,7 @@ bool cRandom_Sound ::Editor_Delay_Max_Text_Changed(
 
   Set_Delay_Max(string_to_int(str_text));
 
-  return 1;
+  return true;
 }
 
 bool cRandom_Sound ::Editor_Volume_Min_Text_Changed(
@@ -579,7 +579,7 @@ bool cRandom_Sound ::Editor_Volume_Min_Text_Changed(
 
   Set_Volume_Min(string_to_float(str_text));
 
-  return 1;
+  return true;
 }
 
 bool cRandom_Sound ::Editor_Volume_Max_Text_Changed(
@@ -591,7 +591,7 @@ bool cRandom_Sound ::Editor_Volume_Max_Text_Changed(
 
   Set_Volume_Max(string_to_float(str_text));
 
-  return 1;
+  return true;
 }
 
 bool cRandom_Sound ::Editor_Volume_Reduction_Begin_Text_Changed(
@@ -603,7 +603,7 @@ bool cRandom_Sound ::Editor_Volume_Reduction_Begin_Text_Changed(
 
   Set_Volume_Reduction_Begin(string_to_float(str_text));
 
-  return 1;
+  return true;
 }
 
 bool cRandom_Sound ::Editor_Volume_Reduction_End_Text_Changed(
@@ -615,7 +615,7 @@ bool cRandom_Sound ::Editor_Volume_Reduction_End_Text_Changed(
 
   Set_Volume_Reduction_End(string_to_float(str_text));
 
-  return 1;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

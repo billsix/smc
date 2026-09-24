@@ -39,7 +39,7 @@ cLayer_Line_Point ::cLayer_Line_Point(cSprite_Manager* sprite_manager,
   m_pos_z = 0.087f;
 
   m_overworld = overworld;
-  m_linked_point = NULL;
+  m_linked_point = nullptr;
 
   if (m_type == TYPE_OW_LINE_START) {
     m_pos_z += 0.001f;
@@ -67,7 +67,7 @@ cLayer_Line_Point ::~cLayer_Line_Point(void) {
 
   // remove linked point
   if (m_linked_point) {
-    m_linked_point->m_linked_point = NULL;
+    m_linked_point->m_linked_point = nullptr;
   }
 }
 
@@ -89,7 +89,7 @@ void cLayer_Line_Point ::Destroy(void) {
 
   if (m_type == TYPE_OW_LINE_START) {
     m_overworld->m_layer->Delete(static_cast<cLayer_Line_Point_Start*>(this),
-                                 0);
+                                 false);
   }
 
   cSprite::Destroy();
@@ -129,7 +129,7 @@ cLayer_Line_Point_Start ::~cLayer_Line_Point_Start(void) {
 
   // remove linked point
   if (m_linked_point) {
-    m_linked_point->m_linked_point = NULL;
+    m_linked_point->m_linked_point = nullptr;
   }
 }
 
@@ -149,9 +149,9 @@ cLayer_Line_Point_Start* cLayer_Line_Point_Start ::Copy(void) const {
   cLayer_Line_Point_Start* layer_line =
       new cLayer_Line_Point_Start(m_sprite_manager, pWorld_Editor->m_overworld);
   // start position
-  layer_line->Set_Pos(m_pos_x, m_pos_y, 1);
+  layer_line->Set_Pos(m_pos_x, m_pos_y, true);
   // end position
-  layer_line->m_linked_point->Set_Pos(m_pos_x + 20, m_pos_y, 1);
+  layer_line->m_linked_point->Set_Pos(m_pos_x + 20, m_pos_y, true);
   // origin
   layer_line->m_origin = m_origin;
   return layer_line;
@@ -160,11 +160,11 @@ cLayer_Line_Point_Start* cLayer_Line_Point_Start ::Copy(void) const {
 void cLayer_Line_Point_Start ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // Start
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("X1")) - 2,
-          static_cast<float>(attributes.getValueAsInteger("Y1")) - 2, 1);
+          static_cast<float>(attributes.getValueAsInteger("Y1")) - 2, true);
   // End
   m_linked_point->Set_Pos(
       static_cast<float>(attributes.getValueAsInteger("X2")) - 2,
-      static_cast<float>(attributes.getValueAsInteger("Y2")) - 2, 1);
+      static_cast<float>(attributes.getValueAsInteger("Y2")) - 2, true);
   // origin
   m_origin = attributes.getValueAsInteger("origin");
 }
@@ -269,13 +269,13 @@ bool cLayer_Line_Point_Start ::Editor_Origin_Text_Changed(
 
   m_origin = string_to_int(str_text);
 
-  return 1;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** *** Line Collision *** *** *** *** *** *** *** *** *** */
 
 cLine_collision ::cLine_collision(void) {
-  m_line = NULL;
+  m_line = nullptr;
   m_line_number = -2;
   m_difference = 0;
 }
@@ -348,7 +348,7 @@ bool cLayer ::Save(const std::string& filename) {
 
   if (!file) {
     pHud_Debug->Set_Text(_("Couldn't save world layer ") + filename);
-    return 0;
+    return false;
   }
 
   CEGUI::XMLSerializer stream(file);
@@ -382,7 +382,7 @@ bool cLayer ::Save(const std::string& filename) {
 
   file.close();
 
-  return 1;
+  return true;
 }
 
 void cLayer ::Delete_All(void) {
@@ -403,7 +403,7 @@ cLayer_Line_Point_Start* cLayer ::Get_Line_Collision_Start(
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 cLine_collision cLayer ::Get_Line_Collision_Direction(

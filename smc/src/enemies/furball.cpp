@@ -57,7 +57,7 @@ void cFurball ::Init(void) {
   m_running_particle_counter = 0.0f;
   m_downgrade_count = 0;
   m_max_downgrade_count = 5;
-  m_level_ends_if_killed = 1;
+  m_level_ends_if_killed = true;
 
   m_color_type = COL_DEFAULT;
   Set_Color(COL_BROWN);
@@ -81,7 +81,7 @@ cFurball* cFurball ::Copy(void) const {
 void cFurball ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
   // color
   Set_Color(static_cast<DefaultColor>(Get_Color_Id(
       attributes.getValueAsString("color", Get_Color_Name(m_color_type))
@@ -149,9 +149,9 @@ void cFurball ::Set_Direction(const ObjectDirection dir) {
     return;
   }
 
-  cEnemy::Set_Direction(dir, 1);
+  cEnemy::Set_Direction(dir, true);
 
-  Update_Rotation_Hor(1);
+  Update_Rotation_Hor(true);
   Create_Name();
 }
 
@@ -171,24 +171,24 @@ void cFurball ::Set_Color(const DefaultColor& col) {
     filename_dir = "brown";
 
     m_kill_points = 10;
-    m_fire_resistant = 0;
+    m_fire_resistant = false;
     m_ice_resistance = 0.0f;
-    m_can_be_hit_from_shell = 1;
+    m_can_be_hit_from_shell = true;
   } else if (m_color_type == COL_BLUE) {
     filename_dir = "blue";
 
     m_kill_points = 50;
-    m_fire_resistant = 0;
+    m_fire_resistant = false;
     m_ice_resistance = 0.9f;
-    m_can_be_hit_from_shell = 1;
+    m_can_be_hit_from_shell = true;
   } else if (m_color_type == COL_BLACK) {
     filename_dir = "boss";
     m_type = TYPE_FURBALL_BOSS;
 
     m_kill_points = 2500;
-    m_fire_resistant = 1;
+    m_fire_resistant = true;
     m_ice_resistance = 1.0f;
-    m_can_be_hit_from_shell = 0;
+    m_can_be_hit_from_shell = false;
   } else {
     printf("Error : Unknown Furball Color %d\n", m_color_type);
     return;
@@ -220,10 +220,10 @@ void cFurball ::Set_Color(const DefaultColor& col) {
     Add_Image(
         pVideo->Get_Surface("enemy/furball/" + filename_dir + "/hit.png"));
   } else {
-    Add_Image(NULL);
+    Add_Image(nullptr);
   }
 
-  Set_Image_Num(0, 1);
+  Set_Image_Num(0, true);
   Create_Name();
 }
 
@@ -237,7 +237,7 @@ void cFurball ::Turn_Around(ObjectDirection col_dir /* = DIR_UNDEFINED */) {
 
     // set turn around image
     Set_Image_Num(8);
-    Set_Animation(0);
+    Set_Animation(false);
     Reset_Animation();
   }
   // only update rotation if no turn around image
@@ -258,7 +258,7 @@ void cFurball ::DownGrade(bool force /* = 0 */) {
 
     // die
     if (m_downgrade_count == m_max_downgrade_count) {
-      Set_Dead(1);
+      Set_Dead(true);
     } else {
       Generate_Hit_Animation();
       // set hit image
@@ -268,7 +268,7 @@ void cFurball ::DownGrade(bool force /* = 0 */) {
   }
   // normal
   else {
-    Set_Dead(1);
+    Set_Dead(true);
   }
 
   if (m_dead) {
@@ -278,30 +278,30 @@ void cFurball ::DownGrade(bool force /* = 0 */) {
     m_vely = 0.0f;
     // dead image
     Set_Image_Num(9);
-    Set_Animation(0);
+    Set_Animation(false);
 
     // default stomp death
     if (!force || m_type == TYPE_FURBALL_BOSS) {
       Generate_Hit_Animation();
 
       if (m_type != TYPE_FURBALL_BOSS) {
-        Set_Scale_Directions(1, 0, 1, 1);
+        Set_Scale_Directions(true, false, true, true);
       } else {
         // set scaling for death animation
-        Set_Scale_Affects_Rect(1);
+        Set_Scale_Affects_Rect(true);
 
         if (m_level_ends_if_killed) {
           // fade out music
           pAudio->Fadeout_Music(500);
           // play finish music
-          pAudio->Play_Music("game/courseclear.ogg", 0, 0);
+          pAudio->Play_Music("game/courseclear.ogg", 0, false);
         }
       }
     }
     // falling death
     else {
       Set_Rotation_Z(180);
-      Set_Scale_Directions(1, 1, 1, 1);
+      Set_Scale_Directions(true, true, true, true);
     }
   }
 }
@@ -338,7 +338,7 @@ void cFurball ::Update_Dying(void) {
           Generate_Smoke(30);
 
           // set empty image
-          cMovingSprite::Set_Image(NULL, 0, 0);
+          cMovingSprite::Set_Image(nullptr, false, false);
           // reset counter
           m_counter = 0;
         }
@@ -353,7 +353,7 @@ void cFurball ::Update_Dying(void) {
           }
 
           // reset scaling
-          Set_Scale_Affects_Rect(0);
+          Set_Scale_Affects_Rect(false);
         }
       }
     }
@@ -367,7 +367,7 @@ void cFurball ::Update_Dying(void) {
 
       if (m_scale_y < 0.01f) {
         Set_Scale(1.0f);
-        Set_Active(0);
+        Set_Active(false);
       }
     }
   }
@@ -388,7 +388,7 @@ void cFurball ::Update_Dying(void) {
     else {
       m_rot_z = 0.0f;
       Set_Scale(1.0f);
-      Set_Active(0);
+      Set_Active(false);
     }
   }
 }
@@ -399,24 +399,24 @@ void cFurball ::Set_Moving_State(Moving_state new_state) {
   }
 
   if (new_state == STA_STAY) {
-    Set_Animation(0);
+    Set_Animation(false);
   } else if (new_state == STA_WALK) {
     m_counter_running = 0.0f;
 
-    Set_Animation(1);
+    Set_Animation(true);
     Set_Animation_Image_Range(0, 7);
     if (m_color_type == COL_BLUE) {
-      Set_Time_All(70, 1);
+      Set_Time_All(70, true);
     } else {
-      Set_Time_All(80, 1);
+      Set_Time_All(80, true);
     }
     Reset_Animation();
   } else if (new_state == STA_RUN) {
     m_counter_hit = 0.0f;
 
-    Set_Animation(1);
+    Set_Animation(true);
     Set_Animation_Image_Range(0, 7);
-    Set_Time_All(70, 1);
+    Set_Time_All(70, true);
     Reset_Animation();
   }
 
@@ -535,7 +535,7 @@ void cFurball ::Update(void) {
       if (m_anim_counter >= 200) {
         Reset_Animation();
         Set_Image_Num(m_anim_img_start);
-        Set_Animation(1);
+        Set_Animation(true);
         Update_Rotation_Hor();
       }
       // rotate the turn image
@@ -555,7 +555,7 @@ void cFurball ::Generate_Smoke(unsigned int amount /* = 1 */,
   // animation
   cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
   anim->Set_Pos(m_pos_x + (m_col_rect.m_w * 0.5f),
-                m_pos_y + (m_col_rect.m_h * 0.5f), 1);
+                m_pos_y + (m_col_rect.m_h * 0.5f), true);
   anim->Set_Image(
       pVideo->Get_Surface("animation/particles/smoke_grey_big.png"));
   anim->Set_Quota(amount);
@@ -600,10 +600,10 @@ void cFurball ::Update_Velocity_Max(void) {
 
 bool cFurball ::Is_Update_Valid(void) {
   if (m_dead || m_freeze_counter) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 Col_Valid_Type cFurball ::Validate_Collision(cSprite* obj) {
@@ -703,11 +703,11 @@ void cFurball ::Handle_Collision_Player(cObjectCollision* collision) {
     }
 
     DownGrade();
-    pLevel_Player->Action_Jump(1);
+    pLevel_Player->Action_Jump(true);
 
     if (m_dead) {
       pHud_Points->Add_Points(m_kill_points, m_pos_x, m_pos_y - 5.0f, "",
-                              static_cast<Uint8>(255), 1);
+                              static_cast<Uint8>(255), true);
       pLevel_Player->Add_Kill_Multiplier();
     }
   } else {
@@ -819,12 +819,12 @@ bool cFurball ::Editor_Level_Ends_If_Killed(const CEGUI::EventArgs& event) {
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   if (item->getText().compare(UTF8_("Enabled")) == 0) {
-    m_level_ends_if_killed = 1;
+    m_level_ends_if_killed = true;
   } else {
-    m_level_ends_if_killed = 0;
+    m_level_ends_if_killed = false;
   }
 
-  return 1;
+  return true;
 }
 
 bool cFurball ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
@@ -835,7 +835,7 @@ bool cFurball ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()));
 
-  return 1;
+  return true;
 }
 
 bool cFurball ::Editor_Max_Downgrade_Count_Text_Changed(
@@ -847,7 +847,7 @@ bool cFurball ::Editor_Max_Downgrade_Count_Text_Changed(
 
   Set_Max_Downgrade_Count(string_to_int(str_text));
 
-  return 1;
+  return true;
 }
 
 void cFurball ::Create_Name(void) {

@@ -35,7 +35,7 @@ bool cFile_parser ::Parse(const std::string& filename) {
 
   if (!ifs) {
     printf("Could not load data file : %s\n", filename.c_str());
-    return 0;
+    return false;
   }
 
   data_file = filename;
@@ -48,12 +48,12 @@ bool cFile_parser ::Parse(const std::string& filename) {
     Parse_Line(line, line_num);
   }
 
-  return 1;
+  return true;
 }
 
 bool cFile_parser ::Parse_Line(std::string str_line, int line_num) {
   if (str_line.empty()) {
-    return 1;
+    return true;
   }
 
   // linux support
@@ -68,7 +68,7 @@ bool cFile_parser ::Parse_Line(std::string str_line, int line_num) {
   // ignore empty lines and comments
   if (str_line.empty() || *str_line.begin() == '#') {
     // no error
-    return 1;
+    return true;
   }
 
   std::string tempstr = str_line;
@@ -112,7 +112,7 @@ bool cFile_parser ::Parse_Line(std::string str_line, int line_num) {
 bool cFile_parser ::HandleMessage(const std::string* parts, unsigned int count,
                                   unsigned int line) {
   // virtual
-  return 1;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
