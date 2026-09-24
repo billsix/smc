@@ -56,15 +56,15 @@ inline unsigned int Get_Power_of_2(unsigned int size) {
 /* Returns true if the number is valid
  * accept_floating_point: if is set also accept floating point values
 */
-bool Is_Valid_Number(std::string num, bool accept_floating_point = 1);
+bool Is_Valid_Number(std::string num, bool accept_floating_point = true);
 
 // Returns true if the floats are equal with the given tolerance
 inline bool Is_Float_Equal(float a, float b, float tolerance = 0.0001f) {
   if (fabs(b - a) <= tolerance) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

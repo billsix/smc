@@ -55,7 +55,7 @@ class cLevel_Manager : public cObject_Manager<cLevel> {
   /* Return the level path if level is valid else empty
 	* check_only_user_dir : only check user directory for the level
 	*/
-  bool Get_Path(std::string& filename, bool check_only_user_dir = 0) const;
+  bool Get_Path(std::string& filename, bool check_only_user_dir = false) const;
   // update
   void Update(void);
   // draw
@@ -66,7 +66,7 @@ class cLevel_Manager : public cObject_Manager<cLevel> {
 	* - enters the menu if a custom level
 	* win_music : play the level finished music
 	*/
-  void Finish_Level(bool win_music = 0);
+  void Finish_Level(bool win_music = false);
   /* Enters the given level on the entry
 	* move_camera: set how to move the camera to the new position
 	* path_identifier: set the identifier of the path to move the camera along

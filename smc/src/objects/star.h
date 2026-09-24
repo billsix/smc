@@ -48,10 +48,10 @@ class cjStar : public cPowerUp {
   // update the Star
   void Update(void) override;
   // draw the Star
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // Adds Star Particles
-  void Generate_Particles(float x = 0.0f, float y = 0.0f, bool random = 1,
+  void Generate_Particles(float x = 0.0f, float y = 0.0f, bool random = true,
                           unsigned int quota = 2) const;
 
   // collision from player

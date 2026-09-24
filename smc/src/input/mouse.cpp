@@ -37,19 +37,19 @@ namespace SMC {
 /* *** *** *** *** *** cSelectedObject *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cSelectedObject ::cSelectedObject(void) {
-  m_obj = NULL;
+  m_obj = nullptr;
 
   m_mouse_offset_y = 0;
   m_mouse_offset_x = 0;
 
-  m_user = 0;
+  m_user = false;
 }
 
 cSelectedObject ::~cSelectedObject(void) {}
 
 /* *** *** *** *** *** cCopyObject *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cCopyObject ::cCopyObject(void) { m_obj = NULL; }
+cCopyObject ::cCopyObject(void) { m_obj = nullptr; }
 
 cCopyObject ::~cCopyObject(void) {
   if (m_obj) {
@@ -65,24 +65,24 @@ cMouseCursor ::cMouseCursor(cSprite_Manager* sprite_manager)
 
   m_click_counter = 0.0f;
 
-  m_selection_mode = 0;
+  m_selection_mode = false;
   m_selection_rect = GL_rect(0, 0, 0, 0);
 
   m_hovering_object = new cSelectedObject();
-  m_active_object = NULL;
+  m_active_object = nullptr;
 
-  m_snap_to_object_mode = 0;
-  m_snap_pos_available = 0;
+  m_snap_to_object_mode = false;
+  m_snap_pos_available = false;
   m_snap_pos = GL_point();
 
-  m_fastcopy_mode = 0;
-  m_mover_mode = 0;
-  m_last_clicked_object = NULL;
+  m_fastcopy_mode = false;
+  m_mover_mode = false;
+  m_last_clicked_object = nullptr;
 
   Reset_Keys();
   Update_Position();
   // disable mouse initially
-  Set_Active(0);
+  Set_Active(false);
 }
 
 cMouseCursor ::~cMouseCursor(void) {
@@ -110,15 +110,15 @@ void cMouseCursor ::Reset(bool clear_copy_buffer /* = 1 */) {
     CEGUI::MouseCursor::getSingleton().setImage("TaharezLook", "MouseArrow");
   }
 
-  m_mover_mode = 0;
-  m_selection_mode = 0;
-  m_fastcopy_mode = 0;
+  m_mover_mode = false;
+  m_selection_mode = false;
+  m_fastcopy_mode = false;
 
   Clear_Collisions();
 
   // show mouse
   if (editor_enabled) {
-    Set_Active(1);
+    Set_Active(true);
   }
 }
 
@@ -133,7 +133,7 @@ bool cMouseCursor ::Handle_Event(SDL_Event* ev) {
     case SDL_MOUSEBUTTONUP: {
       if (Handle_Mouse_Up(ev->button.button)) {
         // processed
-        return 1;
+        return true;
       }
 
       break;
@@ -141,7 +141,7 @@ bool cMouseCursor ::Handle_Event(SDL_Event* ev) {
     case SDL_MOUSEBUTTONDOWN: {
       if (Handle_Mouse_Down(ev->button.button)) {
         // processed
-        return 1;
+        return true;
       }
 
       break;
@@ -152,7 +152,7 @@ bool cMouseCursor ::Handle_Event(SDL_Event* ev) {
           Handle_Mouse_Down(ev->wheel.y > 0 ? SDL_BUTTON_WHEELUP
                                             : SDL_BUTTON_WHEELDOWN)) {
         // processed
-        return 1;
+        return true;
       }
 
       break;
@@ -162,7 +162,7 @@ bool cMouseCursor ::Handle_Event(SDL_Event* ev) {
     }
   }
 
-  return 0;
+  return false;
 }
 
 bool cMouseCursor ::Handle_Mouse_Down(Uint8 button) {
@@ -171,37 +171,37 @@ bool cMouseCursor ::Handle_Mouse_Down(Uint8 button) {
     case SDL_BUTTON_LEFT: {
       if (CEGUI::System::getSingleton().injectMouseButtonDown(
               CEGUI::LeftButton)) {
-        return 1;
+        return true;
       }
-      m_left = 1;
+      m_left = true;
       break;
     }
     case SDL_BUTTON_MIDDLE: {
       if (CEGUI::System::getSingleton().injectMouseButtonDown(
               CEGUI::MiddleButton)) {
-        return 1;
+        return true;
       }
-      m_middle = 1;
+      m_middle = true;
       break;
     }
     case SDL_BUTTON_RIGHT: {
       if (CEGUI::System::getSingleton().injectMouseButtonDown(
               CEGUI::RightButton)) {
-        return 1;
+        return true;
       }
-      m_right = 1;
+      m_right = true;
       break;
     }
     // mouse wheel
     case SDL_BUTTON_WHEELDOWN: {
       if (CEGUI::System::getSingleton().injectMouseWheelChange(-1)) {
-        return 1;
+        return true;
       }
       break;
     }
     case SDL_BUTTON_WHEELUP: {
       if (CEGUI::System::getSingleton().injectMouseWheelChange(+1)) {
-        return 1;
+        return true;
       }
       break;
     }
@@ -214,44 +214,44 @@ bool cMouseCursor ::Handle_Mouse_Down(Uint8 button) {
   if (Game_Mode == MODE_LEVEL) {
     // processed by the level
     if (pActive_Level->Mouse_Down(button)) {
-      return 1;
+      return true;
     }
   } else if (Game_Mode == MODE_OVERWORLD) {
     // processed by the overworld
     if (pActive_Overworld->Mouse_Down(button)) {
-      return 1;
+      return true;
     }
   } else if (Game_Mode == MODE_MENU) {
     // processed by the menu
     if (pMenuCore->Mouse_Down(button)) {
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 bool cMouseCursor ::Handle_Mouse_Up(Uint8 button) {
   switch (button) {
     case SDL_BUTTON_LEFT: {
-      m_left = 0;
+      m_left = false;
       if (CEGUI::System::getSingleton().injectMouseButtonUp(
               CEGUI::LeftButton)) {
-        return 1;
+        return true;
       }
     } break;
     case SDL_BUTTON_MIDDLE: {
-      m_middle = 0;
+      m_middle = false;
       if (CEGUI::System::getSingleton().injectMouseButtonUp(
               CEGUI::MiddleButton)) {
-        return 1;
+        return true;
       }
     } break;
     case SDL_BUTTON_RIGHT: {
-      m_right = 0;
+      m_right = false;
       if (CEGUI::System::getSingleton().injectMouseButtonUp(
               CEGUI::RightButton)) {
-        return 1;
+        return true;
       }
     } break;
     default: {
@@ -263,27 +263,27 @@ bool cMouseCursor ::Handle_Mouse_Up(Uint8 button) {
   if (Game_Mode == MODE_LEVEL) {
     // processed by the level
     if (pActive_Level->Mouse_Up(button)) {
-      return 1;
+      return true;
     }
   } else if (Game_Mode == MODE_OVERWORLD) {
     // processed by the overworld
     if (pActive_Overworld->Mouse_Up(button)) {
-      return 1;
+      return true;
     }
   } else if (Game_Mode == MODE_MENU) {
     // processed by the menu
     if (pMenuCore->Mouse_Up(button)) {
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 cObjectCollision* cMouseCursor ::Get_First_Editor_Collsion(
     float px /* = 0.0f */, float py /* = 0.0f */) {
   if (m_mover_mode) {
-    return NULL;
+    return nullptr;
   }
 
   // Get CEGUI Window containing the mouse
@@ -291,7 +291,7 @@ cObjectCollision* cMouseCursor ::Get_First_Editor_Collsion(
 
   // if mouse is over a blocking CEGUI window
   if (mouse_window && !mouse_window->isMousePassThroughEnabled()) {
-    return NULL;
+    return nullptr;
   }
 
   // mouse rect
@@ -321,7 +321,7 @@ cObjectCollision* cMouseCursor ::Get_First_Editor_Collsion(
 cObjectCollision* cMouseCursor ::Get_First_Mouse_Collision(
     const GL_rect& mouse_rect) {
   cSprite_List sprite_objects;
-  m_sprite_manager->Get_Objects_sorted(sprite_objects, 1, 1);
+  m_sprite_manager->Get_Objects_sorted(sprite_objects, true, true);
 
   // check objects
   for (cSprite_List::reverse_iterator itr = sprite_objects.rbegin();
@@ -338,7 +338,7 @@ cObjectCollision* cMouseCursor ::Get_First_Mouse_Collision(
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void cMouseCursor ::Update(void) {
@@ -377,14 +377,14 @@ void cMouseCursor ::Update_Position(void) {
 
   if (editor_enabled) {
     if (!m_mover_mode) {
-      Set_Pos(m_x + pActive_Camera->m_x, m_y + pActive_Camera->m_y, 1);
+      Set_Pos(m_x + pActive_Camera->m_x, m_y + pActive_Camera->m_y, true);
     }
 
     Update_Hovered_Object();
     Update_Selected_Objects();
     Update_Snap_Pos();
   } else {
-    Set_Pos(static_cast<float>(m_x), static_cast<float>(m_y), 1);
+    Set_Pos(static_cast<float>(m_x), static_cast<float>(m_y), true);
   }
 }
 
@@ -412,7 +412,7 @@ void cMouseCursor ::Left_Click_Down(void) {
       // collision with an object
       if (col) {
         // add object
-        if (!Add_Selected_Object(col->m_obj, 1)) {
+        if (!Add_Selected_Object(col->m_obj, true)) {
           // if already added remove it
           Remove_Selected_Object(col->m_obj);
         }
@@ -425,9 +425,9 @@ void cMouseCursor ::Left_Click_Down(void) {
     m_click_counter = 0.0f;
     return;
   } else {
-    if (!Is_Selected_Object(m_hovering_object->m_obj, 1)) {
+    if (!Is_Selected_Object(m_hovering_object->m_obj, true)) {
       Clear_Selected_Objects();
-      Add_Selected_Object(m_hovering_object->m_obj, 1);
+      Add_Selected_Object(m_hovering_object->m_obj, true);
     }
 
     // select same object types
@@ -476,7 +476,7 @@ void cMouseCursor ::Set_Hovered_Object(cSprite* sprite) {
 
   // remove old m_hovering_object from selected objects
   if (m_hovering_object->m_obj) {
-    Remove_Selected_Object(m_hovering_object->m_obj, 1);
+    Remove_Selected_Object(m_hovering_object->m_obj, true);
   }
 
   // set new mouse object
@@ -498,7 +498,7 @@ void cMouseCursor ::Update_Hovered_Object(void) {
   }
 
   if (m_left) {
-    if (!Is_Selected_Object(m_hovering_object->m_obj, 1)) {
+    if (!Is_Selected_Object(m_hovering_object->m_obj, true)) {
       Set_Object_Position(m_hovering_object);
     }
   } else {
@@ -548,7 +548,7 @@ void cMouseCursor ::Add_Copy_Objects(cSprite_List& spritelist) {
 
 bool cMouseCursor ::Remove_Copy_Object(const cSprite* sprite) {
   if (!sprite) {
-    return 0;
+    return false;
   }
 
   for (CopyObjectList::iterator itr = m_copy_objects.begin();
@@ -559,11 +559,11 @@ bool cMouseCursor ::Remove_Copy_Object(const cSprite* sprite) {
       m_copy_objects.erase(itr);
       delete copy_obj;
 
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 void cMouseCursor ::Clear_Copy_Objects(void) {
@@ -637,13 +637,13 @@ void cMouseCursor ::Paste_Copy_Objects(float px, float py) {
 
   // pasted objects are selected
   Clear_Selected_Objects();
-  Add_Selected_Objects(new_objects, 1);
+  Add_Selected_Objects(new_objects, true);
 }
 
 bool cMouseCursor ::Add_Selected_Object(cSprite* sprite,
                                         bool from_user /* = 0 */) {
   if (!sprite) {
-    return 0;
+    return false;
   }
 
   // check if not already added
@@ -654,11 +654,11 @@ bool cMouseCursor ::Add_Selected_Object(cSprite* sprite,
     if (sel_obj->m_obj == sprite) {
       // overwrite user if given
       if (from_user && !sel_obj->m_user) {
-        sel_obj->m_user = 1;
-        return 1;
+        sel_obj->m_user = true;
+        return true;
       }
 
-      return 0;
+      return false;
     }
   }
 
@@ -670,7 +670,7 @@ bool cMouseCursor ::Add_Selected_Object(cSprite* sprite,
 
   Update_Selected_Object_Offset(selected_object);
 
-  return 1;
+  return true;
 }
 
 void cMouseCursor ::Add_Selected_Objects(cSprite_List& spritelist,
@@ -691,7 +691,7 @@ void cMouseCursor ::Add_Selected_Objects(cSprite_List& spritelist,
 bool cMouseCursor ::Remove_Selected_Object(const cSprite* sprite,
                                            bool no_user /* = 0 */) {
   if (!sprite) {
-    return 0;
+    return false;
   }
 
   for (SelectedObjectList::iterator itr = m_selected_objects.begin();
@@ -701,17 +701,17 @@ bool cMouseCursor ::Remove_Selected_Object(const cSprite* sprite,
     if (sel_obj->m_obj == sprite) {
       // don't delete user added selected object
       if (no_user && sel_obj->m_user) {
-        return 0;
+        return false;
       }
 
       m_selected_objects.erase(itr);
       delete sel_obj;
 
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 cSprite_List cMouseCursor ::Get_Selected_Objects(void) {
@@ -791,7 +791,7 @@ void cMouseCursor ::Update_Selected_Objects(void) {
   }
 
   // if a user selected object is not active
-  if (!Is_Selected_Object(m_hovering_object->m_obj, 1)) {
+  if (!Is_Selected_Object(m_hovering_object->m_obj, true)) {
     return;
   }
 
@@ -826,7 +826,7 @@ void cMouseCursor ::Update_Selected_Object_Offset(cSelectedObject* obj) {
 bool cMouseCursor ::Is_Selected_Object(const cSprite* sprite,
                                        bool only_user /* = 0 */) {
   if (!sprite) {
-    return 0;
+    return false;
   }
 
   for (SelectedObjectList::iterator itr = m_selected_objects.begin();
@@ -840,11 +840,11 @@ bool cMouseCursor ::Is_Selected_Object(const cSprite* sprite,
       }
 
       // found
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 void cMouseCursor ::Delete_Selected_Objects(void) {
@@ -896,7 +896,7 @@ bool cMouseCursor ::Get_Snap_Pos(GL_point& new_pos, int snap,
 
   // counter for number of snapable objects
   int num_snap_obj = 0;
-  cSprite* snap_obj = NULL;
+  cSprite* snap_obj = nullptr;
 
   // check objects for overlap
   for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
@@ -904,7 +904,7 @@ bool cMouseCursor ::Get_Snap_Pos(GL_point& new_pos, int snap,
     cSprite* obj = (*itr);
 
     // don't check selected objects
-    if (Is_Selected_Object(obj, 0)) {
+    if (Is_Selected_Object(obj, false)) {
       continue;
     }
 
@@ -995,7 +995,7 @@ bool cMouseCursor ::Get_Snap_Pos(GL_point& new_pos, int snap,
 
   // if no object for snapping found
   if (!snap_obj) {
-    return 0;
+    return false;
   }
 
   const GL_rect snap_obj_rect = snap_obj->m_start_rect;
@@ -1092,7 +1092,7 @@ bool cMouseCursor ::Get_Snap_Pos(GL_point& new_pos, int snap,
   new_pos.m_x += src_obj->m_mouse_offset_x + multiselect_offset.m_x;
   new_pos.m_y += src_obj->m_mouse_offset_y + multiselect_offset.m_y;
 
-  return 1;
+  return true;
 }
 
 void cMouseCursor ::Update_Snap_Pos(void) {
@@ -1127,27 +1127,27 @@ void cMouseCursor ::Clear_Active_Object(void) {
   }
 
   m_active_object->Editor_Deactivate();
-  m_active_object = NULL;
+  m_active_object = nullptr;
 }
 
 cSprite* cMouseCursor ::Copy(const cSprite* copy_object, float px,
                              float py) const {
   if (!copy_object) {
-    return NULL;
+    return nullptr;
   }
 
   // only copy in editor mode
   if (!editor_enabled) {
     printf("Warning : No editor enabled for copy object: %s\n",
            copy_object->m_name.c_str());
-    return NULL;
+    return nullptr;
   }
 
   // if invalid
   if (!copy_object->Is_Sprite_Managed()) {
     printf("Warning : cMouseCursor copy : invalid object array : %d\n",
            copy_object->m_sprite_array);
-    return NULL;
+    return nullptr;
   }
 
   // copy
@@ -1157,13 +1157,13 @@ cSprite* cMouseCursor ::Copy(const cSprite* copy_object, float px,
   if (!new_sprite) {
     debug_print("Warning : Mouse object copying failed for %s\n",
                 copy_object->m_name.c_str());
-    return NULL;
+    return nullptr;
   }
 
   // set sprite manager
   new_sprite->Set_Sprite_Manager(m_sprite_manager);
   // set position
-  new_sprite->Set_Pos(px, py, 1);
+  new_sprite->Set_Pos(px, py, true);
   // add it
   m_sprite_manager->Add(new_sprite);
 
@@ -1183,12 +1183,12 @@ void cMouseCursor ::Delete(cSprite* sprite) {
 
   // deactivate active object
   if (m_active_object == sprite) {
-    Double_Click(0);
+    Double_Click(false);
   }
 
   // remove if current player active item object
   if (pLevel_Player->m_active_object == sprite) {
-    pLevel_Player->m_active_object = NULL;
+    pLevel_Player->m_active_object = nullptr;
   }
 
   // remove selected object
@@ -1206,14 +1206,14 @@ void cMouseCursor ::Set_Object_Position(cSelectedObject* sel_obj) {
   // if in snap mode and snap available
   if (m_snap_to_object_mode && m_snap_pos_available) {
     sel_obj->m_obj->Set_Pos(m_snap_pos.m_x - sel_obj->m_mouse_offset_x,
-                            m_snap_pos.m_y - sel_obj->m_mouse_offset_y, 1);
+                            m_snap_pos.m_y - sel_obj->m_mouse_offset_y, true);
   } else {
     // set new position
     sel_obj->m_obj->Set_Pos(static_cast<float>(static_cast<int>(m_pos_x) -
                                                sel_obj->m_mouse_offset_x),
                             static_cast<float>(static_cast<int>(m_pos_y) -
                                                sel_obj->m_mouse_offset_y),
-                            1);
+                            true);
   }
 
   // update object settings position
@@ -1250,7 +1250,7 @@ void cMouseCursor ::Draw_Object_Rects(void) {
     // not fastcopy
     else {
       // not filled
-      request->m_filled = 0;
+      request->m_filled = false;
     }
 
     // add request
@@ -1297,7 +1297,7 @@ void cMouseCursor ::Draw_Object_Rects(void) {
       pVideo->Draw_Rect(&hover_rect, pos_z, &obj_color, rect_request);
 
       // not filled
-      rect_request->m_filled = 0;
+      rect_request->m_filled = false;
       // with stipple
       rect_request->m_stipple_pattern = 0xAAAA;
 
@@ -1316,7 +1316,7 @@ void cMouseCursor ::Draw_Object_Rects(void) {
                       sel_rect.m_h, 0.51f, &lightgrey, rect_request);
 
     // not filled
-    rect_request->m_filled = 0;
+    rect_request->m_filled = false;
 
     // add request
     pRenderer->Add(rect_request);
@@ -1325,13 +1325,13 @@ void cMouseCursor ::Draw_Object_Rects(void) {
 
 void cMouseCursor ::Start_Selection(void) {
   Clear_Hovered_Object();
-  m_selection_mode = 1;
+  m_selection_mode = true;
   m_selection_rect.m_x = m_x + pActive_Camera->m_x;
   m_selection_rect.m_y = m_y + pActive_Camera->m_y;
 }
 
 void cMouseCursor ::End_Selection(void) {
-  m_selection_mode = 0;
+  m_selection_mode = false;
   Update_Position();
 }
 
@@ -1392,11 +1392,11 @@ void cMouseCursor ::Update_Selection(void) {
       continue;
     }
 
-    Add_Selected_Object(obj, 1);
+    Add_Selected_Object(obj, true);
   }
 
   if (rect.Intersects(pActive_Player->m_rect)) {
-    Add_Selected_Object(pActive_Player, 1);
+    Add_Selected_Object(pActive_Player, true);
   }
 
   // ## inner rect
@@ -1407,7 +1407,7 @@ void cMouseCursor ::Update_Selection(void) {
                     rect_request);
 
   // not filled
-  rect_request->m_filled = 0;
+  rect_request->m_filled = false;
   // color
   rect_request->m_color.alpha = 128;
 
@@ -1423,7 +1423,7 @@ void cMouseCursor ::Update_Selection(void) {
                     &lightblue, rect_request);
 
   // not filled
-  rect_request->m_filled = 0;
+  rect_request->m_filled = false;
 
   // add request
   pRenderer->Add(rect_request);
@@ -1458,17 +1458,17 @@ void cMouseCursor ::Mover_Update(Sint16 move_x, Sint16 move_y) {
     switch (inEvent.type) {
       case SDL_MOUSEBUTTONDOWN: {
         if (inEvent.button.button == 2) {
-          m_mover_mode = 0;
+          m_mover_mode = false;
         }
         break;
       }
       case SDL_KEYDOWN: {
-        m_mover_mode = 0;
+        m_mover_mode = false;
         pKeyboard->Key_Down(inEvent.key.keysym.sym);
         break;
       }
       case SDL_QUIT: {
-        game_exit = 1;
+        game_exit = true;
         break;
       }
     }
@@ -1492,7 +1492,7 @@ void cMouseCursor ::Editor_Update(void) {
       // no mouse object
       if (!m_hovering_object->m_obj) {
         // clear active object
-        Double_Click(0);
+        Double_Click(false);
 
         // clear selected objects if no shift is pressed
         if (!(pKeyboard->Is_Shift_Down() && !pKeyboard->Is_Ctrl_Down())) {
@@ -1565,7 +1565,7 @@ void cMouseCursor ::Editor_Update(void) {
     cSurface_Request* request = new cSurface_Request();
     position_info->Blit(static_cast<float>(m_x + 20),
                         static_cast<float>(m_y + 35), 0.52f, request);
-    request->m_delete_texture = 1;
+    request->m_delete_texture = true;
 
     // shadow
     request->m_shadow_pos = 1.0f;
@@ -1575,7 +1575,7 @@ void cMouseCursor ::Editor_Update(void) {
     pRenderer->Add(request);
 
     // cSurface_Request deletes it
-    position_info->m_auto_del_img = 0;
+    position_info->m_auto_del_img = false;
     delete position_info;
 
     // if in debug mode draw current position X, Y, Z and if available editor Z
@@ -1602,7 +1602,7 @@ void cMouseCursor ::Editor_Update(void) {
       request = new cSurface_Request();
       position_info->Blit(static_cast<float>(m_x + 20),
                           static_cast<float>(m_y + 55), 0.52f, request);
-      request->m_delete_texture = 1;
+      request->m_delete_texture = true;
 
       // shadow
       request->m_shadow_pos = 1.0f;
@@ -1612,7 +1612,7 @@ void cMouseCursor ::Editor_Update(void) {
       pRenderer->Add(request);
 
       // cSurface_Request deletes it
-      position_info->m_auto_del_img = 0;
+      position_info->m_auto_del_img = false;
       delete position_info;
     }
   }
@@ -1626,7 +1626,7 @@ void cMouseCursor ::Editor_Update(void) {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cMouseCursor* pMouseCursor = NULL;
+cMouseCursor* pMouseCursor = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

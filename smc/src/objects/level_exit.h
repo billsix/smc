@@ -58,7 +58,7 @@ class cLevel_Exit : public cAnimated_Sprite {
   void Set_Direction(const ObjectDirection dir);
 
   // draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // Activate
   void Activate(void);
@@ -71,7 +71,7 @@ class cLevel_Exit : public cAnimated_Sprite {
   // Set the destination level
   void Set_Level(std::string filename);
   // Return the destination level
-  std::string Get_Level(bool with_dir = 1, bool with_end = 1) const;
+  std::string Get_Level(bool with_dir = true, bool with_end = true) const;
 
   // Set the destination entry
   void Set_Entry(const std::string& entry_name);

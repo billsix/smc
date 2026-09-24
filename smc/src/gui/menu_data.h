@@ -62,7 +62,7 @@ class cMenu_Base {
   GameMode m_exit_to_gamemode;
 
   // current menu sprites
-  typedef vector<cHudSprite*> HudSpriteList;
+  using HudSpriteList = vector<cHudSprite*>;
   HudSpriteList m_draw_list;
 };
 
@@ -187,12 +187,12 @@ class cMenu_Options : public cMenu_Base {
   /* Build the shortcut list
 	 * joystick : if true build it for joystick
 	*/
-  void Build_Shortcut_List(bool joystick = 0);
+  void Build_Shortcut_List(bool joystick = false);
   /* Set the given Shortcut
 	 * and exit if successful
 	 * joystick : if true set it for joystick
 	*/
-  void Set_Shortcut(std::string name, void* data, bool joystick = 0);
+  void Set_Shortcut(std::string name, void* data, bool joystick = false);
 
   // Select given Joystick
   void Joy_Default(unsigned int index);
@@ -345,7 +345,7 @@ class cMenu_Credits : public cMenu_Base {
   /* fade from the normal menu to the the credits menu
 	 * fade_in : if set fade in instead of fade out
 	*/
-  void Menu_Fade(bool fade_in = 1);
+  void Menu_Fade(bool fade_in = true);
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

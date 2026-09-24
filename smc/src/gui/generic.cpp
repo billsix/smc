@@ -43,9 +43,9 @@ namespace SMC {
 /* *** *** *** *** *** *** *** cDialogBox *** *** *** *** *** *** *** *** *** *** */
 
 cDialogBox ::cDialogBox(void) {
-  finished = 0;
-  window = NULL;
-  mouse_hide = 0;
+  finished = false;
+  window = nullptr;
+  mouse_hide = false;
 }
 
 cDialogBox ::~cDialogBox(void) {}
@@ -57,15 +57,15 @@ void cDialogBox ::Init(void) {
 
   // hide mouse on exit
   if (!pMouseCursor->m_active) {
-    mouse_hide = 1;
-    pMouseCursor->Set_Active(1);
+    mouse_hide = true;
+    pMouseCursor->Set_Active(true);
   }
 }
 
 void cDialogBox ::Exit(void) {
   // hide mouse
   if (mouse_hide) {
-    pMouseCursor->Set_Active(0);
+    pMouseCursor->Set_Active(false);
   }
 
   pGuiSystem->getGUISheet()->removeChildWindow(window);
@@ -74,7 +74,7 @@ void cDialogBox ::Exit(void) {
 
 void cDialogBox ::Draw(void) {
   Draw_Game();
-  pVideo->Draw_Gradient(NULL, 0.905f, &whitealpha128, &black, DIR_VERTICAL);
+  pVideo->Draw_Gradient(nullptr, 0.905f, &whitealpha128, &black, DIR_VERTICAL);
 
   pVideo->Render();
 
@@ -101,7 +101,7 @@ void cDialogBox_Text ::Init(std::string title_text) {
   CEGUI::FrameWindow* box_window = static_cast<CEGUI::FrameWindow*>(
       CEGUI::WindowManager::getSingleton().getWindow("box_text_window"));
   box_window->setText(reinterpret_cast<const CEGUI::utf8*>(title_text.c_str()));
-  box_window->setSizingEnabled(0);
+  box_window->setSizingEnabled(false);
   box_window->getCloseButton()->subscribeEvent(
       CEGUI::PushButton::EventClicked,
       CEGUI::Event::Subscriber(&cDialogBox_Text::Button_window_quit_clicked,
@@ -125,7 +125,7 @@ std::string cDialogBox_Text ::Enter(std::string default_text,
   box_editbox->activate();
   box_editbox->setCaratIndex(default_text.length());
 
-  finished = 0;
+  finished = false;
 
   while (!finished) {
     while (SDL_PollEvent(&input_event)) {
@@ -134,15 +134,15 @@ std::string cDialogBox_Text ::Enter(std::string default_text,
             default_text.compare(box_editbox->getText().c_str()) == 0) {
           box_editbox->setText("");
           // only the first time
-          auto_no_text = 0;
+          auto_no_text = false;
         }
 
         if (input_event.key.keysym.sym == SDLK_ESCAPE) {
           box_editbox->setText("");
-          finished = 1;
+          finished = true;
         } else if (input_event.key.keysym.sym == SDLK_RETURN ||
                    input_event.key.keysym.sym == SDLK_KP_ENTER) {
-          finished = 1;
+          finished = true;
         } else {
           pKeyboard->CEGUI_Handle_Key_Down(input_event.key.keysym.sym);
         }
@@ -165,15 +165,15 @@ std::string cDialogBox_Text ::Enter(std::string default_text,
 bool cDialogBox_Text ::Button_window_quit_clicked(
     const CEGUI::EventArgs& event) {
   box_editbox->setText("");
-  finished = 1;
-  return 1;
+  finished = true;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** cDialogBox_Question *** *** *** *** *** *** *** *** *** *** */
 
 cDialogBox_Question ::cDialogBox_Question(void) : cDialogBox() {
   layout_file = "box_question.layout";
-  box_window = NULL;
+  box_window = nullptr;
   return_value = -1;
 }
 
@@ -251,7 +251,7 @@ int cDialogBox_Question ::Enter(std::string text, bool with_cancel /* = 0 */) {
       CEGUI::Event::Subscriber(&cDialogBox_Question::Button_cancel_clicked,
                                this));
 
-  finished = 0;
+  finished = false;
 
   while (!finished) {
     Draw();
@@ -265,11 +265,11 @@ int cDialogBox_Question ::Enter(std::string text, bool with_cancel /* = 0 */) {
             return_value = 0;
           }
 
-          finished = 1;
+          finished = true;
         } else if (input_event.key.keysym.sym == SDLK_RETURN ||
                    input_event.key.keysym.sym == SDLK_KP_ENTER) {
           return_value = 1;
-          finished = 1;
+          finished = true;
         } else {
           pKeyboard->CEGUI_Handle_Key_Down(input_event.key.keysym.sym);
         }
@@ -290,21 +290,21 @@ int cDialogBox_Question ::Enter(std::string text, bool with_cancel /* = 0 */) {
 
 bool cDialogBox_Question ::Button_yes_clicked(const CEGUI::EventArgs& event) {
   return_value = 1;
-  finished = 1;
-  return 1;
+  finished = true;
+  return true;
 }
 
 bool cDialogBox_Question ::Button_no_clicked(const CEGUI::EventArgs& event) {
   return_value = 0;
-  finished = 1;
-  return 1;
+  finished = true;
+  return true;
 }
 
 bool cDialogBox_Question ::Button_cancel_clicked(
     const CEGUI::EventArgs& event) {
   return_value = -1;
-  finished = 1;
-  return 1;
+  finished = true;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** Functions *** *** *** *** *** *** *** *** *** *** */
@@ -327,7 +327,7 @@ void Draw_Static_Text(const std::string& text,
                       const Color* color_bg /* = NULL */,
                       bool wait_for_input /* = 1 */) {
   // fixme : Can't handle multiple lines of text. Change to MultiLineEditbox or use HorzFormatting=WordWrapLeftAligned property.
-  bool draw = 1;
+  bool draw = true;
 
   // Statictext window
   CEGUI::Window* window_statictext =
@@ -370,7 +370,7 @@ void Draw_Static_Text(const std::string& text,
       // create request
       cRect_Request* request = new cRect_Request();
 
-      pVideo->Draw_Rect(NULL, 0.9f, color_bg, request);
+      pVideo->Draw_Rect(nullptr, 0.9f, color_bg, request);
       request->m_render_count = wait_for_input ? 4 : 1;
 
       // add request
@@ -384,7 +384,7 @@ void Draw_Static_Text(const std::string& text,
         if (input_event.type == SDL_KEYDOWN ||
             input_event.type == SDL_JOYBUTTONDOWN ||
             input_event.type == SDL_MOUSEBUTTONDOWN) {
-          draw = 0;
+          draw = false;
         }
       }
 
@@ -393,7 +393,7 @@ void Draw_Static_Text(const std::string& text,
         Correct_Frame_Time(100);
       }
     } else {
-      draw = 0;
+      draw = false;
     }
 
     pFramerate->Update();
@@ -548,14 +548,14 @@ bool GUI_Copy_To_Clipboard(bool cut) {
 
   // no sheet
   if (!sheet) {
-    return 0;
+    return false;
   }
 
   CEGUI::Window* window_active = sheet->getActiveChild();
 
   // no active window
   if (!window_active) {
-    return 0;
+    return false;
   }
 
   CEGUI::String sel_text;
@@ -572,7 +572,7 @@ bool GUI_Copy_To_Clipboard(bool cut) {
     // if cutting
     if (cut) {
       if (editbox->isReadOnly()) {
-        return 0;
+        return false;
       }
 
       CEGUI::String new_text = editbox->getText();
@@ -589,18 +589,18 @@ bool GUI_Copy_To_Clipboard(bool cut) {
     // if cutting
     if (cut) {
       if (editbox->isReadOnly()) {
-        return 0;
+        return false;
       }
 
       CEGUI::String new_text = editbox->getText();
       editbox->setText(new_text.erase(beg, len));
     }
   } else {
-    return 0;
+    return false;
   }
 
   Set_Clipboard_Content(sel_text.c_str());
-  return 1;
+  return true;
 }
 
 bool GUI_Paste_From_Clipboard(void) {
@@ -608,14 +608,14 @@ bool GUI_Paste_From_Clipboard(void) {
 
   // no sheet
   if (!sheet) {
-    return 0;
+    return false;
   }
 
   CEGUI::Window* window_active = sheet->getActiveChild();
 
   // no active window
   if (!window_active) {
-    return 0;
+    return false;
   }
 
   const CEGUI::String& type = window_active->getType();
@@ -626,7 +626,7 @@ bool GUI_Paste_From_Clipboard(void) {
         static_cast<CEGUI::MultiLineEditbox*>(window_active);
 
     if (editbox->isReadOnly()) {
-      return 0;
+      return false;
     }
 
     CEGUI::String::size_type beg = editbox->getSelectionStartIndex();
@@ -649,7 +649,7 @@ bool GUI_Paste_From_Clipboard(void) {
     CEGUI::Editbox* editbox = static_cast<CEGUI::Editbox*>(window_active);
 
     if (editbox->isReadOnly()) {
-      return 0;
+      return false;
     }
 
     CEGUI::String::size_type beg = editbox->getSelectionStartIndex();
@@ -667,10 +667,10 @@ bool GUI_Paste_From_Clipboard(void) {
     // set new carat index
     editbox->setCaratIndex(editbox->getCaratIndex() + clipboard_text.length());
   } else {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

@@ -89,7 +89,8 @@ class cVideo {
 	 * use_preferences: if set use user preferences settings
 	 * shows an error if failed and exits
 	*/
-  void Init_Video(bool reload_textures_from_file = 0, bool use_preferences = 1);
+  void Init_Video(bool reload_textures_from_file = false,
+                  bool use_preferences = true);
   // Initialize OpenGL with current settings
   void Init_OpenGL(void);
   // Initialize Geometry with current settings
@@ -102,7 +103,7 @@ class cVideo {
 	 * recreate : if set force cache recreation
 	 * draw_gui : if set use the loading screen gui for drawing
 	*/
-  void Init_Image_Cache(bool recreate = 0, bool draw_gui = 0);
+  void Init_Image_Cache(bool recreate = false, bool draw_gui = false);
 
   /* Test if the given resolution and bits per pixel are valid
 	 * if flags aren't set they are auto set from the preferences
@@ -124,7 +125,7 @@ class cVideo {
   // Render. Should be called from a thread
   void Render_From_Thread(void);
   // Render game, GUI and swap the opengl buffer
-  void Render(bool threaded = 0);
+  void Render(bool threaded = false);
   // Finish thread rendering
   void Render_Finish(void);
 
@@ -134,14 +135,14 @@ class cVideo {
   /* Check if the image was already loaded and returns a pointer to it else it will be loaded
 	 * The returned image should not be deleted or modified.
 	 */
-  cGL_Surface* Get_Surface(std::string filename, bool print_errors = 1);
+  cGL_Surface* Get_Surface(std::string filename, bool print_errors = true);
 
   // Software image
   class cSoftware_Image {
    public:
     cSoftware_Image(void) {
-      m_sdl_surface = NULL;
-      m_settings = NULL;
+      m_sdl_surface = nullptr;
+      m_settings = nullptr;
     };
 
     SDL_Surface* m_sdl_surface;
@@ -153,16 +154,16 @@ class cVideo {
 	 * load_settings : enable file settings if set to 1
 	 * print_errors : print errors if image couldn't be created or loaded
 	*/
-  cSoftware_Image Load_Image(std::string filename, bool load_settings = 1,
-                             bool print_errors = 1) const;
+  cSoftware_Image Load_Image(std::string filename, bool load_settings = true,
+                             bool print_errors = true) const;
 
   /* Load and return the hardware image
 	 * use_settings : enable file settings if set to 1
 	 * print_errors : print errors if image couldn't be created or loaded
 	 * The returned image should be deleted if not used anymore
 	*/
-  cGL_Surface* Load_GL_Surface(std::string filename, bool use_settings = 1,
-                               bool print_errors = 1);
+  cGL_Surface* Load_GL_Surface(std::string filename, bool use_settings = true,
+                               bool print_errors = true);
 
   /* Convert to a scaled software image with a power of 2 size and 32 bits per pixel.
 	 * Conversion only happens if needed.
@@ -176,7 +177,7 @@ class cVideo {
 	 * mipmap : create texture mipmaps
 	 * force_width/height : force the given width and height
 	*/
-  cGL_Surface* Create_Texture(SDL_Surface* surface, bool mipmap = 0,
+  cGL_Surface* Create_Texture(SDL_Surface* surface, bool mipmap = false,
                               unsigned int force_width = 0,
                               unsigned int force_height = 0) const;
 
@@ -184,7 +185,7 @@ class cVideo {
 	 * mipmap : create texture mipmaps
 	*/
   void Create_GL_Texture(unsigned int width, unsigned int height,
-                         const void* pixels, bool mipmap = 0) const;
+                         const void* pixels, bool mipmap = false) const;
 
   // Reset and clear the screen
   void Clear_Screen(void) const;
@@ -192,34 +193,34 @@ class cVideo {
 	 * if request is NULL automatically creates the request
 	*/
   void Draw_Rect(const GL_rect* rect, float z, const Color* color,
-                 cRect_Request* request = NULL) const;
+                 cRect_Request* request = nullptr) const;
   void Draw_Rect(float x, float y, float width, float height, float z,
-                 const Color* color, cRect_Request* request = NULL) const;
+                 const Color* color, cRect_Request* request = nullptr) const;
   /* Draw a gradient
 	 * if request is NULL automatically creates the request
 	*/
   void Draw_Gradient(const GL_rect* rect, float z, const Color* color_1,
                      const Color* color_2, ObjectDirection direction,
-                     cGradient_Request* request = NULL) const;
+                     cGradient_Request* request = nullptr) const;
   void Draw_Gradient(float x, float y, float width, float height, float z,
                      const Color* color_1, const Color* color_2,
                      ObjectDirection direction,
-                     cGradient_Request* request = NULL) const;
+                     cGradient_Request* request = nullptr) const;
   // Draw a circle
   //void Draw_Circle( GL_circle *circle, float z, Color *color, cCircleRequest *request = NULL );
   void Draw_Circle(float x, float y, float radius, float z, const Color* color,
-                   cCircle_Request* request = NULL) const;
+                   cCircle_Request* request = nullptr) const;
   // Draw a line
   void Draw_Line(const GL_line* line, float z, const Color* color,
-                 cLine_Request* request = NULL) const;
+                 cLine_Request* request = nullptr) const;
   void Draw_Line(float x1, float y1, float x2, float y2, float z,
-                 const Color* color, cLine_Request* request = NULL) const;
+                 const Color* color, cLine_Request* request = nullptr) const;
 
   /* Return the scale size if the image is bigger as the given size
 	 * also upscales if only_downscale is set to 0
 	*/
   float Get_Scale(const cGL_Surface* image, float width, float height,
-                  bool only_downscale = 1) const;
+                  bool only_downscale = true) const;
   // scale the size down if the width or height is bigger than the maximum supported texture size
   void Apply_Max_Texture_Size(int& width, int& height) const;
 
@@ -236,7 +237,7 @@ class cVideo {
   // Save data as png image
   void Save_Surface(const std::string& filename, const unsigned char* data,
                     unsigned int width, unsigned int height,
-                    unsigned int bpp = 4, bool reverse_data = 0) const;
+                    unsigned int bpp = 4, bool reverse_data = false) const;
 
   // available OpenGL version
   float m_opengl_version;

@@ -59,7 +59,7 @@ void cSpika ::Init(void) {
 
 cSpika* cSpika ::Copy(void) const {
   cSpika* spika = new cSpika(m_sprite_manager);
-  spika->Set_Pos(m_start_pos_x, m_start_pos_y, 1);
+  spika->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   spika->Set_Color(m_color_type);
   return spika;
 }
@@ -67,7 +67,7 @@ cSpika* cSpika ::Copy(void) const {
 void cSpika ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
   // color
   Set_Color(static_cast<DefaultColor>(Get_Color_Id(
       attributes.getValueAsString("color", Get_Color_Name(m_color_type))
@@ -108,7 +108,7 @@ void cSpika ::Set_Color(DefaultColor col) {
     m_detection_size = 160.0f;
     m_kill_points = 50;
 
-    m_fire_resistant = 0;
+    m_fire_resistant = false;
     m_ice_resistance = 0.0f;
   } else if (m_color_type == COL_GREEN) {
     Add_Image(pVideo->Get_Surface("enemy/spika/green.png"));
@@ -117,7 +117,7 @@ void cSpika ::Set_Color(DefaultColor col) {
     m_detection_size = 220.0f;
     m_kill_points = 200;
 
-    m_fire_resistant = 0;
+    m_fire_resistant = false;
     m_ice_resistance = 0.1f;
   } else if (m_color_type == COL_GREY) {
     Add_Image(pVideo->Get_Surface("enemy/spika/grey.png"));
@@ -126,25 +126,25 @@ void cSpika ::Set_Color(DefaultColor col) {
     m_detection_size = 330.0f;
     m_kill_points = 500;
 
-    m_fire_resistant = 1;
+    m_fire_resistant = true;
     m_ice_resistance = 0.5f;
   } else {
     printf("Error : Unknown Spika Color %d\n", m_color_type);
   }
 
-  Set_Image_Num(0, 1);
+  Set_Image_Num(0, true);
 
   m_name = "Spika ";
   m_name += _(Get_Color_Name(m_color_type).c_str());
 }
 
 void cSpika ::DownGrade(bool force /* = 0 */) {
-  Set_Dead(1);
+  Set_Dead(true);
   m_massive_type = MASS_PASSIVE;
   m_counter = 0.0f;
   m_velx = 0.0f;
   m_vely = 0.0f;
-  Set_Scale_Directions(1, 1, 1, 1);
+  Set_Scale_Directions(true, true, true, true);
 
   // default stomp death
   if (!force) {
@@ -174,7 +174,7 @@ void cSpika ::Update_Dying(void) {
   else {
     m_rot_z = 0.0f;
     Set_Scale(1.0f);
-    Set_Active(0);
+    Set_Active(false);
   }
 }
 
@@ -249,10 +249,10 @@ void cSpika ::Update(void) {
 
 bool cSpika ::Is_Update_Valid(void) {
   if (m_dead || m_freeze_counter) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 Col_Valid_Type cSpika ::Validate_Collision(cSprite* obj) {
@@ -357,24 +357,24 @@ void cSpika ::Handle_Collision_Enemy(cObjectCollision* collision) {
     }
 
     // boss kills spika
-    DownGrade(1);
+    DownGrade(true);
   }
   // state change for furball boss
   else if (enemy->m_type == TYPE_FURBALL_BOSS) {
     enemy->DownGrade();
     // also hits us
-    DownGrade(1);
+    DownGrade(true);
   }
   // enemies that also hit us
   else if ((enemy->m_type == TYPE_TURTLE && enemy->m_state == STA_RUN)) {
-    enemy->DownGrade(1);
+    enemy->DownGrade(true);
     // also hits us
-    DownGrade(1);
+    DownGrade(true);
   }
   // enemies that only hit us
   else if (enemy->m_type == TYPE_SPIKEBALL) {
     // hits us
-    DownGrade(1);
+    DownGrade(true);
   }
   // kill enemy
   else {
@@ -386,8 +386,8 @@ void cSpika ::Handle_Collision_Enemy(cObjectCollision* collision) {
     pAudio->Play_Sound(enemy->m_kill_sound);
     pHud_Points->Add_Points(enemy->m_kill_points, enemy->m_pos_x,
                             enemy->m_pos_y - 5.0f, "", static_cast<Uint8>(255),
-                            1);
-    enemy->DownGrade(1);
+                            true);
+    enemy->DownGrade(true);
   }
 }
 

@@ -40,8 +40,8 @@ cAnimation ::cAnimation(cSprite_Manager* sprite_manager,
   m_sprite_array = ARRAY_ANIM;
   m_type = TYPE_ACTIVE_SPRITE;
   m_massive_type = MASS_PASSIVE;
-  Set_Spawned(1);
-  m_can_be_on_ground = 0;
+  Set_Spawned(true);
+  m_can_be_on_ground = false;
 
   m_pos_z = 0.07000f;
   m_pos_z_rand = 0.0f;
@@ -94,7 +94,7 @@ cAnimation_Goldpiece ::cAnimation_Goldpiece(cSprite_Manager* sprite_manager,
   Add_Image(pVideo->Get_Surface("animation/light_1/2.png"));
   Add_Image(pVideo->Get_Surface("animation/light_1/3.png"));
 
-  Set_Pos(posx, posy, 1);
+  Set_Pos(posx, posy, true);
   m_rect.m_w = width;
   m_rect.m_h = height;
 
@@ -104,8 +104,8 @@ cAnimation_Goldpiece ::cAnimation_Goldpiece(cSprite_Manager* sprite_manager,
     obj->Set_Pos(m_pos_x + Get_Random_Float(0.0f, m_rect.m_w),
                  m_pos_y + Get_Random_Float(0.0f, m_rect.m_h));
     obj->m_pos_z = m_pos_z;
-    obj->Set_Scale_X(m_scale_x, 1);
-    obj->Set_Scale_Y(m_scale_y, 1);
+    obj->Set_Scale_X(m_scale_x, true);
+    obj->Set_Scale_Y(m_scale_y, true);
     obj->Set_Color(m_color);
     obj->Set_Color_Combine(m_combine_color[0], m_combine_color[1],
                            m_combine_color[2], m_combine_type);
@@ -213,7 +213,7 @@ void cAnimation_Goldpiece ::Draw(cSurface_Request* request /* = NULL */) {
   }
 
   if (m_time_to_live > 11.0f || m_time_to_live < 0.0f) {
-    Set_Active(0);
+    Set_Active(false);
   }
 }
 
@@ -223,7 +223,7 @@ cAnimation_Fireball ::cAnimation_Fireball(cSprite_Manager* sprite_manager,
                                           float posx, float posy,
                                           unsigned int power /* = 5 */)
     : cAnimation(sprite_manager) {
-  Set_Pos(posx, posy, 1);
+  Set_Pos(posx, posy, true);
 
   // create objects
   for (unsigned int i = 0; i < power; i++) {
@@ -293,7 +293,7 @@ void cAnimation_Fireball ::Update(void) {
   }
 
   if (m_time_to_live > 12.0f || m_time_to_live < 0.0f) {
-    Set_Active(0);
+    Set_Active(false);
   }
 }
 
@@ -329,9 +329,9 @@ void cAnimation_Fireball ::Draw(cSurface_Request* request /* = NULL */) {
 
 cParticle ::cParticle(cParticle_Emitter* parent)
     : cMovingSprite(parent->m_sprite_manager) {
-  m_can_be_on_ground = 0;
+  m_can_be_on_ground = false;
   // scale centered
-  Set_Scale_Directions(1, 1, 1, 1);
+  Set_Scale_Directions(true, true, true, true);
 
   m_time_to_live = 0.0f;
   m_const_rot_x = 0.0f;
@@ -356,7 +356,7 @@ void cParticle ::Update(void) {
   // finished fading
   if (m_fade_pos <= 0.0f) {
     m_fade_pos = 0.0f;
-    Set_Active(0);
+    Set_Active(false);
     return;
   }
 
@@ -387,10 +387,10 @@ void cParticle ::Draw(cSurface_Request* request /* = NULL */) {
     return;
   }
 
-  bool create_request = 0;
+  bool create_request = false;
 
   if (!request) {
-    create_request = 1;
+    create_request = true;
     // create request
     request = new cSurface_Request();
   }
@@ -460,7 +460,7 @@ void cParticle_Emitter ::Init(void) {
   m_type = TYPE_PARTICLE_EMITTER;
   m_name = "Particle Emitter";
 
-  m_emitter_based_on_camera_pos = 0;
+  m_emitter_based_on_camera_pos = false;
   m_particle_based_on_emitter_pos = 0.0f;
   m_rect.m_w = 0.0f;
   m_rect.m_h = 0.0f;
@@ -478,7 +478,7 @@ void cParticle_Emitter ::Init(void) {
   m_vel = 2.0f;
   m_vel_rand = 2.0f;
   // rotation
-  m_start_rot_z_uses_direction = 0;
+  m_start_rot_z_uses_direction = false;
   m_const_rot_x = 0.0f;
   m_const_rot_y = 0.0f;
   m_const_rot_z = 0.0f;
@@ -502,9 +502,9 @@ void cParticle_Emitter ::Init(void) {
   // default 1 second
   m_time_to_live = 1.0f;
   // default fading is alpha
-  m_fade_size = 0;
-  m_fade_alpha = 1;
-  m_fade_color = 0;
+  m_fade_size = false;
+  m_fade_alpha = true;
+  m_fade_color = false;
 
   m_blending = BLEND_NONE;
 
@@ -522,7 +522,7 @@ cParticle_Emitter* cParticle_Emitter ::Copy(void) const {
   particle_animation->Set_Based_On_Camera_Pos(m_emitter_based_on_camera_pos);
   particle_animation->Set_Particle_Based_On_Emitter_Pos(
       m_particle_based_on_emitter_pos);
-  particle_animation->Set_Pos(m_start_pos_x, m_start_pos_y, 1);
+  particle_animation->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   particle_animation->Set_Pos_Z(m_pos_z, m_pos_z_rand);
   particle_animation->Set_Image_Filename(m_image_filename.c_str());
   particle_animation->Set_Emitter_Rect(m_rect);
@@ -533,7 +533,7 @@ cParticle_Emitter* cParticle_Emitter ::Copy(void) const {
   particle_animation->Set_Time_to_Live(m_time_to_live, m_time_to_live_rand);
   particle_animation->Set_Speed(m_vel, m_vel_rand);
   particle_animation->Set_Rotation(m_start_rot_x, m_start_rot_y, m_start_rot_z,
-                                   1);
+                                   true);
   particle_animation->Set_Start_Rot_Z_Uses_Direction(
       m_start_rot_z_uses_direction);
   particle_animation->Set_Const_Rotation_X(m_const_rot_x, m_const_rot_x_rand);
@@ -589,7 +589,7 @@ void cParticle_Emitter ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // start rotation
   Set_Rotation(attributes.getValueAsFloat("rot_x", m_start_rot_x),
                attributes.getValueAsFloat("rot_y", m_start_rot_y),
-               attributes.getValueAsFloat("rot_z", m_start_rot_z), 1);
+               attributes.getValueAsFloat("rot_z", m_start_rot_z), true);
   Set_Start_Rot_Z_Uses_Direction(attributes.getValueAsBool(
       "start_rot_z_uses_direction", m_start_rot_z_uses_direction));
   // constant rotation x
@@ -710,7 +710,7 @@ void cParticle_Emitter ::Pre_Update(void) {
   }
 
   // remove old particles
-  Clear(0);
+  Clear(false);
 
   // update ahead
   const float old_speedfactor = pFramerate->m_speed_factor;
@@ -754,10 +754,10 @@ void cParticle_Emitter ::Emit(void) {
       y += Get_Random_Float(0.0f, m_rect.m_h);
     }
     // Set Position
-    particle->Set_Pos(x, y, 1);
+    particle->Set_Pos(x, y, true);
 
     // Image
-    particle->Set_Image(m_image, 1);
+    particle->Set_Image(m_image, true);
 
     // Z position
     particle->m_pos_z = m_pos_z;
@@ -778,7 +778,7 @@ void cParticle_Emitter ::Emit(void) {
       speed += Get_Random_Float(0.0f, m_vel_rand);
     }
     // Set Velocity
-    particle->Set_Velocity_From_Angle(dir_angle, speed, 1);
+    particle->Set_Velocity_From_Angle(dir_angle, speed, true);
 
     // Start rotation
     particle->m_rot_x = m_start_rot_x;
@@ -809,7 +809,7 @@ void cParticle_Emitter ::Emit(void) {
     if (m_size_scale_rand > 0.0f) {
       scale += Get_Random_Float(0.0f, m_size_scale_rand);
     }
-    particle->Set_Scale(scale, 1);
+    particle->Set_Scale(scale, true);
 
     // Gravity
     float grav_x = m_gravity_x;
@@ -915,7 +915,7 @@ void cParticle_Emitter ::Update_Particles(void) {
   }
   // no particles are active
   else if (m_objects.empty()) {
-    Set_Active(0);
+    Set_Active(false);
   }
 }
 
@@ -970,7 +970,7 @@ void cParticle_Emitter ::Draw(cSurface_Request* request /* = NULL */) {
 
       cRect_Request* rect_request = new cRect_Request();
       pVideo->Draw_Rect(&color_rect, m_editor_pos_z, &darkgreen, rect_request);
-      rect_request->m_filled = 0;
+      rect_request->m_filled = false;
       pRenderer->Add(rect_request);
 
       // if active mouse object
@@ -985,7 +985,7 @@ void cParticle_Emitter ::Draw(cSurface_Request* request /* = NULL */) {
           rect_request = new cRect_Request();
           pVideo->Draw_Rect(&color_rect, m_editor_pos_z, &lightgrey,
                             rect_request);
-          rect_request->m_filled = 0;
+          rect_request->m_filled = false;
           rect_request->m_line_width = 2.0f;
           pRenderer->Add(rect_request);
         }
@@ -1028,52 +1028,52 @@ void cParticle_Emitter ::Keep_Particles_In_Rect(
     if (obj_rect.m_x + obj_rect.m_w < clip_rect.m_x) {
       // move to right
       if (mode == PCM_MOVE) {
-        obj->Move(clip_rect.m_w + obj_rect.m_w - 1.0f, 0, 1);
+        obj->Move(clip_rect.m_w + obj_rect.m_w - 1.0f, 0, true);
       } else if (mode == PCM_REVERSE) {
         if (obj->m_velx < 0.0f) {
           obj->Set_Velocity(-obj->m_velx, obj->m_vely);
         }
       } else if (mode == PCM_DELETE) {
-        obj->Set_Active(0);
+        obj->Set_Active(false);
       }
     }
     // out in right
     else if (obj_rect.m_x > clip_rect.m_x + clip_rect.m_w) {
       // move to left
       if (mode == PCM_MOVE) {
-        obj->Move(-clip_rect.m_w - obj_rect.m_w + 1.0f, 0, 1);
+        obj->Move(-clip_rect.m_w - obj_rect.m_w + 1.0f, 0, true);
       } else if (mode == PCM_REVERSE) {
         if (obj->m_velx > 0.0f) {
           obj->Set_Velocity(-obj->m_velx, obj->m_vely);
         }
       } else if (mode == PCM_DELETE) {
-        obj->Set_Active(0);
+        obj->Set_Active(false);
       }
     }
     // out on top
     else if (obj_rect.m_y + obj_rect.m_h < clip_rect.m_y) {
       // move to bottom
       if (mode == PCM_MOVE) {
-        obj->Move(0, clip_rect.m_h + obj_rect.m_h - 1.0f, 1);
+        obj->Move(0, clip_rect.m_h + obj_rect.m_h - 1.0f, true);
       } else if (mode == PCM_REVERSE) {
         if (obj->m_vely < 0.0f) {
           obj->Set_Velocity(obj->m_velx, -obj->m_vely);
         }
       } else if (mode == PCM_DELETE) {
-        obj->Set_Active(0);
+        obj->Set_Active(false);
       }
     }
     // out on bottom
     else if (obj_rect.m_y > clip_rect.m_y + clip_rect.m_h) {
       // move to top
       if (mode == PCM_MOVE) {
-        obj->Move(0, -clip_rect.m_h - obj_rect.m_h + 1.0f, 1);
+        obj->Move(0, -clip_rect.m_h - obj_rect.m_h + 1.0f, true);
       } else if (mode == PCM_REVERSE) {
         if (obj->m_vely > 0.0f) {
           obj->Set_Velocity(obj->m_velx, -obj->m_vely);
         }
       } else if (mode == PCM_DELETE) {
-        obj->Set_Active(0);
+        obj->Set_Active(false);
       }
     }
   }
@@ -1082,39 +1082,39 @@ void cParticle_Emitter ::Keep_Particles_In_Rect(
 bool cParticle_Emitter ::Is_Update_Valid(void) {
   // if not active
   if (!m_active) {
-    return 0;
+    return false;
   }
 
   // if not in camera range
   if ((!m_emitter_based_on_camera_pos || editor_enabled) && !Is_In_Range()) {
-    return 0;
+    return false;
   }
 
   // if editor enabled
   if (editor_enabled) {
     // if active mouse object
     if (pMouseCursor->m_active_object == this) {
-      return 1;
+      return true;
     }
 
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Is_Draw_Valid(void) {
   // if not visible
   if (!m_active) {
-    return 0;
+    return false;
   }
 
   // if not in camera range
   if (!Is_In_Range()) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 void cParticle_Emitter ::Set_Image(cGL_Surface* img) {
@@ -1136,7 +1136,7 @@ void cParticle_Emitter ::Set_Image_Filename(const std::string& str_filename) {
   Convert_Path_Separators(m_image_filename);
 
   // set new image
-  Set_Image(pVideo->Get_Surface(m_image_filename, 0));
+  Set_Image(pVideo->Get_Surface(m_image_filename, false));
 }
 
 void cParticle_Emitter ::Set_Spawned(bool enable /* = 0 */) {
@@ -1169,7 +1169,7 @@ void cParticle_Emitter ::Set_Emitter_Rect(float x, float y, float w /* = 0 */,
     y = -1.0f;
   }
 
-  Set_Pos(x, y, 1);
+  Set_Pos(x, y, true);
   m_rect.m_w = w;
   m_rect.m_h = h;
 
@@ -1201,7 +1201,7 @@ void cParticle_Emitter ::Set_Emitter_Time_to_Live(float time) {
   m_emitter_living_time = 0.0f;
 
   if (!m_active) {
-    Set_Active(1);
+    Set_Active(true);
   }
 }
 
@@ -1341,7 +1341,7 @@ void cParticle_Emitter ::Editor_Activate(void) {
              editbox, 150);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_pos_z, 6, 0));
+  editbox->setText(float_to_string(m_pos_z, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1351,10 +1351,10 @@ void cParticle_Emitter ::Editor_Activate(void) {
   editbox = static_cast<CEGUI::Editbox*>(
       wmgr.createWindow("TaharezLook/Editbox", "emitter_pos_z_rand"));
   Editor_Add(UTF8_("Random"), UTF8_("Additional random value"), editbox, 150,
-             28, 0);
+             28, false);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_pos_z_rand, 6, 0));
+  editbox->setText(float_to_string(m_pos_z_rand, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1393,7 +1393,7 @@ void cParticle_Emitter ::Editor_Activate(void) {
              editbox, 150);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_particle_based_on_emitter_pos, 6, 0));
+  editbox->setText(float_to_string(m_particle_based_on_emitter_pos, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1407,7 +1407,7 @@ void cParticle_Emitter ::Editor_Activate(void) {
              UTF8_("Emitter width in which the particles spawn"), editbox, 150);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_rect.m_w, 6, 0));
+  editbox->setText(float_to_string(m_rect.m_w, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1418,10 +1418,10 @@ void cParticle_Emitter ::Editor_Activate(void) {
       wmgr.createWindow("TaharezLook/Editbox", "emitter_height"));
   Editor_Add(UTF8_("Height"),
              UTF8_("Emitter height in which the particles spawn"), editbox, 150,
-             28, 0);
+             28, false);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_rect.m_h, 6, 0));
+  editbox->setText(float_to_string(m_rect.m_h, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1434,7 +1434,7 @@ void cParticle_Emitter ::Editor_Activate(void) {
              UTF8_("Emitter time to live. Set -1 for infinite."), editbox, 150);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_emitter_time_to_live, 6, 0));
+  editbox->setText(float_to_string(m_emitter_time_to_live, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1448,7 +1448,7 @@ void cParticle_Emitter ::Editor_Activate(void) {
              editbox, 150);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_emitter_iteration_interval, 6, 0));
+  editbox->setText(float_to_string(m_emitter_iteration_interval, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1459,7 +1459,7 @@ void cParticle_Emitter ::Editor_Activate(void) {
       wmgr.createWindow("TaharezLook/Editbox", "emitter_quota"));
   Editor_Add(UTF8_("Quota"),
              UTF8_("The amount of particles to spawn for an interval"), editbox,
-             50, 28, 0);
+             50, 28, false);
 
   editbox->setValidationString("^[+]?\\d*$");
   editbox->setText(int_to_string(m_emitter_quota));
@@ -1474,7 +1474,7 @@ void cParticle_Emitter ::Editor_Activate(void) {
   Editor_Add(UTF8_("TTL"), UTF8_("Particle time to live(TTL)"), editbox, 150);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_time_to_live, 6, 0));
+  editbox->setText(float_to_string(m_time_to_live, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(&cParticle_Emitter::Editor_TTL_Base_Text_Changed,
@@ -1484,10 +1484,10 @@ void cParticle_Emitter ::Editor_Activate(void) {
   editbox = static_cast<CEGUI::Editbox*>(
       wmgr.createWindow("TaharezLook/Editbox", "emitter_ttl_rand"));
   Editor_Add(UTF8_("Random"), UTF8_("Additional random value"), editbox, 150,
-             28, 0);
+             28, false);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_time_to_live_rand, 6, 0));
+  editbox->setText(float_to_string(m_time_to_live_rand, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(&cParticle_Emitter::Editor_TTL_Rand_Text_Changed,
@@ -1500,7 +1500,7 @@ void cParticle_Emitter ::Editor_Activate(void) {
              editbox, 150);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_vel, 6, 0));
+  editbox->setText(float_to_string(m_vel, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1510,10 +1510,10 @@ void cParticle_Emitter ::Editor_Activate(void) {
   editbox = static_cast<CEGUI::Editbox*>(
       wmgr.createWindow("TaharezLook/Editbox", "emitter_vel_rand"));
   Editor_Add(UTF8_("Random"), UTF8_("Additional random value"), editbox, 150,
-             28, 0);
+             28, false);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_vel_rand, 6, 0));
+  editbox->setText(float_to_string(m_vel_rand, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1542,7 +1542,7 @@ void cParticle_Emitter ::Editor_Activate(void) {
   Editor_Add(UTF8_("Rotation z"), UTF8_("Initial rotation z"), editbox, 150);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_start_rot_z, 6, 0));
+  editbox->setText(float_to_string(m_start_rot_z, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1553,7 +1553,7 @@ void cParticle_Emitter ::Editor_Activate(void) {
       "TaharezLook/Checkbox", "emitter_start_rot_z_uses_direction"));
   Editor_Add(UTF8_("Add direction"),
              UTF8_("Start direction is added to the z rotation"), checkbox, 50,
-             28, 0);
+             28, false);
 
   checkbox->setSelected(m_start_rot_z_uses_direction);
   checkbox->subscribeEvent(
@@ -1600,7 +1600,7 @@ void cParticle_Emitter ::Editor_Activate(void) {
              editbox, 150);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_const_rot_z, 6, 0));
+  editbox->setText(float_to_string(m_const_rot_z, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1610,10 +1610,10 @@ void cParticle_Emitter ::Editor_Activate(void) {
   editbox = static_cast<CEGUI::Editbox*>(wmgr.createWindow(
       "TaharezLook/Editbox", "emitter_const_rotation_z_rand"));
   Editor_Add(UTF8_("Random"), UTF8_("Additional random value"), editbox, 150,
-             28, 0);
+             28, false);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_const_rot_z_rand, 6, 0));
+  editbox->setText(float_to_string(m_const_rot_z_rand, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1626,7 +1626,7 @@ void cParticle_Emitter ::Editor_Activate(void) {
              150);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_angle_start, 6, 0));
+  editbox->setText(float_to_string(m_angle_start, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1636,10 +1636,10 @@ void cParticle_Emitter ::Editor_Activate(void) {
   editbox = static_cast<CEGUI::Editbox*>(
       wmgr.createWindow("TaharezLook/Editbox", "emitter_direction_rand"));
   Editor_Add(UTF8_("Random"), UTF8_("Additional random value"), editbox, 150,
-             28, 0);
+             28, false);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_angle_range, 6, 0));
+  editbox->setText(float_to_string(m_angle_range, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1651,7 +1651,7 @@ void cParticle_Emitter ::Editor_Activate(void) {
   Editor_Add(UTF8_("Scale"), UTF8_("Initial size scale"), editbox, 150);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_size_scale, 6, 0));
+  editbox->setText(float_to_string(m_size_scale, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1661,10 +1661,10 @@ void cParticle_Emitter ::Editor_Activate(void) {
   editbox = static_cast<CEGUI::Editbox*>(
       wmgr.createWindow("TaharezLook/Editbox", "emitter_scale_rand"));
   Editor_Add(UTF8_("Random"), UTF8_("Additional random value"), editbox, 150,
-             28, 0);
+             28, false);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_size_scale_rand, 6, 0));
+  editbox->setText(float_to_string(m_size_scale_rand, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1677,7 +1677,7 @@ void cParticle_Emitter ::Editor_Activate(void) {
              150);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_gravity_x, 6, 0));
+  editbox->setText(float_to_string(m_gravity_x, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1688,10 +1688,10 @@ void cParticle_Emitter ::Editor_Activate(void) {
   editbox = static_cast<CEGUI::Editbox*>(
       wmgr.createWindow("TaharezLook/Editbox", "emitter_hor_gravity_rand"));
   Editor_Add(UTF8_("Random"), UTF8_("Additional random value"), editbox, 150,
-             28, 0);
+             28, false);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_gravity_x_rand, 6, 0));
+  editbox->setText(float_to_string(m_gravity_x_rand, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1705,7 +1705,7 @@ void cParticle_Emitter ::Editor_Activate(void) {
              150);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_gravity_y, 6, 0));
+  editbox->setText(float_to_string(m_gravity_y, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1715,10 +1715,10 @@ void cParticle_Emitter ::Editor_Activate(void) {
   editbox = static_cast<CEGUI::Editbox*>(
       wmgr.createWindow("TaharezLook/Editbox", "emitter_ver_gravity_rand"));
   Editor_Add(UTF8_("Random"), UTF8_("Additional random value"), editbox, 150,
-             28, 0);
+             28, false);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_gravity_y_rand, 6, 0));
+  editbox->setText(float_to_string(m_gravity_y_rand, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1731,7 +1731,7 @@ void cParticle_Emitter ::Editor_Activate(void) {
              editbox, 150);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_clip_rect.m_x, 6, 0));
+  editbox->setText(float_to_string(m_clip_rect.m_x, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1741,10 +1741,10 @@ void cParticle_Emitter ::Editor_Activate(void) {
   editbox = static_cast<CEGUI::Editbox*>(
       wmgr.createWindow("TaharezLook/Editbox", "emitter_clip_rect_w"));
   Editor_Add(UTF8_("Width"), UTF8_("Clipping rectangle width"), editbox, 150,
-             28, 0);
+             28, false);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_clip_rect.m_w, 6, 0));
+  editbox->setText(float_to_string(m_clip_rect.m_w, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1757,7 +1757,7 @@ void cParticle_Emitter ::Editor_Activate(void) {
              editbox, 150);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_clip_rect.m_y, 6, 0));
+  editbox->setText(float_to_string(m_clip_rect.m_y, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1767,10 +1767,10 @@ void cParticle_Emitter ::Editor_Activate(void) {
   editbox = static_cast<CEGUI::Editbox*>(
       wmgr.createWindow("TaharezLook/Editbox", "emitter_clip_rect_h"));
   Editor_Add(UTF8_("Height"), UTF8_("Clipping rectangle height"), editbox, 150,
-             28, 0);
+             28, false);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_clip_rect.m_h, 6, 0));
+  editbox->setText(float_to_string(m_clip_rect.m_h, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1814,7 +1814,7 @@ bool cParticle_Emitter ::Editor_Filename_Text_Changed(
   Set_Image_Filename(str_text);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Pos_Z_Base_Text_Changed(
@@ -1827,7 +1827,7 @@ bool cParticle_Emitter ::Editor_Pos_Z_Base_Text_Changed(
   Set_Pos_Z(string_to_float(str_text), m_pos_z_rand);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Pos_Z_Rand_Text_Changed(
@@ -1840,7 +1840,7 @@ bool cParticle_Emitter ::Editor_Pos_Z_Rand_Text_Changed(
   Set_Pos_Z(m_pos_z, string_to_float(str_text));
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Emitter_Based_On_Camera_Pos_Changed(
@@ -1853,7 +1853,7 @@ bool cParticle_Emitter ::Editor_Emitter_Based_On_Camera_Pos_Changed(
   Set_Based_On_Camera_Pos(enabled);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Particle_Based_On_Emitter_Pos_Text_Changed(
@@ -1866,7 +1866,7 @@ bool cParticle_Emitter ::Editor_Particle_Based_On_Emitter_Pos_Text_Changed(
   Set_Particle_Based_On_Emitter_Pos(string_to_float(str_text));
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Emitter_Width_Text_Changed(
@@ -1880,7 +1880,7 @@ bool cParticle_Emitter ::Editor_Emitter_Width_Text_Changed(
                    m_start_rect.m_h);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Emitter_Height_Text_Changed(
@@ -1894,7 +1894,7 @@ bool cParticle_Emitter ::Editor_Emitter_Height_Text_Changed(
                    string_to_float(str_text));
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Emitter_Time_To_Live_Text_Changed(
@@ -1907,7 +1907,7 @@ bool cParticle_Emitter ::Editor_Emitter_Time_To_Live_Text_Changed(
   Set_Emitter_Time_to_Live(string_to_float(str_text));
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Emitter_Interval_Text_Changed(
@@ -1920,7 +1920,7 @@ bool cParticle_Emitter ::Editor_Emitter_Interval_Text_Changed(
   Set_Emitter_Iteration_Interval(string_to_float(str_text));
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Quota_Text_Changed(
@@ -1933,7 +1933,7 @@ bool cParticle_Emitter ::Editor_Quota_Text_Changed(
   Set_Quota(string_to_int(str_text));
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_TTL_Base_Text_Changed(
@@ -1946,7 +1946,7 @@ bool cParticle_Emitter ::Editor_TTL_Base_Text_Changed(
   Set_Time_to_Live(string_to_float(str_text), m_time_to_live_rand);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_TTL_Rand_Text_Changed(
@@ -1959,7 +1959,7 @@ bool cParticle_Emitter ::Editor_TTL_Rand_Text_Changed(
   Set_Time_to_Live(m_time_to_live, string_to_float(str_text));
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Velocity_Base_Text_Changed(
@@ -1972,7 +1972,7 @@ bool cParticle_Emitter ::Editor_Velocity_Base_Text_Changed(
   Set_Speed(string_to_float(str_text), m_vel_rand);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Velocity_Rand_Text_Changed(
@@ -1985,7 +1985,7 @@ bool cParticle_Emitter ::Editor_Velocity_Rand_Text_Changed(
   Set_Speed(m_vel, string_to_float(str_text));
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Rotation_X_Base_Text_Changed(
@@ -1995,10 +1995,10 @@ bool cParticle_Emitter ::Editor_Rotation_X_Base_Text_Changed(
   std::string str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
-  Set_Rotation_X(string_to_float(str_text), 1);
+  Set_Rotation_X(string_to_float(str_text), true);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Rotation_Y_Base_Text_Changed(
@@ -2008,10 +2008,10 @@ bool cParticle_Emitter ::Editor_Rotation_Y_Base_Text_Changed(
   std::string str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
-  Set_Rotation_Y(string_to_float(str_text), 1);
+  Set_Rotation_Y(string_to_float(str_text), true);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Start_Rot_Z_Uses_Direction_Changed(
@@ -2024,7 +2024,7 @@ bool cParticle_Emitter ::Editor_Start_Rot_Z_Uses_Direction_Changed(
   Set_Start_Rot_Z_Uses_Direction(enabled);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Rotation_Z_Base_Text_Changed(
@@ -2034,10 +2034,10 @@ bool cParticle_Emitter ::Editor_Rotation_Z_Base_Text_Changed(
   std::string str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
-  Set_Rotation_Z(string_to_float(str_text), 1);
+  Set_Rotation_Z(string_to_float(str_text), true);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Const_Rotation_X_Base_Text_Changed(
@@ -2050,7 +2050,7 @@ bool cParticle_Emitter ::Editor_Const_Rotation_X_Base_Text_Changed(
   Set_Const_Rotation_X(string_to_float(str_text), m_const_rot_z_rand);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Const_Rotation_X_Rand_Text_Changed(
@@ -2063,7 +2063,7 @@ bool cParticle_Emitter ::Editor_Const_Rotation_X_Rand_Text_Changed(
   Set_Const_Rotation_X(m_const_rot_z, string_to_float(str_text));
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Const_Rotation_Y_Base_Text_Changed(
@@ -2076,7 +2076,7 @@ bool cParticle_Emitter ::Editor_Const_Rotation_Y_Base_Text_Changed(
   Set_Const_Rotation_Y(string_to_float(str_text), m_const_rot_z_rand);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Const_Rotation_Y_Rand_Text_Changed(
@@ -2089,7 +2089,7 @@ bool cParticle_Emitter ::Editor_Const_Rotation_Y_Rand_Text_Changed(
   Set_Const_Rotation_Y(m_const_rot_z, string_to_float(str_text));
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Const_Rotation_Z_Base_Text_Changed(
@@ -2102,7 +2102,7 @@ bool cParticle_Emitter ::Editor_Const_Rotation_Z_Base_Text_Changed(
   Set_Const_Rotation_Z(string_to_float(str_text), m_const_rot_z_rand);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Const_Rotation_Z_Rand_Text_Changed(
@@ -2115,7 +2115,7 @@ bool cParticle_Emitter ::Editor_Const_Rotation_Z_Rand_Text_Changed(
   Set_Const_Rotation_Z(m_const_rot_z, string_to_float(str_text));
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Direction_Base_Text_Changed(
@@ -2128,7 +2128,7 @@ bool cParticle_Emitter ::Editor_Direction_Base_Text_Changed(
   Set_Direction_Range(string_to_float(str_text), m_angle_range);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Direction_Rand_Text_Changed(
@@ -2141,7 +2141,7 @@ bool cParticle_Emitter ::Editor_Direction_Rand_Text_Changed(
   Set_Direction_Range(m_angle_start, string_to_float(str_text));
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Scale_Base_Text_Changed(
@@ -2154,7 +2154,7 @@ bool cParticle_Emitter ::Editor_Scale_Base_Text_Changed(
   Set_Scale(string_to_float(str_text), m_size_scale_rand);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Scale_Rand_Text_Changed(
@@ -2167,7 +2167,7 @@ bool cParticle_Emitter ::Editor_Scale_Rand_Text_Changed(
   Set_Scale(m_size_scale, string_to_float(str_text));
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Horizontal_Gravity_Base_Text_Changed(
@@ -2180,7 +2180,7 @@ bool cParticle_Emitter ::Editor_Horizontal_Gravity_Base_Text_Changed(
   Set_Horizontal_Gravity(string_to_float(str_text), m_gravity_x_rand);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Horizontal_Gravity_Rand_Text_Changed(
@@ -2193,7 +2193,7 @@ bool cParticle_Emitter ::Editor_Horizontal_Gravity_Rand_Text_Changed(
   Set_Horizontal_Gravity(m_gravity_x, string_to_float(str_text));
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Vertical_Gravity_Base_Text_Changed(
@@ -2206,7 +2206,7 @@ bool cParticle_Emitter ::Editor_Vertical_Gravity_Base_Text_Changed(
   Set_Vertical_Gravity(string_to_float(str_text), m_gravity_y_rand);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Vertical_Gravity_Rand_Text_Changed(
@@ -2219,7 +2219,7 @@ bool cParticle_Emitter ::Editor_Vertical_Gravity_Rand_Text_Changed(
   Set_Vertical_Gravity(m_gravity_y, string_to_float(str_text));
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Clip_Rect_X_Text_Changed(
@@ -2233,7 +2233,7 @@ bool cParticle_Emitter ::Editor_Clip_Rect_X_Text_Changed(
                 m_clip_rect.m_h);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Clip_Rect_Y_Text_Changed(
@@ -2247,7 +2247,7 @@ bool cParticle_Emitter ::Editor_Clip_Rect_Y_Text_Changed(
                 m_clip_rect.m_h);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Clip_Rect_W_Text_Changed(
@@ -2261,7 +2261,7 @@ bool cParticle_Emitter ::Editor_Clip_Rect_W_Text_Changed(
                 m_clip_rect.m_h);
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Clip_Rect_H_Text_Changed(
@@ -2275,7 +2275,7 @@ bool cParticle_Emitter ::Editor_Clip_Rect_H_Text_Changed(
                 string_to_float(str_text));
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 bool cParticle_Emitter ::Editor_Clip_Mode_Select(
@@ -2296,7 +2296,7 @@ bool cParticle_Emitter ::Editor_Clip_Mode_Select(
 
   Pre_Update();
 
-  return 1;
+  return true;
 }
 
 /* *** *** *** *** *** cAnimation_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -2347,7 +2347,7 @@ void cAnimation_Manager ::Add(cAnimation* animation) {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation_Manager* pActive_Animation_Manager = NULL;
+cAnimation_Manager* pActive_Animation_Manager = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

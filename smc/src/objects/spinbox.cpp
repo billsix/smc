@@ -39,13 +39,13 @@ void cSpinBox ::Init(void) {
   m_type = TYPE_SPIN_BOX;
   box_type = m_type;
   m_camera_range = 5000;
-  m_can_be_on_ground = 0;
+  m_can_be_on_ground = false;
 
   m_spin_counter = 0.0f;
-  m_spin = 0;
+  m_spin = false;
 
   // default is infinite times activate-able
-  Set_Useable_Count(-1, 1);
+  Set_Useable_Count(-1, true);
   // Spinbox Animation
   Set_Animation_Type("Spin");
 
@@ -57,9 +57,9 @@ void cSpinBox ::Init(void) {
 
 cSpinBox* cSpinBox ::Copy(void) const {
   cSpinBox* spinbox = new cSpinBox(m_sprite_manager);
-  spinbox->Set_Pos(m_start_pos_x, m_start_pos_y, 1);
+  spinbox->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   spinbox->Set_Invisible(m_box_invisible);
-  spinbox->Set_Useable_Count(m_start_useable_count, 1);
+  spinbox->Set_Useable_Count(m_start_useable_count, true);
   return spinbox;
 }
 
@@ -83,14 +83,14 @@ void cSpinBox ::Activate(void) {
     return;
   }
 
-  m_spin = 1;
+  m_spin = true;
   Update_Valid_Update();
   // passive box for spinning
   m_massive_type = MASS_PASSIVE;
 
   m_spin_counter = 0.0f;
   // enable animation
-  Set_Animation(1);
+  Set_Animation(true);
   Reset_Animation();
 }
 
@@ -109,14 +109,14 @@ void cSpinBox ::Stop(void) {
     Set_Image_Num(1);
   }
   // reset
-  m_spin = 0;
+  m_spin = false;
   Update_Valid_Update();
   m_spin_counter = 0.0f;
 
   // back to a massive box
   m_massive_type = MASS_MASSIVE;
   // disable animation
-  Set_Animation(0);
+  Set_Animation(false);
   Reset_Animation();
 }
 
@@ -143,12 +143,12 @@ void cSpinBox ::Update(void) {
             Collision_Check(&m_col_rect, COLLIDE_ONLY_BLOCKING);
 
         // check if spinning should continue
-        bool spin_again = 0;
+        bool spin_again = false;
 
         // colliding with player or enemy
         if (col_list->Is_Included(TYPE_PLAYER) ||
             col_list->Is_Included(ARRAY_ENEMY)) {
-          spin_again = 1;
+          spin_again = true;
         }
         // colliding with an active object
         else if (col_list->Is_Included(ARRAY_ACTIVE)) {
@@ -164,7 +164,7 @@ void cSpinBox ::Update(void) {
               col_obj->m_type == TYPE_STAR ||
               col_obj->m_type == TYPE_FALLING_GOLDPIECE) {
             // found blocking active object
-            spin_again = 1;
+            spin_again = true;
           }
         }
 
@@ -188,7 +188,7 @@ void cSpinBox ::Update(void) {
 
 bool cSpinBox ::Is_Update_Valid(void) {
   if (m_spin) {
-    return 1;
+    return true;
   }
 
   return cBaseBox::Is_Update_Valid();

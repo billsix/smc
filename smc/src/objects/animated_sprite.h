@@ -55,8 +55,8 @@ class cAnimated_Sprite : public cMovingSprite {
 	 * if new_start_image is set the default start_image will be set to the given image
 	 * if del_img is set the given image will be deleted
 	*/
-  virtual void Set_Image_Num(const int num, const bool new_startimage = 0,
-                             const bool del_img = 0);
+  virtual void Set_Image_Num(const int num, const bool new_startimage = false,
+                             const bool del_img = false);
   // Get an array image
   cGL_Surface* Get_Image(const unsigned int num) const;
   // Clear the image list
@@ -65,7 +65,7 @@ class cAnimated_Sprite : public cMovingSprite {
   /* Set if the animation is enabled
 	 * default : disabled
 	*/
-  inline void Set_Animation(const bool enabled = 0) {
+  inline void Set_Animation(const bool enabled = false) {
     m_anim_enabled = enabled;
   };
   // Reset animation back to the first image
@@ -81,7 +81,7 @@ class cAnimated_Sprite : public cMovingSprite {
   /* Set display time for all images
 	 * default_time: if set also make it the default time
 	*/
-  void Set_Time_All(const Uint32 time, const bool default_time = 0);
+  void Set_Time_All(const Uint32 time, const bool default_time = false);
   /* Set the animation speed modifier
 	 * 1.0 is the normal speed
 	*/
@@ -109,7 +109,7 @@ class cAnimated_Sprite : public cMovingSprite {
   float m_anim_mod;
 
   // Surface list
-  typedef vector<cAnimation_Surface> cAnimation_Surface_List;
+  using cAnimation_Surface_List = vector<cAnimation_Surface>;
   cAnimation_Surface_List m_images;
 };
 

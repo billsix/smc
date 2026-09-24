@@ -37,7 +37,7 @@ class cEnemy : public cAnimated_Sprite {
   cSave_Level_Object* Save_To_Savegame(void) override;
 
   // Set Dead
-  virtual void Set_Dead(bool enable = 1);
+  virtual void Set_Dead(bool enable = true);
 
   // dying animation update
   virtual void Update_Dying(void) {};
@@ -53,7 +53,7 @@ class cEnemy : public cAnimated_Sprite {
   virtual void Update_Gravity(void);
 
   // Generates the default Hit Animation Particles
-  void Generate_Hit_Animation(cParticle_Emitter* anim = NULL) const;
+  void Generate_Hit_Animation(cParticle_Emitter* anim = nullptr) const;
 
   // default collision handler
   void Handle_Collision(cObjectCollision* collision) override;

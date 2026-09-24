@@ -59,7 +59,7 @@ class cFlyon : public cEnemy {
   /* downgrade state ( if already weakest state : dies )
 	 * force : usually dies or a complete downgrade
 	*/
-  void DownGrade(bool force = 0) override;
+  void DownGrade(bool force = false) override;
   // dying animation update
   void Update_Dying(void) override;
 
@@ -69,7 +69,7 @@ class cFlyon : public cEnemy {
   // update
   void Update(void) override;
   // draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // Returns the distance to the end position
   float Get_End_Distance(void) const;

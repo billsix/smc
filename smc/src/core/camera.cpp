@@ -130,7 +130,7 @@ bool cCamera ::Move_to_Position_Gradually(
     const unsigned int frames /* = 200 */) {
   for (float i = 0.0f; i < frames; i += pFramerate->m_speed_factor) {
     if (Step_to_Position_Gradually(pos_x, pos_y) == 0) {
-      return 0;
+      return false;
     }
 
     // keep particles on screen
@@ -153,7 +153,7 @@ bool cCamera ::Move_to_Position_Gradually(
     pFramerate->Update();
   }
 
-  return 1;
+  return true;
 }
 
 bool cCamera ::Step_to_Position_Gradually(const float pos_x,
@@ -170,8 +170,8 @@ bool cCamera ::Step_to_Position_Gradually(const float pos_x,
   float vel_x = (distance_x * 0.04f) * pFramerate->m_speed_factor;
   float vel_y = (distance_y * 0.04f) * pFramerate->m_speed_factor;
   // true if reached position
-  bool reached_x = 0;
-  bool reached_y = 0;
+  bool reached_x = false;
+  bool reached_y = false;
 
   if (distance_x > 2.0f) {
     if (vel_x < 2.0f) {
@@ -184,7 +184,7 @@ bool cCamera ::Step_to_Position_Gradually(const float pos_x,
   }
   // reached destination position x
   else {
-    reached_x = 1;
+    reached_x = true;
   }
 
   if (distance_y > 2.0f) {
@@ -198,12 +198,12 @@ bool cCamera ::Step_to_Position_Gradually(const float pos_x,
   }
   // reached destination position y
   else {
-    reached_y = 1;
+    reached_y = true;
   }
 
   // reached position
   if (reached_x && reached_y) {
-    return 0;
+    return false;
   }
   // move
   else {
@@ -211,7 +211,7 @@ bool cCamera ::Step_to_Position_Gradually(const float pos_x,
   }
 
   // position not reached
-  return 1;
+  return true;
 }
 
 void cCamera ::Center(const ObjectDirection direction /* = DIR_ALL */) {
@@ -311,14 +311,14 @@ void cCamera ::Update(void) {
           // out of camera on the left side
           if (pLevel_Player->m_col_rect.m_x + pLevel_Player->m_col_rect.m_w <
               m_x) {
-            pLevel_Player->DownGrade_Player(1, 1);
+            pLevel_Player->DownGrade_Player(true, true);
           }
         }
         // scrolls to the left
         else {
           // out of camera on the right side
           if (pLevel_Player->m_col_rect.m_x - game_res_w > m_x) {
-            pLevel_Player->DownGrade_Player(1, 1);
+            pLevel_Player->DownGrade_Player(true, true);
           }
         }
       } else {

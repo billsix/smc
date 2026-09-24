@@ -52,10 +52,10 @@ cText_Box ::~cText_Box(void) {}
 void cText_Box ::Init(void) {
   m_type = TYPE_TEXT_BOX;
   box_type = m_type;
-  m_can_be_on_ground = 0;
+  m_can_be_on_ground = false;
 
   // default is infinite times activate-able
-  Set_Useable_Count(-1, 1);
+  Set_Useable_Count(-1, true);
   // Spinbox Animation
   Set_Animation_Type("Default");
 
@@ -102,7 +102,7 @@ void cText_Box ::Activate(void) {
   pGuiSystem->getGUISheet()->addChildWindow(editbox);
 
   // set on top
-  editbox->setAlwaysOnTop(1);
+  editbox->setAlwaysOnTop(true);
   // set position
   float text_pos_x =
       m_pos_x - (text_box_window_width * 0.5f) + (m_rect.m_w * 0.5f);
@@ -135,7 +135,7 @@ void cText_Box ::Activate(void) {
   // always hide horizontal scrollbar
   editbox->getHorzScrollbar()->hide();
 
-  bool display = 1;
+  bool display = true;
 
   while (display) {
     while (SDL_PollEvent(&input_event)) {
@@ -147,7 +147,7 @@ void cText_Box ::Activate(void) {
             input_event.key.keysym.sym == SDLK_ESCAPE ||
             input_event.key.keysym.sym == SDLK_RETURN ||
             input_event.key.keysym.sym == SDLK_SPACE) {
-          display = 0;
+          display = false;
           break;
         }
         // handled keys
@@ -164,15 +164,15 @@ void cText_Box ::Activate(void) {
           pKeyboard->Key_Up(input_event.key.keysym.sym);
         }
       } else if (input_event.type == SDL_JOYBUTTONDOWN) {
-        pJoystick->Set_Button(input_event.jbutton.button, 1);
+        pJoystick->Set_Button(input_event.jbutton.button, true);
 
         if (input_event.jbutton.button == pPreferences->m_joy_button_action ||
             input_event.jbutton.button == pPreferences->m_joy_button_exit) {
-          display = 0;
+          display = false;
           break;
         }
       } else if (input_event.type == SDL_JOYBUTTONUP) {
-        pJoystick->Set_Button(input_event.jbutton.button, 0);
+        pJoystick->Set_Button(input_event.jbutton.button, false);
       } else if (input_event.type == SDL_JOYHATMOTION) {
         pJoystick->Handle_Hat(&input_event);
         break;
@@ -182,7 +182,7 @@ void cText_Box ::Activate(void) {
       }
     }
 
-    const Uint8* keys = SDL_GetKeyboardState(NULL);
+    const Uint8* keys = SDL_GetKeyboardState(nullptr);
     Sint16 joy_ver_axis = 0;
 
     // if joystick enabled
@@ -279,7 +279,7 @@ bool cText_Box ::Editor_Text_Text_Changed(const CEGUI::EventArgs& event) {
 
   Set_Text(str_text);
 
-  return 1;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

@@ -57,7 +57,7 @@ class cLevel_Entry : public cAnimated_Sprite {
   void Set_Direction(const ObjectDirection dir);
 
   // draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // Get centered player position y
   float Get_Player_Pos_X(void) const;

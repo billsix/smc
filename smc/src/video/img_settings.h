@@ -82,7 +82,7 @@ class cImage_Settings_Parser : public cFile_parser {
 	 * The returned settings data should be deleted if not used anymore
 	*/
   cImage_Settings_Data* Get(const std::string& filename,
-                            bool load_base_settings = 1);
+                            bool load_base_settings = true);
 
   // Handle one tokenized line
   bool HandleMessage(const std::string* parts, unsigned int count,

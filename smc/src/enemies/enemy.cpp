@@ -34,8 +34,8 @@ cEnemy ::cEnemy(cSprite_Manager* sprite_manager)
 
   m_massive_type = MASS_MASSIVE;
   m_state = STA_FALL;
-  m_can_be_ground = 1;
-  m_dead = 0;
+  m_can_be_ground = true;
+  m_dead = false;
   m_counter = 0.0f;
 
   m_kill_sound = "enemy/furball/die.ogg";
@@ -44,8 +44,8 @@ cEnemy ::cEnemy(cSprite_Manager* sprite_manager)
   m_velx_max = 0.0f;
   m_velx_gain = 0.0f;
 
-  m_fire_resistant = 0;
-  m_can_be_hit_from_shell = 1;
+  m_fire_resistant = false;
+  m_can_be_hit_from_shell = true;
 }
 
 cEnemy ::~cEnemy(void) {}
@@ -183,7 +183,7 @@ void cEnemy ::Update_Late(void) {
     // handle collisions manually
     m_massive_type = MASS_MASSIVE;
     cObjectCollisionType* col_list = Collision_Check(&m_col_rect);
-    Add_Collisions(col_list, 1);
+    Add_Collisions(col_list, true);
     delete col_list;
     Handle_Collisions();
     m_massive_type = MASS_PASSIVE;
@@ -218,7 +218,7 @@ void cEnemy ::Update_Gravity(void) {
     }
     // below ground
     if (m_col_rect.m_y > pActive_Camera->m_limit_rect.m_y) {
-      DownGrade(1);
+      DownGrade(true);
     }
   }
   // has ground object
@@ -232,10 +232,10 @@ void cEnemy ::Update_Gravity(void) {
 
 void cEnemy ::Generate_Hit_Animation(
     cParticle_Emitter* anim /* = NULL */) const {
-  bool create_anim = 0;
+  bool create_anim = false;
 
   if (!anim) {
-    create_anim = 1;
+    create_anim = true;
     // create animation
     anim = new cParticle_Emitter(m_sprite_manager);
   }
@@ -275,7 +275,7 @@ void cEnemy ::Generate_Hit_Animation(
   anim->Set_Speed(0.5f, 2.6f);
   anim->Set_Scale(0.2f, 0.6f);
   anim->Set_Direction_Range(220, 100);
-  anim->Set_Fading_Alpha(1);
+  anim->Set_Fading_Alpha(true);
   //anim->Set_Fading_Size( 1 );
   anim->Set_Blending(BLEND_ADD);
 

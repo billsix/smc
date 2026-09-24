@@ -61,8 +61,8 @@ void cClear_Request ::Draw(void) {
 /* *** *** *** *** *** *** cRender_Request_Advanced *** *** *** *** *** *** *** *** *** *** *** */
 
 cRender_Request_Advanced ::cRender_Request_Advanced(void) : cRender_Request() {
-  m_global_scale = 1;
-  m_no_camera = 1;
+  m_global_scale = true;
+  m_no_camera = true;
 
   m_rot_x = 0.0f;
   m_rot_y = 0.0f;
@@ -225,7 +225,7 @@ cRect_Request ::cRect_Request(void) : cRender_Request_Advanced() {
   m_color = static_cast<Uint8>(0);
 
   m_rect = GL_rect(0.0f, 0.0f, 0.0f, 0.0f);
-  m_filled = 1;
+  m_filled = true;
   m_scale_x = 1.0f;
   m_scale_y = 1.0f;
   m_scale_z = 1.0f;
@@ -481,7 +481,7 @@ cSurface_Request ::cSurface_Request(void) : cRender_Request_Advanced() {
 
   m_color = static_cast<Uint8>(255);
 
-  m_delete_texture = 0;
+  m_delete_texture = false;
 }
 
 cSurface_Request ::~cSurface_Request(void) {
@@ -643,7 +643,7 @@ void cRenderQueue ::Render(bool clear /* = 1 */) {
   }
 
   if (clear) {
-    Clear(0);
+    Clear(false);
   }
 }
 
@@ -656,7 +656,7 @@ void cRenderQueue ::Fake_Render(unsigned int amount /* = 1 */,
   }
 
   if (clear) {
-    Clear(0);
+    Clear(false);
   }
 }
 
@@ -679,8 +679,8 @@ void cRenderQueue ::Clear(bool force /* = 1 */) {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cRenderQueue* pRenderer = NULL;
-cRenderQueue* pRenderer_current = NULL;
+cRenderQueue* pRenderer = nullptr;
+cRenderQueue* pRenderer_current = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

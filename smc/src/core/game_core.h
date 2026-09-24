@@ -94,12 +94,12 @@ void Clear_Input_Events(void);
 /* Preload the common images into the image manager
  * draw_gui : if set use the loading screen gui for drawing
  */
-void Preload_Images(bool draw_gui = 0);
+void Preload_Images(bool draw_gui = false);
 
 /* Preload the common sounds into the sound manager
  * draw_gui : if set use the loading screen gui for drawing
  */
-void Preload_Sounds(bool draw_gui = 0);
+void Preload_Sounds(bool draw_gui = false);
 
 // Write a property line to the serializer
 void Write_Property(CEGUI::XMLSerializer& stream, const CEGUI::String& name,

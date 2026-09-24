@@ -66,7 +66,7 @@ cLevel_Player ::cLevel_Player(cSprite_Manager* sprite_manager)
   m_images.reserve(20);
   m_ducked_counter = 0;
   m_ducked_animation_counter = 0.0f;
-  m_parachute = 0;
+  m_parachute = false;
   m_throwing_counter = 0.0f;
 
   // invincible data
@@ -78,7 +78,7 @@ cLevel_Player ::cLevel_Player(cSprite_Manager* sprite_manager)
   m_walk_count = 0.0f;
   m_running_particle_counter = 0.0f;
 
-  m_god_mode = 0;
+  m_god_mode = false;
 
   m_walk_time = 0.0f;
   m_ghost_time = 0.0f;
@@ -93,8 +93,8 @@ cLevel_Player ::cLevel_Player(cSprite_Manager* sprite_manager)
 
   // jump data
   m_up_key_time = 0.0f;
-  m_force_jump = 0;
-  m_next_jump_sound = 1;
+  m_force_jump = false;
+  m_next_jump_sound = true;
   m_next_jump_power = 17.0f;
   m_next_jump_accel = 4.0f;
   m_jump_power = 0.0f;
@@ -106,23 +106,23 @@ cLevel_Player ::cLevel_Player(cSprite_Manager* sprite_manager)
   m_no_vely_counter = 0.0f;
 
   m_shoot_counter = 0.0f;
-  m_active_object = NULL;
+  m_active_object = nullptr;
   m_duck_direction = DIR_UNDEFINED;
 
-  Set_Pos(m_default_pos_x, m_default_pos_y, 1);
+  Set_Pos(m_default_pos_x, m_default_pos_y, true);
 }
 
 cLevel_Player ::~cLevel_Player(void) { Ball_Clear(); }
 
 cLevel_Player* cLevel_Player ::Copy(void) const {
   // not copyable
-  return NULL;
+  return nullptr;
 }
 
 void cLevel_Player ::Init(void) {
   Load_Images();
   // default direction : right
-  Set_Direction(DIR_RIGHT, 1);
+  Set_Direction(DIR_RIGHT, true);
 }
 
 void cLevel_Player ::Hold(void) {
@@ -140,7 +140,7 @@ void cLevel_Player ::Set_Direction(const ObjectDirection dir,
     cMovingSprite::Set_Image(
         pVideo->Get_Surface("maryo/small/stand_" + Get_Direction_Name(dir) +
                             ".png"),
-        1);
+        true);
 
     // set back current image
     m_curr_img = -1;
@@ -177,7 +177,7 @@ bool cLevel_Player ::Set_On_Ground(cSprite* obj, bool set_on_top /* = 1 */) {
 }
 
 void cLevel_Player ::DownGrade(bool force /* = 0 */) {
-  DownGrade_Player(1, force);
+  DownGrade_Player(true, force);
 }
 
 void cLevel_Player ::DownGrade_Player(bool delayed /* = 1 */,
@@ -215,7 +215,7 @@ void cLevel_Player ::DownGrade_Player(bool delayed /* = 1 */,
     return;
   }
 
-  Set_Type(MARYO_DEAD, 0, 0);
+  Set_Type(MARYO_DEAD, false, false);
   pHud_Time->Reset();
   pHud_Points->Clear();
   Ball_Clear();
@@ -327,8 +327,8 @@ animation_end:
     sprite->Set_Pos((game_res_w * 0.5f) - (game_over->m_w * 0.5f),
                     (game_res_h * 0.5f) - (game_over->m_h * 0.5f));
     sprite->m_pos_z = 0.8f;
-    sprite->Set_Spawned(1);
-    sprite->Set_Ignore_Camera(1);
+    sprite->Set_Spawned(true);
+    sprite->Set_Ignore_Camera(true);
     m_sprite_manager->Add(sprite);
 
     cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
@@ -341,7 +341,7 @@ animation_end:
     anim->Set_Pos_Z(0.79f);
     anim->Set_Image(pVideo->Get_Surface("animation/particles/axis.png"));
     anim->Set_Time_to_Live(10.0f);
-    anim->Set_Fading_Alpha(1);
+    anim->Set_Fading_Alpha(true);
     anim->Set_Speed(2.0f, 0.5f);
     anim->Set_Scale(0.9f);
     anim->Set_Color(Color(static_cast<Uint8>(250), 140, 90),
@@ -357,7 +357,7 @@ animation_end:
         }
       }
 
-      const Uint8* keys = SDL_GetKeyboardState(NULL);
+      const Uint8* keys = SDL_GetKeyboardState(nullptr);
       // Escape stops
       if (keys[SDL_SCANCODE_ESCAPE] || keys[SDL_SCANCODE_RETURN] ||
           keys[SDL_SCANCODE_SPACE] ||
@@ -404,13 +404,13 @@ animation_end:
     Game_Action_Data_Middle.add("load_menu", int_to_string(MENU_START));
     Game_Action_Data_Middle.add(
         "menu_start_current_level",
-        Trim_Filename(pActive_Level->m_level_filename, 0, 0));
+        Trim_Filename(pActive_Level->m_level_filename, false, false));
     // reset saved data
     Game_Action_Data_Middle.add("reset_save", "1");
   }
   // back to overworld
   else {
-    Set_Type(MARYO_SMALL, 0, 0);
+    Set_Type(MARYO_SMALL, false, false);
     Game_Action = GA_ENTER_WORLD;
   }
 
@@ -435,7 +435,7 @@ void cLevel_Player ::Move_Player(float velocity, float vel_wrongway) {
   cObjectCollisionType* col_list = Collision_Check_Relative(
       velocity, 0.0f, 0.0f, 0.0f, COLLIDE_ONLY_BLOCKING);
   // if collision with a blocking object
-  bool is_col = 0;
+  bool is_col = false;
 
   // check collisions
   for (cObjectCollision_List::iterator itr = col_list->objects.begin();
@@ -444,7 +444,7 @@ void cLevel_Player ::Move_Player(float velocity, float vel_wrongway) {
 
     // massive object is blocking
     if (col_obj->m_obj->m_massive_type == MASS_MASSIVE) {
-      is_col = 1;
+      is_col = true;
       break;
     }
   }
@@ -511,10 +511,10 @@ void cLevel_Player ::Generate_Feet_Clouds(
     return;
   }
 
-  bool create_anim = 0;
+  bool create_anim = false;
 
   if (!anim) {
-    create_anim = 1;
+    create_anim = true;
     // create animation
     anim = new cParticle_Emitter(m_sprite_manager);
   }
@@ -682,8 +682,8 @@ void cLevel_Player ::Update_Running(void) {
       anim->Set_Image(pVideo->Get_Surface("animation/particles/light.png"));
       anim->Set_Pos_Z(m_pos_z + 0.000001f);
       anim->Set_Time_to_Live(0.1f + vel * 0.03f);
-      anim->Set_Fading_Alpha(1);
-      anim->Set_Fading_Size(1);
+      anim->Set_Fading_Alpha(true);
+      anim->Set_Fading_Size(true);
       anim->Set_Speed(vel * 0.9f, 0.0f);
       // right
       if (m_velx > 0.0f) {
@@ -861,7 +861,7 @@ void cLevel_Player ::Stop_Flying(bool parachute /* = 1 */) {
   }
 
   if (parachute) {
-    Parachute(1);
+    Parachute(true);
   }
 
   Set_Moving_State(STA_FALL);
@@ -904,7 +904,7 @@ void cLevel_Player ::Start_Falling(void) {
   delete col_list;
 
   // fall through ground object
-  Move(0.0f, move_y, 1);
+  Move(0.0f, move_y, true);
   Set_Moving_State(STA_FALL);
 }
 
@@ -950,11 +950,11 @@ void cLevel_Player ::Start_Ducking(void) {
   else if (m_velx < 0.0f)
     m_duck_direction = DIR_LEFT;
 
-  Release_Item(1, 1);
+  Release_Item(true, true);
 
   // set ducking image ( without Check_OutofLevel from cMovingSprite )
   cSprite::Move(
-      0.0f, m_image->m_col_h - m_images[MARYO_IMG_DUCK].m_image->m_col_h, 1);
+      0.0f, m_image->m_col_h - m_images[MARYO_IMG_DUCK].m_image->m_col_h, true);
   Set_Image_Num(MARYO_IMG_DUCK + m_direction);
 
   m_ducked_counter = 1;
@@ -984,7 +984,7 @@ void cLevel_Player ::Stop_Ducking(void) {
   delete col_list;
 
   // unset ducking image ( without Check_out_of_Level from cMovingSprite )
-  cSprite::Move(0.0f, move_y, 1);
+  cSprite::Move(0.0f, move_y, true);
   Set_Image_Num(MARYO_IMG_STAND + m_direction);
 
   m_ducked_counter = 0;
@@ -1019,8 +1019,8 @@ void cLevel_Player ::Update_Ducking(void) {
       anim->Set_Image(pVideo->Get_Surface("animation/particles/star_2.png"));
       anim->Set_Pos_Z(m_pos_z - 0.000001f, 0.000002f);
       anim->Set_Time_to_Live(0.3f);
-      anim->Set_Fading_Alpha(1);
-      anim->Set_Fading_Size(1);
+      anim->Set_Fading_Alpha(true);
+      anim->Set_Fading_Size(true);
       anim->Set_Const_Rotation_Z(-5.0f, 10.0f);
       anim->Set_Direction_Range(90.0f, 20.0f);
       anim->Set_Speed(1.5f, 0.5f);
@@ -1055,9 +1055,9 @@ void cLevel_Player ::Start_Climbing(void) {
   }
 
   // avoid that we are set on the ground again
-  Col_Move(0.0f, move_y, 1, 1);
+  Col_Move(0.0f, move_y, true, true);
 
-  Release_Item(1, 1);
+  Release_Item(true, true);
   Set_Moving_State(STA_CLIMB);
 }
 
@@ -1119,12 +1119,12 @@ bool cLevel_Player ::Is_On_Climbable(float move_y /* = 0.0f */) {
     // collision with climbable object
     if (col_obj->m_obj->m_massive_type == MASS_CLIMBABLE) {
       delete col_list;
-      return 1;
+      return true;
     }
   }
 
   delete col_list;
-  return 0;
+  return false;
 }
 
 void cLevel_Player ::Start_Jump_Keytime(void) {
@@ -1169,18 +1169,18 @@ void cLevel_Player ::Start_Jump(float deaccel /* = 0.08f */) {
     }
   }
 
-  bool jump_key = 0;
+  bool jump_key = false;
 
   // if jump key pressed
   if (pKeyboard->m_keys[pPreferences->m_key_jump] ||
       (pPreferences->m_joy_analog_jump && pJoystick->m_up) ||
       pJoystick->Button(pPreferences->m_joy_button_jump)) {
-    jump_key = 1;
+    jump_key = true;
   }
 
   // todo : is this needed ?
   // avoid that we are set on the ground again
-  Col_Move(0.0f, -1.0f, 1, 1);
+  Col_Move(0.0f, -1.0f, true, true);
 
   // fly
   if (m_maryo_type == MARYO_CAPE && !m_force_jump && m_state == STA_RUN &&
@@ -1230,8 +1230,8 @@ void cLevel_Player ::Start_Jump(float deaccel /* = 0.08f */) {
 
   // reset variables
   m_up_key_time = 0.0f;
-  m_force_jump = 0;
-  m_next_jump_sound = 1;
+  m_force_jump = false;
+  m_next_jump_sound = true;
   m_next_jump_power = 17.0f;
   m_next_jump_accel = 4.0f;
 }
@@ -1299,7 +1299,7 @@ void cLevel_Player ::Update_Item(void) {
     // collision with something or activated
     if (m_active_object->m_type == TYPE_TURTLE &&
         static_cast<cTurtle*>(m_active_object)->m_dead) {
-      Release_Item(0);
+      Release_Item(false);
       return;
     }
 
@@ -1365,7 +1365,7 @@ void cLevel_Player ::Update_Item(void) {
           cEnemy* enemy = static_cast<cEnemy*>(col->m_obj);
 
           if (enemy->m_state == STA_STAY) {
-            Get_Item(TYPE_TURTLE, 0, enemy);
+            Get_Item(TYPE_TURTLE, false, enemy);
             break;
           }
         }
@@ -1483,7 +1483,7 @@ void cLevel_Player ::Release_Item(bool set_position /* = 1 */,
 
     // set step size
     float step_size = 0.0f;
-    cObjectCollisionType* col_list = NULL;
+    cObjectCollisionType* col_list = nullptr;
 
     // check for a valid position to release the object
     while (step_size < 50.0f) {
@@ -1511,12 +1511,12 @@ void cLevel_Player ::Release_Item(bool set_position /* = 1 */,
           // continue moving
         } else {
           // move to the right
-          m_active_object->Move(-step_size, 0.0f, 1);
+          m_active_object->Move(-step_size, 0.0f, true);
           break;
         }
       } else {
         // move to the left
-        m_active_object->Move(step_size, 0.0f, 1);
+        m_active_object->Move(step_size, 0.0f, true);
         break;
       }
 
@@ -1533,13 +1533,13 @@ void cLevel_Player ::Release_Item(bool set_position /* = 1 */,
           // if collision with static blocking objects
           if (col_list->Is_Included(ARRAY_MASSIVE) ||
               col_list->Is_Included(ARRAY_ACTIVE)) {
-            m_active_object->DownGrade(1);
+            m_active_object->DownGrade(true);
           }
         }
         // normal
         else if (m_active_object->m_state == STA_STAY) {
           // downgrade always
-          m_active_object->DownGrade(1);
+          m_active_object->DownGrade(true);
         }
       }
     }
@@ -1551,7 +1551,7 @@ void cLevel_Player ::Release_Item(bool set_position /* = 1 */,
   m_active_object->Reset_On_Ground();
 
   // unset link
-  m_active_object = NULL;
+  m_active_object = nullptr;
   // load default images
   Load_Images();
 }
@@ -1596,7 +1596,7 @@ void cLevel_Player ::Set_Type(Maryo_type new_type, bool animation /* = 1 */,
   if (!temp_power) {
     // was flying
     if (m_maryo_type == MARYO_CAPE) {
-      Stop_Flying(0);
+      Stop_Flying(false);
     }
   }
 
@@ -1671,7 +1671,7 @@ void cLevel_Player ::Set_Moving_State(Moving_state new_state) {
   // was falling
   if (m_state == STA_FALL) {
     // reset slow fall/parachute
-    Parachute(0);
+    Parachute(false);
   }
   // was flying
   else if (m_state == STA_FLY) {
@@ -1687,8 +1687,8 @@ void cLevel_Player ::Set_Moving_State(Moving_state new_state) {
     // reset variables
     m_up_key_time = 0.0f;
     m_jump_power = 0.0f;
-    m_force_jump = 0;
-    m_next_jump_sound = 1;
+    m_force_jump = false;
+    m_next_jump_sound = true;
     m_next_jump_power = 17.0f;
     m_next_jump_accel = 4.0f;
   }
@@ -1721,17 +1721,17 @@ void cLevel_Player ::Set_Moving_State(Moving_state new_state) {
 
   // # after new state is set
   if (m_state == STA_FLY) {
-    Release_Item(1);
+    Release_Item(true);
   }
 }
 
 bool cLevel_Player ::Change_Size(float x, float y, bool only_check /* = 0 */) {
-  bool valid_hor = 0;
+  bool valid_hor = false;
   float check_pos = x;
 
   // no value
   if (Is_Float_Equal(x, 0.0f)) {
-    valid_hor = 1;
+    valid_hor = true;
   }
 
   while (!valid_hor) {
@@ -1740,10 +1740,10 @@ bool cLevel_Player ::Change_Size(float x, float y, bool only_check /* = 0 */) {
 
     if (col_list->empty()) {
       if (!only_check) {
-        Col_Move(check_pos, 0.0f, 1, 1);
+        Col_Move(check_pos, 0.0f, true, true);
       }
 
-      valid_hor = 1;
+      valid_hor = true;
       delete col_list;
       break;
     }
@@ -1768,12 +1768,12 @@ bool cLevel_Player ::Change_Size(float x, float y, bool only_check /* = 0 */) {
     }
   }
 
-  bool valid_ver = 0;
+  bool valid_ver = false;
   check_pos = y;
 
   // no value
   if (Is_Float_Equal(y, 0.0f)) {
-    valid_ver = 1;
+    valid_ver = true;
   }
 
   while (!valid_ver) {
@@ -1782,10 +1782,10 @@ bool cLevel_Player ::Change_Size(float x, float y, bool only_check /* = 0 */) {
 
     if (col_list->empty()) {
       if (!only_check) {
-        Col_Move(0.0f, check_pos, 1, 1);
+        Col_Move(0.0f, check_pos, true, true);
       }
 
-      valid_ver = 1;
+      valid_ver = true;
       delete col_list;
       break;
     }
@@ -1812,10 +1812,10 @@ bool cLevel_Player ::Change_Size(float x, float y, bool only_check /* = 0 */) {
 
   // if both directions valid
   if (valid_hor && valid_ver) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 void cLevel_Player ::Reset_Save(void) {
@@ -1825,7 +1825,7 @@ void cLevel_Player ::Reset_Save(void) {
   pLevel_Manager->Unload();
 
   // reset player
-  Set_Type(MARYO_SMALL, 0, 0);
+  Set_Type(MARYO_SMALL, false, false);
   Reset();
   m_lives = 3;
   m_goldpieces = 0;
@@ -1838,7 +1838,7 @@ void cLevel_Player ::Reset_Save(void) {
 
 void cLevel_Player ::Reset(bool full /* = 1 */) {
   // reset level states
-  Set_Active(1);
+  Set_Active(true);
   Reset_Position();
   Set_Direction(m_start_direction);
   m_ducked_counter = 0;
@@ -1856,7 +1856,7 @@ void cLevel_Player ::Reset(bool full /* = 1 */) {
   m_walk_count = 0.0f;
   Reset_On_Ground();
   if (m_active_object) {
-    m_active_object = NULL;
+    m_active_object = nullptr;
     Load_Images();
   }
   m_kill_multiplier = 1.0f;
@@ -1879,7 +1879,7 @@ void cLevel_Player ::Reset_Position(void) {
   /* change player position to the current state height
 	 * move to correct position but do not change start position
 	*/
-  Col_Move(0.0f, m_start_image->m_h - m_rect.m_h, 1, 0, 0);
+  Col_Move(0.0f, m_start_image->m_h - m_rect.m_h, true, false, false);
 }
 
 void cLevel_Player ::Update(void) {
@@ -1927,7 +1927,7 @@ void cLevel_Player ::Update(void) {
     // ended
     if (m_ghost_time <= 0.0f) {
       pAudio->Play_Sound("player/ghost_end.ogg", RID_MUSHROOM_GHOST);
-      Set_Type(m_maryo_type_temp_power, 1, 0);
+      Set_Type(m_maryo_type_temp_power, true, false);
     }
     // near end
     else if (m_ghost_time * 0.5f < speedfactor_fps * 3) {
@@ -1985,8 +1985,8 @@ void cLevel_Player ::Update(void) {
         anim->Set_Image(pVideo->Get_Surface("animation/particles/star.png"));
         anim->Set_Pos_Z(m_pos_z - 0.000001f);
         anim->Set_Time_to_Live(0.3f);
-        anim->Set_Fading_Alpha(1);
-        anim->Set_Fading_Size(1);
+        anim->Set_Fading_Alpha(true);
+        anim->Set_Fading_Size(true);
         anim->Set_Const_Rotation_Z(-5.0f, 10.0f);
         // godmode stars
         if (m_god_mode) {
@@ -2223,7 +2223,7 @@ void cLevel_Player ::Draw(cSurface_Request* request /* = NULL */) {
         // draw
         pVideo->Draw_Rect(&m_ground_object->m_col_rect, m_pos_z + 0.000009f,
                           &grey, rect_request);
-        rect_request->m_no_camera = 0;
+        rect_request->m_no_camera = false;
         // blending
         rect_request->m_blend_sfactor = GL_SRC_COLOR;
         rect_request->m_blend_dfactor = GL_DST_ALPHA;
@@ -2285,7 +2285,7 @@ void cLevel_Player ::Draw_Animation(Maryo_type new_mtype) {
     else {
       m_maryo_type = new_mtype;
       if (new_mtype != MARYO_CAPE) {
-        Parachute(0);
+        Parachute(false);
       }
       Load_Images();
 
@@ -2445,10 +2445,10 @@ void cLevel_Player ::Load_Images(void) {
     Add_Image(pVideo->Get_Surface("maryo/small/walk_right_1" + special_state +
                                   ".png"));
     // running
-    Add_Image(NULL);
-    Add_Image(NULL);
-    Add_Image(NULL);
-    Add_Image(NULL);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
     // falling
     Add_Image(
         pVideo->Get_Surface("maryo/small/fall_left" + special_state + ".png"));
@@ -2490,10 +2490,10 @@ void cLevel_Player ::Load_Images(void) {
     Add_Image(
         pVideo->Get_Surface("maryo/big/walk_right_1" + special_state + ".png"));
     // running
-    Add_Image(NULL);
-    Add_Image(NULL);
-    Add_Image(NULL);
-    Add_Image(NULL);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
     // falling
     Add_Image(
         pVideo->Get_Surface("maryo/big/fall_left" + special_state + ".png"));
@@ -2514,10 +2514,10 @@ void cLevel_Player ::Load_Images(void) {
     Add_Image(pVideo->Get_Surface("maryo/big/climb_left.png"));
     Add_Image(pVideo->Get_Surface("maryo/big/climb_right.png"));
     // throwing
-    Add_Image(NULL);
-    Add_Image(NULL);
-    Add_Image(NULL);
-    Add_Image(NULL);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
     /****************************************************/
   } else if (m_maryo_type == MARYO_FIRE) {
     /********************* Fire **************************/
@@ -2540,10 +2540,10 @@ void cLevel_Player ::Load_Images(void) {
     Add_Image(pVideo->Get_Surface("maryo/fire/walk_right_1" + special_state +
                                   ".png"));
     // running
-    Add_Image(NULL);
-    Add_Image(NULL);
-    Add_Image(NULL);
-    Add_Image(NULL);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
     // falling
     Add_Image(
         pVideo->Get_Surface("maryo/fire/fall_left" + special_state + ".png"));
@@ -2590,10 +2590,10 @@ void cLevel_Player ::Load_Images(void) {
     Add_Image(
         pVideo->Get_Surface("maryo/ice/walk_right_1" + special_state + ".png"));
     // running
-    Add_Image(NULL);
-    Add_Image(NULL);
-    Add_Image(NULL);
-    Add_Image(NULL);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
     // falling
     Add_Image(
         pVideo->Get_Surface("maryo/ice/fall_left" + special_state + ".png"));
@@ -2668,10 +2668,10 @@ void cLevel_Player ::Load_Images(void) {
     Add_Image(pVideo->Get_Surface("maryo/flying/climb_left.png"));
     Add_Image(pVideo->Get_Surface("maryo/flying/climb_right.png"));
     // throwing
-    Add_Image(NULL);
-    Add_Image(NULL);
-    Add_Image(NULL);
-    Add_Image(NULL);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
     // flying
     Add_Image(pVideo->Get_Surface("maryo/flying/fly_left_1.png"));
     Add_Image(pVideo->Get_Surface("maryo/flying/fly_right_1.png"));
@@ -2706,10 +2706,10 @@ void cLevel_Player ::Load_Images(void) {
     Add_Image(pVideo->Get_Surface("maryo/ghost/walk_right_1" + special_state +
                                   ".png"));
     // running
-    Add_Image(NULL);
-    Add_Image(NULL);
-    Add_Image(NULL);
-    Add_Image(NULL);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
     // falling
     Add_Image(
         pVideo->Get_Surface("maryo/ghost/fall_left" + special_state + ".png"));
@@ -2730,10 +2730,10 @@ void cLevel_Player ::Load_Images(void) {
     Add_Image(pVideo->Get_Surface("maryo/ghost/climb_left.png"));
     Add_Image(pVideo->Get_Surface("maryo/ghost/climb_right.png"));
     // throwing
-    Add_Image(NULL);
-    Add_Image(NULL);
-    Add_Image(NULL);
-    Add_Image(NULL);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
+    Add_Image(nullptr);
     /****************************************************/
   }
 
@@ -2749,22 +2749,22 @@ void cLevel_Player ::Get_Item(SpriteType item_type, bool force /* = 0 */,
   // use original type
   if (m_maryo_type == MARYO_GHOST) {
     current_maryo_type = m_maryo_type_temp_power;
-    use_temp_power = 1;
+    use_temp_power = true;
   }
   // already using original type
   else {
     current_maryo_type = m_maryo_type;
-    use_temp_power = 0;
+    use_temp_power = false;
   }
 
   // Default Mushroom
   if (item_type == TYPE_MUSHROOM_DEFAULT) {
     if ((current_maryo_type == MARYO_SMALL || force) &&
-        Change_Size(-5, -12, 1)) {
+        Change_Size(-5, -12, true)) {
       // change to big
       if (current_maryo_type == MARYO_SMALL) {
         // set type
-        Set_Type(MARYO_BIG, 1, 1, use_temp_power);
+        Set_Type(MARYO_BIG, true, true, use_temp_power);
       }
       // move item to itembox
       else if (current_maryo_type == MARYO_BIG) {
@@ -2774,7 +2774,7 @@ void cLevel_Player ::Get_Item(SpriteType item_type, bool force /* = 0 */,
       // change to big
       else if (current_maryo_type == MARYO_FIRE) {
         // set type
-        Set_Type(MARYO_BIG, 0, 1, use_temp_power);
+        Set_Type(MARYO_BIG, false, true, use_temp_power);
         // old item to itembox
         pHud_Itembox->Set_Item(TYPE_FIREPLANT);
       }
@@ -2787,7 +2787,7 @@ void cLevel_Player ::Get_Item(SpriteType item_type, bool force /* = 0 */,
   // Fireplant
   else if (item_type == TYPE_FIREPLANT) {
     if (((current_maryo_type == MARYO_SMALL || force) &&
-         Change_Size(-5, -12, 1)) ||
+         Change_Size(-5, -12, true)) ||
         (current_maryo_type == MARYO_BIG || current_maryo_type == MARYO_ICE ||
          force)) {
       // move item to itembox
@@ -2798,7 +2798,7 @@ void cLevel_Player ::Get_Item(SpriteType item_type, bool force /* = 0 */,
       // change to fire
       else {
         // set type
-        Set_Type(MARYO_FIRE, 1, 1, use_temp_power);
+        Set_Type(MARYO_FIRE, true, true, use_temp_power);
       }
     }
     // fire explosion
@@ -2823,7 +2823,7 @@ void cLevel_Player ::Get_Item(SpriteType item_type, bool force /* = 0 */,
   // Blue Mushroom
   else if (item_type == TYPE_MUSHROOM_BLUE) {
     if (((current_maryo_type == MARYO_SMALL || force) &&
-         Change_Size(-5, -20, 1)) ||
+         Change_Size(-5, -20, true)) ||
         ((current_maryo_type == MARYO_BIG || current_maryo_type == MARYO_FIRE ||
           force))) {
       // move item to itembox
@@ -2834,7 +2834,7 @@ void cLevel_Player ::Get_Item(SpriteType item_type, bool force /* = 0 */,
       // change to ice
       else {
         // set type
-        Set_Type(MARYO_ICE, 1, 1, use_temp_power);
+        Set_Type(MARYO_ICE, true, true, use_temp_power);
       }
     }
     // ice explosion
@@ -2858,7 +2858,8 @@ void cLevel_Player ::Get_Item(SpriteType item_type, bool force /* = 0 */,
   }
   // Ghost Mushroom
   else if (item_type == TYPE_MUSHROOM_GHOST) {
-    if (((m_maryo_type == MARYO_SMALL || force) && Change_Size(-5, -20, 1)) ||
+    if (((m_maryo_type == MARYO_SMALL || force) &&
+         Change_Size(-5, -20, true)) ||
         m_maryo_type != MARYO_SMALL) {
       // set back ghost time
       if (m_maryo_type == MARYO_GHOST) {
@@ -2868,7 +2869,7 @@ void cLevel_Player ::Get_Item(SpriteType item_type, bool force /* = 0 */,
       // change to ghost
       else {
         // set type
-        Set_Type(MARYO_GHOST, 1, 1);
+        Set_Type(MARYO_GHOST, true, true);
       }
     }
     // move item to itembox
@@ -2893,8 +2894,8 @@ void cLevel_Player ::Get_Item(SpriteType item_type, bool force /* = 0 */,
   // Star
   else if (item_type == TYPE_STAR) {
     // todo : check if music is already playing
-    pAudio->Play_Music("game/star.ogg", 0, 1, 500);
-    pAudio->Play_Music(pActive_Level->m_musicfile, -1, 0);
+    pAudio->Play_Music("game/star.ogg", 0, true, 500);
+    pAudio->Play_Music(pActive_Level->m_musicfile, -1, false);
     pHud_Points->Add_Points(1000, m_pos_x + (m_col_rect.m_w / 2), m_pos_y + 2);
     m_invincible = speedfactor_fps * 16.0f;
     m_invincible_star = speedfactor_fps * 15.0f;
@@ -2948,7 +2949,7 @@ void cLevel_Player ::Action_Jump(bool enemy_jump /* = 0 */) {
   if (m_ducked_counter) {
     // power jump
     if (m_ducked_counter > power_jump_delta) {
-      m_force_jump = 1;
+      m_force_jump = true;
       m_next_jump_power += 2.0f;
       m_next_jump_accel += 0.2f;
     }
@@ -2958,8 +2959,8 @@ void cLevel_Player ::Action_Jump(bool enemy_jump /* = 0 */) {
 
   // enemy jump
   if (enemy_jump) {
-    m_force_jump = 1;
-    m_next_jump_sound = 0;
+    m_force_jump = true;
+    m_next_jump_sound = false;
     m_next_jump_power += 1.0f;
     m_next_jump_accel += 0.1f;
   }
@@ -3195,7 +3196,7 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
       Game_Action_Data_Middle.add("load_menu", int_to_string(MENU_START));
       Game_Action_Data_Middle.add(
           "menu_start_current_level",
-          Trim_Filename(pActive_Level->m_level_filename, 0, 0));
+          Trim_Filename(pActive_Level->m_level_filename, false, false));
     } else {
       Game_Action_Data_Middle.add("load_menu", int_to_string(MENU_MAIN));
     }
@@ -3276,7 +3277,7 @@ bool cLevel_Player ::Ball_Add(ball_effect effect_type /* = FIREBALL_DEFAULT */,
   if ((m_maryo_type != MARYO_FIRE && m_maryo_type_temp_power != MARYO_FIRE &&
        m_maryo_type != MARYO_ICE && m_maryo_type_temp_power != MARYO_ICE) ||
       m_ducked_counter) {
-    return 0;
+    return false;
   }
 
   if (amount == 0) {
@@ -3288,7 +3289,7 @@ bool cLevel_Player ::Ball_Add(ball_effect effect_type /* = FIREBALL_DEFAULT */,
     // if time not passed between last shot
     if ((effect_type == FIREBALL_DEFAULT || effect_type == ICEBALL_DEFAULT) &&
         m_shoot_counter > 0.0f) {
-      return 0;
+      return false;
     }
 
     // position
@@ -3320,7 +3321,7 @@ bool cLevel_Player ::Ball_Add(ball_effect effect_type /* = FIREBALL_DEFAULT */,
     for (unsigned int i = 0; i < amount; i++) {
       // add ball
       cBall* ball = new cBall(m_sprite_manager);
-      ball->Set_Pos(ball_posx, m_rect.m_y + (m_rect.m_h * 0.7f) - 20, 1);
+      ball->Set_Pos(ball_posx, m_rect.m_y + (m_rect.m_h * 0.7f) - 20, true);
       ball->Set_Origin(m_sprite_array, m_type);
       ball->Set_Ball_Type(effect_type);
       m_sprite_manager->Add(ball);
@@ -3357,7 +3358,7 @@ bool cLevel_Player ::Ball_Add(ball_effect effect_type /* = FIREBALL_DEFAULT */,
       // add ball
       cBall* ball = new cBall(m_sprite_manager);
       ball->Set_Pos(m_pos_x + m_col_rect.m_w / 2, m_pos_y + m_col_rect.m_h / 2,
-                    1);
+                    true);
       ball->Set_Origin(m_sprite_array, m_type);
       ball->Set_Ball_Type(effect_type);
       ball->Set_Velocity_From_Angle(ball_angle, 15);
@@ -3367,7 +3368,7 @@ bool cLevel_Player ::Ball_Add(ball_effect effect_type /* = FIREBALL_DEFAULT */,
         ball->m_direction = DIR_LEFT;
       }
 
-      ball->Col_Move(ball->m_velx * 2, ball->m_vely * 2, 1);
+      ball->Col_Move(ball->m_velx * 2, ball->m_vely * 2, true);
       m_sprite_manager->Add(ball);
     }
 
@@ -3401,10 +3402,10 @@ bool cLevel_Player ::Ball_Add(ball_effect effect_type /* = FIREBALL_DEFAULT */,
   }
   // unknown type
   else {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 void cLevel_Player ::Ball_Clear(void) const {
@@ -3681,25 +3682,25 @@ void cLevel_Player ::Handle_Collision_Enemy(cObjectCollision* collision) {
 
   // if invincible
   if (m_invincible_star > 0.0f) {
-    bool hit_enemy = 1;
+    bool hit_enemy = true;
 
     // spika and eato ignore top collisions
     if ((enemy->m_type == TYPE_SPIKA || enemy->m_type == TYPE_EATO ||
          enemy->m_type == TYPE_THROMP) &&
         collision->m_direction == DIR_DOWN) {
-      hit_enemy = 0;
+      hit_enemy = false;
     }
     // rokko
     else if (enemy->m_type == TYPE_ROKKO) {
-      hit_enemy = 0;
+      hit_enemy = false;
     }
     // turtle boss
     else if (enemy->m_type == TYPE_TURTLE_BOSS) {
-      hit_enemy = 0;
+      hit_enemy = false;
     }
     // furball boss
     else if (enemy->m_type == TYPE_FURBALL_BOSS) {
-      hit_enemy = 0;
+      hit_enemy = false;
     }
 
     // hit
@@ -3707,9 +3708,9 @@ void cLevel_Player ::Handle_Collision_Enemy(cObjectCollision* collision) {
       pAudio->Play_Sound("item/star_kill.ogg");
       pHud_Points->Add_Points(
           static_cast<unsigned int>(enemy->m_kill_points * 1.2f),
-          enemy->m_pos_x, enemy->m_pos_y - 5.0f, "", yellow, 1);
+          enemy->m_pos_x, enemy->m_pos_y - 5.0f, "", yellow, true);
       // force complete downgrade
-      enemy->DownGrade(1);
+      enemy->DownGrade(true);
       Add_Kill_Multiplier();
 
       // check if enemy is still the ground object
@@ -3740,8 +3741,8 @@ void cLevel_Player ::Handle_Collision_Enemy(cObjectCollision* collision) {
     anim->Set_Color(
         Color(static_cast<Uint8>(160), 160, 240),
         Color(static_cast<Uint8>(rand() % 80), rand() % 80, rand() % 10, 0));
-    anim->Set_Fading_Alpha(1);
-    anim->Set_Fading_Size(1);
+    anim->Set_Fading_Alpha(true);
+    anim->Set_Fading_Size(true);
     anim->Set_Speed(0.5f, 0.2f);
     anim->Set_Blending(BLEND_DRIVE);
 
@@ -3761,10 +3762,10 @@ void cLevel_Player ::Handle_Collision_Enemy(cObjectCollision* collision) {
     // get points
     pHud_Points->Add_Points(enemy->m_kill_points, enemy->m_pos_x,
                             enemy->m_pos_y - 10.0f, "", static_cast<Uint8>(255),
-                            1);
+                            true);
 
     // kill enemy
-    enemy->DownGrade(1);
+    enemy->DownGrade(true);
     Add_Kill_Multiplier();
 
     // slow down
@@ -3869,8 +3870,8 @@ void cLevel_Player ::Handle_Collision_Massive(cObjectCollision* collision) {
           anim->Set_Speed(2, 0.6f);
           anim->Set_Scale(0.6f);
           anim->Set_Direction_Range(0, 180);
-          anim->Set_Fading_Alpha(1);
-          anim->Set_Fading_Size(1);
+          anim->Set_Fading_Alpha(true);
+          anim->Set_Fading_Size(true);
           anim->Emit();
           pActive_Animation_Manager->Add(anim);
         }
@@ -3999,7 +4000,7 @@ void cLevel_Player ::Handle_out_of_Level(ObjectDirection dir) {
 			else
 			{*/
       m_invincible = 0.0f;
-      DownGrade_Player(1, 1);
+      DownGrade_Player(true, true);
       //}
     }
   }
@@ -4031,14 +4032,14 @@ bool cLevel_Player ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   CEGUI::ListboxItem* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
-  Set_Direction(Get_Direction_Id(item->getText().c_str()), 1);
+  Set_Direction(Get_Direction_Id(item->getText().c_str()), true);
 
-  return 1;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLevel_Player* pLevel_Player = NULL;
+cLevel_Player* pLevel_Player = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

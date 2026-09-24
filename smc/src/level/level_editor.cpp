@@ -61,10 +61,10 @@ void cEditor_Level ::Enable(void) {
     return;
   }
 
-  editor_level_enabled = 1;
+  editor_level_enabled = true;
 
   if (Game_Mode == MODE_LEVEL) {
-    editor_enabled = 1;
+    editor_enabled = true;
   }
 
   // reset ground object
@@ -100,11 +100,11 @@ void cEditor_Level ::Disable(bool native_mode /* = 0 */) {
 
   pHud_Debug->Set_Text(_("Level Editor disabled"));
 
-  editor_level_enabled = 0;
+  editor_level_enabled = false;
 
   if (Game_Mode == MODE_LEVEL) {
-    native_mode = 1;
-    editor_enabled = 0;
+    native_mode = true;
+    editor_enabled = false;
   }
 
   cEditor::Disable(native_mode);
@@ -112,12 +112,12 @@ void cEditor_Level ::Disable(bool native_mode /* = 0 */) {
 
 bool cEditor_Level ::Key_Down(SDLKey key) {
   if (!m_enabled) {
-    return 0;
+    return false;
   }
 
   // check basic editor events
   if (cEditor::Key_Down(key)) {
-    return 1;
+    return true;
   }
   // focus last levelexit
   else if (key == SDLK_END) {
@@ -188,11 +188,11 @@ bool cEditor_Level ::Key_Down(SDLKey key) {
     pMouseCursor->Clear_Hovered_Object();
   } else {
     // not processed
-    return 0;
+    return false;
   }
 
   // key got processed
-  return 1;
+  return true;
 }
 
 void cEditor_Level ::Set_Level(cLevel* level) {
@@ -244,7 +244,7 @@ cSprite* cEditor_Level ::Get_Object(const CEGUI::String& element,
 bool cEditor_Level ::Switch_Object_State(cSprite* obj) const {
   // empty object
   if (!obj) {
-    return 0;
+    return false;
   }
 
   // from Passive to Front Passive
@@ -281,10 +281,10 @@ bool cEditor_Level ::Switch_Object_State(cSprite* obj) const {
   }
   // invalid object type
   else {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 bool cEditor_Level ::Function_New(void) {
@@ -292,13 +292,13 @@ bool cEditor_Level ::Function_New(void) {
 
   // aborted
   if (level_name.empty()) {
-    return 0;
+    return false;
   }
 
   // if it already exists
-  if (pLevel_Manager->Get_Path(level_name, 1)) {
+  if (pLevel_Manager->Get_Path(level_name, true)) {
     pHud_Debug->Set_Text(_("Level ") + level_name + _(" already exists"));
-    return 0;
+    return false;
   }
 
   Game_Action = GA_ENTER_LEVEL;
@@ -312,7 +312,7 @@ bool cEditor_Level ::Function_New(void) {
   Game_Action_Data_End.add("screen_fadein_speed", "3");
 
   pHud_Debug->Set_Text(_("Created ") + level_name);
-  return 1;
+  return true;
 }
 
 void cEditor_Level ::Function_Load(void) {
@@ -320,8 +320,9 @@ void cEditor_Level ::Function_Load(void) {
 
   // valid level
   while (level_name.length()) {
-    level_name = Box_Text_Input(level_name, _("Load a Level"),
-                                level_name.compare(_("Name")) == 0 ? 1 : 0);
+    level_name =
+        Box_Text_Input(level_name, _("Load a Level"),
+                       level_name.compare(_("Name")) == 0 ? true : false);
 
     // aborted
     if (level_name.empty()) {
@@ -342,7 +343,8 @@ void cEditor_Level ::Function_Load(void) {
           "screen_fadein", CEGUI::PropertyHelper::intToString(EFFECT_IN_BLACK));
       Game_Action_Data_End.add("screen_fadein_speed", "3");
 
-      pHud_Debug->Set_Text(_("Loaded ") + Trim_Filename(level_name, 0, 0));
+      pHud_Debug->Set_Text(_("Loaded ") +
+                           Trim_Filename(level_name, false, false));
 
       break;
     }
@@ -361,9 +363,10 @@ void cEditor_Level ::Function_Save(bool with_dialog /* = 0 */) {
 
   // if denied
   if (with_dialog &&
-      !Box_Question(_("Save ") +
-                    Trim_Filename(pActive_Level->m_level_filename, 0, 0) +
-                    " ?")) {
+      !Box_Question(
+          _("Save ") +
+          Trim_Filename(pActive_Level->m_level_filename, false, false) +
+          " ?")) {
     return;
   }
 
@@ -371,27 +374,28 @@ void cEditor_Level ::Function_Save(bool with_dialog /* = 0 */) {
 }
 
 void cEditor_Level ::Function_Save_as(void) {
-  std::string levelname = Box_Text_Input(_("Save Level as"), _("New name"), 1);
+  std::string levelname =
+      Box_Text_Input(_("Save Level as"), _("New name"), true);
 
   // aborted
   if (levelname.empty()) {
     return;
   }
 
-  pActive_Level->Set_Filename(levelname, 0);
+  pActive_Level->Set_Filename(levelname, false);
   pActive_Level->Save();
 }
 
 void cEditor_Level ::Function_Delete(void) {
   std::string filename = pActive_Level->m_level_filename;
-  if (!pLevel_Manager->Get_Path(filename, 1)) {
+  if (!pLevel_Manager->Get_Path(filename, true)) {
     pHud_Debug->Set_Text(_("Level was not yet saved"));
     return;
   }
 
   // if denied
-  if (!Box_Question(_("Delete and Unload ") + Trim_Filename(filename, 0, 0) +
-                    " ?")) {
+  if (!Box_Question(_("Delete and Unload ") +
+                    Trim_Filename(filename, false, false) + " ?")) {
     return;
   }
 
@@ -419,7 +423,8 @@ void cEditor_Level ::Function_Reload(void) {
     return;
   }
 
-  if (pActive_Level->Load(Trim_Filename(pActive_Level->m_level_filename, 0))) {
+  if (pActive_Level->Load(
+          Trim_Filename(pActive_Level->m_level_filename, false))) {
     pActive_Level->Init();
   }
 }
@@ -436,7 +441,7 @@ void cEditor_Level ::Function_Settings(void) {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cEditor_Level* pLevel_Editor = NULL;
+cEditor_Level* pLevel_Editor = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

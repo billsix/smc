@@ -45,7 +45,7 @@ class cBonusBox : public cBaseBox {
   void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // sets the count this object can be activated
-  void Set_Useable_Count(int count, bool new_startcount = 0) override;
+  void Set_Useable_Count(int count, bool new_startcount = false) override;
   /* Set the bonus type
 	 * TYPE_UNDEFINED			for empty
 	 * TYPE_MUSHROOM_DEFAULT	for Mushroom
@@ -71,7 +71,7 @@ class cBonusBox : public cBaseBox {
   // update
   void Update(void) override;
   // draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // if update is valid for the current state
   bool Is_Update_Valid(void) override;
@@ -96,7 +96,7 @@ class cBonusBox : public cBaseBox {
 	 * list of active item is available
 	 * and gets added to the level objects if finished
 	*/
-  typedef vector<cMovingSprite*> MovingSpriteList;
+  using MovingSpriteList = vector<cMovingSprite*>;
   MovingSpriteList m_active_items;
   // Goldpiece color
   DefaultColor m_gold_color;

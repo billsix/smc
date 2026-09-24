@@ -60,7 +60,7 @@ class cTurtle : public cEnemy {
 
   // Set Direction
   void Set_Direction(const ObjectDirection dir,
-                     bool new_start_direction = 0) override;
+                     bool new_start_direction = false) override;
   // set color
   void Set_Color(DefaultColor col);
 
@@ -72,7 +72,7 @@ class cTurtle : public cEnemy {
   /* downgrade state ( if already weakest state : dies )
 	 * force : usually dies or a complete downgrade
 	*/
-  void DownGrade(bool force = 0) override;
+  void DownGrade(bool force = false) override;
   // dying animation update
   void Update_Dying(void) override;
 

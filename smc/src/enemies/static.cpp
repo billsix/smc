@@ -53,8 +53,8 @@ cStaticEnemy ::~cStaticEnemy(void) {
 void cStaticEnemy ::Init(void) {
   m_type = TYPE_STATIC_ENEMY;
   m_pos_z = 0.094f;
-  m_can_be_on_ground = 0;
-  m_can_be_hit_from_shell = 0;
+  m_can_be_on_ground = false;
+  m_can_be_hit_from_shell = false;
 
   Set_Rotation_Speed(0.0f);
   Set_Speed(0.0f);
@@ -69,7 +69,7 @@ void cStaticEnemy ::Init_Links(void) {
 
 cStaticEnemy* cStaticEnemy ::Copy(void) const {
   cStaticEnemy* static_enemy = new cStaticEnemy(m_sprite_manager);
-  static_enemy->Set_Pos(m_start_pos_x, m_start_pos_y, 1);
+  static_enemy->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   static_enemy->Set_Static_Image(m_img_filename);
   static_enemy->Set_Rotation_Speed(m_rotation_speed);
   static_enemy->Set_Path_Identifier(m_path_state.m_path_identifier);
@@ -82,7 +82,7 @@ cStaticEnemy* cStaticEnemy ::Copy(void) const {
 void cStaticEnemy ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
   // rotation speed
   Set_Rotation_Speed(
       static_cast<float>(attributes.getValueAsFloat("rotation_speed", -7.5f)));
@@ -166,7 +166,7 @@ void cStaticEnemy ::Set_Static_Image(const std::string& filename) {
   }
 
   Add_Image(pVideo->Get_Surface(filename));
-  Set_Image_Num(0, 1);
+  Set_Image_Num(0, true);
   Create_Name();
 }
 
@@ -178,12 +178,12 @@ void cStaticEnemy ::Set_Path_Identifier(const std::string& path) {
 void cStaticEnemy ::Set_Speed(float speed) { m_speed = speed; }
 
 void cStaticEnemy ::DownGrade(bool force /* = 0 */) {
-  Set_Dead(1);
+  Set_Dead(true);
   m_massive_type = MASS_PASSIVE;
   m_counter = 0.0f;
   m_velx = 0.0f;
   m_vely = 0.0f;
-  Set_Scale_Directions(1, 1, 1, 1);
+  Set_Scale_Directions(true, true, true, true);
 
   // falling death
   Set_Rotation_Z(180.0f);
@@ -207,7 +207,7 @@ void cStaticEnemy ::Update_Dying(void) {
   else {
     m_rot_z = 0.0f;
     Set_Scale(1.0f);
-    Set_Active(0);
+    Set_Active(false);
   }
 }
 
@@ -259,10 +259,10 @@ void cStaticEnemy ::Draw(cSurface_Request* request /* = NULL */) {
 
 bool cStaticEnemy ::Is_Update_Valid(void) {
   if (m_dead || m_freeze_counter) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 Col_Valid_Type cStaticEnemy ::Validate_Collision(cSprite* obj) {
@@ -322,8 +322,8 @@ void cStaticEnemy ::Handle_Collision_Enemy(cObjectCollision* collision) {
   // kill enemy
   pAudio->Play_Sound(enemy->m_kill_sound);
   pHud_Points->Add_Points(enemy->m_kill_points, m_pos_x, m_pos_y - 5.0f, "",
-                          static_cast<Uint8>(255), 1);
-  enemy->DownGrade(1);
+                          static_cast<Uint8>(255), true);
+  enemy->DownGrade(true);
 }
 
 void cStaticEnemy ::Editor_Activate(void) {
@@ -346,7 +346,7 @@ void cStaticEnemy ::Editor_Activate(void) {
   Editor_Add(UTF8_("Rotation Speed"), UTF8_("Rotation Speed"), editbox, 120);
 
   editbox->setValidationString("[-+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_rotation_speed, 6, 0));
+  editbox->setText(float_to_string(m_rotation_speed, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -370,7 +370,7 @@ void cStaticEnemy ::Editor_Activate(void) {
   Editor_Add(UTF8_("Speed"), UTF8_("Maximum speed"), editbox, 120);
 
   editbox->setValidationString("[-+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_speed, 6, 0));
+  editbox->setText(float_to_string(m_speed, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(&cStaticEnemy::Editor_Speed_Text_Changed, this));
@@ -402,7 +402,7 @@ void cStaticEnemy ::Editor_Activate(void) {
              editbox, 120);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_ice_resistance, 6, 0));
+  editbox->setText(float_to_string(m_ice_resistance, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -420,7 +420,7 @@ bool cStaticEnemy ::Editor_Image_Text_Changed(const CEGUI::EventArgs& event) {
 
   Set_Static_Image(str_text);
 
-  return 1;
+  return true;
 }
 
 bool cStaticEnemy ::Editor_Rotation_Speed_Text_Changed(
@@ -432,7 +432,7 @@ bool cStaticEnemy ::Editor_Rotation_Speed_Text_Changed(
 
   Set_Rotation_Speed(string_to_float(str_text));
 
-  return 1;
+  return true;
 }
 
 bool cStaticEnemy ::Editor_Path_Identifier_Text_Changed(
@@ -444,7 +444,7 @@ bool cStaticEnemy ::Editor_Path_Identifier_Text_Changed(
 
   Set_Path_Identifier(str_text);
 
-  return 1;
+  return true;
 }
 
 bool cStaticEnemy ::Editor_Speed_Text_Changed(const CEGUI::EventArgs& event) {
@@ -455,7 +455,7 @@ bool cStaticEnemy ::Editor_Speed_Text_Changed(const CEGUI::EventArgs& event) {
 
   Set_Speed(string_to_float(str_text));
 
-  return 1;
+  return true;
 }
 
 bool cStaticEnemy ::Editor_Fire_Resistant_Select(
@@ -466,12 +466,12 @@ bool cStaticEnemy ::Editor_Fire_Resistant_Select(
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   if (item->getText().compare(UTF8_("Enabled")) == 0) {
-    m_fire_resistant = 1;
+    m_fire_resistant = true;
   } else {
-    m_fire_resistant = 0;
+    m_fire_resistant = false;
   }
 
-  return 1;
+  return true;
 }
 
 bool cStaticEnemy ::Editor_Ice_Resistance_Text_Changed(
@@ -487,7 +487,7 @@ bool cStaticEnemy ::Editor_Ice_Resistance_Text_Changed(
     m_ice_resistance = 1.0f;
   }
 
-  return 1;
+  return true;
 }
 
 void cStaticEnemy ::Create_Name(void) {

@@ -59,17 +59,17 @@ void cMoving_Platform ::Init(void) {
   m_type = TYPE_MOVING_PLATFORM;
   m_pos_z = 0.085f;
   m_gravity_max = 25.0f;
-  m_can_be_on_ground = 0;
+  m_can_be_on_ground = false;
 
   m_camera_range = 3000;
-  m_can_be_ground = 1;
+  m_can_be_ground = true;
 
   m_move_type = MOVING_PLATFORM_TYPE_LINE;
   m_platform_state = MOVING_PLATFORM_STAY;
   m_moving_angle = 0.0f;
   m_touch_counter = 0.0f;
   m_shake_dir_counter = 0.0f;
-  m_shake_dir = 0;
+  m_shake_dir = false;
   m_shake_counter = 0.0f;
 
   m_max_distance_slow_down_pos = 0.0f;
@@ -83,14 +83,14 @@ void cMoving_Platform ::Init(void) {
   Set_Shake_Time(16.0f);
   Set_Touch_Move_Time(0.0f);
 
-  Set_Direction(DIR_RIGHT, 1);
+  Set_Direction(DIR_RIGHT, true);
 
   Set_Middle_Count(4);
   // create default images
   Add_Image(pVideo->Get_Surface("ground/green_1/slider/1/brown/left.png"));
   Add_Image(pVideo->Get_Surface("ground/green_1/slider/1/brown/middle.png"));
   Add_Image(pVideo->Get_Surface("ground/green_1/slider/1/brown/right.png"));
-  Set_Image_Num(1, 1);
+  Set_Image_Num(1, true);
 
   Update_Rect();
 
@@ -104,11 +104,11 @@ void cMoving_Platform ::Init_Links(void) {
 
 cMoving_Platform* cMoving_Platform ::Copy(void) const {
   cMoving_Platform* moving_platform = new cMoving_Platform(m_sprite_manager);
-  moving_platform->Set_Pos(m_start_pos_x, m_start_pos_y, 1);
+  moving_platform->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   moving_platform->Set_Move_Type(m_move_type);
   moving_platform->Set_Path_Identifier(m_path_state.m_path_identifier);
   moving_platform->Set_Massive_Type(m_massive_type);
-  moving_platform->Set_Direction(m_start_direction, 1);
+  moving_platform->Set_Direction(m_start_direction, true);
   moving_platform->Set_Max_Distance(m_max_distance);
   moving_platform->Set_Speed(m_speed);
   moving_platform->Set_Touch_Time(m_touch_time);
@@ -124,7 +124,7 @@ cMoving_Platform* cMoving_Platform ::Copy(void) const {
 void cMoving_Platform ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
   // move type
   Set_Move_Type(static_cast<Moving_Platform_Type>(
       attributes.getValueAsInteger("move_type", m_move_type)));
@@ -143,7 +143,7 @@ void cMoving_Platform ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
                           .getValueAsString("direction", Get_Direction_Name(
                                                              m_start_direction))
                           .c_str()),
-                  1);
+                  true);
     // max distance
     Set_Max_Distance(
         attributes.getValueAsInteger("max_distance", m_max_distance));
@@ -332,9 +332,9 @@ void cMoving_Platform ::Set_Move_Type(Moving_Platform_Type move_type) {
 
   if (m_move_type == MOVING_PLATFORM_TYPE_CIRCLE) {
     if (m_start_direction == DIR_UP) {
-      Set_Direction(DIR_LEFT, 1);
+      Set_Direction(DIR_LEFT, true);
     } else if (m_start_direction == DIR_DOWN) {
-      Set_Direction(DIR_RIGHT, 1);
+      Set_Direction(DIR_RIGHT, true);
     }
   }
 }
@@ -348,13 +348,13 @@ void cMoving_Platform ::Set_Massive_Type(MassiveType new_type) {
   m_massive_type = new_type;
 
   if (m_massive_type == MASS_MASSIVE) {
-    m_can_be_ground = 1;
+    m_can_be_ground = true;
   } else if (m_massive_type == MASS_PASSIVE) {
-    m_can_be_ground = 0;
+    m_can_be_ground = false;
   } else if (m_massive_type == MASS_HALFMASSIVE) {
-    m_can_be_ground = 1;
+    m_can_be_ground = true;
   } else if (m_massive_type == MASS_CLIMBABLE) {
-    m_can_be_ground = 0;
+    m_can_be_ground = false;
   }
 
   Create_Name();
@@ -453,7 +453,7 @@ void cMoving_Platform ::Set_Image_Top_Left(cGL_Surface* surface) {
 
   // top left image sets main image
   m_curr_img = -1;
-  Set_Image_Num(0, 1);
+  Set_Image_Num(0, true);
 
   Update_Rect();
 }
@@ -496,7 +496,7 @@ void cMoving_Platform ::Update(void) {
     if (m_platform_state == MOVING_PLATFORM_TOUCHED &&
         m_touch_counter > m_touch_time) {
       m_platform_state = MOVING_PLATFORM_SHAKE;
-      m_shake_dir = 0;
+      m_shake_dir = false;
     } else if (m_platform_state == MOVING_PLATFORM_SHAKE) {
       m_shake_counter += pFramerate->m_speed_factor;
 
@@ -532,7 +532,7 @@ void cMoving_Platform ::Update(void) {
 
       // drop objects when falling fast
       if (m_can_be_ground && m_vely > 15.0f) {
-        m_can_be_ground = 0;
+        m_can_be_ground = false;
       }
 
       if (m_pos_x > m_start_pos_x) {
@@ -545,8 +545,8 @@ void cMoving_Platform ::Update(void) {
       if (m_col_rect.m_y >
           pActive_Camera->m_limit_rect.m_y + game_res_h + 300.0f) {
         m_platform_state = MOVING_PLATFORM_STAY;
-        m_can_be_ground = 0;
-        Set_Active(0);
+        m_can_be_ground = false;
+        Set_Active(false);
       }
     }
   }
@@ -877,10 +877,10 @@ void cMoving_Platform ::Update_Velocity(void) {
 bool cMoving_Platform ::Is_Update_Valid(void) {
   // if not visible
   if (!m_active) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 bool cMoving_Platform ::Is_Draw_Valid(void) {
@@ -890,7 +890,7 @@ bool cMoving_Platform ::Is_Draw_Valid(void) {
   if (editor_enabled) {
     // if active mouse object
     if (pMouseCursor->m_active_object == this) {
-      return 1;
+      return true;
     }
   }
 
@@ -916,7 +916,7 @@ Col_Valid_Type cMoving_Platform ::Validate_Collision(cSprite* obj) {
   }
   if (obj->m_type == TYPE_BALL) {
     if (obj->Is_On_Top(this)) {
-      obj->Set_On_Top(this, 0);
+      obj->Set_On_Top(this, false);
 
       return COL_VTYPE_INTERNAL;
     }
@@ -1029,7 +1029,7 @@ void cMoving_Platform ::Editor_Activate(void) {
   Editor_Add(UTF8_("Speed"), UTF8_("Maximum speed"), editbox, 120);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_speed, 6, 0));
+  editbox->setText(float_to_string(m_speed, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(&cMoving_Platform::Editor_Speed_Text_Changed,
@@ -1042,7 +1042,7 @@ void cMoving_Platform ::Editor_Activate(void) {
              UTF8_("Time when touched until shaking starts"), editbox, 120);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_touch_time, 6, 0));
+  editbox->setText(float_to_string(m_touch_time, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1055,7 +1055,7 @@ void cMoving_Platform ::Editor_Activate(void) {
              editbox, 120);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_shake_time, 6, 0));
+  editbox->setText(float_to_string(m_shake_time, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1070,7 +1070,7 @@ void cMoving_Platform ::Editor_Activate(void) {
       editbox, 120);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_touch_move_time, 6, 0));
+  editbox->setText(float_to_string(m_touch_move_time, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -1142,25 +1142,25 @@ void cMoving_Platform ::Editor_State_Update(void) {
 
   if (m_move_type == MOVING_PLATFORM_TYPE_PATH ||
       m_move_type == MOVING_PLATFORM_TYPE_PATH_BACKWARDS) {
-    editbox_path_identifier->setEnabled(1);
-    combobox_direction->setEnabled(0);
-    editbox_max_distance->setEnabled(0);
+    editbox_path_identifier->setEnabled(true);
+    combobox_direction->setEnabled(false);
+    editbox_max_distance->setEnabled(false);
   } else {
-    editbox_path_identifier->setEnabled(0);
-    combobox_direction->setEnabled(1);
-    editbox_max_distance->setEnabled(1);
+    editbox_path_identifier->setEnabled(false);
+    combobox_direction->setEnabled(true);
+    editbox_max_distance->setEnabled(true);
 
     // remove invalid directions
     if (m_move_type == MOVING_PLATFORM_TYPE_CIRCLE) {
       CEGUI::ListboxItem* item =
-          combobox_direction->findItemWithText("up", NULL);
+          combobox_direction->findItemWithText("up", nullptr);
 
       if (item) {
         combobox_direction->removeItem(item);
-        item = NULL;
+        item = nullptr;
       }
 
-      item = combobox_direction->findItemWithText("down", NULL);
+      item = combobox_direction->findItemWithText("down", nullptr);
 
       if (item) {
         combobox_direction->removeItem(item);
@@ -1169,13 +1169,13 @@ void cMoving_Platform ::Editor_State_Update(void) {
     // add usable direction
     else {
       CEGUI::ListboxItem* item =
-          combobox_direction->findItemWithText("up", NULL);
+          combobox_direction->findItemWithText("up", nullptr);
 
       if (!item) {
         combobox_direction->addItem(new CEGUI::ListboxTextItem("up"));
       }
 
-      item = combobox_direction->findItemWithText("down", NULL);
+      item = combobox_direction->findItemWithText("down", nullptr);
 
       if (!item) {
         combobox_direction->addItem(new CEGUI::ListboxTextItem("down"));
@@ -1203,7 +1203,7 @@ bool cMoving_Platform ::Editor_Move_Type_Select(const CEGUI::EventArgs& event) {
 
   Editor_State_Update();
 
-  return 1;
+  return true;
 }
 
 bool cMoving_Platform ::Editor_Path_Identifier_Text_Changed(
@@ -1215,7 +1215,7 @@ bool cMoving_Platform ::Editor_Path_Identifier_Text_Changed(
 
   Set_Path_Identifier(str_text);
 
-  return 1;
+  return true;
 }
 
 bool cMoving_Platform ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
@@ -1224,9 +1224,9 @@ bool cMoving_Platform ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   CEGUI::ListboxItem* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
-  Set_Direction(Get_Direction_Id(item->getText().c_str()), 1);
+  Set_Direction(Get_Direction_Id(item->getText().c_str()), true);
 
-  return 1;
+  return true;
 }
 
 bool cMoving_Platform ::Editor_Max_Distance_Text_Changed(
@@ -1238,7 +1238,7 @@ bool cMoving_Platform ::Editor_Max_Distance_Text_Changed(
 
   Set_Max_Distance(string_to_int(str_text));
 
-  return 1;
+  return true;
 }
 
 bool cMoving_Platform ::Editor_Speed_Text_Changed(
@@ -1250,7 +1250,7 @@ bool cMoving_Platform ::Editor_Speed_Text_Changed(
 
   Set_Speed(string_to_float(str_text));
 
-  return 1;
+  return true;
 }
 
 bool cMoving_Platform ::Editor_Touch_Time_Text_Changed(
@@ -1262,7 +1262,7 @@ bool cMoving_Platform ::Editor_Touch_Time_Text_Changed(
 
   Set_Touch_Time(string_to_float(str_text));
 
-  return 1;
+  return true;
 }
 
 bool cMoving_Platform ::Editor_Shake_Time_Text_Changed(
@@ -1274,7 +1274,7 @@ bool cMoving_Platform ::Editor_Shake_Time_Text_Changed(
 
   Set_Shake_Time(string_to_float(str_text));
 
-  return 1;
+  return true;
 }
 
 bool cMoving_Platform ::Editor_Touch_Move_Time_Text_Changed(
@@ -1286,7 +1286,7 @@ bool cMoving_Platform ::Editor_Touch_Move_Time_Text_Changed(
 
   Set_Touch_Move_Time(string_to_float(str_text));
 
-  return 1;
+  return true;
 }
 
 bool cMoving_Platform ::Editor_Hor_Middle_Count_Text_Changed(
@@ -1298,7 +1298,7 @@ bool cMoving_Platform ::Editor_Hor_Middle_Count_Text_Changed(
 
   Set_Middle_Count(string_to_int(str_text));
 
-  return 1;
+  return true;
 }
 
 bool cMoving_Platform ::Editor_Image_Top_Left_Text_Changed(
@@ -1310,7 +1310,7 @@ bool cMoving_Platform ::Editor_Image_Top_Left_Text_Changed(
 
   Set_Image_Top_Left(pVideo->Get_Surface(str_text));
 
-  return 1;
+  return true;
 }
 
 bool cMoving_Platform ::Editor_Image_Top_Middle_Text_Changed(
@@ -1322,7 +1322,7 @@ bool cMoving_Platform ::Editor_Image_Top_Middle_Text_Changed(
 
   Set_Image_Top_Middle(pVideo->Get_Surface(str_text));
 
-  return 1;
+  return true;
 }
 
 bool cMoving_Platform ::Editor_Image_Top_Right_Text_Changed(
@@ -1334,7 +1334,7 @@ bool cMoving_Platform ::Editor_Image_Top_Right_Text_Changed(
 
   Set_Image_Top_Right(pVideo->Get_Surface(str_text));
 
-  return 1;
+  return true;
 }
 
 void cMoving_Platform ::Create_Name(void) {

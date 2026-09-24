@@ -54,14 +54,14 @@ void cRokko ::Init(void) {
   m_pos_z = 0.03f;
   m_gravity_max = 26.0f;
   m_editor_pos_z = 0.09f;
-  m_can_be_on_ground = 0;
+  m_can_be_on_ground = false;
   m_camera_range = 4000;
-  Set_Rotation_Affects_Rect(1);
-  Set_Active(0);
+  Set_Rotation_Affects_Rect(true);
+  Set_Active(false);
 
-  m_fire_resistant = 1;
+  m_fire_resistant = true;
   m_ice_resistance = 1;
-  m_can_be_hit_from_shell = 0;
+  m_can_be_hit_from_shell = false;
 
   Set_Direction(DIR_LEFT);
   Set_Speed(8.5f);
@@ -87,7 +87,7 @@ cRokko* cRokko ::Copy(void) const {
 void cRokko ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
   // direction
   Set_Direction(Get_Direction_Id(
       attributes
@@ -125,7 +125,7 @@ void cRokko ::Load_From_Savegame(cSave_Level_Object* save_object) {
 
   // activate
   if (m_state == STA_FLY) {
-    Activate(0);
+    Activate(false);
   }
 }
 
@@ -138,26 +138,26 @@ void cRokko ::Set_Direction(const ObjectDirection dir) {
   // clear old images
   Clear_Images();
 
-  cEnemy::Set_Direction(dir, 1);
+  cEnemy::Set_Direction(dir, true);
   m_name = "Rokko ";
   m_name += _(Get_Direction_Name(m_start_direction).c_str());
 
   Add_Image(pVideo->Get_Surface("enemy/rokko/r.png"));
   if (m_direction == DIR_LEFT) {
-    Set_Rotation(0.0f, 180.0f, 0.0f, 1);
+    Set_Rotation(0.0f, 180.0f, 0.0f, true);
   } else if (m_direction == DIR_RIGHT) {
-    Set_Rotation(0.0f, 0.0f, 0.0f, 1);
+    Set_Rotation(0.0f, 0.0f, 0.0f, true);
   } else if (m_direction == DIR_UP) {
-    Set_Rotation(0.0f, 0.0f, 270.0f, 1);
+    Set_Rotation(0.0f, 0.0f, 270.0f, true);
   } else if (m_direction == DIR_DOWN) {
-    Set_Rotation(0.0f, 0.0f, 90.0f, 1);
+    Set_Rotation(0.0f, 0.0f, 90.0f, true);
   } else {
     printf("Warning: Unknown Rokko direction %s\n",
            Get_Direction_Name(dir).c_str());
   }
 
   Update_Distance_rect();
-  Set_Image_Num(0, 1);
+  Set_Image_Num(0, true);
 }
 
 void cRokko ::Set_Speed(float nspeed) {
@@ -195,7 +195,7 @@ void cRokko ::Activate(bool with_sound /* = 1 */) {
 
   m_state = STA_FLY;
   m_massive_type = MASS_MASSIVE;
-  Set_Active(1);
+  Set_Active(true);
 
   if (m_direction == DIR_LEFT) {
     Set_Velocity(-m_speed, 0.0f);
@@ -209,7 +209,7 @@ void cRokko ::Activate(bool with_sound /* = 1 */) {
 }
 
 void cRokko ::DownGrade(bool force /* = 0 */) {
-  Set_Dead(1);
+  Set_Dead(true);
   m_massive_type = MASS_PASSIVE;
   m_vely = 0;
 
@@ -249,7 +249,7 @@ void cRokko ::Update_Dying(void) {
   if (m_col_rect.m_y - 200.0f > pActive_Camera->m_limit_rect.m_y + game_res_h) {
     m_rot_z = 0.0f;
     m_massive_type = MASS_PASSIVE;
-    Set_Active(0);
+    Set_Active(false);
     m_velx = 0.0f;
   }
 }
@@ -296,10 +296,10 @@ void cRokko ::Draw(cSurface_Request* request /* = NULL */) {
     pVideo->Draw_Rect(&final_distance, m_pos_z - 0.00001f, &whitealpha128);
   }
 
-  bool create_request = 0;
+  bool create_request = false;
 
   if (!request) {
-    create_request = 1;
+    create_request = true;
     // create request
     request = new cSurface_Request();
   }
@@ -370,7 +370,7 @@ GL_rect cRokko ::Get_Final_Distance_Rect(void) const {
 }
 
 void cRokko ::Generate_Smoke(unsigned int amount /* = 10 */) const {
-  cParticle_Emitter* anim = NULL;
+  cParticle_Emitter* anim = nullptr;
 
   // moving smoke particle animation
   anim = new cParticle_Emitter(m_sprite_manager);
@@ -415,7 +415,7 @@ void cRokko ::Generate_Smoke(unsigned int amount /* = 10 */) const {
   anim->Set_Speed(1.0f, 0.2f);
   anim->Set_Const_Rotation_Z(-1, 2);
   anim->Set_Color(Color(static_cast<Uint8>(155), 150, 130));
-  anim->Set_Fading_Alpha(1);
+  anim->Set_Fading_Alpha(true);
 
   anim->Emit();
   pActive_Animation_Manager->Add(anim);
@@ -435,18 +435,18 @@ void cRokko ::Generate_Sparks(unsigned int amount /* = 5 */) const {
   anim->Set_Color(Color(static_cast<Uint8>(250), 250, 200),
                   Color(static_cast<Uint8>(5), 5, 0, 0));
   anim->Set_Scale(0.3f, 0.3f);
-  anim->Set_Fading_Size(1);
-  anim->Set_Fading_Alpha(0);
+  anim->Set_Fading_Size(true);
+  anim->Set_Fading_Alpha(false);
   anim->Emit();
   pActive_Animation_Manager->Add(anim);
 }
 
 bool cRokko ::Is_Update_Valid(void) {
   if (m_dead || m_freeze_counter) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 bool cRokko ::Is_Draw_Valid(void) {
@@ -456,7 +456,7 @@ bool cRokko ::Is_Draw_Valid(void) {
   if (editor_enabled) {
     // if active mouse object
     if (pMouseCursor->m_active_object == this) {
-      return 1;
+      return true;
     }
   }
 
@@ -498,9 +498,10 @@ void cRokko ::Handle_Collision_Player(cObjectCollision* collision) {
     if (collision->m_direction == DIR_TOP &&
         pLevel_Player->m_state != STA_FLY) {
       pHud_Points->Add_Points(m_kill_points, m_pos_x + m_rect.m_w / 3,
-                              m_pos_y - 10.0f, "", static_cast<Uint8>(255), 1);
+                              m_pos_y - 10.0f, "", static_cast<Uint8>(255),
+                              true);
       pAudio->Play_Sound(m_kill_sound);
-      pLevel_Player->Action_Jump(1);
+      pLevel_Player->Action_Jump(true);
 
       pLevel_Player->Add_Kill_Multiplier();
       DownGrade();
@@ -512,7 +513,7 @@ void cRokko ::Handle_Collision_Player(cObjectCollision* collision) {
          collision->m_direction == DIR_LEFT) &&
         pLevel_Player->m_state == STA_FLY) {
       pHud_Points->Add_Points(m_kill_points, m_pos_x, m_pos_y - 5.0f, "",
-                              static_cast<Uint8>(255), 1);
+                              static_cast<Uint8>(255), true);
       pAudio->Play_Sound(m_kill_sound);
 
       pLevel_Player->Add_Kill_Multiplier();
@@ -553,7 +554,7 @@ void cRokko ::Editor_Activate(void) {
   Editor_Add(UTF8_("Speed"), UTF8_("Speed when activated"), editbox, 120);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_speed, 6, 0));
+  editbox->setText(float_to_string(m_speed, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(&cRokko::Editor_Speed_Text_Changed, this));
@@ -570,7 +571,7 @@ bool cRokko ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()));
 
-  return 1;
+  return true;
 }
 
 bool cRokko ::Editor_Speed_Text_Changed(const CEGUI::EventArgs& event) {
@@ -581,7 +582,7 @@ bool cRokko ::Editor_Speed_Text_Changed(const CEGUI::EventArgs& event) {
 
   Set_Speed(string_to_float(str_text));
 
-  return 1;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

@@ -74,14 +74,14 @@ class cMovingSprite : public cSprite {
 	 * if new_start_image is set the default start_image will be set to the given image
 	 * if del_img is set the given image will be deleted
 	*/
-  void Set_Image(cGL_Surface* new_image, bool new_start_image = 0,
-                 bool del_img = 0) override;
+  void Set_Image(cGL_Surface* new_image, bool new_start_image = false,
+                 bool del_img = false) override;
 
   /* Set the direction
 	 * if new_start_direction is set also set the start/editor direction
 	*/
   virtual void Set_Direction(const ObjectDirection dir,
-                             bool new_start_direction = 0);
+                             bool new_start_direction = false);
 
   // automatically slows down until not moving anymore
   void Auto_Slow_Down(float x_speed, float y_speed = 0);
@@ -89,14 +89,14 @@ class cMovingSprite : public cSprite {
   /* Moves this object
 	 * real : if set the speedfactor is not used
 	*/
-  void Move(float move_x, float move_y, const bool real = 0) override;
+  void Move(float move_x, float move_y, const bool real = false) override;
   /* Collision Move
 	 * if real is set the speedfactor will not be used
 	 * if force is set no collision detection will be performed
 	 * if check_on_ground is set after moving onground will be checked
 	*/
-  virtual void Col_Move(float move_x, float move_y, bool real = 0,
-                        bool force = 0, bool check_on_ground = 1);
+  virtual void Col_Move(float move_x, float move_y, bool real = false,
+                        bool force = false, bool check_on_ground = true);
 
   /* if the ground object moves then move us with it
 	 * massive moving ground can crunch us
@@ -110,7 +110,7 @@ class cMovingSprite : public cSprite {
   };
   // Sets the velocity from the given angle and speed
   inline void Set_Velocity_From_Angle(const float angle, const float speed,
-                                      const bool new_start_direction = 0) {
+                                      const bool new_start_direction = false) {
     m_velx = cos(angle * deg_to_rad) * speed;
     m_vely = sin(angle * deg_to_rad) * speed;
 
@@ -121,15 +121,15 @@ class cMovingSprite : public cSprite {
   /* Add Velocity
 	 * real : if set the speedfactor isn't used
 	*/
-  void Add_Velocity(const float x, const float y, const bool real = 0);
-  void Add_Velocity_X(const float x, const bool real = 0);
-  void Add_Velocity_Y(const float y, const bool real = 0);
+  void Add_Velocity(const float x, const float y, const bool real = false);
+  void Add_Velocity_X(const float x, const bool real = false);
+  void Add_Velocity_Y(const float y, const bool real = false);
   /* Add Velocity
 	* max : the maximum velocity
 	* real : if set the speedfactor isn't used
 	*/
   inline void Add_Velocity_X_Max(const float x, const float max_x,
-                                 const bool real = 0) {
+                                 const bool real = false) {
     Add_Velocity_X(x, real);
 
     if (m_velx > max_x) {
@@ -137,7 +137,7 @@ class cMovingSprite : public cSprite {
     }
   }
   inline void Add_Velocity_Y_Max(const float y, const float max_y,
-                                 const bool real = 0) {
+                                 const bool real = false) {
     Add_Velocity_Y(y, real);
 
     if (m_vely > max_y) {
@@ -149,7 +149,7 @@ class cMovingSprite : public cSprite {
 	* real : if set the speedfactor isn't used
 	*/
   inline void Add_Velocity_X_Min(const float x, const float min_x,
-                                 const bool real = 0) {
+                                 const bool real = false) {
     Add_Velocity_X(x, real);
 
     if (m_velx < min_x) {
@@ -157,7 +157,7 @@ class cMovingSprite : public cSprite {
     }
   }
   inline void Add_Velocity_Y_Min(const float y, const float min_y,
-                                 const bool real = 0) {
+                                 const bool real = false) {
     Add_Velocity_Y(y, real);
 
     if (m_vely < min_y) {
@@ -175,7 +175,7 @@ class cMovingSprite : public cSprite {
   /* draw
 	* if request is NULL automatically creates the request
 	*/
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   /* Check if moving the current collision rect position with the given values is valid
 	 * check_type : set which collision types are added to the list
@@ -185,7 +185,7 @@ class cMovingSprite : public cSprite {
   cObjectCollisionType* Collision_Check_Relative(
       const float x, const float y, const float w = 0.0f, const float h = 0.0f,
       const ColCheckType check_type = COLLIDE_COMPLETE,
-      cSprite_List* objects = NULL) {
+      cSprite_List* objects = nullptr) {
     return Collision_Check_Absolute(m_col_rect.m_x + x, m_col_rect.m_y + y, w,
                                     h, check_type, objects);
   }
@@ -198,7 +198,7 @@ class cMovingSprite : public cSprite {
   cObjectCollisionType* Collision_Check_Absolute(
       const float x, const float y, const float w = 0.0f, const float h = 0.0f,
       const ColCheckType check_type = COLLIDE_COMPLETE,
-      cSprite_List* objects = NULL);
+      cSprite_List* objects = nullptr);
   /* Check if the given position is valid
 	 * new_rect : this is the source collision rect
 	 * check_type : set which collision types are added to the list
@@ -207,7 +207,7 @@ class cMovingSprite : public cSprite {
 	*/
   cObjectCollisionType* Collision_Check(
       const GL_rect& new_rect, const ColCheckType check_type = COLLIDE_COMPLETE,
-      cSprite_List* objects = NULL);
+      cSprite_List* objects = nullptr);
 
   // Check if the given movement goes out of the level rect and handle possible out of level events
   void Check_And_Handle_Out_Of_Level(const float move_x, const float move_y);
@@ -217,11 +217,11 @@ class cMovingSprite : public cSprite {
   bool Is_Out_Of_Level_Top(const float move_y) const;
   bool Is_Out_Of_Level_Bottom(const float move_x) const;
   // Set the ground object
-  virtual bool Set_On_Ground(cSprite* obj, bool set_on_top = 1);
+  virtual bool Set_On_Ground(cSprite* obj, bool set_on_top = true);
   // Check if the Object is onground and sets the state to onground
   virtual void Check_on_Ground(void);
   // object looses onground state
-  inline void Reset_On_Ground(void) { m_ground_object = NULL; };
+  inline void Reset_On_Ground(void) { m_ground_object = nullptr; };
   // Corrects the position if the object got stuck
   void Update_Anti_Stuck(void);
 
@@ -235,12 +235,12 @@ class cMovingSprite : public cSprite {
   /* downgrade state ( if already at weakest state it dies )
 	 * force : usually dies or a complete downgrade
 	*/
-  virtual void DownGrade(bool force = 0) {};
+  virtual void DownGrade(bool force = false) {};
 
   /* set the horizontal sprite rotation based on the current direction
 	 * if start_rotation is set also set the start/editor rotation
 	*/
-  void Update_Rotation_Hor(bool start_rotation = 0);
+  void Update_Rotation_Hor(bool start_rotation = false);
 
   /* handle collision with object that moves it with the current velocity
 	 * if moved object gets stuck it is downgraded
@@ -265,7 +265,7 @@ class cMovingSprite : public cSprite {
 	 * handle_now : if set to true it is handled now instead of adding it to the list
 	*/
   virtual void Send_Collision(const cObjectCollision* collision,
-                              bool handle_now = 0);
+                              bool handle_now = false);
   // default collision handler
   void Handle_Collision(cObjectCollision* collision) override;
   // handle moved out of Level event
@@ -307,7 +307,7 @@ class cMovingSprite : public cSprite {
                                           float step_size_x, float step_size_y,
                                           float final_pos_x, float final_pos_y,
                                           cSprite_List sprite_list,
-                                          bool stop_on_internal = 0);
+                                          bool stop_on_internal = false);
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

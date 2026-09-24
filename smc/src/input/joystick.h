@@ -71,7 +71,7 @@ class cJoystick {
   SDL_Joystick* m_joystick;
 
   // button state array
-  typedef vector<bool> ButtonList;
+  using ButtonList = vector<bool>;
   ButtonList m_buttons;
 
   // analog directions

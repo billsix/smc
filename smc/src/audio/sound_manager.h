@@ -42,7 +42,7 @@ class cSound {
   Mix_Chunk* m_chunk;
 };
 
-typedef vector<cSound*> SoundList;
+using SoundList = vector<cSound*>;
 
 /* *** *** *** *** *** *** cSound_Manager *** *** *** *** *** *** *** *** *** *** *** */
 

@@ -64,14 +64,14 @@ class cThromp : public cEnemy {
   /* downgrade state ( if already the weakest state it dies )
 	 * force : usually dies or a complete downgrade
 	*/
-  void DownGrade(bool force = 0) override;
+  void DownGrade(bool force = false) override;
   // dying animation update
   void Update_Dying(void) override;
 
   // update
   void Update(void) override;
   // draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // update images
   void Update_Images(void);

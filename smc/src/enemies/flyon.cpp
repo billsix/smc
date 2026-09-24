@@ -52,11 +52,11 @@ cFlyon ::~cFlyon(void) {
 void cFlyon ::Init(void) {
   m_type = TYPE_FLYON;
   m_pos_z = 0.06f;
-  Set_Rotation_Affects_Rect(1);
+  Set_Rotation_Affects_Rect(true);
   m_editor_pos_z = 0.089f;
   m_camera_range = 1000;
-  m_can_be_on_ground = 0;
-  m_can_be_ground = 0;
+  m_can_be_on_ground = false;
+  m_can_be_ground = false;
 
   m_state = STA_STAY;
   Set_Direction(DIR_UP);
@@ -68,7 +68,7 @@ void cFlyon ::Init(void) {
   m_kill_points = 100;
 
   m_wait_time = Get_Random_Float(0.0f, 70.0f);
-  m_move_back = 0;
+  m_move_back = false;
 }
 
 cFlyon* cFlyon ::Copy(void) const {
@@ -84,7 +84,7 @@ cFlyon* cFlyon ::Copy(void) const {
 void cFlyon ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
   // direction
   Set_Direction(Get_Direction_Id(
       attributes
@@ -174,11 +174,11 @@ void cFlyon ::Set_Image_Dir(std::string dir) {
   Add_Image(pVideo->Get_Surface(m_img_dir + "open_1.png"));
   Add_Image(pVideo->Get_Surface(m_img_dir + "open_2.png"));
   // set start image
-  Set_Image_Num(0, 1);
+  Set_Image_Num(0, true);
 
-  Set_Animation(1);
+  Set_Animation(true);
   Set_Animation_Image_Range(0, 3);
-  Set_Time_All(130, 1);
+  Set_Time_All(130, true);
   Reset_Animation();
 
   Create_Name();
@@ -195,19 +195,19 @@ void cFlyon ::Set_Direction(const ObjectDirection dir) {
     return;
   }
 
-  cEnemy::Set_Direction(dir, 1);
+  cEnemy::Set_Direction(dir, true);
 
   // clear
-  Set_Rotation(0.0f, 0.0f, 0.0f, 1);
+  Set_Rotation(0.0f, 0.0f, 0.0f, true);
 
   if (m_start_direction == DIR_UP) {
     // default
   } else if (m_start_direction == DIR_LEFT) {
-    Set_Rotation_Z(270.0f, 1);
+    Set_Rotation_Z(270.0f, true);
   } else if (m_start_direction == DIR_RIGHT) {
-    Set_Rotation_Z(90.0f, 1);
+    Set_Rotation_Z(90.0f, true);
   } else if (m_start_direction == DIR_DOWN) {
-    Set_Rotation_Z(180.0f, 1);
+    Set_Rotation_Z(180.0f, true);
   }
 
   Set_Velocity(0.0f, 0.0f);
@@ -234,7 +234,7 @@ void cFlyon ::Set_Speed(float val) {
 }
 
 void cFlyon ::DownGrade(bool force /* = 0 */) {
-  Set_Dead(1);
+  Set_Dead(true);
   m_massive_type = MASS_PASSIVE;
   m_counter = 0.0f;
   m_velx = 0.0f;
@@ -259,7 +259,7 @@ void cFlyon ::Update_Dying(void) {
 
   // default death
   if (!Is_Float_Equal(m_rot_z, 180.0f)) {
-    Set_Active(0);
+    Set_Active(false);
   }
   // falling death
   else {
@@ -274,7 +274,7 @@ void cFlyon ::Update_Dying(void) {
     // if below disable
     else {
       m_rot_z = 0.0f;
-      Set_Active(0);
+      Set_Active(false);
     }
   }
 }
@@ -288,16 +288,16 @@ void cFlyon ::Set_Moving_State(Moving_state new_state) {
     m_velx = 0.0f;
     m_vely = 0.0f;
 
-    m_move_back = 0;
+    m_move_back = false;
 
     Set_Image_Num(0);
     Reset_Animation();
-    Set_Animation(0);
+    Set_Animation(false);
   } else if (new_state == STA_FLY) {
     m_velx = m_dest_velx;
     m_vely = m_dest_vely;
-    m_move_back = 0;
-    Set_Animation(1);
+    m_move_back = false;
+    Set_Animation(true);
   }
 
   m_state = new_state;
@@ -424,7 +424,7 @@ void cFlyon ::Update(void) {
         m_velx = -m_dest_velx * 0.01f;
         m_vely = -m_dest_vely * 0.01f;
 
-        m_move_back = 1;
+        m_move_back = true;
       }
     }
     // moving back
@@ -520,10 +520,10 @@ void cFlyon ::Update_Dest_Vel(void) {
 
 bool cFlyon ::Is_Update_Valid(void) {
   if (m_dead || m_freeze_counter) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 bool cFlyon ::Is_Draw_Valid(void) {
@@ -533,7 +533,7 @@ bool cFlyon ::Is_Draw_Valid(void) {
   if (editor_enabled) {
     // if active mouse object
     if (pMouseCursor->m_active_object == this) {
-      return 1;
+      return true;
     }
   }
 
@@ -565,7 +565,7 @@ void cFlyon ::Handle_Collision_Player(cObjectCollision* collision) {
       !pLevel_Player->m_invincible && collision->m_direction == m_direction) {
     // todo : create again
     //pAudio->PlaySound( "player/maryo_au.ogg", RID_MARYO_AU );
-    pLevel_Player->Action_Jump(1);
+    pLevel_Player->Action_Jump(true);
   }
 
   pLevel_Player->DownGrade_Player();
@@ -621,7 +621,7 @@ void cFlyon ::Editor_Activate(void) {
              120);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_speed, 6, 0));
+  editbox->setText(float_to_string(m_speed, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(&cFlyon::Editor_Speed_Text_Changed, this));
@@ -638,7 +638,7 @@ bool cFlyon ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()));
 
-  return 1;
+  return true;
 }
 
 bool cFlyon ::Editor_Image_Dir_Text_Changed(const CEGUI::EventArgs& event) {
@@ -649,7 +649,7 @@ bool cFlyon ::Editor_Image_Dir_Text_Changed(const CEGUI::EventArgs& event) {
 
   Set_Image_Dir(str_text);
 
-  return 1;
+  return true;
 }
 
 bool cFlyon ::Editor_Max_Distance_Text_Changed(const CEGUI::EventArgs& event) {
@@ -660,7 +660,7 @@ bool cFlyon ::Editor_Max_Distance_Text_Changed(const CEGUI::EventArgs& event) {
 
   Set_Max_Distance(static_cast<float>(string_to_int(str_text)));
 
-  return 1;
+  return true;
 }
 
 bool cFlyon ::Editor_Speed_Text_Changed(const CEGUI::EventArgs& event) {
@@ -671,7 +671,7 @@ bool cFlyon ::Editor_Speed_Text_Changed(const CEGUI::EventArgs& event) {
 
   Set_Speed(string_to_float(str_text));
 
-  return 1;
+  return true;
 }
 
 void cFlyon ::Create_Name(void) {

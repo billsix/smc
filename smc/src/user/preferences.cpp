@@ -32,7 +32,7 @@ namespace SMC {
 /* *** *** *** *** *** *** *** cPreferences *** *** *** *** *** *** *** *** *** *** */
 
 // Game
-const bool cPreferences::m_always_run_default = 0;
+const bool cPreferences::m_always_run_default = false;
 const std::string cPreferences::m_menu_level_default = "menu_green_1";
 const float cPreferences::m_camera_hor_speed_default = 0.3f;
 const float cPreferences::m_camera_ver_speed_default = 0.2f;
@@ -40,7 +40,7 @@ const float cPreferences::m_camera_ver_speed_default = 0.2f;
 #ifdef _DEBUG
 const bool cPreferences::m_video_fullscreen_default = 0;
 #else
-const bool cPreferences::m_video_fullscreen_default = 1;
+const bool cPreferences::m_video_fullscreen_default = true;
 #endif
 const Uint16 cPreferences::m_video_screen_w_default = 1024;
 const Uint16 cPreferences::m_video_screen_h_default = 768;
@@ -48,15 +48,15 @@ const Uint8 cPreferences::m_video_screen_bpp_default = 32;
 /* disable by default because of possible bad drivers
  * which can't handle visual sync
 */
-const bool cPreferences::m_video_vsync_default = 0;
+const bool cPreferences::m_video_vsync_default = false;
 const Uint16 cPreferences::m_video_fps_limit_default = 240;
 // default geometry detail is medium
 const float cPreferences::m_geometry_quality_default = 0.5f;
 // default texture detail is high
 const float cPreferences::m_texture_quality_default = 0.75f;
 // Audio
-const bool cPreferences::m_audio_music_default = 1;
-const bool cPreferences::m_audio_sound_default = 1;
+const bool cPreferences::m_audio_music_default = true;
+const bool cPreferences::m_audio_sound_default = true;
 const unsigned int cPreferences::m_audio_hz_default = 44100;
 const Uint8 cPreferences::m_sound_volume_default = 100;
 const Uint8 cPreferences::m_music_volume_default = 80;
@@ -80,8 +80,8 @@ const SDLKey cPreferences::m_key_editor_pixel_move_left_default = SDLK_KP_4;
 const SDLKey cPreferences::m_key_editor_pixel_move_right_default = SDLK_KP_6;
 const float cPreferences::m_scroll_speed_default = 1.0f;
 // Joystick
-const bool cPreferences::m_joy_enabled_default = 1;
-const bool cPreferences::m_joy_analog_jump_default = 0;
+const bool cPreferences::m_joy_enabled_default = true;
+const bool cPreferences::m_joy_analog_jump_default = false;
 const int cPreferences::m_joy_axis_hor_default = 0;
 const int cPreferences::m_joy_axis_ver_default = 1;
 const Sint16 cPreferences::m_joy_axis_threshold_default = 10000;
@@ -91,8 +91,8 @@ const Uint8 cPreferences::m_joy_button_item_default = 3;
 const Uint8 cPreferences::m_joy_button_action_default = 2;
 const Uint8 cPreferences::m_joy_button_exit_default = 4;
 // Editor
-const bool cPreferences::m_editor_mouse_auto_hide_default = 0;
-const bool cPreferences::m_editor_show_item_images_default = 1;
+const bool cPreferences::m_editor_mouse_auto_hide_default = false;
+const bool cPreferences::m_editor_show_item_images_default = true;
 const unsigned int cPreferences::m_editor_item_image_size_default = 50;
 
 cPreferences ::cPreferences(void) { Reset_All(); }
@@ -124,7 +124,7 @@ bool cPreferences ::Load(const std::string& filename /* = "" */) {
         printf("Couldn't open preferences file : %s\n",
                m_config_filename.c_str());
       }
-      return 0;
+      return false;
     }
   }
 
@@ -152,7 +152,7 @@ bool cPreferences ::Load(const std::string& filename /* = "" */) {
     pResource_Manager->Set_User_Directory(m_force_user_data_dir);
   }
 
-  return 1;
+  return true;
 }
 
 void cPreferences ::Save(void) {
@@ -275,8 +275,8 @@ void cPreferences ::Reset_All(void) {
   Reset_Editor();
 
   // Special
-  m_level_background_images = 1;
-  m_image_cache_enabled = 1;
+  m_level_background_images = true;
+  m_image_cache_enabled = true;
 
   // filename
   m_config_filename = "config.xml";
@@ -378,7 +378,7 @@ void cPreferences ::Apply(void) {
 
   // disable joystick if the joystick initialization failed
   if (pVideo->m_joy_init_failed) {
-    m_joy_enabled = 0;
+    m_joy_enabled = false;
   }
 }
 
@@ -401,7 +401,7 @@ void cPreferences ::Apply_Video(Uint16 screen_w, Uint16 screen_h,
     pVideo->m_geometry_quality = geometry_detail;
 
     // reinitialize video and reload textures from file
-    pVideo->Init_Video(1);
+    pVideo->Init_Video(true);
   }
   // no texture reload necessary
   else {
@@ -720,7 +720,7 @@ void cPreferences ::handle_item(CEGUI::XMLAttributes attributes) {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cPreferences* pPreferences = NULL;
+cPreferences* pPreferences = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

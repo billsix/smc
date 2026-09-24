@@ -104,7 +104,7 @@ class cFramerate {
   // ticks since last section
   Uint32 m_perf_last_ticks;
 
-  typedef vector<cPerformance_Timer*> Performance_Timer_List;
+  using Performance_Timer_List = vector<cPerformance_Timer*>;
   Performance_Timer_List m_perf_timer;
 };
 

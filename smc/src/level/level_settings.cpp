@@ -43,12 +43,12 @@ namespace SMC {
 
 cLevel_Settings ::cLevel_Settings(cSprite_Manager* sprite_manager,
                                   cLevel* level) {
-  m_active = 0;
+  m_active = false;
 
   m_level = level;
   m_camera = new cCamera(sprite_manager);
-  m_gui_window = NULL;
-  m_tabcontrol = NULL;
+  m_gui_window = nullptr;
+  m_tabcontrol = nullptr;
 }
 
 cLevel_Settings ::~cLevel_Settings(void) {
@@ -83,7 +83,7 @@ void cLevel_Settings ::Init(void) {
   CEGUI::Editbox* editbox_level_filename =
       static_cast<CEGUI::Editbox*>(wmgr.getWindow("editbox_level_filename"));
   editbox_level_filename->setText(
-      Trim_Filename(m_level->m_level_filename, 0, 0).c_str());
+      Trim_Filename(m_level->m_level_filename, false, false).c_str());
   // music filename
   CEGUI::Editbox* editbox_music_filename =
       static_cast<CEGUI::Editbox*>(wmgr.getWindow("editbox_music_filename"));
@@ -180,7 +180,7 @@ void cLevel_Settings ::Init(void) {
   // listbox
   CEGUI::Listbox* listbox =
       static_cast<CEGUI::Listbox*>(wmgr.getWindow("listbox_backgrounds"));
-  listbox->setSortingEnabled(1);
+  listbox->setSortingEnabled(true);
   listbox->subscribeEvent(
       CEGUI::Listbox::EventSelectionChanged,
       CEGUI::Event::Subscriber(&cLevel_Settings::Set_Background_Image, this));
@@ -311,7 +311,7 @@ void cLevel_Settings ::Enter(void) {
   // set active camera
   pActive_Camera = m_camera;
 
-  editor_enabled = 0;
+  editor_enabled = false;
 
   if (pMouseCursor->m_active_object) {
     pMouseCursor->Clear_Active_Object();
@@ -320,7 +320,7 @@ void cLevel_Settings ::Enter(void) {
   // Initialize level data
   Init();
   // set active
-  m_active = 1;
+  m_active = true;
 
   // update camera
   m_camera->Update_Position();
@@ -335,10 +335,11 @@ void cLevel_Settings ::Leave(void) {
   std::string level_filename =
       wmgr.getWindow("editbox_level_filename")->getText().c_str();
   if (level_filename.length() > 1 &&
-      Trim_Filename(m_level->m_level_filename, 0, 0).compare(level_filename) !=
-          0) {
+      Trim_Filename(m_level->m_level_filename, false, false)
+              .compare(level_filename) != 0) {
     m_level->Set_Filename(level_filename);
-    if (Box_Question(_("Save ") + Trim_Filename(level_filename, 0, 0) + " ?")) {
+    if (Box_Question(_("Save ") + Trim_Filename(level_filename, false, false) +
+                     " ?")) {
       m_level->Save();
     }
   }
@@ -401,10 +402,10 @@ void cLevel_Settings ::Unload(void) {
   // destroy CEGUI window
   pGuiSystem->getGUISheet()->removeChildWindow(m_gui_window);
   CEGUI::WindowManager::getSingleton().destroyWindow(m_gui_window);
-  m_gui_window = NULL;
-  m_tabcontrol = NULL;
+  m_gui_window = nullptr;
+  m_tabcontrol = nullptr;
 
-  m_active = 0;
+  m_active = false;
 }
 
 void cLevel_Settings ::Update(void) {
@@ -416,7 +417,7 @@ void cLevel_Settings ::Update(void) {
 
 void cLevel_Settings ::Draw(void) {
   pVideo->Clear_Screen();
-  pVideo->Draw_Rect(NULL, 0.00001f, &black);
+  pVideo->Draw_Rect(nullptr, 0.00001f, &black);
 
   // update performance timer
   pFramerate->m_perf_timer[PERF_DRAW_LEVEL_SETTINGS]->Update();
@@ -424,18 +425,18 @@ void cLevel_Settings ::Draw(void) {
 
 bool cLevel_Settings ::Key_Down(SDLKey key) {
   if (!m_active) {
-    return 0;
+    return false;
   }
 
   if (key == SDLK_ESCAPE) {
     Exit();
   } else {
     // not processed
-    return 0;
+    return false;
   }
 
   // key got processed
-  return 1;
+  return true;
 }
 
 void cLevel_Settings ::Set_Level(cLevel* level) { m_level = level; }
@@ -453,7 +454,7 @@ bool cLevel_Settings ::Add_Background_Image(const CEGUI::EventArgs& event) {
 
   Load_BG_Image_List();
 
-  return 1;
+  return true;
 }
 
 bool cLevel_Settings ::Delete_Background_Image(const CEGUI::EventArgs& event) {
@@ -462,7 +463,7 @@ bool cLevel_Settings ::Delete_Background_Image(const CEGUI::EventArgs& event) {
   CEGUI::ListboxItem* item = listbox->getFirstSelectedItem();
 
   if (!item) {
-    return 1;
+    return true;
   }
 
   // get background
@@ -475,7 +476,7 @@ bool cLevel_Settings ::Delete_Background_Image(const CEGUI::EventArgs& event) {
   // clear background image gui
   Update_BG_Image(CEGUI::EventArgs());
 
-  return 1;
+  return true;
 }
 
 bool cLevel_Settings ::Set_Background_Image(const CEGUI::EventArgs& event) {
@@ -504,13 +505,15 @@ bool cLevel_Settings ::Set_Background_Image(const CEGUI::EventArgs& event) {
     // position
     editbox =
         static_cast<CEGUI::Editbox*>(wmgr.getWindow("editbox_bg_image_posx"));
-    editbox->setText(float_to_string(background->m_start_pos_x, 6, 0).c_str());
+    editbox->setText(
+        float_to_string(background->m_start_pos_x, 6, false).c_str());
     editbox =
         static_cast<CEGUI::Editbox*>(wmgr.getWindow("editbox_bg_image_posy"));
-    editbox->setText(float_to_string(background->m_start_pos_y, 6, 0).c_str());
+    editbox->setText(
+        float_to_string(background->m_start_pos_y, 6, false).c_str());
     editbox =
         static_cast<CEGUI::Editbox*>(wmgr.getWindow("editbox_bg_image_posz"));
-    editbox->setText(float_to_string(background->m_pos_z, 6, 0).c_str());
+    editbox->setText(float_to_string(background->m_pos_z, 6, false).c_str());
     // speed
     CEGUI::Spinner* spinner = static_cast<CEGUI::Spinner*>(
         wmgr.getWindow("spinner_bg_image_speed_x"));
@@ -531,12 +534,12 @@ bool cLevel_Settings ::Set_Background_Image(const CEGUI::EventArgs& event) {
     Clear_Layer_Field();
   }
 
-  return 1;
+  return true;
 }
 
 bool cLevel_Settings ::Button_Apply(const CEGUI::EventArgs& event) {
   Exit();
-  return 1;
+  return true;
 }
 
 bool cLevel_Settings ::Update_BG_Colors(const CEGUI::EventArgs& event) {
@@ -603,7 +606,7 @@ bool cLevel_Settings ::Update_BG_Colors(const CEGUI::EventArgs& event) {
   statictext->setProperty("TextColours", CEGUI::PropertyHelper::colourToString(
                                              m_bg_color_2.Get_cegui_Color()));
 
-  return 1;
+  return true;
 }
 
 void cLevel_Settings ::Load_BG_Image_List(void) {
@@ -651,7 +654,7 @@ bool cLevel_Settings ::Update_BG_Image(const CEGUI::EventArgs& event) {
   // clear
   if (!item) {
     Clear_Layer_Field();
-    return 1;
+    return true;
   }
 
   std::string bg_type =
@@ -707,7 +710,7 @@ bool cLevel_Settings ::Update_BG_Image(const CEGUI::EventArgs& event) {
   // fixme : should update sorting because of the new name
   listbox->handleUpdatedItemData();
 
-  return 1;
+  return true;
 }
 
 void cLevel_Settings ::Clear_Layer_Field(void) {
@@ -736,7 +739,7 @@ bool cLevel_Settings ::Spinner_Difficulty_Changed(
   m_slider_difficulty->setCurrentValue(val);
   m_text_difficulty_name->setText(Get_Difficulty_Name(val));
 
-  return 1;
+  return true;
 }
 
 bool cLevel_Settings ::Slider_Difficulty_Changed(
@@ -749,7 +752,7 @@ bool cLevel_Settings ::Slider_Difficulty_Changed(
   m_spinner_difficulty->setCurrentValue(val);
   m_text_difficulty_name->setText(Get_Difficulty_Name(val));
 
-  return 1;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

@@ -36,7 +36,7 @@ class cEditor_Level : public cEditor {
   /* Disable
 	 * native_mode : if unset the current game mode isn't altered
  	*/
-  void Disable(bool native_mode = 0) override;
+  void Disable(bool native_mode = false) override;
 
   /* handle key down event
 	 * returns true if the key was processed
@@ -64,7 +64,7 @@ class cEditor_Level : public cEditor {
   // Menu functions
   bool Function_New(void) override;
   void Function_Load(void) override;
-  void Function_Save(bool with_dialog = 0) override;
+  void Function_Save(bool with_dialog = false) override;
   void Function_Save_as(void) override;
   void Function_Delete(void) override;
   void Function_Reload(void) override;

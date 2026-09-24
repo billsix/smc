@@ -292,7 +292,7 @@ unsigned int string_to_version_number(std::string str) {
 }
 
 std::string xml_string_to_string(std::string str) {
-  while (1) {
+  while (true) {
     std::string::size_type pos = str.find("<br/>");
 
     if (pos == std::string::npos) {

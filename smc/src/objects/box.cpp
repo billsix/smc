@@ -44,16 +44,16 @@ cBaseBox ::cBaseBox(cSprite_Manager* sprite_manager)
   m_type = TYPE_ACTIVE_SPRITE;
   m_sprite_array = ARRAY_ACTIVE;
   m_massive_type = MASS_MASSIVE;
-  m_can_be_ground = 1;
-  Set_Scale_Directions(1, 1, 1, 1);
+  m_can_be_ground = true;
+  Set_Scale_Directions(true, true, true, true);
 
   box_type = TYPE_UNDEFINED;
-  m_item_image = NULL;
+  m_item_image = nullptr;
   m_pos_z = 0.055f;
 
   m_move_col_dir = DIR_UNDEFINED;
   m_move_counter = 0.0f;
-  m_move_back = 0;
+  m_move_back = false;
   // default = usable once
   m_useable_count = 1;
   m_start_useable_count = 1;
@@ -70,7 +70,7 @@ cBaseBox ::~cBaseBox(void) {
 void cBaseBox ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
   if (box_type != TYPE_SPIN_BOX && box_type != TYPE_TEXT_BOX) {
     // animation
     Set_Animation_Type(
@@ -81,7 +81,8 @@ void cBaseBox ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
       attributes.getValueAsInteger("invisible")));
   // useable count
   Set_Useable_Count(
-      attributes.getValueAsInteger("useable_count", m_start_useable_count), 1);
+      attributes.getValueAsInteger("useable_count", m_start_useable_count),
+      true);
 }
 
 void cBaseBox ::Save_To_XML(CEGUI::XMLSerializer& stream) {
@@ -116,7 +117,7 @@ void cBaseBox ::Load_From_Savegame(cSave_Level_Object* save_object) {
 cSave_Level_Object* cBaseBox ::Save_To_Savegame(void) {
   // only save if needed
   if (m_useable_count == m_start_useable_count) {
-    return NULL;
+    return nullptr;
   }
 
   cSave_Level_Object* save_object = new cSave_Level_Object();
@@ -155,16 +156,16 @@ void cBaseBox ::Set_Animation_Type(const std::string& new_anim_type) {
     Add_Image(pVideo->Get_Surface("game/box/yellow/bonus/5.png"));
     Add_Image(pVideo->Get_Surface("game/box/yellow/bonus/6.png"));
 
-    Set_Animation(1);
+    Set_Animation(true);
     Set_Animation_Image_Range(1, 6);
-    Set_Time_All(90, 1);
+    Set_Time_All(90, true);
   } else if (m_anim_type.compare("Default") == 0) {
     // disabled image
     Add_Image(pVideo->Get_Surface("game/box/brown1_1.png"));
     // default
     Add_Image(pVideo->Get_Surface("game/box/yellow/default.png"));
 
-    Set_Animation(0);
+    Set_Animation(false);
     Set_Animation_Image_Range(1, 1);
   } else if (m_anim_type.compare("Power") == 0) {
     // disabled image
@@ -175,9 +176,9 @@ void cBaseBox ::Set_Animation_Type(const std::string& new_anim_type) {
     Add_Image(pVideo->Get_Surface("game/box/yellow/power_3.png"));
     Add_Image(pVideo->Get_Surface("game/box/yellow/power_4.png"));
 
-    Set_Animation(1);
+    Set_Animation(true);
     Set_Animation_Image_Range(1, 4);
-    Set_Time_All(80, 1);
+    Set_Time_All(80, true);
   } else if (m_anim_type.compare("Spin") == 0) {
     // disabled image
     Add_Image(pVideo->Get_Surface("game/box/yellow/spin/disabled.png"));
@@ -189,9 +190,9 @@ void cBaseBox ::Set_Animation_Type(const std::string& new_anim_type) {
     Add_Image(pVideo->Get_Surface("game/box/yellow/spin/4.png"));
     Add_Image(pVideo->Get_Surface("game/box/yellow/spin/5.png"));
 
-    Set_Animation(0);
+    Set_Animation(false);
     Set_Animation_Image_Range(1, 6);
-    Set_Time_All(80, 1);
+    Set_Time_All(80, true);
   } else {
     printf("Warning : Unknown Box Animation Type %s\n", m_anim_type.c_str());
     Set_Animation_Type("Bonus");
@@ -199,7 +200,7 @@ void cBaseBox ::Set_Animation_Type(const std::string& new_anim_type) {
 
   Reset_Animation();
   // set start image
-  Set_Image_Num(m_anim_img_start, 1, 0);
+  Set_Image_Num(m_anim_img_start, true, false);
 }
 
 void cBaseBox ::Set_Useable_Count(int count, bool new_startcount /* = 0 */) {
@@ -278,13 +279,13 @@ void cBaseBox ::Activate_Collision(ObjectDirection col_direction) {
 
   // set scaling based on direction
   if (col_direction == DIR_UP) {
-    Set_Scale_Directions(1, 0, 1, 1);
+    Set_Scale_Directions(true, false, true, true);
   } else if (col_direction == DIR_DOWN) {
-    Set_Scale_Directions(0, 1, 1, 1);
+    Set_Scale_Directions(false, true, true, true);
   } else if (col_direction == DIR_LEFT) {
-    Set_Scale_Directions(1, 0, 1, 0);
+    Set_Scale_Directions(true, false, true, false);
   } else if (col_direction == DIR_RIGHT) {
-    Set_Scale_Directions(1, 0, 0, 1);
+    Set_Scale_Directions(true, false, false, true);
   }
 
   // set collision direction
@@ -330,7 +331,7 @@ void cBaseBox ::Update_Collision(void) {
 
     // check if reached final position
     if (m_move_counter > 1.0f) {
-      m_move_back = 1;
+      m_move_back = true;
       m_move_counter = 0.0f;
     }
   }
@@ -343,14 +344,14 @@ void cBaseBox ::Update_Collision(void) {
     if (m_move_counter > 1.0f) {
       m_move_col_dir = DIR_UNDEFINED;
       Update_Valid_Update();
-      m_move_back = 0;
+      m_move_back = false;
       m_move_counter = 0.0f;
 
       // reset rect
       m_col_pos = m_image->m_col_pos;
       // reset scale
       Set_Scale(1);
-      Set_Scale_Directions(1, 1, 1, 1);
+      Set_Scale_Directions(true, true, true, true);
       // reset position
       Set_Pos(m_start_pos_x, m_start_pos_y);
     }
@@ -405,9 +406,9 @@ void cBaseBox ::Col_Enemy(cSprite* obj) {
     pAudio->Play_Sound(enemy->m_kill_sound);
     pHud_Points->Add_Points(enemy->m_kill_points, enemy->m_pos_x,
                             enemy->m_pos_y - 5.0f, "", static_cast<Uint8>(255),
-                            1);
+                            true);
     pLevel_Player->Add_Kill_Multiplier();
-    enemy->DownGrade(1);
+    enemy->DownGrade(true);
   }
 }
 
@@ -570,15 +571,15 @@ void cBaseBox ::Generate_Activation_Particles(void) {
 bool cBaseBox ::Is_Update_Valid(void) {
   // if not activateable and not animating
   if (!m_useable_count && m_move_col_dir == DIR_UNDEFINED) {
-    return 0;
+    return false;
   }
 
   // if not active
   if (!m_active) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 bool cBaseBox ::Is_Draw_Valid(void) {
@@ -586,14 +587,14 @@ bool cBaseBox ::Is_Draw_Valid(void) {
   if (!editor_enabled) {
     // if not active or no image is set
     if (!m_active || !m_image) {
-      return 0;
+      return false;
     }
 
     // ghost
     if (m_box_invisible == BOX_GHOST) {
       // maryo is not ghost
       if (pLevel_Player->m_maryo_type != MARYO_GHOST) {
-        return 0;
+        return false;
       }
     }
   }
@@ -601,21 +602,21 @@ bool cBaseBox ::Is_Draw_Valid(void) {
   else {
     // if destroyed
     if (m_auto_destroy) {
-      return 0;
+      return false;
     }
 
     // no image
     if (!m_start_image && !m_box_invisible) {
-      return 0;
+      return false;
     }
   }
 
   // not visible on the screen
   if (!Is_Visible_On_Screen()) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 Col_Valid_Type cBaseBox ::Validate_Collision(cSprite* obj) {
@@ -758,9 +759,9 @@ bool cBaseBox ::Editor_Useable_Count_Text_Changed(
   std::string str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
-  Set_Useable_Count(string_to_int(str_text), 1);
+  Set_Useable_Count(string_to_int(str_text), true);
 
-  return 1;
+  return true;
 }
 
 bool cBaseBox ::Editor_Invisible_Select(const CEGUI::EventArgs& event) {
@@ -779,7 +780,7 @@ bool cBaseBox ::Editor_Invisible_Select(const CEGUI::EventArgs& event) {
     Set_Invisible(BOX_VISIBLE);
   }
 
-  return 1;
+  return true;
 }
 
 void cBaseBox ::Create_Name(void) {

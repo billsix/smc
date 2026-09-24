@@ -74,7 +74,7 @@ cSpikeball* cSpikeball ::Copy(void) const {
 void cSpikeball ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
   // color
   Set_Color(static_cast<DefaultColor>(Get_Color_Id(
       attributes.getValueAsString("color", Get_Color_Name(m_color_type))
@@ -116,9 +116,9 @@ void cSpikeball ::Set_Direction(const ObjectDirection dir) {
     return;
   }
 
-  cEnemy::Set_Direction(dir, 1);
+  cEnemy::Set_Direction(dir, true);
 
-  Update_Rotation_Hor(1);
+  Update_Rotation_Hor(true);
   Create_Name();
 }
 
@@ -138,9 +138,9 @@ void cSpikeball ::Set_Color(const DefaultColor& col) {
     filename_dir = "grey";
 
     m_kill_points = 400;
-    m_fire_resistant = 1;
+    m_fire_resistant = true;
     m_ice_resistance = 1.0f;
-    m_can_be_hit_from_shell = 0;
+    m_can_be_hit_from_shell = false;
   } else {
     printf("Error : Unknown Spikeball Color %d\n", m_color_type);
     return;
@@ -168,7 +168,7 @@ void cSpikeball ::Set_Color(const DefaultColor& col) {
       pVideo->Get_Surface("enemy/spikeball/" + filename_dir + "/turn.png"));
   //Add_Image( pVideo->Get_Surface( "enemy/spikeball/" + filename_dir + "/dead.png" ) );
 
-  Set_Image_Num(0, 1);
+  Set_Image_Num(0, true);
   Create_Name();
 }
 
@@ -182,7 +182,7 @@ void cSpikeball ::Turn_Around(ObjectDirection col_dir /* = DIR_UNDEFINED */) {
 
     // set turn around image
     Set_Image_Num(8);
-    Set_Animation(0);
+    Set_Animation(false);
     Reset_Animation();
   }
   // only update rotation if no turn around image
@@ -192,24 +192,24 @@ void cSpikeball ::Turn_Around(ObjectDirection col_dir /* = DIR_UNDEFINED */) {
 }
 
 void cSpikeball ::DownGrade(bool force /* = 0 */) {
-  Set_Dead(1);
+  Set_Dead(true);
   m_massive_type = MASS_PASSIVE;
   m_counter = 0.0f;
   m_velx = 0.0f;
   m_vely = 0.0f;
   // dead image
   Set_Image_Num(9);
-  Set_Animation(0);
+  Set_Animation(false);
 
   // default stomp death
   if (!force) {
     Generate_Hit_Animation();
-    Set_Scale_Directions(1, 0, 1, 1);
+    Set_Scale_Directions(true, false, true, true);
   }
   // falling death
   else {
     Set_Rotation_Z(180);
-    Set_Scale_Directions(1, 1, 1, 1);
+    Set_Scale_Directions(true, true, true, true);
   }
 }
 
@@ -224,7 +224,7 @@ void cSpikeball ::Update_Dying(void) {
 
     if (m_scale_y < 0.01f) {
       Set_Scale(1.0f);
-      Set_Active(0);
+      Set_Active(false);
     }
   }
   // falling death
@@ -244,7 +244,7 @@ void cSpikeball ::Update_Dying(void) {
     else {
       m_rot_z = 0.0f;
       Set_Scale(1.0f);
-      Set_Active(0);
+      Set_Active(false);
     }
   }
 }
@@ -256,21 +256,21 @@ void cSpikeball ::Set_Moving_State(Moving_state new_state) {
 
   if (new_state == STA_STAY) {
     m_counter_walk = 0.0f;
-    Set_Animation(0);
+    Set_Animation(false);
   } else if (new_state == STA_WALK) {
     m_counter_running = 0.0f;
     m_counter_walk = Get_Random_Float(0.0f, 80.0f);
 
-    Set_Animation(1);
+    Set_Animation(true);
     Set_Animation_Image_Range(0, 7);
-    Set_Time_All(130, 1);
+    Set_Time_All(130, true);
     Reset_Animation();
   } else if (new_state == STA_RUN) {
     m_counter_stay = 0.0f;
 
-    Set_Animation(1);
+    Set_Animation(true);
     Set_Animation_Image_Range(0, 7);
-    Set_Time_All(60, 1);
+    Set_Time_All(60, true);
     Reset_Animation();
   }
 
@@ -386,7 +386,7 @@ void cSpikeball ::Update(void) {
       if (m_anim_counter >= 200) {
         Reset_Animation();
         Set_Image_Num(m_anim_img_start);
-        Set_Animation(1);
+        Set_Animation(true);
         Update_Rotation_Hor();
       }
       // rotate the turn image
@@ -413,10 +413,10 @@ void cSpikeball ::Update_Velocity_Max(void) {
 
 bool cSpikeball ::Is_Update_Valid(void) {
   if (m_dead || m_freeze_counter) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 Col_Valid_Type cSpikeball ::Validate_Collision(cSprite* obj) {
@@ -575,7 +575,7 @@ bool cSpikeball ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()));
 
-  return 1;
+  return true;
 }
 
 void cSpikeball ::Create_Name(void) {

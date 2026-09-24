@@ -22,7 +22,7 @@ namespace SMC {
 /* *** *** *** *** *** *** *** cAnimation_Surface *** *** *** *** *** *** *** *** *** *** */
 
 cAnimation_Surface ::cAnimation_Surface(void) {
-  m_image = NULL;
+  m_image = nullptr;
   m_time = 0;
 }
 
@@ -37,7 +37,7 @@ cAnimated_Sprite ::cAnimated_Sprite(cSprite_Manager* sprite_manager,
     : cMovingSprite(sprite_manager, type_name) {
   m_curr_img = -1;
 
-  m_anim_enabled = 0;
+  m_anim_enabled = false;
   m_anim_img_start = 0;
   m_anim_img_end = 0;
   m_anim_time_default = 1000;
@@ -72,7 +72,7 @@ void cAnimated_Sprite ::Set_Image_Num(const int num,
   m_curr_img = num;
 
   if (m_curr_img < 0) {
-    cMovingSprite::Set_Image(NULL, new_startimage, del_img);
+    cMovingSprite::Set_Image(nullptr, new_startimage, del_img);
   } else if (m_curr_img < static_cast<int>(m_images.size())) {
     cMovingSprite::Set_Image(m_images[m_curr_img].m_image, new_startimage,
                              del_img);
@@ -86,7 +86,7 @@ void cAnimated_Sprite ::Set_Image_Num(const int num,
 
 cGL_Surface* cAnimated_Sprite ::Get_Image(const unsigned int num) const {
   if (num >= m_images.size()) {
-    return NULL;
+    return nullptr;
   }
 
   return m_images[num].m_image;

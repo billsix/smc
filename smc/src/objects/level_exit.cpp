@@ -52,7 +52,7 @@ cLevel_Exit ::cLevel_Exit(CEGUI::XMLAttributes& attributes,
 cLevel_Exit ::~cLevel_Exit(void) {
   if (m_editor_entry_name) {
     delete m_editor_entry_name;
-    m_editor_entry_name = NULL;
+    m_editor_entry_name = nullptr;
   }
 }
 
@@ -79,12 +79,12 @@ void cLevel_Exit ::Init(void) {
   m_editor_color = red;
   m_editor_color.alpha = 128;
 
-  m_editor_entry_name = NULL;
+  m_editor_entry_name = nullptr;
 }
 
 cLevel_Exit* cLevel_Exit ::Copy(void) const {
   cLevel_Exit* level_exit = new cLevel_Exit(m_sprite_manager);
-  level_exit->Set_Pos(m_start_pos_x, m_start_pos_y, 1);
+  level_exit->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   level_exit->Set_Type(m_exit_type);
   level_exit->Set_Camera_Motion(m_exit_motion);
   level_exit->Set_Path_Identifier(m_path_identifier);
@@ -97,7 +97,7 @@ cLevel_Exit* cLevel_Exit ::Copy(void) const {
 void cLevel_Exit ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
   // type
   Set_Type(static_cast<Level_Exit_type>(
       attributes.getValueAsInteger("type", m_exit_type)));
@@ -136,7 +136,7 @@ void cLevel_Exit ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   Write_Property(stream, "camera_motion", m_exit_motion);
 
   // destination level name
-  std::string str_level = Get_Level(0, 0);
+  std::string str_level = Get_Level(false, false);
   if (!str_level.empty()) {
     Write_Property(stream, "level_name", str_level);
   }
@@ -169,7 +169,7 @@ void cLevel_Exit ::Set_Direction(const ObjectDirection dir) {
     return;
   }
 
-  cAnimated_Sprite::Set_Direction(dir, 1);
+  cAnimated_Sprite::Set_Direction(dir, true);
 
   Create_Name();
 }
@@ -298,7 +298,7 @@ void cLevel_Exit ::Activate(void) {
     // set position z back
     pLevel_Player->m_pos_z = player_posz;
     // set invisible
-    pLevel_Player->Set_Active(0);
+    pLevel_Player->Set_Active(false);
 
     if (m_direction == DIR_RIGHT || m_direction == DIR_LEFT) {
       pLevel_Player->Set_Rotation_Z(0);
@@ -309,7 +309,7 @@ void cLevel_Exit ::Activate(void) {
 
   // exit level
   if (m_dest_level.empty() && m_dest_entry.empty()) {
-    pLevel_Manager->Finish_Level(1);
+    pLevel_Manager->Finish_Level(true);
   }
   // enter entry
   else {
@@ -342,7 +342,7 @@ void cLevel_Exit ::Set_Level(std::string filename) {
   m_editor_color.alpha = 128;
 
   // erase file type and directory if set
-  m_dest_level = Trim_Filename(filename, 0, 0);
+  m_dest_level = Trim_Filename(filename, false, false);
 }
 
 std::string cLevel_Exit ::Get_Level(bool with_dir /* = 1 */,
@@ -359,7 +359,7 @@ std::string cLevel_Exit ::Get_Level(bool with_dir /* = 1 */,
 void cLevel_Exit ::Set_Entry(const std::string& entry_name) {
   if (m_editor_entry_name) {
     delete m_editor_entry_name;
-    m_editor_entry_name = NULL;
+    m_editor_entry_name = nullptr;
   }
 
   // Set new name
@@ -381,15 +381,15 @@ void cLevel_Exit ::Set_Path_Identifier(const std::string& identifier) {
 bool cLevel_Exit ::Is_Draw_Valid(void) {
   // if editor not enabled
   if (!editor_enabled) {
-    return 0;
+    return false;
   }
 
   // if not visible on the screen
   if (!m_active || !Is_Visible_On_Screen()) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 void cLevel_Exit ::Editor_Activate(void) {
@@ -448,7 +448,7 @@ void cLevel_Exit ::Editor_Activate(void) {
           "Name of the level that should be entered. If empty uses the current level."),
       editbox, 150);
 
-  editbox->setText(Get_Level(0, 0));
+  editbox->setText(Get_Level(false, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -501,14 +501,14 @@ void cLevel_Exit ::Editor_State_Update(void) {
 
   if (m_exit_motion == CAMERA_MOVE_ALONG_PATH ||
       m_exit_motion == CAMERA_MOVE_ALONG_PATH_BACKWARDS) {
-    editbox_path_identifier->setEnabled(1);
-    editbox_destination_level->setEnabled(0);
+    editbox_path_identifier->setEnabled(true);
+    editbox_destination_level->setEnabled(false);
   } else if (m_exit_motion == CAMERA_MOVE_FLY) {
-    editbox_path_identifier->setEnabled(0);
-    editbox_destination_level->setEnabled(0);
+    editbox_path_identifier->setEnabled(false);
+    editbox_destination_level->setEnabled(false);
   } else {
-    editbox_path_identifier->setEnabled(0);
-    editbox_destination_level->setEnabled(1);
+    editbox_path_identifier->setEnabled(false);
+    editbox_destination_level->setEnabled(true);
   }
 
   /*if( m_exit_type == LEVEL_EXIT_WARP )
@@ -529,7 +529,7 @@ bool cLevel_Exit ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()));
 
-  return 1;
+  return true;
 }
 
 bool cLevel_Exit ::Editor_Motion_Select(const CEGUI::EventArgs& event) {
@@ -551,7 +551,7 @@ bool cLevel_Exit ::Editor_Motion_Select(const CEGUI::EventArgs& event) {
 
   Editor_State_Update();
 
-  return 1;
+  return true;
 }
 
 bool cLevel_Exit ::Editor_Destination_Level_Text_Changed(
@@ -563,7 +563,7 @@ bool cLevel_Exit ::Editor_Destination_Level_Text_Changed(
 
   Set_Level(str_text);
 
-  return 1;
+  return true;
 }
 
 bool cLevel_Exit ::Editor_Destination_Entry_Text_Changed(
@@ -575,7 +575,7 @@ bool cLevel_Exit ::Editor_Destination_Entry_Text_Changed(
 
   Set_Entry(str_text);
 
-  return 1;
+  return true;
 }
 
 bool cLevel_Exit ::Editor_Path_Identifier_Text_Changed(
@@ -587,7 +587,7 @@ bool cLevel_Exit ::Editor_Path_Identifier_Text_Changed(
 
   Set_Path_Identifier(str_text);
 
-  return 1;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

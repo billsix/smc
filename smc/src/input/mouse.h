@@ -45,7 +45,7 @@ class cSelectedObject {
   bool m_user;
 };
 
-typedef vector<cSelectedObject*> SelectedObjectList;
+using SelectedObjectList = vector<cSelectedObject*>;
 
 /* *** *** *** *** *** *** cCopyObject *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -58,7 +58,7 @@ class cCopyObject {
   cSprite* m_obj;
 };
 
-typedef vector<cCopyObject*> CopyObjectList;
+using CopyObjectList = vector<cCopyObject*>;
 
 /* *** *** *** *** *** *** cMouseCursor *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -70,12 +70,12 @@ class cMouseCursor : public cMovingSprite {
   // Set active/visible
   void Set_Active(bool enabled) override;
   // resets editor features
-  void Reset(bool clear_copy_buffer = 1);
+  void Reset(bool clear_copy_buffer = true);
   // only reset buttons
   inline void Reset_Keys(void) {
-    m_left = 0;
-    m_right = 0;
-    m_middle = 0;
+    m_left = false;
+    m_right = false;
+    m_middle = false;
   }
 
   // Handles the Mouse events
@@ -113,7 +113,7 @@ class cMouseCursor : public cMovingSprite {
   // Editor left click
   void Left_Click_Down(void);
   // Editor default double left click
-  void Double_Click(bool activate = 1);
+  void Double_Click(bool activate = true);
 
   // ## Hovered Object
   // Set new hovered object
@@ -122,7 +122,7 @@ class cMouseCursor : public cMovingSprite {
   void Update_Hovered_Object(void);
 
   // clear hovered object
-  inline void Clear_Hovered_Object(void) { Set_Hovered_Object(NULL); }
+  inline void Clear_Hovered_Object(void) { Set_Hovered_Object(nullptr); }
 
   // ## Copy Objects
   // Add new copy object
@@ -146,12 +146,12 @@ class cMouseCursor : public cMovingSprite {
 	 * from_user : if the user selected this object
 	 * Returns true if object got added or changed to user object
 	*/
-  bool Add_Selected_Object(cSprite* sprite, bool from_user = 0);
-  void Add_Selected_Objects(cSprite_List& spritelist, bool from_user = 0);
+  bool Add_Selected_Object(cSprite* sprite, bool from_user = false);
+  void Add_Selected_Objects(cSprite_List& spritelist, bool from_user = false);
   /* Remove a selected_object
 	 * returns true if found and removed
 	*/
-  bool Remove_Selected_Object(const cSprite* sprite, bool no_user = 0);
+  bool Remove_Selected_Object(const cSprite* sprite, bool no_user = false);
   // Returns all selected objects
   cSprite_List Get_Selected_Objects(void);
   /* Gets the area enclosing all selected objects
@@ -168,7 +168,7 @@ class cMouseCursor : public cMovingSprite {
   /* returns true if the given object is a selected_object
 	 * if only_user is given only check user objects
 	*/
-  bool Is_Selected_Object(const cSprite* sprite, bool only_user = 0);
+  bool Is_Selected_Object(const cSprite* sprite, bool only_user = false);
   // deletes the selected objects
   void Delete_Selected_Objects(void);
   // returns the selected objects size

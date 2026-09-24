@@ -42,7 +42,7 @@ class cAnimation : public cAnimated_Sprite {
   // update animation
   void Update(void) override;
   // draw animation
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // Set time to live for Objects in seconds
   void Set_Time_to_Live(float time, float time_rand = 0.0f);
@@ -74,9 +74,9 @@ class cAnimation_Goldpiece : public cAnimation {
   // update
   void Update(void) override;
   // draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
-  typedef vector<cSprite*> BlinkPointList;
+  using BlinkPointList = vector<cSprite*>;
   BlinkPointList m_objects;
 };
 
@@ -104,9 +104,9 @@ class cAnimation_Fireball : public cAnimation {
   // update
   void Update(void) override;
   // draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
-  typedef vector<cAnimation_Fireball_Item*> FireAnimList;
+  using FireAnimList = vector<cAnimation_Fireball_Item*>;
   FireAnimList m_objects;
 };
 
@@ -124,7 +124,7 @@ class cParticle : public cMovingSprite {
   // update
   void Update(void) override;
   // draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // set gravity
   void Set_Gravity(float x, float y);
@@ -180,7 +180,7 @@ class cParticle_Emitter : public cAnimation {
   // Emit Particles
   virtual void Emit(void);
   // Clear particles and animation data
-  virtual void Clear(bool reset = 1);
+  virtual void Clear(bool reset = true);
 
   // update
   void Update(void) override;
@@ -191,7 +191,7 @@ class cParticle_Emitter : public cAnimation {
   // update position and clipping
   void Update_Position(void);
   // Draw everything
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // keep particles in the given rectangle
   void Keep_Particles_In_Rect(const GL_rect& clip_rect,
@@ -211,7 +211,7 @@ class cParticle_Emitter : public cAnimation {
   /* set if spawned
 	 * if set it is not saved in the level/world file
 	*/
-  void Set_Spawned(bool enable = 0) override;
+  void Set_Spawned(bool enable = false) override;
   // Set if the position is based on the camera position
   void Set_Based_On_Camera_Pos(bool enable);
   // Set if particles position is based on the emitter position
@@ -310,7 +310,7 @@ class cParticle_Emitter : public cAnimation {
   bool Editor_Clip_Mode_Select(const CEGUI::EventArgs& event);
 
   // Particle items
-  typedef vector<cParticle*> ParticleList;
+  using ParticleList = vector<cParticle*>;
   ParticleList m_objects;
 
   // filename of the particle
@@ -386,7 +386,7 @@ class cAnimation_Manager : public cObject_Manager<cAnimation> {
   // Draw the objects
   void Draw(void);
 
-  typedef vector<cAnimation*> cAnimation_List;
+  using cAnimation_List = vector<cAnimation*>;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

@@ -58,9 +58,9 @@ cBonusBox ::~cBonusBox(void) {
 
 void cBonusBox ::Init(void) {
   m_type = TYPE_BONUS_BOX;
-  m_force_best_item = 0;
+  m_force_best_item = false;
   m_camera_range = 5000;
-  m_can_be_on_ground = 0;
+  m_can_be_on_ground = false;
 
   Set_Animation_Type("Bonus");
   m_gold_color = COL_DEFAULT;
@@ -77,7 +77,7 @@ cBonusBox* cBonusBox ::Copy(void) const {
   bonusbox->Set_Invisible(m_box_invisible);
   bonusbox->Set_Force_Best_Item(m_force_best_item);
   bonusbox->Set_Goldcolor(m_gold_color);
-  bonusbox->Set_Useable_Count(m_start_useable_count, 1);
+  bonusbox->Set_Useable_Count(m_start_useable_count, true);
   return bonusbox;
 }
 
@@ -119,12 +119,12 @@ void cBonusBox ::Set_Useable_Count(int count, bool new_startcount /* = 0 */) {
   // disable
   if (!m_useable_count) {
     Reset_Animation();
-    Set_Animation(0);
+    Set_Animation(false);
     Set_Image_Num(0);
   }
   // enable
   else {
-    Set_Animation(1);
+    Set_Animation(true);
   }
 
   Update_Valid_Update();
@@ -140,10 +140,10 @@ void cBonusBox ::Set_Bonus_Type(SpriteType bonus_type) {
 
   // set item image
   if (box_type == TYPE_UNDEFINED) {
-    m_item_image = NULL;
+    m_item_image = nullptr;
   } else if (box_type == TYPE_POWERUP) {
     // force always best item
-    m_force_best_item = 1;
+    m_force_best_item = true;
     m_item_image = pVideo->Get_Surface("game/editor/unknown.png");
   } else if (box_type == TYPE_MUSHROOM_DEFAULT) {
     m_item_image = pVideo->Get_Surface("game/items/mushroom_red.png");
@@ -166,7 +166,7 @@ void cBonusBox ::Set_Bonus_Type(SpriteType bonus_type) {
   } else if (box_type == TYPE_MUSHROOM_POISON) {
     m_item_image = pVideo->Get_Surface("game/items/mushroom_poison.png");
   } else {
-    m_item_image = NULL;
+    m_item_image = nullptr;
     printf("Error : Unknown BonusBox Item type : %d\n", box_type);
   }
 
@@ -211,7 +211,7 @@ void cBonusBox ::Set_Goldcolor(DefaultColor new_color) {
 }
 
 void cBonusBox ::Activate(void) {
-  bool random = 0;
+  bool random = false;
 
   // random
   if (box_type == TYPE_POWERUP) {
@@ -229,7 +229,7 @@ void cBonusBox ::Activate(void) {
       box_type = TYPE_STAR;
     }
 
-    random = 1;
+    random = true;
   }
 
   Maryo_type current_maryo_type;
@@ -244,7 +244,7 @@ void cBonusBox ::Activate(void) {
   }
 
   // the item from this box
-  cMovingSprite* box_item = NULL;
+  cMovingSprite* box_item = nullptr;
 
   // no item
   if (box_type == TYPE_UNDEFINED) {
@@ -262,13 +262,13 @@ void cBonusBox ::Activate(void) {
     cMushroom* mushroom = new cMushroom(m_sprite_manager);
     mushroom->Set_Pos(m_start_pos_x - ((m_item_image->m_w - m_rect.m_w) / 2),
                       m_start_pos_y - ((m_item_image->m_h - m_rect.m_h) / 2),
-                      1);
+                      true);
     box_item = static_cast<cMovingSprite*>(mushroom);
   } else if (box_type == TYPE_FIREPLANT) {
     pAudio->Play_Sound("sprout_1.ogg");
     box_item = static_cast<cMovingSprite*>(new cFirePlant(m_sprite_manager));
     box_item->Set_Pos(m_start_pos_x - ((m_item_image->m_w - m_rect.m_w) / 2),
-                      m_start_pos_y, 1);
+                      m_start_pos_y, true);
   } else if (box_type == TYPE_MUSHROOM_DEFAULT ||
              box_type == TYPE_MUSHROOM_LIVE_1 ||
              box_type == TYPE_MUSHROOM_POISON ||
@@ -279,16 +279,16 @@ void cBonusBox ::Activate(void) {
     cMushroom* mushroom = new cMushroom(m_sprite_manager);
     mushroom->Set_Pos(m_start_pos_x - ((m_item_image->m_w - m_rect.m_w) / 2),
                       m_start_pos_y - ((m_item_image->m_h - m_rect.m_h) / 2),
-                      1);
+                      true);
     mushroom->Set_Type(box_type);
     box_item = static_cast<cMovingSprite*>(mushroom);
   } else if (box_type == TYPE_STAR) {
     pAudio->Play_Sound("sprout_1.ogg");
     cjStar* star = new cjStar(m_sprite_manager);
     star->Set_Pos(m_start_pos_x - ((m_item_image->m_w - m_rect.m_w) / 2),
-                  m_start_pos_y, 1);
+                  m_start_pos_y, true);
     star->Set_On_Top(this);
-    star->Set_Spawned(1);
+    star->Set_Spawned(true);
     // add to global objects
     m_sprite_manager->Add(star);
   } else if (box_type == TYPE_GOLDPIECE) {
@@ -296,7 +296,7 @@ void cBonusBox ::Activate(void) {
 
     cJGoldpiece* goldpiece = new cJGoldpiece(m_sprite_manager);
     goldpiece->Set_Pos(m_start_pos_x - ((m_item_image->m_w - m_rect.m_w) / 2),
-                       m_pos_y, 1);
+                       m_pos_y, true);
     goldpiece->Set_Gold_Color(m_gold_color);
     // add to global objects
     m_sprite_manager->Add(goldpiece);
@@ -314,7 +314,7 @@ void cBonusBox ::Activate(void) {
     // set posz behind box
     box_item->m_pos_z = m_pos_z - 0.000001f;
     // set spawned
-    box_item->Set_Spawned(1);
+    box_item->Set_Spawned(true);
 
     // add to item list
     m_active_items.push_back(box_item);
@@ -349,7 +349,7 @@ void cBonusBox ::Update(void) {
       powerup->m_pos_z = 0.05f;
 
       // set the item on top
-      powerup->Set_On_Top(this, 0);
+      powerup->Set_On_Top(this, false);
       // add the item to the level objects
       m_sprite_manager->Add(powerup);
 
@@ -391,7 +391,7 @@ void cBonusBox ::Draw(cSurface_Request* request /* = NULL */) {
 bool cBonusBox ::Is_Update_Valid(void) {
   // if item is in animation
   if (!m_active_items.empty()) {
-    return 1;
+    return true;
   }
 
   return cBaseBox::Is_Update_Valid();
@@ -516,9 +516,9 @@ void cBonusBox ::Editor_State_Update(void) {
       box_type == TYPE_MUSHROOM_DEFAULT || box_type == TYPE_MUSHROOM_LIVE_1 ||
       box_type == TYPE_MUSHROOM_POISON || box_type == TYPE_MUSHROOM_GHOST ||
       box_type == TYPE_STAR || box_type == TYPE_GOLDPIECE) {
-    combobox->setEnabled(0);
+    combobox->setEnabled(false);
   } else {
-    combobox->setEnabled(1);
+    combobox->setEnabled(true);
   }
 
   // gold color
@@ -526,9 +526,9 @@ void cBonusBox ::Editor_State_Update(void) {
       wmgr.getWindow("editor_bonusbox_gold_color"));
 
   if (box_type != TYPE_GOLDPIECE) {
-    combobox->setEnabled(0);
+    combobox->setEnabled(false);
   } else {
-    combobox->setEnabled(1);
+    combobox->setEnabled(true);
   }
 }
 
@@ -540,7 +540,7 @@ bool cBonusBox ::Editor_Animation_Select(const CEGUI::EventArgs& event) {
 
   Set_Animation_Type(item->getText().c_str());
 
-  return 1;
+  return true;
 }
 
 bool cBonusBox ::Editor_Item_Select(const CEGUI::EventArgs& event) {
@@ -573,7 +573,7 @@ bool cBonusBox ::Editor_Item_Select(const CEGUI::EventArgs& event) {
 
   Editor_State_Update();
 
-  return 1;
+  return true;
 }
 
 bool cBonusBox ::Editor_Force_best_item_Select(const CEGUI::EventArgs& event) {
@@ -583,12 +583,12 @@ bool cBonusBox ::Editor_Force_best_item_Select(const CEGUI::EventArgs& event) {
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   if (item->getText().compare(UTF8_("Enabled")) == 0) {
-    Set_Force_Best_Item(1);
+    Set_Force_Best_Item(true);
   } else {
-    Set_Force_Best_Item(0);
+    Set_Force_Best_Item(false);
   }
 
-  return 1;
+  return true;
 }
 
 bool cBonusBox ::Editor_Gold_Color_Select(const CEGUI::EventArgs& event) {
@@ -599,7 +599,7 @@ bool cBonusBox ::Editor_Gold_Color_Select(const CEGUI::EventArgs& event) {
 
   Set_Goldcolor(Get_Color_Id(item->getText().c_str()));
 
-  return 1;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

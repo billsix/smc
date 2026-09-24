@@ -46,9 +46,9 @@ namespace SMC {
 /* *** *** *** *** *** *** *** cEditor_Object_Settings_Item *** *** *** *** *** *** *** *** *** *** */
 
 cEditor_Object_Settings_Item ::cEditor_Object_Settings_Item(void) {
-  window_name = NULL;
-  window_setting = NULL;
-  advance_row = 1;
+  window_name = nullptr;
+  window_setting = nullptr;
+  advance_row = true;
 }
 
 cEditor_Object_Settings_Item ::~cEditor_Object_Settings_Item(void) {
@@ -71,7 +71,7 @@ void cEditor_CEGUI_Texture ::cleanupOpenGLTexture(void) {
   // from cegui
   if (d_grabBuffer) {
     delete[] d_grabBuffer;
-    d_grabBuffer = 0;
+    d_grabBuffer = nullptr;
   }
   // do not delete it
   else {
@@ -90,8 +90,8 @@ cEditor_Item_Object ::cEditor_Item_Object(const std::string& text,
   list_text->setSelectionColours(CEGUI::colour(0.33f, 0.33f, 0.33f));
   list_text->setSelectionBrushImage("TaharezLook", "ListboxSelectionBrush");
 
-  m_image = NULL;
-  sprite_obj = NULL;
+  m_image = nullptr;
+  sprite_obj = nullptr;
   preview_scale = 1;
 }
 
@@ -101,7 +101,7 @@ cEditor_Item_Object ::~cEditor_Item_Object(void) {
   if (m_image) {
     delete m_image->getTexture();
     CEGUI::ImagesetManager::getSingleton().destroy(*m_image);
-    m_image = NULL;
+    m_image = nullptr;
   }
 
   if (sprite_obj) {
@@ -185,8 +185,8 @@ void cEditor_Item_Object ::draw(CEGUI::GeometryBuffer& buffer,
 
 cEditor_Menu_Object ::cEditor_Menu_Object(const std::string& text)
     : ListboxTextItem(text.c_str()) {
-  bfunction = 0;
-  header = 0;
+  bfunction = false;
+  header = false;
 }
 
 cEditor_Menu_Object ::~cEditor_Menu_Object(void) {}
@@ -200,14 +200,14 @@ void cEditor_Menu_Object ::Init(void) {
 
 cEditor ::cEditor(cSprite_Manager* sprite_manager) {
   m_sprite_manager = sprite_manager;
-  m_enabled = 0;
+  m_enabled = false;
 
   m_camera_speed = 35;
   m_menu_timer = 0;
-  m_editor_window = NULL;
-  m_listbox_menu = NULL;
-  m_listbox_items = NULL;
-  m_tabcontrol_menu = NULL;
+  m_editor_window = nullptr;
+  m_listbox_menu = nullptr;
+  m_listbox_items = nullptr;
+  m_tabcontrol_menu = nullptr;
 }
 
 cEditor ::~cEditor(void) { cEditor::Unload(); }
@@ -299,10 +299,10 @@ void cEditor ::Unload(void) {
   if (m_editor_window) {
     pGuiSystem->getGUISheet()->removeChildWindow(m_editor_window);
     CEGUI::WindowManager::getSingleton().destroyWindow(m_editor_window);
-    m_editor_window = NULL;
-    m_listbox_menu = NULL;
-    m_listbox_items = NULL;
-    m_tabcontrol_menu = NULL;
+    m_editor_window = nullptr;
+    m_listbox_menu = nullptr;
+    m_listbox_items = nullptr;
+    m_tabcontrol_menu = nullptr;
   }
 
   // Tagged Items
@@ -340,7 +340,7 @@ void cEditor ::Enable(void) {
   }
 
   // Draw Loading Text
-  Draw_Static_Text(_("Loading"), &orange, NULL, 0);
+  Draw_Static_Text(_("Loading"), &orange, nullptr, false);
 
   // Basic Initialize
   Init();
@@ -349,7 +349,7 @@ void cEditor ::Enable(void) {
   pHud_Debug->Set_Text(_("Editor enabled"));
   pActive_Animation_Manager->Delete_All();
 
-  pMouseCursor->Set_Active(1);
+  pMouseCursor->Set_Active(true);
 
   // update player position rect
   pActive_Player->Update_Position_Rect();
@@ -360,7 +360,7 @@ void cEditor ::Enable(void) {
   }
 
   pActive_Camera->Update_Position();
-  m_enabled = 1;
+  m_enabled = true;
 }
 
 void cEditor ::Disable(bool native_mode /* = 1 */) {
@@ -371,7 +371,7 @@ void cEditor ::Disable(bool native_mode /* = 1 */) {
 
   Unload();
 
-  m_enabled = 0;
+  m_enabled = false;
 
   if (native_mode) {
     pAudio->Play_Sound("editor/leave.ogg");
@@ -385,12 +385,12 @@ void cEditor ::Disable(bool native_mode /* = 1 */) {
     }
 
     pActive_Camera->Center();
-    pMouseCursor->Reset(0);
+    pMouseCursor->Reset(false);
 
     // ask if editor should save
-    Function_Save(1);
+    Function_Save(true);
 
-    pMouseCursor->Set_Active(0);
+    pMouseCursor->Set_Active(false);
   }
 }
 
@@ -400,7 +400,7 @@ void cEditor ::Update(void) {
   }
 
   // if visible
-  if (m_listbox_menu->isVisible(1)) {
+  if (m_listbox_menu->isVisible(true)) {
     // if timed out
     if (m_menu_timer >= speedfactor_fps * 2) {
       // fade out
@@ -595,7 +595,7 @@ void cEditor ::Process_Input(void) {
 
 bool cEditor ::Handle_Event(SDL_Event* ev) {
   if (!m_enabled) {
-    return 0;
+    return false;
   }
 
   switch (ev->type) {
@@ -612,12 +612,12 @@ bool cEditor ::Handle_Event(SDL_Event* ev) {
     }
   }
 
-  return 0;
+  return false;
 }
 
 bool cEditor ::Key_Down(SDLKey key) {
   if (!m_enabled) {
-    return 0;
+    return false;
   }
 
   // New level
@@ -732,10 +732,12 @@ bool cEditor ::Key_Down(SDLKey key) {
   }
   // move camera to position
   else if (key == SDLK_g && pKeyboard->Is_Ctrl_Down()) {
-    int pos_x = string_to_int(Box_Text_Input(
-        int_to_string(static_cast<int>(pActive_Camera->m_x)), "Position X", 1));
-    int pos_y = string_to_int(Box_Text_Input(
-        int_to_string(static_cast<int>(pActive_Camera->m_y)), "Position Y", 1));
+    int pos_x = string_to_int(
+        Box_Text_Input(int_to_string(static_cast<int>(pActive_Camera->m_x)),
+                       "Position X", true));
+    int pos_y = string_to_int(
+        Box_Text_Input(int_to_string(static_cast<int>(pActive_Camera->m_y)),
+                       "Position Y", true));
 
     pActive_Camera->Set_Pos(static_cast<float>(pos_x),
                             static_cast<float>(pos_y));
@@ -799,7 +801,7 @@ bool cEditor ::Key_Down(SDLKey key) {
          itr != new_objects.end(); ++itr) {
       cSprite* obj = (*itr);
 
-      pMouseCursor->Add_Selected_Object(obj, 1);
+      pMouseCursor->Add_Selected_Object(obj, true);
     }
 
     // deselect old objects
@@ -836,13 +838,13 @@ bool cEditor ::Key_Down(SDLKey key) {
     pMouseCursor->Clear_Selected_Objects();
 
     // player
-    pMouseCursor->Add_Selected_Object(pActive_Player, 1);
+    pMouseCursor->Add_Selected_Object(pActive_Player, true);
     // sprite manager
     for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
          itr != m_sprite_manager->objects.end(); ++itr) {
       cSprite* obj = (*itr);
 
-      pMouseCursor->Add_Selected_Object(obj, 1);
+      pMouseCursor->Add_Selected_Object(obj, true);
     }
   }
   // Paste copy buffer objects
@@ -899,16 +901,16 @@ bool cEditor ::Key_Down(SDLKey key) {
     pMouseCursor->Toggle_Snap_Mode();
   } else {
     // not processed
-    return 0;
+    return false;
   }
 
   // key got processed
-  return 1;
+  return true;
 }
 
 bool cEditor ::Mouse_Down(Uint8 button) {
   if (!m_enabled) {
-    return 0;
+    return false;
   }
 
   // left
@@ -918,47 +920,47 @@ bool cEditor ::Mouse_Down(Uint8 button) {
     // auto hide if enabled
     if (pMouseCursor->m_hovering_object->m_obj &&
         pPreferences->m_editor_mouse_auto_hide) {
-      pMouseCursor->Set_Active(0);
+      pMouseCursor->Set_Active(false);
     }
   }
   // middle
   else if (button == SDL_BUTTON_MIDDLE) {
     // Activate fast copy mode
     if (pMouseCursor->m_hovering_object->m_obj) {
-      pMouseCursor->m_fastcopy_mode = 1;
-      return 1;
+      pMouseCursor->m_fastcopy_mode = true;
+      return true;
     }
     // Mover mode
     else {
       pMouseCursor->Toggle_Mover_Mode();
-      return 1;
+      return true;
     }
   }
   // right
   else if (button == SDL_BUTTON_RIGHT) {
     if (!pMouseCursor->m_left) {
       pMouseCursor->Delete(pMouseCursor->m_hovering_object->m_obj);
-      return 1;
+      return true;
     }
   } else {
     // not processed
-    return 0;
+    return false;
   }
 
   // button got processed
-  return 1;
+  return true;
 }
 
 bool cEditor ::Mouse_Up(Uint8 button) {
   if (!m_enabled) {
-    return 0;
+    return false;
   }
 
   // left
   if (button == SDL_BUTTON_LEFT) {
     // unhide
     if (pPreferences->m_editor_mouse_auto_hide) {
-      pMouseCursor->Set_Active(1);
+      pMouseCursor->Set_Active(true);
     }
 
     pMouseCursor->End_Selection();
@@ -980,14 +982,14 @@ bool cEditor ::Mouse_Up(Uint8 button) {
   }
   // middle
   else if (button == SDL_BUTTON_MIDDLE) {
-    pMouseCursor->m_fastcopy_mode = 0;
+    pMouseCursor->m_fastcopy_mode = false;
   } else {
     // not processed
-    return 0;
+    return false;
   }
 
   // button got processed
-  return 1;
+  return true;
 }
 
 void cEditor ::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
@@ -1002,14 +1004,14 @@ void cEditor ::Add_Menu_Object(
 
   // if function
   if (tags.find("function:") == 0) {
-    new_menu->bfunction = 1;
+    new_menu->bfunction = true;
     // cut out the function identifier
     tags.erase(0, 9);
   }
 
   // if header
   if (tags.find("header") == 0) {
-    new_menu->header = 1;
+    new_menu->header = true;
     // cut out the function identifier
     tags.erase(0, 6);
 
@@ -1018,7 +1020,7 @@ void cEditor ::Add_Menu_Object(
                              CEGUI::colour(0.5f, 0.5f, 0.5f),
                              CEGUI::colour(0.5f, 0.5f, 0.5f));
     // not selectable
-    new_menu->setDisabled(1);
+    new_menu->setDisabled(true);
     // set tooltip
     new_menu->setTooltipText("Header " + name);
   }
@@ -1068,7 +1070,7 @@ void cEditor ::Activate_Menu_Item(cEditor_Menu_Object* entry) {
 
 bool cEditor ::Load_Item_Menu(std::string item_tags) {
   if (item_tags.empty()) {
-    return 0;
+    return false;
   }
 
   Unload_Item_Menu();
@@ -1152,7 +1154,7 @@ bool cEditor ::Load_Item_Menu(std::string item_tags) {
     tag_pos = 0;
   }
 
-  return 1;
+  return true;
 }
 
 void cEditor ::Unload_Item_Menu(void) {
@@ -1229,7 +1231,7 @@ void cEditor ::Add_Item_Object(cSprite* sprite, std::string new_name /* = "" */,
   // no object name available
   else {
     if (image) {
-      obj_name = image->Get_Filename(0, 0);
+      obj_name = image->Get_Filename(0, false);
     }
 
     // Warn if using filename
@@ -1289,7 +1291,7 @@ void cEditor ::Activate_Item(cEditor_Item_Object* entry) {
   }
 
   new_sprite->Set_Sprite_Manager(m_sprite_manager);
-  new_sprite->Set_Pos(pMouseCursor->m_pos_x, pMouseCursor->m_pos_y, 1);
+  new_sprite->Set_Pos(pMouseCursor->m_pos_x, pMouseCursor->m_pos_y, true);
 
   // hide editor window
   m_editor_window->setXPosition(CEGUI::UDim(-0.19f, 0));
@@ -1301,7 +1303,7 @@ void cEditor ::Activate_Item(cEditor_Item_Object* entry) {
   m_sprite_manager->Add(new_sprite);
 
   // Set mouse objects
-  pMouseCursor->m_left = 1;
+  pMouseCursor->m_left = true;
   pMouseCursor->m_hovering_object->m_mouse_offset_y =
       static_cast<int>(new_sprite->m_col_rect.m_h / 2);
   pMouseCursor->m_hovering_object->m_mouse_offset_x =
@@ -1313,7 +1315,7 @@ cSprite* cEditor ::Get_Object(const CEGUI::String& element,
                               CEGUI::XMLAttributes& attributes,
                               int engine_version) {
   // virtual
-  return NULL;
+  return nullptr;
 }
 
 cSprite_List cEditor ::Copy_Direction(const cSprite_List& objects,
@@ -1429,14 +1431,14 @@ void cEditor ::Select_Same_Object_Types(const cSprite* obj) {
     return;
   }
 
-  bool is_basic_sprite = 0;
+  bool is_basic_sprite = false;
 
   if (obj->Is_Basic_Sprite()) {
     if (!obj->m_start_image) {
       return;
     }
 
-    is_basic_sprite = 1;
+    is_basic_sprite = true;
   }
 
   // sprite manager
@@ -1452,18 +1454,18 @@ void cEditor ::Select_Same_Object_Types(const cSprite* obj) {
       continue;
     }
 
-    pMouseCursor->Add_Selected_Object(game_obj, 1);
+    pMouseCursor->Add_Selected_Object(game_obj, true);
   }
 }
 
 bool cEditor ::Editor_Mouse_Enter(const CEGUI::EventArgs& event) {
   // ignore if a button is pressed
   if (pMouseCursor->m_left || pMouseCursor->m_middle || pMouseCursor->m_right) {
-    return 1;
+    return true;
   }
 
   // if not visible
-  if (!m_listbox_items->isVisible(1)) {
+  if (!m_listbox_items->isVisible(true)) {
     // fade in
     m_editor_window->setXPosition(CEGUI::UDim(0, 0));
     m_editor_window->setAlpha(0.0f);
@@ -1475,7 +1477,7 @@ bool cEditor ::Editor_Mouse_Enter(const CEGUI::EventArgs& event) {
 
   m_menu_timer = 0.0f;
 
-  return 1;
+  return true;
 }
 
 bool cEditor ::Menu_Select(const CEGUI::EventArgs& event) {
@@ -1494,7 +1496,7 @@ bool cEditor ::Menu_Select(const CEGUI::EventArgs& event) {
     // todo : clear
   }
 
-  return 1;
+  return true;
 }
 
 bool cEditor ::Item_Select(const CEGUI::EventArgs& event) {
@@ -1509,7 +1511,7 @@ bool cEditor ::Item_Select(const CEGUI::EventArgs& event) {
     Activate_Item(static_cast<cEditor_Item_Object*>(item));
   }
 
-  return 1;
+  return true;
 }
 
 void cEditor ::Function_Exit(void) { pKeyboard->Key_Down(SDLK_F8); }
@@ -1525,7 +1527,7 @@ void cEditor ::Replace_Sprites(void) {
 
   std::string image_filename = Box_Text_Input(
       pMouseCursor->m_selected_objects[0]->m_obj->m_start_image->m_filename,
-      _("Change selected Sprite(s) image to"), 0);
+      _("Change selected Sprite(s) image to"), false);
 
   // aborted/invalid
   if (image_filename.empty()) {
@@ -1548,7 +1550,7 @@ void cEditor ::Replace_Sprites(void) {
       continue;
     }
 
-    sel_obj->m_obj->Set_Image(image, 1);
+    sel_obj->m_obj->Set_Image(image, true);
   }
 }
 
@@ -1559,7 +1561,7 @@ bool cEditor ::Is_Tag_Available(const std::string& str, const std::string& tag,
 
   // not found
   if (pos == std::string::npos) {
-    return 0;
+    return false;
   }
 
   // tag end position
@@ -1569,7 +1571,7 @@ bool cEditor ::Is_Tag_Available(const std::string& str, const std::string& tag,
   if (pos == 0 || str.substr(pos - 1, 1).compare(";") == 0) {
     // if tag ending position is valid
     if (end_pos == str.length() || str.substr(end_pos, 1).compare(";") == 0) {
-      return 1;
+      return true;
     }
   }
 
@@ -1583,7 +1585,7 @@ bool cEditor ::Window_Help_Exit_Clicked(const CEGUI::EventArgs& event) {
   pGuiSystem->getGUISheet()->removeChildWindow(window_help);
   CEGUI::WindowManager::getSingleton().destroyWindow(window_help);
 
-  return 1;
+  return true;
 }
 
 void cEditor ::elementStart(const CEGUI::String& element,

@@ -25,7 +25,7 @@ namespace SMC {
 void I18N_Init(void) {
   const char* sys_locale = setlocale(LC_ALL, "");
 
-  if (sys_locale == NULL) {
+  if (sys_locale == nullptr) {
     debug_print("Failed to set translation locale\n");
   } else {
     debug_print("Translation locale is %s\n", sys_locale);

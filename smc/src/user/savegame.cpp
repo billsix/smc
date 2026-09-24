@@ -32,7 +32,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** cSave_Overworld_Waypoint *** *** *** *** *** *** *** *** *** *** */
 
-cSave_Overworld_Waypoint ::cSave_Overworld_Waypoint(void) { m_access = 0; }
+cSave_Overworld_Waypoint ::cSave_Overworld_Waypoint(void) { m_access = false; }
 
 cSave_Overworld_Waypoint ::~cSave_Overworld_Waypoint(void) {}
 
@@ -70,12 +70,12 @@ bool cSave_Level_Object ::exists(const std::string& val_name) {
 
     if (obj.m_name.compare(val_name) == 0) {
       // found
-      return 1;
+      return true;
     }
   }
 
   // not found
-  return 0;
+  return false;
 }
 
 std::string cSave_Level_Object ::Get_Value(const std::string& val_name) {
@@ -280,10 +280,10 @@ int cSavegame ::Load_Game(unsigned int save_slot) {
   // below version 8 the state was the type
   if (savegame->m_version < 8) {
     pLevel_Player->Set_Type(static_cast<Maryo_type>(savegame->m_player_state),
-                            0, 0);
+                            false, false);
   } else {
-    pLevel_Player->Set_Type(static_cast<Maryo_type>(savegame->m_player_type), 0,
-                            0);
+    pLevel_Player->Set_Type(static_cast<Maryo_type>(savegame->m_player_type),
+                            false, false);
     pLevel_Player->m_state =
         static_cast<Moving_state>(savegame->m_player_state);
   }
@@ -333,7 +333,7 @@ int cSavegame ::Load_Game(unsigned int save_slot) {
         cSprite* sprite = (*itr);
 
         sprite->Set_Sprite_Manager(level->m_sprite_manager);
-        sprite->Set_Spawned(1);
+        sprite->Set_Spawned(true);
         level->m_sprite_manager->Add(sprite);
       }
 
@@ -371,7 +371,8 @@ int cSavegame ::Load_Game(unsigned int save_slot) {
   pHud_Points->Set_Points(savegame->m_points);
   pHud_Goldpieces->Set_Gold(savegame->m_goldpieces);
   pHud_Lives->Set_Lives(savegame->m_lives);
-  pHud_Itembox->Set_Item(static_cast<SpriteType>(savegame->m_itembox_item), 0);
+  pHud_Itembox->Set_Item(static_cast<SpriteType>(savegame->m_itembox_item),
+                         false);
   pHud_Debug->Set_Text(_("Savegame ") + int_to_string(save_slot) +
                        _(" loaded"));
   pHud_Manager->Update();
@@ -384,14 +385,14 @@ bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
   if (pLevel_Player->m_maryo_type == MARYO_DEAD || pLevel_Player->m_lives < 0) {
     printf("Error : Couldn't save savegame %s because of invalid game state\n",
            description.c_str());
-    return 0;
+    return false;
   }
 
   cSave* savegame = new cSave();
 
   savegame->m_version = SAVEGAME_VERSION;
   savegame->m_level_engine_version = level_engine_version;
-  savegame->m_save_time = time(NULL);
+  savegame->m_save_time = time(nullptr);
 
   savegame->m_description = description;
   savegame->m_goldpieces = pLevel_Player->m_goldpieces;
@@ -411,7 +412,7 @@ bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
       // create level data
       cSave_Level* save_level = new cSave_Level();
 
-      save_level->m_name = Trim_Filename(level->m_level_filename, 0, 0);
+      save_level->m_name = Trim_Filename(level->m_level_filename, false, false);
 
       // save position if active level
       if (pActive_Level == level) {
@@ -521,7 +522,7 @@ bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
 
   delete savegame;
 
-  return 1;
+  return true;
 }
 
 cSave* cSavegame ::Load(unsigned int save_slot) {
@@ -536,7 +537,7 @@ cSave* cSavegame ::Load(unsigned int save_slot) {
   if (!File_Exists(filename)) {
     printf("Error : cSavegame::Load : No Savegame found at Slot : %s\n",
            filename.c_str());
-    return NULL;
+    return nullptr;
   }
 
   cSavegame_XML_Handler* loader = new cSavegame_XML_Handler(filename);
@@ -729,7 +730,7 @@ std::string cSavegame ::Get_Description(unsigned int save_slot,
     if (savegame->m_levels.empty()) {
       str_description += " - " + savegame->m_overworld_active;
     } else {
-      bool found_active = 0;
+      bool found_active = false;
 
       for (Save_LevelList::iterator itr = savegame->m_levels.begin();
            itr != savegame->m_levels.end(); ++itr) {
@@ -739,7 +740,7 @@ std::string cSavegame ::Get_Description(unsigned int save_slot,
         if (!Is_Float_Equal(level->m_level_pos_x, 0.0f) &&
             !Is_Float_Equal(level->m_level_pos_y, 0.0f)) {
           str_description += _(" -  Level ") + level->m_name;
-          found_active = 1;
+          found_active = true;
           break;
         }
       }
@@ -773,9 +774,9 @@ bool cSavegame ::Is_Valid(unsigned int save_slot) const {
 cSavegame_XML_Handler ::cSavegame_XML_Handler(const std::string& filename) {
   // new savegame format
   if (filename.rfind(".smcsav") != std::string::npos) {
-    m_old_format = 0;
+    m_old_format = false;
   } else {
-    m_old_format = 1;
+    m_old_format = true;
   }
 
   m_savegame = new cSave();
@@ -821,7 +822,7 @@ cSavegame_XML_Handler ::~cSavegame_XML_Handler(void) {
 
 cSave* cSavegame_XML_Handler ::Acquire_Savegame(void) {
   cSave* save = m_savegame;
-  m_savegame = NULL;
+  m_savegame = nullptr;
   return save;
 }
 
@@ -1041,7 +1042,7 @@ void cSavegame_XML_Handler ::Handle_Overworld_Waypoint(
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cSavegame* pSavegame = NULL;
+cSavegame* pSavegame = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

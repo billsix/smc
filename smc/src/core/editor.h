@@ -125,7 +125,7 @@ class cEditor : public CEGUI::XMLHandler {
   /* Disable
 	 * native_mode : if unset the current game mode isn't altered
  	*/
-  virtual void Disable(bool native_mode = 1);
+  virtual void Disable(bool native_mode = true);
 
   // Update Editor
   virtual void Update(void);
@@ -171,7 +171,7 @@ class cEditor : public CEGUI::XMLHandler {
 	 * if image is set the default object image is not used
 	 */
   void Add_Item_Object(cSprite* sprite, std::string new_name = "",
-                       cGL_Surface* image = NULL);
+                       cGL_Surface* image = nullptr);
   // Loads all Image Items
   void Load_Image_Items(std::string dir);
   // Active Item Entry
@@ -205,9 +205,9 @@ class cEditor : public CEGUI::XMLHandler {
 
   // Menu functions
   void Function_Exit(void);
-  virtual bool Function_New(void) { return 0; };
+  virtual bool Function_New(void) { return false; };
   virtual void Function_Load(void) {};
-  virtual void Function_Save(bool with_dialog = 0) {};
+  virtual void Function_Save(bool with_dialog = false) {};
   virtual void Function_Save_as(void) {};
   virtual void Function_Delete(void) {};
   virtual void Function_Reload(void) {};
@@ -231,9 +231,9 @@ class cEditor : public CEGUI::XMLHandler {
   float m_menu_timer;
 
   // Objects with tags
-  typedef vector<cImage_Settings_Data*> TaggedItemImageSettingsList;
+  using TaggedItemImageSettingsList = vector<cImage_Settings_Data*>;
   TaggedItemImageSettingsList m_tagged_item_images;
-  typedef vector<cSprite*> TaggedItemObjectsList;
+  using TaggedItemObjectsList = vector<cSprite*>;
   TaggedItemObjectsList m_tagged_item_objects;
 
   // CEGUI window

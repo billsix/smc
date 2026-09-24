@@ -42,7 +42,7 @@ class cOverworld_Player : public cAnimated_Sprite {
 	 * if new_start_direction is set also set the start/editor direction
 	*/
   void Set_Direction(const ObjectDirection dir,
-                     bool new_start_direction = 0) override;
+                     bool new_start_direction = false) override;
 
   // Set the Type
   void Set_Type(Maryo_type new_type);
@@ -50,7 +50,7 @@ class cOverworld_Player : public cAnimated_Sprite {
   // Update
   void Update(void) override;
   // Draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
   // Draw debug text
   void Draw_Debug_Text(void);
 
@@ -84,7 +84,7 @@ class cOverworld_Player : public cAnimated_Sprite {
   void Update_Waypoint_Walk(void);
 
   // Set Maryo to the given Waypoint position
-  bool Set_Waypoint(int waypoint, bool new_startpos = 0);
+  bool Set_Waypoint(int waypoint, bool new_startpos = false);
   // Get current Waypoint
   cWaypoint* Get_Waypoint(void);
 

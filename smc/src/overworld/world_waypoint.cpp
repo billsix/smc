@@ -60,36 +60,36 @@ void cWaypoint ::Init(void) {
   m_waypoint_type = WAYPOINT_NORMAL;
   m_name = _("Waypoint");
 
-  m_access = 0;
-  m_access_default = 0;
+  m_access = false;
+  m_access_default = false;
   m_direction_forward = DIR_UNDEFINED;
   m_direction_backward = DIR_UNDEFINED;
 
   m_glim_color = Get_Random_Float(0, 100);
-  m_glim_mod = 1;
+  m_glim_mod = true;
 
-  m_arrow_forward = NULL;
-  m_arrow_backward = NULL;
+  m_arrow_forward = nullptr;
+  m_arrow_backward = nullptr;
 
   Set_Image(pVideo->Get_Surface("world/waypoint/default_1.png"));
 }
 
 cWaypoint* cWaypoint ::Copy(void) const {
   cWaypoint* waypoint = new cWaypoint(m_sprite_manager);
-  waypoint->Set_Pos(m_start_pos_x, m_start_pos_y, 1);
-  waypoint->Set_Image(m_start_image, 1);
+  waypoint->Set_Pos(m_start_pos_x, m_start_pos_y, true);
+  waypoint->Set_Image(m_start_image, true);
   waypoint->m_waypoint_type = m_waypoint_type;
   waypoint->Set_Destination(m_destination);
   waypoint->Set_Direction_Forward(m_direction_forward);
   waypoint->Set_Direction_Backward(m_direction_backward);
-  waypoint->Set_Access(m_access_default, 1);
+  waypoint->Set_Access(m_access_default, true);
   return waypoint;
 }
 
 void cWaypoint ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("x")),
-          static_cast<float>(attributes.getValueAsInteger("y")), 1);
+          static_cast<float>(attributes.getValueAsInteger("y")), true);
   // image
   /*if( attributes.exists( "image" ) )
 	{
@@ -119,7 +119,7 @@ void cWaypoint ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
       attributes.getValueAsString("direction_forward", "right").c_str()));
 
   // access
-  Set_Access(attributes.getValueAsBool("access", 1), 1);
+  Set_Access(attributes.getValueAsBool("access", true), true);
 }
 
 void cWaypoint ::Save_To_XML(CEGUI::XMLSerializer& stream) {
@@ -173,9 +173,9 @@ void cWaypoint ::Update(void) {
   }
 
   if (m_glim_color > 120.0f) {
-    m_glim_mod = 0;
+    m_glim_mod = false;
   } else if (m_glim_color < 7.0f) {
-    m_glim_mod = 1;
+    m_glim_mod = true;
   }
 }
 
@@ -256,10 +256,10 @@ void cWaypoint ::Draw(cSurface_Request* request /* = NULL  */) {
   // draw waypoint
   if ((m_access && (m_waypoint_type == 1 || m_waypoint_type == 2)) ||
       pOverworld_Manager->m_debug_mode || editor_world_enabled) {
-    bool create_request = 0;
+    bool create_request = false;
 
     if (!request) {
-      create_request = 1;
+      create_request = true;
       // create request
       request = new cSurface_Request();
     }
@@ -330,7 +330,7 @@ void cWaypoint ::Set_Destination(std::string str) {
   // normal waypoint
   if (m_waypoint_type == WAYPOINT_NORMAL) {
     // erase file type and directory  if set
-    str = Trim_Filename(str, 0, 0);
+    str = Trim_Filename(str, false, false);
   }
   // world waypoint
   else if (m_waypoint_type == WAYPOINT_WORLD_LINK &&
@@ -462,7 +462,7 @@ bool cWaypoint ::Editor_Type_Select(const CEGUI::EventArgs& event) {
     m_waypoint_type = WAYPOINT_WORLD_LINK;
   }
 
-  return 1;
+  return true;
 }
 bool cWaypoint ::Editor_Destination_Text_Changed(
     const CEGUI::EventArgs& event) {
@@ -473,7 +473,7 @@ bool cWaypoint ::Editor_Destination_Text_Changed(
 
   Set_Destination(str_text);
 
-  return 1;
+  return true;
 }
 
 bool cWaypoint ::Editor_Backward_Direction_Select(
@@ -485,7 +485,7 @@ bool cWaypoint ::Editor_Backward_Direction_Select(
 
   Set_Direction_Backward(Get_Direction_Id(item->getText().c_str()));
 
-  return 1;
+  return true;
 }
 
 bool cWaypoint ::Editor_Forward_Direction_Select(
@@ -497,7 +497,7 @@ bool cWaypoint ::Editor_Forward_Direction_Select(
 
   Set_Direction_Forward(Get_Direction_Id(item->getText().c_str()));
 
-  return 1;
+  return true;
 }
 
 bool cWaypoint ::Editor_Access_Select(const CEGUI::EventArgs& event) {
@@ -507,12 +507,12 @@ bool cWaypoint ::Editor_Access_Select(const CEGUI::EventArgs& event) {
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   if (item->getText().compare(UTF8_("Enabled")) == 0) {
-    Set_Access(1, 1);
+    Set_Access(true, true);
   } else {
-    Set_Access(0, 1);
+    Set_Access(false, true);
   }
 
-  return 1;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

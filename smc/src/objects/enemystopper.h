@@ -44,7 +44,7 @@ class cEnemyStopper : public cAnimated_Sprite {
   void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // if draw is valid for the current state and position
   bool Is_Draw_Valid(void) override;

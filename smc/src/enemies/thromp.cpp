@@ -55,11 +55,11 @@ void cThromp ::Init(void) {
   m_type = TYPE_THROMP;
   m_pos_z = 0.093f;
   m_camera_range = 1000;
-  m_can_be_on_ground = 0;
-  m_fire_resistant = 1;
+  m_can_be_on_ground = false;
+  m_fire_resistant = true;
 
   m_state = STA_STAY;
-  m_move_back = 0;
+  m_move_back = false;
   m_dest_velx = 0;
   m_dest_vely = 0;
   m_img_dir = "enemy/thromp/";
@@ -84,7 +84,7 @@ cThromp* cThromp ::Copy(void) const {
 void cThromp ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
   // image directory
   Set_Image_Dir(attributes.getValueAsString("image_dir", m_img_dir).c_str());
   // direction
@@ -180,7 +180,7 @@ void cThromp ::Set_Direction(const ObjectDirection dir) {
     return;
   }
 
-  cEnemy::Set_Direction(dir, 1);
+  cEnemy::Set_Direction(dir, true);
 
   Update_Distance_Rect();
   Update_Dest_Vel();
@@ -216,7 +216,7 @@ void cThromp ::Activate(void) {
 
   m_velx = m_dest_velx;
   m_vely = m_dest_vely;
-  m_move_back = 0;
+  m_move_back = false;
 
   // active image
   Set_Image_Num(1);
@@ -224,22 +224,22 @@ void cThromp ::Activate(void) {
 
 bool cThromp ::Move_Back(void) {
   if (m_state == STA_STAY || m_move_back) {
-    return 0;
+    return false;
   }
 
   m_velx = -m_dest_velx * 0.01f;
   m_vely = -m_dest_vely * 0.01f;
 
-  m_move_back = 1;
+  m_move_back = true;
 
   // default image
   Set_Image_Num(0);
 
-  return 1;
+  return true;
 }
 
 void cThromp ::DownGrade(bool force /* = 0 */) {
-  Set_Dead(1);
+  Set_Dead(true);
   m_massive_type = MASS_PASSIVE;
   m_counter = 0.0f;
   m_velx = 0.0f;
@@ -264,7 +264,7 @@ void cThromp ::Update_Dying(void) {
 
   // default death
   if (!Is_Float_Equal(m_rot_z, 180.0f)) {
-    Set_Active(0);
+    Set_Active(false);
   }
   // falling death
   else {
@@ -279,7 +279,7 @@ void cThromp ::Update_Dying(void) {
     // if below disable
     else {
       m_rot_z = 0.0f;
-      Set_Active(0);
+      Set_Active(false);
     }
   }
 }
@@ -370,7 +370,7 @@ void cThromp ::Update(void) {
       // unset velocity
       Set_Velocity(0, 0);
 
-      m_move_back = 0;
+      m_move_back = false;
     }
   }
 }
@@ -401,7 +401,7 @@ void cThromp ::Update_Images(void) {
   Add_Image(pVideo->Get_Surface(
       m_img_dir + Get_Direction_Name(m_start_direction) + "_active.png"));
   // set start image
-  Set_Image_Num(0, 1);
+  Set_Image_Num(0, true);
 
   // set active image
   if (m_state == STA_FLY) {
@@ -473,10 +473,10 @@ GL_rect cThromp ::Get_Final_Distance_Rect(void) const {
 
 bool cThromp ::Is_Update_Valid(void) {
   if (m_dead || m_freeze_counter) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 bool cThromp ::Is_Draw_Valid(void) {
@@ -486,7 +486,7 @@ bool cThromp ::Is_Draw_Valid(void) {
   if (editor_enabled) {
     // if active mouse object
     if (pMouseCursor->m_active_object == this) {
-      return 1;
+      return true;
     }
   }
 
@@ -533,7 +533,7 @@ void cThromp ::Generate_Smoke(unsigned int amount /* = 20 */) const {
   anim->Set_Time_to_Live(1, 1);
   anim->Set_Direction_Range(180, 180);
   anim->Set_Speed(0.05f, 0.4f);
-  anim->Set_Fading_Alpha(1);
+  anim->Set_Fading_Alpha(true);
   anim->Set_Const_Rotation_Z(-2, 4);
   anim->Emit();
   pActive_Animation_Manager->Add(anim);
@@ -616,15 +616,15 @@ void cThromp ::Handle_Collision_Enemy(cObjectCollision* collision) {
       // enemies that only hit us
       if (enemy->m_type == TYPE_SPIKEBALL) {
         // hits us
-        DownGrade(1);
+        DownGrade(true);
       }
       // kill enemy
       else {
         pAudio->Play_Sound(enemy->m_kill_sound);
         pHud_Points->Add_Points(enemy->m_kill_points,
                                 m_pos_x + m_image->m_w / 3, m_pos_y - 5, "",
-                                static_cast<Uint8>(255), 1);
-        enemy->DownGrade(1);
+                                static_cast<Uint8>(255), true);
+        enemy->DownGrade(true);
 
         if (!m_move_back) {
           Generate_Smoke();
@@ -709,7 +709,7 @@ void cThromp ::Editor_Activate(void) {
   Editor_Add(UTF8_("Speed"), UTF8_("Speed when activated"), editbox, 120);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_speed, 6, 0));
+  editbox->setText(float_to_string(m_speed, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(&cThromp::Editor_Speed_Text_Changed, this));
@@ -726,7 +726,7 @@ bool cThromp ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()));
 
-  return 1;
+  return true;
 }
 
 bool cThromp ::Editor_Image_Dir_Text_Changed(const CEGUI::EventArgs& event) {
@@ -737,7 +737,7 @@ bool cThromp ::Editor_Image_Dir_Text_Changed(const CEGUI::EventArgs& event) {
 
   Set_Image_Dir(str_text);
 
-  return 1;
+  return true;
 }
 
 bool cThromp ::Editor_Max_Distance_Text_Changed(const CEGUI::EventArgs& event) {
@@ -748,7 +748,7 @@ bool cThromp ::Editor_Max_Distance_Text_Changed(const CEGUI::EventArgs& event) {
 
   Set_Max_Distance(static_cast<float>(string_to_int(str_text)));
 
-  return 1;
+  return true;
 }
 
 bool cThromp ::Editor_Speed_Text_Changed(const CEGUI::EventArgs& event) {
@@ -759,7 +759,7 @@ bool cThromp ::Editor_Speed_Text_Changed(const CEGUI::EventArgs& event) {
 
   Set_Speed(string_to_float(str_text));
 
-  return 1;
+  return true;
 }
 
 void cThromp ::Create_Name(void) {

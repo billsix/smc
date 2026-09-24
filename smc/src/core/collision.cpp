@@ -105,8 +105,8 @@ cObjectCollision* cObjectCollisionType ::Find_First(const SpriteType type) {
 
 cObjectCollision ::cObjectCollision(void) {
   m_valid_type = COL_VTYPE_NOT_VALID;
-  m_received = 0;
-  m_obj = NULL;
+  m_received = false;
+  m_obj = nullptr;
   m_number = 0;
   m_direction = DIR_UNDEFINED;
   m_array = ARRAY_UNDEFINED;

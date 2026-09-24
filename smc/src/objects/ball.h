@@ -51,7 +51,7 @@ class cBall : public cAnimated_Sprite {
   // set origin
   void Set_Origin(ArrayType origin_array, SpriteType origin_type);
   // like Destroy but with sound option
-  void Destroy_Ball(bool with_sound = 0);
+  void Destroy_Ball(bool with_sound = false);
 
   /* set this sprite to destroyed and completely disable it
 	 * sprite is still in the sprite manager but only to get possibly replaced
@@ -61,10 +61,10 @@ class cBall : public cAnimated_Sprite {
   // update
   void Update(void) override;
   // draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // Generate the default animation Particles
-  void Generate_Particles(cParticle_Emitter* anim = NULL) const;
+  void Generate_Particles(cParticle_Emitter* anim = nullptr) const;
 
   /* Validate the given collision object
 	 * returns 0 if not valid

@@ -52,7 +52,7 @@ class cRender_Request {
   int m_render_count;
 };
 
-typedef vector<cRender_Request*> RenderList;
+using RenderList = vector<cRender_Request*>;
 
 /* *** *** *** *** *** *** cClear_Request *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -232,18 +232,18 @@ class cRenderQueue {
   /* Render current data
 	 * clear: if set clear the finished data after rendering
 	*/
-  void Render(bool clear = 1);
+  void Render(bool clear = true);
 
   /* Reduce the render count
 	 * amount : render count decrease amount
 	 * clear: if set clear the finished data after rendering
 	*/
-  void Fake_Render(unsigned int amount = 1, bool clear = 1);
+  void Fake_Render(unsigned int amount = 1, bool clear = true);
 
   /* clear the render data
 	 * if force is given all objects will be removed
 	*/
-  void Clear(bool force = 1);
+  void Clear(bool force = true);
 
   // render data array
   RenderList m_render_data;

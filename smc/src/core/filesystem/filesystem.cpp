@@ -97,7 +97,7 @@ bool Rename_File(const std::string& old_filename,
 
 bool Create_Directory(const std::string& dir) {
   if (dir.empty()) {
-    return 0;
+    return false;
   }
 
 // fixme : boost should use a codecvt_facet but for now we convert to UCS-2

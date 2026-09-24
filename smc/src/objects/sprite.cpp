@@ -71,7 +71,7 @@ cObjectCollision* cCollidingSprite ::Create_Collision_Object(
     const cSprite* base, cSprite* col, Col_Valid_Type valid_type) const {
   // if invalid
   if (!base || valid_type == COL_VTYPE_NOT_VALID) {
-    return NULL;
+    return nullptr;
   }
 
   // create
@@ -101,7 +101,7 @@ bool cCollidingSprite ::Add_Collision(cObjectCollision* collision,
                                       bool add_if_new /* = 0 */) {
   // invalid collision data
   if (!collision) {
-    return 0;
+    return false;
   }
 
   // check if collision data is new
@@ -109,13 +109,13 @@ bool cCollidingSprite ::Add_Collision(cObjectCollision* collision,
     // already in list
     if (Is_Collision_Included(collision->m_obj)) {
       delete collision;
-      return 0;
+      return false;
     }
   }
 
   m_collisions.push_back(collision);
 
-  return 1;
+  return true;
 }
 
 void cCollidingSprite ::Add_Collisions(cObjectCollisionType* col_list,
@@ -184,7 +184,7 @@ cObjectCollision* cCollidingSprite ::Get_Last_Collision(
     bool only_blocking /* = 0 */) const {
   // no collisions available
   if (m_collisions.empty()) {
-    return NULL;
+    return nullptr;
   }
 
   if (only_blocking) {
@@ -213,7 +213,7 @@ cObjectCollision* cCollidingSprite ::Get_Last_Collision(
     }
 
     // not found
-    return NULL;
+    return nullptr;
   }
 
   return *(m_collisions.end() - 1);
@@ -228,12 +228,12 @@ bool cCollidingSprite ::Is_Collision_Included(const cSprite* obj) const {
 
     // is in list
     if (col->m_obj == obj) {
-      return 1;
+      return true;
     }
   }
 
   // not found
-  return 0;
+  return false;
 }
 
 void cCollidingSprite ::Clear_Collisions(void) {
@@ -289,7 +289,7 @@ cSprite ::cSprite(CEGUI::XMLAttributes& attributes,
 cSprite ::~cSprite(void) {
   if (m_delete_image && m_image) {
     delete m_image;
-    m_image = NULL;
+    m_image = nullptr;
   }
 }
 
@@ -315,13 +315,13 @@ void cSprite ::Init(void) {
   m_start_pos_x = 0.0f;
   m_start_pos_y = 0.0f;
 
-  m_start_image = NULL;
-  m_image = NULL;
-  m_auto_destroy = 0;
-  m_delete_image = 0;
+  m_start_image = nullptr;
+  m_image = nullptr;
+  m_auto_destroy = false;
+  m_delete_image = false;
   m_shadow_pos = 0.0f;
   m_shadow_color = black;
-  m_no_camera = 0;
+  m_no_camera = false;
 
   m_color = static_cast<Uint8>(255);
 
@@ -336,14 +336,14 @@ void cSprite ::Init(void) {
   m_editor_pos_z = 0.0f;
 
   m_massive_type = MASS_PASSIVE;
-  m_active = 1;
-  m_spawned = 0;
+  m_active = true;
+  m_spawned = false;
   m_camera_range = 1000;
-  m_can_be_ground = 0;
-  m_disallow_managed_delete = 0;
+  m_can_be_ground = false;
+  m_disallow_managed_delete = false;
 
   // rotation
-  m_rotation_affects_rect = 0;
+  m_rotation_affects_rect = false;
   m_start_rot_x = 0.0f;
   m_start_rot_y = 0.0f;
   m_start_rot_z = 0.0f;
@@ -351,26 +351,26 @@ void cSprite ::Init(void) {
   m_rot_y = 0.0f;
   m_rot_z = 0.0f;
   // scale
-  m_scale_affects_rect = 0;
-  m_scale_up = 0;
-  m_scale_down = 1;
-  m_scale_left = 0;
-  m_scale_right = 1;
+  m_scale_affects_rect = false;
+  m_scale_up = false;
+  m_scale_down = true;
+  m_scale_left = false;
+  m_scale_right = true;
   m_start_scale_x = 1.0f;
   m_start_scale_y = 1.0f;
   m_scale_x = 1.0f;
   m_scale_y = 1.0f;
 
-  m_valid_draw = 1;
-  m_valid_update = 1;
+  m_valid_draw = true;
+  m_valid_update = true;
 
   m_editor_window_name_width = 0.0f;
 }
 
 cSprite* cSprite ::Copy(void) const {
   cSprite* basic_sprite = new cSprite(m_sprite_manager);
-  basic_sprite->Set_Image(m_start_image, 1);
-  basic_sprite->Set_Pos(m_start_pos_x, m_start_pos_y, 1);
+  basic_sprite->Set_Image(m_start_image, true);
+  basic_sprite->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   basic_sprite->m_type = m_type;
   basic_sprite->m_sprite_array = m_sprite_array;
   basic_sprite->Set_Massive_Type(m_massive_type);
@@ -389,10 +389,10 @@ cSprite* cSprite ::Copy(void) const {
 void cSprite ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
   // image
   Set_Image(pVideo->Get_Surface(attributes.getValueAsString("image").c_str()),
-            1);
+            true);
   // type
   Set_Sprite_Type(
       Get_Sprite_Type_Id(attributes.getValueAsString("type").c_str()));
@@ -434,14 +434,14 @@ void cSprite ::Set_Image(cGL_Surface* new_image, bool new_start_image /* = 0 */,
     if (m_image) {
       // if same image reset start_image
       if (m_start_image == m_image) {
-        m_start_image = NULL;
+        m_start_image = nullptr;
       }
 
       delete m_image;
-      m_image = NULL;
+      m_image = nullptr;
     }
 
-    m_delete_image = 0;
+    m_delete_image = false;
   }
 
   m_image = new_image;
@@ -518,23 +518,23 @@ void cSprite ::Set_Sprite_Type(SpriteType type) {
   if (m_type == TYPE_MASSIVE) {
     m_sprite_array = ARRAY_MASSIVE;
     Set_Massive_Type(MASS_MASSIVE);
-    m_can_be_ground = 1;
+    m_can_be_ground = true;
   } else if (m_type == TYPE_PASSIVE) {
     m_sprite_array = ARRAY_PASSIVE;
     Set_Massive_Type(MASS_PASSIVE);
-    m_can_be_ground = 0;
+    m_can_be_ground = false;
   } else if (m_type == TYPE_FRONT_PASSIVE) {
     m_sprite_array = ARRAY_PASSIVE;
     Set_Massive_Type(MASS_PASSIVE);
-    m_can_be_ground = 0;
+    m_can_be_ground = false;
   } else if (m_type == TYPE_HALFMASSIVE) {
     m_sprite_array = ARRAY_ACTIVE;
     Set_Massive_Type(MASS_HALFMASSIVE);
-    m_can_be_ground = 1;
+    m_can_be_ground = true;
   } else if (m_type == TYPE_CLIMBABLE) {
     m_sprite_array = ARRAY_ACTIVE;
     Set_Massive_Type(MASS_CLIMBABLE);
-    m_can_be_ground = 0;
+    m_can_be_ground = false;
   }
 }
 
@@ -836,7 +836,7 @@ void cSprite ::Draw(cSurface_Request* request /* = NULL */) {
     // draw
     pVideo->Draw_Rect(&m_rect, m_pos_z + 0.000008f, &lightgrey, rect_request);
     rect_request->m_no_camera = m_no_camera;
-    rect_request->m_filled = 0;
+    rect_request->m_filled = false;
     rect_request->m_blend_sfactor = GL_SRC_COLOR;
     rect_request->m_blend_dfactor = GL_DST_ALPHA;
     // scale
@@ -890,7 +890,7 @@ void cSprite ::Draw(cSurface_Request* request /* = NULL */) {
     cRect_Request* rect_request = new cRect_Request();
     // draw
     pVideo->Draw_Rect(&m_col_rect, m_pos_z + 0.000005f, &red, rect_request);
-    rect_request->m_no_camera = 0;
+    rect_request->m_no_camera = false;
 
     // blending
     rect_request->m_blend_sfactor = GL_SRC_COLOR;
@@ -906,10 +906,10 @@ void cSprite ::Draw_Image(cSurface_Request* request /* = NULL */) const {
     return;
   }
 
-  bool create_request = 0;
+  bool create_request = false;
 
   if (!request) {
-    create_request = 1;
+    create_request = true;
     // create request
     request = new cSurface_Request();
   }
@@ -1155,17 +1155,17 @@ void cSprite ::Set_Massive_Type(MassiveType type) {
 bool cSprite ::Is_On_Top(const cSprite* obj) const {
   // invalid
   if (!obj) {
-    return 0;
+    return false;
   }
 
   // always collide upwards because of the image size collision checking
   if (m_col_rect.m_x + m_col_rect.m_w > obj->m_col_rect.m_x &&
       m_col_rect.m_x < obj->m_col_rect.m_x + obj->m_col_rect.m_w &&
       m_col_rect.m_y + m_col_rect.m_h < obj->m_col_rect.m_y) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 bool cSprite ::Is_Visible_On_Screen(void) const {
@@ -1180,22 +1180,22 @@ bool cSprite ::Is_Visible_On_Screen(void) const {
 
   // not visible left
   if (m_rect.m_x + m_rect.m_w < cam_x) {
-    return 0;
+    return false;
   }
   // not visible right
   else if (m_rect.m_x > cam_x + game_res_w) {
-    return 0;
+    return false;
   }
   // not visible down
   else if (m_rect.m_y + m_rect.m_h < cam_y) {
-    return 0;
+    return false;
   }
   // not visible up
   else if (m_rect.m_y > cam_y + game_res_h) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 bool cSprite ::Is_In_Range(void) const {
@@ -1213,20 +1213,20 @@ bool cSprite ::Is_In_Range(void) const {
           pActive_Camera->m_x + (game_res_w / 2) + m_camera_range ||
       m_rect.m_y + (m_rect.m_h * 0.5f) >
           pActive_Camera->m_y + (game_res_h / 2) + m_camera_range) {
-    return 0;
+    return false;
   }
 
   // is in range
-  return 1;
+  return true;
 }
 
 bool cSprite ::Is_Update_Valid(void) {
   // if destroyed
   if (m_auto_destroy) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 bool cSprite ::Is_Draw_Valid(void) {
@@ -1234,28 +1234,28 @@ bool cSprite ::Is_Draw_Valid(void) {
   if (!editor_enabled) {
     // if not active or no image is set
     if (!m_active || !m_image) {
-      return 0;
+      return false;
     }
   }
   // editor enabled
   else {
     // if destroyed
     if (m_auto_destroy) {
-      return 0;
+      return false;
     }
 
     // no image
     if (!m_start_image) {
-      return 0;
+      return false;
     }
   }
 
   // not visible on the screen
   if (!Is_Visible_On_Screen()) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 void cSprite ::Destroy(void) {
@@ -1271,11 +1271,11 @@ void cSprite ::Destroy(void) {
     return;
   }
 
-  m_auto_destroy = 1;
-  m_active = 0;
-  m_valid_draw = 0;
-  m_valid_update = 0;
-  Set_Image(NULL, 1);
+  m_auto_destroy = true;
+  m_active = false;
+  m_valid_draw = false;
+  m_valid_update = false;
+  Set_Image(nullptr, true);
 }
 
 void cSprite ::Editor_Add(const CEGUI::String& name,
@@ -1474,9 +1474,9 @@ bool cSprite ::Editor_Image_Text_Changed(const CEGUI::EventArgs& event) {
   std::string str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
-  Set_Image(pVideo->Get_Surface(str_text), 1);
+  Set_Image(pVideo->Get_Surface(str_text), true);
 
-  return 1;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

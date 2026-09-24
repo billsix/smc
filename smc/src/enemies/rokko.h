@@ -54,19 +54,19 @@ class cRokko : public cEnemy {
   // Set max detection distance for the sides
   void Set_Max_Distance_Sides(float distance);
   // activate
-  void Activate(bool with_sound = 1);
+  void Activate(bool with_sound = true);
 
   /* downgrade state ( if already weakest state : dies )
 	 * force : usually dies or a complete downgrade
 	*/
-  void DownGrade(bool force = 0) override;
+  void DownGrade(bool force = false) override;
   // dying animation update
   void Update_Dying(void) override;
 
   // update
   void Update(void) override;
   // draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // update the distance rect
   void Update_Distance_rect(void);

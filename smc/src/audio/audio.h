@@ -76,7 +76,7 @@ class cAudio_Sound {
   int m_resource_id;
 };
 
-typedef vector<cAudio_Sound*> AudioSoundList;
+using AudioSoundList = vector<cAudio_Sound*>;
 
 /* *** *** *** *** *** *** *** Audio class *** *** *** *** *** *** *** *** *** *** */
 
@@ -102,7 +102,7 @@ class cAudio {
   bool Play_Sound(std::string filename, int res_id = -1, int volume = -1,
                   int loops = 0);
   // If no forcing it will be played after the current music
-  bool Play_Music(std::string filename, int loops = 0, bool force = 1,
+  bool Play_Music(std::string filename, int loops = 0, bool force = true,
                   unsigned int fadein_ms = 0);
 
   /* Returns a pointer to the sound if it is active.
@@ -131,12 +131,13 @@ class cAudio {
 	 * overwrite_fading : overwrite an already existing fade out
 	*/
   void Fadeout_Sounds(unsigned int ms, std::string filename,
-                      bool overwrite_fading = 0);
+                      bool overwrite_fading = false);
   /* Fade out Music
 	 * ms : the time to fade out
 	 * overwrite_fading : overwrite an already existing fade out
 	*/
-  void Fadeout_Music(unsigned int ms = 500, bool overwrite_fading = 0) const;
+  void Fadeout_Music(unsigned int ms = 500,
+                     bool overwrite_fading = false) const;
 
   /* Returns
 	* 0 if not fading

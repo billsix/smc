@@ -78,7 +78,7 @@ class cOverworld_description : public CEGUI::XMLHandler {
 // forward declare
 class cAnimation_Manager;
 
-typedef vector<cWaypoint*> WaypointList;
+using WaypointList = vector<cWaypoint*>;
 
 class cOverworld : public CEGUI::XMLHandler {
  public:
@@ -138,7 +138,7 @@ class cOverworld : public CEGUI::XMLHandler {
   /* Sets the current Waypoint progress
 	 * if force is set already accessible waypoints will be unset
 	*/
-  void Set_Progress(unsigned int normal_level, bool force = 1);
+  void Set_Progress(unsigned int normal_level, bool force = true);
 
   /* Returns a pointer to the Waypoint
 	 * if not found returns NULL

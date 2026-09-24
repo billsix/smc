@@ -58,11 +58,11 @@ void cEditor_World ::Enable(void) {
     return;
   }
 
-  editor_world_enabled = 1;
-  pOverworld_Manager->m_draw_layer = 1;
+  editor_world_enabled = true;
+  pOverworld_Manager->m_draw_layer = true;
 
   if (Game_Mode == MODE_OVERWORLD) {
-    editor_enabled = 1;
+    editor_enabled = true;
   }
 
   cEditor::Enable();
@@ -76,13 +76,13 @@ void cEditor_World ::Disable(bool native_mode /* = 0 */) {
 
   pHud_Debug->Set_Text(_("World Editor disabled"));
 
-  editor_world_enabled = 0;
-  pOverworld_Manager->m_draw_layer = 0;
-  pOverworld_Manager->m_camera_mode = 0;
+  editor_world_enabled = false;
+  pOverworld_Manager->m_draw_layer = false;
+  pOverworld_Manager->m_camera_mode = false;
 
   if (Game_Mode == MODE_OVERWORLD) {
-    native_mode = 1;
-    editor_enabled = 0;
+    native_mode = true;
+    editor_enabled = false;
   }
 
   cEditor::Disable(native_mode);
@@ -90,19 +90,19 @@ void cEditor_World ::Disable(bool native_mode /* = 0 */) {
 
 bool cEditor_World ::Key_Down(SDLKey key) {
   if (!m_enabled) {
-    return 0;
+    return false;
   }
 
   // check basic editor events
   if (cEditor::Key_Down(key)) {
-    return 1;
+    return true;
   } else {
     // not processed
-    return 0;
+    return false;
   }
 
   // key got processed
-  return 1;
+  return true;
 }
 
 void cEditor_World ::Set_Overworld(cOverworld* overworld) {
@@ -153,7 +153,7 @@ bool cEditor_World ::Function_New(void) {
 
   // aborted/invalid
   if (world_name.empty()) {
-    return 0;
+    return false;
   }
 
   if (pOverworld_Manager->New(world_name)) {
@@ -168,12 +168,12 @@ bool cEditor_World ::Function_New(void) {
     Game_Action_Data_End.add("screen_fadein_speed", "3");
 
     pHud_Debug->Set_Text(_("Created ") + world_name);
-    return 1;
+    return true;
   } else {
     pHud_Debug->Set_Text(_("World ") + world_name + _(" already exists"));
   }
 
-  return 0;
+  return false;
 }
 
 void cEditor_World ::Function_Load(void) {
@@ -181,8 +181,9 @@ void cEditor_World ::Function_Load(void) {
 
   // valid world
   while (world_name.length()) {
-    world_name = Box_Text_Input(world_name, _("Load an Overworld"),
-                                world_name.compare(_("Name")) == 0 ? 1 : 0);
+    world_name =
+        Box_Text_Input(world_name, _("Load an Overworld"),
+                       world_name.compare(_("Name")) == 0 ? true : false);
 
     // break if empty
     if (world_name.empty()) {
@@ -214,9 +215,10 @@ void cEditor_World ::Function_Load(void) {
 void cEditor_World ::Function_Save(bool with_dialog /* = 0 */) {
   // if denied
   if (with_dialog &&
-      !Box_Question(_("Save ") +
-                    Trim_Filename(m_overworld->m_description->m_name, 0, 0) +
-                    " ?")) {
+      !Box_Question(
+          _("Save ") +
+          Trim_Filename(m_overworld->m_description->m_name, false, false) +
+          " ?")) {
     return;
   }
 
@@ -234,7 +236,7 @@ void cEditor_World ::Function_Reload(void) {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cEditor_World* pWorld_Editor = NULL;
+cEditor_World* pWorld_Editor = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

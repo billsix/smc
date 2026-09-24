@@ -18,7 +18,11 @@ for the singletons (step 5).
   added **611** `override` across 59 files (redundant `virtual` dropped); reformatted; compiles
   clean; warnings 4662 → 4496. No signature-mismatch surprises (clang-tidy only annotates real
   overrides).
-- [ ] Step 2 — `NULL`→`nullptr`, int-as-bool→`true/false`, `typedef`→`using`, `#define`→`constexpr`.
+- [~] **Step 2** — `nullptr`/`using`/bool-literals (`smc-modernize-step-2-nullptr-using-bool.md`,
+  DONE 2026-09-24): clang-tidy `modernize-use-nullptr,use-using,use-bool-literals -fix`
+  (`tasks/adhoc/modernize/tidy_step2.sh`); NULL 487→87 (400→`nullptr`; the 87 are macro/ambiguous
+  contexts clang-tidy leaves), all `typedef`→`using`, bool literals fixed. 141 files, compiles
+  clean. **`#define`→`constexpr` deferred** (clang-tidy can't do it safely; a later manual pass).
 - [ ] Step 3 — drop Boost (coordinate the dead render-thread block with `smc-remove-dead-code.md`).
 - [ ] Step 4 — ownership → `unique_ptr` / value.
 - [ ] Step 5 — one `cApplication` owning the former singletons.

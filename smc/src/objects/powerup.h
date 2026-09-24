@@ -38,7 +38,7 @@ class cPowerUp : public cAnimated_Sprite {
   /* draw
 	 * a spawned powerup doesn't draw in editor mode
 	*/
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // if update is valid for the current state
   bool Is_Update_Valid(void) override;

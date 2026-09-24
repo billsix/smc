@@ -49,12 +49,12 @@ void cGee ::Init(void) {
   m_type = TYPE_GEE;
   m_camera_range = 1000;
   m_pos_z = 0.088f;
-  m_can_be_on_ground = 0;
+  m_can_be_on_ground = false;
 
   m_state = STA_STAY;
   m_speed_fly = 0.0f;
   Set_Max_Distance(400);
-  m_always_fly = 0;
+  m_always_fly = false;
   m_wait_time = 2.0f;
   m_fly_distance = 400;
 
@@ -84,7 +84,7 @@ cGee* cGee ::Copy(void) const {
 void cGee ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
   // direction
   Set_Direction(Get_Direction_Id(
       attributes
@@ -144,14 +144,14 @@ void cGee ::Set_Direction(const ObjectDirection dir) {
   }
 
   // set direction
-  cEnemy::Set_Direction(dir, 1);
+  cEnemy::Set_Direction(dir, true);
   // change left and right to horizontal direction
   if (m_start_direction == DIR_LEFT || m_start_direction == DIR_RIGHT) {
-    cEnemy::Set_Direction(DIR_HORIZONTAL, 1);
+    cEnemy::Set_Direction(DIR_HORIZONTAL, true);
   }
   // change up and down to vertical direction
   else if (m_start_direction == DIR_UP || m_start_direction == DIR_DOWN) {
-    cEnemy::Set_Direction(DIR_VERTICAL, 1);
+    cEnemy::Set_Direction(DIR_VERTICAL, true);
   }
 
   if (m_state == STA_FLY) {
@@ -168,7 +168,7 @@ void cGee ::Set_Direction(const ObjectDirection dir) {
   }
 
   // update direction rotation
-  Update_Rotation_Hor(1);
+  Update_Rotation_Hor(true);
 
   // stop moving
   Stop();
@@ -206,7 +206,7 @@ void cGee ::Set_Color(DefaultColor col) {
     m_speed_fly = 6.0f;
     m_kill_points = 50;
 
-    m_fire_resistant = 0;
+    m_fire_resistant = false;
   }
   // Lava
   else if (m_color_type == COL_RED) {
@@ -215,7 +215,7 @@ void cGee ::Set_Color(DefaultColor col) {
     m_speed_fly = 8.0f;
     m_kill_points = 100;
 
-    m_fire_resistant = 1;
+    m_fire_resistant = true;
   }
   // Venom
   else if (m_color_type == COL_GREEN) {
@@ -224,7 +224,7 @@ void cGee ::Set_Color(DefaultColor col) {
     m_speed_fly = 10.0f;
     m_kill_points = 200;
 
-    m_fire_resistant = 0;
+    m_fire_resistant = false;
   }
 
   Create_Name();
@@ -240,11 +240,11 @@ void cGee ::Set_Color(DefaultColor col) {
   Add_Image(pVideo->Get_Surface("enemy/gee/" + filename_dir + "/9.png"));
   Add_Image(pVideo->Get_Surface("enemy/gee/" + filename_dir + "/10.png"));
 
-  Set_Image_Num(0, 1);
+  Set_Image_Num(0, true);
 
-  Set_Animation(1);
+  Set_Animation(true);
   Set_Animation_Image_Range(0, 9);
-  Set_Time_All(140, 1);
+  Set_Time_All(140, true);
   Reset_Animation();
 }
 
@@ -255,7 +255,7 @@ void cGee ::Turn_Around(ObjectDirection col_dir /* = DIR_UNDEFINED */) {
 }
 
 void cGee ::DownGrade(bool force /* = 0 */) {
-  Set_Dead(1);
+  Set_Dead(true);
   m_massive_type = MASS_PASSIVE;
   m_counter = 0.0f;
   m_velx = 0.0f;
@@ -273,7 +273,7 @@ void cGee ::Update_Dying(void) {
 
   // default death
   if (!Is_Float_Equal(m_rot_z, 180.0f)) {
-    Set_Active(0);
+    Set_Active(false);
   }
   // falling death
   else {
@@ -288,7 +288,7 @@ void cGee ::Update_Dying(void) {
     // if below disable
     else {
       m_rot_z = 0.0f;
-      Set_Active(0);
+      Set_Active(false);
     }
   }
 }
@@ -458,7 +458,7 @@ void cGee ::Generate_Particles(unsigned int amount /* = 4 */) const {
     anim->Set_Color(lightgreen);
   }
   anim->Set_Time_to_Live(2.0f);
-  anim->Set_Fading_Alpha(1);
+  anim->Set_Fading_Alpha(true);
   anim->Set_Blending(BLEND_ADD);
   anim->Emit();
   pActive_Animation_Manager->Add(anim);
@@ -467,31 +467,31 @@ void cGee ::Generate_Particles(unsigned int amount /* = 4 */) const {
 bool cGee ::Is_At_Max_Distance(void) const {
   if (m_direction == DIR_UP) {
     if (m_pos_y - m_start_pos_y < -m_max_distance) {
-      return 1;
+      return true;
     }
   } else if (m_direction == DIR_DOWN) {
     if (m_pos_y - m_start_pos_y > m_max_distance) {
-      return 1;
+      return true;
     }
   } else if (m_direction == DIR_LEFT) {
     if (m_pos_x - m_start_pos_x < -m_max_distance) {
-      return 1;
+      return true;
     }
   } else if (m_direction == DIR_RIGHT) {
     if (m_pos_x - m_start_pos_x > m_max_distance) {
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 bool cGee ::Is_Update_Valid(void) {
   if (m_dead || m_freeze_counter) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 bool cGee ::Is_Draw_Valid(void) {
@@ -501,7 +501,7 @@ bool cGee ::Is_Draw_Valid(void) {
   if (editor_enabled) {
     // if active mouse object
     if (pMouseCursor->m_active_object == this) {
-      return 1;
+      return true;
     }
   }
 
@@ -538,10 +538,10 @@ void cGee ::Handle_Collision_Player(cObjectCollision* collision) {
     pAudio->Play_Sound(m_kill_sound);
 
     DownGrade();
-    pLevel_Player->Action_Jump(1);
+    pLevel_Player->Action_Jump(true);
 
     pHud_Points->Add_Points(m_kill_points, m_pos_x, m_pos_y - 5.0f, "",
-                            static_cast<Uint8>(255), 1);
+                            static_cast<Uint8>(255), true);
     pLevel_Player->Add_Kill_Multiplier();
   } else if (!pLevel_Player->m_invincible) {
     if (pLevel_Player->m_maryo_type != MARYO_SMALL) {
@@ -549,7 +549,7 @@ void cGee ::Handle_Collision_Player(cObjectCollision* collision) {
       //pAudio->PlaySound( "player/maryo_au.ogg", RID_MARYO_AU );
 
       if (collision->m_direction == DIR_BOTTOM) {
-        pLevel_Player->Action_Jump(1);
+        pLevel_Player->Action_Jump(true);
       } else if (collision->m_direction == DIR_LEFT) {
         pLevel_Player->m_velx = -7.0f;
       } else if (collision->m_direction == DIR_RIGHT) {
@@ -627,7 +627,7 @@ void cGee ::Editor_Activate(void) {
              90);
 
   editbox->setValidationString("[+]?[0-9]*\\.?[0-9]*");
-  editbox->setText(float_to_string(m_wait_time, 6, 0));
+  editbox->setText(float_to_string(m_wait_time, 6, false));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(&cGee::Editor_Wait_Time_Text_Changed, this));
@@ -656,7 +656,7 @@ bool cGee ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()));
 
-  return 1;
+  return true;
 }
 
 bool cGee ::Editor_Max_Distance_Text_Changed(const CEGUI::EventArgs& event) {
@@ -667,7 +667,7 @@ bool cGee ::Editor_Max_Distance_Text_Changed(const CEGUI::EventArgs& event) {
 
   Set_Max_Distance(string_to_int(str_text));
 
-  return 1;
+  return true;
 }
 
 bool cGee ::Editor_Always_Fly_Select(const CEGUI::EventArgs& event) {
@@ -677,12 +677,12 @@ bool cGee ::Editor_Always_Fly_Select(const CEGUI::EventArgs& event) {
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   if (item->getText().compare(UTF8_("Enabled")) == 0) {
-    m_always_fly = 1;
+    m_always_fly = true;
   } else {
-    m_always_fly = 0;
+    m_always_fly = false;
   }
 
-  return 1;
+  return true;
 }
 
 bool cGee ::Editor_Wait_Time_Text_Changed(const CEGUI::EventArgs& event) {
@@ -693,7 +693,7 @@ bool cGee ::Editor_Wait_Time_Text_Changed(const CEGUI::EventArgs& event) {
 
   m_wait_time = string_to_float(str_text);
 
-  return 1;
+  return true;
 }
 
 bool cGee ::Editor_Fly_Distance_Text_Changed(const CEGUI::EventArgs& event) {
@@ -704,7 +704,7 @@ bool cGee ::Editor_Fly_Distance_Text_Changed(const CEGUI::EventArgs& event) {
 
   m_fly_distance = string_to_int(str_text);
 
-  return 1;
+  return true;
 }
 
 void cGee ::Create_Name(void) {

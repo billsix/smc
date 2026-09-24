@@ -214,11 +214,11 @@ class cPath : public cSprite {
   bool m_show_line;
 
   // line segments
-  typedef vector<cPath_Segment> PathList;
+  using PathList = vector<cPath_Segment>;
   PathList m_segments;
 
   // linked path states
-  typedef vector<cPath_State*> PathStateList;
+  using PathStateList = vector<cPath_State*>;
   PathStateList m_linked_path_states;
 
  private:

@@ -51,7 +51,7 @@ cLevel_Entry ::cLevel_Entry(CEGUI::XMLAttributes& attributes,
 cLevel_Entry ::~cLevel_Entry(void) {
   if (m_editor_entry_name) {
     delete m_editor_entry_name;
-    m_editor_entry_name = NULL;
+    m_editor_entry_name = nullptr;
   }
 }
 
@@ -76,12 +76,12 @@ void cLevel_Entry ::Init(void) {
   m_editor_color = lightblue;
   m_editor_color.alpha = 128;
 
-  m_editor_entry_name = NULL;
+  m_editor_entry_name = nullptr;
 }
 
 cLevel_Entry* cLevel_Entry ::Copy(void) const {
   cLevel_Entry* level_entry = new cLevel_Entry(m_sprite_manager);
-  level_entry->Set_Pos(m_start_pos_x, m_start_pos_y, 1);
+  level_entry->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   level_entry->Set_Type(m_entry_type);
   level_entry->Set_Direction(m_start_direction);
   level_entry->Set_Name(m_entry_name);
@@ -91,7 +91,7 @@ cLevel_Entry* cLevel_Entry ::Copy(void) const {
 void cLevel_Entry ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
-          static_cast<float>(attributes.getValueAsInteger("posy")), 1);
+          static_cast<float>(attributes.getValueAsInteger("posy")), true);
   // type
   Set_Type(static_cast<Level_Entry_type>(
       attributes.getValueAsInteger("type", m_entry_type)));
@@ -132,7 +132,7 @@ void cLevel_Entry ::Set_Direction(const ObjectDirection dir) {
     return;
   }
 
-  cAnimated_Sprite::Set_Direction(dir, 1);
+  cAnimated_Sprite::Set_Direction(dir, true);
 
   Create_Name();
 }
@@ -216,7 +216,7 @@ void cLevel_Entry ::Activate(void) {
     pLevel_Player->m_pos_z = 0.0799f;
 
     // move slowly out
-    while (1) {
+    while (true) {
       if (m_direction == DIR_DOWN) {
         pLevel_Player->Move(0.0f, 2.8f);
 
@@ -343,7 +343,7 @@ void cLevel_Entry ::Set_Name(const std::string& str_name) {
   // delete editor image
   if (m_editor_entry_name) {
     delete m_editor_entry_name;
-    m_editor_entry_name = NULL;
+    m_editor_entry_name = nullptr;
   }
 
   // Set new name
@@ -361,15 +361,15 @@ void cLevel_Entry ::Set_Name(const std::string& str_name) {
 bool cLevel_Entry ::Is_Draw_Valid(void) {
   // if editor not enabled
   if (!editor_enabled) {
-    return 0;
+    return false;
   }
 
   // if not active or not visible on the screen
   if (!m_active || !Is_Visible_On_Screen()) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 void cLevel_Entry ::Editor_Activate(void) {
@@ -417,7 +417,7 @@ bool cLevel_Entry ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()));
 
-  return 1;
+  return true;
 }
 
 bool cLevel_Entry ::Editor_Name_Text_Changed(const CEGUI::EventArgs& event) {
@@ -428,7 +428,7 @@ bool cLevel_Entry ::Editor_Name_Text_Changed(const CEGUI::EventArgs& event) {
 
   Set_Name(str_text);
 
-  return 1;
+  return true;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

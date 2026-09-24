@@ -42,7 +42,7 @@ class cLayer_Line_Point : public cSprite {
   void Save_To_XML(CEGUI::XMLSerializer& stream) override {};
 
   // draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   /* set this sprite to destroyed and completely disable it
 	 * sprite is still in the sprite manager but only to get possibly replaced
@@ -86,7 +86,7 @@ class cLayer_Line_Point_Start : public cLayer_Line_Point {
   void Set_Sprite_Manager(cSprite_Manager* sprite_manager) override;
 
   // Draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // return a normal line
   GL_line Get_Line(void) const;
@@ -124,7 +124,7 @@ class cLine_collision {
   float m_difference;
 };
 
-typedef vector<cLayer_Line_Point_Start*> LayerLineList;
+using LayerLineList = vector<cLayer_Line_Point_Start*>;
 
 // Layer class
 // handles the line collision detection

@@ -56,7 +56,7 @@ class cBaseBox : public cAnimated_Sprite {
 	*/
   void Set_Animation_Type(const std::string& new_anim_type);
   // sets the count this object can be activated
-  virtual void Set_Useable_Count(int count, bool new_startcount = 0);
+  virtual void Set_Useable_Count(int count, bool new_startcount = false);
   // Set invisible type
   void Set_Invisible(Box_Invisible_Type type);
 
@@ -76,7 +76,7 @@ class cBaseBox : public cAnimated_Sprite {
   // update
   void Update(void) override;
   // draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // Generate activation Particles
   void Generate_Activation_Particles(void);

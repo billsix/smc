@@ -57,7 +57,7 @@ class cHud_Manager : public cObject_Manager<cHudSprite> {
   // the parent sprite manager
   cSprite_Manager* m_sprite_manager;
 
-  typedef vector<cHudSprite*> HudSpriteList;
+  using HudSpriteList = vector<cHudSprite*>;
 
   // true if loaded
   bool m_loaded;
@@ -86,7 +86,7 @@ class cMenuBackground : public cHudSprite {
   cMenuBackground(cSprite_Manager* sprite_manager);
   ~cMenuBackground(void) override;
 
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   cGL_Surface* m_maryo_head;
   cGL_Surface* m_goldpiece;
@@ -102,7 +102,7 @@ class cStatusText : public cHudSprite {
   cStatusText(cSprite_Manager* sprite_manager);
   ~cStatusText(void) override;
 
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 };
 
 /* *** *** *** *** *** cPlayerPoints *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -116,14 +116,14 @@ class cPlayerPoints : public cStatusText {
   void Add_Points(unsigned int points, float x = 0.0f, float y = 0.0f,
                   std::string strtext = "",
                   const Color& color = static_cast<Uint8>(255),
-                  bool allow_multiplier = 0);
+                  bool allow_multiplier = false);
 
   // removes all point texts
   void Clear(void);
 
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
-  typedef vector<PointsText*> PointsTextList;
+  using PointsTextList = vector<PointsText*>;
   PointsTextList m_points_objects;
 };
 
@@ -137,7 +137,7 @@ class cGoldDisplay : public cStatusText {
   void Set_Gold(int gold);
   void Add_Gold(int gold);
 
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 };
 
 /* *** *** *** *** *** cLiveDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -150,7 +150,7 @@ class cLiveDisplay : public cStatusText {
   void Set_Lives(int lives);
   void Add_Lives(int lives);
 
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 };
 
 /* *** *** *** *** *** cTimeDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -163,7 +163,7 @@ class cTimeDisplay : public cStatusText {
   // update
   void Update(void) override;
   // draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // Set time
   void Set_Time(Uint32 milliseconds);
@@ -189,12 +189,12 @@ class cItemBox : public cStatusText {
   // update
   void Update(void) override;
   // draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   /* Set the item
 	* sound : if set the box sound is played
 	*/
-  void Set_Item(SpriteType item_type, bool sound = 1);
+  void Set_Item(SpriteType item_type, bool sound = true);
   // Activates the itembox
   void Request_Item(void);
   // push the item back to the itembox
@@ -229,7 +229,7 @@ class cDebugDisplay : public cStatusText {
   // update
   void Update(void) override;
   // draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
   // draw the frames per second info
   void Draw_fps(void);
   // draw the debug mode info
@@ -257,7 +257,7 @@ class cDebugDisplay : public cStatusText {
   int m_obj_counter, m_pass_counter, m_mass_counter, m_enemy_counter,
       m_active_counter;
   // sprites
-  typedef vector<cHudSprite*> HudSpriteList;
+  using HudSpriteList = vector<cHudSprite*>;
   HudSpriteList m_sprites;
 };
 

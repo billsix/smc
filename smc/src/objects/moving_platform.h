@@ -88,7 +88,7 @@ class cMoving_Platform : public cAnimated_Sprite {
   void Set_Massive_Type(MassiveType new_type) override;
   // Set Direction
   void Set_Direction(const ObjectDirection dir,
-                     bool new_start_direction = 0) override;
+                     bool new_start_direction = false) override;
   /* Set Maximum distance
 	 * if move type is line this is the length and if circle the radius
 	 * but not used if path

@@ -68,7 +68,7 @@ class cStaticEnemy : public cEnemy {
   /* downgrade state ( if already weakest state : dies )
 	 * force : usually dies or a complete downgrade
 	*/
-  void DownGrade(bool force = 0) override;
+  void DownGrade(bool force = false) override;
   // dying animation update
   void Update_Dying(void) override;
 

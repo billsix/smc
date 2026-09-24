@@ -39,7 +39,7 @@ class cSave_Overworld_Waypoint {
   bool m_access;
 };
 
-typedef vector<cSave_Overworld_Waypoint*> Save_Overworld_WaypointList;
+using Save_Overworld_WaypointList = vector<cSave_Overworld_Waypoint*>;
 
 /* *** *** *** *** *** *** *** cSave_Overworld *** *** *** *** *** *** *** *** *** *** */
 // Overworld save data
@@ -54,7 +54,7 @@ class cSave_Overworld {
   Save_Overworld_WaypointList m_waypoints;
 };
 
-typedef vector<cSave_Overworld*> Save_OverworldList;
+using Save_OverworldList = vector<cSave_Overworld*>;
 
 /* *** *** *** *** *** *** *** cSave_Level_Object_Property *** *** *** *** *** *** *** *** *** *** */
 // Level object string property
@@ -67,7 +67,7 @@ class cSave_Level_Object_Property {
   std::string m_value;
 };
 
-typedef vector<cSave_Level_Object_Property> Save_Level_Object_ProprtyList;
+using Save_Level_Object_ProprtyList = vector<cSave_Level_Object_Property>;
 
 /* *** *** *** *** *** *** *** cSave_Level_Object *** *** *** *** *** *** *** *** *** *** */
 // Level object save data
@@ -88,7 +88,7 @@ class cSave_Level_Object {
   Save_Level_Object_ProprtyList m_properties;
 };
 
-typedef vector<cSave_Level_Object*> Save_Level_ObjectList;
+using Save_Level_ObjectList = vector<cSave_Level_Object*>;
 
 /* *** *** *** *** *** *** *** cSave_Level *** *** *** *** *** *** *** *** *** *** */
 // Level save data
@@ -108,7 +108,7 @@ class cSave_Level {
   cSprite_List m_spawned_objects;
 };
 
-typedef vector<cSave_Level*> Save_LevelList;
+using Save_LevelList = vector<cSave_Level*>;
 
 /* *** *** *** *** *** *** *** cSave *** *** *** *** *** *** *** *** *** *** */
 class cSave {
@@ -187,7 +187,7 @@ class cSavegame {
 
   // Returns only the Savegame description
   std::string Get_Description(unsigned int save_slot,
-                              bool only_description = 0);
+                              bool only_description = false);
 
   // Returns true if the Savegame is valid
   bool Is_Valid(unsigned int save_slot) const;

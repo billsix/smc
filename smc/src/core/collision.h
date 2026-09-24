@@ -59,7 +59,7 @@ class cObjectCollision {
   ArrayType m_array;
 };
 
-typedef vector<cObjectCollision*> cObjectCollision_List;
+using cObjectCollision_List = vector<cObjectCollision*>;
 
 /* *** *** *** *** *** *** *** cObjectCollisionType *** *** *** *** *** *** *** *** *** *** */
 
@@ -102,10 +102,10 @@ inline bool Is_Collision_Top(const GL_rect& base_rect,
   if (base_rect.m_y + 1 >= col_rect.m_y + col_rect.m_h &&
       base_rect.m_x < col_rect.m_x + col_rect.m_w &&
       base_rect.m_x + base_rect.m_w > col_rect.m_x) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 };
 // returns true if a collision is on the bottom
 inline bool Is_Collision_Bottom(const GL_rect& base_rect,
@@ -113,10 +113,10 @@ inline bool Is_Collision_Bottom(const GL_rect& base_rect,
   if (base_rect.m_y + base_rect.m_h - 1 <= col_rect.m_y &&
       base_rect.m_x < col_rect.m_x + col_rect.m_w &&
       base_rect.m_x + base_rect.m_w > col_rect.m_x) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 };
 // returns true if a collision is on the left
 inline bool Is_Collision_Left(const GL_rect& base_rect,
@@ -124,10 +124,10 @@ inline bool Is_Collision_Left(const GL_rect& base_rect,
   if (base_rect.m_x + 1 >= col_rect.m_x + col_rect.m_w &&
       base_rect.m_y < col_rect.m_y + col_rect.m_h &&
       base_rect.m_y + base_rect.m_h > col_rect.m_y) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 };
 // returns true if a collision is on the right
 inline bool Is_Collision_Right(const GL_rect& base_rect,
@@ -135,10 +135,10 @@ inline bool Is_Collision_Right(const GL_rect& base_rect,
   if (base_rect.m_x + base_rect.m_w - 1 <= col_rect.m_x &&
       base_rect.m_y < col_rect.m_y + col_rect.m_h &&
       base_rect.m_y + base_rect.m_h > col_rect.m_y) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 };
 
 /*
@@ -148,21 +148,21 @@ inline bool Is_Collision_Right(const GL_rect& base_rect,
 inline bool Col_Box(const SDL_Rect& a, const GL_rect& b) {
   // check if their bounding boxes touch
   if (b.m_x + b.m_w < a.x) {
-    return 0;
+    return false;
   }
   if (b.m_x > a.x + a.w) {
-    return 0;
+    return false;
   }
 
   if (b.m_y + b.m_h < a.y) {
-    return 0;
+    return false;
   }
   if (b.m_y > a.y + a.h) {
-    return 0;
+    return false;
   }
 
   // bounding boxes intersect
-  return 1;
+  return true;
 };
 
 /*
@@ -171,19 +171,19 @@ inline bool Col_Box(const SDL_Rect& a, const GL_rect& b) {
 */
 inline bool Col_Box_full(const SDL_Rect& a, const SDL_Rect& b) {
   if (a.x <= b.x) {
-    return 0;
+    return false;
   }
   if (a.x + a.w >= b.x + b.w) {
-    return 0;
+    return false;
   }
   if (a.y <= b.y) {
-    return 0;
+    return false;
   }
   if (a.y + a.h >= b.y + b.h) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 };
 
 /*

@@ -134,9 +134,9 @@ int main(int argc, char** argv) {
             std::string option_str = arguments[option];
 
             if (option_str == "game") {
-              game_debug = 1;
+              game_debug = true;
             } else if (option_str == "performance") {
-              game_debug_performance = 1;
+              game_debug_performance = true;
             } else {
               printf("Unknown debug option %s\n", option_str.c_str());
               return EXIT_FAILURE;
@@ -224,7 +224,7 @@ namespace SMC {
 
 void Init_Game(void) {
   // init random number generator
-  srand(static_cast<unsigned int>(time(NULL)));
+  srand(static_cast<unsigned int>(time(nullptr)));
 
   // Init Stage 1 - core classes
   pResource_Manager = new cResource_Manager();
@@ -276,8 +276,8 @@ void Init_Game(void) {
   pAudio->Init();
 
   pCampaign_Manager = new cCampaign_Manager();
-  pLevel_Player = new cLevel_Player(NULL);
-  pLevel_Player->m_disallow_managed_delete = 1;
+  pLevel_Player = new cLevel_Player(nullptr);
+  pLevel_Player->m_disallow_managed_delete = true;
   // set the first active player available
   pActive_Player = pLevel_Player;
   pLevel_Manager = new cLevel_Manager();
@@ -292,7 +292,7 @@ void Init_Game(void) {
   // draw generic loading screen
   Loading_Screen_Init();
   // initialize image cache
-  pVideo->Init_Image_Cache(0, 1);
+  pVideo->Init_Image_Cache(false, true);
 
   // Init Stage 3 - game classes
   // note : set any sprite manager as it is set again on game mode switch
@@ -303,14 +303,14 @@ void Init_Game(void) {
   /* note : set any sprite manager as cOverworld_Manager::Load sets it again 
 	 * parent overworld is also set from there again
 	*/
-  pWorld_Editor = new cEditor_World(pActive_Level->m_sprite_manager, NULL);
+  pWorld_Editor = new cEditor_World(pActive_Level->m_sprite_manager, nullptr);
   pMouseCursor = new cMouseCursor(pActive_Level->m_sprite_manager);
   pKeyboard = new cKeyboard();
   pJoystick = new cJoystick();
   pLevel_Manager->Init();
   // note : set any sprite manager as cOverworld_Manager::Load sets it again
   pOverworld_Player =
-      new cOverworld_Player(pActive_Level->m_sprite_manager, NULL);
+      new cOverworld_Player(pActive_Level->m_sprite_manager, nullptr);
   pOverworld_Manager = new cOverworld_Manager(pActive_Level->m_sprite_manager);
   // set default overworld active
   pOverworld_Player->Set_Overworld(pOverworld_Manager->Get("World 1"));
@@ -320,8 +320,8 @@ void Init_Game(void) {
   pSavegame = new cSavegame();
 
   // cache
-  Preload_Images(1);
-  Preload_Sounds(1);
+  Preload_Images(true);
+  Preload_Sounds(true);
   Loading_Screen_Exit();
 }
 
@@ -335,131 +335,131 @@ void Exit_Game(void) {
 
   if (pAudio) {
     delete pAudio;
-    pAudio = NULL;
+    pAudio = nullptr;
   }
 
   if (pLevel_Player) {
     delete pLevel_Player;
-    pLevel_Player = NULL;
+    pLevel_Player = nullptr;
   }
 
   if (pHud_Manager) {
     delete pHud_Manager;
-    pHud_Manager = NULL;
+    pHud_Manager = nullptr;
   }
 
   if (pSound_Manager) {
     delete pSound_Manager;
-    pSound_Manager = NULL;
+    pSound_Manager = nullptr;
   }
 
   if (pLevel_Editor) {
     delete pLevel_Editor;
-    pLevel_Editor = NULL;
+    pLevel_Editor = nullptr;
   }
 
   if (pWorld_Editor) {
     delete pWorld_Editor;
-    pWorld_Editor = NULL;
+    pWorld_Editor = nullptr;
   }
 
   if (pPreferences) {
     delete pPreferences;
-    pPreferences = NULL;
+    pPreferences = nullptr;
   }
 
   if (pSavegame) {
     delete pSavegame;
-    pSavegame = NULL;
+    pSavegame = nullptr;
   }
 
   if (pMouseCursor) {
     delete pMouseCursor;
-    pMouseCursor = NULL;
+    pMouseCursor = nullptr;
   }
 
   if (pJoystick) {
     delete pJoystick;
-    pJoystick = NULL;
+    pJoystick = nullptr;
   }
 
   if (pKeyboard) {
     delete pKeyboard;
-    pKeyboard = NULL;
+    pKeyboard = nullptr;
   }
 
   if (pCampaign_Manager) {
     delete pCampaign_Manager;
-    pCampaign_Manager = NULL;
+    pCampaign_Manager = nullptr;
   }
 
   if (pOverworld_Manager) {
     delete pOverworld_Manager;
-    pOverworld_Manager = NULL;
+    pOverworld_Manager = nullptr;
   }
 
   if (pOverworld_Player) {
     delete pOverworld_Player;
-    pOverworld_Player = NULL;
+    pOverworld_Player = nullptr;
   }
 
   if (pLevel_Manager) {
     delete pLevel_Manager;
-    pLevel_Manager = NULL;
+    pLevel_Manager = nullptr;
   }
 
   if (pMenuCore) {
     delete pMenuCore;
-    pMenuCore = NULL;
+    pMenuCore = nullptr;
   }
 
   if (pRenderer) {
     delete pRenderer;
-    pRenderer = NULL;
+    pRenderer = nullptr;
   }
 
   if (pRenderer_current) {
     delete pRenderer_current;
-    pRenderer_current = NULL;
+    pRenderer_current = nullptr;
   }
 
   if (pGuiSystem) {
     CEGUI::ResourceProvider* rp = pGuiSystem->getResourceProvider();
     CEGUI::Logger* logger = CEGUI::Logger::getSingletonPtr();
     pGuiSystem->destroy();
-    pGuiSystem = NULL;
+    pGuiSystem = nullptr;
     delete rp;
     delete logger;
   }
 
   if (pGuiRenderer) {
     pGuiRenderer->destroy(*pGuiRenderer);
-    pGuiRenderer = NULL;
+    pGuiRenderer = nullptr;
   }
 
   if (pVideo) {
     delete pVideo;
-    pVideo = NULL;
+    pVideo = nullptr;
   }
 
   if (pImage_Manager) {
     delete pImage_Manager;
-    pImage_Manager = NULL;
+    pImage_Manager = nullptr;
   }
 
   if (pSettingsParser) {
     delete pSettingsParser;
-    pSettingsParser = NULL;
+    pSettingsParser = nullptr;
   }
 
   if (pFont) {
     delete pFont;
-    pFont = NULL;
+    pFont = nullptr;
   }
 
   if (pResource_Manager) {
     delete pResource_Manager;
-    pResource_Manager = NULL;
+    pResource_Manager = nullptr;
   }
 
   const char* last_sdl_error = SDL_GetError();
@@ -476,11 +476,11 @@ void Exit_Game(void) {
 bool Handle_Input_Global(SDL_Event* ev) {
   switch (ev->type) {
     case SDL_QUIT: {
-      game_exit = 1;
+      game_exit = true;
       Clear_Input_Events();
 
       // handle on all handlers ?
-      return 0;
+      return false;
     }
     case SDL_WINDOWEVENT: {
       if (ev->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
@@ -490,48 +490,48 @@ bool Handle_Input_Global(SDL_Event* ev) {
       }
       // lost focus : wait (SDL 1.2 SDL_ACTIVEEVENT with gain == 0)
       else if (ev->window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
-        bool music_paused = 0;
+        bool music_paused = false;
         // pause music
         if (pAudio->Is_Music_Playing()) {
           pAudio->Pause_Music();
-          music_paused = 1;
+          music_paused = true;
         }
-        SDL_WaitEvent(NULL);
+        SDL_WaitEvent(nullptr);
         // resume if music got paused
         if (music_paused) {
           pAudio->Resume_Music();
         }
-        return 1;
+        return true;
       }
       break;
     }
     case SDL_TEXTINPUT: {
       if (pKeyboard->Text_Input(ev->text.text)) {
-        return 1;
+        return true;
       }
       break;
     }
     case SDL_KEYDOWN: {
       if (pKeyboard->Key_Down(ev->key.keysym.sym)) {
-        return 1;
+        return true;
       }
       break;
     }
     case SDL_KEYUP: {
       if (pKeyboard->Key_Up(ev->key.keysym.sym)) {
-        return 1;
+        return true;
       }
       break;
     }
     case SDL_JOYBUTTONDOWN: {
       if (pJoystick->Handle_Button_Down_Event(ev)) {
-        return 1;
+        return true;
       }
       break;
     }
     case SDL_JOYBUTTONUP: {
       if (pJoystick->Handle_Button_Up_Event(ev)) {
-        return 1;
+        return true;
       }
       break;
     }
@@ -547,7 +547,7 @@ bool Handle_Input_Global(SDL_Event* ev) {
     {
       // mouse
       if (pMouseCursor->Handle_Event(ev)) {
-        return 1;
+        return true;
       }
 
       // send events
@@ -555,26 +555,26 @@ bool Handle_Input_Global(SDL_Event* ev) {
         // editor events
         if (pLevel_Editor->m_enabled) {
           if (pLevel_Editor->Handle_Event(ev)) {
-            return 1;
+            return true;
           }
         }
       } else if (Game_Mode == MODE_OVERWORLD) {
         // editor events
         if (pWorld_Editor->m_enabled) {
           if (pWorld_Editor->Handle_Event(ev)) {
-            return 1;
+            return true;
           }
         }
       } else if (Game_Mode == MODE_MENU) {
         if (pMenuCore->Handle_Event(ev)) {
-          return 1;
+          return true;
         }
       }
       break;
     }
   }
 
-  return 0;
+  return false;
 }
 
 void Update_Game(void) {

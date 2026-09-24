@@ -32,7 +32,7 @@ SMC_Spinner ::~SMC_Spinner(void) {}
 
 String SMC_Spinner ::getTextFromValue(void) const {
   if (d_inputMode == FloatingPoint) {
-    return SMC::float_to_string(d_currentValue, 6, 0);
+    return SMC::float_to_string(d_currentValue, 6, false);
   }
 
   return Spinner::getTextFromValue();

@@ -191,7 +191,7 @@ void cSprite_Manager ::Delete_All(bool delayed /* = 0 */) {
 }
 
 cSprite* cSprite_Manager ::Get_First(const SpriteType type) const {
-  cSprite* first = NULL;
+  cSprite* first = nullptr;
 
   for (cSprite_List::const_iterator itr = objects.begin(); itr != objects.end();
        ++itr) {
@@ -208,7 +208,7 @@ cSprite* cSprite_Manager ::Get_First(const SpriteType type) const {
 }
 
 cSprite* cSprite_Manager ::Get_Last(const SpriteType type) const {
-  cSprite* last = NULL;
+  cSprite* last = nullptr;
 
   for (cSprite_List::const_iterator itr = objects.begin(); itr != objects.end();
        ++itr) {
@@ -258,7 +258,7 @@ cSprite* cSprite_Manager ::Get_from_Position(
     return obj;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void cSprite_Manager ::Get_Objects_sorted(cSprite_List& new_objects,

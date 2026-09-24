@@ -45,7 +45,7 @@ class cOverworld_Manager : public cObject_Manager<cOverworld> {
   /* Load overworlds from the given directory
 	 * user_dir : if set overrides game worlds
 	*/
-  void Load_Dir(const std::string& dir, bool user_dir = 0);
+  void Load_Dir(const std::string& dir, bool user_dir = false);
 
   // Set active Overworld from name or path
   bool Set_Active(const std::string& str);

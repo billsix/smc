@@ -33,10 +33,10 @@ class cObject_Manager {
   virtual void Add(T* obj) { objects.push_back(obj); }
 
   // Delete the given object
-  virtual bool Delete(T* obj, bool delete_data = 1) {
+  virtual bool Delete(T* obj, bool delete_data = true) {
     // empty object
     if (!obj) {
-      return 0;
+      return false;
     }
 
     // get iterator
@@ -53,7 +53,7 @@ class cObject_Manager {
       delete obj;
     }
 
-    return 1;
+    return true;
   }
 
   // Delete all objects
@@ -72,7 +72,7 @@ class cObject_Manager {
   virtual T* Get_Pointer(size_t identifier) const {
     if (identifier >= objects.size()) {
       // out of array
-      return NULL;
+      return nullptr;
     }
 
     // available

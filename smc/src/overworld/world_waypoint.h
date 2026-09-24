@@ -54,19 +54,20 @@ class cWaypoint : public cSprite {
   // Update
   void Update(void) override;
   // Draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // Set direction forward
   void Set_Direction_Forward(ObjectDirection direction);
   // Set direction backward
   void Set_Direction_Backward(ObjectDirection direction);
   // Set Access
-  void Set_Access(bool enabled, bool new_start_access = 0);
+  void Set_Access(bool enabled, bool new_start_access = false);
 
   // Set the Destination
   void Set_Destination(std::string str);
   // Returns the Destination
-  std::string Get_Destination(bool with_dir = 0, bool with_end = 0) const;
+  std::string Get_Destination(bool with_dir = false,
+                              bool with_end = false) const;
 
   // editor activation
   void Editor_Activate(void) override;

@@ -56,7 +56,7 @@ class cGoldpiece : public cAnimated_Sprite {
   // update
   void Update(void) override;
   // draw
-  void Draw(cSurface_Request* request = NULL) override;
+  void Draw(cSurface_Request* request = nullptr) override;
 
   // if update is valid for the current state
   bool Is_Update_Valid(void) override;

@@ -39,20 +39,20 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** Variables *** *** *** *** *** *** *** *** *** */
 
-bool game_exit = 0;
+bool game_exit = false;
 GameMode Game_Mode = MODE_NOTHING;
 GameModeType Game_Mode_Type = MODE_TYPE_DEFAULT;
 GameAction Game_Action = GA_NONE;
 CEGUI::XMLAttributes Game_Action_Data_Start;
 CEGUI::XMLAttributes Game_Action_Data_Middle;
 CEGUI::XMLAttributes Game_Action_Data_End;
-void* Game_Action_ptr = NULL;
+void* Game_Action_ptr = nullptr;
 
 int game_res_w = 800;
 int game_res_h = 600;
 
-bool game_debug = 0;
-bool game_debug_performance = 0;
+bool game_debug = false;
+bool game_debug_performance = false;
 
 SDL_Event input_event;
 
@@ -61,12 +61,12 @@ float global_upscaley = 1.0f;
 float global_downscalex = 1.0f;
 float global_downscaley = 1.0f;
 
-bool editor_enabled = 0;
-bool editor_level_enabled = 0;
-bool editor_world_enabled = 0;
+bool editor_enabled = false;
+bool editor_level_enabled = false;
+bool editor_world_enabled = false;
 
-cCamera* pActive_Camera = NULL;
-cSprite* pActive_Player = NULL;
+cCamera* pActive_Camera = nullptr;
+cSprite* pActive_Player = nullptr;
 
 /* *** *** *** *** *** *** *** Functions *** *** *** *** *** *** *** *** *** *** */
 
@@ -89,13 +89,14 @@ void Handle_Game_Events(void) {
     Game_Action_Data_Start = CEGUI::XMLAttributes();
     Game_Action_Data_Middle = CEGUI::XMLAttributes();
     Game_Action_Data_End = CEGUI::XMLAttributes();
-    Game_Action_ptr = NULL;
+    Game_Action_ptr = nullptr;
 
     // handle player downgrade
     if (current_game_action == GA_DOWNGRADE_PLAYER) {
       Handle_Generic_Game_Events(current_game_action_data_start);
       pLevel_Player->DownGrade_Player(
-          0, current_game_action_data_middle.getValueAsBool("downgrade_force"));
+          false,
+          current_game_action_data_middle.getValueAsBool("downgrade_force"));
       Handle_Generic_Game_Events(current_game_action_data_middle);
       Handle_Generic_Game_Events(current_game_action_data_end);
     }
@@ -171,7 +172,7 @@ void Handle_Generic_Game_Events(const CEGUI::XMLAttributes& action_data) {
     // waypoint available
     if (waypoint_num >= 0) {
       // set the previous waypoints accessible
-      pActive_Overworld->Set_Progress(waypoint_num, 0);
+      pActive_Overworld->Set_Progress(waypoint_num, false);
       pOverworld_Player->Set_Waypoint(waypoint_num);
     }
   }
@@ -207,7 +208,7 @@ void Handle_Generic_Game_Events(const CEGUI::XMLAttributes& action_data) {
           // center camera position
           pActive_Camera->Center();
           // set invisible for warp animation
-          pLevel_Player->Set_Active(0);
+          pLevel_Player->Set_Active(false);
         } else {
           printf("Warning : Level entry %s not found\n", str_entry.c_str());
         }
@@ -227,7 +228,7 @@ void Handle_Generic_Game_Events(const CEGUI::XMLAttributes& action_data) {
   if (action_data.exists("play_music")) {
     pAudio->Play_Music(action_data.getValueAsString("play_music").c_str(),
                        action_data.getValueAsInteger("music_loops"),
-                       action_data.getValueAsBool("music_force", 1),
+                       action_data.getValueAsBool("music_force", true),
                        action_data.getValueAsInteger("music_fadein"));
   }
   if (action_data.exists("screen_fadeout")) {
@@ -308,7 +309,7 @@ void Clear_Input_Events(void) {
 
 void Preload_Images(bool draw_gui /* = 0 */) {
   // progress bar
-  CEGUI::ProgressBar* progress_bar = NULL;
+  CEGUI::ProgressBar* progress_bar = nullptr;
 
   if (draw_gui) {
     // get progress bar
@@ -324,15 +325,15 @@ void Preload_Images(bool draw_gui /* = 0 */) {
 
   // player
   vector<std::string> player_small_images = Get_Directory_Files(
-      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/small", ".png", 0, 0);
+      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/small", ".png", false, false);
   vector<std::string> player_big_images = Get_Directory_Files(
-      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/big", ".png", 0, 0);
+      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/big", ".png", false, false);
   vector<std::string> player_fire_images = Get_Directory_Files(
-      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/fire", ".png", 0, 0);
+      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/fire", ".png", false, false);
   vector<std::string> player_ice_images = Get_Directory_Files(
-      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/ice", ".png", 0, 0);
+      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/ice", ".png", false, false);
   vector<std::string> player_ghost_images = Get_Directory_Files(
-      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/ghost", ".png", 0, 0);
+      DATA_DIR "/" GAME_PIXMAPS_DIR "/maryo/ghost", ".png", false, false);
 
   image_files.insert(image_files.end(), player_small_images.begin(),
                      player_small_images.end());
@@ -462,7 +463,7 @@ void Preload_Sounds(bool draw_gui /* = 0 */) {
   }
 
   // progress bar
-  CEGUI::ProgressBar* progress_bar = NULL;
+  CEGUI::ProgressBar* progress_bar = nullptr;
 
   if (draw_gui) {
     // get progress bar
