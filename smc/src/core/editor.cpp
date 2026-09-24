@@ -352,8 +352,8 @@ void cEditor ::Enable(void) {
   // update player position rect
   pActive_Player->Update_Position_Rect();
   // update sprite manager position rect
-  for (auto& object : m_sprite_manager->objects) {
-    object->Update_Position_Rect();
+  for (auto& sprite : m_sprite_manager->objects) {
+    sprite->Update_Position_Rect();
   }
 
   pActive_Camera->Update_Position();
@@ -376,8 +376,8 @@ void cEditor ::Disable(bool native_mode /* = 1 */) {
     // player
     pActive_Player->Update_Position_Rect();
     // sprite manager
-    for (auto& object : m_sprite_manager->objects) {
-      object->Update_Position_Rect();
+    for (auto& sprite : m_sprite_manager->objects) {
+      sprite->Update_Position_Rect();
     }
 
     pActive_Camera->Center();
@@ -785,13 +785,13 @@ bool cEditor ::Key_Down(SDLKey key) {
     cSprite_List new_objects = Copy_Direction(objects, dir);
 
     // add new objects
-    for (auto obj : new_objects) {
-      pMouseCursor->Add_Selected_Object(obj, true);
+    for (auto sprite : new_objects) {
+      pMouseCursor->Add_Selected_Object(sprite, true);
     }
 
     // deselect old objects
-    for (auto& obj : objects) {
-      pMouseCursor->Remove_Selected_Object(obj);
+    for (auto& sprite : objects) {
+      pMouseCursor->Remove_Selected_Object(sprite);
     }
   }
   // Precise Pixel-Positioning
@@ -945,11 +945,11 @@ bool cEditor ::Mouse_Up(Uint8 button) {
     pMouseCursor->End_Selection();
 
     if (pMouseCursor->m_hovering_object->m_obj) {
-      for (auto object : pMouseCursor->m_selected_objects) {
+      for (auto selected : pMouseCursor->m_selected_objects) {
         // pre-update to keep particles on the correct position
-        if (object->m_obj->m_type == TYPE_PARTICLE_EMITTER) {
+        if (selected->m_obj->m_type == TYPE_PARTICLE_EMITTER) {
           cParticle_Emitter* emitter =
-              static_cast<cParticle_Emitter*>(object->m_obj);
+              static_cast<cParticle_Emitter*>(selected->m_obj);
           emitter->Pre_Update();
         }
       }
@@ -1104,15 +1104,15 @@ bool cEditor ::Load_Item_Menu(std::string item_tags) {
   }
 
   // Get all Objects with the Tags
-  for (auto object : m_tagged_item_objects) {
+  for (auto tagged_object : m_tagged_item_objects) {
     // search
-    while (Is_Tag_Available(object->m_editor_tags, array_tags[tag_pos])) {
+    while (Is_Tag_Available(tagged_object->m_editor_tags, array_tags[tag_pos])) {
       tag_pos++;
 
       // found all tags
       if (tag_pos >= array_tags.size()) {
         // Add Objects
-        Add_Item_Object(object->Copy().release());
+        Add_Item_Object(tagged_object->Copy().release());
 
         break;
       }
@@ -1341,8 +1341,8 @@ cSprite_List cEditor ::Copy_Direction(const cSprite_List& objects,
   // new copied objects
   cSprite_List new_objects;
 
-  for (auto& obj : objects) {
-    new_objects.push_back(Copy_Direction(obj, dir, offset));
+  for (auto& sprite : objects) {
+    new_objects.push_back(Copy_Direction(sprite, dir, offset));
   }
 
   // return only new objects

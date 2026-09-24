@@ -252,10 +252,10 @@ void cLevel_Entry ::Activate(void) {
       // center camera
       pActive_Camera->Center();
       // keep particles on screen
-      for (auto& obj : m_sprite_manager->objects) {
-        if (obj->m_type == TYPE_PARTICLE_EMITTER) {
+      for (auto& sprite : m_sprite_manager->objects) {
+        if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
           cParticle_Emitter* emitter =
-              static_cast<cParticle_Emitter*>(obj.get());
+              static_cast<cParticle_Emitter*>(sprite.get());
           emitter->Update_Position();
         }
       }

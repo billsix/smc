@@ -136,9 +136,9 @@ bool cOverworld_Manager ::Set_Active(cOverworld* world) {
   pOverworld_Player->Reset();
 
   // pre-update animations
-  for (auto& obj : world->m_sprite_manager->objects) {
-    if (obj->m_type == TYPE_PARTICLE_EMITTER) {
-      cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(obj.get());
+  for (auto& sprite : world->m_sprite_manager->objects) {
+    if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
+      cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(sprite.get());
       emitter->Pre_Update();
     }
   }
@@ -154,8 +154,8 @@ void cOverworld_Manager ::Reset(void) {
   pOverworld_Player->Set_Waypoint(pActive_Overworld->m_player_start_waypoint);
 
   // Reset all Waypoints
-  for (auto& object : objects) {
-    object->Reset_Waypoints();
+  for (auto& overworld : objects) {
+    overworld->Reset_Waypoints();
   }
 }
 
@@ -170,9 +170,9 @@ cOverworld* cOverworld_Manager ::Get(const std::string& str) {
 }
 
 cOverworld* cOverworld_Manager ::Get_from_Path(const std::string& path) {
-  for (auto& obj : objects) {
-    if (obj->m_description->m_path.compare(path) == 0) {
-      return obj.get();
+  for (auto& overworld : objects) {
+    if (overworld->m_description->m_path.compare(path) == 0) {
+      return overworld.get();
     }
   }
 
@@ -180,9 +180,9 @@ cOverworld* cOverworld_Manager ::Get_from_Path(const std::string& path) {
 }
 
 cOverworld* cOverworld_Manager ::Get_from_Name(const std::string& name) {
-  for (auto& obj : objects) {
-    if (obj->m_description->m_name.compare(name) == 0) {
-      return obj.get();
+  for (auto& overworld : objects) {
+    if (overworld->m_description->m_name.compare(name) == 0) {
+      return overworld.get();
     }
   }
 

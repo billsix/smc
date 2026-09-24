@@ -1,6 +1,6 @@
 # Give loop/local variables descriptive, type-anchored names
 
-**Status:** proposed — needs go-ahead (William Emerison Six <billsix@gmail.com>, 2026-09-24)
+**Status:** done (William Emerison Six <billsix@gmail.com>, 2026-09-24) — branch `descriptive-variable-names` off master; not merged (maintainer merges)
 **Priority:** 6 · **Difficulty:** 4
 
 ## BLUF
@@ -38,23 +38,50 @@ renames, scoped to each variable's block; no behavior change.
 
 ## Plan
 
-- [ ] Inventory the generic names: `rg -n "for \(.*\b(obj_ptr|obj|object|propertie|line|item)\b"`
+- [x] Inventory the generic names: `rg -n "for \(.*\b(obj_ptr|obj|object|propertie|line|item)\b"`
       across `smc/src`, plus the `.get()` aliases the ownership flip added.
-- [ ] Rename per site to the concrete element type (scoped, collision-guarded — a codemod like
-      `tasks/adhoc/modernize/fix_loop_names.py` can do the scoped rename; the *choice* of name is
-      per-site judgment, so this is not fully mechanical).
-- [ ] `make format`; `build.sh` green; `make image` + `tools/smoke_headless.sh` green.
-- [ ] Do it in reviewable commits (per subsystem), pure-rename so a diff is easy to eyeball.
+- [x] Rename per site to the concrete element type (scoped, collision-guarded). Codemods used:
+      `tasks/adhoc/descriptive-names/rename_loop_block.py` (per-file uniform element) and
+      `rename_by_container.py` (element chosen from the container expression + a bare-`objects`
+      per-file map; collision-guarded). The *choice* of name is per-site judgment, so these
+      generated the diff and every result was eyeballed.
+- [x] `build.sh` green; `make image` + `tools/smoke_headless.sh` green (exit 137 = still running
+      at the 30 s deadline).
+- [x] Squashed to one pure-rename work commit on branch `descriptive-variable-names` (no behavior
+      change; diff is all identifier substitutions, easy to eyeball).
 
 ## Notes / decisions
 
 - Best done AFTER the modernization ownership + dispatch steps land, so it renames the final set of
   handles once rather than chasing a moving target. Cross-links: [[smc-modernize-cpp]] (umbrella),
   the step-5 ownership task, the step-8 loops task.
+- **Open-question 1 resolved (element renamed; collection `objects` left alone).** `objects` is the
+  **public member of the shared base template `cObject_Manager<T>`** (`smc/src/core/obj_manager.h`),
+  inherited unchanged by 10 managers each with a different element type — `cSprite_Manager`
+  (cSprite), `cSound_Manager` (cSound), `cCampaign_Manager` (cCampaign), `cObjectCollisionType`
+  (cObjectCollision), `cOverworld_Manager` (cOverworld), `cAnimation_Manager` (cAnimation),
+  `cImage_Manager` (cGL_Surface), `cHud_Manager` (cHudSprite), `cLevel_Manager` (cLevel),
+  `cBackground_Manager` (cBackground). So `->objects` cannot be renamed to a type-specific
+  `->sprites` in the base: the same member is a list of overworlds, sounds, levels, … elsewhere.
+  The type is instead anchored at each **loop variable** (`for (auto& sprite : m_sprite_manager->objects)`),
+  which is what this pass did — the reader learns the element type from the handle, and the generic
+  member name stays honest about being generic. Renaming the collection per-manager would require
+  per-manager typed accessors (e.g. `Get_Sprites()`) or abandoning the shared base member — a
+  larger, separate refactor filed below rather than done here.
+- `col_obj` at `level_player.cpp:3788+` (32 uses) is intentionally **left as-is**: it is not a terse
+  loop handle but a meaningful local (`cSprite* col_obj = m_sprite_manager->Get_Pointer(...)`, the
+  collided-with sprite) whose name already carries meaning. `col_objects` (a `cSprite_List`
+  parameter) is likewise a fine descriptive name.
+
+## Follow-up (optional, not this pass)
+
+- **Typed collection accessors.** If `manager->sprites` reads better than `manager->objects` at call
+  sites, add thin per-manager accessors returning the concrete list rather than renaming the shared
+  base member. Bigger surface (every call site + a design decision about the base API); park until
+  the maintainer wants it.
 
 ## Open questions
 
-1. Preferred convention for the element vs. the collection: element = singular type name
-   (`sprite`), collection stays `objects` (the shared member name) — or also rename collections
-   where they are concrete? (My recommendation: rename the element to its type; leave the shared
-   `objects` member name alone since it is inherited API. Confirm.)
+1. ~~Preferred convention for the element vs. the collection~~ **Resolved** — see Notes: element
+   renamed to its type at each loop; the shared `objects` base member stays (it's generic, inherited
+   by 10 managers). Renaming the collection would be the separate "typed accessors" follow-up above.

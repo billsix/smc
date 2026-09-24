@@ -559,16 +559,16 @@ void cMenuCore ::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
     m_handler->m_camera->Reset_Pos();
 
     // pre-update animations
-    for (auto& obj : m_handler->m_level->m_sprite_manager->objects) {
-      if (obj->m_type == TYPE_PARTICLE_EMITTER) {
-        cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(obj.get());
+    for (auto& sprite : m_handler->m_level->m_sprite_manager->objects) {
+      if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
+        cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(sprite.get());
         emitter->Pre_Update();
       }
     }
 
-    for (auto& obj : m_animation_manager->objects) {
-      if (obj->m_type == TYPE_PARTICLE_EMITTER) {
-        cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(obj.get());
+    for (auto& animation : m_animation_manager->objects) {
+      if (animation->m_type == TYPE_PARTICLE_EMITTER) {
+        cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(animation.get());
         emitter->Pre_Update();
       }
     }

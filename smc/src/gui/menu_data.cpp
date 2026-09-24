@@ -406,8 +406,8 @@ void cMenu_Start ::Init_GUI(void) {
       CEGUI::WindowManager::getSingleton().getWindow("listbox_worlds"));
 
   // overworld names
-  for (auto& object : pOverworld_Manager->objects) {
-    const cOverworld_description* world = object->m_description;
+  for (auto& overworld : pOverworld_Manager->objects) {
+    const cOverworld_description* world = overworld->m_description;
 
 // show all worlds in debug builds
 #ifndef _DEBUG
@@ -3455,23 +3455,23 @@ void cMenu_Credits ::Init(void) {
   m_menu_pos_y = game_res_h * 1.1f;
 
   // set credits position
-  for (auto obj : m_draw_list) {
+  for (auto item : m_draw_list) {
     // get object
     // set shadow if not set
-    if (obj->m_shadow_pos == 0) {
-      obj->Set_Shadow(grey, 1);
+    if (item->m_shadow_pos == 0) {
+      item->Set_Shadow(grey, 1);
     }
     // set position
-    obj->m_pos_x += static_cast<float>(game_res_w) / 5;
-    obj->m_pos_y += m_menu_pos_y;
+    item->m_pos_x += static_cast<float>(game_res_w) / 5;
+    item->m_pos_y += m_menu_pos_y;
     // set posz behind front passive
-    obj->m_pos_z = 0.096f;
+    item->m_pos_z = 0.096f;
     // set color combine
-    obj->Set_Color_Combine(0, 0, 0, GL_MODULATE);
-    obj->m_color.alpha = 0;
-    obj->m_shadow_color.alpha = 0;
+    item->Set_Color_Combine(0, 0, 0, GL_MODULATE);
+    item->m_color.alpha = 0;
+    item->m_shadow_color.alpha = 0;
 
-    m_menu_pos_y = obj->m_pos_y + obj->m_col_rect.m_h;
+    m_menu_pos_y = item->m_pos_y + item->m_col_rect.m_h;
   }
 
   cMenu_Item* temp_item = nullptr;
@@ -3535,34 +3535,34 @@ void cMenu_Credits ::Exit(void) {
 void cMenu_Credits ::Update(void) {
   cMenu_Base::Update();
 
-  for (auto obj : m_draw_list) {
+  for (auto item : m_draw_list) {
     // long inactive reset
-    if (obj->m_pos_y < -2700) {
-      obj->Set_Pos_Y(static_cast<float>(game_res_h) * 1.1f);
+    if (item->m_pos_y < -2700) {
+      item->Set_Pos_Y(static_cast<float>(game_res_h) * 1.1f);
     }
     // fading out
-    else if (obj->m_pos_y < game_res_h * 0.3f) {
+    else if (item->m_pos_y < game_res_h * 0.3f) {
       float new_value =
-          obj->m_combine_color[0] - (pFramerate->m_speed_factor * 0.01f);
+          item->m_combine_color[0] - (pFramerate->m_speed_factor * 0.01f);
 
       if (new_value < 0) {
         new_value = 0;
       }
 
-      obj->Set_Color_Combine(new_value, new_value, new_value, GL_MODULATE);
-      obj->m_color.alpha = static_cast<Uint8>(new_value * 255);
-      obj->m_shadow_color.alpha = obj->m_color.alpha;
+      item->Set_Color_Combine(new_value, new_value, new_value, GL_MODULATE);
+      item->m_color.alpha = static_cast<Uint8>(new_value * 255);
+      item->m_shadow_color.alpha = item->m_color.alpha;
     }
     // fading in
-    else if (obj->m_pos_y < game_res_h * 0.9f) {
+    else if (item->m_pos_y < game_res_h * 0.9f) {
       float new_value =
-          obj->m_combine_color[0] + (pFramerate->m_speed_factor * 0.01f);
+          item->m_combine_color[0] + (pFramerate->m_speed_factor * 0.01f);
 
       if (new_value > 1.0f) {
         new_value = 1.0f;
 
         // add particles
-        if (obj->m_combine_color[0] < 1.0f) {
+        if (item->m_combine_color[0] < 1.0f) {
           cParticle_Emitter* anim = new cParticle_Emitter(
               pMenuCore->m_handler->m_level->m_sprite_manager);
           anim->Set_Emitter_Rect(
@@ -3610,13 +3610,13 @@ void cMenu_Credits ::Update(void) {
         }
       }
 
-      obj->Set_Color_Combine(new_value, new_value, new_value, GL_MODULATE);
-      obj->m_color.alpha = static_cast<Uint8>(new_value * 255);
-      obj->m_shadow_color.alpha = obj->m_color.alpha;
+      item->Set_Color_Combine(new_value, new_value, new_value, GL_MODULATE);
+      item->m_color.alpha = static_cast<Uint8>(new_value * 255);
+      item->m_shadow_color.alpha = item->m_color.alpha;
     }
 
     // default upwards scroll
-    obj->Move(0, -1.1f);
+    item->Move(0, -1.1f);
   }
 
   if (!m_action) {

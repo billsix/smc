@@ -128,14 +128,14 @@ cGL_Surface* cFont_Manager ::Render_Text(TTF_Font* font,
 
 void cFont_Manager ::Grab_Textures(void) {
   // save to software memory
-  for (auto obj : m_active_fonts) {
+  for (auto font : m_active_fonts) {
     // get software texture and save it
-    m_software_textures.push_back(obj->Get_Software_Texture());
+    m_software_textures.push_back(font->Get_Software_Texture());
     // delete hardware texture
-    if (glIsTexture(obj->m_image)) {
-      glDeleteTextures(1, &obj->m_image);
+    if (glIsTexture(font->m_image)) {
+      glDeleteTextures(1, &font->m_image);
     }
-    obj->m_image = 0;
+    font->m_image = 0;
   }
 }
 

@@ -1340,8 +1340,8 @@ void cSprite ::Editor_Activate(void) {
 
 void cSprite ::Editor_Deactivate(void) {
   // remove editor controls
-  for (auto obj : m_editor_windows) {
-    delete obj;
+  for (auto editor_window : m_editor_windows) {
+    delete editor_window;
   }
 
   m_editor_windows.clear();
@@ -1352,11 +1352,11 @@ void cSprite ::Editor_Init(void) {
   Editor_State_Update();
 
   // init
-  for (auto obj : m_editor_windows) {
-    CEGUI::Window* window_name = obj->window_name;
+  for (auto editor_window : m_editor_windows) {
+    CEGUI::Window* window_name = editor_window->window_name;
 
     // set first row width
-    if (obj->advance_row) {
+    if (editor_window->advance_row) {
       window_name->setWidth(
           CEGUI::UDim(0, m_editor_window_name_width * global_upscalex));
     }
@@ -1372,12 +1372,12 @@ void cSprite ::Editor_Position_Update(void) {
   float row_height = 0.0f;
 
   // set all positions
-  for (auto obj : m_editor_windows) {
-    CEGUI::Window* window_name = obj->window_name;
-    CEGUI::Window* window_setting = obj->window_setting;
+  for (auto editor_window : m_editor_windows) {
+    CEGUI::Window* window_name = editor_window->window_name;
+    CEGUI::Window* window_setting = editor_window->window_setting;
 
     // start a new row
-    if (obj->advance_row) {
+    if (editor_window->advance_row) {
       obj_posx = 0.0f;
       obj_posy += row_height;
       row_height = 0.0f;

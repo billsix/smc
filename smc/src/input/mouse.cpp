@@ -326,14 +326,14 @@ cObjectCollision* cMouseCursor ::Get_First_Mouse_Collision(
   m_sprite_manager->Get_Objects_sorted(sprite_objects, true, true);
 
   // check objects
-  for (auto obj : std::views::reverse(sprite_objects)) {
+  for (auto sprite : std::views::reverse(sprite_objects)) {
     // ignore spawned or destroyed objects
-    if (obj->m_spawned || obj->m_auto_destroy) {
+    if (sprite->m_spawned || sprite->m_auto_destroy) {
       continue;
     }
 
-    if (mouse_rect.Intersects(obj->m_start_rect)) {
-      return Create_Collision_Object(this, obj, COL_VTYPE_INTERNAL);
+    if (mouse_rect.Intersects(sprite->m_start_rect)) {
+      return Create_Collision_Object(this, sprite, COL_VTYPE_INTERNAL);
     }
   }
 
@@ -536,8 +536,8 @@ void cMouseCursor ::Add_Copy_Objects(cSprite_List& spritelist) {
   }
 
   // insert all objects
-  for (auto obj : spritelist) {
-    Add_Copy_Object(obj);
+  for (auto sprite : spritelist) {
+    Add_Copy_Object(sprite);
   }
 }
 
@@ -665,8 +665,8 @@ void cMouseCursor ::Add_Selected_Objects(cSprite_List& spritelist,
   }
 
   // insert all objects
-  for (auto obj : spritelist) {
-    Add_Selected_Object(obj, from_user);
+  for (auto sprite : spritelist) {
+    Add_Selected_Object(sprite, from_user);
   }
 }
 
@@ -699,8 +699,8 @@ bool cMouseCursor ::Remove_Selected_Object(const cSprite* sprite,
 cSprite_List cMouseCursor ::Get_Selected_Objects(void) {
   cSprite_List spritelist;
 
-  for (auto object : m_selected_objects) {
-    spritelist.push_back(object->m_obj);
+  for (auto selected : m_selected_objects) {
+    spritelist.push_back(selected->m_obj);
   }
 
   return spritelist;
@@ -714,9 +714,9 @@ GL_rect cMouseCursor ::Get_Selected_Objects_Rect(void) {
   // set dimension of first object
   GL_rect sel_rect = m_selected_objects[0]->m_obj->m_start_rect;
 
-  for (auto obj : m_selected_objects) {
+  for (auto selected : m_selected_objects) {
     // shortcut to the rect
-    const GL_rect obj_rect = obj->m_obj->m_start_rect;
+    const GL_rect obj_rect = selected->m_obj->m_start_rect;
 
     // update left-most position and width
     if (sel_rect.m_x > obj_rect.m_x) {
@@ -865,31 +865,31 @@ bool cMouseCursor ::Get_Snap_Pos(GL_point& new_pos, int snap,
   cSprite* snap_obj = nullptr;
 
   // check objects for overlap
-  for (auto& obj : m_sprite_manager->objects) {
+  for (auto& sprite : m_sprite_manager->objects) {
     // don't check selected objects
-    if (Is_Selected_Object(obj.get(), false)) {
+    if (Is_Selected_Object(sprite.get(), false)) {
       continue;
     }
 
     // ignore spawned or destroyed objects
-    if (obj->m_spawned || obj->m_auto_destroy) {
+    if (sprite->m_spawned || sprite->m_auto_destroy) {
       continue;
     }
 
     // ignore enemies
-    if (obj->m_sprite_array == ARRAY_ENEMY) {
+    if (sprite->m_sprite_array == ARRAY_ENEMY) {
       continue;
     }
 
-    if (full_snap_rect.Intersects(obj->m_start_rect)) {
+    if (full_snap_rect.Intersects(sprite->m_start_rect)) {
       const float obj_distance_left =
-          fabs(src_rect.m_x - (obj->m_start_rect.m_x + obj->m_start_rect.m_w));
+          fabs(src_rect.m_x - (sprite->m_start_rect.m_x + sprite->m_start_rect.m_w));
       const float obj_distance_right =
-          fabs((src_rect.m_x + src_rect.m_w) - obj->m_start_rect.m_x);
+          fabs((src_rect.m_x + src_rect.m_w) - sprite->m_start_rect.m_x);
       const float obj_distance_top =
-          fabs(src_rect.m_y - (obj->m_start_rect.m_y + obj->m_start_rect.m_h));
+          fabs(src_rect.m_y - (sprite->m_start_rect.m_y + sprite->m_start_rect.m_h));
       const float obj_distance_bottom =
-          fabs((src_rect.m_y + src_rect.m_h) - obj->m_start_rect.m_y);
+          fabs((src_rect.m_y + src_rect.m_h) - sprite->m_start_rect.m_y);
       float obj_distance_best;
 
       if (obj_distance_left < obj_distance_right) {
@@ -913,15 +913,15 @@ bool cMouseCursor ::Get_Snap_Pos(GL_point& new_pos, int snap,
         num_snap_obj++;
 
         const float obj_distance_left_to_left =
-            fabs(src_rect.m_x - obj->m_start_rect.m_x);
+            fabs(src_rect.m_x - sprite->m_start_rect.m_x);
         const float obj_distance_right_to_right =
             fabs((src_rect.m_x + src_rect.m_w) -
-                 (obj->m_start_rect.m_x + obj->m_start_rect.m_w));
+                 (sprite->m_start_rect.m_x + sprite->m_start_rect.m_w));
         const float obj_distance_top_to_top =
-            fabs(src_rect.m_y - obj->m_start_rect.m_y);
+            fabs(src_rect.m_y - sprite->m_start_rect.m_y);
         const float obj_distance_bottom_to_bottom =
             fabs((src_rect.m_y + src_rect.m_h) -
-                 (obj->m_start_rect.m_y + obj->m_start_rect.m_h));
+                 (sprite->m_start_rect.m_y + sprite->m_start_rect.m_h));
         float obj_distance_best_edge;
 
         // look for closest edge
@@ -946,7 +946,7 @@ bool cMouseCursor ::Get_Snap_Pos(GL_point& new_pos, int snap,
           continue;
         }
 
-        snap_obj = obj.get();
+        snap_obj = sprite.get();
         distance_left = obj_distance_left;
         distance_right = obj_distance_right;
         distance_top = obj_distance_top;
@@ -1340,18 +1340,18 @@ void cMouseCursor ::Update_Selection(void) {
   }
 
   // add selected objects
-  for (auto& obj : m_sprite_manager->objects) {
+  for (auto& sprite : m_sprite_manager->objects) {
     // don't check spawned/destroyed objects
-    if (obj->m_spawned || obj->m_auto_destroy) {
+    if (sprite->m_spawned || sprite->m_auto_destroy) {
       continue;
     }
 
     // if it doesn't collide with the rect
-    if (!rect.Intersects(obj->m_rect)) {
+    if (!rect.Intersects(sprite->m_rect)) {
       continue;
     }
 
-    Add_Selected_Object(obj.get(), true);
+    Add_Selected_Object(sprite.get(), true);
   }
 
   if (rect.Intersects(pActive_Player->m_rect)) {

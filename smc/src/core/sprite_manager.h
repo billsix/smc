@@ -82,26 +82,26 @@ class cSprite_Manager : public cObject_Manager<cSprite> {
 
   // Update items drawing validation
   inline void Update_Items_Valid_Draw(void) {
-    for (auto& object : objects) {
-      object->Update_Valid_Draw();
+    for (auto& sprite : objects) {
+      sprite->Update_Valid_Draw();
     }
   }
   // Update items
   inline void Update_Items(void) {
-    for (auto& object : objects) {
-      object->Update();
+    for (auto& sprite : objects) {
+      sprite->Update();
     }
   }
   // Update_Late items
   inline void Update_Items_Late(void) {
-    for (auto& object : objects) {
-      object->Update_Late();
+    for (auto& sprite : objects) {
+      sprite->Update_Late();
     }
   }
   // Draw items
   inline void Draw_Items(void) {
-    for (auto& object : objects) {
-      object->Draw();
+    for (auto& sprite : objects) {
+      sprite->Draw();
     }
   }
 

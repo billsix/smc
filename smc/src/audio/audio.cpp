@@ -77,16 +77,16 @@ int cAudio_Sound ::Play(int use_res_id /* = -1 */, int loops /* = 0 */) {
   }
 
   if (use_res_id >= 0) {
-    for (auto obj : pAudio->m_active_sounds) {
+    for (auto sound : pAudio->m_active_sounds) {
       // get object pointer
       // skip self
-      if (!obj || obj->m_channel == m_channel) {
+      if (!sound || sound->m_channel == m_channel) {
         continue;
       }
 
       // stop Sounds using the given resource id
-      if (obj->m_resource_id == use_res_id) {
-        obj->Stop();
+      if (sound->m_resource_id == use_res_id) {
+        sound->Stop();
       }
     }
   }
@@ -549,17 +549,17 @@ cAudio_Sound* cAudio ::Get_Playing_Sound(std::string filename) {
   }
 
   // get all sounds
-  for (auto obj : m_active_sounds) {
+  for (auto sound : m_active_sounds) {
     // get object pointer
     // if not playing
-    if (obj->m_channel < 0) {
+    if (sound->m_channel < 0) {
       continue;
     }
 
     // found it
-    if (obj->m_data->m_filename.compare(filename) == 0) {
+    if (sound->m_data->m_filename.compare(filename) == 0) {
       // return first found
-      return obj;
+      return sound;
     }
   }
 
@@ -569,13 +569,13 @@ cAudio_Sound* cAudio ::Get_Playing_Sound(std::string filename) {
 
 cAudio_Sound* cAudio ::Create_Sound_Channel(void) {
   // get all sounds
-  for (auto obj : m_active_sounds) {
+  for (auto sound : m_active_sounds) {
     // get object pointer
     // if not playing
-    if (obj->m_channel < 0) {
+    if (sound->m_channel < 0) {
       // found a free channel
-      obj->Free();
-      return obj;
+      sound->Free();
+      return sound;
     }
   }
 
@@ -651,27 +651,27 @@ void cAudio ::Fadeout_Sounds(unsigned int ms, std::string filename,
   }
 
   // get all sounds
-  for (auto obj : m_active_sounds) {
+  for (auto sound : m_active_sounds) {
     // get object pointer
     // skip idle pool entries: m_channel -1 means "not playing", and passing it to
     // Mix_FadeOutChannel(-1, ...) would fade EVERY channel. (Also guards the m_data
     // deref below, since a freed/idle entry can have a null m_data.)
-    if (obj->m_channel < 0) {
+    if (sound->m_channel < 0) {
       continue;
     }
 
     // filename does not match
-    if (obj->m_data->m_filename.compare(filename) != 0) {
+    if (sound->m_data->m_filename.compare(filename) != 0) {
       continue;
     }
 
     // Do not fade out the sound again
     if (!overwrite_fading &&
-        Is_Sound_Fading(obj->m_channel) == MIX_FADING_OUT) {
+        Is_Sound_Fading(sound->m_channel) == MIX_FADING_OUT) {
       continue;
     }
 
-    Mix_FadeOutChannel(obj->m_channel, ms);
+    Mix_FadeOutChannel(sound->m_channel, ms);
   }
 }
 

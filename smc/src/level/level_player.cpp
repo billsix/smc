@@ -438,9 +438,9 @@ void cLevel_Player ::Move_Player(float velocity, float vel_wrongway) {
   bool is_col = false;
 
   // check collisions
-  for (auto& col_obj : col_list->objects) {
+  for (auto& collision : col_list->objects) {
     // massive object is blocking
-    if (col_obj->m_obj->m_massive_type == MASS_MASSIVE) {
+    if (collision->m_obj->m_massive_type == MASS_MASSIVE) {
       is_col = true;
       break;
     }
@@ -886,12 +886,12 @@ void cLevel_Player ::Start_Falling(void) {
       Collision_Check_Relative(0.0f, move_y, 0.0f, 0.0f, COLLIDE_ONLY_BLOCKING);
 
   // check possible new ground objects
-  for (auto& col_obj_ptr : col_list->objects) {
-    cObjectCollision* col_obj = col_obj_ptr.get();
+  for (auto& collision_ptr : col_list->objects) {
+    cObjectCollision* collision = collision_ptr.get();
 
     // blocked by new ground object
-    if (col_obj->m_obj != m_ground_object && col_obj->m_obj->m_can_be_ground) {
-      Set_On_Ground(col_obj->m_obj);
+    if (collision->m_obj != m_ground_object && collision->m_obj->m_can_be_ground) {
+      Set_On_Ground(collision->m_obj);
       delete col_list;
       return;
     }
@@ -1108,11 +1108,11 @@ bool cLevel_Player ::Is_On_Climbable(float move_y /* = 0.0f */) {
       Collision_Check(&climb_rect, COLLIDE_ONLY_INTERNAL);
 
   // check objects
-  for (auto& col_obj_ptr : col_list->objects) {
-    cObjectCollision* col_obj = col_obj_ptr.get();
+  for (auto& collision_ptr : col_list->objects) {
+    cObjectCollision* collision = collision_ptr.get();
 
     // collision with climbable object
-    if (col_obj->m_obj->m_massive_type == MASS_CLIMBABLE) {
+    if (collision->m_obj->m_massive_type == MASS_CLIMBABLE) {
       delete col_list;
       return true;
     }
@@ -2967,19 +2967,19 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
   // Up
   if (key_type == INP_UP) {
     // Search for colliding level exit objects
-    for (auto& obj : m_sprite_manager->objects) {
+    for (auto& sprite : m_sprite_manager->objects) {
       // skip destroyed objects
-      if (obj->m_auto_destroy) {
+      if (sprite->m_auto_destroy) {
         continue;
       }
 
-      if (!m_col_rect.Intersects(obj->m_col_rect)) {
+      if (!m_col_rect.Intersects(sprite->m_col_rect)) {
         continue;
       }
 
       // level exit
-      if (obj->m_type == TYPE_LEVEL_EXIT) {
-        cLevel_Exit* level_exit = static_cast<cLevel_Exit*>(obj.get());
+      if (sprite->m_type == TYPE_LEVEL_EXIT) {
+        cLevel_Exit* level_exit = static_cast<cLevel_Exit*>(sprite.get());
 
         // beam
         if (level_exit->m_exit_type == LEVEL_EXIT_BEAM) {
@@ -3008,7 +3008,7 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
         return;
       }
       // climbable
-      else if (obj->m_massive_type == MASS_CLIMBABLE) {
+      else if (sprite->m_massive_type == MASS_CLIMBABLE) {
         Start_Climbing();
       }
     }
@@ -3016,19 +3016,19 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
   // Down
   else if (key_type == INP_DOWN) {
     // Search for colliding level exit objects
-    for (auto& obj : m_sprite_manager->objects) {
+    for (auto& sprite : m_sprite_manager->objects) {
       // skip destroyed objects
-      if (obj->m_auto_destroy) {
+      if (sprite->m_auto_destroy) {
         continue;
       }
 
-      if (!m_col_rect.Intersects(obj->m_col_rect)) {
+      if (!m_col_rect.Intersects(sprite->m_col_rect)) {
         continue;
       }
 
       // level exit
-      if (obj->m_type == TYPE_LEVEL_EXIT) {
-        cLevel_Exit* level_exit = static_cast<cLevel_Exit*>(obj.get());
+      if (sprite->m_type == TYPE_LEVEL_EXIT) {
+        cLevel_Exit* level_exit = static_cast<cLevel_Exit*>(sprite.get());
 
         // warp
         if (level_exit->m_exit_type == LEVEL_EXIT_WARP) {
@@ -3064,19 +3064,19 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
   // Left
   else if (key_type == INP_LEFT) {
     // Search for colliding level exit objects
-    for (auto& obj : m_sprite_manager->objects) {
+    for (auto& sprite : m_sprite_manager->objects) {
       // skip destroyed objects
-      if (obj->m_auto_destroy) {
+      if (sprite->m_auto_destroy) {
         continue;
       }
 
-      if (!m_col_rect.Intersects(obj->m_col_rect)) {
+      if (!m_col_rect.Intersects(sprite->m_col_rect)) {
         continue;
       }
 
       // level exit
-      if (obj->m_type == TYPE_LEVEL_EXIT) {
-        cLevel_Exit* level_exit = static_cast<cLevel_Exit*>(obj.get());
+      if (sprite->m_type == TYPE_LEVEL_EXIT) {
+        cLevel_Exit* level_exit = static_cast<cLevel_Exit*>(sprite.get());
 
         // warp
         if (level_exit->m_exit_type == LEVEL_EXIT_WARP) {
@@ -3111,19 +3111,19 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
   // Right
   else if (key_type == INP_RIGHT) {
     // Search for colliding level exit objects
-    for (auto& obj : m_sprite_manager->objects) {
+    for (auto& sprite : m_sprite_manager->objects) {
       // skip destroyed objects
-      if (obj->m_auto_destroy) {
+      if (sprite->m_auto_destroy) {
         continue;
       }
 
-      if (!m_col_rect.Intersects(obj->m_col_rect)) {
+      if (!m_col_rect.Intersects(sprite->m_col_rect)) {
         continue;
       }
 
       // level exit
-      if (obj->m_type == TYPE_LEVEL_EXIT) {
-        cLevel_Exit* level_exit = static_cast<cLevel_Exit*>(obj.get());
+      if (sprite->m_type == TYPE_LEVEL_EXIT) {
+        cLevel_Exit* level_exit = static_cast<cLevel_Exit*>(sprite.get());
 
         // warp
         if (level_exit->m_exit_type == LEVEL_EXIT_WARP) {
@@ -3390,13 +3390,13 @@ bool cLevel_Player ::Ball_Add(ball_effect effect_type /* = FIREBALL_DEFAULT */,
 
 void cLevel_Player ::Ball_Clear(void) const {
   // destroy all fireballs from the player
-  for (auto& obj : m_sprite_manager->objects) {
-    if (obj->m_type == TYPE_BALL) {
-      cBall* ball = static_cast<cBall*>(obj.get());
+  for (auto& sprite : m_sprite_manager->objects) {
+    if (sprite->m_type == TYPE_BALL) {
+      cBall* ball = static_cast<cBall*>(sprite.get());
 
       // if from player
       if (ball->m_origin_type == TYPE_PLAYER) {
-        obj->Destroy();
+        sprite->Destroy();
       }
     }
   }

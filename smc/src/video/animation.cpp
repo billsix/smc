@@ -116,8 +116,8 @@ cAnimation_Goldpiece ::cAnimation_Goldpiece(cSprite_Manager* sprite_manager,
 
 cAnimation_Goldpiece ::~cAnimation_Goldpiece(void) {
   // clear
-  for (auto& object : m_objects) {
-    delete object;
+  for (auto& sprite : m_objects) {
+    delete sprite;
   }
 
   m_objects.clear();
@@ -133,54 +133,54 @@ void cAnimation_Goldpiece ::Update(void) {
   unsigned int count = 0;
 
   // update the fixed points
-  for (auto obj : m_objects) {
+  for (auto sprite : m_objects) {
     // get object
     switch (count) {
       case 0: {
         if (m_time_to_live < 3.0f) {
-          obj->Set_Image(m_images[0].m_image);
+          sprite->Set_Image(m_images[0].m_image);
         } else if (m_time_to_live < 6.0f) {
-          obj->Set_Image(m_images[0].m_image);
+          sprite->Set_Image(m_images[0].m_image);
         } else if (m_time_to_live < 9.0f) {
-          obj->Set_Image(m_images[1].m_image);
+          sprite->Set_Image(m_images[1].m_image);
         } else if (m_time_to_live < 12.0f) {
-          obj->Set_Image(m_images[0].m_image);
+          sprite->Set_Image(m_images[0].m_image);
         }
         break;
       }
       case 1: {
         if (m_time_to_live < 3.0f) {
-          obj->Set_Image(m_images[0].m_image);
+          sprite->Set_Image(m_images[0].m_image);
         } else if (m_time_to_live < 6.0f) {
-          obj->Set_Image(m_images[1].m_image);
+          sprite->Set_Image(m_images[1].m_image);
         } else if (m_time_to_live < 9.0f) {
-          obj->Set_Image(m_images[2].m_image);
+          sprite->Set_Image(m_images[2].m_image);
         } else if (m_time_to_live < 12.0f) {
-          obj->Set_Image(m_images[1].m_image);
+          sprite->Set_Image(m_images[1].m_image);
         }
         break;
       }
       case 2: {
         if (m_time_to_live < 3.0f) {
-          obj->Set_Image(m_images[1].m_image);
+          sprite->Set_Image(m_images[1].m_image);
         } else if (m_time_to_live < 6.0f) {
-          obj->Set_Image(m_images[2].m_image);
+          sprite->Set_Image(m_images[2].m_image);
         } else if (m_time_to_live < 9.0f) {
-          obj->Set_Image(m_images[0].m_image);
+          sprite->Set_Image(m_images[0].m_image);
         } else if (m_time_to_live < 12.0f) {
-          obj->Set_Image(m_images[0].m_image);
+          sprite->Set_Image(m_images[0].m_image);
         }
         break;
       }
       case 3: {
         if (m_time_to_live < 3.0f) {
-          obj->Set_Image(m_images[0].m_image);
+          sprite->Set_Image(m_images[0].m_image);
         } else if (m_time_to_live < 6.0f) {
-          obj->Set_Image(m_images[1].m_image);
+          sprite->Set_Image(m_images[1].m_image);
         } else if (m_time_to_live < 9.0f) {
-          obj->Set_Image(m_images[0].m_image);
+          sprite->Set_Image(m_images[0].m_image);
         } else if (m_time_to_live < 12.0f) {
-          obj->Set_Image(m_images[0].m_image);
+          sprite->Set_Image(m_images[0].m_image);
         }
         break;
       }
@@ -189,7 +189,7 @@ void cAnimation_Goldpiece ::Update(void) {
       }
     }
 
-    obj->Set_Scale(1.1f - (m_time_to_live / 12));
+    sprite->Set_Scale(1.1f - (m_time_to_live / 12));
     count++;
   }
 }
@@ -200,9 +200,9 @@ void cAnimation_Goldpiece ::Draw(cSurface_Request* request /* = NULL */) {
   }
 
   // draw the fixed points
-  for (auto obj : m_objects) {
+  for (auto sprite : m_objects) {
     // get object
-    obj->Draw();
+    sprite->Draw();
   }
 
   if (m_time_to_live > 11.0f || m_time_to_live < 0.0f) {
@@ -249,8 +249,8 @@ cAnimation_Fireball ::cAnimation_Fireball(cSprite_Manager* sprite_manager,
 
 cAnimation_Fireball ::~cAnimation_Fireball(void) {
   // clear
-  for (auto& object : m_objects) {
-    delete object;
+  for (auto& fire_item : m_objects) {
+    delete fire_item;
   }
 
   m_objects.clear();
@@ -264,21 +264,21 @@ void cAnimation_Fireball ::Update(void) {
   m_time_to_live += pFramerate->m_speed_factor * m_fading_speed;
 
   // update objects
-  for (auto obj : m_objects) {
-    if (obj->m_counter > 8) {
-      obj->Set_Image_Num(0);
-    } else if (obj->m_counter > 5) {
-      obj->Set_Image_Num(1);
-    } else if (obj->m_counter > 3) {
-      obj->Set_Image_Num(2);
+  for (auto fire_item : m_objects) {
+    if (fire_item->m_counter > 8) {
+      fire_item->Set_Image_Num(0);
+    } else if (fire_item->m_counter > 5) {
+      fire_item->Set_Image_Num(1);
+    } else if (fire_item->m_counter > 3) {
+      fire_item->Set_Image_Num(2);
     } else {
-      obj->Set_Image_Num(3);
+      fire_item->Set_Image_Num(3);
     }
 
-    obj->m_counter -= pFramerate->m_speed_factor * m_fading_speed;
+    fire_item->m_counter -= pFramerate->m_speed_factor * m_fading_speed;
 
-    obj->Set_Scale(obj->m_counter / 10);
-    obj->Move(obj->m_velx, obj->m_vely);
+    fire_item->Set_Scale(fire_item->m_counter / 10);
+    fire_item->Move(fire_item->m_velx, fire_item->m_vely);
   }
 
   if (m_time_to_live > 12.0f || m_time_to_live < 0.0f) {
@@ -292,16 +292,16 @@ void cAnimation_Fireball ::Draw(cSurface_Request* request /* = NULL */) {
   }
 
   // draw objects
-  for (auto obj : m_objects) {
+  for (auto fire_item : m_objects) {
     // create request
     cSurface_Request* request = new cSurface_Request();
-    obj->m_image->Blit(obj->m_pos_x - (pActive_Camera->m_x - m_pos_x),
-                       obj->m_pos_y - (pActive_Camera->m_y - m_pos_y),
-                       obj->m_pos_z, request);
+    fire_item->m_image->Blit(fire_item->m_pos_x - (pActive_Camera->m_x - m_pos_x),
+                       fire_item->m_pos_y - (pActive_Camera->m_y - m_pos_y),
+                       fire_item->m_pos_z, request);
 
     // scale
-    request->m_scale_x = obj->m_scale_x;
-    request->m_scale_y = obj->m_scale_y;
+    request->m_scale_x = fire_item->m_scale_x;
+    request->m_scale_y = fire_item->m_scale_y;
 
     // color
     request->m_color = m_color;
@@ -836,8 +836,8 @@ void cParticle_Emitter ::Emit(void) {
 
 void cParticle_Emitter ::Clear(bool reset /* = 1 */) {
   // clear particles
-  for (auto& object : m_objects) {
-    delete object;
+  for (auto& particle : m_objects) {
+    delete particle;
   }
 
   m_objects.clear();
@@ -941,8 +941,8 @@ void cParticle_Emitter ::Draw(cSurface_Request* request /* = NULL */) {
     return;
   }
 
-  for (auto& object : m_objects) {
-    object->Draw();
+  for (auto& particle : m_objects) {
+    particle->Draw();
   }
 
   if (editor_enabled) {
@@ -984,79 +984,78 @@ void cParticle_Emitter ::Keep_Particles_In_Rect(
   GL_rect obj_rect;
 
   // find particles that are not visible and move them to the opposite screen side
-  for (auto& object : m_objects) {
+  for (auto& particle : m_objects) {
     // get animation particle pointer
-    cParticle* obj = static_cast<cParticle*>(object);
 
     // set rectangle
-    if (obj->m_scale_x != 1.0f) {
+    if (particle->m_scale_x != 1.0f) {
       obj_rect.m_x =
-          obj->m_pos_x - ((obj->m_image->m_w * 0.5f) * (obj->m_scale_x - 1.0f));
-      obj_rect.m_w = obj->m_rect.m_w * obj->m_scale_x;
+          particle->m_pos_x - ((particle->m_image->m_w * 0.5f) * (particle->m_scale_x - 1.0f));
+      obj_rect.m_w = particle->m_rect.m_w * particle->m_scale_x;
     } else {
-      obj_rect.m_x = obj->m_pos_x;
-      obj_rect.m_w = obj->m_rect.m_w;
+      obj_rect.m_x = particle->m_pos_x;
+      obj_rect.m_w = particle->m_rect.m_w;
     }
 
-    if (obj->m_scale_y != 1.0f) {
+    if (particle->m_scale_y != 1.0f) {
       obj_rect.m_y =
-          obj->m_pos_y - ((obj->m_image->m_h * 0.5f) * (obj->m_scale_y - 1.0f));
-      obj_rect.m_h = obj->m_rect.m_h * obj->m_scale_y;
+          particle->m_pos_y - ((particle->m_image->m_h * 0.5f) * (particle->m_scale_y - 1.0f));
+      obj_rect.m_h = particle->m_rect.m_h * particle->m_scale_y;
     } else {
-      obj_rect.m_y = obj->m_pos_y;
-      obj_rect.m_h = obj->m_rect.m_h;
+      obj_rect.m_y = particle->m_pos_y;
+      obj_rect.m_h = particle->m_rect.m_h;
     }
 
     // out in left
     if (obj_rect.m_x + obj_rect.m_w < clip_rect.m_x) {
       // move to right
       if (mode == PCM_MOVE) {
-        obj->Move(clip_rect.m_w + obj_rect.m_w - 1.0f, 0, true);
+        particle->Move(clip_rect.m_w + obj_rect.m_w - 1.0f, 0, true);
       } else if (mode == PCM_REVERSE) {
-        if (obj->m_velx < 0.0f) {
-          obj->Set_Velocity(-obj->m_velx, obj->m_vely);
+        if (particle->m_velx < 0.0f) {
+          particle->Set_Velocity(-particle->m_velx, particle->m_vely);
         }
       } else if (mode == PCM_DELETE) {
-        obj->Set_Active(false);
+        particle->Set_Active(false);
       }
     }
     // out in right
     else if (obj_rect.m_x > clip_rect.m_x + clip_rect.m_w) {
       // move to left
       if (mode == PCM_MOVE) {
-        obj->Move(-clip_rect.m_w - obj_rect.m_w + 1.0f, 0, true);
+        particle->Move(-clip_rect.m_w - obj_rect.m_w + 1.0f, 0, true);
       } else if (mode == PCM_REVERSE) {
-        if (obj->m_velx > 0.0f) {
-          obj->Set_Velocity(-obj->m_velx, obj->m_vely);
+        if (particle->m_velx > 0.0f) {
+          particle->Set_Velocity(-particle->m_velx, particle->m_vely);
         }
       } else if (mode == PCM_DELETE) {
-        obj->Set_Active(false);
+        particle->Set_Active(false);
       }
     }
     // out on top
     else if (obj_rect.m_y + obj_rect.m_h < clip_rect.m_y) {
       // move to bottom
       if (mode == PCM_MOVE) {
-        obj->Move(0, clip_rect.m_h + obj_rect.m_h - 1.0f, true);
+        particle->Move(0, clip_rect.m_h + obj_rect.m_h - 1.0f, true);
       } else if (mode == PCM_REVERSE) {
-        if (obj->m_vely < 0.0f) {
-          obj->Set_Velocity(obj->m_velx, -obj->m_vely);
+        if (particle->m_vely < 0.0f) {
+          particle->Set_Velocity(particle->m_velx, -particle->m_vely);
         }
       } else if (mode == PCM_DELETE) {
-        obj->Set_Active(false);
+        particle->Set_Active(false);
       }
     }
     // out on bottom
     else if (obj_rect.m_y > clip_rect.m_y + clip_rect.m_h) {
       // move to top
       if (mode == PCM_MOVE) {
-        obj->Move(0, -clip_rect.m_h - obj_rect.m_h + 1.0f, true);
+        particle->Move(0, -clip_rect.m_h - obj_rect.m_h + 1.0f, true);
       } else if (mode == PCM_REVERSE) {
-        if (obj->m_vely > 0.0f) {
-          obj->Set_Velocity(obj->m_velx, -obj->m_vely);
+        if (particle->m_vely > 0.0f) {
+          particle->Set_Velocity(particle->m_velx, -particle->m_vely);
         }
       } else if (mode == PCM_DELETE) {
-        obj->Set_Active(false);
+        particle->Set_Active(false);
       }
     }
   }
@@ -2307,8 +2306,8 @@ void cAnimation_Manager ::Update(void) {
 }
 
 void cAnimation_Manager ::Draw(void) {
-  for (auto& object : objects) {
-    object->Draw();
+  for (auto& animation : objects) {
+    animation->Draw();
   }
 }
 
