@@ -20,26 +20,24 @@
 #include "../core/sprite_manager.h"
 #include "../overworld/overworld.h"
 
-namespace SMC
-{
+namespace SMC {
 
 /* *** *** *** *** *** cWorld_Sprite_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cWorld_Sprite_Manager : public cSprite_Manager
-{
-public:
-	cWorld_Sprite_Manager( cOverworld *overworld );
-	virtual ~cWorld_Sprite_Manager( void );
+class cWorld_Sprite_Manager : public cSprite_Manager {
+ public:
+  cWorld_Sprite_Manager(cOverworld* overworld);
+  virtual ~cWorld_Sprite_Manager(void);
 
-	// Add a sprite
-	virtual void Add( cSprite *sprite );
+  // Add a sprite
+  virtual void Add(cSprite* sprite);
 
-	// parent overworld
-	cOverworld *m_overworld;
+  // parent overworld
+  cOverworld* m_overworld;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-} // namespace SMC
+}  // namespace SMC
 
 #endif

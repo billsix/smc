@@ -16,45 +16,36 @@
 #include "../overworld/world_sprite_manager.h"
 #include "../core/game_core.h"
 
-namespace SMC
-{
+namespace SMC {
 
 /* *** *** *** *** *** *** cWorld_Sprite_Manager *** *** *** *** *** *** *** *** *** *** *** */
 
-cWorld_Sprite_Manager :: cWorld_Sprite_Manager( cOverworld *overworld )
-: cSprite_Manager( 500 )
-{
-	m_overworld = overworld;
+cWorld_Sprite_Manager ::cWorld_Sprite_Manager(cOverworld* overworld)
+    : cSprite_Manager(500) {
+  m_overworld = overworld;
 }
 
-cWorld_Sprite_Manager :: ~cWorld_Sprite_Manager( void )
-{
-	Delete_All();
-}
+cWorld_Sprite_Manager ::~cWorld_Sprite_Manager(void) { Delete_All(); }
 
-void cWorld_Sprite_Manager :: Add( cSprite *sprite )
-{
-	// empty sprite
-	if( !sprite )
-	{
-		return;
-	}
+void cWorld_Sprite_Manager ::Add(cSprite* sprite) {
+  // empty sprite
+  if (!sprite) {
+    return;
+  }
 
-	// add
-	cSprite_Manager::Add( sprite );
+  // add
+  cSprite_Manager::Add(sprite);
 
-	// Add to Waypoints array
-	if( sprite->m_type == TYPE_OW_WAYPOINT )
-	{
-		m_overworld->m_waypoints.push_back( static_cast<cWaypoint *>(sprite) );
-	}
-	// Add layer line point start to the world layer
-	else if( sprite->m_type == TYPE_OW_LINE_START )
-	{
-		m_overworld->m_layer->Add( static_cast<cLayer_Line_Point_Start *>(sprite) );
-	}
+  // Add to Waypoints array
+  if (sprite->m_type == TYPE_OW_WAYPOINT) {
+    m_overworld->m_waypoints.push_back(static_cast<cWaypoint*>(sprite));
+  }
+  // Add layer line point start to the world layer
+  else if (sprite->m_type == TYPE_OW_LINE_START) {
+    m_overworld->m_layer->Add(static_cast<cLayer_Line_Point_Start*>(sprite));
+  }
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-} // namespace SMC
+}  // namespace SMC

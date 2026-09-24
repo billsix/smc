@@ -23,81 +23,75 @@
 #include "CEGUIXMLHandler.h"
 #include "CEGUIXMLAttributes.h"
 
-namespace SMC
-{
+namespace SMC {
 
 /* *** *** *** *** *** cCampaign *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cCampaign
-{
-public:
-	cCampaign( void );
-	~cCampaign( void );
+class cCampaign {
+ public:
+  cCampaign(void);
+  ~cCampaign(void);
 
-	// save
-	bool Save( const std::string &filename );
-
-	// name
-	std::string m_name;
-	// target
-	std::string m_target;
-	// if not set it is a world
-	bool m_is_target_level;
-	// description
-	std::string m_description;
-	// last save time
-	time_t m_last_saved;
-	/* 0 if only in game directory
+  // name
+  std::string m_name;
+  // target
+  std::string m_target;
+  // if not set it is a world
+  bool m_is_target_level;
+  // description
+  std::string m_description;
+  // last save time
+  time_t m_last_saved;
+  /* 0 if only in game directory
 	 * 1 if only in user directory
 	 * 2 if in both
 	*/
-	int m_user;
+  int m_user;
 };
 
 /* *** *** *** *** *** cCampaign_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cCampaign_Manager : public cObject_Manager<cCampaign>
-{
-public:
-	cCampaign_Manager( void );
-	virtual ~cCampaign_Manager( void );
+class cCampaign_Manager : public cObject_Manager<cCampaign> {
+ public:
+  cCampaign_Manager(void);
+  virtual ~cCampaign_Manager(void);
 
-	// load all campaigns
-	void Load( void );
-	// load a campaign
-	cCampaign *Load_Campaign( const std::string &filename );
+  // load all campaigns
+  void Load(void);
+  // load a campaign
+  cCampaign* Load_Campaign(const std::string& filename);
 
-	// Get campaign from name
-	cCampaign *Get_from_Name( const std::string &name );
+  // Get campaign from name
+  cCampaign* Get_from_Name(const std::string& name);
 };
 
 /* *** *** *** *** *** *** *** cCampaign_XML_Handler *** *** *** *** *** *** *** *** *** *** */
 
-class cCampaign_XML_Handler : public CEGUI::XMLHandler
-{
-public:
-	cCampaign_XML_Handler( const CEGUI::String &filename );
-	virtual ~cCampaign_XML_Handler( void );
+class cCampaign_XML_Handler : public CEGUI::XMLHandler {
+ public:
+  cCampaign_XML_Handler(const CEGUI::String& filename);
+  virtual ~cCampaign_XML_Handler(void);
 
-	// XML element start
-	virtual void elementStart( const CEGUI::String &element, const CEGUI::XMLAttributes &attributes );
-	// XML element end
-	virtual void elementEnd( const CEGUI::String &element );
+  // XML element start
+  virtual void elementStart(const CEGUI::String& element,
+                            const CEGUI::XMLAttributes& attributes);
+  // XML element end
+  virtual void elementEnd(const CEGUI::String& element);
 
-	// XML attributes list
-	CEGUI::XMLAttributes m_xml_attributes;
+  // XML attributes list
+  CEGUI::XMLAttributes m_xml_attributes;
 
-	// object we are constructing
-	cCampaign *m_campaign;
+  // object we are constructing
+  cCampaign* m_campaign;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // Campaign Manager
-extern cCampaign_Manager *pCampaign_Manager;
+extern cCampaign_Manager* pCampaign_Manager;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-} // namespace SMC
+}  // namespace SMC
 
 #endif

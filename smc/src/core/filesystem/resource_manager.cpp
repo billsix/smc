@@ -17,73 +17,56 @@
 #include "../../core/filesystem/filesystem.h"
 #include <cstdio>
 
-
-namespace SMC
-{
+namespace SMC {
 
 /* *** *** *** *** *** *** cResource_Manager *** *** *** *** *** *** *** *** *** *** *** */
 
-cResource_Manager :: cResource_Manager( void )
-{
-	user_data_dir = "";
+cResource_Manager ::cResource_Manager(void) { user_data_dir = ""; }
+
+cResource_Manager ::~cResource_Manager(void) {}
+
+void cResource_Manager ::Init_User_Directory(void) {
+  // Create user directory
+  if (!Dir_Exists(user_data_dir)) {
+    // first run if not available
+    Create_Directory(user_data_dir);
+  }
+  // Create savegame directory
+  if (!Dir_Exists(user_data_dir + USER_SAVEGAME_DIR)) {
+    Create_Directory(user_data_dir + USER_SAVEGAME_DIR);
+  }
+  // Create screenshot directory
+  if (!Dir_Exists(user_data_dir + USER_SCREENSHOT_DIR)) {
+    Create_Directory(user_data_dir + USER_SCREENSHOT_DIR);
+  }
+  // Create level directory
+  if (!Dir_Exists(user_data_dir + USER_LEVEL_DIR)) {
+    Create_Directory(user_data_dir + USER_LEVEL_DIR);
+  }
+  // Create world directory
+  if (!Dir_Exists(user_data_dir + USER_WORLD_DIR)) {
+    Create_Directory(user_data_dir + USER_WORLD_DIR);
+  }
+  // Create campaign directory
+  if (!Dir_Exists(user_data_dir + USER_CAMPAIGN_DIR)) {
+    Create_Directory(user_data_dir + USER_CAMPAIGN_DIR);
+  }
+  // Create cache directory
+  if (!Dir_Exists(user_data_dir + USER_IMGCACHE_DIR)) {
+    Create_Directory(user_data_dir + USER_IMGCACHE_DIR);
+  }
 }
 
-cResource_Manager :: ~cResource_Manager( void )
-{
+bool cResource_Manager ::Set_User_Directory(const std::string& dir) {
+  user_data_dir = dir;
 
-}
-
-void cResource_Manager :: Init_User_Directory( void )
-{
-	// Create user directory
-	if( !Dir_Exists( user_data_dir ) )
-	{
-		// first run if not available
-		Create_Directory( user_data_dir );
-	}
-	// Create savegame directory
-	if( !Dir_Exists( user_data_dir + USER_SAVEGAME_DIR ) )
-	{
-		Create_Directory( user_data_dir + USER_SAVEGAME_DIR );
-	}
-	// Create screenshot directory
-	if( !Dir_Exists( user_data_dir + USER_SCREENSHOT_DIR ) )
-	{
-		Create_Directory( user_data_dir + USER_SCREENSHOT_DIR );
-	}
-	// Create level directory
-	if( !Dir_Exists( user_data_dir + USER_LEVEL_DIR ) )
-	{
-		Create_Directory( user_data_dir + USER_LEVEL_DIR );
-	}
-	// Create world directory
-	if( !Dir_Exists( user_data_dir + USER_WORLD_DIR ) )
-	{
-		Create_Directory( user_data_dir + USER_WORLD_DIR );
-	}
-	// Create campaign directory
-	if( !Dir_Exists( user_data_dir + USER_CAMPAIGN_DIR ) )
-	{
-		Create_Directory( user_data_dir + USER_CAMPAIGN_DIR );
-	}
-	// Create cache directory
-	if( !Dir_Exists( user_data_dir + USER_IMGCACHE_DIR ) )
-	{
-		Create_Directory( user_data_dir + USER_IMGCACHE_DIR );
-	}
-}
-
-bool cResource_Manager :: Set_User_Directory( const std::string &dir )
-{
-	user_data_dir = dir;
-
-	return 1;
+  return 1;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cResource_Manager *pResource_Manager = NULL;
+cResource_Manager* pResource_Manager = NULL;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-} // namespace SMC
+}  // namespace SMC

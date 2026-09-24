@@ -18,34 +18,32 @@
 
 #include "../core/global_game.h"
 
-namespace SMC
-{
+namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cFile_parser *** *** *** *** *** *** *** *** *** */
 
 // Base class for parsing text files
-class cFile_parser
-{
-public:
-	cFile_parser( void );
-	virtual ~cFile_parser( void );
+class cFile_parser {
+ public:
+  cFile_parser(void);
+  virtual ~cFile_parser(void);
 
-	// Parses the given file
-	bool Parse( const std::string &filename );
+  // Parses the given file
+  bool Parse(const std::string& filename);
 
-	// Tokenize a line
-	bool Parse_Line( std::string str_line, int line_num );
+  // Tokenize a line
+  bool Parse_Line(std::string str_line, int line_num);
 
-	// Handle one tokenized line
-	virtual bool HandleMessage( const std::string *parts, unsigned int count, unsigned int line );
+  // Handle one tokenized line
+  virtual bool HandleMessage(const std::string* parts, unsigned int count,
+                             unsigned int line);
 
-	// data filename
-	std::string data_file;
+  // data filename
+  std::string data_file;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-} // namespace SMC
+}  // namespace SMC
 
 #endif
-

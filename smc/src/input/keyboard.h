@@ -21,83 +21,81 @@
 // SDL
 #include "SDL.h"
 
-namespace SMC
-{
+namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cKeyboard *** *** *** *** *** *** *** *** *** */
 
-class cKeyboard
-{
-public:
-	cKeyboard( void );
-	~cKeyboard( void );
+class cKeyboard {
+ public:
+  cKeyboard(void);
+  ~cKeyboard(void);
 
-	// Reset all keys
-	void Reset_Keys( void );
+  // Reset all keys
+  void Reset_Keys(void);
 
-	/* CEGUI Key Up handler
+  /* CEGUI Key Up handler
 	 * returns true if CEGUI processed the given key up event
 	*/
-	bool CEGUI_Handle_Key_Up( SDLKey key ) const;
+  bool CEGUI_Handle_Key_Up(SDLKey key) const;
 
-	/* Key Up Handler
+  /* Key Up Handler
 	 * returns true if the event was processed
 	*/
-	bool Key_Up( SDLKey key );
+  bool Key_Up(SDLKey key);
 
-	/* CEGUI Key Down handler
+  /* CEGUI Key Down handler
 	 * returns true if CEGUI processed the given key down event
 	*/
-	bool CEGUI_Handle_Key_Down( SDLKey key ) const;
+  bool CEGUI_Handle_Key_Down(SDLKey key) const;
 
-	/* Key Down handler
+  /* Key Down handler
 	 * returns true if the event was processed
 	*/
-	bool Key_Down( SDLKey key );
+  bool Key_Down(SDLKey key);
 
-	/* Typed text (SDL 2 SDL_TEXTINPUT, UTF-8) handler
+  /* Typed text (SDL 2 SDL_TEXTINPUT, UTF-8) handler
 	 * returns true if the gui system processed any of it
 	*/
-	bool Text_Input( const char *text ) const;
+  bool Text_Input(const char* text) const;
 
-	// Is the CTRL key pressed
-	inline bool Is_Ctrl_Down( void ) const
-	{
-		return m_keys[SDLK_RCTRL] || m_keys[SDLK_LCTRL];
-	};
-	// Is the SHIFT key pressed
-	inline bool Is_Shift_Down( void ) const
-	{
-		return m_keys[SDLK_RSHIFT] || m_keys[SDLK_LSHIFT];
-	};
-	// Is the ALT key pressed
-	inline bool Is_Alt_Down( void ) const
-	{
-		return m_keys[SDLK_RALT] || m_keys[SDLK_LALT];
-	};
+  // Is the CTRL key pressed
+  inline bool Is_Ctrl_Down(void) const {
+    return m_keys[SDLK_RCTRL] || m_keys[SDLK_LCTRL];
+  };
+  // Is the SHIFT key pressed
+  inline bool Is_Shift_Down(void) const {
+    return m_keys[SDLK_RSHIFT] || m_keys[SDLK_LSHIFT];
+  };
+  // Is the ALT key pressed
+  inline bool Is_Alt_Down(void) const {
+    return m_keys[SDLK_RALT] || m_keys[SDLK_LALT];
+  };
 
-	// Translate a SDLKey to the proper CEGUI::Key
-	unsigned int SDLKey_to_CEGUIKey( const SDLKey key ) const;
+  // Translate a SDLKey to the proper CEGUI::Key
+  unsigned int SDLKey_to_CEGUIKey(const SDLKey key) const;
 
-	/* Pressed keys. SDL 2 keycodes are sparse (bit 30 set for non-character keys), so the
+  /* Pressed keys. SDL 2 keycodes are sparse (bit 30 set for non-character keys), so the
 	 * state lives in a scancode-indexed array; operator[] keeps every `m_keys[SDLK_x]` in the
 	 * game compiling unchanged by translating the keycode. */
-	struct cKey_State
-	{
-		Uint8 m_state[SDL_NUM_SCANCODES];
-		Uint8 &operator[]( SDLKey key ) { return m_state[SDL_GetScancodeFromKey( key )]; }
-		const Uint8 &operator[]( SDLKey key ) const { return m_state[SDL_GetScancodeFromKey( key )]; }
-	};
-	cKey_State m_keys;
+  struct cKey_State {
+    Uint8 m_state[SDL_NUM_SCANCODES];
+    Uint8& operator[](SDLKey key) {
+      return m_state[SDL_GetScancodeFromKey(key)];
+    }
+    const Uint8& operator[](SDLKey key) const {
+      return m_state[SDL_GetScancodeFromKey(key)];
+    }
+  };
+  cKey_State m_keys;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // global Keyboard pointer
-extern cKeyboard *pKeyboard;
+extern cKeyboard* pKeyboard;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-} // namespace SMC
+}  // namespace SMC
 
 #endif

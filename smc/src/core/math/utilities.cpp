@@ -23,47 +23,37 @@
  * returns true if not a number was found
  * used by the valid_number function
 */
-class nondigit
-{
-public:
-	bool operator() ( char c ) const
-	{
-		return !isdigit( c );
-	}
+class nondigit {
+ public:
+  bool operator()(char c) const { return !isdigit(c); }
 };
 
-namespace SMC
-{
+namespace SMC {
 
 /* *** *** *** *** *** *** *** *** Math utility functions *** *** *** *** *** *** *** *** *** */
 
-bool Is_Valid_Number( std::string num, bool accept_floating_point /* = 1 */ )
-{
-	// accept negative numbers
-	if( num.find( '-' ) == 0 )
-	{
-		num.erase( 0, 1 );
-	}
+bool Is_Valid_Number(std::string num, bool accept_floating_point /* = 1 */) {
+  // accept negative numbers
+  if (num.find('-') == 0) {
+    num.erase(0, 1);
+  }
 
-	// accept numbers with a point if given
-	if( accept_floating_point )
-	{
-		std::string::size_type pos = num.find( '.' );
+  // accept numbers with a point if given
+  if (accept_floating_point) {
+    std::string::size_type pos = num.find('.');
 
-		if( pos != std::string::npos )
-		{
-			num.erase( pos, 1 );
-		}
-	}
+    if (pos != std::string::npos) {
+      num.erase(pos, 1);
+    }
+  }
 
-	if( std::find_if( num.begin(), num.end(), nondigit() ) == num.end() )
-	{
-		return 1;
-	}
+  if (std::find_if(num.begin(), num.end(), nondigit()) == num.end()) {
+    return 1;
+  }
 
-	return 0;
+  return 0;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-} // namespace SMC
+}  // namespace SMC

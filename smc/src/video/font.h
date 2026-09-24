@@ -22,59 +22,58 @@
 // also includes SDL.h
 #include "SDL_ttf.h"
 
-namespace SMC
-{
+namespace SMC {
 
 /* *** *** *** *** *** *** *** Font Manager class *** *** *** *** *** *** *** *** *** *** */
 
 // Deletes an active Font Surface
-void Font_Delete_Ref( cGL_Surface *surface );
+void Font_Delete_Ref(cGL_Surface* surface);
 
-class cFont_Manager
-{
-public:
-	cFont_Manager( void );
-	~cFont_Manager( void );
+class cFont_Manager {
+ public:
+  cFont_Manager(void);
+  ~cFont_Manager(void);
 
-	// initialization
-	void Init( void );
+  // initialization
+  void Init(void);
 
-	// Adds an allocated Font surface
-	void Add_Ref( cGL_Surface *surface );
-	// Deletes an active Font Surface
-	void Delete_Ref( cGL_Surface *surface );
+  // Adds an allocated Font surface
+  void Add_Ref(cGL_Surface* surface);
+  // Deletes an active Font Surface
+  void Delete_Ref(cGL_Surface* surface);
 
-	// Renders the given text into a new surface
-	cGL_Surface *Render_Text( TTF_Font *font, const std::string &text, const Color color = static_cast<Uint8>(0) );
+  // Renders the given text into a new surface
+  cGL_Surface* Render_Text(TTF_Font* font, const std::string& text,
+                           const Color color = static_cast<Uint8>(0));
 
-	/* Saves hardware textures in software memory
+  /* Saves hardware textures in software memory
 	*/
-	void Grab_Textures( void );
+  void Grab_Textures(void);
 
-	/* Loads the saved software textures back into hardware textures
+  /* Loads the saved software textures back into hardware textures
 	*/
-	void Restore_Textures( void );
+  void Restore_Textures(void);
 
-	// TTF loaded fonts
-	TTF_Font *m_font_normal;
-	TTF_Font *m_font_small;
-	TTF_Font *m_font_very_small;
+  // TTF loaded fonts
+  TTF_Font* m_font_normal;
+  TTF_Font* m_font_small;
+  TTF_Font* m_font_very_small;
 
-	// current active loaded font list
-	typedef vector<cGL_Surface *> ActiveFontList;
-	ActiveFontList m_active_fonts;
+  // current active loaded font list
+  typedef vector<cGL_Surface*> ActiveFontList;
+  ActiveFontList m_active_fonts;
 
-	// saved software textures only used for reloading
-	Saved_Texture_List m_software_textures;
+  // saved software textures only used for reloading
+  Saved_Texture_List m_software_textures;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // Font Handler
-extern cFont_Manager *pFont;
+extern cFont_Manager* pFont;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-} // namespace SMC
+}  // namespace SMC
 
 #endif

@@ -19,82 +19,80 @@
 #include "../core/global_basic.h"
 #include "../gui/hud.h"
 
-namespace SMC
-{
+namespace SMC {
 
 /* *** *** *** *** *** *** *** Level Settings *** *** *** *** *** *** *** *** *** *** */
-class cLevel_Settings
-{
-public:
-	cLevel_Settings( cSprite_Manager *sprite_manager, cLevel *level );
-	~cLevel_Settings( void );
+class cLevel_Settings {
+ public:
+  cLevel_Settings(cSprite_Manager* sprite_manager, cLevel* level);
+  ~cLevel_Settings(void);
 
-	void Init( void );
-	void Exit( void );
-	// Enter game mode
-	void Enter( void );
-	// Leave game mode (saves settings)
-	void Leave( void );
-	void Unload( void );
+  void Init(void);
+  void Exit(void);
+  // Enter game mode
+  void Enter(void);
+  // Leave game mode (saves settings)
+  void Leave(void);
+  void Unload(void);
 
-	void Update( void );
-	void Draw( void );
+  void Update(void);
+  void Draw(void);
 
-	/* handle key down event
+  /* handle key down event
 	 * returns true if the key was processed
 	*/
-	bool Key_Down( SDLKey key );
+  bool Key_Down(SDLKey key);
 
-	// Set the parent level
-	void Set_Level( cLevel *level );
-	// Set the parent sprite manager
-	void Set_Sprite_Manager( cSprite_Manager *sprite_manager );
+  // Set the parent level
+  void Set_Level(cLevel* level);
+  // Set the parent sprite manager
+  void Set_Sprite_Manager(cSprite_Manager* sprite_manager);
 
-	// Adds a Background image
-	bool Add_Background_Image( const CEGUI::EventArgs &event );
-	// Delete the currently selected Background image
-	bool Delete_Background_Image( const CEGUI::EventArgs &event );
-	// Set the current Background image
-	bool Set_Background_Image( const CEGUI::EventArgs &event );
+  // Adds a Background image
+  bool Add_Background_Image(const CEGUI::EventArgs& event);
+  // Delete the currently selected Background image
+  bool Delete_Background_Image(const CEGUI::EventArgs& event);
+  // Set the current Background image
+  bool Set_Background_Image(const CEGUI::EventArgs& event);
 
-	// Save the settings and exit
-	bool Button_Apply( const CEGUI::EventArgs &event );
+  // Save the settings and exit
+  bool Button_Apply(const CEGUI::EventArgs& event);
 
-	// Updates the Colors
-	bool Update_BG_Colors( const CEGUI::EventArgs &event );
-	// Loads the Background image List
-	void Load_BG_Image_List( void );
+  // Updates the Colors
+  bool Update_BG_Colors(const CEGUI::EventArgs& event);
+  // Loads the Background image List
+  void Load_BG_Image_List(void);
 
-	// Updates the Background image
-	bool Update_BG_Image( const CEGUI::EventArgs &event );
-	// Clears the background Layer fields
-	void Clear_Layer_Field( void );
+  // Updates the Background image
+  bool Update_BG_Image(const CEGUI::EventArgs& event);
+  // Clears the background Layer fields
+  void Clear_Layer_Field(void);
 
-	// cegui events
-	bool Spinner_Difficulty_Changed( const CEGUI::EventArgs &event );
-	bool Slider_Difficulty_Changed( const CEGUI::EventArgs &event );
+  // cegui events
+  bool Spinner_Difficulty_Changed(const CEGUI::EventArgs& event);
+  bool Slider_Difficulty_Changed(const CEGUI::EventArgs& event);
 
-	// true if menu is active
-	bool m_active;
+  // true if menu is active
+  bool m_active;
 
-	// parent level
-	cLevel *m_level;
-	// settings camera
-	cCamera *m_camera;
-	// GUI
-	CEGUI::Window *m_gui_window;
-	CEGUI::TabControl *m_tabcontrol;
-	CEGUI::Spinner *m_spinner_difficulty;
-	CEGUI::Slider *m_slider_difficulty;
-	CEGUI::Window *m_text_difficulty_name;
+  // parent level
+  cLevel* m_level;
+  // settings camera
+  cCamera* m_camera;
+  // GUI
+  CEGUI::Window* m_gui_window;
+  CEGUI::TabControl* m_tabcontrol;
+  CEGUI::Spinner* m_spinner_difficulty;
+  CEGUI::Slider* m_slider_difficulty;
+  CEGUI::Window* m_text_difficulty_name;
 
-	// Background colors
-	Color m_bg_color_1;
-	Color m_bg_color_2;
+  // Background colors
+  Color m_bg_color_1;
+  Color m_bg_color_2;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-} // namespace SMC
+}  // namespace SMC
 
 #endif

@@ -19,33 +19,31 @@
 #include "../../core/global_basic.h"
 #include "../../core/global_game.h"
 
-namespace SMC
-{
+namespace SMC {
 
 /* *** *** *** *** *** cResource_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cResource_Manager
-{
-public:
-	cResource_Manager( void );
-	~cResource_Manager( void );
+class cResource_Manager {
+ public:
+  cResource_Manager(void);
+  ~cResource_Manager(void);
 
-	// Set the user data write directory
-	bool Set_User_Directory( const std::string &dir );
-	// Create the necessary folders in the user directory
-	void Init_User_Directory( void );
+  // Set the user data write directory
+  bool Set_User_Directory(const std::string& dir);
+  // Create the necessary folders in the user directory
+  void Init_User_Directory(void);
 
-	// user data directory
-	std::string user_data_dir;
+  // user data directory
+  std::string user_data_dir;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // Resource Manager
-extern cResource_Manager *pResource_Manager;
+extern cResource_Manager* pResource_Manager;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-} // namespace SMC
+}  // namespace SMC
 
 #endif

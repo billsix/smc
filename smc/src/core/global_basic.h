@@ -24,20 +24,20 @@
 /* *** *** *** *** *** *** *** Debugging *** *** *** *** *** *** *** *** *** *** */
 
 #ifdef _WIN32
-	#ifndef __WIN32__
-		#define __WIN32__
-	#endif
-	#ifdef _DEBUG
-		// disable possible loss of data
-		#pragma warning ( disable : 4267 )
-	#endif
+#ifndef __WIN32__
+#define __WIN32__
+#endif
+#ifdef _DEBUG
+// disable possible loss of data
+#pragma warning(disable : 4267)
+#endif
 #endif
 
 // debug printf macro
 #ifdef _DEBUG
-	#define debug_print(format, ...) printf(format, ##__VA_ARGS__)
+#define debug_print(format, ...) printf(format, ##__VA_ARGS__)
 #else
-	#define debug_print(format, ...)
+#define debug_print(format, ...)
 #endif
 
 /* *** *** *** *** *** *** *** Standard setup *** *** *** *** *** *** *** *** *** *** */
