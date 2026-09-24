@@ -74,9 +74,8 @@ cFramerate ::cFramerate(void) {
 
 cFramerate ::~cFramerate(void) {
   // clear performance timer
-  for (Performance_Timer_List::iterator itr = m_perf_timer.begin();
-       itr != m_perf_timer.end(); ++itr) {
-    delete *itr;
+  for (auto& itr : m_perf_timer) {
+    delete itr;
   }
 
   m_perf_timer.clear();
@@ -161,9 +160,8 @@ void cFramerate ::Reset(void) {
   m_frames_counted = 0;
 
   // reset performance timer
-  for (Performance_Timer_List::iterator itr = m_perf_timer.begin();
-       itr != m_perf_timer.end(); ++itr) {
-    (*itr)->Reset();
+  for (auto& itr : m_perf_timer) {
+    itr->Reset();
   }
 }
 

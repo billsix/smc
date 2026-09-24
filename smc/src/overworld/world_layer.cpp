@@ -287,18 +287,15 @@ cLayer ::cLayer(cOverworld* origin) { m_overworld = origin; }
 cLayer ::~cLayer(void) { Delete_All(); }
 
 void cLayer ::Add(cLayer_Line_Point_Start* line_point) {
-  for (LayerLineList::iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
+  for (auto& layer_line : objects) {
     // get pointer
-    cLayer_Line_Point_Start* layer_line = (*itr);
-
     // if already in layer
     if (layer_line == line_point) {
       return;
     }
   }
 
-  cObject_Manager<cLayer_Line_Point_Start>::Add(line_point);
+  objects.push_back(line_point);
 
   // check if in sprite manager
   if (m_overworld->m_sprite_manager->Get_Array_Num(line_point) == -1) {
@@ -311,6 +308,40 @@ void cLayer ::Add(cLayer_Line_Point_Start* line_point) {
     // add end point
     m_overworld->m_sprite_manager->Add(line_point->m_linked_point);
   }
+}
+
+int cLayer ::Get_Array_Num(const cLayer_Line_Point_Start* obj) const {
+  if (!obj) {
+    return -1;
+  }
+
+  LayerLineList::const_iterator itr =
+      std::find(objects.begin(), objects.end(), obj);
+
+  if (itr == objects.end()) {
+    return -1;
+  }
+
+  return std::distance(objects.begin(), itr);
+}
+
+bool cLayer ::Delete(cLayer_Line_Point_Start* obj, bool delete_data /* = 1 */) {
+  if (!obj) {
+    return false;
+  }
+
+  LayerLineList::iterator itr = std::find(objects.begin(), objects.end(), obj);
+
+  if (itr != objects.end()) {
+    objects.erase(itr);
+  }
+
+  // the sprite manager owns line points, so live callers pass delete_data = false
+  if (delete_data) {
+    delete obj;
+  }
+
+  return true;
 }
 
 void cLayer ::Load(const std::string& filename) {
@@ -357,10 +388,7 @@ bool cLayer ::Save(const std::string& filename) {
   stream.openTag("layer");
 
   // lines
-  for (LayerLineList::iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
-    cLayer_Line_Point_Start* line = (*itr);
-
+  for (auto& line : objects) {
     // begin
     stream.openTag("line");
     // start
@@ -392,11 +420,8 @@ void cLayer ::Delete_All(void) {
 
 cLayer_Line_Point_Start* cLayer ::Get_Line_Collision_Start(
     const GL_rect& line_rect) {
-  for (LayerLineList::iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
+  for (auto& layer_line : objects) {
     // get pointer
-    cLayer_Line_Point_Start* layer_line = (*itr);
-
     // check line 1
     if (line_rect.Intersects(layer_line->m_col_rect)) {
       return layer_line;
@@ -433,11 +458,8 @@ cLine_collision cLayer ::Get_Nearest(float x, float y,
                                      ObjectDirection dir /* = DIR_HORIZONTAL */,
                                      unsigned int check_size /* = 15 */,
                                      int only_origin_id /* = -1 */) const {
-  for (LayerLineList::const_iterator itr = objects.begin();
-       itr != objects.end(); ++itr) {
+  for (auto& layer_line : objects) {
     // get pointer
-    cLayer_Line_Point_Start* layer_line = (*itr);
-
     // line is not from waypoint
     if (only_origin_id >= 0 && only_origin_id != layer_line->m_origin) {
       continue;

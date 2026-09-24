@@ -54,9 +54,8 @@ void cCampaign_Manager ::Load(void) {
   int user_dir_length = user_dir.length() + 1;
   int game_dir_length = game_dir.length() + 1;
 
-  for (vector<std::string>::iterator itr = user_files.begin();
-       itr != user_files.end(); ++itr) {
-    std::string user_name = (*itr);
+  for (auto& user_file : user_files) {
+    std::string user_name = user_file;
     cCampaign* campaign = Load_Campaign(user_name);
 
     // remove base directory
@@ -82,9 +81,8 @@ void cCampaign_Manager ::Load(void) {
     }
   }
 
-  for (vector<std::string>::iterator itr = game_files.begin();
-       itr != game_files.end(); ++itr) {
-    std::string name = (*itr);
+  for (auto& game_file : game_files) {
+    std::string name = game_file;
 
     cCampaign* campaign = Load_Campaign(name);
 
@@ -109,12 +107,9 @@ cCampaign* cCampaign_Manager ::Load_Campaign(const std::string& filename) {
 }
 
 cCampaign* cCampaign_Manager ::Get_from_Name(const std::string& name) {
-  for (vector<cCampaign*>::iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
-    cCampaign* obj = (*itr);
-
-    if (obj->m_name.compare(name) == 0) {
-      return obj;
+  for (const auto& campaign : objects) {
+    if (campaign->m_name.compare(name) == 0) {
+      return campaign.get();
     }
   }
 

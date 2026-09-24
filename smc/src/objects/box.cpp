@@ -380,10 +380,7 @@ void cBaseBox ::Check_Collision(ObjectDirection col_direction) {
       m_col_rect.m_h - (check_y * 0.5f));
 
   // handle collisions
-  for (cObjectCollision_List::iterator itr = col_list->objects.begin();
-       itr != col_list->objects.end(); ++itr) {
-    cObjectCollision* col_obj = (*itr);
-
+  for (auto& col_obj : col_list->objects) {
     // send box collision
     col_obj->m_obj->Handle_Collision_Box(
         Get_Opposite_Direction(col_obj->m_direction), &m_col_rect);

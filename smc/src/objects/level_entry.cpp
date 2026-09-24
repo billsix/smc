@@ -252,12 +252,10 @@ void cLevel_Entry ::Activate(void) {
       // center camera
       pActive_Camera->Center();
       // keep particles on screen
-      for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-           itr != m_sprite_manager->objects.end(); ++itr) {
-        cSprite* obj = (*itr);
-
+      for (auto& obj : m_sprite_manager->objects) {
         if (obj->m_type == TYPE_PARTICLE_EMITTER) {
-          cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(obj);
+          cParticle_Emitter* emitter =
+              static_cast<cParticle_Emitter*>(obj.get());
           emitter->Update_Position();
         }
       }

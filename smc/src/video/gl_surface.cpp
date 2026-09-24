@@ -146,11 +146,8 @@ void cGL_Surface ::Blit_Data(cSurface_Request* request) const {
 void cGL_Surface ::Set_Ground_Type(GroundType gtype) { m_ground_type = gtype; }
 
 bool cGL_Surface ::Is_Texture_Use_Multiple(void) const {
-  for (GL_Surface_List::iterator itr = pImage_Manager->objects.begin();
-       itr != pImage_Manager->objects.end(); ++itr) {
-    cGL_Surface* obj = (*itr);
-
-    if (obj == this) {
+  for (auto& obj : pImage_Manager->objects) {
+    if (obj.get() == this) {
       continue;
     }
 

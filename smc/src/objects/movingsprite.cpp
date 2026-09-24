@@ -188,11 +188,7 @@ cObjectCollisionType* cMovingSprite ::Col_Move_in_Steps(
         }
         // remove internal collision from further checks
         else if (col_list_temp->objects.size()) {
-          for (cObjectCollision_List::iterator itr =
-                   col_list_temp->objects.begin();
-               itr != col_list_temp->objects.end(); ++itr) {
-            cObjectCollision* col = (*itr);
-
+          for (auto& col : col_list_temp->objects) {
             if (col->m_valid_type != COL_VTYPE_INTERNAL) {
               continue;
             }
@@ -218,9 +214,10 @@ cObjectCollisionType* cMovingSprite ::Col_Move_in_Steps(
       }
 
       if (col_list_temp->size()) {
-        col_list->objects.insert(col_list->objects.end(),
-                                 col_list_temp->objects.begin(),
-                                 col_list_temp->objects.end());
+        col_list->objects.insert(
+            col_list->objects.end(),
+            std::make_move_iterator(col_list_temp->objects.begin()),
+            std::make_move_iterator(col_list_temp->objects.end()));
         col_list_temp->objects.clear();
       }
 
@@ -272,11 +269,7 @@ cObjectCollisionType* cMovingSprite ::Col_Move_in_Steps(
         }
         // remove internal collision from further checks
         else if (col_list_temp->objects.size()) {
-          for (cObjectCollision_List::iterator itr =
-                   col_list_temp->objects.begin();
-               itr != col_list_temp->objects.end(); ++itr) {
-            cObjectCollision* col = (*itr);
-
+          for (auto& col : col_list_temp->objects) {
             if (col->m_valid_type != COL_VTYPE_INTERNAL) {
               continue;
             }
@@ -302,9 +295,10 @@ cObjectCollisionType* cMovingSprite ::Col_Move_in_Steps(
       }
 
       if (col_list_temp->size()) {
-        col_list->objects.insert(col_list->objects.end(),
-                                 col_list_temp->objects.begin(),
-                                 col_list_temp->objects.end());
+        col_list->objects.insert(
+            col_list->objects.end(),
+            std::make_move_iterator(col_list_temp->objects.begin()),
+            std::make_move_iterator(col_list_temp->objects.end()));
         col_list_temp->objects.clear();
       }
 
@@ -610,10 +604,9 @@ cObjectCollisionType* cMovingSprite ::Collision_Check(
     return col_list;
   }
 
-  // if no object list is given get all objects available
-  if (!objects) {
-    objects = &m_sprite_manager->objects;
-
+  // if no object list is given, check every sprite the manager owns (borrowed pointers)
+  const bool use_manager = !objects;
+  if (use_manager) {
     // Player
     if (m_type != TYPE_PLAYER &&
         new_rect.Intersects(pActive_Player->m_col_rect)) {
@@ -641,33 +634,29 @@ cObjectCollisionType* cMovingSprite ::Collision_Check(
     }
   }
 
-  // Check objects
-  for (cSprite_List::iterator itr = objects->begin(); itr != objects->end();
-       ++itr) {
-    // get object pointer
-    cSprite* level_object = (*itr);
-
+  // check one candidate (borrowed pointer) and add a collision if valid
+  auto check_object = [&](cSprite* level_object) {
     // if the same object or destroyed object
     if (this == level_object || level_object->m_auto_destroy) {
-      continue;
+      return;
     }
 
     // if rects don't touch
     if (!new_rect.Intersects(level_object->m_col_rect)) {
-      continue;
+      return;
     }
 
     // if undefined, hud or animation
     if (level_object->m_sprite_array == ARRAY_UNDEFINED ||
         level_object->m_sprite_array == ARRAY_HUD ||
         level_object->m_sprite_array == ARRAY_ANIM) {
-      continue;
+      return;
     }
 
     // if enemy is dead
     if (level_object->m_sprite_array == ARRAY_ENEMY &&
         static_cast<cEnemy*>(level_object)->m_dead) {
-      continue;
+      return;
     }
 
     // validate
@@ -675,24 +664,35 @@ cObjectCollisionType* cMovingSprite ::Collision_Check(
 
     // not a valid collision
     if (col_valid == COL_VTYPE_NOT_VALID) {
-      continue;
+      return;
     }
 
     // ignore internal collisions
     if (check_type == COLLIDE_ONLY_BLOCKING) {
       if (col_valid == COL_VTYPE_INTERNAL) {
-        continue;
+        return;
       }
     }
     // ignore blocking collisions
     else if (check_type == COLLIDE_ONLY_INTERNAL) {
       if (col_valid == COL_VTYPE_BLOCKING) {
-        continue;
+        return;
       }
     }
 
     // add to list
     col_list->Add(Create_Collision_Object(this, level_object, col_valid));
+  };
+
+  // Check objects
+  if (use_manager) {
+    for (const auto& sprite : m_sprite_manager->objects) {
+      check_object(sprite.get());
+    }
+  } else {
+    for (cSprite* level_object : *objects) {
+      check_object(level_object);
+    }
   }
 
   return col_list;
@@ -811,15 +811,12 @@ void cMovingSprite ::Check_on_Ground(void) {
   Reset_On_Ground();
 
   // possible ground objects
-  for (cObjectCollision_List::iterator itr = col_list->objects.begin();
-       itr != col_list->objects.end(); ++itr) {
-    cObjectCollision* col = (*itr);
-
+  for (auto& col : col_list->objects) {
     // ground collision found
     if (col->m_direction == DIR_BOTTOM) {
       if (Set_On_Ground(col->m_obj)) {
         // send collision ( needed for falling platform )
-        Send_Collision(col);
+        Send_Collision(col.get());
         break;
       }
     }
@@ -834,9 +831,7 @@ void cMovingSprite ::Update_Anti_Stuck(void) {
       Collision_Check(&m_col_rect, COLLIDE_ONLY_BLOCKING);
 
   // check collisions
-  for (cObjectCollision_List::iterator itr = col_list->objects.begin();
-       itr != col_list->objects.end(); ++itr) {
-    cObjectCollision* collision = (*itr);
+  for (auto& collision : col_list->objects) {
     cSprite* col_obj = collision->m_obj;
 
     if (collision->m_array == ARRAY_ENEMY ||

@@ -369,10 +369,7 @@ void cOverworld ::Save(void) {
   stream.closeTag();
 
   // objects
-  for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-       itr != m_sprite_manager->objects.end(); ++itr) {
-    cSprite* obj = (*itr);
-
+  for (auto& obj : m_sprite_manager->objects) {
     // skip spawned and destroyed objects
     if (obj->m_spawned || obj->m_auto_destroy) {
       continue;
@@ -573,10 +570,7 @@ void cOverworld ::Update(void) {
   // if world-editor is enabled
   else {
     // only update particle emitters
-    for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-         itr != m_sprite_manager->objects.end(); ++itr) {
-      cSprite* obj = (*itr);
-
+    for (auto& obj : m_sprite_manager->objects) {
       if (obj->m_type == TYPE_PARTICLE_EMITTER) {
         obj->Update();
       }
@@ -754,10 +748,7 @@ void cOverworld ::Set_Progress(unsigned int normal_level,
                                bool force /* = 1 */) {
   unsigned int level_num = 0;
 
-  for (WaypointList::iterator itr = m_waypoints.begin();
-       itr != m_waypoints.end(); ++itr) {
-    cWaypoint* obj = (*itr);
-
+  for (auto obj : m_waypoints) {
     // accessible
     if (normal_level >= level_num) {
       obj->Set_Access(true);
@@ -772,10 +763,7 @@ void cOverworld ::Set_Progress(unsigned int normal_level,
 }
 
 cWaypoint* cOverworld ::Get_Waypoint(const std::string& name) {
-  for (WaypointList::iterator itr = m_waypoints.begin();
-       itr != m_waypoints.end(); ++itr) {
-    cWaypoint* obj = (*itr);
-
+  for (auto obj : m_waypoints) {
     // accessible
     if (obj->m_destination.compare(name) == 0) {
       return obj;
@@ -809,10 +797,7 @@ int cOverworld ::Get_Waypoint_Num(const std::string& name) {
   int count = 0;
 
   // search waypoint
-  for (WaypointList::iterator itr = m_waypoints.begin();
-       itr != m_waypoints.end(); ++itr) {
-    cWaypoint* obj = (*itr);
-
+  for (auto obj : m_waypoints) {
     if (obj->m_destination.compare(name) == 0) {
       // found
       return count;
@@ -828,10 +813,7 @@ int cOverworld ::Get_Waypoint_Num(const std::string& name) {
 int cOverworld ::Get_Waypoint_Collision(const GL_rect& rect_2) {
   int count = 0;
 
-  for (WaypointList::iterator itr = m_waypoints.begin();
-       itr != m_waypoints.end(); ++itr) {
-    cWaypoint* obj = (*itr);
-
+  for (auto obj : m_waypoints) {
     if (rect_2.Intersects(obj->m_rect)) {
       return count;
     }
@@ -950,10 +932,7 @@ bool cOverworld ::Goto_Next_Level(void) {
 }
 
 void cOverworld ::Reset_Waypoints(void) {
-  for (WaypointList::iterator itr = m_waypoints.begin();
-       itr != m_waypoints.end(); ++itr) {
-    cWaypoint* obj = (*itr);
-
+  for (auto obj : m_waypoints) {
     obj->Set_Access(obj->m_access_default);
   }
 }

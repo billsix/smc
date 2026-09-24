@@ -19,6 +19,7 @@
 #include "../video/video.h"
 #include "../core/math/line.h"
 #include "../core/math/rect.h"
+#include <memory>
 
 namespace SMC {
 
@@ -52,7 +53,9 @@ class cRender_Request {
   int m_render_count;
 };
 
-using RenderList = vector<cRender_Request*>;
+// The queue owns its requests: each is freed automatically when it is dropped from the list
+// (see cRenderQueue::Clear), so no cRender_Request is ever hand-deleted.
+using RenderList = vector<std::unique_ptr<cRender_Request>>;
 
 /* *** *** *** *** *** *** cClear_Request *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -250,7 +253,8 @@ class cRenderQueue {
 
   // Z position sort
   struct zpos_sort {
-    bool operator()(const cRender_Request* a, const cRender_Request* b) const {
+    bool operator()(const std::unique_ptr<cRender_Request>& a,
+                    const std::unique_ptr<cRender_Request>& b) const {
       return a->m_pos_z < b->m_pos_z;
     }
   };

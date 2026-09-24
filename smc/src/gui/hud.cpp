@@ -120,7 +120,7 @@ void cHud_Manager ::Update_Text(void) {
   // note : update the life display before updating the time display
 
   if (!objects.empty()) {
-    cMenuBackground* item = static_cast<cMenuBackground*>(objects[0]);
+    cMenuBackground* item = static_cast<cMenuBackground*>(objects[0].get());
 
     if (Game_Mode != MODE_OVERWORLD) {
       // goldpiece
@@ -179,17 +179,15 @@ void cHud_Manager ::Update_Text(void) {
 
 void cHud_Manager ::Update(void) {
   // update HUD objects
-  for (HudSpriteList::iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
-    (*itr)->Update();
+  for (auto& object : objects) {
+    object->Update();
   }
 }
 
 void cHud_Manager ::Draw(void) {
   // draw HUD objects
-  for (HudSpriteList::iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
-    (*itr)->Draw();
+  for (auto& object : objects) {
+    object->Draw();
   }
 }
 
@@ -197,9 +195,8 @@ void cHud_Manager ::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
   m_sprite_manager = sprite_manager;
 
   // update HUD objects
-  for (HudSpriteList::iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
-    (*itr)->Set_Sprite_Manager(m_sprite_manager);
+  for (auto& object : objects) {
+    object->Set_Sprite_Manager(m_sprite_manager);
   }
 }
 
@@ -412,11 +409,8 @@ void cPlayerPoints ::Add_Points(
   new_obj->m_points = points;
 
   // check if it collides with an already active points text
-  for (PointsTextList::iterator itr = m_points_objects.begin();
-       itr != m_points_objects.end(); ++itr) {
+  for (auto obj : m_points_objects) {
     // get object pointer
-    PointsText* obj = (*itr);
-
     if (new_obj->m_rect.Intersects(obj->m_col_rect)) {
       new_obj->Move(obj->m_col_rect.m_w + 5, 0, true);
     }
@@ -426,9 +420,8 @@ void cPlayerPoints ::Add_Points(
 }
 
 void cPlayerPoints ::Clear(void) {
-  for (PointsTextList::iterator itr = m_points_objects.begin();
-       itr != m_points_objects.end(); ++itr) {
-    delete *itr;
+  for (auto& points_object : m_points_objects) {
+    delete points_object;
   }
 
   m_points_objects.clear();
@@ -823,9 +816,8 @@ cDebugDisplay ::~cDebugDisplay(void) {
   pGuiSystem->getGUISheet()->removeChildWindow(m_window_debug_text);
   CEGUI::WindowManager::getSingleton().destroyWindow(m_window_debug_text);
 
-  for (HudSpriteList::iterator itr = m_sprites.begin(); itr != m_sprites.end();
-       ++itr) {
-    delete *itr;
+  for (auto& sprite : m_sprites) {
+    delete sprite;
   }
 
   m_sprites.clear();
@@ -1034,11 +1026,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
     // Halfmassive
     unsigned int halfmassive = 0;
 
-    for (cSprite_List::const_iterator itr = m_sprite_manager->objects.begin();
-         itr != m_sprite_manager->objects.end(); ++itr) {
+    for (auto& obj : m_sprite_manager->objects) {
       // get object pointer
-      const cSprite* obj = (*itr);
-
       if (obj->m_type == TYPE_HALFMASSIVE) {
         halfmassive++;
       }
@@ -1052,11 +1041,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
     // Moving Platform
     unsigned int moving_platform = 0;
 
-    for (cSprite_List::const_iterator itr = m_sprite_manager->objects.begin();
-         itr != m_sprite_manager->objects.end(); ++itr) {
+    for (auto& obj : m_sprite_manager->objects) {
       // get object pointer
-      const cSprite* obj = (*itr);
-
       if (obj->m_type == TYPE_MOVING_PLATFORM) {
         moving_platform++;
       }
@@ -1070,13 +1056,10 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
     // Goldbox
     unsigned int goldbox = 0;
 
-    for (cSprite_List::const_iterator itr = m_sprite_manager->objects.begin();
-         itr != m_sprite_manager->objects.end(); ++itr) {
+    for (auto& obj : m_sprite_manager->objects) {
       // get object pointer
-      const cSprite* obj = (*itr);
-
       if (obj->m_type == TYPE_BONUS_BOX) {
-        const cBonusBox* bonusbox = static_cast<const cBonusBox*>(obj);
+        const cBonusBox* bonusbox = static_cast<const cBonusBox*>(obj.get());
 
         if (bonusbox->box_type == TYPE_GOLDPIECE) {
           goldbox++;
@@ -1092,13 +1075,10 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
     // Bonusbox
     unsigned int bonusbox_count = 0;
 
-    for (cSprite_List::const_iterator itr = m_sprite_manager->objects.begin();
-         itr != m_sprite_manager->objects.end(); ++itr) {
+    for (auto& obj : m_sprite_manager->objects) {
       // get object pointer
-      const cSprite* obj = (*itr);
-
       if (obj->m_type == TYPE_BONUS_BOX) {
-        const cBonusBox* bonusbox = static_cast<const cBonusBox*>(obj);
+        const cBonusBox* bonusbox = static_cast<const cBonusBox*>(obj.get());
 
         if (bonusbox->box_type != TYPE_GOLDPIECE) {
           bonusbox_count++;
@@ -1171,9 +1151,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
   }
 
   // draw text
-  for (HudSpriteList::iterator itr = m_sprites.begin(); itr != m_sprites.end();
-       ++itr) {
-    (*itr)->Draw();
+  for (auto& sprite : m_sprites) {
+    sprite->Draw();
   }
 }
 
@@ -1344,8 +1323,7 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
 
   unsigned int pos = 0;
 
-  for (vector<std::string>::const_iterator itr = text_strings.begin();
-       itr != text_strings.end(); ++itr) {
+  for (const auto& text_string : text_strings) {
     // sections
     float xpos = 20;
     ypos += 12;
@@ -1359,7 +1337,7 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
       ypos += 10;
     }
 
-    const std::string current_text = (*itr);
+    const std::string current_text = text_string;
 
     cGL_Surface* surface_temp =
         pFont->Render_Text(pFont->m_font_small, current_text, white);

@@ -77,11 +77,8 @@ int cAudio_Sound ::Play(int use_res_id /* = -1 */, int loops /* = 0 */) {
   }
 
   if (use_res_id >= 0) {
-    for (AudioSoundList::iterator itr = pAudio->m_active_sounds.begin();
-         itr != pAudio->m_active_sounds.end(); ++itr) {
+    for (auto obj : pAudio->m_active_sounds) {
       // get object pointer
-      cAudio_Sound* obj = (*itr);
-
       // skip self
       if (!obj || obj->m_channel == m_channel) {
         continue;
@@ -285,9 +282,8 @@ void cAudio ::Close(void) {
       Stop_Sounds();
 
       // clear sounds
-      for (AudioSoundList::iterator itr = m_active_sounds.begin();
-           itr != m_active_sounds.end(); ++itr) {
-        delete *itr;
+      for (auto& active_sound : m_active_sounds) {
+        delete active_sound;
       }
 
       m_active_sounds.clear();
@@ -553,11 +549,8 @@ cAudio_Sound* cAudio ::Get_Playing_Sound(std::string filename) {
   }
 
   // get all sounds
-  for (AudioSoundList::const_iterator itr = m_active_sounds.begin();
-       itr != m_active_sounds.end(); ++itr) {
+  for (auto obj : m_active_sounds) {
     // get object pointer
-    cAudio_Sound* obj = (*itr);
-
     // if not playing
     if (obj->m_channel < 0) {
       continue;
@@ -576,11 +569,8 @@ cAudio_Sound* cAudio ::Get_Playing_Sound(std::string filename) {
 
 cAudio_Sound* cAudio ::Create_Sound_Channel(void) {
   // get all sounds
-  for (AudioSoundList::iterator itr = m_active_sounds.begin();
-       itr != m_active_sounds.end(); ++itr) {
+  for (auto obj : m_active_sounds) {
     // get object pointer
-    cAudio_Sound* obj = (*itr);
-
     // if not playing
     if (obj->m_channel < 0) {
       // found a free channel
@@ -661,11 +651,8 @@ void cAudio ::Fadeout_Sounds(unsigned int ms, std::string filename,
   }
 
   // get all sounds
-  for (AudioSoundList::const_iterator itr = m_active_sounds.begin();
-       itr != m_active_sounds.end(); ++itr) {
+  for (auto obj : m_active_sounds) {
     // get object pointer
-    const cAudio_Sound* obj = (*itr);
-
     // skip idle pool entries: m_channel -1 means "not playing", and passing it to
     // Mix_FadeOutChannel(-1, ...) would fade EVERY channel. (Also guards the m_data
     // deref below, since a freed/idle entry can have a null m_data.)
@@ -810,10 +797,9 @@ void cAudio ::Update(void) {
   for (int ch = 0; ch < SMC_MAX_MIX_CHANNELS; ++ch) {
     if (g_channel_finished[ch].exchange(false, std::memory_order_relaxed)) {
       if (!Mix_Playing(ch)) {
-        for (AudioSoundList::iterator itr = m_active_sounds.begin();
-             itr != m_active_sounds.end(); ++itr) {
-          if ((*itr)->m_channel == ch) {
-            (*itr)->Finished();
+        for (auto& active_sound : m_active_sounds) {
+          if (active_sound->m_channel == ch) {
+            active_sound->Finished();
             break;
           }
         }

@@ -144,8 +144,8 @@ void cMenuHandler ::Add_Menu_Item(
 }
 
 void cMenuHandler ::Reset(void) {
-  for (MenuList::iterator itr = m_items.begin(); itr != m_items.end(); ++itr) {
-    delete *itr;
+  for (auto& item : m_items) {
+    delete item;
   }
 
   m_items.clear();
@@ -212,8 +212,8 @@ void cMenuHandler ::Draw(bool with_background /* = 1 */) {
   }
 
   // menu items
-  for (MenuList::iterator itr = m_items.begin(); itr != m_items.end(); ++itr) {
-    (*itr)->Draw();
+  for (auto& item : m_items) {
+    item->Draw();
   }
 }
 
@@ -559,24 +559,16 @@ void cMenuCore ::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
     m_handler->m_camera->Reset_Pos();
 
     // pre-update animations
-    for (cSprite_List::iterator itr =
-             m_handler->m_level->m_sprite_manager->objects.begin();
-         itr != m_handler->m_level->m_sprite_manager->objects.end(); ++itr) {
-      cSprite* obj = (*itr);
-
+    for (auto& obj : m_handler->m_level->m_sprite_manager->objects) {
       if (obj->m_type == TYPE_PARTICLE_EMITTER) {
-        cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(obj);
+        cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(obj.get());
         emitter->Pre_Update();
       }
     }
 
-    for (cAnimation_Manager::cAnimation_List::iterator itr =
-             m_animation_manager->objects.begin();
-         itr != m_animation_manager->objects.end(); ++itr) {
-      cAnimation* obj = (*itr);
-
+    for (auto& obj : m_animation_manager->objects) {
       if (obj->m_type == TYPE_PARTICLE_EMITTER) {
-        cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(obj);
+        cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(obj.get());
         emitter->Pre_Update();
       }
     }

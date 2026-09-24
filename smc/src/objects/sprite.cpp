@@ -13,6 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <ranges>
+
 #include "../objects/sprite.h"
 #include "../objects/movingsprite.h"
 #include "../core/game_core.h"
@@ -52,16 +54,14 @@ void cCollidingSprite ::Handle_Collisions(void) {
   m_collisions.swap(col_list);
 
   // parse the given collisions
-  for (cObjectCollision_List::iterator itr = col_list.begin();
-       itr != col_list.end(); ++itr) {
+  for (auto& itr : col_list) {
     // handle it
-    Handle_Collision((*itr));
+    Handle_Collision(itr);
   }
 
   // clear
-  for (cObjectCollision_List::iterator itr = col_list.begin();
-       itr != col_list.end(); ++itr) {
-    delete *itr;
+  for (auto& itr : col_list) {
+    delete itr;
   }
 
   col_list.clear();
@@ -120,12 +120,10 @@ bool cCollidingSprite ::Add_Collision(cObjectCollision* collision,
 
 void cCollidingSprite ::Add_Collisions(cObjectCollisionType* col_list,
                                        bool add_if_new /* = 0 */) {
-  // insert all objects
-  for (cObjectCollision_List::iterator itr = col_list->objects.begin();
-       itr != col_list->objects.end(); ++itr) {
-    cObjectCollision* col = (*itr);
-
-    Add_Collision(col, add_if_new);
+  // move ownership of each collision out of col_list into m_collisions (a raw-owning list that
+  // frees them itself in Handle_Collisions); release() so the following clear() frees nothing
+  for (auto& col : col_list->objects) {
+    Add_Collision(col.release(), add_if_new);
   }
 
   col_list->objects.clear();
@@ -166,10 +164,7 @@ int cCollidingSprite ::Is_Collision_In_Direction(
     const ObjectDirection dir) const {
   int pos = 0;
 
-  for (cObjectCollision_List::const_iterator itr = m_collisions.begin();
-       itr != m_collisions.end(); ++itr) {
-    cObjectCollision* col = (*itr);
-
+  for (auto col : m_collisions) {
     if (col->m_direction == dir) {
       return pos;
     }
@@ -188,12 +183,8 @@ cObjectCollision* cCollidingSprite ::Get_Last_Collision(
   }
 
   if (only_blocking) {
-    for (cObjectCollision_List::const_reverse_iterator itr =
-             m_collisions.rbegin();
-         itr != m_collisions.rend(); ++itr) {
+    for (auto col : std::views::reverse(m_collisions)) {
       // get object pointer
-      cObjectCollision* col = (*itr);
-
       cSprite* col_obj = m_sprite_manager->Get_Pointer(col->m_number);
 
       // ignore passive
@@ -221,11 +212,8 @@ cObjectCollision* cCollidingSprite ::Get_Last_Collision(
 
 bool cCollidingSprite ::Is_Collision_Included(const cSprite* obj) const {
   // check if in collisions list
-  for (cObjectCollision_List::const_iterator itr = m_collisions.begin();
-       itr != m_collisions.end(); ++itr) {
+  for (auto col : m_collisions) {
     // get object pointer
-    cObjectCollision* col = (*itr);
-
     // is in list
     if (col->m_obj == obj) {
       return true;
@@ -237,9 +225,8 @@ bool cCollidingSprite ::Is_Collision_Included(const cSprite* obj) const {
 }
 
 void cCollidingSprite ::Clear_Collisions(void) {
-  for (cObjectCollision_List::iterator itr = m_collisions.begin();
-       itr != m_collisions.end(); ++itr) {
-    delete *itr;
+  for (auto& collision : m_collisions) {
+    delete collision;
   }
 
   m_collisions.clear();
@@ -635,7 +622,7 @@ void cSprite ::Set_Color_Combine(const float red, const float green,
 }
 
 void cSprite ::Update_Rect_Rotation_Z(void) {
-  // rotate 270°
+  // rotate 270ï¿½
   if (m_rot_z >= 270.0f) {
     // rotate collision position
     float orig_x = m_col_pos.m_x;
@@ -656,7 +643,7 @@ void cSprite ::Update_Rect_Rotation_Z(void) {
     m_col_pos.m_x = m_rect.m_w - (m_col_rect.m_w + m_col_pos.m_x);
     m_col_pos.m_y = m_rect.m_h - (m_col_rect.m_h + m_col_pos.m_y);
   }
-  // rotate 90°
+  // rotate 90ï¿½
   else if (m_rot_z >= 0.00001f) {
     // rotate collision position
     float orig_x = m_col_pos.m_x;
@@ -1353,10 +1340,7 @@ void cSprite ::Editor_Activate(void) {
 
 void cSprite ::Editor_Deactivate(void) {
   // remove editor controls
-  for (Editor_Object_Settings_List::iterator itr = m_editor_windows.begin();
-       itr != m_editor_windows.end(); ++itr) {
-    cEditor_Object_Settings_Item* obj = (*itr);
-
+  for (auto obj : m_editor_windows) {
     delete obj;
   }
 
@@ -1368,9 +1352,7 @@ void cSprite ::Editor_Init(void) {
   Editor_State_Update();
 
   // init
-  for (Editor_Object_Settings_List::iterator itr = m_editor_windows.begin();
-       itr != m_editor_windows.end(); ++itr) {
-    cEditor_Object_Settings_Item* obj = (*itr);
+  for (auto obj : m_editor_windows) {
     CEGUI::Window* window_name = obj->window_name;
 
     // set first row width
@@ -1390,9 +1372,7 @@ void cSprite ::Editor_Position_Update(void) {
   float row_height = 0.0f;
 
   // set all positions
-  for (Editor_Object_Settings_List::iterator itr = m_editor_windows.begin();
-       itr != m_editor_windows.end(); ++itr) {
-    cEditor_Object_Settings_Item* obj = (*itr);
+  for (auto obj : m_editor_windows) {
     CEGUI::Window* window_name = obj->window_name;
     CEGUI::Window* window_setting = obj->window_setting;
 

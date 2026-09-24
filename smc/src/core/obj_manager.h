@@ -18,19 +18,25 @@
 
 #include "../core/global_basic.h"
 #include <algorithm>
+#include <memory>
 
 namespace SMC {
 
 /* *** *** *** *** *** cObject_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
+// Owns its objects: each is held in a unique_ptr, so nothing is ever hand-deleted and the
+// destructor frees the lot. `objects` stays a public vector; callers read borrowed T* via
+// `.get()` (Get_Pointer) or range-for over the unique_ptrs.
 template <class T>
 class cObject_Manager {
  public:
+  using OwningList = vector<std::unique_ptr<T>>;
+
   cObject_Manager(void) = default;
   virtual ~cObject_Manager(void) = default;
 
-  //	Add the given object
-  virtual void Add(T* obj) { objects.push_back(obj); }
+  //	Add the given object (takes ownership)
+  virtual void Add(T* obj) { objects.emplace_back(obj); }
 
   // Delete the given object
   virtual bool Delete(T* obj, bool delete_data = true) {
@@ -40,31 +46,28 @@ class cObject_Manager {
     }
 
     // get iterator
-    typename vector<T*>::iterator itr =
-        std::find(objects.begin(), objects.end(), obj);
+    typename OwningList::iterator itr = std::find_if(
+        objects.begin(), objects.end(),
+        [obj](const std::unique_ptr<T>& p) { return p.get() == obj; });
 
     // available in vector
     if (itr != objects.end()) {
-      // erase
+      if (!delete_data) {
+        // caller keeps ownership: drop it from the vector without freeing
+        itr->release();
+      }
+      // erase frees it when we still own it
       objects.erase(itr);
-    }
-
-    if (delete_data) {
+    } else if (delete_data) {
+      // not managed here, but the old contract still freed a passed-in obj
       delete obj;
     }
 
     return true;
   }
 
-  // Delete all objects
-  virtual void Delete_All(void) {
-    for (typename vector<T*>::iterator itr = objects.begin();
-         itr != objects.end(); ++itr) {
-      delete *itr;
-    }
-
-    objects.clear();
-  }
+  // Delete all objects (unique_ptr frees each)
+  virtual void Delete_All(void) { objects.clear(); }
 
   /* Return the object pointer
 	 * if not found returns NULL
@@ -76,20 +79,21 @@ class cObject_Manager {
     }
 
     // available
-    return objects[identifier];
+    return objects[identifier].get();
   }
 
   /* Return the object array number
 	 * if not found returns -1
 	*/
-  int Get_Array_Num(T* obj) const {
+  int Get_Array_Num(const T* obj) const {
     // invalid
     if (!obj) {
       return -1;
     }
 
-    typename vector<T*>::const_iterator itr_obj =
-        std::find(objects.begin(), objects.end(), obj);
+    typename OwningList::const_iterator itr_obj = std::find_if(
+        objects.begin(), objects.end(),
+        [obj](const std::unique_ptr<T>& p) { return p.get() == obj; });
 
     // not in vector
     if (itr_obj == objects.end()) {
@@ -105,7 +109,7 @@ class cObject_Manager {
   // Return true if no objects
   bool empty(void) const { return objects.empty(); }
 
-  vector<T*> objects;
+  OwningList objects;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

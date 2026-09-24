@@ -41,8 +41,8 @@ cSave_Overworld_Waypoint ::~cSave_Overworld_Waypoint(void) = default;
 cSave_Overworld ::cSave_Overworld(void) = default;
 
 cSave_Overworld ::~cSave_Overworld(void) {
-  for (unsigned int i = 0; i < m_waypoints.size(); i++) {
-    delete m_waypoints[i];
+  for (auto& waypoint : m_waypoints) {
+    delete waypoint;
   }
 
   m_waypoints.clear();
@@ -64,9 +64,8 @@ cSave_Level_Object ::cSave_Level_Object(void) { m_type = TYPE_UNDEFINED; }
 cSave_Level_Object ::~cSave_Level_Object(void) { m_properties.clear(); }
 
 bool cSave_Level_Object ::exists(const std::string& val_name) {
-  for (Save_Level_Object_ProprtyList::iterator itr = m_properties.begin();
-       itr != m_properties.end(); ++itr) {
-    cSave_Level_Object_Property obj = (*itr);
+  for (auto& propertie : m_properties) {
+    cSave_Level_Object_Property obj = propertie;
 
     if (obj.m_name.compare(val_name) == 0) {
       // found
@@ -79,9 +78,8 @@ bool cSave_Level_Object ::exists(const std::string& val_name) {
 }
 
 std::string cSave_Level_Object ::Get_Value(const std::string& val_name) {
-  for (Save_Level_Object_ProprtyList::iterator itr = m_properties.begin();
-       itr != m_properties.end(); ++itr) {
-    cSave_Level_Object_Property obj = (*itr);
+  for (auto& propertie : m_properties) {
+    cSave_Level_Object_Property obj = propertie;
 
     if (obj.m_name.compare(val_name) == 0) {
       // found
@@ -102,16 +100,14 @@ cSave_Level ::cSave_Level(void) {
 }
 
 cSave_Level ::~cSave_Level(void) {
-  for (Save_Level_ObjectList::iterator itr = m_level_objects.begin();
-       itr != m_level_objects.end(); ++itr) {
-    delete *itr;
+  for (auto& level_object : m_level_objects) {
+    delete level_object;
   }
 
   m_level_objects.clear();
 
-  for (cSprite_List::iterator itr = m_spawned_objects.begin();
-       itr != m_spawned_objects.end(); ++itr) {
-    delete *itr;
+  for (auto& spawned_object : m_spawned_objects) {
+    delete spawned_object;
   }
 
   m_spawned_objects.clear();
@@ -122,16 +118,14 @@ cSave_Level ::~cSave_Level(void) {
 cSave ::cSave(void) { Init(); }
 
 cSave ::~cSave(void) {
-  for (Save_LevelList::iterator itr = m_levels.begin(); itr != m_levels.end();
-       ++itr) {
-    delete *itr;
+  for (auto& level : m_levels) {
+    delete level;
   }
 
   m_levels.clear();
 
-  for (Save_OverworldList::iterator itr = m_overworlds.begin();
-       itr != m_overworlds.end(); ++itr) {
-    delete *itr;
+  for (auto& overworld : m_overworlds) {
+    delete overworld;
   }
 
   m_overworlds.clear();
@@ -164,10 +158,7 @@ std::string cSave ::Get_Active_Level(void) {
     return "";
   }
 
-  for (Save_LevelList::iterator itr = m_levels.begin(); itr != m_levels.end();
-       ++itr) {
-    cSave_Level* save_level = (*itr);
-
+  for (auto save_level : m_levels) {
     if (!pLevel_Manager->Get_Path(save_level->m_name)) {
       continue;
     }
@@ -214,11 +205,8 @@ int cSavegame ::Load_Game(unsigned int save_slot) {
 
   // set overworld progress
   if (!savegame->m_overworlds.empty()) {
-    for (Save_OverworldList::iterator itr = savegame->m_overworlds.begin();
-         itr != savegame->m_overworlds.end(); ++itr) {
+    for (auto save_overworld : savegame->m_overworlds) {
       // get savegame overworld pointer
-      cSave_Overworld* save_overworld = (*itr);
-
       // get overworld
       cOverworld* overworld =
           pOverworld_Manager->Get_from_Name(save_overworld->m_name);
@@ -328,10 +316,7 @@ int cSavegame ::Load_Game(unsigned int save_slot) {
       }
 
       // spawned objects
-      for (cSprite_List::iterator itr = save_level->m_spawned_objects.begin();
-           itr != save_level->m_spawned_objects.end(); ++itr) {
-        cSprite* sprite = (*itr);
-
+      for (auto sprite : save_level->m_spawned_objects) {
         sprite->Set_Sprite_Manager(level->m_sprite_manager);
         sprite->Set_Spawned(true);
         level->m_sprite_manager->Add(sprite);
@@ -340,11 +325,7 @@ int cSavegame ::Load_Game(unsigned int save_slot) {
       save_level->m_spawned_objects.clear();
 
       // objects data
-      for (Save_Level_ObjectList::iterator itr =
-               save_level->m_level_objects.begin();
-           itr != save_level->m_level_objects.end(); ++itr) {
-        cSave_Level_Object* save_object = (*itr);
-
+      for (auto save_object : save_level->m_level_objects) {
         // get position
         int posx = string_to_int(save_object->Get_Value("posx"));
         int posy = string_to_int(save_object->Get_Value("posy"));
@@ -401,10 +382,7 @@ bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
   if (pActive_Level->Is_Loaded()) {
     savegame->m_level_time = pHud_Time->m_milliseconds;
 
-    for (vector<cLevel*>::iterator itr = pLevel_Manager->objects.begin();
-         itr != pLevel_Manager->objects.end(); ++itr) {
-      cLevel* level = (*itr);
-
+    for (auto& level : pLevel_Manager->objects) {
       if (!level->Is_Loaded()) {
         continue;
       }
@@ -415,17 +393,13 @@ bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
       save_level->m_name = Trim_Filename(level->m_level_filename, false, false);
 
       // save position if active level
-      if (pActive_Level == level) {
+      if (pActive_Level == level.get()) {
         save_level->m_level_pos_x = pLevel_Player->m_pos_x;
         save_level->m_level_pos_y = pLevel_Player->m_pos_y - 5.0f;
       }
 
       // spawned objects
-      for (cSprite_List::iterator itr =
-               level->m_sprite_manager->objects.begin();
-           itr != level->m_sprite_manager->objects.end(); ++itr) {
-        cSprite* obj = (*itr);
-
+      for (auto& obj : level->m_sprite_manager->objects) {
         // if spawned and active
         if (!obj->m_spawned || obj->m_auto_destroy) {
           continue;
@@ -436,11 +410,7 @@ bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
       }
 
       // save object status
-      for (cSprite_List::iterator itr =
-               level->m_sprite_manager->objects.begin();
-           itr != level->m_sprite_manager->objects.end(); ++itr) {
-        cSprite* obj = (*itr);
-
+      for (auto& obj : level->m_sprite_manager->objects) {
         // get save data
         cSave_Level_Object* save_obj = obj->Save_To_Savegame();
 
@@ -464,21 +434,16 @@ bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
   savegame->m_itembox_item = pHud_Itembox->m_item_id;
 
   // save overworld progress
-  for (vector<cOverworld*>::iterator itr = pOverworld_Manager->objects.begin();
-       itr != pOverworld_Manager->objects.end(); ++itr) {
+  for (auto& overworld : pOverworld_Manager->objects) {
     // Get Overworld
-    cOverworld* overworld = (*itr);
-
     // create Overworld
     cSave_Overworld* save_overworld = new cSave_Overworld();
     save_overworld->m_name = overworld->m_description->m_name;
 
     // Waypoints
-    for (cSprite_List::iterator wp_itr =
-             overworld->m_sprite_manager->objects.begin();
-         wp_itr != overworld->m_sprite_manager->objects.end(); ++wp_itr) {
+    for (auto& object : overworld->m_sprite_manager->objects) {
       // get waypoint
-      cSprite* obj = static_cast<cSprite*>(*wp_itr);
+      cSprite* obj = object.get();
 
       if (obj->m_type != TYPE_OW_WAYPOINT) {
         continue;
@@ -603,10 +568,7 @@ int cSavegame ::Save(unsigned int save_slot, cSave* savegame) {
   stream.closeTag();
 
   // levels
-  for (Save_LevelList::iterator itr = savegame->m_levels.begin();
-       itr != savegame->m_levels.end(); ++itr) {
-    cSave_Level* level = (*itr);
-
+  for (auto level : savegame->m_levels) {
     // begin
     stream.openTag("level");
 
@@ -622,9 +584,7 @@ int cSavegame ::Save(unsigned int save_slot, cSave* savegame) {
     // begin
     stream.openTag("spawned_objects");
 
-    for (cSprite_List::iterator itr = level->m_spawned_objects.begin();
-         itr != level->m_spawned_objects.end(); ++itr) {
-      cSprite* obj = (*itr);
+    for (auto obj : level->m_spawned_objects) {
       obj->Save_To_XML(stream);
     }
 
@@ -634,10 +594,7 @@ int cSavegame ::Save(unsigned int save_slot, cSave* savegame) {
     // begin
     stream.openTag("objects_data");
 
-    for (Save_Level_ObjectList::iterator itr = level->m_level_objects.begin();
-         itr != level->m_level_objects.end(); ++itr) {
-      cSave_Level_Object* obj = (*itr);
-
+    for (auto obj : level->m_level_objects) {
       // begin
       stream.openTag("object");
 
@@ -645,10 +602,8 @@ int cSavegame ::Save(unsigned int save_slot, cSave* savegame) {
       Write_Property(stream, "type", obj->m_type);
 
       // Properties
-      for (Save_Level_Object_ProprtyList::iterator prop_itr =
-               obj->m_properties.begin();
-           prop_itr != obj->m_properties.end(); ++prop_itr) {
-        cSave_Level_Object_Property Property = (*prop_itr);
+      for (auto& propertie : obj->m_properties) {
+        cSave_Level_Object_Property Property = propertie;
         Write_Property(stream, Property.m_name, Property.m_value);
       }
 
@@ -664,21 +619,14 @@ int cSavegame ::Save(unsigned int save_slot, cSave* savegame) {
   }
 
   // Overworlds
-  for (Save_OverworldList::iterator itr = savegame->m_overworlds.begin();
-       itr != savegame->m_overworlds.end(); ++itr) {
-    cSave_Overworld* overworld = (*itr);
-
+  for (auto overworld : savegame->m_overworlds) {
     // begin
     stream.openTag("overworld");
 
     // name
     Write_Property(stream, "name", overworld->m_name);
 
-    for (Save_Overworld_WaypointList::iterator wp_itr =
-             overworld->m_waypoints.begin();
-         wp_itr != overworld->m_waypoints.end(); ++wp_itr) {
-      cSave_Overworld_Waypoint* overworld_waypoint = (*wp_itr);
-
+    for (auto overworld_waypoint : overworld->m_waypoints) {
       // skip empty waypoints
       if (overworld_waypoint->m_destination.empty()) {
         continue;
@@ -732,10 +680,7 @@ std::string cSavegame ::Get_Description(unsigned int save_slot,
     } else {
       bool found_active = false;
 
-      for (Save_LevelList::iterator itr = savegame->m_levels.begin();
-           itr != savegame->m_levels.end(); ++itr) {
-        cSave_Level* level = (*itr);
-
+      for (auto level : savegame->m_levels) {
         // if active level
         if (!Is_Float_Equal(level->m_level_pos_x, 0.0f) &&
             !Is_Float_Equal(level->m_level_pos_y, 0.0f)) {
@@ -934,10 +879,8 @@ void cSavegame_XML_Handler ::Handle_Level_Object(
   }
 
   // remove used properties
-  for (Save_Level_Object_ProprtyList::iterator prop_itr =
-           object->m_properties.begin();
-       prop_itr != object->m_properties.end(); ++prop_itr) {
-    cSave_Level_Object_Property Property = (*prop_itr);
+  for (auto& propertie : object->m_properties) {
+    cSave_Level_Object_Property Property = propertie;
 
     m_xml_attributes.remove(Property.m_name);
   }

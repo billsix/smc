@@ -116,9 +116,8 @@ cAnimation_Goldpiece ::cAnimation_Goldpiece(cSprite_Manager* sprite_manager,
 
 cAnimation_Goldpiece ::~cAnimation_Goldpiece(void) {
   // clear
-  for (BlinkPointList::iterator itr = m_objects.begin(); itr != m_objects.end();
-       ++itr) {
-    delete *itr;
+  for (auto& object : m_objects) {
+    delete object;
   }
 
   m_objects.clear();
@@ -134,11 +133,8 @@ void cAnimation_Goldpiece ::Update(void) {
   unsigned int count = 0;
 
   // update the fixed points
-  for (BlinkPointList::iterator itr = m_objects.begin(); itr != m_objects.end();
-       ++itr) {
+  for (auto obj : m_objects) {
     // get object
-    cSprite* obj = (*itr);
-
     switch (count) {
       case 0: {
         if (m_time_to_live < 3.0f) {
@@ -204,11 +200,8 @@ void cAnimation_Goldpiece ::Draw(cSurface_Request* request /* = NULL */) {
   }
 
   // draw the fixed points
-  for (BlinkPointList::iterator itr = m_objects.begin(); itr != m_objects.end();
-       ++itr) {
+  for (auto obj : m_objects) {
     // get object
-    cSprite* obj = (*itr);
-
     obj->Draw();
   }
 
@@ -256,9 +249,8 @@ cAnimation_Fireball ::cAnimation_Fireball(cSprite_Manager* sprite_manager,
 
 cAnimation_Fireball ::~cAnimation_Fireball(void) {
   // clear
-  for (FireAnimList::iterator itr = m_objects.begin(); itr != m_objects.end();
-       ++itr) {
-    delete *itr;
+  for (auto& object : m_objects) {
+    delete object;
   }
 
   m_objects.clear();
@@ -272,10 +264,7 @@ void cAnimation_Fireball ::Update(void) {
   m_time_to_live += pFramerate->m_speed_factor * m_fading_speed;
 
   // update objects
-  for (FireAnimList::iterator itr = m_objects.begin(); itr != m_objects.end();
-       ++itr) {
-    cAnimation_Fireball_Item* obj = (*itr);
-
+  for (auto obj : m_objects) {
     if (obj->m_counter > 8) {
       obj->Set_Image_Num(0);
     } else if (obj->m_counter > 5) {
@@ -303,10 +292,7 @@ void cAnimation_Fireball ::Draw(cSurface_Request* request /* = NULL */) {
   }
 
   // draw objects
-  for (FireAnimList::iterator itr = m_objects.begin(); itr != m_objects.end();
-       ++itr) {
-    cAnimation_Fireball_Item* obj = (*itr);
-
+  for (auto obj : m_objects) {
     // create request
     cSurface_Request* request = new cSurface_Request();
     obj->m_image->Blit(obj->m_pos_x - (pActive_Camera->m_x - m_pos_x),
@@ -850,9 +836,8 @@ void cParticle_Emitter ::Emit(void) {
 
 void cParticle_Emitter ::Clear(bool reset /* = 1 */) {
   // clear particles
-  for (ParticleList::iterator itr = m_objects.begin(); itr != m_objects.end();
-       ++itr) {
-    delete *itr;
+  for (auto& object : m_objects) {
+    delete object;
   }
 
   m_objects.clear();
@@ -956,9 +941,8 @@ void cParticle_Emitter ::Draw(cSurface_Request* request /* = NULL */) {
     return;
   }
 
-  for (ParticleList::iterator itr = m_objects.begin(); itr != m_objects.end();
-       ++itr) {
-    (*itr)->Draw();
+  for (auto& object : m_objects) {
+    object->Draw();
   }
 
   if (editor_enabled) {
@@ -1000,10 +984,9 @@ void cParticle_Emitter ::Keep_Particles_In_Rect(
   GL_rect obj_rect;
 
   // find particles that are not visible and move them to the opposite screen side
-  for (ParticleList::iterator itr = m_objects.begin(); itr != m_objects.end();
-       ++itr) {
+  for (auto& object : m_objects) {
     // get animation particle pointer
-    cParticle* obj = static_cast<cParticle*>(*itr);
+    cParticle* obj = static_cast<cParticle*>(object);
 
     // set rectangle
     if (obj->m_scale_x != 1.0f) {
@@ -2308,17 +2291,13 @@ cAnimation_Manager ::~cAnimation_Manager(void) {
 }
 
 void cAnimation_Manager ::Update(void) {
-  for (cAnimation_List::iterator itr = objects.begin(); itr != objects.end();) {
-    // get object pointer
-    cAnimation* obj = (*itr);
-
+  for (OwningList::iterator itr = objects.begin(); itr != objects.end();) {
     // update
-    obj->Update();
+    (*itr)->Update();
 
-    // delete if finished
-    if (!obj->m_active) {
+    // delete if finished (erase frees it)
+    if (!(*itr)->m_active) {
       itr = objects.erase(itr);
-      delete obj;
     }
     // increment
     else {
@@ -2328,9 +2307,8 @@ void cAnimation_Manager ::Update(void) {
 }
 
 void cAnimation_Manager ::Draw(void) {
-  for (cAnimation_List::iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
-    (*itr)->Draw();
+  for (auto& object : objects) {
+    object->Draw();
   }
 }
 
