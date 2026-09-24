@@ -76,9 +76,10 @@ names (`tasks/smc-descriptive-variable-names.md`) come AFTER all cpp modernizati
   Builds + links; startup verified by smoke. **Teardown is not smoke-verified** (the smoke SIGKILLs,
   skipping `Exit_Game`); it is preserved-order plus one new safe free, so risk is minimal — the
   maintainer's quit-the-game play-test is the teardown gate.
-- [ ] Step 7 — `enum class` + virtual dispatch replacing the type-tag switches. **Entangled with
-  the level/save FILE FORMAT** (the enum ints are serialized) — keep a serialization boundary; do
-  the non-serialized enums first.
+- **Step 7 — `enum class` + virtual dispatch: DEFERRED to its own task**
+  (`smc-modernize-step-7-enums-dispatch.md`), parked at the maintainer's call (2026-09-24: skip
+  enums for now). Recon done there (~860-edit enum-class churn; ~17 file-format-serialized enums;
+  high-risk dispatch rewrite). Not in the current run; resume on request.
 - [ ] Step 9 — CEGUI event lambdas + enemy dedup (`cWalkingEnemy` base).
 - [ ] Step 10 — the `refactoring-to-modern-cpp.md` reference doc (write last, after the steps land).
 **Priority:** 4 · **Difficulty:** 8 (77 `.cpp` / 85 `.h`, a 6-deep sprite hierarchy dispatched by
