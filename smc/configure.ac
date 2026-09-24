@@ -19,23 +19,13 @@ PKG_PROG_PKG_CONFIG
 
 ### Check for libraries ###
 
-# Check for the Boost Filesystem library
-AC_CHECK_LIB([boost_filesystem], [main], ,
-	[AC_MSG_ERROR([Unable to find Boost Filesystem library])])
-
-# Check for the Boost Thread library
-AC_CHECK_LIB([boost_thread], [main], ,
-	[AC_MSG_ERROR([Unable to find Boost Thread library])])
-
-# Check for the Boost System library
-AC_CHECK_LIB([boost_system], [main], ,
-	[AC_MSG_ERROR([Unable to find Boost System library])])
+# (Boost dropped: boost::filesystem -> std::filesystem, boost::thread removed.)
 
 # Check for the OpenGL and GLU library
 case "${host}" in
 *darwin*|*macosx*)
 	# Mac OS X
-	LIBS="$LIBS -framework OpenGL -framework Carbon -lintl -lboost_system"
+	LIBS="$LIBS -framework OpenGL -framework Carbon -lintl"
 	;;
 *)
 	# Other Unix (Linux)

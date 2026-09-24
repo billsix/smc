@@ -205,11 +205,7 @@ int main(int argc, char** argv) {
     Draw_Game();
 
     // render
-#ifdef SMC_RENDER_THREAD_TEST
-    pVideo->Render(1);
-#else
     pVideo->Render();
-#endif
 
     // update speedfactor
     pFramerate->Update();

@@ -71,7 +71,6 @@ cVideo ::cVideo(void) {
   m_texture_quality = cPreferences::m_texture_quality_default;
 
   m_gl_context = nullptr;
-  m_render_thread = boost::thread();
 
   m_initialised = false;
 }
@@ -906,91 +905,26 @@ vector<cSize_Int> cVideo ::Get_Supported_Resolutions(
   return valid_resolutions;
 }
 
-void cVideo ::Make_GL_Context_Current(void) {
-  // SDL 2 owns the context; the same call works on every platform
-  if (m_gl_context != nullptr && SDL_GL_GetCurrentContext() != m_gl_context) {
-    SDL_GL_MakeCurrent(screen, m_gl_context);
-  }
-}
-
-void cVideo ::Make_GL_Context_Inactive(void) {
-  SDL_GL_MakeCurrent(screen, nullptr);
-}
-
-void cVideo ::Render_From_Thread(void) {
-  Make_GL_Context_Current();
-
-  pRenderer_current->Render();
-  // under linux with sofware mesa 7.9 it only showed the rendered output with SDL_GL_SwapBuffers()
+void cVideo ::Render(void) {
+  pRenderer->Render();
 
   // update performance timer
-  //pFramerate->m_perf_timer[PERF_RENDER_GAME]->Update();
+  pFramerate->m_perf_timer[PERF_RENDER_GAME]->Update();
 
-  Make_GL_Context_Inactive();
+  pGuiSystem->renderGUI();
+
+  // update performance timer
+  pFramerate->m_perf_timer[PERF_RENDER_GUI]->Update();
+
+  SDL_GL_SwapWindow(screen);
+
+  // update performance timer
+  pFramerate->m_perf_timer[PERF_RENDER_BUFFER]->Update();
 }
 
-void cVideo ::Render(bool threaded /* = 0 */) {
-  Render_Finish();
-
-  if (threaded) {
-    pGuiSystem->renderGUI();
-
-    // update performance timer
-    pFramerate->m_perf_timer[PERF_RENDER_GUI]->Update();
-
-    SDL_GL_SwapWindow(screen);
-
-    // update performance timer
-    pFramerate->m_perf_timer[PERF_RENDER_BUFFER]->Update();
-
-    // switch active renderer
-    cRenderQueue* new_render = pRenderer;
-    pRenderer = pRenderer_current;
-    pRenderer_current = new_render;
-
-    // move objects that should render more than once
-    if (!pRenderer->m_render_data.empty()) {
-      pRenderer_current->m_render_data.insert(
-          pRenderer_current->m_render_data.begin(),
-          pRenderer->m_render_data.begin(), pRenderer->m_render_data.end());
-      pRenderer->m_render_data.clear();
-    }
-
-    // make main thread inactive
-    Make_GL_Context_Inactive();
-    // start render thread
-    m_render_thread = boost::thread(&cVideo::Render_From_Thread, this);
-  }
-  // single thread mode
-  else {
-    pRenderer->Render();
-
-    // update performance timer
-    pFramerate->m_perf_timer[PERF_RENDER_GAME]->Update();
-
-    pGuiSystem->renderGUI();
-
-    // update performance timer
-    pFramerate->m_perf_timer[PERF_RENDER_GUI]->Update();
-
-    SDL_GL_SwapWindow(screen);
-
-    // update performance timer
-    pFramerate->m_perf_timer[PERF_RENDER_BUFFER]->Update();
-  }
-}
-
-void cVideo ::Render_Finish(void) {
-#ifndef SMC_RENDER_THREAD_TEST
-  return;
-#endif
-  if (m_render_thread.joinable()) {
-    m_render_thread.join();
-  }
-
-  // todo : use opengl in only one thread
-  Make_GL_Context_Current();
-}
+// No-op since the threaded renderer (boost::thread, never enabled) was removed. Kept so its
+// call sites still compile; they are dead cruft to sweep in a later cleanup.
+void cVideo ::Render_Finish(void) {}
 
 void cVideo ::Toggle_Fullscreen(void) {
   Render_Finish();

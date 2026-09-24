@@ -15,9 +15,9 @@
 
 #include "../../core/filesystem/filesystem.h"
 #include "../../core/game_core.h"
-// boost filesystem
-#include "boost/filesystem.hpp"
-namespace fs = boost::filesystem;
+// C++17 filesystem (was boost::filesystem)
+#include <filesystem>
+namespace fs = std::filesystem;
 // needed for the stat function and to get the user directory on unix
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -51,7 +51,7 @@ bool File_Exists(const std::string& filename) {
   fs::file_type type = fs::status(fs::path(filename)).type();
 #endif
 
-  return type == fs::regular_file || type == fs::symlink_file;
+  return type == fs::file_type::regular || type == fs::file_type::symlink;
 }
 
 bool Dir_Exists(const std::string& dir) {
@@ -62,7 +62,7 @@ bool Dir_Exists(const std::string& dir) {
   fs::file_type type = fs::status(fs::path(dir)).type();
 #endif
 
-  return type == fs::directory_file || type == fs::symlink_file;
+  return type == fs::file_type::directory || type == fs::file_type::symlink;
 }
 
 bool Delete_File(const std::string& filename) {

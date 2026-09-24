@@ -37,8 +37,6 @@
 // CEGUI
 #include "CEGUISystem.h"
 #include "RendererModules/OpenGL/CEGUIOpenGLRenderer.h"
-// boost thread
-#include <boost/thread/thread.hpp>
 
 namespace SMC {
 
@@ -117,16 +115,9 @@ class cVideo {
 	*/
   vector<cSize_Int> Get_Supported_Resolutions(int flags = 0) const;
 
-  // make the opengl context active for the current thread
-  void Make_GL_Context_Current(void);
-  // make the opengl context inactive for the current thread
-  void Make_GL_Context_Inactive(void);
-
-  // Render. Should be called from a thread
-  void Render_From_Thread(void);
   // Render game, GUI and swap the opengl buffer
-  void Render(bool threaded = false);
-  // Finish thread rendering
+  void Render(void);
+  // No-op left from the removed threaded renderer (kept so call sites still compile)
   void Render_Finish(void);
 
   // Toggle fullscreen video mode ( new mode is set to preferences )
@@ -268,8 +259,6 @@ class cVideo {
 
   // the OpenGL context of the window (SDL 2 port; replaces the WM-specific GLX/WGL handles)
   SDL_GLContext m_gl_context;
-  // rendering thread
-  boost::thread m_render_thread;
 
  private:
   // if set video is initialized successfully

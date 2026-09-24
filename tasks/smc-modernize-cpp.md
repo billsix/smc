@@ -23,7 +23,15 @@ for the singletons (step 5).
   (`tasks/adhoc/modernize/tidy_step2.sh`); NULL 487→87 (400→`nullptr`; the 87 are macro/ambiguous
   contexts clang-tidy leaves), all `typedef`→`using`, bool literals fixed. 141 files, compiles
   clean. **`#define`→`constexpr` deferred** (clang-tidy can't do it safely; a later manual pass).
-- [ ] Step 3 — drop Boost (coordinate the dead render-thread block with `smc-remove-dead-code.md`).
+- [x] **Step 3** — drop Boost (`smc-modernize-step-3-drop-boost.md`, DONE 2026-09-24):
+  `boost::filesystem` → `std::filesystem` in `filesystem.cpp` (namespace + file_type enum names);
+  removed the never-enabled threaded renderer (`boost::thread` member/include, `Render_From_Thread`,
+  `Make_GL_Context_*`, the `threaded` branch of `Render`, the `SMC_RENDER_THREAD_TEST` ifdef in
+  main) — this also clears the render-thread item the dead-code task deferred; removed the three
+  Boost `AC_CHECK_LIB`s + the mac `-lboost_system` from `configure.ac`, and `boost-devel` from
+  `entrypoint/01-install-base.sh`. Compiles + **links with no Boost**, and the image builds with
+  boost-devel absent. (Left: `Render_Finish` is now an empty no-op with dead call sites; the
+  `pRenderer_current` double-buffer is now unused — both minor cleanups for later.)
 - [ ] Step 4 — ownership → `unique_ptr` / value.
 - [ ] Step 5 — one `cApplication` owning the former singletons.
 - [ ] Step 6 — `enum class` + virtual dispatch replacing the type-tag switches.
