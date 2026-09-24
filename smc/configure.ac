@@ -11,7 +11,8 @@ AM_SILENT_RULES([yes])
 
 AC_PROG_CXX
 AC_LANG([C++])
-CXXFLAGS="${CXXFLAGS} -Wall"
+# Modernization: pin the standard (was accidental / compiler default). C++23.
+CXXFLAGS="${CXXFLAGS} -std=c++23 -Wall -Wextra"
 AC_PROG_INSTALL
 AC_PROG_MKDIR_P
 PKG_PROG_PKG_CONFIG

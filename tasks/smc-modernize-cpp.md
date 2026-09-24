@@ -1,10 +1,27 @@
 # Modernize the game's C++ to the newest standard, replacing the old patterns with the features made for them
 
-**Status:** proposed — needs go-ahead (asked for by William Emerison Six <billsix@gmail.com>,
-2026-09-23: "modernize the c++ to the newest available version, using features intended to
-replace older patterns. If I remember correctly, too many manager classes. This would be an
-excellent example of refactoring to modern C++"). Not to be started until the container build
-task is green (it is the gate this work runs under).
+**Status:** IN PROGRESS (umbrella) — started 2026-09-24 on branch `modernize-cpp` (off
+`pre-modernization-fixes`), William Emerison Six <billsix@gmail.com>: "start on the C++ upgrades,
+make a branch, work on your own with the same workflow ... commit yourself, archive a task, repeat".
+This is now the **umbrella**; each Plan step below is its own step-task (`smc-modernize-step-N-*.md`),
+done → committed → archived in turn. Decisions settled: **C++23**, and **one application object**
+for the singletons (step 5).
+
+## Step-task index (archive each on completion; archive this umbrella when the last lands)
+
+- [x] **Step 0** — pin C++23 (`smc-modernize-step-0-pin-cpp23.md`, DONE 2026-09-24): `-std=c++23
+  -Wall -Wextra` in `configure.ac`; compiles clean (0 errors). Warning baseline: 4662
+  (`-Wdeprecated-copy` 2036, `-Wunused-parameter` 1604, `-Wdeprecated-declarations` 304, …) — the
+  metric later steps reduce.
+- [ ] Step 1 — `override`/`final` sweep.
+- [ ] Step 2 — `NULL`→`nullptr`, int-as-bool→`true/false`, `typedef`→`using`, `#define`→`constexpr`.
+- [ ] Step 3 — drop Boost (coordinate the dead render-thread block with `smc-remove-dead-code.md`).
+- [ ] Step 4 — ownership → `unique_ptr` / value.
+- [ ] Step 5 — one `cApplication` owning the former singletons.
+- [ ] Step 6 — `enum class` + virtual dispatch replacing the type-tag switches.
+- [ ] Step 7 — loops/strings/input.
+- [ ] Step 8 — CEGUI event lambdas + enemy dedup.
+- [ ] Step 9 — the `refactoring-to-modern-cpp.md` reference doc.
 **Priority:** 4 · **Difficulty:** 8 (77 `.cpp` / 85 `.h`, a 6-deep sprite hierarchy dispatched by
 type tags, 35 global raw pointers; each step must keep the game playable)
 **Depends on:** the container build (done: `tasks/archive/2026/09/23/smc-container-build.md`); `make
