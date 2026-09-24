@@ -5,7 +5,7 @@
 is done (below); resume when the maintainer wants to spend the ~860-edit enum-class churn and/or the
 risky dispatch rewrite. Not part of the current `modernize-cpp-3` run.
 **Priority:** 6 · **Difficulty:** 8
-**Part of:** `smc-modernize-cpp.md` (umbrella step 7)
+**Part of:** the SMC C++ modernization (umbrella archived at `tasks/archive/2026/09/24/smc-modernize-cpp.md`; overview in `tasks/reference/refactoring-to-modern-cpp.md`)
 
 ## BLUF
 

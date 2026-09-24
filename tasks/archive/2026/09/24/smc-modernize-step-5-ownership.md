@@ -1,6 +1,6 @@
 # Modernize step 5 — ownership: raw owning pointers → `unique_ptr` / value
 
-**Status:** in-progress — branch `modernize-cpp-2` (off `master`), William Emerison Six
+**Status:** DONE 2026-09-24 (ownership migration complete; merged/on modernize-cpp-3) — William Emerison Six
 <billsix@gmail.com>, 2026-09-24
 **Priority:** 4 · **Difficulty:** 8
 **Part of:** `smc-modernize-cpp.md` (umbrella step 5)
