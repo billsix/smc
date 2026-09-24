@@ -64,9 +64,12 @@ names (`tasks/smc-descriptive-variable-names.md`) come AFTER all cpp modernizati
     `566ba74` + the earlier merged ones). Managers, render queue, sprite clones, and the savegame
     graph all own via `unique_ptr`; no hand-`delete` in those paths; the two dead cObject_Manager
     bugs gone by construction.
-- [x] Step 8 (loops) — ~252 iterator loops → range-for (MERGED). Remaining under step 8:
-  `std::format` for `int_to_string`/`ostringstream`/`sprintf`, and the once-per-frame `PlayerInput`
-  struct (behavioral).
+- [~] Step 8 — loops DONE (MERGED, ~252 → range-for). **Strings:** the 3 `sprintf` in `hud.cpp` →
+  `snprintf` with `sizeof` (buffer-overflow safety; `std::format` was rejected — the format strings
+  come from gettext `_()` as printf-style `%08d`, so `std::format` would break the translation
+  catalogs). `int_to_string`/`ostringstream` → `std::to_string`/`std::format` left UNDONE
+  deliberately: ~277 sites of low-value churn and the gettext printf issue. **Input:** the
+  once-per-frame `PlayerInput` struct is behavioral (26 poll sites) — deferred as risky.
 - [x] **Step 6 — `cApplication` owns the 24 singletons via `unique_ptr`** (main.cpp; branch
   `modernize-cpp-3`). A `cApplication` holds all 24 as `unique_ptr` members; `Init_Game` creates
   each into a member and sets the `extern cX* pX` global as a borrowed alias (so the thousands of

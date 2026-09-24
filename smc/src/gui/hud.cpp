@@ -374,7 +374,8 @@ void cPlayerPoints ::Set_Points(long points) {
   pLevel_Player->m_points = points;
 
   char text[70];
-  sprintf(text, _("Points %08d"), static_cast<int>(pLevel_Player->m_points));
+  snprintf(text, sizeof(text), _("Points %08d"),
+           static_cast<int>(pLevel_Player->m_points));
   Set_Image(pFont->Render_Text(pFont->m_font_normal, text, white), false, true);
 }
 
@@ -564,7 +565,8 @@ void cTimeDisplay ::Update(void) {
   const Uint32 minutes = seconds / 60;
 
   // Set new time
-  sprintf(m_text, _("Time %02d:%02d"), minutes, seconds - (minutes * 60));
+  snprintf(m_text, sizeof(m_text), _("Time %02d:%02d"), minutes,
+           seconds - (minutes * 60));
   Set_Image(pFont->Render_Text(pFont->m_font_normal, m_text, white), false,
             true);
 }
@@ -578,7 +580,7 @@ void cTimeDisplay ::Draw(cSurface_Request* request /* = NULL */) {
 }
 
 void cTimeDisplay ::Reset(void) {
-  sprintf(m_text, "Time");
+  snprintf(m_text, sizeof(m_text), "Time");
   m_last_update_seconds = 1000;
   m_milliseconds = 0;
 }
