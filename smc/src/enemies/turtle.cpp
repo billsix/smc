@@ -133,8 +133,8 @@ cSave_Level_Object* cTurtle ::Save_To_Savegame(void) {
 
   // turtle_state ( only save if needed )
   if (m_turtle_state != TURTLE_WALK) {
-    save_object->m_properties.push_back(cSave_Level_Object_Property(
-        "turtle_state", int_to_string(m_turtle_state)));
+    save_object->m_properties.emplace_back("turtle_state",
+                                           int_to_string(m_turtle_state));
   }
 
   return save_object;

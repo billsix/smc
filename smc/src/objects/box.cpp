@@ -124,14 +124,14 @@ cSave_Level_Object* cBaseBox ::Save_To_Savegame(void) {
 
   // default values
   save_object->m_type = m_type;
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "posx", int_to_string(static_cast<int>(m_start_pos_x))));
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "posy", int_to_string(static_cast<int>(m_start_pos_y))));
+  save_object->m_properties.emplace_back(
+      "posx", int_to_string(static_cast<int>(m_start_pos_x)));
+  save_object->m_properties.emplace_back(
+      "posy", int_to_string(static_cast<int>(m_start_pos_y)));
 
   // Useable Count
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "useable_count", int_to_string(m_useable_count)));
+  save_object->m_properties.emplace_back("useable_count",
+                                         int_to_string(m_useable_count));
 
   return save_object;
 }

@@ -26,8 +26,8 @@ namespace SMC {
 template <class T>
 class cObject_Manager {
  public:
-  cObject_Manager(void) {};
-  virtual ~cObject_Manager(void) {};
+  cObject_Manager(void) = default;
+  virtual ~cObject_Manager(void) = default;
 
   //	Add the given object
   virtual void Add(T* obj) { objects.push_back(obj); }

@@ -162,7 +162,7 @@ void cMenu_Base ::Set_Exit_To_Game_Mode(GameMode gamemode) {
 
 cMenu_Main ::cMenu_Main(void) : cMenu_Base() {}
 
-cMenu_Main ::~cMenu_Main(void) {}
+cMenu_Main ::~cMenu_Main(void) = default;
 
 void cMenu_Main ::Init(void) {
   cMenu_Base::Init();
@@ -316,7 +316,7 @@ void cMenu_Main ::Draw(void) {
 
 cMenu_Start ::cMenu_Start(void) : cMenu_Base() {}
 
-cMenu_Start ::~cMenu_Start(void) {}
+cMenu_Start ::~cMenu_Start(void) = default;
 
 void cMenu_Start ::Init(void) {
   m_listbox_search_buffer_counter = 0.0f;
@@ -1178,7 +1178,7 @@ bool cMenu_Start ::Button_Back_Clicked(const CEGUI::EventArgs& event) {
 
 cMenu_Options ::cMenu_Options(void) : cMenu_Base() {}
 
-cMenu_Options ::~cMenu_Options(void) {}
+cMenu_Options ::~cMenu_Options(void) = default;
 
 void cMenu_Options ::Init(void) {
   cMenu_Base::Init();
@@ -1324,9 +1324,9 @@ void cMenu_Options ::Init_GUI_Game(void) {
   vector<std::string> language_files = Get_Directory_Files(
       DATA_DIR "/" GAME_TRANSLATION_DIR, ".none", true, false);
   // add english as it is the base language and not in the translation directory
-  language_files.push_back(DATA_DIR "/" GAME_TRANSLATION_DIR
-                                    "/"
-                                    "en");
+  language_files.emplace_back(DATA_DIR "/" GAME_TRANSLATION_DIR
+                                       "/"
+                                       "en");
 
   for (vector<std::string>::iterator itr = language_files.begin();
        itr != language_files.end(); ++itr) {
@@ -2242,77 +2242,62 @@ void cMenu_Options ::Build_Shortcut_List(bool joystick /* = 0 */) {
 
   // Keyboard
   if (!joystick) {
-    shortcuts.push_back(cShortcut_item(UTF8_("Up"), &pPreferences->m_key_up,
-                                       &pPreferences->m_key_up_default));
-    shortcuts.push_back(cShortcut_item(UTF8_("Down"), &pPreferences->m_key_down,
-                                       &pPreferences->m_key_down_default));
-    shortcuts.push_back(cShortcut_item(UTF8_("Left"), &pPreferences->m_key_left,
-                                       &pPreferences->m_key_left_default));
-    shortcuts.push_back(cShortcut_item(UTF8_("Right"),
-                                       &pPreferences->m_key_right,
-                                       &pPreferences->m_key_right_default));
-    shortcuts.push_back(cShortcut_item(UTF8_("Jump"), &pPreferences->m_key_jump,
-                                       &pPreferences->m_key_jump_default));
-    shortcuts.push_back(cShortcut_item(UTF8_("Shoot"),
-                                       &pPreferences->m_key_shoot,
-                                       &pPreferences->m_key_shoot_default));
-    shortcuts.push_back(cShortcut_item(UTF8_("Item"), &pPreferences->m_key_item,
-                                       &pPreferences->m_key_item_default));
-    shortcuts.push_back(cShortcut_item(UTF8_("Action"),
-                                       &pPreferences->m_key_action,
-                                       &pPreferences->m_key_action_default));
-    shortcuts.push_back(
-        cShortcut_item(UTF8_("Screenshot"), &pPreferences->m_key_screenshot,
-                       &pPreferences->m_key_screenshot_default));
-    shortcuts.push_back(cShortcut_item(
-        UTF8_("Editor fast copy up"), &pPreferences->m_key_editor_fast_copy_up,
-        &pPreferences->m_key_editor_fast_copy_up_default));
-    shortcuts.push_back(
-        cShortcut_item(UTF8_("Editor fast copy down"),
-                       &pPreferences->m_key_editor_fast_copy_down,
-                       &pPreferences->m_key_editor_fast_copy_down_default));
-    shortcuts.push_back(
-        cShortcut_item(UTF8_("Editor fast copy left"),
-                       &pPreferences->m_key_editor_fast_copy_left,
-                       &pPreferences->m_key_editor_fast_copy_left_default));
-    shortcuts.push_back(
-        cShortcut_item(UTF8_("Editor fast copy right"),
-                       &pPreferences->m_key_editor_fast_copy_right,
-                       &pPreferences->m_key_editor_fast_copy_right_default));
-    shortcuts.push_back(
-        cShortcut_item(UTF8_("Editor pixel move up"),
-                       &pPreferences->m_key_editor_pixel_move_up,
-                       &pPreferences->m_key_editor_pixel_move_up_default));
-    shortcuts.push_back(
-        cShortcut_item(UTF8_("Editor pixel move down"),
-                       &pPreferences->m_key_editor_pixel_move_down,
-                       &pPreferences->m_key_editor_pixel_move_down_default));
-    shortcuts.push_back(
-        cShortcut_item(UTF8_("Editor pixel move left"),
-                       &pPreferences->m_key_editor_pixel_move_left,
-                       &pPreferences->m_key_editor_pixel_move_left_default));
-    shortcuts.push_back(
-        cShortcut_item(UTF8_("Editor pixel move right"),
-                       &pPreferences->m_key_editor_pixel_move_right,
-                       &pPreferences->m_key_editor_pixel_move_right_default));
+    shortcuts.emplace_back(UTF8_("Up"), &pPreferences->m_key_up,
+                           &pPreferences->m_key_up_default);
+    shortcuts.emplace_back(UTF8_("Down"), &pPreferences->m_key_down,
+                           &pPreferences->m_key_down_default);
+    shortcuts.emplace_back(UTF8_("Left"), &pPreferences->m_key_left,
+                           &pPreferences->m_key_left_default);
+    shortcuts.emplace_back(UTF8_("Right"), &pPreferences->m_key_right,
+                           &pPreferences->m_key_right_default);
+    shortcuts.emplace_back(UTF8_("Jump"), &pPreferences->m_key_jump,
+                           &pPreferences->m_key_jump_default);
+    shortcuts.emplace_back(UTF8_("Shoot"), &pPreferences->m_key_shoot,
+                           &pPreferences->m_key_shoot_default);
+    shortcuts.emplace_back(UTF8_("Item"), &pPreferences->m_key_item,
+                           &pPreferences->m_key_item_default);
+    shortcuts.emplace_back(UTF8_("Action"), &pPreferences->m_key_action,
+                           &pPreferences->m_key_action_default);
+    shortcuts.emplace_back(UTF8_("Screenshot"), &pPreferences->m_key_screenshot,
+                           &pPreferences->m_key_screenshot_default);
+    shortcuts.emplace_back(UTF8_("Editor fast copy up"),
+                           &pPreferences->m_key_editor_fast_copy_up,
+                           &pPreferences->m_key_editor_fast_copy_up_default);
+    shortcuts.emplace_back(UTF8_("Editor fast copy down"),
+                           &pPreferences->m_key_editor_fast_copy_down,
+                           &pPreferences->m_key_editor_fast_copy_down_default);
+    shortcuts.emplace_back(UTF8_("Editor fast copy left"),
+                           &pPreferences->m_key_editor_fast_copy_left,
+                           &pPreferences->m_key_editor_fast_copy_left_default);
+    shortcuts.emplace_back(UTF8_("Editor fast copy right"),
+                           &pPreferences->m_key_editor_fast_copy_right,
+                           &pPreferences->m_key_editor_fast_copy_right_default);
+    shortcuts.emplace_back(UTF8_("Editor pixel move up"),
+                           &pPreferences->m_key_editor_pixel_move_up,
+                           &pPreferences->m_key_editor_pixel_move_up_default);
+    shortcuts.emplace_back(UTF8_("Editor pixel move down"),
+                           &pPreferences->m_key_editor_pixel_move_down,
+                           &pPreferences->m_key_editor_pixel_move_down_default);
+    shortcuts.emplace_back(UTF8_("Editor pixel move left"),
+                           &pPreferences->m_key_editor_pixel_move_left,
+                           &pPreferences->m_key_editor_pixel_move_left_default);
+    shortcuts.emplace_back(
+        UTF8_("Editor pixel move right"),
+        &pPreferences->m_key_editor_pixel_move_right,
+        &pPreferences->m_key_editor_pixel_move_right_default);
   }
   // Joystick
   else {
-    shortcuts.push_back(
-        cShortcut_item(UTF8_("Jump"), &pPreferences->m_joy_button_jump,
-                       &pPreferences->m_joy_button_jump_default));
-    shortcuts.push_back(
-        cShortcut_item(UTF8_("Shoot"), &pPreferences->m_joy_button_shoot,
-                       &pPreferences->m_joy_button_shoot_default));
-    shortcuts.push_back(
-        cShortcut_item(UTF8_("Action"), &pPreferences->m_joy_button_action,
-                       &pPreferences->m_joy_button_action_default));
-    shortcuts.push_back(
-        cShortcut_item(UTF8_("Item"), &pPreferences->m_joy_button_item,
-                       &pPreferences->m_joy_button_item_default));
-    shortcuts.push_back(
-        cShortcut_item(UTF8_("Exit"), &pPreferences->m_joy_button_exit,
-                       &pPreferences->m_joy_button_exit_default));
+    shortcuts.emplace_back(UTF8_("Jump"), &pPreferences->m_joy_button_jump,
+                           &pPreferences->m_joy_button_jump_default);
+    shortcuts.emplace_back(UTF8_("Shoot"), &pPreferences->m_joy_button_shoot,
+                           &pPreferences->m_joy_button_shoot_default);
+    shortcuts.emplace_back(UTF8_("Action"), &pPreferences->m_joy_button_action,
+                           &pPreferences->m_joy_button_action_default);
+    shortcuts.emplace_back(UTF8_("Item"), &pPreferences->m_joy_button_item,
+                           &pPreferences->m_joy_button_item_default);
+    shortcuts.emplace_back(UTF8_("Exit"), &pPreferences->m_joy_button_exit,
+                           &pPreferences->m_joy_button_exit_default);
   }
 
   // add all available shortcuts
@@ -3355,7 +3340,7 @@ void cMenu_Savegames ::Update_Saved_Games_Text(void) {
 
 cMenu_Credits ::cMenu_Credits(void) : cMenu_Base() {}
 
-cMenu_Credits ::~cMenu_Credits(void) {}
+cMenu_Credits ::~cMenu_Credits(void) = default;
 
 void cMenu_Credits ::Init(void) {
   cMenu_Base::Init();

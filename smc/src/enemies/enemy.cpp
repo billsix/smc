@@ -48,7 +48,7 @@ cEnemy ::cEnemy(cSprite_Manager* sprite_manager)
   m_can_be_hit_from_shell = true;
 }
 
-cEnemy ::~cEnemy(void) {}
+cEnemy ::~cEnemy(void) = default;
 
 void cEnemy ::Load_From_Savegame(cSave_Level_Object* save_object) {
   // state
@@ -99,44 +99,39 @@ cSave_Level_Object* cEnemy ::Save_To_Savegame(void) {
 
   // default values
   save_object->m_type = m_type;
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "posx", int_to_string(static_cast<int>(m_start_pos_x))));
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "posy", int_to_string(static_cast<int>(m_start_pos_y))));
+  save_object->m_properties.emplace_back(
+      "posx", int_to_string(static_cast<int>(m_start_pos_x)));
+  save_object->m_properties.emplace_back(
+      "posy", int_to_string(static_cast<int>(m_start_pos_y)));
 
   // state
-  save_object->m_properties.push_back(
-      cSave_Level_Object_Property("state", int_to_string(m_state)));
+  save_object->m_properties.emplace_back("state", int_to_string(m_state));
 
   // new position ( only save if needed )
   if (!Is_Float_Equal(m_start_pos_x, m_pos_x) ||
       !Is_Float_Equal(m_start_pos_y, m_pos_y)) {
-    save_object->m_properties.push_back(cSave_Level_Object_Property(
-        "new_posx", int_to_string(static_cast<int>(m_pos_x))));
-    save_object->m_properties.push_back(cSave_Level_Object_Property(
-        "new_posy", int_to_string(static_cast<int>(m_pos_y))));
+    save_object->m_properties.emplace_back(
+        "new_posx", int_to_string(static_cast<int>(m_pos_x)));
+    save_object->m_properties.emplace_back(
+        "new_posy", int_to_string(static_cast<int>(m_pos_y)));
   }
 
   // direction
-  save_object->m_properties.push_back(
-      cSave_Level_Object_Property("direction", int_to_string(m_direction)));
+  save_object->m_properties.emplace_back("direction",
+                                         int_to_string(m_direction));
 
   // velocity
-  save_object->m_properties.push_back(
-      cSave_Level_Object_Property("velx", float_to_string(m_velx)));
-  save_object->m_properties.push_back(
-      cSave_Level_Object_Property("vely", float_to_string(m_vely)));
+  save_object->m_properties.emplace_back("velx", float_to_string(m_velx));
+  save_object->m_properties.emplace_back("vely", float_to_string(m_vely));
 
   // active ( only save if needed )
   if (!m_active) {
-    save_object->m_properties.push_back(
-        cSave_Level_Object_Property("active", int_to_string(m_active)));
+    save_object->m_properties.emplace_back("active", int_to_string(m_active));
   }
 
   // dead ( only save if needed )
   if (m_dead) {
-    save_object->m_properties.push_back(
-        cSave_Level_Object_Property("dead", int_to_string(m_dead)));
+    save_object->m_properties.emplace_back("dead", int_to_string(m_dead));
   }
 
   return save_object;

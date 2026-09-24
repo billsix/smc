@@ -28,7 +28,7 @@ SMC_Spinner ::SMC_Spinner(const String& type, const String& name)
   //getEditbox()->subscribeEvent( Window::EventMouseWheel, Event::Subscriber( &SMC_Spinner::Mouse_Wheel, this ) );
 }
 
-SMC_Spinner ::~SMC_Spinner(void) {}
+SMC_Spinner ::~SMC_Spinner(void) = default;
 
 String SMC_Spinner ::getTextFromValue(void) const {
   if (d_inputMode == FloatingPoint) {

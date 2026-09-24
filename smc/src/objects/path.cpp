@@ -76,22 +76,20 @@ void cPath_State ::Load_From_Savegame(cSave_Level_Object* save_object) {
 
 void cPath_State ::Save_To_Savegame(cSave_Level_Object* save_object) {
   // path position
-  save_object->m_properties.push_back(
-      cSave_Level_Object_Property("new_pos_x", float_to_string(m_pos_x)));
-  save_object->m_properties.push_back(
-      cSave_Level_Object_Property("new_pos_y", float_to_string(m_pos_y)));
+  save_object->m_properties.emplace_back("new_pos_x", float_to_string(m_pos_x));
+  save_object->m_properties.emplace_back("new_pos_y", float_to_string(m_pos_y));
 
   // current segment
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "current_segment", int_to_string(m_current_segment)));
+  save_object->m_properties.emplace_back("current_segment",
+                                         int_to_string(m_current_segment));
 
   // current segment position
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "current_segment_pos", float_to_string(m_current_segment_pos)));
+  save_object->m_properties.emplace_back(
+      "current_segment_pos", float_to_string(m_current_segment_pos));
 
   // forward
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "forward", int_to_string(static_cast<int>(m_forward))));
+  save_object->m_properties.emplace_back(
+      "forward", int_to_string(static_cast<int>(m_forward)));
 }
 
 void cPath_State ::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
@@ -327,7 +325,7 @@ cPath_Segment ::cPath_Segment(void) {
   m_distance = 0;
 }
 
-cPath_Segment ::~cPath_Segment(void) {}
+cPath_Segment ::~cPath_Segment(void) = default;
 
 void cPath_Segment ::Set_Pos(float x1, float y1, float x2, float y2) {
   m_x1 = x1;
@@ -507,10 +505,10 @@ cSave_Level_Object* cPath ::Save_To_Savegame(void) {
 
   // default values
   save_object->m_type = m_type;
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "posx", int_to_string(static_cast<int>(m_start_pos_x))));
-  save_object->m_properties.push_back(cSave_Level_Object_Property(
-      "posy", int_to_string(static_cast<int>(m_start_pos_y))));
+  save_object->m_properties.emplace_back(
+      "posx", int_to_string(static_cast<int>(m_start_pos_x)));
+  save_object->m_properties.emplace_back(
+      "posy", int_to_string(static_cast<int>(m_start_pos_y)));
 
   return save_object;
 }

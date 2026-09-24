@@ -41,7 +41,7 @@ cImage_Settings_Data ::cImage_Settings_Data(void) {
   m_obsolete = false;
 }
 
-cImage_Settings_Data ::~cImage_Settings_Data(void) {}
+cImage_Settings_Data ::~cImage_Settings_Data(void) = default;
 
 cSize_Int cImage_Settings_Data ::Get_Surface_Size(
     const SDL_Surface* sdl_surface) const {

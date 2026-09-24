@@ -45,7 +45,7 @@ cSelectedObject ::cSelectedObject(void) {
   m_user = false;
 }
 
-cSelectedObject ::~cSelectedObject(void) {}
+cSelectedObject ::~cSelectedObject(void) = default;
 
 /* *** *** *** *** *** cCopyObject *** *** *** *** *** *** *** *** *** *** *** *** */
 

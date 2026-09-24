@@ -34,7 +34,7 @@ cEnemyStopper ::cEnemyStopper(CEGUI::XMLAttributes& attributes,
   cEnemyStopper::Load_From_XML(attributes);
 }
 
-cEnemyStopper ::~cEnemyStopper(void) {}
+cEnemyStopper ::~cEnemyStopper(void) = default;
 
 cEnemyStopper* cEnemyStopper ::Copy(void) const {
   cEnemyStopper* enemystopper = new cEnemyStopper(m_sprite_manager);

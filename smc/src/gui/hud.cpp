@@ -41,7 +41,7 @@ cHudSprite ::cHudSprite(cSprite_Manager* sprite_manager)
   Set_Ignore_Camera(true);
 }
 
-cHudSprite ::~cHudSprite(void) {}
+cHudSprite ::~cHudSprite(void) = default;
 
 cHudSprite* cHudSprite ::Copy(void) const {
   cHudSprite* hud_sprite = new cHudSprite(m_sprite_manager);
@@ -1200,36 +1200,36 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
 
   vector<std::string> text_strings;
   // draw
-  text_strings.push_back(_("Draw"));
+  text_strings.emplace_back(_("Draw"));
   // overworld
   if (Game_Mode == MODE_OVERWORLD) {
     text_strings.push_back(
         _("World : ") +
         int_to_string(pFramerate->m_perf_timer[PERF_DRAW_OVERWORLD]->ms));
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
   }
   // menu
   else if (Game_Mode == MODE_MENU) {
     text_strings.push_back(
         _("Menu : ") +
         int_to_string(pFramerate->m_perf_timer[PERF_DRAW_MENU]->ms));
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
   }
   // level settings
   else if (Game_Mode == MODE_LEVEL_SETTINGS) {
     text_strings.push_back(
         _("Level Settings : ") +
         int_to_string(pFramerate->m_perf_timer[PERF_DRAW_LEVEL_SETTINGS]->ms));
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
   }
   // level (default)
   else {
@@ -1253,34 +1253,34 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
       _("Mouse : ") +
       int_to_string(pFramerate->m_perf_timer[PERF_DRAW_MOUSE]->ms));
   // update
-  text_strings.push_back(_("Update"));
+  text_strings.emplace_back(_("Update"));
   // overworld
   if (Game_Mode == MODE_OVERWORLD) {
     text_strings.push_back(
         _("World : ") +
         int_to_string(pFramerate->m_perf_timer[PERF_UPDATE_OVERWORLD]->ms));
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
   }
   // menu
   else if (Game_Mode == MODE_MENU) {
     text_strings.push_back(
         _("Menu : ") +
         int_to_string(pFramerate->m_perf_timer[PERF_UPDATE_MENU]->ms));
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
   }
   // level settings
   else if (Game_Mode == MODE_LEVEL_SETTINGS) {
@@ -1288,14 +1288,14 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
         _("Level Settings : ") +
         int_to_string(
             pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_SETTINGS]->ms));
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
-    text_strings.push_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
+    text_strings.emplace_back("- ");
   }
   // level (default)
   else {
@@ -1331,7 +1331,7 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
   }
 
   // render
-  text_strings.push_back(_("Render"));
+  text_strings.emplace_back(_("Render"));
   text_strings.push_back(
       _("Game : ") +
       int_to_string(pFramerate->m_perf_timer[PERF_RENDER_GAME]->ms));

@@ -134,8 +134,8 @@ cSave_Level_Object* cFlyon ::Save_To_Savegame(void) {
 
   // move_back ( only save if needed )
   if (m_move_back) {
-    save_object->m_properties.push_back(
-        cSave_Level_Object_Property("move_back", int_to_string(m_move_back)));
+    save_object->m_properties.emplace_back("move_back",
+                                           int_to_string(m_move_back));
   }
 
   return save_object;

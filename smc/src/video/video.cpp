@@ -75,7 +75,7 @@ cVideo ::cVideo(void) {
   m_initialised = false;
 }
 
-cVideo ::~cVideo(void) {}
+cVideo ::~cVideo(void) = default;
 
 void cVideo ::Init_CEGUI_Fake(void) const {
   // create fake Resource Provider
@@ -894,12 +894,12 @@ vector<cSize_Int> cVideo ::Get_Supported_Resolutions(
   }
 
   if (create_default_list) {
-    valid_resolutions.push_back(cSize_Int(2048, 1536));
-    valid_resolutions.push_back(cSize_Int(1600, 1200));
-    valid_resolutions.push_back(cSize_Int(1280, 1024));
-    valid_resolutions.push_back(cSize_Int(1024, 768));
-    valid_resolutions.push_back(cSize_Int(800, 600));
-    valid_resolutions.push_back(cSize_Int(640, 480));
+    valid_resolutions.emplace_back(2048, 1536);
+    valid_resolutions.emplace_back(1600, 1200);
+    valid_resolutions.emplace_back(1280, 1024);
+    valid_resolutions.emplace_back(1024, 768);
+    valid_resolutions.emplace_back(800, 600);
+    valid_resolutions.emplace_back(640, 480);
   }
 
   return valid_resolutions;

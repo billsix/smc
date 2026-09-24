@@ -32,7 +32,7 @@ cCampaign ::cCampaign(void) {
   m_user = 0;
 }
 
-cCampaign ::~cCampaign(void) {}
+cCampaign ::~cCampaign(void) = default;
 
 /* *** *** *** *** *** *** *** cCampaign_Manager *** *** *** *** *** *** *** *** *** *** */
 

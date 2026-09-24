@@ -37,7 +37,7 @@ cRender_Request ::cRender_Request(void) {
   m_render_count = 1;
 }
 
-cRender_Request ::~cRender_Request(void) {}
+cRender_Request ::~cRender_Request(void) = default;
 
 void cRender_Request ::Draw(void) {
   // virtual
@@ -49,7 +49,7 @@ cClear_Request ::cClear_Request(void) : cRender_Request() {
   m_type = REND_CLEAR;
 }
 
-cClear_Request ::~cClear_Request(void) {}
+cClear_Request ::~cClear_Request(void) = default;
 
 void cClear_Request ::Draw(void) {
   // clear screen
@@ -80,7 +80,7 @@ cRender_Request_Advanced ::cRender_Request_Advanced(void) : cRender_Request() {
   m_combine_color[2] = 0.0f;
 }
 
-cRender_Request_Advanced ::~cRender_Request_Advanced(void) {}
+cRender_Request_Advanced ::~cRender_Request_Advanced(void) = default;
 
 void cRender_Request_Advanced ::Render_Basic(void) {
   // tried to replace this with gl push and pop but that was a lot slower on a Radeon X850 Pro
@@ -159,7 +159,7 @@ cLine_Request ::cLine_Request(void) : cRender_Request_Advanced() {
   m_stipple_pattern = 0;
 }
 
-cLine_Request ::~cLine_Request(void) {}
+cLine_Request ::~cLine_Request(void) = default;
 
 void cLine_Request ::Draw(void) {
   Render_Basic();
@@ -234,7 +234,7 @@ cRect_Request ::cRect_Request(void) : cRender_Request_Advanced() {
   m_stipple_pattern = 0;
 }
 
-cRect_Request ::~cRect_Request(void) {}
+cRect_Request ::~cRect_Request(void) = default;
 
 void cRect_Request ::Draw(void) {
   Render_Basic();
@@ -325,7 +325,7 @@ cGradient_Request ::cGradient_Request(void) : cRender_Request_Advanced() {
   m_color_2 = static_cast<Uint8>(0);
 }
 
-cGradient_Request ::~cGradient_Request(void) {}
+cGradient_Request ::~cGradient_Request(void) = default;
 
 void cGradient_Request ::Draw(void) {
   Render_Basic();
@@ -385,7 +385,7 @@ cCircle_Request ::cCircle_Request(void) : cRender_Request_Advanced() {
   m_line_width = 0;
 }
 
-cCircle_Request ::~cCircle_Request(void) {}
+cCircle_Request ::~cCircle_Request(void) = default;
 
 void cCircle_Request ::Draw(void) {
   Render_Basic();

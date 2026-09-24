@@ -48,7 +48,7 @@ cDialogBox ::cDialogBox(void) {
   mouse_hide = false;
 }
 
-cDialogBox ::~cDialogBox(void) {}
+cDialogBox ::~cDialogBox(void) = default;
 
 void cDialogBox ::Init(void) {
   // load layout
@@ -92,7 +92,7 @@ cDialogBox_Text ::cDialogBox_Text(void) : cDialogBox() {
   layout_file = "box_text.layout";
 }
 
-cDialogBox_Text ::~cDialogBox_Text(void) {}
+cDialogBox_Text ::~cDialogBox_Text(void) = default;
 
 void cDialogBox_Text ::Init(std::string title_text) {
   cDialogBox::Init();
@@ -177,7 +177,7 @@ cDialogBox_Question ::cDialogBox_Question(void) : cDialogBox() {
   return_value = -1;
 }
 
-cDialogBox_Question ::~cDialogBox_Question(void) {}
+cDialogBox_Question ::~cDialogBox_Question(void) = default;
 
 void cDialogBox_Question ::Init(bool with_cancel) {
   pVideo->Render_Finish();

@@ -454,7 +454,7 @@ vector<std::string> cJoystick ::Get_Names(void) const {
 
   // joystick names
   for (int i = 0; i < joy_count; i++) {
-    names.push_back(SDL_JoystickNameForIndex(i));
+    names.emplace_back(SDL_JoystickNameForIndex(i));
   }
 
   return names;

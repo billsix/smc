@@ -25,7 +25,7 @@ namespace SMC {
 
 cPerformance_Timer ::cPerformance_Timer(void) { Reset(); }
 
-cPerformance_Timer ::~cPerformance_Timer(void) {}
+cPerformance_Timer ::~cPerformance_Timer(void) = default;
 
 void cPerformance_Timer ::Reset(void) {
   frame_counter = 0;

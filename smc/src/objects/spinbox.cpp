@@ -33,7 +33,7 @@ cSpinBox ::cSpinBox(CEGUI::XMLAttributes& attributes,
   cSpinBox::Load_From_XML(attributes);
 }
 
-cSpinBox ::~cSpinBox(void) {}
+cSpinBox ::~cSpinBox(void) = default;
 
 void cSpinBox ::Init(void) {
   m_type = TYPE_SPIN_BOX;

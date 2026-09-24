@@ -44,7 +44,7 @@ cRandom_Sound ::cRandom_Sound(CEGUI::XMLAttributes& attributes,
   cRandom_Sound::Load_From_XML(attributes);
 }
 
-cRandom_Sound ::~cRandom_Sound(void) {}
+cRandom_Sound ::~cRandom_Sound(void) = default;
 
 void cRandom_Sound ::Init(void) {
   m_sprite_array = ARRAY_ACTIVE;

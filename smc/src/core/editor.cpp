@@ -189,7 +189,7 @@ cEditor_Menu_Object ::cEditor_Menu_Object(const std::string& text)
   header = false;
 }
 
-cEditor_Menu_Object ::~cEditor_Menu_Object(void) {}
+cEditor_Menu_Object ::~cEditor_Menu_Object(void) = default;
 
 void cEditor_Menu_Object ::Init(void) {
   setSelectionColours(CEGUI::colour(0.33f, 0.33f, 0.33f));

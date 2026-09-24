@@ -32,12 +32,27 @@ for the singletons (step 5).
   `entrypoint/01-install-base.sh`. Compiles + **links with no Boost**, and the image builds with
   boost-devel absent. (Left: `Render_Finish` is now an empty no-op with dead call sites; the
   `pRenderer_current` double-buffer is now unused — both minor cleanups for later.)
-- [ ] Step 4 — ownership → `unique_ptr` / value.
-- [ ] Step 5 — one `cApplication` owning the former singletons.
-- [ ] Step 6 — `enum class` + virtual dispatch replacing the type-tag switches.
-- [ ] Step 7 — loops/strings/input.
-- [ ] Step 8 — CEGUI event lambdas + enemy dedup.
-- [ ] Step 9 — the `refactoring-to-modern-cpp.md` reference doc.
+- [ ] **Step 4** — safe clang-tidy modernize sweep (`smc-modernize-step-4-safe-clang-tidy-sweep.md`):
+  the remaining behavior-preserving, compiler-enforced `modernize-*` checks (`loop-convert` →
+  range-for, `use-emplace`, `use-equals-default`, `use-equals-delete`, `deprecated-headers`).
+  Last purely-mechanical step; done autonomously like steps 1–2.
+
+**--- the steps below are architectural/behavioral rewrites; their real gate is GAMEPLAY, which the
+30s headless smoke run cannot certify. They are staged for a maintainer-reviewed pass (play-test
+each), NOT autonomous batching. Recommended: build each with AddressSanitizer + run the smoke, and
+for the enum step add a level/save round-trip check, before trusting "done". ---**
+
+- [ ] Step 5 — ownership → `unique_ptr` / value (`cObject_Manager<T>` → `vector<unique_ptr<T>>`,
+  `Copy()` → `Clone()`, render-queue + savegame graph). Deep; verify with ASan.
+- [ ] Step 6 — one `cApplication` owning the 24 former singletons (fixes the destruction-order
+  hazards + `pFramerate` leak by member-declaration order).
+- [ ] Step 7 — `enum class` + virtual dispatch replacing the type-tag switches. **Entangled with
+  the level/save FILE FORMAT** (the enum ints are serialized) — keep a serialization boundary and
+  round-trip test; smoke does not load user levels.
+- [ ] Step 8 — loops/strings/input (the residue clang-tidy left in step 4; `std::format`; the
+  once-per-frame `PlayerInput` struct — the input change is behavioral, needs play-test).
+- [ ] Step 9 — CEGUI event lambdas + enemy dedup (`cWalkingEnemy` base).
+- [ ] Step 10 — the `refactoring-to-modern-cpp.md` reference doc (write last, after the steps land).
 **Priority:** 4 · **Difficulty:** 8 (77 `.cpp` / 85 `.h`, a 6-deep sprite hierarchy dispatched by
 type tags, 35 global raw pointers; each step must keep the game playable)
 **Depends on:** the container build (done: `tasks/archive/2026/09/23/smc-container-build.md`); `make

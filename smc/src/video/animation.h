@@ -89,7 +89,7 @@ class cAnimation_Fireball_Item : public cAnimated_Sprite {
     m_counter = 0.0f;
   }
 
-  ~cAnimation_Fireball_Item(void) override {}
+  ~cAnimation_Fireball_Item(void) override = default;
 
   // lifetime
   float m_counter;

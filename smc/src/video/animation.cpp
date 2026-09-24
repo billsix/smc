@@ -345,7 +345,7 @@ cParticle ::cParticle(cParticle_Emitter* parent)
   m_parent = parent;
 }
 
-cParticle ::~cParticle(void) {}
+cParticle ::~cParticle(void) = default;
 
 void cParticle ::Update(void) {
   // update fade modifier

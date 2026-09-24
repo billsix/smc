@@ -47,7 +47,7 @@ cCamera ::cCamera(cSprite_Manager* sprite_manager) {
   Reset_Limits();
 }
 
-cCamera ::~cCamera(void) {}
+cCamera ::~cCamera(void) = default;
 
 void cCamera ::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
   m_sprite_manager = sprite_manager;

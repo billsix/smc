@@ -347,89 +347,89 @@ void Preload_Images(bool draw_gui /* = 0 */) {
                      player_ghost_images.end());
 
   // Mushrooms
-  image_files.push_back("game/items/mushroom_red.png");
-  image_files.push_back("game/items/mushroom_green.png");
-  image_files.push_back("game/items/mushroom_blue.png");
-  image_files.push_back("game/items/mushroom_ghost.png");
+  image_files.emplace_back("game/items/mushroom_red.png");
+  image_files.emplace_back("game/items/mushroom_green.png");
+  image_files.emplace_back("game/items/mushroom_blue.png");
+  image_files.emplace_back("game/items/mushroom_ghost.png");
   // Fireplant
-  image_files.push_back("game/items/fireplant.png");
-  image_files.push_back("game/items/fireplant_left.png");
-  image_files.push_back("game/items/fireplant_right.png");
+  image_files.emplace_back("game/items/fireplant.png");
+  image_files.emplace_back("game/items/fireplant_left.png");
+  image_files.emplace_back("game/items/fireplant_right.png");
   // Star
-  image_files.push_back("game/items/star.png");
+  image_files.emplace_back("game/items/star.png");
   // Feather
   //image_files.push_back( "game/items/feather_1.png" );
   // Yellow Goldpiece
-  image_files.push_back("game/items/goldpiece/yellow/1.png");
-  image_files.push_back("game/items/goldpiece/yellow/2.png");
-  image_files.push_back("game/items/goldpiece/yellow/3.png");
-  image_files.push_back("game/items/goldpiece/yellow/4.png");
-  image_files.push_back("game/items/goldpiece/yellow/5.png");
-  image_files.push_back("game/items/goldpiece/yellow/6.png");
-  image_files.push_back("game/items/goldpiece/yellow/7.png");
-  image_files.push_back("game/items/goldpiece/yellow/8.png");
-  image_files.push_back("game/items/goldpiece/yellow/9.png");
-  image_files.push_back("game/items/goldpiece/yellow/10.png");
-  image_files.push_back("game/items/goldpiece/yellow/1_falling.png");
-  image_files.push_back("game/items/goldpiece/yellow/2_falling.png");
-  image_files.push_back("game/items/goldpiece/yellow/3_falling.png");
-  image_files.push_back("game/items/goldpiece/yellow/4_falling.png");
-  image_files.push_back("game/items/goldpiece/yellow/5_falling.png");
-  image_files.push_back("game/items/goldpiece/yellow/6_falling.png");
-  image_files.push_back("game/items/goldpiece/yellow/7_falling.png");
-  image_files.push_back("game/items/goldpiece/yellow/8_falling.png");
-  image_files.push_back("game/items/goldpiece/yellow/9_falling.png");
-  image_files.push_back("game/items/goldpiece/yellow/10_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/1.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/2.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/3.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/4.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/5.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/6.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/7.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/8.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/9.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/10.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/1_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/2_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/3_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/4_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/5_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/6_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/7_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/8_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/9_falling.png");
+  image_files.emplace_back("game/items/goldpiece/yellow/10_falling.png");
   // Red Goldpiece
-  image_files.push_back("game/items/goldpiece/red/1.png");
-  image_files.push_back("game/items/goldpiece/red/2.png");
-  image_files.push_back("game/items/goldpiece/red/3.png");
-  image_files.push_back("game/items/goldpiece/red/4.png");
-  image_files.push_back("game/items/goldpiece/red/5.png");
-  image_files.push_back("game/items/goldpiece/red/6.png");
-  image_files.push_back("game/items/goldpiece/red/7.png");
-  image_files.push_back("game/items/goldpiece/red/8.png");
-  image_files.push_back("game/items/goldpiece/red/9.png");
-  image_files.push_back("game/items/goldpiece/red/10.png");
-  image_files.push_back("game/items/goldpiece/red/1_falling.png");
-  image_files.push_back("game/items/goldpiece/red/2_falling.png");
-  image_files.push_back("game/items/goldpiece/red/3_falling.png");
-  image_files.push_back("game/items/goldpiece/red/4_falling.png");
-  image_files.push_back("game/items/goldpiece/red/5_falling.png");
-  image_files.push_back("game/items/goldpiece/red/6_falling.png");
-  image_files.push_back("game/items/goldpiece/red/7_falling.png");
-  image_files.push_back("game/items/goldpiece/red/8_falling.png");
-  image_files.push_back("game/items/goldpiece/red/9_falling.png");
-  image_files.push_back("game/items/goldpiece/red/10_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/1.png");
+  image_files.emplace_back("game/items/goldpiece/red/2.png");
+  image_files.emplace_back("game/items/goldpiece/red/3.png");
+  image_files.emplace_back("game/items/goldpiece/red/4.png");
+  image_files.emplace_back("game/items/goldpiece/red/5.png");
+  image_files.emplace_back("game/items/goldpiece/red/6.png");
+  image_files.emplace_back("game/items/goldpiece/red/7.png");
+  image_files.emplace_back("game/items/goldpiece/red/8.png");
+  image_files.emplace_back("game/items/goldpiece/red/9.png");
+  image_files.emplace_back("game/items/goldpiece/red/10.png");
+  image_files.emplace_back("game/items/goldpiece/red/1_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/2_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/3_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/4_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/5_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/6_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/7_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/8_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/9_falling.png");
+  image_files.emplace_back("game/items/goldpiece/red/10_falling.png");
 
   // Brown Box
-  image_files.push_back("game/box/brown1_1.png");
+  image_files.emplace_back("game/box/brown1_1.png");
 
   // Light animation
-  image_files.push_back("animation/light_1/1.png");
-  image_files.push_back("animation/light_1/2.png");
-  image_files.push_back("animation/light_1/3.png");
+  image_files.emplace_back("animation/light_1/1.png");
+  image_files.emplace_back("animation/light_1/2.png");
+  image_files.emplace_back("animation/light_1/3.png");
   // Particle animations
-  image_files.push_back("animation/particles/fire_1.png");
-  image_files.push_back("animation/particles/fire_2.png");
-  image_files.push_back("animation/particles/fire_3.png");
-  image_files.push_back("animation/particles/fire_4.png");
-  image_files.push_back("animation/particles/smoke.png");
-  image_files.push_back("animation/particles/smoke_black.png");
-  image_files.push_back("animation/particles/light.png");
-  image_files.push_back("animation/particles/dirt.png");
-  image_files.push_back("animation/particles/ice_1.png");
-  image_files.push_back("animation/particles/cloud.png");
-  image_files.push_back("animation/particles/axis.png");
+  image_files.emplace_back("animation/particles/fire_1.png");
+  image_files.emplace_back("animation/particles/fire_2.png");
+  image_files.emplace_back("animation/particles/fire_3.png");
+  image_files.emplace_back("animation/particles/fire_4.png");
+  image_files.emplace_back("animation/particles/smoke.png");
+  image_files.emplace_back("animation/particles/smoke_black.png");
+  image_files.emplace_back("animation/particles/light.png");
+  image_files.emplace_back("animation/particles/dirt.png");
+  image_files.emplace_back("animation/particles/ice_1.png");
+  image_files.emplace_back("animation/particles/cloud.png");
+  image_files.emplace_back("animation/particles/axis.png");
 
   // Ball
-  image_files.push_back("animation/fireball/1.png");
-  image_files.push_back("animation/iceball/1.png");
+  image_files.emplace_back("animation/fireball/1.png");
+  image_files.emplace_back("animation/iceball/1.png");
 
   // HUD
-  image_files.push_back("game/maryo_l.png");
-  image_files.push_back("game/gold_m.png");
-  image_files.push_back("game/itembox.png");
+  image_files.emplace_back("game/maryo_l.png");
+  image_files.emplace_back("game/gold_m.png");
+  image_files.emplace_back("game/itembox.png");
 
   unsigned int loaded_files = 0;
   unsigned int file_count = image_files.size();
@@ -478,88 +478,88 @@ void Preload_Sounds(bool draw_gui /* = 0 */) {
   vector<std::string> sound_files;
 
   // player
-  sound_files.push_back("wall_hit.wav");
-  sound_files.push_back("player/dead.ogg");
-  sound_files.push_back("itembox_get.ogg");
-  sound_files.push_back("itembox_set.ogg");
-  sound_files.push_back("player/pickup_item.wav");
-  sound_files.push_back("player/jump_small.ogg");
-  sound_files.push_back("player/jump_small_power.ogg");
-  sound_files.push_back("player/jump_big.ogg");
-  sound_files.push_back("player/jump_big_power.ogg");
-  sound_files.push_back("player/jump_ghost.ogg");
+  sound_files.emplace_back("wall_hit.wav");
+  sound_files.emplace_back("player/dead.ogg");
+  sound_files.emplace_back("itembox_get.ogg");
+  sound_files.emplace_back("itembox_set.ogg");
+  sound_files.emplace_back("player/pickup_item.wav");
+  sound_files.emplace_back("player/jump_small.ogg");
+  sound_files.emplace_back("player/jump_small_power.ogg");
+  sound_files.emplace_back("player/jump_big.ogg");
+  sound_files.emplace_back("player/jump_big_power.ogg");
+  sound_files.emplace_back("player/jump_ghost.ogg");
   // todo : create again
   //sound_files.push_back( "player/maryo_au.ogg" );
-  sound_files.push_back("player/powerdown.ogg");
-  sound_files.push_back("player/ghost_end.ogg");
-  sound_files.push_back("player/run_stop.ogg");
-  sound_files.push_back("enter_pipe.ogg");
-  sound_files.push_back("leave_pipe.ogg");
+  sound_files.emplace_back("player/powerdown.ogg");
+  sound_files.emplace_back("player/ghost_end.ogg");
+  sound_files.emplace_back("player/run_stop.ogg");
+  sound_files.emplace_back("enter_pipe.ogg");
+  sound_files.emplace_back("leave_pipe.ogg");
 
   // items
-  sound_files.push_back("item/star_kill.ogg");
-  sound_files.push_back("item/fireball.ogg");
-  sound_files.push_back("item/iceball.wav");
-  sound_files.push_back("item/ice_kill.wav");
-  sound_files.push_back("item/fireball_explode.wav");
-  sound_files.push_back("item/fireball_repelled.wav");
-  sound_files.push_back("item/fireball_explosion.wav");
-  sound_files.push_back("item/iceball_explosion.wav");
-  sound_files.push_back("item/fireplant.ogg");
-  sound_files.push_back("item/goldpiece_1.ogg");
-  sound_files.push_back("item/goldpiece_red.wav");
-  sound_files.push_back("item/live_up.ogg");
-  sound_files.push_back("item/live_up_2.ogg");
-  sound_files.push_back("item/mushroom.ogg");
-  sound_files.push_back("item/mushroom_ghost.ogg");
-  sound_files.push_back("item/mushroom_blue.wav");
-  sound_files.push_back("item/moon.ogg");
+  sound_files.emplace_back("item/star_kill.ogg");
+  sound_files.emplace_back("item/fireball.ogg");
+  sound_files.emplace_back("item/iceball.wav");
+  sound_files.emplace_back("item/ice_kill.wav");
+  sound_files.emplace_back("item/fireball_explode.wav");
+  sound_files.emplace_back("item/fireball_repelled.wav");
+  sound_files.emplace_back("item/fireball_explosion.wav");
+  sound_files.emplace_back("item/iceball_explosion.wav");
+  sound_files.emplace_back("item/fireplant.ogg");
+  sound_files.emplace_back("item/goldpiece_1.ogg");
+  sound_files.emplace_back("item/goldpiece_red.wav");
+  sound_files.emplace_back("item/live_up.ogg");
+  sound_files.emplace_back("item/live_up_2.ogg");
+  sound_files.emplace_back("item/mushroom.ogg");
+  sound_files.emplace_back("item/mushroom_ghost.ogg");
+  sound_files.emplace_back("item/mushroom_blue.wav");
+  sound_files.emplace_back("item/moon.ogg");
 
   // box
-  sound_files.push_back("item/empty_box.wav");
+  sound_files.emplace_back("item/empty_box.wav");
 
   // enemies
   // eato
-  sound_files.push_back("enemy/eato/die.ogg");
+  sound_files.emplace_back("enemy/eato/die.ogg");
   // gee
-  sound_files.push_back("enemy/gee/die.ogg");
+  sound_files.emplace_back("enemy/gee/die.ogg");
   // furball
-  sound_files.push_back("enemy/furball/die.ogg");
+  sound_files.emplace_back("enemy/furball/die.ogg");
   // furball boss
-  sound_files.push_back("enemy/boss/furball/hit.wav");
-  sound_files.push_back("enemy/boss/furball/hit_failed.wav");
+  sound_files.emplace_back("enemy/boss/furball/hit.wav");
+  sound_files.emplace_back("enemy/boss/furball/hit_failed.wav");
   // flyon
-  sound_files.push_back("enemy/flyon/die.ogg");
+  sound_files.emplace_back("enemy/flyon/die.ogg");
   // krush
-  sound_files.push_back("enemy/krush/die.ogg");
+  sound_files.emplace_back("enemy/krush/die.ogg");
   // rokko
-  sound_files.push_back("enemy/rokko/activate.wav");
-  sound_files.push_back("enemy/rokko/hit.wav");
+  sound_files.emplace_back("enemy/rokko/activate.wav");
+  sound_files.emplace_back("enemy/rokko/hit.wav");
   // spika
-  sound_files.push_back("enemy/spika/move.ogg");
+  sound_files.emplace_back("enemy/spika/move.ogg");
   // thromp
-  sound_files.push_back("enemy/thromp/hit.ogg");
-  sound_files.push_back("enemy/thromp/die.ogg");
+  sound_files.emplace_back("enemy/thromp/hit.ogg");
+  sound_files.emplace_back("enemy/thromp/die.ogg");
   // turtle
-  sound_files.push_back("enemy/turtle/hit.ogg");
-  sound_files.push_back("enemy/turtle/shell/hit.ogg");
-  sound_files.push_back("enemy/turtle/stand_up.wav");
+  sound_files.emplace_back("enemy/turtle/hit.ogg");
+  sound_files.emplace_back("enemy/turtle/shell/hit.ogg");
+  sound_files.emplace_back("enemy/turtle/stand_up.wav");
   // turtle boss
-  sound_files.push_back("enemy/boss/turtle/big_hit.ogg");
-  sound_files.push_back("enemy/boss/turtle/shell_attack.ogg");
-  sound_files.push_back("enemy/boss/turtle/power_up.ogg");
+  sound_files.emplace_back("enemy/boss/turtle/big_hit.ogg");
+  sound_files.emplace_back("enemy/boss/turtle/shell_attack.ogg");
+  sound_files.emplace_back("enemy/boss/turtle/power_up.ogg");
 
   // default
-  sound_files.push_back("sprout_1.ogg");
-  sound_files.push_back("stomp_1.ogg");
-  sound_files.push_back("stomp_4.ogg");
+  sound_files.emplace_back("sprout_1.ogg");
+  sound_files.emplace_back("stomp_1.ogg");
+  sound_files.emplace_back("stomp_4.ogg");
 
   // savegame
-  sound_files.push_back("savegame_load.ogg");
-  sound_files.push_back("savegame_save.ogg");
+  sound_files.emplace_back("savegame_load.ogg");
+  sound_files.emplace_back("savegame_save.ogg");
 
   // overworld
-  sound_files.push_back("waypoint_reached.ogg");
+  sound_files.emplace_back("waypoint_reached.ogg");
 
   unsigned int loaded_files = 0;
   unsigned int file_count = sound_files.size();

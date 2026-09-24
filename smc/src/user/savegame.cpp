@@ -34,11 +34,11 @@ namespace SMC {
 
 cSave_Overworld_Waypoint ::cSave_Overworld_Waypoint(void) { m_access = false; }
 
-cSave_Overworld_Waypoint ::~cSave_Overworld_Waypoint(void) {}
+cSave_Overworld_Waypoint ::~cSave_Overworld_Waypoint(void) = default;
 
 /* *** *** *** *** *** *** *** cSave_Overworld *** *** *** *** *** *** *** *** *** *** */
 
-cSave_Overworld ::cSave_Overworld(void) {}
+cSave_Overworld ::cSave_Overworld(void) = default;
 
 cSave_Overworld ::~cSave_Overworld(void) {
   for (unsigned int i = 0; i < m_waypoints.size(); i++) {
@@ -929,8 +929,8 @@ void cSavegame_XML_Handler ::Handle_Level_Object(
       continue;
     }
 
-    object->m_properties.push_back(cSave_Level_Object_Property(
-        property_name, m_xml_attributes.getValue(i).c_str()));
+    object->m_properties.emplace_back(property_name,
+                                      m_xml_attributes.getValue(i).c_str());
   }
 
   // remove used properties

@@ -47,7 +47,7 @@ cText_Box ::cText_Box(CEGUI::XMLAttributes& attributes,
   cText_Box::Load_From_XML(attributes);
 }
 
-cText_Box ::~cText_Box(void) {}
+cText_Box ::~cText_Box(void) = default;
 
 void cText_Box ::Init(void) {
   m_type = TYPE_TEXT_BOX;

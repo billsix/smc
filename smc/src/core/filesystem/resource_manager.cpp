@@ -23,7 +23,7 @@ namespace SMC {
 
 cResource_Manager ::cResource_Manager(void) { user_data_dir = ""; }
 
-cResource_Manager ::~cResource_Manager(void) {}
+cResource_Manager ::~cResource_Manager(void) = default;
 
 void cResource_Manager ::Init_User_Directory(void) {
   // Create user directory

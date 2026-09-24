@@ -34,7 +34,7 @@ namespace SMC {
 
 cKeyboard ::cKeyboard(void) { Reset_Keys(); }
 
-cKeyboard ::~cKeyboard(void) {}
+cKeyboard ::~cKeyboard(void) = default;
 
 void cKeyboard ::Reset_Keys(void) {
   // set all keys to 0
