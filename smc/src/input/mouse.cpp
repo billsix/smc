@@ -13,6 +13,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <ranges>
+
 #include "../core/global_basic.h"
 #include "../input/mouse.h"
 #include "../input/keyboard.h"
@@ -324,10 +326,7 @@ cObjectCollision* cMouseCursor ::Get_First_Mouse_Collision(
   m_sprite_manager->Get_Objects_sorted(sprite_objects, true, true);
 
   // check objects
-  for (cSprite_List::reverse_iterator itr = sprite_objects.rbegin();
-       itr != sprite_objects.rend(); ++itr) {
-    cSprite* obj = (*itr);
-
+  for (auto obj : std::views::reverse(sprite_objects)) {
     // ignore spawned or destroyed objects
     if (obj->m_spawned || obj->m_auto_destroy) {
       continue;
@@ -512,9 +511,8 @@ void cMouseCursor ::Add_Copy_Object(cSprite* sprite) {
   }
 
   // check if not already added
-  for (CopyObjectList::iterator itr = m_copy_objects.begin();
-       itr != m_copy_objects.end(); ++itr) {
-    if ((*itr)->m_obj == sprite) {
+  for (auto& copy_object : m_copy_objects) {
+    if (copy_object->m_obj == sprite) {
       return;
     }
   }
@@ -538,10 +536,7 @@ void cMouseCursor ::Add_Copy_Objects(cSprite_List& spritelist) {
   }
 
   // insert all objects
-  for (cSprite_List::iterator itr = spritelist.begin(); itr != spritelist.end();
-       ++itr) {
-    cSprite* obj = (*itr);
-
+  for (auto obj : spritelist) {
     Add_Copy_Object(obj);
   }
 }
@@ -567,9 +562,8 @@ bool cMouseCursor ::Remove_Copy_Object(const cSprite* sprite) {
 }
 
 void cMouseCursor ::Clear_Copy_Objects(void) {
-  for (CopyObjectList::iterator itr = m_copy_objects.begin();
-       itr != m_copy_objects.end(); ++itr) {
-    delete *itr;
+  for (auto& copy_object : m_copy_objects) {
+    delete copy_object;
   }
 
   m_copy_objects.clear();
@@ -586,10 +580,7 @@ GL_Vector cMouseCursor ::Get_Copy_Object_Base(float px, float py) {
   float base_x = m_copy_objects[0]->m_obj->m_pos_x;
   float base_y = m_copy_objects[0]->m_obj->m_pos_y;
 
-  for (CopyObjectList::iterator itr = m_copy_objects.begin();
-       itr != m_copy_objects.end(); ++itr) {
-    cCopyObject* copy_obj = (*itr);
-
+  for (auto copy_obj : m_copy_objects) {
     // if more in top or left
     if (copy_obj->m_obj->m_pos_x < base_x ||
         copy_obj->m_obj->m_pos_y < base_y) {
@@ -611,10 +602,7 @@ void cMouseCursor ::Paste_Copy_Objects(float px, float py) {
 
   cSprite_List new_objects;
 
-  for (CopyObjectList::iterator itr = m_copy_objects.begin();
-       itr != m_copy_objects.end(); ++itr) {
-    cCopyObject* copy_obj = (*itr);
-
+  for (auto copy_obj : m_copy_objects) {
     // set base vector
     GL_Vector base_vec = Get_Copy_Object_Base(copy_obj->m_obj->m_pos_x,
                                               copy_obj->m_obj->m_pos_y);
@@ -647,10 +635,7 @@ bool cMouseCursor ::Add_Selected_Object(cSprite* sprite,
   }
 
   // check if not already added
-  for (SelectedObjectList::iterator itr = m_selected_objects.begin();
-       itr != m_selected_objects.end(); ++itr) {
-    cSelectedObject* sel_obj = (*itr);
-
+  for (auto sel_obj : m_selected_objects) {
     if (sel_obj->m_obj == sprite) {
       // overwrite user if given
       if (from_user && !sel_obj->m_user) {
@@ -680,10 +665,7 @@ void cMouseCursor ::Add_Selected_Objects(cSprite_List& spritelist,
   }
 
   // insert all objects
-  for (cSprite_List::iterator itr = spritelist.begin(); itr != spritelist.end();
-       ++itr) {
-    cSprite* obj = (*itr);
-
+  for (auto obj : spritelist) {
     Add_Selected_Object(obj, from_user);
   }
 }
@@ -717,10 +699,7 @@ bool cMouseCursor ::Remove_Selected_Object(const cSprite* sprite,
 cSprite_List cMouseCursor ::Get_Selected_Objects(void) {
   cSprite_List spritelist;
 
-  for (SelectedObjectList::iterator itr = m_selected_objects.begin();
-       itr != m_selected_objects.end(); ++itr) {
-    cSelectedObject* object = (*itr);
-
+  for (auto object : m_selected_objects) {
     spritelist.push_back(object->m_obj);
   }
 
@@ -735,10 +714,7 @@ GL_rect cMouseCursor ::Get_Selected_Objects_Rect(void) {
   // set dimension of first object
   GL_rect sel_rect = m_selected_objects[0]->m_obj->m_start_rect;
 
-  for (SelectedObjectList::iterator itr = m_selected_objects.begin();
-       itr != m_selected_objects.end(); ++itr) {
-    cSelectedObject* obj = (*itr);
-
+  for (auto obj : m_selected_objects) {
     // shortcut to the rect
     const GL_rect obj_rect = obj->m_obj->m_start_rect;
 
@@ -766,9 +742,8 @@ GL_rect cMouseCursor ::Get_Selected_Objects_Rect(void) {
 }
 
 void cMouseCursor ::Clear_Selected_Objects(void) {
-  for (SelectedObjectList::iterator itr = m_selected_objects.begin();
-       itr != m_selected_objects.end(); ++itr) {
-    delete *itr;
+  for (auto& selected_object : m_selected_objects) {
+    delete selected_object;
   }
 
   m_selected_objects.clear();
@@ -781,10 +756,7 @@ void cMouseCursor ::Update_Selected_Objects(void) {
   }
 
   // update selected objects position with the mouse offset
-  for (SelectedObjectList::iterator itr = m_selected_objects.begin();
-       itr != m_selected_objects.end(); ++itr) {
-    cSelectedObject* sel_obj = (*itr);
-
+  for (auto sel_obj : m_selected_objects) {
     if (!m_left || m_selection_mode) {
       Update_Selected_Object_Offset(sel_obj);
     }
@@ -795,10 +767,7 @@ void cMouseCursor ::Update_Selected_Objects(void) {
     return;
   }
 
-  for (SelectedObjectList::iterator itr = m_selected_objects.begin();
-       itr != m_selected_objects.end(); ++itr) {
-    cSelectedObject* sel_obj = (*itr);
-
+  for (auto sel_obj : m_selected_objects) {
     // left mouse is pressed
     if (m_left) {
       Set_Object_Position(sel_obj);
@@ -829,10 +798,7 @@ bool cMouseCursor ::Is_Selected_Object(const cSprite* sprite,
     return false;
   }
 
-  for (SelectedObjectList::iterator itr = m_selected_objects.begin();
-       itr != m_selected_objects.end(); ++itr) {
-    cSelectedObject* sel_obj = (*itr);
-
+  for (auto sel_obj : m_selected_objects) {
     if (sel_obj->m_obj == sprite) {
       // if only user objects
       if (only_user && !sel_obj->m_user) {
@@ -899,10 +865,7 @@ bool cMouseCursor ::Get_Snap_Pos(GL_point& new_pos, int snap,
   cSprite* snap_obj = nullptr;
 
   // check objects for overlap
-  for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-       itr != m_sprite_manager->objects.end(); ++itr) {
-    cSprite* obj = (*itr);
-
+  for (auto obj : m_sprite_manager->objects) {
     // don't check selected objects
     if (Is_Selected_Object(obj, false)) {
       continue;
@@ -1262,9 +1225,8 @@ void cMouseCursor ::Draw_Object_Rects(void) {
       m_selection_mode) {
     obj_color = white;
 
-    for (SelectedObjectList::iterator itr = m_selected_objects.begin();
-         itr != m_selected_objects.end(); ++itr) {
-      cSprite* object = (*itr)->m_obj;
+    for (auto& selected_object : m_selected_objects) {
+      cSprite* object = selected_object->m_obj;
 
       // check if visible on screen or mouse object
       if (!object->Is_Visible_On_Screen() ||
@@ -1378,10 +1340,7 @@ void cMouseCursor ::Update_Selection(void) {
   }
 
   // add selected objects
-  for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-       itr != m_sprite_manager->objects.end(); ++itr) {
-    cSprite* obj = (*itr);
-
+  for (auto obj : m_sprite_manager->objects) {
     // don't check spawned/destroyed objects
     if (obj->m_spawned || obj->m_auto_destroy) {
       continue;

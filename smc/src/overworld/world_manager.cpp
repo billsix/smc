@@ -81,10 +81,9 @@ void cOverworld_Manager ::Load_Dir(const std::string& dir,
   // set world directory
   vector<std::string> subdirs = Get_Directory_Files(dir, "", true, false);
 
-  for (vector<std::string>::iterator curdir = subdirs.begin();
-       curdir != subdirs.end(); ++curdir) {
+  for (auto& subdir : subdirs) {
     try {
-      std::string current_dir = *curdir;
+      std::string current_dir = subdir;
 
       // only directories with an existing description
       if (File_Exists(current_dir + "/description.xml")) {
@@ -113,7 +112,7 @@ void cOverworld_Manager ::Load_Dir(const std::string& dir,
         overworld->Load();
       }
     } catch (const std::exception& ex) {
-      printf("%s %s\n", curdir->c_str(), ex.what());
+      printf("%s %s\n", subdir.c_str(), ex.what());
     }
   }
 }
@@ -137,10 +136,7 @@ bool cOverworld_Manager ::Set_Active(cOverworld* world) {
   pOverworld_Player->Reset();
 
   // pre-update animations
-  for (cSprite_List::iterator itr = world->m_sprite_manager->objects.begin();
-       itr != world->m_sprite_manager->objects.end(); ++itr) {
-    cSprite* obj = (*itr);
-
+  for (auto obj : world->m_sprite_manager->objects) {
     if (obj->m_type == TYPE_PARTICLE_EMITTER) {
       cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(obj);
       emitter->Pre_Update();
@@ -158,9 +154,8 @@ void cOverworld_Manager ::Reset(void) {
   pOverworld_Player->Set_Waypoint(pActive_Overworld->m_player_start_waypoint);
 
   // Reset all Waypoints
-  for (vector<cOverworld*>::iterator itr = objects.begin();
-       itr != objects.end(); ++itr) {
-    (*itr)->Reset_Waypoints();
+  for (auto& object : objects) {
+    object->Reset_Waypoints();
   }
 }
 
@@ -175,10 +170,7 @@ cOverworld* cOverworld_Manager ::Get(const std::string& str) {
 }
 
 cOverworld* cOverworld_Manager ::Get_from_Path(const std::string& path) {
-  for (vector<cOverworld*>::iterator itr = objects.begin();
-       itr != objects.end(); ++itr) {
-    cOverworld* obj = (*itr);
-
+  for (auto obj : objects) {
     if (obj->m_description->m_path.compare(path) == 0) {
       return obj;
     }
@@ -188,10 +180,7 @@ cOverworld* cOverworld_Manager ::Get_from_Path(const std::string& path) {
 }
 
 cOverworld* cOverworld_Manager ::Get_from_Name(const std::string& name) {
-  for (vector<cOverworld*>::iterator itr = objects.begin();
-       itr != objects.end(); ++itr) {
-    cOverworld* obj = (*itr);
-
+  for (auto obj : objects) {
     if (obj->m_description->m_name.compare(name) == 0) {
       return obj;
     }

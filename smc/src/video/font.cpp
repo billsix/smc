@@ -128,10 +128,7 @@ cGL_Surface* cFont_Manager ::Render_Text(TTF_Font* font,
 
 void cFont_Manager ::Grab_Textures(void) {
   // save to software memory
-  for (ActiveFontList::iterator itr = m_active_fonts.begin();
-       itr != m_active_fonts.end(); ++itr) {
-    cGL_Surface* obj = (*itr);
-
+  for (auto obj : m_active_fonts) {
     // get software texture and save it
     m_software_textures.push_back(obj->Get_Software_Texture());
     // delete hardware texture
@@ -144,18 +141,15 @@ void cFont_Manager ::Grab_Textures(void) {
 
 void cFont_Manager ::Restore_Textures(void) {
   // load back into hardware textures
-  for (Saved_Texture_List::iterator itr = m_software_textures.begin();
-       itr != m_software_textures.end(); ++itr) {
+  for (auto soft_tex : m_software_textures) {
     // get saved texture
-    cSaved_Texture* soft_tex = (*itr);
     // load it
     soft_tex->m_base->Load_Software_Texture(soft_tex);
   }
 
   // delete software textures
-  for (Saved_Texture_List::iterator itr = m_software_textures.begin();
-       itr != m_software_textures.end(); ++itr) {
-    delete *itr;
+  for (auto& software_texture : m_software_textures) {
+    delete software_texture;
   }
 
   m_software_textures.clear();

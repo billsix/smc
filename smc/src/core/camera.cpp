@@ -134,10 +134,7 @@ bool cCamera ::Move_to_Position_Gradually(
     }
 
     // keep particles on screen
-    for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-         itr != m_sprite_manager->objects.end(); ++itr) {
-      cSprite* obj = (*itr);
-
+    for (auto obj : m_sprite_manager->objects) {
       if (obj->m_type == TYPE_PARTICLE_EMITTER) {
         cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(obj);
         emitter->Update_Position();

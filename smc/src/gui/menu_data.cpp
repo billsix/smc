@@ -71,9 +71,8 @@ cMenu_Base ::~cMenu_Base(void) {
     CEGUI::WindowManager::getSingleton().destroyWindow(m_gui_window);
   }
 
-  for (HudSpriteList::iterator itr = m_draw_list.begin();
-       itr != m_draw_list.end(); ++itr) {
-    delete *itr;
+  for (auto& itr : m_draw_list) {
+    delete itr;
   }
 
   m_draw_list.clear();
@@ -143,9 +142,8 @@ void cMenu_Base ::Draw(void) {
   }
 
   // menu items
-  for (HudSpriteList::iterator itr = m_draw_list.begin();
-       itr != m_draw_list.end(); ++itr) {
-    (*itr)->Draw();
+  for (auto& itr : m_draw_list) {
+    itr->Draw();
   }
 }
 
@@ -360,11 +358,7 @@ void cMenu_Start ::Init_GUI(void) {
       CEGUI::WindowManager::getSingleton().getWindow("listbox_campaigns"));
 
   // campaign names
-  for (vector<cCampaign*>::const_iterator itr =
-           pCampaign_Manager->objects.begin();
-       itr != pCampaign_Manager->objects.end(); ++itr) {
-    const cCampaign* campaign = (*itr);
-
+  for (auto campaign : pCampaign_Manager->objects) {
     CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(
         reinterpret_cast<const CEGUI::utf8*>(campaign->m_name.c_str()));
     // is in game dir
@@ -412,10 +406,8 @@ void cMenu_Start ::Init_GUI(void) {
       CEGUI::WindowManager::getSingleton().getWindow("listbox_worlds"));
 
   // overworld names
-  for (vector<cOverworld*>::const_iterator itr =
-           pOverworld_Manager->objects.begin();
-       itr != pOverworld_Manager->objects.end(); ++itr) {
-    const cOverworld_description* world = (*itr)->m_description;
+  for (auto object : pOverworld_Manager->objects) {
+    const cOverworld_description* world = object->m_description;
 
 // show all worlds in debug builds
 #ifndef _DEBUG
@@ -578,10 +570,9 @@ void cMenu_Start ::Get_Levels(std::string dir, CEGUI::colour color) {
       Get_Directory_Files(dir, "smclvl", false, false);
 
   // list all available levels
-  for (vector<std::string>::iterator itr = lvl_files.begin();
-       itr != lvl_files.end(); ++itr) {
+  for (auto& lvl_file : lvl_files) {
     // get filename
-    std::string lvl_name = (*itr);
+    std::string lvl_name = lvl_file;
     // remove base directory
     lvl_name.erase(0, dir_length);
 
@@ -1328,10 +1319,9 @@ void cMenu_Options ::Init_GUI_Game(void) {
                                        "/"
                                        "en");
 
-  for (vector<std::string>::iterator itr = language_files.begin();
-       itr != language_files.end(); ++itr) {
+  for (auto& language_file : language_files) {
     // get filename
-    std::string filename = (*itr);
+    std::string filename = language_file;
 
     // if not directory
     if (filename.rfind(".") != std::string::npos) {
@@ -1403,10 +1393,9 @@ void cMenu_Options ::Init_GUI_Video(void) {
   CEGUI::ListboxTextItem* item;
 
   // add to listbox
-  for (vector<cSize_Int>::iterator itr = valid_resolutions.begin();
-       itr != valid_resolutions.end(); ++itr) {
+  for (auto& valid_resolution : valid_resolutions) {
     // get resolution
-    cSize_Int res = (*itr);
+    cSize_Int res = valid_resolution;
 
     if (res.m_width <= 0 || res.m_height <= 0) {
       continue;
@@ -1783,8 +1772,8 @@ void cMenu_Options ::Init_GUI_Joystick(void) {
   // Add all Joy names
   vector<std::string> joy_names = pJoystick->Get_Names();
 
-  for (unsigned int i = 0; i < joy_names.size(); i++) {
-    item = new CEGUI::ListboxTextItem(joy_names[i]);
+  for (const auto& joy_name : joy_names) {
+    item = new CEGUI::ListboxTextItem(joy_name);
     item->setTextColours(CEGUI::colour(0.3f, 1, 0.3f));
     combo_joy->addItem(item);
   }
@@ -2301,9 +2290,8 @@ void cMenu_Options ::Build_Shortcut_List(bool joystick /* = 0 */) {
   }
 
   // add all available shortcuts
-  for (vector<cShortcut_item>::iterator itr = shortcuts.begin();
-       itr != shortcuts.end(); ++itr) {
-    cShortcut_item shortcut_item = (*itr);
+  for (auto& shortcut : shortcuts) {
+    cShortcut_item shortcut_item = shortcut;
 
     CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(
         shortcut_item.m_name, 0, shortcut_item.m_key);
@@ -3101,9 +3089,8 @@ cMenu_Savegames ::cMenu_Savegames(bool type) : cMenu_Base() {
 }
 
 cMenu_Savegames ::~cMenu_Savegames(void) {
-  for (HudSpriteList::iterator itr = m_savegame_temp.begin();
-       itr != m_savegame_temp.end(); ++itr) {
-    delete *itr;
+  for (auto& itr : m_savegame_temp) {
+    delete itr;
   }
 
   m_savegame_temp.clear();
@@ -3116,10 +3103,9 @@ void cMenu_Savegames ::Init(void) {
   cMenu_Item* temp_item = nullptr;
 
   // savegame descriptions
-  for (HudSpriteList::iterator itr = m_savegame_temp.begin();
-       itr != m_savegame_temp.end(); ++itr) {
+  for (auto& itr : m_savegame_temp) {
     temp_item = new cMenu_Item(pMenuCore->m_handler->m_level->m_sprite_manager);
-    temp_item->m_image_default->Set_Image((*itr)->m_image);
+    temp_item->m_image_default->Set_Image(itr->m_image);
     temp_item->Set_Pos(static_cast<float>(game_res_w) / 5, m_menu_pos_y);
     pMenuCore->m_handler->Add_Menu_Item(temp_item, 1.5f, grey);
 
@@ -3326,13 +3312,12 @@ std::string cMenu_Savegames ::Set_Save_Description(unsigned int save_slot) {
 void cMenu_Savegames ::Update_Saved_Games_Text(void) {
   unsigned int save_slot = 0;
 
-  for (HudSpriteList::iterator itr = m_savegame_temp.begin();
-       itr != m_savegame_temp.end(); ++itr) {
+  for (auto& itr : m_savegame_temp) {
     save_slot++;
-    (*itr)->Set_Image(pFont->Render_Text(pFont->m_font_normal,
-                                         pSavegame->Get_Description(save_slot),
-                                         m_text_color_value),
-                      true, true);
+    itr->Set_Image(pFont->Render_Text(pFont->m_font_normal,
+                                      pSavegame->Get_Description(save_slot),
+                                      m_text_color_value),
+                   true, true);
   }
 }
 
@@ -3470,11 +3455,8 @@ void cMenu_Credits ::Init(void) {
   m_menu_pos_y = game_res_h * 1.1f;
 
   // set credits position
-  for (HudSpriteList::iterator itr = m_draw_list.begin();
-       itr != m_draw_list.end(); ++itr) {
+  for (auto obj : m_draw_list) {
     // get object
-    cHudSprite* obj = (*itr);
-
     // set shadow if not set
     if (obj->m_shadow_pos == 0) {
       obj->Set_Shadow(grey, 1);
@@ -3553,10 +3535,7 @@ void cMenu_Credits ::Exit(void) {
 void cMenu_Credits ::Update(void) {
   cMenu_Base::Update();
 
-  for (HudSpriteList::iterator itr = m_draw_list.begin();
-       itr != m_draw_list.end(); ++itr) {
-    cHudSprite* obj = (*itr);
-
+  for (auto obj : m_draw_list) {
     // long inactive reset
     if (obj->m_pos_y < -2700) {
       obj->Set_Pos_Y(static_cast<float>(game_res_h) * 1.1f);

@@ -196,10 +196,7 @@ bool cLevel ::Load(std::string filename) {
   /* late initialization
 	 * needed to create links to other objects
 	*/
-  for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-       itr != m_sprite_manager->objects.end(); ++itr) {
-    cSprite* obj = (*itr);
-
+  for (auto obj : m_sprite_manager->objects) {
     obj->Init_Links();
   }
 
@@ -328,10 +325,8 @@ void cLevel ::Save(void) {
   stream.closeTag();
 
   // backgrounds
-  for (vector<cBackground*>::iterator itr =
-           m_background_manager->objects.begin();
-       itr != m_background_manager->objects.end(); ++itr) {
-    (*itr)->Save_To_XML(stream);
+  for (auto& object : m_background_manager->objects) {
+    object->Save_To_XML(stream);
   }
 
   // begin
@@ -348,10 +343,7 @@ void cLevel ::Save(void) {
   stream.closeTag();
 
   // objects
-  for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-       itr != m_sprite_manager->objects.end(); ++itr) {
-    cSprite* obj = (*itr);
-
+  for (auto obj : m_sprite_manager->objects) {
     // skip spawned and destroyed objects
     if (obj->m_spawned || obj->m_auto_destroy) {
       continue;
@@ -413,10 +405,7 @@ void cLevel ::Init(void) {
   pLevel_Player->Reset();
 
   // pre-update animations
-  for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-       itr != m_sprite_manager->objects.end(); ++itr) {
-    cSprite* obj = (*itr);
-
+  for (auto obj : m_sprite_manager->objects) {
     if (obj->m_type == TYPE_PARTICLE_EMITTER) {
       cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(obj);
       emitter->Pre_Update();
@@ -534,10 +523,8 @@ void cLevel ::Update(void) {
   // if level-editor is not active
   if (!editor_level_enabled) {
     // backgrounds
-    for (vector<cBackground*>::iterator itr =
-             m_background_manager->objects.begin();
-         itr != m_background_manager->objects.end(); ++itr) {
-      (*itr)->Update();
+    for (auto& object : m_background_manager->objects) {
+      object->Update();
     }
 
     // objects
@@ -548,10 +535,7 @@ void cLevel ::Update(void) {
   // if level-editor enabled
   else {
     // only update particle emitters
-    for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-         itr != m_sprite_manager->objects.end(); ++itr) {
-      cSprite* obj = (*itr);
-
+    for (auto obj : m_sprite_manager->objects) {
       if (obj->m_type == TYPE_PARTICLE_EMITTER) {
         obj->Update();
       }
@@ -570,10 +554,8 @@ void cLevel ::Update_Late(void) {
 void cLevel ::Draw_Layer_1(LevelDrawType type /* = LVL_DRAW */) {
   // with background
   if (type != LVL_DRAW_NO_BG) {
-    for (vector<cBackground*>::iterator itr =
-             m_background_manager->objects.begin();
-         itr != m_background_manager->objects.end(); ++itr) {
-      (*itr)->Draw();
+    for (auto& object : m_background_manager->objects) {
+      object->Draw();
     }
   }
 
@@ -944,10 +926,7 @@ cLevel_Entry* cLevel ::Get_Entry(const std::string& name) {
   }
 
   // Search for entry
-  for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-       itr != m_sprite_manager->objects.end(); ++itr) {
-    cSprite* obj = (*itr);
-
+  for (auto obj : m_sprite_manager->objects) {
     if (obj->m_type != TYPE_LEVEL_ENTRY || obj->m_auto_destroy) {
       continue;
     }

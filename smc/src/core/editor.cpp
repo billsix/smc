@@ -306,17 +306,15 @@ void cEditor ::Unload(void) {
   }
 
   // Tagged Items
-  for (TaggedItemObjectsList::iterator itr = m_tagged_item_objects.begin();
-       itr != m_tagged_item_objects.end(); ++itr) {
-    delete *itr;
+  for (auto& tagged_item_object : m_tagged_item_objects) {
+    delete tagged_item_object;
   }
 
   m_tagged_item_objects.clear();
 
   // Tagged Image Settings
-  for (TaggedItemImageSettingsList::iterator itr = m_tagged_item_images.begin();
-       itr != m_tagged_item_images.end(); ++itr) {
-    delete *itr;
+  for (auto& tagged_item_image : m_tagged_item_images) {
+    delete tagged_item_image;
   }
 
   m_tagged_item_images.clear();
@@ -354,9 +352,8 @@ void cEditor ::Enable(void) {
   // update player position rect
   pActive_Player->Update_Position_Rect();
   // update sprite manager position rect
-  for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-       itr != m_sprite_manager->objects.end(); ++itr) {
-    (*itr)->Update_Position_Rect();
+  for (auto& object : m_sprite_manager->objects) {
+    object->Update_Position_Rect();
   }
 
   pActive_Camera->Update_Position();
@@ -379,9 +376,8 @@ void cEditor ::Disable(bool native_mode /* = 1 */) {
     // player
     pActive_Player->Update_Position_Rect();
     // sprite manager
-    for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-         itr != m_sprite_manager->objects.end(); ++itr) {
-      (*itr)->Update_Position_Rect();
+    for (auto& object : m_sprite_manager->objects) {
+      object->Update_Position_Rect();
     }
 
     pActive_Camera->Center();
@@ -744,11 +740,7 @@ bool cEditor ::Key_Down(SDLKey key) {
   }
   // push selected objects into the front
   else if (key == SDLK_KP_PLUS) {
-    for (SelectedObjectList::iterator itr =
-             pMouseCursor->m_selected_objects.begin();
-         itr != pMouseCursor->m_selected_objects.end(); ++itr) {
-      cSelectedObject* sel_obj = (*itr);
-
+    for (auto sel_obj : pMouseCursor->m_selected_objects) {
       if (!sel_obj->m_obj->Is_Sprite_Managed()) {
         continue;
       }
@@ -759,11 +751,7 @@ bool cEditor ::Key_Down(SDLKey key) {
   }
   // push selected objects into the back
   else if (key == SDLK_KP_MINUS) {
-    for (SelectedObjectList::iterator itr =
-             pMouseCursor->m_selected_objects.begin();
-         itr != pMouseCursor->m_selected_objects.end(); ++itr) {
-      cSelectedObject* sel_obj = (*itr);
-
+    for (auto sel_obj : pMouseCursor->m_selected_objects) {
       if (!sel_obj->m_obj->Is_Sprite_Managed()) {
         continue;
       }
@@ -797,18 +785,12 @@ bool cEditor ::Key_Down(SDLKey key) {
     cSprite_List new_objects = Copy_Direction(objects, dir);
 
     // add new objects
-    for (cSprite_List::iterator itr = new_objects.begin();
-         itr != new_objects.end(); ++itr) {
-      cSprite* obj = (*itr);
-
+    for (auto obj : new_objects) {
       pMouseCursor->Add_Selected_Object(obj, true);
     }
 
     // deselect old objects
-    for (cSprite_List::const_iterator itr = objects.begin();
-         itr != objects.end(); ++itr) {
-      const cSprite* obj = (*itr);
-
+    for (auto obj : objects) {
       pMouseCursor->Remove_Selected_Object(obj);
     }
   }
@@ -840,10 +822,7 @@ bool cEditor ::Key_Down(SDLKey key) {
     // player
     pMouseCursor->Add_Selected_Object(pActive_Player, true);
     // sprite manager
-    for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-         itr != m_sprite_manager->objects.end(); ++itr) {
-      cSprite* obj = (*itr);
-
+    for (auto obj : m_sprite_manager->objects) {
       pMouseCursor->Add_Selected_Object(obj, true);
     }
   }
@@ -966,11 +945,7 @@ bool cEditor ::Mouse_Up(Uint8 button) {
     pMouseCursor->End_Selection();
 
     if (pMouseCursor->m_hovering_object->m_obj) {
-      for (SelectedObjectList::iterator itr =
-               pMouseCursor->m_selected_objects.begin();
-           itr != pMouseCursor->m_selected_objects.end(); ++itr) {
-        cSelectedObject* object = (*itr);
-
+      for (auto object : pMouseCursor->m_selected_objects) {
         // pre-update to keep particles on the correct position
         if (object->m_obj->m_type == TYPE_PARTICLE_EMITTER) {
           cParticle_Emitter* emitter =
@@ -1098,11 +1073,7 @@ bool cEditor ::Load_Item_Menu(std::string item_tags) {
   unsigned int tag_pos = 0;
 
   // Get all Images with the Tags
-  for (TaggedItemImageSettingsList::const_iterator itr =
-           m_tagged_item_images.begin();
-       itr != m_tagged_item_images.end(); ++itr) {
-    const cImage_Settings_Data* settings = (*itr);
-
+  for (auto settings : m_tagged_item_images) {
     // search
     while (Is_Tag_Available(settings->m_editor_tags, array_tags[tag_pos])) {
       tag_pos++;
@@ -1133,11 +1104,7 @@ bool cEditor ::Load_Item_Menu(std::string item_tags) {
   }
 
   // Get all Objects with the Tags
-  for (TaggedItemObjectsList::const_iterator itr =
-           m_tagged_item_objects.begin();
-       itr != m_tagged_item_objects.end(); ++itr) {
-    cSprite* object = (*itr);
-
+  for (auto object : m_tagged_item_objects) {
     // search
     while (Is_Tag_Available(object->m_editor_tags, array_tags[tag_pos])) {
       tag_pos++;
@@ -1251,10 +1218,9 @@ void cEditor ::Load_Image_Items(std::string dir) {
   vector<std::string> image_files = Get_Directory_Files(dir, ".settings");
 
   // load all available objects
-  for (vector<std::string>::const_iterator itr = image_files.begin();
-       itr != image_files.end(); ++itr) {
+  for (const auto& image_file : image_files) {
     // get filename
-    std::string filename = (*itr);
+    std::string filename = image_file;
 
     // load settings
     cImage_Settings_Data* settings = pSettingsParser->Get(filename);
@@ -1375,10 +1341,7 @@ cSprite_List cEditor ::Copy_Direction(const cSprite_List& objects,
   // new copied objects
   cSprite_List new_objects;
 
-  for (cSprite_List::const_iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
-    const cSprite* obj = (*itr);
-
+  for (auto obj : objects) {
     new_objects.push_back(Copy_Direction(obj, dir, offset));
   }
 
@@ -1442,10 +1405,7 @@ void cEditor ::Select_Same_Object_Types(const cSprite* obj) {
   }
 
   // sprite manager
-  for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-       itr != m_sprite_manager->objects.end(); ++itr) {
-    cSprite* game_obj = (*itr);
-
+  for (auto game_obj : m_sprite_manager->objects) {
     if (game_obj->m_type != obj->m_type) {
       continue;
     }
@@ -1540,11 +1500,7 @@ void cEditor ::Replace_Sprites(void) {
     return;
   }
 
-  for (SelectedObjectList::iterator itr =
-           pMouseCursor->m_selected_objects.begin();
-       itr != pMouseCursor->m_selected_objects.end(); ++itr) {
-    cSelectedObject* sel_obj = (*itr);
-
+  for (auto sel_obj : pMouseCursor->m_selected_objects) {
     // only sprites
     if (!sel_obj->m_obj->Is_Basic_Sprite()) {
       continue;

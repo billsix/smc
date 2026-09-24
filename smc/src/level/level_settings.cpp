@@ -614,11 +614,7 @@ void cLevel_Settings ::Load_BG_Image_List(void) {
       CEGUI::WindowManager::getSingleton().getWindow("listbox_backgrounds"));
   listbox->resetList();
 
-  for (vector<cBackground*>::iterator itr =
-           m_level->m_background_manager->objects.begin();
-       itr != m_level->m_background_manager->objects.end(); ++itr) {
-    cBackground* background = (*itr);
-
+  for (auto background : m_level->m_background_manager->objects) {
     // skip gradients
     if (background->m_type == BG_GR_HOR || background->m_type == BG_GR_VER) {
       continue;

@@ -126,10 +126,7 @@ bool cLevel_Manager ::Set_Active(cLevel* level) {
 }
 
 cLevel* cLevel_Manager ::Get(const std::string& str) {
-  for (vector<cLevel*>::iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
-    cLevel* obj = (*itr);
-
+  for (auto obj : objects) {
     if (Trim_Filename(obj->m_level_filename, false, false).compare(str) == 0) {
       return obj;
     }
@@ -413,12 +410,7 @@ void cLevel_Manager ::Goto_Sub_Level(
                                       start_path_pos_y + path_state.m_pos_y);
 
               // keep particles on screen
-              for (cSprite_List::iterator itr =
-                       pActive_Level->m_sprite_manager->objects.begin();
-                   itr != pActive_Level->m_sprite_manager->objects.end();
-                   ++itr) {
-                cSprite* obj = (*itr);
-
+              for (auto obj : pActive_Level->m_sprite_manager->objects) {
                 if (obj->m_type == TYPE_PARTICLE_EMITTER) {
                   cParticle_Emitter* emitter =
                       static_cast<cParticle_Emitter*>(obj);

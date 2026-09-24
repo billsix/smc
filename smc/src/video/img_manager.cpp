@@ -65,10 +65,7 @@ void cImage_Manager ::Add(cGL_Surface* obj) {
 }
 
 cGL_Surface* cImage_Manager ::Get_Pointer(const std::string& path) const {
-  for (GL_Surface_List::const_iterator itr = objects.begin();
-       itr != objects.end(); ++itr) {
-    cGL_Surface* obj = (*itr);
-
+  for (auto obj : objects) {
     // return first match
     if (obj->m_filename.compare(path) == 0) {
       return obj;
@@ -97,11 +94,8 @@ void cImage_Manager ::Grab_Textures(bool from_file /* = 0 */,
   unsigned int file_count = objects.size();
 
   // save all textures
-  for (GL_Surface_List::iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
+  for (auto obj : objects) {
     // get surface
-    cGL_Surface* obj = (*itr);
-
     // skip surfaces with an already deleted texture
     if (!glIsTexture(obj->m_image)) {
       continue;
@@ -145,11 +139,8 @@ void cImage_Manager ::Restore_Textures(bool draw_gui /* = 0 */) {
   unsigned int file_count = m_saved_textures.size();
 
   // load back into hardware textures
-  for (Saved_Texture_List::iterator itr = m_saved_textures.begin();
-       itr != m_saved_textures.end(); ++itr) {
+  for (auto soft_tex : m_saved_textures) {
     // get saved texture
-    cSaved_Texture* soft_tex = (*itr);
-
     // load it
     soft_tex->m_base->Load_Software_Texture(soft_tex);
     // delete
@@ -172,11 +163,8 @@ void cImage_Manager ::Restore_Textures(bool draw_gui /* = 0 */) {
 }
 
 void cImage_Manager ::Delete_Image_Textures(void) {
-  for (GL_Surface_List::iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
+  for (auto obj : objects) {
     // get object
-    cGL_Surface* obj = (*itr);
-
     if (obj->m_auto_del_img && glIsTexture(obj->m_image)) {
       glDeleteTextures(1, &obj->m_image);
     }

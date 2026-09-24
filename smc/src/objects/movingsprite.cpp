@@ -188,11 +188,7 @@ cObjectCollisionType* cMovingSprite ::Col_Move_in_Steps(
         }
         // remove internal collision from further checks
         else if (col_list_temp->objects.size()) {
-          for (cObjectCollision_List::iterator itr =
-                   col_list_temp->objects.begin();
-               itr != col_list_temp->objects.end(); ++itr) {
-            cObjectCollision* col = (*itr);
-
+          for (auto col : col_list_temp->objects) {
             if (col->m_valid_type != COL_VTYPE_INTERNAL) {
               continue;
             }
@@ -272,11 +268,7 @@ cObjectCollisionType* cMovingSprite ::Col_Move_in_Steps(
         }
         // remove internal collision from further checks
         else if (col_list_temp->objects.size()) {
-          for (cObjectCollision_List::iterator itr =
-                   col_list_temp->objects.begin();
-               itr != col_list_temp->objects.end(); ++itr) {
-            cObjectCollision* col = (*itr);
-
+          for (auto col : col_list_temp->objects) {
             if (col->m_valid_type != COL_VTYPE_INTERNAL) {
               continue;
             }
@@ -642,11 +634,8 @@ cObjectCollisionType* cMovingSprite ::Collision_Check(
   }
 
   // Check objects
-  for (cSprite_List::iterator itr = objects->begin(); itr != objects->end();
-       ++itr) {
+  for (auto level_object : *objects) {
     // get object pointer
-    cSprite* level_object = (*itr);
-
     // if the same object or destroyed object
     if (this == level_object || level_object->m_auto_destroy) {
       continue;
@@ -811,10 +800,7 @@ void cMovingSprite ::Check_on_Ground(void) {
   Reset_On_Ground();
 
   // possible ground objects
-  for (cObjectCollision_List::iterator itr = col_list->objects.begin();
-       itr != col_list->objects.end(); ++itr) {
-    cObjectCollision* col = (*itr);
-
+  for (auto col : col_list->objects) {
     // ground collision found
     if (col->m_direction == DIR_BOTTOM) {
       if (Set_On_Ground(col->m_obj)) {
@@ -834,9 +820,7 @@ void cMovingSprite ::Update_Anti_Stuck(void) {
       Collision_Check(&m_col_rect, COLLIDE_ONLY_BLOCKING);
 
   // check collisions
-  for (cObjectCollision_List::iterator itr = col_list->objects.begin();
-       itr != col_list->objects.end(); ++itr) {
-    cObjectCollision* collision = (*itr);
+  for (auto collision : col_list->objects) {
     cSprite* col_obj = collision->m_obj;
 
     if (collision->m_array == ARRAY_ENEMY ||

@@ -723,10 +723,9 @@ void cVideo ::Init_Image_Cache(bool recreate /* = 0 */,
   unsigned int file_count = image_files.size();
 
   // create directories, load images and save to cache
-  for (vector<std::string>::iterator itr = image_files.begin();
-       itr != image_files.end(); ++itr) {
+  for (auto& image_file : image_files) {
     // get filename
-    std::string filename = (*itr);
+    std::string filename = image_file;
 
     // remove data dir
     std::string cache_filename = filename.substr(strlen(DATA_DIR "/"));
@@ -880,9 +879,9 @@ vector<cSize_Int> cVideo ::Get_Supported_Resolutions(
       }
       cSize_Int size(mode.w, mode.h);
       bool known = false;
-      for (vector<cSize_Int>::const_iterator itr = valid_resolutions.begin();
-           itr != valid_resolutions.end(); ++itr) {
-        if (itr->m_width == size.m_width && itr->m_height == size.m_height) {
+      for (auto valid_resolution : valid_resolutions) {
+        if (valid_resolution.m_width == size.m_width &&
+            valid_resolution.m_height == size.m_height) {
           known = true;
           break;
         }
@@ -1928,9 +1927,9 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
       float grid[tiles_num_ver][tiles_num_hor];
 
       // init grid
-      for (unsigned int i = 0; i < tiles_num_ver; i++) {
+      for (auto& i : grid) {
         for (unsigned int j = 0; j < tiles_num_hor; j++) {
-          grid[i][j] = 0.0f;
+          i[j] = 0.0f;
         }
       }
 

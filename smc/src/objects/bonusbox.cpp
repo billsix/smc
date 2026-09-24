@@ -48,9 +48,8 @@ cBonusBox ::cBonusBox(CEGUI::XMLAttributes& attributes,
 }
 
 cBonusBox ::~cBonusBox(void) {
-  for (MovingSpriteList::iterator itr = m_active_items.begin();
-       itr != m_active_items.end(); ++itr) {
-    delete *itr;
+  for (auto& active_item : m_active_items) {
+    delete active_item;
   }
 
   m_active_items.clear();
@@ -374,10 +373,7 @@ void cBonusBox ::Draw(cSurface_Request* request /* = NULL */) {
     return;
   }
 
-  for (MovingSpriteList::iterator itr = m_active_items.begin();
-       itr != m_active_items.end(); ++itr) {
-    cMovingSprite* obj = (*itr);
-
+  for (auto obj : m_active_items) {
     if (!obj->m_active) {
       continue;
     }

@@ -438,10 +438,7 @@ void cLevel_Player ::Move_Player(float velocity, float vel_wrongway) {
   bool is_col = false;
 
   // check collisions
-  for (cObjectCollision_List::iterator itr = col_list->objects.begin();
-       itr != col_list->objects.end(); ++itr) {
-    cObjectCollision* col_obj = (*itr);
-
+  for (auto col_obj : col_list->objects) {
     // massive object is blocking
     if (col_obj->m_obj->m_massive_type == MASS_MASSIVE) {
       is_col = true;
@@ -1355,10 +1352,7 @@ void cLevel_Player ::Update_Item(void) {
         (m_direction == DIR_LEFT) ? (-check_x) : (check_x));
 
     // possible objects
-    for (cObjectCollision_List::iterator itr = col_list->objects.begin();
-         itr != col_list->objects.end(); ++itr) {
-      cObjectCollision* col = (*itr);
-
+    for (auto col : col_list->objects) {
       // enemy item
       if (col->m_array == ARRAY_ENEMY) {
         if (col->m_obj->m_type == TYPE_TURTLE) {
@@ -2975,10 +2969,7 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
   // Up
   if (key_type == INP_UP) {
     // Search for colliding level exit objects
-    for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-         itr != m_sprite_manager->objects.end(); ++itr) {
-      cSprite* obj = (*itr);
-
+    for (auto obj : m_sprite_manager->objects) {
       // skip destroyed objects
       if (obj->m_auto_destroy) {
         continue;
@@ -3027,10 +3018,7 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
   // Down
   else if (key_type == INP_DOWN) {
     // Search for colliding level exit objects
-    for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-         itr != m_sprite_manager->objects.end(); ++itr) {
-      cSprite* obj = (*itr);
-
+    for (auto obj : m_sprite_manager->objects) {
       // skip destroyed objects
       if (obj->m_auto_destroy) {
         continue;
@@ -3078,10 +3066,7 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
   // Left
   else if (key_type == INP_LEFT) {
     // Search for colliding level exit objects
-    for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-         itr != m_sprite_manager->objects.end(); ++itr) {
-      cSprite* obj = (*itr);
-
+    for (auto obj : m_sprite_manager->objects) {
       // skip destroyed objects
       if (obj->m_auto_destroy) {
         continue;
@@ -3128,10 +3113,7 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
   // Right
   else if (key_type == INP_RIGHT) {
     // Search for colliding level exit objects
-    for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-         itr != m_sprite_manager->objects.end(); ++itr) {
-      cSprite* obj = (*itr);
-
+    for (auto obj : m_sprite_manager->objects) {
       // skip destroyed objects
       if (obj->m_auto_destroy) {
         continue;
@@ -3410,10 +3392,7 @@ bool cLevel_Player ::Ball_Add(ball_effect effect_type /* = FIREBALL_DEFAULT */,
 
 void cLevel_Player ::Ball_Clear(void) const {
   // destroy all fireballs from the player
-  for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-       itr != m_sprite_manager->objects.end(); ++itr) {
-    cSprite* obj = (*itr);
-
+  for (auto obj : m_sprite_manager->objects) {
     if (obj->m_type == TYPE_BALL) {
       cBall* ball = static_cast<cBall*>(obj);
 

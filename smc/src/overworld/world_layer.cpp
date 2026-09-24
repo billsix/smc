@@ -287,11 +287,8 @@ cLayer ::cLayer(cOverworld* origin) { m_overworld = origin; }
 cLayer ::~cLayer(void) { Delete_All(); }
 
 void cLayer ::Add(cLayer_Line_Point_Start* line_point) {
-  for (LayerLineList::iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
+  for (auto layer_line : objects) {
     // get pointer
-    cLayer_Line_Point_Start* layer_line = (*itr);
-
     // if already in layer
     if (layer_line == line_point) {
       return;
@@ -357,10 +354,7 @@ bool cLayer ::Save(const std::string& filename) {
   stream.openTag("layer");
 
   // lines
-  for (LayerLineList::iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
-    cLayer_Line_Point_Start* line = (*itr);
-
+  for (auto line : objects) {
     // begin
     stream.openTag("line");
     // start
@@ -392,11 +386,8 @@ void cLayer ::Delete_All(void) {
 
 cLayer_Line_Point_Start* cLayer ::Get_Line_Collision_Start(
     const GL_rect& line_rect) {
-  for (LayerLineList::iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
+  for (auto layer_line : objects) {
     // get pointer
-    cLayer_Line_Point_Start* layer_line = (*itr);
-
     // check line 1
     if (line_rect.Intersects(layer_line->m_col_rect)) {
       return layer_line;
@@ -433,11 +424,8 @@ cLine_collision cLayer ::Get_Nearest(float x, float y,
                                      ObjectDirection dir /* = DIR_HORIZONTAL */,
                                      unsigned int check_size /* = 15 */,
                                      int only_origin_id /* = -1 */) const {
-  for (LayerLineList::const_iterator itr = objects.begin();
-       itr != objects.end(); ++itr) {
+  for (auto layer_line : objects) {
     // get pointer
-    cLayer_Line_Point_Start* layer_line = (*itr);
-
     // line is not from waypoint
     if (only_origin_id >= 0 && only_origin_id != layer_line->m_origin) {
       continue;

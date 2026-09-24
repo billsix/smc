@@ -44,15 +44,14 @@ void cSprite_Manager ::Add(cSprite* sprite) {
   Set_Pos_Z(sprite);
 
   // Check if an destroyed object can be replaced
-  for (cSprite_List::iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
+  for (auto& object : objects) {
     // get object pointer
-    cSprite* obj = (*itr);
+    cSprite* obj = object;
 
     // if destroy is set
     if (obj->m_auto_destroy) {
       // set new object
-      *itr = sprite;
+      object = sprite;
       // delete old
       delete obj;
 
@@ -158,11 +157,8 @@ void cSprite_Manager ::Move_To_Back(cSprite* sprite) {
 void cSprite_Manager ::Delete_All(bool delayed /* = 0 */) {
   // delayed
   if (delayed) {
-    for (cSprite_List::iterator itr = objects.begin(); itr != objects.end();
-         ++itr) {
+    for (auto obj : objects) {
       // get object pointer
-      cSprite* obj = (*itr);
-
       obj->Destroy();
     }
   }
@@ -193,11 +189,8 @@ void cSprite_Manager ::Delete_All(bool delayed /* = 0 */) {
 cSprite* cSprite_Manager ::Get_First(const SpriteType type) const {
   cSprite* first = nullptr;
 
-  for (cSprite_List::const_iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
+  for (auto obj : objects) {
     // get object pointer
-    cSprite* obj = (*itr);
-
     if (obj->m_type == type && (!first || obj->m_pos_z < first->m_pos_z)) {
       first = obj;
     }
@@ -210,11 +203,8 @@ cSprite* cSprite_Manager ::Get_First(const SpriteType type) const {
 cSprite* cSprite_Manager ::Get_Last(const SpriteType type) const {
   cSprite* last = nullptr;
 
-  for (cSprite_List::const_iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
+  for (auto obj : objects) {
     // get object pointer
-    cSprite* obj = (*itr);
-
     if (obj->m_type == type && (!last || obj->m_pos_z > last->m_pos_z)) {
       last = obj;
     }
@@ -228,11 +218,8 @@ cSprite* cSprite_Manager ::Get_from_Position(
     int start_pos_x, int start_pos_y,
     const SpriteType type /* = TYPE_UNDEFINED */,
     int check_pos /* = 0 */) const {
-  for (cSprite_List::const_iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
+  for (auto obj : objects) {
     // get object pointer
-    cSprite* obj = (*itr);
-
     if (static_cast<int>(obj->m_start_pos_x) != start_pos_x ||
         static_cast<int>(obj->m_start_pos_y) != start_pos_y) {
       if (check_pos != 2 || (static_cast<int>(obj->m_pos_x) != start_pos_x &&
@@ -284,11 +271,8 @@ void cSprite_Manager ::Get_Colliding_Objects(
     cSprite_List& col_objects, const GL_rect& rect, bool with_player /* = 0 */,
     const cSprite* exclude_sprite /* = NULL */) const {
   // Check objects
-  for (cSprite_List::const_iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
+  for (auto obj : objects) {
     // get object pointer
-    cSprite* obj = (*itr);
-
     // if destroyed object
     if (obj == exclude_sprite || obj->m_auto_destroy) {
       continue;
@@ -310,10 +294,7 @@ void cSprite_Manager ::Get_Colliding_Objects(
 }
 
 void cSprite_Manager ::Handle_Collision_Items(void) {
-  for (cSprite_List::iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
-    cSprite* obj = (*itr);
-
+  for (auto obj : objects) {
     // invalid
     if (obj->m_auto_destroy) {
       if (obj->m_collisions.size()) {
@@ -335,9 +316,8 @@ void cSprite_Manager ::Handle_Collision_Items(void) {
 unsigned int cSprite_Manager ::Get_Size_Array(const ArrayType sprite_array) {
   unsigned int count = 0;
 
-  for (cSprite_List::const_iterator itr = objects.begin(); itr != objects.end();
-       ++itr) {
-    if ((*itr)->m_sprite_array == sprite_array) {
+  for (auto object : objects) {
+    if (object->m_sprite_array == sprite_array) {
       count++;
     }
   }

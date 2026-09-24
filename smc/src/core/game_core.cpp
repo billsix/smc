@@ -435,10 +435,9 @@ void Preload_Images(bool draw_gui /* = 0 */) {
   unsigned int file_count = image_files.size();
 
   // load images
-  for (vector<std::string>::iterator itr = image_files.begin();
-       itr != image_files.end(); ++itr) {
+  for (auto& image_file : image_files) {
     // get filename
-    std::string filename = (*itr);
+    std::string filename = image_file;
 
     // preload image
     pVideo->Get_Surface(filename);
@@ -565,10 +564,9 @@ void Preload_Sounds(bool draw_gui /* = 0 */) {
   unsigned int file_count = sound_files.size();
 
   // load images
-  for (vector<std::string>::iterator itr = sound_files.begin();
-       itr != sound_files.end(); ++itr) {
+  for (auto& sound_file : sound_files) {
     // get filename
-    std::string filename = (*itr);
+    std::string filename = sound_file;
 
     // preload it
     pAudio->Get_Sound_File(filename);

@@ -118,10 +118,10 @@ bool Create_Directories(const std::string& dir) {
 }
 
 void Convert_Path_Separators(std::string& str) {
-  for (std::string::iterator itr = str.begin(); itr != str.end(); ++itr) {
+  for (char& itr : str) {
     // convert it
-    if (*itr == '\\' || *itr == '!') {
-      *itr = '/';
+    if (itr == '\\' || itr == '!') {
+      itr = '/';
     }
   }
 }

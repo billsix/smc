@@ -82,30 +82,26 @@ class cSprite_Manager : public cObject_Manager<cSprite> {
 
   // Update items drawing validation
   inline void Update_Items_Valid_Draw(void) {
-    for (cSprite_List::iterator itr = objects.begin(); itr != objects.end();
-         ++itr) {
-      (*itr)->Update_Valid_Draw();
+    for (auto& object : objects) {
+      object->Update_Valid_Draw();
     }
   }
   // Update items
   inline void Update_Items(void) {
-    for (cSprite_List::iterator itr = objects.begin(); itr != objects.end();
-         ++itr) {
-      (*itr)->Update();
+    for (auto& object : objects) {
+      object->Update();
     }
   }
   // Update_Late items
   inline void Update_Items_Late(void) {
-    for (cSprite_List::iterator itr = objects.begin(); itr != objects.end();
-         ++itr) {
-      (*itr)->Update_Late();
+    for (auto& object : objects) {
+      object->Update_Late();
     }
   }
   // Draw items
   inline void Draw_Items(void) {
-    for (cSprite_List::iterator itr = objects.begin(); itr != objects.end();
-         ++itr) {
-      (*itr)->Draw();
+    for (auto& object : objects) {
+      object->Draw();
     }
   }
 

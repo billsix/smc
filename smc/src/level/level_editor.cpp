@@ -71,11 +71,8 @@ void cEditor_Level ::Enable(void) {
   // player
   pLevel_Player->Reset_On_Ground();
   // sprite manager
-  for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-       itr != m_sprite_manager->objects.end(); ++itr) {
+  for (auto obj : m_sprite_manager->objects) {
     // get object pointer
-    cSprite* obj = (*itr);
-
     // skip destroyed objects
     if (obj->m_auto_destroy) {
       continue;
@@ -124,10 +121,7 @@ bool cEditor_Level ::Key_Down(SDLKey key) {
     float new_camera_posx = 0.0f;
     float new_camera_posy = 0.0f;
 
-    for (cSprite_List::iterator itr = m_sprite_manager->objects.begin();
-         itr != m_sprite_manager->objects.end(); ++itr) {
-      cSprite* obj = (*itr);
-
+    for (auto obj : m_sprite_manager->objects) {
       if (obj->m_sprite_array != ARRAY_ACTIVE) {
         continue;
       }
@@ -152,10 +146,8 @@ bool cEditor_Level ::Key_Down(SDLKey key) {
       // change state of the base object
       if (Switch_Object_State(mouse_obj)) {
         // change selected objects state to the base object state
-        for (SelectedObjectList::iterator itr =
-                 pMouseCursor->m_selected_objects.begin();
-             itr != pMouseCursor->m_selected_objects.end(); ++itr) {
-          cSprite* obj = (*itr)->m_obj;
+        for (auto& selected_object : pMouseCursor->m_selected_objects) {
+          cSprite* obj = selected_object->m_obj;
 
           // skip base object
           if (obj == mouse_obj) {
