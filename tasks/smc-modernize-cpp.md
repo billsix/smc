@@ -45,8 +45,11 @@ for the singletons (step 5).
 each), NOT autonomous batching. Recommended: build each with AddressSanitizer + run the smoke, and
 for the enum step add a level/save round-trip check, before trusting "done". ---**
 
-- [ ] Step 5 — ownership → `unique_ptr` / value (`cObject_Manager<T>` → `vector<unique_ptr<T>>`,
-  `Copy()` → `Clone()`, render-queue + savegame graph). Deep; verify with ASan.
+- [~] Step 5 — ownership → `unique_ptr` / value (`smc-modernize-step-5-ownership.md`, IN PROGRESS
+  on branch `modernize-cpp-2` off master). Landed as distinct bisectable commits: **5.1** render
+  queue owns its requests via `unique_ptr` (done, `8ac4af3`). Remaining: `cObject_Manager<T>` →
+  `vector<unique_ptr<T>>` + the ~63 read sites; `cSprite_Manager` semantics; `Copy()` → `Clone()`;
+  savegame graph. Deep; the maintainer play-tests the branch at the end and bisects.
 - [ ] Step 6 — one `cApplication` owning the 24 former singletons (fixes the destruction-order
   hazards + `pFramerate` leak by member-declaration order).
 - [ ] Step 7 — `enum class` + virtual dispatch replacing the type-tag switches. **Entangled with
