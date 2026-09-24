@@ -37,6 +37,7 @@
 #include "../video/renderer.h"
 #include "../core/i18n.h"
 #include "../gui/generic.h"
+#include <memory>
 
 #ifdef __APPLE__
 // needed for datapath detection
@@ -47,8 +48,45 @@
 // CEGUI
 #include "CEGUIDefaultLogger.h"
 
+namespace SMC {
+// Owns every process-global singleton for the whole run, so each is freed exactly once and in one
+// place (fixing the old hand-ordered Exit_Game -- including the cFramerate that used to leak). The
+// extern cX* pX globals stay as borrowed aliases into these members, set in Init_Game and cleared
+// in Exit_Game; the teardown order in Exit_Game is preserved from the original for now.
+class cApplication {
+ public:
+  std::unique_ptr<cResource_Manager> m_resource_manager;
+  std::unique_ptr<cVideo> m_video;
+  std::unique_ptr<cAudio> m_audio;
+  std::unique_ptr<cFont_Manager> m_font;
+  std::unique_ptr<cFramerate> m_framerate;
+  std::unique_ptr<cRenderQueue> m_renderer;
+  std::unique_ptr<cRenderQueue> m_renderer_current;
+  std::unique_ptr<cPreferences> m_preferences;
+  std::unique_ptr<cImage_Manager> m_image_manager;
+  std::unique_ptr<cSound_Manager> m_sound_manager;
+  std::unique_ptr<cImage_Settings_Parser> m_settings_parser;
+  std::unique_ptr<cCampaign_Manager> m_campaign_manager;
+  std::unique_ptr<cLevel_Player> m_level_player;
+  std::unique_ptr<cLevel_Manager> m_level_manager;
+  std::unique_ptr<cHud_Manager> m_hud_manager;
+  std::unique_ptr<cEditor_Level> m_level_editor;
+  std::unique_ptr<cEditor_World> m_world_editor;
+  std::unique_ptr<cMouseCursor> m_mouse_cursor;
+  std::unique_ptr<cKeyboard> m_keyboard;
+  std::unique_ptr<cJoystick> m_joystick;
+  std::unique_ptr<cOverworld_Player> m_overworld_player;
+  std::unique_ptr<cOverworld_Manager> m_overworld_manager;
+  std::unique_ptr<cMenuCore> m_menu_core;
+  std::unique_ptr<cSavegame> m_savegame;
+};
+}  // namespace SMC
+
 // SMC namespace is set later to exclude main() from it
 using namespace SMC;
+
+// owns the singletons; the pX globals are borrowed aliases into it
+static std::unique_ptr<cApplication> g_app;
 
 // SDLmain defines this for Win32 applications but under debug we use the console
 #if defined(__WIN32__) && defined(_DEBUG)
@@ -222,18 +260,32 @@ void Init_Game(void) {
   // init random number generator
   srand(static_cast<unsigned int>(time(nullptr)));
 
+  // the application object owns all the singletons; the pX globals are borrowed aliases into it
+  g_app = std::make_unique<cApplication>();
+
   // Init Stage 1 - core classes
-  pResource_Manager = new cResource_Manager();
-  pVideo = new cVideo();
-  pAudio = new cAudio();
-  pFont = new cFont_Manager();
-  pFramerate = new cFramerate();
-  pRenderer = new cRenderQueue(200);
-  pRenderer_current = new cRenderQueue(200);
-  pPreferences = new cPreferences();
-  pImage_Manager = new cImage_Manager();
-  pSound_Manager = new cSound_Manager();
-  pSettingsParser = new cImage_Settings_Parser();
+  g_app->m_resource_manager = std::make_unique<cResource_Manager>();
+  pResource_Manager = g_app->m_resource_manager.get();
+  g_app->m_video = std::make_unique<cVideo>();
+  pVideo = g_app->m_video.get();
+  g_app->m_audio = std::make_unique<cAudio>();
+  pAudio = g_app->m_audio.get();
+  g_app->m_font = std::make_unique<cFont_Manager>();
+  pFont = g_app->m_font.get();
+  g_app->m_framerate = std::make_unique<cFramerate>();
+  pFramerate = g_app->m_framerate.get();
+  g_app->m_renderer = std::make_unique<cRenderQueue>(200);
+  pRenderer = g_app->m_renderer.get();
+  g_app->m_renderer_current = std::make_unique<cRenderQueue>(200);
+  pRenderer_current = g_app->m_renderer_current.get();
+  g_app->m_preferences = std::make_unique<cPreferences>();
+  pPreferences = g_app->m_preferences.get();
+  g_app->m_image_manager = std::make_unique<cImage_Manager>();
+  pImage_Manager = g_app->m_image_manager.get();
+  g_app->m_sound_manager = std::make_unique<cSound_Manager>();
+  pSound_Manager = g_app->m_sound_manager.get();
+  g_app->m_settings_parser = std::make_unique<cImage_Settings_Parser>();
+  pSettingsParser = g_app->m_settings_parser.get();
 
   // Init Stage 2 - set preferences and init audio and the video screen
   /* Set default user directory
@@ -271,12 +323,15 @@ void Init_Game(void) {
   // audio init
   pAudio->Init();
 
-  pCampaign_Manager = new cCampaign_Manager();
-  pLevel_Player = new cLevel_Player(nullptr);
+  g_app->m_campaign_manager = std::make_unique<cCampaign_Manager>();
+  pCampaign_Manager = g_app->m_campaign_manager.get();
+  g_app->m_level_player = std::make_unique<cLevel_Player>(nullptr);
+  pLevel_Player = g_app->m_level_player.get();
   pLevel_Player->m_disallow_managed_delete = true;
   // set the first active player available
   pActive_Player = pLevel_Player;
-  pLevel_Manager = new cLevel_Manager();
+  g_app->m_level_manager = std::make_unique<cLevel_Manager>();
+  pLevel_Manager = g_app->m_level_manager.get();
   // set the first animation manager available
   pActive_Animation_Manager = pActive_Level->m_animation_manager;
   // set the first active sprite manager available
@@ -292,28 +347,42 @@ void Init_Game(void) {
 
   // Init Stage 3 - game classes
   // note : set any sprite manager as it is set again on game mode switch
-  pHud_Manager = new cHud_Manager(pActive_Level->m_sprite_manager);
+  g_app->m_hud_manager =
+      std::make_unique<cHud_Manager>(pActive_Level->m_sprite_manager);
+  pHud_Manager = g_app->m_hud_manager.get();
   pLevel_Player->Init();
-  pLevel_Editor =
-      new cEditor_Level(pActive_Level->m_sprite_manager, pActive_Level);
+  g_app->m_level_editor = std::make_unique<cEditor_Level>(
+      pActive_Level->m_sprite_manager, pActive_Level);
+  pLevel_Editor = g_app->m_level_editor.get();
   /* note : set any sprite manager as cOverworld_Manager::Load sets it again 
 	 * parent overworld is also set from there again
 	*/
-  pWorld_Editor = new cEditor_World(pActive_Level->m_sprite_manager, nullptr);
-  pMouseCursor = new cMouseCursor(pActive_Level->m_sprite_manager);
-  pKeyboard = new cKeyboard();
-  pJoystick = new cJoystick();
+  g_app->m_world_editor =
+      std::make_unique<cEditor_World>(pActive_Level->m_sprite_manager, nullptr);
+  pWorld_Editor = g_app->m_world_editor.get();
+  g_app->m_mouse_cursor =
+      std::make_unique<cMouseCursor>(pActive_Level->m_sprite_manager);
+  pMouseCursor = g_app->m_mouse_cursor.get();
+  g_app->m_keyboard = std::make_unique<cKeyboard>();
+  pKeyboard = g_app->m_keyboard.get();
+  g_app->m_joystick = std::make_unique<cJoystick>();
+  pJoystick = g_app->m_joystick.get();
   pLevel_Manager->Init();
   // note : set any sprite manager as cOverworld_Manager::Load sets it again
-  pOverworld_Player =
-      new cOverworld_Player(pActive_Level->m_sprite_manager, nullptr);
-  pOverworld_Manager = new cOverworld_Manager(pActive_Level->m_sprite_manager);
+  g_app->m_overworld_player = std::make_unique<cOverworld_Player>(
+      pActive_Level->m_sprite_manager, nullptr);
+  pOverworld_Player = g_app->m_overworld_player.get();
+  g_app->m_overworld_manager =
+      std::make_unique<cOverworld_Manager>(pActive_Level->m_sprite_manager);
+  pOverworld_Manager = g_app->m_overworld_manager.get();
   // set default overworld active
   pOverworld_Player->Set_Overworld(pOverworld_Manager->Get("World 1"));
   pOverworld_Manager->Set_Active("World 1");
   pHud_Manager->Load();
-  pMenuCore = new cMenuCore();
-  pSavegame = new cSavegame();
+  g_app->m_menu_core = std::make_unique<cMenuCore>();
+  pMenuCore = g_app->m_menu_core.get();
+  g_app->m_savegame = std::make_unique<cSavegame>();
+  pSavegame = g_app->m_savegame.get();
 
   // cache
   Preload_Images(true);
@@ -329,95 +398,61 @@ void Exit_Game(void) {
   pLevel_Manager->Unload();
   pMenuCore->m_handler->m_level->Unload();
 
-  if (pAudio) {
-    delete pAudio;
-    pAudio = nullptr;
-  }
+  g_app->m_audio.reset();
+  pAudio = nullptr;
 
-  if (pLevel_Player) {
-    delete pLevel_Player;
-    pLevel_Player = nullptr;
-  }
+  g_app->m_level_player.reset();
+  pLevel_Player = nullptr;
 
-  if (pHud_Manager) {
-    delete pHud_Manager;
-    pHud_Manager = nullptr;
-  }
+  g_app->m_hud_manager.reset();
+  pHud_Manager = nullptr;
 
-  if (pSound_Manager) {
-    delete pSound_Manager;
-    pSound_Manager = nullptr;
-  }
+  g_app->m_sound_manager.reset();
+  pSound_Manager = nullptr;
 
-  if (pLevel_Editor) {
-    delete pLevel_Editor;
-    pLevel_Editor = nullptr;
-  }
+  g_app->m_level_editor.reset();
+  pLevel_Editor = nullptr;
 
-  if (pWorld_Editor) {
-    delete pWorld_Editor;
-    pWorld_Editor = nullptr;
-  }
+  g_app->m_world_editor.reset();
+  pWorld_Editor = nullptr;
 
-  if (pPreferences) {
-    delete pPreferences;
-    pPreferences = nullptr;
-  }
+  g_app->m_preferences.reset();
+  pPreferences = nullptr;
 
-  if (pSavegame) {
-    delete pSavegame;
-    pSavegame = nullptr;
-  }
+  g_app->m_savegame.reset();
+  pSavegame = nullptr;
 
-  if (pMouseCursor) {
-    delete pMouseCursor;
-    pMouseCursor = nullptr;
-  }
+  g_app->m_mouse_cursor.reset();
+  pMouseCursor = nullptr;
 
-  if (pJoystick) {
-    delete pJoystick;
-    pJoystick = nullptr;
-  }
+  g_app->m_joystick.reset();
+  pJoystick = nullptr;
 
-  if (pKeyboard) {
-    delete pKeyboard;
-    pKeyboard = nullptr;
-  }
+  g_app->m_keyboard.reset();
+  pKeyboard = nullptr;
 
-  if (pCampaign_Manager) {
-    delete pCampaign_Manager;
-    pCampaign_Manager = nullptr;
-  }
+  g_app->m_campaign_manager.reset();
+  pCampaign_Manager = nullptr;
 
-  if (pOverworld_Manager) {
-    delete pOverworld_Manager;
-    pOverworld_Manager = nullptr;
-  }
+  g_app->m_overworld_manager.reset();
+  pOverworld_Manager = nullptr;
 
-  if (pOverworld_Player) {
-    delete pOverworld_Player;
-    pOverworld_Player = nullptr;
-  }
+  g_app->m_overworld_player.reset();
+  pOverworld_Player = nullptr;
 
-  if (pLevel_Manager) {
-    delete pLevel_Manager;
-    pLevel_Manager = nullptr;
-  }
+  g_app->m_level_manager.reset();
+  pLevel_Manager = nullptr;
 
-  if (pMenuCore) {
-    delete pMenuCore;
-    pMenuCore = nullptr;
-  }
+  g_app->m_menu_core.reset();
+  pMenuCore = nullptr;
 
-  if (pRenderer) {
-    delete pRenderer;
-    pRenderer = nullptr;
-  }
+  g_app->m_renderer.reset();
+  pRenderer = nullptr;
 
-  if (pRenderer_current) {
-    delete pRenderer_current;
-    pRenderer_current = nullptr;
-  }
+  g_app->m_renderer_current.reset();
+  pRenderer_current = nullptr;
+  g_app->m_framerate.reset();
+  pFramerate = nullptr;
 
   if (pGuiSystem) {
     CEGUI::ResourceProvider* rp = pGuiSystem->getResourceProvider();
@@ -433,35 +468,28 @@ void Exit_Game(void) {
     pGuiRenderer = nullptr;
   }
 
-  if (pVideo) {
-    delete pVideo;
-    pVideo = nullptr;
-  }
+  g_app->m_video.reset();
+  pVideo = nullptr;
 
-  if (pImage_Manager) {
-    delete pImage_Manager;
-    pImage_Manager = nullptr;
-  }
+  g_app->m_image_manager.reset();
+  pImage_Manager = nullptr;
 
-  if (pSettingsParser) {
-    delete pSettingsParser;
-    pSettingsParser = nullptr;
-  }
+  g_app->m_settings_parser.reset();
+  pSettingsParser = nullptr;
 
-  if (pFont) {
-    delete pFont;
-    pFont = nullptr;
-  }
+  g_app->m_font.reset();
+  pFont = nullptr;
 
-  if (pResource_Manager) {
-    delete pResource_Manager;
-    pResource_Manager = nullptr;
-  }
+  g_app->m_resource_manager.reset();
+  pResource_Manager = nullptr;
 
   const char* last_sdl_error = SDL_GetError();
   if (strlen(last_sdl_error) > 0) {
     printf("Last known SDL Error : %s\n", last_sdl_error);
   }
+
+  // free the (now empty) application object
+  g_app.reset();
 
   // unload the sdl_image preloaded libraries
   IMG_Quit();

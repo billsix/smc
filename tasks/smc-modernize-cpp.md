@@ -67,10 +67,15 @@ names (`tasks/smc-descriptive-variable-names.md`) come AFTER all cpp modernizati
 - [x] Step 8 (loops) — ~252 iterator loops → range-for (MERGED). Remaining under step 8:
   `std::format` for `int_to_string`/`ostringstream`/`sprintf`, and the once-per-frame `PlayerInput`
   struct (behavioral).
-- [ ] Step 6 — one `cApplication` owning the 24 former singletons (fixes destruction-order hazards
-  + `pFramerate` leak by member-declaration order). Pragmatic form: own them as `unique_ptr`
-  members in dependency order and keep the `extern cX* pX` globals as borrowed aliases set once, so
-  the thousands of `pX->` sites are untouched.
+- [x] **Step 6 — `cApplication` owns the 24 singletons via `unique_ptr`** (main.cpp; branch
+  `modernize-cpp-3`). A `cApplication` holds all 24 as `unique_ptr` members; `Init_Game` creates
+  each into a member and sets the `extern cX* pX` global as a borrowed alias (so the thousands of
+  `pX->` sites are untouched); `Exit_Game` `reset()`s them **in the original teardown order**
+  (preserved deliberately — reverse-declaration auto-teardown is smoke-invisible and left as a
+  follow-up) and the `pFramerate` that used to LEAK is now freed (`~cFramerate` is self-contained).
+  Builds + links; startup verified by smoke. **Teardown is not smoke-verified** (the smoke SIGKILLs,
+  skipping `Exit_Game`); it is preserved-order plus one new safe free, so risk is minimal — the
+  maintainer's quit-the-game play-test is the teardown gate.
 - [ ] Step 7 — `enum class` + virtual dispatch replacing the type-tag switches. **Entangled with
   the level/save FILE FORMAT** (the enum ints are serialized) — keep a serialization boundary; do
   the non-serialized enums first.
