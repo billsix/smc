@@ -33,9 +33,15 @@ two `cObject_Manager` bugs are gone by construction. Grounded in
   `vector<unique_ptr<cRender_Request>>`; `Add` adopts the raw pointer (so the 61 `Add(new c*_Request)`
   call sites are untouched); `Clear` frees by erase (`std::erase_if` / `clear`), no hand-`delete`;
   `zpos_sort` + the render/fake-render loops updated. Self-contained. Build + smoke green.
-- [ ] 5.2 `cObject_Manager<T>` base → `vector<unique_ptr<T>>` for the *simple* managers (not
-  cSprite_Manager): update the base API + the ~63 `->objects` read sites. Fixes both dead bugs by
-  construction.
+- [x] **5.2a `cLayer` un-derived from `cObject_Manager`** (world_layer.{h,cpp}): `cLayer` now holds
+  a plain non-owning `LayerLineList objects` (matches today — the sprite manager owns the line
+  points; `cLayer::Destroy`→`Delete(this,false)` and `Delete_All` are remove-without-free). This
+  removes the double-ownership blocker so the base flip can make everything else `unique_ptr`.
+  Behavior-identical (`objects` stays `vector<raw*>`); build + smoke green. Confirmed
+  `cWorld_Sprite_Manager::Add` also feeds the SAME pointer to the sprite manager (owner) and the
+  layer (borrower).
+- [ ] 5.2 `cObject_Manager<T>` base → `vector<unique_ptr<T>>` (now that cLayer is out): update the
+  base API + the remaining index/copy/alias sites. Fixes both dead bugs by construction.
 - [ ] 5.3 `cSprite_Manager` storage → `unique_ptr`, preserving the player exemption + auto-destroy
   + z-order semantics (highest risk; own commit).
 - [ ] 5.4 `Copy()` → `unique_ptr<cSprite> Clone() const override` across the sprite hierarchy.
@@ -96,7 +102,5 @@ size/empty/clear (e). The dangerous minority:
 
 ## Open questions
 
-1. Line-point ownership under a `unique_ptr` base: make `cLayer` a non-owning
-   `vector<cLayer_Line_Point_Start*>` (recommended — matches today's clear-only Delete_All), or
-   keep it a manager and have `cSprite_Manager` borrow instead? (Needed before 5.2; my
-   recommendation is to make `cLayer` non-owning.)
+None. (The line-point ownership question is resolved: `cLayer` is now non-owning — 5.2a — matching
+the pre-existing runtime behavior, so no design change, just made explicit.)

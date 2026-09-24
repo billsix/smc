@@ -295,7 +295,7 @@ void cLayer ::Add(cLayer_Line_Point_Start* line_point) {
     }
   }
 
-  cObject_Manager<cLayer_Line_Point_Start>::Add(line_point);
+  objects.push_back(line_point);
 
   // check if in sprite manager
   if (m_overworld->m_sprite_manager->Get_Array_Num(line_point) == -1) {
@@ -308,6 +308,40 @@ void cLayer ::Add(cLayer_Line_Point_Start* line_point) {
     // add end point
     m_overworld->m_sprite_manager->Add(line_point->m_linked_point);
   }
+}
+
+int cLayer ::Get_Array_Num(const cLayer_Line_Point_Start* obj) const {
+  if (!obj) {
+    return -1;
+  }
+
+  LayerLineList::const_iterator itr =
+      std::find(objects.begin(), objects.end(), obj);
+
+  if (itr == objects.end()) {
+    return -1;
+  }
+
+  return std::distance(objects.begin(), itr);
+}
+
+bool cLayer ::Delete(cLayer_Line_Point_Start* obj, bool delete_data /* = 1 */) {
+  if (!obj) {
+    return false;
+  }
+
+  LayerLineList::iterator itr = std::find(objects.begin(), objects.end(), obj);
+
+  if (itr != objects.end()) {
+    objects.erase(itr);
+  }
+
+  // the sprite manager owns line points, so live callers pass delete_data = false
+  if (delete_data) {
+    delete obj;
+  }
+
+  return true;
 }
 
 void cLayer ::Load(const std::string& filename) {

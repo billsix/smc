@@ -128,14 +128,27 @@ using LayerLineList = vector<cLayer_Line_Point_Start*>;
 
 // Layer class
 // handles the line collision detection
-class cLayer : public CEGUI::XMLHandler,
-               public cObject_Manager<cLayer_Line_Point_Start> {
+// A cLayer does NOT own its line points: they are owned (and freed) by the overworld's
+// cSprite_Manager, which cWorld_Sprite_Manager also feeds into this layer. The layer holds
+// borrowed pointers, so it is a plain non-owning list, not a cObject_Manager.
+class cLayer : public CEGUI::XMLHandler {
  public:
   cLayer(cOverworld* origin);
   ~cLayer(void) override;
 
   // Add a layer line
-  void Add(cLayer_Line_Point_Start* line_point) override;
+  void Add(cLayer_Line_Point_Start* line_point);
+
+  // The layer's line points (borrowed; the sprite manager owns and frees them)
+  LayerLineList objects;
+  // Number of line points
+  size_t size(void) const { return objects.size(); }
+  // Return the line point's index, or -1 if not present
+  int Get_Array_Num(const cLayer_Line_Point_Start* obj) const;
+  /* Remove a line point from the layer
+	 * delete_data : if set, free it -- but the sprite manager owns these, so callers pass false
+	*/
+  bool Delete(cLayer_Line_Point_Start* obj, bool delete_data = true);
 
   // Load from file
   void Load(const std::string& filename);
@@ -143,8 +156,8 @@ class cLayer : public CEGUI::XMLHandler,
   // Save
   bool Save(const std::string& filename);
 
-  // Delete all objects
-  void Delete_All(void) override;
+  // Delete all line points from this layer (does not free them -- the sprite manager does)
+  void Delete_All(void);
 
   /* Returns the colliding Line start point
 	 * if not found returns NULL
