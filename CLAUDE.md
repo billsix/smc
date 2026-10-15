@@ -26,7 +26,8 @@ release dates, tagged `v<version>`), then the 211 commits of github.com/FluXy/SM
   known bugs. The three ideas it opens with: identity is a runtime `m_type` tag (not the C++ type),
   there are 24 hand-ordered global singletons, and there are zero `override` keywords. (The last two
   describe the pre-modernization code; the `modernize-cpp-3` branch replaced the singletons with a
-  `cApplication` owning them as `unique_ptr` members and added `override` throughout — see
+  `cApplication` that owns them — now through a `cOwned<T>` wrapper destroyed in reverse declaration
+  order, after the 2026-10-15 coding-standard pass — and added `override` throughout — see
   `tasks/reference/refactoring-to-modern-cpp.md`.)
 - **`smc/src` is clang-format google style** (`smc/.clang-format`; `make format` maintains it).
   The whole-tree reformat commit is listed in `.git-blame-ignore-revs`, so run
@@ -37,7 +38,7 @@ release dates, tagged `v<version>`), then the 211 commits of github.com/FluXy/SM
   `tasks/smc-modernize-step-{7-enums-dispatch,8-strings-input,9-dedup-cegui}.md`.
 - **The C++ style is the shared cross-project standard** (`~/.claude/reference/cpp-coding-standard.md`,
   mirrored from runClaudeInContainer). A follow-up pass applied it to smc
-  (`tasks/smc-apply-cpp-coding-standard.md`): ownership now goes through the manager APIs
+  (`tasks/archive/2026/10/15/smc-apply-cpp-coding-standard.md`): ownership now goes through the manager APIs
   (`Add(std::unique_ptr<T>)` returning a borrowed `T*`), always-present non-polymorphic subobjects
   are value members rather than `unique_ptr`, and the global singletons are owned by `cApplication`
   through a `cOwned<T>` wrapper and destroyed in reverse declaration order (so the teardown needs no

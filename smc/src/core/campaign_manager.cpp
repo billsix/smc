@@ -66,8 +66,8 @@ void cCampaign_Manager ::Load(void) {
       campaign->m_user = 1;
 
       // remove name from game files
-      for (auto game_itr = game_files.begin();
-           game_itr != game_files.end(); ++game_itr) {
+      for (auto game_itr = game_files.begin(); game_itr != game_files.end();
+           ++game_itr) {
         std::string game_name = (*game_itr);
         // remove base directory
         game_name.erase(0, game_dir_length);

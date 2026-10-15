@@ -538,8 +538,7 @@ bool cMouseCursor ::Remove_Copy_Object(const cSprite* sprite) {
     return false;
   }
 
-  for (auto itr = m_copy_objects.begin();
-       itr != m_copy_objects.end(); ++itr) {
+  for (auto itr = m_copy_objects.begin(); itr != m_copy_objects.end(); ++itr) {
     cCopyObject* copy_obj = itr->get();
 
     if (copy_obj->m_obj.get() == sprite) {
@@ -662,8 +661,8 @@ bool cMouseCursor ::Remove_Selected_Object(const cSprite* sprite,
     return false;
   }
 
-  for (auto itr = m_selected_objects.begin();
-       itr != m_selected_objects.end(); ++itr) {
+  for (auto itr = m_selected_objects.begin(); itr != m_selected_objects.end();
+       ++itr) {
     cSelectedObject* sel_obj = itr->get();
 
     if (sel_obj->m_obj == sprite) {

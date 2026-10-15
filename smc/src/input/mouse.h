@@ -93,8 +93,8 @@ class cMouseCursor : public cMovingSprite {
 	 * returns the collision if an object was found else NULL
 	 * The collision data should be deleted if not used anymore
 	*/
-  [[nodiscard]] std::unique_ptr<cObjectCollision> Get_First_Editor_Collsion(float px = 0.0f,
-                                                              float py = 0.0f);
+  [[nodiscard]] std::unique_ptr<cObjectCollision> Get_First_Editor_Collsion(
+      float px = 0.0f, float py = 0.0f);
   /* Get the first object colliding with the mouse
 	 * returns the collision if an object was found else NULL
 	 * The collision data should be deleted if not used anymore

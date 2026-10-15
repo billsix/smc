@@ -321,8 +321,7 @@ void cBonusBox ::Update(void) {
   }
 
   // update active items
-  for (auto itr = m_active_items.begin();
-       itr != m_active_items.end();) {
+  for (auto itr = m_active_items.begin(); itr != m_active_items.end();) {
     cPowerUp* powerup = static_cast<cPowerUp*>(itr->get());
 
     if (!powerup->m_active) {

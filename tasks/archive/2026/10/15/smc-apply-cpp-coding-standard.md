@@ -1,12 +1,20 @@
 # Bring the modernized tree in line with the shared C++ coding standard (ownership first)
 
-**Status:** CODE-COMPLETE, STAGED — go-ahead 2026-10-15 (William Emerison Six <billsix@gmail.com>);
-the four open questions were answered the same day (recorded under Notes / decisions). All phases
-(A–I) done: A–F committed by the maintainer ("mid work"); E, G, H and the harvest (I) staged. The
-final gate passed (full `make image` + smoke + codemod fixpoint). **Remaining before archive: the
-maintainer's play-test of the teardown, then the maintainer's work commit; archive is its own commit
-after that.** **Stage only — no agent commits**; the per-phase file ledger below lets the maintainer
-split commits with `git add -p`.
+**Status:** COMPLETED — archived 2026-10-15 at the maintainer's instruction (William Emerison Six
+<billsix@gmail.com>); the four open questions were answered the same day (recorded under Notes /
+decisions). All phases (A–I) done: A–F committed ("mid work"/"updated"); E, G, H and the harvest (I)
+staged. The final gate passed (full `make image` + smoke + codemod fixpoint).
+
+> **CAVEAT — NOT play-tested.** The Phase E reverse-declaration-order teardown (`cOwned<T>` in
+> `cApplication`, CEGUI into `~cVideo`) was verified only by the headless smoke run and the ASan
+> build, **both of which hard-kill the process before `Exit_Game` runs** — so the quit path was
+> never exercised. The maintainer closed the task without the play-test (quit from a menu, a level
+> and the editor). If a crash or leak on quit surfaces later, re-open and start from Phase E in the
+> ledger. Everything else (the running game, ownership transfer, the value/`unique_ptr` split) is
+> covered by the gate.
+
+**Stage only — no agent commits**; the per-phase file ledger below lets the maintainer split commits
+with `git add -p`.
 **Priority:** 3 · **Difficulty:** 6 (mostly compiler-driven mechanical edits; two phases are
 gameplay/teardown-sensitive and need the maintainer's play-test)
 **Depends on:** nothing in flight; the modernization umbrella is archived
@@ -232,6 +240,13 @@ double-free crept in.
       the compile-driven `const auto&` pass). Its own small task in runClaudeInContainer.
 
 ## Ledger (per phase: what landed, files, numbers)
+
+> **The codemods cited below (`tasks/adhoc/apply-cpp-standard/*.py`) were `git rm`d in the archive
+> commit per the one-shot-script convention.** Their content is preserved in git history — recover
+> any with `git log --diff-filter=D --stat -- tasks/adhoc/apply-cpp-standard/` then
+> `git show <sha>:tasks/adhoc/apply-cpp-standard/<name>.py`. `const_loops.py` was the one reusable
+> one (const-ify observation loops, then compiler-driven revert); promote it to `tools/` from history
+> if a future pass wants it.
 
 ### Phase A + B — ownership transfer through the API (DONE 2026-10-15; build + smoke green)
 
@@ -481,10 +496,11 @@ double-free crept in.
   above (a bare grep overcounts both — it catches comment prose and CEGUI's own `new`/`delete`
   protocol); the remaining `delete`s are CEGUI's fake-system / logger / editor-texture sites.
 
-### Still open (next steps)
+### Deferred past close (not blockers)
 
-- **Play-test — maintainer only, required to close.** Quit from a menu, a level and the editor to
-  verify the Phase E reverse-order teardown; the smoke and ASan hard-kill before `Exit_Game`.
+- **Play-test — deferred by the maintainer (see the CAVEAT at the top).** Quit from a menu, a level
+  and the editor would verify the Phase E reverse-order teardown; the smoke and ASan hard-kill before
+  `Exit_Game`, so that path is unverified. Re-open if a quit-time crash/leak appears.
 - **Full L1/L2 body rewrite of `tasks/reference/smc/ownership-and-lifetime.md` — optional, own
   task.** Flagged in its banner; predates this task.
 - **Play-test — maintainer only.** Quit from a menu, a level and the editor to verify the Phase E

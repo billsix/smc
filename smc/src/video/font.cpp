@@ -91,8 +91,7 @@ void cFont_Manager ::Add_Ref(cGL_Surface* surface) {
 }
 
 void cFont_Manager ::Delete_Ref(cGL_Surface* surface) {
-  for (auto itr = m_active_fonts.begin();
-       itr != m_active_fonts.end(); ++itr) {
+  for (auto itr = m_active_fonts.begin(); itr != m_active_fonts.end(); ++itr) {
     cGL_Surface* obj = (*itr);
 
     // delete reference if found

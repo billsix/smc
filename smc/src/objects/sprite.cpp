@@ -891,7 +891,8 @@ void cSprite ::Draw_Image(cSurface_Request* request /* = nullptr */) const {
   }
 }
 
-void cSprite ::Draw_Image_Normal(cSurface_Request* request /* = nullptr */) const {
+void cSprite ::Draw_Image_Normal(
+    cSurface_Request* request /* = nullptr */) const {
   // texture id
   request->m_texture_id = m_image->m_image;
 
@@ -986,7 +987,8 @@ void cSprite ::Draw_Image_Normal(cSurface_Request* request /* = nullptr */) cons
   }
 }
 
-void cSprite ::Draw_Image_Editor(cSurface_Request* request /* = nullptr */) const {
+void cSprite ::Draw_Image_Editor(
+    cSurface_Request* request /* = nullptr */) const {
   // texture id
   request->m_texture_id = m_start_image->m_image;
 

@@ -188,7 +188,6 @@ int cSavegame ::Load_Game(unsigned int save_slot) {
       }
 
       for (const auto& save_waypoint : save_overworld->m_waypoints) {
-
         // get overworld waypoint
         cWaypoint* waypoint = overworld->Get_Waypoint(
             overworld->Get_Waypoint_Num(save_waypoint->m_destination));

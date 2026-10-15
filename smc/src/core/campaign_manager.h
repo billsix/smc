@@ -59,7 +59,8 @@ class cCampaign_Manager : public cObject_Manager<cCampaign> {
   // load all campaigns
   void Load(void);
   // load a campaign (the caller owns the result; empty on failure)
-  [[nodiscard]] std::unique_ptr<cCampaign> Load_Campaign(const std::string& filename);
+  [[nodiscard]] std::unique_ptr<cCampaign> Load_Campaign(
+      const std::string& filename);
 
   // Get campaign from name
   cCampaign* Get_from_Name(const std::string& name);

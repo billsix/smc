@@ -10,7 +10,7 @@ pointers — every owner is a raw pointer or a `vector<T*>`, freed by hand.
 >   the render queue / sprite clones / savegame graph own via `unique_ptr`, and the 24 singletons
 >   became `unique_ptr` members of a `cApplication` (the `pFramerate` leak fixed). What each part
 >   became, and why: `tasks/reference/refactoring-to-modern-cpp.md`.
-> - **Coding-standard pass (2026-10-15, `tasks/smc-apply-cpp-coding-standard.md`):** ownership now
+> - **Coding-standard pass (2026-10-15, `tasks/archive/2026/10/15/smc-apply-cpp-coding-standard.md`):** ownership now
 >   transfers through the manager APIs (`Add(std::unique_ptr<T>)` → borrowed `T*`); always-present
 >   non-polymorphic subobjects are **value** members, not `unique_ptr`; and the singletons are owned
 >   through a `cOwned<T>` wrapper destroyed in **reverse declaration order**, so there is no

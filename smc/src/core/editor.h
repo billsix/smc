@@ -177,9 +177,9 @@ class cEditor : public CEGUI::XMLHandler {
   // Active Item Entry
   virtual void Activate_Item(cEditor_Item_Object* entry);
   // return the sprite object
-  [[nodiscard]] virtual std::unique_ptr<cSprite> Get_Object(const CEGUI::String& element,
-                                              CEGUI::XMLAttributes& attributes,
-                                              int engine_version);
+  [[nodiscard]] virtual std::unique_ptr<cSprite> Get_Object(
+      const CEGUI::String& element, CEGUI::XMLAttributes& attributes,
+      int engine_version);
 
   // #### Editor Functions
   /* copy the given object(s) next to itself into the given direction

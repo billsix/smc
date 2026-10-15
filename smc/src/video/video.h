@@ -158,9 +158,8 @@ class cVideo {
 	 * print_errors : print errors if image couldn't be created or loaded
 	 * The returned image should be deleted if not used anymore
 	*/
-  [[nodiscard]] std::unique_ptr<cGL_Surface> Load_GL_Surface(std::string filename,
-                                               bool use_settings = true,
-                                               bool print_errors = true);
+  [[nodiscard]] std::unique_ptr<cGL_Surface> Load_GL_Surface(
+      std::string filename, bool use_settings = true, bool print_errors = true);
 
   /* Convert to a scaled software image with a power of 2 size and 32 bits per pixel.
 	 * Conversion only happens if needed.

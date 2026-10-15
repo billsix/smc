@@ -47,9 +47,9 @@ class cEditor_World : public cEditor {
   // Set Active Menu Entry
   void Activate_Menu_Item(cEditor_Menu_Object* entry) override;
   // return the sprite object
-  [[nodiscard]] std::unique_ptr<cSprite> Get_Object(const CEGUI::String& element,
-                                      CEGUI::XMLAttributes& attributes,
-                                      int engine_version) override;
+  [[nodiscard]] std::unique_ptr<cSprite> Get_Object(
+      const CEGUI::String& element, CEGUI::XMLAttributes& attributes,
+      int engine_version) override;
 
   // Menu functions
   bool Function_New(void) override;

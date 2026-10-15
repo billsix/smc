@@ -97,11 +97,10 @@ void cSprite_Manager ::Move_To_Front(cSprite* sprite) {
   }
 
   // get iterator
-  auto itr =
-      std::find_if(objects.begin(), objects.end(),
-                   [sprite](const std::unique_ptr<cSprite>& p) {
-                     return p.get() == sprite;
-                   });
+  auto itr = std::find_if(objects.begin(), objects.end(),
+                          [sprite](const std::unique_ptr<cSprite>& p) {
+                            return p.get() == sprite;
+                          });
 
   // not available
   if (itr == objects.end()) {
@@ -130,11 +129,10 @@ void cSprite_Manager ::Move_To_Back(cSprite* sprite) {
   }
 
   // get iterator
-  auto itr =
-      std::find_if(objects.begin(), objects.end(),
-                   [sprite](const std::unique_ptr<cSprite>& p) {
-                     return p.get() == sprite;
-                   });
+  auto itr = std::find_if(objects.begin(), objects.end(),
+                          [sprite](const std::unique_ptr<cSprite>& p) {
+                            return p.get() == sprite;
+                          });
 
   // not available
   if (itr == objects.end()) {

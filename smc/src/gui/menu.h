@@ -141,9 +141,9 @@ class cMenuCore {
   bool Joy_Button_Up(Uint8 button);
 
   // Returns a Menu with the common image filenames
-  [[nodiscard]] std::unique_ptr<cMenu_Item> Auto_Menu(std::string imagename,
-                                        std::string imagename_menu,
-                                        float ypos = 0, bool is_quit = false);
+  [[nodiscard]] std::unique_ptr<cMenu_Item> Auto_Menu(
+      std::string imagename, std::string imagename_menu, float ypos = 0,
+      bool is_quit = false);
 
   /* Load the given Menu
 	 * exit_gamemode : return to this game mode on exit

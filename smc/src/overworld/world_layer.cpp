@@ -311,8 +311,7 @@ int cLayer ::Get_Array_Num(const cLayer_Line_Point_Start* obj) const {
     return -1;
   }
 
-  auto itr =
-      std::find(objects.begin(), objects.end(), obj);
+  auto itr = std::find(objects.begin(), objects.end(), obj);
 
   if (itr == objects.end()) {
     return -1;

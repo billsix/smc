@@ -306,8 +306,7 @@ void cPlayerPoints ::Draw(cSurface_Request* request /* = nullptr */) {
   cHudSprite::Draw(request);
 
   // draw small points
-  for (auto itr = m_points_objects.begin();
-       itr != m_points_objects.end();) {
+  for (auto itr = m_points_objects.begin(); itr != m_points_objects.end();) {
     // get object pointer
     PointsText* obj = itr->get();
 

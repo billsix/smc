@@ -826,8 +826,7 @@ bool cEditor ::Key_Down(SDLKey key) {
   else if (key == SDLK_x && pKeyboard->Is_Ctrl_Down()) {
     pMouseCursor->Clear_Copy_Objects();
 
-    for (auto itr =
-             pMouseCursor->m_selected_objects.begin();
+    for (auto itr = pMouseCursor->m_selected_objects.begin();
          itr != pMouseCursor->m_selected_objects.end(); ++itr) {
       cSelectedObject* sel_obj = itr->get();
 
@@ -840,8 +839,7 @@ bool cEditor ::Key_Down(SDLKey key) {
   else if (key == SDLK_c && pKeyboard->Is_Ctrl_Down()) {
     pMouseCursor->Clear_Copy_Objects();
 
-    for (auto itr =
-             pMouseCursor->m_selected_objects.begin();
+    for (auto itr = pMouseCursor->m_selected_objects.begin();
          itr != pMouseCursor->m_selected_objects.end(); ++itr) {
       cSelectedObject* sel_obj = itr->get();
 

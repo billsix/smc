@@ -885,7 +885,6 @@ void cLevel_Player ::Start_Falling(void) {
 
   // check possible new ground objects
   for (const auto& collision : col_list->objects) {
-
     // blocked by new ground object
     if (collision->m_obj != m_ground_object &&
         collision->m_obj->m_can_be_ground) {
@@ -1101,7 +1100,6 @@ bool cLevel_Player ::Is_On_Climbable(float move_y /* = 0.0f */) {
 
   // check objects
   for (const auto& collision : col_list->objects) {
-
     // collision with climbable object
     if (collision->m_obj->m_massive_type == MASS_CLIMBABLE) {
       return true;

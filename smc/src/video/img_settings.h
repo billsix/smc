@@ -81,8 +81,8 @@ class cImage_Settings_Parser : public cFile_parser {
 	 * load_base_settings : if set will overwrite settings with all base settings if available
 	 * The returned settings data should be deleted if not used anymore
 	*/
-  [[nodiscard]] std::unique_ptr<cImage_Settings_Data> Get(const std::string& filename,
-                                            bool load_base_settings = true);
+  [[nodiscard]] std::unique_ptr<cImage_Settings_Data> Get(
+      const std::string& filename, bool load_base_settings = true);
 
   // Handle one tokenized line
   bool HandleMessage(const std::string* parts, unsigned int count,

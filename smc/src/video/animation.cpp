@@ -853,8 +853,7 @@ void cParticle_Emitter ::Update(void) {
 
 void cParticle_Emitter ::Update_Particles(void) {
   // update objects
-  for (auto itr = m_objects.begin();
-       itr != m_objects.end();) {
+  for (auto itr = m_objects.begin(); itr != m_objects.end();) {
     // get object pointer
     cParticle* obj = itr->get();
 
