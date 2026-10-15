@@ -49,12 +49,7 @@ cLevel_Exit ::cLevel_Exit(CEGUI::XMLAttributes& attributes,
   cLevel_Exit::Load_From_XML(attributes);
 }
 
-cLevel_Exit ::~cLevel_Exit(void) {
-  if (m_editor_entry_name) {
-    delete m_editor_entry_name;
-    m_editor_entry_name = nullptr;
-  }
-}
+cLevel_Exit ::~cLevel_Exit(void) = default;
 
 void cLevel_Exit ::Init(void) {
   m_sprite_array = ARRAY_ACTIVE;
@@ -83,7 +78,7 @@ void cLevel_Exit ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cLevel_Exit ::Copy(void) const {
-  cLevel_Exit* level_exit = new cLevel_Exit(m_sprite_manager);
+  auto level_exit = std::make_unique<cLevel_Exit>(m_sprite_manager);
   level_exit->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   level_exit->Set_Type(m_exit_type);
   level_exit->Set_Camera_Motion(m_exit_motion);
@@ -91,7 +86,7 @@ std::unique_ptr<cSprite> cLevel_Exit ::Copy(void) const {
   level_exit->Set_Direction(m_start_direction);
   level_exit->Set_Level(m_dest_level);
   level_exit->Set_Entry(m_dest_entry);
-  return std::unique_ptr<cSprite>(level_exit);
+  return level_exit;
 }
 
 void cLevel_Exit ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -194,7 +189,7 @@ void cLevel_Exit ::Create_Name(void) {
   }
 }
 
-void cLevel_Exit ::Draw(cSurface_Request* request /* = NULL */) {
+void cLevel_Exit ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -207,15 +202,16 @@ void cLevel_Exit ::Draw(cSurface_Request* request /* = NULL */) {
   // draw destination entry name
   if (m_editor_entry_name) {
     // create request
-    cSurface_Request* surface_request = new cSurface_Request();
+    auto surface_request = std::make_unique<cSurface_Request>();
     // blit
     m_editor_entry_name->Blit(
         m_col_rect.m_x + m_col_rect.m_w + 5 - pActive_Camera->m_x,
-        m_col_rect.m_y - pActive_Camera->m_y, m_editor_pos_z, surface_request);
+        m_col_rect.m_y - pActive_Camera->m_y, m_editor_pos_z,
+        surface_request.get());
     surface_request->m_shadow_pos = 2;
     surface_request->m_shadow_color = lightgreyalpha64;
     // add request
-    pRenderer->Add(surface_request);
+    pRenderer->Add(std::move(surface_request));
   }
 }
 
@@ -357,11 +353,6 @@ std::string cLevel_Exit ::Get_Level(bool with_dir /* = 1 */,
 }
 
 void cLevel_Exit ::Set_Entry(const std::string& entry_name) {
-  if (m_editor_entry_name) {
-    delete m_editor_entry_name;
-    m_editor_entry_name = nullptr;
-  }
-
   // Set new name
   m_dest_entry = entry_name;
 

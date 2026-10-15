@@ -34,7 +34,8 @@ class cEnemy : public cAnimated_Sprite {
   // load from savegame
   void Load_From_Savegame(cSave_Level_Object* save_object) override;
   // save to savegame
-  cSave_Level_Object* Save_To_Savegame(void) override;
+  [[nodiscard]] std::unique_ptr<cSave_Level_Object> Save_To_Savegame(
+      void) override;
 
   // Set Dead
   virtual void Set_Dead(bool enable = true);

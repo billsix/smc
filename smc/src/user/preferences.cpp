@@ -356,8 +356,8 @@ void cPreferences ::Reset_Editor(void) {
 }
 
 void cPreferences ::Update(void) {
-  m_camera_hor_speed = pLevel_Manager->m_camera->m_hor_offset_speed;
-  m_camera_ver_speed = pLevel_Manager->m_camera->m_ver_offset_speed;
+  m_camera_hor_speed = pLevel_Manager->m_camera.m_hor_offset_speed;
+  m_camera_ver_speed = pLevel_Manager->m_camera.m_ver_offset_speed;
 
   m_audio_music = pAudio->m_music_enabled;
   m_audio_sound = pAudio->m_sound_enabled;
@@ -373,8 +373,8 @@ void cPreferences ::Update(void) {
 }
 
 void cPreferences ::Apply(void) {
-  pLevel_Manager->m_camera->m_hor_offset_speed = m_camera_hor_speed;
-  pLevel_Manager->m_camera->m_ver_offset_speed = m_camera_ver_speed;
+  pLevel_Manager->m_camera.m_hor_offset_speed = m_camera_hor_speed;
+  pLevel_Manager->m_camera.m_ver_offset_speed = m_camera_ver_speed;
 
   // disable joystick if the joystick initialization failed
   if (pVideo->m_joy_init_failed) {

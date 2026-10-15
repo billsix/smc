@@ -32,17 +32,16 @@ namespace SMC {
 /* *** *** *** *** *** *** *** cEditor_Level *** *** *** *** *** *** *** *** *** *** */
 
 cEditor_Level ::cEditor_Level(cSprite_Manager* sprite_manager, cLevel* level)
-    : cEditor(sprite_manager) {
+    : cEditor(sprite_manager), m_settings_screen(sprite_manager, level) {
   m_menu_filename = DATA_DIR "/" GAME_EDITOR_DIR "/level_menu.xml";
   m_items_filename = DATA_DIR "/" GAME_EDITOR_DIR "/level_items.xml";
 
   m_editor_item_tag = "level";
 
   m_level = level;
-  m_settings_screen = new cLevel_Settings(sprite_manager, m_level);
 }
 
-cEditor_Level ::~cEditor_Level(void) { delete m_settings_screen; }
+cEditor_Level ::~cEditor_Level(void) = default;
 
 void cEditor_Level ::Init(void) {
   // already loaded
@@ -71,7 +70,7 @@ void cEditor_Level ::Enable(void) {
   // player
   pLevel_Player->Reset_On_Ground();
   // sprite manager
-  for (auto& sprite : m_sprite_manager->objects) {
+  for (const auto& sprite : m_sprite_manager->objects) {
     // get object pointer
     // skip destroyed objects
     if (sprite->m_auto_destroy) {
@@ -121,12 +120,13 @@ bool cEditor_Level ::Key_Down(SDLKey key) {
     float new_camera_posx = 0.0f;
     float new_camera_posy = 0.0f;
 
-    for (auto& sprite : m_sprite_manager->objects) {
+    for (const auto& sprite : m_sprite_manager->objects) {
       if (sprite->m_sprite_array != ARRAY_ACTIVE) {
         continue;
       }
 
-      if (sprite->m_type == TYPE_LEVEL_EXIT && new_camera_posx < sprite->m_pos_x) {
+      if (sprite->m_type == TYPE_LEVEL_EXIT &&
+          new_camera_posx < sprite->m_pos_x) {
         new_camera_posx = sprite->m_pos_x;
         new_camera_posy = sprite->m_pos_y;
       }
@@ -146,7 +146,7 @@ bool cEditor_Level ::Key_Down(SDLKey key) {
       // change state of the base object
       if (Switch_Object_State(mouse_obj)) {
         // change selected objects state to the base object state
-        for (auto& selected_object : pMouseCursor->m_selected_objects) {
+        for (const auto& selected_object : pMouseCursor->m_selected_objects) {
           cSprite* obj = selected_object->m_obj;
 
           // skip base object
@@ -175,8 +175,8 @@ bool cEditor_Level ::Key_Down(SDLKey key) {
     }
   }
   // modify mouse object state
-  else if (key == SDLK_m && pMouseCursor->m_hovering_object->m_obj) {
-    Switch_Object_State(pMouseCursor->m_hovering_object->m_obj);
+  else if (key == SDLK_m && pMouseCursor->m_hovering_object.m_obj) {
+    Switch_Object_State(pMouseCursor->m_hovering_object.m_obj);
     pMouseCursor->Clear_Hovered_Object();
   } else {
     // not processed
@@ -189,12 +189,12 @@ bool cEditor_Level ::Key_Down(SDLKey key) {
 
 void cEditor_Level ::Set_Level(cLevel* level) {
   m_level = level;
-  m_settings_screen->Set_Level(level);
+  m_settings_screen.Set_Level(level);
 }
 
 void cEditor_Level ::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
   cEditor::Set_Sprite_Manager(sprite_manager);
-  m_settings_screen->Set_Sprite_Manager(sprite_manager);
+  m_settings_screen.Set_Sprite_Manager(sprite_manager);
 }
 
 void cEditor_Level ::Activate_Menu_Item(cEditor_Menu_Object* entry) {
@@ -226,9 +226,9 @@ void cEditor_Level ::Activate_Menu_Item(cEditor_Menu_Object* entry) {
   }
 }
 
-cSprite* cEditor_Level ::Get_Object(const CEGUI::String& element,
-                                    CEGUI::XMLAttributes& attributes,
-                                    int engine_version) {
+std::unique_ptr<cSprite> cEditor_Level ::Get_Object(
+    const CEGUI::String& element, CEGUI::XMLAttributes& attributes,
+    int engine_version) {
   return Create_Level_Object_From_XML(element, attributes, engine_version,
                                       m_sprite_manager);
 }

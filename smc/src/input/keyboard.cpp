@@ -176,7 +176,7 @@ bool cKeyboard ::Key_Down(SDLKey key) {
     }
   } else if (Game_Mode == MODE_LEVEL_SETTINGS) {
     // processed by the level settings
-    if (pLevel_Editor->m_settings_screen->Key_Down(key)) {
+    if (pLevel_Editor->m_settings_screen.Key_Down(key)) {
       return true;
     }
   }

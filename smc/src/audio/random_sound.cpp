@@ -79,7 +79,7 @@ void cRandom_Sound ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cRandom_Sound ::Copy(void) const {
-  cRandom_Sound* random_sound = new cRandom_Sound(m_sprite_manager);
+  auto random_sound = std::make_unique<cRandom_Sound>(m_sprite_manager);
   random_sound->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   random_sound->Set_Filename(m_filename.c_str());
   random_sound->Set_Continuous(m_continuous);
@@ -89,7 +89,7 @@ std::unique_ptr<cSprite> cRandom_Sound ::Copy(void) const {
   random_sound->Set_Volume_Max(m_volume_max);
   random_sound->Set_Volume_Reduction_Begin(m_volume_reduction_begin);
   random_sound->Set_Volume_Reduction_End(m_volume_reduction_end);
-  return std::unique_ptr<cSprite>(random_sound);
+  return random_sound;
 }
 
 void cRandom_Sound ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -340,7 +340,7 @@ void cRandom_Sound ::Update(void) {
   }
 }
 
-void cRandom_Sound ::Draw(cSurface_Request* request /* = NULL */) {
+void cRandom_Sound ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -350,23 +350,25 @@ void cRandom_Sound ::Draw(cSurface_Request* request /* = NULL */) {
                     m_col_rect.m_y - pActive_Camera->m_y, m_col_rect.m_w,
                     m_col_rect.m_h, m_editor_pos_z, &greenyellow);
   // volume reduction begin
-  cCircle_Request* circle_request = new cCircle_Request();
+  auto circle_request = std::make_unique<cCircle_Request>();
   pVideo->Draw_Circle(m_col_rect.m_x - pActive_Camera->m_x,
                       m_col_rect.m_y - pActive_Camera->m_y,
                       m_volume_reduction_begin, m_editor_pos_z - 0.0001f,
-                      &m_editor_color_volume_reduction_begin, circle_request);
+                      &m_editor_color_volume_reduction_begin,
+                      circle_request.get());
   circle_request->m_line_width = 3;
   // add request
-  pRenderer->Add(circle_request);
+  pRenderer->Add(std::move(circle_request));
   // volume reduction end
-  circle_request = new cCircle_Request();
+  circle_request = std::make_unique<cCircle_Request>();
   pVideo->Draw_Circle(m_col_rect.m_x - pActive_Camera->m_x,
                       m_col_rect.m_y - pActive_Camera->m_y,
                       m_volume_reduction_end, m_editor_pos_z - 0.0002f,
-                      &m_editor_color_volume_reduction_end, circle_request);
+                      &m_editor_color_volume_reduction_end,
+                      circle_request.get());
   circle_request->m_line_width = 3;
   // add request
-  pRenderer->Add(circle_request);
+  pRenderer->Add(std::move(circle_request));
 }
 
 bool cRandom_Sound ::Is_Update_Valid(void) {

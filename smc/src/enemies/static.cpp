@@ -14,6 +14,7 @@
 */
 
 #include "../enemies/static.h"
+#include "../user/savegame.h"
 #include "../core/game_core.h"
 #include "../level/level_player.h"
 #include "../level/level.h"
@@ -68,7 +69,7 @@ void cStaticEnemy ::Init_Links(void) {
 }
 
 std::unique_ptr<cSprite> cStaticEnemy ::Copy(void) const {
-  cStaticEnemy* static_enemy = new cStaticEnemy(m_sprite_manager);
+  auto static_enemy = std::make_unique<cStaticEnemy>(m_sprite_manager);
   static_enemy->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   static_enemy->Set_Static_Image(m_img_filename);
   static_enemy->Set_Rotation_Speed(m_rotation_speed);
@@ -76,7 +77,7 @@ std::unique_ptr<cSprite> cStaticEnemy ::Copy(void) const {
   static_enemy->Set_Speed(m_speed);
   static_enemy->m_fire_resistant = m_fire_resistant;
   static_enemy->m_ice_resistance = m_ice_resistance;
-  return std::unique_ptr<cSprite>(static_enemy);
+  return static_enemy;
 }
 
 void cStaticEnemy ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -138,9 +139,9 @@ void cStaticEnemy ::Load_From_Savegame(cSave_Level_Object* save_object) {
   m_path_state.Load_From_Savegame(save_object);
 }
 
-cSave_Level_Object* cStaticEnemy ::Save_To_Savegame(void) {
-  cSave_Level_Object* save_object = cEnemy::Save_To_Savegame();
-  m_path_state.Save_To_Savegame(save_object);
+std::unique_ptr<cSave_Level_Object> cStaticEnemy ::Save_To_Savegame(void) {
+  std::unique_ptr<cSave_Level_Object> save_object = cEnemy::Save_To_Savegame();
+  m_path_state.Save_To_Savegame(save_object.get());
 
   return save_object;
 }
@@ -243,7 +244,7 @@ void cStaticEnemy ::Update(void) {
   }
 }
 
-void cStaticEnemy ::Draw(cSurface_Request* request /* = NULL */) {
+void cStaticEnemy ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }

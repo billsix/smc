@@ -67,7 +67,7 @@ void cFurball ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cFurball ::Copy(void) const {
-  cFurball* furball = new cFurball(m_sprite_manager);
+  auto furball = std::make_unique<cFurball>(m_sprite_manager);
   furball->Set_Pos(m_start_pos_x, m_start_pos_y);
   furball->Set_Color(m_color_type);
   furball->Set_Direction(m_start_direction);
@@ -75,7 +75,7 @@ std::unique_ptr<cSprite> cFurball ::Copy(void) const {
     furball->Set_Max_Downgrade_Count(m_max_downgrade_count);
     furball->Set_Level_Ends_If_Killed(m_level_ends_if_killed);
   }
-  return std::unique_ptr<cSprite>(furball);
+  return furball;
 }
 
 void cFurball ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -338,7 +338,7 @@ void cFurball ::Update_Dying(void) {
           Generate_Smoke(30);
 
           // set empty image
-          cMovingSprite::Set_Image(nullptr, false, false);
+          cMovingSprite::Set_Image(nullptr, false);
           // reset counter
           m_counter = 0;
         }
@@ -491,7 +491,7 @@ void cFurball ::Update(void) {
 
     // create particles
     if (m_running_particle_counter >= 1.0f) {
-      cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+      auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
       anim->Set_Emitter_Rect(m_col_rect.m_x,
                              m_col_rect.m_y + m_col_rect.m_h - 2.0f,
                              m_col_rect.m_w);
@@ -519,7 +519,7 @@ void cFurball ::Update(void) {
       }
 
       anim->Emit();
-      pActive_Animation_Manager->Add(anim);
+      pActive_Animation_Manager->Add(std::move(anim));
 
       m_running_particle_counter -=
           static_cast<int>(m_running_particle_counter);
@@ -553,7 +553,7 @@ void cFurball ::Update(void) {
 void cFurball ::Generate_Smoke(unsigned int amount /* = 1 */,
                                float particle_scale /* = 0.4f */) const {
   // animation
-  cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+  auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
   anim->Set_Pos(m_pos_x + (m_col_rect.m_w * 0.5f),
                 m_pos_y + (m_col_rect.m_h * 0.5f), true);
   anim->Set_Image(
@@ -566,7 +566,7 @@ void cFurball ::Generate_Smoke(unsigned int amount /* = 1 */,
   anim->Set_Scale(particle_scale, 0.2f);
   anim->Set_Color(black, Color(static_cast<Uint8>(87), 60, 40, 0));
   anim->Emit();
-  pActive_Animation_Manager->Add(anim);
+  pActive_Animation_Manager->Add(std::move(anim));
 }
 
 void cFurball ::Update_Velocity_Max(void) {

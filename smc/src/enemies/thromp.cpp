@@ -72,13 +72,13 @@ void cThromp ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cThromp ::Copy(void) const {
-  cThromp* thromp = new cThromp(m_sprite_manager);
+  auto thromp = std::make_unique<cThromp>(m_sprite_manager);
   thromp->Set_Pos(m_start_pos_x, m_start_pos_y);
   thromp->Set_Image_Dir(m_img_dir);
   thromp->Set_Direction(m_start_direction);
   thromp->Set_Max_Distance(m_max_distance);
   thromp->Set_Speed(m_speed);
-  return std::unique_ptr<cSprite>(thromp);
+  return thromp;
 }
 
 void cThromp ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -135,8 +135,8 @@ void cThromp ::Load_From_Savegame(cSave_Level_Object* save_object) {
   }
 }
 
-cSave_Level_Object* cThromp ::Save_To_Savegame(void) {
-  cSave_Level_Object* save_object = cEnemy::Save_To_Savegame();
+std::unique_ptr<cSave_Level_Object> cThromp ::Save_To_Savegame(void) {
+  std::unique_ptr<cSave_Level_Object> save_object = cEnemy::Save_To_Savegame();
 
   // move_back ( only save if needed )
   if (m_move_back) {
@@ -247,13 +247,13 @@ void cThromp ::DownGrade(bool force /* = 0 */) {
 
   if (!force) {
     // animation
-    cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
-    Generate_Hit_Animation(anim);
+    auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
+    Generate_Hit_Animation(anim.get());
 
     anim->Set_Scale(0.8f);
     anim->Set_Direction_Range(0.0f, 360.0f);
     anim->Emit();
-    pActive_Animation_Manager->Add(anim);
+    pActive_Animation_Manager->Add(std::move(anim));
   } else {
     Set_Rotation_Z(180.0f);
   }
@@ -375,7 +375,7 @@ void cThromp ::Update(void) {
   }
 }
 
-void cThromp ::Draw(cSurface_Request* request /* = NULL */) {
+void cThromp ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -525,7 +525,7 @@ void cThromp ::Generate_Smoke(unsigned int amount /* = 20 */) const {
   }
 
   // animation
-  cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+  auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
   anim->Set_Emitter_Rect(smoke_x, smoke_y, smoke_width, smoke_height);
   anim->Set_Image(pVideo->Get_Surface("animation/particles/smoke.png"));
   anim->Set_Quota(amount);
@@ -536,7 +536,7 @@ void cThromp ::Generate_Smoke(unsigned int amount /* = 20 */) const {
   anim->Set_Fading_Alpha(true);
   anim->Set_Const_Rotation_Z(-2, 4);
   anim->Emit();
-  pActive_Animation_Manager->Add(anim);
+  pActive_Animation_Manager->Add(std::move(anim));
 }
 
 Col_Valid_Type cThromp ::Validate_Collision(cSprite* obj) {

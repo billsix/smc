@@ -18,6 +18,7 @@
 
 #include "../core/global_basic.h"
 #include "../gui/hud.h"
+#include "../core/camera.h"
 
 namespace SMC {
 
@@ -77,8 +78,8 @@ class cLevel_Settings {
 
   // parent level
   cLevel* m_level;
-  // settings camera
-  cCamera* m_camera;
+  // settings camera (owned value)
+  cCamera m_camera;
   // GUI
   CEGUI::Window* m_gui_window;
   CEGUI::TabControl* m_tabcontrol;

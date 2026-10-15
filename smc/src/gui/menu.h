@@ -21,6 +21,8 @@
 #include "../video/video.h"
 #include "../gui/hud.h"
 #include "../core/camera.h"
+#include "../level/level.h"
+#include "../objects/sprite.h"
 
 namespace SMC {
 
@@ -36,10 +38,10 @@ class cMenu_Item : public cHudSprite {
   // Draws the Menu Item
   void Draw(cSurface_Request* request = nullptr) override;
 
-  // The menu images
-  cHudSprite* m_image_default;
+  // The menu images (owned values)
+  cHudSprite m_image_default;
   // The additional Menu Graphic
-  cHudSprite* m_image_menu;
+  cHudSprite m_image_menu;
 
   // if this item quits the menu
   bool m_is_quit;
@@ -49,7 +51,7 @@ class cMenu_Item : public cHudSprite {
   bool m_active;
 };
 
-using MenuList = vector<cMenu_Item*>;
+using MenuList = vector<std::unique_ptr<cMenu_Item>>;
 
 /* *** *** *** *** *** *** cMenuHandler *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -62,8 +64,10 @@ class cMenuHandler {
   ~cMenuHandler(void);
 
   // Adds a Menu
-  void Add_Menu_Item(cMenu_Item* item, float shadow_pos = 0,
-                     Color shadow_color = static_cast<Uint8>(0));
+  // Takes ownership of the item; returns the borrowed pointer
+  cMenu_Item* Add_Menu_Item(std::unique_ptr<cMenu_Item> item,
+                            float shadow_pos = 0,
+                            Color shadow_color = static_cast<Uint8>(0));
 
   // Unloads all items
   void Reset(void);
@@ -86,12 +90,12 @@ class cMenuHandler {
   // Returns the number of loaded Menus
   unsigned int Get_Size(void) const;
 
+  // menu level (owned; declared first: the camera and player are built on its sprite manager)
+  cLevel m_level;
   // menu camera
-  cCamera* m_camera;
-  // menu level
-  cLevel* m_level;
+  cCamera m_camera;
   // menu player (currently only used to set the pActive_Player)
-  cSprite* m_player;
+  cSprite m_player;
 
   /* The currently active Menu Item
 	* if set to -1 nothing is active
@@ -137,8 +141,9 @@ class cMenuCore {
   bool Joy_Button_Up(Uint8 button);
 
   // Returns a Menu with the common image filenames
-  cMenu_Item* Auto_Menu(std::string imagename, std::string imagename_menu,
-                        float ypos = 0, bool is_quit = false);
+  [[nodiscard]] std::unique_ptr<cMenu_Item> Auto_Menu(
+      std::string imagename, std::string imagename_menu, float ypos = 0,
+      bool is_quit = false);
 
   /* Load the given Menu
 	 * exit_gamemode : return to this game mode on exit
@@ -161,13 +166,13 @@ class cMenuCore {
   // current menu id
   MenuID m_menu_id;
 
-  // Menu class
-  cMenu_Base* m_menu_data;
+  // Menu class (owned; polymorphic, replaced on every menu change)
+  std::unique_ptr<cMenu_Base> m_menu_data;
 
-  // Menu handler
-  cMenuHandler* m_handler;
-  // Menu Animation Manager
-  cAnimation_Manager* m_animation_manager;
+  // Menu handler (owned value)
+  cMenuHandler m_handler;
+  // Menu Animation Manager (owned value)
+  cAnimation_Manager m_animation_manager;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

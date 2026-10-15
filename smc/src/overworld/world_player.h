@@ -128,10 +128,10 @@ class cOverworld_Player : public cAnimated_Sprite {
   int m_debug_lines_last;
   int m_debug_current_waypoint_last;
 
-  // Debug text sprites
-  cHudSprite* m_debug_current_waypoint;
-  cHudSprite* m_debug_lines;
-  cHudSprite* m_debug_current_line;
+  // Debug text sprites (owned values)
+  cHudSprite m_debug_current_waypoint;
+  cHudSprite m_debug_lines;
+  cHudSprite m_debug_current_line;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

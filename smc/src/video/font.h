@@ -43,8 +43,9 @@ class cFont_Manager {
   void Delete_Ref(cGL_Surface* surface);
 
   // Renders the given text into a new surface
-  cGL_Surface* Render_Text(TTF_Font* font, const std::string& text,
-                           const Color color = static_cast<Uint8>(0));
+  [[nodiscard]] std::unique_ptr<cGL_Surface> Render_Text(
+      TTF_Font* font, const std::string& text,
+      const Color color = static_cast<Uint8>(0));
 
   /* Saves hardware textures in software memory
 	*/

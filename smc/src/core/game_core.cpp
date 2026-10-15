@@ -153,7 +153,7 @@ void Handle_Generic_Game_Events(const CEGUI::XMLAttributes& action_data) {
 
     if (menu == MENU_START && action_data.exists("menu_start_current_level")) {
       cMenu_Start* menu_start =
-          static_cast<cMenu_Start*>(pMenuCore->m_menu_data);
+          static_cast<cMenu_Start*>(pMenuCore->m_menu_data.get());
       menu_start->Highlight_Level(
           action_data.getValueAsString("menu_start_current_level").c_str());
     }
@@ -267,7 +267,7 @@ void Leave_Game_Mode(const GameMode next_mode) {
   } else if (Game_Mode == MODE_MENU) {
     pMenuCore->Leave(next_mode);
   } else if (Game_Mode == MODE_LEVEL_SETTINGS) {
-    pLevel_Editor->m_settings_screen->Leave();
+    pLevel_Editor->m_settings_screen.Leave();
   }
 }
 
@@ -291,7 +291,7 @@ void Enter_Game_Mode(const GameMode new_mode) {
   }
   // mode gets settings
   else if (new_mode == MODE_LEVEL_SETTINGS) {
-    pLevel_Editor->m_settings_screen->Enter();
+    pLevel_Editor->m_settings_screen.Enter();
   }
 }
 
@@ -435,7 +435,7 @@ void Preload_Images(bool draw_gui /* = 0 */) {
   unsigned int file_count = image_files.size();
 
   // load images
-  for (auto& image_file : image_files) {
+  for (const auto& image_file : image_files) {
     // get filename
     std::string filename = image_file;
 
@@ -564,7 +564,7 @@ void Preload_Sounds(bool draw_gui /* = 0 */) {
   unsigned int file_count = sound_files.size();
 
   // load images
-  for (auto& sound_file : sound_files) {
+  for (const auto& sound_file : sound_files) {
     // get filename
     std::string filename = sound_file;
 

@@ -72,8 +72,8 @@ class cOverworld_Manager : public cObject_Manager<cOverworld> {
   // map scrolling with the arrow keys
   bool m_camera_mode;
 
-  // world camera
-  cCamera* m_camera;
+  // world camera (owned value)
+  cCamera m_camera;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

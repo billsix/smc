@@ -18,9 +18,10 @@
 
 #include "../core/global_basic.h"
 #include "../core/sprite_manager.h"
-#include "../overworld/overworld.h"
-
 namespace SMC {
+
+// the overworld is only pointed at here; its header includes this one for the value member
+class cOverworld;
 
 /* *** *** *** *** *** cWorld_Sprite_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -30,7 +31,7 @@ class cWorld_Sprite_Manager : public cSprite_Manager {
   ~cWorld_Sprite_Manager(void) override;
 
   // Add a sprite
-  void Add(cSprite* sprite) override;
+  cSprite* Add(std::unique_ptr<cSprite> sprite) override;
 
   // parent overworld
   cOverworld* m_overworld;

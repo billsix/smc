@@ -6,6 +6,7 @@
 # sandbox-built frame is tasks/adhoc/container-build/data/main-menu-sdl2-xvfb-sandbox.png.
 #
 #   [HOST]  make shell-exec SCRIPT=tools/smoke_headless.sh
+#   SMC_ARGS="--level cave_1" adds game arguments (a level instead of the menu)
 #
 # Output: tasks/adhoc/container-build/data/smoke-<date>.log (+ .png when ImageMagick exists) in the mounted
 # repo. Paths are relative to this script; nothing container-absolute except the install prefix.
@@ -26,7 +27,7 @@ sleep 2
 # on our own Xvfb, so force X11 (and never touch the host's Wayland socket from a smoke test).
 export DISPLAY="$disp" SDL_VIDEODRIVER=x11 SDL_AUDIODRIVER=dummy LIBGL_ALWAYS_SOFTWARE=1
 unset WAYLAND_DISPLAY
-timeout -s KILL 30 "$BIN" > "$out/smoke-$stamp.log" 2>&1 &
+timeout -s KILL 30 "$BIN" ${SMC_ARGS:-} > "$out/smoke-$stamp.log" 2>&1 &
 game=$!
 sleep 12
 shot=""

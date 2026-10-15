@@ -77,7 +77,7 @@ class cLayer_Line_Point_Start : public cLayer_Line_Point {
   void Init(void) override;
 
   // copy (end point can not be copied)
-  std::unique_ptr<cSprite> Copy(void) const override;
+  [[nodiscard]] std::unique_ptr<cSprite> Copy(void) const override;
 
   // load from stream
   void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
@@ -101,12 +101,15 @@ class cLayer_Line_Point_Start : public cLayer_Line_Point {
   // editor origin text changed event
   bool Editor_Origin_Text_Changed(const CEGUI::EventArgs& event);
 
-  /* animation type 
+  /* animation type
 	 * 0 = normal walking, 1 = swimming
 	 */
   unsigned int m_anim_type;
   // waypoint origin identifier
   unsigned int m_origin;
+  // the end point, owned here until the line is registered with the world layer (which hands
+  // it to the sprite manager); m_linked_point is the borrowed view of it either way
+  std::unique_ptr<cLayer_Line_Point> m_end_point;
 };
 
 /* *** *** *** *** *** *** *** Layer *** *** *** *** *** *** *** *** *** *** */
@@ -136,8 +139,13 @@ class cLayer : public CEGUI::XMLHandler {
   cLayer(cOverworld* origin);
   ~cLayer(void) override;
 
-  // Add a layer line
-  void Add(cLayer_Line_Point_Start* line_point);
+  // Add a new layer line: the overworld's sprite manager takes ownership (of the start point
+  // and its end point) and registers the start point here
+  void Add(std::unique_ptr<cLayer_Line_Point_Start> line_point);
+  /* Register a line point the sprite manager already owns (called by the world sprite
+	 * manager); also hands the line's end point to the sprite manager if it is still unowned
+	*/
+  void Register(cLayer_Line_Point_Start* line_point);
 
   // The layer's line points (borrowed; the sprite manager owns and frees them)
   LayerLineList objects;
@@ -145,10 +153,8 @@ class cLayer : public CEGUI::XMLHandler {
   size_t size(void) const { return objects.size(); }
   // Return the line point's index, or -1 if not present
   int Get_Array_Num(const cLayer_Line_Point_Start* obj) const;
-  /* Remove a line point from the layer
-	 * delete_data : if set, free it -- but the sprite manager owns these, so callers pass false
-	*/
-  bool Delete(cLayer_Line_Point_Start* obj, bool delete_data = true);
+  // Remove a line point from the layer (not freed: the sprite manager owns it)
+  bool Remove(cLayer_Line_Point_Start* obj);
 
   // Load from file
   void Load(const std::string& filename);

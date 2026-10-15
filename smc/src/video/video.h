@@ -131,13 +131,18 @@ class cVideo {
   // Software image
   class cSoftware_Image {
    public:
-    cSoftware_Image(void) {
-      m_sdl_surface = nullptr;
-      m_settings = nullptr;
-    };
+    // The special members are defined in video.cpp: an inline body (even an empty one)
+    // instantiates the settings unique_ptr's deleter, which needs the complete type that
+    // this header only forward-declares. Move-only, like the unique_ptr it holds.
+    cSoftware_Image(void);
+    ~cSoftware_Image(void);
+    cSoftware_Image(cSoftware_Image&& other) noexcept;
+    cSoftware_Image& operator=(cSoftware_Image&& other) noexcept;
 
+    // the SDL surface is a C handle the consumer frees with SDL_FreeSurface
     SDL_Surface* m_sdl_surface;
-    cImage_Settings_Data* m_settings;
+    // the image's settings (owned; freed with this struct)
+    std::unique_ptr<cImage_Settings_Data> m_settings;
   };
 
   /* Load and return the software image with the settings data
@@ -153,8 +158,8 @@ class cVideo {
 	 * print_errors : print errors if image couldn't be created or loaded
 	 * The returned image should be deleted if not used anymore
 	*/
-  cGL_Surface* Load_GL_Surface(std::string filename, bool use_settings = true,
-                               bool print_errors = true);
+  [[nodiscard]] std::unique_ptr<cGL_Surface> Load_GL_Surface(
+      std::string filename, bool use_settings = true, bool print_errors = true);
 
   /* Convert to a scaled software image with a power of 2 size and 32 bits per pixel.
 	 * Conversion only happens if needed.
@@ -168,9 +173,9 @@ class cVideo {
 	 * mipmap : create texture mipmaps
 	 * force_width/height : force the given width and height
 	*/
-  cGL_Surface* Create_Texture(SDL_Surface* surface, bool mipmap = false,
-                              unsigned int force_width = 0,
-                              unsigned int force_height = 0) const;
+  [[nodiscard]] std::unique_ptr<cGL_Surface> Create_Texture(
+      SDL_Surface* surface, bool mipmap = false, unsigned int force_width = 0,
+      unsigned int force_height = 0) const;
 
   /* Copy pixels to the bound GL texture
 	 * mipmap : create texture mipmaps

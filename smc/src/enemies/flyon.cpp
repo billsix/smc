@@ -72,13 +72,13 @@ void cFlyon ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cFlyon ::Copy(void) const {
-  cFlyon* jpiranha = new cFlyon(m_sprite_manager);
+  auto jpiranha = std::make_unique<cFlyon>(m_sprite_manager);
   jpiranha->Set_Pos(m_start_pos_x, m_start_pos_y);
   jpiranha->Set_Direction(m_start_direction);
   jpiranha->Set_Image_Dir(m_img_dir);
   jpiranha->Set_Max_Distance(m_max_distance);
   jpiranha->Set_Speed(m_speed);
-  return std::unique_ptr<cSprite>(jpiranha);
+  return jpiranha;
 }
 
 void cFlyon ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -129,8 +129,8 @@ void cFlyon ::Load_From_Savegame(cSave_Level_Object* save_object) {
   }
 }
 
-cSave_Level_Object* cFlyon ::Save_To_Savegame(void) {
-  cSave_Level_Object* save_object = cEnemy::Save_To_Savegame();
+std::unique_ptr<cSave_Level_Object> cFlyon ::Save_To_Savegame(void) {
+  std::unique_ptr<cSave_Level_Object> save_object = cEnemy::Save_To_Savegame();
 
   // move_back ( only save if needed )
   if (m_move_back) {
@@ -242,13 +242,13 @@ void cFlyon ::DownGrade(bool force /* = 0 */) {
 
   if (!force) {
     // animation
-    cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
-    Generate_Hit_Animation(anim);
+    auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
+    Generate_Hit_Animation(anim.get());
 
     anim->Set_Speed(5.0f, 0.6f);
     anim->Set_Scale(0.8f);
     anim->Emit();
-    pActive_Animation_Manager->Add(anim);
+    pActive_Animation_Manager->Add(std::move(anim));
   } else {
     Set_Rotation_Z(180.0f);
   }
@@ -440,7 +440,7 @@ void cFlyon ::Update(void) {
   }
 }
 
-void cFlyon ::Draw(cSurface_Request* request /* = NULL */) {
+void cFlyon ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }

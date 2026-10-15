@@ -45,7 +45,7 @@ class cSelectedObject {
   bool m_user;
 };
 
-using SelectedObjectList = vector<cSelectedObject*>;
+using SelectedObjectList = vector<std::unique_ptr<cSelectedObject>>;
 
 /* *** *** *** *** *** *** cCopyObject *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -54,11 +54,11 @@ class cCopyObject {
   cCopyObject(void);
   ~cCopyObject(void);
 
-  // base object
-  cSprite* m_obj;
+  // the copied sprite (owned: a clipboard entry, not in any sprite manager)
+  std::unique_ptr<cSprite> m_obj;
 };
 
-using CopyObjectList = vector<cCopyObject*>;
+using CopyObjectList = vector<std::unique_ptr<cCopyObject>>;
 
 /* *** *** *** *** *** *** cMouseCursor *** *** *** *** *** *** *** *** *** *** *** */
 
@@ -93,12 +93,14 @@ class cMouseCursor : public cMovingSprite {
 	 * returns the collision if an object was found else NULL
 	 * The collision data should be deleted if not used anymore
 	*/
-  cObjectCollision* Get_First_Editor_Collsion(float px = 0.0f, float py = 0.0f);
+  [[nodiscard]] std::unique_ptr<cObjectCollision> Get_First_Editor_Collsion(
+      float px = 0.0f, float py = 0.0f);
   /* Get the first object colliding with the mouse
 	 * returns the collision if an object was found else NULL
 	 * The collision data should be deleted if not used anymore
 	*/
-  cObjectCollision* Get_First_Mouse_Collision(const GL_rect& mouse_rect);
+  [[nodiscard]] std::unique_ptr<cObjectCollision> Get_First_Mouse_Collision(
+      const GL_rect& mouse_rect);
 
   // Update
   void Update(void) override;
@@ -245,7 +247,7 @@ class cMouseCursor : public cMovingSprite {
 	*/
   SelectedObjectList m_selected_objects;
   // currently colliding object with the mouse
-  cSelectedObject* m_hovering_object;
+  cSelectedObject m_hovering_object;
   // objects selected for copying
   CopyObjectList m_copy_objects;
   // settings activated object

@@ -41,7 +41,7 @@ class cStaticEnemy : public cEnemy {
 	*/
   void Init_Links(void) override;
   // copy
-  std::unique_ptr<cSprite> Copy(void) const override;
+  [[nodiscard]] std::unique_ptr<cSprite> Copy(void) const override;
 
   // load from stream
   void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
@@ -54,7 +54,8 @@ class cStaticEnemy : public cEnemy {
   // load from savegame
   void Load_From_Savegame(cSave_Level_Object* save_object) override;
   // save to savegame
-  cSave_Level_Object* Save_To_Savegame(void) override;
+  [[nodiscard]] std::unique_ptr<cSave_Level_Object> Save_To_Savegame(
+      void) override;
 
   // Set the static image
   void Set_Static_Image(const std::string& filename);
@@ -75,7 +76,7 @@ class cStaticEnemy : public cEnemy {
   // update
   void Update(void) override;
   // draw
-  void Draw(cSurface_Request* request /* = NULL */) override;
+  void Draw(cSurface_Request* request /* = nullptr */) override;
 
   // if update is valid for the current state
   bool Is_Update_Valid(void) override;

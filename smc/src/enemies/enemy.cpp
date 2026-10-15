@@ -94,8 +94,8 @@ void cEnemy ::Load_From_Savegame(cSave_Level_Object* save_object) {
   }
 }
 
-cSave_Level_Object* cEnemy ::Save_To_Savegame(void) {
-  cSave_Level_Object* save_object = new cSave_Level_Object();
+std::unique_ptr<cSave_Level_Object> cEnemy ::Save_To_Savegame(void) {
+  auto save_object = std::make_unique<cSave_Level_Object>();
 
   // default values
   save_object->m_type = m_type;
@@ -177,9 +177,9 @@ void cEnemy ::Update_Late(void) {
 
     // handle collisions manually
     m_massive_type = MASS_MASSIVE;
-    cObjectCollisionType* col_list = Collision_Check(&m_col_rect);
-    Add_Collisions(col_list, true);
-    delete col_list;
+    std::unique_ptr<cObjectCollisionType> col_list =
+        Collision_Check(&m_col_rect);
+    Add_Collisions(col_list.get(), true);
     Handle_Collisions();
     m_massive_type = MASS_PASSIVE;
   }
@@ -226,13 +226,12 @@ void cEnemy ::Update_Gravity(void) {
 }
 
 void cEnemy ::Generate_Hit_Animation(
-    cParticle_Emitter* anim /* = NULL */) const {
-  bool create_anim = false;
-
+    cParticle_Emitter* anim /* = nullptr */) const {
+  // no emitter given: make one here and hand it to the animation manager at the end
+  std::unique_ptr<cParticle_Emitter> owned_anim;
   if (!anim) {
-    create_anim = true;
-    // create animation
-    anim = new cParticle_Emitter(m_sprite_manager);
+    owned_anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
+    anim = owned_anim.get();
   }
 
   anim->Set_Emitter_Rect(m_col_rect.m_x, m_pos_y + (m_col_rect.m_h / 3),
@@ -274,9 +273,9 @@ void cEnemy ::Generate_Hit_Animation(
   //anim->Set_Fading_Size( 1 );
   anim->Set_Blending(BLEND_ADD);
 
-  if (create_anim) {
+  if (owned_anim) {
     anim->Emit();
-    pActive_Animation_Manager->Add(anim);
+    pActive_Animation_Manager->Add(std::move(owned_anim));
   }
 }
 

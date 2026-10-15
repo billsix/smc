@@ -70,7 +70,7 @@ void cGee ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cGee ::Copy(void) const {
-  cGee* gee = new cGee(m_sprite_manager);
+  auto gee = std::make_unique<cGee>(m_sprite_manager);
   gee->Set_Pos(m_start_pos_x, m_start_pos_y);
   gee->Set_Direction(m_start_direction);
   gee->Set_Max_Distance(m_max_distance);
@@ -78,7 +78,7 @@ std::unique_ptr<cSprite> cGee ::Copy(void) const {
   gee->m_wait_time = m_wait_time;
   gee->m_fly_distance = m_fly_distance;
   gee->Set_Color(m_color_type);
-  return std::unique_ptr<cSprite>(gee);
+  return gee;
 }
 
 void cGee ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -383,7 +383,7 @@ void cGee ::Update(void) {
   }
 }
 
-void cGee ::Draw(cSurface_Request* request /* = NULL */) {
+void cGee ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -426,7 +426,7 @@ void cGee ::Activate(void) {
 void cGee ::Stop(void) { Set_Moving_State(STA_STAY); }
 
 void cGee ::Generate_Particles(unsigned int amount /* = 4 */) const {
-  cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+  auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
   anim->Set_Image(pVideo->Get_Surface("animation/particles/cloud.png"));
   anim->Set_Pos_Z(m_pos_z - 0.00001f);
   anim->Set_Emitter_Rect(m_col_rect.m_x + (m_col_rect.m_w * 0.3f),
@@ -461,7 +461,7 @@ void cGee ::Generate_Particles(unsigned int amount /* = 4 */) const {
   anim->Set_Fading_Alpha(true);
   anim->Set_Blending(BLEND_ADD);
   anim->Emit();
-  pActive_Animation_Manager->Add(anim);
+  pActive_Animation_Manager->Add(std::move(anim));
 }
 
 bool cGee ::Is_At_Max_Distance(void) const {

@@ -29,31 +29,26 @@ namespace SMC {
 
 /* *** *** *** *** *** cLevel_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLevel_Manager ::cLevel_Manager(void) : cObject_Manager<cLevel>() {
-  m_camera = new cCamera(nullptr);
-
+cLevel_Manager ::cLevel_Manager(void)
+    : cObject_Manager<cLevel>(), m_camera(nullptr) {
   // set the first camera available
   if (pActive_Camera == nullptr) {
-    pActive_Camera = m_camera;
+    pActive_Camera = &m_camera;
   }
 
   // always have one level around for the sprite manager
-  pActive_Level = new cLevel();
-  Add(pActive_Level);
+  pActive_Level = Add(std::make_unique<cLevel>());
 
-  m_camera->Set_Sprite_Manager(pActive_Level->m_sprite_manager);
+  m_camera.Set_Sprite_Manager(&pActive_Level->m_sprite_manager);
 }
 
-cLevel_Manager ::~cLevel_Manager(void) {
-  Delete_All();
-  delete m_camera;
-}
+cLevel_Manager ::~cLevel_Manager(void) { Delete_All(); }
 
 void cLevel_Manager ::Init(void) {}
 
 void cLevel_Manager ::Unload(void) {
   // disable fixed camera velocity
-  pLevel_Manager->m_camera->m_fixed_hor_vel = 0.0f;
+  pLevel_Manager->m_camera.m_fixed_hor_vel = 0.0f;
 
   // always keep one level (erasing the rest frees them)
   if (size() > 1) {
@@ -67,7 +62,7 @@ void cLevel_Manager ::Unload(void) {
   }
   // always keep the level player manager valid
   else {
-    pLevel_Player->Set_Sprite_Manager(pActive_Level->m_sprite_manager);
+    pLevel_Player->Set_Sprite_Manager(&pActive_Level->m_sprite_manager);
   }
 
   pActive_Level->Unload();
@@ -79,15 +74,13 @@ cLevel* cLevel_Manager ::New(std::string filename) {
     return nullptr;
   }
 
-  cLevel* level = new cLevel();
-  // if failed to create
+  auto level = std::make_unique<cLevel>();
+  // if failed to create (the unloaded level is freed on return)
   if (!level->New(filename)) {
-    delete level;
     return nullptr;
   }
 
-  Add(level);
-  return level;
+  return Add(std::move(level));
 }
 
 cLevel* cLevel_Manager ::Load(std::string filename) {
@@ -98,14 +91,12 @@ cLevel* cLevel_Manager ::Load(std::string filename) {
   }
 
   // load
-  level = new cLevel();
-  if (!level->Load(filename)) {
-    // failed to load: don't Add a broken, unloaded cLevel to the list
-    delete level;
+  auto loaded = std::make_unique<cLevel>();
+  if (!loaded->Load(filename)) {
+    // failed to load: don't Add a broken, unloaded cLevel to the list (freed on return)
     return nullptr;
   }
-  Add(level);
-  return level;
+  return Add(std::move(loaded));
 }
 
 bool cLevel_Manager ::Set_Active(cLevel* level) {
@@ -194,31 +185,31 @@ void cLevel_Manager ::Update(void) {
   pLevel_Editor->Process_Input();
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_UPDATE_PROCESS_INPUT]->Update();
+  pFramerate->m_perf_timer[PERF_UPDATE_PROCESS_INPUT].Update();
 
   // update
   pActive_Level->Update();
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_UPDATE_LEVEL]->Update();
+  pFramerate->m_perf_timer[PERF_UPDATE_LEVEL].Update();
 
   // editor
   pLevel_Editor->Update();
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_EDITOR]->Update();
+  pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_EDITOR].Update();
 
   // hud
   pHud_Manager->Update();
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_UPDATE_HUD]->Update();
+  pFramerate->m_perf_timer[PERF_UPDATE_HUD].Update();
 
   // player
   pLevel_Player->Update();
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_UPDATE_PLAYER]->Update();
+  pFramerate->m_perf_timer[PERF_UPDATE_PLAYER].Update();
 
   // player collisions
   if (!editor_enabled) {
@@ -227,27 +218,27 @@ void cLevel_Manager ::Update(void) {
   }
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_UPDATE_PLAYER_COLLISIONS]->Update();
+  pFramerate->m_perf_timer[PERF_UPDATE_PLAYER_COLLISIONS].Update();
 
   // late update for level objects
   pActive_Level->Update_Late();
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_UPDATE_LATE_LEVEL]->Update();
+  pFramerate->m_perf_timer[PERF_UPDATE_LATE_LEVEL].Update();
 
   // level collisions
   if (!editor_enabled) {
-    pActive_Level->m_sprite_manager->Handle_Collision_Items();
+    pActive_Level->m_sprite_manager.Handle_Collision_Items();
   }
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_COLLISIONS]->Update();
+  pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_COLLISIONS].Update();
 
   // Camera ( update after new player position was set )
   pActive_Camera->Update();
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_UPDATE_CAMERA]->Update();
+  pFramerate->m_perf_timer[PERF_UPDATE_CAMERA].Update();
 }
 
 void cLevel_Manager ::Draw(void) {
@@ -258,31 +249,31 @@ void cLevel_Manager ::Draw(void) {
   pActive_Level->Draw_Layer_1();
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_DRAW_LEVEL_LAYER1]->Update();
+  pFramerate->m_perf_timer[PERF_DRAW_LEVEL_LAYER1].Update();
 
   // player draw
   pLevel_Player->Draw();
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_DRAW_LEVEL_PLAYER]->Update();
+  pFramerate->m_perf_timer[PERF_DRAW_LEVEL_PLAYER].Update();
 
   // draw level layer 2
   pActive_Level->Draw_Layer_2();
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_DRAW_LEVEL_LAYER2]->Update();
+  pFramerate->m_perf_timer[PERF_DRAW_LEVEL_LAYER2].Update();
 
   // hud
   pHud_Manager->Draw();
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_DRAW_LEVEL_HUD]->Update();
+  pFramerate->m_perf_timer[PERF_DRAW_LEVEL_HUD].Update();
 
   // level editor
   pLevel_Editor->Draw();
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_DRAW_LEVEL_EDITOR]->Update();
+  pFramerate->m_perf_timer[PERF_DRAW_LEVEL_EDITOR].Update();
 }
 
 void cLevel_Manager ::Finish_Level(bool win_music /* = 0 */) {
@@ -362,7 +353,8 @@ void cLevel_Manager ::Goto_Sub_Level(
         if (move_camera == CAMERA_MOVE_ALONG_PATH ||
             move_camera == CAMERA_MOVE_ALONG_PATH_BACKWARDS) {
           // create path state
-          cPath_State path_state = cPath_State(pActive_Level->m_sprite_manager);
+          cPath_State path_state =
+              cPath_State(&pActive_Level->m_sprite_manager);
           // set parent path
           path_state.Set_Path_Identifier(path_identifier);
 
@@ -405,7 +397,7 @@ void cLevel_Manager ::Goto_Sub_Level(
 
               // keep particles on screen
               for (const auto& sprite :
-                   pActive_Level->m_sprite_manager->objects) {
+                   pActive_Level->m_sprite_manager.objects) {
                 if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
                   cParticle_Emitter* emitter =
                       static_cast<cParticle_Emitter*>(sprite.get());

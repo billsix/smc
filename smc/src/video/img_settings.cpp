@@ -236,7 +236,6 @@ void cImage_Settings_Data ::Apply_Base(
 /* *** *** *** *** *** *** cImage_Settings_Parser *** *** *** *** *** *** *** *** *** *** *** */
 
 cImage_Settings_Parser ::cImage_Settings_Parser(void) : cFile_parser() {
-  m_settings_temp = nullptr;
   m_load_base = true;
 }
 
@@ -244,15 +243,13 @@ cImage_Settings_Parser ::~cImage_Settings_Parser(void) {
   //
 }
 
-cImage_Settings_Data* cImage_Settings_Parser ::Get(
+std::unique_ptr<cImage_Settings_Data> cImage_Settings_Parser ::Get(
     const std::string& filename, bool load_base_settings /* = 1 */) {
   m_load_base = load_base_settings;
-  m_settings_temp = new cImage_Settings_Data();
+  m_settings_temp = std::make_unique<cImage_Settings_Data>();
 
   Parse(filename);
-  cImage_Settings_Data* settings = m_settings_temp;
-  m_settings_temp = nullptr;
-  return settings;
+  return std::move(m_settings_temp);
 }
 
 bool cImage_Settings_Parser ::HandleMessage(const std::string* parts,
@@ -297,24 +294,21 @@ bool cImage_Settings_Parser ::HandleMessage(const std::string* parts,
           }
 
           // create new temporary parser
-          cImage_Settings_Parser* temp_parser = new cImage_Settings_Parser();
-          cImage_Settings_Data* base_settings = temp_parser->Get(settings_file);
-          // finished loading base settings
-          delete temp_parser;
+          cImage_Settings_Parser temp_parser;
+          std::unique_ptr<cImage_Settings_Data> base_settings =
+              temp_parser.Get(settings_file);
           settings_file.clear();
 
           // handle
           if (base_settings) {
             // todo : apply settings in reverse order ( deepest settings should override first )
-            m_settings_temp->Apply_Base(base_settings);
+            m_settings_temp->Apply_Base(base_settings.get());
 
             // if also based on settings
             if (!base_settings->m_base.empty() &&
                 base_settings->m_base_settings) {
               settings_file = base_settings->m_base;
             }
-
-            delete base_settings;
           }
         }
       }

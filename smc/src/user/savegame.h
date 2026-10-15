@@ -182,7 +182,7 @@ class cSavegame {
   /* Load a Save
 	* The returned object should be deleted if not used anymore
 	*/
-  cSave* Load(unsigned int save_slot);
+  [[nodiscard]] std::unique_ptr<cSave> Load(unsigned int save_slot);
   // Save a Save
   int Save(unsigned int save_slot, cSave* savegame);
 
@@ -207,7 +207,7 @@ class cSavegame_XML_Handler : public CEGUI::XMLHandler {
   /* Returns the savegame data
 	 * The returned savegame should be deleted if not used anymore
 	*/
-  cSave* Acquire_Savegame(void);
+  [[nodiscard]] std::unique_ptr<cSave> Acquire_Savegame(void);
 
   // XML element start
   void elementStart(const CEGUI::String& element,
@@ -238,7 +238,7 @@ class cSavegame_XML_Handler : public CEGUI::XMLHandler {
   vector<std::unique_ptr<cSprite>> m_level_spawned_objects;
 
   // object we are constructing
-  cSave* m_savegame;
+  std::unique_ptr<cSave> m_savegame;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

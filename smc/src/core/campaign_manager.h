@@ -58,8 +58,9 @@ class cCampaign_Manager : public cObject_Manager<cCampaign> {
 
   // load all campaigns
   void Load(void);
-  // load a campaign
-  cCampaign* Load_Campaign(const std::string& filename);
+  // load a campaign (the caller owns the result; empty on failure)
+  [[nodiscard]] std::unique_ptr<cCampaign> Load_Campaign(
+      const std::string& filename);
 
   // Get campaign from name
   cCampaign* Get_from_Name(const std::string& name);
@@ -81,8 +82,8 @@ class cCampaign_XML_Handler : public CEGUI::XMLHandler {
   // XML attributes list
   CEGUI::XMLAttributes m_xml_attributes;
 
-  // object we are constructing
-  cCampaign* m_campaign;
+  // object we are constructing (owned until Load_Campaign takes it)
+  std::unique_ptr<cCampaign> m_campaign;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

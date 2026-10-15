@@ -63,7 +63,7 @@ class cMoving_Platform : public cAnimated_Sprite {
 	*/
   void Init_Links(void) override;
   // copy
-  std::unique_ptr<cSprite> Copy(void) const override;
+  [[nodiscard]] std::unique_ptr<cSprite> Copy(void) const override;
 
   // load from stream
   void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
@@ -76,7 +76,8 @@ class cMoving_Platform : public cAnimated_Sprite {
   // load from savegame
   void Load_From_Savegame(cSave_Level_Object* save_object) override;
   // save to savegame
-  cSave_Level_Object* Save_To_Savegame(void) override;
+  [[nodiscard]] std::unique_ptr<cSave_Level_Object> Save_To_Savegame(
+      void) override;
 
   // Set move type
   void Set_Move_Type(Moving_Platform_Type move_type);
@@ -115,7 +116,7 @@ class cMoving_Platform : public cAnimated_Sprite {
   // update
   void Update(void) override;
   // draw
-  void Draw(cSurface_Request* request /* = NULL */) override;
+  void Draw(cSurface_Request* request /* = nullptr */) override;
 
   // Update rect
   void Update_Rect(void);

@@ -37,7 +37,7 @@ class cBonusBox : public cBaseBox {
   void Init(void) override;
 
   // copy
-  std::unique_ptr<cSprite> Copy(void) const override;
+  [[nodiscard]] std::unique_ptr<cSprite> Copy(void) const override;
 
   // load from stream
   void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
@@ -96,7 +96,7 @@ class cBonusBox : public cBaseBox {
 	 * list of active item is available
 	 * and gets added to the level objects if finished
 	*/
-  using MovingSpriteList = vector<cMovingSprite*>;
+  using MovingSpriteList = vector<std::unique_ptr<cMovingSprite>>;
   MovingSpriteList m_active_items;
   // Goldpiece color
   DefaultColor m_gold_color;

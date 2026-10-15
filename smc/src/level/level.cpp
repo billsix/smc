@@ -69,25 +69,14 @@ cLevel ::cLevel(void) {
 
   m_delayed_unload = false;
 
-  m_sprite_manager = new cSprite_Manager();
-  m_background_manager = new cBackground_Manager();
-  m_animation_manager = new cAnimation_Manager();
-
   // add default gradient layer
-  cBackground* gradient_background = new cBackground(m_sprite_manager);
+  auto gradient_background = std::make_unique<cBackground>(&m_sprite_manager);
   gradient_background->Set_Type(BG_GR_VER);
   gradient_background->m_pos_z = 0.0001f;
-  m_background_manager->Add(gradient_background);
+  m_background_manager.Add(std::move(gradient_background));
 }
 
-cLevel ::~cLevel(void) {
-  Unload();
-
-  // delete
-  delete m_background_manager;
-  delete m_animation_manager;
-  delete m_sprite_manager;
-}
+cLevel ::~cLevel(void) { Unload(); }
 
 bool cLevel ::New(std::string filename) {
   Unload();
@@ -196,7 +185,7 @@ bool cLevel ::Load(std::string filename) {
   /* late initialization
 	 * needed to create links to other objects
 	*/
-  for (auto& sprite : m_sprite_manager->objects) {
+  for (const auto& sprite : m_sprite_manager.objects) {
     sprite->Init_Links();
   }
 
@@ -224,13 +213,13 @@ void cLevel ::Unload(bool delayed /* = 0 */) {
   }
 
   // delete backgrounds
-  m_background_manager->Delete_All();
+  m_background_manager.Delete_All();
 
   // add default gradient layer
-  cBackground* gradient_background = new cBackground(m_sprite_manager);
+  auto gradient_background = std::make_unique<cBackground>(&m_sprite_manager);
   gradient_background->Set_Type(BG_GR_VER);
   gradient_background->m_pos_z = 0.0001f;
-  m_background_manager->Add(gradient_background);
+  m_background_manager.Add(std::move(gradient_background));
 
   // reset music
   m_musicfile.clear();
@@ -249,7 +238,7 @@ void cLevel ::Unload(bool delayed /* = 0 */) {
   /* delete sprites
 	 * do this at last
 	*/
-  m_sprite_manager->Delete_All();
+  m_sprite_manager.Delete_All();
 }
 
 void cLevel ::Save(void) {
@@ -325,7 +314,7 @@ void cLevel ::Save(void) {
   stream.closeTag();
 
   // backgrounds
-  for (auto& background : m_background_manager->objects) {
+  for (const auto& background : m_background_manager.objects) {
     background->Save_To_XML(stream);
   }
 
@@ -343,7 +332,7 @@ void cLevel ::Save(void) {
   stream.closeTag();
 
   // objects
-  for (auto& sprite : m_sprite_manager->objects) {
+  for (const auto& sprite : m_sprite_manager.objects) {
     // skip spawned and destroyed objects
     if (sprite->m_spawned || sprite->m_auto_destroy) {
       continue;
@@ -405,25 +394,26 @@ void cLevel ::Init(void) {
   pLevel_Player->Reset();
 
   // pre-update animations
-  for (auto& sprite : m_sprite_manager->objects) {
+  for (const auto& sprite : m_sprite_manager.objects) {
     if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
-      cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(sprite.get());
+      cParticle_Emitter* emitter =
+          static_cast<cParticle_Emitter*>(sprite.get());
       emitter->Pre_Update();
     }
   }
 }
 
 void cLevel ::Set_Sprite_Manager(void) {
-  pHud_Manager->Set_Sprite_Manager(m_sprite_manager);
-  pMouseCursor->Set_Sprite_Manager(m_sprite_manager);
-  pLevel_Editor->Set_Sprite_Manager(m_sprite_manager);
+  pHud_Manager->Set_Sprite_Manager(&m_sprite_manager);
+  pMouseCursor->Set_Sprite_Manager(&m_sprite_manager);
+  pLevel_Editor->Set_Sprite_Manager(&m_sprite_manager);
   pLevel_Editor->Set_Level(this);
   // camera
-  pLevel_Manager->m_camera->Set_Sprite_Manager(m_sprite_manager);
-  pLevel_Manager->m_camera->Set_Limits(m_camera_limits);
-  pLevel_Manager->m_camera->m_fixed_hor_vel = m_fixed_camera_hor_vel;
+  pLevel_Manager->m_camera.Set_Sprite_Manager(&m_sprite_manager);
+  pLevel_Manager->m_camera.Set_Limits(m_camera_limits);
+  pLevel_Manager->m_camera.m_fixed_hor_vel = m_fixed_camera_hor_vel;
 
-  pLevel_Player->Set_Sprite_Manager(m_sprite_manager);
+  pLevel_Player->Set_Sprite_Manager(&m_sprite_manager);
 }
 
 void cLevel ::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
@@ -434,11 +424,11 @@ void cLevel ::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
 
   Set_Sprite_Manager();
   // set active camera
-  pActive_Camera = pLevel_Manager->m_camera;
+  pActive_Camera = &pLevel_Manager->m_camera;
   // set active player
   pActive_Player = pLevel_Player;
   // set animation manager
-  pActive_Animation_Manager = m_animation_manager;
+  pActive_Animation_Manager = &m_animation_manager;
 
   // disable world editor
   pWorld_Editor->Disable();
@@ -457,7 +447,7 @@ void cLevel ::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
   if (pLevel_Editor->m_enabled) {
     pActive_Camera->Update_Position();
   } else {
-    pLevel_Manager->m_camera->Center();
+    pLevel_Manager->m_camera.Center();
   }
 
   // play music
@@ -484,8 +474,8 @@ void cLevel ::Leave(const GameMode next_mode /* = MODE_NOTHING */) {
   }
 
   // reset camera limits
-  pLevel_Manager->m_camera->Reset_Limits();
-  pLevel_Manager->m_camera->m_fixed_hor_vel = 0.0f;
+  pLevel_Manager->m_camera.Reset_Limits();
+  pLevel_Manager->m_camera.m_fixed_hor_vel = 0.0f;
 
   // reset mouse
   pMouseCursor->Reset(false);
@@ -523,19 +513,19 @@ void cLevel ::Update(void) {
   // if level-editor is not active
   if (!editor_level_enabled) {
     // backgrounds
-    for (auto& background : m_background_manager->objects) {
+    for (const auto& background : m_background_manager.objects) {
       background->Update();
     }
 
     // objects
-    m_sprite_manager->Update_Items();
+    m_sprite_manager.Update_Items();
     // animations
-    m_animation_manager->Update();
+    m_animation_manager.Update();
   }
   // if level-editor enabled
   else {
     // only update particle emitters
-    for (auto& sprite : m_sprite_manager->objects) {
+    for (const auto& sprite : m_sprite_manager.objects) {
       if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
         sprite->Update();
       }
@@ -547,14 +537,14 @@ void cLevel ::Update_Late(void) {
   // if leveleditor is not active
   if (!editor_level_enabled) {
     // objects
-    m_sprite_manager->Update_Items_Late();
+    m_sprite_manager.Update_Items_Late();
   }
 }
 
 void cLevel ::Draw_Layer_1(LevelDrawType type /* = LVL_DRAW */) {
   // with background
   if (type != LVL_DRAW_NO_BG) {
-    for (auto& background : m_background_manager->objects) {
+    for (const auto& background : m_background_manager.objects) {
       background->Draw();
     }
   }
@@ -565,9 +555,9 @@ void cLevel ::Draw_Layer_1(LevelDrawType type /* = LVL_DRAW */) {
   }
 
   // Objects
-  m_sprite_manager->Draw_Items();
+  m_sprite_manager.Draw_Items();
   // Animations
-  m_animation_manager->Draw();
+  m_animation_manager.Draw();
 }
 
 void cLevel ::Draw_Layer_2(LevelDrawType type /* = LVL_DRAW */) {
@@ -579,7 +569,7 @@ void cLevel ::Draw_Layer_2(LevelDrawType type /* = LVL_DRAW */) {
   // ghost
   if (pLevel_Player->m_maryo_type == MARYO_GHOST) {
     // create request
-    cRect_Request* request = new cRect_Request();
+    auto request = std::make_unique<cRect_Request>();
 
     Color color = Color(0.5f, 0.5f, 0.5f, 0.3f);
 
@@ -595,7 +585,8 @@ void cLevel ::Draw_Layer_2(LevelDrawType type /* = LVL_DRAW */) {
     }
 
     pVideo->Draw_Rect(0, 0, static_cast<float>(game_res_w),
-                      static_cast<float>(game_res_h), 0.12f, &color, request);
+                      static_cast<float>(game_res_h), 0.12f, &color,
+                      request.get());
 
     request->m_combine_type = GL_MODULATE;
 
@@ -604,7 +595,7 @@ void cLevel ::Draw_Layer_2(LevelDrawType type /* = LVL_DRAW */) {
     request->m_combine_color[2] = 0.8f;
 
     // add request
-    pRenderer->Add(request);
+    pRenderer->Add(std::move(request));
   }
 }
 
@@ -626,7 +617,7 @@ bool cLevel ::Key_Down(const SDLKey key) {
     //DrawEffect( HORIZONTAL_VERTICAL_FADE );
     //pLevel_Player->Draw_Animation( MARYO_FIRE );
 
-    cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+    auto anim = std::make_unique<cParticle_Emitter>(&m_sprite_manager);
     anim->Set_Emitter_Rect(
         pLevel_Player->m_pos_x +
             static_cast<float>(pLevel_Player->m_col_rect.m_w / 2),
@@ -640,7 +631,7 @@ bool cLevel ::Key_Down(const SDLKey key) {
     anim->Set_Speed(1, 4);
     anim->Set_Scale(0.5f);
     anim->Set_Const_Rotation_Z(-5, 10);
-    m_animation_manager->Add(anim);
+    m_animation_manager.Add(std::move(anim));
   }
   // special key F4
   else if (key == SDLK_F4) {
@@ -926,7 +917,7 @@ cLevel_Entry* cLevel ::Get_Entry(const std::string& name) {
   }
 
   // Search for entry
-  for (auto& sprite : m_sprite_manager->objects) {
+  for (const auto& sprite : m_sprite_manager.objects) {
     if (sprite->m_type != TYPE_LEVEL_ENTRY || sprite->m_auto_destroy) {
       continue;
     }
@@ -1014,12 +1005,12 @@ void cLevel ::elementEnd(const CEGUI::String& element) {
 
     // use gradient background
     if (bg_type == BG_GR_HOR || bg_type == BG_GR_VER) {
-      m_background_manager->Get_Pointer(0)->Load_From_XML(m_xml_attributes);
+      m_background_manager.Get_Pointer(0)->Load_From_XML(m_xml_attributes);
     }
     // default background
     else {
-      m_background_manager->Add(
-          new cBackground(m_xml_attributes, m_sprite_manager));
+      m_background_manager.Add(
+          std::make_unique<cBackground>(m_xml_attributes, &m_sprite_manager));
     }
   } else if (element == "player") {
     // position
@@ -1056,12 +1047,12 @@ void cLevel ::elementEnd(const CEGUI::String& element) {
     }
   } else if (Is_Level_Object_Element(element)) {
     // create sprite
-    cSprite* object = Create_Level_Object_From_XML(
-        element, m_xml_attributes, m_engine_version, m_sprite_manager);
+    std::unique_ptr<cSprite> object = Create_Level_Object_From_XML(
+        element, m_xml_attributes, m_engine_version, &m_sprite_manager);
 
     // valid
     if (object) {
-      m_sprite_manager->Add(object);
+      m_sprite_manager.Add(std::move(object));
     }
   } else if (element == "level") {
     // ignore
@@ -1073,10 +1064,9 @@ void cLevel ::elementEnd(const CEGUI::String& element) {
   m_xml_attributes = CEGUI::XMLAttributes();
 }
 
-cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
-                                      CEGUI::XMLAttributes& attributes,
-                                      int engine_version,
-                                      cSprite_Manager* sprite_manager) {
+std::unique_ptr<cSprite> Create_Level_Object_From_XML(
+    const CEGUI::String& xml_element, CEGUI::XMLAttributes& attributes,
+    int engine_version, cSprite_Manager* sprite_manager) {
   // element content could change
   CEGUI::String element = xml_element;
 
@@ -1191,7 +1181,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
       attributes.add("type", "passive");
     }
 
-    cSprite* sprite = new cSprite(attributes, sprite_manager);
+    auto sprite = std::make_unique<cSprite>(attributes, sprite_manager);
 
     // if image not available display its filename
     if (!sprite->m_start_image) {
@@ -1201,10 +1191,11 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
         text = "Invalid image here";
       }
 
-      cGL_Surface* text_image = pFont->Render_Text(pFont->m_font_small, text);
+      std::unique_ptr<cGL_Surface> text_image =
+          pFont->Render_Text(pFont->m_font_small, text);
       text_image->m_filename = text;
       // set text image
-      sprite->Set_Image(text_image, true, true);
+      sprite->Set_Image(std::move(text_image), true);
       // display it as front passive
       sprite->Set_Sprite_Type(TYPE_FRONT_PASSIVE);
       // only display it in the editor
@@ -1338,25 +1329,26 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
             color = "brown";
           }
 
-          cSprite* copy = sprite;
+          // each tile is cloned from the previous one (borrowed back from the manager)
+          cSprite* previous = sprite.get();
 
           // add middle tiles
           for (unsigned int i = 0; i < 4; i++) {
-            copy = copy->Copy().release();
+            std::unique_ptr<cSprite> copy = previous->Copy();
             copy->Set_Image(pVideo->Get_Surface("ground/jungle_1/slider/2_" +
                                                 color + "_middle.png"),
                             true);
             copy->Set_Pos_X(copy->m_start_pos_x + 22, true);
-            sprite_manager->Add(copy);
+            previous = sprite_manager->Add(std::move(copy));
           }
 
           // add end tile
-          copy = copy->Copy().release();
+          std::unique_ptr<cSprite> copy = previous->Copy();
           copy->Set_Image(pVideo->Get_Surface("ground/jungle_1/slider/2_" +
                                               color + "_right.png"),
                           true);
           copy->Set_Pos_X(copy->m_start_pos_x + 22, true);
-          sprite_manager->Add(copy);
+          sprite_manager->Add(std::move(copy));
         }
       }
       // if V.1.7 and lower : change slider grey_1 to green_1 brown slider image paths
@@ -1370,7 +1362,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
                  DATA_DIR "/" GAME_PIXMAPS_DIR "/"
                           "ground/green_1/slider/1/brown/right.png") == 0)) {
           // add middle tile
-          cSprite* copy = sprite->Copy().release();
+          std::unique_ptr<cSprite> copy = sprite->Copy();
           copy->Set_Image(
               pVideo->Get_Surface("ground/green_1/slider/1/brown/middle.png"),
               true);
@@ -1380,7 +1372,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
                            "ground/green_1/slider/1/brown/left.png") == 0) {
             copy->Set_Pos_X(copy->m_start_pos_x + 18, true);
           }
-          sprite_manager->Add(copy);
+          sprite_manager->Add(std::move(copy));
         }
         // move right tile
         if (sprite->m_image->m_filename.compare(
@@ -1403,7 +1395,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
       }
     }
 
-    return new cEnemyStopper(attributes, sprite_manager);
+    return std::make_unique<cEnemyStopper>(attributes, sprite_manager);
   } else if (element == "levelexit") {
     // if V.1.9 and lower : move y coordinate bottom to 0
     if (engine_version < 35) {
@@ -1424,7 +1416,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
       }
     }
 
-    return new cLevel_Exit(attributes, sprite_manager);
+    return std::make_unique<cLevel_Exit>(attributes, sprite_manager);
   } else if (element == "level_entry") {
     // if V.1.9 and lower : move y coordinate bottom to 0
     if (engine_version < 35) {
@@ -1435,7 +1427,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
       }
     }
 
-    return new cLevel_Entry(attributes, sprite_manager);
+    return std::make_unique<cLevel_Entry>(attributes, sprite_manager);
   } else if (element == "box") {
     // if V.1.9 and lower : move y coordinate bottom to 0
     if (engine_version < 35) {
@@ -1449,7 +1441,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
     CEGUI::String str_type = attributes.getValueAsString("type");
 
     if (str_type == "bonus") {
-      return new cBonusBox(attributes, sprite_manager);
+      return std::make_unique<cBonusBox>(attributes, sprite_manager);
     }
     // gold is somewhere pre V.0.99.5
     else if (str_type == "gold") {
@@ -1463,11 +1455,11 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
         attributes.remove("color");
       }
 
-      return new cBonusBox(attributes, sprite_manager);
+      return std::make_unique<cBonusBox>(attributes, sprite_manager);
     } else if (str_type == "spin") {
-      return new cSpinBox(attributes, sprite_manager);
+      return std::make_unique<cSpinBox>(attributes, sprite_manager);
     } else if (str_type == "text") {
-      return new cText_Box(attributes, sprite_manager);
+      return std::make_unique<cText_Box>(attributes, sprite_manager);
     }
     // pre V.0.99.4
     else if (str_type == "empty") {
@@ -1475,7 +1467,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
       attributes.add("type", "bonus");
       attributes.add("item", "0");
 
-      return new cBonusBox(attributes, sprite_manager);
+      return std::make_unique<cBonusBox>(attributes, sprite_manager);
     }
     // pre V.0.99.4
     else if (str_type == "invisible") {
@@ -1484,7 +1476,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
       attributes.add("item", "0");
       attributes.add("invisible", "1");
 
-      return new cBonusBox(attributes, sprite_manager);
+      return std::make_unique<cBonusBox>(attributes, sprite_manager);
     } else {
       printf("Warning : Unknown Level Box type : %s\n", str_type.c_str());
     }
@@ -1503,15 +1495,15 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
     CEGUI::String str_type = attributes.getValueAsString("type");
 
     if (str_type == "goldpiece") {
-      return new cGoldpiece(attributes, sprite_manager);
+      return std::make_unique<cGoldpiece>(attributes, sprite_manager);
     } else if (str_type == "mushroom") {
-      return new cMushroom(attributes, sprite_manager);
+      return std::make_unique<cMushroom>(attributes, sprite_manager);
     } else if (str_type == "fireplant") {
-      return new cFirePlant(attributes, sprite_manager);
+      return std::make_unique<cFirePlant>(attributes, sprite_manager);
     } else if (str_type == "jstar") {
-      return new cjStar(attributes, sprite_manager);
+      return std::make_unique<cjStar>(attributes, sprite_manager);
     } else if (str_type == "moon") {
-      return new cMoon(attributes, sprite_manager);
+      return std::make_unique<cMoon>(attributes, sprite_manager);
     } else {
       printf("Warning : Unknown Level Item type : %s\n", str_type.c_str());
     }
@@ -1538,8 +1530,8 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
       }
     }
 
-    cMoving_Platform* moving_platform =
-        new cMoving_Platform(attributes, sprite_manager);
+    auto moving_platform =
+        std::make_unique<cMoving_Platform>(attributes, sprite_manager);
 
     // if V.1.7 and lower : change new slider middle count because start and end image is now half the width
     if (engine_version < 32) {
@@ -1595,8 +1587,8 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
       }
     }
 
-    cMoving_Platform* moving_platform =
-        new cMoving_Platform(attributes, sprite_manager);
+    auto moving_platform =
+        std::make_unique<cMoving_Platform>(attributes, sprite_manager);
 
     // if V.1.7 and lower : change new slider middle count because start and end image is now half the width
     if (engine_version < 32) {
@@ -1670,11 +1662,11 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
     }
 
     if (str_type == "eato") {
-      return new cEato(attributes, sprite_manager);
+      return std::make_unique<cEato>(attributes, sprite_manager);
     } else if (str_type == "furball") {
-      return new cFurball(attributes, sprite_manager);
+      return std::make_unique<cFurball>(attributes, sprite_manager);
     } else if (str_type == "turtle") {
-      return new cTurtle(attributes, sprite_manager);
+      return std::make_unique<cTurtle>(attributes, sprite_manager);
     } else if (str_type == "turtleboss") {
       // if V.1.5 and lower : max_downgrade_time changed to shell_time
       if (engine_version < 27) {
@@ -1685,11 +1677,11 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
         }
       }
 
-      return new cTurtleBoss(attributes, sprite_manager);
+      return std::make_unique<cTurtleBoss>(attributes, sprite_manager);
     } else if (str_type == "flyon") {
-      return new cFlyon(attributes, sprite_manager);
+      return std::make_unique<cFlyon>(attributes, sprite_manager);
     } else if (str_type == "thromp") {
-      cThromp* thromp = new cThromp(attributes, sprite_manager);
+      auto thromp = std::make_unique<cThromp>(attributes, sprite_manager);
 
       // if V.1.4 and lower : fix thromp distance was smaller
       if (engine_version < 25) {
@@ -1698,17 +1690,17 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
 
       return thromp;
     } else if (str_type == "rokko") {
-      return new cRokko(attributes, sprite_manager);
+      return std::make_unique<cRokko>(attributes, sprite_manager);
     } else if (str_type == "krush") {
-      return new cKrush(attributes, sprite_manager);
+      return std::make_unique<cKrush>(attributes, sprite_manager);
     } else if (str_type == "gee") {
-      return new cGee(attributes, sprite_manager);
+      return std::make_unique<cGee>(attributes, sprite_manager);
     } else if (str_type == "spika") {
-      return new cSpika(attributes, sprite_manager);
+      return std::make_unique<cSpika>(attributes, sprite_manager);
     } else if (str_type == "static") {
-      return new cStaticEnemy(attributes, sprite_manager);
+      return std::make_unique<cStaticEnemy>(attributes, sprite_manager);
     } else if (str_type == "spikeball") {
-      return new cSpikeball(attributes, sprite_manager);
+      return std::make_unique<cSpikeball>(attributes, sprite_manager);
     } else {
       printf("Warning : Unknown Level Enemy type : %s\n", str_type.c_str());
     }
@@ -1722,7 +1714,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
       }
     }
 
-    return new cRandom_Sound(attributes, sprite_manager);
+    return std::make_unique<cRandom_Sound>(attributes, sprite_manager);
   } else if (element == "particle_emitter") {
     // Note : If you relocate images don't forget the global effect
 
@@ -1755,8 +1747,8 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
       }
     }
 
-    cParticle_Emitter* particle_emitter =
-        new cParticle_Emitter(attributes, sprite_manager);
+    auto particle_emitter =
+        std::make_unique<cParticle_Emitter>(attributes, sprite_manager);
     // set to not spawned
     particle_emitter->Set_Spawned(false);
 
@@ -1771,7 +1763,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
       }
     }
 
-    return new cPath(attributes, sprite_manager);
+    return std::make_unique<cPath>(attributes, sprite_manager);
   }
   // if V.1.9 and lower : convert global effect to an advanced particle emitter
   else if (element == "global_effect") {
@@ -1869,8 +1861,8 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
                    CEGUI::PropertyHelper::floatToString(
                        attributes.getValueAsFloat("const_rotz_rand", 10.0f)));
 
-    cParticle_Emitter* emitter =
-        new cParticle_Emitter(attributes, sprite_manager);
+    auto emitter =
+        std::make_unique<cParticle_Emitter>(attributes, sprite_manager);
     emitter->Set_Spawned(false);
 
     // clip to the camera
@@ -1882,7 +1874,7 @@ cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
 
     return emitter;
   } else if (element == "ball") {
-    return new cBall(attributes, sprite_manager);
+    return std::make_unique<cBall>(attributes, sprite_manager);
   }
   // keep in synch with cLevel::Is_Level_Object_Element()
 

@@ -58,10 +58,10 @@ void cSpika ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cSpika ::Copy(void) const {
-  cSpika* spika = new cSpika(m_sprite_manager);
+  auto spika = std::make_unique<cSpika>(m_sprite_manager);
   spika->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   spika->Set_Color(m_color_type);
-  return std::unique_ptr<cSprite>(spika);
+  return spika;
 }
 
 void cSpika ::Load_From_XML(CEGUI::XMLAttributes& attributes) {

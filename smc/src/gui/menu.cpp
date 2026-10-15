@@ -37,24 +37,15 @@ namespace SMC {
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cMenu_Item ::cMenu_Item(cSprite_Manager* sprite_manager)
-    : cHudSprite(sprite_manager) {
+    : cHudSprite(sprite_manager),
+      m_image_default(sprite_manager),
+      m_image_menu(sprite_manager) {
   Set_Scale_Directions(true, true, true, true);
   m_active = false;
   m_is_quit = false;
-
-  m_image_default = new cHudSprite(sprite_manager);
-  m_image_menu = new cHudSprite(sprite_manager);
 }
 
-cMenu_Item ::~cMenu_Item(void) {
-  if (m_image_default) {
-    delete m_image_default;
-  }
-
-  if (m_image_menu) {
-    delete m_image_menu;
-  }
-}
+cMenu_Item ::~cMenu_Item(void) = default;
 
 void cMenu_Item ::Set_Active(bool active /* = 0 */) {
   m_active = active;
@@ -66,7 +57,7 @@ void cMenu_Item ::Set_Active(bool active /* = 0 */) {
   }
 }
 
-void cMenu_Item ::Draw(cSurface_Request* request /* = NULL */) {
+void cMenu_Item ::Draw(cSurface_Request* request /* = nullptr */) {
   if (m_active) {
     // rotation is used for the scale state
     if (!m_rot_z) {
@@ -93,61 +84,52 @@ void cMenu_Item ::Draw(cSurface_Request* request /* = NULL */) {
     m_pos_x = m_start_pos_x;
     m_pos_y = m_start_pos_y;
 
-    m_image_menu->Draw();
+    m_image_menu.Draw();
   }
 }
 
 /* *** *** *** *** *** *** cMenuHandler *** *** *** *** *** *** *** *** *** *** *** */
 
-cMenuHandler ::cMenuHandler(void) {
-  m_level = new cLevel();
-  m_camera = new cCamera(m_level->m_sprite_manager);
-  m_player = new cSprite(m_level->m_sprite_manager);
-  m_player->Set_Massive_Type(MASS_PASSIVE);
+cMenuHandler ::cMenuHandler(void)
+    : m_camera(&m_level.m_sprite_manager), m_player(&m_level.m_sprite_manager) {
+  m_player.Set_Massive_Type(MASS_PASSIVE);
   Reset();
 
-  m_level->Load(pPreferences->m_menu_level);
+  m_level.Load(pPreferences->m_menu_level);
 
   // SMC logo image
-  cHudSprite* sprite = new cHudSprite(m_level->m_sprite_manager);
+  auto sprite = std::make_unique<cHudSprite>(&m_level.m_sprite_manager);
   sprite->Set_Image(pVideo->Get_Surface("game/logo/smc_big_1.png"));
   sprite->Set_Pos(180.0f, 20.0f);
   sprite->Set_Scale(0.8f);
   sprite->Set_Sprite_Type(TYPE_FRONT_PASSIVE);
-  m_level->m_sprite_manager->Add(sprite);
+  m_level.m_sprite_manager.Add(std::move(sprite));
 }
 
-cMenuHandler ::~cMenuHandler(void) {
-  Reset();
+cMenuHandler ::~cMenuHandler(void) { Reset(); }
 
-  delete m_camera;
-  delete m_level;
-  delete m_player;
-}
-
-void cMenuHandler ::Add_Menu_Item(
-    cMenu_Item* item, float shadow_pos /* = 0 */,
+cMenu_Item* cMenuHandler ::Add_Menu_Item(
+    std::unique_ptr<cMenu_Item> item, float shadow_pos /* = 0 */,
     Color shadow_color /* = static_cast<Uint8>(0) */) {
   if (!item) {
     printf("Menu item is NULL ( current Menu size : %d )\n", Get_Size());
-    return;
+    return nullptr;
   }
 
   item->Set_Shadow_Pos(shadow_pos);
   item->Set_Shadow_Color(shadow_color);
-  item->Set_Image(item->m_image_default->m_image);
-  m_items.push_back(item);
+  item->Set_Image(item->m_image_default.m_image);
+  cMenu_Item* added = item.get();
+  m_items.push_back(std::move(item));
 
   if (m_active == -1 && Get_Size() == 1) {
     Set_Active(0);
   }
+
+  return added;
 }
 
 void cMenuHandler ::Reset(void) {
-  for (auto& item : m_items) {
-    delete item;
-  }
-
   m_items.clear();
 
   // nothing is active
@@ -200,19 +182,19 @@ void cMenuHandler ::Update_Mouse(void) {
 
 void cMenuHandler ::Update(void) {
   // level
-  m_level->Update();
+  m_level.Update();
   // collision and movement handling
-  m_level->m_sprite_manager->Handle_Collision_Items();
+  m_level.m_sprite_manager.Handle_Collision_Items();
 }
 
 void cMenuHandler ::Draw(bool with_background /* = 1 */) {
   if (with_background) {
     // draw menu level
-    m_level->Draw_Layer_1();
+    m_level.Draw_Layer_1();
   }
 
   // menu items
-  for (auto& item : m_items) {
+  for (const auto& item : m_items) {
     item->Draw();
   }
 }
@@ -222,7 +204,7 @@ cMenu_Item* cMenuHandler ::Get_Active_Item(void) {
     return nullptr;
   }
 
-  return m_items[m_active];
+  return m_items[m_active].get();
 }
 
 unsigned int cMenuHandler ::Get_Size(void) const {
@@ -234,15 +216,9 @@ unsigned int cMenuHandler ::Get_Size(void) const {
 cMenuCore ::cMenuCore(void) {
   m_menu_id = MENU_NOTHING;
 
-  m_menu_data = nullptr;
-  m_handler = new cMenuHandler();
-
-  // particle animation
-  m_animation_manager = new cAnimation_Manager();
-
   // left side
-  cParticle_Emitter* anim =
-      new cParticle_Emitter(m_handler->m_level->m_sprite_manager);
+  auto anim =
+      std::make_unique<cParticle_Emitter>(&m_handler.m_level.m_sprite_manager);
   anim->Set_Image_Filename("clouds/default_1/1_middle.png");
   anim->Set_Emitter_Rect(-100, static_cast<float>(-game_res_h), 0,
                          game_res_h * 0.5f);
@@ -257,10 +233,11 @@ cMenuCore ::cMenuCore(void) {
   anim->Set_Speed(0.05f, 0.005f);
   anim->Set_Pos_Z(0.0015f, 0.0004f);
 
-  m_animation_manager->Add(anim);
+  m_animation_manager.Add(std::move(anim));
 
   // right side
-  anim = new cParticle_Emitter(m_handler->m_level->m_sprite_manager);
+  anim =
+      std::make_unique<cParticle_Emitter>(&m_handler.m_level.m_sprite_manager);
   anim->Set_Image_Filename("clouds/default_1/1_middle.png");
   anim->Set_Emitter_Rect(static_cast<float>(game_res_w) + 100,
                          static_cast<float>(-game_res_h), 0,
@@ -276,20 +253,15 @@ cMenuCore ::cMenuCore(void) {
   anim->Set_Speed(0.05f, 0.005f);
   anim->Set_Pos_Z(0.0015f, 0.0004f);
 
-  m_animation_manager->Add(anim);
+  m_animation_manager.Add(std::move(anim));
 }
 
-cMenuCore ::~cMenuCore(void) {
-  Unload();
-
-  delete m_handler;
-  delete m_animation_manager;
-}
+cMenuCore ::~cMenuCore(void) { Unload(); }
 
 bool cMenuCore ::Handle_Event(SDL_Event* ev) {
   switch (ev->type) {
     case SDL_MOUSEMOTION: {
-      m_handler->Update_Mouse();
+      m_handler.Update_Mouse();
       break;
     }
     // other events
@@ -304,19 +276,19 @@ bool cMenuCore ::Handle_Event(SDL_Event* ev) {
 bool cMenuCore ::Key_Down(SDLKey key) {
   // Down (todo: detect event for joystick better)
   if (key == SDLK_DOWN || key == pPreferences->m_key_down) {
-    if (m_handler->Get_Size() <=
-        static_cast<unsigned int>(m_handler->m_active + 1)) {
-      m_handler->Set_Active(0);
+    if (m_handler.Get_Size() <=
+        static_cast<unsigned int>(m_handler.m_active + 1)) {
+      m_handler.Set_Active(0);
     } else {
-      m_handler->Set_Active(m_handler->m_active + 1);
+      m_handler.Set_Active(m_handler.m_active + 1);
     }
   }
   // Up (todo: detect event for joystick better)
   else if (key == SDLK_UP || key == pPreferences->m_key_up) {
-    if (m_handler->m_active <= 0) {
-      m_handler->Set_Active(m_handler->Get_Size() - 1);
+    if (m_handler.m_active <= 0) {
+      m_handler.Set_Active(m_handler.Get_Size() - 1);
     } else {
-      m_handler->Set_Active(m_handler->m_active - 1);
+      m_handler.Set_Active(m_handler.m_active - 1);
     }
   }
   // Activate Button
@@ -333,7 +305,7 @@ bool cMenuCore ::Key_Down(SDLKey key) {
     if (!CEGUI::WindowManager::getSingleton().isWindowPresent(
             "listbox_levels")) {
       // Create temporary start menu
-      cMenu_Start* menu_start = new cMenu_Start();
+      auto menu_start = std::make_unique<cMenu_Start>();
 
       menu_start->Init();
       // get levels listbox
@@ -348,7 +320,6 @@ bool cMenuCore ::Key_Down(SDLKey key) {
         menu_start->Load_Level(lvl_name);
       }
       // destroy menu
-      delete menu_start;
     } else {
       // Get levels listbox
       CEGUI::Listbox* listbox_levels = static_cast<CEGUI::Listbox*>(
@@ -359,7 +330,8 @@ bool cMenuCore ::Key_Down(SDLKey key) {
             rand() % listbox_levels->getItemCount(), true);
         // get level name
         lvl_name = listbox_levels->getFirstSelectedItem()->getText().c_str();
-        static_cast<cMenu_Start*>(pMenuCore->m_menu_data)->Load_Level(lvl_name);
+        static_cast<cMenu_Start*>(pMenuCore->m_menu_data.get())
+            ->Load_Level(lvl_name);
       }
     }
   }
@@ -427,7 +399,7 @@ bool cMenuCore ::Joy_Button_Up(Uint8 button) {
 bool cMenuCore ::Mouse_Down(Uint8 button) {
   // nothing yet
   if (button == SDL_BUTTON_LEFT) {
-    cMenu_Item* item = m_handler->Get_Active_Item();
+    cMenu_Item* item = m_handler.Get_Active_Item();
 
     if (item &&
         item->m_col_rect.Intersects(static_cast<float>(pMouseCursor->m_x),
@@ -457,15 +429,15 @@ bool cMenuCore ::Mouse_Up(Uint8 button) {
   return true;
 }
 
-cMenu_Item* cMenuCore ::Auto_Menu(std::string imagename,
-                                  std::string imagefilename_menu,
-                                  float ypos /* = 0 */,
-                                  bool is_quit /* = 0 */) {
-  cMenu_Item* temp_item = new cMenu_Item(m_handler->m_level->m_sprite_manager);
+std::unique_ptr<cMenu_Item> cMenuCore ::Auto_Menu(
+    std::string imagename, std::string imagefilename_menu, float ypos /* = 0 */,
+    bool is_quit /* = 0 */) {
+  auto temp_item =
+      std::make_unique<cMenu_Item>(&m_handler.m_level.m_sprite_manager);
 
   // the menu image
   if (imagefilename_menu.length() > 0) {
-    temp_item->m_image_menu->Set_Image(
+    temp_item->m_image_menu.Set_Image(
         pVideo->Get_Surface(DATA_DIR "/" GAME_PIXMAPS_DIR "/menu/items/" +
                             imagefilename_menu),
         true);
@@ -473,14 +445,14 @@ cMenu_Item* cMenuCore ::Auto_Menu(std::string imagename,
 
   // the active image
   if (imagename.length() > 0) {
-    temp_item->m_image_default->Set_Image(
+    temp_item->m_image_default.Set_Image(
         pVideo->Get_Surface(DATA_DIR "/" GAME_PIXMAPS_DIR "/menu/" + imagename),
         true);
   }
 
   // position and initialization
   temp_item->Set_Pos(
-      (game_res_w * 0.5f) - (temp_item->m_image_default->m_col_rect.m_w * 0.5f),
+      (game_res_w * 0.5f) - (temp_item->m_image_default.m_col_rect.m_w * 0.5f),
       ypos);
   temp_item->m_is_quit = is_quit;
 
@@ -491,7 +463,7 @@ void cMenuCore ::Load(const MenuID menu /* = MENU_MAIN */,
                       const GameMode exit_gamemode /* = MODE_NOTHING */) {
   Unload();
   // reset menu handler
-  m_handler->Reset();
+  m_handler.Reset();
 
   // clear mouse active object
   pMouseCursor->Double_Click(false);
@@ -505,27 +477,27 @@ void cMenuCore ::Load(const MenuID menu /* = MENU_MAIN */,
   // ## Create menu class
   // Main
   if (m_menu_id == MENU_MAIN) {
-    m_menu_data = static_cast<cMenu_Base*>(new cMenu_Main());
+    m_menu_data = std::make_unique<cMenu_Main>();
   }
   // Start
   else if (m_menu_id == MENU_START) {
-    m_menu_data = static_cast<cMenu_Base*>(new cMenu_Start());
+    m_menu_data = std::make_unique<cMenu_Start>();
   }
   // Options
   else if (m_menu_id == MENU_OPTIONS) {
-    m_menu_data = static_cast<cMenu_Base*>(new cMenu_Options());
+    m_menu_data = std::make_unique<cMenu_Options>();
   }
   // Load
   else if (m_menu_id == MENU_LOAD) {
-    m_menu_data = static_cast<cMenu_Base*>(new cMenu_Savegames(false));
+    m_menu_data = std::make_unique<cMenu_Savegames>(false);
   }
   // Save
   else if (m_menu_id == MENU_SAVE) {
-    m_menu_data = static_cast<cMenu_Base*>(new cMenu_Savegames(true));
+    m_menu_data = std::make_unique<cMenu_Savegames>(true);
   }
   // Credits
   else if (m_menu_id == MENU_CREDITS) {
-    m_menu_data = static_cast<cMenu_Base*>(new cMenu_Credits());
+    m_menu_data = std::make_unique<cMenu_Credits>();
   }
 
   m_menu_data->Set_Exit_To_Game_Mode(exit_gamemode);
@@ -534,41 +506,43 @@ void cMenuCore ::Load(const MenuID menu /* = MENU_MAIN */,
 
 void cMenuCore ::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
   // set active camera
-  pActive_Camera = m_handler->m_camera;
+  pActive_Camera = &m_handler.m_camera;
   // set active player
-  pActive_Player = m_handler->m_player;
+  pActive_Player = &m_handler.m_player;
   // set animation manager
-  pActive_Animation_Manager = m_animation_manager;
+  pActive_Animation_Manager = &m_animation_manager;
 
   editor_enabled = false;
 
-  pHud_Manager->Set_Sprite_Manager(m_handler->m_level->m_sprite_manager);
-  pMouseCursor->Set_Sprite_Manager(m_handler->m_level->m_sprite_manager);
+  pHud_Manager->Set_Sprite_Manager(&m_handler.m_level.m_sprite_manager);
+  pMouseCursor->Set_Sprite_Manager(&m_handler.m_level.m_sprite_manager);
   // show mouse
   pMouseCursor->Set_Active(true);
   // camera
-  m_handler->m_camera->Reset_Pos();
+  m_handler.m_camera.Reset_Pos();
   // position HUD
   pHud_Manager->Update_Text();
   // update animation ( for the valid draw state )
-  m_animation_manager->Update();
+  m_animation_manager.Update();
   // if not entering from another menu
   if (old_mode == MODE_NOTHING || old_mode == MODE_LEVEL ||
       old_mode == MODE_OVERWORLD) {
     // set camera start position
-    m_handler->m_camera->Reset_Pos();
+    m_handler.m_camera.Reset_Pos();
 
     // pre-update animations
-    for (auto& sprite : m_handler->m_level->m_sprite_manager->objects) {
+    for (const auto& sprite : m_handler.m_level.m_sprite_manager.objects) {
       if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
-        cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(sprite.get());
+        cParticle_Emitter* emitter =
+            static_cast<cParticle_Emitter*>(sprite.get());
         emitter->Pre_Update();
       }
     }
 
-    for (auto& animation : m_animation_manager->objects) {
+    for (const auto& animation : m_animation_manager.objects) {
       if (animation->m_type == TYPE_PARTICLE_EMITTER) {
-        cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(animation.get());
+        cParticle_Emitter* emitter =
+            static_cast<cParticle_Emitter*>(animation.get());
         emitter->Pre_Update();
       }
     }
@@ -617,8 +591,7 @@ void cMenuCore ::Unload(void) {
   m_menu_id = MENU_NOTHING;
 
   if (m_menu_data) {
-    delete m_menu_data;
-    m_menu_data = nullptr;
+    m_menu_data.reset();
   }
 }
 
@@ -629,13 +602,13 @@ void cMenuCore ::Update(void) {
 
   // if not in a level/world
   if (m_menu_data->m_exit_to_gamemode == MODE_NOTHING) {
-    m_handler->Update();
+    m_handler.Update();
   }
 
   m_menu_data->Update();
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_UPDATE_MENU]->Update();
+  pFramerate->m_perf_timer[PERF_UPDATE_MENU].Update();
 }
 
 void cMenuCore ::Draw(void) {
@@ -646,7 +619,7 @@ void cMenuCore ::Draw(void) {
   m_menu_data->Draw();
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_DRAW_MENU]->Update();
+  pFramerate->m_perf_timer[PERF_DRAW_MENU].Update();
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

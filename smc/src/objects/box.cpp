@@ -114,13 +114,13 @@ void cBaseBox ::Load_From_Savegame(cSave_Level_Object* save_object) {
   Set_Useable_Count(save_useable_count);
 }
 
-cSave_Level_Object* cBaseBox ::Save_To_Savegame(void) {
+std::unique_ptr<cSave_Level_Object> cBaseBox ::Save_To_Savegame(void) {
   // only save if needed
   if (m_useable_count == m_start_useable_count) {
     return nullptr;
   }
 
-  cSave_Level_Object* save_object = new cSave_Level_Object();
+  auto save_object = std::make_unique<cSave_Level_Object>();
 
   // default values
   save_object->m_type = m_type;
@@ -200,7 +200,7 @@ void cBaseBox ::Set_Animation_Type(const std::string& new_anim_type) {
 
   Reset_Animation();
   // set start image
-  Set_Image_Num(m_anim_img_start, true, false);
+  Set_Image_Num(m_anim_img_start, true);
 }
 
 void cBaseBox ::Set_Useable_Count(int count, bool new_startcount /* = 0 */) {
@@ -375,12 +375,12 @@ void cBaseBox ::Check_Collision(ObjectDirection col_direction) {
   }
 
   // collision count
-  cObjectCollisionType* col_list = Collision_Check_Relative(
+  std::unique_ptr<cObjectCollisionType> col_list = Collision_Check_Relative(
       check_x, check_y, m_col_rect.m_w - (check_x * 0.5f),
       m_col_rect.m_h - (check_y * 0.5f));
 
   // handle collisions
-  for (auto& collision : col_list->objects) {
+  for (const auto& collision : col_list->objects) {
     // send box collision
     collision->m_obj->Handle_Collision_Box(
         Get_Opposite_Direction(collision->m_direction), &m_col_rect);
@@ -390,8 +390,6 @@ void cBaseBox ::Check_Collision(ObjectDirection col_direction) {
       Col_Enemy(collision->m_obj);
     }
   }
-
-  delete col_list;
 }
 
 void cBaseBox ::Col_Enemy(cSprite* obj) {
@@ -434,7 +432,7 @@ void cBaseBox ::Update(void) {
   Update_Collision();
 }
 
-void cBaseBox ::Draw(cSurface_Request* request /* = NULL */) {
+void cBaseBox ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -500,7 +498,7 @@ void cBaseBox ::Generate_Activation_Particles(void) {
   m_particle_counter_active += pFramerate->m_speed_factor;
 
   if (m_particle_counter_active > 0.0f) {
-    cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+    auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
     if (box_type == TYPE_MUSHROOM_POISON) {
       anim->Set_Image(
           pVideo->Get_Surface("animation/particles/green_ghost_light.png"));
@@ -559,7 +557,7 @@ void cBaseBox ::Generate_Activation_Particles(void) {
 
     anim->Set_Blending(BLEND_ADD);
     anim->Emit();
-    pActive_Animation_Manager->Add(anim);
+    pActive_Animation_Manager->Add(std::move(anim));
 
     m_particle_counter_active -= static_cast<int>(m_particle_counter_active);
   }

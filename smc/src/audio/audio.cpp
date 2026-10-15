@@ -77,7 +77,7 @@ int cAudio_Sound ::Play(int use_res_id /* = -1 */, int loops /* = 0 */) {
   }
 
   if (use_res_id >= 0) {
-    for (auto sound : pAudio->m_active_sounds) {
+    for (const auto& sound : pAudio->m_active_sounds) {
       // get object pointer
       // skip self
       if (!sound || sound->m_channel == m_channel) {
@@ -282,10 +282,6 @@ void cAudio ::Close(void) {
       Stop_Sounds();
 
       // clear sounds
-      for (auto& active_sound : m_active_sounds) {
-        delete active_sound;
-      }
-
       m_active_sounds.clear();
 
       Mix_AllocateChannels(0);
@@ -333,8 +329,6 @@ void cAudio ::Set_Max_Sounds(unsigned int limit /* = 10 */) {
   while (m_active_sounds.size() > m_max_sounds) {
     last_itr = (m_active_sounds.end() - 1);
 
-    // delete data
-    delete *(last_itr);
     // erase from list
     m_active_sounds.erase(last_itr);
   }
@@ -364,23 +358,20 @@ cSound* cAudio ::Get_Sound_File(std::string filename) const {
 
   // if not already cached
   if (!sound) {
-    sound = new cSound();
+    auto loaded = std::make_unique<cSound>();
 
-    // loaded sound
-    if (sound->Load(filename)) {
-      pSound_Manager->Add(sound);
-
-      if (m_debug) {
-        printf("Loaded sound file : %s\n", filename.c_str());
-      }
-    }
-    // failed loading
-    else {
+    // failed loading (the unloaded sound is freed on return)
+    if (!loaded->Load(filename)) {
       printf("Could not load sound file : %s \nReason : %s\n", filename.c_str(),
              SDL_GetError());
-
-      delete sound;
       return nullptr;
+    }
+
+    // loaded sound: the manager owns it from here
+    sound = pSound_Manager->Add(std::move(loaded));
+
+    if (m_debug) {
+      printf("Loaded sound file : %s\n", filename.c_str());
     }
   }
 
@@ -549,7 +540,7 @@ cAudio_Sound* cAudio ::Get_Playing_Sound(std::string filename) {
   }
 
   // get all sounds
-  for (auto sound : m_active_sounds) {
+  for (const auto& sound : m_active_sounds) {
     // get object pointer
     // if not playing
     if (sound->m_channel < 0) {
@@ -559,7 +550,7 @@ cAudio_Sound* cAudio ::Get_Playing_Sound(std::string filename) {
     // found it
     if (sound->m_data->m_filename.compare(filename) == 0) {
       // return first found
-      return sound;
+      return sound.get();
     }
   }
 
@@ -569,20 +560,21 @@ cAudio_Sound* cAudio ::Get_Playing_Sound(std::string filename) {
 
 cAudio_Sound* cAudio ::Create_Sound_Channel(void) {
   // get all sounds
-  for (auto sound : m_active_sounds) {
+  for (const auto& sound : m_active_sounds) {
     // get object pointer
     // if not playing
     if (sound->m_channel < 0) {
       // found a free channel
       sound->Free();
-      return sound;
+      return sound.get();
     }
   }
 
   // if not maximum sounds
   if (m_active_sounds.size() < m_max_sounds) {
-    cAudio_Sound* sound = new cAudio_Sound();
-    m_active_sounds.push_back(sound);
+    auto owned = std::make_unique<cAudio_Sound>();
+    cAudio_Sound* sound = owned.get();
+    m_active_sounds.push_back(std::move(owned));
     return sound;
   }
 
@@ -651,7 +643,7 @@ void cAudio ::Fadeout_Sounds(unsigned int ms, std::string filename,
   }
 
   // get all sounds
-  for (auto sound : m_active_sounds) {
+  for (const auto& sound : m_active_sounds) {
     // get object pointer
     // skip idle pool entries: m_channel -1 means "not playing", and passing it to
     // Mix_FadeOutChannel(-1, ...) would fade EVERY channel. (Also guards the m_data
@@ -797,7 +789,7 @@ void cAudio ::Update(void) {
   for (int ch = 0; ch < SMC_MAX_MIX_CHANNELS; ++ch) {
     if (g_channel_finished[ch].exchange(false, std::memory_order_relaxed)) {
       if (!Mix_Playing(ch)) {
-        for (auto& active_sound : m_active_sounds) {
+        for (const auto& active_sound : m_active_sounds) {
           if (active_sound->m_channel == ch) {
             active_sound->Finished();
             break;

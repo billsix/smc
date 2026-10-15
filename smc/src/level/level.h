@@ -25,6 +25,7 @@
 // CEGUI
 #include "CEGUIXMLHandler.h"
 #include "CEGUIXMLAttributes.h"
+#include "../core/sprite_manager.h"
 
 namespace SMC {
 
@@ -154,12 +155,10 @@ class cLevel : public CEGUI::XMLHandler {
   // unload the level on the next update
   bool m_delayed_unload;
 
-  // background manager
-  cBackground_Manager* m_background_manager;
-  // animation manager
-  cAnimation_Manager* m_animation_manager;
-  // sprite manager
-  cSprite_Manager* m_sprite_manager;
+  // the level's managers (owned values; constructed with the level)
+  cSprite_Manager m_sprite_manager;
+  cBackground_Manager m_background_manager;
+  cAnimation_Manager m_animation_manager;
 
   /* *** *** *** Settings *** *** *** *** */
 
@@ -205,10 +204,9 @@ class cLevel : public CEGUI::XMLHandler {
  * engine_version : engine version of the data and if it's below the current version it converts it
  * sprite_manager : needed if the engine version is below the current version and data conversion creates multiple objects
 */
-cSprite* Create_Level_Object_From_XML(const CEGUI::String& xml_element,
-                                      CEGUI::XMLAttributes& attributes,
-                                      int engine_version,
-                                      cSprite_Manager* sprite_manager);
+[[nodiscard]] std::unique_ptr<cSprite> Create_Level_Object_From_XML(
+    const CEGUI::String& xml_element, CEGUI::XMLAttributes& attributes,
+    int engine_version, cSprite_Manager* sprite_manager);
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

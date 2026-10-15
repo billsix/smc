@@ -63,7 +63,7 @@ void cAnimation ::Update(void) {
   // virtual
 }
 
-void cAnimation ::Draw(cSurface_Request* request /* = NULL */) {}
+void cAnimation ::Draw(cSurface_Request* request /* = nullptr */) {}
 
 void cAnimation ::Set_Time_to_Live(float time, float time_rand /* = 0.0f */) {
   m_time_to_live = time;
@@ -99,7 +99,7 @@ cAnimation_Goldpiece ::cAnimation_Goldpiece(cSprite_Manager* sprite_manager,
   m_rect.m_h = height;
 
   for (unsigned int i = 0; i < 4; i++) {
-    cSprite* obj = new cSprite(m_sprite_manager);
+    auto obj = std::make_unique<cSprite>(m_sprite_manager);
     obj->Set_Image(m_images[0].m_image);
     obj->Set_Pos(m_pos_x + Get_Random_Float(0.0f, m_rect.m_w),
                  m_pos_y + Get_Random_Float(0.0f, m_rect.m_h));
@@ -110,16 +110,12 @@ cAnimation_Goldpiece ::cAnimation_Goldpiece(cSprite_Manager* sprite_manager,
     obj->Set_Color_Combine(m_combine_color[0], m_combine_color[1],
                            m_combine_color[2], m_combine_type);
 
-    m_objects.push_back(obj);
+    m_objects.push_back(std::move(obj));
   }
 }
 
 cAnimation_Goldpiece ::~cAnimation_Goldpiece(void) {
   // clear
-  for (auto& sprite : m_objects) {
-    delete sprite;
-  }
-
   m_objects.clear();
 }
 
@@ -133,7 +129,7 @@ void cAnimation_Goldpiece ::Update(void) {
   unsigned int count = 0;
 
   // update the fixed points
-  for (auto sprite : m_objects) {
+  for (const auto& sprite : m_objects) {
     // get object
     switch (count) {
       case 0: {
@@ -194,13 +190,13 @@ void cAnimation_Goldpiece ::Update(void) {
   }
 }
 
-void cAnimation_Goldpiece ::Draw(cSurface_Request* request /* = NULL */) {
+void cAnimation_Goldpiece ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_active) {
     return;
   }
 
   // draw the fixed points
-  for (auto sprite : m_objects) {
+  for (const auto& sprite : m_objects) {
     // get object
     sprite->Draw();
   }
@@ -220,8 +216,7 @@ cAnimation_Fireball ::cAnimation_Fireball(cSprite_Manager* sprite_manager,
 
   // create objects
   for (unsigned int i = 0; i < power; i++) {
-    cAnimation_Fireball_Item* obj =
-        new cAnimation_Fireball_Item(sprite_manager);
+    auto obj = std::make_unique<cAnimation_Fireball_Item>(sprite_manager);
 
     // images
     obj->Add_Image(pVideo->Get_Surface("animation/particles/fire_4.png"));
@@ -243,16 +238,12 @@ cAnimation_Fireball ::cAnimation_Fireball(cSprite_Manager* sprite_manager,
     // lifetime
     obj->m_counter = Get_Random_Float(8, 13);
 
-    m_objects.push_back(obj);
+    m_objects.push_back(std::move(obj));
   }
 }
 
 cAnimation_Fireball ::~cAnimation_Fireball(void) {
   // clear
-  for (auto& fire_item : m_objects) {
-    delete fire_item;
-  }
-
   m_objects.clear();
 }
 
@@ -264,7 +255,7 @@ void cAnimation_Fireball ::Update(void) {
   m_time_to_live += pFramerate->m_speed_factor * m_fading_speed;
 
   // update objects
-  for (auto fire_item : m_objects) {
+  for (const auto& fire_item : m_objects) {
     if (fire_item->m_counter > 8) {
       fire_item->Set_Image_Num(0);
     } else if (fire_item->m_counter > 5) {
@@ -286,18 +277,19 @@ void cAnimation_Fireball ::Update(void) {
   }
 }
 
-void cAnimation_Fireball ::Draw(cSurface_Request* request /* = NULL */) {
+void cAnimation_Fireball ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_active) {
     return;
   }
 
   // draw objects
-  for (auto fire_item : m_objects) {
+  for (const auto& fire_item : m_objects) {
     // create request
-    cSurface_Request* request = new cSurface_Request();
-    fire_item->m_image->Blit(fire_item->m_pos_x - (pActive_Camera->m_x - m_pos_x),
-                       fire_item->m_pos_y - (pActive_Camera->m_y - m_pos_y),
-                       fire_item->m_pos_z, request);
+    auto request = std::make_unique<cSurface_Request>();
+    fire_item->m_image->Blit(
+        fire_item->m_pos_x - (pActive_Camera->m_x - m_pos_x),
+        fire_item->m_pos_y - (pActive_Camera->m_y - m_pos_y),
+        fire_item->m_pos_z, request.get());
 
     // scale
     request->m_scale_x = fire_item->m_scale_x;
@@ -307,7 +299,7 @@ void cAnimation_Fireball ::Draw(cSurface_Request* request /* = NULL */) {
     request->m_color = m_color;
 
     // add request
-    pRenderer->Add(request);
+    pRenderer->Add(std::move(request));
   }
 }
 
@@ -368,17 +360,16 @@ void cParticle ::Update(void) {
   }
 }
 
-void cParticle ::Draw(cSurface_Request* request /* = NULL */) {
+void cParticle ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_image) {
     return;
   }
 
-  bool create_request = false;
-
+  // no request given: make one here and hand it to the renderer at the end
+  std::unique_ptr<cSurface_Request> owned_request;
   if (!request) {
-    create_request = true;
-    // create request
-    request = new cSurface_Request();
+    owned_request = std::make_unique<cSurface_Request>();
+    request = owned_request.get();
   }
 
   Draw_Image_Normal(request);
@@ -413,9 +404,8 @@ void cParticle ::Draw(cSurface_Request* request /* = NULL */) {
         static_cast<Uint8>(request->m_color.alpha * m_fade_pos);
   }
 
-  if (create_request) {
-    // add request
-    pRenderer->Add(request);
+  if (owned_request) {
+    pRenderer->Add(std::move(owned_request));
   }
 }
 
@@ -503,8 +493,8 @@ void cParticle_Emitter ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cParticle_Emitter ::Copy(void) const {
-  cParticle_Emitter* particle_animation =
-      new cParticle_Emitter(m_sprite_manager);
+  auto particle_animation =
+      std::make_unique<cParticle_Emitter>(m_sprite_manager);
   particle_animation->Set_Based_On_Camera_Pos(m_emitter_based_on_camera_pos);
   particle_animation->Set_Particle_Based_On_Emitter_Pos(
       m_particle_based_on_emitter_pos);
@@ -533,7 +523,7 @@ std::unique_ptr<cSprite> cParticle_Emitter ::Copy(void) const {
   particle_animation->Set_Spawned(m_spawned);
   particle_animation->Set_Clip_Rect(m_clip_rect);
   particle_animation->Set_Clip_Mode(m_clip_mode);
-  return std::unique_ptr<cSprite>(particle_animation);
+  return particle_animation;
 }
 
 void cParticle_Emitter ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -727,7 +717,7 @@ void cParticle_Emitter ::Emit(void) {
   }
 
   for (unsigned int i = 0; i < m_emitter_quota; i++) {
-    cParticle* particle = new cParticle(this);
+    auto particle = std::make_unique<cParticle>(this);
 
     // X Position
     float x = m_pos_x - (m_image->m_w * 0.5f);
@@ -830,16 +820,12 @@ void cParticle_Emitter ::Emit(void) {
       particle->m_time_to_live += Get_Random_Float(0.0f, m_time_to_live_rand);
     }
 
-    m_objects.push_back(particle);
+    m_objects.push_back(std::move(particle));
   }
 }
 
 void cParticle_Emitter ::Clear(bool reset /* = 1 */) {
   // clear particles
-  for (auto& particle : m_objects) {
-    delete particle;
-  }
-
   m_objects.clear();
 
   // clear animation data
@@ -867,10 +853,9 @@ void cParticle_Emitter ::Update(void) {
 
 void cParticle_Emitter ::Update_Particles(void) {
   // update objects
-  for (ParticleList::iterator itr = m_objects.begin();
-       itr != m_objects.end();) {
+  for (auto itr = m_objects.begin(); itr != m_objects.end();) {
     // get object pointer
-    cParticle* obj = (*itr);
+    cParticle* obj = itr->get();
 
     // update
     obj->Update();
@@ -878,7 +863,6 @@ void cParticle_Emitter ::Update_Particles(void) {
     // if finished
     if (!obj->m_active) {
       itr = m_objects.erase(itr);
-      delete obj;
     }
     // increment
     else {
@@ -936,12 +920,12 @@ void cParticle_Emitter ::Update_Position(void) {
   }
 }
 
-void cParticle_Emitter ::Draw(cSurface_Request* request /* = NULL */) {
+void cParticle_Emitter ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
 
-  for (auto& particle : m_objects) {
+  for (const auto& particle : m_objects) {
     particle->Draw();
   }
 
@@ -952,10 +936,11 @@ void cParticle_Emitter ::Draw(cSurface_Request* request /* = NULL */) {
                                    m_start_pos_y - pActive_Camera->m_y,
                                    m_col_rect.m_w, m_col_rect.m_h);
 
-      cRect_Request* rect_request = new cRect_Request();
-      pVideo->Draw_Rect(&color_rect, m_editor_pos_z, &darkgreen, rect_request);
+      auto rect_request = std::make_unique<cRect_Request>();
+      pVideo->Draw_Rect(&color_rect, m_editor_pos_z, &darkgreen,
+                        rect_request.get());
       rect_request->m_filled = false;
-      pRenderer->Add(rect_request);
+      pRenderer->Add(std::move(rect_request));
 
       // if active mouse object
       if (pMouseCursor->m_active_object == this) {
@@ -966,12 +951,12 @@ void cParticle_Emitter ::Draw(cSurface_Request* request /* = NULL */) {
                       m_start_pos_y + m_clip_rect.m_y - pActive_Camera->m_y,
                       m_clip_rect.m_w, m_clip_rect.m_h);
 
-          rect_request = new cRect_Request();
+          rect_request = std::make_unique<cRect_Request>();
           pVideo->Draw_Rect(&color_rect, m_editor_pos_z, &lightgrey,
-                            rect_request);
+                            rect_request.get());
           rect_request->m_filled = false;
           rect_request->m_line_width = 2.0f;
-          pRenderer->Add(rect_request);
+          pRenderer->Add(std::move(rect_request));
         }
       }
     }
@@ -984,13 +969,13 @@ void cParticle_Emitter ::Keep_Particles_In_Rect(
   GL_rect obj_rect;
 
   // find particles that are not visible and move them to the opposite screen side
-  for (auto& particle : m_objects) {
+  for (const auto& particle : m_objects) {
     // get animation particle pointer
 
     // set rectangle
     if (particle->m_scale_x != 1.0f) {
-      obj_rect.m_x =
-          particle->m_pos_x - ((particle->m_image->m_w * 0.5f) * (particle->m_scale_x - 1.0f));
+      obj_rect.m_x = particle->m_pos_x - ((particle->m_image->m_w * 0.5f) *
+                                          (particle->m_scale_x - 1.0f));
       obj_rect.m_w = particle->m_rect.m_w * particle->m_scale_x;
     } else {
       obj_rect.m_x = particle->m_pos_x;
@@ -998,8 +983,8 @@ void cParticle_Emitter ::Keep_Particles_In_Rect(
     }
 
     if (particle->m_scale_y != 1.0f) {
-      obj_rect.m_y =
-          particle->m_pos_y - ((particle->m_image->m_h * 0.5f) * (particle->m_scale_y - 1.0f));
+      obj_rect.m_y = particle->m_pos_y - ((particle->m_image->m_h * 0.5f) *
+                                          (particle->m_scale_y - 1.0f));
       obj_rect.m_h = particle->m_rect.m_h * particle->m_scale_y;
     } else {
       obj_rect.m_y = particle->m_pos_y;
@@ -2290,7 +2275,7 @@ cAnimation_Manager ::~cAnimation_Manager(void) {
 }
 
 void cAnimation_Manager ::Update(void) {
-  for (OwningList::iterator itr = objects.begin(); itr != objects.end();) {
+  for (auto itr = objects.begin(); itr != objects.end();) {
     // update
     (*itr)->Update();
 
@@ -2306,20 +2291,20 @@ void cAnimation_Manager ::Update(void) {
 }
 
 void cAnimation_Manager ::Draw(void) {
-  for (auto& animation : objects) {
+  for (const auto& animation : objects) {
     animation->Draw();
   }
 }
 
-void cAnimation_Manager ::Add(cAnimation* animation) {
+cAnimation* cAnimation_Manager ::Add(std::unique_ptr<cAnimation> animation) {
   if (!animation) {
-    return;
+    return nullptr;
   }
 
   /* todo : particle animations should not set emitter TTL to 0
 	 * many spawned particle emitters only emit one particle with an emitter which is very slow
 	*/
-  cObject_Manager<cAnimation>::Add(animation);
+  return cObject_Manager<cAnimation>::Add(std::move(animation));
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

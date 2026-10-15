@@ -65,9 +65,9 @@ cSound* cSound_Manager ::Get_Pointer(const std::string& path) const {
   return nullptr;
 }
 
-void cSound_Manager ::Add(cSound* sound) {
+cSound* cSound_Manager ::Add(std::unique_ptr<cSound> sound) {
   m_load_count++;
-  cObject_Manager<cSound>::Add(sound);
+  return cObject_Manager<cSound>::Add(std::move(sound));
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

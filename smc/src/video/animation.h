@@ -76,7 +76,7 @@ class cAnimation_Goldpiece : public cAnimation {
   // draw
   void Draw(cSurface_Request* request = nullptr) override;
 
-  using BlinkPointList = vector<cSprite*>;
+  using BlinkPointList = vector<std::unique_ptr<cSprite>>;
   BlinkPointList m_objects;
 };
 
@@ -106,7 +106,7 @@ class cAnimation_Fireball : public cAnimation {
   // draw
   void Draw(cSurface_Request* request = nullptr) override;
 
-  using FireAnimList = vector<cAnimation_Fireball_Item*>;
+  using FireAnimList = vector<std::unique_ptr<cAnimation_Fireball_Item>>;
   FireAnimList m_objects;
 };
 
@@ -168,7 +168,7 @@ class cParticle_Emitter : public cAnimation {
   // Init
   void Init(void) override;
   // copy
-  std::unique_ptr<cSprite> Copy(void) const override;
+  [[nodiscard]] std::unique_ptr<cSprite> Copy(void) const override;
 
   // load from stream
   void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
@@ -310,7 +310,7 @@ class cParticle_Emitter : public cAnimation {
   bool Editor_Clip_Mode_Select(const CEGUI::EventArgs& event);
 
   // Particle items
-  using ParticleList = vector<cParticle*>;
+  using ParticleList = vector<std::unique_ptr<cParticle>>;
   ParticleList m_objects;
 
   // filename of the particle
@@ -379,7 +379,7 @@ class cAnimation_Manager : public cObject_Manager<cAnimation> {
   ~cAnimation_Manager(void) override;
 
   // Add an animation object with the given settings
-  void Add(cAnimation* animation) override;
+  cAnimation* Add(std::unique_ptr<cAnimation> animation) override;
 
   // Update the objects
   void Update(void);

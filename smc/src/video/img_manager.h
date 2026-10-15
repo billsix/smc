@@ -50,7 +50,7 @@ class cSaved_Texture {
   GLint m_wrap_t;
 };
 
-using Saved_Texture_List = vector<cSaved_Texture*>;
+using Saved_Texture_List = vector<std::unique_ptr<cSaved_Texture>>;
 using GL_Surface_List = vector<cGL_Surface*>;
 
 /* *** *** *** *** *** *** cImage_Manager *** *** *** *** *** *** *** *** *** *** *** */
@@ -66,7 +66,7 @@ class cImage_Manager : public cObject_Manager<cGL_Surface> {
   ~cImage_Manager(void) override;
 
   // Add a surface
-  void Add(cGL_Surface* obj) override;
+  cGL_Surface* Add(std::unique_ptr<cGL_Surface> obj) override;
 
   // Return the surface by path
   cGL_Surface* Get_Pointer(const std::string& path) const;

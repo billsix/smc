@@ -11,6 +11,13 @@ The cross-project method behind all of this — "flip the definition, let the co
 work" and the raw→`unique_ptr` migration idioms — is in the sandbox reference doc
 `cpp-ownership-migration.md`.
 
+> **A second pass followed this one (2026-10-15, `tasks/archive/2026/10/15/smc-apply-cpp-coding-standard.md`):** it
+> applied the shared `cpp-coding-standard.md` and refined the ownership shapes recorded below —
+> always-present non-polymorphic subobjects moved from `unique_ptr` to **value** members, and the
+> singletons moved from plain `unique_ptr` members to a `cOwned<T>` wrapper destroyed in reverse
+> declaration order. Where a section below shows a `unique_ptr` member that is a plain value today,
+> that pass is why; the method is `cpp-ownership-migration.md` ("The second pass").
+
 ## The setup that made it safe
 
 - **Pinned standard + warnings first.** `configure.ac` set only `-Wall` and no `-std=`, so the code

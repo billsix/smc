@@ -55,8 +55,7 @@ class cAnimated_Sprite : public cMovingSprite {
 	 * if new_start_image is set the default start_image will be set to the given image
 	 * if del_img is set the given image will be deleted
 	*/
-  virtual void Set_Image_Num(const int num, const bool new_startimage = false,
-                             const bool del_img = false);
+  virtual void Set_Image_Num(const int num, const bool new_startimage = false);
   // Get an array image
   cGL_Surface* Get_Image(const unsigned int num) const;
   // Clear the image list

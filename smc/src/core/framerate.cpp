@@ -67,19 +67,10 @@ cFramerate ::cFramerate(void) {
   m_force_speed_factor = 0.0f;
 
   // create performance timers
-  for (unsigned int i = 0; i < 24; i++) {
-    m_perf_timer.push_back(new cPerformance_Timer());
-  }
+  m_perf_timer.resize(24);
 }
 
-cFramerate ::~cFramerate(void) {
-  // clear performance timer
-  for (auto& itr : m_perf_timer) {
-    delete itr;
-  }
-
-  m_perf_timer.clear();
-}
+cFramerate ::~cFramerate(void) = default;
 
 void cFramerate ::Init(const float target_fps /* = speedfactor_fps */) {
   m_fps_target = target_fps;
@@ -160,8 +151,8 @@ void cFramerate ::Reset(void) {
   m_frames_counted = 0;
 
   // reset performance timer
-  for (auto& itr : m_perf_timer) {
-    itr->Reset();
+  for (auto& timer : m_perf_timer) {
+    timer.Reset();
   }
 }
 
