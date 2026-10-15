@@ -77,11 +77,11 @@ void cRokko ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cRokko ::Copy(void) const {
-  cRokko* rokko = new cRokko(m_sprite_manager);
+  auto rokko = std::make_unique<cRokko>(m_sprite_manager);
   rokko->Set_Pos(m_start_pos_x, m_start_pos_y);
   rokko->Set_Direction(m_start_direction);
   rokko->Set_Speed(m_speed);
-  return std::unique_ptr<cSprite>(rokko);
+  return rokko;
 }
 
 void cRokko ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -215,14 +215,14 @@ void cRokko ::DownGrade(bool force /* = 0 */) {
 
   if (!force) {
     // animation
-    cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
-    Generate_Hit_Animation(anim);
+    auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
+    Generate_Hit_Animation(anim.get());
 
     anim->Set_Quota(8);
     anim->Set_Speed(4, 1);
     anim->Set_Scale(0.9f);
     anim->Emit();
-    pActive_Animation_Manager->Add(anim);
+    pActive_Animation_Manager->Add(std::move(anim));
   }
 }
 
@@ -282,7 +282,7 @@ void cRokko ::Update(void) {
   }
 }
 
-void cRokko ::Draw(cSurface_Request* request /* = NULL */) {
+void cRokko ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -296,12 +296,11 @@ void cRokko ::Draw(cSurface_Request* request /* = NULL */) {
     pVideo->Draw_Rect(&final_distance, m_pos_z - 0.00001f, &whitealpha128);
   }
 
-  bool create_request = false;
-
+  // no request given: make one here and hand it to the renderer at the end
+  std::unique_ptr<cSurface_Request> owned_request;
   if (!request) {
-    create_request = true;
-    // create request
-    request = new cSurface_Request();
+    owned_request = std::make_unique<cSurface_Request>();
+    request = owned_request.get();
   }
 
   // Draw
@@ -312,9 +311,8 @@ void cRokko ::Draw(cSurface_Request* request /* = NULL */) {
     request->m_color.alpha = 64;
   }
 
-  if (create_request) {
-    // add request
-    pRenderer->Add(request);
+  if (owned_request) {
+    pRenderer->Add(std::move(owned_request));
   }
 }
 
@@ -370,10 +368,10 @@ GL_rect cRokko ::Get_Final_Distance_Rect(void) const {
 }
 
 void cRokko ::Generate_Smoke(unsigned int amount /* = 10 */) const {
-  cParticle_Emitter* anim = nullptr;
+  std::unique_ptr<cParticle_Emitter> anim;
 
   // moving smoke particle animation
-  anim = new cParticle_Emitter(m_sprite_manager);
+  anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
 
   // not dead
   if (!m_dead) {
@@ -418,12 +416,12 @@ void cRokko ::Generate_Smoke(unsigned int amount /* = 10 */) const {
   anim->Set_Fading_Alpha(true);
 
   anim->Emit();
-  pActive_Animation_Manager->Add(anim);
+  pActive_Animation_Manager->Add(std::move(anim));
 }
 
 void cRokko ::Generate_Sparks(unsigned int amount /* = 5 */) const {
   // animation
-  cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+  auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
   anim->Set_Emitter_Rect(m_pos_x + m_col_rect.m_w * 0.2f,
                          m_pos_y + m_rect.m_h * 0.2f, m_col_rect.m_w * 0.6f,
                          m_rect.m_h * 0.6f);
@@ -438,7 +436,7 @@ void cRokko ::Generate_Sparks(unsigned int amount /* = 5 */) const {
   anim->Set_Fading_Size(true);
   anim->Set_Fading_Alpha(false);
   anim->Emit();
-  pActive_Animation_Manager->Add(anim);
+  pActive_Animation_Manager->Add(std::move(anim));
 }
 
 bool cRokko ::Is_Update_Valid(void) {

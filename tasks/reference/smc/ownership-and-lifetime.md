@@ -4,12 +4,21 @@ Cross-cutting synthesis over `core/main.cpp`, `core/obj_manager.h`, `core/sprite
 every subsystem's manager. Provenance: commit `d438165`. Baseline: a game that predates smart
 pointers — every owner is a raw pointer or a `vector<T*>`, freed by hand.
 
-> **SUPERSEDED by the `modernize-cpp-3` branch (2026-09-24), not yet merged.** The ownership model
-> below is the PRE-modernization state. On that branch it is now `unique_ptr`: `cObject_Manager<T>`
-> holds `vector<unique_ptr<T>>`, the render queue / sprite clones / savegame graph own via
-> `unique_ptr`, and the 24 singletons are owned by a `cApplication` as `unique_ptr` members (the
-> `pFramerate` leak is fixed). What each part became, and why, is in
-> `tasks/reference/refactoring-to-modern-cpp.md`. Re-sync this doc when the branch merges.
+> **SUPERSEDED. The model below is the PRE-modernization state, kept for provenance.** Two passes
+> have since changed it, both merged to `master`:
+> - **`modernize-cpp-3` (2026-09-24, merged):** `cObject_Manager<T>` holds `vector<unique_ptr<T>>`,
+>   the render queue / sprite clones / savegame graph own via `unique_ptr`, and the 24 singletons
+>   became `unique_ptr` members of a `cApplication` (the `pFramerate` leak fixed). What each part
+>   became, and why: `tasks/reference/refactoring-to-modern-cpp.md`.
+> - **Coding-standard pass (2026-10-15, `tasks/smc-apply-cpp-coding-standard.md`):** ownership now
+>   transfers through the manager APIs (`Add(std::unique_ptr<T>)` → borrowed `T*`); always-present
+>   non-polymorphic subobjects are **value** members, not `unique_ptr`; and the singletons are owned
+>   through a `cOwned<T>` wrapper destroyed in **reverse declaration order**, so there is no
+>   hand-ordered teardown and the CEGUI system dies in `~cVideo`. The migration method is
+>   `~/.claude/reference/cpp-ownership-migration.md` ("The second pass").
+>
+> A full rewrite of the L1/L2 body below to the current state is still owed (it describes raw
+> pointers); until then, read it as history and the two docs above as truth.
 
 ## L1 — the mental model
 

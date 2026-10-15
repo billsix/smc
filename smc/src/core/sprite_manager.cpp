@@ -35,24 +35,24 @@ cSprite_Manager ::cSprite_Manager(unsigned int reserve_items /* = 2000 */,
 
 cSprite_Manager ::~cSprite_Manager(void) { Delete_All(); }
 
-void cSprite_Manager ::Add(cSprite* sprite) {
+cSprite* cSprite_Manager ::Add(std::unique_ptr<cSprite> sprite) {
   // empty object
   if (!sprite) {
-    return;
+    return nullptr;
   }
 
-  Set_Pos_Z(sprite);
+  Set_Pos_Z(sprite.get());
 
   // Check if an destroyed object can be replaced
   for (auto& slot : objects) {
-    // if destroy is set, reuse the slot (reset frees the old sprite and adopts the new)
+    // if destroy is set, reuse the slot (the move frees the old sprite and adopts the new)
     if (slot->m_auto_destroy) {
-      slot.reset(sprite);
-      return;
+      slot = std::move(sprite);
+      return slot.get();
     }
   }
 
-  cObject_Manager<cSprite>::Add(sprite);
+  return cObject_Manager<cSprite>::Add(std::move(sprite));
 }
 
 void cSprite_Manager ::Set_Pos_Z(cSprite* sprite) {
@@ -97,7 +97,7 @@ void cSprite_Manager ::Move_To_Front(cSprite* sprite) {
   }
 
   // get iterator
-  OwningList::iterator itr =
+  auto itr =
       std::find_if(objects.begin(), objects.end(),
                    [sprite](const std::unique_ptr<cSprite>& p) {
                      return p.get() == sprite;
@@ -130,7 +130,7 @@ void cSprite_Manager ::Move_To_Back(cSprite* sprite) {
   }
 
   // get iterator
-  OwningList::iterator itr =
+  auto itr =
       std::find_if(objects.begin(), objects.end(),
                    [sprite](const std::unique_ptr<cSprite>& p) {
                      return p.get() == sprite;
@@ -154,7 +154,7 @@ void cSprite_Manager ::Move_To_Back(cSprite* sprite) {
 void cSprite_Manager ::Delete_All(bool delayed /* = 0 */) {
   // delayed
   if (delayed) {
-    for (auto& sprite : objects) {
+    for (const auto& sprite : objects) {
       // get sprite pointer
       sprite->Destroy();
     }
@@ -163,7 +163,7 @@ void cSprite_Manager ::Delete_All(bool delayed /* = 0 */) {
   else {
     // remove objects that can not be auto-deleted (the player etc. are owned elsewhere:
     // release before erasing so they are not freed here)
-    for (OwningList::iterator itr = objects.begin(); itr != objects.end();) {
+    for (auto itr = objects.begin(); itr != objects.end();) {
       if ((*itr)->m_disallow_managed_delete) {
         itr->release();
         itr = objects.erase(itr);
@@ -185,10 +185,10 @@ void cSprite_Manager ::Delete_All(bool delayed /* = 0 */) {
 cSprite* cSprite_Manager ::Get_First(const SpriteType type) const {
   cSprite* first = nullptr;
 
-  for (const auto& sprite_ptr : objects) {
-    cSprite* sprite = sprite_ptr.get();
-    if (sprite->m_type == type && (!first || sprite->m_pos_z < first->m_pos_z)) {
-      first = sprite;
+  for (const auto& sprite : objects) {
+    if (sprite->m_type == type &&
+        (!first || sprite->m_pos_z < first->m_pos_z)) {
+      first = sprite.get();
     }
   }
 
@@ -199,10 +199,9 @@ cSprite* cSprite_Manager ::Get_First(const SpriteType type) const {
 cSprite* cSprite_Manager ::Get_Last(const SpriteType type) const {
   cSprite* last = nullptr;
 
-  for (const auto& sprite_ptr : objects) {
-    cSprite* sprite = sprite_ptr.get();
+  for (const auto& sprite : objects) {
     if (sprite->m_type == type && (!last || sprite->m_pos_z > last->m_pos_z)) {
-      last = sprite;
+      last = sprite.get();
     }
   }
 
@@ -214,12 +213,12 @@ cSprite* cSprite_Manager ::Get_from_Position(
     int start_pos_x, int start_pos_y,
     const SpriteType type /* = TYPE_UNDEFINED */,
     int check_pos /* = 0 */) const {
-  for (const auto& sprite_ptr : objects) {
-    cSprite* sprite = sprite_ptr.get();
+  for (const auto& sprite : objects) {
     if (static_cast<int>(sprite->m_start_pos_x) != start_pos_x ||
         static_cast<int>(sprite->m_start_pos_y) != start_pos_y) {
-      if (check_pos != 2 || (static_cast<int>(sprite->m_pos_x) != start_pos_x &&
-                             static_cast<int>(sprite->m_pos_y) != start_pos_y)) {
+      if (check_pos != 2 ||
+          (static_cast<int>(sprite->m_pos_x) != start_pos_x &&
+           static_cast<int>(sprite->m_pos_y) != start_pos_y)) {
         continue;
       }
     }
@@ -238,7 +237,7 @@ cSprite* cSprite_Manager ::Get_from_Position(
     }
 
     // found
-    return sprite;
+    return sprite.get();
   }
 
   return nullptr;
@@ -270,12 +269,11 @@ void cSprite_Manager ::Get_Objects_sorted(cSprite_List& new_objects,
 
 void cSprite_Manager ::Get_Colliding_Objects(
     cSprite_List& col_objects, const GL_rect& rect, bool with_player /* = 0 */,
-    const cSprite* exclude_sprite /* = NULL */) const {
+    const cSprite* exclude_sprite /* = nullptr */) const {
   // Check objects
-  for (const auto& sprite_ptr : objects) {
-    cSprite* sprite = sprite_ptr.get();
+  for (const auto& sprite : objects) {
     // if destroyed sprite
-    if (sprite == exclude_sprite || sprite->m_auto_destroy) {
+    if (sprite.get() == exclude_sprite || sprite->m_auto_destroy) {
       continue;
     }
 
@@ -284,7 +282,7 @@ void cSprite_Manager ::Get_Colliding_Objects(
       continue;
     }
 
-    col_objects.push_back(sprite);
+    col_objects.push_back(sprite.get());
   }
 
   if (with_player && pActive_Player != exclude_sprite) {
@@ -295,8 +293,7 @@ void cSprite_Manager ::Get_Colliding_Objects(
 }
 
 void cSprite_Manager ::Handle_Collision_Items(void) {
-  for (const auto& sprite_ptr : objects) {
-    cSprite* sprite = sprite_ptr.get();
+  for (const auto& sprite : objects) {
     if (sprite->m_auto_destroy) {
       if (sprite->m_collisions.size()) {
         debug_print("Collision with a destroyed sprite (%s)\n",

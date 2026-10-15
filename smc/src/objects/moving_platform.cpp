@@ -103,7 +103,7 @@ void cMoving_Platform ::Init_Links(void) {
 }
 
 std::unique_ptr<cSprite> cMoving_Platform ::Copy(void) const {
-  cMoving_Platform* moving_platform = new cMoving_Platform(m_sprite_manager);
+  auto moving_platform = std::make_unique<cMoving_Platform>(m_sprite_manager);
   moving_platform->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   moving_platform->Set_Move_Type(m_move_type);
   moving_platform->Set_Path_Identifier(m_path_state.m_path_identifier);
@@ -118,7 +118,7 @@ std::unique_ptr<cSprite> cMoving_Platform ::Copy(void) const {
   moving_platform->Set_Image_Top_Left(m_images[0].m_image);
   moving_platform->Set_Image_Top_Middle(m_images[1].m_image);
   moving_platform->Set_Image_Top_Right(m_images[2].m_image);
-  return std::unique_ptr<cSprite>(moving_platform);
+  return moving_platform;
 }
 
 void cMoving_Platform ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -283,8 +283,8 @@ void cMoving_Platform ::Load_From_Savegame(cSave_Level_Object* save_object) {
   m_path_state.Load_From_Savegame(save_object);
 }
 
-cSave_Level_Object* cMoving_Platform ::Save_To_Savegame(void) {
-  cSave_Level_Object* save_object = new cSave_Level_Object();
+std::unique_ptr<cSave_Level_Object> cMoving_Platform ::Save_To_Savegame(void) {
+  auto save_object = std::make_unique<cSave_Level_Object>();
 
   // default values
   save_object->m_type = m_type;
@@ -319,7 +319,7 @@ cSave_Level_Object* cMoving_Platform ::Save_To_Savegame(void) {
   }
 
   // path state
-  m_path_state.Save_To_Savegame(save_object);
+  m_path_state.Save_To_Savegame(save_object.get());
 
   return save_object;
 }
@@ -709,7 +709,7 @@ void cMoving_Platform ::Update(void) {
   }
 }
 
-void cMoving_Platform ::Draw(cSurface_Request* request /* = NULL */) {
+void cMoving_Platform ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -720,7 +720,7 @@ void cMoving_Platform ::Draw(cSurface_Request* request /* = NULL */) {
   }
 
   // platform images
-  cSurface_Request* surface_request;
+  std::unique_ptr<cSurface_Request> surface_request;
   float x = 0;
 
   if (!editor_level_enabled) {
@@ -735,13 +735,13 @@ void cMoving_Platform ::Draw(cSurface_Request* request /* = NULL */) {
     m_start_image = m_image;
     // create request
 
-    surface_request = new cSurface_Request();
+    surface_request = std::make_unique<cSurface_Request>();
     // draw only first image complete
-    cAnimated_Sprite::Draw(surface_request);
+    cAnimated_Sprite::Draw(surface_request.get());
     surface_request->m_pos_x += x;
     x += m_images[0].m_image->m_w;
     // add request
-    pRenderer->Add(surface_request);
+    pRenderer->Add(std::move(surface_request));
   }
 
   // top middle
@@ -751,12 +751,12 @@ void cMoving_Platform ::Draw(cSurface_Request* request /* = NULL */) {
     m_start_image = m_image;
     for (unsigned int i = 0; i < m_middle_count; i++) {
       // create request
-      surface_request = new cSurface_Request();
-      cAnimated_Sprite::Draw_Image(surface_request);
+      surface_request = std::make_unique<cSurface_Request>();
+      cAnimated_Sprite::Draw_Image(surface_request.get());
       surface_request->m_pos_x += x;
       x += m_images[1].m_image->m_w;
       // add request
-      pRenderer->Add(surface_request);
+      pRenderer->Add(std::move(surface_request));
     }
   }
 
@@ -766,12 +766,12 @@ void cMoving_Platform ::Draw(cSurface_Request* request /* = NULL */) {
     m_image = m_images[2].m_image;
     m_start_image = m_image;
     // create request
-    surface_request = new cSurface_Request();
-    cAnimated_Sprite::Draw_Image(surface_request);
+    surface_request = std::make_unique<cSurface_Request>();
+    cAnimated_Sprite::Draw_Image(surface_request.get());
     surface_request->m_pos_x += x;
     //x += m_images[2]->w;
     // add request
-    pRenderer->Add(surface_request);
+    pRenderer->Add(std::move(surface_request));
   }
 
   Update_Rect();
@@ -807,14 +807,14 @@ void cMoving_Platform ::Draw(cSurface_Request* request /* = NULL */) {
       }
     } else if (m_move_type == MOVING_PLATFORM_TYPE_CIRCLE) {
       // circle
-      cCircle_Request* circle_request = new cCircle_Request();
+      auto circle_request = std::make_unique<cCircle_Request>();
       pVideo->Draw_Circle(m_start_pos_x - pActive_Camera->m_x,
                           m_start_pos_y - m_max_distance - pActive_Camera->m_y,
                           static_cast<float>(m_max_distance), m_pos_z - 0.0001f,
-                          &m_editor_color, circle_request);
+                          &m_editor_color, circle_request.get());
       circle_request->m_line_width = 2;
       // add request
-      pRenderer->Add(circle_request);
+      pRenderer->Add(std::move(circle_request));
     }
   }
 }

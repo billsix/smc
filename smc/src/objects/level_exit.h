@@ -48,7 +48,7 @@ class cLevel_Exit : public cAnimated_Sprite {
   // init defaults
   void Init(void) override;
   // copy this sprite
-  std::unique_ptr<cSprite> Copy(void) const override;
+  [[nodiscard]] std::unique_ptr<cSprite> Copy(void) const override;
 
   // load from stream
   void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
@@ -112,7 +112,7 @@ class cLevel_Exit : public cAnimated_Sprite {
   // editor type color
   Color m_editor_color;
   // editor entry name text
-  cGL_Surface* m_editor_entry_name;
+  std::unique_ptr<cGL_Surface> m_editor_entry_name;
 
  private:
   void Create_Name(void);

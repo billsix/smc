@@ -80,7 +80,7 @@ void cTurtleBoss ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cTurtleBoss ::Copy(void) const {
-  cTurtleBoss* turtle = new cTurtleBoss(m_sprite_manager);
+  auto turtle = std::make_unique<cTurtleBoss>(m_sprite_manager);
   turtle->Set_Pos(m_start_pos_x, m_start_pos_y);
   turtle->Set_Direction(m_start_direction, true);
   turtle->Set_Color(m_color_type);
@@ -88,7 +88,7 @@ std::unique_ptr<cSprite> cTurtleBoss ::Copy(void) const {
   turtle->Set_Max_Downgrade_Counts(m_max_downgrade_count);
   turtle->Set_Shell_Time(m_shell_time);
   turtle->Set_Level_Ends_If_Killed(m_level_ends_if_killed);
-  return std::unique_ptr<cSprite>(turtle);
+  return turtle;
 }
 
 void cTurtleBoss ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -328,7 +328,7 @@ void cTurtleBoss ::Update_Dying(void) {
       Generate_Stars(30);
 
       // set empty image
-      cMovingSprite::Set_Image(nullptr, false, false);
+      cMovingSprite::Set_Image(nullptr, false);
       // reset counter
       m_counter = 0.0f;
     }
@@ -558,16 +558,13 @@ void cTurtleBoss ::Stand_Up(void) {
   // get space needed to stand up
   float move_y = m_image->m_col_h - m_images[0].m_image->m_col_h;
 
-  cObjectCollisionType* col_list =
+  std::unique_ptr<cObjectCollisionType> col_list =
       Collision_Check_Relative(0.0f, move_y, 0.0f, 0.0f, COLLIDE_ONLY_BLOCKING);
 
   // failed to stand up because something is blocking
   if (!col_list->empty()) {
-    delete col_list;
     return;
   }
-
-  delete col_list;
 
   pAudio->Play_Sound("enemy/boss/turtle/power_up.ogg");
   Col_Move(0.0f, move_y, true, true);
@@ -605,7 +602,7 @@ void cTurtleBoss ::Throw_Fireballs(unsigned int amount /* = 6 */) {
     // add step size to angle
     ball_angle += step_size;
 
-    cBall* ball = new cBall(m_sprite_manager);
+    auto ball = std::make_unique<cBall>(m_sprite_manager);
     ball->Set_Pos(m_pos_x + m_col_rect.m_w / 2, m_pos_y + m_col_rect.m_h / 2,
                   true);
     ball->Set_Origin(m_sprite_array, m_type);
@@ -618,21 +615,21 @@ void cTurtleBoss ::Throw_Fireballs(unsigned int amount /* = 6 */) {
     }
 
     ball->Col_Move(ball->m_velx * 2.0f, ball->m_vely * 2.0f, true);
-    m_sprite_manager->Add(ball);
+    m_sprite_manager->Add(std::move(ball));
   }
 
-  cAnimation_Fireball* anim =
-      new cAnimation_Fireball(m_sprite_manager, m_pos_x + (m_col_rect.m_w / 2),
-                              m_pos_y + (m_col_rect.m_h / 3), 10);
+  auto anim = std::make_unique<cAnimation_Fireball>(
+      m_sprite_manager, m_pos_x + (m_col_rect.m_w / 2),
+      m_pos_y + (m_col_rect.m_h / 3), 10);
   anim->Set_Fading_Speed(0.15f);
   anim->Set_Pos_Z(m_pos_z + 0.000001f);
-  pActive_Animation_Manager->Add(anim);
+  pActive_Animation_Manager->Add(std::move(anim));
 }
 
 void cTurtleBoss ::Generate_Stars(unsigned int amount /* = 1 */,
                                   float particle_scale /* = 0.4f */) const {
   // animation
-  cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+  auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
   anim->Set_Pos(m_pos_x + (m_col_rect.m_w * 0.5f),
                 m_pos_y + (m_col_rect.m_h * 0.5f));
   anim->Set_Image(pVideo->Get_Surface("animation/particles/star.png"));
@@ -645,7 +642,7 @@ void cTurtleBoss ::Generate_Stars(unsigned int amount /* = 1 */,
   anim->Set_Color(orange, Color(static_cast<Uint8>(6), 60, 20, 0));
   anim->Set_Blending(BLEND_ADD);
   anim->Emit();
-  pActive_Animation_Manager->Add(anim);
+  pActive_Animation_Manager->Add(std::move(anim));
 }
 
 void cTurtleBoss ::Update_Velocity_Max(void) {
@@ -800,15 +797,15 @@ void cTurtleBoss ::Handle_Collision_Player(cObjectCollision* collision) {
     }
 
     // animation
-    cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+    auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
     anim->Set_Pos(m_pos_x + (m_col_rect.m_w / 2),
                   m_pos_y + (m_col_rect.m_h / 2));
-    Generate_Hit_Animation(anim);
+    Generate_Hit_Animation(anim.get());
 
     anim->Set_Speed(4, 0.8f);
     anim->Set_Scale(0.9f);
     anim->Emit();
-    pActive_Animation_Manager->Add(anim);
+    pActive_Animation_Manager->Add(std::move(anim));
 
     DownGrade();
 
@@ -836,7 +833,7 @@ void cTurtleBoss ::Handle_Collision_Player(cObjectCollision* collision) {
       pAudio->Play_Sound("enemy/turtle/shell/hit.ogg");
       DownGrade();
 
-      cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+      auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
       anim->Set_Image(pVideo->Get_Surface("animation/particles/light.png"));
       anim->Set_Quota(4);
       anim->Set_Pos_Z(m_pos_z + 0.0001f);
@@ -879,7 +876,7 @@ void cTurtleBoss ::Handle_Collision_Player(cObjectCollision* collision) {
       }
 
       anim->Emit();
-      pActive_Animation_Manager->Add(anim);
+      pActive_Animation_Manager->Add(std::move(anim));
       m_player_counter = speedfactor_fps * 0.13f;
     } else if (m_turtle_state == TURTLEBOSS_SHELL_RUN) {
       // bottom kicks upwards
@@ -935,14 +932,14 @@ void cTurtleBoss ::Handle_Collision_Massive(cObjectCollision* collision) {
       cSprite* col_object = m_sprite_manager->Get_Pointer(collision->m_number);
 
       // animation
-      cParticle_Emitter* anim = nullptr;
+      std::unique_ptr<cParticle_Emitter> anim;
       if (collision->m_direction == DIR_RIGHT) {
-        anim = new cParticle_Emitter(m_sprite_manager);
+        anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
         anim->Set_Pos(col_object->m_pos_x + col_object->m_col_pos.m_x + 4,
                       m_pos_y + (m_col_rect.m_h / 1.35f), true);
         anim->Set_Direction_Range(140.0f, 100.0f);
       } else {
-        anim = new cParticle_Emitter(m_sprite_manager);
+        anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
         anim->Set_Pos(col_object->m_pos_x + col_object->m_col_pos.m_x +
                           col_object->m_col_rect.m_w - 4,
                       m_pos_y + (m_col_rect.m_h / 1.35f), true);
@@ -956,7 +953,7 @@ void cTurtleBoss ::Handle_Collision_Massive(cObjectCollision* collision) {
       anim->Set_Speed(1.0f, 1.0f);
       anim->Set_Scale(0.5f, 0.4f);
       anim->Emit();
-      pActive_Animation_Manager->Add(anim);
+      pActive_Animation_Manager->Add(std::move(anim));
     }
 
     // active object collision

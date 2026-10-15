@@ -71,7 +71,7 @@ cLayer_Line_Point ::~cLayer_Line_Point(void) {
   }
 }
 
-void cLayer_Line_Point ::Draw(cSurface_Request* request /* = NULL */) {
+void cLayer_Line_Point ::Draw(cSurface_Request* request /* = nullptr */) {
   if (m_auto_destroy || !pOverworld_Manager->m_draw_layer) {
     return;
   }
@@ -88,8 +88,7 @@ void cLayer_Line_Point ::Destroy(void) {
   }
 
   if (m_type == TYPE_OW_LINE_START) {
-    m_overworld->m_layer->Delete(static_cast<cLayer_Line_Point_Start*>(this),
-                                 false);
+    m_overworld->m_layer.Remove(static_cast<cLayer_Line_Point_Start*>(this));
   }
 
   cSprite::Destroy();
@@ -137,24 +136,25 @@ void cLayer_Line_Point_Start ::Init(void) {
   m_anim_type = 0;
   m_origin = 0;
 
-  // create end point
-  m_linked_point =
-      new cLayer_Line_Point(m_sprite_manager, m_overworld, TYPE_OW_LINE_END);
+  // create end point (owned here until the line is registered with the layer)
+  m_end_point = std::make_unique<cLayer_Line_Point>(
+      m_sprite_manager, m_overworld, TYPE_OW_LINE_END);
+  m_linked_point = m_end_point.get();
   m_linked_point->m_linked_point = this;
 }
 
 std::unique_ptr<cSprite> cLayer_Line_Point_Start ::Copy(void) const {
   // create layer line
   // hack : assume it's copied with the editor
-  cLayer_Line_Point_Start* layer_line =
-      new cLayer_Line_Point_Start(m_sprite_manager, pWorld_Editor->m_overworld);
+  auto layer_line = std::make_unique<cLayer_Line_Point_Start>(
+      m_sprite_manager, pWorld_Editor->m_overworld);
   // start position
   layer_line->Set_Pos(m_pos_x, m_pos_y, true);
   // end position
   layer_line->m_linked_point->Set_Pos(m_pos_x + 20, m_pos_y, true);
   // origin
   layer_line->m_origin = m_origin;
-  return std::unique_ptr<cSprite>(layer_line);
+  return layer_line;
 }
 
 void cLayer_Line_Point_Start ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -178,7 +178,7 @@ void cLayer_Line_Point_Start ::Set_Sprite_Manager(
   }
 }
 
-void cLayer_Line_Point_Start ::Draw(cSurface_Request* request /* = NULL */) {
+void cLayer_Line_Point_Start ::Draw(cSurface_Request* request /* = nullptr */) {
   // not a valid draw
   if (m_auto_destroy || m_linked_point->m_auto_destroy ||
       !pOverworld_Manager->m_draw_layer) {
@@ -186,15 +186,14 @@ void cLayer_Line_Point_Start ::Draw(cSurface_Request* request /* = NULL */) {
   }
 
   // create request
-  cLine_Request* line_request = new cLine_Request();
+  auto line_request = std::make_unique<cLine_Request>();
 
   // drawing color
   Color color = darkgreen;
 
   // if active
   if (pOverworld_Player->m_current_line >= 0 &&
-      m_overworld->m_layer->objects[pOverworld_Player->m_current_line] ==
-          this) {
+      m_overworld->m_layer.objects[pOverworld_Player->m_current_line] == this) {
     color = lightblue;
   }
 
@@ -202,11 +201,11 @@ void cLayer_Line_Point_Start ::Draw(cSurface_Request* request /* = NULL */) {
                     Get_Line_Pos_Y() - pActive_Camera->m_y,
                     m_linked_point->Get_Line_Pos_X() - pActive_Camera->m_x,
                     m_linked_point->Get_Line_Pos_Y() - pActive_Camera->m_y,
-                    0.085f, &color, line_request);
+                    0.085f, &color, line_request.get());
   line_request->m_line_width = 6;
 
   // add request
-  pRenderer->Add(line_request);
+  pRenderer->Add(std::move(line_request));
 
   // draw point rect
   cLayer_Line_Point::Draw(request);
@@ -226,7 +225,7 @@ cWaypoint* cLayer_Line_Point_Start ::Get_End_Waypoint(void) const {
   // no waypoint collision
   if (wp_num < 0) {
     cLayer_Line_Point_Start* line_col =
-        m_overworld->m_layer->Get_Line_Collision_Start(
+        m_overworld->m_layer.Get_Line_Collision_Start(
             m_linked_point->m_col_rect);
 
     // line collision
@@ -286,9 +285,13 @@ cLayer ::cLayer(cOverworld* origin) { m_overworld = origin; }
 
 cLayer ::~cLayer(void) { Delete_All(); }
 
-void cLayer ::Add(cLayer_Line_Point_Start* line_point) {
-  for (auto& layer_line : objects) {
-    // get pointer
+void cLayer ::Add(std::unique_ptr<cLayer_Line_Point_Start> line_point) {
+  // the world sprite manager owns it from here and calls Register
+  m_overworld->m_sprite_manager.Add(std::move(line_point));
+}
+
+void cLayer ::Register(cLayer_Line_Point_Start* line_point) {
+  for (const auto& layer_line : objects) {
     // if already in layer
     if (layer_line == line_point) {
       return;
@@ -297,16 +300,9 @@ void cLayer ::Add(cLayer_Line_Point_Start* line_point) {
 
   objects.push_back(line_point);
 
-  // check if in sprite manager
-  if (m_overworld->m_sprite_manager->Get_Array_Num(line_point) == -1) {
-    // add start point
-    m_overworld->m_sprite_manager->Add(line_point);
-  }
-  // check if in sprite manager
-  if (m_overworld->m_sprite_manager->Get_Array_Num(
-          line_point->m_linked_point) == -1) {
-    // add end point
-    m_overworld->m_sprite_manager->Add(line_point->m_linked_point);
+  // the end point is owned by the start point until now: hand it to the sprite manager
+  if (line_point->m_end_point) {
+    m_overworld->m_sprite_manager.Add(std::move(line_point->m_end_point));
   }
 }
 
@@ -315,7 +311,7 @@ int cLayer ::Get_Array_Num(const cLayer_Line_Point_Start* obj) const {
     return -1;
   }
 
-  LayerLineList::const_iterator itr =
+  auto itr =
       std::find(objects.begin(), objects.end(), obj);
 
   if (itr == objects.end()) {
@@ -325,22 +321,13 @@ int cLayer ::Get_Array_Num(const cLayer_Line_Point_Start* obj) const {
   return std::distance(objects.begin(), itr);
 }
 
-bool cLayer ::Delete(cLayer_Line_Point_Start* obj, bool delete_data /* = 1 */) {
+bool cLayer ::Remove(cLayer_Line_Point_Start* obj) {
   if (!obj) {
     return false;
   }
 
-  LayerLineList::iterator itr = std::find(objects.begin(), objects.end(), obj);
-
-  if (itr != objects.end()) {
-    objects.erase(itr);
-  }
-
-  // the sprite manager owns line points, so live callers pass delete_data = false
-  if (delete_data) {
-    delete obj;
-  }
-
+  // not freed: the sprite manager owns line points
+  std::erase(objects, obj);
   return true;
 }
 
@@ -388,7 +375,7 @@ bool cLayer ::Save(const std::string& filename) {
   stream.openTag("layer");
 
   // lines
-  for (auto& line : objects) {
+  for (const auto& line : objects) {
     // begin
     stream.openTag("line");
     // start
@@ -420,7 +407,7 @@ void cLayer ::Delete_All(void) {
 
 cLayer_Line_Point_Start* cLayer ::Get_Line_Collision_Start(
     const GL_rect& line_rect) {
-  for (auto& layer_line : objects) {
+  for (const auto& layer_line : objects) {
     // get pointer
     // check line 1
     if (line_rect.Intersects(layer_line->m_col_rect)) {
@@ -445,9 +432,9 @@ cLine_collision cLayer ::Get_Line_Collision_Direction(
   }
 
   if (dir == DIR_LEFT || dir == DIR_RIGHT) {
-    return m_overworld->m_layer->Get_Nearest(x, y, DIR_VERTICAL, check_size);
+    return m_overworld->m_layer.Get_Nearest(x, y, DIR_VERTICAL, check_size);
   } else if (dir == DIR_UP || dir == DIR_DOWN) {
-    return m_overworld->m_layer->Get_Nearest(x, y, DIR_HORIZONTAL, check_size);
+    return m_overworld->m_layer.Get_Nearest(x, y, DIR_HORIZONTAL, check_size);
   }
 
   // invalid direction
@@ -458,7 +445,7 @@ cLine_collision cLayer ::Get_Nearest(float x, float y,
                                      ObjectDirection dir /* = DIR_HORIZONTAL */,
                                      unsigned int check_size /* = 15 */,
                                      int only_origin_id /* = -1 */) const {
-  for (auto& layer_line : objects) {
+  for (const auto& layer_line : objects) {
     // get pointer
     // line is not from waypoint
     if (only_origin_id >= 0 && only_origin_id != layer_line->m_origin) {
@@ -507,26 +494,26 @@ cLine_collision cLayer ::Get_Nearest_Line(
     // debug drawing
     if (pOverworld_Manager->m_debug_mode && pOverworld_Manager->m_draw_layer) {
       // create request
-      cLine_Request* line_request = new cLine_Request();
+      auto line_request = std::make_unique<cLine_Request>();
       pVideo->Draw_Line(
           line_1.m_x1 - pActive_Camera->m_x, line_1.m_y1 - pActive_Camera->m_y,
           line_1.m_x2 - pActive_Camera->m_x, line_1.m_y2 - pActive_Camera->m_y,
-          map_layer_line->m_pos_z + 0.001f, &white, line_request);
+          map_layer_line->m_pos_z + 0.001f, &white, line_request.get());
       line_request->m_line_width = 2;
       line_request->m_render_count = 50;
       // add request
-      pRenderer->Add(line_request);
+      pRenderer->Add(std::move(line_request));
 
       // create request
-      line_request = new cLine_Request();
+      line_request = std::make_unique<cLine_Request>();
       pVideo->Draw_Line(
           line_2.m_x1 - pActive_Camera->m_x, line_2.m_y1 - pActive_Camera->m_y,
           line_2.m_x2 - pActive_Camera->m_x, line_2.m_y2 - pActive_Camera->m_y,
-          map_layer_line->m_pos_z + 0.001f, &black, line_request);
+          map_layer_line->m_pos_z + 0.001f, &black, line_request.get());
       line_request->m_line_width = 2;
       line_request->m_render_count = 50;
       // add request
-      pRenderer->Add(line_request);
+      pRenderer->Add(std::move(line_request));
     }
 
     // check direction line 1
@@ -587,8 +574,8 @@ void cLayer ::elementEnd(const CEGUI::String& element) {
     }
 
     // add layer line
-    Add(new cLayer_Line_Point_Start(
-        m_xml_attributes, m_overworld->m_sprite_manager, m_overworld));
+    Add(std::make_unique<cLayer_Line_Point_Start>(
+        m_xml_attributes, &m_overworld->m_sprite_manager, m_overworld));
   } else if (element == "layer") {
     // ignore
   } else if (element.length()) {

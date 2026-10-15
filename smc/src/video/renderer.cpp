@@ -614,14 +614,9 @@ cRenderQueue ::cRenderQueue(unsigned int reserve_items) {
 
 cRenderQueue ::~cRenderQueue(void) { Clear(); }
 
-void cRenderQueue ::Add(cRender_Request* obj) {
-  if (!obj) {
-    return;
-  }
-
-  // adopt ownership immediately; a typeless request is then dropped (and freed) on return
-  std::unique_ptr<cRender_Request> request(obj);
-  if (request->m_type == REND_NOTHING) {
+void cRenderQueue ::Add(std::unique_ptr<cRender_Request> request) {
+  // a missing or typeless request is dropped (and freed) on return
+  if (!request || request->m_type == REND_NOTHING) {
     return;
   }
 
@@ -634,7 +629,7 @@ void cRenderQueue ::Render(bool clear /* = 1 */) {
   // reset last texture
   last_bind_texture = 0;
 
-  for (auto& request : m_render_data) {
+  for (const auto& request : m_render_data) {
     request->Draw();
     request->m_render_count--;
   }
@@ -646,7 +641,7 @@ void cRenderQueue ::Render(bool clear /* = 1 */) {
 
 void cRenderQueue ::Fake_Render(unsigned int amount /* = 1 */,
                                 bool clear /* = 1 */) {
-  for (auto& request : m_render_data) {
+  for (const auto& request : m_render_data) {
     request->m_render_count -= amount;
   }
 

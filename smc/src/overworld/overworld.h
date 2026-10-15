@@ -26,6 +26,7 @@
 // CEGUI
 #include "CEGUIXMLHandler.h"
 #include "CEGUIXMLAttributes.h"
+#include "../video/animation.h"
 
 namespace SMC {
 
@@ -171,16 +172,16 @@ class cOverworld : public CEGUI::XMLHandler {
   // Return true if a world is loaded
   bool Is_Loaded(void) const;
 
-  // map objects
-  cWorld_Sprite_Manager* m_sprite_manager;
+  // map objects (owned values; constructed with the overworld)
+  cWorld_Sprite_Manager m_sprite_manager;
   // animation manager
-  cAnimation_Manager* m_animation_manager;
+  cAnimation_Manager m_animation_manager;
   // waypoints
   WaypointList m_waypoints;
   // description
-  cOverworld_description* m_description;
+  cOverworld_description m_description;
   // current Layer for collision checking
-  cLayer* m_layer;
+  cLayer m_layer;
 
   /* *** *** *** Settings *** *** *** *** */
 
@@ -204,9 +205,9 @@ class cOverworld : public CEGUI::XMLHandler {
   bool m_next_level;
 
   // HUD world name
-  cHudSprite* m_hud_world_name;
+  cHudSprite m_hud_world_name;
   // HUD current level name
-  cHudSprite* m_hud_level_name;
+  cHudSprite m_hud_level_name;
 
  private:
   // XML element start
@@ -224,11 +225,9 @@ class cOverworld : public CEGUI::XMLHandler {
  * sprite_manager : needed if the engine version is below the current version and data conversion creates multiple objects
  * overworld : the parent overworld
 */
-cSprite* Create_World_Object_From_XML(const CEGUI::String& element,
-                                      CEGUI::XMLAttributes& attributes,
-                                      int engine_version,
-                                      cSprite_Manager* sprite_manager,
-                                      cOverworld* overworld);
+[[nodiscard]] std::unique_ptr<cSprite> Create_World_Object_From_XML(
+    const CEGUI::String& element, CEGUI::XMLAttributes& attributes,
+    int engine_version, cSprite_Manager* sprite_manager, cOverworld* overworld);
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

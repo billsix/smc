@@ -76,8 +76,8 @@ void cPowerUp ::Load_From_Savegame(cSave_Level_Object* save_object) {
   }
 }
 
-cSave_Level_Object* cPowerUp ::Save_To_Savegame(void) {
-  cSave_Level_Object* save_object = new cSave_Level_Object();
+std::unique_ptr<cSave_Level_Object> cPowerUp ::Save_To_Savegame(void) {
+  auto save_object = std::make_unique<cSave_Level_Object>();
 
   // default values
   save_object->m_type = m_type;
@@ -111,7 +111,7 @@ cSave_Level_Object* cPowerUp ::Save_To_Savegame(void) {
   return save_object;
 }
 
-void cPowerUp ::Draw(cSurface_Request* request /* = NULL */) {
+void cPowerUp ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -213,10 +213,10 @@ void cMushroom ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cMushroom ::Copy(void) const {
-  cMushroom* mushroom = new cMushroom(m_sprite_manager);
+  auto mushroom = std::make_unique<cMushroom>(m_sprite_manager);
   mushroom->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   mushroom->Set_Type(m_type);
-  return std::unique_ptr<cSprite>(mushroom);
+  return mushroom;
 }
 
 void cMushroom ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -275,7 +275,7 @@ void cMushroom ::Set_Type(SpriteType new_type) {
 
   m_type = new_type;
 
-  Set_Image_Num(0, true, false);
+  Set_Image_Num(0, true);
 }
 
 void cMushroom ::Activate(void) {
@@ -325,7 +325,7 @@ void cMushroom ::Update(void) {
     m_counter += pFramerate->m_speed_factor * 0.8f;
 
     if (m_counter > 1.0f) {
-      cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+      auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
       anim->Set_Image(pVideo->Get_Surface("animation/particles/light.png"));
       anim->Set_Emitter_Rect(m_col_rect.m_x, m_col_rect.m_y, m_col_rect.m_w,
                              m_col_rect.m_h);
@@ -350,7 +350,7 @@ void cMushroom ::Update(void) {
       }
 
       anim->Emit();
-      pActive_Animation_Manager->Add(anim);
+      pActive_Animation_Manager->Add(std::move(anim));
 
       m_counter -= static_cast<int>(m_counter);
     }
@@ -385,7 +385,7 @@ void cMushroom ::Update(void) {
       m_counter += pFramerate->m_speed_factor * 0.7f;
 
       if (m_counter > 1.0f) {
-        cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+        auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
         anim->Set_Emitter_Rect(m_col_rect.m_x + (m_col_rect.m_w * 0.3f),
                                m_col_rect.m_y + (m_col_rect.m_h * 0.91f),
                                m_col_rect.m_w * 0.4f, 0);
@@ -399,7 +399,7 @@ void cMushroom ::Update(void) {
         anim->Set_Speed(0.0f, 0.0f);
         anim->Set_Image(pVideo->Get_Surface("animation/particles/slime_1.png"));
         anim->Emit();
-        pActive_Animation_Manager->Add(anim);
+        pActive_Animation_Manager->Add(std::move(anim));
 
         m_counter -= static_cast<int>(m_counter);
       }
@@ -471,7 +471,7 @@ void cFirePlant ::Init(void) {
   Add_Image(pVideo->Get_Surface("game/items/fireplant_left.png"));
   Add_Image(pVideo->Get_Surface("game/items/fireplant_right.png"));
 
-  Set_Image_Num(0, true, false);
+  Set_Image_Num(0, true);
 
   m_name = _("Fireplant");
 
@@ -479,9 +479,9 @@ void cFirePlant ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cFirePlant ::Copy(void) const {
-  cFirePlant* fireplant = new cFirePlant(m_sprite_manager);
+  auto fireplant = std::make_unique<cFirePlant>(m_sprite_manager);
   fireplant->Set_Pos(m_start_pos_x, m_start_pos_y, true);
-  return std::unique_ptr<cSprite>(fireplant);
+  return fireplant;
 }
 
 void cFirePlant ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -541,11 +541,11 @@ void cFirePlant ::Update(void) {
   if (m_counter > speedfactor_fps * 2.5f) {
     // if no direction image set
     if (m_curr_img == 0) {
-      Set_Image_Num(1 + (rand() % 2), false, false);
+      Set_Image_Num(1 + (rand() % 2), false);
     }
     // direction image is set
     else {
-      Set_Image_Num(0, false, false);
+      Set_Image_Num(0, false);
     }
 
     m_counter = 0.0f;
@@ -555,7 +555,7 @@ void cFirePlant ::Update(void) {
   m_particle_counter += pFramerate->m_speed_factor * 0.8f;
 
   if (m_particle_counter > 1.0f) {
-    cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+    auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
     anim->Set_Image(pVideo->Get_Surface("animation/particles/light.png"));
     anim->Set_Emitter_Rect(m_col_rect.m_x, m_col_rect.m_y, m_col_rect.m_w,
                            m_col_rect.m_h * 0.5f);
@@ -569,7 +569,7 @@ void cFirePlant ::Update(void) {
     anim->Set_Speed(0.2f, 0.1f);
     anim->Set_Blending(BLEND_ADD);
     anim->Emit();
-    pActive_Animation_Manager->Add(anim);
+    pActive_Animation_Manager->Add(std::move(anim));
 
     m_particle_counter -= static_cast<int>(m_particle_counter);
   }
@@ -618,9 +618,9 @@ void cMoon ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cMoon ::Copy(void) const {
-  cMoon* moon = new cMoon(m_sprite_manager);
+  auto moon = std::make_unique<cMoon>(m_sprite_manager);
   moon->Set_Pos(m_start_pos_x, m_start_pos_y);
-  return std::unique_ptr<cSprite>(moon);
+  return moon;
 }
 
 void cMoon ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -673,7 +673,7 @@ void cMoon ::Update(void) {
 
   // particles
   if (m_particle_counter >= 1.0f) {
-    cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+    auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
     anim->Set_Image(pVideo->Get_Surface("animation/particles/light.png"));
     anim->Set_Emitter_Rect(m_pos_x + 26.0f, m_pos_y + 10.0f, 10.0f, 28.0f);
     anim->Set_Quota(static_cast<int>(m_particle_counter));
@@ -684,7 +684,7 @@ void cMoon ::Update(void) {
     anim->Set_Color(Color(static_cast<Uint8>(200), 200, 0));
     anim->Set_Blending(BLEND_ADD);
     anim->Emit();
-    pActive_Animation_Manager->Add(anim);
+    pActive_Animation_Manager->Add(std::move(anim));
 
     m_particle_counter -= static_cast<int>(m_particle_counter);
   }

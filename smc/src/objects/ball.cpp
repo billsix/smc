@@ -68,11 +68,11 @@ void cBall ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cBall ::Copy(void) const {
-  cBall* ball = new cBall(m_sprite_manager);
+  auto ball = std::make_unique<cBall>(m_sprite_manager);
   ball->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   ball->Set_Origin(m_origin_array, m_origin_type);
   ball->Set_Ball_Type(m_ball_type);
-  return std::unique_ptr<cSprite>(ball);
+  return ball;
 }
 
 void cBall ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -138,8 +138,8 @@ void cBall ::Load_From_Savegame(cSave_Level_Object* save_object) {
   }
 }
 
-cSave_Level_Object* cBall ::Save_To_Savegame(void) {
-  cSave_Level_Object* save_object = new cSave_Level_Object();
+std::unique_ptr<cSave_Level_Object> cBall ::Save_To_Savegame(void) {
+  auto save_object = std::make_unique<cSave_Level_Object>();
 
   // default values
   save_object->m_type = m_type;
@@ -201,16 +201,16 @@ void cBall ::Destroy(void) {
   }
 
   if (m_ball_type == FIREBALL_DEFAULT) {
-    pActive_Animation_Manager->Add(
-        new cAnimation_Fireball(m_sprite_manager, m_pos_x + m_col_rect.m_w / 2,
-                                m_pos_y + m_col_rect.m_h / 2));
+    pActive_Animation_Manager->Add(std::make_unique<cAnimation_Fireball>(
+        m_sprite_manager, m_pos_x + m_col_rect.m_w / 2,
+        m_pos_y + m_col_rect.m_h / 2));
   } else if (m_ball_type == ICEBALL_DEFAULT) {
     // create animation
-    cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
-    Generate_Particles(anim);
+    auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
+    Generate_Particles(anim.get());
     anim->Set_Quota(15);
     anim->Emit();
-    pActive_Animation_Manager->Add(anim);
+    pActive_Animation_Manager->Add(std::move(anim));
   }
 
   cAnimated_Sprite::Destroy();
@@ -273,7 +273,7 @@ void cBall ::Update(void) {
   }
 }
 
-void cBall ::Draw(cSurface_Request* request /* = NULL */) {
+void cBall ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -294,13 +294,12 @@ void cBall ::Draw(cSurface_Request* request /* = NULL */) {
   cAnimated_Sprite::Draw(request);
 }
 
-void cBall ::Generate_Particles(cParticle_Emitter* anim /* = NULL */) const {
-  bool create_anim = false;
-
+void cBall ::Generate_Particles(cParticle_Emitter* anim /* = nullptr */) const {
+  // no emitter given: make one here and hand it to the animation manager at the end
+  std::unique_ptr<cParticle_Emitter> owned_anim;
   if (!anim) {
-    create_anim = true;
-    // create animation
-    anim = new cParticle_Emitter(m_sprite_manager);
+    owned_anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
+    anim = owned_anim.get();
   }
 
   anim->Set_Emitter_Rect(m_col_rect);
@@ -332,9 +331,9 @@ void cBall ::Generate_Particles(cParticle_Emitter* anim /* = NULL */) const {
   anim->Set_Speed(0.35f, 0.3f);
   anim->Set_Scale(0.4f, 0.2f);
 
-  if (create_anim) {
+  if (owned_anim) {
     anim->Emit();
-    pActive_Animation_Manager->Add(anim);
+    pActive_Animation_Manager->Add(std::move(owned_anim));
   }
 }
 
@@ -424,7 +423,7 @@ void cBall ::Handle_Collision_Enemy(cObjectCollision* collision) {
   // destroy enemy
   else {
     // animation
-    cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+    auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
     anim->Set_Image(pVideo->Get_Surface("animation/particles/light.png"));
     anim->Set_Time_to_Live(0.2f, 0.4f);
     anim->Set_Fading_Alpha(true);
@@ -452,7 +451,7 @@ void cBall ::Handle_Collision_Enemy(cObjectCollision* collision) {
       }
     }
 
-    pActive_Animation_Manager->Add(anim);
+    pActive_Animation_Manager->Add(std::move(anim));
 
     // play enemy kill sound
     pAudio->Play_Sound(enemy->m_kill_sound);
@@ -463,8 +462,8 @@ void cBall ::Handle_Collision_Enemy(cObjectCollision* collision) {
                               static_cast<Uint8>(255), true);
 
       // create goldpiece
-      cMovingSprite* goldpiece =
-          new cFGoldpiece(m_sprite_manager, collision->m_direction);
+      auto goldpiece = std::make_unique<cFGoldpiece>(m_sprite_manager,
+                                                     collision->m_direction);
       goldpiece->Set_Spawned(true);
       // set optimal position
       goldpiece->Set_Pos(enemy->m_rect.m_x + ((enemy->m_rect.m_w / 2) -
@@ -473,7 +472,7 @@ void cBall ::Handle_Collision_Enemy(cObjectCollision* collision) {
                                               (goldpiece->m_rect.m_h / 2)),
                          true);
       // add goldpiece
-      m_sprite_manager->Add(goldpiece);
+      m_sprite_manager->Add(std::move(goldpiece));
 
       enemy->Set_Active(false);
       enemy->DownGrade(true);
@@ -498,16 +497,16 @@ void cBall ::Handle_Collision_Massive(cObjectCollision* collision) {
       m_vely = -10.0f;
 
       // create animation
-      cAnimation_Fireball* anim = new cAnimation_Fireball(
+      auto anim = std::make_unique<cAnimation_Fireball>(
           m_sprite_manager, m_pos_x + m_col_rect.m_w / 2,
           m_pos_y + m_col_rect.m_h / 2);
       anim->Set_Fading_Speed(3.0f);
-      pActive_Animation_Manager->Add(anim);
+      pActive_Animation_Manager->Add(std::move(anim));
     } else if (m_ball_type == ICEBALL_DEFAULT) {
       m_vely = -5.0f;
 
       // create animation
-      cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+      auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
       anim->Set_Pos(m_pos_x + m_col_rect.m_w / 2, m_pos_y + m_col_rect.m_h / 2,
                     true);
       anim->Set_Image(pVideo->Get_Surface("animation/particles/cloud.png"));
@@ -520,7 +519,7 @@ void cBall ::Handle_Collision_Massive(cObjectCollision* collision) {
       anim->Set_Speed(0.5f, 0.4f);
       anim->Set_Scale(0.3f, 0.4f);
       anim->Emit();
-      pActive_Animation_Manager->Add(anim);
+      pActive_Animation_Manager->Add(std::move(anim));
     }
   }
   // other directions

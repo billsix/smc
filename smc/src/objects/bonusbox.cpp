@@ -47,13 +47,7 @@ cBonusBox ::cBonusBox(CEGUI::XMLAttributes& attributes,
   cBonusBox::Load_From_XML(attributes);
 }
 
-cBonusBox ::~cBonusBox(void) {
-  for (auto& active_item : m_active_items) {
-    delete active_item;
-  }
-
-  m_active_items.clear();
-}
+cBonusBox ::~cBonusBox(void) { m_active_items.clear(); }
 
 void cBonusBox ::Init(void) {
   m_type = TYPE_BONUS_BOX;
@@ -69,7 +63,7 @@ void cBonusBox ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cBonusBox ::Copy(void) const {
-  cBonusBox* bonusbox = new cBonusBox(m_sprite_manager);
+  auto bonusbox = std::make_unique<cBonusBox>(m_sprite_manager);
   bonusbox->Set_Pos(m_start_pos_x, m_start_pos_y);
   bonusbox->Set_Animation_Type(m_anim_type);
   bonusbox->Set_Bonus_Type(box_type);
@@ -77,7 +71,7 @@ std::unique_ptr<cSprite> cBonusBox ::Copy(void) const {
   bonusbox->Set_Force_Best_Item(m_force_best_item);
   bonusbox->Set_Goldcolor(m_gold_color);
   bonusbox->Set_Useable_Count(m_start_useable_count, true);
-  return std::unique_ptr<cSprite>(bonusbox);
+  return bonusbox;
 }
 
 void cBonusBox ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -243,7 +237,7 @@ void cBonusBox ::Activate(void) {
   }
 
   // the item from this box
-  cMovingSprite* box_item = nullptr;
+  std::unique_ptr<cMovingSprite> box_item;
 
   // no item
   if (box_type == TYPE_UNDEFINED) {
@@ -258,14 +252,14 @@ void cBonusBox ::Activate(void) {
              !pHud_Itembox->m_item_id))) {
     pAudio->Play_Sound("sprout_1.ogg");
 
-    cMushroom* mushroom = new cMushroom(m_sprite_manager);
+    auto mushroom = std::make_unique<cMushroom>(m_sprite_manager);
     mushroom->Set_Pos(m_start_pos_x - ((m_item_image->m_w - m_rect.m_w) / 2),
                       m_start_pos_y - ((m_item_image->m_h - m_rect.m_h) / 2),
                       true);
-    box_item = static_cast<cMovingSprite*>(mushroom);
+    box_item = std::move(mushroom);
   } else if (box_type == TYPE_FIREPLANT) {
     pAudio->Play_Sound("sprout_1.ogg");
-    box_item = static_cast<cMovingSprite*>(new cFirePlant(m_sprite_manager));
+    box_item = std::make_unique<cFirePlant>(m_sprite_manager);
     box_item->Set_Pos(m_start_pos_x - ((m_item_image->m_w - m_rect.m_w) / 2),
                       m_start_pos_y, true);
   } else if (box_type == TYPE_MUSHROOM_DEFAULT ||
@@ -275,30 +269,30 @@ void cBonusBox ::Activate(void) {
              box_type == TYPE_MUSHROOM_GHOST) {
     pAudio->Play_Sound("sprout_1.ogg");
 
-    cMushroom* mushroom = new cMushroom(m_sprite_manager);
+    auto mushroom = std::make_unique<cMushroom>(m_sprite_manager);
     mushroom->Set_Pos(m_start_pos_x - ((m_item_image->m_w - m_rect.m_w) / 2),
                       m_start_pos_y - ((m_item_image->m_h - m_rect.m_h) / 2),
                       true);
     mushroom->Set_Type(box_type);
-    box_item = static_cast<cMovingSprite*>(mushroom);
+    box_item = std::move(mushroom);
   } else if (box_type == TYPE_STAR) {
     pAudio->Play_Sound("sprout_1.ogg");
-    cjStar* star = new cjStar(m_sprite_manager);
+    auto star = std::make_unique<cjStar>(m_sprite_manager);
     star->Set_Pos(m_start_pos_x - ((m_item_image->m_w - m_rect.m_w) / 2),
                   m_start_pos_y, true);
     star->Set_On_Top(this);
     star->Set_Spawned(true);
     // add to global objects
-    m_sprite_manager->Add(star);
+    m_sprite_manager->Add(std::move(star));
   } else if (box_type == TYPE_GOLDPIECE) {
     pAudio->Play_Sound("item/goldpiece_1.ogg");
 
-    cJGoldpiece* goldpiece = new cJGoldpiece(m_sprite_manager);
+    auto goldpiece = std::make_unique<cJGoldpiece>(m_sprite_manager);
     goldpiece->Set_Pos(m_start_pos_x - ((m_item_image->m_w - m_rect.m_w) / 2),
                        m_pos_y, true);
     goldpiece->Set_Gold_Color(m_gold_color);
     // add to global objects
-    m_sprite_manager->Add(goldpiece);
+    m_sprite_manager->Add(std::move(goldpiece));
   } else {
     printf("Error : Unknown bonusbox item type %d\n", box_type);
     return;
@@ -316,7 +310,7 @@ void cBonusBox ::Activate(void) {
     box_item->Set_Spawned(true);
 
     // add to item list
-    m_active_items.push_back(box_item);
+    m_active_items.push_back(std::move(box_item));
     Update_Valid_Update();
   }
 }
@@ -327,9 +321,9 @@ void cBonusBox ::Update(void) {
   }
 
   // update active items
-  for (MovingSpriteList::iterator itr = m_active_items.begin();
+  for (auto itr = m_active_items.begin();
        itr != m_active_items.end();) {
-    cPowerUp* powerup = static_cast<cPowerUp*>(*itr);
+    cPowerUp* powerup = static_cast<cPowerUp*>(itr->get());
 
     if (!powerup->m_active) {
       ++itr;
@@ -350,7 +344,8 @@ void cBonusBox ::Update(void) {
       // set the item on top
       powerup->Set_On_Top(this, false);
       // add the item to the level objects
-      m_sprite_manager->Add(powerup);
+      // hand the item over to the sprite manager (it is erased from this list below)
+      m_sprite_manager->Add(std::move(*itr));
 
       // remove from array
       itr = m_active_items.erase(itr);
@@ -368,12 +363,12 @@ void cBonusBox ::Update(void) {
   cBaseBox::Update();
 }
 
-void cBonusBox ::Draw(cSurface_Request* request /* = NULL */) {
+void cBonusBox ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
 
-  for (auto item : m_active_items) {
+  for (const auto& item : m_active_items) {
     if (!item->m_active) {
       continue;
     }

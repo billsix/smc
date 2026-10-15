@@ -228,9 +228,9 @@ class cRenderQueue {
   cRenderQueue(unsigned int reserve_items);
   ~cRenderQueue(void);
 
-  /* Add a Render Request
+  /* Add a Render Request (the queue owns it from here)
 	*/
-  void Add(cRender_Request* obj);
+  void Add(std::unique_ptr<cRender_Request> request);
 
   /* Render current data
 	 * clear: if set clear the finished data after rendering

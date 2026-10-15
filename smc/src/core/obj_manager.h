@@ -8,7 +8,7 @@
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 3 of the License, or
    (at your option) any later version.
-   
+
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -24,9 +24,10 @@ namespace SMC {
 
 /* *** *** *** *** *** cObject_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
-// Owns its objects: each is held in a unique_ptr, so nothing is ever hand-deleted and the
-// destructor frees the lot. `objects` stays a public vector; callers read borrowed T* via
-// `.get()` (Get_Pointer) or range-for over the unique_ptrs.
+// Owns its objects. Ownership arrives through Add (a unique_ptr, so the hand-off is a
+// std::move at the call site) and leaves only through Release; everything else borrows a T*.
+// `objects` stays a public vector of owning pointers: range-for over it, `.get()` only where a
+// raw T* has to be stored or compared.
 template <class T>
 class cObject_Manager {
  public:
@@ -35,35 +36,35 @@ class cObject_Manager {
   cObject_Manager(void) = default;
   virtual ~cObject_Manager(void) = default;
 
-  //	Add the given object (takes ownership)
-  virtual void Add(T* obj) { objects.emplace_back(obj); }
+  // Take ownership of the given object; returns the borrowed pointer for further use
+  virtual T* Add(std::unique_ptr<T> obj) {
+    T* raw = obj.get();
+    objects.push_back(std::move(obj));
+    return raw;
+  }
 
-  // Delete the given object
-  virtual bool Delete(T* obj, bool delete_data = true) {
-    // empty object
-    if (!obj) {
+  // Remove and free the given object; false if it is not managed here
+  virtual bool Delete(T* obj) {
+    auto itr = Find(obj);
+    if (itr == objects.end()) {
       return false;
     }
 
-    // get iterator
-    typename OwningList::iterator itr = std::find_if(
-        objects.begin(), objects.end(),
-        [obj](const std::unique_ptr<T>& p) { return p.get() == obj; });
+    objects.erase(itr);
+    return true;
+  }
 
-    // available in vector
-    if (itr != objects.end()) {
-      if (!delete_data) {
-        // caller keeps ownership: drop it from the vector without freeing
-        itr->release();
-      }
-      // erase frees it when we still own it
-      objects.erase(itr);
-    } else if (delete_data) {
-      // not managed here, but the old contract still freed a passed-in obj
-      delete obj;
+  // Remove the given object WITHOUT freeing it: ownership passes back to the caller
+  // (an empty unique_ptr if it is not managed here)
+  [[nodiscard]] std::unique_ptr<T> Release(T* obj) {
+    auto itr = Find(obj);
+    if (itr == objects.end()) {
+      return nullptr;
     }
 
-    return true;
+    std::unique_ptr<T> owned = std::move(*itr);
+    objects.erase(itr);
+    return owned;
   }
 
   // Delete all objects (unique_ptr frees each)
@@ -91,7 +92,7 @@ class cObject_Manager {
       return -1;
     }
 
-    typename OwningList::const_iterator itr_obj = std::find_if(
+    auto itr_obj = std::find_if(
         objects.begin(), objects.end(),
         [obj](const std::unique_ptr<T>& p) { return p.get() == obj; });
 
@@ -110,6 +111,18 @@ class cObject_Manager {
   bool empty(void) const { return objects.empty(); }
 
   OwningList objects;
+
+ protected:
+  // The owning slot of the given (borrowed) pointer, or end()
+  typename OwningList::iterator Find(const T* obj) {
+    if (!obj) {
+      return objects.end();
+    }
+
+    return std::find_if(
+        objects.begin(), objects.end(),
+        [obj](const std::unique_ptr<T>& p) { return p.get() == obj; });
+  }
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

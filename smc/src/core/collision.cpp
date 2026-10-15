@@ -32,12 +32,13 @@ cObjectCollisionType ::cObjectCollisionType(void)
 
 cObjectCollisionType ::~cObjectCollisionType(void) { Delete_All(); }
 
-void cObjectCollisionType ::Add(cObjectCollision* obj) {
+cObjectCollision* cObjectCollisionType ::Add(
+    std::unique_ptr<cObjectCollision> obj) {
   if (!obj) {
-    return;
+    return nullptr;
   }
 
-  cObject_Manager<cObjectCollision>::Add(obj);
+  return cObject_Manager<cObjectCollision>::Add(std::move(obj));
 }
 
 // The elements are owned unique_ptrs now, so these predicates take a unique_ptr ref; this also

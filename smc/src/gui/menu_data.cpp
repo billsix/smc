@@ -71,10 +71,6 @@ cMenu_Base ::~cMenu_Base(void) {
     CEGUI::WindowManager::getSingleton().destroyWindow(m_gui_window);
   }
 
-  for (auto& itr : m_draw_list) {
-    delete itr;
-  }
-
   m_draw_list.clear();
 }
 
@@ -106,7 +102,7 @@ void cMenu_Base ::Update(void) {
   if (m_exit_to_gamemode != MODE_LEVEL &&
       m_exit_to_gamemode != MODE_OVERWORLD) {
     // animation
-    pMenuCore->m_animation_manager->Update();
+    pMenuCore->m_animation_manager.Update();
   }
 
   // hud
@@ -117,32 +113,32 @@ void cMenu_Base ::Draw(void) {
   pVideo->Clear_Screen();
 
   if (m_exit_to_gamemode == MODE_LEVEL) {
-    pActive_Level->m_sprite_manager->Update_Items_Valid_Draw();
+    pActive_Level->m_sprite_manager.Update_Items_Valid_Draw();
     // draw level layer 1
     pActive_Level->Draw_Layer_1();
     // draw alpha rect
     pVideo->Draw_Rect(nullptr, 0.125f, &blackalpha128);
 
     // gui
-    pMenuCore->m_handler->Draw(false);
+    pMenuCore->m_handler.Draw(false);
   } else if (m_exit_to_gamemode == MODE_OVERWORLD) {
-    pActive_Overworld->m_sprite_manager->Update_Items_Valid_Draw();
+    pActive_Overworld->m_sprite_manager.Update_Items_Valid_Draw();
     // draw world layer 1
     pActive_Overworld->Draw_Layer_1();
     // draw alpha rect
     pVideo->Draw_Rect(nullptr, 0.125f, &blackalpha128);
 
     // gui
-    pMenuCore->m_handler->Draw(false);
+    pMenuCore->m_handler.Draw(false);
   } else {
     // animation
-    pMenuCore->m_animation_manager->Draw();
+    pMenuCore->m_animation_manager.Draw();
     // gui
-    pMenuCore->m_handler->Draw();
+    pMenuCore->m_handler.Draw();
   }
 
   // menu items
-  for (auto& itr : m_draw_list) {
+  for (const auto& itr : m_draw_list) {
     itr->Draw();
   }
 }
@@ -165,66 +161,67 @@ cMenu_Main ::~cMenu_Main(void) = default;
 void cMenu_Main ::Init(void) {
   cMenu_Base::Init();
 
-  cMenu_Item* temp_item = nullptr;
+  std::unique_ptr<cMenu_Item> temp_item;
 
   m_layout_file = "menu/main.layout";
 
   // Start
   temp_item = pMenuCore->Auto_Menu("start.png", "start.png", m_menu_pos_y);
-  temp_item->m_image_menu->Set_Pos(
-      temp_item->m_pos_x + (temp_item->m_image_default->m_col_rect.m_w + 16),
+  temp_item->m_image_menu.Set_Pos(
+      temp_item->m_pos_x + (temp_item->m_image_default.m_col_rect.m_w + 16),
       temp_item->m_pos_y);
-  pMenuCore->m_handler->Add_Menu_Item(temp_item);
+  pMenuCore->m_handler.Add_Menu_Item(std::move(temp_item));
   // Options
   m_menu_pos_y += 60;
   temp_item = pMenuCore->Auto_Menu("options.png", "options.png", m_menu_pos_y);
-  temp_item->m_image_menu->Set_Pos(
-      temp_item->m_pos_x - temp_item->m_image_menu->m_col_rect.m_w - 16,
+  temp_item->m_image_menu.Set_Pos(
+      temp_item->m_pos_x - temp_item->m_image_menu.m_col_rect.m_w - 16,
       temp_item->m_pos_y);
-  pMenuCore->m_handler->Add_Menu_Item(temp_item);
+  pMenuCore->m_handler.Add_Menu_Item(std::move(temp_item));
   // Load
   m_menu_pos_y += 60;
   temp_item = pMenuCore->Auto_Menu("load.png", "load.png", m_menu_pos_y);
-  temp_item->m_image_menu->Set_Pos(
-      temp_item->m_pos_x + (temp_item->m_image_default->m_col_rect.m_w + 16),
+  temp_item->m_image_menu.Set_Pos(
+      temp_item->m_pos_x + (temp_item->m_image_default.m_col_rect.m_w + 16),
       temp_item->m_pos_y);
-  pMenuCore->m_handler->Add_Menu_Item(temp_item);
+  pMenuCore->m_handler.Add_Menu_Item(std::move(temp_item));
   // Save
   m_menu_pos_y += 60;
   temp_item = pMenuCore->Auto_Menu("save.png", "save.png", m_menu_pos_y);
-  temp_item->m_image_menu->Set_Pos(
-      temp_item->m_pos_x - temp_item->m_image_menu->m_col_rect.m_w - 16,
+  temp_item->m_image_menu.Set_Pos(
+      temp_item->m_pos_x - temp_item->m_image_menu.m_col_rect.m_w - 16,
       temp_item->m_pos_y);
-  pMenuCore->m_handler->Add_Menu_Item(temp_item);
+  pMenuCore->m_handler.Add_Menu_Item(std::move(temp_item));
   // Quit
   m_menu_pos_y += 60;
   temp_item = pMenuCore->Auto_Menu("quit.png", "", m_menu_pos_y, true);
-  temp_item->m_image_menu->Set_Pos(
+  temp_item->m_image_menu.Set_Pos(
       temp_item->m_pos_x + temp_item->m_col_rect.m_w + 16, temp_item->m_pos_y);
-  pMenuCore->m_handler->Add_Menu_Item(temp_item);
+  pMenuCore->m_handler.Add_Menu_Item(std::move(temp_item));
 
   if (m_exit_to_gamemode == MODE_NOTHING) {
     // Credits
-    cGL_Surface* credits =
+    std::unique_ptr<cGL_Surface> credits =
         pFont->Render_Text(pFont->m_font_normal, _("Credits"), yellow);
-    temp_item = new cMenu_Item(pMenuCore->m_handler->m_level->m_sprite_manager);
-    temp_item->m_image_default->Set_Image(credits);
+    temp_item = std::make_unique<cMenu_Item>(
+        &pMenuCore->m_handler.m_level.m_sprite_manager);
+    temp_item->m_image_default.Set_Image(credits.get());
     temp_item->Set_Pos(static_cast<float>(game_res_w) * 0.45f,
                        static_cast<float>(game_res_h) - 30.0f);
-    pMenuCore->m_handler->Add_Menu_Item(temp_item, 1.5f, grey);
+    pMenuCore->m_handler.Add_Menu_Item(std::move(temp_item), 1.5f, grey);
 
-    cHudSprite* hud_sprite =
-        new cHudSprite(pMenuCore->m_handler->m_level->m_sprite_manager);
-    hud_sprite->Set_Image(credits, false, true);
+    auto hud_sprite = std::make_unique<cHudSprite>(
+        &pMenuCore->m_handler.m_level.m_sprite_manager);
+    hud_sprite->Set_Image(std::move(credits), false);
     hud_sprite->Set_Pos(-200, 0);
-    m_draw_list.push_back(hud_sprite);
+    m_draw_list.push_back(std::move(hud_sprite));
     // SDL logo
-    hud_sprite =
-        new cHudSprite(pMenuCore->m_handler->m_level->m_sprite_manager);
+    hud_sprite = std::make_unique<cHudSprite>(
+        &pMenuCore->m_handler.m_level.m_sprite_manager);
     hud_sprite->Set_Image(pVideo->Get_Surface("menu/logo_sdl.png"));
     hud_sprite->Set_Pos(static_cast<float>(game_res_w) * 0.04f,
                         static_cast<float>(game_res_h) * 0.935f);
-    m_draw_list.push_back(hud_sprite);
+    m_draw_list.push_back(std::move(hud_sprite));
   }
 
   Init_GUI();
@@ -269,31 +266,31 @@ void cMenu_Main ::Update(void) {
   m_action = false;
 
   // Start
-  if (pMenuCore->m_handler->m_active == 0) {
+  if (pMenuCore->m_handler.m_active == 0) {
     Game_Action = GA_ENTER_MENU;
     Game_Action_Data_Middle.add("load_menu", int_to_string(MENU_START));
   }
   // Options
-  else if (pMenuCore->m_handler->m_active == 1) {
+  else if (pMenuCore->m_handler.m_active == 1) {
     Game_Action = GA_ENTER_MENU;
     Game_Action_Data_Middle.add("load_menu", int_to_string(MENU_OPTIONS));
   }
   // Load
-  else if (pMenuCore->m_handler->m_active == 2) {
+  else if (pMenuCore->m_handler.m_active == 2) {
     Game_Action = GA_ENTER_MENU;
     Game_Action_Data_Middle.add("load_menu", int_to_string(MENU_LOAD));
   }
   // Save
-  else if (pMenuCore->m_handler->m_active == 3) {
+  else if (pMenuCore->m_handler.m_active == 3) {
     Game_Action = GA_ENTER_MENU;
     Game_Action_Data_Middle.add("load_menu", int_to_string(MENU_SAVE));
   }
   // Quit
-  else if (pMenuCore->m_handler->m_active == 4) {
+  else if (pMenuCore->m_handler.m_active == 4) {
     game_exit = true;
   }
   // Credits
-  else if (pMenuCore->m_handler->m_active == 5) {
+  else if (pMenuCore->m_handler.m_active == 5) {
     Game_Action = GA_ENTER_MENU;
     Game_Action_Data_Middle.add("load_menu", int_to_string(MENU_CREDITS));
     Game_Action_Data_Start.add("music_fadeout", "500");
@@ -323,15 +320,16 @@ void cMenu_Start ::Init(void) {
 
   m_layout_file = "menu/start.layout";
 
-  cHudSprite* hud_sprite =
-      new cHudSprite(pMenuCore->m_handler->m_level->m_sprite_manager);
+  auto hud_sprite = std::make_unique<cHudSprite>(
+      &pMenuCore->m_handler.m_level.m_sprite_manager);
   hud_sprite->Set_Image(pVideo->Get_Surface("menu/start.png"));
   hud_sprite->Set_Pos(static_cast<float>(game_res_w) * 0.02f, 140);
-  m_draw_list.push_back(hud_sprite);
-  hud_sprite = new cHudSprite(pMenuCore->m_handler->m_level->m_sprite_manager);
+  m_draw_list.push_back(std::move(hud_sprite));
+  hud_sprite = std::make_unique<cHudSprite>(
+      &pMenuCore->m_handler.m_level.m_sprite_manager);
   hud_sprite->Set_Image(pVideo->Get_Surface("menu/items/overworld.png"));
   hud_sprite->Set_Pos(static_cast<float>(game_res_w) / 20, 210);
-  m_draw_list.push_back(hud_sprite);
+  m_draw_list.push_back(std::move(hud_sprite));
 
   Init_GUI();
 }
@@ -358,7 +356,7 @@ void cMenu_Start ::Init_GUI(void) {
       CEGUI::WindowManager::getSingleton().getWindow("listbox_campaigns"));
 
   // campaign names
-  for (auto& campaign : pCampaign_Manager->objects) {
+  for (const auto& campaign : pCampaign_Manager->objects) {
     CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(
         reinterpret_cast<const CEGUI::utf8*>(campaign->m_name.c_str()));
     // is in game dir
@@ -406,8 +404,8 @@ void cMenu_Start ::Init_GUI(void) {
       CEGUI::WindowManager::getSingleton().getWindow("listbox_worlds"));
 
   // overworld names
-  for (auto& overworld : pOverworld_Manager->objects) {
-    const cOverworld_description* world = overworld->m_description;
+  for (const auto& overworld : pOverworld_Manager->objects) {
+    const cOverworld_description* world = &overworld->m_description;
 
 // show all worlds in debug builds
 #ifndef _DEBUG
@@ -570,7 +568,7 @@ void cMenu_Start ::Get_Levels(std::string dir, CEGUI::colour color) {
       Get_Directory_Files(dir, "smclvl", false, false);
 
   // list all available levels
-  for (auto& lvl_file : lvl_files) {
+  for (const auto& lvl_file : lvl_files) {
     // get filename
     std::string lvl_name = lvl_file;
     // remove base directory
@@ -1043,7 +1041,7 @@ bool cMenu_Start ::World_Select(const CEGUI::EventArgs& event) {
     // todo : should be from the path not name (more unique)
     editbox_world_description->setText(reinterpret_cast<const CEGUI::utf8*>(
         pOverworld_Manager->Get_from_Name(item->getText().c_str())
-            ->m_description->m_comment.c_str()));
+            ->m_description.m_comment.c_str()));
   }
   // clear
   else {
@@ -1184,14 +1182,14 @@ void cMenu_Options ::Init(void) {
   m_vid_geometry_detail = pVideo->m_geometry_quality;
   m_vid_texture_detail = pVideo->m_texture_quality;
 
-  cMenu_Item* temp_item = nullptr;
+  std::unique_ptr<cMenu_Item> temp_item;
 
   // options image
-  cHudSprite* hud_sprite =
-      new cHudSprite(pMenuCore->m_handler->m_level->m_sprite_manager);
+  auto hud_sprite = std::make_unique<cHudSprite>(
+      &pMenuCore->m_handler.m_level.m_sprite_manager);
   hud_sprite->Set_Image(pVideo->Get_Surface("menu/options.png"));
   hud_sprite->Set_Pos(game_res_w * 0.01f, 100);
-  m_draw_list.push_back(hud_sprite);
+  m_draw_list.push_back(std::move(hud_sprite));
 
   Init_GUI();
 }
@@ -1278,7 +1276,7 @@ void cMenu_Options ::Init_GUI_Game(void) {
   m_game_spinner_camera_hor_speed = static_cast<CEGUI::Spinner*>(
       wmgr.getWindow("game_spinner_camera_hor_speed"));
   m_game_spinner_camera_hor_speed->setCurrentValue(
-      pLevel_Manager->m_camera->m_hor_offset_speed);
+      pLevel_Manager->m_camera.m_hor_offset_speed);
 
   m_game_spinner_camera_hor_speed->subscribeEvent(
       CEGUI::Spinner::EventValueChanged,
@@ -1293,7 +1291,7 @@ void cMenu_Options ::Init_GUI_Game(void) {
   m_game_spinner_camera_ver_speed = static_cast<CEGUI::Spinner*>(
       wmgr.getWindow("game_spinner_camera_ver_speed"));
   m_game_spinner_camera_ver_speed->setCurrentValue(
-      pLevel_Manager->m_camera->m_ver_offset_speed);
+      pLevel_Manager->m_camera.m_ver_offset_speed);
 
   m_game_spinner_camera_ver_speed->subscribeEvent(
       CEGUI::Spinner::EventValueChanged,
@@ -1319,7 +1317,7 @@ void cMenu_Options ::Init_GUI_Game(void) {
                                        "/"
                                        "en");
 
-  for (auto& language_file : language_files) {
+  for (const auto& language_file : language_files) {
     // get filename
     std::string filename = language_file;
 
@@ -1393,7 +1391,7 @@ void cMenu_Options ::Init_GUI_Video(void) {
   CEGUI::ListboxTextItem* item;
 
   // add to listbox
-  for (auto& valid_resolution : valid_resolutions) {
+  for (const auto& valid_resolution : valid_resolutions) {
     // get resolution
     cSize_Int res = valid_resolution;
 
@@ -1985,22 +1983,22 @@ void cMenu_Options ::Update(void) {
   m_action = false;
 
   // only menu actions
-  if (pMenuCore->m_handler->m_active > 0) {
+  if (pMenuCore->m_handler.m_active > 0) {
     return;
   }
 
   // todo : use this functionality again
-  Change_Game_Setting(pMenuCore->m_handler->m_active);
-  Change_Video_Setting(pMenuCore->m_handler->m_active);
-  Change_Audio_Setting(pMenuCore->m_handler->m_active);
-  Change_Keyboard_Setting(pMenuCore->m_handler->m_active);
-  Change_Joystick_Setting(pMenuCore->m_handler->m_active);
-  Change_Editor_Setting(pMenuCore->m_handler->m_active);
+  Change_Game_Setting(pMenuCore->m_handler.m_active);
+  Change_Video_Setting(pMenuCore->m_handler.m_active);
+  Change_Audio_Setting(pMenuCore->m_handler.m_active);
+  Change_Keyboard_Setting(pMenuCore->m_handler.m_active);
+  Change_Joystick_Setting(pMenuCore->m_handler.m_active);
+  Change_Editor_Setting(pMenuCore->m_handler.m_active);
 }
 
 void cMenu_Options ::Change_Game_Setting(int setting) {
   // always run
-  if (pMenuCore->m_handler->m_active == 5) {
+  if (pMenuCore->m_handler.m_active == 5) {
     pPreferences->m_always_run = !pPreferences->m_always_run;
 
     if (pPreferences->m_always_run) {
@@ -2010,15 +2008,15 @@ void cMenu_Options ::Change_Game_Setting(int setting) {
     }
   }
   // Camera Horizontal
-  else if (pMenuCore->m_handler->m_active == 6) {
+  else if (pMenuCore->m_handler.m_active == 6) {
     // nothing
   }
   // Camera Vertical
-  else if (pMenuCore->m_handler->m_active == 7) {
+  else if (pMenuCore->m_handler.m_active == 7) {
     // nothing
   }
   // language
-  else if (pMenuCore->m_handler->m_active == 8) {
+  else if (pMenuCore->m_handler.m_active == 8) {
     unsigned int selected = m_game_combo_language->getItemIndex(
         m_game_combo_language->findItemWithText(
             m_game_combo_language->getText(), nullptr));
@@ -2040,7 +2038,7 @@ void cMenu_Options ::Change_Game_Setting(int setting) {
     Game_Language_Select(CEGUI::WindowEventArgs(m_game_combo_language));
   }
   // menu level
-  else if (pMenuCore->m_handler->m_active == 9) {
+  else if (pMenuCore->m_handler.m_active == 9) {
     unsigned int selected = m_game_combo_menu_level->getItemIndex(
         m_game_combo_menu_level->findItemWithText(
             m_game_combo_menu_level->getText(), nullptr));
@@ -2065,7 +2063,7 @@ void cMenu_Options ::Change_Game_Setting(int setting) {
 
 void cMenu_Options ::Change_Video_Setting(int setting) {
   // Resolution
-  if (pMenuCore->m_handler->m_active == 5) {
+  if (pMenuCore->m_handler.m_active == 5) {
     // Resolution
     unsigned int selected = m_video_combo_resolution->getItemIndex(
         m_video_combo_resolution->findItemWithText(
@@ -2088,7 +2086,7 @@ void cMenu_Options ::Change_Video_Setting(int setting) {
     Video_Resolution_Select(CEGUI::WindowEventArgs(m_video_combo_resolution));
   }
   // BPP
-  else if (pMenuCore->m_handler->m_active == 6) {
+  else if (pMenuCore->m_handler.m_active == 6) {
     if (m_vid_bpp == 16) {
       m_vid_bpp = 32;
     } else if (m_vid_bpp == 32) {
@@ -2098,7 +2096,7 @@ void cMenu_Options ::Change_Video_Setting(int setting) {
     m_video_combo_bpp->setText(int_to_string(m_vid_bpp).c_str());
   }
   // Fullscreen
-  else if (pMenuCore->m_handler->m_active == 7) {
+  else if (pMenuCore->m_handler.m_active == 7) {
     m_vid_fullscreen = !m_vid_fullscreen;
 
     if (m_vid_fullscreen) {
@@ -2108,7 +2106,7 @@ void cMenu_Options ::Change_Video_Setting(int setting) {
     }
   }
   // VSync
-  else if (pMenuCore->m_handler->m_active == 8) {
+  else if (pMenuCore->m_handler.m_active == 8) {
     m_vid_vsync = !m_vid_vsync;
 
     if (m_vid_vsync) {
@@ -2118,14 +2116,14 @@ void cMenu_Options ::Change_Video_Setting(int setting) {
     }
   }
   // FPS Limit
-  else if (pMenuCore->m_handler->m_active == 8) {
+  else if (pMenuCore->m_handler.m_active == 8) {
     // nothing
   }
 }
 
 void cMenu_Options ::Change_Audio_Setting(int setting) {
   // Hz
-  if (pMenuCore->m_handler->m_active == 5) {
+  if (pMenuCore->m_handler.m_active == 5) {
     unsigned int selected =
         m_audio_combo_hz->getItemIndex(m_audio_combo_hz->findItemWithText(
             m_audio_combo_hz->getText(), nullptr));
@@ -2146,7 +2144,7 @@ void cMenu_Options ::Change_Audio_Setting(int setting) {
     Audio_Hz_Select(CEGUI::WindowEventArgs(m_audio_combo_hz));
   }
   // Music
-  else if (pMenuCore->m_handler->m_active == 6) {
+  else if (pMenuCore->m_handler.m_active == 6) {
     pAudio->Toggle_Music();
 
     if (pAudio->m_music_enabled) {
@@ -2156,7 +2154,7 @@ void cMenu_Options ::Change_Audio_Setting(int setting) {
     }
   }
   // Sounds
-  else if (pMenuCore->m_handler->m_active == 7) {
+  else if (pMenuCore->m_handler.m_active == 7) {
     pAudio->Toggle_Sounds();
 
     if (pAudio->m_sound_enabled) {
@@ -2177,7 +2175,7 @@ void cMenu_Options ::Change_Joystick_Setting(int setting) {
 
 void cMenu_Options ::Change_Editor_Setting(int setting) {
   // editor show item images
-  if (pMenuCore->m_handler->m_active == 10) {
+  if (pMenuCore->m_handler.m_active == 10) {
     pPreferences->m_editor_show_item_images =
         !pPreferences->m_editor_show_item_images;
 
@@ -2188,11 +2186,11 @@ void cMenu_Options ::Change_Editor_Setting(int setting) {
     }
   }
   // editor item image size
-  else if (pMenuCore->m_handler->m_active == 11) {
+  else if (pMenuCore->m_handler.m_active == 11) {
     // nothing
   }
   // editor auto mouse hide
-  else if (pMenuCore->m_handler->m_active == 12) {
+  else if (pMenuCore->m_handler.m_active == 12) {
     pPreferences->m_editor_mouse_auto_hide =
         !pPreferences->m_editor_mouse_auto_hide;
 
@@ -2290,7 +2288,7 @@ void cMenu_Options ::Build_Shortcut_List(bool joystick /* = 0 */) {
   }
 
   // add all available shortcuts
-  for (auto& shortcut : shortcuts) {
+  for (const auto& shortcut : shortcuts) {
     cShortcut_item shortcut_item = shortcut;
 
     CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(
@@ -2434,7 +2432,7 @@ bool cMenu_Options ::Game_Camera_Hor_Select(const CEGUI::EventArgs& event) {
   CEGUI::Spinner* spinner_camera_hor =
       static_cast<CEGUI::Spinner*>(windowEventArgs.window);
 
-  pLevel_Manager->m_camera->m_hor_offset_speed =
+  pLevel_Manager->m_camera.m_hor_offset_speed =
       spinner_camera_hor->getCurrentValue();
   pPreferences->m_camera_hor_speed = spinner_camera_hor->getCurrentValue();
 
@@ -2447,7 +2445,7 @@ bool cMenu_Options ::Game_Camera_Ver_Select(const CEGUI::EventArgs& event) {
   CEGUI::Spinner* spinner_camera_ver =
       static_cast<CEGUI::Spinner*>(windowEventArgs.window);
 
-  pLevel_Manager->m_camera->m_ver_offset_speed =
+  pLevel_Manager->m_camera.m_ver_offset_speed =
       spinner_camera_ver->getCurrentValue();
   pPreferences->m_camera_ver_speed = spinner_camera_ver->getCurrentValue();
 
@@ -3083,73 +3081,70 @@ cMenu_Savegames ::cMenu_Savegames(bool type) : cMenu_Base() {
   m_type_save = type;
 
   for (unsigned int i = 0; i < 9; i++) {
-    m_savegame_temp.push_back(
-        new cHudSprite(pMenuCore->m_handler->m_level->m_sprite_manager));
+    m_savegame_temp.push_back(std::make_unique<cHudSprite>(
+        &pMenuCore->m_handler.m_level.m_sprite_manager));
   }
 }
 
-cMenu_Savegames ::~cMenu_Savegames(void) {
-  for (auto& itr : m_savegame_temp) {
-    delete itr;
-  }
-
-  m_savegame_temp.clear();
-}
+cMenu_Savegames ::~cMenu_Savegames(void) { m_savegame_temp.clear(); }
 
 void cMenu_Savegames ::Init(void) {
   cMenu_Base::Init();
   Update_Saved_Games_Text();
 
-  cMenu_Item* temp_item = nullptr;
+  std::unique_ptr<cMenu_Item> temp_item;
 
   // savegame descriptions
-  for (auto& itr : m_savegame_temp) {
-    temp_item = new cMenu_Item(pMenuCore->m_handler->m_level->m_sprite_manager);
-    temp_item->m_image_default->Set_Image(itr->m_image);
+  for (const auto& itr : m_savegame_temp) {
+    temp_item = std::make_unique<cMenu_Item>(
+        &pMenuCore->m_handler.m_level.m_sprite_manager);
+    temp_item->m_image_default.Set_Image(itr->m_image);
     temp_item->Set_Pos(static_cast<float>(game_res_w) / 5, m_menu_pos_y);
-    pMenuCore->m_handler->Add_Menu_Item(temp_item, 1.5f, grey);
+    cMenu_Item* added =
+        pMenuCore->m_handler.Add_Menu_Item(std::move(temp_item), 1.5f, grey);
 
-    m_menu_pos_y += temp_item->m_image_default->m_col_rect.m_h;
+    m_menu_pos_y += added->m_image_default.m_col_rect.m_h;
   }
 
   // back
-  cGL_Surface* back1 =
+  std::unique_ptr<cGL_Surface> back1 =
       pFont->Render_Text(pFont->m_font_normal, _("Back"), m_text_color);
-  temp_item = new cMenu_Item(pMenuCore->m_handler->m_level->m_sprite_manager);
-  temp_item->m_image_default->Set_Image(back1);
+  temp_item = std::make_unique<cMenu_Item>(
+      &pMenuCore->m_handler.m_level.m_sprite_manager);
+  temp_item->m_image_default.Set_Image(back1.get());
   temp_item->Set_Pos(static_cast<float>(game_res_w) / 18, 450);
   temp_item->m_is_quit = true;
-  pMenuCore->m_handler->Add_Menu_Item(temp_item, 1.5f, grey);
+  pMenuCore->m_handler.Add_Menu_Item(std::move(temp_item), 1.5f, grey);
 
   if (m_type_save) {
-    cHudSprite* hud_sprite =
-        new cHudSprite(pMenuCore->m_handler->m_level->m_sprite_manager);
+    auto hud_sprite = std::make_unique<cHudSprite>(
+        &pMenuCore->m_handler.m_level.m_sprite_manager);
     hud_sprite->Set_Image(pVideo->Get_Surface("menu/save.png"));
     hud_sprite->Set_Pos(game_res_w * 0.2f, game_res_h * 0.15f);
-    m_draw_list.push_back(hud_sprite);
-    hud_sprite =
-        new cHudSprite(pMenuCore->m_handler->m_level->m_sprite_manager);
+    m_draw_list.push_back(std::move(hud_sprite));
+    hud_sprite = std::make_unique<cHudSprite>(
+        &pMenuCore->m_handler.m_level.m_sprite_manager);
     hud_sprite->Set_Image(pVideo->Get_Surface("menu/items/save.png"));
     hud_sprite->Set_Pos(game_res_w * 0.07f, game_res_h * 0.24f);
-    m_draw_list.push_back(hud_sprite);
+    m_draw_list.push_back(std::move(hud_sprite));
   } else {
-    cHudSprite* hud_sprite =
-        new cHudSprite(pMenuCore->m_handler->m_level->m_sprite_manager);
+    auto hud_sprite = std::make_unique<cHudSprite>(
+        &pMenuCore->m_handler.m_level.m_sprite_manager);
     hud_sprite->Set_Image(pVideo->Get_Surface("menu/load.png"));
     hud_sprite->Set_Pos(game_res_w * 0.2f, game_res_h * 0.15f);
-    m_draw_list.push_back(hud_sprite);
-    hud_sprite =
-        new cHudSprite(pMenuCore->m_handler->m_level->m_sprite_manager);
+    m_draw_list.push_back(std::move(hud_sprite));
+    hud_sprite = std::make_unique<cHudSprite>(
+        &pMenuCore->m_handler.m_level.m_sprite_manager);
     hud_sprite->Set_Image(pVideo->Get_Surface("menu/items/load.png"));
     hud_sprite->Set_Pos(game_res_w * 0.07f, game_res_h * 0.24f);
-    m_draw_list.push_back(hud_sprite);
+    m_draw_list.push_back(std::move(hud_sprite));
   }
 
-  cHudSprite* hud_sprite =
-      new cHudSprite(pMenuCore->m_handler->m_level->m_sprite_manager);
-  hud_sprite->Set_Image(back1, false, true);
+  auto hud_sprite = std::make_unique<cHudSprite>(
+      &pMenuCore->m_handler.m_level.m_sprite_manager);
+  hud_sprite->Set_Image(std::move(back1), false);
   hud_sprite->Set_Pos(-200, 0);
-  m_draw_list.push_back(hud_sprite);
+  m_draw_list.push_back(std::move(hud_sprite));
 
   Init_GUI();
 }
@@ -3175,7 +3170,7 @@ void cMenu_Savegames ::Update(void) {
   m_action = false;
 
   // back
-  if (pMenuCore->m_handler->m_active == 9) {
+  if (pMenuCore->m_handler.m_active == 9) {
     Exit();
     return;
   }
@@ -3193,7 +3188,7 @@ void cMenu_Savegames ::Draw(void) {
 }
 
 void cMenu_Savegames ::Update_Load(void) {
-  int save_num = pMenuCore->m_handler->m_active + 1;
+  int save_num = pMenuCore->m_handler.m_active + 1;
 
   // not valid
   if (!pSavegame->Is_Valid(save_num)) {
@@ -3204,9 +3199,8 @@ void cMenu_Savegames ::Update_Load(void) {
   // reset before loading the level to keep the level in the manager
   pLevel_Player->Reset_Save();
 
-  cSave* savegame = pSavegame->Load(save_num);
+  std::unique_ptr<cSave> savegame = pSavegame->Load(save_num);
   std::string level_name = savegame->Get_Active_Level();
-  delete savegame;
 
   if (!level_name.empty()) {
     Game_Action = GA_ENTER_LEVEL;
@@ -3239,7 +3233,7 @@ void cMenu_Savegames ::Update_Save(void) {
   }
 
   std::string descripion =
-      Set_Save_Description(pMenuCore->m_handler->m_active + 1);
+      Set_Save_Description(pMenuCore->m_handler.m_active + 1);
 
   pFramerate->Reset();
 
@@ -3266,7 +3260,7 @@ void cMenu_Savegames ::Update_Save(void) {
   }
 #endif
   // save
-  pSavegame->Save_Game(pMenuCore->m_handler->m_active + 1, descripion);
+  pSavegame->Save_Game(pMenuCore->m_handler.m_active + 1, descripion);
 
   Game_Action = GA_ENTER_MENU;
   Game_Action_Data_Middle.add("load_menu", int_to_string(MENU_MAIN));
@@ -3312,12 +3306,12 @@ std::string cMenu_Savegames ::Set_Save_Description(unsigned int save_slot) {
 void cMenu_Savegames ::Update_Saved_Games_Text(void) {
   unsigned int save_slot = 0;
 
-  for (auto& itr : m_savegame_temp) {
+  for (const auto& itr : m_savegame_temp) {
     save_slot++;
     itr->Set_Image(pFont->Render_Text(pFont->m_font_normal,
                                       pSavegame->Get_Description(save_slot),
                                       m_text_color_value),
-                   true, true);
+                   true);
   }
 }
 
@@ -3455,7 +3449,7 @@ void cMenu_Credits ::Init(void) {
   m_menu_pos_y = game_res_h * 1.1f;
 
   // set credits position
-  for (auto item : m_draw_list) {
+  for (const auto& item : m_draw_list) {
     // get object
     // set shadow if not set
     if (item->m_shadow_pos == 0) {
@@ -3474,22 +3468,23 @@ void cMenu_Credits ::Init(void) {
     m_menu_pos_y = item->m_pos_y + item->m_col_rect.m_h;
   }
 
-  cMenu_Item* temp_item = nullptr;
+  std::unique_ptr<cMenu_Item> temp_item;
 
   // back
-  cGL_Surface* back1 =
+  std::unique_ptr<cGL_Surface> back1 =
       pFont->Render_Text(pFont->m_font_normal, _("Back"), m_text_color);
-  temp_item = new cMenu_Item(pMenuCore->m_handler->m_level->m_sprite_manager);
-  temp_item->m_image_default->Set_Image(back1);
+  temp_item = std::make_unique<cMenu_Item>(
+      &pMenuCore->m_handler.m_level.m_sprite_manager);
+  temp_item->m_image_default.Set_Image(back1.get());
   temp_item->Set_Pos(static_cast<float>(game_res_w) / 18, 250);
   temp_item->m_is_quit = true;
-  pMenuCore->m_handler->Add_Menu_Item(temp_item, 2, grey);
+  pMenuCore->m_handler.Add_Menu_Item(std::move(temp_item), 2, grey);
 
-  cHudSprite* hud_sprite =
-      new cHudSprite(pMenuCore->m_handler->m_level->m_sprite_manager);
-  hud_sprite->Set_Image(back1, false, true);
+  auto hud_sprite = std::make_unique<cHudSprite>(
+      &pMenuCore->m_handler.m_level.m_sprite_manager);
+  hud_sprite->Set_Image(std::move(back1), false);
   hud_sprite->Set_Pos(-200, 0);
-  m_draw_list.push_back(hud_sprite);
+  m_draw_list.push_back(std::move(hud_sprite));
 
   Init_GUI();
 }
@@ -3516,9 +3511,9 @@ void cMenu_Credits ::Leave(const GameMode next_mode /* = MODE_NOTHING */) {
   }
 
   // set menu gradient colors back
-  pMenuCore->m_handler->m_level->m_background_manager->Get_Pointer(0)
+  pMenuCore->m_handler.m_level.m_background_manager.Get_Pointer(0)
       ->m_color_1.alpha = 255;
-  pMenuCore->m_handler->m_level->m_background_manager->Get_Pointer(0)
+  pMenuCore->m_handler.m_level.m_background_manager.Get_Pointer(0)
       ->m_color_2.alpha = 255;
 }
 
@@ -3535,7 +3530,7 @@ void cMenu_Credits ::Exit(void) {
 void cMenu_Credits ::Update(void) {
   cMenu_Base::Update();
 
-  for (auto item : m_draw_list) {
+  for (const auto& item : m_draw_list) {
     // long inactive reset
     if (item->m_pos_y < -2700) {
       item->Set_Pos_Y(static_cast<float>(game_res_h) * 1.1f);
@@ -3563,8 +3558,8 @@ void cMenu_Credits ::Update(void) {
 
         // add particles
         if (item->m_combine_color[0] < 1.0f) {
-          cParticle_Emitter* anim = new cParticle_Emitter(
-              pMenuCore->m_handler->m_level->m_sprite_manager);
+          auto anim = std::make_unique<cParticle_Emitter>(
+              &pMenuCore->m_handler.m_level.m_sprite_manager);
           anim->Set_Emitter_Rect(
               Get_Random_Float(game_res_w * 0.1f, game_res_w * 0.8f),
               -Get_Random_Float(game_res_h * 0.8f, game_res_h * 0.9f),
@@ -3606,7 +3601,7 @@ void cMenu_Credits ::Update(void) {
           anim->Set_Vertical_Gravity(0.02f);
           anim->Set_Pos_Z(0.16f);
           anim->Emit();
-          pMenuCore->m_animation_manager->Add(anim);
+          pMenuCore->m_animation_manager.Add(std::move(anim));
         }
       }
 
@@ -3626,7 +3621,7 @@ void cMenu_Credits ::Update(void) {
   m_action = false;
 
   // back
-  if (pMenuCore->m_handler->m_active == 0) {
+  if (pMenuCore->m_handler.m_active == 0) {
     Exit();
   }
 }
@@ -3640,17 +3635,17 @@ void cMenu_Credits ::Draw(void) {
   cMenu_Base::Draw();
 
   // darken background
-  cRect_Request* request = new cRect_Request();
+  auto request = std::make_unique<cRect_Request>();
   pVideo->Draw_Rect(
       nullptr, 0.095f,
-      &pMenuCore->m_handler->m_level->m_background_manager->Get_Pointer(0)
+      &pMenuCore->m_handler.m_level.m_background_manager.Get_Pointer(0)
            ->m_color_2,
-      request);
+      request.get());
   request->m_color.red = static_cast<Uint8>(request->m_color.red * 0.1f);
   request->m_color.green = static_cast<Uint8>(request->m_color.green * 0.1f);
   request->m_color.blue = static_cast<Uint8>(request->m_color.blue * 0.1f);
   request->m_color.alpha = 195;
-  pRenderer->Add(request);
+  pRenderer->Add(std::move(request));
 
   Draw_End();
 }
@@ -3659,15 +3654,14 @@ void cMenu_Credits ::Add_Credits_Line(const std::string& text, float posx,
                                       float posy,
                                       const Color& shadow_color /* = black */,
                                       float shadow_pos /* = 0.0f */) {
-  cHudSprite* temp =
-      new cHudSprite(pMenuCore->m_handler->m_level->m_sprite_manager);
-  temp->Set_Image(pFont->Render_Text(pFont->m_font_normal, text, white), true,
-                  true);
+  auto temp = std::make_unique<cHudSprite>(
+      &pMenuCore->m_handler.m_level.m_sprite_manager);
+  temp->Set_Image(pFont->Render_Text(pFont->m_font_normal, text, white), true);
   temp->Set_Pos(posx, posy);
   if (!Is_Float_Equal(shadow_pos, 0.0f)) {
     temp->Set_Shadow(shadow_color, shadow_pos);
   }
-  m_draw_list.push_back(temp);
+  m_draw_list.push_back(std::move(temp));
 }
 
 void cMenu_Credits ::Menu_Fade(bool fade_in /* = 1 */) {
@@ -3690,7 +3684,7 @@ void cMenu_Credits ::Menu_Fade(bool fade_in /* = 1 */) {
 
   // get logo
   cSprite* logo =
-      pMenuCore->m_handler->m_level->m_sprite_manager->Get_from_Position(
+      pMenuCore->m_handler.m_level.m_sprite_manager.Get_from_Position(
           180, logo_pos_y, TYPE_FRONT_PASSIVE, 2);
 
   // fade out
@@ -3732,9 +3726,9 @@ void cMenu_Credits ::Menu_Fade(bool fade_in /* = 1 */) {
     }
 
     // set menu gradient colors
-    pMenuCore->m_handler->m_level->m_background_manager->Get_Pointer(0)
+    pMenuCore->m_handler.m_level.m_background_manager.Get_Pointer(0)
         ->m_color_1.alpha = static_cast<Uint8>(counter);
-    pMenuCore->m_handler->m_level->m_background_manager->Get_Pointer(0)
+    pMenuCore->m_handler.m_level.m_background_manager.Get_Pointer(0)
         ->m_color_2.alpha = static_cast<Uint8>(counter);
 
     // # Draw
@@ -3743,22 +3737,22 @@ void cMenu_Credits ::Menu_Fade(bool fade_in /* = 1 */) {
     pVideo->Clear_Screen();
 
     // draw menu
-    pMenuCore->m_handler->Draw();
-    pMenuCore->m_animation_manager->Draw();
+    pMenuCore->m_handler.Draw();
+    pMenuCore->m_animation_manager.Draw();
 
     // create request
-    cRect_Request* request = new cRect_Request();
+    auto request = std::make_unique<cRect_Request>();
     pVideo->Draw_Rect(
         nullptr, 0.095f,
-        &pMenuCore->m_handler->m_level->m_background_manager->Get_Pointer(0)
+        &pMenuCore->m_handler.m_level.m_background_manager.Get_Pointer(0)
              ->m_color_2,
-        request);
+        request.get());
     request->m_color.red = static_cast<Uint8>(request->m_color.red * 0.1f);
     request->m_color.green = static_cast<Uint8>(request->m_color.green * 0.1f);
     request->m_color.blue = static_cast<Uint8>(request->m_color.blue * 0.1f);
     request->m_color.alpha = 255 - static_cast<Uint8>(counter);
     // add request
-    pRenderer->Add(request);
+    pRenderer->Add(std::move(request));
 
     pVideo->Render();
 

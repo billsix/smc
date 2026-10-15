@@ -43,13 +43,14 @@ class cCollidingSprite {
 	 * col : colliding object ( needed for the collision direction )
 	 * valid_type : validation type
 	*/
-  cObjectCollision* Create_Collision_Object(const cSprite* base, cSprite* col,
-                                            Col_Valid_Type valid_type) const;
-  /* Add a collision object to the collision list
+  [[nodiscard]] std::unique_ptr<cObjectCollision> Create_Collision_Object(
+      const cSprite* base, cSprite* col, Col_Valid_Type valid_type) const;
+  /* Add a collision object to the collision list (takes ownership)
 	 * returns true if successful
-	 * add_if_new : add the collision only if the collision object doesn't already collide with us and is deleted if it does
+	 * add_if_new : add the collision only if the collision object doesn't already collide with us (it is freed if it does)
 	 */
-  bool Add_Collision(cObjectCollision* collision, bool add_if_new = false);
+  bool Add_Collision(std::unique_ptr<cObjectCollision> collision,
+                     bool add_if_new = false);
   /* Add the collision objects to the collision list
 	 * add_if_new : add each collision only if the collision object doesn't already collide with us and is deleted if it does
 	 */
@@ -70,7 +71,7 @@ class cCollidingSprite {
       return nullptr;
     }
 
-    return *m_collisions.begin();
+    return m_collisions.front().get();
   };
   /* Returns the last added collision
 	 * if only_blocking is set only movement blocking collisions are returned
@@ -120,7 +121,7 @@ class cSprite : public cCollidingSprite {
 	*/
   virtual void Init_Links(void) {};
   // copy this sprite (the caller owns the clone)
-  virtual std::unique_ptr<cSprite> Copy(void) const;
+  [[nodiscard]] virtual std::unique_ptr<cSprite> Copy(void) const;
 
   // load from stream
   virtual void Load_From_XML(CEGUI::XMLAttributes& attributes);
@@ -130,14 +131,19 @@ class cSprite : public cCollidingSprite {
   // load from savegame
   virtual void Load_From_Savegame(cSave_Level_Object* save_object) {};
   // save to savegame
-  virtual cSave_Level_Object* Save_To_Savegame(void) { return nullptr; };
+  [[nodiscard]] virtual std::unique_ptr<cSave_Level_Object> Save_To_Savegame(
+      void);
 
   /* Sets the image for drawing
 	 * if new_start_image is set the default start_image will be set to the given image
-	 * if del_img is set the given image will be deleted
+	 * the sprite BORROWS the image (an image manager or another owner keeps it alive)
 	*/
-  virtual void Set_Image(cGL_Surface* new_image, bool new_start_image = false,
-                         bool del_img = false);
+  virtual void Set_Image(cGL_Surface* new_image, bool new_start_image = false);
+  /* Set the image and take ownership of it (a text surface rendered for this sprite):
+	 * it is freed when the sprite dies or the next image is set
+	*/
+  void Set_Image(std::unique_ptr<cGL_Surface> owned_image,
+                 bool new_start_image = false);
 
   // Set the sprite type
   void Set_Sprite_Type(SpriteType type);
@@ -480,8 +486,8 @@ class cSprite : public cCollidingSprite {
   // can be used as ground object
   bool m_can_be_ground;
 
-  // delete the given image when it gets unloaded
-  bool m_delete_image;
+  // the image this sprite owns, if any (m_image is the view of it or of a borrowed one)
+  std::unique_ptr<cGL_Surface> m_owned_image;
   // if this can not be auto-deleted because the object is controlled from elsewhere
   bool m_disallow_managed_delete;
   /* if true this sprite is not used anywhere anymore
@@ -501,7 +507,8 @@ class cSprite : public cCollidingSprite {
   bool m_valid_update;
 
   // editor active window list
-  using Editor_Object_Settings_List = vector<cEditor_Object_Settings_Item*>;
+  using Editor_Object_Settings_List =
+      vector<std::unique_ptr<cEditor_Object_Settings_Item>>;
   Editor_Object_Settings_List m_editor_windows;
   // width for all name windows based on largest name text width
   float m_editor_window_name_width;

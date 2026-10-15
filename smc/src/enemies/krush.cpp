@@ -69,10 +69,10 @@ void cKrush ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cKrush ::Copy(void) const {
-  cKrush* krush = new cKrush(m_sprite_manager);
+  auto krush = std::make_unique<cKrush>(m_sprite_manager);
   krush->Set_Pos(m_start_pos_x, m_start_pos_y);
   krush->Set_Direction(m_start_direction);
-  return std::unique_ptr<cSprite>(krush);
+  return krush;
 }
 
 void cKrush ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -153,23 +153,23 @@ void cKrush ::DownGrade(bool force /* = 0 */) {
                true, true);
 
       // animation
-      cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
-      Generate_Hit_Animation(anim);
+      auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
+      Generate_Hit_Animation(anim.get());
       anim->Set_Speed(3.5f, 0.6f);
       anim->Set_Fading_Alpha(true);
       anim->Emit();
-      pActive_Animation_Manager->Add(anim);
+      pActive_Animation_Manager->Add(std::move(anim));
     } else if (m_state == STA_RUN) {
       Set_Scale_Directions(true, false, true, true);
       Set_Dead(true);
 
       // animation
-      cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
-      Generate_Hit_Animation(anim);
+      auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
+      Generate_Hit_Animation(anim.get());
       anim->Set_Speed(4.5f, 1.6f);
       anim->Set_Scale(0.6f);
       anim->Emit();
-      pActive_Animation_Manager->Add(anim);
+      pActive_Animation_Manager->Add(std::move(anim));
     }
   }
   // falling death

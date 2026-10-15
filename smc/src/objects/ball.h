@@ -35,7 +35,7 @@ class cBall : public cAnimated_Sprite {
   // init defaults
   void Init(void) override;
   // copy
-  std::unique_ptr<cSprite> Copy(void) const override;
+  [[nodiscard]] std::unique_ptr<cSprite> Copy(void) const override;
   // load from stream
   void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
   // save to stream
@@ -44,7 +44,8 @@ class cBall : public cAnimated_Sprite {
   // load from savegame
   void Load_From_Savegame(cSave_Level_Object* save_object) override;
   // save to savegame
-  cSave_Level_Object* Save_To_Savegame(void) override;
+  [[nodiscard]] std::unique_ptr<cSave_Level_Object> Save_To_Savegame(
+      void) override;
 
   // set type
   void Set_Ball_Type(ball_effect type);

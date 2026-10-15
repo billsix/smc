@@ -65,7 +65,7 @@ class cEditor_Item_Object : public CEGUI::ListboxItem {
   ~cEditor_Item_Object(void) override;
 
   // Initialize
-  void Init(cSprite* sprite);
+  void Init(std::unique_ptr<cSprite> sprite);
 
   // overridden from base class
   CEGUI::Size getPixelSize(void) const override;
@@ -76,11 +76,11 @@ class cEditor_Item_Object : public CEGUI::ListboxItem {
   // parent
   const CEGUI::Listbox* m_parent;
   // text
-  CEGUI::ListboxTextItem* list_text;
+  std::unique_ptr<CEGUI::ListboxTextItem> list_text;
   // cegui image
   CEGUI::Imageset* m_image;
-  // sprite
-  cSprite* sprite_obj;
+  // sprite (owned: the item is the editor's template for this object)
+  std::unique_ptr<cSprite> sprite_obj;
   // preview image scale
   float preview_scale;
 };
@@ -170,16 +170,16 @@ class cEditor : public CEGUI::XMLHandler {
 	 * if nName is set it will not use the object name
 	 * if image is set the default object image is not used
 	 */
-  void Add_Item_Object(cSprite* sprite, std::string new_name = "",
-                       cGL_Surface* image = nullptr);
+  void Add_Item_Object(std::unique_ptr<cSprite> sprite,
+                       std::string new_name = "", cGL_Surface* image = nullptr);
   // Loads all Image Items
   void Load_Image_Items(std::string dir);
   // Active Item Entry
   virtual void Activate_Item(cEditor_Item_Object* entry);
   // return the sprite object
-  virtual cSprite* Get_Object(const CEGUI::String& element,
-                              CEGUI::XMLAttributes& attributes,
-                              int engine_version);
+  [[nodiscard]] virtual std::unique_ptr<cSprite> Get_Object(const CEGUI::String& element,
+                                              CEGUI::XMLAttributes& attributes,
+                                              int engine_version);
 
   // #### Editor Functions
   /* copy the given object(s) next to itself into the given direction
@@ -231,9 +231,11 @@ class cEditor : public CEGUI::XMLHandler {
   float m_menu_timer;
 
   // Objects with tags
-  using TaggedItemImageSettingsList = vector<cImage_Settings_Data*>;
+  using TaggedItemImageSettingsList =
+      vector<std::unique_ptr<cImage_Settings_Data>>;
   TaggedItemImageSettingsList m_tagged_item_images;
-  using TaggedItemObjectsList = vector<cSprite*>;
+  // the tagged template objects (owned by the editor)
+  using TaggedItemObjectsList = vector<std::unique_ptr<cSprite>>;
   TaggedItemObjectsList m_tagged_item_objects;
 
   // CEGUI window

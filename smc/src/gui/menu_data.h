@@ -62,7 +62,7 @@ class cMenu_Base {
   GameMode m_exit_to_gamemode;
 
   // current menu sprites
-  using HudSpriteList = vector<cHudSprite*>;
+  using HudSpriteList = vector<std::unique_ptr<cHudSprite>>;
   HudSpriteList m_draw_list;
 };
 

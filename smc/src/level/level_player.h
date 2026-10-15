@@ -61,7 +61,7 @@ class cLevel_Player : public cAnimated_Sprite {
   ~cLevel_Player(void) override;
 
   // copy
-  std::unique_ptr<cSprite> Copy(void) const override;
+  [[nodiscard]] std::unique_ptr<cSprite> Copy(void) const override;
 
   // Init
   void Init(void) override;

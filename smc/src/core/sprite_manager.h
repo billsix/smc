@@ -30,9 +30,9 @@ class cSprite_Manager : public cObject_Manager<cSprite> {
                   unsigned int zpos_items = 100);
   ~cSprite_Manager(void) override;
 
-  /* Add a sprite
+  /* Add a sprite (takes ownership; returns the borrowed pointer)
 	 */
-  void Add(cSprite* sprite) override;
+  cSprite* Add(std::unique_ptr<cSprite> sprite) override;
 
   // Set the sprite z position and update the z pos list
   void Set_Pos_Z(cSprite* sprite);
@@ -82,25 +82,25 @@ class cSprite_Manager : public cObject_Manager<cSprite> {
 
   // Update items drawing validation
   inline void Update_Items_Valid_Draw(void) {
-    for (auto& sprite : objects) {
+    for (const auto& sprite : objects) {
       sprite->Update_Valid_Draw();
     }
   }
   // Update items
   inline void Update_Items(void) {
-    for (auto& sprite : objects) {
+    for (const auto& sprite : objects) {
       sprite->Update();
     }
   }
   // Update_Late items
   inline void Update_Items_Late(void) {
-    for (auto& sprite : objects) {
+    for (const auto& sprite : objects) {
       sprite->Update_Late();
     }
   }
   // Draw items
   inline void Draw_Items(void) {
-    for (auto& sprite : objects) {
+    for (const auto& sprite : objects) {
       sprite->Draw();
     }
   }

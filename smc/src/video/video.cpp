@@ -75,7 +75,23 @@ cVideo ::cVideo(void) {
   m_initialised = false;
 }
 
-cVideo ::~cVideo(void) = default;
+cVideo ::~cVideo(void) {
+  // the CEGUI system, its renderer, resource provider and logger were created by Init_CEGUI
+  // and die with the video subsystem, after every object that draws into CEGUI is gone
+  if (pGuiSystem) {
+    CEGUI::ResourceProvider* rp = pGuiSystem->getResourceProvider();
+    CEGUI::Logger* logger = CEGUI::Logger::getSingletonPtr();
+    pGuiSystem->destroy();
+    pGuiSystem = nullptr;
+    delete rp;
+    delete logger;
+  }
+
+  if (pGuiRenderer) {
+    pGuiRenderer->destroy(*pGuiRenderer);
+    pGuiRenderer = nullptr;
+  }
+}
 
 void cVideo ::Init_CEGUI_Fake(void) const {
   // create fake Resource Provider
@@ -723,7 +739,7 @@ void cVideo ::Init_Image_Cache(bool recreate /* = 0 */,
   unsigned int file_count = image_files.size();
 
   // create directories, load images and save to cache
-  for (auto& image_file : image_files) {
+  for (const auto& image_file : image_files) {
     // get filename
     std::string filename = image_file;
 
@@ -752,7 +768,7 @@ void cVideo ::Init_Image_Cache(bool recreate /* = 0 */,
     // load software image
     cSoftware_Image software_image = Load_Image(filename);
     SDL_Surface* sdl_surface = software_image.m_sdl_surface;
-    cImage_Settings_Data* settings = software_image.m_settings;
+    cImage_Settings_Data* settings = software_image.m_settings.get();
 
     // failed to load image
     if (!sdl_surface) {
@@ -781,7 +797,6 @@ void cVideo ::Init_Image_Cache(bool recreate /* = 0 */,
 
     // get final size for this resolution
     cSize_Int size = settings->Get_Surface_Size(sdl_surface);
-    delete settings;
     int new_width = size.m_width;
     int new_height = size.m_height;
 
@@ -834,15 +849,13 @@ void cVideo ::Init_Image_Cache(bool recreate /* = 0 */,
 
 #ifdef _DEBUG
       // update filename
-      cGL_Surface* surface_filename =
+      std::unique_ptr<cGL_Surface> surface_filename =
           pFont->Render_Text(pFont->m_font_small, filename, white);
       // draw filename
       surface_filename->Blit(game_res_w * 0.2f, game_res_h * 0.8f, 0.1f);
 #endif
       Loading_Screen_Draw();
 #ifdef _DEBUG
-      // delete
-      delete surface_filename;
 #endif
     }
   }
@@ -908,17 +921,17 @@ void cVideo ::Render(void) {
   pRenderer->Render();
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_RENDER_GAME]->Update();
+  pFramerate->m_perf_timer[PERF_RENDER_GAME].Update();
 
   pGuiSystem->renderGUI();
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_RENDER_GUI]->Update();
+  pFramerate->m_perf_timer[PERF_RENDER_GUI].Update();
 
   SDL_GL_SwapWindow(screen);
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_RENDER_BUFFER]->Update();
+  pFramerate->m_perf_timer[PERF_RENDER_BUFFER].Update();
 }
 
 // No-op since the threaded renderer (boost::thread, never enabled) was removed. Kept so its
@@ -963,15 +976,22 @@ cGL_Surface* cVideo ::Get_Surface(std::string filename,
     return image;
   }
 
-  // load new image
-  image = Load_GL_Surface(filename, true, print_errors);
-  // add new image
-  if (image) {
-    pImage_Manager->Add(image);
+  // load new image and hand it to the image manager (which owns every cached surface)
+  std::unique_ptr<cGL_Surface> loaded =
+      Load_GL_Surface(filename, true, print_errors);
+  if (loaded) {
+    image = pImage_Manager->Add(std::move(loaded));
   }
 
   return image;
 }
+
+cVideo::cSoftware_Image ::cSoftware_Image(void) : m_sdl_surface(nullptr) {}
+cVideo::cSoftware_Image ::~cSoftware_Image(void) = default;
+cVideo::cSoftware_Image ::cSoftware_Image(cSoftware_Image&& other) noexcept =
+    default;
+cVideo::cSoftware_Image& cVideo::cSoftware_Image ::operator=(
+    cSoftware_Image&& other) noexcept = default;
 
 cVideo::cSoftware_Image cVideo ::Load_Image(std::string filename,
                                             bool load_settings /* = 1 */,
@@ -983,7 +1003,7 @@ cVideo::cSoftware_Image cVideo ::Load_Image(std::string filename,
 
   cSoftware_Image software_image = cSoftware_Image();
   SDL_Surface* sdl_surface = nullptr;
-  cImage_Settings_Data* settings = nullptr;
+  std::unique_ptr<cImage_Settings_Data> settings;
 
   // load settings if available
   if (load_settings) {
@@ -1038,10 +1058,7 @@ cVideo::cSoftware_Image cVideo ::Load_Image(std::string filename,
   }
 
   if (!sdl_surface) {
-    if (settings) {
-      delete settings;
-      settings = nullptr;
-    }
+    settings.reset();
 
     if (print_errors) {
       printf("Error loading image : %s\nReason : %s\n", filename.c_str(),
@@ -1052,13 +1069,13 @@ cVideo::cSoftware_Image cVideo ::Load_Image(std::string filename,
   }
 
   software_image.m_sdl_surface = sdl_surface;
-  software_image.m_settings = settings;
+  software_image.m_settings = std::move(settings);
   return software_image;
 }
 
-cGL_Surface* cVideo ::Load_GL_Surface(std::string filename,
-                                      bool use_settings /* = 1 */,
-                                      bool print_errors /* = 1 */) {
+std::unique_ptr<cGL_Surface> cVideo ::Load_GL_Surface(
+    std::string filename, bool use_settings /* = 1 */,
+    bool print_errors /* = 1 */) {
   // pixmaps dir must be given
   if (filename.find(DATA_DIR "/" GAME_PIXMAPS_DIR "/") == std::string::npos) {
     filename.insert(0, DATA_DIR "/" GAME_PIXMAPS_DIR "/");
@@ -1068,10 +1085,10 @@ cGL_Surface* cVideo ::Load_GL_Surface(std::string filename,
   cSoftware_Image software_image =
       Load_Image(filename, use_settings, print_errors);
   SDL_Surface* sdl_surface = software_image.m_sdl_surface;
-  cImage_Settings_Data* settings = software_image.m_settings;
+  cImage_Settings_Data* settings = software_image.m_settings.get();
 
   // final surface
-  cGL_Surface* image = nullptr;
+  std::unique_ptr<cGL_Surface> image;
 
   // with settings
   if (settings) {
@@ -1082,8 +1099,7 @@ cGL_Surface* cVideo ::Load_GL_Surface(std::string filename,
     image = pVideo->Create_Texture(sdl_surface, settings->m_mipmap,
                                    size.m_width, size.m_height);
     // apply settings
-    settings->Apply(image);
-    delete settings;
+    settings->Apply(image.get());
   }
   // without settings
   else {
@@ -1134,7 +1150,7 @@ SDL_Surface* cVideo ::Convert_To_Final_Software_Image(
   return surface;
 }
 
-cGL_Surface* cVideo ::Create_Texture(
+std::unique_ptr<cGL_Surface> cVideo ::Create_Texture(
     SDL_Surface* surface, bool mipmap /* = 0 */,
     unsigned int force_width /* = 0 */,
     unsigned int force_height /* = 0 */) const {
@@ -1225,7 +1241,7 @@ cGL_Surface* cVideo ::Create_Texture(
   SDL_FreeSurface(surface);
 
   // create OpenGL surface class
-  cGL_Surface* image = new cGL_Surface();
+  auto image = std::make_unique<cGL_Surface>();
   image->m_image = image_num;
   image->m_tex_w = texture_width;
   image->m_tex_h = texture_height;
@@ -1284,10 +1300,12 @@ void cVideo ::Create_GL_Texture(unsigned int width, unsigned int height,
   }
 }
 
-void cVideo ::Clear_Screen(void) const { pRenderer->Add(new cClear_Request()); }
+void cVideo ::Clear_Screen(void) const {
+  pRenderer->Add(std::make_unique<cClear_Request>());
+}
 
 void cVideo ::Draw_Rect(const GL_rect* rect, float z, const Color* color,
-                        cRect_Request* request /* = NULL */) const {
+                        cRect_Request* request /* = nullptr */) const {
   if (!rect) {
     Draw_Rect(0, 0, static_cast<float>(game_res_w),
               static_cast<float>(game_res_h), z, color, request);
@@ -1298,17 +1316,16 @@ void cVideo ::Draw_Rect(const GL_rect* rect, float z, const Color* color,
 
 void cVideo ::Draw_Rect(float x, float y, float width, float height, float z,
                         const Color* color,
-                        cRect_Request* request /* = NULL */) const {
+                        cRect_Request* request /* = nullptr */) const {
   if (!color || height == 0 || width == 0) {
     return;
   }
 
-  bool create_request = false;
-
+  // no request given: make one here and hand it to the renderer at the end
+  std::unique_ptr<cRect_Request> owned_request;
   if (!request) {
-    create_request = true;
-    // create request
-    request = new cRect_Request();
+    owned_request = std::make_unique<cRect_Request>();
+    request = owned_request.get();
   }
 
   // rect
@@ -1323,15 +1340,14 @@ void cVideo ::Draw_Rect(float x, float y, float width, float height, float z,
   // color
   request->m_color = *color;
 
-  if (create_request) {
-    // add request
-    pRenderer->Add(request);
+  if (owned_request) {
+    pRenderer->Add(std::move(owned_request));
   }
 }
 
 void cVideo ::Draw_Gradient(const GL_rect* rect, float z, const Color* color_1,
                             const Color* color_2, ObjectDirection direction,
-                            cGradient_Request* request /* = NULL */) const {
+                            cGradient_Request* request /* = nullptr */) const {
   if (!rect) {
     Draw_Gradient(0, 0, static_cast<float>(game_res_w),
                   static_cast<float>(game_res_h), z, color_1, color_2,
@@ -1345,17 +1361,16 @@ void cVideo ::Draw_Gradient(const GL_rect* rect, float z, const Color* color_1,
 void cVideo ::Draw_Gradient(float x, float y, float width, float height,
                             float z, const Color* color_1, const Color* color_2,
                             ObjectDirection direction,
-                            cGradient_Request* request /* = NULL */) const {
+                            cGradient_Request* request /* = nullptr */) const {
   if (!color_1 || !color_2 || height == 0 || width == 0) {
     return;
   }
 
-  bool create_request = false;
-
+  // no request given: make one here and hand it to the renderer at the end
+  std::unique_ptr<cGradient_Request> owned_request;
   if (!request) {
-    create_request = true;
-    // create request
-    request = new cGradient_Request();
+    owned_request = std::make_unique<cGradient_Request>();
+    request = owned_request.get();
   }
 
   // rect
@@ -1374,25 +1389,23 @@ void cVideo ::Draw_Gradient(float x, float y, float width, float height,
   // direction
   request->m_dir = direction;
 
-  if (create_request) {
-    // add request
-    pRenderer->Add(request);
+  if (owned_request) {
+    pRenderer->Add(std::move(owned_request));
   }
 }
 
 void cVideo ::Draw_Circle(float x, float y, float radius, float z,
                           const Color* color,
-                          cCircle_Request* request /* = NULL */) const {
+                          cCircle_Request* request /* = nullptr */) const {
   if (!color || radius <= 0) {
     return;
   }
 
-  bool create_request = false;
-
+  // no request given: make one here and hand it to the renderer at the end
+  std::unique_ptr<cCircle_Request> owned_request;
   if (!request) {
-    create_request = true;
-    // create request
-    request = new cCircle_Request();
+    owned_request = std::make_unique<cCircle_Request>();
+    request = owned_request.get();
   }
 
   // position
@@ -1407,14 +1420,13 @@ void cVideo ::Draw_Circle(float x, float y, float radius, float z,
   // color
   request->m_color = *color;
 
-  if (create_request) {
-    // add request
-    pRenderer->Add(request);
+  if (owned_request) {
+    pRenderer->Add(std::move(owned_request));
   }
 }
 
 void cVideo ::Draw_Line(const GL_line* line, float z, const Color* color,
-                        cLine_Request* request /* = NULL */) const {
+                        cLine_Request* request /* = nullptr */) const {
   if (!line) {
     return;
   }
@@ -1424,17 +1436,16 @@ void cVideo ::Draw_Line(const GL_line* line, float z, const Color* color,
 
 void cVideo ::Draw_Line(float x1, float y1, float x2, float y2, float z,
                         const Color* color,
-                        cLine_Request* request /* = NULL */) const {
+                        cLine_Request* request /* = nullptr */) const {
   if (!color) {
     return;
   }
 
-  bool create_request = false;
-
+  // no request given: make one here and hand it to the renderer at the end
+  std::unique_ptr<cLine_Request> owned_request;
   if (!request) {
-    create_request = true;
-    // create request
-    request = new cLine_Request();
+    owned_request = std::make_unique<cLine_Request>();
+    request = owned_request.get();
   }
 
   // line
@@ -1449,9 +1460,8 @@ void cVideo ::Draw_Line(float x1, float y1, float x2, float y2, float z,
   // color
   request->m_color = *color;
 
-  if (create_request) {
-    // add request
-    pRenderer->Add(request);
+  if (owned_request) {
+    pRenderer->Add(std::move(owned_request));
   }
 }
 
@@ -1582,17 +1592,15 @@ void cVideo ::Save_Screenshot(void) {
 
     if (!File_Exists(filename)) {
       // create image data
-      GLubyte* data = new GLubyte[pPreferences->m_video_screen_w *
-                                  pPreferences->m_video_screen_h * 3];
+      std::vector<GLubyte> data(pPreferences->m_video_screen_w *
+                                pPreferences->m_video_screen_h * 3);
       // read opengl screen
       glReadPixels(0, 0, pPreferences->m_video_screen_w,
                    pPreferences->m_video_screen_h, GL_RGB, GL_UNSIGNED_BYTE,
-                   static_cast<GLvoid*>(data));
+                   static_cast<GLvoid*>(data.data()));
       // save
-      Save_Surface(filename, data, pPreferences->m_video_screen_w,
+      Save_Surface(filename, data.data(), pPreferences->m_video_screen_w,
                    pPreferences->m_video_screen_h, 3, true);
-      // clear data
-      delete[] data;
 
       // show info
       pHud_Debug->Set_Text("Screenshot " + int_to_string(i) + _(" saved"),
@@ -1651,8 +1659,8 @@ void cVideo ::Save_Surface(const std::string& filename,
   png_uint_32 png_height = height;
   png_uint_32 row_bytes = width * bpp;
 
-  png_byte* image = new png_byte[png_height * row_bytes];
-  png_bytep* row_pointers = new png_bytep[png_height];
+  std::vector<png_byte> image(png_height * row_bytes);
+  std::vector<png_bytep> row_pointers(png_height);
 
   // create image data
   int img_size = png_height * row_bytes;
@@ -1664,20 +1672,17 @@ void cVideo ::Save_Surface(const std::string& filename,
   if (reverse_data) {
     for (unsigned int i = 0; i < png_height; i++) {
       // reverse direction because of opengl glReadPixels
-      row_pointers[png_height - 1 - i] = image + (i * row_bytes);
+      row_pointers[png_height - 1 - i] = image.data() + (i * row_bytes);
     }
   } else {
     for (unsigned int i = 0; i < png_height; i++) {
-      row_pointers[i] = image + (i * row_bytes);
+      row_pointers[i] = image.data() + (i * row_bytes);
     }
   }
 
-  png_write_image(png_ptr, row_pointers);
+  png_write_image(png_ptr, row_pointers.data());
   png_write_end(png_ptr, info_ptr);
   png_destroy_write_struct(&png_ptr, &info_ptr);
-
-  delete[] image;
-  delete[] row_pointers;
 
   fclose(fp);
 }
@@ -1699,13 +1704,13 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
         color.alpha = static_cast<Uint8>(45 - (45 * i));
 
         // create request
-        cRect_Request* request = new cRect_Request();
-        pVideo->Draw_Rect(nullptr, 0.9f, &color, request);
+        auto request = std::make_unique<cRect_Request>();
+        pVideo->Draw_Rect(nullptr, 0.9f, &color, request.get());
 
         request->m_render_count = 2;
 
         // add request
-        pRenderer->Add(request);
+        pRenderer->Add(std::move(request));
 
         pVideo->Render();
 
@@ -1746,7 +1751,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
         }
 
         // draw gradient
-        cGradient_Request* gradient_request = new cGradient_Request();
+        auto gradient_request = std::make_unique<cGradient_Request>();
 
         // horizontal
         if (hor) {
@@ -1755,7 +1760,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
           // left
           pVideo->Draw_Gradient(0, 0, pos_end, static_cast<float>(game_res_h),
                                 0.9f, &color, &black, DIR_HORIZONTAL,
-                                gradient_request);
+                                gradient_request.get());
         }
         // vertical
         else {
@@ -1764,14 +1769,14 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
           // top
           pVideo->Draw_Gradient(0, 0, static_cast<float>(game_res_w), pos_end,
                                 0.9f, &color, &black, DIR_VERTICAL,
-                                gradient_request);
+                                gradient_request.get());
         }
 
         gradient_request->m_render_count = 2;
         // add request
-        pRenderer->Add(gradient_request);
+        pRenderer->Add(std::move(gradient_request));
 
-        gradient_request = new cGradient_Request();
+        gradient_request = std::make_unique<cGradient_Request>();
 
         // horizontal
         if (hor) {
@@ -1779,19 +1784,20 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
           pVideo->Draw_Gradient(static_cast<float>(game_res_w) - pos_end, 0,
                                 pos_end, static_cast<float>(game_res_h), 0.9f,
                                 &color, &black, DIR_HORIZONTAL,
-                                gradient_request);
+                                gradient_request.get());
         }
         // vertical
         else {
           // down
           pVideo->Draw_Gradient(0, static_cast<float>(game_res_h) - pos_end,
                                 static_cast<float>(game_res_w), pos_end, 0.9f,
-                                &color, &black, DIR_VERTICAL, gradient_request);
+                                &color, &black, DIR_VERTICAL,
+                                gradient_request.get());
         }
 
         gradient_request->m_render_count = 2;
         // add request
-        pRenderer->Add(gradient_request);
+        pRenderer->Add(std::move(gradient_request));
 
         // draw game
         Draw_Game();
@@ -1834,9 +1840,10 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
 
         // ## item
         // create request
-        cSurface_Request* request = new cSurface_Request();
+        auto request = std::make_unique<cSurface_Request>();
         image->Blit((game_res_w * 0.5f) - ((image->m_w * f) / 2),
-                    game_res_h * 0.5f - ((image->m_h * f) / 2), 0.9f, request);
+                    game_res_h * 0.5f - ((image->m_h * f) / 2), 0.9f,
+                    request.get());
 
         request->m_blend_sfactor = GL_SRC_ALPHA;
         request->m_blend_dfactor = GL_ONE;
@@ -1848,17 +1855,17 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
         request->m_scale_y = f;
 
         // add request
-        pRenderer->Add(request);
+        pRenderer->Add(std::move(request));
 
         // ## additional black fadeout
         color = Color(0, 0, 0, static_cast<Uint8>(50 + (f * 4)));
 
         // create request
-        cRect_Request* rect_request = new cRect_Request();
-        pVideo->Draw_Rect(nullptr, 0.901f, &color, rect_request);
+        auto rect_request = std::make_unique<cRect_Request>();
+        pVideo->Draw_Rect(nullptr, 0.901f, &color, rect_request.get());
 
         // add request
-        pRenderer->Add(rect_request);
+        pRenderer->Add(std::move(rect_request));
 
         pVideo->Render();
         pFramerate->Update();
@@ -1896,12 +1903,13 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
 
         for (unsigned int g = 0; g < 50; g++) {
           // create request
-          cRect_Request* request = new cRect_Request();
+          auto request = std::make_unique<cRect_Request>();
           pVideo->Draw_Rect(Get_Random_Float(-rect_size * 0.5f,
                                              game_res_w - rect_size * 0.5f),
                             Get_Random_Float(-rect_size * 0.5f,
                                              game_res_h - rect_size * 0.5f),
-                            rect_size, rect_size, 0.9f, &rand_color, request);
+                            rect_size, rect_size, 0.9f, &rand_color,
+                            request.get());
 
           request->m_render_count = 2;
 
@@ -1909,7 +1917,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
           request->m_blend_dfactor = GL_ONE_MINUS_SRC_COLOR;
 
           // add request
-          pRenderer->Add(request);
+          pRenderer->Add(std::move(request));
         }
 
         pVideo->Render();
@@ -1983,8 +1991,8 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
             color.alpha = static_cast<Uint8>(grid[y][x] * 0.4f);
 
             // create request
-            cRect_Request* request = new cRect_Request();
-            pVideo->Draw_Rect(&dest, 0.9f, &color, request);
+            auto request = std::make_unique<cRect_Request>();
+            pVideo->Draw_Rect(&dest, 0.9f, &color, request.get());
 
             // rotation
             request->m_rot_z = grid[y][x] * 5.0f;
@@ -1999,7 +2007,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
 
             request->m_render_count = 2;
             // add request
-            pRenderer->Add(request);
+            pRenderer->Add(std::move(request));
           }
         }
 
@@ -2071,13 +2079,13 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
             rect.m_h = Get_Random_Float(1.0f, 0.2f + (rect_size * 1.5f));
 
             // create request
-            cRect_Request* request = new cRect_Request();
-            pVideo->Draw_Rect(&rect, 0.9f, &color, request);
+            auto request = std::make_unique<cRect_Request>();
+            pVideo->Draw_Rect(&rect, 0.9f, &color, request.get());
 
             request->m_render_count = 2;
 
             // add request
-            pRenderer->Add(request);
+            pRenderer->Add(std::move(request));
           }
         }
 
@@ -2089,8 +2097,8 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
             static_cast<Uint8>(start_color.blue * 0.1f * color_mod);
         rect_color.alpha = static_cast<Uint8>(rect_size * 3);
         // create request
-        cRect_Request* request = new cRect_Request();
-        pVideo->Draw_Rect(nullptr, 0.9f, &rect_color, request);
+        auto request = std::make_unique<cRect_Request>();
+        pVideo->Draw_Rect(nullptr, 0.9f, &rect_color, request.get());
 
         request->m_render_count = 2;
 
@@ -2098,7 +2106,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
         request->m_blend_dfactor = GL_ONE_MINUS_SRC_COLOR;
 
         // add request
-        pRenderer->Add(request);
+        pRenderer->Add(std::move(request));
 
         pVideo->Render();
         pFramerate->Update();
@@ -2131,11 +2139,11 @@ void Draw_Effect_In(Effect_Fadein effect /* = EFFECT_IN_RANDOM */,
         color.alpha = static_cast<Uint8>(255 * i);
 
         // create request
-        cRect_Request* request = new cRect_Request();
-        pVideo->Draw_Rect(nullptr, 0.9f, &color, request);
+        auto request = std::make_unique<cRect_Request>();
+        pVideo->Draw_Rect(nullptr, 0.9f, &color, request.get());
 
         // add request
-        pRenderer->Add(request);
+        pRenderer->Add(std::move(request));
 
         Draw_Game();
 

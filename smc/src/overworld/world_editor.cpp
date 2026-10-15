@@ -141,9 +141,9 @@ void cEditor_World ::Activate_Menu_Item(cEditor_Menu_Object* entry) {
   }
 }
 
-cSprite* cEditor_World ::Get_Object(const CEGUI::String& element,
-                                    CEGUI::XMLAttributes& attributes,
-                                    int engine_version) {
+std::unique_ptr<cSprite> cEditor_World ::Get_Object(
+    const CEGUI::String& element, CEGUI::XMLAttributes& attributes,
+    int engine_version) {
   return Create_World_Object_From_XML(element, attributes, engine_version,
                                       m_sprite_manager, m_overworld);
 }
@@ -217,7 +217,7 @@ void cEditor_World ::Function_Save(bool with_dialog /* = 0 */) {
   if (with_dialog &&
       !Box_Question(
           _("Save ") +
-          Trim_Filename(m_overworld->m_description->m_name, false, false) +
+          Trim_Filename(m_overworld->m_description.m_name, false, false) +
           " ?")) {
     return;
   }

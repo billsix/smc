@@ -51,9 +51,9 @@ class cEditor_Level : public cEditor {
   // Set Active Menu Entry
   void Activate_Menu_Item(cEditor_Menu_Object* entry) override;
   // return the sprite object
-  cSprite* Get_Object(const CEGUI::String& element,
-                      CEGUI::XMLAttributes& attributes,
-                      int engine_version) override;
+  [[nodiscard]] std::unique_ptr<cSprite> Get_Object(const CEGUI::String& element,
+                                      CEGUI::XMLAttributes& attributes,
+                                      int engine_version) override;
 
   // #### editor Functions
   /* switch the object state of the given object
@@ -72,8 +72,8 @@ class cEditor_Level : public cEditor {
 
   // parent level
   cLevel* m_level;
-  // Level Settings
-  cLevel_Settings* m_settings_screen;
+  // Level Settings (owned value)
+  cLevel_Settings m_settings_screen;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

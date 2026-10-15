@@ -56,11 +56,11 @@ void cSpinBox ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cSpinBox ::Copy(void) const {
-  cSpinBox* spinbox = new cSpinBox(m_sprite_manager);
+  auto spinbox = std::make_unique<cSpinBox>(m_sprite_manager);
   spinbox->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   spinbox->Set_Invisible(m_box_invisible);
   spinbox->Set_Useable_Count(m_start_useable_count, true);
-  return std::unique_ptr<cSprite>(spinbox);
+  return spinbox;
 }
 
 void cSpinBox ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -139,7 +139,7 @@ void cSpinBox ::Update(void) {
         // set to massive for collision check
         m_massive_type = MASS_MASSIVE;
         // collision data
-        cObjectCollisionType* col_list =
+        std::unique_ptr<cObjectCollisionType> col_list =
             Collision_Check(&m_col_rect, COLLIDE_ONLY_BLOCKING);
 
         // check if spinning should continue
@@ -167,8 +167,6 @@ void cSpinBox ::Update(void) {
             spin_again = true;
           }
         }
-
-        delete col_list;
 
         // continue spinning
         if (spin_again) {

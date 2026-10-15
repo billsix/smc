@@ -112,7 +112,7 @@ cPath* cPath_State ::Get_Path_Object(const std::string& identifier) {
   }
 
   // Search for path
-  for (auto& sprite : m_sprite_manager->objects) {
+  for (const auto& sprite : m_sprite_manager->objects) {
     if (sprite->m_type != TYPE_PATH || sprite->m_auto_destroy) {
       continue;
     }
@@ -421,12 +421,12 @@ void cPath ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cPath ::Copy(void) const {
-  cPath* path = new cPath(m_sprite_manager);
+  auto path = std::make_unique<cPath>(m_sprite_manager);
   path->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   path->m_segments = m_segments;
   path->Set_Identifier(m_identifier);
   path->Set_Rewind(m_rewind);
-  return std::unique_ptr<cSprite>(path);
+  return path;
 }
 
 void cPath ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -497,8 +497,8 @@ void cPath ::Save_To_XML(CEGUI::XMLSerializer& stream) {
 
 void cPath ::Load_From_Savegame(cSave_Level_Object* save_object) {}
 
-cSave_Level_Object* cPath ::Save_To_Savegame(void) {
-  cSave_Level_Object* save_object = new cSave_Level_Object();
+std::unique_ptr<cSave_Level_Object> cPath ::Save_To_Savegame(void) {
+  auto save_object = std::make_unique<cSave_Level_Object>();
 
   // default values
   save_object->m_type = m_type;
@@ -523,7 +523,7 @@ void cPath ::Set_Identifier(const std::string& identifier) {
   /* search for linked objects
 	 * needed to update the links
 	*/
-  for (auto& sprite : pActive_Level->m_sprite_manager->objects) {
+  for (const auto& sprite : pActive_Level->m_sprite_manager.objects) {
     if (sprite->m_auto_destroy) {
       continue;
     }
@@ -585,7 +585,7 @@ void cPath ::Remove_Link(cPath_State* path_state) {
   }
 
   // get iterator
-  PathStateList::iterator itr = std::find(
+  auto itr = std::find(
       m_linked_path_states.begin(), m_linked_path_states.end(), path_state);
 
   // if available
@@ -607,7 +607,7 @@ void cPath ::Update(void) {
   }
 }
 
-void cPath ::Draw(cSurface_Request* request /* = NULL */) {
+void cPath ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -622,7 +622,7 @@ void cPath ::Draw(cSurface_Request* request /* = NULL */) {
 
   // draw segments
   int count = 0;
-  for (auto& segment : m_segments) {
+  for (const auto& segment : m_segments) {
     cPath_Segment obj = segment;
 
     Color line_color = m_editor_color;
@@ -632,15 +632,16 @@ void cPath ::Draw(cSurface_Request* request /* = NULL */) {
     }
 
     // create request
-    cLine_Request* line_request = new cLine_Request();
+    auto line_request = std::make_unique<cLine_Request>();
     pVideo->Draw_Line(m_col_rect.m_x + obj.m_x1 - pActive_Camera->m_x,
                       m_col_rect.m_y + obj.m_y1 - pActive_Camera->m_y,
                       m_col_rect.m_x + obj.m_x2 - pActive_Camera->m_x,
                       m_col_rect.m_y + obj.m_y2 - pActive_Camera->m_y,
-                      m_editor_pos_z + 0.00001f, &line_color, line_request);
+                      m_editor_pos_z + 0.00001f, &line_color,
+                      line_request.get());
     line_request->m_line_width = 2;
     // add request
-    pRenderer->Add(line_request);
+    pRenderer->Add(std::move(line_request));
 
     count++;
   }

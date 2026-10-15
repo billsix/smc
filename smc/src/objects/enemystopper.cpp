@@ -37,9 +37,9 @@ cEnemyStopper ::cEnemyStopper(CEGUI::XMLAttributes& attributes,
 cEnemyStopper ::~cEnemyStopper(void) = default;
 
 std::unique_ptr<cSprite> cEnemyStopper ::Copy(void) const {
-  cEnemyStopper* enemystopper = new cEnemyStopper(m_sprite_manager);
+  auto enemystopper = std::make_unique<cEnemyStopper>(m_sprite_manager);
   enemystopper->Set_Pos(m_start_pos_x, m_start_pos_y, true);
-  return std::unique_ptr<cSprite>(enemystopper);
+  return enemystopper;
 }
 
 void cEnemyStopper ::Init(void) {
@@ -78,7 +78,7 @@ void cEnemyStopper ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cEnemyStopper ::Draw(cSurface_Request* request /* = NULL */) {
+void cEnemyStopper ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }

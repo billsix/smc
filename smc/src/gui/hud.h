@@ -29,7 +29,7 @@ class cHudSprite : public cSprite {
   ~cHudSprite(void) override;
 
   // copy this sprite
-  std::unique_ptr<cSprite> Copy(void) const override;
+  [[nodiscard]] std::unique_ptr<cSprite> Copy(void) const override;
 };
 
 /* *** *** *** *** *** *** *** cHud_Manager *** *** *** *** *** *** *** *** *** *** */
@@ -57,7 +57,7 @@ class cHud_Manager : public cObject_Manager<cHudSprite> {
   // the parent sprite manager
   cSprite_Manager* m_sprite_manager;
 
-  using HudSpriteList = vector<cHudSprite*>;
+  using HudSpriteList = vector<std::unique_ptr<cHudSprite>>;
 
   // true if loaded
   bool m_loaded;
@@ -123,7 +123,7 @@ class cPlayerPoints : public cStatusText {
 
   void Draw(cSurface_Request* request = nullptr) override;
 
-  using PointsTextList = vector<PointsText*>;
+  using PointsTextList = vector<std::unique_ptr<PointsText>>;
   PointsTextList m_points_objects;
 };
 
@@ -215,8 +215,8 @@ class cItemBox : public cStatusText {
   // itembox color
   Color m_box_color;
 
-  // stored item
-  cMovingSprite* m_item;
+  // stored item (owned value)
+  cMovingSprite m_item;
 };
 
 /* *** *** *** *** *** cDebugDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -257,7 +257,7 @@ class cDebugDisplay : public cStatusText {
   int m_obj_counter, m_pass_counter, m_mass_counter, m_enemy_counter,
       m_active_counter;
   // sprites
-  using HudSpriteList = vector<cHudSprite*>;
+  using HudSpriteList = vector<std::unique_ptr<cHudSprite>>;
   HudSpriteList m_sprites;
 };
 

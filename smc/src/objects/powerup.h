@@ -33,7 +33,8 @@ class cPowerUp : public cAnimated_Sprite {
   // load from savegame
   void Load_From_Savegame(cSave_Level_Object* save_object) override;
   // save to savegame
-  cSave_Level_Object* Save_To_Savegame(void) override;
+  [[nodiscard]] std::unique_ptr<cSave_Level_Object> Save_To_Savegame(
+      void) override;
 
   /* draw
 	 * a spawned powerup doesn't draw in editor mode
@@ -69,7 +70,7 @@ class cMushroom : public cPowerUp {
   // init defaults
   void Init(void) override;
   // copy
-  std::unique_ptr<cSprite> Copy(void) const override;
+  [[nodiscard]] std::unique_ptr<cSprite> Copy(void) const override;
 
   // load from stream
   void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
@@ -110,7 +111,7 @@ class cFirePlant : public cPowerUp {
   // init defaults
   void Init(void) override;
   // copy
-  std::unique_ptr<cSprite> Copy(void) const override;
+  [[nodiscard]] std::unique_ptr<cSprite> Copy(void) const override;
 
   // load from stream
   void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
@@ -143,7 +144,7 @@ class cMoon : public cPowerUp {
   // init defaults
   void Init(void) override;
   // copy
-  std::unique_ptr<cSprite> Copy(void) const override;
+  [[nodiscard]] std::unique_ptr<cSprite> Copy(void) const override;
 
   // load from stream
   void Load_From_XML(CEGUI::XMLAttributes& attributes) override;

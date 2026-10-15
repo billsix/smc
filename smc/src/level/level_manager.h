@@ -75,8 +75,8 @@ class cLevel_Manager : public cObject_Manager<cLevel> {
                       Camera_movement move_camera = CAMERA_MOVE_FLY,
                       const std::string& path_identifier = "");
 
-  // level camera
-  cCamera* m_camera;
+  // level camera (owned value)
+  cCamera m_camera;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

@@ -36,7 +36,7 @@ class cRandom_Sound : public cSprite {
   // initialize defaults
   void Init(void) override;
   // copy
-  std::unique_ptr<cSprite> Copy(void) const override;
+  [[nodiscard]] std::unique_ptr<cSprite> Copy(void) const override;
 
   // load from stream
   void Load_From_XML(CEGUI::XMLAttributes& attributes) override;

@@ -54,19 +54,19 @@ void cCampaign_Manager ::Load(void) {
   int user_dir_length = user_dir.length() + 1;
   int game_dir_length = game_dir.length() + 1;
 
-  for (auto& user_file : user_files) {
+  for (const auto& user_file : user_files) {
     std::string user_name = user_file;
-    cCampaign* campaign = Load_Campaign(user_name);
+    std::unique_ptr<cCampaign> loaded = Load_Campaign(user_name);
 
     // remove base directory
     user_name.erase(0, user_dir_length);
 
-    if (campaign) {
-      Add(campaign);
+    if (loaded) {
+      cCampaign* campaign = Add(std::move(loaded));
       campaign->m_user = 1;
 
       // remove name from game files
-      for (vector<std::string>::iterator game_itr = game_files.begin();
+      for (auto game_itr = game_files.begin();
            game_itr != game_files.end(); ++game_itr) {
         std::string game_name = (*game_itr);
         // remove base directory
@@ -81,29 +81,27 @@ void cCampaign_Manager ::Load(void) {
     }
   }
 
-  for (auto& game_file : game_files) {
+  for (const auto& game_file : game_files) {
     std::string name = game_file;
 
-    cCampaign* campaign = Load_Campaign(name);
+    std::unique_ptr<cCampaign> campaign = Load_Campaign(name);
 
     if (campaign) {
-      Add(campaign);
+      Add(std::move(campaign));
     }
   }
 }
 
-cCampaign* cCampaign_Manager ::Load_Campaign(const std::string& filename) {
+std::unique_ptr<cCampaign> cCampaign_Manager ::Load_Campaign(
+    const std::string& filename) {
   if (!File_Exists(filename)) {
     printf("Error : Campaign loading failed : %s\n", filename.c_str());
     return nullptr;
   }
 
-  cCampaign_XML_Handler* loader = new cCampaign_XML_Handler(filename);
-  cCampaign* campaign = loader->m_campaign;
-  loader->m_campaign = nullptr;
-  delete loader;
-
-  return campaign;
+  // the parser builds the campaign; take it over when parsing is done
+  cCampaign_XML_Handler loader(filename);
+  return std::move(loader.m_campaign);
 }
 
 cCampaign* cCampaign_Manager ::Get_from_Name(const std::string& name) {
@@ -119,7 +117,7 @@ cCampaign* cCampaign_Manager ::Get_from_Name(const std::string& name) {
 /* *** *** *** *** *** *** *** cCampaign_XML_Handler *** *** *** *** *** *** *** *** *** *** */
 
 cCampaign_XML_Handler ::cCampaign_XML_Handler(const CEGUI::String& filename) {
-  m_campaign = new cCampaign();
+  m_campaign = std::make_unique<cCampaign>();
 
   try {
 // fixme : Workaround for std::string to CEGUI::String utf8 conversion. Check again if CEGUI 0.8 works with std::string utf8
@@ -148,11 +146,7 @@ cCampaign_XML_Handler ::cCampaign_XML_Handler(const CEGUI::String& filename) {
   }
 }
 
-cCampaign_XML_Handler ::~cCampaign_XML_Handler(void) {
-  if (m_campaign) {
-    delete m_campaign;
-  }
-}
+cCampaign_XML_Handler ::~cCampaign_XML_Handler(void) = default;
 
 void cCampaign_XML_Handler ::elementStart(
     const CEGUI::String& element, const CEGUI::XMLAttributes& attributes) {

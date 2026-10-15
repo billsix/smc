@@ -63,8 +63,7 @@ void cAnimated_Sprite ::Add_Image(cGL_Surface* image, Uint32 time /* = 0 */) {
 }
 
 void cAnimated_Sprite ::Set_Image_Num(const int num,
-                                      const bool new_startimage /* = 0 */,
-                                      const bool del_img /* = 0 */) {
+                                      const bool new_startimage /* = 0 */) {
   if (m_curr_img == num) {
     return;
   }
@@ -72,10 +71,9 @@ void cAnimated_Sprite ::Set_Image_Num(const int num,
   m_curr_img = num;
 
   if (m_curr_img < 0) {
-    cMovingSprite::Set_Image(nullptr, new_startimage, del_img);
+    cMovingSprite::Set_Image(nullptr, new_startimage);
   } else if (m_curr_img < static_cast<int>(m_images.size())) {
-    cMovingSprite::Set_Image(m_images[m_curr_img].m_image, new_startimage,
-                             del_img);
+    cMovingSprite::Set_Image(m_images[m_curr_img].m_image, new_startimage);
   } else {
     debug_print(
         "Warning : Object image number %d bigger as the array size %u, sprite type %d, name %s\n",

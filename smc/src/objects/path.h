@@ -145,7 +145,7 @@ class cPath : public cSprite {
   // initialize defaults
   void Init(void) override;
   // copy this sprite
-  std::unique_ptr<cSprite> Copy(void) const override;
+  [[nodiscard]] std::unique_ptr<cSprite> Copy(void) const override;
 
   // load from stream
   void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
@@ -155,7 +155,8 @@ class cPath : public cSprite {
   // load from savegame
   void Load_From_Savegame(cSave_Level_Object* save_object) override;
   // save to savegame
-  cSave_Level_Object* Save_To_Savegame(void) override;
+  [[nodiscard]] std::unique_ptr<cSave_Level_Object> Save_To_Savegame(
+      void) override;
 
   // Set the identifier
   void Set_Identifier(const std::string& identifier);
@@ -174,7 +175,7 @@ class cPath : public cSprite {
   // update
   void Update(void) override;
   // draw
-  void Draw(cSurface_Request* request /* = NULL */) override;
+  void Draw(cSurface_Request* request /* = nullptr */) override;
 
   // if draw is valid for the current state and position
   bool Is_Draw_Valid(void) override;

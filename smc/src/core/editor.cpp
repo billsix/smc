@@ -85,7 +85,7 @@ cEditor_Item_Object ::cEditor_Item_Object(const std::string& text,
                                           const CEGUI::Listbox* parent)
     : CEGUI::ListboxItem("") {
   m_parent = parent;
-  list_text = new CEGUI::ListboxTextItem(
+  list_text = std::make_unique<CEGUI::ListboxTextItem>(
       reinterpret_cast<const CEGUI::utf8*>(text.c_str()));
   list_text->setSelectionColours(CEGUI::colour(0.33f, 0.33f, 0.33f));
   list_text->setSelectionBrushImage("TaharezLook", "ListboxSelectionBrush");
@@ -96,20 +96,18 @@ cEditor_Item_Object ::cEditor_Item_Object(const std::string& text,
 }
 
 cEditor_Item_Object ::~cEditor_Item_Object(void) {
-  delete list_text;
-
   if (m_image) {
     delete m_image->getTexture();
     CEGUI::ImagesetManager::getSingleton().destroy(*m_image);
     m_image = nullptr;
   }
 
-  if (sprite_obj) {
-    delete sprite_obj;
+  if (false) {
+    // sprite_obj is a unique_ptr now: freed with the item
   }
 }
 
-void cEditor_Item_Object ::Init(cSprite* sprite) {
+void cEditor_Item_Object ::Init(std::unique_ptr<cSprite> sprite) {
   if (m_image) {
     printf("cEditor_Item_Object::Init: Warning: Image is already set\n");
     return;
@@ -118,7 +116,7 @@ void cEditor_Item_Object ::Init(cSprite* sprite) {
   /* Don't set sprite settings which could get copied
 	 * into the level/world like shadow and z position
 	*/
-  sprite_obj = sprite;
+  sprite_obj = std::move(sprite);
 
   // CEGUI settings
   list_text->setTextColours(
@@ -305,18 +303,10 @@ void cEditor ::Unload(void) {
     m_tabcontrol_menu = nullptr;
   }
 
-  // Tagged Items
-  for (auto& tagged_item_object : m_tagged_item_objects) {
-    delete tagged_item_object;
-  }
-
+  // Tagged Items (owned: clearing frees them)
   m_tagged_item_objects.clear();
 
-  // Tagged Image Settings
-  for (auto& tagged_item_image : m_tagged_item_images) {
-    delete tagged_item_image;
-  }
-
+  // Tagged Image Settings (owned: clearing frees them)
   m_tagged_item_images.clear();
 }
 
@@ -352,7 +342,7 @@ void cEditor ::Enable(void) {
   // update player position rect
   pActive_Player->Update_Position_Rect();
   // update sprite manager position rect
-  for (auto& sprite : m_sprite_manager->objects) {
+  for (const auto& sprite : m_sprite_manager->objects) {
     sprite->Update_Position_Rect();
   }
 
@@ -376,7 +366,7 @@ void cEditor ::Disable(bool native_mode /* = 1 */) {
     // player
     pActive_Player->Update_Position_Rect();
     // sprite manager
-    for (auto& sprite : m_sprite_manager->objects) {
+    for (const auto& sprite : m_sprite_manager->objects) {
       sprite->Update_Position_Rect();
     }
 
@@ -540,11 +530,11 @@ void cEditor ::Process_Input(void) {
 
   // Drag Delete
   if (pKeyboard->Is_Ctrl_Down() && pMouseCursor->m_right) {
-    cObjectCollision* col = pMouseCursor->Get_First_Editor_Collsion();
+    std::unique_ptr<cObjectCollision> col =
+        pMouseCursor->Get_First_Editor_Collsion();
 
     if (col) {
       pMouseCursor->Delete(col->m_obj);
-      delete col;
     }
   }
 
@@ -740,7 +730,7 @@ bool cEditor ::Key_Down(SDLKey key) {
   }
   // push selected objects into the front
   else if (key == SDLK_KP_PLUS) {
-    for (auto sel_obj : pMouseCursor->m_selected_objects) {
+    for (const auto& sel_obj : pMouseCursor->m_selected_objects) {
       if (!sel_obj->m_obj->Is_Sprite_Managed()) {
         continue;
       }
@@ -751,7 +741,7 @@ bool cEditor ::Key_Down(SDLKey key) {
   }
   // push selected objects into the back
   else if (key == SDLK_KP_MINUS) {
-    for (auto sel_obj : pMouseCursor->m_selected_objects) {
+    for (const auto& sel_obj : pMouseCursor->m_selected_objects) {
       if (!sel_obj->m_obj->Is_Sprite_Managed()) {
         continue;
       }
@@ -765,7 +755,7 @@ bool cEditor ::Key_Down(SDLKey key) {
             key == pPreferences->m_key_editor_fast_copy_down ||
             key == pPreferences->m_key_editor_fast_copy_left ||
             key == pPreferences->m_key_editor_fast_copy_right) &&
-           pMouseCursor->m_hovering_object->m_obj &&
+           pMouseCursor->m_hovering_object.m_obj &&
            pMouseCursor->m_fastcopy_mode) {
     ObjectDirection dir = DIR_UNDEFINED;
 
@@ -790,7 +780,7 @@ bool cEditor ::Key_Down(SDLKey key) {
     }
 
     // deselect old objects
-    for (auto& sprite : objects) {
+    for (const auto& sprite : objects) {
       pMouseCursor->Remove_Selected_Object(sprite);
     }
   }
@@ -799,7 +789,7 @@ bool cEditor ::Key_Down(SDLKey key) {
             key == pPreferences->m_key_editor_pixel_move_down ||
             key == pPreferences->m_key_editor_pixel_move_left ||
             key == pPreferences->m_key_editor_pixel_move_right) &&
-           pMouseCursor->m_hovering_object->m_obj) {
+           pMouseCursor->m_hovering_object.m_obj) {
     if (key == pPreferences->m_key_editor_pixel_move_up) {
       pActive_Camera->Move(0, -1);
     } else if (key == pPreferences->m_key_editor_pixel_move_down) {
@@ -836,10 +826,10 @@ bool cEditor ::Key_Down(SDLKey key) {
   else if (key == SDLK_x && pKeyboard->Is_Ctrl_Down()) {
     pMouseCursor->Clear_Copy_Objects();
 
-    for (SelectedObjectList::iterator itr =
+    for (auto itr =
              pMouseCursor->m_selected_objects.begin();
          itr != pMouseCursor->m_selected_objects.end(); ++itr) {
-      cSelectedObject* sel_obj = (*itr);
+      cSelectedObject* sel_obj = itr->get();
 
       pMouseCursor->Add_Copy_Object(sel_obj->m_obj);
     }
@@ -850,10 +840,10 @@ bool cEditor ::Key_Down(SDLKey key) {
   else if (key == SDLK_c && pKeyboard->Is_Ctrl_Down()) {
     pMouseCursor->Clear_Copy_Objects();
 
-    for (SelectedObjectList::iterator itr =
+    for (auto itr =
              pMouseCursor->m_selected_objects.begin();
          itr != pMouseCursor->m_selected_objects.end(); ++itr) {
-      cSelectedObject* sel_obj = (*itr);
+      cSelectedObject* sel_obj = itr->get();
 
       pMouseCursor->Add_Copy_Object(sel_obj->m_obj);
     }
@@ -863,12 +853,12 @@ bool cEditor ::Key_Down(SDLKey key) {
     Replace_Sprites();
   }
   // Delete mouse object
-  else if (key == SDLK_DELETE && pMouseCursor->m_hovering_object->m_obj) {
-    pMouseCursor->Delete(pMouseCursor->m_hovering_object->m_obj);
+  else if (key == SDLK_DELETE && pMouseCursor->m_hovering_object.m_obj) {
+    pMouseCursor->Delete(pMouseCursor->m_hovering_object.m_obj);
   }
   // if shift got pressed remove mouse object for possible mouse selection
   else if (pKeyboard->Is_Shift_Down() &&
-           pMouseCursor->m_hovering_object->m_obj) {
+           pMouseCursor->m_hovering_object.m_obj) {
     pMouseCursor->Clear_Hovered_Object();
   }
   // Delete selected objects
@@ -897,7 +887,7 @@ bool cEditor ::Mouse_Down(Uint8 button) {
     pMouseCursor->Left_Click_Down();
 
     // auto hide if enabled
-    if (pMouseCursor->m_hovering_object->m_obj &&
+    if (pMouseCursor->m_hovering_object.m_obj &&
         pPreferences->m_editor_mouse_auto_hide) {
       pMouseCursor->Set_Active(false);
     }
@@ -905,7 +895,7 @@ bool cEditor ::Mouse_Down(Uint8 button) {
   // middle
   else if (button == SDL_BUTTON_MIDDLE) {
     // Activate fast copy mode
-    if (pMouseCursor->m_hovering_object->m_obj) {
+    if (pMouseCursor->m_hovering_object.m_obj) {
       pMouseCursor->m_fastcopy_mode = true;
       return true;
     }
@@ -918,7 +908,7 @@ bool cEditor ::Mouse_Down(Uint8 button) {
   // right
   else if (button == SDL_BUTTON_RIGHT) {
     if (!pMouseCursor->m_left) {
-      pMouseCursor->Delete(pMouseCursor->m_hovering_object->m_obj);
+      pMouseCursor->Delete(pMouseCursor->m_hovering_object.m_obj);
       return true;
     }
   } else {
@@ -944,8 +934,8 @@ bool cEditor ::Mouse_Up(Uint8 button) {
 
     pMouseCursor->End_Selection();
 
-    if (pMouseCursor->m_hovering_object->m_obj) {
-      for (auto selected : pMouseCursor->m_selected_objects) {
+    if (pMouseCursor->m_hovering_object.m_obj) {
+      for (const auto& selected : pMouseCursor->m_selected_objects) {
         // pre-update to keep particles on the correct position
         if (selected->m_obj->m_type == TYPE_PARTICLE_EMITTER) {
           cParticle_Emitter* emitter =
@@ -1073,7 +1063,7 @@ bool cEditor ::Load_Item_Menu(std::string item_tags) {
   unsigned int tag_pos = 0;
 
   // Get all Images with the Tags
-  for (auto settings : m_tagged_item_images) {
+  for (const auto& settings : m_tagged_item_images) {
     // search
     while (Is_Tag_Available(settings->m_editor_tags, array_tags[tag_pos])) {
       tag_pos++;
@@ -1089,12 +1079,12 @@ bool cEditor ::Load_Item_Menu(std::string item_tags) {
         }
 
         // Create sprite
-        cSprite* new_sprite = new cSprite(m_sprite_manager);
+        auto new_sprite = std::make_unique<cSprite>(m_sprite_manager);
         new_sprite->Set_Image(image);
         // default massivetype
         new_sprite->Set_Sprite_Type(static_cast<SpriteType>(image->m_type));
         // Add new Sprite
-        Add_Item_Object(new_sprite);
+        Add_Item_Object(std::move(new_sprite));
 
         break;
       }
@@ -1104,15 +1094,16 @@ bool cEditor ::Load_Item_Menu(std::string item_tags) {
   }
 
   // Get all Objects with the Tags
-  for (auto tagged_object : m_tagged_item_objects) {
+  for (const auto& tagged_object : m_tagged_item_objects) {
     // search
-    while (Is_Tag_Available(tagged_object->m_editor_tags, array_tags[tag_pos])) {
+    while (
+        Is_Tag_Available(tagged_object->m_editor_tags, array_tags[tag_pos])) {
       tag_pos++;
 
       // found all tags
       if (tag_pos >= array_tags.size()) {
         // Add Objects
-        Add_Item_Object(tagged_object->Copy().release());
+        Add_Item_Object(tagged_object->Copy());
 
         break;
       }
@@ -1136,8 +1127,9 @@ void cEditor ::Unload_Item_Menu(void) {
   }
 }
 
-void cEditor ::Add_Item_Object(cSprite* sprite, std::string new_name /* = "" */,
-                               cGL_Surface* image /* = NULL */) {
+void cEditor ::Add_Item_Object(std::unique_ptr<cSprite> sprite,
+                               std::string new_name /* = "" */,
+                               cGL_Surface* image /* = nullptr */) {
   // if invalid
   if (!sprite) {
     printf("Warning : Invalid Editor Item\n");
@@ -1207,10 +1199,10 @@ void cEditor ::Add_Item_Object(cSprite* sprite, std::string new_name /* = "" */,
 
   cEditor_Item_Object* new_item =
       new cEditor_Item_Object(obj_name, m_listbox_items);
-  // Initialize
-  new_item->Init(sprite);
+  // Initialize (the item owns the sprite from here)
+  new_item->Init(std::move(sprite));
 
-  // Add Item
+  // Add Item (CEGUI owns the list item)
   m_listbox_items->addItem(new_item);
 }
 
@@ -1223,7 +1215,8 @@ void cEditor ::Load_Image_Items(std::string dir) {
     std::string filename = image_file;
 
     // load settings
-    cImage_Settings_Data* settings = pSettingsParser->Get(filename);
+    std::unique_ptr<cImage_Settings_Data> settings =
+        pSettingsParser->Get(filename);
 
     // if settings are available
     if (settings) {
@@ -1233,7 +1226,7 @@ void cEditor ::Load_Image_Items(std::string dir) {
         // set base to the filename
         settings->m_base = filename;
         // add real image
-        m_tagged_item_images.push_back(settings);
+        m_tagged_item_images.push_back(std::move(settings));
       }
     }
   }
@@ -1247,17 +1240,17 @@ void cEditor ::Activate_Item(cEditor_Item_Object* entry) {
   }
 
   // create copy from editor item
-  cSprite* new_sprite = entry->sprite_obj->Copy().release();
+  std::unique_ptr<cSprite> copy = entry->sprite_obj->Copy();
 
   // if copying failed
-  if (!new_sprite) {
+  if (!copy) {
     printf("Error : Editor Sprite %s copy failed\n",
            entry->sprite_obj->m_name.c_str());
     return;
   }
 
-  new_sprite->Set_Sprite_Manager(m_sprite_manager);
-  new_sprite->Set_Pos(pMouseCursor->m_pos_x, pMouseCursor->m_pos_y, true);
+  copy->Set_Sprite_Manager(m_sprite_manager);
+  copy->Set_Pos(pMouseCursor->m_pos_x, pMouseCursor->m_pos_y, true);
 
   // hide editor window
   m_editor_window->setXPosition(CEGUI::UDim(-0.19f, 0));
@@ -1265,21 +1258,21 @@ void cEditor ::Activate_Item(cEditor_Item_Object* entry) {
   m_listbox_menu->hide();
   m_listbox_items->hide();
 
-  // add item
-  m_sprite_manager->Add(new_sprite);
+  // add item (the sprite manager owns it from here)
+  cSprite* new_sprite = m_sprite_manager->Add(std::move(copy));
 
   // Set mouse objects
   pMouseCursor->m_left = true;
-  pMouseCursor->m_hovering_object->m_mouse_offset_y =
+  pMouseCursor->m_hovering_object.m_mouse_offset_y =
       static_cast<int>(new_sprite->m_col_rect.m_h / 2);
-  pMouseCursor->m_hovering_object->m_mouse_offset_x =
+  pMouseCursor->m_hovering_object.m_mouse_offset_x =
       static_cast<int>(new_sprite->m_col_rect.m_w / 2);
   pMouseCursor->Set_Hovered_Object(new_sprite);
 }
 
-cSprite* cEditor ::Get_Object(const CEGUI::String& element,
-                              CEGUI::XMLAttributes& attributes,
-                              int engine_version) {
+std::unique_ptr<cSprite> cEditor ::Get_Object(const CEGUI::String& element,
+                                              CEGUI::XMLAttributes& attributes,
+                                              int engine_version) {
   // virtual
   return nullptr;
 }
@@ -1341,7 +1334,7 @@ cSprite_List cEditor ::Copy_Direction(const cSprite_List& objects,
   // new copied objects
   cSprite_List new_objects;
 
-  for (auto& sprite : objects) {
+  for (const auto& sprite : objects) {
     new_objects.push_back(Copy_Direction(sprite, dir, offset));
   }
 
@@ -1381,7 +1374,7 @@ cSprite* cEditor ::Copy_Direction(const cSprite* obj, const ObjectDirection dir,
   }
 
   // only move camera if obj is the mouse object
-  if (pMouseCursor->m_hovering_object->m_obj == obj) {
+  if (pMouseCursor->m_hovering_object.m_obj == obj) {
     pActive_Camera->Move(w, h);
   }
 
@@ -1500,7 +1493,7 @@ void cEditor ::Replace_Sprites(void) {
     return;
   }
 
-  for (auto sel_obj : pMouseCursor->m_selected_objects) {
+  for (const auto& sel_obj : pMouseCursor->m_selected_objects) {
     // only sprites
     if (!sel_obj->m_obj->Is_Basic_Sprite()) {
       continue;
@@ -1586,7 +1579,8 @@ void cEditor ::Handle_Item(const CEGUI::XMLAttributes& attributes) {
   CEGUI::String tags = m_xml_attributes.getValueAsString("object_tags");
 
   // create
-  cSprite* object = Get_Object(name, m_xml_attributes, level_engine_version);
+  std::unique_ptr<cSprite> object =
+      Get_Object(name, m_xml_attributes, level_engine_version);
 
   // if creation failed
   if (!object) {
@@ -1597,8 +1591,8 @@ void cEditor ::Handle_Item(const CEGUI::XMLAttributes& attributes) {
   // set editor tags
   object->m_editor_tags = tags.c_str();
 
-  // Add Item Object
-  m_tagged_item_objects.push_back(object);
+  // Add Item Object (the editor owns the tagged template objects)
+  m_tagged_item_objects.push_back(std::move(object));
 }
 
 void cEditor ::Handle_Menu(const CEGUI::XMLAttributes& attributes) {

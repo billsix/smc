@@ -15,6 +15,9 @@
 
 #include "../overworld/world_sprite_manager.h"
 #include "../core/game_core.h"
+#include "../overworld/overworld.h"
+#include "../overworld/world_layer.h"
+#include "../overworld/world_waypoint.h"
 
 namespace SMC {
 
@@ -27,23 +30,25 @@ cWorld_Sprite_Manager ::cWorld_Sprite_Manager(cOverworld* overworld)
 
 cWorld_Sprite_Manager ::~cWorld_Sprite_Manager(void) { Delete_All(); }
 
-void cWorld_Sprite_Manager ::Add(cSprite* sprite) {
+cSprite* cWorld_Sprite_Manager ::Add(std::unique_ptr<cSprite> sprite) {
   // empty sprite
   if (!sprite) {
-    return;
+    return nullptr;
   }
 
-  // add
-  cSprite_Manager::Add(sprite);
+  // add (the manager owns it from here; `added` is the borrowed pointer)
+  cSprite* added = cSprite_Manager::Add(std::move(sprite));
 
   // Add to Waypoints array
-  if (sprite->m_type == TYPE_OW_WAYPOINT) {
-    m_overworld->m_waypoints.push_back(static_cast<cWaypoint*>(sprite));
+  if (added->m_type == TYPE_OW_WAYPOINT) {
+    m_overworld->m_waypoints.push_back(static_cast<cWaypoint*>(added));
   }
-  // Add layer line point start to the world layer
-  else if (sprite->m_type == TYPE_OW_LINE_START) {
-    m_overworld->m_layer->Add(static_cast<cLayer_Line_Point_Start*>(sprite));
+  // Register layer line point start with the world layer (which borrows it)
+  else if (added->m_type == TYPE_OW_LINE_START) {
+    m_overworld->m_layer.Register(static_cast<cLayer_Line_Point_Start*>(added));
   }
+
+  return added;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

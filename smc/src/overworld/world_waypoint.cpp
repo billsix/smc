@@ -75,7 +75,7 @@ void cWaypoint ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cWaypoint ::Copy(void) const {
-  cWaypoint* waypoint = new cWaypoint(m_sprite_manager);
+  auto waypoint = std::make_unique<cWaypoint>(m_sprite_manager);
   waypoint->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   waypoint->Set_Image(m_start_image, true);
   waypoint->m_waypoint_type = m_waypoint_type;
@@ -83,7 +83,7 @@ std::unique_ptr<cSprite> cWaypoint ::Copy(void) const {
   waypoint->Set_Direction_Forward(m_direction_forward);
   waypoint->Set_Direction_Backward(m_direction_backward);
   waypoint->Set_Access(m_access_default, true);
-  return std::unique_ptr<cSprite>(waypoint);
+  return waypoint;
 }
 
 void cWaypoint ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -179,7 +179,7 @@ void cWaypoint ::Update(void) {
   }
 }
 
-void cWaypoint ::Draw(cSurface_Request* request /* = NULL  */) {
+void cWaypoint ::Draw(cSurface_Request* request /* = nullptr */) {
   if (m_auto_destroy) {
     return;
   }
@@ -195,7 +195,7 @@ void cWaypoint ::Draw(cSurface_Request* request /* = NULL  */) {
       y = m_rect.m_y - pActive_Camera->m_y;
 
       // create request
-      cSurface_Request* surface_request = new cSurface_Request();
+      auto surface_request = std::make_unique<cSurface_Request>();
 
       if (m_direction_backward == DIR_RIGHT) {
         x += m_rect.m_w;
@@ -213,11 +213,11 @@ void cWaypoint ::Draw(cSurface_Request* request /* = NULL  */) {
         x += (m_rect.m_w * 0.5f) - (m_arrow_backward->m_h * 0.5f);
       }
 
-      m_arrow_backward->Blit(x, y, 0.089f, surface_request);
+      m_arrow_backward->Blit(x, y, 0.089f, surface_request.get());
       surface_request->m_shadow_pos = 2;
       surface_request->m_shadow_color = lightgreyalpha64;
       // add request
-      pRenderer->Add(surface_request);
+      pRenderer->Add(std::move(surface_request));
     }
 
     // direction forward arrow
@@ -227,7 +227,7 @@ void cWaypoint ::Draw(cSurface_Request* request /* = NULL  */) {
       y = m_rect.m_y - pActive_Camera->m_y;
 
       // create request
-      cSurface_Request* surface_request = new cSurface_Request();
+      auto surface_request = std::make_unique<cSurface_Request>();
 
       if (m_direction_forward == DIR_RIGHT) {
         x += m_rect.m_w;
@@ -245,23 +245,22 @@ void cWaypoint ::Draw(cSurface_Request* request /* = NULL  */) {
         x += (m_rect.m_w * 0.5f) - (m_arrow_forward->m_h * 0.5f);
       }
 
-      m_arrow_forward->Blit(x, y, 0.089f, surface_request);
+      m_arrow_forward->Blit(x, y, 0.089f, surface_request.get());
       surface_request->m_shadow_pos = 2;
       surface_request->m_shadow_color = lightgreyalpha64;
       // add request
-      pRenderer->Add(surface_request);
+      pRenderer->Add(std::move(surface_request));
     }
   }
 
   // draw waypoint
   if ((m_access && (m_waypoint_type == 1 || m_waypoint_type == 2)) ||
       pOverworld_Manager->m_debug_mode || editor_world_enabled) {
-    bool create_request = false;
-
+    // no request given: make one here and hand it to the renderer at the end
+    std::unique_ptr<cSurface_Request> owned_request;
     if (!request) {
-      create_request = true;
-      // create request
-      request = new cSurface_Request();
+      owned_request = std::make_unique<cSurface_Request>();
+      request = owned_request.get();
     }
 
     // draw
@@ -283,9 +282,8 @@ void cWaypoint ::Draw(cSurface_Request* request /* = NULL  */) {
       }
     }
 
-    if (create_request) {
-      // add request
-      pRenderer->Add(request);
+    if (owned_request) {
+      pRenderer->Add(std::move(owned_request));
     }
   }
 }

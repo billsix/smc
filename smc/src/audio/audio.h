@@ -76,7 +76,7 @@ class cAudio_Sound {
   int m_resource_id;
 };
 
-using AudioSoundList = vector<cAudio_Sound*>;
+using AudioSoundList = vector<std::unique_ptr<cAudio_Sound>>;
 
 /* *** *** *** *** *** *** *** Audio class *** *** *** *** *** *** *** *** *** *** */
 

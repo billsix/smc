@@ -82,7 +82,7 @@ bool cFile_parser ::Parse_Line(std::string str_line, int line_num) {
 
   tempstr = str_line;
 
-  std::string* parts = new std::string[count + 1];
+  std::vector<std::string> parts(count + 1);
 
   std::string::size_type len;
   int part_count = 0;
@@ -102,9 +102,7 @@ bool cFile_parser ::Parse_Line(std::string str_line, int line_num) {
   parts[part_count] = tempstr;
 
   // Message handler
-  bool success = HandleMessage(parts, part_count, line_num);
-
-  delete[] parts;
+  bool success = HandleMessage(parts.data(), part_count, line_num);
 
   return success;
 }

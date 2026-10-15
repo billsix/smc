@@ -42,20 +42,16 @@ namespace SMC {
 /* *** *** *** *** *** cLevel_Settings *** *** *** *** *** *** *** *** *** *** *** *** */
 
 cLevel_Settings ::cLevel_Settings(cSprite_Manager* sprite_manager,
-                                  cLevel* level) {
+                                  cLevel* level)
+    : m_camera(sprite_manager) {
   m_active = false;
 
   m_level = level;
-  m_camera = new cCamera(sprite_manager);
   m_gui_window = nullptr;
   m_tabcontrol = nullptr;
 }
 
-cLevel_Settings ::~cLevel_Settings(void) {
-  Unload();
-
-  delete m_camera;
-}
+cLevel_Settings ::~cLevel_Settings(void) { Unload(); }
 
 void cLevel_Settings ::Init(void) {
   if (m_gui_window) {
@@ -244,13 +240,13 @@ void cLevel_Settings ::Init(void) {
       CEGUI::Event::Subscriber(&cLevel_Settings::Update_BG_Image, this));
   // Gradient colors
   m_bg_color_1 =
-      Color(m_level->m_background_manager->Get_Pointer(0)->m_color_1.red,
-            m_level->m_background_manager->Get_Pointer(0)->m_color_1.green,
-            m_level->m_background_manager->Get_Pointer(0)->m_color_1.blue, 255);
+      Color(m_level->m_background_manager.Get_Pointer(0)->m_color_1.red,
+            m_level->m_background_manager.Get_Pointer(0)->m_color_1.green,
+            m_level->m_background_manager.Get_Pointer(0)->m_color_1.blue, 255);
   m_bg_color_2 =
-      Color(m_level->m_background_manager->Get_Pointer(0)->m_color_2.red,
-            m_level->m_background_manager->Get_Pointer(0)->m_color_2.green,
-            m_level->m_background_manager->Get_Pointer(0)->m_color_2.blue, 255);
+      Color(m_level->m_background_manager.Get_Pointer(0)->m_color_2.red,
+            m_level->m_background_manager.Get_Pointer(0)->m_color_2.green,
+            m_level->m_background_manager.Get_Pointer(0)->m_color_2.blue, 255);
 
   // color 1
   editbox = static_cast<CEGUI::Editbox*>(
@@ -309,7 +305,7 @@ void cLevel_Settings ::Exit(void) {
 
 void cLevel_Settings ::Enter(void) {
   // set active camera
-  pActive_Camera = m_camera;
+  pActive_Camera = &m_camera;
 
   editor_enabled = false;
 
@@ -323,7 +319,7 @@ void cLevel_Settings ::Enter(void) {
   m_active = true;
 
   // update camera
-  m_camera->Update_Position();
+  m_camera.Update_Position();
 }
 
 void cLevel_Settings ::Leave(void) {
@@ -372,24 +368,24 @@ void cLevel_Settings ::Leave(void) {
                                .c_str());
 
   // Camera Limits
-  pLevel_Manager->m_camera->Set_Limit_W(
+  pLevel_Manager->m_camera.Set_Limit_W(
       (static_cast<CEGUI::Spinner*>(wmgr.getWindow("spinner_camera_limit_w")))
           ->getCurrentValue());
-  pLevel_Manager->m_camera->Set_Limit_H(
+  pLevel_Manager->m_camera.Set_Limit_H(
       (static_cast<CEGUI::Spinner*>(wmgr.getWindow("spinner_camera_limit_h")))
           ->getCurrentValue());
-  m_level->m_camera_limits.m_w = pLevel_Manager->m_camera->m_limit_rect.m_w;
-  m_level->m_camera_limits.m_h = pLevel_Manager->m_camera->m_limit_rect.m_h;
+  m_level->m_camera_limits.m_w = pLevel_Manager->m_camera.m_limit_rect.m_w;
+  m_level->m_camera_limits.m_h = pLevel_Manager->m_camera.m_limit_rect.m_h;
   // fixed camera horizontal velocity
-  pLevel_Manager->m_camera->m_fixed_hor_vel =
+  pLevel_Manager->m_camera.m_fixed_hor_vel =
       (static_cast<CEGUI::Spinner*>(wmgr.getWindow("spinner_camera_hor_vel")))
           ->getCurrentValue();
-  m_level->m_fixed_camera_hor_vel = pLevel_Manager->m_camera->m_fixed_hor_vel;
+  m_level->m_fixed_camera_hor_vel = pLevel_Manager->m_camera.m_fixed_hor_vel;
 
   // # Background Tab
   // Gradient
-  m_level->m_background_manager->Get_Pointer(0)->Set_Color_1(m_bg_color_1);
-  m_level->m_background_manager->Get_Pointer(0)->Set_Color_2(m_bg_color_2);
+  m_level->m_background_manager.Get_Pointer(0)->Set_Color_1(m_bg_color_1);
+  m_level->m_background_manager.Get_Pointer(0)->Set_Color_2(m_bg_color_2);
 
   Unload();
 }
@@ -412,7 +408,7 @@ void cLevel_Settings ::Update(void) {
   // uhm...
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_SETTINGS]->Update();
+  pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_SETTINGS].Update();
 }
 
 void cLevel_Settings ::Draw(void) {
@@ -420,7 +416,7 @@ void cLevel_Settings ::Draw(void) {
   pVideo->Draw_Rect(nullptr, 0.00001f, &black);
 
   // update performance timer
-  pFramerate->m_perf_timer[PERF_DRAW_LEVEL_SETTINGS]->Update();
+  pFramerate->m_perf_timer[PERF_DRAW_LEVEL_SETTINGS].Update();
 }
 
 bool cLevel_Settings ::Key_Down(SDLKey key) {
@@ -442,15 +438,15 @@ bool cLevel_Settings ::Key_Down(SDLKey key) {
 void cLevel_Settings ::Set_Level(cLevel* level) { m_level = level; }
 
 void cLevel_Settings ::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
-  m_camera->Set_Sprite_Manager(sprite_manager);
+  m_camera.Set_Sprite_Manager(sprite_manager);
 }
 
 bool cLevel_Settings ::Add_Background_Image(const CEGUI::EventArgs& event) {
-  cBackground* background = new cBackground(m_level->m_sprite_manager);
+  auto background = std::make_unique<cBackground>(&m_level->m_sprite_manager);
   background->Set_Type(BG_IMG_BOTTOM);
   background->Set_Image(LEVEL_DEFAULT_BACKGROUND);
 
-  m_level->m_background_manager->Add(background);
+  m_level->m_background_manager.Add(std::move(background));
 
   Load_BG_Image_List();
 
@@ -469,7 +465,7 @@ bool cLevel_Settings ::Delete_Background_Image(const CEGUI::EventArgs& event) {
   // get background
   cBackground* background = static_cast<cBackground*>(item->getUserData());
   // delete it
-  m_level->m_background_manager->Delete(background);
+  m_level->m_background_manager.Delete(background);
 
   // update list
   Load_BG_Image_List();
@@ -614,7 +610,7 @@ void cLevel_Settings ::Load_BG_Image_List(void) {
       CEGUI::WindowManager::getSingleton().getWindow("listbox_backgrounds"));
   listbox->resetList();
 
-  for (auto& background : m_level->m_background_manager->objects) {
+  for (const auto& background : m_level->m_background_manager.objects) {
     // skip gradients
     if (background->m_type == BG_GR_HOR || background->m_type == BG_GR_VER) {
       continue;
@@ -632,7 +628,7 @@ void cLevel_Settings ::Load_BG_Image_List(void) {
           "button_add_background_image"));
 
   // 9 layers + default background is the maximum
-  if (m_level->m_background_manager->size() >= 10) {
+  if (m_level->m_background_manager.size() >= 10) {
     button_add->disable();
   } else {
     button_add->enable();

@@ -53,15 +53,15 @@ void cjStar ::Init(void) {
   m_velx = 5;
 
   Add_Image(pVideo->Get_Surface("game/items/star.png"));
-  Set_Image_Num(0, true, false);
+  Set_Image_Num(0, true);
 
   m_name = _("Star");
 }
 
 std::unique_ptr<cSprite> cjStar ::Copy(void) const {
-  cjStar* star = new cjStar(m_sprite_manager);
+  auto star = std::make_unique<cjStar>(m_sprite_manager);
   star->Set_Pos(m_start_pos_x, m_start_pos_y, true);
-  return std::unique_ptr<cSprite>(star);
+  return star;
 }
 
 void cjStar ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -156,7 +156,7 @@ void cjStar ::Update(void) {
   }
 }
 
-void cjStar ::Draw(cSurface_Request* request /* = NULL */) {
+void cjStar ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -184,7 +184,7 @@ void cjStar ::Generate_Particles(float x /* = 0.0f */, float y /* = 0.0f */,
   particle_color.blue += static_cast<Uint8>(m_glim_counter / 1.5f);
 
   // create emitter
-  cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+  auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
   anim->Set_Image(pVideo->Get_Surface("animation/particles/star.png"));
   anim->Set_Pos_Z(m_pos_z + 0.0001f);
 
@@ -207,7 +207,7 @@ void cjStar ::Generate_Particles(float x /* = 0.0f */, float y /* = 0.0f */,
   anim->Set_Blending(BLEND_ADD);
   anim->Set_Const_Rotation_Z(-5, 10);
   anim->Emit();
-  pActive_Animation_Manager->Add(anim);
+  pActive_Animation_Manager->Add(std::move(anim));
 }
 
 void cjStar ::Handle_Collision_Massive(cObjectCollision* collision) {

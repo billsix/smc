@@ -322,16 +322,18 @@ animation_end:
   // game over
   if (m_lives < 0) {
     cGL_Surface* game_over = pVideo->Get_Surface("game/game_over.png");
-    cSprite* sprite = new cSprite(m_sprite_manager);
+    auto game_over_sprite = std::make_unique<cSprite>(m_sprite_manager);
+    cSprite* sprite = game_over_sprite.get();
     sprite->Set_Image(game_over);
     sprite->Set_Pos((game_res_w * 0.5f) - (game_over->m_w * 0.5f),
                     (game_res_h * 0.5f) - (game_over->m_h * 0.5f));
     sprite->m_pos_z = 0.8f;
     sprite->Set_Spawned(true);
     sprite->Set_Ignore_Camera(true);
-    m_sprite_manager->Add(sprite);
+    m_sprite_manager->Add(std::move(game_over_sprite));
 
-    cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+    // a local emitter, drawn by hand below and freed when this block ends
+    auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
     anim->Set_Emitter_Rect(sprite->m_rect.m_x + pActive_Camera->m_x,
                            sprite->m_rect.m_y + pActive_Camera->m_y,
                            sprite->m_rect.m_w, sprite->m_rect.m_h);
@@ -383,7 +385,6 @@ animation_end:
       pFramerate->Update();
     }
 
-    delete anim;
     pAudio->Stop_Sounds();
   }
 
@@ -432,21 +433,19 @@ void cLevel_Player ::Move_Player(float velocity, float vel_wrongway) {
   }
 
   // get collision list
-  cObjectCollisionType* col_list = Collision_Check_Relative(
+  std::unique_ptr<cObjectCollisionType> col_list = Collision_Check_Relative(
       velocity, 0.0f, 0.0f, 0.0f, COLLIDE_ONLY_BLOCKING);
   // if collision with a blocking object
   bool is_col = false;
 
   // check collisions
-  for (auto& collision : col_list->objects) {
+  for (const auto& collision : col_list->objects) {
     // massive object is blocking
     if (collision->m_obj->m_massive_type == MASS_MASSIVE) {
       is_col = true;
       break;
     }
   }
-
-  delete col_list;
 
   // don't move if colliding
   if (is_col) {
@@ -501,19 +500,18 @@ void cLevel_Player ::Move_Player(float velocity, float vel_wrongway) {
 }
 
 void cLevel_Player ::Generate_Feet_Clouds(
-    cParticle_Emitter* anim /* = NULL */) {
+    cParticle_Emitter* anim /* = nullptr */) {
   // check if valid
   if (!m_ground_object || !m_ground_object->m_image ||
       m_ground_object->m_image->m_ground_type == GROUND_NORMAL) {
     return;
   }
 
-  bool create_anim = false;
-
+  // no emitter given: make one here and hand it to the animation manager at the end
+  std::unique_ptr<cParticle_Emitter> owned_anim;
   if (!anim) {
-    create_anim = true;
-    // create animation
-    anim = new cParticle_Emitter(m_sprite_manager);
+    owned_anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
+    anim = owned_anim.get();
   }
 
   anim->Set_Emitter_Rect(m_col_rect.m_x, m_col_rect.m_y + m_col_rect.m_h - 2.0f,
@@ -583,9 +581,9 @@ void cLevel_Player ::Generate_Feet_Clouds(
     anim->Set_Direction_Range(270.0f, 90.0f);
   }
 
-  if (create_anim) {
+  if (owned_anim) {
     anim->Emit();
-    pActive_Animation_Manager->Add(anim);
+    pActive_Animation_Manager->Add(std::move(owned_anim));
   }
 }
 
@@ -672,7 +670,7 @@ void cLevel_Player ::Update_Running(void) {
     // start on high velocity
     if (vel > 17.0f) {
       // light particles
-      cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+      auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
       anim->Set_Emitter_Rect(m_col_rect.m_x + m_col_rect.m_w * 0.25f,
                              m_col_rect.m_y + m_col_rect.m_h * 0.1f,
                              m_col_rect.m_w * 0.5f, m_col_rect.m_h * 0.8f);
@@ -694,7 +692,7 @@ void cLevel_Player ::Update_Running(void) {
 
       anim->Set_Blending(BLEND_ADD);
       anim->Emit();
-      pActive_Animation_Manager->Add(anim);
+      pActive_Animation_Manager->Add(std::move(anim));
     }
 
     // smoke clouds under foots
@@ -882,22 +880,19 @@ void cLevel_Player ::Start_Falling(void) {
   const float move_y = 1.9f;
 
   // check if something else is now blocking
-  cObjectCollisionType* col_list =
+  std::unique_ptr<cObjectCollisionType> col_list =
       Collision_Check_Relative(0.0f, move_y, 0.0f, 0.0f, COLLIDE_ONLY_BLOCKING);
 
   // check possible new ground objects
-  for (auto& collision_ptr : col_list->objects) {
-    cObjectCollision* collision = collision_ptr.get();
+  for (const auto& collision : col_list->objects) {
 
     // blocked by new ground object
-    if (collision->m_obj != m_ground_object && collision->m_obj->m_can_be_ground) {
+    if (collision->m_obj != m_ground_object &&
+        collision->m_obj->m_can_be_ground) {
       Set_On_Ground(collision->m_obj);
-      delete col_list;
       return;
     }
   }
-
-  delete col_list;
 
   // fall through ground object
   Move(0.0f, move_y, true);
@@ -966,18 +961,15 @@ void cLevel_Player ::Stop_Ducking(void) {
   const float move_y =
       -(m_images[MARYO_IMG_STAND].m_image->m_col_h - m_image->m_col_h);
 
-  cObjectCollisionType* col_list =
+  std::unique_ptr<cObjectCollisionType> col_list =
       Collision_Check_Relative(0.0f, move_y, 0.0f, 0.0f, COLLIDE_ONLY_BLOCKING);
 
   // failed to stand up because something is blocking
   if (col_list->size()) {
     // set ducked time again to stop possible power jump while in air
     m_ducked_counter = 1;
-    delete col_list;
     return;
   }
-
-  delete col_list;
 
   // unset ducking image ( without Check_out_of_Level from cMovingSprite )
   cSprite::Move(0.0f, move_y, true);
@@ -1007,7 +999,7 @@ void cLevel_Player ::Update_Ducking(void) {
 
     if (m_ducked_animation_counter > 1.0f) {
       // create particle
-      cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+      auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
       anim->Set_Emitter_Rect(m_col_rect.m_x,
                              m_col_rect.m_y + (m_col_rect.m_h * 0.8f),
                              m_col_rect.m_w * 0.9f, m_col_rect.m_h * 0.1f);
@@ -1024,7 +1016,7 @@ void cLevel_Player ::Update_Ducking(void) {
       anim->Set_Color(whitealpha128);
       anim->Set_Blending(BLEND_ADD);
       anim->Emit();
-      pActive_Animation_Manager->Add(anim);
+      pActive_Animation_Manager->Add(std::move(anim));
 
       m_ducked_animation_counter -=
           static_cast<int>(m_ducked_animation_counter);
@@ -1104,21 +1096,18 @@ bool cLevel_Player ::Is_On_Climbable(float move_y /* = 0.0f */) {
   climb_rect.m_h = 4.0f;
 
   // collision testing
-  cObjectCollisionType* col_list =
+  std::unique_ptr<cObjectCollisionType> col_list =
       Collision_Check(&climb_rect, COLLIDE_ONLY_INTERNAL);
 
   // check objects
-  for (auto& collision_ptr : col_list->objects) {
-    cObjectCollision* collision = collision_ptr.get();
+  for (const auto& collision : col_list->objects) {
 
     // collision with climbable object
     if (collision->m_obj->m_massive_type == MASS_CLIMBABLE) {
-      delete col_list;
       return true;
     }
   }
 
-  delete col_list;
   return false;
 }
 
@@ -1345,12 +1334,12 @@ void cLevel_Player ::Update_Item(void) {
     }
 
     // check the next player position for objects
-    cObjectCollisionType* col_list = Collision_Check_Relative(
+    std::unique_ptr<cObjectCollisionType> col_list = Collision_Check_Relative(
         (m_direction == DIR_LEFT) ? (check_x) : (m_col_rect.m_w), 0,
         (m_direction == DIR_LEFT) ? (-check_x) : (check_x));
 
     // possible objects
-    for (auto& col : col_list->objects) {
+    for (const auto& col : col_list->objects) {
       // enemy item
       if (col->m_array == ARRAY_ENEMY) {
         if (col->m_obj->m_type == TYPE_TURTLE) {
@@ -1364,8 +1353,6 @@ void cLevel_Player ::Update_Item(void) {
       }
       // other items here...
     }
-
-    delete col_list;
   }
 }
 
@@ -1475,14 +1462,10 @@ void cLevel_Player ::Release_Item(bool set_position /* = 1 */,
 
     // set step size
     float step_size = 0.0f;
-    cObjectCollisionType* col_list = nullptr;
+    std::unique_ptr<cObjectCollisionType> col_list;
 
     // check for a valid position to release the object
     while (step_size < 50.0f) {
-      if (col_list) {
-        delete col_list;
-      }
-
       // check left side
       col_list = m_active_object->Collision_Check_Relative(
           step_size, 0.0f, 0.0f, 0.0f, COLLIDE_ONLY_BLOCKING);
@@ -1491,7 +1474,6 @@ void cLevel_Player ::Release_Item(bool set_position /* = 1 */,
       if (!col_list->empty() && (col_list->Is_Included(ARRAY_MASSIVE) ||
                                  col_list->Is_Included(ARRAY_ACTIVE) ||
                                  col_list->Is_Included(ARRAY_ENEMY))) {
-        delete col_list;
         // check right side
         col_list = m_active_object->Collision_Check_Relative(
             -step_size, 0.0f, 0.0f, 0.0f, COLLIDE_ONLY_BLOCKING);
@@ -1535,8 +1517,6 @@ void cLevel_Player ::Release_Item(bool set_position /* = 1 */,
         }
       }
     }
-
-    delete col_list;
   }
 
   m_active_object->Clear_Collisions();
@@ -1727,7 +1707,7 @@ bool cLevel_Player ::Change_Size(float x, float y, bool only_check /* = 0 */) {
   }
 
   while (!valid_hor) {
-    cObjectCollisionType* col_list = Collision_Check_Relative(
+    std::unique_ptr<cObjectCollisionType> col_list = Collision_Check_Relative(
         check_pos, 0.0f, 0.0f, 0.0f, COLLIDE_ONLY_BLOCKING);
 
     if (col_list->empty()) {
@@ -1736,11 +1716,8 @@ bool cLevel_Player ::Change_Size(float x, float y, bool only_check /* = 0 */) {
       }
 
       valid_hor = true;
-      delete col_list;
       break;
     }
-
-    delete col_list;
 
     // move to opposite direction
     if (x > 0.0f) {
@@ -1769,7 +1746,7 @@ bool cLevel_Player ::Change_Size(float x, float y, bool only_check /* = 0 */) {
   }
 
   while (!valid_ver) {
-    cObjectCollisionType* col_list = Collision_Check_Relative(
+    std::unique_ptr<cObjectCollisionType> col_list = Collision_Check_Relative(
         0.0f, check_pos, 0.0f, 0.0f, COLLIDE_ONLY_BLOCKING);
 
     if (col_list->empty()) {
@@ -1778,11 +1755,8 @@ bool cLevel_Player ::Change_Size(float x, float y, bool only_check /* = 0 */) {
       }
 
       valid_ver = true;
-      delete col_list;
       break;
     }
-
-    delete col_list;
 
     // move to opposite direction
     if (y > 0.0f) {
@@ -1969,7 +1943,7 @@ void cLevel_Player ::Update(void) {
         particle_color.blue += static_cast<Uint8>(m_invincible_mod / 1.5f);
 
         // create particle
-        cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+        auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
         anim->Set_Emitter_Rect(m_col_rect.m_x + m_col_rect.m_w * 0.1f,
                                m_col_rect.m_y + m_col_rect.m_h * 0.1f,
                                m_col_rect.m_w * 0.8f, m_col_rect.m_h * 0.8f);
@@ -1997,7 +1971,7 @@ void cLevel_Player ::Update(void) {
 
         anim->Set_Blending(BLEND_ADD);
         anim->Emit();
-        pActive_Animation_Manager->Add(anim);
+        pActive_Animation_Manager->Add(std::move(anim));
 
         m_invincible_star_counter -=
             static_cast<int>(m_invincible_star_counter);
@@ -2158,7 +2132,7 @@ void cLevel_Player ::Update(void) {
   Update_Kill_Multiplier();
 }
 
-void cLevel_Player ::Draw(cSurface_Request* request /* = NULL */) {
+void cLevel_Player ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -2211,17 +2185,17 @@ void cLevel_Player ::Draw(cSurface_Request* request /* = NULL */) {
       // if on ground
       if (m_ground_object) {
         // create request
-        cRect_Request* rect_request = new cRect_Request();
+        auto rect_request = std::make_unique<cRect_Request>();
         // draw
         pVideo->Draw_Rect(&m_ground_object->m_col_rect, m_pos_z + 0.000009f,
-                          &grey, rect_request);
+                          &grey, rect_request.get());
         rect_request->m_no_camera = false;
         // blending
         rect_request->m_blend_sfactor = GL_SRC_COLOR;
         rect_request->m_blend_dfactor = GL_DST_ALPHA;
 
         // add request
-        pRenderer->Add(rect_request);
+        pRenderer->Add(std::move(rect_request));
       }
     }
   }
@@ -2734,7 +2708,7 @@ void cLevel_Player ::Load_Images(void) {
 }
 
 void cLevel_Player ::Get_Item(SpriteType item_type, bool force /* = 0 */,
-                              cMovingSprite* base /* = NULL */) {
+                              cMovingSprite* base /* = nullptr */) {
   Maryo_type current_maryo_type;
   bool use_temp_power;
 
@@ -2967,7 +2941,7 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
   // Up
   if (key_type == INP_UP) {
     // Search for colliding level exit objects
-    for (auto& sprite : m_sprite_manager->objects) {
+    for (const auto& sprite : m_sprite_manager->objects) {
       // skip destroyed objects
       if (sprite->m_auto_destroy) {
         continue;
@@ -3016,7 +2990,7 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
   // Down
   else if (key_type == INP_DOWN) {
     // Search for colliding level exit objects
-    for (auto& sprite : m_sprite_manager->objects) {
+    for (const auto& sprite : m_sprite_manager->objects) {
       // skip destroyed objects
       if (sprite->m_auto_destroy) {
         continue;
@@ -3064,7 +3038,7 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
   // Left
   else if (key_type == INP_LEFT) {
     // Search for colliding level exit objects
-    for (auto& sprite : m_sprite_manager->objects) {
+    for (const auto& sprite : m_sprite_manager->objects) {
       // skip destroyed objects
       if (sprite->m_auto_destroy) {
         continue;
@@ -3111,7 +3085,7 @@ void cLevel_Player ::Action_Interact(input_identifier key_type) {
   // Right
   else if (key_type == INP_RIGHT) {
     // Search for colliding level exit objects
-    for (auto& sprite : m_sprite_manager->objects) {
+    for (const auto& sprite : m_sprite_manager->objects) {
       // skip destroyed objects
       if (sprite->m_auto_destroy) {
         continue;
@@ -3299,12 +3273,13 @@ bool cLevel_Player ::Ball_Add(ball_effect effect_type /* = FIREBALL_DEFAULT */,
     }
 
     for (unsigned int i = 0; i < amount; i++) {
-      // add ball
-      cBall* ball = new cBall(m_sprite_manager);
+      // add ball (borrow the pointer before handing ownership to the sprite manager)
+      auto new_ball = std::make_unique<cBall>(m_sprite_manager);
+      cBall* ball = new_ball.get();
       ball->Set_Pos(ball_posx, m_rect.m_y + (m_rect.m_h * 0.7f) - 20, true);
       ball->Set_Origin(m_sprite_array, m_type);
       ball->Set_Ball_Type(effect_type);
-      m_sprite_manager->Add(ball);
+      m_sprite_manager->Add(std::move(new_ball));
 
       // set speed
       if (ball_start_angle >= 0) {
@@ -3336,7 +3311,7 @@ bool cLevel_Player ::Ball_Add(ball_effect effect_type /* = FIREBALL_DEFAULT */,
       ball_angle += 180.0f / amount;
 
       // add ball
-      cBall* ball = new cBall(m_sprite_manager);
+      auto ball = std::make_unique<cBall>(m_sprite_manager);
       ball->Set_Pos(m_pos_x + m_col_rect.m_w / 2, m_pos_y + m_col_rect.m_h / 2,
                     true);
       ball->Set_Origin(m_sprite_array, m_type);
@@ -3349,21 +3324,21 @@ bool cLevel_Player ::Ball_Add(ball_effect effect_type /* = FIREBALL_DEFAULT */,
       }
 
       ball->Col_Move(ball->m_velx * 2, ball->m_vely * 2, true);
-      m_sprite_manager->Add(ball);
+      m_sprite_manager->Add(std::move(ball));
     }
 
     // explosion animation and sound
     if (effect_type == FIREBALL_EXPLOSION) {
-      cAnimation_Fireball* anim = new cAnimation_Fireball(
+      auto anim = std::make_unique<cAnimation_Fireball>(
           m_sprite_manager, m_pos_x + (m_col_rect.m_w / 2),
           m_pos_y + (m_col_rect.m_h / 3), 10);
       anim->Set_Fading_Speed(0.3f);
-      pActive_Animation_Manager->Add(anim);
+      pActive_Animation_Manager->Add(std::move(anim));
 
       pAudio->Play_Sound("item/fireball_explosion.wav", RID_MARYO_BALL);
     } else {
       // create animation
-      cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+      auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
       anim->Set_Pos(m_pos_x + (m_col_rect.m_w * 0.5f),
                     m_pos_y + (m_col_rect.m_h * 0.5f));
       anim->Set_Image(pVideo->Get_Surface("animation/particles/light.png"));
@@ -3375,7 +3350,7 @@ bool cLevel_Player ::Ball_Add(ball_effect effect_type /* = FIREBALL_DEFAULT */,
       anim->Set_Speed(0.8f, 0.7f);
       anim->Set_Scale(0.4f, 0.2f);
       anim->Emit();
-      pActive_Animation_Manager->Add(anim);
+      pActive_Animation_Manager->Add(std::move(anim));
 
       pAudio->Play_Sound("item/iceball_explosion.wav", RID_MARYO_BALL);
     }
@@ -3390,7 +3365,7 @@ bool cLevel_Player ::Ball_Add(ball_effect effect_type /* = FIREBALL_DEFAULT */,
 
 void cLevel_Player ::Ball_Clear(void) const {
   // destroy all fireballs from the player
-  for (auto& sprite : m_sprite_manager->objects) {
+  for (const auto& sprite : m_sprite_manager->objects) {
     if (sprite->m_type == TYPE_BALL) {
       cBall* ball = static_cast<cBall*>(sprite.get());
 
@@ -3712,7 +3687,7 @@ void cLevel_Player ::Handle_Collision_Enemy(cObjectCollision* collision) {
   // enemy is frozen
   if (enemy->m_freeze_counter) {
     // animation
-    cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+    auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
     anim->Set_Image(pVideo->Get_Surface("animation/particles/light.png"));
     anim->Set_Time_to_Live(0.6f, 0.4f);
     anim->Set_Color(
@@ -3731,7 +3706,7 @@ void cLevel_Player ::Handle_Collision_Enemy(cObjectCollision* collision) {
       }
     }
 
-    pActive_Animation_Manager->Add(anim);
+    pActive_Animation_Manager->Add(std::move(anim));
 
     // ice sound
     pAudio->Play_Sound("item/ice_kill.wav");
@@ -3834,7 +3809,7 @@ void cLevel_Player ::Handle_Collision_Massive(cObjectCollision* collision) {
           pAudio->Play_Sound("wall_hit.wav", RID_MARYO_WALL_HIT);
 
           // create animation
-          cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+          auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
           anim->Set_Emitter_Rect(m_col_rect.m_x, m_col_rect.m_y + 6,
                                  m_col_rect.m_w);
           anim->Set_Image(pVideo->Get_Surface("animation/particles/light.png"));
@@ -3850,7 +3825,7 @@ void cLevel_Player ::Handle_Collision_Massive(cObjectCollision* collision) {
           anim->Set_Fading_Alpha(true);
           anim->Set_Fading_Size(true);
           anim->Emit();
-          pActive_Animation_Manager->Add(anim);
+          pActive_Animation_Manager->Add(std::move(anim));
         }
       }
     }
@@ -3949,19 +3924,19 @@ void cLevel_Player ::Handle_Collision_Passive(cObjectCollision* collision) {
 
 void cLevel_Player ::Handle_out_of_Level(ObjectDirection dir) {
   if (dir == DIR_LEFT) {
-    Set_Pos_X(pLevel_Manager->m_camera->m_limit_rect.m_x - m_col_pos.m_x);
+    Set_Pos_X(pLevel_Manager->m_camera.m_limit_rect.m_x - m_col_pos.m_x);
     m_velx = 0.0f;
     Stop_Flying();
   } else if (dir == DIR_RIGHT) {
-    Set_Pos_X(pLevel_Manager->m_camera->m_limit_rect.m_x +
-              pLevel_Manager->m_camera->m_limit_rect.m_w - m_col_pos.m_x -
+    Set_Pos_X(pLevel_Manager->m_camera.m_limit_rect.m_x +
+              pLevel_Manager->m_camera.m_limit_rect.m_w - m_col_pos.m_x -
               m_col_rect.m_w - 0.01f);
     m_velx = 0.0f;
     Stop_Flying();
   } else if (dir == DIR_TOP) {
     /*if( pActive_Level->limit_top_blocks )
 		{
-			Set_Pos_Y( pLevel_Manager->m_camera->m_limit_rect.m_y + pLevel_Manager->m_camera->m_limit_rect.m_h + 0.01f );
+			Set_Pos_Y( pLevel_Manager->m_camera.m_limit_rect.m_y + pLevel_Manager->m_camera.m_limit_rect.m_h + 0.01f );
 			m_vely = 0.0f;
 		}*/
   } else if (dir == DIR_BOTTOM) {
@@ -3970,7 +3945,7 @@ void cLevel_Player ::Handle_out_of_Level(ObjectDirection dir) {
     } else {
       /*if( pActive_Level->limit_bottom_blocks )
 			{
-				Set_Pos_Y( pLevel_Manager->m_camera->m_limit_rect.m_y + game_res_h - m_col_pos.m_x - m_col_rect.m_w + 0.01f );
+				Set_Pos_Y( pLevel_Manager->m_camera.m_limit_rect.m_y + game_res_h - m_col_pos.m_x - m_col_rect.m_w + 0.01f );
 				m_vely = 0.0f;
 			}
 			// falling below ground

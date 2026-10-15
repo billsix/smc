@@ -55,10 +55,10 @@ void cGoldpiece ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cGoldpiece ::Copy(void) const {
-  cGoldpiece* goldpiece = new cGoldpiece(m_sprite_manager);
+  auto goldpiece = std::make_unique<cGoldpiece>(m_sprite_manager);
   goldpiece->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   goldpiece->Set_Gold_Color(m_color_type);
-  return std::unique_ptr<cSprite>(goldpiece);
+  return goldpiece;
 }
 
 void cGoldpiece ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -104,8 +104,8 @@ void cGoldpiece ::Load_From_Savegame(cSave_Level_Object* save_object) {
   }
 }
 
-cSave_Level_Object* cGoldpiece ::Save_To_Savegame(void) {
-  cSave_Level_Object* save_object = new cSave_Level_Object();
+std::unique_ptr<cSave_Level_Object> cGoldpiece ::Save_To_Savegame(void) {
+  auto save_object = std::make_unique<cSave_Level_Object>();
 
   // default values
   save_object->m_type = m_type;
@@ -228,7 +228,7 @@ void cGoldpiece ::Activate(void) {
   }
 
   // animation
-  cAnimation_Goldpiece* anim = new cAnimation_Goldpiece(
+  auto anim = std::make_unique<cAnimation_Goldpiece>(
       m_sprite_manager, m_pos_x + (m_col_rect.m_w / 10),
       m_pos_y + (m_col_rect.m_h / 10));
 
@@ -245,7 +245,7 @@ void cGoldpiece ::Activate(void) {
     points = 5;
   }
 
-  pActive_Animation_Manager->Add(anim);
+  pActive_Animation_Manager->Add(std::move(anim));
 
   // if jumping double the points
   if (m_type == TYPE_JUMPING_GOLDPIECE) {
@@ -278,7 +278,7 @@ void cGoldpiece ::Update(void) {
   Update_Animation();
 }
 
-void cGoldpiece ::Draw(cSurface_Request* request /* = NULL */) {
+void cGoldpiece ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }

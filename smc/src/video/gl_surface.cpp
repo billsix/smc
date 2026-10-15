@@ -103,13 +103,12 @@ cGL_Surface* cGL_Surface ::Copy(void) const {
 }
 
 void cGL_Surface ::Blit(float x, float y, float z,
-                        cSurface_Request* request /* = NULL */) const {
-  bool create_request = false;
-
+                        cSurface_Request* request /* = nullptr */) const {
+  // no request given: make one here and hand it to the renderer at the end
+  std::unique_ptr<cSurface_Request> owned_request;
   if (!request) {
-    create_request = true;
-    // create request
-    request = new cSurface_Request();
+    owned_request = std::make_unique<cSurface_Request>();
+    request = owned_request.get();
   }
 
   Blit_Data(request);
@@ -119,9 +118,8 @@ void cGL_Surface ::Blit(float x, float y, float z,
   request->m_pos_y += y;
   request->m_pos_z = z;
 
-  if (create_request) {
-    // add request
-    pRenderer->Add(request);
+  if (owned_request) {
+    pRenderer->Add(std::move(owned_request));
   }
 }
 
@@ -146,7 +144,7 @@ void cGL_Surface ::Blit_Data(cSurface_Request* request) const {
 void cGL_Surface ::Set_Ground_Type(GroundType gtype) { m_ground_type = gtype; }
 
 bool cGL_Surface ::Is_Texture_Use_Multiple(void) const {
-  for (auto& surface : pImage_Manager->objects) {
+  for (const auto& surface : pImage_Manager->objects) {
     if (surface.get() == this) {
       continue;
     }
@@ -159,9 +157,9 @@ bool cGL_Surface ::Is_Texture_Use_Multiple(void) const {
   return false;
 }
 
-cSaved_Texture* cGL_Surface ::Get_Software_Texture(
+std::unique_ptr<cSaved_Texture> cGL_Surface ::Get_Software_Texture(
     bool only_filename /* = 0 */) {
-  cSaved_Texture* soft_tex = new cSaved_Texture();
+  auto soft_tex = std::make_unique<cSaved_Texture>();
 
   // hardware texture to software texture
   if (!only_filename) {
@@ -243,7 +241,8 @@ void cGL_Surface ::Load_Software_Texture(cSaved_Texture* soft_tex) {
   }
   // load from file
   else {
-    cGL_Surface* surface_copy = pVideo->Load_GL_Surface(m_filename);
+    std::unique_ptr<cGL_Surface> surface_copy =
+        pVideo->Load_GL_Surface(m_filename);
 
     if (!surface_copy) {
       printf(
@@ -252,14 +251,12 @@ void cGL_Surface ::Load_Software_Texture(cSaved_Texture* soft_tex) {
       return;
     }
 
-    // get image
+    // take over the hardware texture; the temporary surface is freed on return
     m_image = surface_copy->m_image;
     m_tex_w = surface_copy->m_tex_w;
     m_tex_h = surface_copy->m_tex_h;
     // keep hardware texture
     surface_copy->m_auto_del_img = false;
-    // delete copy
-    delete surface_copy;
   }
 }
 

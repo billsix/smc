@@ -68,14 +68,15 @@ class cMovingSprite : public cSprite {
   // Init defaults
   void Init(void) override;
   // copy this object
-  std::unique_ptr<cSprite> Copy(void) const override;
+  [[nodiscard]] std::unique_ptr<cSprite> Copy(void) const override;
 
   /* Sets the image for drawing
 	 * if new_start_image is set the default start_image will be set to the given image
 	 * if del_img is set the given image will be deleted
 	*/
-  void Set_Image(cGL_Surface* new_image, bool new_start_image = false,
-                 bool del_img = false) override;
+  void Set_Image(cGL_Surface* new_image, bool new_start_image = false) override;
+  // the owning overload stays visible through this class
+  using cSprite::Set_Image;
 
   /* Set the direction
 	 * if new_start_direction is set also set the start/editor direction
@@ -182,7 +183,7 @@ class cMovingSprite : public cSprite {
 	 * objects : if set check these object instead of all
 	 * The collision data should be deleted if not used anymore
 	*/
-  cObjectCollisionType* Collision_Check_Relative(
+  [[nodiscard]] std::unique_ptr<cObjectCollisionType> Collision_Check_Relative(
       const float x, const float y, const float w = 0.0f, const float h = 0.0f,
       const ColCheckType check_type = COLLIDE_COMPLETE,
       cSprite_List* objects = nullptr) {
@@ -195,7 +196,7 @@ class cMovingSprite : public cSprite {
 	 * objects : if set check these object instead of all
 	 * The collision data should be deleted if not used anymore
 	*/
-  cObjectCollisionType* Collision_Check_Absolute(
+  [[nodiscard]] std::unique_ptr<cObjectCollisionType> Collision_Check_Absolute(
       const float x, const float y, const float w = 0.0f, const float h = 0.0f,
       const ColCheckType check_type = COLLIDE_COMPLETE,
       cSprite_List* objects = nullptr);
@@ -205,7 +206,7 @@ class cMovingSprite : public cSprite {
 	 * objects : if set check these object instead of all
 	 * The collision data should be deleted if not used anymore
 	*/
-  cObjectCollisionType* Collision_Check(
+  [[nodiscard]] std::unique_ptr<cObjectCollisionType> Collision_Check(
       const GL_rect& new_rect, const ColCheckType check_type = COLLIDE_COMPLETE,
       cSprite_List* objects = nullptr);
 
@@ -303,11 +304,10 @@ class cMovingSprite : public cSprite {
 	 * sprite_list : objects to check
 	 * stop_on_internal : if set stops moving if internal collision was found
 	*/
-  cObjectCollisionType* Col_Move_in_Steps(float move_x, float move_y,
-                                          float step_size_x, float step_size_y,
-                                          float final_pos_x, float final_pos_y,
-                                          cSprite_List sprite_list,
-                                          bool stop_on_internal = false);
+  [[nodiscard]] std::unique_ptr<cObjectCollisionType> Col_Move_in_Steps(
+      float move_x, float move_y, float step_size_x, float step_size_y,
+      float final_pos_x, float final_pos_y, cSprite_List sprite_list,
+      bool stop_on_internal = false);
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

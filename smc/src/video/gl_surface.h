@@ -51,7 +51,8 @@ class cGL_Surface {
   /* Return a software texture copy
 	 * only_filename: if set doesn't save the software texture but only the filename
 	*/
-  cSaved_Texture* Get_Software_Texture(bool only_filename = false);
+  [[nodiscard]] std::unique_ptr<cSaved_Texture> Get_Software_Texture(
+      bool only_filename = false);
   // Load a software texture
   void Load_Software_Texture(cSaved_Texture* soft_tex);
 

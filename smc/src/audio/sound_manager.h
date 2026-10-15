@@ -63,7 +63,7 @@ class cSound_Manager : public cObject_Manager<cSound> {
   /* Add a Sound
 	 * Should always have the path set
 	 */
-  void Add(cSound* item) override;
+  cSound* Add(std::unique_ptr<cSound> item) override;
 
   cSound* operator[](unsigned int identifier) const {
     return cObject_Manager<cSound>::Get_Pointer(identifier);

@@ -64,11 +64,11 @@ void cSpikeball ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cSpikeball ::Copy(void) const {
-  cSpikeball* spikeball = new cSpikeball(m_sprite_manager);
+  auto spikeball = std::make_unique<cSpikeball>(m_sprite_manager);
   spikeball->Set_Pos(m_start_pos_x, m_start_pos_y);
   spikeball->Set_Color(m_color_type);
   spikeball->Set_Direction(m_start_direction);
-  return std::unique_ptr<cSprite>(spikeball);
+  return spikeball;
 }
 
 void cSpikeball ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -342,7 +342,7 @@ void cSpikeball ::Update(void) {
 
     // create particles
     if (m_running_particle_counter > 1.0f) {
-      cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
+      auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
       anim->Set_Emitter_Rect(m_col_rect.m_x,
                              m_col_rect.m_y + m_col_rect.m_h - 2.0f,
                              m_col_rect.m_w);
@@ -370,7 +370,7 @@ void cSpikeball ::Update(void) {
       }
 
       anim->Emit();
-      pActive_Animation_Manager->Add(anim);
+      pActive_Animation_Manager->Add(std::move(anim));
 
       m_running_particle_counter -=
           static_cast<int>(m_running_particle_counter);

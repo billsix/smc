@@ -91,7 +91,7 @@ void cFont_Manager ::Add_Ref(cGL_Surface* surface) {
 }
 
 void cFont_Manager ::Delete_Ref(cGL_Surface* surface) {
-  for (ActiveFontList::iterator itr = m_active_fonts.begin();
+  for (auto itr = m_active_fonts.begin();
        itr != m_active_fonts.end(); ++itr) {
     cGL_Surface* obj = (*itr);
 
@@ -103,13 +103,13 @@ void cFont_Manager ::Delete_Ref(cGL_Surface* surface) {
   }
 }
 
-cGL_Surface* cFont_Manager ::Render_Text(TTF_Font* font,
-                                         const std::string& text,
-                                         const Color color) {
+std::unique_ptr<cGL_Surface> cFont_Manager ::Render_Text(
+    TTF_Font* font, const std::string& text, const Color color) {
   // get SDL Color
   SDL_Color sdlcolor = color.Get_SDL_Color();
   // create text surface
-  cGL_Surface* surface = pVideo->Create_Texture(
+  // the caller owns the rendered surface; this manager only keeps a borrowed reference
+  std::unique_ptr<cGL_Surface> surface = pVideo->Create_Texture(
       TTF_RenderUTF8_Blended(font, text.c_str(), sdlcolor));
 
   if (!surface) {
@@ -121,7 +121,7 @@ cGL_Surface* cFont_Manager ::Render_Text(TTF_Font* font,
   // set function if font gets deleted
   surface->Set_Destruction_Function(&Font_Delete_Ref);
   // add font to active fonts
-  Add_Ref(surface);
+  Add_Ref(surface.get());
 
   return surface;
 }
@@ -141,17 +141,13 @@ void cFont_Manager ::Grab_Textures(void) {
 
 void cFont_Manager ::Restore_Textures(void) {
   // load back into hardware textures
-  for (auto soft_tex : m_software_textures) {
+  for (const auto& soft_tex : m_software_textures) {
     // get saved texture
     // load it
-    soft_tex->m_base->Load_Software_Texture(soft_tex);
+    soft_tex->m_base->Load_Software_Texture(soft_tex.get());
   }
 
   // delete software textures
-  for (auto& software_texture : m_software_textures) {
-    delete software_texture;
-  }
-
   m_software_textures.clear();
 }
 

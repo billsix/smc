@@ -324,7 +324,7 @@ void Gui_Handle_Time(void) {
 
 void Draw_Static_Text(const std::string& text,
                       const Color* color_text /* = &white */,
-                      const Color* color_bg /* = NULL */,
+                      const Color* color_bg /* = nullptr */,
                       bool wait_for_input /* = 1 */) {
   // fixme : Can't handle multiple lines of text. Change to MultiLineEditbox or use HorzFormatting=WordWrapLeftAligned property.
   bool draw = true;
@@ -368,13 +368,13 @@ void Draw_Static_Text(const std::string& text,
     // draw background
     if (color_bg) {
       // create request
-      cRect_Request* request = new cRect_Request();
+      auto request = std::make_unique<cRect_Request>();
 
-      pVideo->Draw_Rect(nullptr, 0.9f, color_bg, request);
+      pVideo->Draw_Rect(nullptr, 0.9f, color_bg, request.get());
       request->m_render_count = wait_for_input ? 4 : 1;
 
       // add request
-      pRenderer->Add(request);
+      pRenderer->Add(std::move(request));
     }
 
     pVideo->Render();
@@ -411,19 +411,13 @@ void Draw_Static_Text(const std::string& text,
 std::string Box_Text_Input(const std::string& default_text,
                            const std::string& title_text,
                            bool auto_no_text /* = 1 */) {
-  cDialogBox_Text* box = new cDialogBox_Text();
-  std::string return_value = box->Enter(default_text, title_text, auto_no_text);
-  delete box;
-
-  return return_value;
+  cDialogBox_Text box;
+  return box.Enter(default_text, title_text, auto_no_text);
 }
 
 int Box_Question(const std::string& text, bool with_cancel /* = 0 */) {
-  cDialogBox_Question* box = new cDialogBox_Question();
-  int return_value = box->Enter(text, with_cancel);
-  delete box;
-
-  return return_value;
+  cDialogBox_Question box;
+  return box.Enter(text, with_cancel);
 }
 
 std::string Get_Clipboard_Content(void) {

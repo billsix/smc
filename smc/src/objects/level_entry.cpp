@@ -48,12 +48,7 @@ cLevel_Entry ::cLevel_Entry(CEGUI::XMLAttributes& attributes,
   cLevel_Entry::Load_From_XML(attributes);
 }
 
-cLevel_Entry ::~cLevel_Entry(void) {
-  if (m_editor_entry_name) {
-    delete m_editor_entry_name;
-    m_editor_entry_name = nullptr;
-  }
-}
+cLevel_Entry ::~cLevel_Entry(void) = default;
 
 void cLevel_Entry ::Init(void) {
   m_sprite_array = ARRAY_ACTIVE;
@@ -80,12 +75,12 @@ void cLevel_Entry ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cLevel_Entry ::Copy(void) const {
-  cLevel_Entry* level_entry = new cLevel_Entry(m_sprite_manager);
+  auto level_entry = std::make_unique<cLevel_Entry>(m_sprite_manager);
   level_entry->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   level_entry->Set_Type(m_entry_type);
   level_entry->Set_Direction(m_start_direction);
   level_entry->Set_Name(m_entry_name);
-  return std::unique_ptr<cSprite>(level_entry);
+  return level_entry;
 }
 
 void cLevel_Entry ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -157,7 +152,7 @@ void cLevel_Entry ::Create_Name(void) {
   }
 }
 
-void cLevel_Entry ::Draw(cSurface_Request* request /* = NULL */) {
+void cLevel_Entry ::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -170,15 +165,16 @@ void cLevel_Entry ::Draw(cSurface_Request* request /* = NULL */) {
   // draw entry name
   if (m_editor_entry_name) {
     // create request
-    cSurface_Request* surface_request = new cSurface_Request();
+    auto surface_request = std::make_unique<cSurface_Request>();
     // blit
     m_editor_entry_name->Blit(
         m_col_rect.m_x + m_col_rect.m_w + 5 - pActive_Camera->m_x,
-        m_col_rect.m_y - pActive_Camera->m_y, m_editor_pos_z, surface_request);
+        m_col_rect.m_y - pActive_Camera->m_y, m_editor_pos_z,
+        surface_request.get());
     surface_request->m_shadow_pos = 2;
     surface_request->m_shadow_color = lightgreyalpha64;
     // add request
-    pRenderer->Add(surface_request);
+    pRenderer->Add(std::move(surface_request));
   }
 }
 
@@ -252,7 +248,7 @@ void cLevel_Entry ::Activate(void) {
       // center camera
       pActive_Camera->Center();
       // keep particles on screen
-      for (auto& sprite : m_sprite_manager->objects) {
+      for (const auto& sprite : m_sprite_manager->objects) {
         if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
           cParticle_Emitter* emitter =
               static_cast<cParticle_Emitter*>(sprite.get());
@@ -338,12 +334,6 @@ float cLevel_Entry ::Get_Player_Pos_Y(void) const {
 }
 
 void cLevel_Entry ::Set_Name(const std::string& str_name) {
-  // delete editor image
-  if (m_editor_entry_name) {
-    delete m_editor_entry_name;
-    m_editor_entry_name = nullptr;
-  }
-
   // Set new name
   m_entry_name = str_name;
 

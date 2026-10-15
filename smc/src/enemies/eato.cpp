@@ -62,11 +62,11 @@ void cEato ::Init(void) {
 }
 
 std::unique_ptr<cSprite> cEato ::Copy(void) const {
-  cEato* eato = new cEato(m_sprite_manager);
+  auto eato = std::make_unique<cEato>(m_sprite_manager);
   eato->Set_Pos(m_start_pos_x, m_start_pos_y);
   eato->Set_Image_Dir(m_img_dir);
   eato->Set_Direction(m_start_direction);
-  return std::unique_ptr<cSprite>(eato);
+  return eato;
 }
 
 void cEato ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
@@ -184,13 +184,13 @@ void cEato ::DownGrade(bool force /* = 0 */) {
 
   if (!force) {
     // animation
-    cParticle_Emitter* anim = new cParticle_Emitter(m_sprite_manager);
-    Generate_Hit_Animation(anim);
+    auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
+    Generate_Hit_Animation(anim.get());
 
     anim->Set_Scale(0.8f);
     anim->Set_Direction_Range(0.0f, 360.0f);
     anim->Emit();
-    pActive_Animation_Manager->Add(anim);
+    pActive_Animation_Manager->Add(std::move(anim));
   } else {
     Set_Rotation_Z(180.0f);
   }

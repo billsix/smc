@@ -59,7 +59,8 @@ class cObjectCollision {
   ArrayType m_array;
 };
 
-using cObjectCollision_List = vector<cObjectCollision*>;
+// A sprite's own collision list owns its entries (see cCollidingSprite::m_collisions)
+using cObjectCollision_List = vector<std::unique_ptr<cObjectCollision>>;
 
 /* *** *** *** *** *** *** *** cObjectCollisionType *** *** *** *** *** *** *** *** *** *** */
 
@@ -69,8 +70,8 @@ class cObjectCollisionType : public cObject_Manager<cObjectCollision> {
   cObjectCollisionType(void);
   ~cObjectCollisionType(void) override;
 
-  // Add an object collision
-  void Add(cObjectCollision* obj) override;
+  // Add an object collision (takes ownership)
+  cObjectCollision* Add(std::unique_ptr<cObjectCollision> obj) override;
 
   // returns true if the given object was found in the list
   bool Is_Included(const cSprite* obj);
