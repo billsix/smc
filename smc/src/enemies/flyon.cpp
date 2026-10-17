@@ -354,7 +354,7 @@ void cFlyon ::Update(void) {
   // flying ( moving into the destination direction )
   else {
     // distance to final position
-    float dist_to_final_pos = Get_End_Distance();
+    float const dist_to_final_pos = Get_End_Distance();
     // multiplier for the minimal velocity
     float vel_mod_min =
         (dist_to_final_pos + (m_max_distance * 0.1f)) / m_max_distance;
@@ -527,7 +527,7 @@ bool cFlyon ::Is_Update_Valid(void) {
 }
 
 bool cFlyon ::Is_Draw_Valid(void) {
-  bool valid = cEnemy::Is_Draw_Valid();
+  bool const valid = cEnemy::Is_Draw_Valid();
 
   // if editor enabled
   if (editor_enabled) {
@@ -633,7 +633,7 @@ void cFlyon ::Editor_Activate(void) {
 bool cFlyon ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()));
@@ -644,7 +644,7 @@ bool cFlyon ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
 bool cFlyon ::Editor_Image_Dir_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Image_Dir(str_text);
@@ -655,7 +655,7 @@ bool cFlyon ::Editor_Image_Dir_Text_Changed(const CEGUI::EventArgs& event) {
 bool cFlyon ::Editor_Max_Distance_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Max_Distance(static_cast<float>(string_to_int(str_text)));
@@ -666,7 +666,7 @@ bool cFlyon ::Editor_Max_Distance_Text_Changed(const CEGUI::EventArgs& event) {
 bool cFlyon ::Editor_Speed_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Speed(string_to_float(str_text));

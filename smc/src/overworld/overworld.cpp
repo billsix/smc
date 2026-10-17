@@ -53,7 +53,7 @@ cOverworld_description ::~cOverworld_description(void) {
 }
 
 void cOverworld_description ::Load(void) {
-  std::string filename = Get_Full_Path() + "/description.xml";
+  std::string const filename = Get_Full_Path() + "/description.xml";
 
   // filename not valid
   if (!File_Exists(filename)) {
@@ -76,9 +76,9 @@ void cOverworld_description ::Load(void) {
 }
 
 void cOverworld_description ::Save(void) {
-  std::string save_dir =
+  std::string const save_dir =
       pResource_Manager->user_data_dir + USER_WORLD_DIR + "/" + m_path;
-  std::string filename = save_dir + "/description.xml";
+  std::string const filename = save_dir + "/description.xml";
 
 // fixme : Check if there is a more portable way f.e. with imbue()
 #ifdef _WIN32
@@ -209,7 +209,8 @@ bool cOverworld ::Load(void) {
   m_description.Load();
 
   // world
-  std::string world_filename = m_description.Get_Full_Path() + "/world.xml";
+  std::string const world_filename =
+      m_description.Get_Full_Path() + "/world.xml";
 
   if (!File_Exists(world_filename)) {
     printf("Couldn't find World file : %s from %s\n", world_filename.c_str(),
@@ -244,7 +245,8 @@ bool cOverworld ::Load(void) {
   }
 
   // layer
-  std::string layer_filename = m_description.Get_Full_Path() + "/layer.xml";
+  std::string const layer_filename =
+      m_description.Get_Full_Path() + "/layer.xml";
 
   if (!File_Exists(layer_filename)) {
     printf("Couldn't find World Layer file : %s from %s\n",
@@ -285,14 +287,14 @@ void cOverworld ::Unload(void) {
 void cOverworld ::Save(void) {
   pAudio->Play_Sound("editor/save.ogg");
 
-  std::string save_dir = pResource_Manager->user_data_dir + USER_WORLD_DIR +
-                         "/" + m_description.m_path;
+  std::string const save_dir = pResource_Manager->user_data_dir +
+                               USER_WORLD_DIR + "/" + m_description.m_path;
   // Create directory if new world
   if (!Dir_Exists(save_dir)) {
     Create_Directory(save_dir);
   }
 
-  std::string filename = save_dir + "/world.xml";
+  std::string const filename = save_dir + "/world.xml";
 
 // fixme : Check if there is a more portable way f.e. with imbue()
 #ifdef _WIN32
@@ -404,7 +406,8 @@ void cOverworld ::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
   // if player start waypoint not set
   if (pOverworld_Player->m_current_waypoint < 0) {
     pOverworld_Player->Reset();
-    pOverworld_Player->Set_Waypoint(m_player_start_waypoint, true);
+    pOverworld_Player->Set_Waypoint(static_cast<int>(m_player_start_waypoint),
+                                    true);
   }
 
   // if goto next level
@@ -419,7 +422,8 @@ void cOverworld ::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
     if (m_player_moving_state == STA_WALK) {
       // walk to the next Waypoint
       pOverworld_Player->Start_Walk(
-          m_waypoints[pOverworld_Player->m_current_waypoint]
+          m_waypoints[static_cast<size_t>(
+                          pOverworld_Player->m_current_waypoint)]
               ->m_direction_forward);
     }
   }
@@ -819,7 +823,7 @@ int cOverworld ::Get_Last_Valid_Waypoint(void) {
   }
 
   for (int i = m_waypoints.size() - 1; i > 0; i--) {
-    if (m_waypoints[i]->m_access) {
+    if (m_waypoints[static_cast<size_t>(i)]->m_access) {
       return i;
     }
   }
@@ -829,7 +833,8 @@ int cOverworld ::Get_Last_Valid_Waypoint(void) {
 
 void cOverworld ::Update_Waypoint_text(void) {
   // get waypoint
-  cWaypoint* waypoint = m_waypoints[pOverworld_Player->m_current_waypoint];
+  cWaypoint const* waypoint =
+      m_waypoints[static_cast<size_t>(pOverworld_Player->m_current_waypoint)];
 
   // set color
   Color color = static_cast<Uint8>(0);
@@ -855,7 +860,7 @@ bool cOverworld ::Goto_Next_Level(void) {
 
   m_next_level = false;
 
-  cWaypoint* current_waypoint = pOverworld_Player->Get_Waypoint();
+  cWaypoint const* current_waypoint = pOverworld_Player->Get_Waypoint();
 
   // no Waypoint
   if (!current_waypoint) {
@@ -868,7 +873,7 @@ bool cOverworld ::Goto_Next_Level(void) {
   }
 
   // Get Layer Line in front
-  cLayer_Line_Point_Start* front_line =
+  cLayer_Line_Point_Start const* front_line =
       pOverworld_Player->Get_Front_Line(current_waypoint->m_direction_forward);
 
   if (!front_line) {
@@ -949,8 +954,8 @@ void cOverworld ::elementEnd(const CEGUI::String& element) {
 
   if (element == "information") {
     m_engine_version = m_xml_attributes.getValueAsInteger("engine_version");
-    m_last_saved =
-        string_to_int64(m_xml_attributes.getValueAsString("save_time").c_str());
+    m_last_saved = static_cast<time_t>(string_to_int64(
+        m_xml_attributes.getValueAsString("save_time").c_str()));
   } else if (element == "settings") {
     // Author
     //author = m_xml_attributes.getValueAsString( "author" ).c_str();
@@ -963,7 +968,8 @@ void cOverworld ::elementEnd(const CEGUI::String& element) {
     //pOverworld_Manager->camera->Set_Limits( GL_rect( static_cast<float>(m_xml_attributes.getValueAsInteger( "cam_limit_x" )), static_cast<float>(m_xml_attributes.getValueAsInteger( "cam_limit_y" )), static_cast<float>(m_xml_attributes.getValueAsInteger( "cam_limit_w" )), static_cast<float>(m_xml_attributes.getValueAsInteger( "cam_limit_h" )) ) );
   } else if (element == "player") {
     // Start Waypoint
-    m_player_start_waypoint = m_xml_attributes.getValueAsInteger("waypoint");
+    m_player_start_waypoint = static_cast<unsigned int>(
+        m_xml_attributes.getValueAsInteger("waypoint"));
     // Moving State
     m_player_moving_state = static_cast<Moving_state>(
         m_xml_attributes.getValueAsInteger("moving_state"));

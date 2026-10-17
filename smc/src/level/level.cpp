@@ -92,7 +92,7 @@ bool cLevel ::New(std::string filename) {
     while (true) {
       // set name
       filename = pResource_Manager->user_data_dir + USER_LEVEL_DIR + "/new_" +
-                 int_to_string(i) + ".smclvl";
+                 int_to_string(static_cast<int>(i)) + ".smclvl";
       // try to open the file
       ifs.open(filename.c_str(), ios::in);
 
@@ -967,8 +967,8 @@ void cLevel ::elementEnd(const CEGUI::String& element) {
     }
 
     m_engine_version = static_cast<int>(engine_version_float);
-    m_last_saved =
-        string_to_int64(m_xml_attributes.getValueAsString("save_time").c_str());
+    m_last_saved = static_cast<time_t>(string_to_int64(
+        m_xml_attributes.getValueAsString("save_time").c_str()));
   } else if (element == "settings") {
     // if V.1.9 and lower : move y coordinate bottom to 0
     if (m_engine_version < 35) {
@@ -1000,7 +1000,7 @@ void cLevel ::elementEnd(const CEGUI::String& element) {
     m_fixed_camera_hor_vel =
         m_xml_attributes.getValueAsFloat("cam_fixed_hor_vel");
   } else if (element == "background") {
-    BackgroundType bg_type =
+    BackgroundType const bg_type =
         static_cast<BackgroundType>(m_xml_attributes.getValueAsInteger("type"));
 
     // use gradient background
@@ -1068,7 +1068,7 @@ std::unique_ptr<cSprite> Create_Level_Object_From_XML(
     const CEGUI::String& xml_element, CEGUI::XMLAttributes& attributes,
     int engine_version, cSprite_Manager* sprite_manager) {
   // element content could change
-  CEGUI::String element = xml_element;
+  CEGUI::String const element = xml_element;
 
   if (element == "sprite") {
     // if V.1.4 and lower : change some image paths
@@ -1330,7 +1330,7 @@ std::unique_ptr<cSprite> Create_Level_Object_From_XML(
           }
 
           // each tile is cloned from the previous one (borrowed back from the manager)
-          cSprite* previous = sprite.get();
+          cSprite const* previous = sprite.get();
 
           // add middle tiles
           for (unsigned int i = 0; i < 4; i++) {
@@ -1438,7 +1438,7 @@ std::unique_ptr<cSprite> Create_Level_Object_From_XML(
       }
     }
 
-    CEGUI::String str_type = attributes.getValueAsString("type");
+    CEGUI::String const str_type = attributes.getValueAsString("type");
 
     if (str_type == "bonus") {
       return std::make_unique<cBonusBox>(attributes, sprite_manager);
@@ -1492,7 +1492,7 @@ std::unique_ptr<cSprite> Create_Level_Object_From_XML(
       }
     }
 
-    CEGUI::String str_type = attributes.getValueAsString("type");
+    CEGUI::String const str_type = attributes.getValueAsString("type");
 
     if (str_type == "goldpiece") {
       return std::make_unique<cGoldpiece>(attributes, sprite_manager);
@@ -1641,7 +1641,7 @@ std::unique_ptr<cSprite> Create_Level_Object_From_XML(
         if (attributes.exists("image_dir")) {
           std::string img_dir =
               attributes.getValueAsString("image_dir").c_str();
-          std::string::size_type pos = img_dir.find("jpiranha");
+          std::string::size_type const pos = img_dir.find("jpiranha");
 
           // change if found
           if (pos != std::string::npos) {

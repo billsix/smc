@@ -162,8 +162,8 @@ bool cCamera ::Step_to_Position_Gradually(const float pos_x,
   Update_Limit(pos_x_final, pos_y_final);
 
   // check distance to new position
-  float distance_x = pos_x_final - m_x;
-  float distance_y = pos_y_final - m_y;
+  float const distance_x = pos_x_final - m_x;
+  float const distance_y = pos_y_final - m_y;
   // velocity
   float vel_x = (distance_x * 0.04f) * pFramerate->m_speed_factor;
   float vel_y = (distance_y * 0.04f) * pFramerate->m_speed_factor;

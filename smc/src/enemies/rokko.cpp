@@ -240,8 +240,10 @@ void cRokko ::Update_Dying(void) {
   // generate smoke
   m_smoke_counter += pFramerate->m_speed_factor * 4;
   if (m_smoke_counter >= 2.0f) {
-    Generate_Smoke(static_cast<int>(m_smoke_counter));
-    Generate_Sparks(static_cast<int>(m_smoke_counter * 0.5f));
+    Generate_Smoke(
+        static_cast<unsigned int>(static_cast<int>(m_smoke_counter)));
+    Generate_Sparks(
+        static_cast<unsigned int>(static_cast<int>(m_smoke_counter * 0.5f)));
     m_smoke_counter -= static_cast<int>(m_smoke_counter);
   }
 
@@ -263,7 +265,7 @@ void cRokko ::Update(void) {
 
   // if not active
   if (m_state != STA_FLY) {
-    GL_rect final_distance = Get_Final_Distance_Rect();
+    GL_rect const final_distance = Get_Final_Distance_Rect();
 
     // if player is in front then activate
     if (pLevel_Player->m_maryo_type != MARYO_GHOST &&
@@ -277,7 +279,8 @@ void cRokko ::Update(void) {
   // generate smoke
   m_smoke_counter += pFramerate->m_speed_factor * 4.0f;
   if (m_smoke_counter >= 1.0f) {
-    Generate_Smoke(static_cast<int>(m_smoke_counter));
+    Generate_Smoke(
+        static_cast<unsigned int>(static_cast<int>(m_smoke_counter)));
     m_smoke_counter -= static_cast<int>(m_smoke_counter);
   }
 }
@@ -448,7 +451,7 @@ bool cRokko ::Is_Update_Valid(void) {
 }
 
 bool cRokko ::Is_Draw_Valid(void) {
-  bool valid = cEnemy::Is_Draw_Valid();
+  bool const valid = cEnemy::Is_Draw_Valid();
 
   // if editor enabled
   if (editor_enabled) {
@@ -564,7 +567,7 @@ void cRokko ::Editor_Activate(void) {
 bool cRokko ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()));
@@ -575,7 +578,7 @@ bool cRokko ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
 bool cRokko ::Editor_Speed_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Speed(string_to_float(str_text));

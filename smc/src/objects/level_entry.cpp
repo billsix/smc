@@ -184,7 +184,7 @@ void cLevel_Entry ::Activate(void) {
     pAudio->Play_Sound("leave_pipe.ogg");
 
     // set state to linked to stop checking for on ground objects which sometimes changes the position
-    Moving_state player_state = pLevel_Player->m_state;
+    Moving_state const player_state = pLevel_Player->m_state;
     pLevel_Player->m_state = STA_OBJ_LINKED;
 
     pLevel_Player->Stop_Ducking();
@@ -195,7 +195,9 @@ void cLevel_Entry ::Activate(void) {
 
     // set image
     if (m_direction == DIR_UP || m_direction == DIR_DOWN) {
-      pLevel_Player->Set_Image_Num(MARYO_IMG_FALL + pLevel_Player->m_direction);
+      pLevel_Player->Set_Image_Num(
+          static_cast<int>(MARYO_IMG_FALL) +
+          static_cast<int>(pLevel_Player->m_direction));
     } else if (m_direction == DIR_LEFT || m_direction == DIR_RIGHT) {
       pLevel_Player->Set_Image_Num(pLevel_Player->m_direction);
 
@@ -208,7 +210,7 @@ void cLevel_Entry ::Activate(void) {
     }
 
     // change position z to be behind massive for the animation
-    float player_posz = pLevel_Player->m_pos_z;
+    float const player_posz = pLevel_Player->m_pos_z;
     pLevel_Player->m_pos_z = 0.0799f;
 
     // move slowly out
@@ -400,7 +402,7 @@ void cLevel_Entry ::Editor_Activate(void) {
 bool cLevel_Entry ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()));
@@ -411,7 +413,7 @@ bool cLevel_Entry ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
 bool cLevel_Entry ::Editor_Name_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Name(str_text);

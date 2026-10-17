@@ -183,7 +183,7 @@ bool cKeyboard ::Key_Down(SDLKey key) {
 
   // set fixed speed factor mode
   if (key == SDLK_F6) {
-    float fixed_speedfactor = string_to_float(
+    float const fixed_speedfactor = string_to_float(
         Box_Text_Input(float_to_string(pFramerate->m_force_speed_factor, 2),
                        "Set Fixed Speedfactor", true));
 

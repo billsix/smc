@@ -15,7 +15,7 @@ pointers — every owner is a raw pointer or a `vector<T*>`, freed by hand.
 >   non-polymorphic subobjects are **value** members, not `unique_ptr`; and the singletons are owned
 >   through a `cOwned<T>` wrapper destroyed in **reverse declaration order**, so there is no
 >   hand-ordered teardown and the CEGUI system dies in `~cVideo`. The migration method is
->   `~/.claude/reference/cpp-ownership-migration.md` ("The second pass").
+>   `github.com/billsix/runClaudeInContainer:tasks/reference/cpp-ownership-migration.md` ("The second pass").
 >
 > A full rewrite of the L1/L2 body below to the current state is still owed (it describes raw
 > pointers); until then, read it as history and the two docs above as truth.

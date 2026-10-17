@@ -324,11 +324,11 @@ void cLevel_Settings ::Enter(void) {
 
 void cLevel_Settings ::Leave(void) {
   // get window manager
-  CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+  CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
   // # Main Tab
   // filename
-  std::string level_filename =
+  std::string const level_filename =
       wmgr.getWindow("editbox_level_filename")->getText().c_str();
   if (level_filename.length() > 1 &&
       Trim_Filename(m_level->m_level_filename, false, false)
@@ -340,7 +340,7 @@ void cLevel_Settings ::Leave(void) {
     }
   }
   // music
-  std::string new_music =
+  std::string const new_music =
       wmgr.getWindow("editbox_music_filename")->getText().c_str();
   // if the music is new
   if (pAudio->Is_Music_Playing() &&
@@ -454,9 +454,9 @@ bool cLevel_Settings ::Add_Background_Image(const CEGUI::EventArgs& event) {
 }
 
 bool cLevel_Settings ::Delete_Background_Image(const CEGUI::EventArgs& event) {
-  CEGUI::Listbox* listbox = static_cast<CEGUI::Listbox*>(
+  CEGUI::Listbox const* listbox = static_cast<CEGUI::Listbox*>(
       CEGUI::WindowManager::getSingleton().getWindow("listbox_backgrounds"));
-  CEGUI::ListboxItem* item = listbox->getFirstSelectedItem();
+  CEGUI::ListboxItem const* item = listbox->getFirstSelectedItem();
 
   if (!item) {
     return true;
@@ -477,17 +477,18 @@ bool cLevel_Settings ::Delete_Background_Image(const CEGUI::EventArgs& event) {
 
 bool cLevel_Settings ::Set_Background_Image(const CEGUI::EventArgs& event) {
   // get window manager
-  CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+  CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
-  CEGUI::Listbox* listbox =
+  CEGUI::Listbox const* listbox =
       static_cast<CEGUI::Listbox*>(wmgr.getWindow("listbox_backgrounds"));
-  CEGUI::ListboxItem* item = listbox->getFirstSelectedItem();
+  CEGUI::ListboxItem const* item = listbox->getFirstSelectedItem();
 
   // selected
   if (item) {
     // get background
-    cBackground* background = static_cast<cBackground*>(item->getUserData());
-    std::string background_filename = background->m_image_1_filename;
+    cBackground const* background =
+        static_cast<cBackground*>(item->getUserData());
+    std::string const background_filename = background->m_image_1_filename;
 
     // type
     CEGUI::Editbox* editbox =
@@ -540,7 +541,7 @@ bool cLevel_Settings ::Button_Apply(const CEGUI::EventArgs& event) {
 
 bool cLevel_Settings ::Update_BG_Colors(const CEGUI::EventArgs& event) {
   // get window manager
-  CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+  CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
   CEGUI::Editbox* color_start_red = static_cast<CEGUI::Editbox*>(
       wmgr.getWindow("editbox_bg_color_start_red"));
@@ -637,7 +638,7 @@ void cLevel_Settings ::Load_BG_Image_List(void) {
 
 bool cLevel_Settings ::Update_BG_Image(const CEGUI::EventArgs& event) {
   // get window manager
-  CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+  CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
   CEGUI::Listbox* listbox =
       static_cast<CEGUI::Listbox*>(wmgr.getWindow("listbox_backgrounds"));
@@ -649,28 +650,28 @@ bool cLevel_Settings ::Update_BG_Image(const CEGUI::EventArgs& event) {
     return true;
   }
 
-  std::string bg_type =
+  std::string const bg_type =
       wmgr.getWindow("combo_bg_image_type")->getText().c_str();
   std::string bg_filename =
       wmgr.getWindow("editbox_bg_image_name")->getText().c_str();
-  float posx = string_to_float(
+  float const posx = string_to_float(
       (wmgr.getWindow("editbox_bg_image_posx"))->getText().c_str());
-  float posy = string_to_float(
+  float const posy = string_to_float(
       (wmgr.getWindow("editbox_bg_image_posy"))->getText().c_str());
-  float posz = string_to_float(
+  float const posz = string_to_float(
       (wmgr.getWindow("editbox_bg_image_posz"))->getText().c_str());
-  float speed_x =
+  float const speed_x =
       (static_cast<CEGUI::Spinner*>(wmgr.getWindow("spinner_bg_image_speed_x")))
           ->getCurrentValue();
-  float speed_y =
+  float const speed_y =
       (static_cast<CEGUI::Spinner*>(wmgr.getWindow("spinner_bg_image_speed_y")))
           ->getCurrentValue();
-  float const_vel_x = (static_cast<CEGUI::Spinner*>(
-                           wmgr.getWindow("spinner_bg_image_const_vel_x")))
-                          ->getCurrentValue();
-  float const_vel_y = (static_cast<CEGUI::Spinner*>(
-                           wmgr.getWindow("spinner_bg_image_const_vel_y")))
-                          ->getCurrentValue();
+  float const const_vel_x = (static_cast<CEGUI::Spinner*>(wmgr.getWindow(
+                                 "spinner_bg_image_const_vel_x")))
+                                ->getCurrentValue();
+  float const const_vel_y = (static_cast<CEGUI::Spinner*>(wmgr.getWindow(
+                                 "spinner_bg_image_const_vel_y")))
+                                ->getCurrentValue();
 
   // get background
   cBackground* background = static_cast<cBackground*>(item->getUserData());
@@ -707,7 +708,7 @@ bool cLevel_Settings ::Update_BG_Image(const CEGUI::EventArgs& event) {
 
 void cLevel_Settings ::Clear_Layer_Field(void) {
   // get window manager
-  CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+  CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
   wmgr.getWindow("combo_bg_image_type")->setText("Disabled");
   wmgr.getWindow("editbox_bg_image_name")->setText("");
@@ -724,9 +725,9 @@ bool cLevel_Settings ::Spinner_Difficulty_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::Spinner* spinner =
+  CEGUI::Spinner const* spinner =
       static_cast<CEGUI::Spinner*>(windowEventArgs.window);
-  float val = spinner->getCurrentValue();
+  float const val = spinner->getCurrentValue();
 
   m_slider_difficulty->setCurrentValue(val);
   m_text_difficulty_name->setText(Get_Difficulty_Name(val));
@@ -738,7 +739,7 @@ bool cLevel_Settings ::Slider_Difficulty_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  float val =
+  float const val =
       static_cast<CEGUI::Slider*>(windowEventArgs.window)->getCurrentValue();
 
   m_spinner_difficulty->setCurrentValue(val);

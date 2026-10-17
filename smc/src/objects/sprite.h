@@ -181,11 +181,11 @@ class cSprite : public cCollidingSprite {
     m_shadow_color = shadow;
   };
   // Set image color
-  inline void Set_Color(const Uint8 red, const Uint8 green, const Uint8 blue,
-                        const Uint8 alpha = 255) {
-    m_color.red = red;
-    m_color.green = green;
-    m_color.blue = blue;
+  inline void Set_Color(const Uint8 red_value, const Uint8 green_value,
+                        const Uint8 blue_value, const Uint8 alpha = 255) {
+    m_color.red = red_value;
+    m_color.green = green_value;
+    m_color.blue = blue_value;
     m_color.alpha = alpha;
   };
   inline void Set_Color(const Color& col) { m_color = col; };
@@ -200,8 +200,8 @@ class cSprite : public cCollidingSprite {
 	 * 1.0 is the maximum and the given color has maximum value
 	 * 0.0 is the minimum and the given color has minimum value
 	*/
-  void Set_Color_Combine(const float red, const float green, const float blue,
-                         const GLint com_type);
+  void Set_Color_Combine(const float red_value, const float green_value,
+                         const float blue_value, const GLint com_type);
 
   /* Set if rotation affects the collision rect
 	 * only supports 90� steps currently

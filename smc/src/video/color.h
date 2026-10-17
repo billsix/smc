@@ -34,6 +34,10 @@ class Color {
     alpha = 255;
   }
 
+  // Rule-of-five: Color declares a copy-assignment operator below, so declare the copy
+  // constructor explicitly too (defaulted = memberwise, identical to the implicit one).
+  Color(const Color&) = default;
+
   Color(Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255) {
     red = r;
     green = g;

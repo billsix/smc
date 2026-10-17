@@ -23,8 +23,10 @@ fi
 dnf install -y \
     autoconf \
     automake \
+    bear \
     bison \
     ccache \
+    clang \
     clang-tools-extra \
     expat-devel \
     flex \
@@ -40,6 +42,7 @@ dnf install -y \
     less \
     libpng-devel \
     libtool \
+    libX11-devel \
     make \
     mesa-libGL-devel \
     mesa-libGLU-devel \

@@ -562,9 +562,9 @@ void cMenu_Start ::Get_Levels(std::string dir, CEGUI::colour color) {
       CEGUI::WindowManager::getSingleton().getWindow("listbox_levels"));
 
   // get directory length for erasing
-  int dir_length = dir.length() + 1;
+  int const dir_length = dir.length() + 1;
   // get all files
-  vector<std::string> lvl_files =
+  vector<std::string> const lvl_files =
       Get_Directory_Files(dir, "smclvl", false, false);
 
   // list all available levels
@@ -572,7 +572,7 @@ void cMenu_Start ::Get_Levels(std::string dir, CEGUI::colour color) {
     // get filename
     std::string lvl_name = lvl_file;
     // remove base directory
-    lvl_name.erase(0, dir_length);
+    lvl_name.erase(0, static_cast<size_t>(dir_length));
 
     // erase file type only if smclvl
     if (lvl_name.rfind(".smclvl") != std::string::npos) {
@@ -585,8 +585,9 @@ void cMenu_Start ::Get_Levels(std::string dir, CEGUI::colour color) {
     item->setTextColours(color);
 
     // check if item with the same name already exists
-    CEGUI::ListboxTextItem* item_old = static_cast<CEGUI::ListboxTextItem*>(
-        listbox_levels->findItemWithText(lvl_name, nullptr));
+    CEGUI::ListboxTextItem const* item_old =
+        static_cast<CEGUI::ListboxTextItem*>(
+            listbox_levels->findItemWithText(lvl_name, nullptr));
 
     if (item_old) {
       // mix colors
@@ -634,12 +635,12 @@ bool cMenu_Start ::Highlight_Level(std::string lvl_name) {
 
 void cMenu_Start ::Load_Selected(void) {
   // Get Tab Control
-  CEGUI::TabControl* tabcontrol = static_cast<CEGUI::TabControl*>(
+  CEGUI::TabControl const* tabcontrol = static_cast<CEGUI::TabControl*>(
       CEGUI::WindowManager::getSingleton().getWindow("tabcontrol_main"));
 
   // Campaign
   if (tabcontrol->getSelectedTabIndex() == 0) {
-    CEGUI::ListboxItem* item =
+    CEGUI::ListboxItem const* item =
         (static_cast<CEGUI::Listbox*>(
              CEGUI::WindowManager::getSingleton().getWindow(
                  "listbox_campaigns")))
@@ -651,7 +652,7 @@ void cMenu_Start ::Load_Selected(void) {
   }
   // World
   else if (tabcontrol->getSelectedTabIndex() == 1) {
-    CEGUI::ListboxItem* item =
+    CEGUI::ListboxItem const* item =
         (static_cast<CEGUI::Listbox*>(
              CEGUI::WindowManager::getSingleton().getWindow("listbox_worlds")))
             ->getFirstSelectedItem();
@@ -662,7 +663,7 @@ void cMenu_Start ::Load_Selected(void) {
   }
   // Level
   else {
-    CEGUI::ListboxItem* item =
+    CEGUI::ListboxItem const* item =
         (static_cast<CEGUI::Listbox*>(
              CEGUI::WindowManager::getSingleton().getWindow("listbox_levels")))
             ->getFirstSelectedItem();
@@ -679,7 +680,7 @@ void cMenu_Start ::Load_Campaign(std::string name) {
     return;
   }
 
-  cCampaign* new_campaign = pCampaign_Manager->Get_from_Name(name);
+  cCampaign const* new_campaign = pCampaign_Manager->Get_from_Name(name);
 
   // if not available
   if (!new_campaign) {
@@ -717,7 +718,7 @@ void cMenu_Start ::Load_World(std::string name) {
     return;
   }
 
-  cOverworld* new_world = pOverworld_Manager->Get_from_Name(name);
+  cOverworld const* new_world = pOverworld_Manager->Get_from_Name(name);
 
   // if not available
   if (!new_world) {
@@ -773,7 +774,7 @@ bool cMenu_Start ::Load_Level(std::string level_name) {
 bool cMenu_Start ::TabControl_Selection_Changed(const CEGUI::EventArgs& e) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(e);
-  CEGUI::TabControl* tabcontrol =
+  CEGUI::TabControl const* tabcontrol =
       static_cast<CEGUI::TabControl*>(windowEventArgs.window);
 
   if (tabcontrol->getSelectedTabIndex() == 0) {
@@ -869,7 +870,8 @@ bool cMenu_Start ::Listbox_Keydown(const CEGUI::EventArgs& e) {
     int last_selected = 0;
 
     // get selected item
-    CEGUI::ListboxItem* last_selected_item = listbox->getFirstSelectedItem();
+    CEGUI::ListboxItem const* last_selected_item =
+        listbox->getFirstSelectedItem();
 
     // if something is selected
     if (last_selected_item != nullptr) {
@@ -930,8 +932,8 @@ bool cMenu_Start ::Listbox_Keydown(const CEGUI::EventArgs& e) {
       }
     }
 
-    listbox->setItemSelectState(new_selected, true);
-    listbox->ensureItemIsVisible(new_selected);
+    listbox->setItemSelectState(static_cast<size_t>(new_selected), true);
+    listbox->ensureItemIsVisible(static_cast<size_t>(new_selected));
 
     return true;
   }
@@ -985,7 +987,7 @@ bool cMenu_Start ::Listbox_Character_Key(const CEGUI::EventArgs& e) {
 bool cMenu_Start ::Campaign_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Listbox*>(windowEventArgs.window)
           ->getFirstSelectedItem();
 
@@ -1012,7 +1014,7 @@ bool cMenu_Start ::Campaign_Select(const CEGUI::EventArgs& event) {
 bool cMenu_Start ::Campaign_Select_final_list(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Listbox*>(windowEventArgs.window)
           ->getFirstSelectedItem();
 
@@ -1027,7 +1029,7 @@ bool cMenu_Start ::Campaign_Select_final_list(const CEGUI::EventArgs& event) {
 bool cMenu_Start ::World_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Listbox*>(windowEventArgs.window)
           ->getFirstSelectedItem();
 
@@ -1054,7 +1056,7 @@ bool cMenu_Start ::World_Select(const CEGUI::EventArgs& event) {
 bool cMenu_Start ::World_Select_final_list(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Listbox*>(windowEventArgs.window)
           ->getFirstSelectedItem();
 
@@ -1069,7 +1071,7 @@ bool cMenu_Start ::World_Select_final_list(const CEGUI::EventArgs& event) {
 bool cMenu_Start ::Level_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Listbox*>(windowEventArgs.window)
           ->getFirstSelectedItem();
 
@@ -1088,7 +1090,7 @@ bool cMenu_Start ::Level_Select(const CEGUI::EventArgs& event) {
 bool cMenu_Start ::Level_Select_Final_List(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Listbox*>(windowEventArgs.window)
           ->getFirstSelectedItem();
 
@@ -1116,9 +1118,9 @@ bool cMenu_Start ::Button_Level_New_Clicked(const CEGUI::EventArgs& event) {
 
 bool cMenu_Start ::Button_Level_Edit_Clicked(const CEGUI::EventArgs& event) {
   // Get Selected Level
-  CEGUI::Listbox* listbox_levels = static_cast<CEGUI::Listbox*>(
+  CEGUI::Listbox const* listbox_levels = static_cast<CEGUI::Listbox*>(
       CEGUI::WindowManager::getSingleton().getWindow("listbox_levels"));
-  CEGUI::ListboxItem* item = listbox_levels->getFirstSelectedItem();
+  CEGUI::ListboxItem const* item = listbox_levels->getFirstSelectedItem();
 
   // load level
   if (item && Load_Level(item->getText().c_str())) {
@@ -1132,7 +1134,7 @@ bool cMenu_Start ::Button_Level_Delete_Clicked(const CEGUI::EventArgs& event) {
   // Get Selected Level
   CEGUI::Listbox* listbox_levels = static_cast<CEGUI::Listbox*>(
       CEGUI::WindowManager::getSingleton().getWindow("listbox_levels"));
-  CEGUI::ListboxItem* item = listbox_levels->getFirstSelectedItem();
+  CEGUI::ListboxItem const* item = listbox_levels->getFirstSelectedItem();
 
   // load level
   if (item) {
@@ -1182,7 +1184,7 @@ void cMenu_Options ::Init(void) {
   m_vid_geometry_detail = pVideo->m_geometry_quality;
   m_vid_texture_detail = pVideo->m_texture_quality;
 
-  std::unique_ptr<cMenu_Item> temp_item;
+  std::unique_ptr<cMenu_Item> const temp_item;
 
   // options image
   auto hud_sprite = std::make_unique<cHudSprite>(
@@ -1240,7 +1242,7 @@ void cMenu_Options ::Init_GUI(void) {
 
 void cMenu_Options ::Init_GUI_Game(void) {
   // get the CEGUI window manager
-  CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+  CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
   // always run
   CEGUI::Window* text_always_run = static_cast<CEGUI::Window*>(
@@ -1377,7 +1379,7 @@ void cMenu_Options ::Init_GUI_Game(void) {
 
 void cMenu_Options ::Init_GUI_Video(void) {
   // get the CEGUI window manager
-  CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+  CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
   // Resolution
   CEGUI::Window* text_resolution =
@@ -1387,20 +1389,21 @@ void cMenu_Options ::Init_GUI_Video(void) {
   m_video_combo_resolution =
       static_cast<CEGUI::Combobox*>(wmgr.getWindow("video_combo_resolution"));
 
-  vector<cSize_Int> valid_resolutions = pVideo->Get_Supported_Resolutions();
+  vector<cSize_Int> const valid_resolutions =
+      pVideo->Get_Supported_Resolutions();
   CEGUI::ListboxTextItem* item;
 
   // add to listbox
   for (const auto& valid_resolution : valid_resolutions) {
     // get resolution
-    cSize_Int res = valid_resolution;
+    cSize_Int const res = valid_resolution;
 
     if (res.m_width <= 0 || res.m_height <= 0) {
       continue;
     }
 
     // calculate aspect ratio
-    float ar =
+    float const ar =
         static_cast<float>(res.m_width) / static_cast<float>(res.m_height);
 
     item = new CEGUI::ListboxTextItem(int_to_string(res.m_width) + "x" +
@@ -1429,8 +1432,8 @@ void cMenu_Options ::Init_GUI_Video(void) {
     m_video_combo_resolution->addItem(item);
   }
 
-  std::string temp = int_to_string(pPreferences->m_video_screen_w) + "x" +
-                     int_to_string(pPreferences->m_video_screen_h);
+  std::string const temp = int_to_string(pPreferences->m_video_screen_w) + "x" +
+                           int_to_string(pPreferences->m_video_screen_h);
   m_video_combo_resolution->setText(temp.c_str());
 
   m_video_combo_resolution->subscribeEvent(
@@ -1577,7 +1580,7 @@ void cMenu_Options ::Init_GUI_Video(void) {
 
 void cMenu_Options ::Init_GUI_Audio(void) {
   // get the CEGUI window manager
-  CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+  CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
   // Audio Hz
   CEGUI::Window* text_hz =
@@ -1600,7 +1603,8 @@ void cMenu_Options ::Init_GUI_Audio(void) {
   m_audio_combo_hz->addItem(item);
 
   // Set current value
-  m_audio_combo_hz->setText(int_to_string(pPreferences->m_audio_hz));
+  m_audio_combo_hz->setText(
+      int_to_string(static_cast<int>(pPreferences->m_audio_hz)));
 
   m_audio_combo_hz->subscribeEvent(
       CEGUI::Combobox::EventListSelectionAccepted,
@@ -1695,7 +1699,7 @@ void cMenu_Options ::Init_GUI_Audio(void) {
 
 void cMenu_Options ::Init_GUI_Keyboard(void) {
   // get the CEGUI window manager
-  CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+  CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
   // Keyboard listbox
   CEGUI::Window* text_keyboard_shortcuts =
@@ -1739,7 +1743,7 @@ void cMenu_Options ::Init_GUI_Keyboard(void) {
 
 void cMenu_Options ::Init_GUI_Joystick(void) {
   // get the CEGUI window manager
-  CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+  CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
   // Joystick sensitivity text
   CEGUI::Window* text_joystick_sensitivity =
@@ -1768,7 +1772,7 @@ void cMenu_Options ::Init_GUI_Joystick(void) {
   combo_joy->addItem(item);
 
   // Add all Joy names
-  vector<std::string> joy_names = pJoystick->Get_Names();
+  vector<std::string> const joy_names = pJoystick->Get_Names();
 
   for (const auto& joy_name : joy_names) {
     item = new CEGUI::ListboxTextItem(joy_name);
@@ -1777,7 +1781,7 @@ void cMenu_Options ::Init_GUI_Joystick(void) {
   }
 
   // Selected Item
-  CEGUI::ListboxTextItem* selected_item = nullptr;
+  CEGUI::ListboxTextItem const* selected_item = nullptr;
 
   // Set current Joy name
   if (pPreferences->m_joy_enabled) {
@@ -1884,7 +1888,7 @@ void cMenu_Options ::Init_GUI_Joystick(void) {
 
 void cMenu_Options ::Init_GUI_Editor(void) {
   // get the CEGUI window manager
-  CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+  CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
   // show item images
   CEGUI::Window* text_editor_show_item_images = static_cast<CEGUI::Window*>(
@@ -2017,7 +2021,7 @@ void cMenu_Options ::Change_Game_Setting(int setting) {
   }
   // language
   else if (pMenuCore->m_handler.m_active == 8) {
-    unsigned int selected = m_game_combo_language->getItemIndex(
+    unsigned int const selected = m_game_combo_language->getItemIndex(
         m_game_combo_language->findItemWithText(
             m_game_combo_language->getText(), nullptr));
 
@@ -2039,7 +2043,7 @@ void cMenu_Options ::Change_Game_Setting(int setting) {
   }
   // menu level
   else if (pMenuCore->m_handler.m_active == 9) {
-    unsigned int selected = m_game_combo_menu_level->getItemIndex(
+    unsigned int const selected = m_game_combo_menu_level->getItemIndex(
         m_game_combo_menu_level->findItemWithText(
             m_game_combo_menu_level->getText(), nullptr));
 
@@ -2065,7 +2069,7 @@ void cMenu_Options ::Change_Video_Setting(int setting) {
   // Resolution
   if (pMenuCore->m_handler.m_active == 5) {
     // Resolution
-    unsigned int selected = m_video_combo_resolution->getItemIndex(
+    unsigned int const selected = m_video_combo_resolution->getItemIndex(
         m_video_combo_resolution->findItemWithText(
             m_video_combo_resolution->getText(), nullptr));
 
@@ -2093,7 +2097,8 @@ void cMenu_Options ::Change_Video_Setting(int setting) {
       m_vid_bpp = 16;
     }
 
-    m_video_combo_bpp->setText(int_to_string(m_vid_bpp).c_str());
+    m_video_combo_bpp->setText(
+        int_to_string(static_cast<int>(m_vid_bpp)).c_str());
   }
   // Fullscreen
   else if (pMenuCore->m_handler.m_active == 7) {
@@ -2124,7 +2129,7 @@ void cMenu_Options ::Change_Video_Setting(int setting) {
 void cMenu_Options ::Change_Audio_Setting(int setting) {
   // Hz
   if (pMenuCore->m_handler.m_active == 5) {
-    unsigned int selected =
+    unsigned int const selected =
         m_audio_combo_hz->getItemIndex(m_audio_combo_hz->findItemWithText(
             m_audio_combo_hz->getText(), nullptr));
 
@@ -2289,13 +2294,13 @@ void cMenu_Options ::Build_Shortcut_List(bool joystick /* = 0 */) {
 
   // add all available shortcuts
   for (const auto& shortcut : shortcuts) {
-    cShortcut_item shortcut_item = shortcut;
+    cShortcut_item const shortcut_item = shortcut;
 
     CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(
         shortcut_item.m_name, 0, shortcut_item.m_key);
     item->setSelectionColours(CEGUI::colour(0.33f, 0.33f, 0.33f));
     item->setSelectionBrushImage("TaharezLook", "ListboxSelectionBrush");
-    unsigned int row_id = listbox->addRow(item, 0);
+    unsigned int const row_id = listbox->addRow(item, 0);
 
     // Get shortcut key name
     std::string shortcut_key;
@@ -2303,7 +2308,7 @@ void cMenu_Options ::Build_Shortcut_List(bool joystick /* = 0 */) {
 
     // Keyboard
     if (!joystick) {
-      SDLKey* key = static_cast<SDLKey*>(shortcut_item.m_key);
+      SDLKey const* key = static_cast<SDLKey*>(shortcut_item.m_key);
       const SDLKey* key_default =
           static_cast<const SDLKey*>(shortcut_item.m_key_default);
       shortcut_key = SDL_GetKeyName(*key);
@@ -2314,7 +2319,7 @@ void cMenu_Options ::Build_Shortcut_List(bool joystick /* = 0 */) {
     }
     // Joystick
     else {
-      Uint8* button = static_cast<Uint8*>(shortcut_item.m_key);
+      Uint8 const* button = static_cast<Uint8*>(shortcut_item.m_key);
       const Uint8* button_default =
           static_cast<const Uint8*>(shortcut_item.m_key_default);
       shortcut_key = int_to_string(*button);
@@ -2390,7 +2395,7 @@ void cMenu_Options ::Set_Shortcut(std::string name, void* data,
 
 void cMenu_Options ::Joy_Default(unsigned int index) {
   pPreferences->m_joy_enabled = true;
-  pPreferences->m_joy_name = SDL_JoystickNameForIndex(index);
+  pPreferences->m_joy_name = SDL_JoystickNameForIndex(static_cast<int>(index));
 
   // initialize and if no joystick available disable
   pJoystick->Init();
@@ -2412,7 +2417,7 @@ bool cMenu_Options ::Button_Back_Click(const CEGUI::EventArgs& event) {
 bool cMenu_Options ::Game_Always_Run_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   bool always_run = false;
@@ -2429,7 +2434,7 @@ bool cMenu_Options ::Game_Always_Run_Select(const CEGUI::EventArgs& event) {
 bool cMenu_Options ::Game_Camera_Hor_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::Spinner* spinner_camera_hor =
+  CEGUI::Spinner const* spinner_camera_hor =
       static_cast<CEGUI::Spinner*>(windowEventArgs.window);
 
   pLevel_Manager->m_camera.m_hor_offset_speed =
@@ -2442,7 +2447,7 @@ bool cMenu_Options ::Game_Camera_Hor_Select(const CEGUI::EventArgs& event) {
 bool cMenu_Options ::Game_Camera_Ver_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::Spinner* spinner_camera_ver =
+  CEGUI::Spinner const* spinner_camera_ver =
       static_cast<CEGUI::Spinner*>(windowEventArgs.window);
 
   pLevel_Manager->m_camera.m_ver_offset_speed =
@@ -2455,7 +2460,7 @@ bool cMenu_Options ::Game_Camera_Ver_Select(const CEGUI::EventArgs& event) {
 bool cMenu_Options ::Game_Language_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   // default
@@ -2473,7 +2478,7 @@ bool cMenu_Options ::Game_Language_Select(const CEGUI::EventArgs& event) {
 bool cMenu_Options ::Game_Menu_Level_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   pPreferences->m_menu_level = item->getText().c_str();
@@ -2509,10 +2514,10 @@ bool cMenu_Options ::Game_Button_Reset_Game_Clicked(
 bool cMenu_Options ::Video_Resolution_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
-  std::string temp = item->getText().c_str();
+  std::string const temp = item->getText().c_str();
 
   // get end of height value if text is after resolution string
   std::string::size_type height_end = temp.find(" ");
@@ -2522,11 +2527,14 @@ bool cMenu_Options ::Video_Resolution_Select(const CEGUI::EventArgs& event) {
   }
 
   // get resolution
-  unsigned int w = string_to_int(temp.substr(0, temp.find("x")));
-  unsigned int h = string_to_int(temp.substr(temp.find("x") + 1, height_end));
+  unsigned int const w =
+      static_cast<unsigned int>(string_to_int(temp.substr(0, temp.find("x"))));
+  unsigned int const h = static_cast<unsigned int>(
+      string_to_int(temp.substr(temp.find("x") + 1, height_end)));
 
   // is it supported
-  if (!pVideo->Test_Video(w, h, m_vid_bpp)) {
+  if (!pVideo->Test_Video(static_cast<int>(w), static_cast<int>(h),
+                          static_cast<int>(m_vid_bpp))) {
     return false;
   }
 
@@ -2540,12 +2548,14 @@ bool cMenu_Options ::Video_Resolution_Select(const CEGUI::EventArgs& event) {
 bool cMenu_Options ::Video_Bpp_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
-  unsigned int bpp = string_to_int(item->getText().c_str());
+  unsigned int const bpp =
+      static_cast<unsigned int>(string_to_int(item->getText().c_str()));
 
-  if (!pVideo->Test_Video(m_vid_w, m_vid_h, bpp)) {
+  if (!pVideo->Test_Video(static_cast<int>(m_vid_w), static_cast<int>(m_vid_h),
+                          static_cast<int>(bpp))) {
     return false;
   }
 
@@ -2557,7 +2567,7 @@ bool cMenu_Options ::Video_Bpp_Select(const CEGUI::EventArgs& event) {
 bool cMenu_Options ::Video_Fullscreen_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   bool bfullscreen = false;
@@ -2574,7 +2584,7 @@ bool cMenu_Options ::Video_Fullscreen_Select(const CEGUI::EventArgs& event) {
 bool cMenu_Options ::Video_Vsync_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   bool bvsync = false;
@@ -2591,7 +2601,7 @@ bool cMenu_Options ::Video_Vsync_Select(const CEGUI::EventArgs& event) {
 bool cMenu_Options ::Video_FPS_Limit_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::Spinner* spinner_fps_limit =
+  CEGUI::Spinner const* spinner_fps_limit =
       static_cast<CEGUI::Spinner*>(windowEventArgs.window);
 
   pPreferences->m_video_fps_limit = spinner_fps_limit->getCurrentValue();
@@ -2714,10 +2724,11 @@ bool cMenu_Options ::Video_Button_Recreate_Cache_Clicked(
 bool cMenu_Options ::Audio_Hz_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
-  pPreferences->m_audio_hz = string_to_int(item->getText().c_str());
+  pPreferences->m_audio_hz =
+      static_cast<unsigned int>(string_to_int(item->getText().c_str()));
 
   // draw reloading text
   Draw_Static_Text(_("Reloading"), &green, nullptr, false);
@@ -2734,7 +2745,7 @@ bool cMenu_Options ::Audio_Hz_Select(const CEGUI::EventArgs& event) {
 bool cMenu_Options ::Audio_Music_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   bool music_enabled = false;
@@ -2764,7 +2775,7 @@ bool cMenu_Options ::Audio_Music_Select(const CEGUI::EventArgs& event) {
 bool cMenu_Options ::Audio_Music_Volume_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  Uint8 val = static_cast<Uint8>(
+  Uint8 const val = static_cast<Uint8>(
       static_cast<CEGUI::Slider*>(windowEventArgs.window)->getCurrentValue());
 
   pAudio->Set_Music_Volume(val);
@@ -2777,7 +2788,7 @@ bool cMenu_Options ::Audio_Music_Volume_Changed(const CEGUI::EventArgs& event) {
 bool cMenu_Options ::Audio_Sound_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   bool sound_enabled = false;
@@ -2796,7 +2807,7 @@ bool cMenu_Options ::Audio_Sound_Select(const CEGUI::EventArgs& event) {
 bool cMenu_Options ::Audio_Sound_Volume_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  Uint8 val = static_cast<Uint8>(
+  Uint8 const val = static_cast<Uint8>(
       static_cast<CEGUI::Slider*>(windowEventArgs.window)->getCurrentValue());
 
   pAudio->Set_Sound_Volume(val);
@@ -2823,7 +2834,7 @@ bool cMenu_Options ::Audio_Button_Reset_Clicked(const CEGUI::EventArgs& event) {
 bool cMenu_Options ::Keyboard_List_Double_Click(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::MultiColumnList*>(windowEventArgs.window)
           ->getFirstSelectedItem();
 
@@ -2870,8 +2881,9 @@ bool cMenu_Options ::Joystick_Name_Click(const CEGUI::EventArgs& event) {
   // selected item id
   int selected_item = 0;
   // current list item
-  CEGUI::ListboxTextItem* list_item = static_cast<CEGUI::ListboxTextItem*>(
-      combo_joy->findItemWithText(combo_joy->getText(), nullptr));
+  CEGUI::ListboxTextItem const* list_item =
+      static_cast<CEGUI::ListboxTextItem*>(
+          combo_joy->findItemWithText(combo_joy->getText(), nullptr));
 
   // if selected
   if (list_item) {
@@ -2893,7 +2905,7 @@ bool cMenu_Options ::Joystick_Name_Click(const CEGUI::EventArgs& event) {
   }
   // Select Joy
   else {
-    Joy_Default(selected_item - 1);
+    Joy_Default(static_cast<unsigned int>(selected_item - 1));
   }
 
   // check if initialization succeeded
@@ -2909,7 +2921,8 @@ bool cMenu_Options ::Joystick_Name_Click(const CEGUI::EventArgs& event) {
   }
 
   combo_joy->setText(
-      combo_joy->getListboxItemFromIndex(selected_item)->getText());
+      combo_joy->getListboxItemFromIndex(static_cast<size_t>(selected_item))
+          ->getText());
 
   return true;
 }
@@ -2917,9 +2930,9 @@ bool cMenu_Options ::Joystick_Name_Click(const CEGUI::EventArgs& event) {
 bool cMenu_Options ::Joystick_Name_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::Combobox* combo =
+  CEGUI::Combobox const* combo =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window);
-  CEGUI::ListboxItem* item = combo->getSelectedItem();
+  CEGUI::ListboxItem const* item = combo->getSelectedItem();
 
   if (item->getText().compare(_("None")) == 0) {
     Joy_Disable();
@@ -2945,7 +2958,7 @@ bool cMenu_Options ::Joystick_Analog_Jump_Select(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   bool analog_jump = false;
@@ -2984,7 +2997,7 @@ bool cMenu_Options ::Joystick_Spinner_Axis_Ver_Changed(
 bool cMenu_Options ::Joystick_List_Double_Click(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::MultiColumnList*>(windowEventArgs.window)
           ->getFirstSelectedItem();
 
@@ -3015,7 +3028,7 @@ bool cMenu_Options ::Game_Editor_Show_Item_Images_Select(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   bool show_item_images = false;
@@ -3033,7 +3046,7 @@ bool cMenu_Options ::Game_Editor_Item_Image_Size_Select(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::Spinner* spinner_item_image_size =
+  CEGUI::Spinner const* spinner_item_image_size =
       static_cast<CEGUI::Spinner*>(windowEventArgs.window);
 
   pPreferences->m_editor_item_image_size =
@@ -3046,7 +3059,7 @@ bool cMenu_Options ::Game_Editor_Auto_Hide_Mouse_Select(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   bool auto_hide_mouse = false;
@@ -3100,7 +3113,7 @@ void cMenu_Savegames ::Init(void) {
         &pMenuCore->m_handler.m_level.m_sprite_manager);
     temp_item->m_image_default.Set_Image(itr->m_image);
     temp_item->Set_Pos(static_cast<float>(game_res_w) / 5, m_menu_pos_y);
-    cMenu_Item* added =
+    cMenu_Item const* added =
         pMenuCore->m_handler.Add_Menu_Item(std::move(temp_item), 1.5f, grey);
 
     m_menu_pos_y += added->m_image_default.m_col_rect.m_h;
@@ -3188,10 +3201,10 @@ void cMenu_Savegames ::Draw(void) {
 }
 
 void cMenu_Savegames ::Update_Load(void) {
-  int save_num = pMenuCore->m_handler.m_active + 1;
+  int const save_num = pMenuCore->m_handler.m_active + 1;
 
   // not valid
-  if (!pSavegame->Is_Valid(save_num)) {
+  if (!pSavegame->Is_Valid(static_cast<unsigned int>(save_num))) {
     return;
   }
 
@@ -3199,12 +3212,13 @@ void cMenu_Savegames ::Update_Load(void) {
   // reset before loading the level to keep the level in the manager
   pLevel_Player->Reset_Save();
 
-  std::unique_ptr<cSave> savegame = pSavegame->Load(save_num);
-  std::string level_name = savegame->Get_Active_Level();
+  std::unique_ptr<cSave> savegame =
+      pSavegame->Load(static_cast<unsigned int>(save_num));
+  std::string const level_name = savegame->Get_Active_Level();
 
   if (!level_name.empty()) {
     Game_Action = GA_ENTER_LEVEL;
-    cLevel* level = pLevel_Manager->Load(level_name);
+    cLevel const* level = pLevel_Manager->Load(level_name);
     // only fade-out music if different
     if (pActive_Level->Get_Music_Filename(1).compare(
             level->Get_Music_Filename(1)) != 0) {
@@ -3232,8 +3246,8 @@ void cMenu_Savegames ::Update_Save(void) {
     return;
   }
 
-  std::string descripion =
-      Set_Save_Description(pMenuCore->m_handler.m_active + 1);
+  std::string const descripion = Set_Save_Description(
+      static_cast<unsigned int>(pMenuCore->m_handler.m_active + 1));
 
   pFramerate->Reset();
 
@@ -3260,7 +3274,8 @@ void cMenu_Savegames ::Update_Save(void) {
   }
 #endif
   // save
-  pSavegame->Save_Game(pMenuCore->m_handler.m_active + 1, descripion);
+  pSavegame->Save_Game(
+      static_cast<unsigned int>(pMenuCore->m_handler.m_active + 1), descripion);
 
   Game_Action = GA_ENTER_MENU;
   Game_Action_Data_Middle.add("load_menu", int_to_string(MENU_MAIN));
@@ -3579,7 +3594,7 @@ void cMenu_Credits ::Update(void) {
           }
           // star explosion
           else {
-            quota += rand() % 25;
+            quota += static_cast<unsigned int>(rand() % 25);
             anim->Set_Image_Filename("animation/particles/fire_3.png");
             anim->Set_Direction_Range(0, 360);
             anim->Set_Scale(0.2f, 0.1f);

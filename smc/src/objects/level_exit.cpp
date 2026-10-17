@@ -131,7 +131,7 @@ void cLevel_Exit ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   Write_Property(stream, "camera_motion", m_exit_motion);
 
   // destination level name
-  std::string str_level = Get_Level(false, false);
+  std::string const str_level = Get_Level(false, false);
   if (!str_level.empty()) {
     Write_Property(stream, "level_name", str_level);
   }
@@ -221,8 +221,9 @@ void cLevel_Exit ::Activate(void) {
     pAudio->Play_Sound("enter_pipe.ogg");
 
     pLevel_Player->Set_Moving_State(STA_FALL);
-    pLevel_Player->Set_Image_Num(pLevel_Player->Get_Image() +
-                                 pLevel_Player->m_direction);
+    pLevel_Player->Set_Image_Num(static_cast<int>(
+        pLevel_Player->Get_Image() +
+        static_cast<unsigned int>(pLevel_Player->m_direction)));
     pLevel_Player->Stop_Ducking();
     pLevel_Player->Reset_On_Ground();
 
@@ -244,7 +245,7 @@ void cLevel_Exit ::Activate(void) {
       }
     }
 
-    float player_posz = pLevel_Player->m_pos_z;
+    float const player_posz = pLevel_Player->m_pos_z;
     // change position z to be behind massive for the animation
     pLevel_Player->m_pos_z = 0.0799f;
 
@@ -479,7 +480,7 @@ void cLevel_Exit ::Editor_Activate(void) {
 
 void cLevel_Exit ::Editor_State_Update(void) {
   // get window manager
-  CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+  CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
   // path identifier
   CEGUI::Editbox* editbox_path_identifier = static_cast<CEGUI::Editbox*>(
@@ -515,7 +516,7 @@ void cLevel_Exit ::Editor_State_Update(void) {
 bool cLevel_Exit ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()));
@@ -526,9 +527,9 @@ bool cLevel_Exit ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
 bool cLevel_Exit ::Editor_Motion_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
-  std::string str_text = item->getText().c_str();
+  std::string const str_text = item->getText().c_str();
 
   if (str_text.compare("fly") == 0) {
     Set_Camera_Motion(CAMERA_MOVE_FLY);
@@ -549,7 +550,7 @@ bool cLevel_Exit ::Editor_Destination_Level_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Level(str_text);
@@ -561,7 +562,7 @@ bool cLevel_Exit ::Editor_Destination_Entry_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Entry(str_text);
@@ -573,7 +574,7 @@ bool cLevel_Exit ::Editor_Path_Identifier_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Path_Identifier(str_text);

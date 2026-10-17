@@ -83,7 +83,7 @@ two `cObject_Manager` bugs are gone by construction. Grounded in
   `code-style-conventions.md` in `runClaudeInContainer/tasks/reference/`, and mirrored the two docs
   into `runCrushInContainer/tasks/reference/`. Staged in both repos (not committed — the maintainer
   commits those). Original note:
-- [ ] **(reference) Harvest learnings to `~/.claude/reference/` (cross-project):**
+- [ ] **(reference) Harvest learnings to `github.com/billsix/runClaudeInContainer:tasks/reference/` (cross-project):**
   the "compiler as oracle" method for a large type migration (flip the shared type, fix the base +
   known hazards, then build-iterate on what the compiler flags — the refactor analogue of the
   instrumentation-driven / "tool as oracle" lesson in `print-debugging.md`); the mechanical-vs-
@@ -94,7 +94,7 @@ two `cObject_Manager` bugs are gone by construction. Grounded in
   `find_if` with a lambda over `unique_ptr&` + `.get()`; `binary_function`/`bind2nd` gone in C++17 →
   lambdas). **Write to the sandbox repos where these docs live (maintainer 2026-09-24):**
   canonical home is `runClaudeInContainer/tasks/reference/` (19 docs, mounted to
-  `~/.claude/reference/`) — extend `print-debugging.md` with the compiler-as-oracle refactor method
+  `github.com/billsix/runClaudeInContainer:tasks/reference/`) — extend `print-debugging.md` with the compiler-as-oracle refactor method
   and add a new `cpp-ownership-migration.md` (+ a pointer line in `code-style-conventions.md`); then
   MIRROR into `runCrushInContainer/tasks/reference/` (it mirrors only a subset today — 15 docs, no
   `print-debugging.md` yet — but the maintainer wants these there too). Both repos are workable

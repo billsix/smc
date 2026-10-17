@@ -39,8 +39,10 @@ void I18N_Init(void) {
            DATA_DIR "/" GAME_TRANSLATION_DIR);
   }
 
-  const char* textdomain_codeset = bind_textdomain_codeset(CAPTION, "UTF-8");
-  const char* textdomain_default = textdomain(CAPTION);
+  // Used only by the debug_print below, which compiles to nothing in a non-debug build.
+  [[maybe_unused]] const char* textdomain_codeset =
+      bind_textdomain_codeset(CAPTION, "UTF-8");
+  [[maybe_unused]] const char* textdomain_default = textdomain(CAPTION);
 
   debug_print(
       "Translation support with gettext set to:\n\tDirectory %s\n\tCodeset: %s\n\tText domain: %s\n",

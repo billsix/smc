@@ -451,7 +451,7 @@ void cWaypoint ::Editor_Activate(void) {
 bool cWaypoint ::Editor_Type_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   if (item->getText().compare(UTF8_("Level")) == 0) {
@@ -466,7 +466,7 @@ bool cWaypoint ::Editor_Destination_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Destination(str_text);
@@ -478,7 +478,7 @@ bool cWaypoint ::Editor_Backward_Direction_Select(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   Set_Direction_Backward(Get_Direction_Id(item->getText().c_str()));
@@ -490,7 +490,7 @@ bool cWaypoint ::Editor_Forward_Direction_Select(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   Set_Direction_Forward(Get_Direction_Id(item->getText().c_str()));
@@ -501,7 +501,7 @@ bool cWaypoint ::Editor_Forward_Direction_Select(
 bool cWaypoint ::Editor_Access_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   if (item->getText().compare(UTF8_("Enabled")) == 0) {

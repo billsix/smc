@@ -208,7 +208,7 @@ void cBonusBox ::Activate(void) {
 
   // random
   if (box_type == TYPE_POWERUP) {
-    int r = rand() % 5;
+    int const r = rand() % 5;
 
     if (r == 0) {
       box_type = TYPE_MUSHROOM_DEFAULT;
@@ -329,8 +329,8 @@ void cBonusBox ::Update(void) {
       continue;
     }
 
-    float diff = powerup->m_pos_y -
-                 (m_pos_y - powerup->m_col_rect.m_h - powerup->m_col_pos.m_y);
+    float const diff = powerup->m_pos_y - (m_pos_y - powerup->m_col_rect.m_h -
+                                           powerup->m_col_pos.m_y);
 
     // position over the box reached
     if (diff < 0.0f) {
@@ -496,7 +496,7 @@ void cBonusBox ::Editor_Activate(void) {
 }
 
 void cBonusBox ::Editor_State_Update(void) {
-  CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+  CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
   // Force best item
   CEGUI::Combobox* combobox = static_cast<CEGUI::Combobox*>(
@@ -525,7 +525,7 @@ void cBonusBox ::Editor_State_Update(void) {
 bool cBonusBox ::Editor_Animation_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   Set_Animation_Type(item->getText().c_str());
@@ -536,7 +536,7 @@ bool cBonusBox ::Editor_Animation_Select(const CEGUI::EventArgs& event) {
 bool cBonusBox ::Editor_Item_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   if (item->getText().compare(UTF8_("Mushroom")) == 0) {
@@ -569,7 +569,7 @@ bool cBonusBox ::Editor_Item_Select(const CEGUI::EventArgs& event) {
 bool cBonusBox ::Editor_Force_best_item_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   if (item->getText().compare(UTF8_("Enabled")) == 0) {
@@ -584,7 +584,7 @@ bool cBonusBox ::Editor_Force_best_item_Select(const CEGUI::EventArgs& event) {
 bool cBonusBox ::Editor_Gold_Color_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   Set_Goldcolor(Get_Color_Id(item->getText().c_str()));

@@ -1,0 +1,90 @@
+make  all-recursive
+make[1]: Entering directory '/smc/smc'
+Making all in src
+make[2]: Entering directory '/smc/smc/src'
+  CXX      smc-audio.o
+  CXX      smc-random_sound.o
+  CXX      smc-sound_manager.o
+  CXX      smc-camera.o
+  CXX      smc-campaign_manager.o
+  CXX      smc-collision.o
+  CXX      smc-editor.o
+  CXX      smc-file_parser.o
+  CXX      smc-filesystem.o
+  CXX      smc-resource_manager.o
+  CXX      smc-framerate.o
+  CXX      smc-game_core.o
+  CXX      smc-i18n.o
+  CXX      smc-main.o
+  CXX      smc-utilities.o
+  CXX      smc-vector.o
+  CXX      smc-property_helper.o
+  CXX      smc-sprite_manager.o
+  CXX      smc-turtle_boss.o
+  CXX      smc-eato.o
+  CXX      smc-enemy.o
+  CXX      smc-flyon.o
+  CXX      smc-furball.o
+  CXX      smc-gee.o
+  CXX      smc-krush.o
+  CXX      smc-rokko.o
+  CXX      smc-spika.o
+  CXX      smc-spikeball.o
+  CXX      smc-static.o
+  CXX      smc-thromp.o
+  CXX      smc-turtle.o
+  CXX      smc-generic.o
+  CXX      smc-hud.o
+  CXX      smc-menu.o
+  CXX      smc-menu_data.o
+  CXX      smc-spinner.o
+  CXX      smc-joystick.o
+  CXX      smc-keyboard.o
+  CXX      smc-mouse.o
+  CXX      smc-level_background.o
+  CXX      smc-level.o
+  CXX      smc-level_editor.o
+  CXX      smc-level_manager.o
+  CXX      smc-level_player.o
+  CXX      smc-level_settings.o
+  CXX      smc-animated_sprite.o
+  CXX      smc-ball.o
+  CXX      smc-bonusbox.o
+  CXX      smc-box.o
+  CXX      smc-enemystopper.o
+  CXX      smc-goldpiece.o
+  CXX      smc-level_entry.o
+  CXX      smc-level_exit.o
+  CXX      smc-moving_platform.o
+  CXX      smc-movingsprite.o
+  CXX      smc-path.o
+  CXX      smc-powerup.o
+  CXX      smc-spinbox.o
+  CXX      smc-sprite.o
+  CXX      smc-star.o
+  CXX      smc-text_box.o
+  CXX      smc-overworld.o
+  CXX      smc-world_editor.o
+  CXX      smc-world_layer.o
+  CXX      smc-world_manager.o
+  CXX      smc-world_player.o
+  CXX      smc-world_sprite_manager.o
+  CXX      smc-world_waypoint.o
+  CXX      smc-preferences.o
+  CXX      smc-savegame.o
+  CXX      smc-animation.o
+  CXX      smc-font.o
+  CXX      smc-gl_surface.o
+  CXX      smc-img_manager.o
+  CXX      smc-img_settings.o
+  CXX      smc-renderer.o
+  CXX      smc-video.o
+  CXXLD    smc
+make[2]: Leaving directory '/smc/smc/src'
+Making all in data
+make[2]: Entering directory '/smc/smc/data'
+make[2]: Nothing to be done for 'all'.
+make[2]: Leaving directory '/smc/smc/data'
+make[2]: Entering directory '/smc/smc'
+make[2]: Leaving directory '/smc/smc'
+make[1]: Leaving directory '/smc/smc'

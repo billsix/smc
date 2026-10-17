@@ -41,7 +41,7 @@ float GL_Vector ::norm(void) const {
 }
 
 void GL_Vector ::normalize(void) {
-  float val = norm();
+  float const val = norm();
 
   if (val != 0) {
     x /= val;
@@ -59,7 +59,7 @@ float GL_Vector ::angle(const GL_Vector& v) const {
 }
 
 GL_Vector GL_Vector ::cross(const GL_Vector& v) const {
-  GL_Vector tmp =
+  GL_Vector const tmp =
       GL_Vector(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
   return tmp;
 }
@@ -68,8 +68,8 @@ GL_Vector GL_Vector ::cross(const GL_Vector& v) const {
 GL_Vector GL_Vector ::rotate(float angle, const GL_Vector& a) const {
   GL_Vector tmp = GL_Vector();
 
-  float s = static_cast<float>(sin(angle));
-  float c = static_cast<float>(cos(angle));
+  float const s = static_cast<float>(sin(angle));
+  float const c = static_cast<float>(cos(angle));
 
   tmp.x = x * (a.x * a.x * (1 - c) + c) + y * (a.x * a.y * (1 - c) - a.z * s) +
           z * (a.x * a.z * (1 - c) + a.y * s);

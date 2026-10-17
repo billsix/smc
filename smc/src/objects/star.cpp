@@ -133,8 +133,9 @@ void cjStar ::Update(void) {
   m_anim_counter += 1.1f * pFramerate->m_speed_factor;
 
   if (m_anim_counter > 1.0f) {
-    Generate_Particles(m_pos_x, m_pos_y, true,
-                       static_cast<int>(m_anim_counter));
+    Generate_Particles(
+        m_pos_x, m_pos_y, true,
+        static_cast<unsigned int>(static_cast<int>(m_anim_counter)));
     m_anim_counter -= static_cast<int>(m_anim_counter);
   }
 

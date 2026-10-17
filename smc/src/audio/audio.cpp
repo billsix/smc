@@ -140,12 +140,12 @@ bool cAudio ::Init(void) {
   int numtimesopened =
       Mix_QuerySpec(&dev_frequency, &dev_format, &dev_channels);
 
-  bool sound = pPreferences->m_audio_sound;
-  bool music = pPreferences->m_audio_music;
+  bool const sound = pPreferences->m_audio_sound;
+  bool const music = pPreferences->m_audio_music;
 
   // if no change
   if (numtimesopened && m_music_enabled == music && m_sound_enabled == sound &&
-      dev_frequency == pPreferences->m_audio_hz) {
+      static_cast<unsigned int>(dev_frequency) == pPreferences->m_audio_hz) {
     return true;
   }
 
@@ -172,8 +172,9 @@ bool cAudio ::Init(void) {
 		*	chunk size	: Bytes used per output sample.
 		*/
 
-    if (Mix_OpenAudio(pPreferences->m_audio_hz, MIX_DEFAULT_FORMAT,
-                      m_audio_channels, m_audio_buffer) < 0) {
+    if (Mix_OpenAudio(static_cast<int>(pPreferences->m_audio_hz),
+                      MIX_DEFAULT_FORMAT, m_audio_channels,
+                      m_audio_buffer) < 0) {
       printf("Warning : Could not init 16-bit Audio\n- Reason : %s\n",
              SDL_GetError());
       return false;
@@ -185,7 +186,8 @@ bool cAudio ::Init(void) {
       printf("Mix_QuerySpec failed: %s\n", Mix_GetError());
     } else {
       // different frequency
-      if (pPreferences->m_audio_hz != dev_frequency) {
+      if (pPreferences->m_audio_hz !=
+          static_cast<unsigned int>(dev_frequency)) {
         printf("Warning : different frequency got %d but requested %d\n",
                dev_frequency, pPreferences->m_audio_hz);
       }
@@ -334,7 +336,7 @@ void cAudio ::Set_Max_Sounds(unsigned int limit /* = 10 */) {
   }
 
   // change channels managed by the mixer
-  Mix_AllocateChannels(m_max_sounds);
+  Mix_AllocateChannels(static_cast<int>(m_max_sounds));
 
   if (m_debug) {
     printf("Audio Sound Channels changed : %d\n", Mix_AllocateChannels(-1));
@@ -493,7 +495,7 @@ bool cAudio ::Play_Music(std::string filename, int loops /* = 0 */,
       }
       // fade in
       else {
-        Mix_FadeInMusic(m_music, loops, fadein_ms);
+        Mix_FadeInMusic(m_music, loops, static_cast<int>(fadein_ms));
       }
     }
     // not loaded
@@ -663,7 +665,7 @@ void cAudio ::Fadeout_Sounds(unsigned int ms, std::string filename,
       continue;
     }
 
-    Mix_FadeOutChannel(sound->m_channel, ms);
+    Mix_FadeOutChannel(sound->m_channel, static_cast<int>(ms));
   }
 }
 
@@ -678,7 +680,7 @@ void cAudio ::Fadeout_Music(unsigned int ms /* = 500 */,
     return;
   }
 
-  Mix_Fading status = Is_Music_Fading();
+  Mix_Fading const status = Is_Music_Fading();
 
   // if already fading out
   if (status == MIX_FADING_OUT) {
@@ -694,7 +696,7 @@ void cAudio ::Fadeout_Music(unsigned int ms /* = 500 */,
     return;
   }
 
-  if (!Mix_FadeOutMusic(ms)) {
+  if (!Mix_FadeOutMusic(static_cast<int>(ms))) {
     // if it failed stop the music
     Halt_Music();
   }

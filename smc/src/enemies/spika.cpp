@@ -257,7 +257,7 @@ bool cSpika ::Is_Update_Valid(void) {
 
 Col_Valid_Type cSpika ::Validate_Collision(cSprite* obj) {
   // basic validation checking
-  Col_Valid_Type basic_valid = Validate_Collision_Ghost(obj);
+  Col_Valid_Type const basic_valid = Validate_Collision_Ghost(obj);
 
   // found valid collision
   if (basic_valid != COL_VTYPE_NOT_POSSIBLE) {
@@ -327,8 +327,8 @@ void cSpika ::Handle_Collision_Enemy(cObjectCollision* collision) {
     return;
   }
 
-  cEnemy* enemy =
-      static_cast<cEnemy*>(m_sprite_manager->Get_Pointer(collision->m_number));
+  cEnemy* enemy = static_cast<cEnemy*>(
+      m_sprite_manager->Get_Pointer(static_cast<size_t>(collision->m_number)));
 
   // already dead
   if (enemy->m_dead) {
@@ -337,7 +337,7 @@ void cSpika ::Handle_Collision_Enemy(cObjectCollision* collision) {
 
   // if spika
   if (enemy->m_type == TYPE_SPIKA) {
-    cSpika* spika = static_cast<cSpika*>(enemy);
+    cSpika const* spika = static_cast<cSpika*>(enemy);
 
     // if colliding spika is more powerful
     if (m_speed < spika->m_speed) {
@@ -399,7 +399,8 @@ void cSpika ::Handle_Collision_Massive(cObjectCollision* collision) {
   Send_Collision(collision);
 
   // get colliding object
-  cSprite* col_object = m_sprite_manager->Get_Pointer(collision->m_number);
+  cSprite const* col_object =
+      m_sprite_manager->Get_Pointer(static_cast<size_t>(collision->m_number));
 
   if (col_object->m_type == TYPE_BALL) {
     return;

@@ -36,7 +36,7 @@ release dates, tagged `v<version>`), then the 211 commits of github.com/FluXy/SM
   `modernize-cpp-3` branch (umbrella archived at `tasks/archive/2026/09/24/smc-modernize-cpp.md`;
   worked example in `tasks/reference/refactoring-to-modern-cpp.md`); its deferred pieces live in
   `tasks/smc-modernize-step-{7-enums-dispatch,8-strings-input,9-dedup-cegui}.md`.
-- **The C++ style is the shared cross-project standard** (`~/.claude/reference/cpp-coding-standard.md`,
+- **The C++ style is the shared cross-project standard** (`github.com/billsix/runClaudeInContainer:tasks/reference/cpp-coding-standard.md`,
   mirrored from runClaudeInContainer). A follow-up pass applied it to smc
   (`tasks/archive/2026/10/15/smc-apply-cpp-coding-standard.md`): ownership now goes through the manager APIs
   (`Add(std::unique_ptr<T>)` returning a borrowed `T*`), always-present non-polymorphic subobjects
@@ -45,7 +45,7 @@ release dates, tagged `v<version>`), then the 211 commits of github.com/FluXy/SM
   ordering code; the CEGUI system dies in `~cVideo`). **Error strategy:** exceptions appear only
   around startup and the CEGUI boundary; everywhere else a function reports failure with a `nullptr`
   or `bool` return, so don't add exception machinery to the game loop or object code. The
-  migration method (both passes) is `~/.claude/reference/cpp-ownership-migration.md`.
+  migration method (both passes) is `github.com/billsix/runClaudeInContainer:tasks/reference/cpp-ownership-migration.md`.
 - **Do not rewrite `master` casually** — but note it *will* be rewritten once more if the six
   missing SourceForge releases (or the CVS) turn up: `tasks/smc-history-import.md`.
 - Layout follows the maintainer's conventions: `tasks/` (task docs), `tasks/reference/` (durable

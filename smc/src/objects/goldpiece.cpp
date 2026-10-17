@@ -397,7 +397,7 @@ void cFGoldpiece ::Update(void) {
 
 Col_Valid_Type cFGoldpiece ::Validate_Collision(cSprite* obj) {
   // basic validation checking
-  Col_Valid_Type basic_valid = Validate_Collision_Ghost(obj);
+  Col_Valid_Type const basic_valid = Validate_Collision_Ghost(obj);
 
   // found valid collision
   if (basic_valid != COL_VTYPE_NOT_POSSIBLE) {

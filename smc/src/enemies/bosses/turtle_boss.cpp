@@ -362,7 +362,8 @@ void cTurtleBoss ::Set_Turtle_Moving_State(TurtleBoss_state new_state) {
 
     Set_Animation(true);
     Set_Animation_Image_Range(0, 3);
-    Uint32 time_subtract = (m_hits + (m_downgrade_count * m_max_hits)) * 10;
+    Uint32 time_subtract =
+        static_cast<Uint32>((m_hits + (m_downgrade_count * m_max_hits)) * 10);
     if (time_subtract > 280) {
       time_subtract = 280;
     }
@@ -388,7 +389,8 @@ void cTurtleBoss ::Set_Turtle_Moving_State(TurtleBoss_state new_state) {
 
     Set_Animation(true);
     Set_Animation_Image_Range(6, 9);
-    Uint32 time_subtract = (m_hits + (m_downgrade_count * m_max_hits)) * 2;
+    Uint32 time_subtract =
+        static_cast<Uint32>((m_hits + (m_downgrade_count * m_max_hits)) * 2);
     if (time_subtract > 80) {
       time_subtract = 80;
     }
@@ -468,7 +470,7 @@ void cTurtleBoss ::Update(void) {
   else if (m_turtle_state == TURTLEBOSS_SHELL_RUN) {
     m_run_time_counter += pFramerate->m_speed_factor;
     // time = seconds since start
-    float time = m_run_time_counter / speedfactor_fps;
+    float const time = m_run_time_counter / speedfactor_fps;
 
     if (time > m_shell_time) {
       m_run_time_counter = 0.0f;
@@ -542,7 +544,7 @@ void cTurtleBoss ::Update(void) {
       }
 
       // throw more fireballs with each downgrade
-      Throw_Fireballs(6 + (m_downgrade_count * 2));
+      Throw_Fireballs(static_cast<unsigned int>(6 + (m_downgrade_count * 2)));
     }
   }
 
@@ -556,7 +558,7 @@ void cTurtleBoss ::Stand_Up(void) {
   }
 
   // get space needed to stand up
-  float move_y = m_image->m_col_h - m_images[0].m_image->m_col_h;
+  float const move_y = m_image->m_col_h - m_images[0].m_image->m_col_h;
 
   std::unique_ptr<cObjectCollisionType> col_list =
       Collision_Check_Relative(0.0f, move_y, 0.0f, 0.0f, COLLIDE_ONLY_BLOCKING);
@@ -596,7 +598,7 @@ void cTurtleBoss ::Throw_Fireballs(unsigned int amount /* = 6 */) {
   // start angle
   float ball_angle = -180.0f;
   // move 180 degrees
-  float step_size = 180.0f / amount;
+  float const step_size = 180.0f / amount;
 
   for (unsigned int i = 0; i < amount; i++) {
     // add step size to angle
@@ -674,7 +676,7 @@ bool cTurtleBoss ::Is_Update_Valid(void) {
 
 Col_Valid_Type cTurtleBoss ::Validate_Collision(cSprite* obj) {
   // basic validation checking
-  Col_Valid_Type basic_valid = Validate_Collision_Ghost(obj);
+  Col_Valid_Type const basic_valid = Validate_Collision_Ghost(obj);
 
   // found valid collision
   if (basic_valid != COL_VTYPE_NOT_POSSIBLE) {
@@ -898,8 +900,8 @@ void cTurtleBoss ::Handle_Collision_Player(cObjectCollision* collision) {
 }
 
 void cTurtleBoss ::Handle_Collision_Enemy(cObjectCollision* collision) {
-  cEnemy* enemy =
-      static_cast<cEnemy*>(m_sprite_manager->Get_Pointer(collision->m_number));
+  cEnemy* enemy = static_cast<cEnemy*>(
+      m_sprite_manager->Get_Pointer(static_cast<size_t>(collision->m_number)));
 
   if (m_turtle_state == TURTLEBOSS_SHELL_STAND) {
     // if able to collide
@@ -929,7 +931,8 @@ void cTurtleBoss ::Handle_Collision_Massive(cObjectCollision* collision) {
   } else if (m_turtle_state == TURTLEBOSS_SHELL_RUN) {
     if (collision->m_direction == DIR_RIGHT ||
         collision->m_direction == DIR_LEFT) {
-      cSprite* col_object = m_sprite_manager->Get_Pointer(collision->m_number);
+      cSprite const* col_object = m_sprite_manager->Get_Pointer(
+          static_cast<size_t>(collision->m_number));
 
       // animation
       std::unique_ptr<cParticle_Emitter> anim;
@@ -966,13 +969,13 @@ void cTurtleBoss ::Handle_Collision_Massive(cObjectCollision* collision) {
       // active object box collision
       if (collision->m_array == ARRAY_ACTIVE) {
         // get colliding object
-        cSprite* col_object =
-            m_sprite_manager->Get_Pointer(collision->m_number);
+        cSprite* col_object = m_sprite_manager->Get_Pointer(
+            static_cast<size_t>(collision->m_number));
 
         if (col_object->m_type == TYPE_BONUS_BOX ||
             col_object->m_type == TYPE_SPIN_BOX) {
           // get basebox
-          cBaseBox* box = static_cast<cBaseBox*>(col_object);
+          cBaseBox const* box = static_cast<cBaseBox*>(col_object);
 
           // if useable
           if (box->m_useable_count != 0) {
@@ -1082,7 +1085,7 @@ void cTurtleBoss ::Editor_Activate(void) {
 bool cTurtleBoss ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()), true);
@@ -1093,7 +1096,7 @@ bool cTurtleBoss ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
 bool cTurtleBoss ::Editor_Max_Hits_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Max_Hits(string_to_int(str_text));
@@ -1105,7 +1108,7 @@ bool cTurtleBoss ::Editor_Max_Downgrade_Counts_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Max_Downgrade_Counts(string_to_int(str_text));
@@ -1117,7 +1120,7 @@ bool cTurtleBoss ::Editor_Shell_Time_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Shell_Time(string_to_float(str_text));
@@ -1128,7 +1131,7 @@ bool cTurtleBoss ::Editor_Shell_Time_Text_Changed(
 bool cTurtleBoss ::Editor_Level_Ends_If_Killed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   if (item->getText().compare(UTF8_("Enabled")) == 0) {

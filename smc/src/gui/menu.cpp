@@ -76,7 +76,7 @@ void cMenu_Item ::Draw(cSurface_Request* request /* = nullptr */) {
   cHudSprite::Draw(request);
 
   if (m_active) {
-    float strength = m_image->m_w * (m_scale_x - 1);
+    float const strength = m_image->m_w * (m_scale_x - 1);
 
     // boost color to yellow
     Set_Color_Combine(strength / 40, strength / 40, 0, GL_ADD);
@@ -139,23 +139,24 @@ void cMenuHandler ::Reset(void) {
 void cMenuHandler ::Set_Active(int num) {
   // if not already active and exists
   if (num == static_cast<int>(m_active) ||
-      num >= static_cast<int>(m_items.size()) || (num >= 0 && !m_items[num])) {
+      num >= static_cast<int>(m_items.size()) ||
+      (num >= 0 && !m_items[static_cast<size_t>(num)])) {
     return;
   }
 
   if (num >= 0 && static_cast<unsigned int>(num) < m_items.size()) {
     // set last active item un-active
     if (m_active >= 0 && static_cast<unsigned int>(m_active) < m_items.size()) {
-      m_items[m_active]->Set_Active(false);
+      m_items[static_cast<size_t>(m_active)]->Set_Active(false);
     }
   } else if (num == -1) {
-    m_items[m_active]->Set_Active(false);
+    m_items[static_cast<size_t>(m_active)]->Set_Active(false);
   }
 
   m_active = num;
 
   if (m_active >= 0) {
-    m_items[m_active]->Set_Active(true);
+    m_items[static_cast<size_t>(m_active)]->Set_Active(true);
   }
 }
 
@@ -167,7 +168,7 @@ void cMenuHandler ::Update_Mouse(void) {
     if (m_items[i]->m_col_rect.Intersects(
             static_cast<float>(pMouseCursor->m_x),
             static_cast<float>(pMouseCursor->m_y))) {
-      found = i;
+      found = static_cast<int>(i);
       break;
     }
   }
@@ -204,7 +205,7 @@ cMenu_Item* cMenuHandler ::Get_Active_Item(void) {
     return nullptr;
   }
 
-  return m_items[m_active].get();
+  return m_items[static_cast<size_t>(m_active)].get();
 }
 
 unsigned int cMenuHandler ::Get_Size(void) const {
@@ -286,7 +287,7 @@ bool cMenuCore ::Key_Down(SDLKey key) {
   // Up (todo: detect event for joystick better)
   else if (key == SDLK_UP || key == pPreferences->m_key_up) {
     if (m_handler.m_active <= 0) {
-      m_handler.Set_Active(m_handler.Get_Size() - 1);
+      m_handler.Set_Active(static_cast<int>(m_handler.Get_Size() - 1));
     } else {
       m_handler.Set_Active(m_handler.m_active - 1);
     }
@@ -314,7 +315,7 @@ bool cMenuCore ::Key_Down(SDLKey key) {
       // select random level (guard rand() % 0 on an empty list)
       if (listbox_levels->getItemCount() > 0) {
         listbox_levels->setItemSelectState(
-            rand() % listbox_levels->getItemCount(), true);
+            static_cast<size_t>(rand()) % listbox_levels->getItemCount(), true);
         // get level name
         lvl_name = listbox_levels->getFirstSelectedItem()->getText().c_str();
         menu_start->Load_Level(lvl_name);
@@ -327,7 +328,7 @@ bool cMenuCore ::Key_Down(SDLKey key) {
       // select random level (guard rand() % 0 on an empty list)
       if (listbox_levels->getItemCount() > 0) {
         listbox_levels->setItemSelectState(
-            rand() % listbox_levels->getItemCount(), true);
+            static_cast<size_t>(rand()) % listbox_levels->getItemCount(), true);
         // get level name
         lvl_name = listbox_levels->getFirstSelectedItem()->getText().c_str();
         static_cast<cMenu_Start*>(pMenuCore->m_menu_data.get())
@@ -399,7 +400,7 @@ bool cMenuCore ::Joy_Button_Up(Uint8 button) {
 bool cMenuCore ::Mouse_Down(Uint8 button) {
   // nothing yet
   if (button == SDL_BUTTON_LEFT) {
-    cMenu_Item* item = m_handler.Get_Active_Item();
+    cMenu_Item const* item = m_handler.Get_Active_Item();
 
     if (item &&
         item->m_col_rect.Intersects(static_cast<float>(pMouseCursor->m_x),

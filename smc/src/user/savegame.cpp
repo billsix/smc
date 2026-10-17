@@ -59,7 +59,7 @@ cSave_Level_Object ::~cSave_Level_Object(void) { m_properties.clear(); }
 
 bool cSave_Level_Object ::exists(const std::string& val_name) {
   for (const auto& property : m_properties) {
-    cSave_Level_Object_Property obj = property;
+    cSave_Level_Object_Property const obj = property;
 
     if (obj.m_name.compare(val_name) == 0) {
       // found
@@ -73,7 +73,7 @@ bool cSave_Level_Object ::exists(const std::string& val_name) {
 
 std::string cSave_Level_Object ::Get_Value(const std::string& val_name) {
   for (const auto& property : m_properties) {
-    cSave_Level_Object_Property obj = property;
+    cSave_Level_Object_Property const obj = property;
 
     if (obj.m_name.compare(val_name) == 0) {
       // found
@@ -189,8 +189,8 @@ int cSavegame ::Load_Game(unsigned int save_slot) {
 
       for (const auto& save_waypoint : save_overworld->m_waypoints) {
         // get overworld waypoint
-        cWaypoint* waypoint = overworld->Get_Waypoint(
-            overworld->Get_Waypoint_Num(save_waypoint->m_destination));
+        cWaypoint* waypoint = overworld->Get_Waypoint(static_cast<unsigned int>(
+            overworld->Get_Waypoint_Num(save_waypoint->m_destination)));
 
         // not found
         if (!waypoint) {
@@ -216,7 +216,7 @@ int cSavegame ::Load_Game(unsigned int save_slot) {
 
     // Current waypoint
     if (!pOverworld_Player->Set_Waypoint(
-            savegame->m_overworld_current_waypoint)) {
+            static_cast<int>(savegame->m_overworld_current_waypoint))) {
       printf(
           "Warning : Savegame %d : Overworld Current Waypoint %d is invalid\n",
           save_slot, savegame->m_overworld_current_waypoint);
@@ -290,8 +290,8 @@ int cSavegame ::Load_Game(unsigned int save_slot) {
       // objects data
       for (const auto& save_object : save_level->m_level_objects) {
         // get position
-        int posx = string_to_int(save_object->Get_Value("posx"));
-        int posy = string_to_int(save_object->Get_Value("posy"));
+        int const posx = string_to_int(save_object->Get_Value("posx"));
+        int const posy = string_to_int(save_object->Get_Value("posy"));
 
         // get level object
         cSprite* level_object = level->m_sprite_manager.Get_from_Position(
@@ -313,15 +313,16 @@ int cSavegame ::Load_Game(unsigned int save_slot) {
   // #### Player ####
 
   pHud_Points->Set_Points(savegame->m_points);
-  pHud_Goldpieces->Set_Gold(savegame->m_goldpieces);
-  pHud_Lives->Set_Lives(savegame->m_lives);
+  pHud_Goldpieces->Set_Gold(static_cast<int>(savegame->m_goldpieces));
+  pHud_Lives->Set_Lives(static_cast<int>(savegame->m_lives));
   pHud_Itembox->Set_Item(static_cast<SpriteType>(savegame->m_itembox_item),
                          false);
-  pHud_Debug->Set_Text(_("Savegame ") + int_to_string(save_slot) +
+  pHud_Debug->Set_Text(_("Savegame ") +
+                       int_to_string(static_cast<int>(save_slot)) +
                        _(" loaded"));
   pHud_Manager->Update();
 
-  return save_type;
+  return static_cast<int>(save_type);
 }
 
 bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
@@ -389,7 +390,7 @@ bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
     }
   }
 
-  savegame->m_lives = pLevel_Player->m_lives;
+  savegame->m_lives = static_cast<unsigned int>(pLevel_Player->m_lives);
   savegame->m_points = pLevel_Player->m_points;
   savegame->m_player_type = pLevel_Player->m_maryo_type;
   savegame->m_player_state = pLevel_Player->m_state;
@@ -409,7 +410,7 @@ bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
       }
 
       // get waypoint
-      cWaypoint* waypoint = static_cast<cWaypoint*>(sprite.get());
+      cWaypoint const* waypoint = static_cast<cWaypoint*>(sprite.get());
 
       // create savegame waypoint
       auto save_waypoint = std::make_unique<cSave_Overworld_Waypoint>();
@@ -434,26 +435,28 @@ bool cSavegame ::Save_Game(unsigned int save_slot, std::string description) {
     if (pOverworld_Player->m_current_waypoint >= 0) {
       // set current waypoint
       savegame->m_overworld_current_waypoint =
-          pOverworld_Player->m_current_waypoint;
+          static_cast<unsigned int>(pOverworld_Player->m_current_waypoint);
     }
   }
 
   Save(save_slot, savegame.get());
 
   if (pHud_Debug) {
-    pHud_Debug->Set_Text(_("Saved to Slot ") + int_to_string(save_slot));
+    pHud_Debug->Set_Text(_("Saved to Slot ") +
+                         int_to_string(static_cast<int>(save_slot)));
   }
 
   return true;
 }
 
 std::unique_ptr<cSave> cSavegame ::Load(unsigned int save_slot) {
-  std::string filename =
-      m_savegame_dir + "/" + int_to_string(save_slot) + ".smcsav";
+  std::string filename = m_savegame_dir + "/" +
+                         int_to_string(static_cast<int>(save_slot)) + ".smcsav";
 
   // if not new format try the old
   if (!File_Exists(filename)) {
-    filename = m_savegame_dir + "/" + int_to_string(save_slot) + ".save";
+    filename = m_savegame_dir + "/" +
+               int_to_string(static_cast<int>(save_slot)) + ".save";
   }
 
   if (!File_Exists(filename)) {
@@ -468,10 +471,12 @@ std::unique_ptr<cSave> cSavegame ::Load(unsigned int save_slot) {
 }
 
 int cSavegame ::Save(unsigned int save_slot, cSave* savegame) {
-  const std::string filename =
-      m_savegame_dir + "/" + int_to_string(save_slot) + ".smcsav";
+  const std::string filename = m_savegame_dir + "/" +
+                               int_to_string(static_cast<int>(save_slot)) +
+                               ".smcsav";
   // remove old format savegame
-  Delete_File(m_savegame_dir + "/" + int_to_string(save_slot) + ".save");
+  Delete_File(m_savegame_dir + "/" +
+              int_to_string(static_cast<int>(save_slot)) + ".save");
 
 // fixme : Check if there is a more portable way f.e. with imbue()
 #ifdef _WIN32
@@ -558,7 +563,7 @@ int cSavegame ::Save(unsigned int save_slot, cSave* savegame) {
 
       // Properties
       for (const auto& property : save_object->m_properties) {
-        cSave_Level_Object_Property Property = property;
+        cSave_Level_Object_Property const Property = property;
         Write_Property(stream, Property.m_name, Property.m_value);
       }
 
@@ -616,7 +621,8 @@ std::string cSavegame ::Get_Description(unsigned int save_slot,
   std::string str_description;
 
   if (!Is_Valid(save_slot)) {
-    str_description = int_to_string(save_slot) + ". Free Save";
+    str_description =
+        int_to_string(static_cast<int>(save_slot)) + ". Free Save";
     return str_description;
   }
 
@@ -628,7 +634,8 @@ std::string cSavegame ::Get_Description(unsigned int save_slot,
 
   // complete description
   if (!only_description) {
-    str_description = int_to_string(save_slot) + ". " + savegame->m_description;
+    str_description = int_to_string(static_cast<int>(save_slot)) + ". " +
+                      savegame->m_description;
 
     if (savegame->m_levels.empty()) {
       str_description += " - " + savegame->m_overworld_active;
@@ -662,10 +669,10 @@ std::string cSavegame ::Get_Description(unsigned int save_slot,
 }
 
 bool cSavegame ::Is_Valid(unsigned int save_slot) const {
-  return (
-      File_Exists(m_savegame_dir + "/" + int_to_string(save_slot) +
-                  ".smcsav") ||
-      File_Exists(m_savegame_dir + "/" + int_to_string(save_slot) + ".save"));
+  return (File_Exists(m_savegame_dir + "/" +
+                      int_to_string(static_cast<int>(save_slot)) + ".smcsav") ||
+          File_Exists(m_savegame_dir + "/" +
+                      int_to_string(static_cast<int>(save_slot)) + ".save"));
 }
 
 /* *** *** *** *** *** *** *** cSavegame_XML_Handler *** *** *** *** *** *** *** *** *** *** */
@@ -739,8 +746,8 @@ void cSavegame_XML_Handler ::elementEnd(const CEGUI::String& element) {
     m_savegame->m_version = m_xml_attributes.getValueAsInteger("version");
     m_savegame->m_level_engine_version = m_xml_attributes.getValueAsInteger(
         "level_engine_version", m_savegame->m_level_engine_version);
-    m_savegame->m_save_time =
-        string_to_int64(m_xml_attributes.getValueAsString("save_time").c_str());
+    m_savegame->m_save_time = static_cast<time_t>(string_to_int64(
+        m_xml_attributes.getValueAsString("save_time").c_str()));
     m_savegame->m_description =
         m_xml_attributes.getValueAsString("description").c_str();
   } else if (element == "level" || element == "Level") {
@@ -796,7 +803,7 @@ void cSavegame_XML_Handler ::Handle_Level(
 
 void cSavegame_XML_Handler ::Handle_Level_Object(
     const CEGUI::XMLAttributes& attributes) {
-  int type = m_xml_attributes.getValueAsInteger("type");
+  int const type = m_xml_attributes.getValueAsInteger("type");
 
   if (type <= 0) {
     printf("Warning : cSavegame::Handle_Level_Object : Unknown type %d\n",
@@ -813,7 +820,7 @@ void cSavegame_XML_Handler ::Handle_Level_Object(
   // Get properties
   for (unsigned int i = 0; i < m_xml_attributes.getCount(); i++) {
     // get property
-    std::string property_name = m_xml_attributes.getName(i).c_str();
+    std::string const property_name = m_xml_attributes.getName(i).c_str();
 
     // ignore level attributes
     if (property_name.compare("level_name") == 0 ||
@@ -828,7 +835,7 @@ void cSavegame_XML_Handler ::Handle_Level_Object(
 
   // remove used properties
   for (const auto& property : object->m_properties) {
-    cSave_Level_Object_Property Property = property;
+    cSave_Level_Object_Property const Property = property;
 
     m_xml_attributes.remove(Property.m_name);
   }
@@ -852,21 +859,26 @@ void cSavegame_XML_Handler ::Handle_Level_Spawned_Object(
 
 void cSavegame_XML_Handler ::Handle_Player(
     const CEGUI::XMLAttributes& attributes) {
-  m_savegame->m_lives = m_xml_attributes.getValueAsInteger("lives");
+  m_savegame->m_lives =
+      static_cast<unsigned int>(m_xml_attributes.getValueAsInteger("lives"));
   m_savegame->m_points =
       string_to_long(m_xml_attributes.getValueAsString("points", "0").c_str());
-  m_savegame->m_goldpieces = m_xml_attributes.getValueAsInteger("goldpieces");
-  m_savegame->m_player_type = m_xml_attributes.getValueAsInteger("type");
-  m_savegame->m_player_state = m_xml_attributes.getValueAsInteger("state");
-  m_savegame->m_itembox_item =
-      m_xml_attributes.getValueAsInteger("itembox_item");
+  m_savegame->m_goldpieces = static_cast<unsigned int>(
+      m_xml_attributes.getValueAsInteger("goldpieces"));
+  m_savegame->m_player_type =
+      static_cast<unsigned int>(m_xml_attributes.getValueAsInteger("type"));
+  m_savegame->m_player_state =
+      static_cast<unsigned int>(m_xml_attributes.getValueAsInteger("state"));
+  m_savegame->m_itembox_item = static_cast<unsigned int>(
+      m_xml_attributes.getValueAsInteger("itembox_item"));
   // new in V.11
-  m_savegame->m_level_time = m_xml_attributes.getValueAsInteger("level_time");
+  m_savegame->m_level_time =
+      static_cast<Uint32>(m_xml_attributes.getValueAsInteger("level_time"));
   if (!m_old_format) {
     m_savegame->m_overworld_active =
         m_xml_attributes.getValueAsString("overworld_active").c_str();
-    m_savegame->m_overworld_current_waypoint =
-        m_xml_attributes.getValueAsInteger("overworld_current_waypoint");
+    m_savegame->m_overworld_current_waypoint = static_cast<unsigned int>(
+        m_xml_attributes.getValueAsInteger("overworld_current_waypoint"));
   }
 }
 
@@ -875,16 +887,16 @@ void cSavegame_XML_Handler ::Handle_Overworld_Data(
   // savegame format V.10 and lower
   m_savegame->m_overworld_active =
       m_xml_attributes.getValueAsString("active").c_str();
-  m_savegame->m_overworld_current_waypoint =
-      m_xml_attributes.getValueAsInteger("current_waypoint");
+  m_savegame->m_overworld_current_waypoint = static_cast<unsigned int>(
+      m_xml_attributes.getValueAsInteger("current_waypoint"));
 }
 
 void cSavegame_XML_Handler ::Handle_Overworld(
     const CEGUI::XMLAttributes& attributes) {
-  std::string name = m_xml_attributes.getValueAsString("name").c_str();
+  std::string const name = m_xml_attributes.getValueAsString("name").c_str();
 
   // is overworld available
-  cOverworld* overworld = pOverworld_Manager->Get_from_Name(name);
+  cOverworld const* overworld = pOverworld_Manager->Get_from_Name(name);
 
   if (!overworld) {
     printf("Warning : Savegame %s Overworld %s not found\n",
@@ -902,7 +914,7 @@ void cSavegame_XML_Handler ::Handle_Overworld(
 
 void cSavegame_XML_Handler ::Handle_Overworld_Waypoint(
     const CEGUI::XMLAttributes& attributes) {
-  bool access = m_xml_attributes.getValueAsBool("access");
+  bool const access = m_xml_attributes.getValueAsBool("access");
 
   auto waypoint = std::make_unique<cSave_Overworld_Waypoint>();
 

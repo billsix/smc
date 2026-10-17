@@ -1,0 +1,84 @@
+checking build system type... x86_64-pc-linux-gnu
+checking host system type... x86_64-pc-linux-gnu
+checking for a BSD-compatible install... /usr/bin/install -c
+checking whether sleep supports fractional seconds... yes
+checking filesystem timestamp resolution... 0.01
+checking whether build environment is sane... yes
+checking for a race-free mkdir -p... /usr/bin/mkdir -p
+checking for gawk... gawk
+checking whether make sets $(MAKE)... yes
+checking whether make supports nested variables... yes
+checking xargs -n works... yes
+checking whether UID '0' is supported by ustar format... yes
+checking whether GID '0' is supported by ustar format... yes
+checking how to create a ustar tar archive... gnutar
+checking whether the C++ compiler works... yes
+checking for C++ compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether the compiler supports GNU C++... yes
+checking whether clang++ accepts -g... yes
+checking for clang++ option to enable C++11 features... none needed
+checking whether make supports the include directive... yes (GNU style)
+checking dependency style of clang++... gcc3
+checking for pkg-config... /usr/bin/pkg-config
+checking pkg-config is at least version 0.9.0... yes
+checking for main in -lX11... yes
+checking for main in -lGL... yes
+checking for main in -lGLU... yes
+checking for sdl2 >= 2.0.0... yes
+checking for png_init_io in -lpng... yes
+checking for IMG_LoadPNG_RW in -lSDL2_image... yes
+checking for IMG_Init in -lSDL2_image... yes
+checking for Mix_OpenAudio in -lSDL2_mixer... yes
+checking for TTF_Init in -lSDL2_ttf... yes
+checking for CEGUI-OPENGL >= 0.7.2... yes
+checking for main in -lCEGUINullRenderer... yes
+checking for a sed that does not truncate output... /usr/bin/sed
+checking whether NLS is requested... yes
+checking for msgfmt... /usr/bin/msgfmt
+checking for gmsgfmt... /usr/bin/msgfmt
+checking for xgettext... /usr/bin/xgettext
+checking for msgmerge... /usr/bin/msgmerge
+checking for gcc... gcc
+checking whether the compiler supports GNU C... yes
+checking whether gcc accepts -g... yes
+checking for gcc option to enable C11 features... none needed
+checking whether gcc understands -c and -o together... yes
+checking dependency style of gcc... gcc3
+checking for ld used by gcc... /usr/bin/ld
+checking if the linker (/usr/bin/ld) is GNU ld... yes
+checking for shared library run path origin... done
+checking 32-bit host C ABI... no
+checking how to run the C++ preprocessor... clang++ -E
+checking for egrep -e... /usr/bin/grep -E
+checking for ELF binary format... yes
+checking for the common suffixes of directories in the library search path... lib,lib,lib64
+checking for CFPreferencesCopyAppValue... no
+checking for CFLocaleCopyPreferredLanguages... no
+checking for GNU gettext in libc... yes
+checking whether to use NLS... yes
+checking where the gettext function comes from... libc
+checking for stdio.h... yes
+checking for stdlib.h... yes
+checking for string.h... yes
+checking for inttypes.h... yes
+checking for stdint.h... yes
+checking for strings.h... yes
+checking for sys/stat.h... yes
+checking for sys/types.h... yes
+checking for unistd.h... yes
+checking for SDL.h... yes
+checking for SDL_image.h... yes
+checking for SDL_mixer.h... yes
+checking for SDL_ttf.h... yes
+checking that generated files are newer than configure... done
+configure: creating ./config.status
+config.status: creating Makefile
+config.status: creating src/Makefile
+config.status: creating data/Makefile
+config.status: creating config.h
+config.status: config.h is unchanged
+config.status: executing depfiles commands
+config.status: executing po-directories commands

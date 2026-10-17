@@ -44,9 +44,9 @@ play-test (editor copy/paste, save/load, quit) clean.
 
 Read first: `tasks/reference/refactoring-to-modern-cpp.md` (what the modernization did and
 deliberately skipped), `tasks/reference/smc/ownership-and-lifetime.md` (the pre-modernization map;
-still accurate for *who owns whom*), `~/.claude/reference/cpp-coding-standard.md` (the standard
+still accurate for *who owns whom*), `github.com/billsix/runClaudeInContainer:tasks/reference/cpp-coding-standard.md` (the standard
 this task applies — its "Ownership and lifetime" and "`auto`" sections are the yardstick), and
-`~/.claude/reference/cpp-ownership-migration.md` (the method; the double-free trap).
+`github.com/billsix/runClaudeInContainer:tasks/reference/cpp-ownership-migration.md` (the method; the double-free trap).
 
 ### What the audit found (2026-10-15, `rg` over `smc/src`, 67.6K lines)
 

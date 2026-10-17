@@ -91,7 +91,7 @@ void cImage_Manager ::Grab_Textures(bool from_file /* = 0 */,
   }
 
   unsigned int loaded_files = 0;
-  unsigned int file_count = objects.size();
+  unsigned int const file_count = objects.size();
 
   // save all textures
   for (const auto& surface : objects) {
@@ -136,7 +136,7 @@ void cImage_Manager ::Restore_Textures(bool draw_gui /* = 0 */) {
   }
 
   unsigned int loaded_files = 0;
-  unsigned int file_count = m_saved_textures.size();
+  unsigned int const file_count = m_saved_textures.size();
 
   // load back into hardware textures
   for (const auto& soft_tex : m_saved_textures) {

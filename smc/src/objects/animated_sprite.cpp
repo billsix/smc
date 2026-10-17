@@ -73,7 +73,8 @@ void cAnimated_Sprite ::Set_Image_Num(const int num,
   if (m_curr_img < 0) {
     cMovingSprite::Set_Image(nullptr, new_startimage);
   } else if (m_curr_img < static_cast<int>(m_images.size())) {
-    cMovingSprite::Set_Image(m_images[m_curr_img].m_image, new_startimage);
+    cMovingSprite::Set_Image(m_images[static_cast<size_t>(m_curr_img)].m_image,
+                             new_startimage);
   } else {
     debug_print(
         "Warning : Object image number %d bigger as the array size %u, sprite type %d, name %s\n",
@@ -109,7 +110,7 @@ void cAnimated_Sprite ::Update_Animation(void) {
     return;
   }
 
-  cAnimation_Surface image = m_images[m_curr_img];
+  cAnimation_Surface const image = m_images[static_cast<size_t>(m_curr_img)];
 
   if (static_cast<Uint32>(m_anim_counter * m_anim_mod) >= image.m_time) {
     if (m_curr_img >= m_anim_img_end) {

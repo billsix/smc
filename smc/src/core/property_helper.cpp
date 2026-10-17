@@ -44,7 +44,7 @@ void cegui_string_replace_all(CEGUI::String& str, const CEGUI::String& search,
 
 std::string string_trim_from_end(std::string str, const char search) {
   // find last position from end which is not the given character
-  size_t pos = str.find_last_not_of(search);
+  size_t const pos = str.find_last_not_of(search);
 
   // if all match or empty
   if (pos == std::string::npos) {
@@ -123,7 +123,7 @@ std::string float_to_string(double value, int prec /* = 6 */,
   }
 
   int whole = static_cast<int>(value);
-  double tmp = (value - whole) * pow_of_10[prec];
+  double const tmp = (value - whole) * pow_of_10[prec];
   uint32_t frac = static_cast<uint32_t>(tmp);
   diff = tmp - frac;
 
@@ -259,14 +259,14 @@ unsigned int string_to_version_number(std::string str) {
 
   // only major version
   if (pos == std::string::npos) {
-    return string_to_int(str) * 10000;
+    return static_cast<unsigned int>(string_to_int(str) * 10000);
   }
 
   unsigned int ver = 0;
 
   if (pos != 0) {
     // number before first '.' is major
-    ver = string_to_int(str.substr(0, pos)) * 10000;
+    ver = static_cast<unsigned int>(string_to_int(str.substr(0, pos)) * 10000);
   }
 
   str.erase(0, pos + 1);
@@ -274,7 +274,7 @@ unsigned int string_to_version_number(std::string str) {
 
   if (pos != 0) {
     // number after first '.' is minor
-    ver += string_to_int(str.substr(0, pos)) * 100;
+    ver += static_cast<unsigned int>(string_to_int(str.substr(0, pos)) * 100);
   }
 
   if (pos == std::string::npos) {
@@ -285,7 +285,7 @@ unsigned int string_to_version_number(std::string str) {
 
   if (!str.empty()) {
     // number after second '.' is patch
-    ver += string_to_int(str);
+    ver += static_cast<unsigned int>(string_to_int(str));
   }
 
   return ver;
@@ -293,7 +293,7 @@ unsigned int string_to_version_number(std::string str) {
 
 std::string xml_string_to_string(std::string str) {
   while (true) {
-    std::string::size_type pos = str.find("<br/>");
+    std::string::size_type const pos = str.find("<br/>");
 
     if (pos == std::string::npos) {
       break;
@@ -354,7 +354,12 @@ std::wstring utf8_to_ucs2(const std::string& utf8) {
 
 std::string Time_to_String(time_t t, const char* format) {
   char str_time[60];
+  // `format` is a controlled internal strftime pattern chosen by callers, not
+  // user input, so the non-literal format string is safe here.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
   strftime(str_time, 60, format, localtime(&t));
+#pragma GCC diagnostic pop
 
   return str_time;
 }

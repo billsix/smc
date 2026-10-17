@@ -283,7 +283,7 @@ std::unique_ptr<cObjectCollision> cMouseCursor ::Get_First_Editor_Collsion(
   }
 
   // Get CEGUI Window containing the mouse
-  CEGUI::Window* mouse_window = pGuiSystem->getWindowContainingMouse();
+  CEGUI::Window const* mouse_window = pGuiSystem->getWindowContainingMouse();
 
   // if mouse is over a blocking CEGUI window
   if (mouse_window && !mouse_window->isMousePassThroughEnabled()) {
@@ -539,7 +539,7 @@ bool cMouseCursor ::Remove_Copy_Object(const cSprite* sprite) {
   }
 
   for (auto itr = m_copy_objects.begin(); itr != m_copy_objects.end(); ++itr) {
-    cCopyObject* copy_obj = itr->get();
+    cCopyObject const* copy_obj = itr->get();
 
     if (copy_obj->m_obj.get() == sprite) {
       m_copy_objects.erase(itr);
@@ -588,8 +588,8 @@ void cMouseCursor ::Paste_Copy_Objects(float px, float py) {
 
   for (const auto& copy_obj : m_copy_objects) {
     // set base vector
-    GL_Vector base_vec = Get_Copy_Object_Base(copy_obj->m_obj->m_pos_x,
-                                              copy_obj->m_obj->m_pos_y);
+    GL_Vector const base_vec = Get_Copy_Object_Base(copy_obj->m_obj->m_pos_x,
+                                                    copy_obj->m_obj->m_pos_y);
 
     // copy
     cSprite* new_object =
@@ -663,7 +663,7 @@ bool cMouseCursor ::Remove_Selected_Object(const cSprite* sprite,
 
   for (auto itr = m_selected_objects.begin(); itr != m_selected_objects.end();
        ++itr) {
-    cSelectedObject* sel_obj = itr->get();
+    cSelectedObject const* sel_obj = itr->get();
 
     if (sel_obj->m_obj == sprite) {
       // don't delete user added selected object
@@ -793,7 +793,7 @@ bool cMouseCursor ::Is_Selected_Object(const cSprite* sprite,
 
 void cMouseCursor ::Delete_Selected_Objects(void) {
   for (int i = m_selected_objects.size() - 1; i >= 0; i--) {
-    Delete(m_selected_objects[i]->m_obj);
+    Delete(m_selected_objects[static_cast<size_t>(i)]->m_obj);
   }
 
   Clear_Selected_Objects();
@@ -840,7 +840,7 @@ bool cMouseCursor ::Get_Snap_Pos(GL_point& new_pos, int snap,
 
   // counter for number of snapable objects
   int num_snap_obj = 0;
-  cSprite* snap_obj = nullptr;
+  cSprite const* snap_obj = nullptr;
 
   // check objects for overlap
   for (const auto& sprite : m_sprite_manager->objects) {
@@ -1201,7 +1201,7 @@ void cMouseCursor ::Draw_Object_Rects(void) {
     obj_color = white;
 
     for (const auto& selected_object : m_selected_objects) {
-      cSprite* object = selected_object->m_obj;
+      cSprite const* object = selected_object->m_obj;
 
       // check if visible on screen or mouse object
       if (!object->Is_Visible_On_Screen() ||
@@ -1247,7 +1247,7 @@ void cMouseCursor ::Draw_Object_Rects(void) {
   if (m_left && m_snap_to_object_mode && m_selected_objects.size() > 1) {
     // create request
     auto rect_request = std::make_unique<cRect_Request>();
-    GL_rect sel_rect = Get_Selected_Objects_Rect();
+    GL_rect const sel_rect = Get_Selected_Objects_Rect();
     pVideo->Draw_Rect(sel_rect.m_x - pActive_Camera->m_x,
                       sel_rect.m_y - pActive_Camera->m_y, sel_rect.m_w,
                       sel_rect.m_h, 0.51f, &lightgrey, rect_request.get());

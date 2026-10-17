@@ -40,7 +40,7 @@ bool Is_Valid_Number(std::string num, bool accept_floating_point /* = 1 */) {
 
   // accept numbers with a point if given
   if (accept_floating_point) {
-    std::string::size_type pos = num.find('.');
+    std::string::size_type const pos = num.find('.');
 
     if (pos != std::string::npos) {
       num.erase(pos, 1);

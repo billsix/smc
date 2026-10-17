@@ -495,7 +495,7 @@ bool cGee ::Is_Update_Valid(void) {
 }
 
 bool cGee ::Is_Draw_Valid(void) {
-  bool valid = cEnemy::Is_Draw_Valid();
+  bool const valid = cEnemy::Is_Draw_Valid();
 
   // if editor enabled
   if (editor_enabled) {
@@ -651,7 +651,7 @@ void cGee ::Editor_Activate(void) {
 bool cGee ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()));
@@ -662,7 +662,7 @@ bool cGee ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
 bool cGee ::Editor_Max_Distance_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Max_Distance(string_to_int(str_text));
@@ -673,7 +673,7 @@ bool cGee ::Editor_Max_Distance_Text_Changed(const CEGUI::EventArgs& event) {
 bool cGee ::Editor_Always_Fly_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   if (item->getText().compare(UTF8_("Enabled")) == 0) {
@@ -688,7 +688,7 @@ bool cGee ::Editor_Always_Fly_Select(const CEGUI::EventArgs& event) {
 bool cGee ::Editor_Wait_Time_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   m_wait_time = string_to_float(str_text);
@@ -699,7 +699,7 @@ bool cGee ::Editor_Wait_Time_Text_Changed(const CEGUI::EventArgs& event) {
 bool cGee ::Editor_Fly_Distance_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   m_fly_distance = string_to_int(str_text);

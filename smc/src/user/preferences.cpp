@@ -522,69 +522,69 @@ void cPreferences ::handle_item(CEGUI::XMLAttributes attributes) {
     m_audio_sound = attributes.getValueAsBool("value");
   }
   if (name.compare("audio_music_volume") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0 && val <= MIX_MAX_VOLUME) {
       pAudio->m_music_volume = val;
     }
   } else if (name.compare("audio_sound_volume") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0 && val <= MIX_MAX_VOLUME) {
       pAudio->m_sound_volume = val;
     }
   } else if (name.compare("audio_hz") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0 && val <= 96000) {
-      m_audio_hz = val;
+      m_audio_hz = static_cast<unsigned int>(val);
     }
   }
   // Keyboard
   else if (name.compare("keyboard_key_up") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0) {
       m_key_up = static_cast<SDLKey>(val);
     }
   } else if (name.compare("keyboard_key_down") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0) {
       m_key_down = static_cast<SDLKey>(val);
     }
   } else if (name.compare("keyboard_key_left") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0) {
       m_key_left = static_cast<SDLKey>(val);
     }
   } else if (name.compare("keyboard_key_right") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0) {
       m_key_right = static_cast<SDLKey>(val);
     }
   } else if (name.compare("keyboard_key_jump") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0) {
       m_key_jump = static_cast<SDLKey>(val);
     }
   } else if (name.compare("keyboard_key_shoot") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0) {
       m_key_shoot = static_cast<SDLKey>(val);
     }
   } else if (name.compare("keyboard_key_item") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0) {
       m_key_item = static_cast<SDLKey>(val);
     }
   } else if (name.compare("keyboard_key_action") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0) {
       m_key_action = static_cast<SDLKey>(val);
@@ -592,55 +592,55 @@ void cPreferences ::handle_item(CEGUI::XMLAttributes attributes) {
   } else if (name.compare("keyboard_scroll_speed") == 0) {
     m_scroll_speed = attributes.getValueAsFloat("value");
   } else if (name.compare("keyboard_key_screenshot") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0) {
       m_key_screenshot = static_cast<SDLKey>(val);
     }
   } else if (name.compare("keyboard_key_editor_fast_copy_up") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0) {
       m_key_editor_fast_copy_up = static_cast<SDLKey>(val);
     }
   } else if (name.compare("keyboard_key_editor_fast_copy_down") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0) {
       m_key_editor_fast_copy_down = static_cast<SDLKey>(val);
     }
   } else if (name.compare("keyboard_key_editor_fast_copy_left") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0) {
       m_key_editor_fast_copy_left = static_cast<SDLKey>(val);
     }
   } else if (name.compare("keyboard_key_editor_fast_copy_right") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0) {
       m_key_editor_fast_copy_right = static_cast<SDLKey>(val);
     }
   } else if (name.compare("keyboard_key_editor_pixel_move_up") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0) {
       m_key_editor_pixel_move_up = static_cast<SDLKey>(val);
     }
   } else if (name.compare("keyboard_key_editor_pixel_move_down") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0) {
       m_key_editor_pixel_move_down = static_cast<SDLKey>(val);
     }
   } else if (name.compare("keyboard_key_editor_pixel_move_left") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0) {
       m_key_editor_pixel_move_left = static_cast<SDLKey>(val);
     }
   } else if (name.compare("keyboard_key_editor_pixel_move_right") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0) {
       m_key_editor_pixel_move_right = static_cast<SDLKey>(val);
@@ -654,49 +654,49 @@ void cPreferences ::handle_item(CEGUI::XMLAttributes attributes) {
   } else if (name.compare("joy_analog_jump") == 0) {
     m_joy_analog_jump = attributes.getValueAsBool("value");
   } else if (name.compare("joy_axis_hor") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0 && val <= 256) {
       m_joy_axis_hor = val;
     }
   } else if (name.compare("joy_axis_ver") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0 && val <= 256) {
       m_joy_axis_ver = val;
     }
   } else if (name.compare("joy_axis_threshold") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0 && val <= 32767) {
       m_joy_axis_threshold = val;
     }
   } else if (name.compare("joy_button_jump") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0 && val <= 256) {
       m_joy_button_jump = val;
     }
   } else if (name.compare("joy_button_item") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0 && val <= 256) {
       m_joy_button_item = val;
     }
   } else if (name.compare("joy_button_shoot") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0 && val <= 256) {
       m_joy_button_shoot = val;
     }
   } else if (name.compare("joy_button_action") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0 && val <= 256) {
       m_joy_button_action = val;
     }
   } else if (name.compare("joy_button_exit") == 0) {
-    int val = attributes.getValueAsInteger("value");
+    int const val = attributes.getValueAsInteger("value");
 
     if (val >= 0 && val <= 256) {
       m_joy_button_exit = val;
@@ -714,7 +714,8 @@ void cPreferences ::handle_item(CEGUI::XMLAttributes attributes) {
   } else if (name.compare("editor_show_item_images") == 0) {
     m_editor_show_item_images = attributes.getValueAsBool("value");
   } else if (name.compare("editor_item_image_size") == 0) {
-    m_editor_item_image_size = attributes.getValueAsInteger("value");
+    m_editor_item_image_size =
+        static_cast<unsigned int>(attributes.getValueAsInteger("value"));
   }
 }
 

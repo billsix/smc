@@ -295,7 +295,7 @@ void cOverworld_Player ::Activate_Waypoint(void) {
   }
 
   // get waypoint
-  cWaypoint* waypoint = Get_Waypoint();
+  cWaypoint const* waypoint = Get_Waypoint();
 
   // normal level waypoint
   if (waypoint->m_waypoint_type == WAYPOINT_NORMAL) {
@@ -312,10 +312,10 @@ void cOverworld_Player ::Activate_Waypoint(void) {
   // world link waypoint
   else if (waypoint->m_waypoint_type == WAYPOINT_WORLD_LINK) {
     // remember Overworld origin
-    cOverworld* overworld_origin = m_overworld;
+    cOverworld const* overworld_origin = m_overworld;
 
     // world string
-    std::string str_world = waypoint->Get_Destination();
+    std::string const str_world = waypoint->Get_Destination();
 
     // Enter Credits Menu ( World End )
     if (str_world.compare("credits") == 0) {
@@ -396,7 +396,7 @@ bool cOverworld_Player ::Start_Walk(ObjectDirection new_direction) {
   // a start from waypoint
   if (m_current_waypoint >= 0 && m_direction == DIR_UNDEFINED) {
     // Get Layer Line in front
-    cLayer_Line_Point_Start* front_line = Get_Front_Line(new_direction);
+    cLayer_Line_Point_Start const* front_line = Get_Front_Line(new_direction);
 
     if (!front_line) {
       if (pOverworld_Manager->m_debug_mode) {
@@ -414,7 +414,7 @@ bool cOverworld_Player ::Start_Walk(ObjectDirection new_direction) {
 
     // forward
     if (Get_Waypoint()->m_direction_forward == new_direction) {
-      cWaypoint* next_waypoint = front_line->Get_End_Waypoint();
+      cWaypoint const* next_waypoint = front_line->Get_End_Waypoint();
 
       if (!next_waypoint) {
         printf("Next waypoint not detected\n");
@@ -449,7 +449,7 @@ bool cOverworld_Player ::Start_Walk(ObjectDirection new_direction) {
   }
 
   // remember current direction
-  ObjectDirection direction_old = m_direction;
+  ObjectDirection const direction_old = m_direction;
 
   // if already walking
   if (m_direction != DIR_UNDEFINED) {
@@ -521,7 +521,7 @@ void cOverworld_Player ::Update_Walk(void) {
     }
 
     if (m_overworld->m_waypoints[i]->m_rect.Intersects(m_col_rect)) {
-      Start_Waypoint_Walk(i);
+      Start_Waypoint_Walk(static_cast<int>(i));
       break;
     }
   }
@@ -542,7 +542,7 @@ void cOverworld_Player ::Update_Waypoint_Walk(void) {
   }
 
   unsigned int reached = 0;
-  cWaypoint* waypoint = Get_Waypoint();
+  cWaypoint const* waypoint = Get_Waypoint();
 
   // horizontal position to waypoint
   const float x = m_col_rect.m_x + (m_col_rect.m_w * 0.5f);
@@ -583,7 +583,7 @@ bool cOverworld_Player ::Set_Waypoint(int waypoint,
     return false;
   }
 
-  cWaypoint* wp = m_overworld->m_waypoints[waypoint];
+  cWaypoint const* wp = m_overworld->m_waypoints[static_cast<size_t>(waypoint)];
 
   Set_Pos(wp->m_rect.m_x - m_col_pos.m_x +
               ((wp->m_rect.m_w - m_col_rect.m_w) * 0.5f),
@@ -605,7 +605,8 @@ cWaypoint* cOverworld_Player ::Get_Waypoint(void) {
     return nullptr;
   }
 
-  return m_overworld->Get_Waypoint(m_current_waypoint);
+  return m_overworld->Get_Waypoint(
+      static_cast<unsigned int>(m_current_waypoint));
 }
 
 cLayer_Line_Point_Start* cOverworld_Player ::Get_Front_Line(
@@ -618,8 +619,8 @@ cLayer_Line_Point_Start* cOverworld_Player ::Get_Front_Line(
 }
 
 void cOverworld_Player ::Update_Path_Diff(unsigned int check_size /* = 25 */) {
-  float x = m_col_rect.m_x + (m_col_rect.m_w * 0.5f) + m_velx;
-  float y = m_col_rect.m_y + (m_col_rect.m_h * 0.5f) + m_vely;
+  float const x = m_col_rect.m_x + (m_col_rect.m_w * 0.5f) + m_velx;
+  float const y = m_col_rect.m_y + (m_col_rect.m_h * 0.5f) + m_vely;
 
   // bigger direction check size
   unsigned int hor_advance = 0;
@@ -632,17 +633,19 @@ void cOverworld_Player ::Update_Path_Diff(unsigned int check_size /* = 25 */) {
 
   // get nearest lines
   m_line_hor = m_overworld->m_layer.Get_Nearest(
-      x, y, DIR_HORIZONTAL, check_size + hor_advance, m_line_waypoint);
+      x, y, DIR_HORIZONTAL, check_size + hor_advance,
+      static_cast<int>(m_line_waypoint));
   m_line_ver = m_overworld->m_layer.Get_Nearest(
-      x, y, DIR_VERTICAL, check_size + ver_advance, m_line_waypoint);
+      x, y, DIR_VERTICAL, check_size + ver_advance,
+      static_cast<int>(m_line_waypoint));
 }
 
 void cOverworld_Player ::Change_Direction(void) {
   m_line_hor = cLine_collision();
   m_line_ver = cLine_collision();
 
-  float x = m_col_rect.m_x + (m_col_rect.m_w * 0.5f);
-  float y = m_col_rect.m_y + (m_col_rect.m_h * 0.5f);
+  float const x = m_col_rect.m_x + (m_col_rect.m_w * 0.5f);
+  float const y = m_col_rect.m_y + (m_col_rect.m_h * 0.5f);
 
   /* check with a big collision line the difference to the next layer line behind maryo
 	 * if no line is found turn around
@@ -651,16 +654,16 @@ void cOverworld_Player ::Change_Direction(void) {
   if (m_direction == DIR_RIGHT || m_direction == DIR_LEFT) {
     // search for a line with increasing distance
     for (unsigned int i = 0; i < 30; i++) {
-      m_line_ver = m_overworld->m_layer.Get_Nearest(x - i, y, DIR_VERTICAL, 80,
-                                                    m_line_waypoint);
+      m_line_ver = m_overworld->m_layer.Get_Nearest(
+          x - i, y, DIR_VERTICAL, 80, static_cast<int>(m_line_waypoint));
 
       // found
       if (m_line_ver.m_line_number >= 0) {
         break;
       }
 
-      m_line_ver = m_overworld->m_layer.Get_Nearest(x + i, y, DIR_VERTICAL, 80,
-                                                    m_line_waypoint);
+      m_line_ver = m_overworld->m_layer.Get_Nearest(
+          x + i, y, DIR_VERTICAL, 80, static_cast<int>(m_line_waypoint));
 
       // found
       if (m_line_ver.m_line_number >= 0) {
@@ -683,16 +686,16 @@ void cOverworld_Player ::Change_Direction(void) {
   } else if (m_direction == DIR_UP || m_direction == DIR_DOWN) {
     // search for a line with increasing distance
     for (unsigned int i = 0; i < 30; i++) {
-      m_line_hor = m_overworld->m_layer.Get_Nearest(x, y + i, DIR_HORIZONTAL,
-                                                    80, m_line_waypoint);
+      m_line_hor = m_overworld->m_layer.Get_Nearest(
+          x, y + i, DIR_HORIZONTAL, 80, static_cast<int>(m_line_waypoint));
 
       // found
       if (m_line_hor.m_line_number >= 0) {
         break;
       }
 
-      m_line_hor = m_overworld->m_layer.Get_Nearest(x, y - i, DIR_HORIZONTAL,
-                                                    80, m_line_waypoint);
+      m_line_hor = m_overworld->m_layer.Get_Nearest(
+          x, y - i, DIR_HORIZONTAL, 80, static_cast<int>(m_line_waypoint));
 
       // found
       if (m_line_hor.m_line_number >= 0) {

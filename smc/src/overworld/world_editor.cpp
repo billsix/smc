@@ -149,7 +149,8 @@ std::unique_ptr<cSprite> cEditor_World ::Get_Object(
 }
 
 bool cEditor_World ::Function_New(void) {
-  std::string world_name = Box_Text_Input(_("Create a new World"), _("Name"));
+  std::string const world_name =
+      Box_Text_Input(_("Create a new World"), _("Name"));
 
   // aborted/invalid
   if (world_name.empty()) {

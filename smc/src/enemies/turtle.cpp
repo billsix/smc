@@ -113,7 +113,7 @@ void cTurtle ::Load_From_Savegame(cSave_Level_Object* save_object) {
 
   // turtle_state
   if (save_object->exists("turtle_state")) {
-    Turtle_state mov_state = static_cast<Turtle_state>(
+    Turtle_state const mov_state = static_cast<Turtle_state>(
         string_to_int(save_object->Get_Value("turtle_state")));
 
     if (mov_state == TURTLE_SHELL_STAND || mov_state == TURTLE_SHELL_RUN) {
@@ -443,7 +443,7 @@ void cTurtle ::Stand_Up(void) {
   }
 
   // get space needed to stand up
-  float move_y = m_image->m_col_h - m_images[0].m_image->m_col_h;
+  float const move_y = m_image->m_col_h - m_images[0].m_image->m_col_h;
 
   std::unique_ptr<cObjectCollisionType> col_list =
       Collision_Check_Relative(0.0f, move_y, 0.0f, 0.0f, COLLIDE_ONLY_BLOCKING);
@@ -480,7 +480,7 @@ bool cTurtle ::Hit_Enemy(cEnemy* enemy) {
 
   // if red shell check if colliding turtle is green and also running
   if (m_color_type == COL_RED && enemy->m_type == TYPE_TURTLE) {
-    cTurtle* turtle = static_cast<cTurtle*>(enemy);
+    cTurtle const* turtle = static_cast<cTurtle*>(enemy);
 
     // red shell can't kill the green shell
     if (turtle->m_color_type == COL_GREEN && turtle->m_state == STA_RUN) {
@@ -536,7 +536,7 @@ bool cTurtle ::Is_Update_Valid(void) {
 
 Col_Valid_Type cTurtle ::Validate_Collision(cSprite* obj) {
   // basic validation checking
-  Col_Valid_Type basic_valid = Validate_Collision_Ghost(obj);
+  Col_Valid_Type const basic_valid = Validate_Collision_Ghost(obj);
 
   // found valid collision
   if (basic_valid != COL_VTYPE_NOT_POSSIBLE) {
@@ -617,7 +617,7 @@ Col_Valid_Type cTurtle ::Validate_Collision(cSprite* obj) {
         // if shell
         if (m_turtle_state == TURTLE_SHELL_STAND ||
             m_turtle_state == TURTLE_SHELL_RUN) {
-          cBaseBox* box = static_cast<cBaseBox*>(obj);
+          cBaseBox const* box = static_cast<cBaseBox*>(obj);
 
           // invisible semi massive
           if (box->m_box_invisible == BOX_INVISIBLE_SEMI_MASSIVE) {
@@ -771,8 +771,8 @@ void cTurtle ::Handle_Collision_Player(cObjectCollision* collision) {
 
 void cTurtle ::Handle_Collision_Enemy(cObjectCollision* collision) {
   if (m_turtle_state == TURTLE_SHELL_STAND) {
-    cEnemy* enemy = static_cast<cEnemy*>(
-        m_sprite_manager->Get_Pointer(collision->m_number));
+    cEnemy* enemy = static_cast<cEnemy*>(m_sprite_manager->Get_Pointer(
+        static_cast<size_t>(collision->m_number)));
 
     // if able to collide
     if (m_state == STA_OBJ_LINKED || m_vely < -5.0f) {
@@ -781,8 +781,8 @@ void cTurtle ::Handle_Collision_Enemy(cObjectCollision* collision) {
       }
     }
   } else if (m_turtle_state == TURTLE_SHELL_RUN) {
-    cEnemy* enemy = static_cast<cEnemy*>(
-        m_sprite_manager->Get_Pointer(collision->m_number));
+    cEnemy* enemy = static_cast<cEnemy*>(m_sprite_manager->Get_Pointer(
+        static_cast<size_t>(collision->m_number)));
 
     if (Hit_Enemy(enemy)) {
       // create animation
@@ -820,7 +820,8 @@ void cTurtle ::Handle_Collision_Enemy(cObjectCollision* collision) {
 
 void cTurtle ::Handle_Collision_Massive(cObjectCollision* collision) {
   // get colliding object
-  cSprite* col_object = m_sprite_manager->Get_Pointer(collision->m_number);
+  cSprite* col_object =
+      m_sprite_manager->Get_Pointer(static_cast<size_t>(collision->m_number));
 
   if (m_turtle_state == TURTLE_WALK) {
     Send_Collision(collision);
@@ -864,7 +865,7 @@ void cTurtle ::Handle_Collision_Massive(cObjectCollision* collision) {
         if (col_object->m_type == TYPE_BONUS_BOX ||
             col_object->m_type == TYPE_SPIN_BOX) {
           // get basebox
-          cBaseBox* box = static_cast<cBaseBox*>(col_object);
+          cBaseBox const* box = static_cast<cBaseBox*>(col_object);
 
           // if useable
           if (box->m_useable_count != 0) {
@@ -932,7 +933,7 @@ void cTurtle ::Editor_Activate(void) {
 bool cTurtle ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()), true);

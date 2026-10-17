@@ -45,7 +45,7 @@ bool cFile_parser ::Parse(const std::string& filename) {
 
   while (std::getline(ifs, line)) {
     line_num++;
-    Parse_Line(line, line_num);
+    Parse_Line(line, static_cast<int>(line_num));
   }
 
   return true;
@@ -82,7 +82,7 @@ bool cFile_parser ::Parse_Line(std::string str_line, int line_num) {
 
   tempstr = str_line;
 
-  std::vector<std::string> parts(count + 1);
+  std::vector<std::string> parts(static_cast<size_t>(count + 1));
 
   std::string::size_type len;
   int part_count = 0;
@@ -91,7 +91,7 @@ bool cFile_parser ::Parse_Line(std::string str_line, int line_num) {
     // get length of the part
     len = tempstr.find_first_of(' ');
     // create part
-    parts[part_count] = tempstr.substr(0, len);
+    parts[static_cast<size_t>(part_count)] = tempstr.substr(0, len);
     // remove part from temp string
     tempstr.erase(0, len + 1);
 
@@ -99,10 +99,12 @@ bool cFile_parser ::Parse_Line(std::string str_line, int line_num) {
     count--;
   }
 
-  parts[part_count] = tempstr;
+  parts[static_cast<size_t>(part_count)] = tempstr;
 
   // Message handler
-  bool success = HandleMessage(parts.data(), part_count, line_num);
+  bool const success =
+      HandleMessage(parts.data(), static_cast<unsigned int>(part_count),
+                    static_cast<unsigned int>(line_num));
 
   return success;
 }

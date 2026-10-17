@@ -29,6 +29,10 @@ class GL_rect {
  public:
   GL_rect(void) : m_x(0), m_y(0), m_w(0), m_h(0) {}
 
+  // Rule-of-five: GL_rect declares a copy-assignment operator below, so declare the copy
+  // constructor explicitly too (defaulted = memberwise, identical to the implicit one).
+  GL_rect(const GL_rect&) = default;
+
   GL_rect(const GL_rect* rect)
       : m_x(rect->m_x), m_y(rect->m_y), m_w(rect->m_w), m_h(rect->m_h) {}
 

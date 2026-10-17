@@ -370,9 +370,9 @@ void cLevel_Manager ::Goto_Sub_Level(
             }
 
             // start path position
-            float start_path_pos_x =
+            float const start_path_pos_x =
                 path_state.m_path->m_col_rect.m_x - (game_res_w * 0.5f);
-            float start_path_pos_y =
+            float const start_path_pos_y =
                 path_state.m_path->m_col_rect.m_y - (game_res_h * 0.5f);
             // move gradually to start point
             pActive_Camera->Move_to_Position_Gradually(
@@ -444,7 +444,7 @@ void cLevel_Manager ::Goto_Sub_Level(
   }
   // another level
   else {
-    cLevel* level = pLevel_Manager->Load(str_level);
+    cLevel const* level = pLevel_Manager->Load(str_level);
 
     if (level) {
       Game_Action = GA_ENTER_LEVEL;
