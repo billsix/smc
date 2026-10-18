@@ -74,8 +74,6 @@ void Handle_Game_Events(void) {
   // if game action is set
   while (Game_Action != GA_NONE) {
     // get current data
-    const GameMode current_game_mode = Game_Mode;
-    const GameModeType current_game_mode_type = Game_Mode_Type;
     const GameAction current_game_action = Game_Action;
     const CEGUI::XMLAttributes current_game_action_data_start =
         Game_Action_Data_Start;
@@ -134,7 +132,8 @@ void Handle_Game_Events(void) {
 
 void Handle_Generic_Game_Events(const CEGUI::XMLAttributes& action_data) {
   if (action_data.exists("music_fadeout")) {
-    pAudio->Fadeout_Music(action_data.getValueAsInteger("music_fadeout"));
+    pAudio->Fadeout_Music(static_cast<unsigned int>(
+        action_data.getValueAsInteger("music_fadeout")));
   }
   if (action_data.getValueAsBool("reset_save")) {
     pLevel_Player->Reset_Save();
@@ -146,7 +145,7 @@ void Handle_Generic_Game_Events(const CEGUI::XMLAttributes& action_data) {
     pMenuCore->Unload();
   }
   if (action_data.exists("load_menu")) {
-    MenuID menu =
+    MenuID const menu =
         static_cast<MenuID>(action_data.getValueAsInteger("load_menu"));
     pMenuCore->Load(menu, static_cast<GameMode>(action_data.getValueAsInteger(
                               "menu_exit_back_to")));
@@ -166,18 +165,20 @@ void Handle_Generic_Game_Events(const CEGUI::XMLAttributes& action_data) {
   // set player waypoint
   if (action_data.exists("world_player_waypoint")) {
     // get world waypoint
-    int waypoint_num = pActive_Overworld->Get_Waypoint_Num(
+    int const waypoint_num = pActive_Overworld->Get_Waypoint_Num(
         action_data.getValueAsString("world_player_waypoint").c_str());
 
     // waypoint available
     if (waypoint_num >= 0) {
       // set the previous waypoints accessible
-      pActive_Overworld->Set_Progress(waypoint_num, false);
+      pActive_Overworld->Set_Progress(static_cast<unsigned int>(waypoint_num),
+                                      false);
       pOverworld_Player->Set_Waypoint(waypoint_num);
     }
   }
   if (action_data.exists("new_level")) {
-    std::string str_level = action_data.getValueAsString("new_level").c_str();
+    std::string const str_level =
+        action_data.getValueAsString("new_level").c_str();
     // new level
     cLevel* level = pLevel_Manager->New(str_level);
 
@@ -187,7 +188,8 @@ void Handle_Generic_Game_Events(const CEGUI::XMLAttributes& action_data) {
     }
   }
   if (action_data.exists("load_level")) {
-    std::string str_level = action_data.getValueAsString("load_level").c_str();
+    std::string const str_level =
+        action_data.getValueAsString("load_level").c_str();
     // load the level
     cLevel* level = pLevel_Manager->Load(str_level);
 
@@ -196,9 +198,9 @@ void Handle_Generic_Game_Events(const CEGUI::XMLAttributes& action_data) {
       level->Init();
 
       if (action_data.exists("load_level_entry")) {
-        std::string str_entry =
+        std::string const str_entry =
             action_data.getValueAsString("load_level_entry").c_str();
-        cLevel_Entry* entry = level->Get_Entry(str_entry);
+        cLevel_Entry const* entry = level->Get_Entry(str_entry);
 
         // set camera position to show the entry
         if (entry) {
@@ -223,13 +225,15 @@ void Handle_Generic_Game_Events(const CEGUI::XMLAttributes& action_data) {
     }
   }
   if (action_data.exists("load_savegame")) {
-    pSavegame->Load_Game(action_data.getValueAsInteger("load_savegame"));
+    pSavegame->Load_Game(static_cast<unsigned int>(
+        action_data.getValueAsInteger("load_savegame")));
   }
   if (action_data.exists("play_music")) {
     pAudio->Play_Music(action_data.getValueAsString("play_music").c_str(),
                        action_data.getValueAsInteger("music_loops"),
                        action_data.getValueAsBool("music_force", true),
-                       action_data.getValueAsInteger("music_fadein"));
+                       static_cast<unsigned int>(
+                           action_data.getValueAsInteger("music_fadein")));
   }
   if (action_data.exists("screen_fadeout")) {
     Draw_Effect_Out(static_cast<Effect_Fadeout>(
@@ -242,9 +246,9 @@ void Handle_Generic_Game_Events(const CEGUI::XMLAttributes& action_data) {
                    action_data.getValueAsFloat("screen_fadein_speed", 1));
   }
   if (action_data.exists("activate_level_entry")) {
-    std::string str_entry =
+    std::string const str_entry =
         action_data.getValueAsString("activate_level_entry").c_str();
-    cLevel_Entry* entry = pActive_Level->Get_Entry(str_entry);
+    cLevel_Entry const* entry = pActive_Level->Get_Entry(str_entry);
 
     if (entry) {
       pLevel_Manager->Goto_Sub_Level("", entry->m_entry_name, CAMERA_MOVE_NONE);
@@ -273,7 +277,7 @@ void Leave_Game_Mode(const GameMode next_mode) {
 
 void Enter_Game_Mode(const GameMode new_mode) {
   // remember old mode
-  GameMode old_mode = Game_Mode;
+  GameMode const old_mode = Game_Mode;
   // set new mode
   Game_Mode = new_mode;
 
@@ -432,12 +436,12 @@ void Preload_Images(bool draw_gui /* = 0 */) {
   image_files.emplace_back("game/itembox.png");
 
   unsigned int loaded_files = 0;
-  unsigned int file_count = image_files.size();
+  unsigned int const file_count = image_files.size();
 
   // load images
   for (const auto& image_file : image_files) {
     // get filename
-    std::string filename = image_file;
+    std::string const filename = image_file;
 
     // preload image
     pVideo->Get_Surface(filename);
@@ -561,12 +565,12 @@ void Preload_Sounds(bool draw_gui /* = 0 */) {
   sound_files.emplace_back("waypoint_reached.ogg");
 
   unsigned int loaded_files = 0;
-  unsigned int file_count = sound_files.size();
+  unsigned int const file_count = sound_files.size();
 
   // load images
   for (const auto& sound_file : sound_files) {
     // get filename
-    std::string filename = sound_file;
+    std::string const filename = sound_file;
 
     // preload it
     pAudio->Get_Sound_File(filename);

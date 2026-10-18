@@ -192,12 +192,12 @@ ObjectDirection Get_Collision_Direction(const cSprite* base,
   // ## advanced detection ( if base object is partly inside col object )
 
   // get the middle point
-  GL_point point_base = base->m_col_rect.Get_pos_middle();
-  GL_point point_col = col->m_col_rect.Get_pos_middle();
+  GL_point const point_base = base->m_col_rect.Get_pos_middle();
+  GL_point const point_col = col->m_col_rect.Get_pos_middle();
 
   // difference between points
-  float diff_x = point_col.m_x - point_base.m_x;
-  float diff_y = point_col.m_y - point_base.m_y;
+  float const diff_x = point_col.m_x - point_base.m_x;
+  float const diff_y = point_col.m_y - point_base.m_y;
 
   // more horizontal
   if ((diff_x > 0.0f && (diff_x > diff_y)) ||
@@ -227,11 +227,11 @@ ObjectDirection Get_Collision_Direction(const cSprite* base,
 // from SDL_collide ( Copyright (C) 2005 Amir Taaki ) - MIT License
 bool Col_Circle(float x1, float y1, float r1, float x2, float y2, float r2,
                 int offset) {
-  float xdiff = x2 - x1;  // x plane difference
-  float ydiff = y2 - y1;  // y plane difference
+  float const xdiff = x2 - x1;  // x plane difference
+  float const ydiff = y2 - y1;  // y plane difference
 
   /* distance between the circles centres squared */
-  float dcentre_sq = (ydiff * ydiff) + (xdiff * xdiff);
+  float const dcentre_sq = (ydiff * ydiff) + (xdiff * xdiff);
 
   /* calculate sum of radiuses squared */
   float r_sum_sq = r1 + r2;  // square on seperate line, so
@@ -246,8 +246,8 @@ bool Col_Circle(cGL_Surface* a, float x1, float y1, cGL_Surface* b, float x2,
   /* if radius is not specified
 	we approximate them using SDL_Surface's
 	width and height average and divide by 2*/
-  float r1 = ((a->m_w + a->m_h) / 4);  // same as / 2) / 2;
-  float r2 = ((b->m_w + b->m_h) / 4);
+  float const r1 = ((a->m_w + a->m_h) / 4);  // same as / 2) / 2;
+  float const r2 = ((b->m_w + b->m_h) / 4);
 
   x1 += a->m_w / 2;  // offset x and y
   y1 += a->m_h / 2;  // co-ordinates into

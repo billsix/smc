@@ -101,8 +101,10 @@ void cRandom_Sound ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   //
   Set_Continuous(attributes.getValueAsBool("continuous", m_continuous));
   // delay
-  Set_Delay_Min(attributes.getValueAsInteger("delay_min", m_delay_min));
-  Set_Delay_Max(attributes.getValueAsInteger("delay_max", m_delay_max));
+  Set_Delay_Min(static_cast<unsigned int>(attributes.getValueAsInteger(
+      "delay_min", static_cast<int>(m_delay_min))));
+  Set_Delay_Max(static_cast<unsigned int>(attributes.getValueAsInteger(
+      "delay_max", static_cast<int>(m_delay_max))));
   // volume
   Set_Volume_Min(attributes.getValueAsFloat("volume_min", m_volume_min));
   Set_Volume_Max(attributes.getValueAsFloat("volume_max", m_volume_max));
@@ -262,7 +264,7 @@ void cRandom_Sound ::Update(void) {
     m_volume_update_counter -= pFramerate->m_elapsed_ticks;
 
     // get the sound
-    cAudio_Sound* sound = pAudio->Get_Playing_Sound(m_filename);
+    cAudio_Sound const* sound = pAudio->Get_Playing_Sound(m_filename);
 
     // if not playing
     if (!sound) {
@@ -378,8 +380,8 @@ bool cRandom_Sound ::Is_Update_Valid(void) {
   }
 
   // get distance from camera center position
-  float dx = fabs(pActive_Camera->m_x + (game_res_w * 0.5f) - m_pos_x);
-  float dy = fabs(pActive_Camera->m_y + (game_res_h * 0.5f) - m_pos_y);
+  float const dx = fabs(pActive_Camera->m_x + (game_res_w * 0.5f) - m_pos_x);
+  float const dy = fabs(pActive_Camera->m_y + (game_res_h * 0.5f) - m_pos_y);
 
   m_distance_to_camera = sqrt(dx * dx + dy * dy);
 
@@ -448,7 +450,7 @@ void cRandom_Sound ::Editor_Activate(void) {
              editbox, 90);
 
   editbox->setValidationString("^[+]?\\d*$");
-  editbox->setText(int_to_string(m_delay_min));
+  editbox->setText(int_to_string(static_cast<int>(m_delay_min)));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(&cRandom_Sound::Editor_Delay_Min_Text_Changed,
@@ -461,7 +463,7 @@ void cRandom_Sound ::Editor_Activate(void) {
              editbox, 90, 28, false);
 
   editbox->setValidationString("^[+]?\\d*$");
-  editbox->setText(int_to_string(m_delay_max));
+  editbox->setText(int_to_string(static_cast<int>(m_delay_max)));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(&cRandom_Sound::Editor_Delay_Max_Text_Changed,
@@ -540,7 +542,7 @@ bool cRandom_Sound ::Editor_Filename_Text_Changed(
 bool cRandom_Sound ::Editor_Continuous_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  bool enabled =
+  bool const enabled =
       static_cast<CEGUI::Checkbox*>(windowEventArgs.window)->isSelected();
 
   Set_Continuous(enabled);
@@ -552,10 +554,10 @@ bool cRandom_Sound ::Editor_Delay_Min_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
-  Set_Delay_Min(string_to_int(str_text));
+  Set_Delay_Min(static_cast<unsigned int>(string_to_int(str_text)));
 
   return true;
 }
@@ -564,10 +566,10 @@ bool cRandom_Sound ::Editor_Delay_Max_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
-  Set_Delay_Max(string_to_int(str_text));
+  Set_Delay_Max(static_cast<unsigned int>(string_to_int(str_text)));
 
   return true;
 }
@@ -576,7 +578,7 @@ bool cRandom_Sound ::Editor_Volume_Min_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Volume_Min(string_to_float(str_text));
@@ -588,7 +590,7 @@ bool cRandom_Sound ::Editor_Volume_Max_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Volume_Max(string_to_float(str_text));
@@ -600,7 +602,7 @@ bool cRandom_Sound ::Editor_Volume_Reduction_Begin_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Volume_Reduction_Begin(string_to_float(str_text));
@@ -612,7 +614,7 @@ bool cRandom_Sound ::Editor_Volume_Reduction_End_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Volume_Reduction_End(string_to_float(str_text));

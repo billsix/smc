@@ -293,7 +293,7 @@ void cThromp ::Update(void) {
 
   // standing ( waiting )
   if (m_state == STA_STAY) {
-    GL_rect final_distance = Get_Final_Distance_Rect();
+    GL_rect const final_distance = Get_Final_Distance_Rect();
 
     // if player is in front then activate
     if (pLevel_Player->m_maryo_type != MARYO_GHOST &&
@@ -480,7 +480,7 @@ bool cThromp ::Is_Update_Valid(void) {
 }
 
 bool cThromp ::Is_Draw_Valid(void) {
-  bool valid = cEnemy::Is_Draw_Valid();
+  bool const valid = cEnemy::Is_Draw_Valid();
 
   // if editor enabled
   if (editor_enabled) {
@@ -541,7 +541,7 @@ void cThromp ::Generate_Smoke(unsigned int amount /* = 20 */) const {
 
 Col_Valid_Type cThromp ::Validate_Collision(cSprite* obj) {
   // basic validation checking
-  Col_Valid_Type basic_valid = Validate_Collision_Ghost(obj);
+  Col_Valid_Type const basic_valid = Validate_Collision_Ghost(obj);
 
   // found valid collision
   if (basic_valid != COL_VTYPE_NOT_POSSIBLE) {
@@ -551,7 +551,8 @@ Col_Valid_Type cThromp ::Validate_Collision(cSprite* obj) {
   if (obj->m_type == TYPE_PLAYER || obj->m_sprite_array == ARRAY_ENEMY) {
     cMovingSprite* moving_sprite = static_cast<cMovingSprite*>(obj);
 
-    Col_Valid_Type validation = Validate_Collision_Object_On_Top(moving_sprite);
+    Col_Valid_Type const validation =
+        Validate_Collision_Object_On_Top(moving_sprite);
 
     if (validation != COL_VTYPE_NOT_POSSIBLE) {
       return validation;
@@ -610,8 +611,8 @@ void cThromp ::Handle_Collision_Enemy(cObjectCollision* collision) {
   if (collision->m_direction == m_direction) {
     // if active
     if (m_state == STA_FLY) {
-      cEnemy* enemy = static_cast<cEnemy*>(
-          m_sprite_manager->Get_Pointer(collision->m_number));
+      cEnemy* enemy = static_cast<cEnemy*>(m_sprite_manager->Get_Pointer(
+          static_cast<size_t>(collision->m_number)));
 
       // enemies that only hit us
       if (enemy->m_type == TYPE_SPIKEBALL) {
@@ -639,7 +640,8 @@ void cThromp ::Handle_Collision_Enemy(cObjectCollision* collision) {
 void cThromp ::Handle_Collision_Massive(cObjectCollision* collision) {
   Send_Collision(collision);
 
-  cSprite* col_obj = m_sprite_manager->Get_Pointer(collision->m_number);
+  cSprite const* col_obj =
+      m_sprite_manager->Get_Pointer(static_cast<size_t>(collision->m_number));
 
   // ignore ball
   if (col_obj->m_type == TYPE_BALL) {
@@ -721,7 +723,7 @@ void cThromp ::Editor_Activate(void) {
 bool cThromp ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()));
@@ -732,7 +734,7 @@ bool cThromp ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
 bool cThromp ::Editor_Image_Dir_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Image_Dir(str_text);
@@ -743,7 +745,7 @@ bool cThromp ::Editor_Image_Dir_Text_Changed(const CEGUI::EventArgs& event) {
 bool cThromp ::Editor_Max_Distance_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Max_Distance(static_cast<float>(string_to_int(str_text)));
@@ -754,7 +756,7 @@ bool cThromp ::Editor_Max_Distance_Text_Changed(const CEGUI::EventArgs& event) {
 bool cThromp ::Editor_Speed_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Speed(string_to_float(str_text));

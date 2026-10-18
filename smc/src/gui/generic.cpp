@@ -211,10 +211,10 @@ int cDialogBox_Question ::Enter(std::string text, bool with_cancel /* = 0 */) {
   box_text->setText(reinterpret_cast<const CEGUI::utf8*>(text.c_str()));
 
   // align text
-  CEGUI::Font* font =
+  CEGUI::Font const* font =
       &CEGUI::FontManager::getSingleton().get("bluebold_medium");
   // fixme : Can't handle multiple lines of text
-  float text_width = font->getTextExtent(text) * global_downscalex;
+  float const text_width = font->getTextExtent(text) * global_downscalex;
 
   if (text_width > 250) {
     box_window->setWidth(CEGUI::UDim(0, (text_width + 15) * global_upscalex));
@@ -313,7 +313,7 @@ void Gui_Handle_Time(void) {
   static float last_time_pulse = 0;
 
   // get current "run-time" in seconds
-  float t = 0.001f * SDL_GetTicks();
+  float const t = 0.001f * SDL_GetTicks();
 
   // inject the time that passed since the last call
   CEGUI::System::getSingleton().injectTimePulse(t - last_time_pulse);
@@ -344,13 +344,14 @@ void Draw_Static_Text(const std::string& text,
                          static_cast<float>(color_text->red) / 255,
                          static_cast<float>(color_text->green) / 255,
                          static_cast<float>(color_text->blue) / 255, 1)));
-  CEGUI::String gui_text = reinterpret_cast<const CEGUI::utf8*>(text.c_str());
+  CEGUI::String const gui_text =
+      reinterpret_cast<const CEGUI::utf8*>(text.c_str());
   text_default->setText(gui_text);
 
   // align text
-  CEGUI::Font* font =
+  CEGUI::Font const* font =
       &CEGUI::FontManager::getSingleton().get("bluebold_medium");
-  float text_width = font->getTextExtent(gui_text) * global_downscalex;
+  float const text_width = font->getTextExtent(gui_text) * global_downscalex;
 
   text_default->setWidth(CEGUI::UDim(0, (text_width + 15) * global_upscalex));
   text_default->setXPosition(CEGUI::UDim(
@@ -559,8 +560,8 @@ bool GUI_Copy_To_Clipboard(bool cut) {
   if (type.find("/MultiLineEditbox") != CEGUI::String::npos) {
     CEGUI::MultiLineEditbox* editbox =
         static_cast<CEGUI::MultiLineEditbox*>(window_active);
-    CEGUI::String::size_type beg = editbox->getSelectionStartIndex();
-    CEGUI::String::size_type len = editbox->getSelectionLength();
+    CEGUI::String::size_type const beg = editbox->getSelectionStartIndex();
+    CEGUI::String::size_type const len = editbox->getSelectionLength();
     sel_text = editbox->getText().substr(beg, len).c_str();
 
     // if cutting
@@ -576,8 +577,8 @@ bool GUI_Copy_To_Clipboard(bool cut) {
   // Editbox
   else if (type.find("/Editbox") != CEGUI::String::npos) {
     CEGUI::Editbox* editbox = static_cast<CEGUI::Editbox*>(window_active);
-    CEGUI::String::size_type beg = editbox->getSelectionStartIndex();
-    CEGUI::String::size_type len = editbox->getSelectionLength();
+    CEGUI::String::size_type const beg = editbox->getSelectionStartIndex();
+    CEGUI::String::size_type const len = editbox->getSelectionLength();
     sel_text = editbox->getText().substr(beg, len).c_str();
 
     // if cutting
@@ -623,15 +624,15 @@ bool GUI_Paste_From_Clipboard(void) {
       return false;
     }
 
-    CEGUI::String::size_type beg = editbox->getSelectionStartIndex();
-    CEGUI::String::size_type len = editbox->getSelectionLength();
+    CEGUI::String::size_type const beg = editbox->getSelectionStartIndex();
+    CEGUI::String::size_type const len = editbox->getSelectionLength();
 
     CEGUI::String new_text = editbox->getText();
     // erase selected text
     new_text.erase(beg, len);
 
     // get clipboard text
-    CEGUI::String clipboard_text =
+    CEGUI::String const clipboard_text =
         reinterpret_cast<const CEGUI::utf8*>(Get_Clipboard_Content().c_str());
     // set new text
     editbox->setText(new_text.insert(beg, clipboard_text));
@@ -646,15 +647,15 @@ bool GUI_Paste_From_Clipboard(void) {
       return false;
     }
 
-    CEGUI::String::size_type beg = editbox->getSelectionStartIndex();
-    CEGUI::String::size_type len = editbox->getSelectionLength();
+    CEGUI::String::size_type const beg = editbox->getSelectionStartIndex();
+    CEGUI::String::size_type const len = editbox->getSelectionLength();
 
     CEGUI::String new_text = editbox->getText();
     // erase selected text
     new_text.erase(beg, len);
 
     // get clipboard text
-    CEGUI::String clipboard_text =
+    CEGUI::String const clipboard_text =
         reinterpret_cast<const CEGUI::utf8*>(Get_Clipboard_Content().c_str());
     // set new text
     editbox->setText(new_text.insert(beg, clipboard_text));

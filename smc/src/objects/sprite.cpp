@@ -167,7 +167,8 @@ cObjectCollision* cCollidingSprite ::Get_Last_Collision(
   if (only_blocking) {
     for (const auto& col : std::views::reverse(m_collisions)) {
       // get object pointer
-      cSprite* col_obj = m_sprite_manager->Get_Pointer(col->m_number);
+      cSprite const* col_obj =
+          m_sprite_manager->Get_Pointer(static_cast<size_t>(col->m_number));
 
       // ignore passive
       if (col_obj->m_massive_type == MASS_PASSIVE) {
@@ -588,28 +589,28 @@ void cSprite ::Set_Active(bool enabled) {
   Update_Valid_Update();
 }
 
-void cSprite ::Set_Color_Combine(const float red, const float green,
-                                 const float blue, const GLint com_type) {
+void cSprite ::Set_Color_Combine(const float red_value, const float green_value,
+                                 const float blue_value, const GLint com_type) {
   m_combine_type = com_type;
-  m_combine_color[0] = Clamp(red, 0.000001f, 1.0f);
-  m_combine_color[1] = Clamp(green, 0.000001f, 1.0f);
-  m_combine_color[2] = Clamp(blue, 0.000001f, 1.0f);
+  m_combine_color[0] = Clamp(red_value, 0.000001f, 1.0f);
+  m_combine_color[1] = Clamp(green_value, 0.000001f, 1.0f);
+  m_combine_color[2] = Clamp(blue_value, 0.000001f, 1.0f);
 }
 
 void cSprite ::Update_Rect_Rotation_Z(void) {
   // rotate 270�
   if (m_rot_z >= 270.0f) {
     // rotate collision position
-    float orig_x = m_col_pos.m_x;
+    float const orig_x = m_col_pos.m_x;
     m_col_pos.m_x = m_col_pos.m_y;
     m_col_pos.m_y = orig_x;
 
     // switch width and height
-    float orig_w = m_rect.m_w;
+    float const orig_w = m_rect.m_w;
     m_rect.m_w = m_rect.m_h;
     m_rect.m_h = orig_w;
     // switch collision width and height
-    float orig_col_w = m_col_rect.m_w;
+    float const orig_col_w = m_col_rect.m_w;
     m_col_rect.m_w = m_col_rect.m_h;
     m_col_rect.m_h = orig_col_w;
   }
@@ -621,16 +622,16 @@ void cSprite ::Update_Rect_Rotation_Z(void) {
   // rotate 90�
   else if (m_rot_z >= 0.00001f) {
     // rotate collision position
-    float orig_x = m_col_pos.m_x;
+    float const orig_x = m_col_pos.m_x;
     m_col_pos.m_x = m_rect.m_h - (m_col_rect.m_h + m_col_pos.m_y);
     m_col_pos.m_y = orig_x;
 
     // switch width and height
-    float orig_w = m_rect.m_w;
+    float const orig_w = m_rect.m_w;
     m_rect.m_w = m_rect.m_h;
     m_rect.m_h = orig_w;
     // switch collision width and height
-    float orig_col_w = m_col_rect.m_w;
+    float const orig_col_w = m_col_rect.m_w;
     m_col_rect.m_w = m_col_rect.m_h;
     m_col_rect.m_h = orig_col_w;
   }
@@ -835,7 +836,7 @@ void cSprite ::Draw(cSurface_Request* request /* = nullptr */) {
     // create request
     rect_request = std::make_unique<cRect_Request>();
     // draw
-    Color sprite_color = Get_Sprite_Color(this);
+    Color const sprite_color = Get_Sprite_Color(this);
     pVideo->Draw_Rect(&m_col_rect, m_pos_z + 0.000007f, &sprite_color,
                       rect_request.get());
     rect_request->m_no_camera = m_no_camera;
@@ -1262,9 +1263,10 @@ void cSprite ::Editor_Add(const CEGUI::String& name,
   window_name->setText(name);
   window_name->setTooltipText(tooltip);
   // get text width
-  CEGUI::Font* font =
+  CEGUI::Font const* font =
       &CEGUI::FontManager::getSingleton().get("bluebold_medium");
-  float text_width = 12.0f + font->getTextExtent(name) * global_downscalex;
+  float const text_width =
+      12.0f + font->getTextExtent(name) * global_downscalex;
   // all names should have the same width
   if (text_width > m_editor_window_name_width) {
     m_editor_window_name_width = text_width;
@@ -1356,10 +1358,10 @@ void cSprite ::Editor_Position_Update(void) {
     }
 
     // get window text width
-    float window_name_width =
+    float const window_name_width =
         window_name->getWidth().asAbsolute(static_cast<float>(game_res_w)) *
         global_downscalex;
-    float window_name_height =
+    float const window_name_height =
         window_name->getHeight().asAbsolute(static_cast<float>(game_res_h)) *
         global_downscaley;
 
@@ -1399,9 +1401,9 @@ void cSprite ::Editor_Position_Update(void) {
     }
 
     // current position
-    float object_final_pos_x =
+    float const object_final_pos_x =
         m_start_pos_x + m_rect.m_w + 5.0f + obj_posx - pActive_Camera->m_x;
-    float object_final_pos_y =
+    float const object_final_pos_y =
         m_start_pos_y + 5.0f + obj_posy - pActive_Camera->m_y;
 
     // set name position
@@ -1423,7 +1425,7 @@ void cSprite ::Editor_Position_Update(void) {
 bool cSprite ::Editor_Image_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Image(pVideo->Get_Surface(str_text), true);

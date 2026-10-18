@@ -62,8 +62,8 @@ void cPath_State ::Load_From_Savegame(cSave_Level_Object* save_object) {
   }
   // current segment
   if (save_object->exists("current_segment")) {
-    m_current_segment =
-        string_to_int(save_object->Get_Value("current_segment"));
+    m_current_segment = static_cast<unsigned int>(
+        string_to_int(save_object->Get_Value("current_segment")));
   }
   if (save_object->exists("current_segment_pos")) {
     m_current_segment_pos =
@@ -80,8 +80,8 @@ void cPath_State ::Save_To_Savegame(cSave_Level_Object* save_object) {
   save_object->m_properties.emplace_back("new_pos_y", float_to_string(m_pos_y));
 
   // current segment
-  save_object->m_properties.emplace_back("current_segment",
-                                         int_to_string(m_current_segment));
+  save_object->m_properties.emplace_back(
+      "current_segment", int_to_string(static_cast<int>(m_current_segment)));
 
   // current segment position
   save_object->m_properties.emplace_back(
@@ -230,7 +230,7 @@ bool cPath_State ::Path_Move(float distance) {
   if (m_forward) {
     while (true) {
       // how much is left
-      float remaining = obj.m_distance - m_current_segment_pos;
+      float const remaining = obj.m_distance - m_current_segment_pos;
 
       if (distance > remaining) {
         m_pos_x = obj.m_x2;
@@ -269,7 +269,7 @@ bool cPath_State ::Path_Move(float distance) {
   else {
     while (true) {
       // how much is left
-      float remaining = m_current_segment_pos;
+      float const remaining = m_current_segment_pos;
 
       if (distance > remaining) {
         m_pos_x = obj.m_x1;
@@ -372,8 +372,8 @@ void cPath_Segment ::Set_Pos_End_Y(float y2) {
 }
 
 void cPath_Segment ::Update(void) {
-  float dx = m_x2 - m_x1;
-  float dy = m_y2 - m_y1;
+  float const dx = m_x2 - m_x1;
+  float const dy = m_y2 - m_y1;
   // distance
   m_distance = sqrt(dx * dx + dy * dy);
   // unit vector
@@ -445,7 +445,7 @@ void cPath ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   unsigned int count = 0;
   // load segments
   while (true) {
-    std::string str_pos = int_to_string(count);
+    std::string const str_pos = int_to_string(static_cast<int>(count));
 
     // next line not available
     if (!attributes.exists("segment_" + str_pos + "_x1")) {
@@ -480,10 +480,10 @@ void cPath ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   Write_Property(stream, "rewind", m_rewind);
 
   // segments
-  unsigned int count = m_segments.size();
+  unsigned int const count = m_segments.size();
 
   for (unsigned int pos = 0; pos < count; pos++) {
-    std::string str_pos = int_to_string(pos);
+    std::string const str_pos = int_to_string(static_cast<int>(pos));
 
     Write_Property(stream, "segment_" + str_pos + "_x1", m_segments[pos].m_x1);
     Write_Property(stream, "segment_" + str_pos + "_y1", m_segments[pos].m_y1);
@@ -623,7 +623,7 @@ void cPath ::Draw(cSurface_Request* request /* = nullptr */) {
   // draw segments
   int count = 0;
   for (const auto& segment : m_segments) {
-    cPath_Segment obj = segment;
+    cPath_Segment const obj = segment;
 
     Color line_color = m_editor_color;
 
@@ -728,10 +728,11 @@ void cPath ::Editor_Activate(void) {
              100, 105);
 
   for (unsigned int count = 0; count < m_segments.size(); count++) {
-    combobox->addItem(new CEGUI::ListboxTextItem(int_to_string(count)));
+    combobox->addItem(
+        new CEGUI::ListboxTextItem(int_to_string(static_cast<int>(count))));
   }
 
-  combobox->setText(int_to_string(m_editor_selected_segment));
+  combobox->setText(int_to_string(static_cast<int>(m_editor_selected_segment)));
 
   combobox->subscribeEvent(
       CEGUI::Combobox::EventListSelectionAccepted,
@@ -814,7 +815,7 @@ void cPath ::Editor_Activate(void) {
 }
 
 void cPath ::Editor_State_Update(void) {
-  CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
+  CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
   // selected segment
   CEGUI::Combobox* combobox =
@@ -822,10 +823,11 @@ void cPath ::Editor_State_Update(void) {
   combobox->resetList();
 
   for (unsigned int count = 0; count < m_segments.size(); count++) {
-    combobox->addItem(new CEGUI::ListboxTextItem(int_to_string(count)));
+    combobox->addItem(
+        new CEGUI::ListboxTextItem(int_to_string(static_cast<int>(count))));
   }
 
-  combobox->setText(int_to_string(m_editor_selected_segment));
+  combobox->setText(int_to_string(static_cast<int>(m_editor_selected_segment)));
 
   // Set selected segment values
   // x1
@@ -862,7 +864,7 @@ void cPath ::Editor_State_Update(void) {
 bool cPath ::Editor_Identifier_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Identifier(str_text);
@@ -873,7 +875,7 @@ bool cPath ::Editor_Identifier_Text_Changed(const CEGUI::EventArgs& event) {
 bool cPath ::Editor_Show_Line_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   if (item->getText() == "show")
@@ -887,9 +889,9 @@ bool cPath ::Editor_Show_Line_Select(const CEGUI::EventArgs& event) {
 bool cPath ::Editor_Move_Type_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
-  std::string str_text = item->getText().c_str();
+  std::string const str_text = item->getText().c_str();
 
   if (str_text.compare("mirror") == 0) {
     Set_Rewind(false);
@@ -903,9 +905,10 @@ bool cPath ::Editor_Move_Type_Select(const CEGUI::EventArgs& event) {
 bool cPath ::Editor_Selected_Segment_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
-  m_editor_selected_segment = string_to_int(item->getText().c_str());
+  m_editor_selected_segment =
+      static_cast<unsigned int>(string_to_int(item->getText().c_str()));
 
   // invalid selected segment
   if (m_editor_selected_segment >= m_segments.size()) {
@@ -958,7 +961,7 @@ bool cPath ::Editor_Button_Delete_Segment_Clicked(
 bool cPath ::Editor_Pos_X1_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   m_segments[m_editor_selected_segment].Set_Pos_Start_X(
@@ -972,7 +975,7 @@ bool cPath ::Editor_Pos_X1_Text_Changed(const CEGUI::EventArgs& event) {
 bool cPath ::Editor_Pos_Y1_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   m_segments[m_editor_selected_segment].Set_Pos_Start_Y(
@@ -986,7 +989,7 @@ bool cPath ::Editor_Pos_Y1_Text_Changed(const CEGUI::EventArgs& event) {
 bool cPath ::Editor_Pos_X2_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   m_segments[m_editor_selected_segment].Set_Pos_End_X(
@@ -1000,7 +1003,7 @@ bool cPath ::Editor_Pos_X2_Text_Changed(const CEGUI::EventArgs& event) {
 bool cPath ::Editor_Pos_Y2_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   m_segments[m_editor_selected_segment].Set_Pos_End_Y(

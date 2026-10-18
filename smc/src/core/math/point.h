@@ -36,7 +36,8 @@ class GL_point {
 
   GL_point(float x, float y) : m_x(x), m_y(y) {}
 
-  GL_point(const GL_point& p) : m_x(p.m_x), m_y(p.m_y) {}
+  GL_point(const GL_point&) = default;
+  GL_point& operator=(const GL_point&) = default;
 
   // Return a rotated version of this point.
   // hotspot: The point around which to rotate.
@@ -62,8 +63,8 @@ class GL_point {
                     const float& a_z) const {
     GL_point tmp;
 
-    float s = static_cast<float>(sin(angle));
-    float c = static_cast<float>(cos(angle));
+    float const s = static_cast<float>(sin(angle));
+    float const c = static_cast<float>(cos(angle));
 
     tmp.m_x = m_x * (a_x * a_x * (1 - c) + c) +
               m_y * (a_x * a_y * (1 - c) - a_z * s) +

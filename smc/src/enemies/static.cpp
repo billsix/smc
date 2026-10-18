@@ -234,9 +234,9 @@ void cStaticEnemy ::Update(void) {
     }
 
     // get difference
-    float diff_x =
+    float const diff_x =
         (m_path_state.m_path->m_start_pos_x + m_path_state.m_pos_x) - m_pos_x;
-    float diff_y =
+    float const diff_y =
         (m_path_state.m_path->m_start_pos_y + m_path_state.m_pos_y) - m_pos_y;
 
     // move to position
@@ -312,8 +312,8 @@ void cStaticEnemy ::Handle_Collision_Enemy(cObjectCollision* collision) {
     return;
   }
 
-  cEnemy* enemy =
-      static_cast<cEnemy*>(m_sprite_manager->Get_Pointer(collision->m_number));
+  cEnemy* enemy = static_cast<cEnemy*>(
+      m_sprite_manager->Get_Pointer(static_cast<size_t>(collision->m_number)));
 
   // already dead
   if (enemy->m_dead) {
@@ -416,7 +416,7 @@ void cStaticEnemy ::Editor_Activate(void) {
 bool cStaticEnemy ::Editor_Image_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Static_Image(str_text);
@@ -428,7 +428,7 @@ bool cStaticEnemy ::Editor_Rotation_Speed_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Rotation_Speed(string_to_float(str_text));
@@ -440,7 +440,7 @@ bool cStaticEnemy ::Editor_Path_Identifier_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Path_Identifier(str_text);
@@ -451,7 +451,7 @@ bool cStaticEnemy ::Editor_Path_Identifier_Text_Changed(
 bool cStaticEnemy ::Editor_Speed_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Speed(string_to_float(str_text));
@@ -463,7 +463,7 @@ bool cStaticEnemy ::Editor_Fire_Resistant_Select(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   if (item->getText().compare(UTF8_("Enabled")) == 0) {
@@ -479,7 +479,7 @@ bool cStaticEnemy ::Editor_Ice_Resistance_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   m_ice_resistance = string_to_float(str_text);

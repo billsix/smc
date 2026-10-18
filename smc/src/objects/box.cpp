@@ -109,7 +109,7 @@ void cBaseBox ::Save_To_XML(CEGUI::XMLSerializer& stream) {
 
 void cBaseBox ::Load_From_Savegame(cSave_Level_Object* save_object) {
   // useable count
-  int save_useable_count =
+  int const save_useable_count =
       string_to_int(save_object->Get_Value("useable_count"));
   Set_Useable_Count(save_useable_count);
 }
@@ -223,7 +223,7 @@ void cBaseBox ::Set_Invisible(Box_Invisible_Type type) {
   }
 
   // remember old type
-  Box_Invisible_Type type_old = m_box_invisible;
+  Box_Invisible_Type const type_old = m_box_invisible;
   // set new type
   m_box_invisible = type;
 
@@ -317,7 +317,7 @@ void cBaseBox ::Update_Collision(void) {
   }
 
   // speed mod
-  float mod = pFramerate->m_speed_factor * 0.05f;
+  float const mod = pFramerate->m_speed_factor * 0.05f;
   // counter
   m_move_counter += pFramerate->m_speed_factor * 0.2f;
 
@@ -420,7 +420,7 @@ void cBaseBox ::Update(void) {
     // Spinbox animation handling
     if ((m_type == TYPE_SPIN_BOX || m_useable_count != 0) && m_anim_enabled) {
       // Set_Image in Update_Animation overwrites col_pos
-      GL_point col_pos_temp = m_col_pos;
+      GL_point const col_pos_temp = m_col_pos;
 
       Update_Animation();
 
@@ -509,7 +509,8 @@ void cBaseBox ::Generate_Activation_Particles(void) {
       anim->Set_Speed(7.0f, 0.5f);
       anim->Set_Time_to_Live(0.2f);
     }
-    anim->Set_Quota(static_cast<int>(m_particle_counter_active));
+    anim->Set_Quota(
+        static_cast<unsigned int>(static_cast<int>(m_particle_counter_active)));
     anim->Set_Emitter_Rect(m_pos_x + 4.0f, m_pos_y + 8.0f, m_rect.m_w - 8.0f,
                            1.0f);
     if (box_type == TYPE_UNDEFINED) {
@@ -656,12 +657,12 @@ void cBaseBox ::Handle_Collision_Player(cObjectCollision* collision) {
 }
 
 void cBaseBox ::Handle_Collision_Enemy(cObjectCollision* collision) {
-  cEnemy* enemy =
-      static_cast<cEnemy*>(m_sprite_manager->Get_Pointer(collision->m_number));
+  cEnemy* enemy = static_cast<cEnemy*>(
+      m_sprite_manager->Get_Pointer(static_cast<size_t>(collision->m_number)));
 
   // if turtle
   if (enemy->m_type == TYPE_TURTLE) {
-    cTurtle* turtle = static_cast<cTurtle*>(enemy);
+    cTurtle const* turtle = static_cast<cTurtle*>(enemy);
 
     // if not shell
     if (turtle->m_turtle_state != TURTLE_SHELL_RUN &&
@@ -671,7 +672,7 @@ void cBaseBox ::Handle_Collision_Enemy(cObjectCollision* collision) {
   }
   // if turtle boss
   else if (enemy->m_type == TYPE_TURTLE_BOSS) {
-    cTurtleBoss* turtleboss = static_cast<cTurtleBoss*>(enemy);
+    cTurtleBoss const* turtleboss = static_cast<cTurtleBoss*>(enemy);
 
     // if not shell
     if (turtleboss->m_turtle_state != TURTLEBOSS_SHELL_RUN &&
@@ -751,7 +752,7 @@ bool cBaseBox ::Editor_Useable_Count_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Useable_Count(string_to_int(str_text), true);
@@ -762,7 +763,7 @@ bool cBaseBox ::Editor_Useable_Count_Text_Changed(
 bool cBaseBox ::Editor_Invisible_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   if (item->getText().compare(UTF8_("Massive")) == 0) {

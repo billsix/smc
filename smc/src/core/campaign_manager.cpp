@@ -41,25 +41,26 @@ cCampaign_Manager ::cCampaign_Manager(void) { Load(); }
 cCampaign_Manager ::~cCampaign_Manager(void) { Delete_All(); }
 
 void cCampaign_Manager ::Load(void) {
-  std::string user_dir = pResource_Manager->user_data_dir + USER_CAMPAIGN_DIR;
-  std::string game_dir = DATA_DIR "/" GAME_CAMPAIGN_DIR;
+  std::string const user_dir =
+      pResource_Manager->user_data_dir + USER_CAMPAIGN_DIR;
+  std::string const game_dir = DATA_DIR "/" GAME_CAMPAIGN_DIR;
 
-  vector<std::string> user_files =
+  vector<std::string> const user_files =
       Get_Directory_Files(pResource_Manager->user_data_dir + USER_CAMPAIGN_DIR,
                           "smccpn", false, false);
   vector<std::string> game_files = Get_Directory_Files(
       DATA_DIR "/" GAME_CAMPAIGN_DIR, "smccpn", false, false);
 
   // get directory length for erasing
-  int user_dir_length = user_dir.length() + 1;
-  int game_dir_length = game_dir.length() + 1;
+  int const user_dir_length = user_dir.length() + 1;
+  int const game_dir_length = game_dir.length() + 1;
 
   for (const auto& user_file : user_files) {
     std::string user_name = user_file;
     std::unique_ptr<cCampaign> loaded = Load_Campaign(user_name);
 
     // remove base directory
-    user_name.erase(0, user_dir_length);
+    user_name.erase(0, static_cast<size_t>(user_dir_length));
 
     if (loaded) {
       cCampaign* campaign = Add(std::move(loaded));
@@ -70,7 +71,7 @@ void cCampaign_Manager ::Load(void) {
            ++game_itr) {
         std::string game_name = (*game_itr);
         // remove base directory
-        game_name.erase(0, game_dir_length);
+        game_name.erase(0, static_cast<size_t>(game_dir_length));
 
         if (user_name.compare(game_name) == 0) {
           campaign->m_user = 2;
@@ -82,7 +83,7 @@ void cCampaign_Manager ::Load(void) {
   }
 
   for (const auto& game_file : game_files) {
-    std::string name = game_file;
+    std::string const name = game_file;
 
     std::unique_ptr<cCampaign> campaign = Load_Campaign(name);
 
@@ -165,8 +166,8 @@ void cCampaign_XML_Handler ::elementEnd(const CEGUI::String& element) {
     m_campaign->m_name = m_xml_attributes.getValueAsString("name").c_str();
     m_campaign->m_description =
         m_xml_attributes.getValueAsString("description").c_str();
-    m_campaign->m_last_saved =
-        string_to_int64(m_xml_attributes.getValueAsString("save_time").c_str());
+    m_campaign->m_last_saved = static_cast<time_t>(string_to_int64(
+        m_xml_attributes.getValueAsString("save_time").c_str()));
   } else if (element == "target") {
     m_campaign->m_target = m_xml_attributes.getValueAsString("name").c_str();
     m_campaign->m_is_target_level = m_xml_attributes.getValueAsBool("is_level");

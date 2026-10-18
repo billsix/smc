@@ -12,7 +12,21 @@ AM_SILENT_RULES([yes])
 AC_PROG_CXX
 AC_LANG([C++])
 # Modernization: pin the standard (was accidental / compiler default). C++23.
-CXXFLAGS="${CXXFLAGS} -std=c++23 -Wall -Wextra"
+# Raised first-party warning set (fleet standard, adapted to C++). Deliberately dropped:
+#   -Woverloaded-virtual  : flags intentional, load-bearing base-virtual hiding in the cSprite/
+#                           cMovingSprite hierarchy (derived narrow a base virtual that has default
+#                           args); the mechanical `using` un-hide creates call ambiguity and does
+#                           not build. Deferred to tasks/smc-overloaded-virtual.md.
+#   -Wconversion          : as on the rest of the fleet (int->float noise).
+# -Wsign-conversion IS on (273 first-party sites made explicit static_casts, tasks/
+# smc-sign-conversion-sweep.md, 2026-10-17). -Wno-unused-parameter per fleet precedent (callback
+# signatures). Third-party (SDL, CEGUI) headers come in with -isystem below so their warnings do not
+# count. -Werror is added once the first-party tree is clean under both gcc and clang. It is now on
+# (clean under gcc 16 and clang, 2026-10-17).
+CXXFLAGS="${CXXFLAGS} -std=c++23 -Wall -Wextra -Wpedantic -Wshadow -Wvla -Wformat=2 -Wsign-conversion -Wno-unused-parameter -Wno-overloaded-virtual"
+# NOTE: -Werror is added LATE (just before AC_OUTPUT), not here. Adding it now would turn the
+# warnings emitted by autoconf's own feature-probe programs (e.g. AC_CHECK_LIB's old-style
+# `char main();`) into errors, making every library check fail ("Unable to find libX11").
 AC_PROG_INSTALL
 AC_PROG_MKDIR_P
 PKG_PROG_PKG_CONFIG
@@ -41,7 +55,9 @@ esac
 
 # Check for the SDL library
 PKG_CHECK_MODULES([SDL], [sdl2 >= 2.0.0])
-CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+# Bring third-party headers in as SYSTEM includes (-isystem, not -I) so their own warnings
+# (deprecated copies, deprecated APIs, hidden virtuals) do not count against our raised gate.
+CPPFLAGS="$CPPFLAGS $(echo "$SDL_CFLAGS" | sed -E 's/(^| )-I/\1-isystem /g')"
 LIBS="$LIBS $SDL_LIBS"
 
 # Check for the libpng library
@@ -64,7 +80,9 @@ AC_CHECK_LIB([SDL2_ttf], [TTF_Init], ,
 
 # Check for the CEGUI library
 PKG_CHECK_MODULES([CEGUI_OPENGL], [CEGUI-OPENGL >= 0.7.2])
-CPPFLAGS="$CPPFLAGS $CEGUI_OPENGL_CFLAGS"
+# -isystem (not -I): CEGUI 0.7.9's headers trip -Wdeprecated-copy / -Wdeprecated-declarations etc.;
+# as a system include its warnings are suppressed (see the SDL block above).
+CPPFLAGS="$CPPFLAGS $(echo "$CEGUI_OPENGL_CFLAGS" | sed -E 's/(^| )-I/\1-isystem /g')"
 LIBS="$LIBS $CEGUI_OPENGL_LIBS"
 # CEGUI 0.7.5 does not install CEGUI-NULL.pc
 #PKG_CHECK_MODULES([CEGUI_NULL], [CEGUI-NULL >= 0.7.2])
@@ -100,6 +118,12 @@ AC_ARG_ENABLE([runinplace],
 	[AC_HELP_STRING([--enable-runinplace], [build to run inplace])],
 	[runinplace=yes])
 AM_CONDITIONAL([RUNINPLACE], [test "$runinplace" = yes])
+
+### Warnings-as-errors — added AFTER all library/feature checks above, so the raised gate
+### applies to the build but not to autoconf's own probe programs (see the NOTE near the
+### CXXFLAGS line above). The first-party tree is clean under this gate on gcc 16 and clang
+### (2026-10-17); the sweep is tasks/smc-const-sweep-and-warning-gate.md.
+CXXFLAGS="${CXXFLAGS} -Werror"
 
 ### Create files ###
 

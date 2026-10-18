@@ -135,7 +135,7 @@ bool cPowerUp ::Is_Update_Valid(void) {
 
 Col_Valid_Type cPowerUp ::Validate_Collision(cSprite* obj) {
   // basic validation checking
-  Col_Valid_Type basic_valid = Validate_Collision_Ghost(obj);
+  Col_Valid_Type const basic_valid = Validate_Collision_Ghost(obj);
 
   // found valid collision
   if (basic_valid != COL_VTYPE_NOT_POSSIBLE) {
@@ -329,7 +329,7 @@ void cMushroom ::Update(void) {
       anim->Set_Image(pVideo->Get_Surface("animation/particles/light.png"));
       anim->Set_Emitter_Rect(m_col_rect.m_x, m_col_rect.m_y, m_col_rect.m_w,
                              m_col_rect.m_h);
-      anim->Set_Quota(static_cast<int>(m_counter));
+      anim->Set_Quota(static_cast<unsigned int>(static_cast<int>(m_counter)));
       anim->Set_Pos_Z(m_pos_z - 0.000001f);
       anim->Set_Direction_Range(180, 180);
       anim->Set_Scale(0.4f, 0.1f);
@@ -389,7 +389,7 @@ void cMushroom ::Update(void) {
         anim->Set_Emitter_Rect(m_col_rect.m_x + (m_col_rect.m_w * 0.3f),
                                m_col_rect.m_y + (m_col_rect.m_h * 0.91f),
                                m_col_rect.m_w * 0.4f, 0);
-        anim->Set_Quota(static_cast<int>(m_counter));
+        anim->Set_Quota(static_cast<unsigned int>(static_cast<int>(m_counter)));
         anim->Set_Pos_Z(m_pos_z - 0.000001f);
         anim->Set_Time_to_Live(1.4f, 0.4f);
         anim->Set_Scale(0.7f, 0.2f);
@@ -559,7 +559,8 @@ void cFirePlant ::Update(void) {
     anim->Set_Image(pVideo->Get_Surface("animation/particles/light.png"));
     anim->Set_Emitter_Rect(m_col_rect.m_x, m_col_rect.m_y, m_col_rect.m_w,
                            m_col_rect.m_h * 0.5f);
-    anim->Set_Quota(static_cast<int>(m_particle_counter));
+    anim->Set_Quota(
+        static_cast<unsigned int>(static_cast<int>(m_particle_counter)));
     anim->Set_Pos_Z(m_pos_z + 0.000001f);
     anim->Set_Direction_Range(180.0f, 180.0f);
     anim->Set_Scale(0.4f, 0.1f);
@@ -676,7 +677,8 @@ void cMoon ::Update(void) {
     auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
     anim->Set_Image(pVideo->Get_Surface("animation/particles/light.png"));
     anim->Set_Emitter_Rect(m_pos_x + 26.0f, m_pos_y + 10.0f, 10.0f, 28.0f);
-    anim->Set_Quota(static_cast<int>(m_particle_counter));
+    anim->Set_Quota(
+        static_cast<unsigned int>(static_cast<int>(m_particle_counter)));
     anim->Set_Pos_Z(m_pos_z - 0.0001f);
     anim->Set_Speed(0.2f, 0.2f);
     anim->Set_Scale(0.2f);

@@ -360,7 +360,7 @@ void cFurball ::Update_Dying(void) {
     // normal
     else {
       // scale out
-      float speed = pFramerate->m_speed_factor * 0.05f;
+      float const speed = pFramerate->m_speed_factor * 0.05f;
 
       Add_Scale_X(-speed * 0.5f);
       Add_Scale_Y(-speed);
@@ -495,7 +495,8 @@ void cFurball ::Update(void) {
       anim->Set_Emitter_Rect(m_col_rect.m_x,
                              m_col_rect.m_y + m_col_rect.m_h - 2.0f,
                              m_col_rect.m_w);
-      anim->Set_Quota(static_cast<int>(m_running_particle_counter));
+      anim->Set_Quota(static_cast<unsigned int>(
+          static_cast<int>(m_running_particle_counter)));
       anim->Set_Pos_Z(m_pos_z - 0.000001f);
       anim->Set_Image(
           pVideo->Get_Surface("animation/particles/smoke_black.png"));
@@ -608,7 +609,7 @@ bool cFurball ::Is_Update_Valid(void) {
 
 Col_Valid_Type cFurball ::Validate_Collision(cSprite* obj) {
   // basic validation checking
-  Col_Valid_Type basic_valid = Validate_Collision_Ghost(obj);
+  Col_Valid_Type const basic_valid = Validate_Collision_Ghost(obj);
 
   // found valid collision
   if (basic_valid != COL_VTYPE_NOT_POSSIBLE) {
@@ -737,7 +738,8 @@ void cFurball ::Handle_Collision_Massive(cObjectCollision* collision) {
   Send_Collision(collision);
 
   // get colliding object
-  cSprite* col_object = m_sprite_manager->Get_Pointer(collision->m_number);
+  cSprite const* col_object =
+      m_sprite_manager->Get_Pointer(static_cast<size_t>(collision->m_number));
 
   if (col_object->m_type == TYPE_BALL) {
     return;
@@ -815,7 +817,7 @@ void cFurball ::Editor_Activate(void) {
 bool cFurball ::Editor_Level_Ends_If_Killed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   if (item->getText().compare(UTF8_("Enabled")) == 0) {
@@ -830,7 +832,7 @@ bool cFurball ::Editor_Level_Ends_If_Killed(const CEGUI::EventArgs& event) {
 bool cFurball ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()));
@@ -842,7 +844,7 @@ bool cFurball ::Editor_Max_Downgrade_Count_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
   Set_Max_Downgrade_Count(string_to_int(str_text));

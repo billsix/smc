@@ -352,22 +352,22 @@ void cPlayerPoints ::Draw(cSurface_Request* request /* = nullptr */) {
       }
 
       // create request
-      auto request = std::make_unique<cSurface_Request>();
-      obj->m_image->Blit(x, y, m_pos_z, request.get());
+      auto points_request = std::make_unique<cSurface_Request>();
+      obj->m_image->Blit(x, y, m_pos_z, points_request.get());
 
       // shadow
-      request->m_shadow_color = black;
-      request->m_shadow_color.alpha = obj->m_color.alpha;
-      request->m_shadow_pos = 1;
+      points_request->m_shadow_color = black;
+      points_request->m_shadow_color.alpha = obj->m_color.alpha;
+      points_request->m_shadow_pos = 1;
 
       // color
-      request->m_color = Color(static_cast<Uint8>(255 - (obj->m_points / 150)),
-                               static_cast<Uint8>(255 - (obj->m_points / 150)),
-                               static_cast<Uint8>(255 - (obj->m_points / 30)),
-                               obj->m_color.alpha);
+      points_request->m_color = Color(
+          static_cast<Uint8>(255 - (obj->m_points / 150)),
+          static_cast<Uint8>(255 - (obj->m_points / 150)),
+          static_cast<Uint8>(255 - (obj->m_points / 30)), obj->m_color.alpha);
 
       // add request
-      pRenderer->Add(std::move(request));
+      pRenderer->Add(std::move(points_request));
 
       ++itr;
     }
@@ -402,7 +402,7 @@ void cPlayerPoints ::Add_Points(
 
   // if empty set the points as text
   if (strtext.empty()) {
-    strtext = int_to_string(points);
+    strtext = int_to_string(static_cast<int>(points));
   }
 
   auto new_obj = std::make_unique<PointsText>(m_sprite_manager);
@@ -433,7 +433,7 @@ cGoldDisplay ::cGoldDisplay(cSprite_Manager* sprite_manager)
   m_type = TYPE_HUD_GOLD;
   m_name = "HUD Goldpieces";
 
-  Set_Gold(pLevel_Player->m_goldpieces);
+  Set_Gold(static_cast<int>(pLevel_Player->m_goldpieces));
 }
 
 cGoldDisplay ::~cGoldDisplay(void) {
@@ -459,16 +459,18 @@ void cGoldDisplay ::Set_Gold(int gold) {
         pLevel_Player->m_pos_y + 5, "1UP", lightred);
   }
 
-  pLevel_Player->m_goldpieces = gold;
-  std::string text = int_to_string(pLevel_Player->m_goldpieces);
+  pLevel_Player->m_goldpieces = static_cast<unsigned int>(gold);
+  std::string const text =
+      int_to_string(static_cast<int>(pLevel_Player->m_goldpieces));
 
-  Color color = Color(static_cast<Uint8>(255), 255, 255 - (gold * 2));
+  Color const color = Color(static_cast<Uint8>(255), 255, 255 - (gold * 2));
 
   Set_Image(pFont->Render_Text(pFont->m_font_normal, text, color), false);
 }
 
 void cGoldDisplay ::Add_Gold(int gold) {
-  Set_Gold(pLevel_Player->m_goldpieces + gold);
+  Set_Gold(static_cast<int>(pLevel_Player->m_goldpieces +
+                            static_cast<unsigned int>(gold)));
 }
 
 /* *** *** *** *** *** cLiveDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
@@ -650,7 +652,7 @@ void cItemBox ::Update(void) {
   // if colliding with the player
   if (col_list->Is_Included(TYPE_PLAYER)) {
     // player can send an item back
-    SpriteType item_id_temp = m_item_id;
+    SpriteType const item_id_temp = m_item_id;
     Reset();
     pLevel_Player->Get_Item(item_id_temp, true);
   }
@@ -768,7 +770,7 @@ cDebugDisplay ::cDebugDisplay(cSprite_Manager* sprite_manager)
   m_text_debug_text->setVisible(false);
 
   // debug box positions
-  float tempx = static_cast<float>(game_res_w) - 200.0f;
+  float const tempx = static_cast<float>(game_res_w) - 200.0f;
   float tempy = (static_cast<float>(game_res_h) / 2) - 250.0f;
 
   for (unsigned int i = 0; i < 23; i++) {
@@ -833,7 +835,7 @@ void cDebugDisplay ::Update(void) {
   // set new text
   if (m_text.compare(m_text_old) != 0) {
     m_text_old = m_text;
-    CEGUI::String gui_text =
+    CEGUI::String const gui_text =
         reinterpret_cast<const CEGUI::utf8*>(m_text.c_str());
 
     // display the new text
@@ -841,7 +843,7 @@ void cDebugDisplay ::Update(void) {
     m_text_debug_text->setVisible(true);
 
     // update position
-    CEGUI::Font* font =
+    CEGUI::Font const* font =
         &CEGUI::FontManager::getSingleton().get("bluebold_medium");
     float text_width = font->getTextExtent(gui_text) * global_downscalex;
     float text_height = font->getLineSpacing() * global_downscaley;
@@ -926,7 +928,7 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
 	*/
 
   // black background
-  Color color = blackalpha128;
+  Color const color = blackalpha128;
   pVideo->Draw_Rect(static_cast<float>(game_res_w) - 205,
                     static_cast<float>(game_res_h) * 0.08f, 190, 390,
                     m_pos_z - 0.00001f, &color);
@@ -952,7 +954,7 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
 
   // Level information
   if (pActive_Level->m_level_filename.compare(m_level_old) != 0) {
-    std::string lvl_text =
+    std::string const lvl_text =
         _("Name : ") +
         Trim_Filename(pActive_Level->m_level_filename, false, false);
     m_level_old = pActive_Level->m_level_filename;
@@ -972,7 +974,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
   // Passive
   if (m_pass_counter !=
       static_cast<int>(m_sprite_manager->Get_Size_Array(ARRAY_PASSIVE))) {
-    m_pass_counter = m_sprite_manager->Get_Size_Array(ARRAY_PASSIVE);
+    m_pass_counter =
+        static_cast<int>(m_sprite_manager->Get_Size_Array(ARRAY_PASSIVE));
 
     temp_text = _("Passive : ") + int_to_string(m_pass_counter);
     m_sprites[7]->Set_Image(
@@ -981,7 +984,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
   // Massive
   if (m_mass_counter !=
       static_cast<int>(m_sprite_manager->Get_Size_Array(ARRAY_MASSIVE))) {
-    m_mass_counter = m_sprite_manager->Get_Size_Array(ARRAY_MASSIVE);
+    m_mass_counter =
+        static_cast<int>(m_sprite_manager->Get_Size_Array(ARRAY_MASSIVE));
 
     temp_text = _("Massive : ") + int_to_string(m_mass_counter);
     m_sprites[8]->Set_Image(
@@ -990,7 +994,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
   // Enemy
   if (m_enemy_counter !=
       static_cast<int>(m_sprite_manager->Get_Size_Array(ARRAY_ENEMY))) {
-    m_enemy_counter = m_sprite_manager->Get_Size_Array(ARRAY_ENEMY);
+    m_enemy_counter =
+        static_cast<int>(m_sprite_manager->Get_Size_Array(ARRAY_ENEMY));
 
     temp_text = _("Enemy : ") + int_to_string(m_enemy_counter);
     m_sprites[9]->Set_Image(
@@ -999,7 +1004,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
   // Active
   if (m_active_counter !=
       static_cast<int>(m_sprite_manager->Get_Size_Array(ARRAY_ACTIVE))) {
-    m_active_counter = m_sprite_manager->Get_Size_Array(ARRAY_ACTIVE);
+    m_active_counter =
+        static_cast<int>(m_sprite_manager->Get_Size_Array(ARRAY_ACTIVE));
 
     temp_text = _("Active : ") + int_to_string(m_active_counter);
     m_sprites[10]->Set_Image(
@@ -1015,7 +1021,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
       }
     }
 
-    temp_text = _("Halfmassive : ") + int_to_string(halfmassive);
+    temp_text =
+        _("Halfmassive : ") + int_to_string(static_cast<int>(halfmassive));
     m_sprites[11]->Set_Image(
         pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false);
 
@@ -1029,7 +1036,8 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
       }
     }
 
-    temp_text = _("Moving Platform : ") + int_to_string(moving_platform);
+    temp_text = _("Moving Platform : ") +
+                int_to_string(static_cast<int>(moving_platform));
     m_sprites[12]->Set_Image(
         pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false);
 
@@ -1047,7 +1055,7 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
       }
     }
 
-    temp_text = _("Goldbox : ") + int_to_string(goldbox);
+    temp_text = _("Goldbox : ") + int_to_string(static_cast<int>(goldbox));
     m_sprites[13]->Set_Image(
         pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false);
 
@@ -1065,15 +1073,17 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
       }
     }
 
-    temp_text = _("Bonusbox : ") + int_to_string(bonusbox_count);
+    temp_text =
+        _("Bonusbox : ") + int_to_string(static_cast<int>(bonusbox_count));
     m_sprites[14]->Set_Image(
         pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false);
 
     // Other
-    unsigned int active_other = m_active_counter - halfmassive -
-                                moving_platform - goldbox - bonusbox_count;
+    unsigned int const active_other =
+        static_cast<unsigned int>(m_active_counter) - halfmassive -
+        moving_platform - goldbox - bonusbox_count;
 
-    temp_text = _("Other : ") + int_to_string(active_other);
+    temp_text = _("Other : ") + int_to_string(static_cast<int>(active_other));
     m_sprites[15]->Set_Image(
         pFont->Render_Text(pFont->m_font_very_small, temp_text, white), false);
   }
@@ -1133,11 +1143,11 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
     return;
   }
 
-  std::string temp_text;
+  std::string const temp_text;
   float ypos = game_res_h * 0.08f;
 
   // black background
-  Color color = blackalpha128;
+  Color const color = blackalpha128;
   pVideo->Draw_Rect(15, ypos, 190, 390, m_pos_z - 0.00001f, &color);
 
   // don't draw it twice
@@ -1155,8 +1165,8 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
   // overworld
   if (Game_Mode == MODE_OVERWORLD) {
     text_strings.push_back(
-        _("World : ") +
-        int_to_string(pFramerate->m_perf_timer[PERF_DRAW_OVERWORLD].ms));
+        _("World : ") + int_to_string(static_cast<int>(
+                            pFramerate->m_perf_timer[PERF_DRAW_OVERWORLD].ms)));
     text_strings.emplace_back("- ");
     text_strings.emplace_back("- ");
     text_strings.emplace_back("- ");
@@ -1164,9 +1174,9 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
   }
   // menu
   else if (Game_Mode == MODE_MENU) {
-    text_strings.push_back(
-        _("Menu : ") +
-        int_to_string(pFramerate->m_perf_timer[PERF_DRAW_MENU].ms));
+    text_strings.push_back(_("Menu : ") +
+                           int_to_string(static_cast<int>(
+                               pFramerate->m_perf_timer[PERF_DRAW_MENU].ms)));
     text_strings.emplace_back("- ");
     text_strings.emplace_back("- ");
     text_strings.emplace_back("- ");
@@ -1176,7 +1186,8 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
   else if (Game_Mode == MODE_LEVEL_SETTINGS) {
     text_strings.push_back(
         _("Level Settings : ") +
-        int_to_string(pFramerate->m_perf_timer[PERF_DRAW_LEVEL_SETTINGS].ms));
+        int_to_string(static_cast<int>(
+            pFramerate->m_perf_timer[PERF_DRAW_LEVEL_SETTINGS].ms)));
     text_strings.emplace_back("- ");
     text_strings.emplace_back("- ");
     text_strings.emplace_back("- ");
@@ -1186,30 +1197,36 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
   else {
     text_strings.push_back(
         _("Level Layer 1 : ") +
-        int_to_string(pFramerate->m_perf_timer[PERF_DRAW_LEVEL_LAYER1].ms));
+        int_to_string(static_cast<int>(
+            pFramerate->m_perf_timer[PERF_DRAW_LEVEL_LAYER1].ms)));
     text_strings.push_back(
         _("Level Player : ") +
-        int_to_string(pFramerate->m_perf_timer[PERF_DRAW_LEVEL_PLAYER].ms));
+        int_to_string(static_cast<int>(
+            pFramerate->m_perf_timer[PERF_DRAW_LEVEL_PLAYER].ms)));
     text_strings.push_back(
         _("Level Layer 2 : ") +
-        int_to_string(pFramerate->m_perf_timer[PERF_DRAW_LEVEL_LAYER2].ms));
+        int_to_string(static_cast<int>(
+            pFramerate->m_perf_timer[PERF_DRAW_LEVEL_LAYER2].ms)));
     text_strings.push_back(
         _("Level Hud : ") +
-        int_to_string(pFramerate->m_perf_timer[PERF_DRAW_LEVEL_HUD].ms));
+        int_to_string(static_cast<int>(
+            pFramerate->m_perf_timer[PERF_DRAW_LEVEL_HUD].ms)));
     text_strings.push_back(
         _("Level Editor : ") +
-        int_to_string(pFramerate->m_perf_timer[PERF_DRAW_LEVEL_EDITOR].ms));
+        int_to_string(static_cast<int>(
+            pFramerate->m_perf_timer[PERF_DRAW_LEVEL_EDITOR].ms)));
   }
-  text_strings.push_back(
-      _("Mouse : ") +
-      int_to_string(pFramerate->m_perf_timer[PERF_DRAW_MOUSE].ms));
+  text_strings.push_back(_("Mouse : ") +
+                         int_to_string(static_cast<int>(
+                             pFramerate->m_perf_timer[PERF_DRAW_MOUSE].ms)));
   // update
   text_strings.emplace_back(_("Update"));
   // overworld
   if (Game_Mode == MODE_OVERWORLD) {
     text_strings.push_back(
         _("World : ") +
-        int_to_string(pFramerate->m_perf_timer[PERF_UPDATE_OVERWORLD].ms));
+        int_to_string(static_cast<int>(
+            pFramerate->m_perf_timer[PERF_UPDATE_OVERWORLD].ms)));
     text_strings.emplace_back("- ");
     text_strings.emplace_back("- ");
     text_strings.emplace_back("- ");
@@ -1221,9 +1238,9 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
   }
   // menu
   else if (Game_Mode == MODE_MENU) {
-    text_strings.push_back(
-        _("Menu : ") +
-        int_to_string(pFramerate->m_perf_timer[PERF_UPDATE_MENU].ms));
+    text_strings.push_back(_("Menu : ") +
+                           int_to_string(static_cast<int>(
+                               pFramerate->m_perf_timer[PERF_UPDATE_MENU].ms)));
     text_strings.emplace_back("- ");
     text_strings.emplace_back("- ");
     text_strings.emplace_back("- ");
@@ -1237,7 +1254,8 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
   else if (Game_Mode == MODE_LEVEL_SETTINGS) {
     text_strings.push_back(
         _("Level Settings : ") +
-        int_to_string(pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_SETTINGS].ms));
+        int_to_string(static_cast<int>(
+            pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_SETTINGS].ms)));
     text_strings.emplace_back("- ");
     text_strings.emplace_back("- ");
     text_strings.emplace_back("- ");
@@ -1251,46 +1269,49 @@ void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
   else {
     text_strings.push_back(
         _("process input : ") +
-        int_to_string(pFramerate->m_perf_timer[PERF_UPDATE_PROCESS_INPUT].ms));
+        int_to_string(static_cast<int>(
+            pFramerate->m_perf_timer[PERF_UPDATE_PROCESS_INPUT].ms)));
     text_strings.push_back(
-        _("level : ") +
-        int_to_string(pFramerate->m_perf_timer[PERF_UPDATE_LEVEL].ms));
+        _("level : ") + int_to_string(static_cast<int>(
+                            pFramerate->m_perf_timer[PERF_UPDATE_LEVEL].ms)));
     text_strings.push_back(
         _("level editor : ") +
-        int_to_string(pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_EDITOR].ms));
+        int_to_string(static_cast<int>(
+            pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_EDITOR].ms)));
+    text_strings.push_back(_("hud : ") +
+                           int_to_string(static_cast<int>(
+                               pFramerate->m_perf_timer[PERF_UPDATE_HUD].ms)));
     text_strings.push_back(
-        _("hud : ") +
-        int_to_string(pFramerate->m_perf_timer[PERF_UPDATE_HUD].ms));
-    text_strings.push_back(
-        _("player : ") +
-        int_to_string(pFramerate->m_perf_timer[PERF_UPDATE_PLAYER].ms));
+        _("player : ") + int_to_string(static_cast<int>(
+                             pFramerate->m_perf_timer[PERF_UPDATE_PLAYER].ms)));
     text_strings.push_back(
         _("player collisions : ") +
-        int_to_string(
-            pFramerate->m_perf_timer[PERF_UPDATE_PLAYER_COLLISIONS].ms));
+        int_to_string(static_cast<int>(
+            pFramerate->m_perf_timer[PERF_UPDATE_PLAYER_COLLISIONS].ms)));
     text_strings.push_back(
         _("level late : ") +
-        int_to_string(pFramerate->m_perf_timer[PERF_UPDATE_LATE_LEVEL].ms));
+        int_to_string(static_cast<int>(
+            pFramerate->m_perf_timer[PERF_UPDATE_LATE_LEVEL].ms)));
     text_strings.push_back(
         _("level collisions : ") +
-        int_to_string(
-            pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_COLLISIONS].ms));
+        int_to_string(static_cast<int>(
+            pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_COLLISIONS].ms)));
     text_strings.push_back(
-        _("camera : ") +
-        int_to_string(pFramerate->m_perf_timer[PERF_UPDATE_CAMERA].ms));
+        _("camera : ") + int_to_string(static_cast<int>(
+                             pFramerate->m_perf_timer[PERF_UPDATE_CAMERA].ms)));
   }
 
   // render
   text_strings.emplace_back(_("Render"));
-  text_strings.push_back(
-      _("Game : ") +
-      int_to_string(pFramerate->m_perf_timer[PERF_RENDER_GAME].ms));
-  text_strings.push_back(
-      _("Gui : ") +
-      int_to_string(pFramerate->m_perf_timer[PERF_RENDER_GUI].ms));
-  text_strings.push_back(
-      _("Buffer : ") +
-      int_to_string(pFramerate->m_perf_timer[PERF_RENDER_BUFFER].ms));
+  text_strings.push_back(_("Game : ") +
+                         int_to_string(static_cast<int>(
+                             pFramerate->m_perf_timer[PERF_RENDER_GAME].ms)));
+  text_strings.push_back(_("Gui : ") +
+                         int_to_string(static_cast<int>(
+                             pFramerate->m_perf_timer[PERF_RENDER_GUI].ms)));
+  text_strings.push_back(_("Buffer : ") +
+                         int_to_string(static_cast<int>(
+                             pFramerate->m_perf_timer[PERF_RENDER_BUFFER].ms)));
 
   unsigned int pos = 0;
 

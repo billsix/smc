@@ -194,10 +194,12 @@ std::unique_ptr<cSaved_Texture> cGL_Surface ::Get_Software_Texture(
 
     // texture data
     soft_tex->m_pixels =
-        new GLubyte[soft_tex->m_width * soft_tex->m_height * bpp];
+        new GLubyte[static_cast<unsigned int>(soft_tex->m_width *
+                                              soft_tex->m_height) *
+                    bpp];
 
-    glGetTexImage(GL_TEXTURE_2D, 0, soft_tex->m_format, GL_UNSIGNED_BYTE,
-                  soft_tex->m_pixels);
+    glGetTexImage(GL_TEXTURE_2D, 0, static_cast<GLenum>(soft_tex->m_format),
+                  GL_UNSIGNED_BYTE, soft_tex->m_pixels);
   }
 
   // surface pointer
@@ -234,7 +236,8 @@ void cGL_Surface ::Load_Software_Texture(cSaved_Texture* soft_tex) {
     }
 
     // Create Hardware Texture
-    pVideo->Create_GL_Texture(soft_tex->m_width, soft_tex->m_height,
+    pVideo->Create_GL_Texture(static_cast<unsigned int>(soft_tex->m_width),
+                              static_cast<unsigned int>(soft_tex->m_height),
                               soft_tex->m_pixels, mipmaps);
 
     m_image = tex_id;

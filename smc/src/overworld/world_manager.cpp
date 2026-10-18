@@ -73,11 +73,11 @@ void cOverworld_Manager ::Init(void) {
 void cOverworld_Manager ::Load_Dir(const std::string& dir,
                                    bool user_dir /* = 0 */) {
   // set world directory
-  vector<std::string> subdirs = Get_Directory_Files(dir, "", true, false);
+  vector<std::string> const subdirs = Get_Directory_Files(dir, "", true, false);
 
   for (const auto& subdir : subdirs) {
     try {
-      std::string current_dir = subdir;
+      std::string const current_dir = subdir;
 
       // only directories with an existing description
       if (File_Exists(current_dir + "/description.xml")) {
@@ -92,7 +92,7 @@ void cOverworld_Manager ::Load_Dir(const std::string& dir,
         auto created = std::make_unique<cOverworld>();
 
         // get relative path
-        std::string relative_path(current_dir, current_dir.rfind('/'));
+        std::string const relative_path(current_dir, current_dir.rfind('/'));
 
         // set relative path
         created->m_description.m_path = relative_path;
@@ -146,7 +146,8 @@ void cOverworld_Manager ::Reset(void) {
   Set_Active("World 1");
 
   // Set Player to first Waypoint
-  pOverworld_Player->Set_Waypoint(pActive_Overworld->m_player_start_waypoint);
+  pOverworld_Player->Set_Waypoint(
+      static_cast<int>(pActive_Overworld->m_player_start_waypoint));
 
   // Reset all Waypoints
   for (const auto& overworld : objects) {
@@ -187,7 +188,7 @@ cOverworld* cOverworld_Manager ::Get_from_Name(const std::string& name) {
 int cOverworld_Manager ::Get_Array_Num(const std::string& path) const {
   for (unsigned int i = 0; i < objects.size(); i++) {
     if (objects[i]->m_description.m_path.compare(path) == 0) {
-      return i;
+      return static_cast<int>(i);
     }
   }
 

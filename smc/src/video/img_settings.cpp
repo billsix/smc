@@ -50,8 +50,10 @@ cSize_Int cImage_Settings_Data ::Get_Surface_Size(
   }
 
   // check if texture needs to get downscaled
-  float new_w = static_cast<float>(Get_Power_of_2(sdl_surface->w));
-  float new_h = static_cast<float>(Get_Power_of_2(sdl_surface->h));
+  float new_w = static_cast<float>(
+      Get_Power_of_2(static_cast<unsigned int>(sdl_surface->w)));
+  float new_h = static_cast<float>(
+      Get_Power_of_2(static_cast<unsigned int>(sdl_surface->h)));
 
   // if image settings dimension
   if (m_width > 0 && m_height > 0) {
@@ -144,17 +146,17 @@ void cImage_Settings_Data ::Apply(cGL_Surface* image) const {
       image->m_int_x = pos.m_y;
       image->m_int_y = pos.m_x - image->m_h;
       // rotate collision position
-      float orig_x = image->m_col_pos.m_x;
+      float const orig_x = image->m_col_pos.m_x;
       image->m_col_pos.m_x =
           image->m_h - (image->m_col_h + image->m_col_pos.m_y);
       image->m_col_pos.m_y = orig_x;
 
       // switch width and height
-      float orig_w = image->m_w;
+      float const orig_w = image->m_w;
       image->m_w = image->m_h;
       image->m_h = orig_w;
       // switch collision width and height
-      float orig_col_w = image->m_col_w;
+      float const orig_col_w = image->m_col_w;
       image->m_col_w = image->m_col_h;
       image->m_col_h = orig_col_w;
     }
@@ -172,16 +174,16 @@ void cImage_Settings_Data ::Apply(cGL_Surface* image) const {
       image->m_int_x = pos.m_y - image->m_w;
       image->m_int_y = pos.m_x;
       // rotate collision position
-      float orig_x = image->m_col_pos.m_x;
+      float const orig_x = image->m_col_pos.m_x;
       image->m_col_pos.m_x = image->m_col_pos.m_y;
       image->m_col_pos.m_y = orig_x;
 
       // switch width and height
-      float orig_w = image->m_w;
+      float const orig_w = image->m_w;
       image->m_w = image->m_h;
       image->m_h = orig_w;
       // switch collision width and height
-      float orig_col_w = image->m_col_w;
+      float const orig_col_w = image->m_col_w;
       image->m_col_w = image->m_col_h;
       image->m_col_h = orig_col_w;
     }
@@ -198,7 +200,7 @@ void cImage_Settings_Data ::Apply(cGL_Surface* image) const {
   }
 
   if (m_type > 0) {
-    image->m_type = m_type;
+    image->m_type = static_cast<unsigned int>(m_type);
   }
 
   image->m_ground_type = m_ground_type;

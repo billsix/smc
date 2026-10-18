@@ -106,7 +106,7 @@ void cText_Box ::Activate(void) {
   // set position
   float text_pos_x =
       m_pos_x - (text_box_window_width * 0.5f) + (m_rect.m_w * 0.5f);
-  float text_pos_y = m_pos_y - 5 - text_box_window_height;
+  float const text_pos_y = m_pos_y - 5 - text_box_window_height;
 
   // if not on screen on the left side
   if (text_pos_x < 0) {
@@ -272,7 +272,7 @@ void cText_Box ::Editor_Activate(void) {
 bool cText_Box ::Editor_Text_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::MultiLineEditbox*>(windowEventArgs.window)
           ->getText()
           .c_str();

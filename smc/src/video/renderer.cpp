@@ -642,7 +642,8 @@ void cRenderQueue ::Render(bool clear /* = 1 */) {
 void cRenderQueue ::Fake_Render(unsigned int amount /* = 1 */,
                                 bool clear /* = 1 */) {
   for (const auto& request : m_render_data) {
-    request->m_render_count -= amount;
+    request->m_render_count = static_cast<int>(
+        static_cast<unsigned int>(request->m_render_count) - amount);
   }
 
   if (clear) {

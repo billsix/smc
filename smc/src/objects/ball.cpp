@@ -305,7 +305,7 @@ void cBall ::Generate_Particles(cParticle_Emitter* anim /* = nullptr */) const {
   anim->Set_Emitter_Rect(m_col_rect);
   anim->Set_Pos_Z(m_pos_z + 0.0001f);
   if (m_ball_type == FIREBALL_DEFAULT) {
-    unsigned int rand_image = rand() % 3;
+    unsigned int const rand_image = static_cast<unsigned int>(rand() % 3);
 
     if (rand_image == 0) {
       anim->Set_Image(pVideo->Get_Surface("animation/particles/fire_1.png"));
@@ -339,7 +339,7 @@ void cBall ::Generate_Particles(cParticle_Emitter* anim /* = nullptr */) const {
 
 Col_Valid_Type cBall ::Validate_Collision(cSprite* obj) {
   // basic validation checking
-  Col_Valid_Type basic_valid = Validate_Collision_Ghost(obj);
+  Col_Valid_Type const basic_valid = Validate_Collision_Ghost(obj);
 
   // found valid collision
   if (basic_valid != COL_VTYPE_NOT_POSSIBLE) {
@@ -412,8 +412,8 @@ void cBall ::Handle_Collision_Player(cObjectCollision* collision) {
 }
 
 void cBall ::Handle_Collision_Enemy(cObjectCollision* collision) {
-  cEnemy* enemy =
-      static_cast<cEnemy*>(m_sprite_manager->Get_Pointer(collision->m_number));
+  cEnemy* enemy = static_cast<cEnemy*>(
+      m_sprite_manager->Get_Pointer(static_cast<size_t>(collision->m_number)));
 
   // if enemy is not destroyable
   if ((m_ball_type == FIREBALL_DEFAULT && enemy->m_fire_resistant) ||
@@ -438,13 +438,17 @@ void cBall ::Handle_Collision_Enemy(cObjectCollision* collision) {
 
         Color anim_color, anim_color_rand;
         if (m_ball_type == FIREBALL_DEFAULT) {
-          anim_color = Color(static_cast<Uint8>(250), 170, 150);
-          anim_color_rand = Color(static_cast<Uint8>(rand() % 5), rand() % 85,
-                                  rand() % 25, 0);
+          anim_color = Color(static_cast<Uint8>(250), static_cast<Uint8>(170),
+                             static_cast<Uint8>(150));
+          anim_color_rand = Color(static_cast<Uint8>(rand() % 5),
+                                  static_cast<Uint8>(rand() % 85),
+                                  static_cast<Uint8>(rand() % 25), 0);
         } else {
-          anim_color = Color(static_cast<Uint8>(150), 150, 240);
-          anim_color_rand = Color(static_cast<Uint8>(rand() % 80), rand() % 80,
-                                  rand() % 10, 0);
+          anim_color = Color(static_cast<Uint8>(150), static_cast<Uint8>(150),
+                             static_cast<Uint8>(240));
+          anim_color_rand = Color(static_cast<Uint8>(rand() % 80),
+                                  static_cast<Uint8>(rand() % 80),
+                                  static_cast<Uint8>(rand() % 10), 0);
         }
         anim->Set_Color(anim_color, anim_color_rand);
         anim->Emit();

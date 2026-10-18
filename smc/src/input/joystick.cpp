@@ -53,7 +53,7 @@ int cJoystick ::Init(void) {
     return 0;
   }
 
-  int joy_count = SDL_NumJoysticks();
+  int const joy_count = SDL_NumJoysticks();
 
   // no joystick available
   if (joy_count <= 0) {
@@ -100,7 +100,7 @@ bool cJoystick ::Stick_Open(unsigned int index) {
     Stick_Close();
   }
 
-  m_joystick = SDL_JoystickOpen(index);
+  m_joystick = SDL_JoystickOpen(static_cast<int>(index));
 
   if (!m_joystick) {
     printf("Couldn't open joystick %d\n", index);
@@ -108,11 +108,11 @@ bool cJoystick ::Stick_Open(unsigned int index) {
     return false;
   }
 
-  m_current_joystick = index;
+  m_current_joystick = static_cast<int>(index);
 
-  m_num_buttons = SDL_JoystickNumButtons(m_joystick);
-  m_num_axes = SDL_JoystickNumAxes(m_joystick);
-  m_num_balls = SDL_JoystickNumBalls(m_joystick);
+  m_num_buttons = static_cast<unsigned int>(SDL_JoystickNumButtons(m_joystick));
+  m_num_axes = static_cast<unsigned int>(SDL_JoystickNumAxes(m_joystick));
+  m_num_balls = static_cast<unsigned int>(SDL_JoystickNumBalls(m_joystick));
 
   // setup available buttons
   m_buttons.assign(m_num_buttons, false);
@@ -450,7 +450,7 @@ std::string cJoystick ::Get_Name(void) const {
 vector<std::string> cJoystick ::Get_Names(void) const {
   vector<std::string> names;
   // get joy count
-  int joy_count = SDL_NumJoysticks();
+  int const joy_count = SDL_NumJoysticks();
 
   // joystick names
   for (int i = 0; i < joy_count; i++) {

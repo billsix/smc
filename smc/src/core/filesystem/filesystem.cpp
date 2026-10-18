@@ -48,7 +48,7 @@ bool File_Exists(const std::string& filename) {
 #ifdef _WIN32
   fs::file_type type = fs::status(fs::path(utf8_to_ucs2(filename))).type();
 #else
-  fs::file_type type = fs::status(fs::path(filename)).type();
+  fs::file_type const type = fs::status(fs::path(filename)).type();
 #endif
 
   return type == fs::file_type::regular || type == fs::file_type::symlink;
@@ -59,7 +59,7 @@ bool Dir_Exists(const std::string& dir) {
 #ifdef _WIN32
   fs::file_type type = fs::status(fs::path(utf8_to_ucs2(dir))).type();
 #else
-  fs::file_type type = fs::status(fs::path(dir)).type();
+  fs::file_type const type = fs::status(fs::path(dir)).type();
 #endif
 
   return type == fs::file_type::directory || type == fs::file_type::symlink;
@@ -135,9 +135,9 @@ vector<std::string> Get_Directory_Files(
 #ifdef _WIN32
   fs::path full_path(utf8_to_ucs2(dir));
 #else
-  fs::path full_path(dir);
+  fs::path const full_path(dir);
 #endif
-  fs::directory_iterator end_iter;
+  fs::directory_iterator const end_iter;
 
   // load all available objects
   for (fs::directory_iterator dir_itr(full_path); dir_itr != end_iter;

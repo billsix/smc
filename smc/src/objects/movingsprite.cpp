@@ -65,6 +65,12 @@ void cMovingSprite ::Init(void) {
   m_freeze_counter = 0.0f;
 }
 
+// GCC -O2 speculative devirtualization inlines the unique_ptr deleter and speculates on
+// larger cMovingSprite subclass destructors (e.g. cAnimation_Fireball_Item), yielding a false
+// -Warray-bounds against the exactly-sized cMovingSprite allocation below. At runtime the object
+// IS a cMovingSprite, so no out-of-bounds access occurs; clang does not warn. Suppress narrowly.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
 std::unique_ptr<cSprite> cMovingSprite ::Copy(void) const {
   auto moving_sprite = std::make_unique<cMovingSprite>(m_sprite_manager);
   moving_sprite->Set_Image(m_start_image, true);
@@ -79,6 +85,7 @@ std::unique_ptr<cSprite> cMovingSprite ::Copy(void) const {
   moving_sprite->Set_Shadow_Color(m_shadow_color);
   return moving_sprite;
 }
+#pragma GCC diagnostic pop
 
 void cMovingSprite ::Set_Image(cGL_Surface* new_image,
                                bool new_start_image /* = 0 */) {
@@ -385,8 +392,8 @@ void cMovingSprite ::Col_Move(float move_x, float move_y, bool real /* = 0 */,
       step_size_y = -m_col_rect.m_h;
     }
 
-    float final_pos_x = m_pos_x + move_x;
-    float final_pos_y = m_pos_y + move_y;
+    float const final_pos_x = m_pos_x + move_x;
+    float const final_pos_y = m_pos_y + move_y;
 
     // move in big steps
     std::unique_ptr<cObjectCollisionType> col_list =
@@ -651,7 +658,7 @@ std::unique_ptr<cObjectCollisionType> cMovingSprite ::Collision_Check(
     }
 
     // validate
-    Col_Valid_Type col_valid = Validate_Collision(level_object);
+    Col_Valid_Type const col_valid = Validate_Collision(level_object);
 
     // not a valid collision
     if (col_valid == COL_VTYPE_NOT_VALID) {
@@ -780,8 +787,8 @@ void cMovingSprite ::Check_on_Ground(void) {
 
   // if ground object
   if (m_ground_object) {
-    GL_rect rect2(m_col_rect.m_x, m_col_rect.m_y + m_col_rect.m_h,
-                  m_col_rect.m_w, 1.0f);
+    GL_rect const rect2(m_col_rect.m_x, m_col_rect.m_y + m_col_rect.m_h,
+                        m_col_rect.m_w, 1.0f);
 
     // if on ground object
     if (m_ground_object->m_col_rect.Intersects(rect2) &&
@@ -821,7 +828,7 @@ void cMovingSprite ::Update_Anti_Stuck(void) {
 
   // check collisions
   for (const auto& collision : col_list->objects) {
-    cSprite* col_obj = collision->m_obj;
+    cSprite const* col_obj = collision->m_obj;
 
     if (collision->m_array == ARRAY_ENEMY ||
         (collision->m_array == ARRAY_ACTIVE &&
@@ -883,7 +890,7 @@ void cMovingSprite ::Move_With_Ground(void) {
   // check ground first because of the moving object velocity
   Check_on_Ground();
   // save posx for possible can not move test
-  float posy_orig = m_pos_y;
+  float const posy_orig = m_pos_y;
   /* stop object from getting stopped of the moving object which did not yet move itself
 	 * for example the player always moves as last
 	*/
@@ -991,8 +998,8 @@ void cMovingSprite ::Handle_Move_Object_Collision(
   cMovingSprite* obj = nullptr;
 
   if (collision->m_array == ARRAY_ENEMY) {
-    obj = static_cast<cMovingSprite*>(
-        m_sprite_manager->Get_Pointer(collision->m_number));
+    obj = static_cast<cMovingSprite*>(m_sprite_manager->Get_Pointer(
+        static_cast<size_t>(collision->m_number)));
 
     // ignore these enemies
     if (obj->m_type == TYPE_THROMP || obj->m_type == TYPE_EATO ||
@@ -1020,7 +1027,7 @@ void cMovingSprite ::Handle_Move_Object_Collision(
   } else if ((collision->m_direction == DIR_LEFT && m_velx < 0.0f) ||
              (collision->m_direction == DIR_RIGHT && m_velx > 0.0f)) {
     // save posx for possible can not move test
-    float posx_orig = obj->m_pos_x;
+    float const posx_orig = obj->m_pos_x;
     // move with check on ground
     obj->Col_Move(m_velx, 0.0f, false, false);
 
@@ -1047,7 +1054,7 @@ Col_Valid_Type cMovingSprite ::Validate_Collision(cSprite* obj) {
 
 Col_Valid_Type cMovingSprite ::Validate_Collision_Ghost(cSprite* obj) {
   if (obj->m_type == TYPE_BONUS_BOX || obj->m_type == TYPE_SPIN_BOX) {
-    cBaseBox* box = static_cast<cBaseBox*>(obj);
+    cBaseBox const* box = static_cast<cBaseBox*>(obj);
 
     // ghost
     if (box->m_box_invisible == BOX_GHOST) {
@@ -1073,7 +1080,7 @@ Col_Valid_Type cMovingSprite ::Validate_Collision_Object_On_Top(
 	* also see cPlayer :: Handle_Collision_Massive
 	*/
   if (moving_sprite->m_type == TYPE_PLAYER) {
-    cLevel_Player* player = static_cast<cLevel_Player*>(moving_sprite);
+    cLevel_Player const* player = static_cast<cLevel_Player*>(moving_sprite);
 
     if (player->m_jump_power > 6.0f) {
       // invalid
@@ -1149,7 +1156,8 @@ void cMovingSprite ::Send_Collision(const cObjectCollision* collision,
   if (collision->m_array == ARRAY_PLAYER) {
     target_obj = pActive_Player;
   } else {
-    target_obj = m_sprite_manager->Get_Pointer(collision->m_number);
+    target_obj =
+        m_sprite_manager->Get_Pointer(static_cast<size_t>(collision->m_number));
   }
 
   // check if this is already in list

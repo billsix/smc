@@ -92,7 +92,7 @@ void cFont_Manager ::Add_Ref(cGL_Surface* surface) {
 
 void cFont_Manager ::Delete_Ref(cGL_Surface* surface) {
   for (auto itr = m_active_fonts.begin(); itr != m_active_fonts.end(); ++itr) {
-    cGL_Surface* obj = (*itr);
+    cGL_Surface const* obj = (*itr);
 
     // delete reference if found
     if (obj == surface) {
@@ -105,7 +105,7 @@ void cFont_Manager ::Delete_Ref(cGL_Surface* surface) {
 std::unique_ptr<cGL_Surface> cFont_Manager ::Render_Text(
     TTF_Font* font, const std::string& text, const Color color) {
   // get SDL Color
-  SDL_Color sdlcolor = color.Get_SDL_Color();
+  SDL_Color const sdlcolor = color.Get_SDL_Color();
   // create text surface
   // the caller owns the rendered surface; this manager only keeps a borrowed reference
   std::unique_ptr<cGL_Surface> surface = pVideo->Create_Texture(

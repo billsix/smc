@@ -43,16 +43,16 @@ class GL_line {
   // returns the intersection point between the lines
   // from ClanLib ( Copyright (C) 2005 Magnus Norddahl ) - BSD License
   GL_point Get_Intersection(GL_line* line2) const {
-    float denominator = ((m_x2 - m_x1) * (line2->m_y2 - line2->m_y1) -
-                         (m_y2 - m_y1) * (line2->m_x2 - line2->m_x1));
+    float const denominator = ((m_x2 - m_x1) * (line2->m_y2 - line2->m_y1) -
+                               (m_y2 - m_y1) * (line2->m_x2 - line2->m_x1));
 
     if (denominator == 0) {
       return GL_point(m_x1, m_y1);
     }
 
-    float r = ((m_y1 - line2->m_y1) * (line2->m_x2 - line2->m_x1) -
-               (m_x1 - line2->m_x1) * (line2->m_y2 - line2->m_y1)) /
-              denominator;
+    float const r = ((m_y1 - line2->m_y1) * (line2->m_x2 - line2->m_x1) -
+                     (m_x1 - line2->m_x1) * (line2->m_y2 - line2->m_y1)) /
+                    denominator;
 
     return GL_point(m_x1 + r * (m_x2 - m_x1), m_y1 + r * (m_y2 - m_y1));
   }
@@ -60,8 +60,8 @@ class GL_line {
   // returns true if the lines intersect
   // from ClanLib ( Copyright (C) 2005 Magnus Norddahl ) - BSD License
   bool Intersects(GL_line* line2, bool collinear_intersect = false) const {
-    float denominator = ((m_x2 - m_x1) * (line2->m_y2 - line2->m_y1) -
-                         (m_y2 - m_y1) * (line2->m_x2 - line2->m_x1));
+    float const denominator = ((m_x2 - m_x1) * (line2->m_y2 - line2->m_y1) -
+                               (m_y2 - m_y1) * (line2->m_x2 - line2->m_x1));
 
     if (denominator == 0)  // parallel
     {
@@ -79,12 +79,12 @@ class GL_line {
       return false;
     }
 
-    float r = ((m_y1 - line2->m_y1) * (line2->m_x2 - line2->m_x1) -
-               (m_x1 - line2->m_x1) * (line2->m_y2 - line2->m_y1)) /
-              denominator;
-    float s = ((m_y1 - line2->m_y1) * (m_x2 - m_x1) -
-               (m_x1 - line2->m_x1) * (m_y2 - m_y1)) /
-              denominator;
+    float const r = ((m_y1 - line2->m_y1) * (line2->m_x2 - line2->m_x1) -
+                     (m_x1 - line2->m_x1) * (line2->m_y2 - line2->m_y1)) /
+                    denominator;
+    float const s = ((m_y1 - line2->m_y1) * (m_x2 - m_x1) -
+                     (m_x1 - line2->m_x1) * (m_y2 - m_y1)) /
+                    denominator;
 
     if (line2->m_y1 < line2->m_y2) {
       if ((s >= 0.0f && s < 1.0f) && (r >= 0.0f && r <= 1.0f)) {
@@ -102,19 +102,19 @@ class GL_line {
   // returns the distance from a point to this line
   // from ClanLib ( Copyright (C) 2005 Magnus Norddahl ) - BSD License
   float Distance_to_Line(float x, float y) {
-    float l = sqrt(pow2(m_x2 - m_x1) + pow2(m_y2 - m_y1));
-    float r =
+    float const l = sqrt(pow2(m_x2 - m_x1) + pow2(m_y2 - m_y1));
+    float const r =
         ((x - m_x1) * (m_x2 - m_x1) + (y - m_y1) * (m_y2 - m_y1)) / pow2(l);
 
     if (r <= 0.0f || r >= 1.0f) {
-      GL_point p(x, y);
-      GL_point A(m_x1, m_y1);
-      GL_point B(m_x2, m_y2);
+      GL_point const p(x, y);
+      GL_point const A(m_x1, m_y1);
+      GL_point const B(m_x2, m_y2);
 
       return cl_min(p.distance(A), p.distance(B));
     }
 
-    float s =
+    float const s =
         ((m_y1 - y) * (m_x2 - m_x1) - (m_x1 - x) * (m_y2 - m_y1)) / pow2(l);
     return fabs(s) * l;
   }

@@ -195,7 +195,7 @@ int main(int argc, char** argv) {
           // with the wrong loop counter, so it re-read arguments[2*i] forever)
           for (unsigned int option = i + 1; option < arguments.size();
                option++) {
-            std::string option_str = arguments[option];
+            std::string const option_str = arguments[option];
 
             if (option_str == "game") {
               game_debug = true;

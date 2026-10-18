@@ -38,7 +38,7 @@ void cPerformance_Timer ::Update(void) {
   frame_counter++;
 
   // add milliseconds
-  Uint32 new_ticks = SDL_GetTicks();
+  Uint32 const new_ticks = SDL_GetTicks();
   ms_counter += new_ticks - pFramerate->m_perf_last_ticks;
   pFramerate->m_perf_last_ticks = new_ticks;
 

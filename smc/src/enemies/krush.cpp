@@ -105,7 +105,7 @@ void cKrush ::Save_To_XML(CEGUI::XMLSerializer& stream) {
 void cKrush ::Load_From_Savegame(cSave_Level_Object* save_object) {
   // krush_state
   if (save_object->exists("state")) {
-    Moving_state mov_state = static_cast<Moving_state>(
+    Moving_state const mov_state = static_cast<Moving_state>(
         string_to_int(save_object->Get_Value("state")));
 
     if (mov_state == STA_RUN) {
@@ -191,7 +191,7 @@ void cKrush ::Update_Dying(void) {
 
   // stomp death
   if (!Is_Float_Equal(m_rot_z, 180.0f)) {
-    float speed = pFramerate->m_speed_factor * 0.05f;
+    float const speed = pFramerate->m_speed_factor * 0.05f;
 
     Add_Scale_X(-speed * 0.5f);
     Add_Scale_Y(-speed);
@@ -279,7 +279,7 @@ bool cKrush ::Is_Update_Valid(void) {
 
 Col_Valid_Type cKrush ::Validate_Collision(cSprite* obj) {
   // basic validation checking
-  Col_Valid_Type basic_valid = Validate_Collision_Ghost(obj);
+  Col_Valid_Type const basic_valid = Validate_Collision_Ghost(obj);
 
   // found valid collision
   if (basic_valid != COL_VTYPE_NOT_POSSIBLE) {
@@ -367,7 +367,8 @@ void cKrush ::Handle_Collision_Massive(cObjectCollision* collision) {
   Send_Collision(collision);
 
   // get colliding object
-  cSprite* col_object = m_sprite_manager->Get_Pointer(collision->m_number);
+  cSprite const* col_object =
+      m_sprite_manager->Get_Pointer(static_cast<size_t>(collision->m_number));
 
   if (col_object->m_type == TYPE_BALL) {
     return;
@@ -413,7 +414,7 @@ void cKrush ::Editor_Activate(void) {
 bool cKrush ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()));

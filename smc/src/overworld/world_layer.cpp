@@ -166,7 +166,7 @@ void cLayer_Line_Point_Start ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
       static_cast<float>(attributes.getValueAsInteger("X2")) - 2,
       static_cast<float>(attributes.getValueAsInteger("Y2")) - 2, true);
   // origin
-  m_origin = attributes.getValueAsInteger("origin");
+  m_origin = static_cast<unsigned int>(attributes.getValueAsInteger("origin"));
 }
 
 void cLayer_Line_Point_Start ::Set_Sprite_Manager(
@@ -193,7 +193,8 @@ void cLayer_Line_Point_Start ::Draw(cSurface_Request* request /* = nullptr */) {
 
   // if active
   if (pOverworld_Player->m_current_line >= 0 &&
-      m_overworld->m_layer.objects[pOverworld_Player->m_current_line] == this) {
+      m_overworld->m_layer.objects[static_cast<size_t>(
+          pOverworld_Player->m_current_line)] == this) {
     color = lightblue;
   }
 
@@ -220,11 +221,12 @@ GL_line cLayer_Line_Point_Start ::Get_Line(void) const {
 
 cWaypoint* cLayer_Line_Point_Start ::Get_End_Waypoint(void) const {
   // get waypoint number
-  int wp_num = m_overworld->Get_Waypoint_Collision(m_linked_point->m_col_rect);
+  int const wp_num =
+      m_overworld->Get_Waypoint_Collision(m_linked_point->m_col_rect);
 
   // no waypoint collision
   if (wp_num < 0) {
-    cLayer_Line_Point_Start* line_col =
+    cLayer_Line_Point_Start const* line_col =
         m_overworld->m_layer.Get_Line_Collision_Start(
             m_linked_point->m_col_rect);
 
@@ -236,7 +238,7 @@ cWaypoint* cLayer_Line_Point_Start ::Get_End_Waypoint(void) const {
   }
 
   // return Waypoint
-  return m_overworld->Get_Waypoint(wp_num);
+  return m_overworld->Get_Waypoint(static_cast<unsigned int>(wp_num));
 }
 
 void cLayer_Line_Point_Start ::Editor_Activate(void) {
@@ -249,7 +251,7 @@ void cLayer_Line_Point_Start ::Editor_Activate(void) {
   Editor_Add(UTF8_("Waypoint origin"), UTF8_("Waypoint origin"), editbox, 100);
 
   editbox->setValidationString("^[+]?\\d*$");
-  editbox->setText(int_to_string(m_origin));
+  editbox->setText(int_to_string(static_cast<int>(m_origin)));
   editbox->subscribeEvent(
       CEGUI::Editbox::EventTextChanged,
       CEGUI::Event::Subscriber(
@@ -263,10 +265,10 @@ bool cLayer_Line_Point_Start ::Editor_Origin_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  std::string str_text =
+  std::string const str_text =
       static_cast<CEGUI::Editbox*>(windowEventArgs.window)->getText().c_str();
 
-  m_origin = string_to_int(str_text);
+  m_origin = static_cast<unsigned int>(string_to_int(str_text));
 
   return true;
 }
@@ -447,7 +449,8 @@ cLine_collision cLayer ::Get_Nearest(float x, float y,
   for (const auto& layer_line : objects) {
     // get pointer
     // line is not from waypoint
-    if (only_origin_id >= 0 && only_origin_id != layer_line->m_origin) {
+    if (only_origin_id >= 0 &&
+        static_cast<unsigned int>(only_origin_id) != layer_line->m_origin) {
       continue;
     }
 

@@ -152,7 +152,7 @@ void cSpinBox ::Update(void) {
         }
         // colliding with an active object
         else if (col_list->Is_Included(ARRAY_ACTIVE)) {
-          cSprite* col_obj = col_list->Find_First(ARRAY_ACTIVE)->m_obj;
+          cSprite const* col_obj = col_list->Find_First(ARRAY_ACTIVE)->m_obj;
 
           // check for items
           if (col_obj->m_type == TYPE_MUSHROOM_LIVE_1 ||

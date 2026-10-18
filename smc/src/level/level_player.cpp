@@ -144,14 +144,15 @@ void cLevel_Player ::Set_Direction(const ObjectDirection dir,
 
     // set back current image
     m_curr_img = -1;
-    Set_Image_Num(Get_Image() + m_direction);
+    Set_Image_Num(
+        static_cast<int>(Get_Image() + static_cast<unsigned int>(m_direction)));
   }
 
   cAnimated_Sprite::Set_Direction(dir, new_start_direction);
 }
 
 bool cLevel_Player ::Set_On_Ground(cSprite* obj, bool set_on_top /* = 1 */) {
-  bool valid = cMovingSprite::Set_On_Ground(obj, set_on_top);
+  bool const valid = cMovingSprite::Set_On_Ground(obj, set_on_top);
 
   // if valid ground
   if (valid) {
@@ -730,7 +731,7 @@ void cLevel_Player ::Update_Staying(void) {
 
     // walk on spika
     if (m_ground_object->m_type == TYPE_SPIKA) {
-      cMovingSprite* moving_ground_object =
+      cMovingSprite const* moving_ground_object =
           static_cast<cMovingSprite*>(m_ground_object);
 
       if (moving_ground_object->m_velx < 0.0f) {
@@ -945,7 +946,8 @@ void cLevel_Player ::Start_Ducking(void) {
   // set ducking image ( without Check_OutofLevel from cMovingSprite )
   cSprite::Move(
       0.0f, m_image->m_col_h - m_images[MARYO_IMG_DUCK].m_image->m_col_h, true);
-  Set_Image_Num(MARYO_IMG_DUCK + m_direction);
+  Set_Image_Num(static_cast<int>(MARYO_IMG_DUCK) +
+                static_cast<int>(m_direction));
 
   m_ducked_counter = 1;
   Set_Moving_State(STA_STAY);
@@ -972,7 +974,8 @@ void cLevel_Player ::Stop_Ducking(void) {
 
   // unset ducking image ( without Check_out_of_Level from cMovingSprite )
   cSprite::Move(0.0f, move_y, true);
-  Set_Image_Num(MARYO_IMG_STAND + m_direction);
+  Set_Image_Num(static_cast<int>(MARYO_IMG_STAND) +
+                static_cast<int>(m_direction));
 
   m_ducked_counter = 0;
   m_ducked_animation_counter = 0.0f;
@@ -1002,7 +1005,8 @@ void cLevel_Player ::Update_Ducking(void) {
       anim->Set_Emitter_Rect(m_col_rect.m_x,
                              m_col_rect.m_y + (m_col_rect.m_h * 0.8f),
                              m_col_rect.m_w * 0.9f, m_col_rect.m_h * 0.1f);
-      anim->Set_Quota(static_cast<int>(m_ducked_animation_counter));
+      anim->Set_Quota(static_cast<unsigned int>(
+          static_cast<int>(m_ducked_animation_counter)));
       anim->Set_Image(pVideo->Get_Surface("animation/particles/star_2.png"));
       anim->Set_Pos_Z(m_pos_z - 0.000001f, 0.000002f);
       anim->Set_Time_to_Live(0.3f);
@@ -1323,7 +1327,7 @@ void cLevel_Player ::Update_Item(void) {
   if (pKeyboard->m_keys[pPreferences->m_key_action] ||
       pJoystick->Button(pPreferences->m_joy_button_action)) {
     // next position velocity with extra size
-    float check_x = (m_velx > 0.0f) ? (m_velx + 5.0f) : (m_velx - 5.0f);
+    float const check_x = (m_velx > 0.0f) ? (m_velx + 5.0f) : (m_velx - 5.0f);
 
     // if wrong direction return
     if ((m_direction == DIR_LEFT && check_x >= 0.0f) ||
@@ -1571,7 +1575,7 @@ void cLevel_Player ::Set_Type(Maryo_type new_type, bool animation /* = 1 */,
   }
 
   // remember old type
-  Maryo_type old_type = m_maryo_type;
+  Maryo_type const old_type = m_maryo_type;
 
   // draw animation and set new type
   if (animation) {
@@ -1613,7 +1617,7 @@ void cLevel_Player ::Set_Type(Maryo_type new_type, bool animation /* = 1 */,
 
     // check for ghost ground
     if (m_ground_object) {
-      cBaseBox* box = dynamic_cast<cBaseBox*>(m_ground_object);
+      cBaseBox const* box = dynamic_cast<cBaseBox*>(m_ground_object);
 
       if (box) {
         // ghost box
@@ -1647,7 +1651,8 @@ void cLevel_Player ::Set_Moving_State(Moving_state new_state) {
   else if (m_state == STA_FLY) {
     Change_Size(0, -(m_images[MARYO_IMG_FALL].m_image->m_h -
                      m_images[MARYO_IMG_FLY].m_image->m_h));
-    Set_Image_Num(MARYO_IMG_FALL + m_direction);
+    Set_Image_Num(static_cast<int>(MARYO_IMG_FALL) +
+                  static_cast<int>(m_direction));
 
     // reset flying rotation
     m_rot_z = 0.0f;
@@ -1807,7 +1812,8 @@ void cLevel_Player ::Reset(bool full /* = 1 */) {
   Set_Direction(m_start_direction);
   m_ducked_counter = 0;
   Set_Moving_State(STA_FALL);
-  Set_Image_Num(Get_Image() + m_direction);
+  Set_Image_Num(
+      static_cast<int>(Get_Image() + static_cast<unsigned int>(m_direction)));
   m_jump_power = 0.0f;
   m_jump_accel_up = 0.0f;
   m_jump_vel_deaccel = 0.0f;
@@ -1945,7 +1951,8 @@ void cLevel_Player ::Update(void) {
         anim->Set_Emitter_Rect(m_col_rect.m_x + m_col_rect.m_w * 0.1f,
                                m_col_rect.m_y + m_col_rect.m_h * 0.1f,
                                m_col_rect.m_w * 0.8f, m_col_rect.m_h * 0.8f);
-        anim->Set_Quota(static_cast<int>(m_invincible_star_counter));
+        anim->Set_Quota(static_cast<unsigned int>(
+            static_cast<int>(m_invincible_star_counter)));
         anim->Set_Image(pVideo->Get_Surface("animation/particles/star.png"));
         anim->Set_Pos_Z(m_pos_z - 0.000001f);
         anim->Set_Time_to_Live(0.3f);
@@ -1997,7 +2004,7 @@ void cLevel_Player ::Update(void) {
     }
 
     // ground type modification
-    float vel = (m_velx > 0.0f ? m_velx : -m_velx);
+    float const vel = (m_velx > 0.0f ? m_velx : -m_velx);
 
     if (vel && m_ground_object && m_ground_object->m_image) {
       float ground_mod = 0.0f;
@@ -2121,9 +2128,10 @@ void cLevel_Player ::Update(void) {
 
   // Set image
   if (m_state != STA_CLIMB) {
-    Set_Image_Num(Get_Image() + m_direction);
+    Set_Image_Num(
+        static_cast<int>(Get_Image() + static_cast<unsigned int>(m_direction)));
   } else {
-    Set_Image_Num(Get_Image());
+    Set_Image_Num(static_cast<int>(Get_Image()));
   }
 
   // Special
@@ -2151,9 +2159,9 @@ void cLevel_Player ::Draw(cSurface_Request* request /* = nullptr */) {
   if (m_ghost_time > 0.0f) {
     // ghost shadows
     m_color.alpha = 32 + static_cast<int>(m_ghost_time_mod);
-    float old_posx = m_pos_x;
-    float old_posy = m_pos_y;
-    float old_posz = m_pos_z;
+    float const old_posx = m_pos_x;
+    float const old_posy = m_pos_y;
+    float const old_posz = m_pos_z;
 
     for (unsigned int i = 0; i < 5; i++) {
       m_color.alpha -= 5;
@@ -2206,11 +2214,11 @@ void cLevel_Player ::Draw_Animation(Maryo_type new_mtype) {
     return;
   }
 
-  Maryo_type maryo_type_old = m_maryo_type;
-  bool parachute_old = m_parachute;
+  Maryo_type const maryo_type_old = m_maryo_type;
+  bool const parachute_old = m_parachute;
 
-  float posx_old = m_pos_x;
-  float posy_old = m_pos_y;
+  float const posx_old = m_pos_x;
+  float const posy_old = m_pos_y;
 
   // Change_Size needs new state size
   m_maryo_type = maryo_type_old;
@@ -2232,8 +2240,8 @@ void cLevel_Player ::Draw_Animation(Maryo_type new_mtype) {
     Change_Size(5.0f, 12.0f);
   }
 
-  float posx_new = m_pos_x;
-  float posy_new = m_pos_y;
+  float const posx_new = m_pos_x;
+  float const posy_new = m_pos_y;
 
   // draw animation
   for (unsigned int i = 0; i < 7; i++) {
@@ -2285,7 +2293,7 @@ unsigned int cLevel_Player ::Get_Image(void) const {
       imgnum = 2;
     }
 
-    return MARYO_IMG_THROW + imgnum;
+    return static_cast<unsigned int>(MARYO_IMG_THROW + imgnum);
   }
 
   // ducked
@@ -2702,7 +2710,8 @@ void cLevel_Player ::Load_Images(void) {
   }
 
   // set image
-  Set_Image_Num(Get_Image() + m_direction);
+  Set_Image_Num(
+      static_cast<int>(Get_Image() + static_cast<unsigned int>(m_direction)));
 }
 
 void cLevel_Player ::Get_Item(SpriteType item_type, bool force /* = 0 */,
@@ -3365,7 +3374,7 @@ void cLevel_Player ::Ball_Clear(void) const {
   // destroy all fireballs from the player
   for (const auto& sprite : m_sprite_manager->objects) {
     if (sprite->m_type == TYPE_BALL) {
-      cBall* ball = static_cast<cBall*>(sprite.get());
+      cBall const* ball = static_cast<cBall*>(sprite.get());
 
       // if from player
       if (ball->m_origin_type == TYPE_PLAYER) {
@@ -3476,7 +3485,7 @@ Col_Valid_Type cLevel_Player ::Validate_Collision(cSprite* obj) {
         }
         // if not on top
         else {
-          cTurtle* turtle = static_cast<cTurtle*>(obj);
+          cTurtle const* turtle = static_cast<cTurtle*>(obj);
 
           // if player counter active
           if (turtle->m_player_counter > 0.0f) {
@@ -3492,7 +3501,7 @@ Col_Valid_Type cLevel_Player ::Validate_Collision(cSprite* obj) {
         return COL_VTYPE_BLOCKING;
       }
       case TYPE_BALL: {
-        cBall* ball = static_cast<cBall*>(obj);
+        cBall const* ball = static_cast<cBall*>(obj);
 
         if (ball->m_origin_type != TYPE_PLAYER) {
           return COL_VTYPE_INTERNAL;
@@ -3502,7 +3511,7 @@ Col_Valid_Type cLevel_Player ::Validate_Collision(cSprite* obj) {
       }
       case TYPE_BONUS_BOX:
       case TYPE_SPIN_BOX: {
-        cBaseBox* box = static_cast<cBaseBox*>(obj);
+        cBaseBox const* box = static_cast<cBaseBox*>(obj);
 
         // ghost
         if (box->m_box_invisible == BOX_GHOST) {
@@ -3558,7 +3567,7 @@ Col_Valid_Type cLevel_Player ::Validate_Collision(cSprite* obj) {
       case TYPE_BONUS_BOX:
       case TYPE_SPIN_BOX:
       case TYPE_TEXT_BOX: {
-        cBaseBox* box = static_cast<cBaseBox*>(obj);
+        cBaseBox const* box = static_cast<cBaseBox*>(obj);
 
         // invisible semi massive
         if (box->m_box_invisible == BOX_INVISIBLE_SEMI_MASSIVE) {
@@ -3571,7 +3580,7 @@ Col_Valid_Type cLevel_Player ::Validate_Collision(cSprite* obj) {
         return COL_VTYPE_NOT_VALID;
       }
       case TYPE_LEVEL_EXIT: {
-        cLevel_Exit* levelexit = static_cast<cLevel_Exit*>(obj);
+        cLevel_Exit const* levelexit = static_cast<cLevel_Exit*>(obj);
 
         // warp levelexit key check
         if (levelexit->m_exit_type == LEVEL_EXIT_WARP) {
@@ -3622,8 +3631,8 @@ void cLevel_Player ::Handle_Collision_Enemy(cObjectCollision* collision) {
     return;
   }
 
-  cEnemy* enemy =
-      static_cast<cEnemy*>(m_sprite_manager->Get_Pointer(collision->m_number));
+  cEnemy* enemy = static_cast<cEnemy*>(
+      m_sprite_manager->Get_Pointer(static_cast<size_t>(collision->m_number)));
 
   // if enemy already dead
   if (enemy->m_dead) {
@@ -3689,8 +3698,10 @@ void cLevel_Player ::Handle_Collision_Enemy(cObjectCollision* collision) {
     anim->Set_Image(pVideo->Get_Surface("animation/particles/light.png"));
     anim->Set_Time_to_Live(0.6f, 0.4f);
     anim->Set_Color(
-        Color(static_cast<Uint8>(160), 160, 240),
-        Color(static_cast<Uint8>(rand() % 80), rand() % 80, rand() % 10, 0));
+        Color(static_cast<Uint8>(160), static_cast<Uint8>(160),
+              static_cast<Uint8>(240)),
+        Color(static_cast<Uint8>(rand() % 80), static_cast<Uint8>(rand() % 80),
+              static_cast<Uint8>(rand() % 10), 0));
     anim->Set_Fading_Alpha(true);
     anim->Set_Fading_Size(true);
     anim->Set_Speed(0.5f, 0.2f);
@@ -3758,7 +3769,8 @@ void cLevel_Player ::Handle_Collision_Massive(cObjectCollision* collision) {
 	*/
   //printf( "direction is %s\n", Get_Direction_Name( collision->m_direction ).c_str() );
 
-  cSprite* col_obj = m_sprite_manager->Get_Pointer(collision->m_number);
+  cSprite* col_obj =
+      m_sprite_manager->Get_Pointer(static_cast<size_t>(collision->m_number));
 
   // climbable
   if (col_obj->m_massive_type == MASS_CLIMBABLE && m_state != STA_CLIMB &&
@@ -3793,7 +3805,8 @@ void cLevel_Player ::Handle_Collision_Massive(cObjectCollision* collision) {
       if (m_state != STA_CLIMB) {
         Set_Moving_State(STA_FALL);
 
-        cMovingSprite* moving_object = dynamic_cast<cMovingSprite*>(col_obj);
+        cMovingSprite const* moving_object =
+            dynamic_cast<cMovingSprite*>(col_obj);
 
         // if valid moving sprite
         if (moving_object) {
@@ -3814,9 +3827,12 @@ void cLevel_Player ::Handle_Collision_Massive(cObjectCollision* collision) {
           anim->Set_Quota(4);
           anim->Set_Pos_Z(m_pos_z - 0.000001f);
           anim->Set_Time_to_Live(0.3f);
-          anim->Set_Color(Color(static_cast<Uint8>(150), 150, 150, 200),
-                          Color(static_cast<Uint8>(rand() % 55), rand() % 55,
-                                rand() % 55, 0));
+          anim->Set_Color(
+              Color(static_cast<Uint8>(150), static_cast<Uint8>(150),
+                    static_cast<Uint8>(150), static_cast<Uint8>(200)),
+              Color(static_cast<Uint8>(rand() % 55),
+                    static_cast<Uint8>(rand() % 55),
+                    static_cast<Uint8>(rand() % 55), 0));
           anim->Set_Speed(2, 0.6f);
           anim->Set_Scale(0.6f);
           anim->Set_Direction_Range(0, 180);
@@ -3979,7 +3995,7 @@ void cLevel_Player ::Editor_Activate(void) {
 bool cLevel_Player ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
-  CEGUI::ListboxItem* item =
+  CEGUI::ListboxItem const* item =
       static_cast<CEGUI::Combobox*>(windowEventArgs.window)->getSelectedItem();
 
   Set_Direction(Get_Direction_Id(item->getText().c_str()), true);

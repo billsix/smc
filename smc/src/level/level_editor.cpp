@@ -366,7 +366,7 @@ void cEditor_Level ::Function_Save(bool with_dialog /* = 0 */) {
 }
 
 void cEditor_Level ::Function_Save_as(void) {
-  std::string levelname =
+  std::string const levelname =
       Box_Text_Input(_("Save Level as"), _("New name"), true);
 
   // aborted

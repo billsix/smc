@@ -79,8 +79,8 @@ cVideo ::~cVideo(void) {
   // the CEGUI system, its renderer, resource provider and logger were created by Init_CEGUI
   // and die with the video subsystem, after every object that draws into CEGUI is gone
   if (pGuiSystem) {
-    CEGUI::ResourceProvider* rp = pGuiSystem->getResourceProvider();
-    CEGUI::Logger* logger = CEGUI::Logger::getSingletonPtr();
+    CEGUI::ResourceProvider const* rp = pGuiSystem->getResourceProvider();
+    CEGUI::Logger const* logger = CEGUI::Logger::getSingletonPtr();
     pGuiSystem->destroy();
     pGuiSystem = nullptr;
     delete rp;
@@ -107,7 +107,7 @@ void cVideo ::Init_CEGUI_Fake(void) const {
   CEGUI::String log_dump_dir =
       (const CEGUI::utf8*)((Get_Temp_Directory() + "cegui.log").c_str());
 #else
-  CEGUI::String log_dump_dir = "/dev/null";
+  CEGUI::String const log_dump_dir = "/dev/null";
 #endif
   // create fake system and renderer
   pGuiSystem =
@@ -116,8 +116,8 @@ void cVideo ::Init_CEGUI_Fake(void) const {
 }
 
 void cVideo ::Delete_CEGUI_Fake(void) const {
-  CEGUI::ResourceProvider* rp = pGuiSystem->getResourceProvider();
-  CEGUI::Renderer* renderer = pGuiSystem->getRenderer();
+  CEGUI::ResourceProvider const* rp = pGuiSystem->getResourceProvider();
+  CEGUI::Renderer const* renderer = pGuiSystem->getRenderer();
 
   pGuiSystem->destroy();
   pGuiSystem = nullptr;
@@ -289,7 +289,7 @@ void cVideo ::Init_Video(bool reload_textures_from_file /* = 0 */,
   }
 
   // test screen mode
-  int screen_test = Test_Video(screen_w, screen_h, screen_bpp, flags);
+  int const screen_test = Test_Video(screen_w, screen_h, screen_bpp, flags);
 
   // failed
   if (screen_test == 0) {
@@ -361,7 +361,7 @@ void cVideo ::Init_Video(bool reload_textures_from_file /* = 0 */,
   // if reinitialization
   if (m_initialised) {
     // check if CEGUI is initialized
-    bool cegui_initialized = pGuiSystem->getGUISheet() != nullptr;
+    bool const cegui_initialized = pGuiSystem->getGUISheet() != nullptr;
 
     // show loading screen
     if (cegui_initialized) {
@@ -383,9 +383,9 @@ void cVideo ::Init_Video(bool reload_textures_from_file /* = 0 */,
   // SDL 2: the window and its GL context are created once and reused; a later call (resolution
   // or fullscreen change) resizes the existing window instead of recreating the surface
   if (!screen) {
-    screen =
-        SDL_CreateWindow(CAPTION, SDL_WINDOWPOS_CENTERED,
-                         SDL_WINDOWPOS_CENTERED, screen_w, screen_h, flags);
+    screen = SDL_CreateWindow(CAPTION, SDL_WINDOWPOS_CENTERED,
+                              SDL_WINDOWPOS_CENTERED, screen_w, screen_h,
+                              static_cast<Uint32>(flags));
 
     if (!screen) {
       printf("Error : Window creation failed\nReason : %s\n", SDL_GetError());
@@ -401,7 +401,8 @@ void cVideo ::Init_Video(bool reload_textures_from_file /* = 0 */,
     }
 
     // Set Icon
-    std::string filename_icon = DATA_DIR "/" GAME_ICON_DIR "/window_32.png";
+    std::string const filename_icon =
+        DATA_DIR "/" GAME_ICON_DIR "/window_32.png";
     if (File_Exists(filename_icon)) {
       SDL_Surface* icon = IMG_Load(filename_icon.c_str());
       SDL_SetWindowIcon(screen, icon);
@@ -423,7 +424,7 @@ void cVideo ::Init_Video(bool reload_textures_from_file /* = 0 */,
 
   // check if fullscreen got set
   if (use_preferences && pPreferences->m_video_fullscreen) {
-    bool is_fullscreen =
+    bool const is_fullscreen =
         (SDL_GetWindowFlags(screen) & SDL_WINDOW_FULLSCREEN) != 0;
 
     if (!is_fullscreen) {
@@ -446,7 +447,7 @@ void cVideo ::Init_Video(bool reload_textures_from_file /* = 0 */,
   // check if vertical synchronization got set
   if (use_preferences && pPreferences->m_video_vsync) {
     // SDL 2: the swap interval is a context property
-    int is_vsync = SDL_GL_GetSwapInterval();
+    int const is_vsync = SDL_GL_GetSwapInterval();
 
     if (!is_vsync) {
       printf("Warning : VSync could not be set\n");
@@ -505,7 +506,7 @@ void cVideo ::Init_Video(bool reload_textures_from_file /* = 0 */,
         static_cast<float>(screen_w), static_cast<float>(screen_h)));
 
     // check if CEGUI is initialized
-    bool cegui_initialized = pGuiSystem->getGUISheet() != nullptr;
+    bool const cegui_initialized = pGuiSystem->getGUISheet() != nullptr;
 
     // show loading screen
     if (cegui_initialized) {
@@ -673,7 +674,7 @@ void cVideo ::Init_Resolution_Scale(void) const {
 void cVideo ::Init_Image_Cache(bool recreate /* = 0 */,
                                bool draw_gui /* = 0 */) {
   m_imgcache_dir = pResource_Manager->user_data_dir + USER_IMGCACHE_DIR;
-  std::string imgcache_dir_active =
+  std::string const imgcache_dir_active =
       m_imgcache_dir + "/" + int_to_string(pPreferences->m_video_screen_w) +
       "x" + int_to_string(pPreferences->m_video_screen_h);
 
@@ -716,7 +717,7 @@ void cVideo ::Init_Image_Cache(bool recreate /* = 0 */,
   }
 
   // texture detail should be maximum for caching
-  float real_texture_detail = m_texture_quality;
+  float const real_texture_detail = m_texture_quality;
   m_texture_quality = 1;
 
   CEGUI::ProgressBar* progress_bar = nullptr;
@@ -732,11 +733,11 @@ void cVideo ::Init_Image_Cache(bool recreate /* = 0 */,
   }
 
   // get all files
-  vector<std::string> image_files =
+  vector<std::string> const image_files =
       Get_Directory_Files(DATA_DIR "/" GAME_PIXMAPS_DIR, ".settings", true);
 
   unsigned int loaded_files = 0;
-  unsigned int file_count = image_files.size();
+  unsigned int const file_count = image_files.size();
 
   // create directories, load images and save to cache
   for (const auto& image_file : image_files) {
@@ -766,9 +767,9 @@ void cVideo ::Init_Image_Cache(bool recreate /* = 0 */,
     }
 
     // load software image
-    cSoftware_Image software_image = Load_Image(filename);
+    cSoftware_Image const software_image = Load_Image(filename);
     SDL_Surface* sdl_surface = software_image.m_sdl_surface;
-    cImage_Settings_Data* settings = software_image.m_settings.get();
+    cImage_Settings_Data const* settings = software_image.m_settings.get();
 
     // failed to load image
     if (!sdl_surface) {
@@ -796,7 +797,7 @@ void cVideo ::Init_Image_Cache(bool recreate /* = 0 */,
     sdl_surface = Convert_To_Final_Software_Image(sdl_surface);
 
     // get final size for this resolution
-    cSize_Int size = settings->Get_Surface_Size(sdl_surface);
+    cSize_Int const size = settings->Get_Surface_Size(sdl_surface);
     int new_width = size.m_width;
     int new_height = size.m_height;
 
@@ -810,17 +811,18 @@ void cVideo ::Init_Image_Cache(bool recreate /* = 0 */,
     }
 
     // calculate block reduction
-    int reduce_block_x = sdl_surface->w / new_width;
-    int reduce_block_y = sdl_surface->h / new_height;
+    int const reduce_block_x = sdl_surface->w / new_width;
+    int const reduce_block_y = sdl_surface->h / new_height;
 
     // create downsampled image
-    unsigned int image_bpp = sdl_surface->format->BytesPerPixel;
+    unsigned int const image_bpp = sdl_surface->format->BytesPerPixel;
     unsigned char* image_downsampled =
-        new unsigned char[new_width * new_height * image_bpp];
-    bool downsampled =
-        Downscale_Image(static_cast<unsigned char*>(sdl_surface->pixels),
-                        sdl_surface->w, sdl_surface->h, image_bpp,
-                        image_downsampled, reduce_block_x, reduce_block_y);
+        new unsigned char[static_cast<unsigned int>(new_width * new_height) *
+                          image_bpp];
+    bool const downsampled = Downscale_Image(
+        static_cast<unsigned char*>(sdl_surface->pixels), sdl_surface->w,
+        sdl_surface->h, static_cast<int>(image_bpp), image_downsampled,
+        reduce_block_x, reduce_block_y);
 
     SDL_FreeSurface(sdl_surface);
 
@@ -833,7 +835,8 @@ void cVideo ::Init_Image_Cache(bool recreate /* = 0 */,
 
       // save image
       Save_Surface(imgcache_dir_active + "/" + cache_filename,
-                   image_downsampled, new_width, new_height, image_bpp);
+                   image_downsampled, static_cast<unsigned int>(new_width),
+                   static_cast<unsigned int>(new_height), image_bpp);
     }
 
     delete[] image_downsampled;
@@ -880,7 +883,7 @@ vector<cSize_Int> cVideo ::Get_Supported_Resolutions(
 
   // SDL 2: the display modes of the primary display (sizes only, deduplicated)
   bool create_default_list = false;
-  int num_modes = SDL_GetNumDisplayModes(0);
+  int const num_modes = SDL_GetNumDisplayModes(0);
 
   if (num_modes <= 0) {
     create_default_list = true;
@@ -890,7 +893,7 @@ vector<cSize_Int> cVideo ::Get_Supported_Resolutions(
       if (SDL_GetDisplayMode(0, i, &mode) != 0) {
         continue;
       }
-      cSize_Int size(mode.w, mode.h);
+      cSize_Int const size(mode.w, mode.h);
       bool known = false;
       for (auto valid_resolution : valid_resolutions) {
         if (valid_resolution.m_width == size.m_width &&
@@ -1020,7 +1023,7 @@ cVideo::cSoftware_Image cVideo ::Load_Image(std::string filename,
       settings = pSettingsParser->Get(settings_file);
 
       // add cache dir and remove data dir
-      std::string img_filename_cache =
+      std::string const img_filename_cache =
           m_imgcache_dir + "/" + settings_file.substr(strlen(DATA_DIR "/")) +
           ".png";
 
@@ -1082,10 +1085,10 @@ std::unique_ptr<cGL_Surface> cVideo ::Load_GL_Surface(
   }
 
   // load software image
-  cSoftware_Image software_image =
+  cSoftware_Image const software_image =
       Load_Image(filename, use_settings, print_errors);
   SDL_Surface* sdl_surface = software_image.m_sdl_surface;
-  cImage_Settings_Data* settings = software_image.m_settings.get();
+  cImage_Settings_Data const* settings = software_image.m_settings.get();
 
   // final surface
   std::unique_ptr<cGL_Surface> image;
@@ -1097,7 +1100,8 @@ std::unique_ptr<cGL_Surface> cVideo ::Load_GL_Surface(
     Apply_Max_Texture_Size(size.m_width, size.m_height);
     // get basic settings surface
     image = pVideo->Create_Texture(sdl_surface, settings->m_mipmap,
-                                   size.m_width, size.m_height);
+                                   static_cast<unsigned int>(size.m_width),
+                                   static_cast<unsigned int>(size.m_height));
     // apply settings
     settings->Apply(image.get());
   }
@@ -1121,19 +1125,22 @@ std::unique_ptr<cGL_Surface> cVideo ::Load_GL_Surface(
 SDL_Surface* cVideo ::Convert_To_Final_Software_Image(
     SDL_Surface* surface) const {
   // get power of two size
-  const unsigned int width = Get_Power_of_2(surface->w);
-  const unsigned int height = Get_Power_of_2(surface->h);
+  const unsigned int width =
+      Get_Power_of_2(static_cast<unsigned int>(surface->w));
+  const unsigned int height =
+      Get_Power_of_2(static_cast<unsigned int>(surface->h));
 
   // if it needs to be changed
-  if (width != surface->w || height != surface->h ||
+  if (width != static_cast<unsigned int>(surface->w) ||
+      height != static_cast<unsigned int>(surface->h) ||
       surface->format->BitsPerPixel != 32) {
     // create power of 2 and 32 bits per pixel surface
-    SDL_Surface* final =
-        SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 32,
+    SDL_Surface* final = SDL_CreateRGBSurface(
+        SDL_SWSURFACE, static_cast<int>(width), static_cast<int>(height), 32,
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-                             0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
+        0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
 #else
-                             0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
+        0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
 #endif
 
     // set the entire surface alpha to 0
@@ -1192,9 +1199,10 @@ std::unique_ptr<cGL_Surface> cVideo ::Create_Texture(
     force_height = Get_Power_of_2(force_height);
 
     // apply forced size
-    if (force_width != width || force_height != height) {
-      width = force_width;
-      height = force_height;
+    if (force_width != static_cast<unsigned int>(width) ||
+        force_height != static_cast<unsigned int>(height)) {
+      width = static_cast<int>(force_width);
+      height = static_cast<int>(force_height);
     }
   }
 
@@ -1206,12 +1214,12 @@ std::unique_ptr<cGL_Surface> cVideo ::Create_Texture(
 
   // scale to new size
   if (texture_width != surface->w || texture_height != surface->h) {
-    int reduce_block_x = surface->w / texture_width;
-    int reduce_block_y = surface->h / texture_height;
+    int const reduce_block_x = surface->w / texture_width;
+    int const reduce_block_y = surface->h / texture_height;
 
     // create scaled image
     unsigned char* new_pixels = static_cast<unsigned char*>(
-        SDL_malloc(texture_width * texture_height * 4));
+        SDL_malloc(static_cast<size_t>(texture_width * texture_height * 4)));
     Downscale_Image(static_cast<unsigned char*>(surface->pixels), surface->w,
                     surface->h, surface->format->BytesPerPixel, new_pixels,
                     reduce_block_x, reduce_block_y);
@@ -1233,7 +1241,9 @@ std::unique_ptr<cGL_Surface> cVideo ::Create_Texture(
   // set texture magnification function
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   // upload to OpenGL texture
-  Create_GL_Texture(texture_width, texture_height, surface->pixels, mipmap);
+  Create_GL_Texture(static_cast<unsigned int>(texture_width),
+                    static_cast<unsigned int>(texture_height), surface->pixels,
+                    mipmap);
 
   // unset pixel store mode
   glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
@@ -1243,8 +1253,8 @@ std::unique_ptr<cGL_Surface> cVideo ::Create_Texture(
   // create OpenGL surface class
   auto image = std::make_unique<cGL_Surface>();
   image->m_image = image_num;
-  image->m_tex_w = texture_width;
-  image->m_tex_h = texture_height;
+  image->m_tex_w = static_cast<unsigned int>(texture_width);
+  image->m_tex_h = static_cast<unsigned int>(texture_height);
   image->m_start_w = static_cast<float>(width);
   image->m_start_h = static_cast<float>(height);
   image->m_w = image->m_start_w;
@@ -1280,14 +1290,16 @@ void cVideo ::Create_GL_Texture(unsigned int width, unsigned int height,
       // use glTexImage2D to create Mipmaps
       glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, 1);
       // copy the software bitmap into the opengl texture
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
-                   GL_UNSIGNED_BYTE, pixels);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(width),
+                   static_cast<GLsizei>(height), 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                   pixels);
     }
     // OpenGL below 1.4
     else {
       // use glu to create Mipmaps
-      gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, width, height, GL_RGBA,
-                        GL_UNSIGNED_BYTE, pixels);
+      gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, static_cast<GLsizei>(width),
+                        static_cast<GLsizei>(height), GL_RGBA, GL_UNSIGNED_BYTE,
+                        pixels);
     }
   }
   // no mipmaps
@@ -1295,8 +1307,9 @@ void cVideo ::Create_GL_Texture(unsigned int width, unsigned int height,
     // default texture minifying function
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     // copy the software bitmap into the opengl texture
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(width),
+                 static_cast<GLsizei>(height), 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 pixels);
   }
 }
 
@@ -1491,7 +1504,7 @@ void cVideo ::Apply_Max_Texture_Size(int& width, int& height) const {
     // scale height by the same ratio to keep aspect ratio. A float ratio is required:
     // an integer width / m_max_texture_size truncates to 1 for e.g. 1500 on a 1024 cap,
     // leaving height unchanged and squashing the image.
-    float scale =
+    float const scale =
         static_cast<float>(m_max_texture_size) / static_cast<float>(width);
     height = static_cast<int>(static_cast<float>(height) * scale);
     if (height < 1) {
@@ -1501,7 +1514,7 @@ void cVideo ::Apply_Max_Texture_Size(int& width, int& height) const {
   }
   if (height > m_max_texture_size) {
     // scale width by the same ratio to keep aspect ratio
-    float scale =
+    float const scale =
         static_cast<float>(m_max_texture_size) / static_cast<float>(height);
     width = static_cast<int>(static_cast<float>(width) * scale);
     if (width < 1) {
@@ -1588,12 +1601,12 @@ void cVideo ::Save_Screenshot(void) {
 
   for (unsigned int i = 1; i < 1000; i++) {
     filename = pResource_Manager->user_data_dir + USER_SCREENSHOT_DIR "/" +
-               int_to_string(i) + ".png";
+               int_to_string(static_cast<int>(i)) + ".png";
 
     if (!File_Exists(filename)) {
       // create image data
-      std::vector<GLubyte> data(pPreferences->m_video_screen_w *
-                                pPreferences->m_video_screen_h * 3);
+      std::vector<GLubyte> data(static_cast<size_t>(
+          pPreferences->m_video_screen_w * pPreferences->m_video_screen_h * 3));
       // read opengl screen
       glReadPixels(0, 0, pPreferences->m_video_screen_w,
                    pPreferences->m_video_screen_h, GL_RGB, GL_UNSIGNED_BYTE,
@@ -1603,8 +1616,9 @@ void cVideo ::Save_Screenshot(void) {
                    pPreferences->m_video_screen_h, 3, true);
 
       // show info
-      pHud_Debug->Set_Text("Screenshot " + int_to_string(i) + _(" saved"),
-                           speedfactor_fps * 2.5f);
+      pHud_Debug->Set_Text(
+          "Screenshot " + int_to_string(static_cast<int>(i)) + _(" saved"),
+          speedfactor_fps * 2.5f);
 
       // finished
       return;
@@ -1656,16 +1670,16 @@ void cVideo ::Save_Surface(const std::string& filename,
 
   png_write_info(png_ptr, info_ptr);
 
-  png_uint_32 png_height = height;
-  png_uint_32 row_bytes = width * bpp;
+  png_uint_32 const png_height = height;
+  png_uint_32 const row_bytes = width * bpp;
 
   std::vector<png_byte> image(png_height * row_bytes);
   std::vector<png_bytep> row_pointers(png_height);
 
   // create image data
-  int img_size = png_height * row_bytes;
+  int const img_size = static_cast<int>(png_height * row_bytes);
   for (int i = 0; i < img_size; ++i) {
-    image[i] = data[i];
+    image[static_cast<size_t>(i)] = data[i];
   }
 
   // create row pointers
@@ -1722,7 +1736,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
       break;
     }
     case EFFECT_OUT_HORIZONTAL_VERTICAL: {
-      int hor = (rand() % 2) - 1;
+      int const hor = (rand() % 2) - 1;
       float pos = 0;
       float pos_end = 0;
 
@@ -1812,7 +1826,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
     }
     case EFFECT_OUT_BIG_ITEM: {
       float f = 0.1f;
-      cGL_Surface* image = nullptr;
+      cGL_Surface const* image = nullptr;
 
       // item based on the camera x position
       if (pActive_Camera->m_x < 2000) {
@@ -1874,7 +1888,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
       break;
     }
     case EFFECT_OUT_RANDOM_COLOR_BOOST: {
-      unsigned int rand_color_num = (rand() % 4);
+      unsigned int const rand_color_num = static_cast<unsigned int>(rand() % 4);
 
       Color rand_color;
 
@@ -1956,7 +1970,8 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
         if (activated_tiles < tiles_num) {
           // find an unused rect
           while (grid[selected_tile_y][selected_tile_x] > 0.1f) {
-            unsigned int temp = rand() % tiles_num;
+            unsigned int const temp =
+                static_cast<unsigned int>(rand()) % tiles_num;
 
             selected_tile_y = temp / tiles_num_hor;
             selected_tile_x = temp % tiles_num_hor;
@@ -2021,7 +2036,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
     case EFFECT_OUT_FIXED_COLORBOX: {
       Color start_color;
 
-      const unsigned int rand_color = (rand() % 2);
+      const unsigned int rand_color = static_cast<unsigned int>(rand() % 2);
 
       // green
       if (rand_color == 0) {
@@ -2064,7 +2079,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
         }
 
         // continuous random position advance
-        float random = Get_Random_Float(2.0f, 3.0f);
+        float const random = Get_Random_Float(2.0f, 3.0f);
         pos_x -= random;
         pos_y -= random + Get_Random_Float(0.1f, 0.1f);
 

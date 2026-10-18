@@ -137,7 +137,7 @@ void cEditor_Item_Object ::Init(std::unique_ptr<cSprite> sprite) {
       *pGuiRenderer, sprite_obj->m_start_image->m_image,
       CEGUI::Size(sprite_obj->m_start_image->m_tex_w,
                   sprite_obj->m_start_image->m_tex_h));
-  CEGUI::String imageset_name =
+  CEGUI::String const imageset_name =
       "editor_item " + list_text->getText() + " " +
       CEGUI::PropertyHelper::uintToString(m_parent->getItemCount());
   m_image =
@@ -718,10 +718,10 @@ bool cEditor ::Key_Down(SDLKey key) {
   }
   // move camera to position
   else if (key == SDLK_g && pKeyboard->Is_Ctrl_Down()) {
-    int pos_x = string_to_int(
+    int const pos_x = string_to_int(
         Box_Text_Input(int_to_string(static_cast<int>(pActive_Camera->m_x)),
                        "Position X", true));
-    int pos_y = string_to_int(
+    int const pos_y = string_to_int(
         Box_Text_Input(int_to_string(static_cast<int>(pActive_Camera->m_y)),
                        "Position Y", true));
 
@@ -770,9 +770,9 @@ bool cEditor ::Key_Down(SDLKey key) {
     }
 
     // get currently selected objects
-    cSprite_List objects = pMouseCursor->Get_Selected_Objects();
+    cSprite_List const objects = pMouseCursor->Get_Selected_Objects();
     // copy objects
-    cSprite_List new_objects = Copy_Direction(objects, dir);
+    cSprite_List const new_objects = Copy_Direction(objects, dir);
 
     // add new objects
     for (auto sprite : new_objects) {
@@ -828,7 +828,7 @@ bool cEditor ::Key_Down(SDLKey key) {
 
     for (auto itr = pMouseCursor->m_selected_objects.begin();
          itr != pMouseCursor->m_selected_objects.end(); ++itr) {
-      cSelectedObject* sel_obj = itr->get();
+      cSelectedObject const* sel_obj = itr->get();
 
       pMouseCursor->Add_Copy_Object(sel_obj->m_obj);
     }
@@ -841,7 +841,7 @@ bool cEditor ::Key_Down(SDLKey key) {
 
     for (auto itr = pMouseCursor->m_selected_objects.begin();
          itr != pMouseCursor->m_selected_objects.end(); ++itr) {
-      cSelectedObject* sel_obj = itr->get();
+      cSelectedObject const* sel_obj = itr->get();
 
       pMouseCursor->Add_Copy_Object(sel_obj->m_obj);
     }
@@ -1043,7 +1043,7 @@ bool cEditor ::Load_Item_Menu(std::string item_tags) {
 
   // Convert
   while (item_tags.length()) {
-    std::string::size_type pos = item_tags.find(";");
+    std::string::size_type const pos = item_tags.find(";");
 
     // last item
     if (pos == std::string::npos) {
@@ -1205,12 +1205,12 @@ void cEditor ::Add_Item_Object(std::unique_ptr<cSprite> sprite,
 }
 
 void cEditor ::Load_Image_Items(std::string dir) {
-  vector<std::string> image_files = Get_Directory_Files(dir, ".settings");
+  vector<std::string> const image_files = Get_Directory_Files(dir, ".settings");
 
   // load all available objects
   for (const auto& image_file : image_files) {
     // get filename
-    std::string filename = image_file;
+    std::string const filename = image_file;
 
     // load settings
     std::unique_ptr<cImage_Settings_Data> settings =
@@ -1302,8 +1302,8 @@ cSprite_List cEditor ::Copy_Direction(const cSprite_List& objects,
     }
 
     // Set X offset
-    offset = static_cast<int>(last->m_start_pos_x - first->m_start_pos_x +
-                              last->m_start_rect.m_w);
+    offset = static_cast<unsigned int>(static_cast<int>(
+        last->m_start_pos_x - first->m_start_pos_x + last->m_start_rect.m_w));
   } else if (dir == DIR_UP || dir == DIR_DOWN) {
     // first object
     const cSprite* first = objects[0];
@@ -1325,15 +1325,16 @@ cSprite_List cEditor ::Copy_Direction(const cSprite_List& objects,
     }
 
     // Set Y offset
-    offset = static_cast<int>(last->m_start_pos_y - first->m_start_pos_y +
-                              last->m_start_rect.m_h);
+    offset = static_cast<unsigned int>(static_cast<int>(
+        last->m_start_pos_y - first->m_start_pos_y + last->m_start_rect.m_h));
   }
 
   // new copied objects
   cSprite_List new_objects;
 
   for (const auto& sprite : objects) {
-    new_objects.push_back(Copy_Direction(sprite, dir, offset));
+    new_objects.push_back(
+        Copy_Direction(sprite, dir, static_cast<int>(offset)));
   }
 
   // return only new objects
@@ -1476,7 +1477,7 @@ void cEditor ::Replace_Sprites(void) {
     return;
   }
 
-  std::string image_filename = Box_Text_Input(
+  std::string const image_filename = Box_Text_Input(
       pMouseCursor->m_selected_objects[0]->m_obj->m_start_image->m_filename,
       _("Change selected Sprite(s) image to"), false);
 
@@ -1504,7 +1505,7 @@ void cEditor ::Replace_Sprites(void) {
 bool cEditor ::Is_Tag_Available(const std::string& str, const std::string& tag,
                                 unsigned int search_pos /* = 0 */) {
   // found tag position
-  std::string::size_type pos = str.find(tag, search_pos);
+  std::string::size_type const pos = str.find(tag, search_pos);
 
   // not found
   if (pos == std::string::npos) {
@@ -1512,7 +1513,7 @@ bool cEditor ::Is_Tag_Available(const std::string& str, const std::string& tag,
   }
 
   // tag end position
-  std::string::size_type end_pos = pos + tag.length();
+  std::string::size_type const end_pos = pos + tag.length();
 
   // if tag starting position is valid
   if (pos == 0 || str.substr(pos - 1, 1).compare(";") == 0) {
@@ -1573,8 +1574,8 @@ void cEditor ::elementEnd(const CEGUI::String& element) {
 
 void cEditor ::Handle_Item(const CEGUI::XMLAttributes& attributes) {
   // element name must be given
-  CEGUI::String name = m_xml_attributes.getValueAsString("object_name");
-  CEGUI::String tags = m_xml_attributes.getValueAsString("object_tags");
+  CEGUI::String const name = m_xml_attributes.getValueAsString("object_name");
+  CEGUI::String const tags = m_xml_attributes.getValueAsString("object_tags");
 
   // create
   std::unique_ptr<cSprite> object =
@@ -1594,8 +1595,8 @@ void cEditor ::Handle_Item(const CEGUI::XMLAttributes& attributes) {
 }
 
 void cEditor ::Handle_Menu(const CEGUI::XMLAttributes& attributes) {
-  std::string name = m_xml_attributes.getValueAsString("name").c_str();
-  std::string tags = m_xml_attributes.getValueAsString("tags").c_str();
+  std::string const name = m_xml_attributes.getValueAsString("name").c_str();
+  std::string const tags = m_xml_attributes.getValueAsString("tags").c_str();
 
   Add_Menu_Object(name, tags,
                   CEGUI::PropertyHelper::stringToColour(
