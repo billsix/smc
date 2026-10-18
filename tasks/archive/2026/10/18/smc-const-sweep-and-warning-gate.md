@@ -6,7 +6,7 @@
 be green under **both gcc and clang**.
 **Siblings:** the const-correctness sweep (Phase 1) was split into
 `smc-const-double-const-sweep.md` (done) and `-Wsign-conversion` into `smc-sign-conversion-sweep.md`
-(done); `-Woverloaded-virtual` was deferred to `smc-overloaded-virtual.md` (proposed).
+(done); `-Woverloaded-virtual` was deferred to `tasks/smc-overloaded-virtual.md` (proposed).
 
 ## BLUF
 
@@ -64,7 +64,7 @@ Chronology, including the dead ends, because the dead ends are the lesson:
    `Set_Image(…, bool=false)` vs `Set_Image(…)`, `Delete_All()` vs `Delete_All(bool=false)` — because
    the base overloads have default arguments overlapping the derived arity. The hides are intentional
    and load-bearing. Reverted the 15 `using` edits, added `-Wno-overloaded-virtual`, and spun the real
-   fix into `smc-overloaded-virtual.md` (per-method design decision).
+   fix into `tasks/smc-overloaded-virtual.md` (per-method design decision).
 4. **`-Wsign-conversion` (1835) deferred** to `smc-sign-conversion-sweep.md` at the maintainer's call
    (it later turned out to be only 273 first-party once CEGUI was `-isystem`; done there).
 5. **Build-plumbing the gate exposed:**

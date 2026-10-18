@@ -4,7 +4,7 @@
 **Priority:** 6
 **Difficulty:** 6 (API-shape decisions on a game hierarchy; needs the maintainer's intent per method)
 **Created:** 2026-10-17 (William Emerison Six <billsix@gmail.com>)
-**Part of / follows:** `smc-const-sweep-and-warning-gate.md` — that pass dropped `-Woverloaded-virtual`
+**Part of / follows:** `tasks/archive/2026/10/18/smc-const-sweep-and-warning-gate.md` — that pass dropped `-Woverloaded-virtual`
 from the gate (`-Wno-overloaded-virtual` in `smc/configure.ac`) after the mechanical fix broke the
 build; this task resolves it and re-enables the flag.
 
