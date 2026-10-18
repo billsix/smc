@@ -57,6 +57,9 @@ class cSound_Manager : public cObject_Manager<cSound> {
   cSound_Manager(void);
   ~cSound_Manager(void) override;
 
+  // Un-hide the base size_t overload that the string overload below would otherwise hide
+  using cObject_Manager<cSound>::Get_Pointer;
+
   // Return the Sound from Path
   virtual cSound* Get_Pointer(const std::string& path) const;
 

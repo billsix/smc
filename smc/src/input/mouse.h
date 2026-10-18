@@ -67,6 +67,10 @@ class cMouseCursor : public cMovingSprite {
   cMouseCursor(cSprite_Manager* sprite_manager);
   ~cMouseCursor(void) override;
 
+  // un-hide the base's 0-arg Copy(void) const, hidden by this class's
+  // Copy(const cSprite*, float, float) const; the two differ by arity, so no ambiguity
+  using cMovingSprite::Copy;
+
   // Set active/visible
   void Set_Active(bool enabled) override;
   // resets editor features
@@ -105,7 +109,16 @@ class cMouseCursor : public cMovingSprite {
   // Update
   void Update(void) override;
   // Draw
+  // Intentionally hides cMovingSprite::Draw(cSurface_Request*=nullptr) — this is the convenience
+  // form; the base's defaulted argument makes an un-hiding `using` ambiguous, so the hide is
+  // deliberate (maintainer, 2026-10-18).
+  // clang attributes -Woverloaded-virtual to this derived decl (gcc attributes it to the base, which
+  // is suppressed there); this narrowing of cMovingSprite::Draw(cSurface_Request*=nullptr) is
+  // intentional (maintainer, 2026-10-18; tasks/smc-overloaded-virtual.md).
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
   virtual void Draw(void);
+#pragma GCC diagnostic pop
 
   // Update the Mouse Position
   void Update_Position(void);

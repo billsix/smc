@@ -13,17 +13,16 @@ AC_PROG_CXX
 AC_LANG([C++])
 # Modernization: pin the standard (was accidental / compiler default). C++23.
 # Raised first-party warning set (fleet standard, adapted to C++). Deliberately dropped:
-#   -Woverloaded-virtual  : flags intentional, load-bearing base-virtual hiding in the cSprite/
-#                           cMovingSprite hierarchy (derived narrow a base virtual that has default
-#                           args); the mechanical `using` un-hide creates call ambiguity and does
-#                           not build. Deferred to tasks/smc-overloaded-virtual.md.
 #   -Wconversion          : as on the rest of the fleet (int->float noise).
 # -Wsign-conversion IS on (273 first-party sites made explicit static_casts, tasks/
-# smc-sign-conversion-sweep.md, 2026-10-17). -Wno-unused-parameter per fleet precedent (callback
-# signatures). Third-party (SDL, CEGUI) headers come in with -isystem below so their warnings do not
-# count. -Werror is added once the first-party tree is clean under both gcc and clang. It is now on
-# (clean under gcc 16 and clang, 2026-10-17).
-CXXFLAGS="${CXXFLAGS} -std=c++23 -Wall -Wextra -Wpedantic -Wshadow -Wvla -Wformat=2 -Wsign-conversion -Wno-unused-parameter -Wno-overloaded-virtual"
+# smc-sign-conversion-sweep.md, 2026-10-17). -Woverloaded-virtual IS on (2026-10-18): the no-ambiguity
+# hides were un-hidden with `using` (Get_Pointer, Copy); the ~13 intentional/load-bearing hides, where
+# a base default arg makes an un-hiding `using` ambiguous (Set_Direction, Draw, Set_Image, Delete_All),
+# carry a narrow per-class `#pragma GCC diagnostic ignored "-Woverloaded-virtual"` with a reason
+# (tasks/smc-overloaded-virtual.md). -Wno-unused-parameter per fleet precedent (callback signatures).
+# Third-party (SDL, CEGUI) headers come in with -isystem below so their warnings do not count. -Werror
+# is added once the first-party tree is clean under both gcc and clang. It is now on (2026-10-18).
+CXXFLAGS="${CXXFLAGS} -std=c++23 -Wall -Wextra -Wpedantic -Wshadow -Wvla -Wformat=2 -Wsign-conversion -Wno-unused-parameter"
 # NOTE: -Werror is added LATE (just before AC_OUTPUT), not here. Adding it now would turn the
 # warnings emitted by autoconf's own feature-probe programs (e.g. AC_CHECK_LIB's old-style
 # `char main();`) into errors, making every library check fail ("Unable to find libX11").

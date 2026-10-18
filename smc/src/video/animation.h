@@ -205,7 +205,13 @@ class cParticle_Emitter : public cAnimation {
   /* Set image
 	 * does not set the image filename
 	*/
+  // clang attributes -Woverloaded-virtual to this derived decl (gcc attributes it to the base, which
+  // is suppressed there); this narrowing of cMovingSprite::Set_Image(cGL_Surface*, bool=false) is
+  // intentional (maintainer, 2026-10-18; tasks/smc-overloaded-virtual.md).
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
   virtual void Set_Image(cGL_Surface* img);
+#pragma GCC diagnostic pop
   // Set the image with the filename
   virtual void Set_Image_Filename(const std::string& str_filename);
   /* set if spawned

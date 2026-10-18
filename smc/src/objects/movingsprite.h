@@ -74,15 +74,25 @@ class cMovingSprite : public cSprite {
 	 * if new_start_image is set the default start_image will be set to the given image
 	 * if del_img is set the given image will be deleted
 	*/
+  // Intentionally narrowed by cParticle_Emitter (see the Draw note above for why the suppression
+  // lives on the base decl, not the derived).
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
   void Set_Image(cGL_Surface* new_image, bool new_start_image = false) override;
+#pragma GCC diagnostic pop
   // the owning overload stays visible through this class
   using cSprite::Set_Image;
 
   /* Set the direction
 	 * if new_start_direction is set also set the start/editor direction
 	*/
+  // Intentionally narrowed to a 1-arg form by the enemy classes and cLevel_Entry/cLevel_Exit (see
+  // the Draw note above). Suppression on the base decl, where -Woverloaded-virtual is attributed.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
   virtual void Set_Direction(const ObjectDirection dir,
                              bool new_start_direction = false);
+#pragma GCC diagnostic pop
 
   // automatically slows down until not moving anymore
   void Auto_Slow_Down(float x_speed, float y_speed = 0);
@@ -176,7 +186,14 @@ class cMovingSprite : public cSprite {
   /* draw
 	* if request is NULL automatically creates the request
 	*/
+  // Several derived classes (e.g. cMouseCursor) intentionally narrow this virtual to a
+  // convenience overload; because this base has a default argument, un-hiding it in the derived
+  // via `using` is ambiguous, so the hide is deliberate. -Woverloaded-virtual attributes to this
+  // base decl, so the suppression lives here (maintainer, 2026-10-18; tasks/smc-overloaded-virtual.md).
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
   void Draw(cSurface_Request* request = nullptr) override;
+#pragma GCC diagnostic pop
 
   /* Check if moving the current collision rect position with the given values is valid
 	 * check_type : set which collision types are added to the list

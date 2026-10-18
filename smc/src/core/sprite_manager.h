@@ -51,7 +51,13 @@ class cSprite_Manager : public cObject_Manager<cSprite> {
   /* Delete all objects
 	 * if delayed is set deletion will only occur if replaced
 	 */
+  // clang attributes -Woverloaded-virtual to this derived decl (gcc attributes it to the base, which
+  // is suppressed there); this narrowing of cObject_Manager<cSprite>::Delete_All() is intentional
+  // (maintainer, 2026-10-18; tasks/smc-overloaded-virtual.md).
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
   virtual void Delete_All(bool delayed = false);
+#pragma GCC diagnostic pop
 
   // Return the first z position object from the given type
   cSprite* Get_First(const SpriteType type) const;
