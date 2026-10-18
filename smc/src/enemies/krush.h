@@ -48,7 +48,13 @@ class cKrush : public cEnemy {
   void Load_From_Savegame(cSave_Level_Object* save_object) override;
 
   // Set Direction
+  // clang attributes -Woverloaded-virtual to this derived decl (gcc attributes it to the base, which
+  // is suppressed there); this narrowing of cMovingSprite::Set_Direction(ObjectDirection, bool=false)
+  // is intentional (maintainer, 2026-10-18; tasks/smc-overloaded-virtual.md).
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
   void Set_Direction(const ObjectDirection dir);
+#pragma GCC diagnostic pop
 
   /* Move into the opposite Direction
 	 * if col_dir is given only turns around if the collision direction is in front

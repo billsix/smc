@@ -53,7 +53,13 @@ class cFurball : public cEnemy {
   void Set_Level_Ends_If_Killed(bool level_ends_if_killed);
 
   // Set Direction
+  // clang attributes -Woverloaded-virtual to this derived decl (gcc attributes it to the base, which
+  // is suppressed there); this narrowing of cMovingSprite::Set_Direction(ObjectDirection, bool=false)
+  // is intentional (maintainer, 2026-10-18; tasks/smc-overloaded-virtual.md).
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
   void Set_Direction(const ObjectDirection dir);
+#pragma GCC diagnostic pop
   /* set color
 	 * brown = normal, blue = ice, black = boss
 	*/

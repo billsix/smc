@@ -67,8 +67,13 @@ class cObject_Manager {
     return owned;
   }
 
-  // Delete all objects (unique_ptr frees each)
+  // Delete all objects (unique_ptr frees each). cSprite_Manager intentionally narrows this to a
+  // delayed-delete overload; the suppression lives on this base decl, where -Woverloaded-virtual is
+  // attributed (maintainer, 2026-10-18; tasks/smc-overloaded-virtual.md).
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
   virtual void Delete_All(void) { objects.clear(); }
+#pragma GCC diagnostic pop
 
   /* Return the object pointer
 	 * if not found returns NULL

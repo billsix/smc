@@ -54,7 +54,13 @@ class cLevel_Entry : public cAnimated_Sprite {
   // save to stream
   void Save_To_XML(CEGUI::XMLSerializer& stream) override;
   // Set direction
+  // clang attributes -Woverloaded-virtual to this derived decl (gcc attributes it to the base, which
+  // is suppressed there); this narrowing of cMovingSprite::Set_Direction(ObjectDirection, bool=false)
+  // is intentional (maintainer, 2026-10-18; tasks/smc-overloaded-virtual.md).
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
   void Set_Direction(const ObjectDirection dir);
+#pragma GCC diagnostic pop
 
   // draw
   void Draw(cSurface_Request* request = nullptr) override;

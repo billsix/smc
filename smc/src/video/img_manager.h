@@ -68,6 +68,10 @@ class cImage_Manager : public cObject_Manager<cGL_Surface> {
   // Add a surface
   cGL_Surface* Add(std::unique_ptr<cGL_Surface> obj) override;
 
+  // un-hide the base-class Get_Pointer(size_t) overload, which this class's
+  // Get_Pointer(const std::string&) would otherwise hide (no ambiguity)
+  using cObject_Manager<cGL_Surface>::Get_Pointer;
+
   // Return the surface by path
   cGL_Surface* Get_Pointer(const std::string& path) const;
 
