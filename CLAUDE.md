@@ -36,6 +36,14 @@ release dates, tagged `v<version>`), then the 211 commits of github.com/FluXy/SM
   `modernize-cpp-3` branch (umbrella archived at `tasks/archive/2026/09/24/smc-modernize-cpp.md`;
   worked example in `tasks/reference/refactoring-to-modern-cpp.md`); its deferred pieces live in
   `tasks/smc-modernize-step-{7-enums-dispatch,8-strings-input,9-dedup-cegui}.md`.
+- **The build is a `-Werror` warning gate (2026-10-18), green under gcc AND clang.** `smc/configure.ac`
+  carries the raised fleet set (`-Wall -Wextra -Wpedantic -Wshadow -Wvla -Wformat=2 -Wsign-conversion`,
+  `-Wno-unused-parameter`) with `-Werror` appended **after** the `AC_CHECK_LIB` probes (before them it
+  breaks configure). A warning you introduce fails the build — fix it at the source. Third-party (SDL,
+  CEGUI) come in `-isystem` so their warnings don't count. `-Woverloaded-virtual` is on with ~17
+  reasoned per-site suppressions for the hierarchy's deliberate virtual-narrowing (gcc attributes the
+  warning to the base method, clang to the derived, so both are wrapped). The four gate sweeps are
+  archived under `tasks/archive/2026/10/18/` (warning gate, const, sign-conversion, overloaded-virtual).
 - **The C++ style is the shared cross-project standard** (`github.com/billsix/runClaudeInContainer:tasks/reference/cpp-coding-standard.md`,
   mirrored from runClaudeInContainer). A follow-up pass applied it to smc
   (`tasks/archive/2026/10/15/smc-apply-cpp-coding-standard.md`): ownership now goes through the manager APIs
