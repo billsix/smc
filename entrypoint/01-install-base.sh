@@ -18,8 +18,9 @@ fi
 # The game was written for SDL 1.2 and is ported to SDL 2 in this repo (small, explained
 # changes -- the same route as gltron), so the SDL2 family is what gets installed.
 # CEGUI 0.7 is NOT packaged (Fedora's cegui is the incompatible 0.8) -- it is vendored under
-# third_party/ and built by build.sh; its own dependencies are the freetype/pcre/expat/
-# freeimage/glew lines below.
+# third_party/ and built by build.sh; its own dependencies are the freetype/expat/
+# freeimage/glew lines below. (Its regex matcher uses C++ std::regex, not PCRE -- PCRE1 was
+# dropped from Fedora 45; see third_party/cegui-0.7.9/cegui/src/CEGUIPCRERegexMatcher.cpp.)
 dnf install -y \
     autoconf \
     automake \
@@ -46,7 +47,6 @@ dnf install -y \
     make \
     mesa-libGL-devel \
     mesa-libGLU-devel \
-    pcre-devel \
     pkgconf-pkg-config \
     procps-ng \
     SDL2-devel \

@@ -33,7 +33,7 @@ namespace CEGUI
 {
 //----------------------------------------------------------------------------//
 PCRERegexMatcher::PCRERegexMatcher() :
-    d_regex(0)
+    d_haveRegex(false)
 {
 }
 
@@ -49,18 +49,22 @@ void PCRERegexMatcher::setRegexString(const String& regex)
     // release old regex string.
     release();
     d_string.clear();
-    // try to compile this new regex string
-    const char* prce_error;
-    int pcre_erroff;
-    d_regex = pcre_compile(regex.c_str(), PCRE_UTF8,
-                           &prce_error, &pcre_erroff, 0);
 
-    // handle failure
-    if (!d_regex)
+    // try to compile this new regex string. The validation strings CEGUI is
+    // given use ECMAScript syntax (the std::regex default), which matches the
+    // PCRE behaviour for the patterns in use.
+    try
+    {
+        d_regex.assign(regex.c_str(), std::regex::ECMAScript);
+    }
+    catch (const std::regex_error& e)
+    {
         CEGUI_THROW(InvalidRequestException("PCRERegexMatcher::setRegexString: "
             "Bad RegEx set: '" + regex + "'.  Additional Information: " +
-            prce_error));
+            e.what()));
+    }
 
+    d_haveRegex = true;
     // set this last so that upon failure object is in consistant state.
     d_string = regex;
 }
@@ -75,36 +79,19 @@ const String& PCRERegexMatcher::getRegexString() const
 bool PCRERegexMatcher::matchRegex(const String& str) const
 {
     // if the regex is not valid, then an exception is thrown
-    if (!d_regex)
+    if (!d_haveRegex)
         CEGUI_THROW(InvalidRequestException("PCRERegexMatcher::matchRegex: "
             "Attempt to use invalid RegEx '" + d_string + "'."));
 
-    int match[3];
-    const char* utf8_str = str.c_str();
-    const int len = static_cast<int>(strlen(utf8_str));
-    const int result = pcre_exec(d_regex, 0, utf8_str, len, 0, 0, match, 3);
-
-    // a match must be for the entire string
-    if (result >= 0)
-        return (match[1] - match[0] == len);
-    // no match found or if test string or regex is 0
-    else if ((result == PCRE_ERROR_NOMATCH) || (result == PCRE_ERROR_NULL))
-        return false;
-    // anything else is an error
-    else
-        CEGUI_THROW(InvalidRequestException("PCRERegexMatcher::matchRegex: "
-            "An internal error occurred while attempting to match the RegEx '" +
-            d_string + "'."));
+    // std::regex_match requires the WHOLE input to match, which is the same
+    // full-string semantics the previous PCRE implementation enforced.
+    return std::regex_match(str.c_str(), d_regex);
 }
 
 //----------------------------------------------------------------------------//
 void PCRERegexMatcher::release()
 {
-    if (d_regex)
-    {
-        pcre_free(d_regex);
-        d_regex = 0;
-    }
+    d_haveRegex = false;
 }
 
 } // End of  CEGUI namespace section

@@ -1187,24 +1187,19 @@ AC_DEFUN([CEGUI_CHECK_BUILD_SUFFIX],[
     AC_SUBST(cegui_bsfx)
 ])
 
-# Check if pcre is available and if it's been disabled
+# Regular-expression support for CEGUI's RegexMatcher.
+# This historically probed for PCRE1 (libpcre). PCRE1 has been removed from
+# current distributions (e.g. Fedora 45 ships only pcre2), so the matcher is now
+# implemented with C++ std::regex (see cegui/src/CEGUIPCRERegexMatcher.cpp) and
+# needs no external library. CEGUI_HAS_PCRE_REGEX stays defined so Editbox keeps
+# its validation path, the matcher source is always built, and the (now unused)
+# pcre_CFLAGS/pcre_LIBS substitutions are left empty so Makefile.am is untouched.
 AC_DEFUN([CEGUI_CHECK_PCRE],[
-    AC_ARG_ENABLE([pcre],
-                  AC_HELP_STRING([--disable-pcre],
-                                 [Disable the use of the PCRE library for regular expression support.]),
-                  [cegui_enable_pcre=$enableval], [cegui_enable_pcre=yes])
-
-    if test x$cegui_enable_pcre = xyes; then
-        PKG_CHECK_MODULES(pcre, libpcre >= 5.0,
-            [AC_DEFINE(CEGUI_HAS_PCRE_REGEX, [], [Define to enable PCRE regular expression support in CEGUI])
-             cegui_found_pcre=yes],
-            [AC_MSG_ERROR([PCRE library not found!  To continue anyway, rerun configure with the --disable-pcre option.])
-             cegui_found_pcre=no])
-    else
-        AC_MSG_NOTICE([PCRE regular expression support was disabled; hope you know what you're doing!?])
-    fi
-
-    AM_CONDITIONAL([CEGUI_BUILD_PCRE_REGEX], [test x$cegui_enable_pcre = xyes && test x$cegui_found_pcre=xyes])
+    AC_DEFINE(CEGUI_HAS_PCRE_REGEX, [],
+              [Define to enable regular expression support in CEGUI])
+    AM_CONDITIONAL([CEGUI_BUILD_PCRE_REGEX], [true])
+    pcre_CFLAGS=""
+    pcre_LIBS=""
     AC_SUBST(pcre_CFLAGS)
     AC_SUBST(pcre_LIBS)
 ])
