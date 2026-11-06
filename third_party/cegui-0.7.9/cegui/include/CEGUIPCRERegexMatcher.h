@@ -30,12 +30,14 @@
 
 #include "CEGUIRegexMatcher.h"
 #include "CEGUIString.h"
-#include <pcre.h>
+#include <regex>
 
 // Start of CEGUI namespace section
 namespace CEGUI
 {
-//! Implementation of RegexMatcher using PCRE
+//! Implementation of RegexMatcher using std::regex (ECMAScript grammar).
+//! Kept under the original CEGUIPCRERegexMatcher name so the rest of the tree
+//! (Editbox, Makefile.am) is untouched; the engine is std::regex, not PCRE.
 class PCRERegexMatcher : public RegexMatcher
 {
 public:
@@ -50,13 +52,15 @@ public:
     bool matchRegex(const String& str) const;
 
 private:
-    //! free the compiled PCRE regex, if any.
+    //! discard the currently compiled regex, if any.
     void release();
 
     //! Copy of the regex string assigned.
     String d_string;
-    //! Pointer to PCRE compiled RegEx.
-    pcre* d_regex;
+    //! Whether d_regex currently holds a compiled expression.
+    bool d_haveRegex;
+    //! Compiled regular expression.
+    std::regex d_regex;
 };
 
 } // End of  CEGUI namespace section

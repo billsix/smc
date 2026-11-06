@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:44
+FROM registry.fedoraproject.org/fedora:45
 
 # Feature flags default to 0 here (a bare `podman build` is lean); the Makefile passes 1.
 ARG USE_GRAPHICS=0
