@@ -11,7 +11,7 @@ release dates, tagged `v<version>`), then the 211 commits of github.com/FluXy/SM
 - The game itself is under `smc/` (autotools; `smc/docs/` has the upstream build notes); `drafts/`
   are the author's 2010 design drafts.
 - **Building and running:** the container-per-project template (`Dockerfile`, `Makefile`,
-  `entrypoint/`). `make image` builds a Fedora 44 image that compiles the vendored CEGUI 0.7.9
+  `entrypoint/`). `make image` builds a Fedora 45 image that compiles the vendored CEGUI 0.7.9
   (`third_party/`) and the game into `/usr/local` at image-build time; `make run` runs
   `/usr/local/bin/smc` on the host display; `make shell` bind-mounts the checkout over `/smc`
   (`build.sh game` rebuilds from the mount, `run.sh` runs it). The game is **ported to SDL 2**
