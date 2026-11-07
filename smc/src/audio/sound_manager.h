@@ -18,6 +18,8 @@
 
 #include "../core/global_basic.h"
 #include "../core/owning_vector.h"
+#include <string>
+#include <unordered_map>
 // SDL
 // also includes needed SDL headers
 #include "SDL_mixer.h"
@@ -55,7 +57,10 @@ using SoundList = vector<cSound*>;
 class cSound_Manager {
  public:
   // Delete all objects
-  void Delete_All(void) { m_objects.clear(); }
+  void Delete_All(void) {
+    m_by_filename.clear();
+    m_objects.clear();
+  }
 
   cSound_Manager(void);
   ~cSound_Manager(void);
@@ -85,6 +90,8 @@ class cSound_Manager {
   // sounds loaded since initialization
   unsigned int m_load_count;
   Owning_Vector<cSound> m_objects;
+  // lookup by cSound::m_filename, which is set before Add and never changes after it
+  std::unordered_map<std::string, cSound*> m_by_filename;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

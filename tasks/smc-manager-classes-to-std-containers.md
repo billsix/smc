@@ -138,6 +138,17 @@ update `tasks/reference/smc/` in the same commit (the reference set names these 
   application singleton (`cOwned<cCampaign_Manager>` in `core/main.cpp`, alias `pCampaign_Manager`).
   A bare vector would mean reworking the singleton plumbing for no lifetime gain. Its unused
   `Delete_All` is gone; the destructor is `= default`.
+- **Phase 4 done (caches):** `cImage_Manager` and `cSound_Manager` keep their owning vector, which holds
+  every surface/sound and is iterated by `Grab_Textures`, `Delete_Image_Textures`, and
+  `cGL_Surface::Is_Texture_Use_Multiple`. Each also gets an `unordered_map<string, T*>` index on the
+  object's `m_filename`, so `Get_Pointer(path)` is a hash lookup instead of a linear scan.
+  `try_emplace` keeps the first object added under a name, which is what the scan returned. This is
+  exact because each cache has one `Add` site (`video.cpp` `Get_Surface`, `audio.cpp` `Get_Sound_File`),
+  the filename is set before `Add`, and no managed object is renamed after it (the other
+  `m_filename` writes are on unmanaged font/copy surfaces and on `cRandom_Sound`). Only `Delete_All`
+  removes entries, and it clears both. Gates green; smoke green on the menu and with
+  `SMC_ARGS="--level cave_1"`. **Play-test:** sounds and music play; a resolution change in the
+  options menu, which reloads textures, keeps every image correct.
 - **Pause lifted (William Emerison Six <billsix@gmail.com>, 2026-11-07):** "just go ahead, I'll try to
   play test it later." Each phase still passes the gcc/clang gate and smoke, and adds its items to the
   play-test list below; the maintainer plays the whole list once.

@@ -58,20 +58,15 @@ cGL_Surface* cImage_Manager::Add(std::unique_ptr<cGL_Surface> obj) {
   // it is now managed
   obj->m_managed = true;
 
-  // Add
-  return m_objects.emplace_back(std::move(obj)).get();
+  cGL_Surface* surface = m_objects.emplace_back(std::move(obj)).get();
+  // the first surface added under a filename is the one Get_Pointer(path) finds
+  m_by_filename.try_emplace(surface->m_filename, surface);
+  return surface;
 }
 
 cGL_Surface* cImage_Manager::Get_Pointer(const std::string& path) const {
-  for (const auto& surface : m_objects) {
-    // return first match
-    if (surface->m_filename.compare(path) == 0) {
-      return surface.get();
-    }
-  }
-
-  // not found
-  return nullptr;
+  auto itr = m_by_filename.find(path);
+  return itr == m_by_filename.end() ? nullptr : itr->second;
 }
 
 void cImage_Manager::Grab_Textures(bool from_file /* = 0 */,
@@ -184,6 +179,7 @@ void cImage_Manager::Delete_Hardware_Textures(void) {
 void cImage_Manager::Delete_All(void) {
   // stops cGL_Surface destructor from checking if GL texture id still in use
   Delete_Image_Textures();
+  m_by_filename.clear();
   m_objects.clear();
 }
 

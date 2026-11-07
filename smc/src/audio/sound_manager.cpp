@@ -52,20 +52,16 @@ cSound_Manager::cSound_Manager(void) { m_load_count = 0; }
 cSound_Manager::~cSound_Manager(void) { Delete_All(); }
 
 cSound* cSound_Manager::Get_Pointer(const std::string& path) const {
-  for (const auto& sound : m_objects) {
-    if (sound->m_filename.compare(path) == 0) {
-      // return first found
-      return sound.get();
-    }
-  }
-
-  // not found
-  return nullptr;
+  auto itr = m_by_filename.find(path);
+  return itr == m_by_filename.end() ? nullptr : itr->second;
 }
 
 cSound* cSound_Manager::Add(std::unique_ptr<cSound> sound) {
   m_load_count++;
-  return m_objects.emplace_back(std::move(sound)).get();
+  cSound* added = m_objects.emplace_back(std::move(sound)).get();
+  // the first sound added under a filename is the one Get_Pointer(path) finds
+  m_by_filename.try_emplace(added->m_filename, added);
+  return added;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

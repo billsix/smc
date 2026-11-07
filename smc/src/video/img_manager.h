@@ -19,6 +19,8 @@
 #include "../core/global_basic.h"
 #include "../video/video.h"
 #include "../core/owning_vector.h"
+#include <string>
+#include <unordered_map>
 #include "../video/gl_surface.h"
 
 namespace SMC {
@@ -113,6 +115,8 @@ class cImage_Manager {
   // saved textures for reloading
   Saved_Texture_List m_saved_textures;
   Owning_Vector<cGL_Surface> m_objects;
+  // lookup by cGL_Surface::m_filename, which is set before Add and never changes after it
+  std::unordered_map<std::string, cGL_Surface*> m_by_filename;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
