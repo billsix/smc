@@ -1,7 +1,9 @@
 # Replace the `*_Manager` classes with modern ownership shapes (and fix the stored-pointer lifetimes)
 
-**Status:** proposed — direction decided, implementation awaits go-ahead (William Emerison Six
-<billsix@gmail.com>, 2026-11-07)
+**Status:** in progress — phase 1 done and `cBackground_Manager` replaced (2026-11-07, branch
+`std-swaps-managers-cmake`); **paused before the gameplay-critical phases, waiting on the maintainer's
+play-test** of the background change (see "Progress"). Direction decided by William Emerison Six
+<billsix@gmail.com>, 2026-11-07.
 **Priority:** 4
 **Difficulty:** 7
 
@@ -84,6 +86,34 @@ generational handle; (4) truly shared → `shared_ptr`/`weak_ptr`.
 
 Each rename is mechanical and compiler-verified. Do it by type name only, in its own commit, and
 update `tasks/reference/smc/` in the same commit (the reference set names these classes).
+
+## Progress (2026-11-07, authorized overnight batch)
+
+- **Phase 1 findings:**
+  - `cGL_Surface*` members are **category 1 (safe as raw pointers)**: `cImage_Manager::Restore_Textures`
+    reloads each saved texture *in place* (`soft_tex->m_base->Load_Software_Texture(...)`), so a GL
+    context reload never invalidates a stored surface pointer.
+  - **`cAnimation_Manager` stays a class** (the table's "likely remove" guess was wrong): 44
+    `pActive_Animation_Manager->Add` sites, the per-scene `Update`/`Draw` lifecycle, and the "active"
+    pointer that switches between level, overworld, and menu. Turning it into a bare vector would
+    scatter that behaviour. It gets the phase-2 treatment (composition, private storage) instead.
+  - `cBackground_Manager` was the one **pure container** (an empty subclass).
+- **Done:** `cBackground_Manager` → `cLevel::m_backgrounds` (`vector<unique_ptr<cBackground>>`) +
+  `Gradient_Background()` (commit `1d980d9`; codemod
+  `tasks/adhoc/smc-manager-classes-to-std-containers/backgrounds_to_vector.py`). gcc + clang `-Werror`
+  clean, rebuild + smoke pass. **Play-test owed:** level backgrounds draw; the editor's level-settings
+  screen adds/deletes background images and edits the gradient colours; the main menu's background
+  fades.
+- **Why it paused here:** the remaining phases touch gameplay that the smoke can't see (the sprite
+  store's draw order, auto-destroy slot reuse, and the ground/active-object pointers; the level and
+  overworld switching). This task requires a play-test between phases; stacking them unattended would
+  trade verified gameplay for structure.
+- **Formatting gotcha:** clang-format 23 disagrees with 72 of 162 files, so edit with
+  `git diff -U0 | clang-format-diff -p1 -i` (changed lines only) until
+  `tasks/smc-reformat-for-clang-format-23.md` lands.
+- **Gate for every phase:** `tasks/adhoc/smc-port-build-to-cmake/compiler_gate.sh` with `CXX=g++` and
+  `CXX=clang++`, then `build.sh game` + `tools/smoke_headless.sh` in one container (see that script's
+  header for the `podman run` line).
 
 ## Plan (each phase its own commits; gate + play-test after each)
 
