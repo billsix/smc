@@ -36,7 +36,7 @@ CEGUI's XML parser for `preferences.xml`, so it builds a `CEGUI::System` on
 `CEGUI::NullRenderer::create()` with a `DefaultResourceProvider`, log to `/dev/null` (`main.cpp:263–283`
 explains why). `Delete_CEGUI_Fake` calls `pGuiSystem->destroy()` then `delete renderer` on the
 `CEGUI::Renderer*` (works: `CEGUIRenderer.h:295` has a public virtual dtor; the idiomatic call would be
-`NullRenderer::destroy`). This is why `configure.ac` needs `CEGUINullRenderer`.
+`NullRenderer::destroy`). This is why the game's build (`smc/CMakeLists.txt`) links `CEGUINullRenderer`.
 
 **The real CEGUI bring-up** (`video.cpp:Init_CEGUI`, `Init_CEGUI_Data`), CEGUI 0.7 API used:
 - `CEGUI::OpenGLRenderer::create( CEGUI::Size(w,h) )` (window size from `SDL_GetWindowSize`), then

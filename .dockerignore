@@ -2,11 +2,10 @@
 *.tar
 tasks
 
-# Generated autotools files and in-tree build output from a host build. The
-# image's build.sh regenerates and rebuilds these from the sources; copying a
-# host tree's stale `configure` or `.o` files in would build with old flags
-# (no -Werror gate) and reuse objects built outside the image. Mirrors the
-# build-artifact entries in .gitignore.
+# Leftover autotools files and in-tree build output a host tree may still hold
+# (the game built with autotools before its CMake port). None are sources; the
+# image builds from smc/CMakeLists.txt out of tree. Copying them in would only
+# bloat the image. Mirrors the build-artifact entries in .gitignore.
 smc/aclocal.m4
 smc/autom4te.cache
 smc/config.*

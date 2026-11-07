@@ -158,7 +158,8 @@ wherever the format string comes from gettext.
 **A gate lesson from this pass:** `make image` had been COPYing the host tree's generated `configure`
 (from before `configure.ac` gained the warning gate) and its `.o` files, so it built **without**
 `-Werror` and reused host objects. `.dockerignore` now excludes generated autotools files and build
-output, and `build.sh` regenerates `configure` when `configure.ac` is newer. A gate is only a gate if
+output; the CMake port that followed builds out of tree (`/opt/smc-build`), which removes the class of
+problem. A gate is only a gate if
 you check that its flags reach the compiler: read the generated `src/Makefile`'s `CXXFLAGS`.
 
 ## What the ownership passes did NOT change: the borrow side and the manager classes

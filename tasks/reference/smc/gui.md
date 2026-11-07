@@ -3,7 +3,7 @@
 Verified against `smc/src/gui/` at `v1.9-215-g768adeb` (HEAD `768adeb`; the last commit touching
 `gui/` is `d438165 "update to SDL2"`, which replaced the X11 cut-buffer clipboard in `generic.cpp`
 with `SDL_GetClipboardText`/`SDL_SetClipboardText` and two SDL2 renames in `menu_data.cpp`).
-CEGUI pin: `configure.ac:75` `PKG_CHECK_MODULES([CEGUI_OPENGL], [CEGUI-OPENGL >= 0.7.2])`. Every
+CEGUI pin: `smc/CMakeLists.txt` `pkg_check_modules(CEGUI … CEGUI-OPENGL>=0.7.2)`. Every
 file was read in full; every claim is anchored `file:Symbol` or `file:line`.
 
 ## 1. Files and roles

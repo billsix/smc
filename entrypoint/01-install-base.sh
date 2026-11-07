@@ -29,6 +29,7 @@ dnf install -y \
     ccache \
     clang \
     clang-tools-extra \
+    cmake \
     expat-devel \
     flex \
     freeimage-devel \
@@ -46,6 +47,7 @@ dnf install -y \
     make \
     mesa-libGL-devel \
     mesa-libGLU-devel \
+    ninja-build \
     pkgconf-pkg-config \
     procps-ng \
     SDL2-devel \
