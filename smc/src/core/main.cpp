@@ -84,7 +84,7 @@ class cApplication {
   cOwned<cResource_Manager> m_resource_manager{pResource_Manager};
   cOwned<cFont_Manager> m_font{pFont};
   cOwned<cImage_Settings_Parser> m_settings_parser{pSettingsParser};
-  cOwned<cImage_Manager> m_image_manager{pImage_Manager};
+  cOwned<cTexture_Cache> m_image_manager{pImage_Manager};
   cOwned<cVideo> m_video{pVideo};
   cOwned<cFramerate> m_framerate{pFramerate};
   cOwned<cRenderQueue> m_renderer_current{pRenderer_current};

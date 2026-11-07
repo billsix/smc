@@ -55,20 +55,20 @@ class cSaved_Texture {
 using Saved_Texture_List = vector<std::unique_ptr<cSaved_Texture>>;
 using GL_Surface_List = vector<cGL_Surface*>;
 
-/* *** *** *** *** *** *** cImage_Manager *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** cTexture_Cache *** *** *** *** *** *** *** *** *** *** *** */
 
 //  Keeps track of all the images in memory
 //
 // Operators:
-//  - cImage_Manager [path]
-//  - cImage_Manager [identifier]
-class cImage_Manager {
+//  - cTexture_Cache [path]
+//  - cTexture_Cache [identifier]
+class cTexture_Cache {
  public:
   // The owned objects, borrowed (cGL_Surface* each), for range-for
   auto Objects(void) const { return Borrowed(m_objects); }
 
-  cImage_Manager(void);
-  ~cImage_Manager(void);
+  cTexture_Cache(void);
+  ~cTexture_Cache(void);
 
   // Add a surface
   cGL_Surface* Add(std::unique_ptr<cGL_Surface> obj);
@@ -122,7 +122,7 @@ class cImage_Manager {
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // Image Manager
-extern cImage_Manager* pImage_Manager;
+extern cTexture_Cache* pImage_Manager;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

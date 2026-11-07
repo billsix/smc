@@ -44,13 +44,13 @@ cSaved_Texture::~cSaved_Texture(void) {
   }
 }
 
-/* *** *** *** *** *** *** cImage_Manager *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** cTexture_Cache *** *** *** *** *** *** *** *** *** *** *** */
 
-cImage_Manager::cImage_Manager(void) { m_high_texture_id = 0; }
+cTexture_Cache::cTexture_Cache(void) { m_high_texture_id = 0; }
 
-cImage_Manager::~cImage_Manager(void) { cImage_Manager::Delete_All(); }
+cTexture_Cache::~cTexture_Cache(void) { cTexture_Cache::Delete_All(); }
 
-cGL_Surface* cImage_Manager::Add(std::unique_ptr<cGL_Surface> obj) {
+cGL_Surface* cTexture_Cache::Add(std::unique_ptr<cGL_Surface> obj) {
   if (!obj) {
     return nullptr;
   }
@@ -64,12 +64,12 @@ cGL_Surface* cImage_Manager::Add(std::unique_ptr<cGL_Surface> obj) {
   return surface;
 }
 
-cGL_Surface* cImage_Manager::Get_Pointer(const std::string& path) const {
+cGL_Surface* cTexture_Cache::Get_Pointer(const std::string& path) const {
   auto itr = m_by_filename.find(path);
   return itr == m_by_filename.end() ? nullptr : itr->second;
 }
 
-void cImage_Manager::Grab_Textures(bool from_file /* = 0 */,
+void cTexture_Cache::Grab_Textures(bool from_file /* = 0 */,
                                    bool draw_gui /* = 0 */) {
   // progress bar
   CEGUI::ProgressBar* progress_bar = nullptr;
@@ -115,7 +115,7 @@ void cImage_Manager::Grab_Textures(bool from_file /* = 0 */,
   }
 }
 
-void cImage_Manager::Restore_Textures(bool draw_gui /* = 0 */) {
+void cTexture_Cache::Restore_Textures(bool draw_gui /* = 0 */) {
   // progress bar
   CEGUI::ProgressBar* progress_bar = nullptr;
 
@@ -154,7 +154,7 @@ void cImage_Manager::Restore_Textures(bool draw_gui /* = 0 */) {
   m_saved_textures.clear();
 }
 
-void cImage_Manager::Delete_Image_Textures(void) {
+void cTexture_Cache::Delete_Image_Textures(void) {
   for (const auto& surface : m_objects) {
     // get object
     if (surface->m_auto_del_img && glIsTexture(surface->m_image)) {
@@ -163,7 +163,7 @@ void cImage_Manager::Delete_Image_Textures(void) {
   }
 }
 
-void cImage_Manager::Delete_Hardware_Textures(void) {
+void cTexture_Cache::Delete_Hardware_Textures(void) {
   // delete all hardware surfaces (<= : the highest id, recorded by Create_Texture,
   // was never visited with a bare <)
   for (GLuint i = 0; i <= m_high_texture_id; i++) {
@@ -176,7 +176,7 @@ void cImage_Manager::Delete_Hardware_Textures(void) {
   m_high_texture_id = 0;
 }
 
-void cImage_Manager::Delete_All(void) {
+void cTexture_Cache::Delete_All(void) {
   // stops cGL_Surface destructor from checking if GL texture id still in use
   Delete_Image_Textures();
   m_by_filename.clear();
@@ -185,7 +185,7 @@ void cImage_Manager::Delete_All(void) {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cImage_Manager* pImage_Manager = nullptr;
+cTexture_Cache* pImage_Manager = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
