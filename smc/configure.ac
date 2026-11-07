@@ -59,10 +59,6 @@ PKG_CHECK_MODULES([SDL], [sdl2 >= 2.0.0])
 CPPFLAGS="$CPPFLAGS $(echo "$SDL_CFLAGS" | sed -E 's/(^| )-I/\1-isystem /g')"
 LIBS="$LIBS $SDL_LIBS"
 
-# Check for the libpng library
-AC_CHECK_LIB([png], [png_init_io], ,
-	[AC_MSG_ERROR([libpng library not found])])
-
 # Check for the SDL_image library
 AC_CHECK_LIB([SDL2_image], [IMG_LoadPNG_RW], ,
 	[AC_MSG_ERROR([SDL_image library with PNG support not found])])

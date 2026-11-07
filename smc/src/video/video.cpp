@@ -44,7 +44,7 @@
 #include "elements/CEGUIProgressBar.h"
 #include "RendererModules/Null/CEGUINullRenderer.h"
 // png
-#include <png.h>
+#include <algorithm>
 #ifndef PNG_COLOR_TYPE_RGBA
 #define PNG_COLOR_TYPE_RGBA PNG_COLOR_TYPE_RGB_ALPHA
 #endif
@@ -1630,75 +1630,40 @@ void cVideo ::Save_Surface(const std::string& filename,
                            const unsigned char* data, unsigned int width,
                            unsigned int height, unsigned int bpp /* = 4 */,
                            bool reverse_data /* = 0 */) const {
-  FILE* fp = nullptr;
-
-// fixme : Check if there is a more portable way f.e. with imbue()
-#ifdef _WIN32
-  fp = _wfopen(utf8_to_ucs2(filename).c_str(), L"wb");
-#else
-  fp = fopen(filename.c_str(), "wb");
-#endif
-
-  if (!fp) {
-    printf(
-        "Warning: cVideo :: Save_Surface : Could not create file for writing\n");
-    return;
-  }
-
-  int png_color_type;
-
+  Uint32 format;
   if (bpp == 4) {
-    png_color_type = PNG_COLOR_TYPE_RGBA;
+    format = SDL_PIXELFORMAT_RGBA32;
   } else if (bpp == 3) {
-    png_color_type = PNG_COLOR_TYPE_RGB;
+    format = SDL_PIXELFORMAT_RGB24;
   } else {
     printf("Warning: cVideo :: Save_Surface : %s Unknown bytes per pixel %d\n",
            filename.c_str(), bpp);
-    fclose(fp);
     return;
   }
 
-  png_structp png_ptr =
-      png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-  png_infop info_ptr = png_create_info_struct(png_ptr);
-
-  png_init_io(png_ptr, fp);
-
-  png_set_IHDR(png_ptr, info_ptr, width, height, 8 /* bit depth */,
-               png_color_type, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
-               PNG_FILTER_TYPE_DEFAULT);
-
-  png_write_info(png_ptr, info_ptr);
-
-  png_uint_32 const png_height = height;
-  png_uint_32 const row_bytes = width * bpp;
-
-  std::vector<png_byte> image(png_height * row_bytes);
-  std::vector<png_bytep> row_pointers(png_height);
-
-  // create image data
-  int const img_size = static_cast<int>(png_height * row_bytes);
-  for (int i = 0; i < img_size; ++i) {
-    image[static_cast<size_t>(i)] = data[i];
+  // Copy the pixels row by row; with reverse_data the rows are flipped, because
+  // glReadPixels returns the bottom row first.
+  size_t const row_bytes = static_cast<size_t>(width) * bpp;
+  std::vector<unsigned char> image(row_bytes * height);
+  for (unsigned int row = 0; row < height; ++row) {
+    unsigned int const source_row = reverse_data ? height - 1 - row : row;
+    std::copy_n(data + source_row * row_bytes, row_bytes,
+                image.data() + row * row_bytes);
   }
 
-  // create row pointers
-  if (reverse_data) {
-    for (unsigned int i = 0; i < png_height; i++) {
-      // reverse direction because of opengl glReadPixels
-      row_pointers[png_height - 1 - i] = image.data() + (i * row_bytes);
-    }
-  } else {
-    for (unsigned int i = 0; i < png_height; i++) {
-      row_pointers[i] = image.data() + (i * row_bytes);
-    }
+  std::unique_ptr<SDL_Surface, decltype(&SDL_FreeSurface)> const surface(
+      SDL_CreateRGBSurfaceWithFormatFrom(
+          image.data(), static_cast<int>(width), static_cast<int>(height),
+          static_cast<int>(bpp * 8), static_cast<int>(row_bytes), format),
+      &SDL_FreeSurface);
+  if (!surface) {
+    printf("Warning: cVideo :: Save_Surface : %s\n", SDL_GetError());
+    return;
   }
-
-  png_write_image(png_ptr, row_pointers.data());
-  png_write_end(png_ptr, info_ptr);
-  png_destroy_write_struct(&png_ptr, &info_ptr);
-
-  fclose(fp);
+  if (IMG_SavePNG(surface.get(), filename.c_str()) != 0) {
+    printf(
+        "Warning: cVideo :: Save_Surface : Could not create file for writing\n");
+  }
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

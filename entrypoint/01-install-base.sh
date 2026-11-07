@@ -41,7 +41,6 @@ dnf install -y \
     git \
     glew-devel \
     less \
-    libpng-devel \
     libtool \
     libX11-devel \
     make \
