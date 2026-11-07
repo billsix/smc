@@ -35,21 +35,21 @@ namespace SMC {
 static unsigned int text_box_window_width = 300;
 static unsigned int text_box_window_height = 200;
 
-cText_Box ::cText_Box(cSprite_Manager* sprite_manager)
+cText_Box::cText_Box(cSprite_Manager* sprite_manager)
     : cBaseBox(sprite_manager) {
   cText_Box::Init();
 }
 
-cText_Box ::cText_Box(CEGUI::XMLAttributes& attributes,
-                      cSprite_Manager* sprite_manager)
+cText_Box::cText_Box(CEGUI::XMLAttributes& attributes,
+                     cSprite_Manager* sprite_manager)
     : cBaseBox(sprite_manager) {
   cText_Box::Init();
   cText_Box::Load_From_XML(attributes);
 }
 
-cText_Box ::~cText_Box(void) = default;
+cText_Box::~cText_Box(void) = default;
 
-void cText_Box ::Init(void) {
+void cText_Box::Init(void) {
   m_type = TYPE_TEXT_BOX;
   box_type = m_type;
   m_can_be_on_ground = false;
@@ -65,7 +65,7 @@ void cText_Box ::Init(void) {
   Create_Name();
 }
 
-std::unique_ptr<cSprite> cText_Box ::Copy(void) const {
+std::unique_ptr<cSprite> cText_Box::Copy(void) const {
   auto text_box = std::make_unique<cText_Box>(m_sprite_manager);
   text_box->Set_Pos(m_start_pos_x, m_start_pos_y);
   text_box->Set_Text(m_text);
@@ -73,14 +73,14 @@ std::unique_ptr<cSprite> cText_Box ::Copy(void) const {
   return text_box;
 }
 
-void cText_Box ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cText_Box::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   cBaseBox::Load_From_XML(attributes);
 
   // text
   Set_Text(xml_string_to_string(attributes.getValueAsString("text").c_str()));
 }
 
-void cText_Box ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cText_Box::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -93,7 +93,7 @@ void cText_Box ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cText_Box ::Activate(void) {
+void cText_Box::Activate(void) {
   CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
   CEGUI::MultiLineEditbox* editbox = static_cast<CEGUI::MultiLineEditbox*>(
       wmgr.createWindow("TaharezLook/MultiLineEditbox", "text_box_text"));
@@ -236,7 +236,7 @@ void cText_Box ::Activate(void) {
   wmgr.destroyWindow(editbox);
 }
 
-void cText_Box ::Update(void) {
+void cText_Box::Update(void) {
   if (!m_valid_update || !Is_In_Range()) {
     return;
   }
@@ -244,9 +244,9 @@ void cText_Box ::Update(void) {
   cBaseBox::Update();
 }
 
-void cText_Box ::Set_Text(const std::string& str_text) { m_text = str_text; }
+void cText_Box::Set_Text(const std::string& str_text) { m_text = str_text; }
 
-void cText_Box ::Editor_Activate(void) {
+void cText_Box::Editor_Activate(void) {
   // BaseBox Settings first
   cBaseBox::Editor_Activate();
 
@@ -269,7 +269,7 @@ void cText_Box ::Editor_Activate(void) {
   Editor_Init();
 }
 
-bool cText_Box ::Editor_Text_Text_Changed(const CEGUI::EventArgs& event) {
+bool cText_Box::Editor_Text_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   std::string const str_text =

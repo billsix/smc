@@ -32,16 +32,16 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cKeyboard *** *** *** *** *** *** *** *** *** */
 
-cKeyboard ::cKeyboard(void) { Reset_Keys(); }
+cKeyboard::cKeyboard(void) { Reset_Keys(); }
 
-cKeyboard ::~cKeyboard(void) = default;
+cKeyboard::~cKeyboard(void) = default;
 
-void cKeyboard ::Reset_Keys(void) {
+void cKeyboard::Reset_Keys(void) {
   // set all keys to 0
   memset(&m_keys, 0, sizeof(m_keys));
 }
 
-bool cKeyboard ::CEGUI_Handle_Key_Up(SDLKey key) const {
+bool cKeyboard::CEGUI_Handle_Key_Up(SDLKey key) const {
   // inject the scancode directly
   if (pGuiSystem->injectKeyUp(SDLKey_to_CEGUIKey(key))) {
     // input was processed by the gui system
@@ -51,7 +51,7 @@ bool cKeyboard ::CEGUI_Handle_Key_Up(SDLKey key) const {
   return false;
 }
 
-bool cKeyboard ::Key_Up(SDLKey key) {
+bool cKeyboard::Key_Up(SDLKey key) {
   // set key to 0
   m_keys[key] = 0;
 
@@ -76,7 +76,7 @@ bool cKeyboard ::Key_Up(SDLKey key) {
   return false;
 }
 
-bool cKeyboard ::CEGUI_Handle_Key_Down(SDLKey key) const {
+bool cKeyboard::CEGUI_Handle_Key_Down(SDLKey key) const {
   // inject the scancode
   if (pGuiSystem->injectKeyDown(SDLKey_to_CEGUIKey(key)) == 1) {
     // input got processed by the gui system
@@ -86,7 +86,7 @@ bool cKeyboard ::CEGUI_Handle_Key_Down(SDLKey key) const {
   return false;
 }
 
-bool cKeyboard ::Text_Input(const char* text) const {
+bool cKeyboard::Text_Input(const char* text) const {
   // SDL 2 delivers typed text as UTF-8 in SDL_TEXTINPUT events (SDL 1.2 put one unicode
   // value into each key event); decode and hand each code point to the gui system
   bool processed = false;
@@ -118,7 +118,7 @@ bool cKeyboard ::Text_Input(const char* text) const {
   return processed;
 }
 
-bool cKeyboard ::Key_Down(SDLKey key) {
+bool cKeyboard::Key_Down(SDLKey key) {
   // input was processed by the gui system
   if (CEGUI_Handle_Key_Down(key)) {
     return true;
@@ -270,7 +270,7 @@ bool cKeyboard ::Key_Down(SDLKey key) {
   return false;
 }
 
-unsigned int cKeyboard ::SDLKey_to_CEGUIKey(const SDLKey key) const {
+unsigned int cKeyboard::SDLKey_to_CEGUIKey(const SDLKey key) const {
   switch (key) {
     case SDLK_BACKSPACE:
       return CEGUI::Key::Backspace;

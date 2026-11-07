@@ -21,21 +21,20 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cSpinBox *** *** *** *** *** *** *** *** *** */
 
-cSpinBox ::cSpinBox(cSprite_Manager* sprite_manager)
-    : cBaseBox(sprite_manager) {
+cSpinBox::cSpinBox(cSprite_Manager* sprite_manager) : cBaseBox(sprite_manager) {
   cSpinBox::Init();
 }
 
-cSpinBox ::cSpinBox(CEGUI::XMLAttributes& attributes,
-                    cSprite_Manager* sprite_manager)
+cSpinBox::cSpinBox(CEGUI::XMLAttributes& attributes,
+                   cSprite_Manager* sprite_manager)
     : cBaseBox(sprite_manager) {
   cSpinBox::Init();
   cSpinBox::Load_From_XML(attributes);
 }
 
-cSpinBox ::~cSpinBox(void) = default;
+cSpinBox::~cSpinBox(void) = default;
 
-void cSpinBox ::Init(void) {
+void cSpinBox::Init(void) {
   m_type = TYPE_SPIN_BOX;
   box_type = m_type;
   m_camera_range = 5000;
@@ -55,7 +54,7 @@ void cSpinBox ::Init(void) {
   Create_Name();
 }
 
-std::unique_ptr<cSprite> cSpinBox ::Copy(void) const {
+std::unique_ptr<cSprite> cSpinBox::Copy(void) const {
   auto spinbox = std::make_unique<cSpinBox>(m_sprite_manager);
   spinbox->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   spinbox->Set_Invisible(m_box_invisible);
@@ -63,11 +62,11 @@ std::unique_ptr<cSprite> cSpinBox ::Copy(void) const {
   return spinbox;
 }
 
-void cSpinBox ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cSpinBox::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   cBaseBox::Load_From_XML(attributes);
 }
 
-void cSpinBox ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cSpinBox::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -77,7 +76,7 @@ void cSpinBox ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cSpinBox ::Activate(void) {
+void cSpinBox::Activate(void) {
   // already spinning
   if (m_spin) {
     return;
@@ -94,7 +93,7 @@ void cSpinBox ::Activate(void) {
   Reset_Animation();
 }
 
-void cSpinBox ::Stop(void) {
+void cSpinBox::Stop(void) {
   // already stopped spinning
   if (!m_spin) {
     return;
@@ -120,7 +119,7 @@ void cSpinBox ::Stop(void) {
   Reset_Animation();
 }
 
-void cSpinBox ::Update(void) {
+void cSpinBox::Update(void) {
   if (!m_valid_update || !Is_In_Range()) {
     return;
   }
@@ -184,7 +183,7 @@ void cSpinBox ::Update(void) {
   }
 }
 
-bool cSpinBox ::Is_Update_Valid(void) {
+bool cSpinBox::Is_Update_Valid(void) {
   if (m_spin) {
     return true;
   }

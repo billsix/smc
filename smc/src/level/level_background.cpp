@@ -23,23 +23,23 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** cBackground *** *** *** *** *** *** *** *** *** *** */
 
-cBackground ::cBackground(cSprite_Manager* sprite_manager) {
+cBackground::cBackground(cSprite_Manager* sprite_manager) {
   cBackground::Init();
   cBackground::Set_Sprite_Manager(sprite_manager);
 }
 
-cBackground ::cBackground(CEGUI::XMLAttributes& attributes,
-                          cSprite_Manager* sprite_manager) {
+cBackground::cBackground(CEGUI::XMLAttributes& attributes,
+                         cSprite_Manager* sprite_manager) {
   cBackground::Init();
   cBackground::Set_Sprite_Manager(sprite_manager);
   cBackground::Load_From_XML(attributes);
 }
 
-cBackground ::~cBackground(void) {
+cBackground::~cBackground(void) {
   //
 }
 
-void cBackground ::Init(void) {
+void cBackground::Init(void) {
   m_sprite_manager = nullptr;
   m_type = BG_NONE;
 
@@ -60,7 +60,7 @@ void cBackground ::Init(void) {
   m_const_vel_y = 0.0f;
 }
 
-void cBackground ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cBackground::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   Set_Type(static_cast<BackgroundType>(attributes.getValueAsInteger("type")));
 
   if (m_type == BG_GR_HOR || m_type == BG_GR_VER) {
@@ -86,7 +86,7 @@ void cBackground ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   }
 }
 
-void cBackground ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cBackground::Save_To_XML(CEGUI::XMLSerializer& stream) {
   if (m_type == BG_NONE) {
     return;
   }
@@ -134,13 +134,13 @@ void cBackground ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cBackground ::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
+void cBackground::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
   m_sprite_manager = sprite_manager;
 }
 
-void cBackground ::Set_Type(const BackgroundType type) { m_type = type; }
+void cBackground::Set_Type(const BackgroundType type) { m_type = type; }
 
-void cBackground ::Set_Type(const std::string& type) {
+void cBackground::Set_Type(const std::string& type) {
   if (type.compare("Disabled") == 0) {
     m_type = BG_NONE;
   } else if (type.compare("Top") == 0) {
@@ -158,11 +158,11 @@ void cBackground ::Set_Type(const std::string& type) {
   }
 }
 
-void cBackground ::Set_Color_1(const Color& color) { m_color_1 = color; }
+void cBackground::Set_Color_1(const Color& color) { m_color_1 = color; }
 
-void cBackground ::Set_Color_2(const Color& color) { m_color_2 = color; }
+void cBackground::Set_Color_2(const Color& color) { m_color_2 = color; }
 
-void cBackground ::Set_Image(const std::string& img_file_1) {
+void cBackground::Set_Image(const std::string& img_file_1) {
   m_image_1_filename = img_file_1;
 
   // empty
@@ -179,13 +179,13 @@ void cBackground ::Set_Image(const std::string& img_file_1) {
   m_image_1 = pVideo->Get_Surface(m_image_1_filename);
 }
 
-void cBackground ::Set_Scroll_Speed(const float x /* = 1.0f */,
-                                    const float y /* = 1.0f */) {
+void cBackground::Set_Scroll_Speed(const float x /* = 1.0f */,
+                                   const float y /* = 1.0f */) {
   m_speed_x = x;
   m_speed_y = y;
 }
 
-void cBackground ::Set_Start_Pos(const float x, const float y) {
+void cBackground::Set_Start_Pos(const float x, const float y) {
   m_start_pos_x = x;
   m_start_pos_y = y;
   // reset current position
@@ -193,21 +193,21 @@ void cBackground ::Set_Start_Pos(const float x, const float y) {
   m_pos_y = m_start_pos_y;
 }
 
-void cBackground ::Set_Pos_Z(const float val) { m_pos_z = val; }
+void cBackground::Set_Pos_Z(const float val) { m_pos_z = val; }
 
-void cBackground ::Set_Const_Velocity_X(const float vel) {
+void cBackground::Set_Const_Velocity_X(const float vel) {
   m_const_vel_x = vel;
   // reset current position
   m_pos_x = m_start_pos_x;
 }
 
-void cBackground ::Set_Const_Velocity_Y(const float vel) {
+void cBackground::Set_Const_Velocity_Y(const float vel) {
   m_const_vel_y = vel;
   // reset current position
   m_pos_y = m_start_pos_y;
 }
 
-void cBackground ::Update(void) {
+void cBackground::Update(void) {
   if (!Is_Float_Equal(m_const_vel_x, 0.0f)) {
     m_pos_x += (m_const_vel_x * 2) * pFramerate->m_speed_factor;
   }
@@ -217,7 +217,7 @@ void cBackground ::Update(void) {
   }
 }
 
-void cBackground ::Draw(void) {
+void cBackground::Draw(void) {
   // gradient
   if (m_type == BG_GR_VER || m_type == BG_GR_HOR) {
     Draw_Gradient();
@@ -283,7 +283,7 @@ void cBackground ::Draw(void) {
   }
 }
 
-void cBackground ::Draw_Gradient(void) {
+void cBackground::Draw_Gradient(void) {
   // no need to draw a gradient if both colors are the same
   if (m_color_1 == m_color_2) {
     pVideo->Draw_Rect(nullptr, m_pos_z, &m_color_1);
@@ -318,11 +318,11 @@ void cBackground ::Draw_Gradient(void) {
   }
 }
 
-std::string cBackground ::Get_Type_Name(void) const {
+std::string cBackground::Get_Type_Name(void) const {
   return Get_Type_Name(m_type);
 }
 
-std::string cBackground ::Get_Type_Name(const BackgroundType type) {
+std::string cBackground::Get_Type_Name(const BackgroundType type) {
   switch (type) {
     case BG_NONE:
       return "Disabled";

@@ -77,9 +77,8 @@ std::string float_to_string(double value, int prec /* = 6 */,
 
   // Fixed notation of DBL_MAX is 309 digits; 6 decimals, sign and point fit too.
   std::array<char, 330> buf;
-  auto const [end, ec] =
-      std::to_chars(buf.data(), buf.data() + buf.size(), value,
-                    std::chars_format::fixed, prec);
+  auto const [end, ec] = std::to_chars(buf.data(), buf.data() + buf.size(),
+                                       value, std::chars_format::fixed, prec);
   std::string str(buf.data(), ec == std::errc() ? end : buf.data());
 
   // Without keep_zeros, "1.500" becomes "1.5" and "2.000" becomes "2".
@@ -118,7 +117,8 @@ static T parse_number(const std::string& str) {
   auto const [ptr, ec] = std::from_chars(first, last, num);
   if (ec == std::errc::result_out_of_range) {
     bool const below = !negate && first != last && *first == '-';
-    num = below ? std::numeric_limits<T>::lowest() : std::numeric_limits<T>::max();
+    num = below ? std::numeric_limits<T>::lowest()
+                : std::numeric_limits<T>::max();
   } else if (ec != std::errc()) {
     num = T{};
   }

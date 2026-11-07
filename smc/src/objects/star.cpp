@@ -26,22 +26,22 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cjStar *** *** *** *** *** *** *** *** *** *** *** */
 
-cjStar ::cjStar(cSprite_Manager* sprite_manager) : cPowerUp(sprite_manager) {
+cjStar::cjStar(cSprite_Manager* sprite_manager) : cPowerUp(sprite_manager) {
   cjStar::Init();
 }
 
-cjStar ::cjStar(CEGUI::XMLAttributes& attributes,
-                cSprite_Manager* sprite_manager)
+cjStar::cjStar(CEGUI::XMLAttributes& attributes,
+               cSprite_Manager* sprite_manager)
     : cPowerUp(sprite_manager) {
   cjStar::Init();
   cjStar::Load_From_XML(attributes);
 }
 
-cjStar ::~cjStar(void) {
+cjStar::~cjStar(void) {
   //
 }
 
-void cjStar ::Init(void) {
+void cjStar::Init(void) {
   m_type = TYPE_STAR;
   m_pos_z = 0.053f;
 
@@ -58,19 +58,19 @@ void cjStar ::Init(void) {
   m_name = _("Star");
 }
 
-std::unique_ptr<cSprite> cjStar ::Copy(void) const {
+std::unique_ptr<cSprite> cjStar::Copy(void) const {
   auto star = std::make_unique<cjStar>(m_sprite_manager);
   star->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   return star;
 }
 
-void cjStar ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cjStar::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
           static_cast<float>(attributes.getValueAsInteger("posy")), true);
 }
 
-void cjStar ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cjStar::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -84,7 +84,7 @@ void cjStar ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cjStar ::Activate(void) {
+void cjStar::Activate(void) {
   if (!m_active) {
     return;
   }
@@ -106,7 +106,7 @@ void cjStar ::Activate(void) {
   }
 }
 
-void cjStar ::Update(void) {
+void cjStar::Update(void) {
   if (!m_valid_update || !Is_In_Range()) {
     return;
   }
@@ -157,7 +157,7 @@ void cjStar ::Update(void) {
   }
 }
 
-void cjStar ::Draw(cSurface_Request* request /* = nullptr */) {
+void cjStar::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -168,9 +168,9 @@ void cjStar ::Draw(cSurface_Request* request /* = nullptr */) {
   cPowerUp::Draw();
 }
 
-void cjStar ::Generate_Particles(float x /* = 0.0f */, float y /* = 0.0f */,
-                                 bool random /* = 1 */,
-                                 unsigned int quota /* = 2 */) const {
+void cjStar::Generate_Particles(float x /* = 0.0f */, float y /* = 0.0f */,
+                                bool random /* = 1 */,
+                                unsigned int quota /* = 2 */) const {
   if (Is_Float_Equal(x, 0.0f)) {
     x = m_pos_x;
   }
@@ -211,7 +211,7 @@ void cjStar ::Generate_Particles(float x /* = 0.0f */, float y /* = 0.0f */,
   pActive_Animation_Manager->Add(std::move(anim));
 }
 
-void cjStar ::Handle_Collision_Massive(cObjectCollision* collision) {
+void cjStar::Handle_Collision_Massive(cObjectCollision* collision) {
   if (collision->m_direction == DIR_RIGHT ||
       collision->m_direction == DIR_LEFT) {
     Turn_Around(collision->m_direction);
@@ -230,7 +230,7 @@ void cjStar ::Handle_Collision_Massive(cObjectCollision* collision) {
   }
 }
 
-void cjStar ::Handle_Collision_Player(cObjectCollision* collision) {
+void cjStar::Handle_Collision_Player(cObjectCollision* collision) {
   // invalid
   if (collision->m_direction == DIR_UNDEFINED) {
     return;

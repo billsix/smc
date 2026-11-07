@@ -34,23 +34,23 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cWaypoint *** *** *** *** *** *** *** *** *** */
 
-cWaypoint ::cWaypoint(cSprite_Manager* sprite_manager)
+cWaypoint::cWaypoint(cSprite_Manager* sprite_manager)
     : cSprite(sprite_manager, "waypoint") {
   cWaypoint::Init();
 }
 
-cWaypoint ::cWaypoint(CEGUI::XMLAttributes& attributes,
-                      cSprite_Manager* sprite_manager)
+cWaypoint::cWaypoint(CEGUI::XMLAttributes& attributes,
+                     cSprite_Manager* sprite_manager)
     : cSprite(sprite_manager, "waypoint") {
   cWaypoint::Init();
   cWaypoint::Load_From_XML(attributes);
 }
 
-cWaypoint ::~cWaypoint(void) {
+cWaypoint::~cWaypoint(void) {
   //
 }
 
-void cWaypoint ::Init(void) {
+void cWaypoint::Init(void) {
   m_sprite_array = ARRAY_PASSIVE;
   m_type = TYPE_OW_WAYPOINT;
   m_massive_type = MASS_PASSIVE;
@@ -74,7 +74,7 @@ void cWaypoint ::Init(void) {
   Set_Image(pVideo->Get_Surface("world/waypoint/default_1.png"));
 }
 
-std::unique_ptr<cSprite> cWaypoint ::Copy(void) const {
+std::unique_ptr<cSprite> cWaypoint::Copy(void) const {
   auto waypoint = std::make_unique<cWaypoint>(m_sprite_manager);
   waypoint->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   waypoint->Set_Image(m_start_image, true);
@@ -86,7 +86,7 @@ std::unique_ptr<cSprite> cWaypoint ::Copy(void) const {
   return waypoint;
 }
 
-void cWaypoint ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cWaypoint::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("x")),
           static_cast<float>(attributes.getValueAsInteger("y")), true);
@@ -122,7 +122,7 @@ void cWaypoint ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   Set_Access(attributes.getValueAsBool("access", true), true);
 }
 
-void cWaypoint ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cWaypoint::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -159,7 +159,7 @@ void cWaypoint ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cWaypoint ::Update(void) {
+void cWaypoint::Update(void) {
   if (m_auto_destroy) {
     return;
   }
@@ -179,7 +179,7 @@ void cWaypoint ::Update(void) {
   }
 }
 
-void cWaypoint ::Draw(cSurface_Request* request /* = nullptr */) {
+void cWaypoint::Draw(cSurface_Request* request /* = nullptr */) {
   if (m_auto_destroy) {
     return;
   }
@@ -288,7 +288,7 @@ void cWaypoint ::Draw(cSurface_Request* request /* = nullptr */) {
   }
 }
 
-void cWaypoint ::Set_Direction_Forward(ObjectDirection direction) {
+void cWaypoint::Set_Direction_Forward(ObjectDirection direction) {
   m_direction_forward = direction;
 
   if (direction == DIR_LEFT) {
@@ -302,7 +302,7 @@ void cWaypoint ::Set_Direction_Forward(ObjectDirection direction) {
   }
 }
 
-void cWaypoint ::Set_Direction_Backward(ObjectDirection direction) {
+void cWaypoint::Set_Direction_Backward(ObjectDirection direction) {
   m_direction_backward = direction;
 
   if (direction == DIR_LEFT) {
@@ -316,7 +316,7 @@ void cWaypoint ::Set_Direction_Backward(ObjectDirection direction) {
   }
 }
 
-void cWaypoint ::Set_Access(bool enabled, bool new_start_access /* = 0 */) {
+void cWaypoint::Set_Access(bool enabled, bool new_start_access /* = 0 */) {
   m_access = enabled;
 
   if (new_start_access) {
@@ -324,7 +324,7 @@ void cWaypoint ::Set_Access(bool enabled, bool new_start_access /* = 0 */) {
   }
 }
 
-void cWaypoint ::Set_Destination(std::string str) {
+void cWaypoint::Set_Destination(std::string str) {
   // normal waypoint
   if (m_waypoint_type == WAYPOINT_NORMAL) {
     // erase file type and directory  if set
@@ -339,8 +339,8 @@ void cWaypoint ::Set_Destination(std::string str) {
   m_destination = str;
 }
 
-std::string cWaypoint ::Get_Destination(bool with_dir /* = 0 */,
-                                        bool with_end /* = 0 */) const {
+std::string cWaypoint::Get_Destination(bool with_dir /* = 0 */,
+                                       bool with_end /* = 0 */) const {
   std::string name = m_destination;
 
   if (m_waypoint_type == WAYPOINT_NORMAL) {
@@ -356,7 +356,7 @@ std::string cWaypoint ::Get_Destination(bool with_dir /* = 0 */,
   return name;
 }
 
-void cWaypoint ::Editor_Activate(void) {
+void cWaypoint::Editor_Activate(void) {
   // get window manager
   CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
 
@@ -448,7 +448,7 @@ void cWaypoint ::Editor_Activate(void) {
   Editor_Init();
 }
 
-bool cWaypoint ::Editor_Type_Select(const CEGUI::EventArgs& event) {
+bool cWaypoint::Editor_Type_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =
@@ -462,8 +462,7 @@ bool cWaypoint ::Editor_Type_Select(const CEGUI::EventArgs& event) {
 
   return true;
 }
-bool cWaypoint ::Editor_Destination_Text_Changed(
-    const CEGUI::EventArgs& event) {
+bool cWaypoint::Editor_Destination_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   std::string const str_text =
@@ -474,7 +473,7 @@ bool cWaypoint ::Editor_Destination_Text_Changed(
   return true;
 }
 
-bool cWaypoint ::Editor_Backward_Direction_Select(
+bool cWaypoint::Editor_Backward_Direction_Select(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -486,8 +485,7 @@ bool cWaypoint ::Editor_Backward_Direction_Select(
   return true;
 }
 
-bool cWaypoint ::Editor_Forward_Direction_Select(
-    const CEGUI::EventArgs& event) {
+bool cWaypoint::Editor_Forward_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =
@@ -498,7 +496,7 @@ bool cWaypoint ::Editor_Forward_Direction_Select(
   return true;
 }
 
-bool cWaypoint ::Editor_Access_Select(const CEGUI::EventArgs& event) {
+bool cWaypoint::Editor_Access_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =

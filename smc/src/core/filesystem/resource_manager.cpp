@@ -21,11 +21,11 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cResource_Manager *** *** *** *** *** *** *** *** *** *** *** */
 
-cResource_Manager ::cResource_Manager(void) { user_data_dir = ""; }
+cResource_Manager::cResource_Manager(void) { user_data_dir = ""; }
 
-cResource_Manager ::~cResource_Manager(void) = default;
+cResource_Manager::~cResource_Manager(void) = default;
 
-void cResource_Manager ::Init_User_Directory(void) {
+void cResource_Manager::Init_User_Directory(void) {
   // Create user directory
   if (!Dir_Exists(user_data_dir)) {
     // first run if not available
@@ -57,7 +57,7 @@ void cResource_Manager ::Init_User_Directory(void) {
   }
 }
 
-bool cResource_Manager ::Set_User_Directory(const std::string& dir) {
+bool cResource_Manager::Set_User_Directory(const std::string& dir) {
   user_data_dir = dir;
 
   return true;

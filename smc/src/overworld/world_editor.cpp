@@ -26,8 +26,8 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** cEditor_World *** *** *** *** *** *** *** *** *** *** */
 
-cEditor_World ::cEditor_World(cSprite_Manager* sprite_manager,
-                              cOverworld* overworld)
+cEditor_World::cEditor_World(cSprite_Manager* sprite_manager,
+                             cOverworld* overworld)
     : cEditor(sprite_manager) {
   m_overworld = overworld;
   m_menu_filename = DATA_DIR "/" GAME_EDITOR_DIR "/world_menu.xml";
@@ -37,11 +37,11 @@ cEditor_World ::cEditor_World(cSprite_Manager* sprite_manager,
   m_camera_speed = 20;
 }
 
-cEditor_World ::~cEditor_World(void) {
+cEditor_World::~cEditor_World(void) {
   //
 }
 
-void cEditor_World ::Init(void) {
+void cEditor_World::Init(void) {
   // already loaded
   if (m_editor_window) {
     return;
@@ -52,7 +52,7 @@ void cEditor_World ::Init(void) {
   cEditor::Init();
 }
 
-void cEditor_World ::Enable(void) {
+void cEditor_World::Enable(void) {
   // already enabled
   if (m_enabled) {
     return;
@@ -68,7 +68,7 @@ void cEditor_World ::Enable(void) {
   cEditor::Enable();
 }
 
-void cEditor_World ::Disable(bool native_mode /* = 0 */) {
+void cEditor_World::Disable(bool native_mode /* = 0 */) {
   // already disabled
   if (!m_enabled) {
     return;
@@ -88,7 +88,7 @@ void cEditor_World ::Disable(bool native_mode /* = 0 */) {
   cEditor::Disable(native_mode);
 }
 
-bool cEditor_World ::Key_Down(SDLKey key) {
+bool cEditor_World::Key_Down(SDLKey key) {
   if (!m_enabled) {
     return false;
   }
@@ -105,11 +105,11 @@ bool cEditor_World ::Key_Down(SDLKey key) {
   return true;
 }
 
-void cEditor_World ::Set_Overworld(cOverworld* overworld) {
+void cEditor_World::Set_Overworld(cOverworld* overworld) {
   m_overworld = overworld;
 }
 
-void cEditor_World ::Activate_Menu_Item(cEditor_Menu_Object* entry) {
+void cEditor_World::Activate_Menu_Item(cEditor_Menu_Object* entry) {
   // If Function
   if (entry->bfunction) {
     if (entry->tags.compare("new") == 0) {
@@ -141,14 +141,14 @@ void cEditor_World ::Activate_Menu_Item(cEditor_Menu_Object* entry) {
   }
 }
 
-std::unique_ptr<cSprite> cEditor_World ::Get_Object(
+std::unique_ptr<cSprite> cEditor_World::Get_Object(
     const CEGUI::String& element, CEGUI::XMLAttributes& attributes,
     int engine_version) {
   return Create_World_Object_From_XML(element, attributes, engine_version,
                                       m_sprite_manager, m_overworld);
 }
 
-bool cEditor_World ::Function_New(void) {
+bool cEditor_World::Function_New(void) {
   std::string const world_name =
       Box_Text_Input(_("Create a new World"), _("Name"));
 
@@ -177,7 +177,7 @@ bool cEditor_World ::Function_New(void) {
   return false;
 }
 
-void cEditor_World ::Function_Load(void) {
+void cEditor_World::Function_Load(void) {
   std::string world_name = _("Name");
 
   // valid world
@@ -213,7 +213,7 @@ void cEditor_World ::Function_Load(void) {
   }
 }
 
-void cEditor_World ::Function_Save(bool with_dialog /* = 0 */) {
+void cEditor_World::Function_Save(bool with_dialog /* = 0 */) {
   // if denied
   if (with_dialog &&
       !Box_Question(
@@ -226,7 +226,7 @@ void cEditor_World ::Function_Save(bool with_dialog /* = 0 */) {
   m_overworld->Save();
 }
 
-void cEditor_World ::Function_Reload(void) {
+void cEditor_World::Function_Reload(void) {
   // if denied
   if (!Box_Question(_("Reload World ?"))) {
     return;

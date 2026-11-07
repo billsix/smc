@@ -41,8 +41,7 @@ namespace SMC {
 
 /* *** *** *** *** *** cLevel_Settings *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLevel_Settings ::cLevel_Settings(cSprite_Manager* sprite_manager,
-                                  cLevel* level)
+cLevel_Settings::cLevel_Settings(cSprite_Manager* sprite_manager, cLevel* level)
     : m_camera(sprite_manager) {
   m_active = false;
 
@@ -51,9 +50,9 @@ cLevel_Settings ::cLevel_Settings(cSprite_Manager* sprite_manager,
   m_tabcontrol = nullptr;
 }
 
-cLevel_Settings ::~cLevel_Settings(void) { Unload(); }
+cLevel_Settings::~cLevel_Settings(void) { Unload(); }
 
-void cLevel_Settings ::Init(void) {
+void cLevel_Settings::Init(void) {
   if (m_gui_window) {
     Unload();
   }
@@ -290,7 +289,7 @@ void cLevel_Settings ::Init(void) {
   Load_BG_Image_List();
 }
 
-void cLevel_Settings ::Exit(void) {
+void cLevel_Settings::Exit(void) {
   // back to level
   Game_Action = GA_ENTER_LEVEL;
   Game_Action_Data_Start.add(
@@ -301,7 +300,7 @@ void cLevel_Settings ::Exit(void) {
   Game_Action_Data_End.add("screen_fadein_speed", "3");
 }
 
-void cLevel_Settings ::Enter(void) {
+void cLevel_Settings::Enter(void) {
   // set active camera
   pActive_Camera = &m_camera;
 
@@ -320,7 +319,7 @@ void cLevel_Settings ::Enter(void) {
   m_camera.Update_Position();
 }
 
-void cLevel_Settings ::Leave(void) {
+void cLevel_Settings::Leave(void) {
   // get window manager
   CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
@@ -388,7 +387,7 @@ void cLevel_Settings ::Leave(void) {
   Unload();
 }
 
-void cLevel_Settings ::Unload(void) {
+void cLevel_Settings::Unload(void) {
   if (!m_gui_window) {
     return;
   }
@@ -402,14 +401,14 @@ void cLevel_Settings ::Unload(void) {
   m_active = false;
 }
 
-void cLevel_Settings ::Update(void) {
+void cLevel_Settings::Update(void) {
   // uhm...
 
   // update performance timer
   pFramerate->m_perf_timer[PERF_UPDATE_LEVEL_SETTINGS].Update();
 }
 
-void cLevel_Settings ::Draw(void) {
+void cLevel_Settings::Draw(void) {
   pVideo->Clear_Screen();
   pVideo->Draw_Rect(nullptr, 0.00001f, &black);
 
@@ -417,7 +416,7 @@ void cLevel_Settings ::Draw(void) {
   pFramerate->m_perf_timer[PERF_DRAW_LEVEL_SETTINGS].Update();
 }
 
-bool cLevel_Settings ::Key_Down(SDLKey key) {
+bool cLevel_Settings::Key_Down(SDLKey key) {
   if (!m_active) {
     return false;
   }
@@ -433,13 +432,13 @@ bool cLevel_Settings ::Key_Down(SDLKey key) {
   return true;
 }
 
-void cLevel_Settings ::Set_Level(cLevel* level) { m_level = level; }
+void cLevel_Settings::Set_Level(cLevel* level) { m_level = level; }
 
-void cLevel_Settings ::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
+void cLevel_Settings::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
   m_camera.Set_Sprite_Manager(sprite_manager);
 }
 
-bool cLevel_Settings ::Add_Background_Image(const CEGUI::EventArgs& event) {
+bool cLevel_Settings::Add_Background_Image(const CEGUI::EventArgs& event) {
   auto background = std::make_unique<cBackground>(&m_level->m_sprite_manager);
   background->Set_Type(BG_IMG_BOTTOM);
   background->Set_Image(LEVEL_DEFAULT_BACKGROUND);
@@ -451,7 +450,7 @@ bool cLevel_Settings ::Add_Background_Image(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cLevel_Settings ::Delete_Background_Image(const CEGUI::EventArgs& event) {
+bool cLevel_Settings::Delete_Background_Image(const CEGUI::EventArgs& event) {
   CEGUI::Listbox const* listbox = static_cast<CEGUI::Listbox*>(
       CEGUI::WindowManager::getSingleton().getWindow("listbox_backgrounds"));
   CEGUI::ListboxItem const* item = listbox->getFirstSelectedItem();
@@ -476,7 +475,7 @@ bool cLevel_Settings ::Delete_Background_Image(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cLevel_Settings ::Set_Background_Image(const CEGUI::EventArgs& event) {
+bool cLevel_Settings::Set_Background_Image(const CEGUI::EventArgs& event) {
   // get window manager
   CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
@@ -535,12 +534,12 @@ bool cLevel_Settings ::Set_Background_Image(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cLevel_Settings ::Button_Apply(const CEGUI::EventArgs& event) {
+bool cLevel_Settings::Button_Apply(const CEGUI::EventArgs& event) {
   Exit();
   return true;
 }
 
-bool cLevel_Settings ::Update_BG_Colors(const CEGUI::EventArgs& event) {
+bool cLevel_Settings::Update_BG_Colors(const CEGUI::EventArgs& event) {
   // get window manager
   CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
@@ -607,7 +606,7 @@ bool cLevel_Settings ::Update_BG_Colors(const CEGUI::EventArgs& event) {
   return true;
 }
 
-void cLevel_Settings ::Load_BG_Image_List(void) {
+void cLevel_Settings::Load_BG_Image_List(void) {
   CEGUI::Listbox* listbox = static_cast<CEGUI::Listbox*>(
       CEGUI::WindowManager::getSingleton().getWindow("listbox_backgrounds"));
   listbox->resetList();
@@ -637,7 +636,7 @@ void cLevel_Settings ::Load_BG_Image_List(void) {
   }
 }
 
-bool cLevel_Settings ::Update_BG_Image(const CEGUI::EventArgs& event) {
+bool cLevel_Settings::Update_BG_Image(const CEGUI::EventArgs& event) {
   // get window manager
   CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
@@ -707,7 +706,7 @@ bool cLevel_Settings ::Update_BG_Image(const CEGUI::EventArgs& event) {
   return true;
 }
 
-void cLevel_Settings ::Clear_Layer_Field(void) {
+void cLevel_Settings::Clear_Layer_Field(void) {
   // get window manager
   CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
@@ -722,7 +721,7 @@ void cLevel_Settings ::Clear_Layer_Field(void) {
   wmgr.getWindow("spinner_bg_image_const_vel_y")->setText("");
 }
 
-bool cLevel_Settings ::Spinner_Difficulty_Changed(
+bool cLevel_Settings::Spinner_Difficulty_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -736,8 +735,7 @@ bool cLevel_Settings ::Spinner_Difficulty_Changed(
   return true;
 }
 
-bool cLevel_Settings ::Slider_Difficulty_Changed(
-    const CEGUI::EventArgs& event) {
+bool cLevel_Settings::Slider_Difficulty_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   float const val =

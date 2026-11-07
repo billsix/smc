@@ -22,15 +22,15 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cFile_parser *** *** *** *** *** *** *** *** *** */
 
-cFile_parser ::cFile_parser(void) {
+cFile_parser::cFile_parser(void) {
   //
 }
 
-cFile_parser ::~cFile_parser(void) {
+cFile_parser::~cFile_parser(void) {
   //
 }
 
-bool cFile_parser ::Parse(const std::string& filename) {
+bool cFile_parser::Parse(const std::string& filename) {
   ifstream ifs(filename.c_str(), ios::in);
 
   if (!ifs) {
@@ -51,7 +51,7 @@ bool cFile_parser ::Parse(const std::string& filename) {
   return true;
 }
 
-bool cFile_parser ::Parse_Line(std::string str_line, int line_num) {
+bool cFile_parser::Parse_Line(std::string str_line, int line_num) {
   if (str_line.empty()) {
     return true;
   }
@@ -109,8 +109,8 @@ bool cFile_parser ::Parse_Line(std::string str_line, int line_num) {
   return success;
 }
 
-bool cFile_parser ::HandleMessage(const std::string* parts, unsigned int count,
-                                  unsigned int line) {
+bool cFile_parser::HandleMessage(const std::string* parts, unsigned int count,
+                                 unsigned int line) {
   // virtual
   return true;
 }

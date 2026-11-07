@@ -27,12 +27,12 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** cObjectCollisionType *** *** *** *** *** *** *** *** *** *** */
 
-cObjectCollisionType ::cObjectCollisionType(void)
+cObjectCollisionType::cObjectCollisionType(void)
     : cObject_Manager<cObjectCollision>() {}
 
-cObjectCollisionType ::~cObjectCollisionType(void) { Delete_All(); }
+cObjectCollisionType::~cObjectCollisionType(void) { Delete_All(); }
 
-cObjectCollision* cObjectCollisionType ::Add(
+cObjectCollision* cObjectCollisionType::Add(
     std::unique_ptr<cObjectCollision> obj) {
   if (!obj) {
     return nullptr;
@@ -43,35 +43,35 @@ cObjectCollision* cObjectCollisionType ::Add(
 
 // The elements are owned unique_ptrs now, so these predicates take a unique_ptr ref; this also
 // retires the std::binary_function / std::bind2nd functors (both removed in C++17).
-bool cObjectCollisionType ::Is_Included(const cSprite* obj) {
+bool cObjectCollisionType::Is_Included(const cSprite* obj) {
   return std::find_if(objects.begin(), objects.end(),
                       [obj](const std::unique_ptr<cObjectCollision>& col) {
                         return col->m_obj == obj;
                       }) != objects.end();
 }
 
-bool cObjectCollisionType ::Is_Included(const ArrayType type) {
+bool cObjectCollisionType::Is_Included(const ArrayType type) {
   return std::find_if(objects.begin(), objects.end(),
                       [type](const std::unique_ptr<cObjectCollision>& col) {
                         return col->m_obj->m_sprite_array == type;
                       }) != objects.end();
 }
 
-bool cObjectCollisionType ::Is_Included(const SpriteType type) {
+bool cObjectCollisionType::Is_Included(const SpriteType type) {
   return std::find_if(objects.begin(), objects.end(),
                       [type](const std::unique_ptr<cObjectCollision>& col) {
                         return col->m_obj->m_type == type;
                       }) != objects.end();
 }
 
-bool cObjectCollisionType ::Is_Included(const Col_Valid_Type type) {
+bool cObjectCollisionType::Is_Included(const Col_Valid_Type type) {
   return std::find_if(objects.begin(), objects.end(),
                       [type](const std::unique_ptr<cObjectCollision>& col) {
                         return col->m_valid_type == type;
                       }) != objects.end();
 }
 
-cObjectCollision* cObjectCollisionType ::Find_First(const ArrayType type) {
+cObjectCollision* cObjectCollisionType::Find_First(const ArrayType type) {
   return std::find_if(objects.begin(), objects.end(),
                       [type](const std::unique_ptr<cObjectCollision>& col) {
                         return col->m_obj->m_sprite_array == type;
@@ -79,7 +79,7 @@ cObjectCollision* cObjectCollisionType ::Find_First(const ArrayType type) {
       ->get();
 }
 
-cObjectCollision* cObjectCollisionType ::Find_First(const SpriteType type) {
+cObjectCollision* cObjectCollisionType::Find_First(const SpriteType type) {
   return std::find_if(objects.begin(), objects.end(),
                       [type](const std::unique_ptr<cObjectCollision>& col) {
                         return col->m_obj->m_type == type;
@@ -89,7 +89,7 @@ cObjectCollision* cObjectCollisionType ::Find_First(const SpriteType type) {
 
 /* *** *** *** *** *** *** *** cObjectCollision *** *** *** *** *** *** *** *** *** *** */
 
-cObjectCollision ::cObjectCollision(void) {
+cObjectCollision::cObjectCollision(void) {
   m_valid_type = COL_VTYPE_NOT_VALID;
   m_received = false;
   m_obj = nullptr;
@@ -98,11 +98,11 @@ cObjectCollision ::cObjectCollision(void) {
   m_array = ARRAY_UNDEFINED;
 }
 
-cObjectCollision ::~cObjectCollision(void) {
+cObjectCollision::~cObjectCollision(void) {
   //
 }
 
-void cObjectCollision ::Set_Direction(const cSprite* base, const cSprite* col) {
+void cObjectCollision::Set_Direction(const cSprite* base, const cSprite* col) {
   m_direction = Get_Collision_Direction(base, col);
 }
 

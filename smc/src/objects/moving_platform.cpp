@@ -36,25 +36,25 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** cMoving_Platform *** *** *** *** *** *** *** *** *** *** */
 
-cMoving_Platform ::cMoving_Platform(cSprite_Manager* sprite_manager)
+cMoving_Platform::cMoving_Platform(cSprite_Manager* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "moving_platform"),
       m_path_state(sprite_manager) {
   cMoving_Platform::Init();
 }
 
-cMoving_Platform ::cMoving_Platform(CEGUI::XMLAttributes& attributes,
-                                    cSprite_Manager* sprite_manager)
+cMoving_Platform::cMoving_Platform(CEGUI::XMLAttributes& attributes,
+                                   cSprite_Manager* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "moving_platform"),
       m_path_state(sprite_manager) {
   cMoving_Platform::Init();
   cMoving_Platform::Load_From_XML(attributes);
 }
 
-cMoving_Platform ::~cMoving_Platform(void) {
+cMoving_Platform::~cMoving_Platform(void) {
   //
 }
 
-void cMoving_Platform ::Init(void) {
+void cMoving_Platform::Init(void) {
   m_sprite_array = ARRAY_ACTIVE;
   m_type = TYPE_MOVING_PLATFORM;
   m_pos_z = 0.085f;
@@ -97,12 +97,12 @@ void cMoving_Platform ::Init(void) {
   Create_Name();
 }
 
-void cMoving_Platform ::Init_Links(void) {
+void cMoving_Platform::Init_Links(void) {
   // link to parent path
   m_path_state.Set_Path_Identifier(m_path_state.m_path_identifier);
 }
 
-std::unique_ptr<cSprite> cMoving_Platform ::Copy(void) const {
+std::unique_ptr<cSprite> cMoving_Platform::Copy(void) const {
   auto moving_platform = std::make_unique<cMoving_Platform>(m_sprite_manager);
   moving_platform->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   moving_platform->Set_Move_Type(m_move_type);
@@ -121,7 +121,7 @@ std::unique_ptr<cSprite> cMoving_Platform ::Copy(void) const {
   return moving_platform;
 }
 
-void cMoving_Platform ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cMoving_Platform::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
           static_cast<float>(attributes.getValueAsInteger("posy")), true);
@@ -185,7 +185,7 @@ void cMoving_Platform ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
           .c_str()));
 }
 
-void cMoving_Platform ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cMoving_Platform::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -236,12 +236,12 @@ void cMoving_Platform ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cMoving_Platform ::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
+void cMoving_Platform::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
   cSprite::Set_Sprite_Manager(sprite_manager);
   m_path_state.Set_Sprite_Manager(sprite_manager);
 }
 
-void cMoving_Platform ::Load_From_Savegame(cSave_Level_Object* save_object) {
+void cMoving_Platform::Load_From_Savegame(cSave_Level_Object* save_object) {
   // direction
   if (save_object->exists("direction")) {
     m_direction = static_cast<ObjectDirection>(
@@ -283,7 +283,7 @@ void cMoving_Platform ::Load_From_Savegame(cSave_Level_Object* save_object) {
   m_path_state.Load_From_Savegame(save_object);
 }
 
-std::unique_ptr<cSave_Level_Object> cMoving_Platform ::Save_To_Savegame(void) {
+std::unique_ptr<cSave_Level_Object> cMoving_Platform::Save_To_Savegame(void) {
   auto save_object = std::make_unique<cSave_Level_Object>();
 
   // default values
@@ -324,7 +324,7 @@ std::unique_ptr<cSave_Level_Object> cMoving_Platform ::Save_To_Savegame(void) {
   return save_object;
 }
 
-void cMoving_Platform ::Set_Move_Type(Moving_Platform_Type move_type) {
+void cMoving_Platform::Set_Move_Type(Moving_Platform_Type move_type) {
   m_move_type = move_type;
 
   if (m_move_type == MOVING_PLATFORM_TYPE_CIRCLE) {
@@ -336,12 +336,12 @@ void cMoving_Platform ::Set_Move_Type(Moving_Platform_Type move_type) {
   }
 }
 
-void cMoving_Platform ::Set_Path_Identifier(const std::string& identifier) {
+void cMoving_Platform::Set_Path_Identifier(const std::string& identifier) {
   m_path_state.Set_Path_Identifier(identifier);
   Set_Velocity(0, 0);
 }
 
-void cMoving_Platform ::Set_Massive_Type(MassiveType new_type) {
+void cMoving_Platform::Set_Massive_Type(MassiveType new_type) {
   m_massive_type = new_type;
 
   if (m_massive_type == MASS_MASSIVE) {
@@ -357,8 +357,8 @@ void cMoving_Platform ::Set_Massive_Type(MassiveType new_type) {
   Create_Name();
 }
 
-void cMoving_Platform ::Set_Direction(const ObjectDirection dir,
-                                      bool new_start_direction /* = 0 */) {
+void cMoving_Platform::Set_Direction(const ObjectDirection dir,
+                                     bool new_start_direction /* = 0 */) {
   // save old direction
   ObjectDirection const start_direction_old = m_start_direction;
   // set direction
@@ -380,7 +380,7 @@ void cMoving_Platform ::Set_Direction(const ObjectDirection dir,
   Update_Velocity();
 }
 
-void cMoving_Platform ::Set_Max_Distance(int new_max_distance) {
+void cMoving_Platform::Set_Max_Distance(int new_max_distance) {
   if (new_max_distance < 0) {
     new_max_distance = 0;
   }
@@ -390,7 +390,7 @@ void cMoving_Platform ::Set_Max_Distance(int new_max_distance) {
   m_max_distance_slow_down_pos = m_max_distance * 0.2f;
 }
 
-void cMoving_Platform ::Set_Speed(float val) {
+void cMoving_Platform::Set_Speed(float val) {
   m_speed = val;
   m_lowest_speed = m_speed * 0.3f;
 
@@ -400,7 +400,7 @@ void cMoving_Platform ::Set_Speed(float val) {
   Create_Name();
 }
 
-void cMoving_Platform ::Set_Touch_Time(float val) {
+void cMoving_Platform::Set_Touch_Time(float val) {
   m_touch_time = val;
 
   if (m_touch_time < 0) {
@@ -410,7 +410,7 @@ void cMoving_Platform ::Set_Touch_Time(float val) {
   Create_Name();
 }
 
-void cMoving_Platform ::Set_Shake_Time(float val) {
+void cMoving_Platform::Set_Shake_Time(float val) {
   m_shake_time = val;
 
   if (m_shake_time < 0) {
@@ -418,7 +418,7 @@ void cMoving_Platform ::Set_Shake_Time(float val) {
   }
 }
 
-void cMoving_Platform ::Set_Touch_Move_Time(float val) {
+void cMoving_Platform::Set_Touch_Move_Time(float val) {
   m_touch_move_time = val;
 
   if (m_touch_move_time < 0) {
@@ -433,7 +433,7 @@ void cMoving_Platform ::Set_Touch_Move_Time(float val) {
   Create_Name();
 }
 
-void cMoving_Platform ::Set_Middle_Count(const unsigned int val) {
+void cMoving_Platform::Set_Middle_Count(const unsigned int val) {
   m_middle_count = val;
 
   if (m_middle_count > 128) {
@@ -441,7 +441,7 @@ void cMoving_Platform ::Set_Middle_Count(const unsigned int val) {
   }
 }
 
-void cMoving_Platform ::Set_Image_Top_Left(cGL_Surface* surface) {
+void cMoving_Platform::Set_Image_Top_Left(cGL_Surface* surface) {
   if (!surface) {
     return;
   }
@@ -455,7 +455,7 @@ void cMoving_Platform ::Set_Image_Top_Left(cGL_Surface* surface) {
   Update_Rect();
 }
 
-void cMoving_Platform ::Set_Image_Top_Middle(cGL_Surface* surface) {
+void cMoving_Platform::Set_Image_Top_Middle(cGL_Surface* surface) {
   if (!surface) {
     return;
   }
@@ -464,7 +464,7 @@ void cMoving_Platform ::Set_Image_Top_Middle(cGL_Surface* surface) {
   Update_Rect();
 }
 
-void cMoving_Platform ::Set_Image_Top_Right(cGL_Surface* surface) {
+void cMoving_Platform::Set_Image_Top_Right(cGL_Surface* surface) {
   if (!surface) {
     return;
   }
@@ -473,7 +473,7 @@ void cMoving_Platform ::Set_Image_Top_Right(cGL_Surface* surface) {
   Update_Rect();
 }
 
-void cMoving_Platform ::Update(void) {
+void cMoving_Platform::Update(void) {
   if (!m_valid_update || !Is_In_Range()) {
     return;
   }
@@ -711,7 +711,7 @@ void cMoving_Platform ::Update(void) {
   }
 }
 
-void cMoving_Platform ::Draw(cSurface_Request* request /* = nullptr */) {
+void cMoving_Platform::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -821,7 +821,7 @@ void cMoving_Platform ::Draw(cSurface_Request* request /* = nullptr */) {
   }
 }
 
-void cMoving_Platform ::Update_Rect(void) {
+void cMoving_Platform::Update_Rect(void) {
   // clear
   m_col_rect.m_w = 0;
   m_rect.m_w = 0;
@@ -842,7 +842,7 @@ void cMoving_Platform ::Update_Rect(void) {
   m_start_rect.m_w = m_rect.m_w;
 }
 
-void cMoving_Platform ::Update_Velocity(void) {
+void cMoving_Platform::Update_Velocity(void) {
   if (m_move_type != MOVING_PLATFORM_TYPE_LINE) {
     return;
   }
@@ -873,7 +873,7 @@ void cMoving_Platform ::Update_Velocity(void) {
   }
 }
 
-bool cMoving_Platform ::Is_Update_Valid(void) {
+bool cMoving_Platform::Is_Update_Valid(void) {
   // if not visible
   if (!m_active) {
     return false;
@@ -882,7 +882,7 @@ bool cMoving_Platform ::Is_Update_Valid(void) {
   return true;
 }
 
-bool cMoving_Platform ::Is_Draw_Valid(void) {
+bool cMoving_Platform::Is_Draw_Valid(void) {
   bool const valid = cAnimated_Sprite::Is_Draw_Valid();
 
   // if editor enabled
@@ -896,7 +896,7 @@ bool cMoving_Platform ::Is_Draw_Valid(void) {
   return valid;
 }
 
-Col_Valid_Type cMoving_Platform ::Validate_Collision(cSprite* obj) {
+Col_Valid_Type cMoving_Platform::Validate_Collision(cSprite* obj) {
   if (obj->m_type == TYPE_PLAYER || obj->m_sprite_array == ARRAY_ENEMY) {
     cMovingSprite* moving_sprite = static_cast<cMovingSprite*>(obj);
 
@@ -927,7 +927,7 @@ Col_Valid_Type cMoving_Platform ::Validate_Collision(cSprite* obj) {
   return COL_VTYPE_NOT_VALID;
 }
 
-void cMoving_Platform ::Handle_Collision_Player(cObjectCollision* collision) {
+void cMoving_Platform::Handle_Collision_Player(cObjectCollision* collision) {
   if (collision->m_direction == DIR_TOP) {
     // set to touched
     if ((m_touch_time > 0.0f || m_touch_move_time > 0.0f) &&
@@ -942,14 +942,14 @@ void cMoving_Platform ::Handle_Collision_Player(cObjectCollision* collision) {
   Handle_Move_Object_Collision(collision);
 }
 
-void cMoving_Platform ::Handle_Collision_Enemy(cObjectCollision* collision) {
+void cMoving_Platform::Handle_Collision_Enemy(cObjectCollision* collision) {
   // send collision
   Send_Collision(collision);
 
   Handle_Move_Object_Collision(collision);
 }
 
-void cMoving_Platform ::Editor_Activate(void) {
+void cMoving_Platform::Editor_Activate(void) {
   // get window manager
   CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
 
@@ -1127,7 +1127,7 @@ void cMoving_Platform ::Editor_Activate(void) {
   Editor_Init();
 }
 
-void cMoving_Platform ::Editor_State_Update(void) {
+void cMoving_Platform::Editor_State_Update(void) {
   CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
   // path identifier
@@ -1184,7 +1184,7 @@ void cMoving_Platform ::Editor_State_Update(void) {
   }
 }
 
-bool cMoving_Platform ::Editor_Move_Type_Select(const CEGUI::EventArgs& event) {
+bool cMoving_Platform::Editor_Move_Type_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =
@@ -1206,7 +1206,7 @@ bool cMoving_Platform ::Editor_Move_Type_Select(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cMoving_Platform ::Editor_Path_Identifier_Text_Changed(
+bool cMoving_Platform::Editor_Path_Identifier_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1218,7 +1218,7 @@ bool cMoving_Platform ::Editor_Path_Identifier_Text_Changed(
   return true;
 }
 
-bool cMoving_Platform ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
+bool cMoving_Platform::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =
@@ -1229,7 +1229,7 @@ bool cMoving_Platform ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cMoving_Platform ::Editor_Max_Distance_Text_Changed(
+bool cMoving_Platform::Editor_Max_Distance_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1241,7 +1241,7 @@ bool cMoving_Platform ::Editor_Max_Distance_Text_Changed(
   return true;
 }
 
-bool cMoving_Platform ::Editor_Speed_Text_Changed(
+bool cMoving_Platform::Editor_Speed_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1253,7 +1253,7 @@ bool cMoving_Platform ::Editor_Speed_Text_Changed(
   return true;
 }
 
-bool cMoving_Platform ::Editor_Touch_Time_Text_Changed(
+bool cMoving_Platform::Editor_Touch_Time_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1265,7 +1265,7 @@ bool cMoving_Platform ::Editor_Touch_Time_Text_Changed(
   return true;
 }
 
-bool cMoving_Platform ::Editor_Shake_Time_Text_Changed(
+bool cMoving_Platform::Editor_Shake_Time_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1277,7 +1277,7 @@ bool cMoving_Platform ::Editor_Shake_Time_Text_Changed(
   return true;
 }
 
-bool cMoving_Platform ::Editor_Touch_Move_Time_Text_Changed(
+bool cMoving_Platform::Editor_Touch_Move_Time_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1289,7 +1289,7 @@ bool cMoving_Platform ::Editor_Touch_Move_Time_Text_Changed(
   return true;
 }
 
-bool cMoving_Platform ::Editor_Hor_Middle_Count_Text_Changed(
+bool cMoving_Platform::Editor_Hor_Middle_Count_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1301,7 +1301,7 @@ bool cMoving_Platform ::Editor_Hor_Middle_Count_Text_Changed(
   return true;
 }
 
-bool cMoving_Platform ::Editor_Image_Top_Left_Text_Changed(
+bool cMoving_Platform::Editor_Image_Top_Left_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1313,7 +1313,7 @@ bool cMoving_Platform ::Editor_Image_Top_Left_Text_Changed(
   return true;
 }
 
-bool cMoving_Platform ::Editor_Image_Top_Middle_Text_Changed(
+bool cMoving_Platform::Editor_Image_Top_Middle_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1325,7 +1325,7 @@ bool cMoving_Platform ::Editor_Image_Top_Middle_Text_Changed(
   return true;
 }
 
-bool cMoving_Platform ::Editor_Image_Top_Right_Text_Changed(
+bool cMoving_Platform::Editor_Image_Top_Right_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1337,7 +1337,7 @@ bool cMoving_Platform ::Editor_Image_Top_Right_Text_Changed(
   return true;
 }
 
-void cMoving_Platform ::Create_Name(void) {
+void cMoving_Platform::Create_Name(void) {
   m_name.clear();
 
   if (m_touch_time) {

@@ -29,9 +29,8 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cLayer_Line_Point *** *** *** *** *** *** *** *** *** */
 
-cLayer_Line_Point ::cLayer_Line_Point(cSprite_Manager* sprite_manager,
-                                      cOverworld* overworld,
-                                      SpriteType new_type)
+cLayer_Line_Point::cLayer_Line_Point(cSprite_Manager* sprite_manager,
+                                     cOverworld* overworld, SpriteType new_type)
     : cSprite(sprite_manager) {
   m_sprite_array = ARRAY_PASSIVE;
   m_type = new_type;
@@ -62,7 +61,7 @@ cLayer_Line_Point ::cLayer_Line_Point(cSprite_Manager* sprite_manager,
   m_camera_range = 0;
 }
 
-cLayer_Line_Point ::~cLayer_Line_Point(void) {
+cLayer_Line_Point::~cLayer_Line_Point(void) {
   Destroy();
 
   // remove linked point
@@ -71,7 +70,7 @@ cLayer_Line_Point ::~cLayer_Line_Point(void) {
   }
 }
 
-void cLayer_Line_Point ::Draw(cSurface_Request* request /* = nullptr */) {
+void cLayer_Line_Point::Draw(cSurface_Request* request /* = nullptr */) {
   if (m_auto_destroy || !pOverworld_Manager->m_draw_layer) {
     return;
   }
@@ -82,7 +81,7 @@ void cLayer_Line_Point ::Draw(cSurface_Request* request /* = nullptr */) {
                     m_col_rect.m_h, m_pos_z, &m_color);
 }
 
-void cLayer_Line_Point ::Destroy(void) {
+void cLayer_Line_Point::Destroy(void) {
   if (m_auto_destroy) {
     return;
   }
@@ -99,23 +98,23 @@ void cLayer_Line_Point ::Destroy(void) {
   }
 }
 
-float cLayer_Line_Point ::Get_Line_Pos_X(void) const {
+float cLayer_Line_Point::Get_Line_Pos_X(void) const {
   return m_pos_x + (m_col_rect.m_w * 0.5f);
 }
 
-float cLayer_Line_Point ::Get_Line_Pos_Y(void) const {
+float cLayer_Line_Point::Get_Line_Pos_Y(void) const {
   return m_pos_y + (m_col_rect.m_h * 0.5f);
 }
 
 /* *** *** *** *** *** *** *** *** cLayer_Line_Point_Start *** *** *** *** *** *** *** *** *** */
 
-cLayer_Line_Point_Start ::cLayer_Line_Point_Start(
+cLayer_Line_Point_Start::cLayer_Line_Point_Start(
     cSprite_Manager* sprite_manager, cOverworld* overworld)
     : cLayer_Line_Point(sprite_manager, overworld, TYPE_OW_LINE_START) {
   cLayer_Line_Point_Start::Init();
 }
 
-cLayer_Line_Point_Start ::cLayer_Line_Point_Start(
+cLayer_Line_Point_Start::cLayer_Line_Point_Start(
     CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager,
     cOverworld* overworld)
     : cLayer_Line_Point(sprite_manager, overworld, TYPE_OW_LINE_START) {
@@ -123,7 +122,7 @@ cLayer_Line_Point_Start ::cLayer_Line_Point_Start(
   cLayer_Line_Point_Start::Load_From_XML(attributes);
 }
 
-cLayer_Line_Point_Start ::~cLayer_Line_Point_Start(void) {
+cLayer_Line_Point_Start::~cLayer_Line_Point_Start(void) {
   Destroy();
 
   // remove linked point
@@ -132,7 +131,7 @@ cLayer_Line_Point_Start ::~cLayer_Line_Point_Start(void) {
   }
 }
 
-void cLayer_Line_Point_Start ::Init(void) {
+void cLayer_Line_Point_Start::Init(void) {
   m_anim_type = 0;
   m_origin = 0;
 
@@ -143,7 +142,7 @@ void cLayer_Line_Point_Start ::Init(void) {
   m_linked_point->m_linked_point = this;
 }
 
-std::unique_ptr<cSprite> cLayer_Line_Point_Start ::Copy(void) const {
+std::unique_ptr<cSprite> cLayer_Line_Point_Start::Copy(void) const {
   // create layer line
   // hack : assume it's copied with the editor
   auto layer_line = std::make_unique<cLayer_Line_Point_Start>(
@@ -157,7 +156,7 @@ std::unique_ptr<cSprite> cLayer_Line_Point_Start ::Copy(void) const {
   return layer_line;
 }
 
-void cLayer_Line_Point_Start ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cLayer_Line_Point_Start::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // Start
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("X1")) - 2,
           static_cast<float>(attributes.getValueAsInteger("Y1")) - 2, true);
@@ -169,7 +168,7 @@ void cLayer_Line_Point_Start ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   m_origin = static_cast<unsigned int>(attributes.getValueAsInteger("origin"));
 }
 
-void cLayer_Line_Point_Start ::Set_Sprite_Manager(
+void cLayer_Line_Point_Start::Set_Sprite_Manager(
     cSprite_Manager* sprite_manager) {
   cSprite::Set_Sprite_Manager(sprite_manager);
 
@@ -178,7 +177,7 @@ void cLayer_Line_Point_Start ::Set_Sprite_Manager(
   }
 }
 
-void cLayer_Line_Point_Start ::Draw(cSurface_Request* request /* = nullptr */) {
+void cLayer_Line_Point_Start::Draw(cSurface_Request* request /* = nullptr */) {
   // not a valid draw
   if (m_auto_destroy || m_linked_point->m_auto_destroy ||
       !pOverworld_Manager->m_draw_layer) {
@@ -212,14 +211,14 @@ void cLayer_Line_Point_Start ::Draw(cSurface_Request* request /* = nullptr */) {
   cLayer_Line_Point::Draw(request);
 }
 
-GL_line cLayer_Line_Point_Start ::Get_Line(void) const {
+GL_line cLayer_Line_Point_Start::Get_Line(void) const {
   return GL_line(
       m_pos_x + (m_col_rect.m_w * 0.5f), m_pos_y + (m_col_rect.m_h * 0.5f),
       m_linked_point->m_pos_x + (m_linked_point->m_col_rect.m_w * 0.5f),
       m_linked_point->m_pos_y + (m_linked_point->m_col_rect.m_h * 0.5f));
 }
 
-cWaypoint* cLayer_Line_Point_Start ::Get_End_Waypoint(void) const {
+cWaypoint* cLayer_Line_Point_Start::Get_End_Waypoint(void) const {
   // get waypoint number
   int const wp_num =
       m_overworld->Get_Waypoint_Collision(m_linked_point->m_col_rect);
@@ -241,7 +240,7 @@ cWaypoint* cLayer_Line_Point_Start ::Get_End_Waypoint(void) const {
   return m_overworld->Get_Waypoint(static_cast<unsigned int>(wp_num));
 }
 
-void cLayer_Line_Point_Start ::Editor_Activate(void) {
+void cLayer_Line_Point_Start::Editor_Activate(void) {
   // get window manager
   CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
 
@@ -261,7 +260,7 @@ void cLayer_Line_Point_Start ::Editor_Activate(void) {
   Editor_Init();
 }
 
-bool cLayer_Line_Point_Start ::Editor_Origin_Text_Changed(
+bool cLayer_Line_Point_Start::Editor_Origin_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -275,7 +274,7 @@ bool cLayer_Line_Point_Start ::Editor_Origin_Text_Changed(
 
 /* *** *** *** *** *** *** *** *** Line Collision *** *** *** *** *** *** *** *** *** */
 
-cLine_collision ::cLine_collision(void) {
+cLine_collision::cLine_collision(void) {
   m_line = nullptr;
   m_line_number = -2;
   m_difference = 0;
@@ -283,16 +282,16 @@ cLine_collision ::cLine_collision(void) {
 
 /* *** *** *** *** *** *** *** *** Layer *** *** *** *** *** *** *** *** *** */
 
-cLayer ::cLayer(cOverworld* origin) { m_overworld = origin; }
+cLayer::cLayer(cOverworld* origin) { m_overworld = origin; }
 
-cLayer ::~cLayer(void) { Delete_All(); }
+cLayer::~cLayer(void) { Delete_All(); }
 
-void cLayer ::Add(std::unique_ptr<cLayer_Line_Point_Start> line_point) {
+void cLayer::Add(std::unique_ptr<cLayer_Line_Point_Start> line_point) {
   // the world sprite manager owns it from here and calls Register
   m_overworld->m_sprite_manager.Add(std::move(line_point));
 }
 
-void cLayer ::Register(cLayer_Line_Point_Start* line_point) {
+void cLayer::Register(cLayer_Line_Point_Start* line_point) {
   for (const auto& layer_line : objects) {
     // if already in layer
     if (layer_line == line_point) {
@@ -308,7 +307,7 @@ void cLayer ::Register(cLayer_Line_Point_Start* line_point) {
   }
 }
 
-int cLayer ::Get_Array_Num(const cLayer_Line_Point_Start* obj) const {
+int cLayer::Get_Array_Num(const cLayer_Line_Point_Start* obj) const {
   if (!obj) {
     return -1;
   }
@@ -322,7 +321,7 @@ int cLayer ::Get_Array_Num(const cLayer_Line_Point_Start* obj) const {
   return std::distance(objects.begin(), itr);
 }
 
-bool cLayer ::Remove(cLayer_Line_Point_Start* obj) {
+bool cLayer::Remove(cLayer_Line_Point_Start* obj) {
   if (!obj) {
     return false;
   }
@@ -332,7 +331,7 @@ bool cLayer ::Remove(cLayer_Line_Point_Start* obj) {
   return true;
 }
 
-void cLayer ::Load(const std::string& filename) {
+void cLayer::Load(const std::string& filename) {
   Delete_All();
 
   try {
@@ -357,7 +356,7 @@ void cLayer ::Load(const std::string& filename) {
   }
 }
 
-bool cLayer ::Save(const std::string& filename) {
+bool cLayer::Save(const std::string& filename) {
 // fixme : Check if there is a more portable way f.e. with imbue()
 #ifdef _WIN32
   ofstream file(utf8_to_ucs2(filename).c_str(), ios::out | ios::trunc);
@@ -401,12 +400,12 @@ bool cLayer ::Save(const std::string& filename) {
   return true;
 }
 
-void cLayer ::Delete_All(void) {
+void cLayer::Delete_All(void) {
   // only clear array
   objects.clear();
 }
 
-cLayer_Line_Point_Start* cLayer ::Get_Line_Collision_Start(
+cLayer_Line_Point_Start* cLayer::Get_Line_Collision_Start(
     const GL_rect& line_rect) {
   for (const auto& layer_line : objects) {
     // get pointer
@@ -419,7 +418,7 @@ cLayer_Line_Point_Start* cLayer ::Get_Line_Collision_Start(
   return nullptr;
 }
 
-cLine_collision cLayer ::Get_Line_Collision_Direction(
+cLine_collision cLayer::Get_Line_Collision_Direction(
     float x, float y, ObjectDirection dir, float dir_size /* = 10 */,
     unsigned int check_size /* = 10 */) const {
   if (dir == DIR_UP) {
@@ -442,10 +441,10 @@ cLine_collision cLayer ::Get_Line_Collision_Direction(
   return cLine_collision();
 }
 
-cLine_collision cLayer ::Get_Nearest(float x, float y,
-                                     ObjectDirection dir /* = DIR_HORIZONTAL */,
-                                     unsigned int check_size /* = 15 */,
-                                     int only_origin_id /* = -1 */) const {
+cLine_collision cLayer::Get_Nearest(float x, float y,
+                                    ObjectDirection dir /* = DIR_HORIZONTAL */,
+                                    unsigned int check_size /* = 15 */,
+                                    int only_origin_id /* = -1 */) const {
   for (const auto& layer_line : objects) {
     // get pointer
     // line is not from waypoint
@@ -466,7 +465,7 @@ cLine_collision cLayer ::Get_Nearest(float x, float y,
   return cLine_collision();
 }
 
-cLine_collision cLayer ::Get_Nearest_Line(
+cLine_collision cLayer::Get_Nearest_Line(
     cLayer_Line_Point_Start* map_layer_line, float x, float y,
     ObjectDirection dir /* = DIR_HORIZONTAL */,
     unsigned int check_size /* = 15  */) const {
@@ -547,15 +546,15 @@ cLine_collision cLayer ::Get_Nearest_Line(
   return cLine_collision();
 }
 
-void cLayer ::elementStart(const CEGUI::String& element,
-                           const CEGUI::XMLAttributes& attributes) {
+void cLayer::elementStart(const CEGUI::String& element,
+                          const CEGUI::XMLAttributes& attributes) {
   if (element == "property" || element == "Property") {
     m_xml_attributes.add(attributes.getValueAsString("name"),
                          attributes.getValueAsString("value"));
   }
 }
 
-void cLayer ::elementEnd(const CEGUI::String& element) {
+void cLayer::elementEnd(const CEGUI::String& element) {
   if (element == "property" || element == "Property") {
     return;
   }

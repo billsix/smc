@@ -23,17 +23,17 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cPerformance_Timer *** *** *** *** *** *** *** *** *** *** *** */
 
-cPerformance_Timer ::cPerformance_Timer(void) { Reset(); }
+cPerformance_Timer::cPerformance_Timer(void) { Reset(); }
 
-cPerformance_Timer ::~cPerformance_Timer(void) = default;
+cPerformance_Timer::~cPerformance_Timer(void) = default;
 
-void cPerformance_Timer ::Reset(void) {
+void cPerformance_Timer::Reset(void) {
   frame_counter = 0;
   ms_counter = 0;
   ms = 0;
 }
 
-void cPerformance_Timer ::Update(void) {
+void cPerformance_Timer::Update(void) {
   // count frame
   frame_counter++;
 
@@ -52,7 +52,7 @@ void cPerformance_Timer ::Update(void) {
 
 /* *** *** *** *** *** *** cFramerate *** *** *** *** *** *** *** *** *** *** *** */
 
-cFramerate ::cFramerate(void) {
+cFramerate::cFramerate(void) {
   m_fps_target = 0;
   m_fps = 0.0f;
   m_fps_best = 0.0f;
@@ -70,9 +70,9 @@ cFramerate ::cFramerate(void) {
   m_perf_timer.resize(24);
 }
 
-cFramerate ::~cFramerate(void) = default;
+cFramerate::~cFramerate(void) = default;
 
-void cFramerate ::Init(const float target_fps /* = speedfactor_fps */) {
+void cFramerate::Init(const float target_fps /* = speedfactor_fps */) {
   m_fps_target = target_fps;
   m_max_elapsed_ticks = 100;
   m_force_speed_factor = 0.0f;
@@ -80,7 +80,7 @@ void cFramerate ::Init(const float target_fps /* = speedfactor_fps */) {
   Reset();
 }
 
-void cFramerate ::Update(void) {
+void cFramerate::Update(void) {
   const Uint32 current_ticks = Ticks_Ms();
 
   // if speed factor is forced
@@ -140,7 +140,7 @@ void cFramerate ::Update(void) {
   m_last_ticks = current_ticks;
 }
 
-void cFramerate ::Reset(void) {
+void cFramerate::Reset(void) {
   m_last_ticks = Ticks_Ms();
   m_elapsed_ticks = 1;
   m_speed_factor = 0.001f;
@@ -156,11 +156,11 @@ void cFramerate ::Reset(void) {
   }
 }
 
-void cFramerate ::Set_Max_Elapsed_Ticks(const Uint32 ticks) {
+void cFramerate::Set_Max_Elapsed_Ticks(const Uint32 ticks) {
   m_max_elapsed_ticks = ticks;
 }
 
-void cFramerate ::Set_Fixed_Speedfacor(const float val) {
+void cFramerate::Set_Fixed_Speedfacor(const float val) {
   m_force_speed_factor = val;
 }
 

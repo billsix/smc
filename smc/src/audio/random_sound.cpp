@@ -31,22 +31,22 @@ namespace SMC {
 
 /* *** *** *** *** *** cRandom_Sound *** *** *** *** *** *** *** *** *** *** *** */
 
-cRandom_Sound ::cRandom_Sound(cSprite_Manager* sprite_manager)
+cRandom_Sound::cRandom_Sound(cSprite_Manager* sprite_manager)
     : cSprite(sprite_manager, "sound") {
   // Set defaults
   cRandom_Sound::Init();
 }
 
-cRandom_Sound ::cRandom_Sound(CEGUI::XMLAttributes& attributes,
-                              cSprite_Manager* sprite_manager)
+cRandom_Sound::cRandom_Sound(CEGUI::XMLAttributes& attributes,
+                             cSprite_Manager* sprite_manager)
     : cSprite(sprite_manager, "sound") {
   cRandom_Sound::Init();
   cRandom_Sound::Load_From_XML(attributes);
 }
 
-cRandom_Sound ::~cRandom_Sound(void) = default;
+cRandom_Sound::~cRandom_Sound(void) = default;
 
-void cRandom_Sound ::Init(void) {
+void cRandom_Sound::Init(void) {
   m_sprite_array = ARRAY_ACTIVE;
   m_type = TYPE_SOUND;
   m_massive_type = MASS_PASSIVE;
@@ -78,7 +78,7 @@ void cRandom_Sound ::Init(void) {
   m_editor_color_volume_reduction_end = Color(0.2f, 0.4f, 0.1f, 0.2f);
 }
 
-std::unique_ptr<cSprite> cRandom_Sound ::Copy(void) const {
+std::unique_ptr<cSprite> cRandom_Sound::Copy(void) const {
   auto random_sound = std::make_unique<cRandom_Sound>(m_sprite_manager);
   random_sound->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   random_sound->Set_Filename(m_filename.c_str());
@@ -92,7 +92,7 @@ std::unique_ptr<cSprite> cRandom_Sound ::Copy(void) const {
   return random_sound;
 }
 
-void cRandom_Sound ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cRandom_Sound::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // filename
   Set_Filename(attributes.getValueAsString("file").c_str());
   // position
@@ -115,7 +115,7 @@ void cRandom_Sound ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
                                                       m_volume_reduction_end));
 }
 
-void cRandom_Sound ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cRandom_Sound::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -140,7 +140,7 @@ void cRandom_Sound ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cRandom_Sound ::Set_Filename(const std::string& str) {
+void cRandom_Sound::Set_Filename(const std::string& str) {
   // stop playing sounds
   for (unsigned int i = 0; i < 100; i++) {
     cAudio_Sound* sound = pAudio->Get_Playing_Sound(m_filename);
@@ -155,13 +155,13 @@ void cRandom_Sound ::Set_Filename(const std::string& str) {
   m_filename = str;
 }
 
-std::string cRandom_Sound ::Get_Filename(void) const { return m_filename; }
+std::string cRandom_Sound::Get_Filename(void) const { return m_filename; }
 
-void cRandom_Sound ::Set_Continuous(bool continuous) {
+void cRandom_Sound::Set_Continuous(bool continuous) {
   m_continuous = continuous;
 }
 
-void cRandom_Sound ::Set_Delay_Min(unsigned int delay) {
+void cRandom_Sound::Set_Delay_Min(unsigned int delay) {
   if (delay < 20) {
     delay = 20;
   }
@@ -169,9 +169,9 @@ void cRandom_Sound ::Set_Delay_Min(unsigned int delay) {
   m_delay_min = delay;
 }
 
-unsigned int cRandom_Sound ::Get_Delay_Min(void) const { return m_delay_min; }
+unsigned int cRandom_Sound::Get_Delay_Min(void) const { return m_delay_min; }
 
-void cRandom_Sound ::Set_Delay_Max(unsigned int delay) {
+void cRandom_Sound::Set_Delay_Max(unsigned int delay) {
   if (delay < 20) {
     delay = 20;
   } else if (delay < m_delay_min) {
@@ -181,9 +181,9 @@ void cRandom_Sound ::Set_Delay_Max(unsigned int delay) {
   m_delay_max = delay;
 }
 
-unsigned int cRandom_Sound ::Get_Delay_Max(void) const { return m_delay_max; }
+unsigned int cRandom_Sound::Get_Delay_Max(void) const { return m_delay_max; }
 
-void cRandom_Sound ::Set_Volume_Min(float volume) {
+void cRandom_Sound::Set_Volume_Min(float volume) {
   if (volume < 0.1f) {
     volume = 0.1f;
   } else if (volume > m_volume_max) {
@@ -195,9 +195,9 @@ void cRandom_Sound ::Set_Volume_Min(float volume) {
   m_volume_min = volume;
 }
 
-float cRandom_Sound ::Get_Volume_Min(void) const { return m_volume_min; }
+float cRandom_Sound::Get_Volume_Min(void) const { return m_volume_min; }
 
-void cRandom_Sound ::Set_Volume_Max(float volume) {
+void cRandom_Sound::Set_Volume_Max(float volume) {
   if (volume < 0.1f) {
     volume = 0.1f;
   } else if (volume < m_volume_min) {
@@ -209,9 +209,9 @@ void cRandom_Sound ::Set_Volume_Max(float volume) {
   m_volume_max = volume;
 }
 
-float cRandom_Sound ::Get_Volume_Max(void) const { return m_volume_max; }
+float cRandom_Sound::Get_Volume_Max(void) const { return m_volume_max; }
 
-void cRandom_Sound ::Set_Volume_Reduction_Begin(float distance) {
+void cRandom_Sound::Set_Volume_Reduction_Begin(float distance) {
   if (distance < 1.0f) {
     distance = 1.0f;
   } else if (distance > m_volume_reduction_end) {
@@ -221,11 +221,11 @@ void cRandom_Sound ::Set_Volume_Reduction_Begin(float distance) {
   m_volume_reduction_begin = distance;
 }
 
-float cRandom_Sound ::Get_Volume_Reduction_Begin(void) const {
+float cRandom_Sound::Get_Volume_Reduction_Begin(void) const {
   return m_volume_reduction_begin;
 }
 
-void cRandom_Sound ::Set_Volume_Reduction_End(float distance) {
+void cRandom_Sound::Set_Volume_Reduction_End(float distance) {
   if (distance < 1.0f) {
     distance = 1.0f;
   } else if (distance < m_volume_reduction_begin) {
@@ -235,11 +235,11 @@ void cRandom_Sound ::Set_Volume_Reduction_End(float distance) {
   m_volume_reduction_end = distance;
 }
 
-float cRandom_Sound ::Get_Volume_Reduction_End(void) const {
+float cRandom_Sound::Get_Volume_Reduction_End(void) const {
   return m_volume_reduction_end;
 }
 
-float cRandom_Sound ::Get_Distance_Volume_Mod(void) const {
+float cRandom_Sound::Get_Distance_Volume_Mod(void) const {
   // if in volume reduction range
   if (m_distance_to_camera > m_volume_reduction_begin) {
     const float distance = m_distance_to_camera - m_volume_reduction_begin;
@@ -251,7 +251,7 @@ float cRandom_Sound ::Get_Distance_Volume_Mod(void) const {
   return 1.0f;
 }
 
-void cRandom_Sound ::Update(void) {
+void cRandom_Sound::Update(void) {
   Update_Valid_Update();
 
   if (!m_valid_update) {
@@ -342,7 +342,7 @@ void cRandom_Sound ::Update(void) {
   }
 }
 
-void cRandom_Sound ::Draw(cSurface_Request* request /* = nullptr */) {
+void cRandom_Sound::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -373,7 +373,7 @@ void cRandom_Sound ::Draw(cSurface_Request* request /* = nullptr */) {
   pRenderer->Add(std::move(circle_request));
 }
 
-bool cRandom_Sound ::Is_Update_Valid(void) {
+bool cRandom_Sound::Is_Update_Valid(void) {
   // if destroyed
   if (m_auto_destroy) {
     return false;
@@ -394,7 +394,7 @@ bool cRandom_Sound ::Is_Update_Valid(void) {
   return true;
 }
 
-bool cRandom_Sound ::Is_Draw_Valid(void) {
+bool cRandom_Sound::Is_Draw_Valid(void) {
   // if editor not enabled
   if (!editor_enabled) {
     return false;
@@ -409,12 +409,12 @@ bool cRandom_Sound ::Is_Draw_Valid(void) {
   return true;
 }
 
-void cRandom_Sound ::Event_Out_Of_Range(void) const {
+void cRandom_Sound::Event_Out_Of_Range(void) const {
   // fade out sounds if out of range
   pAudio->Fadeout_Sounds(500, m_filename);
 }
 
-void cRandom_Sound ::Editor_Activate(void) {
+void cRandom_Sound::Editor_Activate(void) {
   CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
 
   // filename
@@ -529,7 +529,7 @@ void cRandom_Sound ::Editor_Activate(void) {
   Editor_Init();
 }
 
-bool cRandom_Sound ::Editor_Filename_Text_Changed(
+bool cRandom_Sound::Editor_Filename_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -539,7 +539,7 @@ bool cRandom_Sound ::Editor_Filename_Text_Changed(
   return true;
 }
 
-bool cRandom_Sound ::Editor_Continuous_Changed(const CEGUI::EventArgs& event) {
+bool cRandom_Sound::Editor_Continuous_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   bool const enabled =
@@ -550,7 +550,7 @@ bool cRandom_Sound ::Editor_Continuous_Changed(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cRandom_Sound ::Editor_Delay_Min_Text_Changed(
+bool cRandom_Sound::Editor_Delay_Min_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -562,7 +562,7 @@ bool cRandom_Sound ::Editor_Delay_Min_Text_Changed(
   return true;
 }
 
-bool cRandom_Sound ::Editor_Delay_Max_Text_Changed(
+bool cRandom_Sound::Editor_Delay_Max_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -574,7 +574,7 @@ bool cRandom_Sound ::Editor_Delay_Max_Text_Changed(
   return true;
 }
 
-bool cRandom_Sound ::Editor_Volume_Min_Text_Changed(
+bool cRandom_Sound::Editor_Volume_Min_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -586,7 +586,7 @@ bool cRandom_Sound ::Editor_Volume_Min_Text_Changed(
   return true;
 }
 
-bool cRandom_Sound ::Editor_Volume_Max_Text_Changed(
+bool cRandom_Sound::Editor_Volume_Max_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -598,7 +598,7 @@ bool cRandom_Sound ::Editor_Volume_Max_Text_Changed(
   return true;
 }
 
-bool cRandom_Sound ::Editor_Volume_Reduction_Begin_Text_Changed(
+bool cRandom_Sound::Editor_Volume_Reduction_Begin_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -610,7 +610,7 @@ bool cRandom_Sound ::Editor_Volume_Reduction_Begin_Text_Changed(
   return true;
 }
 
-bool cRandom_Sound ::Editor_Volume_Reduction_End_Text_Changed(
+bool cRandom_Sound::Editor_Volume_Reduction_End_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);

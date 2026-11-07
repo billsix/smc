@@ -30,25 +30,25 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cBall *** *** *** *** *** *** *** *** *** *** *** */
 
-cBall ::cBall(cSprite_Manager* sprite_manager)
+cBall::cBall(cSprite_Manager* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "ball") {
   cBall::Init();
 }
 
-cBall ::cBall(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager)
+cBall::cBall(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "ball") {
   cBall::Init();
   cBall::Load_From_XML(attributes);
 }
 
-cBall ::~cBall(void) {
+cBall::~cBall(void) {
   // always destroy
   if (!m_auto_destroy) {
     cBall::Destroy();
   }
 }
 
-void cBall ::Init(void) {
+void cBall::Init(void) {
   m_sprite_array = ARRAY_ACTIVE;
   m_type = TYPE_BALL;
   m_pos_z = 0.095f;
@@ -67,7 +67,7 @@ void cBall ::Init(void) {
   Set_Ball_Type(FIREBALL_DEFAULT);
 }
 
-std::unique_ptr<cSprite> cBall ::Copy(void) const {
+std::unique_ptr<cSprite> cBall::Copy(void) const {
   auto ball = std::make_unique<cBall>(m_sprite_manager);
   ball->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   ball->Set_Origin(m_origin_array, m_origin_type);
@@ -75,7 +75,7 @@ std::unique_ptr<cSprite> cBall ::Copy(void) const {
   return ball;
 }
 
-void cBall ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cBall::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
           static_cast<float>(attributes.getValueAsInteger("posy")), true);
@@ -91,7 +91,7 @@ void cBall ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
       static_cast<ball_effect>(attributes.getValueAsInteger("ball_type")));
 }
 
-void cBall ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cBall::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -110,7 +110,7 @@ void cBall ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cBall ::Load_From_Savegame(cSave_Level_Object* save_object) {
+void cBall::Load_From_Savegame(cSave_Level_Object* save_object) {
   // new position x
   if (save_object->exists("new_posx")) {
     Set_Pos_X(string_to_float(save_object->Get_Value("new_posx")));
@@ -138,7 +138,7 @@ void cBall ::Load_From_Savegame(cSave_Level_Object* save_object) {
   }
 }
 
-std::unique_ptr<cSave_Level_Object> cBall ::Save_To_Savegame(void) {
+std::unique_ptr<cSave_Level_Object> cBall::Save_To_Savegame(void) {
   auto save_object = std::make_unique<cSave_Level_Object>();
 
   // default values
@@ -165,7 +165,7 @@ std::unique_ptr<cSave_Level_Object> cBall ::Save_To_Savegame(void) {
   return save_object;
 }
 
-void cBall ::Set_Ball_Type(ball_effect type) {
+void cBall::Set_Ball_Type(ball_effect type) {
   Clear_Images();
 
   if (type == FIREBALL_DEFAULT || type == FIREBALL_EXPLOSION) {
@@ -180,12 +180,12 @@ void cBall ::Set_Ball_Type(ball_effect type) {
   }
 }
 
-void cBall ::Set_Origin(ArrayType origin_array, SpriteType origin_type) {
+void cBall::Set_Origin(ArrayType origin_array, SpriteType origin_type) {
   m_origin_array = origin_array;
   m_origin_type = origin_type;
 }
 
-void cBall ::Destroy_Ball(bool with_sound /* = 0 */) {
+void cBall::Destroy_Ball(bool with_sound /* = 0 */) {
   if (with_sound) {
     if (m_ball_type == FIREBALL_DEFAULT) {
       pAudio->Play_Sound("item/fireball_explode.wav");
@@ -195,7 +195,7 @@ void cBall ::Destroy_Ball(bool with_sound /* = 0 */) {
   Destroy();
 }
 
-void cBall ::Destroy(void) {
+void cBall::Destroy(void) {
   if (m_auto_destroy) {
     return;
   }
@@ -216,7 +216,7 @@ void cBall ::Destroy(void) {
   cAnimated_Sprite::Destroy();
 }
 
-void cBall ::Update(void) {
+void cBall::Update(void) {
   if (!m_valid_update) {
     return;
   }
@@ -273,7 +273,7 @@ void cBall ::Update(void) {
   }
 }
 
-void cBall ::Draw(cSurface_Request* request /* = nullptr */) {
+void cBall::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -294,7 +294,7 @@ void cBall ::Draw(cSurface_Request* request /* = nullptr */) {
   cAnimated_Sprite::Draw(request);
 }
 
-void cBall ::Generate_Particles(cParticle_Emitter* anim /* = nullptr */) const {
+void cBall::Generate_Particles(cParticle_Emitter* anim /* = nullptr */) const {
   // no emitter given: make one here and hand it to the animation manager at the end
   std::unique_ptr<cParticle_Emitter> owned_anim;
   if (!anim) {
@@ -337,7 +337,7 @@ void cBall ::Generate_Particles(cParticle_Emitter* anim /* = nullptr */) const {
   }
 }
 
-Col_Valid_Type cBall ::Validate_Collision(cSprite* obj) {
+Col_Valid_Type cBall::Validate_Collision(cSprite* obj) {
   // basic validation checking
   Col_Valid_Type const basic_valid = Validate_Collision_Ghost(obj);
 
@@ -378,7 +378,7 @@ Col_Valid_Type cBall ::Validate_Collision(cSprite* obj) {
   return COL_VTYPE_NOT_VALID;
 }
 
-void cBall ::Handle_Collision(cObjectCollision* collision) {
+void cBall::Handle_Collision(cObjectCollision* collision) {
   // already destroyed
   if (m_auto_destroy) {
     return;
@@ -387,7 +387,7 @@ void cBall ::Handle_Collision(cObjectCollision* collision) {
   cAnimated_Sprite::Handle_Collision(collision);
 }
 
-void cBall ::Handle_Collision_Player(cObjectCollision* collision) {
+void cBall::Handle_Collision_Player(cObjectCollision* collision) {
   // velocity hit
   if (collision->m_direction == DIR_LEFT) {
     if (pLevel_Player->m_velx > 0.0f) {
@@ -411,7 +411,7 @@ void cBall ::Handle_Collision_Player(cObjectCollision* collision) {
   Destroy();
 }
 
-void cBall ::Handle_Collision_Enemy(cObjectCollision* collision) {
+void cBall::Handle_Collision_Enemy(cObjectCollision* collision) {
   cEnemy* enemy = static_cast<cEnemy*>(
       m_sprite_manager->Get_Pointer(static_cast<size_t>(collision->m_number)));
 
@@ -489,7 +489,7 @@ void cBall ::Handle_Collision_Enemy(cObjectCollision* collision) {
   Destroy();
 }
 
-void cBall ::Handle_Collision_Massive(cObjectCollision* collision) {
+void cBall::Handle_Collision_Massive(cObjectCollision* collision) {
   if (collision->m_direction == DIR_DOWN) {
     // if directly hitting the ground
     if (m_velx < 0.1f && m_velx > -0.1f) {
@@ -532,7 +532,7 @@ void cBall ::Handle_Collision_Massive(cObjectCollision* collision) {
   }
 }
 
-void cBall ::Handle_out_of_Level(ObjectDirection dir) {
+void cBall::Handle_out_of_Level(ObjectDirection dir) {
   // ignore top
   if (dir == DIR_TOP) {
     return;

@@ -28,7 +28,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cPowerUp *** *** *** *** *** *** *** *** *** *** *** */
 
-cPowerUp ::cPowerUp(cSprite_Manager* sprite_manager)
+cPowerUp::cPowerUp(cSprite_Manager* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "item") {
   m_sprite_array = ARRAY_ACTIVE;
   m_massive_type = MASS_PASSIVE;
@@ -39,11 +39,11 @@ cPowerUp ::cPowerUp(cSprite_Manager* sprite_manager)
   m_counter = 0;
 }
 
-cPowerUp ::~cPowerUp(void) {
+cPowerUp::~cPowerUp(void) {
   //
 }
 
-void cPowerUp ::Load_From_Savegame(cSave_Level_Object* save_object) {
+void cPowerUp::Load_From_Savegame(cSave_Level_Object* save_object) {
   // new position x
   if (save_object->exists("new_posx")) {
     Set_Pos_X(string_to_float(save_object->Get_Value("new_posx")));
@@ -76,7 +76,7 @@ void cPowerUp ::Load_From_Savegame(cSave_Level_Object* save_object) {
   }
 }
 
-std::unique_ptr<cSave_Level_Object> cPowerUp ::Save_To_Savegame(void) {
+std::unique_ptr<cSave_Level_Object> cPowerUp::Save_To_Savegame(void) {
   auto save_object = std::make_unique<cSave_Level_Object>();
 
   // default values
@@ -111,7 +111,7 @@ std::unique_ptr<cSave_Level_Object> cPowerUp ::Save_To_Savegame(void) {
   return save_object;
 }
 
-void cPowerUp ::Draw(cSurface_Request* request /* = nullptr */) {
+void cPowerUp::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -124,7 +124,7 @@ void cPowerUp ::Draw(cSurface_Request* request /* = nullptr */) {
   cAnimated_Sprite::Draw(request);
 }
 
-bool cPowerUp ::Is_Update_Valid(void) {
+bool cPowerUp::Is_Update_Valid(void) {
   // if not visible
   if (!m_active) {
     return false;
@@ -133,7 +133,7 @@ bool cPowerUp ::Is_Update_Valid(void) {
   return true;
 }
 
-Col_Valid_Type cPowerUp ::Validate_Collision(cSprite* obj) {
+Col_Valid_Type cPowerUp::Validate_Collision(cSprite* obj) {
   // basic validation checking
   Col_Valid_Type const basic_valid = Validate_Collision_Ghost(obj);
 
@@ -171,7 +171,7 @@ Col_Valid_Type cPowerUp ::Validate_Collision(cSprite* obj) {
   return COL_VTYPE_NOT_VALID;
 }
 
-void cPowerUp ::Handle_out_of_Level(ObjectDirection dir) {
+void cPowerUp::Handle_out_of_Level(ObjectDirection dir) {
   if (dir == DIR_LEFT) {
     m_pos_x = pActive_Camera->m_limit_rect.m_x;
   } else if (dir == DIR_RIGHT) {
@@ -185,23 +185,23 @@ void cPowerUp ::Handle_out_of_Level(ObjectDirection dir) {
 
 /* *** *** *** *** *** *** cMushroom *** *** *** *** *** *** *** *** *** *** *** */
 
-cMushroom ::cMushroom(cSprite_Manager* sprite_manager)
+cMushroom::cMushroom(cSprite_Manager* sprite_manager)
     : cPowerUp(sprite_manager) {
   cMushroom::Init();
 }
 
-cMushroom ::cMushroom(CEGUI::XMLAttributes& attributes,
-                      cSprite_Manager* sprite_manager)
+cMushroom::cMushroom(CEGUI::XMLAttributes& attributes,
+                     cSprite_Manager* sprite_manager)
     : cPowerUp(sprite_manager) {
   cMushroom::Init();
   cMushroom::Load_From_XML(attributes);
 }
 
-cMushroom ::~cMushroom(void) {
+cMushroom::~cMushroom(void) {
   //
 }
 
-void cMushroom ::Init(void) {
+void cMushroom::Init(void) {
   m_velx = 3.0f;
   m_direction = DIR_RIGHT;
   m_camera_range = 5000;
@@ -212,14 +212,14 @@ void cMushroom ::Init(void) {
   m_glim_mod = true;
 }
 
-std::unique_ptr<cSprite> cMushroom ::Copy(void) const {
+std::unique_ptr<cSprite> cMushroom::Copy(void) const {
   auto mushroom = std::make_unique<cMushroom>(m_sprite_manager);
   mushroom->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   mushroom->Set_Type(m_type);
   return mushroom;
 }
 
-void cMushroom ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cMushroom::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
           static_cast<float>(attributes.getValueAsInteger("posy")));
@@ -228,7 +228,7 @@ void cMushroom ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
       attributes.getValueAsInteger("mushroom_type", TYPE_MUSHROOM_DEFAULT)));
 }
 
-void cMushroom ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cMushroom::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -244,7 +244,7 @@ void cMushroom ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cMushroom ::Set_Type(SpriteType new_type) {
+void cMushroom::Set_Type(SpriteType new_type) {
   // already set
   if (m_type == new_type) {
     return;
@@ -278,7 +278,7 @@ void cMushroom ::Set_Type(SpriteType new_type) {
   Set_Image_Num(0, true);
 }
 
-void cMushroom ::Activate(void) {
+void cMushroom::Activate(void) {
   if (!m_active) {
     return;
   }
@@ -307,7 +307,7 @@ void cMushroom ::Activate(void) {
   }
 }
 
-void cMushroom ::Update(void) {
+void cMushroom::Update(void) {
   if (!m_valid_update || !Is_In_Range()) {
     return;
   }
@@ -407,7 +407,7 @@ void cMushroom ::Update(void) {
   }
 }
 
-void cMushroom ::Handle_Collision_Player(cObjectCollision* collision) {
+void cMushroom::Handle_Collision_Player(cObjectCollision* collision) {
   // invalid
   if (collision->m_direction == DIR_UNDEFINED) {
     return;
@@ -416,11 +416,11 @@ void cMushroom ::Handle_Collision_Player(cObjectCollision* collision) {
   Activate();
 }
 
-void cMushroom ::Handle_Collision_Massive(cObjectCollision* collision) {
+void cMushroom::Handle_Collision_Massive(cObjectCollision* collision) {
   Turn_Around(collision->m_direction);
 }
 
-void cMushroom ::Handle_Collision_Box(ObjectDirection cdirection, GL_rect* r2) {
+void cMushroom::Handle_Collision_Box(ObjectDirection cdirection, GL_rect* r2) {
   if (cdirection == DIR_DOWN) {
     m_vely = -30.0f;
 
@@ -446,23 +446,23 @@ void cMushroom ::Handle_Collision_Box(ObjectDirection cdirection, GL_rect* r2) {
 
 /* *** *** *** *** *** *** cFirePlant *** *** *** *** *** *** *** *** *** *** *** */
 
-cFirePlant ::cFirePlant(cSprite_Manager* sprite_manager)
+cFirePlant::cFirePlant(cSprite_Manager* sprite_manager)
     : cPowerUp(sprite_manager) {
   cFirePlant::Init();
 }
 
-cFirePlant ::cFirePlant(CEGUI::XMLAttributes& attributes,
-                        cSprite_Manager* sprite_manager)
+cFirePlant::cFirePlant(CEGUI::XMLAttributes& attributes,
+                       cSprite_Manager* sprite_manager)
     : cPowerUp(sprite_manager) {
   cFirePlant::Init();
   cFirePlant::Load_From_XML(attributes);
 }
 
-cFirePlant ::~cFirePlant(void) {
+cFirePlant::~cFirePlant(void) {
   //
 }
 
-void cFirePlant ::Init(void) {
+void cFirePlant::Init(void) {
   m_type = TYPE_FIREPLANT;
   m_can_be_on_ground = false;
   m_pos_z = 0.051f;
@@ -478,19 +478,19 @@ void cFirePlant ::Init(void) {
   m_particle_counter = 0.0f;
 }
 
-std::unique_ptr<cSprite> cFirePlant ::Copy(void) const {
+std::unique_ptr<cSprite> cFirePlant::Copy(void) const {
   auto fireplant = std::make_unique<cFirePlant>(m_sprite_manager);
   fireplant->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   return fireplant;
 }
 
-void cFirePlant ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cFirePlant::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
           static_cast<float>(attributes.getValueAsInteger("posy")), true);
 }
 
-void cFirePlant ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cFirePlant::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -504,7 +504,7 @@ void cFirePlant ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cFirePlant ::Activate(void) {
+void cFirePlant::Activate(void) {
   if (!m_active) {
     return;
   }
@@ -523,7 +523,7 @@ void cFirePlant ::Activate(void) {
   }
 }
 
-void cFirePlant ::Update(void) {
+void cFirePlant::Update(void) {
   if (!m_valid_update || !Is_Visible_On_Screen()) {
     return;
   }
@@ -576,7 +576,7 @@ void cFirePlant ::Update(void) {
   }
 }
 
-void cFirePlant ::Handle_Collision_Player(cObjectCollision* collision) {
+void cFirePlant::Handle_Collision_Player(cObjectCollision* collision) {
   // invalid
   if (collision->m_direction == DIR_UNDEFINED) {
     return;
@@ -587,21 +587,21 @@ void cFirePlant ::Handle_Collision_Player(cObjectCollision* collision) {
 
 /* *** *** *** *** *** *** *** cMoon *** *** *** *** *** *** *** *** *** *** */
 
-cMoon ::cMoon(cSprite_Manager* sprite_manager) : cPowerUp(sprite_manager) {
+cMoon::cMoon(cSprite_Manager* sprite_manager) : cPowerUp(sprite_manager) {
   cMoon::Init();
 }
 
-cMoon ::cMoon(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager)
+cMoon::cMoon(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager)
     : cPowerUp(sprite_manager) {
   cMoon::Init();
   cMoon::Load_From_XML(attributes);
 }
 
-cMoon ::~cMoon(void) {
+cMoon::~cMoon(void) {
   //
 }
 
-void cMoon ::Init(void) {
+void cMoon::Init(void) {
   m_type = TYPE_MOON;
   m_can_be_on_ground = false;
   m_pos_z = 0.052f;
@@ -618,19 +618,19 @@ void cMoon ::Init(void) {
   m_particle_counter = 0.0f;
 }
 
-std::unique_ptr<cSprite> cMoon ::Copy(void) const {
+std::unique_ptr<cSprite> cMoon::Copy(void) const {
   auto moon = std::make_unique<cMoon>(m_sprite_manager);
   moon->Set_Pos(m_start_pos_x, m_start_pos_y);
   return moon;
 }
 
-void cMoon ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cMoon::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
           static_cast<float>(attributes.getValueAsInteger("posy")));
 }
 
-void cMoon ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cMoon::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -644,7 +644,7 @@ void cMoon ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cMoon ::Activate(void) {
+void cMoon::Activate(void) {
   if (!m_active) {
     return;
   }
@@ -663,7 +663,7 @@ void cMoon ::Activate(void) {
   }
 }
 
-void cMoon ::Update(void) {
+void cMoon::Update(void) {
   if (!m_valid_update || !Is_Visible_On_Screen()) {
     return;
   }
@@ -692,7 +692,7 @@ void cMoon ::Update(void) {
   }
 }
 
-void cMoon ::Handle_Collision_Player(cObjectCollision* collision) {
+void cMoon::Handle_Collision_Player(cObjectCollision* collision) {
   // invalid
   if (collision->m_direction == DIR_UNDEFINED) {
     return;

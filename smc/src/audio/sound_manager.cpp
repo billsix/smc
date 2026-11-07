@@ -19,11 +19,11 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** Sound *** *** *** *** *** *** *** *** *** */
 
-cSound ::cSound(void) { m_chunk = nullptr; }
+cSound::cSound(void) { m_chunk = nullptr; }
 
-cSound ::~cSound(void) { Free(); }
+cSound::~cSound(void) { Free(); }
 
-bool cSound ::Load(const std::string& filename) {
+bool cSound::Load(const std::string& filename) {
   Free();
 
   m_chunk = Mix_LoadWAV(filename.c_str());
@@ -36,7 +36,7 @@ bool cSound ::Load(const std::string& filename) {
   return false;
 }
 
-void cSound ::Free(void) {
+void cSound::Free(void) {
   if (m_chunk) {
     Mix_FreeChunk(m_chunk);
     m_chunk = nullptr;
@@ -47,13 +47,13 @@ void cSound ::Free(void) {
 
 /* *** *** *** *** *** *** cSound_Manager *** *** *** *** *** *** *** *** *** *** *** */
 
-cSound_Manager ::cSound_Manager(void) : cObject_Manager<cSound>() {
+cSound_Manager::cSound_Manager(void) : cObject_Manager<cSound>() {
   m_load_count = 0;
 }
 
-cSound_Manager ::~cSound_Manager(void) { cSound_Manager::Delete_All(); }
+cSound_Manager::~cSound_Manager(void) { cSound_Manager::Delete_All(); }
 
-cSound* cSound_Manager ::Get_Pointer(const std::string& path) const {
+cSound* cSound_Manager::Get_Pointer(const std::string& path) const {
   for (const auto& sound : objects) {
     if (sound->m_filename.compare(path) == 0) {
       // return first found
@@ -65,7 +65,7 @@ cSound* cSound_Manager ::Get_Pointer(const std::string& path) const {
   return nullptr;
 }
 
-cSound* cSound_Manager ::Add(std::unique_ptr<cSound> sound) {
+cSound* cSound_Manager::Add(std::unique_ptr<cSound> sound) {
   m_load_count++;
   return cObject_Manager<cSound>::Add(std::move(sound));
 }

@@ -23,7 +23,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cGL_Surface *** *** *** *** *** *** *** *** *** */
 
-cGL_Surface ::cGL_Surface(void) {
+cGL_Surface::cGL_Surface(void) {
   m_image = 0;
 
   m_int_x = 0;
@@ -58,7 +58,7 @@ cGL_Surface ::cGL_Surface(void) {
   destruction_function = nullptr;
 }
 
-cGL_Surface ::~cGL_Surface(void) {
+cGL_Surface::~cGL_Surface(void) {
   // don't delete a managed OpenGL image if still in use by another managed cGL_Surface
   if (m_auto_del_img && glIsTexture(m_image) &&
       (!m_managed || !Is_Texture_Use_Multiple())) {
@@ -70,7 +70,7 @@ cGL_Surface ::~cGL_Surface(void) {
   }
 }
 
-cGL_Surface* cGL_Surface ::Copy(void) const {
+cGL_Surface* cGL_Surface::Copy(void) const {
   // create copy image
   cGL_Surface* new_surface = new cGL_Surface();
 
@@ -102,8 +102,8 @@ cGL_Surface* cGL_Surface ::Copy(void) const {
   return new_surface;
 }
 
-void cGL_Surface ::Blit(float x, float y, float z,
-                        cSurface_Request* request /* = nullptr */) const {
+void cGL_Surface::Blit(float x, float y, float z,
+                       cSurface_Request* request /* = nullptr */) const {
   // no request given: make one here and hand it to the renderer at the end
   std::unique_ptr<cSurface_Request> owned_request;
   if (!request) {
@@ -123,7 +123,7 @@ void cGL_Surface ::Blit(float x, float y, float z,
   }
 }
 
-void cGL_Surface ::Blit_Data(cSurface_Request* request) const {
+void cGL_Surface::Blit_Data(cSurface_Request* request) const {
   // texture id
   request->m_texture_id = m_image;
 
@@ -141,9 +141,9 @@ void cGL_Surface ::Blit_Data(cSurface_Request* request) const {
   request->m_rot_z += m_base_rot_z;
 }
 
-void cGL_Surface ::Set_Ground_Type(GroundType gtype) { m_ground_type = gtype; }
+void cGL_Surface::Set_Ground_Type(GroundType gtype) { m_ground_type = gtype; }
 
-bool cGL_Surface ::Is_Texture_Use_Multiple(void) const {
+bool cGL_Surface::Is_Texture_Use_Multiple(void) const {
   for (const auto& surface : pImage_Manager->objects) {
     if (surface.get() == this) {
       continue;
@@ -157,7 +157,7 @@ bool cGL_Surface ::Is_Texture_Use_Multiple(void) const {
   return false;
 }
 
-std::unique_ptr<cSaved_Texture> cGL_Surface ::Get_Software_Texture(
+std::unique_ptr<cSaved_Texture> cGL_Surface::Get_Software_Texture(
     bool only_filename /* = 0 */) {
   auto soft_tex = std::make_unique<cSaved_Texture>();
 
@@ -208,7 +208,7 @@ std::unique_ptr<cSaved_Texture> cGL_Surface ::Get_Software_Texture(
   return soft_tex;
 }
 
-void cGL_Surface ::Load_Software_Texture(cSaved_Texture* soft_tex) {
+void cGL_Surface::Load_Software_Texture(cSaved_Texture* soft_tex) {
   if (!soft_tex) {
     return;
   }
@@ -263,8 +263,8 @@ void cGL_Surface ::Load_Software_Texture(cSaved_Texture* soft_tex) {
   }
 }
 
-std::string cGL_Surface ::Get_Filename(int with_dir /* = 2 */,
-                                       bool with_end /* = 1 */) const {
+std::string cGL_Surface::Get_Filename(int with_dir /* = 2 */,
+                                      bool with_end /* = 1 */) const {
   std::string name = m_filename;
 
   // erase whole directory
@@ -285,7 +285,7 @@ std::string cGL_Surface ::Get_Filename(int with_dir /* = 2 */,
   return name;
 }
 
-void cGL_Surface ::Set_Destruction_Function(void (*nfunction)(cGL_Surface*)) {
+void cGL_Surface::Set_Destruction_Function(void (*nfunction)(cGL_Surface*)) {
   destruction_function = nfunction;
 }
 

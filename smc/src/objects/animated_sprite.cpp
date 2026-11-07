@@ -21,19 +21,19 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** cAnimation_Surface *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation_Surface ::cAnimation_Surface(void) {
+cAnimation_Surface::cAnimation_Surface(void) {
   m_image = nullptr;
   m_time = 0;
 }
 
-cAnimation_Surface ::~cAnimation_Surface(void) {
+cAnimation_Surface::~cAnimation_Surface(void) {
   //
 }
 
 /* *** *** *** *** *** *** *** cAnimated_Sprite *** *** *** *** *** *** *** *** *** *** */
 
-cAnimated_Sprite ::cAnimated_Sprite(cSprite_Manager* sprite_manager,
-                                    std::string type_name /* = "sprite" */)
+cAnimated_Sprite::cAnimated_Sprite(cSprite_Manager* sprite_manager,
+                                   std::string type_name /* = "sprite" */)
     : cMovingSprite(sprite_manager, type_name) {
   m_curr_img = -1;
 
@@ -45,11 +45,11 @@ cAnimated_Sprite ::cAnimated_Sprite(cSprite_Manager* sprite_manager,
   m_anim_mod = 1.0f;
 }
 
-cAnimated_Sprite ::~cAnimated_Sprite(void) {
+cAnimated_Sprite::~cAnimated_Sprite(void) {
   //
 }
 
-void cAnimated_Sprite ::Add_Image(cGL_Surface* image, Uint32 time /* = 0 */) {
+void cAnimated_Sprite::Add_Image(cGL_Surface* image, Uint32 time /* = 0 */) {
   // set to default time
   if (time == 0) {
     time = m_anim_time_default;
@@ -62,8 +62,8 @@ void cAnimated_Sprite ::Add_Image(cGL_Surface* image, Uint32 time /* = 0 */) {
   m_images.push_back(obj);
 }
 
-void cAnimated_Sprite ::Set_Image_Num(const int num,
-                                      const bool new_startimage /* = 0 */) {
+void cAnimated_Sprite::Set_Image_Num(const int num,
+                                     const bool new_startimage /* = 0 */) {
   if (m_curr_img == num) {
     return;
   }
@@ -83,7 +83,7 @@ void cAnimated_Sprite ::Set_Image_Num(const int num,
   }
 }
 
-cGL_Surface* cAnimated_Sprite ::Get_Image(const unsigned int num) const {
+cGL_Surface* cAnimated_Sprite::Get_Image(const unsigned int num) const {
   if (num >= m_images.size()) {
     return nullptr;
   }
@@ -91,12 +91,12 @@ cGL_Surface* cAnimated_Sprite ::Get_Image(const unsigned int num) const {
   return m_images[num].m_image;
 }
 
-void cAnimated_Sprite ::Clear_Images(void) {
+void cAnimated_Sprite::Clear_Images(void) {
   m_curr_img = -1;
   m_images.clear();
 }
 
-void cAnimated_Sprite ::Update_Animation(void) {
+void cAnimated_Sprite::Update_Animation(void) {
   // if not valid
   if (!m_anim_enabled || m_anim_img_end == 0) {
     return;
@@ -124,8 +124,8 @@ void cAnimated_Sprite ::Update_Animation(void) {
   }
 }
 
-void cAnimated_Sprite ::Set_Time_All(const Uint32 time,
-                                     const bool default_time /* = 0 */) {
+void cAnimated_Sprite::Set_Time_All(const Uint32 time,
+                                    const bool default_time /* = 0 */) {
   for (auto& image : m_images) {
     image.m_time = time;
   }

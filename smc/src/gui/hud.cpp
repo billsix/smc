@@ -33,7 +33,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** cHudSprite *** *** *** *** *** *** *** *** *** *** */
 
-cHudSprite ::cHudSprite(cSprite_Manager* sprite_manager)
+cHudSprite::cHudSprite(cSprite_Manager* sprite_manager)
     : cSprite(sprite_manager) {
   m_camera_range = 0;
   m_pos_z = 0.13f;
@@ -41,9 +41,9 @@ cHudSprite ::cHudSprite(cSprite_Manager* sprite_manager)
   Set_Ignore_Camera(true);
 }
 
-cHudSprite ::~cHudSprite(void) = default;
+cHudSprite::~cHudSprite(void) = default;
 
-std::unique_ptr<cSprite> cHudSprite ::Copy(void) const {
+std::unique_ptr<cSprite> cHudSprite::Copy(void) const {
   auto hud_sprite = std::make_unique<cHudSprite>(m_sprite_manager);
   hud_sprite->Set_Image(m_start_image);
   hud_sprite->Set_Pos(m_start_pos_x, m_start_pos_y, true);
@@ -58,15 +58,15 @@ std::unique_ptr<cSprite> cHudSprite ::Copy(void) const {
 
 /* *** *** *** *** *** *** *** cHud_Manager *** *** *** *** *** *** *** *** *** *** */
 
-cHud_Manager ::cHud_Manager(cSprite_Manager* sprite_manager)
+cHud_Manager::cHud_Manager(cSprite_Manager* sprite_manager)
     : cObject_Manager<cHudSprite>() {
   m_sprite_manager = sprite_manager;
   m_loaded = false;
 }
 
-cHud_Manager ::~cHud_Manager(void) { Unload(); }
+cHud_Manager::~cHud_Manager(void) { Unload(); }
 
-void cHud_Manager ::Load(void) {
+void cHud_Manager::Load(void) {
   if (!m_loaded && !objects.empty()) {
     Unload();
   } else if (m_loaded) {
@@ -105,7 +105,7 @@ void cHud_Manager ::Load(void) {
   m_loaded = true;
 }
 
-void cHud_Manager ::Unload(void) {
+void cHud_Manager::Unload(void) {
   if (objects.empty()) {
     return;
   }
@@ -122,7 +122,7 @@ void cHud_Manager ::Unload(void) {
   m_loaded = false;
 }
 
-void cHud_Manager ::Update_Text(void) {
+void cHud_Manager::Update_Text(void) {
   // note : update the life display before updating the time display
 
   if (!objects.empty()) {
@@ -183,21 +183,21 @@ void cHud_Manager ::Update_Text(void) {
   }
 }
 
-void cHud_Manager ::Update(void) {
+void cHud_Manager::Update(void) {
   // update HUD objects
   for (const auto& hud_sprite : objects) {
     hud_sprite->Update();
   }
 }
 
-void cHud_Manager ::Draw(void) {
+void cHud_Manager::Draw(void) {
   // draw HUD objects
   for (const auto& hud_sprite : objects) {
     hud_sprite->Draw();
   }
 }
 
-void cHud_Manager ::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
+void cHud_Manager::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
   m_sprite_manager = sprite_manager;
 
   // update HUD objects
@@ -212,19 +212,19 @@ cHud_Manager* pHud_Manager = nullptr;
 
 /* *** *** *** *** *** *** PointsText *** *** *** *** *** *** *** *** *** *** *** */
 
-PointsText ::PointsText(cSprite_Manager* sprite_manager)
+PointsText::PointsText(cSprite_Manager* sprite_manager)
     : cHudSprite(sprite_manager) {
   m_points = 0;
   m_vely = 0.0f;
 }
 
-PointsText ::~PointsText(void) {
+PointsText::~PointsText(void) {
   //
 }
 
 /* *** *** *** *** *** *** cMenuBackground *** *** *** *** *** *** *** *** *** *** *** */
 
-cMenuBackground ::cMenuBackground(cSprite_Manager* sprite_manager)
+cMenuBackground::cMenuBackground(cSprite_Manager* sprite_manager)
     : cHudSprite(sprite_manager) {
   m_type = TYPE_HUD_BACKGROUND;
   m_sprite_array = ARRAY_HUD;
@@ -246,11 +246,11 @@ cMenuBackground ::cMenuBackground(cSprite_Manager* sprite_manager)
   m_rect_goldpiece.m_y = 0.0f;
 }
 
-cMenuBackground ::~cMenuBackground(void) {
+cMenuBackground::~cMenuBackground(void) {
   //
 }
 
-void cMenuBackground ::Draw(cSurface_Request* request /* = nullptr */) {
+void cMenuBackground::Draw(cSurface_Request* request /* = nullptr */) {
   if (editor_enabled || Game_Mode == MODE_MENU) {
     return;
   }
@@ -266,17 +266,17 @@ void cMenuBackground ::Draw(cSurface_Request* request /* = nullptr */) {
 
 /* *** *** *** *** *** *** cStatusText *** *** *** *** *** *** *** *** *** *** *** */
 
-cStatusText ::cStatusText(cSprite_Manager* sprite_manager)
+cStatusText::cStatusText(cSprite_Manager* sprite_manager)
     : cHudSprite(sprite_manager) {
   m_sprite_array = ARRAY_HUD;
   Set_Shadow(black, 1.5f);
 }
 
-cStatusText ::~cStatusText(void) {
+cStatusText::~cStatusText(void) {
   //
 }
 
-void cStatusText ::Draw(cSurface_Request* request /* = nullptr */) {
+void cStatusText::Draw(cSurface_Request* request /* = nullptr */) {
   if (Game_Mode == MODE_MENU) {
     return;
   }
@@ -286,7 +286,7 @@ void cStatusText ::Draw(cSurface_Request* request /* = nullptr */) {
 
 /* *** *** *** *** *** *** cPlayerPoints *** *** *** *** *** *** *** *** *** *** *** */
 
-cPlayerPoints ::cPlayerPoints(cSprite_Manager* sprite_manager)
+cPlayerPoints::cPlayerPoints(cSprite_Manager* sprite_manager)
     : cStatusText(sprite_manager) {
   m_type = TYPE_HUD_POINTS;
   m_name = "HUD Player points";
@@ -296,9 +296,9 @@ cPlayerPoints ::cPlayerPoints(cSprite_Manager* sprite_manager)
   m_points_objects.reserve(50);
 }
 
-cPlayerPoints ::~cPlayerPoints(void) { Clear(); }
+cPlayerPoints::~cPlayerPoints(void) { Clear(); }
 
-void cPlayerPoints ::Draw(cSurface_Request* request /* = nullptr */) {
+void cPlayerPoints::Draw(cSurface_Request* request /* = nullptr */) {
   if (editor_enabled || Game_Mode == MODE_MENU) {
     return;
   }
@@ -374,7 +374,7 @@ void cPlayerPoints ::Draw(cSurface_Request* request /* = nullptr */) {
   }
 }
 
-void cPlayerPoints ::Set_Points(long points) {
+void cPlayerPoints::Set_Points(long points) {
   pLevel_Player->m_points = points;
 
   char text[70];
@@ -383,7 +383,7 @@ void cPlayerPoints ::Set_Points(long points) {
   Set_Image(pFont->Render_Text(pFont->m_font_normal, text, white), false);
 }
 
-void cPlayerPoints ::Add_Points(
+void cPlayerPoints::Add_Points(
     unsigned int points, float x /* = 0.0f */, float y /* = 0.0f */,
     std::string strtext /* = "" */,
     const Color& color /* = static_cast<Uint8>(255) */,
@@ -424,11 +424,11 @@ void cPlayerPoints ::Add_Points(
   m_points_objects.push_back(std::move(new_obj));
 }
 
-void cPlayerPoints ::Clear(void) { m_points_objects.clear(); }
+void cPlayerPoints::Clear(void) { m_points_objects.clear(); }
 
 /* *** *** *** *** *** cGoldDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cGoldDisplay ::cGoldDisplay(cSprite_Manager* sprite_manager)
+cGoldDisplay::cGoldDisplay(cSprite_Manager* sprite_manager)
     : cStatusText(sprite_manager) {
   m_type = TYPE_HUD_GOLD;
   m_name = "HUD Goldpieces";
@@ -436,11 +436,11 @@ cGoldDisplay ::cGoldDisplay(cSprite_Manager* sprite_manager)
   Set_Gold(static_cast<int>(pLevel_Player->m_goldpieces));
 }
 
-cGoldDisplay ::~cGoldDisplay(void) {
+cGoldDisplay::~cGoldDisplay(void) {
   //
 }
 
-void cGoldDisplay ::Draw(cSurface_Request* request /* = nullptr */) {
+void cGoldDisplay::Draw(cSurface_Request* request /* = nullptr */) {
   if (editor_enabled || Game_Mode == MODE_MENU) {
     return;
   }
@@ -448,7 +448,7 @@ void cGoldDisplay ::Draw(cSurface_Request* request /* = nullptr */) {
   cHudSprite::Draw();
 }
 
-void cGoldDisplay ::Set_Gold(int gold) {
+void cGoldDisplay::Set_Gold(int gold) {
   if (gold >= 100) {
     gold -= 100;
     pAudio->Play_Sound("item/live_up_2.ogg", RID_1UP_MUSHROOM);
@@ -468,14 +468,14 @@ void cGoldDisplay ::Set_Gold(int gold) {
   Set_Image(pFont->Render_Text(pFont->m_font_normal, text, color), false);
 }
 
-void cGoldDisplay ::Add_Gold(int gold) {
+void cGoldDisplay::Add_Gold(int gold) {
   Set_Gold(static_cast<int>(pLevel_Player->m_goldpieces +
                             static_cast<unsigned int>(gold)));
 }
 
 /* *** *** *** *** *** cLiveDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLiveDisplay ::cLiveDisplay(cSprite_Manager* sprite_manager)
+cLiveDisplay::cLiveDisplay(cSprite_Manager* sprite_manager)
     : cStatusText(sprite_manager) {
   m_type = TYPE_HUD_LIFE;
   m_name = "HUD Lives";
@@ -485,11 +485,11 @@ cLiveDisplay ::cLiveDisplay(cSprite_Manager* sprite_manager)
   Set_Image(nullptr);
 }
 
-cLiveDisplay ::~cLiveDisplay(void) {
+cLiveDisplay::~cLiveDisplay(void) {
   //
 }
 
-void cLiveDisplay ::Draw(cSurface_Request* request /* = nullptr */) {
+void cLiveDisplay::Draw(cSurface_Request* request /* = nullptr */) {
   if (editor_enabled || Game_Mode == MODE_MENU) {
     return;
   }
@@ -497,7 +497,7 @@ void cLiveDisplay ::Draw(cSurface_Request* request /* = nullptr */) {
   cHudSprite::Draw();
 }
 
-void cLiveDisplay ::Set_Lives(int lives) {
+void cLiveDisplay::Set_Lives(int lives) {
   pLevel_Player->m_lives = lives;
 
   if (lives < 0) {
@@ -523,13 +523,13 @@ void cLiveDisplay ::Set_Lives(int lives) {
   }
 }
 
-void cLiveDisplay ::Add_Lives(int lives) {
+void cLiveDisplay::Add_Lives(int lives) {
   Set_Lives(pLevel_Player->m_lives + lives);
 }
 
 /* *** *** *** *** *** *** *** cTimeDisplay *** *** *** *** *** *** *** *** *** *** */
 
-cTimeDisplay ::cTimeDisplay(cSprite_Manager* sprite_manager)
+cTimeDisplay::cTimeDisplay(cSprite_Manager* sprite_manager)
     : cStatusText(sprite_manager) {
   m_type = TYPE_HUD_TIME;
   m_name = "HUD Time";
@@ -537,11 +537,11 @@ cTimeDisplay ::cTimeDisplay(cSprite_Manager* sprite_manager)
   Reset();
 }
 
-cTimeDisplay ::~cTimeDisplay(void) {
+cTimeDisplay::~cTimeDisplay(void) {
   //
 }
 
-void cTimeDisplay ::Update(void) {
+void cTimeDisplay::Update(void) {
   if (editor_enabled || Game_Mode == MODE_OVERWORLD || Game_Mode == MODE_MENU) {
     return;
   }
@@ -570,7 +570,7 @@ void cTimeDisplay ::Update(void) {
   Set_Image(pFont->Render_Text(pFont->m_font_normal, m_text, white), false);
 }
 
-void cTimeDisplay ::Draw(cSurface_Request* request /* = nullptr */) {
+void cTimeDisplay::Draw(cSurface_Request* request /* = nullptr */) {
   if (editor_enabled || Game_Mode == MODE_OVERWORLD || Game_Mode == MODE_MENU) {
     return;
   }
@@ -578,20 +578,20 @@ void cTimeDisplay ::Draw(cSurface_Request* request /* = nullptr */) {
   cHudSprite::Draw();
 }
 
-void cTimeDisplay ::Reset(void) {
+void cTimeDisplay::Reset(void) {
   snprintf(m_text, sizeof(m_text), "Time");
   m_last_update_seconds = 1000;
   m_milliseconds = 0;
 }
 
-void cTimeDisplay ::Set_Time(Uint32 milliseconds) {
+void cTimeDisplay::Set_Time(Uint32 milliseconds) {
   m_milliseconds = milliseconds;
   Update();
 }
 
 /* *** *** *** *** *** *** *** cItemBox *** *** *** *** *** *** *** *** *** *** */
 
-cItemBox ::cItemBox(cSprite_Manager* sprite_manager)
+cItemBox::cItemBox(cSprite_Manager* sprite_manager)
     : cStatusText(sprite_manager), m_item(sprite_manager) {
   m_type = TYPE_HUD_ITEMBOX;
   m_name = "HUD Itembox";
@@ -612,14 +612,14 @@ cItemBox ::cItemBox(cSprite_Manager* sprite_manager)
   m_item.m_pos_z = 0.1299f;
 }
 
-cItemBox ::~cItemBox(void) = default;
+cItemBox::~cItemBox(void) = default;
 
-void cItemBox ::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
+void cItemBox::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
   cStatusText::Set_Sprite_Manager(sprite_manager);
   m_item.Set_Sprite_Manager(sprite_manager);
 }
 
-void cItemBox ::Update(void) {
+void cItemBox::Update(void) {
   if (!m_item_counter) {
     return;
   }
@@ -658,7 +658,7 @@ void cItemBox ::Update(void) {
   }
 }
 
-void cItemBox ::Draw(cSurface_Request* request /* = nullptr */) {
+void cItemBox::Draw(cSurface_Request* request /* = nullptr */) {
   if (editor_enabled || Game_Mode == MODE_OVERWORLD || Game_Mode == MODE_MENU) {
     return;
   }
@@ -676,7 +676,7 @@ void cItemBox ::Draw(cSurface_Request* request /* = nullptr */) {
   cHudSprite::Draw();
 }
 
-void cItemBox ::Set_Item(SpriteType item_type, bool sound /* = 1 */) {
+void cItemBox::Set_Item(SpriteType item_type, bool sound /* = 1 */) {
   // play sound
   if (sound) {
     pAudio->Play_Sound("itembox_set.ogg");
@@ -708,7 +708,7 @@ void cItemBox ::Set_Item(SpriteType item_type, bool sound /* = 1 */) {
   m_item_id = item_type;
 }
 
-void cItemBox ::Request_Item(void) {
+void cItemBox::Request_Item(void) {
   if (!m_item_id || m_item_counter) {
     return;
   }
@@ -722,7 +722,7 @@ void cItemBox ::Request_Item(void) {
                  m_item.m_pos_y + pActive_Camera->m_y);
 }
 
-void cItemBox ::Push_back(void) {
+void cItemBox::Push_back(void) {
   m_item_counter = 0.0f;
   m_item_counter_mod = false;
 
@@ -732,7 +732,7 @@ void cItemBox ::Push_back(void) {
   m_item.Set_Color(white);
 }
 
-void cItemBox ::Reset(void) {
+void cItemBox::Reset(void) {
   m_item.Set_Ignore_Camera(true);
   m_item_id = TYPE_UNDEFINED;
   m_item_counter = 0.0f;
@@ -742,7 +742,7 @@ void cItemBox ::Reset(void) {
 
 /* *** *** *** *** *** *** cDebugDisplay *** *** *** *** *** *** *** *** *** *** *** */
 
-cDebugDisplay ::cDebugDisplay(cSprite_Manager* sprite_manager)
+cDebugDisplay::cDebugDisplay(cSprite_Manager* sprite_manager)
     : cStatusText(sprite_manager) {
   m_type = TYPE_HUD_DEBUG;
   m_name = "HUD Debug";
@@ -807,14 +807,14 @@ cDebugDisplay ::cDebugDisplay(cSprite_Manager* sprite_manager)
   m_counter = 0.0f;
 }
 
-cDebugDisplay ::~cDebugDisplay(void) {
+cDebugDisplay::~cDebugDisplay(void) {
   pGuiSystem->getGUISheet()->removeChildWindow(m_window_debug_text);
   CEGUI::WindowManager::getSingleton().destroyWindow(m_window_debug_text);
 
   m_sprites.clear();
 }
 
-void cDebugDisplay ::Update(void) {
+void cDebugDisplay::Update(void) {
   // no text to display
   if (m_text.empty()) {
     return;
@@ -866,13 +866,13 @@ void cDebugDisplay ::Update(void) {
   }
 }
 
-void cDebugDisplay ::Draw(cSurface_Request* request /* = nullptr */) {
+void cDebugDisplay::Draw(cSurface_Request* request /* = nullptr */) {
   // debug mod info
   Draw_Debug_Mode();
   Draw_Performance_Debug_Mode();
 }
 
-void cDebugDisplay ::Set_Text(
+void cDebugDisplay::Set_Text(
     const std::string& ntext,
     float display_time /* = speedfactor_fps * 2.0f */) {
   m_text = ntext;
@@ -888,7 +888,7 @@ void cDebugDisplay ::Set_Text(
   m_counter = display_time;
 }
 
-void cDebugDisplay ::Draw_fps(void) {
+void cDebugDisplay::Draw_fps(void) {
   // ### Frames per Second
   m_sprites[0]->Set_Image(
       pFont->Render_Text(
@@ -917,7 +917,7 @@ void cDebugDisplay ::Draw_fps(void) {
       false);
 }
 
-void cDebugDisplay ::Draw_Debug_Mode(void) {
+void cDebugDisplay::Draw_Debug_Mode(void) {
   if (!game_debug ||
       (Game_Mode == MODE_LEVEL && pLevel_Player->m_maryo_type == MARYO_DEAD)) {
     return;
@@ -1138,7 +1138,7 @@ void cDebugDisplay ::Draw_Debug_Mode(void) {
   }
 }
 
-void cDebugDisplay ::Draw_Performance_Debug_Mode(void) {
+void cDebugDisplay::Draw_Performance_Debug_Mode(void) {
   if (!game_debug_performance) {
     return;
   }

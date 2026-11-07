@@ -29,7 +29,7 @@ namespace SMC {
 
 /* *** *** *** *** *** cLevel_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLevel_Manager ::cLevel_Manager(void)
+cLevel_Manager::cLevel_Manager(void)
     : cObject_Manager<cLevel>(), m_camera(nullptr) {
   // set the first camera available
   if (pActive_Camera == nullptr) {
@@ -42,11 +42,11 @@ cLevel_Manager ::cLevel_Manager(void)
   m_camera.Set_Sprite_Manager(&pActive_Level->m_sprite_manager);
 }
 
-cLevel_Manager ::~cLevel_Manager(void) { Delete_All(); }
+cLevel_Manager::~cLevel_Manager(void) { Delete_All(); }
 
-void cLevel_Manager ::Init(void) {}
+void cLevel_Manager::Init(void) {}
 
-void cLevel_Manager ::Unload(void) {
+void cLevel_Manager::Unload(void) {
   // disable fixed camera velocity
   pLevel_Manager->m_camera.m_fixed_hor_vel = 0.0f;
 
@@ -68,7 +68,7 @@ void cLevel_Manager ::Unload(void) {
   pActive_Level->Unload();
 }
 
-cLevel* cLevel_Manager ::New(std::string filename) {
+cLevel* cLevel_Manager::New(std::string filename) {
   // if it already exists
   if (Get_Path(filename, true)) {
     return nullptr;
@@ -83,7 +83,7 @@ cLevel* cLevel_Manager ::New(std::string filename) {
   return Add(std::move(level));
 }
 
-cLevel* cLevel_Manager ::Load(std::string filename) {
+cLevel* cLevel_Manager::Load(std::string filename) {
   cLevel* level = Get(filename);
   // already loaded
   if (level) {
@@ -99,7 +99,7 @@ cLevel* cLevel_Manager ::Load(std::string filename) {
   return Add(std::move(loaded));
 }
 
-bool cLevel_Manager ::Set_Active(cLevel* level) {
+bool cLevel_Manager::Set_Active(cLevel* level) {
   if (!level) {
     return false;
   }
@@ -109,7 +109,7 @@ bool cLevel_Manager ::Set_Active(cLevel* level) {
   return true;
 }
 
-cLevel* cLevel_Manager ::Get(const std::string& str) {
+cLevel* cLevel_Manager::Get(const std::string& str) {
   for (const auto& level : objects) {
     if (Trim_Filename(level->m_level_filename, false, false).compare(str) ==
         0) {
@@ -120,8 +120,8 @@ cLevel* cLevel_Manager ::Get(const std::string& str) {
   return nullptr;
 }
 
-bool cLevel_Manager ::Get_Path(std::string& filename,
-                               bool check_only_user_dir /* = 0 */) const {
+bool cLevel_Manager::Get_Path(std::string& filename,
+                              bool check_only_user_dir /* = 0 */) const {
   filename = Trim_Filename(filename, false, false);
 
   // user level directory as default
@@ -179,7 +179,7 @@ bool cLevel_Manager ::Get_Path(std::string& filename,
   return false;
 }
 
-void cLevel_Manager ::Update(void) {
+void cLevel_Manager::Update(void) {
   // input
   pActive_Level->Process_Input();
   pLevel_Editor->Process_Input();
@@ -241,7 +241,7 @@ void cLevel_Manager ::Update(void) {
   pFramerate->m_perf_timer[PERF_UPDATE_CAMERA].Update();
 }
 
-void cLevel_Manager ::Draw(void) {
+void cLevel_Manager::Draw(void) {
   // clear
   pVideo->Clear_Screen();
 
@@ -276,7 +276,7 @@ void cLevel_Manager ::Draw(void) {
   pFramerate->m_perf_timer[PERF_DRAW_LEVEL_EDITOR].Update();
 }
 
-void cLevel_Manager ::Finish_Level(bool win_music /* = 0 */) {
+void cLevel_Manager::Finish_Level(bool win_music /* = 0 */) {
   pHud_Time->Reset();
 
   // custom level
@@ -310,7 +310,7 @@ void cLevel_Manager ::Finish_Level(bool win_music /* = 0 */) {
       "screen_fadein", CEGUI::PropertyHelper::intToString(EFFECT_IN_RANDOM));
 }
 
-void cLevel_Manager ::Goto_Sub_Level(
+void cLevel_Manager::Goto_Sub_Level(
     std::string str_level, const std::string& str_entry,
     Camera_movement move_camera /* = CAMERA_MOVE_FLY */,
     const std::string& path_identifier /* = "" */) {

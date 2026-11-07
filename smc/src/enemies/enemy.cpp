@@ -25,7 +25,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cEnemy *** *** *** *** *** *** *** *** *** *** *** */
 
-cEnemy ::cEnemy(cSprite_Manager* sprite_manager)
+cEnemy::cEnemy(cSprite_Manager* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "enemy") {
   m_sprite_array = ARRAY_ENEMY;
   m_type = TYPE_ENEMY;
@@ -48,9 +48,9 @@ cEnemy ::cEnemy(cSprite_Manager* sprite_manager)
   m_can_be_hit_from_shell = true;
 }
 
-cEnemy ::~cEnemy(void) = default;
+cEnemy::~cEnemy(void) = default;
 
-void cEnemy ::Load_From_Savegame(cSave_Level_Object* save_object) {
+void cEnemy::Load_From_Savegame(cSave_Level_Object* save_object) {
   // state
   if (save_object->exists("state")) {
     m_state = static_cast<Moving_state>(
@@ -94,7 +94,7 @@ void cEnemy ::Load_From_Savegame(cSave_Level_Object* save_object) {
   }
 }
 
-std::unique_ptr<cSave_Level_Object> cEnemy ::Save_To_Savegame(void) {
+std::unique_ptr<cSave_Level_Object> cEnemy::Save_To_Savegame(void) {
   auto save_object = std::make_unique<cSave_Level_Object>();
 
   // default values
@@ -137,13 +137,13 @@ std::unique_ptr<cSave_Level_Object> cEnemy ::Save_To_Savegame(void) {
   return save_object;
 }
 
-void cEnemy ::Set_Dead(bool enable /* = 1 */) {
+void cEnemy::Set_Dead(bool enable /* = 1 */) {
   m_dead = enable;
 
   Update_Valid_Update();
 }
 
-void cEnemy ::Update(void) {
+void cEnemy::Update(void) {
   cMovingSprite::Update();
 
   // dying animation
@@ -169,7 +169,7 @@ void cEnemy ::Update(void) {
   }
 }
 
-void cEnemy ::Update_Late(void) {
+void cEnemy::Update_Late(void) {
   // another object controls me
   if (m_state == STA_OBJ_LINKED) {
     // todo: have a parent pointer and use that instead of always the player
@@ -185,7 +185,7 @@ void cEnemy ::Update_Late(void) {
   }
 }
 
-void cEnemy ::Update_Velocity(void) {
+void cEnemy::Update_Velocity(void) {
   // note: this is currently only useful for walker enemy types
   if (m_direction == DIR_RIGHT) {
     if (m_velx < m_velx_max) {
@@ -206,7 +206,7 @@ void cEnemy ::Update_Velocity(void) {
   }
 }
 
-void cEnemy ::Update_Gravity(void) {
+void cEnemy::Update_Gravity(void) {
   if (!m_ground_object) {
     if (m_vely < m_gravity_max) {
       Add_Velocity_Y_Max(1.5f, m_gravity_max);
@@ -225,7 +225,7 @@ void cEnemy ::Update_Gravity(void) {
   }
 }
 
-void cEnemy ::Generate_Hit_Animation(
+void cEnemy::Generate_Hit_Animation(
     cParticle_Emitter* anim /* = nullptr */) const {
   // no emitter given: make one here and hand it to the animation manager at the end
   std::unique_ptr<cParticle_Emitter> owned_anim;
@@ -240,9 +240,9 @@ void cEnemy ::Generate_Hit_Animation(
   anim->Set_Quota(4);
   anim->Set_Pos_Z(m_pos_z - 0.000001f);
   anim->Set_Time_to_Live(0.3f);
-  Color const col_rand =
-      Color(static_cast<Uint8>(Random_Below(5)), static_cast<Uint8>(Random_Below(5)),
-            static_cast<Uint8>(Random_Below(100)), 0);
+  Color const col_rand = Color(static_cast<Uint8>(Random_Below(5)),
+                               static_cast<Uint8>(Random_Below(5)),
+                               static_cast<Uint8>(Random_Below(100)), 0);
   // not bright enough
   /*if( col_rand.red + col_rand.green + col_rand.blue < 250 )
 	{
@@ -280,7 +280,7 @@ void cEnemy ::Generate_Hit_Animation(
   }
 }
 
-void cEnemy ::Handle_Collision(cObjectCollision* collision) {
+void cEnemy::Handle_Collision(cObjectCollision* collision) {
   if (m_dead) {
     return;
   }
@@ -288,7 +288,7 @@ void cEnemy ::Handle_Collision(cObjectCollision* collision) {
   cAnimated_Sprite::Handle_Collision(collision);
 }
 
-void cEnemy ::Handle_out_of_Level(ObjectDirection dir) {
+void cEnemy::Handle_out_of_Level(ObjectDirection dir) {
   if (dir == DIR_LEFT) {
     Set_Pos_X(pActive_Camera->m_limit_rect.m_x - m_col_pos.m_x);
   } else if (dir == DIR_RIGHT) {
