@@ -17,8 +17,13 @@
 #include "../core/i18n.h"
 #include "../video/color.h"
 #include "../objects/sprite.h"
-// for std::ostringstream
-#include <sstream>
+#include <algorithm>
+#include <array>
+#include <cctype>
+#include <charconv>
+#include <limits>
+#include <type_traits>
+#include <string>
 
 namespace SMC {
 
@@ -54,200 +59,82 @@ std::string string_trim_from_end(std::string str, const char search) {
   }
 }
 
-std::string int_to_string(const int number) {
-  std::ostringstream os;
-  os << number;
-  return os.str();
-}
+std::string int_to_string(const int number) { return std::to_string(number); }
 
 std::string int64_to_string(const Uint64 number) {
-  std::ostringstream os;
-  os << number;
-  return os.str();
+  return std::to_string(number);
 }
 
-std::string long_to_string(const long number) {
-  std::ostringstream os;
-  os << number;
-  return os.str();
-}
+std::string long_to_string(const long number) { return std::to_string(number); }
 
-// from stringencoders for float_to_string
-/**
- * Powers of 10
- * 10^0 to 10^9
- */
-static const double pow_of_10[] = {
-    1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000};
-
-// function from stringencoders for float_to_string
-static void strreverse(char* begin, char* end) {
-  char aux;
-  while (end > begin) aux = *end, *end-- = *begin, *begin++ = aux;
-}
-
-/* function from stringencoders 3.10.3 with modifications. Copyright (C) 2007 Nick Galbreath -- nickg [at] modp [dot] com
- * BSD License - http://www.opensource.org/licenses/bsd-license.php
- */
 std::string float_to_string(double value, int prec /* = 6 */,
                             bool keep_zeros /* = 1 */) {
-  /* Hacky test for NaN
-	 * under -fast-math this won't work, but then you also won't
-	 * have correct nan values anyways.  The alternative is
-	 * to link with libmath (bad) or hack IEEE double bits (bad)
-	 */
-  if (!(value == value)) {
-    return "nan";
-  }
+  // Precision is limited to 6 digits after the point: a float carries ~7
+  // significant digits, so more would print noise.
+  prec = std::clamp(prec, 0, 6);
+  // Adding +0.0 turns -0.0 into +0.0, so a negative zero prints as "0".
+  value += 0.0;
 
-  /* if input is larger than thres_max, revert to native */
-  const double thres_max = static_cast<double>(0x7FFFFFFF);
+  // Fixed notation of DBL_MAX is 309 digits; 6 decimals, sign and point fit too.
+  std::array<char, 330> buf;
+  auto const [end, ec] =
+      std::to_chars(buf.data(), buf.data() + buf.size(), value,
+                    std::chars_format::fixed, prec);
+  std::string str(buf.data(), ec == std::errc() ? end : buf.data());
 
-  double diff = 0.0;
-  char str[64];
-  char* wstr = str;
-
-  if (prec < 0) {
-    prec = 0;
-  } else if (prec > 6) {
-    /* precision of >= 7 for float can lead to overflow errors */
-    prec = 6;
-  }
-
-  /* we'll work in positive values and deal with the
-	   negative sign issue later */
-  int neg = 0;
-  if (value < 0) {
-    neg = 1;
-    value = -value;
-  }
-
-  int whole = static_cast<int>(value);
-  double const tmp = (value - whole) * pow_of_10[prec];
-  uint32_t frac = static_cast<uint32_t>(tmp);
-  diff = tmp - frac;
-
-  if (diff > 0.5) {
-    ++frac;
-    /* handle rollover, e.g.  case 0.99 with prec 1 is 1.0  */
-    if (frac >= pow_of_10[prec]) {
-      frac = 0;
-      ++whole;
-    }
-  } else if (diff == 0.5 && ((frac == 0) || (frac & 1))) {
-    /* if halfway, round up if odd, OR
-		   if last digit is 0.  That last part is strange */
-    ++frac;
-  }
-
-  /* for very large numbers switch back to native for exponentials. */
-  /*
-		normal printf behavior is to print EVERY whole number digit
-		which can be 100s of characters overflowing your buffers == bad
-	*/
-  if (value > thres_max) {
-    std::ostringstream temp;
-    temp.setf(std::ios_base::fixed);
-    temp << value;
-
-    return temp.str();
-  }
-
-  if (prec == 0) {
-    diff = value - whole;
-    if (diff > 0.5) {
-      /* greater than 0.5, round up, e.g. 1.6 -> 2 */
-      ++whole;
-    } else if (diff == 0.5 && (whole & 1)) {
-      /* exactly 0.5 and ODD, then round up */
-      /* 1.5 -> 2, but 2.5 -> 2 */
-      ++whole;
-    }
-  } else {
-    int count = prec;
-
-    if (!keep_zeros) {
-      if (frac) {
-        // now do fractional part, as an unsigned number
-        // we know it is not 0 but we can have leading zeros, these
-        // should be removed
-        while (!(frac % 10)) {
-          --count;
-          frac /= 10;
-        }
-
-        // now do fractional part, as an unsigned number
-        do {
-          --count;
-          *wstr++ = (char)(48 + (frac % 10));
-        } while (frac /= 10);
-        // add extra 0s
-        while (count-- > 0) *wstr++ = '0';
-        // add decimal
-        *wstr++ = '.';
-      }
-    } else {
-      // now do fractional part, as an unsigned number
-      do {
-        --count;
-        *wstr++ = (char)(48 + (frac % 10));
-      } while (frac /= 10);
-      // add extra 0s
-      while (count-- > 0) *wstr++ = '0';
-      // add decimal
-      *wstr++ = '.';
+  // Without keep_zeros, "1.500" becomes "1.5" and "2.000" becomes "2".
+  if (!keep_zeros && str.find('.') != std::string::npos) {
+    str.erase(str.find_last_not_of('0') + 1);
+    if (str.back() == '.') {
+      str.pop_back();
     }
   }
-
-  // do whole part
-  // Take care of sign
-  // Conversion. Number is reversed.
-  do *wstr++ = (char)(48 + (whole % 10));
-  while (whole /= 10);
-  if (neg) {
-    *wstr++ = '-';
-  }
-
-  *wstr = '\0';
-  strreverse(str, wstr - 1);
-
   return str;
 }
 
-// string conversion helper
+// Parse a number with std::from_chars (locale independent), keeping the
+// std::istream semantics the level/save formats were written against: leading
+// whitespace and a leading '+' are accepted; out-of-range input clamps to the
+// type's limit; an unsigned type reads "-n" as its wrapped value (as strtoull
+// does); unparseable input yields 0.
 template <class T>
-bool from_string(T& t, const std::string& s,
-                 std::ios_base& (*f)(std::ios_base&)) {
-  std::istringstream iss(s);
-  return !(iss >> f >> t).fail();
+static T parse_number(const std::string& str) {
+  const char* first = str.data();
+  const char* const last = first + str.size();
+  while (first != last && std::isspace(static_cast<unsigned char>(*first))) {
+    ++first;
+  }
+  if (first != last && *first == '+') {
+    ++first;
+  }
+  bool negate = false;
+  if constexpr (std::is_unsigned_v<T>) {
+    if (first != last && *first == '-') {
+      negate = true;
+      ++first;
+    }
+  }
+  T num{};
+  auto const [ptr, ec] = std::from_chars(first, last, num);
+  if (ec == std::errc::result_out_of_range) {
+    bool const below = !negate && first != last && *first == '-';
+    num = below ? std::numeric_limits<T>::lowest() : std::numeric_limits<T>::max();
+  } else if (ec != std::errc()) {
+    num = T{};
+  }
+  return negate ? static_cast<T>(T{} - num) : num;
 }
 
-int string_to_int(const std::string& str) {
-  int num = 0;
-  // use helper
-  from_string<int>(num, str, std::dec);
-  return num;
-}
+int string_to_int(const std::string& str) { return parse_number<int>(str); }
 
 Uint64 string_to_int64(const std::string& str) {
-  Uint64 num = 0;
-  // use helper
-  from_string<Uint64>(num, str, std::dec);
-  return num;
+  return parse_number<Uint64>(str);
 }
 
-long string_to_long(const std::string& str) {
-  long num = 0;
-  // use helper
-  from_string<long>(num, str, std::dec);
-  return num;
-}
+long string_to_long(const std::string& str) { return parse_number<long>(str); }
 
 float string_to_float(const std::string& str) {
-  float num = 0.0f;
-  // use helper
-  from_string<float>(num, str, std::dec);
-  return num;
+  return parse_number<float>(str);
 }
 
 unsigned int string_to_version_number(std::string str) {
