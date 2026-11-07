@@ -130,11 +130,36 @@ Modernization is also knowing which "obvious" changes cost more than they return
   cleanliness. Parked — `tasks/smc-modernize-step-9-dedup-cegui.md`.
 - **CEGUI event lambdas** (~216 fire-and-forget `subscribeEvent`): high churn, modest value (nothing
   dangles today). Parked with the dedup.
-- **`int_to_string`/`ostringstream` → `std::to_string`/`std::format`**: ~277 sites of low-value
-  churn, plus the gettext printf issue above.
+- **Rewriting the ~277 `int_to_string` call sites to `std::to_string`/`std::format`**: low-value
+  churn, plus the gettext printf issue above. (The helper *bodies* did move to `<charconv>`; see
+  "Library code → the standard library".)
 - **`#define` constants → `constexpr`**: most are `GAME_*_DIR`/`DATA_DIR` string macros used in
   compile-time literal concatenation (`DATA_DIR "/" GAME_LEVEL_DIR`), which only works with macros —
   they must stay. Only a few int constants are safely convertible; low value.
+
+## Library code → the standard library (2026-11-07)
+
+The F45 upgrade's `std::regex` matcher (replacing CEGUI's PCRE1 one) was the first of these. Five
+more followed, each its own commit, each gated by gcc and clang `-Werror` builds and the image smoke:
+
+| Old | Standard replacement | Notes |
+|---|---|---|
+| `int_to_string` / `float_to_string` / `string_to_int` … bodies (`ostringstream`, `istringstream`, a vendored stringencoders formatter) | `std::to_string`, `std::to_chars(fixed)`, `std::from_chars` | Only the ~5 helper **bodies** changed; the 460 call sites didn't, which removes the "too much churn" objection below. `parse_number<T>` keeps the `std::istream` semantics the level/save formats were written against: leading whitespace and `+` accepted, out-of-range clamps, an unsigned type wraps `-n`, garbage is 0. **Proved by an oracle** (`tasks/adhoc/smc-replace-libraries-with-std/number_helper_oracle.py`): old and new replayed over all 17,981 attribute values in `smc/data` + 20,000 random doubles × every precision: identical, except `float_to_string` for \|x\| ≥ 2³¹, where the old code ignored the precision (no game value is that large). The oracle's first run caught the two istream behaviours a plain `from_chars` loses (clamping, unsigned wrap). |
+| `remove()` / `rename()`, throwing `fs::status` | `fs::remove` / `fs::rename` / `fs::status` with `std::error_code` | Same true/false results; a permission error in `File_Exists` no longer throws out of a bool query. |
+| libpng driven by hand in `Save_Surface` | `IMG_SavePNG` on an SDL surface (`unique_ptr` with `SDL_FreeSurface` as deleter) | Not `std`, but it drops a direct dependency (SDL2_image was already required). The game no longer links libpng. |
+| `rand()` / `srand(time())` | `<random>`: one `std::mt19937` (`Random_Engine()`), `Random_Below(n)` | `Random_Below` returns n's type and draws through `long long`, because `uniform_int_distribution` may not take `Uint8`. `Random_Below(0)` is 0 where `rand() % 0` was undefined. Codemod: `rand_to_random.py`. |
+| `SDL_GetTicks` / `SDL_Delay` | `Ticks_Ms()` (`steady_clock`, ms since first use) / `Sleep_Ms()` (`sleep_for`) | The `cFramerate` fields keep their `Uint32` ms counts. Counting from first use, not boot, keeps a float animation phase precise. |
+
+**Not changed, and why:** the game's XML file I/O goes through CEGUI's XML classes, and ISO C++ has no
+XML parser, so there is no `std` swap. The plan is to move it to pugixml/tinyxml2 as the first step of a
+CEGUI 0.8 port (`tasks/smc-cegui-0.8-port.md`, parked). `ostringstream` → `std::format` stays rejected
+wherever the format string comes from gettext.
+
+**A gate lesson from this pass:** `make image` had been COPYing the host tree's generated `configure`
+(from before `configure.ac` gained the warning gate) and its `.o` files, so it built **without**
+`-Werror` and reused host objects. `.dockerignore` now excludes generated autotools files and build
+output, and `build.sh` regenerates `configure` when `configure.ac` is newer. A gate is only a gate if
+you check that its flags reach the compiler: read the generated `src/Makefile`'s `CXXFLAGS`.
 
 ## What the ownership passes did NOT change: the borrow side and the manager classes
 
