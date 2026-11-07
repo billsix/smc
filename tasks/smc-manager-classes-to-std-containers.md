@@ -108,9 +108,8 @@ update `tasks/reference/smc/` in the same commit (the reference set names these 
   store's draw order, auto-destroy slot reuse, and the ground/active-object pointers; the level and
   overworld switching). This task requires a play-test between phases; stacking them unattended would
   trade verified gameplay for structure.
-- **Formatting gotcha:** clang-format 23 disagrees with 72 of 162 files, so edit with
-  `git diff -U0 | clang-format-diff -p1 -i` (changed lines only) until
-  `tasks/smc-reformat-for-clang-format-23.md` lands.
+- **Formatting:** the tree is clang-format 23 clean since `cfbc1d5` (2026-11-07), so a whole-file
+  `clang-format -i` (or `make format`) on an edited file is fine.
 - **Gate for every phase:** `tasks/adhoc/smc-port-build-to-cmake/compiler_gate.sh` with `CXX=g++` and
   `CXX=clang++`, then `build.sh game` + `tools/smoke_headless.sh` in one container (see that script's
   header for the `podman run` line).
