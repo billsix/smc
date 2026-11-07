@@ -73,7 +73,7 @@ cLevel ::cLevel(void) {
   auto gradient_background = std::make_unique<cBackground>(&m_sprite_manager);
   gradient_background->Set_Type(BG_GR_VER);
   gradient_background->m_pos_z = 0.0001f;
-  m_background_manager.Add(std::move(gradient_background));
+  m_backgrounds.push_back(std::move(gradient_background));
 }
 
 cLevel ::~cLevel(void) { Unload(); }
@@ -213,13 +213,13 @@ void cLevel ::Unload(bool delayed /* = 0 */) {
   }
 
   // delete backgrounds
-  m_background_manager.Delete_All();
+  m_backgrounds.clear();
 
   // add default gradient layer
   auto gradient_background = std::make_unique<cBackground>(&m_sprite_manager);
   gradient_background->Set_Type(BG_GR_VER);
   gradient_background->m_pos_z = 0.0001f;
-  m_background_manager.Add(std::move(gradient_background));
+  m_backgrounds.push_back(std::move(gradient_background));
 
   // reset music
   m_musicfile.clear();
@@ -314,7 +314,7 @@ void cLevel ::Save(void) {
   stream.closeTag();
 
   // backgrounds
-  for (const auto& background : m_background_manager.objects) {
+  for (const auto& background : m_backgrounds) {
     background->Save_To_XML(stream);
   }
 
@@ -513,7 +513,7 @@ void cLevel ::Update(void) {
   // if level-editor is not active
   if (!editor_level_enabled) {
     // backgrounds
-    for (const auto& background : m_background_manager.objects) {
+    for (const auto& background : m_backgrounds) {
       background->Update();
     }
 
@@ -544,7 +544,7 @@ void cLevel ::Update_Late(void) {
 void cLevel ::Draw_Layer_1(LevelDrawType type /* = LVL_DRAW */) {
   // with background
   if (type != LVL_DRAW_NO_BG) {
-    for (const auto& background : m_background_manager.objects) {
+    for (const auto& background : m_backgrounds) {
       background->Draw();
     }
   }
@@ -1005,11 +1005,11 @@ void cLevel ::elementEnd(const CEGUI::String& element) {
 
     // use gradient background
     if (bg_type == BG_GR_HOR || bg_type == BG_GR_VER) {
-      m_background_manager.Get_Pointer(0)->Load_From_XML(m_xml_attributes);
+      Gradient_Background().Load_From_XML(m_xml_attributes);
     }
     // default background
     else {
-      m_background_manager.Add(
+      m_backgrounds.push_back(
           std::make_unique<cBackground>(m_xml_attributes, &m_sprite_manager));
     }
   } else if (element == "player") {

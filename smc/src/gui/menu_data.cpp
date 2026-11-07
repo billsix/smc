@@ -3526,10 +3526,8 @@ void cMenu_Credits ::Leave(const GameMode next_mode /* = MODE_NOTHING */) {
   }
 
   // set menu gradient colors back
-  pMenuCore->m_handler.m_level.m_background_manager.Get_Pointer(0)
-      ->m_color_1.alpha = 255;
-  pMenuCore->m_handler.m_level.m_background_manager.Get_Pointer(0)
-      ->m_color_2.alpha = 255;
+  pMenuCore->m_handler.m_level.Gradient_Background().m_color_1.alpha = 255;
+  pMenuCore->m_handler.m_level.Gradient_Background().m_color_2.alpha = 255;
 }
 
 void cMenu_Credits ::Exit(void) {
@@ -3653,8 +3651,7 @@ void cMenu_Credits ::Draw(void) {
   auto request = std::make_unique<cRect_Request>();
   pVideo->Draw_Rect(
       nullptr, 0.095f,
-      &pMenuCore->m_handler.m_level.m_background_manager.Get_Pointer(0)
-           ->m_color_2,
+      &pMenuCore->m_handler.m_level.Gradient_Background().m_color_2,
       request.get());
   request->m_color.red = static_cast<Uint8>(request->m_color.red * 0.1f);
   request->m_color.green = static_cast<Uint8>(request->m_color.green * 0.1f);
@@ -3741,10 +3738,10 @@ void cMenu_Credits ::Menu_Fade(bool fade_in /* = 1 */) {
     }
 
     // set menu gradient colors
-    pMenuCore->m_handler.m_level.m_background_manager.Get_Pointer(0)
-        ->m_color_1.alpha = static_cast<Uint8>(counter);
-    pMenuCore->m_handler.m_level.m_background_manager.Get_Pointer(0)
-        ->m_color_2.alpha = static_cast<Uint8>(counter);
+    pMenuCore->m_handler.m_level.Gradient_Background().m_color_1.alpha =
+        static_cast<Uint8>(counter);
+    pMenuCore->m_handler.m_level.Gradient_Background().m_color_2.alpha =
+        static_cast<Uint8>(counter);
 
     // # Draw
 
@@ -3759,8 +3756,7 @@ void cMenu_Credits ::Menu_Fade(bool fade_in /* = 1 */) {
     auto request = std::make_unique<cRect_Request>();
     pVideo->Draw_Rect(
         nullptr, 0.095f,
-        &pMenuCore->m_handler.m_level.m_background_manager.Get_Pointer(0)
-             ->m_color_2,
+        &pMenuCore->m_handler.m_level.Gradient_Background().m_color_2,
         request.get());
     request->m_color.red = static_cast<Uint8>(request->m_color.red * 0.1f);
     request->m_color.green = static_cast<Uint8>(request->m_color.green * 0.1f);

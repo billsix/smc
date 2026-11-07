@@ -157,7 +157,10 @@ class cLevel : public CEGUI::XMLHandler {
 
   // the level's managers (owned values; constructed with the level)
   cSprite_Manager m_sprite_manager;
-  cBackground_Manager m_background_manager;
+  // the backgrounds, drawn in order; [0] is always the gradient layer
+  vector<std::unique_ptr<cBackground>> m_backgrounds;
+  // the permanent gradient background (created with the level, never deleted)
+  cBackground& Gradient_Background(void) { return *m_backgrounds.front(); }
   cAnimation_Manager m_animation_manager;
 
   /* *** *** *** Settings *** *** *** *** */
