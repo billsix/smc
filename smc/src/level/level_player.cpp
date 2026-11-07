@@ -242,7 +242,7 @@ void cLevel_Player ::DownGrade_Player(bool delayed /* = 1 */,
   pVideo->Render();
 
   // wait
-  SDL_Delay(500);
+  Sleep_Ms(500);
   pFramerate->Reset();
 
   Set_Image_Num(MARYO_IMG_DEAD);
@@ -275,7 +275,7 @@ void cLevel_Player ::DownGrade_Player(bool delayed /* = 1 */,
   }
 
   // very small delay until falling animation
-  SDL_Delay(300);
+  Sleep_Ms(300);
 
   pFramerate->Reset();
   m_walk_count = 0.0f;
@@ -2274,7 +2274,7 @@ void cLevel_Player ::Draw_Animation(Maryo_type new_mtype) {
     pVideo->Render();
 
     // frame delay
-    SDL_Delay(120);
+    Sleep_Ms(120);
   }
 
   pFramerate->Reset();

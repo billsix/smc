@@ -330,7 +330,7 @@ void Init_Game(void) {
   pVideo->Init_CEGUI();
   pVideo->Init_CEGUI_Data();
   pFont->Init();
-  // framerate init ( must be after SDL init because of SDL_GetTicks() )
+  // framerate init
   pFramerate->Init();
   // audio init
   pAudio->Init();
@@ -545,7 +545,7 @@ void Update_Game(void) {
   pAudio->Update();
 
   // performance measuring
-  pFramerate->m_perf_last_ticks = SDL_GetTicks();
+  pFramerate->m_perf_last_ticks = Ticks_Ms();
 
   // ## update
   if (Game_Mode == MODE_LEVEL) {
@@ -569,7 +569,7 @@ void Draw_Game(void) {
   }
 
   // performance measuring
-  pFramerate->m_perf_last_ticks = SDL_GetTicks();
+  pFramerate->m_perf_last_ticks = Ticks_Ms();
 
   if (Game_Mode == MODE_LEVEL) {
     pLevel_Manager->Draw();

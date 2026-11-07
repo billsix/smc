@@ -698,7 +698,7 @@ void cVideo ::Init_Image_Cache(bool recreate /* = 0 */,
           // caching failed
           Loading_Screen_Draw_Text(
               _("Caching Images failed : Could not remove old images"));
-          SDL_Delay(2000);
+          Sleep_Ms(2000);
         }
       }
     }
