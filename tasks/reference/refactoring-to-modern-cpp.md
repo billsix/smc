@@ -162,29 +162,42 @@ output; the CMake port that followed builds out of tree (`/opt/smc-build`), whic
 problem. A gate is only a gate if
 you check that its flags reach the compiler: read the generated `src/Makefile`'s `CXXFLAGS`.
 
-## What the ownership passes did NOT change: the borrow side and the manager classes
+## The third pass: the manager classes and the stored borrows (2026-11-07)
 
-Both passes fixed **who frees** (`unique_ptr` storage, `Add(std::unique_ptr<T>)`). They did not
-change the **`*_Manager` classes** themselves or the **stored borrows**, and both are deliberate
-next steps rather than oversights:
+The two ownership passes fixed **who frees** (`unique_ptr` storage, `Add(std::unique_ptr<T>)`). The
+third pass dealt with what they left: the **`*_Manager` classes** and the **stored borrows**. Record:
+`tasks/archive/2026/11/07/smc-manager-classes-to-std-containers.md`.
 
-- **Raw-pointer parameters are correct as they are.** C++ Core Guidelines `F.7`/`R.30`: a function
-  that only uses an object takes `T*`/`T&`. The ~300 raw `T*` parameters are borrows, not leftovers.
-- **Stored pointers are where lifetime bugs live.** Most (`m_sprite_manager`, `m_level`,
-  `m_overworld`, the `cGL_Surface*` images) point at an owner that outlives the holder, so they are
-  safe as raw pointers. About 6 sprite→sprite members (`m_ground_object`, `m_active_object`,
-  `m_last_clicked_object`, `m_obj`) can outlive their target. Today they are kept safe by
-  `m_auto_destroy` (deferred slot reuse) and hand-nulling. The planned fix is a generational
-  `SpriteHandle`.
-- **The managers mostly exist to hold a container.** `cObject_Manager<T>` gives 10 subclasses a
-  public owning vector through inheritance. The planned replacement is: pure containers become
-  private member containers, caches become `unordered_map`-backed classes named for what they
-  cache, and the base class is deleted.
+- **Raw-pointer parameters stayed as they are.** C++ Core Guidelines `F.7`/`R.30`: a function that
+  only uses an object takes `T*`/`T&`. The ~300 raw `T*` parameters are borrows, not leftovers.
+- **Storage is a private member, not a base class.** `cObject_Manager<T>` (inheritance giving 10
+  subclasses a *public* owning vector) is deleted. Each class holds a private `Owning_Vector<T>`
+  (`core/owning_vector.h`: `vector<unique_ptr<T>>` plus the shared lookups `Find_Owned`,
+  `Erase_Owned`, `Release_Owned`, `Borrow_At`, `Index_Of`) and declares only what its callers use.
+  Outside code iterates `Objects()`, a `std::views::transform` view of borrowed `T*`.
+- **A class survives only for an invariant, and is named for it.** `cSprite_Store` keeps draw order,
+  deferred destruction (slot reuse), and the on-add hook. `cTexture_Cache` and `cSound_Cache` look up
+  by filename through an `unordered_map` index (first added wins, matching the old linear scan).
+  `cLevel_Manager`, `cOverworld_Manager`, `cAnimation_Manager` and `cCampaign_Manager` keep game-state
+  or loader logic. `cBackground_Manager` (a pure container) became `cLevel::m_backgrounds`.
+  `cWorld_Sprite_Manager` (one `Add` override) became `cSprite_Store::m_on_add`, which `cOverworld`
+  sets.
+- **Stored references that can outlive their target are handles.** Six members (ground object,
+  collision partner, the editor's selected/active/last-clicked object, the player's carried object)
+  are `cSprite_Handle<T>` (`core/sprite_handle.h`). Every `cSprite` holds a never-reused serial
+  registered for its lifetime, so a handle reads as `nullptr` once its sprite is freed, even if a new
+  sprite reuses the address. While the target lives, it reads exactly like the old pointer. A
+  slot-index-plus-generation handle did not fit: the store reorders its vector (`Move_To_Front`), and
+  these members point across several stores and at the players, which no store owns.
+- **Not changed:** the 35 `extern cX* pX` global aliases (passing context by reference is the end
+  state, at thousands of call sites); the 15 `-Woverloaded-virtual` suppressions in the sprite
+  hierarchy (deliberate narrowing, unrelated to the managers); `cFont_Manager` and
+  `cResource_Manager` (behaviour, not storage; the names were kept). The never-null `T*` → `T&`
+  conversion was left for files edited for other reasons.
 
 The general rule (four categories of stored borrow; when a container class earns its existence)
 is in the shared standard's section "Stored borrows and 'manager' classes"
-(github.com/billsix/runClaudeInContainer `tasks/reference/cpp-coding-standard.md`). The smc work
-plan is `tasks/smc-manager-classes-to-std-containers.md`.
+(github.com/billsix/runClaudeInContainer `tasks/reference/cpp-coding-standard.md`).
 
 ## Verification status
 

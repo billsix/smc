@@ -30,23 +30,22 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cSpikeball *** *** *** *** *** *** *** *** *** *** *** */
 
-cSpikeball ::cSpikeball(cSprite_Manager* sprite_manager)
-    : cEnemy(sprite_manager) {
+cSpikeball::cSpikeball(cSprite_Store* sprite_manager) : cEnemy(sprite_manager) {
   cSpikeball::Init();
 }
 
-cSpikeball ::cSpikeball(CEGUI::XMLAttributes& attributes,
-                        cSprite_Manager* sprite_manager)
+cSpikeball::cSpikeball(CEGUI::XMLAttributes& attributes,
+                       cSprite_Store* sprite_manager)
     : cEnemy(sprite_manager) {
   cSpikeball::Init();
   cSpikeball::Load_From_XML(attributes);
 }
 
-cSpikeball ::~cSpikeball(void) {
+cSpikeball::~cSpikeball(void) {
   //
 }
 
-void cSpikeball ::Init(void) {
+void cSpikeball::Init(void) {
   m_type = TYPE_SPIKEBALL;
   m_pos_z = 0.09f;
   m_gravity_max = 29.0f;
@@ -63,7 +62,7 @@ void cSpikeball ::Init(void) {
   Set_Direction(DIR_RIGHT);
 }
 
-std::unique_ptr<cSprite> cSpikeball ::Copy(void) const {
+std::unique_ptr<cSprite> cSpikeball::Copy(void) const {
   auto spikeball = std::make_unique<cSpikeball>(m_sprite_manager);
   spikeball->Set_Pos(m_start_pos_x, m_start_pos_y);
   spikeball->Set_Color(m_color_type);
@@ -71,7 +70,7 @@ std::unique_ptr<cSprite> cSpikeball ::Copy(void) const {
   return spikeball;
 }
 
-void cSpikeball ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cSpikeball::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
           static_cast<float>(attributes.getValueAsInteger("posy")), true);
@@ -86,7 +85,7 @@ void cSpikeball ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
           .c_str()));
 }
 
-void cSpikeball ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cSpikeball::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -104,13 +103,13 @@ void cSpikeball ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cSpikeball ::Load_From_Savegame(cSave_Level_Object* save_object) {
+void cSpikeball::Load_From_Savegame(cSave_Level_Object* save_object) {
   cEnemy::Load_From_Savegame(save_object);
 
   Update_Rotation_Hor();
 }
 
-void cSpikeball ::Set_Direction(const ObjectDirection dir) {
+void cSpikeball::Set_Direction(const ObjectDirection dir) {
   // already set
   if (m_start_direction == dir) {
     return;
@@ -122,7 +121,7 @@ void cSpikeball ::Set_Direction(const ObjectDirection dir) {
   Create_Name();
 }
 
-void cSpikeball ::Set_Color(const DefaultColor& col) {
+void cSpikeball::Set_Color(const DefaultColor& col) {
   // already set
   if (m_color_type == col) {
     return;
@@ -172,7 +171,7 @@ void cSpikeball ::Set_Color(const DefaultColor& col) {
   Create_Name();
 }
 
-void cSpikeball ::Turn_Around(ObjectDirection col_dir /* = DIR_UNDEFINED */) {
+void cSpikeball::Turn_Around(ObjectDirection col_dir /* = DIR_UNDEFINED */) {
   cEnemy::Turn_Around(col_dir);
 
   if (col_dir == DIR_LEFT || col_dir == DIR_RIGHT) {
@@ -191,7 +190,7 @@ void cSpikeball ::Turn_Around(ObjectDirection col_dir /* = DIR_UNDEFINED */) {
   }
 }
 
-void cSpikeball ::DownGrade(bool force /* = 0 */) {
+void cSpikeball::DownGrade(bool force /* = 0 */) {
   Set_Dead(true);
   m_massive_type = MASS_PASSIVE;
   m_counter = 0.0f;
@@ -213,7 +212,7 @@ void cSpikeball ::DownGrade(bool force /* = 0 */) {
   }
 }
 
-void cSpikeball ::Update_Dying(void) {
+void cSpikeball::Update_Dying(void) {
   // stomp death
   if (!Is_Float_Equal(m_rot_z, 180.0f)) {
     // scale out
@@ -249,7 +248,7 @@ void cSpikeball ::Update_Dying(void) {
   }
 }
 
-void cSpikeball ::Set_Moving_State(Moving_state new_state) {
+void cSpikeball::Set_Moving_State(Moving_state new_state) {
   if (new_state == m_state) {
     return;
   }
@@ -281,7 +280,7 @@ void cSpikeball ::Set_Moving_State(Moving_state new_state) {
   Update_Rotation_Hor();
 }
 
-void cSpikeball ::Update(void) {
+void cSpikeball::Update(void) {
   cEnemy::Update();
 
   if (!m_valid_update || !Is_In_Range()) {
@@ -402,7 +401,7 @@ void cSpikeball ::Update(void) {
   Update_Gravity();
 }
 
-void cSpikeball ::Update_Velocity_Max(void) {
+void cSpikeball::Update_Velocity_Max(void) {
   if (m_state == STA_WALK) {
     m_velx_max = 1.5f;
     m_velx_gain = 0.3f;
@@ -412,7 +411,7 @@ void cSpikeball ::Update_Velocity_Max(void) {
   }
 }
 
-bool cSpikeball ::Is_Update_Valid(void) {
+bool cSpikeball::Is_Update_Valid(void) {
   if (m_dead || m_freeze_counter) {
     return false;
   }
@@ -420,7 +419,7 @@ bool cSpikeball ::Is_Update_Valid(void) {
   return true;
 }
 
-Col_Valid_Type cSpikeball ::Validate_Collision(cSprite* obj) {
+Col_Valid_Type cSpikeball::Validate_Collision(cSprite* obj) {
   // basic validation checking
   Col_Valid_Type const basic_valid = Validate_Collision_Ghost(obj);
 
@@ -477,7 +476,7 @@ Col_Valid_Type cSpikeball ::Validate_Collision(cSprite* obj) {
   return COL_VTYPE_NOT_VALID;
 }
 
-void cSpikeball ::Handle_Collision_Player(cObjectCollision* collision) {
+void cSpikeball::Handle_Collision_Player(cObjectCollision* collision) {
   // invalid
   if (collision->m_direction == DIR_UNDEFINED) {
     return;
@@ -491,7 +490,7 @@ void cSpikeball ::Handle_Collision_Player(cObjectCollision* collision) {
   }
 }
 
-void cSpikeball ::Handle_Collision_Enemy(cObjectCollision* collision) {
+void cSpikeball::Handle_Collision_Enemy(cObjectCollision* collision) {
   if (collision->m_direction == DIR_RIGHT ||
       collision->m_direction == DIR_LEFT) {
     Turn_Around(collision->m_direction);
@@ -500,7 +499,7 @@ void cSpikeball ::Handle_Collision_Enemy(cObjectCollision* collision) {
   Send_Collision(collision);
 }
 
-void cSpikeball ::Handle_Collision_Massive(cObjectCollision* collision) {
+void cSpikeball::Handle_Collision_Massive(cObjectCollision* collision) {
   if (m_state == STA_OBJ_LINKED) {
     return;
   }
@@ -529,8 +528,7 @@ void cSpikeball ::Handle_Collision_Massive(cObjectCollision* collision) {
   }
 }
 
-void cSpikeball ::Handle_Collision_Box(ObjectDirection cdirection,
-                                       GL_rect* r2) {
+void cSpikeball::Handle_Collision_Box(ObjectDirection cdirection, GL_rect* r2) {
   if (cdirection == DIR_DOWN) {
     m_vely = -10.0f;
 
@@ -547,7 +545,7 @@ void cSpikeball ::Handle_Collision_Box(ObjectDirection cdirection,
   }
 }
 
-void cSpikeball ::Editor_Activate(void) {
+void cSpikeball::Editor_Activate(void) {
   // get window manager
   CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
 
@@ -569,7 +567,7 @@ void cSpikeball ::Editor_Activate(void) {
   Editor_Init();
 }
 
-bool cSpikeball ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
+bool cSpikeball::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =
@@ -580,7 +578,7 @@ bool cSpikeball ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   return true;
 }
 
-void cSpikeball ::Create_Name(void) {
+void cSpikeball::Create_Name(void) {
   m_name = "Spikeball ";
   m_name += _(Get_Color_Name(m_color_type).c_str());
   m_name += " ";

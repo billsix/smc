@@ -39,7 +39,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cOverworld_description *** *** *** *** *** *** *** *** *** */
 
-cOverworld_description ::cOverworld_description(void) {
+cOverworld_description::cOverworld_description(void) {
   m_path = "world_1";
   m_name = _("Unnamed");
   m_visible = true;
@@ -48,11 +48,11 @@ cOverworld_description ::cOverworld_description(void) {
   m_comment = _("Empty");
 }
 
-cOverworld_description ::~cOverworld_description(void) {
+cOverworld_description::~cOverworld_description(void) {
   //
 }
 
-void cOverworld_description ::Load(void) {
+void cOverworld_description::Load(void) {
   std::string const filename = Get_Full_Path() + "/description.xml";
 
   // filename not valid
@@ -75,7 +75,7 @@ void cOverworld_description ::Load(void) {
 #endif
 }
 
-void cOverworld_description ::Save(void) {
+void cOverworld_description::Save(void) {
   std::string const save_dir =
       pResource_Manager->user_data_dir + USER_WORLD_DIR + "/" + m_path;
   std::string const filename = save_dir + "/description.xml";
@@ -113,7 +113,7 @@ void cOverworld_description ::Save(void) {
   file.close();
 }
 
-std::string cOverworld_description ::Get_Full_Path(void) const {
+std::string cOverworld_description::Get_Full_Path(void) const {
   // return user world if available
   if (File_Exists(pResource_Manager->user_data_dir + USER_WORLD_DIR + "/" +
                   m_path + "/description.xml")) {
@@ -124,7 +124,7 @@ std::string cOverworld_description ::Get_Full_Path(void) const {
   return DATA_DIR "/" GAME_OVERWORLD_DIR "/" + m_path;
 }
 
-void cOverworld_description ::elementStart(
+void cOverworld_description::elementStart(
     const CEGUI::String& element, const CEGUI::XMLAttributes& attributes) {
   if (element == "property") {
     m_xml_attributes.add(attributes.getValueAsString("name"),
@@ -135,7 +135,7 @@ void cOverworld_description ::elementStart(
   }
 }
 
-void cOverworld_description ::elementEnd(const CEGUI::String& element) {
+void cOverworld_description::elementEnd(const CEGUI::String& element) {
   if (element == "property" || element == "Property") {
     return;
   }
@@ -153,7 +153,7 @@ void cOverworld_description ::elementEnd(const CEGUI::String& element) {
   m_xml_attributes = CEGUI::XMLAttributes();
 }
 
-void cOverworld_description ::handle_world(
+void cOverworld_description::handle_world(
     const CEGUI::XMLAttributes& attributes) {
   m_name = xml_string_to_string(
       attributes.getValueAsString("name", m_name.c_str()).c_str());
@@ -162,11 +162,19 @@ void cOverworld_description ::handle_world(
 
 /* *** *** *** *** *** *** *** *** cOverworld *** *** *** *** *** *** *** *** *** */
 
-cOverworld ::cOverworld(void)
-    : m_sprite_manager(this),
+cOverworld::cOverworld(void)
+    : m_sprite_manager(500),
       m_layer(this),
       m_hud_world_name(&m_sprite_manager),
       m_hud_level_name(&m_sprite_manager) {
+  // waypoints and layer line starts are also indexed by the overworld (which borrows them)
+  m_sprite_manager.m_on_add = [this](cSprite* sprite) {
+    if (sprite->m_type == TYPE_OW_WAYPOINT) {
+      m_waypoints.push_back(static_cast<cWaypoint*>(sprite));
+    } else if (sprite->m_type == TYPE_OW_LINE_START) {
+      m_layer.Register(static_cast<cLayer_Line_Point_Start*>(sprite));
+    }
+  };
   m_engine_version = -1;
   m_last_saved = 0;
   m_background_color = Color();
@@ -182,9 +190,9 @@ cOverworld ::cOverworld(void)
   m_player_moving_state = STA_STAY;
 }
 
-cOverworld ::~cOverworld(void) { Unload(); }
+cOverworld::~cOverworld(void) { Unload(); }
 
-bool cOverworld ::New(std::string name) {
+bool cOverworld::New(std::string name) {
   if (name.empty()) {
     return false;
   }
@@ -202,7 +210,7 @@ bool cOverworld ::New(std::string name) {
   return true;
 }
 
-bool cOverworld ::Load(void) {
+bool cOverworld::Load(void) {
   Unload();
 
   // description
@@ -264,7 +272,7 @@ bool cOverworld ::Load(void) {
   return true;
 }
 
-void cOverworld ::Unload(void) {
+void cOverworld::Unload(void) {
   // not loaded
   if (!Is_Loaded()) {
     return;
@@ -284,7 +292,7 @@ void cOverworld ::Unload(void) {
   m_last_saved = 0;
 }
 
-void cOverworld ::Save(void) {
+void cOverworld::Save(void) {
   pAudio->Play_Sound("editor/save.ogg");
 
   std::string const save_dir = pResource_Manager->user_data_dir +
@@ -359,7 +367,7 @@ void cOverworld ::Save(void) {
   stream.closeTag();
 
   // objects
-  for (const auto& sprite : m_sprite_manager.objects) {
+  for (auto* sprite : m_sprite_manager.Objects()) {
     // skip spawned and destroyed objects
     if (sprite->m_spawned || sprite->m_auto_destroy) {
       continue;
@@ -383,7 +391,7 @@ void cOverworld ::Save(void) {
   pHud_Debug->Set_Text(_("World ") + m_description.m_name + _(" saved"));
 }
 
-void cOverworld ::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
+void cOverworld::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
   if (game_exit) {
     return;
   }
@@ -463,7 +471,7 @@ void cOverworld ::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
   pFramerate->Reset();
 }
 
-void cOverworld ::Leave(const GameMode next_mode /* = MODE_NOTHING */) {
+void cOverworld::Leave(const GameMode next_mode /* = MODE_NOTHING */) {
   // if not in world mode
   if (Game_Mode != MODE_OVERWORLD) {
     return;
@@ -500,7 +508,7 @@ void cOverworld ::Leave(const GameMode next_mode /* = MODE_NOTHING */) {
   }
 }
 
-void cOverworld ::Draw(void) {
+void cOverworld::Draw(void) {
   // Background
   pVideo->Clear_Screen();
   Draw_Layer_1();
@@ -517,7 +525,7 @@ void cOverworld ::Draw(void) {
   pFramerate->m_perf_timer[PERF_DRAW_OVERWORLD].Update();
 }
 
-void cOverworld ::Draw_Layer_1(void) {
+void cOverworld::Draw_Layer_1(void) {
   pVideo->Draw_Rect(nullptr, 0.0001f, &m_background_color);
 
   // sprites
@@ -526,7 +534,7 @@ void cOverworld ::Draw_Layer_1(void) {
   m_animation_manager.Draw();
 }
 
-void cOverworld ::Draw_HUD(void) {
+void cOverworld::Draw_HUD(void) {
   // if not editor mode
   if (!editor_world_enabled) {
     // Background
@@ -545,7 +553,7 @@ void cOverworld ::Draw_HUD(void) {
   pHud_Manager->Draw();
 }
 
-void cOverworld ::Update(void) {
+void cOverworld::Update(void) {
   // editor
   pWorld_Editor->Process_Input();
 
@@ -562,7 +570,7 @@ void cOverworld ::Update(void) {
   // if world-editor is enabled
   else {
     // only update particle emitters
-    for (const auto& sprite : m_sprite_manager.objects) {
+    for (auto* sprite : m_sprite_manager.Objects()) {
       if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
         sprite->Update();
       }
@@ -578,7 +586,7 @@ void cOverworld ::Update(void) {
   pFramerate->m_perf_timer[PERF_UPDATE_OVERWORLD].Update();
 }
 
-void cOverworld ::Update_Camera(void) {
+void cOverworld::Update_Camera(void) {
   if (editor_world_enabled) {
     return;
   }
@@ -606,7 +614,7 @@ void cOverworld ::Update_Camera(void) {
   }
 }
 
-bool cOverworld ::Key_Down(SDLKey key) {
+bool cOverworld::Key_Down(SDLKey key) {
   if (key == SDLK_LEFT) {
     if (!pOverworld_Manager->m_camera_mode && !editor_world_enabled) {
       pOverworld_Player->Action_Interact(INP_LEFT);
@@ -665,7 +673,7 @@ bool cOverworld ::Key_Down(SDLKey key) {
   return true;
 }
 
-bool cOverworld ::Key_Up(SDLKey key) {
+bool cOverworld::Key_Up(SDLKey key) {
   // nothing yet
   if (false) {
     //
@@ -678,7 +686,7 @@ bool cOverworld ::Key_Up(SDLKey key) {
   return true;
 }
 
-bool cOverworld ::Mouse_Down(Uint8 button) {
+bool cOverworld::Mouse_Down(Uint8 button) {
   // ## editor
   if (pWorld_Editor->Mouse_Down(button)) {
     // processed by the editor
@@ -692,7 +700,7 @@ bool cOverworld ::Mouse_Down(Uint8 button) {
   return true;
 }
 
-bool cOverworld ::Mouse_Up(Uint8 button) {
+bool cOverworld::Mouse_Up(Uint8 button) {
   // ## editor
   if (pWorld_Editor->Mouse_Up(button)) {
     // processed by the editor
@@ -706,7 +714,7 @@ bool cOverworld ::Mouse_Up(Uint8 button) {
   return true;
 }
 
-bool cOverworld ::Joy_Button_Down(Uint8 button) {
+bool cOverworld::Joy_Button_Down(Uint8 button) {
   // Exit
   if (button == pPreferences->m_joy_button_exit) {
     pOverworld_Player->Action_Interact(INP_EXIT);
@@ -723,7 +731,7 @@ bool cOverworld ::Joy_Button_Down(Uint8 button) {
   return true;
 }
 
-bool cOverworld ::Joy_Button_Up(Uint8 button) {
+bool cOverworld::Joy_Button_Up(Uint8 button) {
   // nothing yet
   if (false) {
     //
@@ -736,8 +744,7 @@ bool cOverworld ::Joy_Button_Up(Uint8 button) {
   return true;
 }
 
-void cOverworld ::Set_Progress(unsigned int normal_level,
-                               bool force /* = 1 */) {
+void cOverworld::Set_Progress(unsigned int normal_level, bool force /* = 1 */) {
   unsigned int level_num = 0;
 
   for (auto waypoint : m_waypoints) {
@@ -754,7 +761,7 @@ void cOverworld ::Set_Progress(unsigned int normal_level,
   }
 }
 
-cWaypoint* cOverworld ::Get_Waypoint(const std::string& name) {
+cWaypoint* cOverworld::Get_Waypoint(const std::string& name) {
   for (auto waypoint : m_waypoints) {
     // accessible
     if (waypoint->m_destination.compare(name) == 0) {
@@ -765,7 +772,7 @@ cWaypoint* cOverworld ::Get_Waypoint(const std::string& name) {
   return nullptr;
 }
 
-cWaypoint* cOverworld ::Get_Waypoint(unsigned int num) {
+cWaypoint* cOverworld::Get_Waypoint(unsigned int num) {
   if (num >= m_waypoints.size()) {
     // out of bounds
     return nullptr;
@@ -775,7 +782,7 @@ cWaypoint* cOverworld ::Get_Waypoint(unsigned int num) {
   return m_waypoints[num];
 }
 
-int cOverworld ::Get_Level_Waypoint_Num(std::string level_name) {
+int cOverworld::Get_Level_Waypoint_Num(std::string level_name) {
   // erase file type if set
   if (level_name.rfind(".txt") != std::string::npos ||
       level_name.rfind(".smclvl") != std::string::npos) {
@@ -785,7 +792,7 @@ int cOverworld ::Get_Level_Waypoint_Num(std::string level_name) {
   return Get_Waypoint_Num(level_name);
 }
 
-int cOverworld ::Get_Waypoint_Num(const std::string& name) {
+int cOverworld::Get_Waypoint_Num(const std::string& name) {
   int count = 0;
 
   // search waypoint
@@ -802,7 +809,7 @@ int cOverworld ::Get_Waypoint_Num(const std::string& name) {
   return -1;
 }
 
-int cOverworld ::Get_Waypoint_Collision(const GL_rect& rect_2) {
+int cOverworld::Get_Waypoint_Collision(const GL_rect& rect_2) {
   int count = 0;
 
   for (auto waypoint : m_waypoints) {
@@ -816,7 +823,7 @@ int cOverworld ::Get_Waypoint_Collision(const GL_rect& rect_2) {
   return -1;
 }
 
-int cOverworld ::Get_Last_Valid_Waypoint(void) {
+int cOverworld::Get_Last_Valid_Waypoint(void) {
   // no waypoints
   if (m_waypoints.empty()) {
     return -1;
@@ -831,7 +838,7 @@ int cOverworld ::Get_Last_Valid_Waypoint(void) {
   return -1;
 }
 
-void cOverworld ::Update_Waypoint_text(void) {
+void cOverworld::Update_Waypoint_text(void) {
   // get waypoint
   cWaypoint const* waypoint =
       m_waypoints[static_cast<size_t>(pOverworld_Player->m_current_waypoint)];
@@ -851,7 +858,7 @@ void cOverworld ::Update_Waypoint_text(void) {
       true);
 }
 
-bool cOverworld ::Goto_Next_Level(void) {
+bool cOverworld::Goto_Next_Level(void) {
   // if not in overworld only go to the next level on overworld enter
   if (Game_Mode != MODE_OVERWORLD) {
     m_next_level = true;
@@ -924,13 +931,13 @@ bool cOverworld ::Goto_Next_Level(void) {
   return true;
 }
 
-void cOverworld ::Reset_Waypoints(void) {
+void cOverworld::Reset_Waypoints(void) {
   for (auto waypoint : m_waypoints) {
     waypoint->Set_Access(waypoint->m_access_default);
   }
 }
 
-bool cOverworld ::Is_Loaded(void) const {
+bool cOverworld::Is_Loaded(void) const {
   // if not loaded version is -1
   if (m_engine_version >= 0) {
     return true;
@@ -939,15 +946,15 @@ bool cOverworld ::Is_Loaded(void) const {
   return false;
 }
 
-void cOverworld ::elementStart(const CEGUI::String& element,
-                               const CEGUI::XMLAttributes& attributes) {
+void cOverworld::elementStart(const CEGUI::String& element,
+                              const CEGUI::XMLAttributes& attributes) {
   if (element == "property" || element == "Property") {
     m_xml_attributes.add(attributes.getValueAsString("name"),
                          attributes.getValueAsString("value"));
   }
 }
 
-void cOverworld ::elementEnd(const CEGUI::String& element) {
+void cOverworld::elementEnd(const CEGUI::String& element) {
   if (element == "property" || element == "Property") {
     return;
   }
@@ -999,8 +1006,7 @@ void cOverworld ::elementEnd(const CEGUI::String& element) {
 
 std::unique_ptr<cSprite> Create_World_Object_From_XML(
     const CEGUI::String& element, CEGUI::XMLAttributes& attributes,
-    int engine_version, cSprite_Manager* sprite_manager,
-    cOverworld* overworld) {
+    int engine_version, cSprite_Store* sprite_manager, cOverworld* overworld) {
   if (element == "sprite") {
     // old version : change file and position name
     if (engine_version < 2) {

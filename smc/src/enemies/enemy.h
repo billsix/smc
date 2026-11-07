@@ -27,7 +27,7 @@ namespace SMC {
 class cEnemy : public cAnimated_Sprite {
  public:
   // constructor
-  cEnemy(cSprite_Manager* sprite_manager);
+  cEnemy(cSprite_Store* sprite_manager);
   // destructor
   ~cEnemy(void) override;
 

@@ -16,6 +16,11 @@ pointers — every owner is a raw pointer or a `vector<T*>`, freed by hand.
 >   through a `cOwned<T>` wrapper destroyed in **reverse declaration order**, so there is no
 >   hand-ordered teardown and the CEGUI system dies in `~cVideo`. The migration method is
 >   `github.com/billsix/runClaudeInContainer:tasks/reference/cpp-ownership-migration.md` ("The second pass").
+> - **Manager pass (2026-11-07, `tasks/archive/2026/11/07/smc-manager-classes-to-std-containers.md`):** `cObject_Manager<T>`
+>   and `core/obj_manager.h` are deleted. Each manager holds a **private** `Owning_Vector<T>`
+>   (`core/owning_vector.h`: `vector<unique_ptr<T>>` plus the shared `Find_Owned`/`Erase_Owned`/
+>   `Release_Owned`/`Borrow_At`/`Index_Of` lookups) and exposes only what its callers use; outside
+>   loops iterate `Objects()`, a view of borrowed `T*`.
 >
 > A full rewrite of the L1/L2 body below to the current state is still owed (it describes raw
 > pointers); until then, read it as history and the two docs above as truth.

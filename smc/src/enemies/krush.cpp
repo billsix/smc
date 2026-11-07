@@ -32,22 +32,21 @@ namespace SMC {
 
 /* *** *** *** *** *** cKrush *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cKrush ::cKrush(cSprite_Manager* sprite_manager) : cEnemy(sprite_manager) {
+cKrush::cKrush(cSprite_Store* sprite_manager) : cEnemy(sprite_manager) {
   cKrush::Init();
 }
 
-cKrush ::cKrush(CEGUI::XMLAttributes& attributes,
-                cSprite_Manager* sprite_manager)
+cKrush::cKrush(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager)
     : cEnemy(sprite_manager) {
   cKrush::Init();
   cKrush::Load_From_XML(attributes);
 }
 
-cKrush ::~cKrush(void) {
+cKrush::~cKrush(void) {
   //
 }
 
-void cKrush ::Init(void) {
+void cKrush::Init(void) {
   m_type = TYPE_KRUSH;
   m_pos_z = 0.093f;
   m_gravity_max = 27.0f;
@@ -68,14 +67,14 @@ void cKrush ::Init(void) {
   m_kill_sound = "enemy/krush/die.ogg";
 }
 
-std::unique_ptr<cSprite> cKrush ::Copy(void) const {
+std::unique_ptr<cSprite> cKrush::Copy(void) const {
   auto krush = std::make_unique<cKrush>(m_sprite_manager);
   krush->Set_Pos(m_start_pos_x, m_start_pos_y);
   krush->Set_Direction(m_start_direction);
   return krush;
 }
 
-void cKrush ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cKrush::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
           static_cast<float>(attributes.getValueAsInteger("posy")), true);
@@ -86,7 +85,7 @@ void cKrush ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
           .c_str()));
 }
 
-void cKrush ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cKrush::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -102,7 +101,7 @@ void cKrush ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cKrush ::Load_From_Savegame(cSave_Level_Object* save_object) {
+void cKrush::Load_From_Savegame(cSave_Level_Object* save_object) {
   // krush_state
   if (save_object->exists("state")) {
     Moving_state const mov_state = static_cast<Moving_state>(
@@ -118,7 +117,7 @@ void cKrush ::Load_From_Savegame(cSave_Level_Object* save_object) {
   Update_Rotation_Hor();
 }
 
-void cKrush ::Set_Direction(const ObjectDirection dir) {
+void cKrush::Set_Direction(const ObjectDirection dir) {
   // already set
   if (m_start_direction == dir) {
     return;
@@ -132,7 +131,7 @@ void cKrush ::Set_Direction(const ObjectDirection dir) {
   Update_Rotation_Hor(true);
 }
 
-void cKrush ::Turn_Around(ObjectDirection col_dir /* = DIR_UNDEFINED */) {
+void cKrush::Turn_Around(ObjectDirection col_dir /* = DIR_UNDEFINED */) {
   cEnemy::Turn_Around(col_dir);
 
   if (col_dir == DIR_LEFT || col_dir == DIR_RIGHT || col_dir == DIR_UNDEFINED) {
@@ -141,7 +140,7 @@ void cKrush ::Turn_Around(ObjectDirection col_dir /* = DIR_UNDEFINED */) {
   }
 }
 
-void cKrush ::DownGrade(bool force /* = 0 */) {
+void cKrush::DownGrade(bool force /* = 0 */) {
   // default stomp downgrade
   if (!force) {
     // big to small walking
@@ -186,7 +185,7 @@ void cKrush ::DownGrade(bool force /* = 0 */) {
   }
 }
 
-void cKrush ::Update_Dying(void) {
+void cKrush::Update_Dying(void) {
   m_counter += pFramerate->m_speed_factor;
 
   // stomp death
@@ -219,7 +218,7 @@ void cKrush ::Update_Dying(void) {
   }
 }
 
-void cKrush ::Set_Moving_State(Moving_state new_state) {
+void cKrush::Set_Moving_State(Moving_state new_state) {
   if (new_state == m_state) {
     return;
   }
@@ -247,7 +246,7 @@ void cKrush ::Set_Moving_State(Moving_state new_state) {
   Update_Velocity_Max();
 }
 
-void cKrush ::Update(void) {
+void cKrush::Update(void) {
   cEnemy::Update();
 
   if (!m_valid_update || !Is_In_Range()) {
@@ -259,7 +258,7 @@ void cKrush ::Update(void) {
   Update_Gravity();
 }
 
-void cKrush ::Update_Velocity_Max(void) {
+void cKrush::Update_Velocity_Max(void) {
   if (m_state == STA_WALK) {
     m_velx_max = 3.0f;
     m_velx_gain = 0.2f;
@@ -269,7 +268,7 @@ void cKrush ::Update_Velocity_Max(void) {
   }
 }
 
-bool cKrush ::Is_Update_Valid(void) {
+bool cKrush::Is_Update_Valid(void) {
   if (m_dead || m_freeze_counter) {
     return false;
   }
@@ -277,7 +276,7 @@ bool cKrush ::Is_Update_Valid(void) {
   return true;
 }
 
-Col_Valid_Type cKrush ::Validate_Collision(cSprite* obj) {
+Col_Valid_Type cKrush::Validate_Collision(cSprite* obj) {
   // basic validation checking
   Col_Valid_Type const basic_valid = Validate_Collision_Ghost(obj);
 
@@ -322,7 +321,7 @@ Col_Valid_Type cKrush ::Validate_Collision(cSprite* obj) {
   return COL_VTYPE_NOT_VALID;
 }
 
-void cKrush ::Handle_Collision_Player(cObjectCollision* collision) {
+void cKrush::Handle_Collision_Player(cObjectCollision* collision) {
   // invalid
   if (collision->m_direction == DIR_UNDEFINED) {
     return;
@@ -350,7 +349,7 @@ void cKrush ::Handle_Collision_Player(cObjectCollision* collision) {
   }
 }
 
-void cKrush ::Handle_Collision_Enemy(cObjectCollision* collision) {
+void cKrush::Handle_Collision_Enemy(cObjectCollision* collision) {
   if (collision->m_direction == DIR_RIGHT ||
       collision->m_direction == DIR_LEFT) {
     Turn_Around(collision->m_direction);
@@ -359,7 +358,7 @@ void cKrush ::Handle_Collision_Enemy(cObjectCollision* collision) {
   Send_Collision(collision);
 }
 
-void cKrush ::Handle_Collision_Massive(cObjectCollision* collision) {
+void cKrush::Handle_Collision_Massive(cObjectCollision* collision) {
   if (m_state == STA_OBJ_LINKED) {
     return;
   }
@@ -388,7 +387,7 @@ void cKrush ::Handle_Collision_Massive(cObjectCollision* collision) {
   }
 }
 
-void cKrush ::Editor_Activate(void) {
+void cKrush::Editor_Activate(void) {
   // get window manager
   CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
 
@@ -411,7 +410,7 @@ void cKrush ::Editor_Activate(void) {
   Editor_Init();
 }
 
-bool cKrush ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
+bool cKrush::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =

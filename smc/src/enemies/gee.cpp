@@ -31,21 +31,21 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cGee *** *** *** *** *** *** *** *** *** *** *** */
 
-cGee ::cGee(cSprite_Manager* sprite_manager) : cEnemy(sprite_manager) {
+cGee::cGee(cSprite_Store* sprite_manager) : cEnemy(sprite_manager) {
   cGee::Init();
 }
 
-cGee ::cGee(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager)
+cGee::cGee(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager)
     : cEnemy(sprite_manager) {
   cGee::Init();
   cGee::Load_From_XML(attributes);
 }
 
-cGee ::~cGee(void) {
+cGee::~cGee(void) {
   //
 }
 
-void cGee ::Init(void) {
+void cGee::Init(void) {
   m_type = TYPE_GEE;
   m_camera_range = 1000;
   m_pos_z = 0.088f;
@@ -69,7 +69,7 @@ void cGee ::Init(void) {
   m_clouds_counter = 0.0f;
 }
 
-std::unique_ptr<cSprite> cGee ::Copy(void) const {
+std::unique_ptr<cSprite> cGee::Copy(void) const {
   auto gee = std::make_unique<cGee>(m_sprite_manager);
   gee->Set_Pos(m_start_pos_x, m_start_pos_y);
   gee->Set_Direction(m_start_direction);
@@ -81,7 +81,7 @@ std::unique_ptr<cSprite> cGee ::Copy(void) const {
   return gee;
 }
 
-void cGee ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cGee::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
           static_cast<float>(attributes.getValueAsInteger("posy")), true);
@@ -105,7 +105,7 @@ void cGee ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
           .c_str())));
 }
 
-void cGee ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cGee::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -131,13 +131,13 @@ void cGee ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cGee ::Load_From_Savegame(cSave_Level_Object* save_object) {
+void cGee::Load_From_Savegame(cSave_Level_Object* save_object) {
   cEnemy::Load_From_Savegame(save_object);
 
   Update_Rotation_Hor();
 }
 
-void cGee ::Set_Direction(const ObjectDirection dir) {
+void cGee::Set_Direction(const ObjectDirection dir) {
   // already set
   if (m_start_direction == dir) {
     return;
@@ -178,7 +178,7 @@ void cGee ::Set_Direction(const ObjectDirection dir) {
   Create_Name();
 }
 
-void cGee ::Set_Max_Distance(int nmax_distance) {
+void cGee::Set_Max_Distance(int nmax_distance) {
   m_max_distance = nmax_distance;
 
   if (m_max_distance < 0) {
@@ -186,7 +186,7 @@ void cGee ::Set_Max_Distance(int nmax_distance) {
   }
 }
 
-void cGee ::Set_Color(DefaultColor col) {
+void cGee::Set_Color(DefaultColor col) {
   // already set
   if (m_color_type == col) {
     return;
@@ -248,13 +248,13 @@ void cGee ::Set_Color(DefaultColor col) {
   Reset_Animation();
 }
 
-void cGee ::Turn_Around(ObjectDirection col_dir /* = DIR_UNDEFINED */) {
+void cGee::Turn_Around(ObjectDirection col_dir /* = DIR_UNDEFINED */) {
   cEnemy::Turn_Around(col_dir);
   // update direction rotation
   Update_Rotation_Hor();
 }
 
-void cGee ::DownGrade(bool force /* = 0 */) {
+void cGee::DownGrade(bool force /* = 0 */) {
   Set_Dead(true);
   m_massive_type = MASS_PASSIVE;
   m_counter = 0.0f;
@@ -268,7 +268,7 @@ void cGee ::DownGrade(bool force /* = 0 */) {
   }
 }
 
-void cGee ::Update_Dying(void) {
+void cGee::Update_Dying(void) {
   m_counter += pFramerate->m_speed_factor;
 
   // default death
@@ -293,7 +293,7 @@ void cGee ::Update_Dying(void) {
   }
 }
 
-void cGee ::Set_Moving_State(Moving_state new_state) {
+void cGee::Set_Moving_State(Moving_state new_state) {
   if (new_state == m_state) {
     return;
   }
@@ -335,7 +335,7 @@ void cGee ::Set_Moving_State(Moving_state new_state) {
   m_state = new_state;
 }
 
-void cGee ::Update(void) {
+void cGee::Update(void) {
   cEnemy::Update();
 
   if (!m_valid_update || !Is_In_Range()) {
@@ -383,7 +383,7 @@ void cGee ::Update(void) {
   }
 }
 
-void cGee ::Draw(cSurface_Request* request /* = nullptr */) {
+void cGee::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -408,7 +408,7 @@ void cGee ::Draw(cSurface_Request* request /* = nullptr */) {
   cEnemy::Draw(request);
 }
 
-void cGee ::Activate(void) {
+void cGee::Activate(void) {
   // if empty maximum distance or empty walk distance
   if (!m_max_distance || !m_fly_distance) {
     return;
@@ -423,9 +423,9 @@ void cGee ::Activate(void) {
   }
 }
 
-void cGee ::Stop(void) { Set_Moving_State(STA_STAY); }
+void cGee::Stop(void) { Set_Moving_State(STA_STAY); }
 
-void cGee ::Generate_Particles(unsigned int amount /* = 4 */) const {
+void cGee::Generate_Particles(unsigned int amount /* = 4 */) const {
   auto anim = std::make_unique<cParticle_Emitter>(m_sprite_manager);
   anim->Set_Image(pVideo->Get_Surface("animation/particles/cloud.png"));
   anim->Set_Pos_Z(m_pos_z - 0.00001f);
@@ -464,7 +464,7 @@ void cGee ::Generate_Particles(unsigned int amount /* = 4 */) const {
   pActive_Animation_Manager->Add(std::move(anim));
 }
 
-bool cGee ::Is_At_Max_Distance(void) const {
+bool cGee::Is_At_Max_Distance(void) const {
   if (m_direction == DIR_UP) {
     if (m_pos_y - m_start_pos_y < -m_max_distance) {
       return true;
@@ -486,7 +486,7 @@ bool cGee ::Is_At_Max_Distance(void) const {
   return false;
 }
 
-bool cGee ::Is_Update_Valid(void) {
+bool cGee::Is_Update_Valid(void) {
   if (m_dead || m_freeze_counter) {
     return false;
   }
@@ -494,7 +494,7 @@ bool cGee ::Is_Update_Valid(void) {
   return true;
 }
 
-bool cGee ::Is_Draw_Valid(void) {
+bool cGee::Is_Draw_Valid(void) {
   bool const valid = cEnemy::Is_Draw_Valid();
 
   // if editor enabled
@@ -508,7 +508,7 @@ bool cGee ::Is_Draw_Valid(void) {
   return valid;
 }
 
-Col_Valid_Type cGee ::Validate_Collision(cSprite* obj) {
+Col_Valid_Type cGee::Validate_Collision(cSprite* obj) {
   if (obj->m_massive_type == MASS_MASSIVE) {
     switch (obj->m_type) {
       case TYPE_PLAYER: {
@@ -528,7 +528,7 @@ Col_Valid_Type cGee ::Validate_Collision(cSprite* obj) {
   return COL_VTYPE_NOT_VALID;
 }
 
-void cGee ::Handle_Collision_Player(cObjectCollision* collision) {
+void cGee::Handle_Collision_Player(cObjectCollision* collision) {
   // unknown direction
   if (collision->m_direction == DIR_UNDEFINED) {
     return;
@@ -566,11 +566,11 @@ void cGee ::Handle_Collision_Player(cObjectCollision* collision) {
   }
 }
 
-void cGee ::Handle_Collision_Massive(cObjectCollision* collision) {
+void cGee::Handle_Collision_Massive(cObjectCollision* collision) {
   Send_Collision(collision);
 }
 
-void cGee ::Editor_Activate(void) {
+void cGee::Editor_Activate(void) {
   // get window manager
   CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
 
@@ -648,7 +648,7 @@ void cGee ::Editor_Activate(void) {
   Editor_Init();
 }
 
-bool cGee ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
+bool cGee::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =
@@ -659,7 +659,7 @@ bool cGee ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cGee ::Editor_Max_Distance_Text_Changed(const CEGUI::EventArgs& event) {
+bool cGee::Editor_Max_Distance_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   std::string const str_text =
@@ -670,7 +670,7 @@ bool cGee ::Editor_Max_Distance_Text_Changed(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cGee ::Editor_Always_Fly_Select(const CEGUI::EventArgs& event) {
+bool cGee::Editor_Always_Fly_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =
@@ -685,7 +685,7 @@ bool cGee ::Editor_Always_Fly_Select(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cGee ::Editor_Wait_Time_Text_Changed(const CEGUI::EventArgs& event) {
+bool cGee::Editor_Wait_Time_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   std::string const str_text =
@@ -696,7 +696,7 @@ bool cGee ::Editor_Wait_Time_Text_Changed(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cGee ::Editor_Fly_Distance_Text_Changed(const CEGUI::EventArgs& event) {
+bool cGee::Editor_Fly_Distance_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   std::string const str_text =
@@ -707,7 +707,7 @@ bool cGee ::Editor_Fly_Distance_Text_Changed(const CEGUI::EventArgs& event) {
   return true;
 }
 
-void cGee ::Create_Name(void) {
+void cGee::Create_Name(void) {
   m_name = "Gee";
 
   if (m_color_type == COL_YELLOW) {

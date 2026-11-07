@@ -37,7 +37,7 @@ class cAnimation_Surface {
 
 class cAnimated_Sprite : public cMovingSprite {
  public:
-  cAnimated_Sprite(cSprite_Manager* sprite_manager,
+  cAnimated_Sprite(cSprite_Store* sprite_manager,
                    std::string type_name = "sprite");
   ~cAnimated_Sprite(void) override;
 

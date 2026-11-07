@@ -35,21 +35,20 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cBonusBox *** *** *** *** *** *** *** *** *** */
 
-cBonusBox ::cBonusBox(cSprite_Manager* sprite_manager)
-    : cBaseBox(sprite_manager) {
+cBonusBox::cBonusBox(cSprite_Store* sprite_manager) : cBaseBox(sprite_manager) {
   cBonusBox::Init();
 }
 
-cBonusBox ::cBonusBox(CEGUI::XMLAttributes& attributes,
-                      cSprite_Manager* sprite_manager)
+cBonusBox::cBonusBox(CEGUI::XMLAttributes& attributes,
+                     cSprite_Store* sprite_manager)
     : cBaseBox(sprite_manager) {
   cBonusBox::Init();
   cBonusBox::Load_From_XML(attributes);
 }
 
-cBonusBox ::~cBonusBox(void) { m_active_items.clear(); }
+cBonusBox::~cBonusBox(void) { m_active_items.clear(); }
 
-void cBonusBox ::Init(void) {
+void cBonusBox::Init(void) {
   m_type = TYPE_BONUS_BOX;
   m_force_best_item = false;
   m_camera_range = 5000;
@@ -62,7 +61,7 @@ void cBonusBox ::Init(void) {
   Create_Name();
 }
 
-std::unique_ptr<cSprite> cBonusBox ::Copy(void) const {
+std::unique_ptr<cSprite> cBonusBox::Copy(void) const {
   auto bonusbox = std::make_unique<cBonusBox>(m_sprite_manager);
   bonusbox->Set_Pos(m_start_pos_x, m_start_pos_y);
   bonusbox->Set_Animation_Type(m_anim_type);
@@ -74,7 +73,7 @@ std::unique_ptr<cSprite> cBonusBox ::Copy(void) const {
   return bonusbox;
 }
 
-void cBonusBox ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cBonusBox::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   cBaseBox::Load_From_XML(attributes);
 
   // item
@@ -89,7 +88,7 @@ void cBonusBox ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   }
 }
 
-void cBonusBox ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cBonusBox::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -106,7 +105,7 @@ void cBonusBox ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cBonusBox ::Set_Useable_Count(int count, bool new_startcount /* = 0 */) {
+void cBonusBox::Set_Useable_Count(int count, bool new_startcount /* = 0 */) {
   cBaseBox::Set_Useable_Count(count, new_startcount);
 
   // disable
@@ -123,7 +122,7 @@ void cBonusBox ::Set_Useable_Count(int count, bool new_startcount /* = 0 */) {
   Update_Valid_Update();
 }
 
-void cBonusBox ::Set_Bonus_Type(SpriteType bonus_type) {
+void cBonusBox::Set_Bonus_Type(SpriteType bonus_type) {
   // already set
   if (box_type == bonus_type) {
     return;
@@ -167,7 +166,7 @@ void cBonusBox ::Set_Bonus_Type(SpriteType bonus_type) {
   Create_Name();
 }
 
-void cBonusBox ::Set_Force_Best_Item(bool enable) {
+void cBonusBox::Set_Force_Best_Item(bool enable) {
   // can't be set if random
   if (box_type == TYPE_POWERUP) {
     return;
@@ -176,7 +175,7 @@ void cBonusBox ::Set_Force_Best_Item(bool enable) {
   m_force_best_item = enable;
 }
 
-void cBonusBox ::Set_Goldcolor(DefaultColor new_color) {
+void cBonusBox::Set_Goldcolor(DefaultColor new_color) {
   // already set
   if (m_gold_color == new_color) {
     return;
@@ -203,7 +202,7 @@ void cBonusBox ::Set_Goldcolor(DefaultColor new_color) {
   }
 }
 
-void cBonusBox ::Activate(void) {
+void cBonusBox::Activate(void) {
   bool random = false;
 
   // random
@@ -315,7 +314,7 @@ void cBonusBox ::Activate(void) {
   }
 }
 
-void cBonusBox ::Update(void) {
+void cBonusBox::Update(void) {
   if (!m_valid_update || !Is_In_Range()) {
     return;
   }
@@ -362,7 +361,7 @@ void cBonusBox ::Update(void) {
   cBaseBox::Update();
 }
 
-void cBonusBox ::Draw(cSurface_Request* request /* = nullptr */) {
+void cBonusBox::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -378,7 +377,7 @@ void cBonusBox ::Draw(cSurface_Request* request /* = nullptr */) {
   cBaseBox::Draw(request);
 }
 
-bool cBonusBox ::Is_Update_Valid(void) {
+bool cBonusBox::Is_Update_Valid(void) {
   // if item is in animation
   if (!m_active_items.empty()) {
     return true;
@@ -387,7 +386,7 @@ bool cBonusBox ::Is_Update_Valid(void) {
   return cBaseBox::Is_Update_Valid();
 }
 
-void cBonusBox ::Editor_Activate(void) {
+void cBonusBox::Editor_Activate(void) {
   // BaseBox Settings first
   cBaseBox::Editor_Activate();
 
@@ -495,7 +494,7 @@ void cBonusBox ::Editor_Activate(void) {
   Editor_Init();
 }
 
-void cBonusBox ::Editor_State_Update(void) {
+void cBonusBox::Editor_State_Update(void) {
   CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
   // Force best item
@@ -522,7 +521,7 @@ void cBonusBox ::Editor_State_Update(void) {
   }
 }
 
-bool cBonusBox ::Editor_Animation_Select(const CEGUI::EventArgs& event) {
+bool cBonusBox::Editor_Animation_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =
@@ -533,7 +532,7 @@ bool cBonusBox ::Editor_Animation_Select(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cBonusBox ::Editor_Item_Select(const CEGUI::EventArgs& event) {
+bool cBonusBox::Editor_Item_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =
@@ -566,7 +565,7 @@ bool cBonusBox ::Editor_Item_Select(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cBonusBox ::Editor_Force_best_item_Select(const CEGUI::EventArgs& event) {
+bool cBonusBox::Editor_Force_best_item_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =
@@ -581,7 +580,7 @@ bool cBonusBox ::Editor_Force_best_item_Select(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cBonusBox ::Editor_Gold_Color_Select(const CEGUI::EventArgs& event) {
+bool cBonusBox::Editor_Gold_Color_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =

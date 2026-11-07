@@ -39,17 +39,17 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cCollidingSprite *** *** *** *** *** *** *** *** *** */
 
-cCollidingSprite ::cCollidingSprite(cSprite_Manager* sprite_manager) {
+cCollidingSprite::cCollidingSprite(cSprite_Store* sprite_manager) {
   m_sprite_manager = sprite_manager;
 }
 
-cCollidingSprite ::~cCollidingSprite(void) { Clear_Collisions(); }
+cCollidingSprite::~cCollidingSprite(void) { Clear_Collisions(); }
 
-void cCollidingSprite ::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
+void cCollidingSprite::Set_Sprite_Manager(cSprite_Store* sprite_manager) {
   m_sprite_manager = sprite_manager;
 }
 
-void cCollidingSprite ::Handle_Collisions(void) {
+void cCollidingSprite::Handle_Collisions(void) {
   // take the collision list (handlers may add new collisions meanwhile); it frees its
   // entries when this function returns
   cObjectCollision_List col_list;
@@ -62,7 +62,7 @@ void cCollidingSprite ::Handle_Collisions(void) {
   }
 }
 
-std::unique_ptr<cObjectCollision> cCollidingSprite ::Create_Collision_Object(
+std::unique_ptr<cObjectCollision> cCollidingSprite::Create_Collision_Object(
     const cSprite* base, cSprite* col, Col_Valid_Type valid_type) const {
   // if invalid
   if (!base || valid_type == COL_VTYPE_NOT_VALID) {
@@ -92,7 +92,7 @@ std::unique_ptr<cObjectCollision> cCollidingSprite ::Create_Collision_Object(
   return collision;
 }
 
-bool cCollidingSprite ::Add_Collision(
+bool cCollidingSprite::Add_Collision(
     std::unique_ptr<cObjectCollision> collision, bool add_if_new /* = 0 */) {
   // invalid collision data
   if (!collision) {
@@ -112,17 +112,15 @@ bool cCollidingSprite ::Add_Collision(
   return true;
 }
 
-void cCollidingSprite ::Add_Collisions(cObjectCollisionType* col_list,
-                                       bool add_if_new /* = 0 */) {
+void cCollidingSprite::Add_Collisions(cObjectCollisionType* col_list,
+                                      bool add_if_new /* = 0 */) {
   // move ownership of each collision out of col_list into m_collisions
-  for (auto& collision : col_list->objects) {
+  for (auto& collision : col_list->Take_All()) {
     Add_Collision(std::move(collision), add_if_new);
   }
-
-  col_list->objects.clear();
 }
 
-void cCollidingSprite ::Delete_Collision(cObjectCollision* collision) {
+void cCollidingSprite::Delete_Collision(cObjectCollision* collision) {
   if (!collision) {
     return;
   }
@@ -134,7 +132,7 @@ void cCollidingSprite ::Delete_Collision(cObjectCollision* collision) {
                 });
 }
 
-void cCollidingSprite ::Delete_Last_Collision(void) {
+void cCollidingSprite::Delete_Last_Collision(void) {
   if (m_collisions.empty()) {
     return;
   }
@@ -142,7 +140,7 @@ void cCollidingSprite ::Delete_Last_Collision(void) {
   m_collisions.pop_back();
 }
 
-int cCollidingSprite ::Is_Collision_In_Direction(
+int cCollidingSprite::Is_Collision_In_Direction(
     const ObjectDirection dir) const {
   int pos = 0;
 
@@ -157,7 +155,7 @@ int cCollidingSprite ::Is_Collision_In_Direction(
   return -1;
 }
 
-cObjectCollision* cCollidingSprite ::Get_Last_Collision(
+cObjectCollision* cCollidingSprite::Get_Last_Collision(
     bool only_blocking /* = 0 */) const {
   // no collisions available
   if (m_collisions.empty()) {
@@ -193,7 +191,7 @@ cObjectCollision* cCollidingSprite ::Get_Last_Collision(
   return m_collisions.back().get();
 }
 
-bool cCollidingSprite ::Is_Collision_Included(const cSprite* obj) const {
+bool cCollidingSprite::Is_Collision_Included(const cSprite* obj) const {
   // check if in collisions list
   for (const auto& col : m_collisions) {
     // get object pointer
@@ -207,9 +205,9 @@ bool cCollidingSprite ::Is_Collision_Included(const cSprite* obj) const {
   return false;
 }
 
-void cCollidingSprite ::Clear_Collisions(void) { m_collisions.clear(); }
+void cCollidingSprite::Clear_Collisions(void) { m_collisions.clear(); }
 
-void cCollidingSprite ::Handle_Collision(cObjectCollision* collision) {
+void cCollidingSprite::Handle_Collision(cObjectCollision* collision) {
   // player
   if (collision->m_array == ARRAY_PLAYER) {
     Handle_Collision_Player(collision);
@@ -236,15 +234,15 @@ const float cSprite::m_pos_z_massive_start = 0.08f;
 const float cSprite::m_pos_z_front_passive_start = 0.1f;
 const float cSprite::m_pos_z_halfmassive_start = 0.04f;
 
-cSprite ::cSprite(cSprite_Manager* sprite_manager,
-                  const std::string type_name /* = "sprite" */)
+cSprite::cSprite(cSprite_Store* sprite_manager,
+                 const std::string type_name /* = "sprite" */)
     : cCollidingSprite(sprite_manager), m_type_name(type_name) {
   cSprite::Init();
 }
 
-cSprite ::cSprite(CEGUI::XMLAttributes& attributes,
-                  cSprite_Manager* sprite_manager,
-                  const std::string type_name /* = "sprite" */)
+cSprite::cSprite(CEGUI::XMLAttributes& attributes,
+                 cSprite_Store* sprite_manager,
+                 const std::string type_name /* = "sprite" */)
     : cCollidingSprite(sprite_manager), m_type_name(type_name) {
   cSprite::Init();
   cSprite::Load_From_XML(attributes);
@@ -252,13 +250,13 @@ cSprite ::cSprite(CEGUI::XMLAttributes& attributes,
 
 // Out of line on purpose: a unique_ptr to a type the header only forward-declares cannot
 // be destroyed inline (the deleter needs the complete type), so the body lives here
-std::unique_ptr<cSave_Level_Object> cSprite ::Save_To_Savegame(void) {
+std::unique_ptr<cSave_Level_Object> cSprite::Save_To_Savegame(void) {
   return nullptr;
 }
 
-cSprite ::~cSprite(void) = default;
+cSprite::~cSprite(void) = default;
 
-void cSprite ::Init(void) {
+void cSprite::Init(void) {
   // undefined
   m_type = TYPE_UNDEFINED;
   m_sprite_array = ARRAY_UNDEFINED;
@@ -331,7 +329,7 @@ void cSprite ::Init(void) {
   m_editor_window_name_width = 0.0f;
 }
 
-std::unique_ptr<cSprite> cSprite ::Copy(void) const {
+std::unique_ptr<cSprite> cSprite::Copy(void) const {
   auto basic_sprite = std::make_unique<cSprite>(m_sprite_manager);
   basic_sprite->Set_Image(m_start_image, true);
   basic_sprite->Set_Pos(m_start_pos_x, m_start_pos_y, true);
@@ -350,7 +348,7 @@ std::unique_ptr<cSprite> cSprite ::Copy(void) const {
   return basic_sprite;
 }
 
-void cSprite ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cSprite::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
           static_cast<float>(attributes.getValueAsInteger("posy")), true);
@@ -362,7 +360,7 @@ void cSprite ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
       Get_Sprite_Type_Id(attributes.getValueAsString("type").c_str()));
 }
 
-void cSprite ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cSprite::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -392,15 +390,15 @@ void cSprite ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cSprite ::Set_Image(std::unique_ptr<cGL_Surface> owned_image,
-                         bool new_start_image /* = 0 */) {
+void cSprite::Set_Image(std::unique_ptr<cGL_Surface> owned_image,
+                        bool new_start_image /* = 0 */) {
   cGL_Surface* view = owned_image.get();
   Set_Image(view, new_start_image);
   m_owned_image = std::move(owned_image);
 }
 
-void cSprite ::Set_Image(cGL_Surface* new_image,
-                         bool new_start_image /* = 0 */) {
+void cSprite::Set_Image(cGL_Surface* new_image,
+                        bool new_start_image /* = 0 */) {
   // an image this sprite owned is freed once something else replaces it
   if (m_owned_image && new_image != m_owned_image.get()) {
     if (m_start_image == m_owned_image.get()) {
@@ -474,7 +472,7 @@ void cSprite ::Set_Image(cGL_Surface* new_image,
   Update_Position_Rect();
 }
 
-void cSprite ::Set_Sprite_Type(SpriteType type) {
+void cSprite::Set_Sprite_Type(SpriteType type) {
   // set first because of massive-type z calculation
   m_type = type;
 
@@ -501,7 +499,7 @@ void cSprite ::Set_Sprite_Type(SpriteType type) {
   }
 }
 
-std::string cSprite ::Get_Sprite_Type_String(void) const {
+std::string cSprite::Get_Sprite_Type_String(void) const {
   if (m_sprite_array == ARRAY_UNDEFINED) {
     return "undefined";
   } else if (m_sprite_array == ARRAY_PASSIVE) {
@@ -533,7 +531,7 @@ std::string cSprite ::Get_Sprite_Type_String(void) const {
   return "";
 }
 
-void cSprite ::Set_Ignore_Camera(bool enable /* = 0 */) {
+void cSprite::Set_Ignore_Camera(bool enable /* = 0 */) {
   // already set
   if (m_no_camera == enable) {
     return;
@@ -544,7 +542,7 @@ void cSprite ::Set_Ignore_Camera(bool enable /* = 0 */) {
   Update_Valid_Draw();
 }
 
-void cSprite ::Set_Pos(float x, float y, bool new_startpos /* = 0 */) {
+void cSprite::Set_Pos(float x, float y, bool new_startpos /* = 0 */) {
   m_pos_x = x;
   m_pos_y = y;
 
@@ -557,7 +555,7 @@ void cSprite ::Set_Pos(float x, float y, bool new_startpos /* = 0 */) {
   Update_Position_Rect();
 }
 
-void cSprite ::Set_Pos_X(float x, bool new_startpos /* = 0 */) {
+void cSprite::Set_Pos_X(float x, bool new_startpos /* = 0 */) {
   m_pos_x = x;
 
   if (new_startpos) {
@@ -567,7 +565,7 @@ void cSprite ::Set_Pos_X(float x, bool new_startpos /* = 0 */) {
   Update_Position_Rect();
 }
 
-void cSprite ::Set_Pos_Y(float y, bool new_startpos /* = 0 */) {
+void cSprite::Set_Pos_Y(float y, bool new_startpos /* = 0 */) {
   m_pos_y = y;
 
   if (new_startpos) {
@@ -577,7 +575,7 @@ void cSprite ::Set_Pos_Y(float y, bool new_startpos /* = 0 */) {
   Update_Position_Rect();
 }
 
-void cSprite ::Set_Active(bool enabled) {
+void cSprite::Set_Active(bool enabled) {
   // already set
   if (m_active == enabled) {
     return;
@@ -589,15 +587,15 @@ void cSprite ::Set_Active(bool enabled) {
   Update_Valid_Update();
 }
 
-void cSprite ::Set_Color_Combine(const float red_value, const float green_value,
-                                 const float blue_value, const GLint com_type) {
+void cSprite::Set_Color_Combine(const float red_value, const float green_value,
+                                const float blue_value, const GLint com_type) {
   m_combine_type = com_type;
   m_combine_color[0] = Clamp(red_value, 0.000001f, 1.0f);
   m_combine_color[1] = Clamp(green_value, 0.000001f, 1.0f);
   m_combine_color[2] = Clamp(blue_value, 0.000001f, 1.0f);
 }
 
-void cSprite ::Update_Rect_Rotation_Z(void) {
+void cSprite::Update_Rect_Rotation_Z(void) {
   // rotate 270�
   if (m_rot_z >= 270.0f) {
     // rotate collision position
@@ -637,7 +635,7 @@ void cSprite ::Update_Rect_Rotation_Z(void) {
   }
 }
 
-void cSprite ::Set_Rotation_X(float rot, bool new_start_rot /* = 0 */) {
+void cSprite::Set_Rotation_X(float rot, bool new_start_rot /* = 0 */) {
   m_rot_x = fmod(rot, 360.0f);
 
   if (new_start_rot) {
@@ -649,7 +647,7 @@ void cSprite ::Set_Rotation_X(float rot, bool new_start_rot /* = 0 */) {
   }
 }
 
-void cSprite ::Set_Rotation_Y(float rot, bool new_start_rot /* = 0 */) {
+void cSprite::Set_Rotation_Y(float rot, bool new_start_rot /* = 0 */) {
   m_rot_y = fmod(rot, 360.0f);
 
   if (new_start_rot) {
@@ -661,7 +659,7 @@ void cSprite ::Set_Rotation_Y(float rot, bool new_start_rot /* = 0 */) {
   }
 }
 
-void cSprite ::Set_Rotation_Z(float rot, bool new_start_rot /* = 0 */) {
+void cSprite::Set_Rotation_Z(float rot, bool new_start_rot /* = 0 */) {
   m_rot_z = fmod(rot, 360.0f);
 
   if (new_start_rot) {
@@ -672,8 +670,8 @@ void cSprite ::Set_Rotation_Z(float rot, bool new_start_rot /* = 0 */) {
     Update_Rect_Rotation_Z();
   }
 }
-void cSprite ::Set_Scale_X(const float scale,
-                           const bool new_startscale /* = 0 */) {
+void cSprite::Set_Scale_X(const float scale,
+                          const bool new_startscale /* = 0 */) {
   // invalid value
   if (Is_Float_Equal(scale, 0.0f)) {
     return;
@@ -698,8 +696,8 @@ void cSprite ::Set_Scale_X(const float scale,
   }
 }
 
-void cSprite ::Set_Scale_Y(const float scale,
-                           const bool new_startscale /* = 0 */) {
+void cSprite::Set_Scale_Y(const float scale,
+                          const bool new_startscale /* = 0 */) {
   // invalid value
   if (Is_Float_Equal(scale, 0.0f)) {
     return;
@@ -723,8 +721,8 @@ void cSprite ::Set_Scale_Y(const float scale,
     m_start_scale_y = m_scale_y;
   }
 }
-void cSprite ::Set_On_Top(const cSprite* sprite,
-                          bool optimize_hor_pos /* = 1 */) {
+void cSprite::Set_On_Top(const cSprite* sprite,
+                         bool optimize_hor_pos /* = 1 */) {
   // set ground position 0.1f over it
   m_pos_y = sprite->m_col_rect.m_y - m_col_pos.m_y - m_col_rect.m_h - 0.1f;
 
@@ -738,7 +736,7 @@ void cSprite ::Set_On_Top(const cSprite* sprite,
   Update_Position_Rect();
 }
 
-void cSprite ::Move(float move_x, float move_y, const bool real /* = 0 */) {
+void cSprite::Move(float move_x, float move_y, const bool real /* = 0 */) {
   if (Is_Float_Equal(move_x, 0.0f) && Is_Float_Equal(move_y, 0.0f)) {
     return;
   }
@@ -754,7 +752,7 @@ void cSprite ::Move(float move_x, float move_y, const bool real /* = 0 */) {
   Update_Position_Rect();
 }
 
-void cSprite ::Update_Position_Rect(void) {
+void cSprite::Update_Position_Rect(void) {
   // if not editor mode
   if (!editor_enabled) {
     m_rect.m_x = m_pos_x;
@@ -780,11 +778,11 @@ void cSprite ::Update_Position_Rect(void) {
   Update_Valid_Draw();
 }
 
-void cSprite ::Update_Valid_Draw(void) { m_valid_draw = Is_Draw_Valid(); }
+void cSprite::Update_Valid_Draw(void) { m_valid_draw = Is_Draw_Valid(); }
 
-void cSprite ::Update_Valid_Update(void) { m_valid_update = Is_Update_Valid(); }
+void cSprite::Update_Valid_Update(void) { m_valid_update = Is_Update_Valid(); }
 
-void cSprite ::Draw(cSurface_Request* request /* = nullptr */) {
+void cSprite::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -866,7 +864,7 @@ void cSprite ::Draw(cSurface_Request* request /* = nullptr */) {
   }
 }
 
-void cSprite ::Draw_Image(cSurface_Request* request /* = nullptr */) const {
+void cSprite::Draw_Image(cSurface_Request* request /* = nullptr */) const {
   if (!m_valid_draw) {
     return;
   }
@@ -892,7 +890,7 @@ void cSprite ::Draw_Image(cSurface_Request* request /* = nullptr */) const {
   }
 }
 
-void cSprite ::Draw_Image_Normal(
+void cSprite::Draw_Image_Normal(
     cSurface_Request* request /* = nullptr */) const {
   // texture id
   request->m_texture_id = m_image->m_image;
@@ -988,7 +986,7 @@ void cSprite ::Draw_Image_Normal(
   }
 }
 
-void cSprite ::Draw_Image_Editor(
+void cSprite::Draw_Image_Editor(
     cSurface_Request* request /* = nullptr */) const {
   // texture id
   request->m_texture_id = m_start_image->m_image;
@@ -1096,7 +1094,7 @@ void cSprite ::Draw_Image_Editor(
   }
 }
 
-void cSprite ::Set_Massive_Type(MassiveType type) {
+void cSprite::Set_Massive_Type(MassiveType type) {
   m_massive_type = type;
 
   // set massive-type z position
@@ -1117,7 +1115,7 @@ void cSprite ::Set_Massive_Type(MassiveType type) {
   m_sprite_manager->Move_To_Back(this);
 }
 
-bool cSprite ::Is_On_Top(const cSprite* obj) const {
+bool cSprite::Is_On_Top(const cSprite* obj) const {
   // invalid
   if (!obj) {
     return false;
@@ -1133,7 +1131,7 @@ bool cSprite ::Is_On_Top(const cSprite* obj) const {
   return false;
 }
 
-bool cSprite ::Is_Visible_On_Screen(void) const {
+bool cSprite::Is_Visible_On_Screen(void) const {
   // camera position
   float cam_x = 0.0f;
   float cam_y = 0.0f;
@@ -1163,7 +1161,7 @@ bool cSprite ::Is_Visible_On_Screen(void) const {
   return true;
 }
 
-bool cSprite ::Is_In_Range(void) const {
+bool cSprite::Is_In_Range(void) const {
   // no camera range set
   if (m_camera_range < 300) {
     return Is_Visible_On_Screen();
@@ -1185,7 +1183,7 @@ bool cSprite ::Is_In_Range(void) const {
   return true;
 }
 
-bool cSprite ::Is_Update_Valid(void) {
+bool cSprite::Is_Update_Valid(void) {
   // if destroyed
   if (m_auto_destroy) {
     return false;
@@ -1194,7 +1192,7 @@ bool cSprite ::Is_Update_Valid(void) {
   return true;
 }
 
-bool cSprite ::Is_Draw_Valid(void) {
+bool cSprite::Is_Draw_Valid(void) {
   // if editor not enabled
   if (!editor_enabled) {
     // if not active or no image is set
@@ -1223,7 +1221,7 @@ bool cSprite ::Is_Draw_Valid(void) {
   return true;
 }
 
-void cSprite ::Destroy(void) {
+void cSprite::Destroy(void) {
   // already destroyed
   if (m_auto_destroy) {
     return;
@@ -1243,11 +1241,11 @@ void cSprite ::Destroy(void) {
   Set_Image(nullptr, true);
 }
 
-void cSprite ::Editor_Add(const CEGUI::String& name,
-                          const CEGUI::String& tooltip,
-                          CEGUI::Window* window_setting, float obj_width,
-                          float obj_height /* = 28 */,
-                          bool advance_row /* = 1 */) {
+void cSprite::Editor_Add(const CEGUI::String& name,
+                         const CEGUI::String& tooltip,
+                         CEGUI::Window* window_setting, float obj_width,
+                         float obj_height /* = 28 */,
+                         bool advance_row /* = 1 */) {
   if (obj_height < 28.0f) {
     obj_height = 28.0f;
   }
@@ -1293,7 +1291,7 @@ void cSprite ::Editor_Add(const CEGUI::String& name,
   guisheet->addChildWindow(window_setting);
 }
 
-void cSprite ::Editor_Activate(void) {
+void cSprite::Editor_Activate(void) {
   // if this is not a basic sprite
   if (!Is_Basic_Sprite()) {
     return;
@@ -1316,12 +1314,12 @@ void cSprite ::Editor_Activate(void) {
   Editor_Init();
 }
 
-void cSprite ::Editor_Deactivate(void) {
+void cSprite::Editor_Deactivate(void) {
   // remove editor controls
   m_editor_windows.clear();
 }
 
-void cSprite ::Editor_Init(void) {
+void cSprite::Editor_Init(void) {
   // set state
   Editor_State_Update();
 
@@ -1340,7 +1338,7 @@ void cSprite ::Editor_Init(void) {
   Editor_Position_Update();
 }
 
-void cSprite ::Editor_Position_Update(void) {
+void cSprite::Editor_Position_Update(void) {
   float obj_posx = 0.0f;
   float obj_posy = 0.0f;
   float row_height = 0.0f;
@@ -1422,7 +1420,7 @@ void cSprite ::Editor_Position_Update(void) {
   }
 }
 
-bool cSprite ::Editor_Image_Text_Changed(const CEGUI::EventArgs& event) {
+bool cSprite::Editor_Image_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   std::string const str_text =

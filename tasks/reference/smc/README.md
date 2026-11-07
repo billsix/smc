@@ -16,6 +16,11 @@ The one structural debt: **24 global singletons** with hand-ordered `new`/`delet
 owning `vector<T*>` managers. Read the six cross-cutting docs first; the per-subsystem docs are the
 verified detail.
 
+> **Renamed since this snapshot (2026-11-07, the manager pass):** `cSprite_Manager` → `cSprite_Store`,
+> `cImage_Manager` → `cTexture_Cache`, `cSound_Manager` → `cSound_Cache`. `cObject_Manager<T>`,
+> `cBackground_Manager` and `cWorld_Sprite_Manager` are gone. File names and the `p*` global aliases
+> are unchanged. What replaced each: `../refactoring-to-modern-cpp.md`, "The third pass".
+
 ## Status board
 
 | Doc | Layer | What it covers |

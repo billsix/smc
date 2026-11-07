@@ -19,11 +19,11 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** Sound *** *** *** *** *** *** *** *** *** */
 
-cSound ::cSound(void) { m_chunk = nullptr; }
+cSound::cSound(void) { m_chunk = nullptr; }
 
-cSound ::~cSound(void) { Free(); }
+cSound::~cSound(void) { Free(); }
 
-bool cSound ::Load(const std::string& filename) {
+bool cSound::Load(const std::string& filename) {
   Free();
 
   m_chunk = Mix_LoadWAV(filename.c_str());
@@ -36,7 +36,7 @@ bool cSound ::Load(const std::string& filename) {
   return false;
 }
 
-void cSound ::Free(void) {
+void cSound::Free(void) {
   if (m_chunk) {
     Mix_FreeChunk(m_chunk);
     m_chunk = nullptr;
@@ -45,34 +45,28 @@ void cSound ::Free(void) {
   m_filename.clear();
 }
 
-/* *** *** *** *** *** *** cSound_Manager *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** cSound_Cache *** *** *** *** *** *** *** *** *** *** *** */
 
-cSound_Manager ::cSound_Manager(void) : cObject_Manager<cSound>() {
-  m_load_count = 0;
+cSound_Cache::cSound_Cache(void) { m_load_count = 0; }
+
+cSound_Cache::~cSound_Cache(void) { Delete_All(); }
+
+cSound* cSound_Cache::Get_Pointer(const std::string& path) const {
+  auto itr = m_by_filename.find(path);
+  return itr == m_by_filename.end() ? nullptr : itr->second;
 }
 
-cSound_Manager ::~cSound_Manager(void) { cSound_Manager::Delete_All(); }
-
-cSound* cSound_Manager ::Get_Pointer(const std::string& path) const {
-  for (const auto& sound : objects) {
-    if (sound->m_filename.compare(path) == 0) {
-      // return first found
-      return sound.get();
-    }
-  }
-
-  // not found
-  return nullptr;
-}
-
-cSound* cSound_Manager ::Add(std::unique_ptr<cSound> sound) {
+cSound* cSound_Cache::Add(std::unique_ptr<cSound> sound) {
   m_load_count++;
-  return cObject_Manager<cSound>::Add(std::move(sound));
+  cSound* added = m_objects.emplace_back(std::move(sound)).get();
+  // the first sound added under a filename is the one Get_Pointer(path) finds
+  m_by_filename.try_emplace(added->m_filename, added);
+  return added;
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cSound_Manager* pSound_Manager = nullptr;
+cSound_Cache* pSound_Manager = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

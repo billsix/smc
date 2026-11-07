@@ -84,7 +84,7 @@ class cApplication {
   cOwned<cResource_Manager> m_resource_manager{pResource_Manager};
   cOwned<cFont_Manager> m_font{pFont};
   cOwned<cImage_Settings_Parser> m_settings_parser{pSettingsParser};
-  cOwned<cImage_Manager> m_image_manager{pImage_Manager};
+  cOwned<cTexture_Cache> m_image_manager{pImage_Manager};
   cOwned<cVideo> m_video{pVideo};
   cOwned<cFramerate> m_framerate{pFramerate};
   cOwned<cRenderQueue> m_renderer_current{pRenderer_current};
@@ -101,7 +101,7 @@ class cApplication {
   cOwned<cPreferences> m_preferences{pPreferences};
   cOwned<cEditor_World> m_world_editor{pWorld_Editor};
   cOwned<cEditor_Level> m_level_editor{pLevel_Editor};
-  cOwned<cSound_Manager> m_sound_manager{pSound_Manager};
+  cOwned<cSound_Cache> m_sound_manager{pSound_Manager};
   cOwned<cHud_Manager> m_hud_manager{pHud_Manager};
   cOwned<cLevel_Player> m_level_player{pLevel_Player};
   cOwned<cAudio> m_audio{pAudio};

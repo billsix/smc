@@ -95,13 +95,13 @@ const bool cPreferences::m_editor_mouse_auto_hide_default = false;
 const bool cPreferences::m_editor_show_item_images_default = true;
 const unsigned int cPreferences::m_editor_item_image_size_default = 50;
 
-cPreferences ::cPreferences(void) { Reset_All(); }
+cPreferences::cPreferences(void) { Reset_All(); }
 
-cPreferences ::~cPreferences(void) {
+cPreferences::~cPreferences(void) {
   //
 }
 
-bool cPreferences ::Load(const std::string& filename /* = "" */) {
+bool cPreferences::Load(const std::string& filename /* = "" */) {
   Reset_All();
 
   // if config file is given
@@ -155,7 +155,7 @@ bool cPreferences ::Load(const std::string& filename /* = "" */) {
   return true;
 }
 
-void cPreferences ::Save(void) {
+void cPreferences::Save(void) {
   Update();
 
 // fixme : Check if there is a more portable way f.e. with imbue()
@@ -262,7 +262,7 @@ void cPreferences ::Save(void) {
   file.close();
 }
 
-void cPreferences ::Reset_All(void) {
+void cPreferences::Reset_All(void) {
   // Game
   m_game_version = smc_version;
   m_force_user_data_dir.clear();
@@ -282,7 +282,7 @@ void cPreferences ::Reset_All(void) {
   m_config_filename = "config.xml";
 }
 
-void cPreferences ::Reset_Game(void) {
+void cPreferences::Reset_Game(void) {
   m_language = "";
   m_always_run = m_always_run_default;
   m_menu_level = m_menu_level_default;
@@ -290,7 +290,7 @@ void cPreferences ::Reset_Game(void) {
   m_camera_ver_speed = m_camera_ver_speed_default;
 }
 
-void cPreferences ::Reset_Video(void) {
+void cPreferences::Reset_Video(void) {
   // Video
   m_video_screen_w = m_video_screen_w_default;
   m_video_screen_h = m_video_screen_h_default;
@@ -302,7 +302,7 @@ void cPreferences ::Reset_Video(void) {
   pVideo->m_texture_quality = m_texture_quality_default;
 }
 
-void cPreferences ::Reset_Audio(void) {
+void cPreferences::Reset_Audio(void) {
   // Audio
   m_audio_music = m_audio_music_default;
   m_audio_sound = m_audio_sound_default;
@@ -311,7 +311,7 @@ void cPreferences ::Reset_Audio(void) {
   pAudio->m_music_volume = m_music_volume_default;
 }
 
-void cPreferences ::Reset_Keyboard(void) {
+void cPreferences::Reset_Keyboard(void) {
   m_key_up = m_key_up_default;
   m_key_down = m_key_down_default;
   m_key_left = m_key_left_default;
@@ -332,7 +332,7 @@ void cPreferences ::Reset_Keyboard(void) {
   m_key_editor_pixel_move_right = m_key_editor_pixel_move_right_default;
 }
 
-void cPreferences ::Reset_Joystick(void) {
+void cPreferences::Reset_Joystick(void) {
   m_joy_enabled = m_joy_enabled_default;
   m_joy_name.clear();
   m_joy_analog_jump = m_joy_analog_jump_default;
@@ -349,13 +349,13 @@ void cPreferences ::Reset_Joystick(void) {
   m_joy_button_exit = m_joy_button_exit_default;
 }
 
-void cPreferences ::Reset_Editor(void) {
+void cPreferences::Reset_Editor(void) {
   m_editor_mouse_auto_hide = m_editor_mouse_auto_hide_default;
   m_editor_show_item_images = m_editor_show_item_images_default;
   m_editor_item_image_size = m_editor_item_image_size_default;
 }
 
-void cPreferences ::Update(void) {
+void cPreferences::Update(void) {
   m_camera_hor_speed = pLevel_Manager->m_camera.m_hor_offset_speed;
   m_camera_ver_speed = pLevel_Manager->m_camera.m_ver_offset_speed;
 
@@ -372,7 +372,7 @@ void cPreferences ::Update(void) {
   }
 }
 
-void cPreferences ::Apply(void) {
+void cPreferences::Apply(void) {
   pLevel_Manager->m_camera.m_hor_offset_speed = m_camera_hor_speed;
   pLevel_Manager->m_camera.m_ver_offset_speed = m_camera_ver_speed;
 
@@ -382,9 +382,9 @@ void cPreferences ::Apply(void) {
   }
 }
 
-void cPreferences ::Apply_Video(Uint16 screen_w, Uint16 screen_h,
-                                Uint8 screen_bpp, bool fullscreen, bool vsync,
-                                float geometry_detail, float texture_detail) {
+void cPreferences::Apply_Video(Uint16 screen_w, Uint16 screen_h,
+                               Uint8 screen_bpp, bool fullscreen, bool vsync,
+                               float geometry_detail, float texture_detail) {
   /* if resolution, bpp, vsync or texture detail changed
 	 * a texture reload is necessary
 	*/
@@ -419,16 +419,16 @@ void cPreferences ::Apply_Video(Uint16 screen_w, Uint16 screen_h,
   }
 }
 
-void cPreferences ::elementStart(const CEGUI::String& element,
-                                 const CEGUI::XMLAttributes& attributes) {
+void cPreferences::elementStart(const CEGUI::String& element,
+                                const CEGUI::XMLAttributes& attributes) {
   if (element == "property" || element == "Item") {
     handle_item(attributes);
   }
 }
 
-void cPreferences ::elementEnd(const CEGUI::String& element) {}
+void cPreferences::elementEnd(const CEGUI::String& element) {}
 
-void cPreferences ::handle_item(CEGUI::XMLAttributes attributes) {
+void cPreferences::handle_item(CEGUI::XMLAttributes attributes) {
   std::string name;
 
   if (attributes.exists("name")) {

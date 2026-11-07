@@ -26,9 +26,9 @@ namespace SMC {
 class cjStar : public cPowerUp {
  public:
   // constructor
-  cjStar(cSprite_Manager* sprite_manager);
+  cjStar(cSprite_Store* sprite_manager);
   // create from stream
-  cjStar(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cjStar(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cjStar(void) override;
 

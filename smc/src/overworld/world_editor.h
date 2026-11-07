@@ -24,7 +24,7 @@ namespace SMC {
 
 class cEditor_World : public cEditor {
  public:
-  cEditor_World(cSprite_Manager* sprite_manager, cOverworld* overworld);
+  cEditor_World(cSprite_Store* sprite_manager, cOverworld* overworld);
   ~cEditor_World(void) override;
 
   // Initialize

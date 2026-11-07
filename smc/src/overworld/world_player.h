@@ -28,7 +28,7 @@ namespace SMC {
 
 class cOverworld_Player : public cAnimated_Sprite {
  public:
-  cOverworld_Player(cSprite_Manager* sprite_manager, cOverworld* overworld);
+  cOverworld_Player(cSprite_Store* sprite_manager, cOverworld* overworld);
   ~cOverworld_Player(void) override;
 
   // Load images

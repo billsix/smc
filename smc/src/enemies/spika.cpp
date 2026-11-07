@@ -29,22 +29,21 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cSpika *** *** *** *** *** *** *** *** *** *** *** */
 
-cSpika ::cSpika(cSprite_Manager* sprite_manager) : cEnemy(sprite_manager) {
+cSpika::cSpika(cSprite_Store* sprite_manager) : cEnemy(sprite_manager) {
   cSpika::Init();
 }
 
-cSpika ::cSpika(CEGUI::XMLAttributes& attributes,
-                cSprite_Manager* sprite_manager)
+cSpika::cSpika(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager)
     : cEnemy(sprite_manager) {
   cSpika::Init();
   cSpika::Load_From_XML(attributes);
 }
 
-cSpika ::~cSpika(void) {
+cSpika::~cSpika(void) {
   //
 }
 
-void cSpika ::Init(void) {
+void cSpika::Init(void) {
   m_type = TYPE_SPIKA;
   m_pos_z = 0.09f;
   m_gravity_max = 25.0f;
@@ -57,14 +56,14 @@ void cSpika ::Init(void) {
   Set_Color(COL_ORANGE);
 }
 
-std::unique_ptr<cSprite> cSpika ::Copy(void) const {
+std::unique_ptr<cSprite> cSpika::Copy(void) const {
   auto spika = std::make_unique<cSpika>(m_sprite_manager);
   spika->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   spika->Set_Color(m_color_type);
   return spika;
 }
 
-void cSpika ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cSpika::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
           static_cast<float>(attributes.getValueAsInteger("posy")), true);
@@ -74,7 +73,7 @@ void cSpika ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
           .c_str())));
 }
 
-void cSpika ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cSpika::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -90,7 +89,7 @@ void cSpika ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cSpika ::Set_Color(DefaultColor col) {
+void cSpika::Set_Color(DefaultColor col) {
   // already set
   if (m_color_type == col) {
     return;
@@ -138,7 +137,7 @@ void cSpika ::Set_Color(DefaultColor col) {
   m_name += _(Get_Color_Name(m_color_type).c_str());
 }
 
-void cSpika ::DownGrade(bool force /* = 0 */) {
+void cSpika::DownGrade(bool force /* = 0 */) {
   Set_Dead(true);
   m_massive_type = MASS_PASSIVE;
   m_counter = 0.0f;
@@ -156,7 +155,7 @@ void cSpika ::DownGrade(bool force /* = 0 */) {
   }
 }
 
-void cSpika ::Update_Dying(void) {
+void cSpika::Update_Dying(void) {
   m_counter += pFramerate->m_speed_factor * 0.1f;
 
   // falling death
@@ -178,7 +177,7 @@ void cSpika ::Update_Dying(void) {
   }
 }
 
-void cSpika ::Update(void) {
+void cSpika::Update(void) {
   cEnemy::Update();
 
   if (!m_valid_update || !Is_In_Range()) {
@@ -247,7 +246,7 @@ void cSpika ::Update(void) {
   Update_Gravity();
 }
 
-bool cSpika ::Is_Update_Valid(void) {
+bool cSpika::Is_Update_Valid(void) {
   if (m_dead || m_freeze_counter) {
     return false;
   }
@@ -255,7 +254,7 @@ bool cSpika ::Is_Update_Valid(void) {
   return true;
 }
 
-Col_Valid_Type cSpika ::Validate_Collision(cSprite* obj) {
+Col_Valid_Type cSpika::Validate_Collision(cSprite* obj) {
   // basic validation checking
   Col_Valid_Type const basic_valid = Validate_Collision_Ghost(obj);
 
@@ -312,7 +311,7 @@ Col_Valid_Type cSpika ::Validate_Collision(cSprite* obj) {
   return COL_VTYPE_NOT_VALID;
 }
 
-void cSpika ::Handle_Collision_Player(cObjectCollision* collision) {
+void cSpika::Handle_Collision_Player(cObjectCollision* collision) {
   pLevel_Player->DownGrade_Player();
 
   if (collision->m_direction == DIR_LEFT ||
@@ -321,7 +320,7 @@ void cSpika ::Handle_Collision_Player(cObjectCollision* collision) {
   }
 }
 
-void cSpika ::Handle_Collision_Enemy(cObjectCollision* collision) {
+void cSpika::Handle_Collision_Enemy(cObjectCollision* collision) {
   // invalid
   if (collision->m_number < 0) {
     return;
@@ -391,7 +390,7 @@ void cSpika ::Handle_Collision_Enemy(cObjectCollision* collision) {
   }
 }
 
-void cSpika ::Handle_Collision_Massive(cObjectCollision* collision) {
+void cSpika::Handle_Collision_Massive(cObjectCollision* collision) {
   if (m_state == STA_OBJ_LINKED) {
     return;
   }
@@ -420,7 +419,7 @@ void cSpika ::Handle_Collision_Massive(cObjectCollision* collision) {
   }
 }
 
-void cSpika ::Handle_Collision_Box(ObjectDirection cdirection, GL_rect* r2) {
+void cSpika::Handle_Collision_Box(ObjectDirection cdirection, GL_rect* r2) {
   if (cdirection == DIR_DOWN) {
     m_vely = -10.0f;
 

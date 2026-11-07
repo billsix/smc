@@ -38,10 +38,9 @@ enum Level_Exit_type {
 class cLevel_Exit : public cAnimated_Sprite {
  public:
   // constructor
-  cLevel_Exit(cSprite_Manager* sprite_manager);
+  cLevel_Exit(cSprite_Store* sprite_manager);
   // create from stream
-  cLevel_Exit(CEGUI::XMLAttributes& attributes,
-              cSprite_Manager* sprite_manager);
+  cLevel_Exit(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cLevel_Exit(void) override;
 

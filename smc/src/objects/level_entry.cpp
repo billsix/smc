@@ -36,21 +36,21 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLevel_Entry ::cLevel_Entry(cSprite_Manager* sprite_manager)
+cLevel_Entry::cLevel_Entry(cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "level_entry") {
   cLevel_Entry::Init();
 }
 
-cLevel_Entry ::cLevel_Entry(CEGUI::XMLAttributes& attributes,
-                            cSprite_Manager* sprite_manager)
+cLevel_Entry::cLevel_Entry(CEGUI::XMLAttributes& attributes,
+                           cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "level_entry") {
   cLevel_Entry::Init();
   cLevel_Entry::Load_From_XML(attributes);
 }
 
-cLevel_Entry ::~cLevel_Entry(void) = default;
+cLevel_Entry::~cLevel_Entry(void) = default;
 
-void cLevel_Entry ::Init(void) {
+void cLevel_Entry::Init(void) {
   m_sprite_array = ARRAY_ACTIVE;
   m_type = TYPE_LEVEL_ENTRY;
   m_massive_type = MASS_PASSIVE;
@@ -74,7 +74,7 @@ void cLevel_Entry ::Init(void) {
   m_editor_entry_name = nullptr;
 }
 
-std::unique_ptr<cSprite> cLevel_Entry ::Copy(void) const {
+std::unique_ptr<cSprite> cLevel_Entry::Copy(void) const {
   auto level_entry = std::make_unique<cLevel_Entry>(m_sprite_manager);
   level_entry->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   level_entry->Set_Type(m_entry_type);
@@ -83,7 +83,7 @@ std::unique_ptr<cSprite> cLevel_Entry ::Copy(void) const {
   return level_entry;
 }
 
-void cLevel_Entry ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cLevel_Entry::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
           static_cast<float>(attributes.getValueAsInteger("posy")), true);
@@ -99,7 +99,7 @@ void cLevel_Entry ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
           .c_str()));
 }
 
-void cLevel_Entry ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cLevel_Entry::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -121,7 +121,7 @@ void cLevel_Entry ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cLevel_Entry ::Set_Direction(const ObjectDirection dir) {
+void cLevel_Entry::Set_Direction(const ObjectDirection dir) {
   // already set
   if (m_direction == dir) {
     return;
@@ -132,7 +132,7 @@ void cLevel_Entry ::Set_Direction(const ObjectDirection dir) {
   Create_Name();
 }
 
-void cLevel_Entry ::Create_Name(void) {
+void cLevel_Entry::Create_Name(void) {
   m_name = _("Level Entry");
 
   if (m_entry_type == LEVEL_ENTRY_BEAM) {
@@ -152,7 +152,7 @@ void cLevel_Entry ::Create_Name(void) {
   }
 }
 
-void cLevel_Entry ::Draw(cSurface_Request* request /* = nullptr */) {
+void cLevel_Entry::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -178,7 +178,7 @@ void cLevel_Entry ::Draw(cSurface_Request* request /* = nullptr */) {
   }
 }
 
-void cLevel_Entry ::Activate(void) {
+void cLevel_Entry::Activate(void) {
   // warp player in
   if (m_entry_type == LEVEL_ENTRY_WARP) {
     pAudio->Play_Sound("leave_pipe.ogg");
@@ -250,10 +250,9 @@ void cLevel_Entry ::Activate(void) {
       // center camera
       pActive_Camera->Center();
       // keep particles on screen
-      for (const auto& sprite : m_sprite_manager->objects) {
+      for (auto* sprite : m_sprite_manager->Objects()) {
         if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
-          cParticle_Emitter* emitter =
-              static_cast<cParticle_Emitter*>(sprite.get());
+          cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(sprite);
           emitter->Update_Position();
         }
       }
@@ -282,13 +281,13 @@ void cLevel_Entry ::Activate(void) {
   pLevel_Player->Clear_Collisions();
 }
 
-void cLevel_Entry ::Set_Type(Level_Entry_type new_type) {
+void cLevel_Entry::Set_Type(Level_Entry_type new_type) {
   m_entry_type = new_type;
 
   Create_Name();
 }
 
-float cLevel_Entry ::Get_Player_Pos_X(void) const {
+float cLevel_Entry::Get_Player_Pos_X(void) const {
   if (m_entry_type == LEVEL_ENTRY_WARP) {
     // left
     if (m_direction == DIR_LEFT) {
@@ -312,7 +311,7 @@ float cLevel_Entry ::Get_Player_Pos_X(void) const {
   return 0;
 }
 
-float cLevel_Entry ::Get_Player_Pos_Y(void) const {
+float cLevel_Entry::Get_Player_Pos_Y(void) const {
   if (m_entry_type == LEVEL_ENTRY_WARP) {
     // up
     if (m_direction == DIR_UP) {
@@ -335,7 +334,7 @@ float cLevel_Entry ::Get_Player_Pos_Y(void) const {
   return 0;
 }
 
-void cLevel_Entry ::Set_Name(const std::string& str_name) {
+void cLevel_Entry::Set_Name(const std::string& str_name) {
   // Set new name
   m_entry_name = str_name;
 
@@ -348,7 +347,7 @@ void cLevel_Entry ::Set_Name(const std::string& str_name) {
       pFont->Render_Text(pFont->m_font_small, m_entry_name, white);
 }
 
-bool cLevel_Entry ::Is_Draw_Valid(void) {
+bool cLevel_Entry::Is_Draw_Valid(void) {
   // if editor not enabled
   if (!editor_enabled) {
     return false;
@@ -362,7 +361,7 @@ bool cLevel_Entry ::Is_Draw_Valid(void) {
   return true;
 }
 
-void cLevel_Entry ::Editor_Activate(void) {
+void cLevel_Entry::Editor_Activate(void) {
   // get window manager
   CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
 
@@ -399,7 +398,7 @@ void cLevel_Entry ::Editor_Activate(void) {
   Editor_Init();
 }
 
-bool cLevel_Entry ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
+bool cLevel_Entry::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =
@@ -410,7 +409,7 @@ bool cLevel_Entry ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cLevel_Entry ::Editor_Name_Text_Changed(const CEGUI::EventArgs& event) {
+bool cLevel_Entry::Editor_Name_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   std::string const str_text =

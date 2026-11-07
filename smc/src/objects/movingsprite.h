@@ -56,11 +56,10 @@ enum ColCheckType {
 class cMovingSprite : public cSprite {
  public:
   // constructor
-  cMovingSprite(cSprite_Manager* sprite_manager,
+  cMovingSprite(cSprite_Store* sprite_manager,
                 std::string type_name = "sprite");
   // create from stream
-  cMovingSprite(CEGUI::XMLAttributes& attributes,
-                cSprite_Manager* sprite_manager,
+  cMovingSprite(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager,
                 std::string type_name = "sprite");
   // destructor
   ~cMovingSprite(void) override;
@@ -303,7 +302,7 @@ class cMovingSprite : public cSprite {
   // can be on a ground object
   bool m_can_be_on_ground;
   // colliding ground object
-  cSprite* m_ground_object;
+  cSprite_Handle<> m_ground_object;
 
   /* the different states
 	 * look at the definitions

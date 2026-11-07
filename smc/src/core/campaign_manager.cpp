@@ -27,20 +27,20 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** cCampaign *** *** *** *** *** *** *** *** *** *** */
 
-cCampaign ::cCampaign(void) {
+cCampaign::cCampaign(void) {
   m_is_target_level = false;
   m_user = 0;
 }
 
-cCampaign ::~cCampaign(void) = default;
+cCampaign::~cCampaign(void) = default;
 
 /* *** *** *** *** *** *** *** cCampaign_Manager *** *** *** *** *** *** *** *** *** *** */
 
-cCampaign_Manager ::cCampaign_Manager(void) { Load(); }
+cCampaign_Manager::cCampaign_Manager(void) { Load(); }
 
-cCampaign_Manager ::~cCampaign_Manager(void) { Delete_All(); }
+cCampaign_Manager::~cCampaign_Manager(void) = default;
 
-void cCampaign_Manager ::Load(void) {
+void cCampaign_Manager::Load(void) {
   std::string const user_dir =
       pResource_Manager->user_data_dir + USER_CAMPAIGN_DIR;
   std::string const game_dir = DATA_DIR "/" GAME_CAMPAIGN_DIR;
@@ -93,7 +93,7 @@ void cCampaign_Manager ::Load(void) {
   }
 }
 
-std::unique_ptr<cCampaign> cCampaign_Manager ::Load_Campaign(
+std::unique_ptr<cCampaign> cCampaign_Manager::Load_Campaign(
     const std::string& filename) {
   if (!File_Exists(filename)) {
     printf("Error : Campaign loading failed : %s\n", filename.c_str());
@@ -105,8 +105,8 @@ std::unique_ptr<cCampaign> cCampaign_Manager ::Load_Campaign(
   return std::move(loader.m_campaign);
 }
 
-cCampaign* cCampaign_Manager ::Get_from_Name(const std::string& name) {
-  for (const auto& campaign : objects) {
+cCampaign* cCampaign_Manager::Get_from_Name(const std::string& name) {
+  for (const auto& campaign : m_objects) {
     if (campaign->m_name.compare(name) == 0) {
       return campaign.get();
     }
@@ -117,7 +117,7 @@ cCampaign* cCampaign_Manager ::Get_from_Name(const std::string& name) {
 
 /* *** *** *** *** *** *** *** cCampaign_XML_Handler *** *** *** *** *** *** *** *** *** *** */
 
-cCampaign_XML_Handler ::cCampaign_XML_Handler(const CEGUI::String& filename) {
+cCampaign_XML_Handler::cCampaign_XML_Handler(const CEGUI::String& filename) {
   m_campaign = std::make_unique<cCampaign>();
 
   try {
@@ -147,9 +147,9 @@ cCampaign_XML_Handler ::cCampaign_XML_Handler(const CEGUI::String& filename) {
   }
 }
 
-cCampaign_XML_Handler ::~cCampaign_XML_Handler(void) = default;
+cCampaign_XML_Handler::~cCampaign_XML_Handler(void) = default;
 
-void cCampaign_XML_Handler ::elementStart(
+void cCampaign_XML_Handler::elementStart(
     const CEGUI::String& element, const CEGUI::XMLAttributes& attributes) {
   if (element == "property") {
     m_xml_attributes.add(attributes.getValueAsString("name"),
@@ -157,7 +157,7 @@ void cCampaign_XML_Handler ::elementStart(
   }
 }
 
-void cCampaign_XML_Handler ::elementEnd(const CEGUI::String& element) {
+void cCampaign_XML_Handler::elementEnd(const CEGUI::String& element) {
   if (element == "property") {
     return;
   }

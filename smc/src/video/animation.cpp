@@ -34,8 +34,8 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** Base Animation class *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation ::cAnimation(cSprite_Manager* sprite_manager,
-                        std::string type_name /* = "sprite" */)
+cAnimation::cAnimation(cSprite_Store* sprite_manager,
+                       std::string type_name /* = "sprite" */)
     : cAnimated_Sprite(sprite_manager, type_name) {
   m_sprite_array = ARRAY_ANIM;
   m_type = TYPE_ACTIVE_SPRITE;
@@ -51,26 +51,26 @@ cAnimation ::cAnimation(cSprite_Manager* sprite_manager,
   m_fading_speed = 1.0f;
 }
 
-cAnimation ::~cAnimation(void) {
+cAnimation::~cAnimation(void) {
   //
 }
 
-void cAnimation ::Init_Anim(void) {
+void cAnimation::Init_Anim(void) {
   // virtual
 }
 
-void cAnimation ::Update(void) {
+void cAnimation::Update(void) {
   // virtual
 }
 
-void cAnimation ::Draw(cSurface_Request* request /* = nullptr */) {}
+void cAnimation::Draw(cSurface_Request* request /* = nullptr */) {}
 
-void cAnimation ::Set_Time_to_Live(float time, float time_rand /* = 0.0f */) {
+void cAnimation::Set_Time_to_Live(float time, float time_rand /* = 0.0f */) {
   m_time_to_live = time;
   m_time_to_live_rand = time_rand;
 }
 
-void cAnimation ::Set_Fading_Speed(float speed) {
+void cAnimation::Set_Fading_Speed(float speed) {
   m_fading_speed = speed;
 
   if (m_fading_speed <= 0.0f) {
@@ -78,17 +78,17 @@ void cAnimation ::Set_Fading_Speed(float speed) {
   }
 }
 
-void cAnimation ::Set_Pos_Z(float pos, float pos_rand /* = 0.0f */) {
+void cAnimation::Set_Pos_Z(float pos, float pos_rand /* = 0.0f */) {
   m_pos_z = pos;
   m_pos_z_rand = pos_rand;
 }
 
 /* *** *** *** *** *** *** *** cAnimation_Goldpiece *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation_Goldpiece ::cAnimation_Goldpiece(cSprite_Manager* sprite_manager,
-                                            float posx, float posy,
-                                            float height /* = 40.0f */,
-                                            float width /* = 20.0f */)
+cAnimation_Goldpiece::cAnimation_Goldpiece(cSprite_Store* sprite_manager,
+                                           float posx, float posy,
+                                           float height /* = 40.0f */,
+                                           float width /* = 20.0f */)
     : cAnimation(sprite_manager) {
   Add_Image(pVideo->Get_Surface("animation/light_1/1.png"));
   Add_Image(pVideo->Get_Surface("animation/light_1/2.png"));
@@ -114,12 +114,12 @@ cAnimation_Goldpiece ::cAnimation_Goldpiece(cSprite_Manager* sprite_manager,
   }
 }
 
-cAnimation_Goldpiece ::~cAnimation_Goldpiece(void) {
+cAnimation_Goldpiece::~cAnimation_Goldpiece(void) {
   // clear
   m_objects.clear();
 }
 
-void cAnimation_Goldpiece ::Update(void) {
+void cAnimation_Goldpiece::Update(void) {
   if (!m_active || editor_enabled) {
     return;
   }
@@ -190,7 +190,7 @@ void cAnimation_Goldpiece ::Update(void) {
   }
 }
 
-void cAnimation_Goldpiece ::Draw(cSurface_Request* request /* = nullptr */) {
+void cAnimation_Goldpiece::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_active) {
     return;
   }
@@ -208,9 +208,9 @@ void cAnimation_Goldpiece ::Draw(cSurface_Request* request /* = nullptr */) {
 
 /* *** *** *** *** *** *** *** cAnimation_Fireball *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation_Fireball ::cAnimation_Fireball(cSprite_Manager* sprite_manager,
-                                          float posx, float posy,
-                                          unsigned int power /* = 5 */)
+cAnimation_Fireball::cAnimation_Fireball(cSprite_Store* sprite_manager,
+                                         float posx, float posy,
+                                         unsigned int power /* = 5 */)
     : cAnimation(sprite_manager) {
   Set_Pos(posx, posy, true);
 
@@ -242,12 +242,12 @@ cAnimation_Fireball ::cAnimation_Fireball(cSprite_Manager* sprite_manager,
   }
 }
 
-cAnimation_Fireball ::~cAnimation_Fireball(void) {
+cAnimation_Fireball::~cAnimation_Fireball(void) {
   // clear
   m_objects.clear();
 }
 
-void cAnimation_Fireball ::Update(void) {
+void cAnimation_Fireball::Update(void) {
   if (!m_active || editor_enabled) {
     return;
   }
@@ -277,7 +277,7 @@ void cAnimation_Fireball ::Update(void) {
   }
 }
 
-void cAnimation_Fireball ::Draw(cSurface_Request* request /* = nullptr */) {
+void cAnimation_Fireball::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_active) {
     return;
   }
@@ -305,7 +305,7 @@ void cAnimation_Fireball ::Draw(cSurface_Request* request /* = nullptr */) {
 
 /* *** *** *** *** *** *** *** cParticle *** *** *** *** *** *** *** *** *** *** */
 
-cParticle ::cParticle(cParticle_Emitter* parent)
+cParticle::cParticle(cParticle_Emitter* parent)
     : cMovingSprite(parent->m_sprite_manager) {
   m_can_be_on_ground = false;
   // scale centered
@@ -323,9 +323,9 @@ cParticle ::cParticle(cParticle_Emitter* parent)
   m_parent = parent;
 }
 
-cParticle ::~cParticle(void) = default;
+cParticle::~cParticle(void) = default;
 
-void cParticle ::Update(void) {
+void cParticle::Update(void) {
   // update fade modifier
   m_fade_pos -= ((static_cast<float>(speedfactor_fps) * 0.001f) *
                  pFramerate->m_speed_factor) /
@@ -360,7 +360,7 @@ void cParticle ::Update(void) {
   }
 }
 
-void cParticle ::Draw(cSurface_Request* request /* = nullptr */) {
+void cParticle::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_image) {
     return;
   }
@@ -409,28 +409,28 @@ void cParticle ::Draw(cSurface_Request* request /* = nullptr */) {
   }
 }
 
-void cParticle ::Set_Gravity(float x, float y) {
+void cParticle::Set_Gravity(float x, float y) {
   m_gravity_x = x;
   m_gravity_y = y;
 }
 
 /* *** *** *** *** *** *** *** cParticle_Emitter *** *** *** *** *** *** *** *** *** *** */
 
-cParticle_Emitter ::cParticle_Emitter(cSprite_Manager* sprite_manager)
+cParticle_Emitter::cParticle_Emitter(cSprite_Store* sprite_manager)
     : cAnimation(sprite_manager, "particle_emitter") {
   cParticle_Emitter::Init();
 }
 
-cParticle_Emitter ::cParticle_Emitter(CEGUI::XMLAttributes& attributes,
-                                      cSprite_Manager* sprite_manager)
+cParticle_Emitter::cParticle_Emitter(CEGUI::XMLAttributes& attributes,
+                                     cSprite_Store* sprite_manager)
     : cAnimation(sprite_manager, "particle_emitter") {
   cParticle_Emitter::Init();
   cParticle_Emitter::Load_From_XML(attributes);
 }
 
-cParticle_Emitter ::~cParticle_Emitter(void) { cParticle_Emitter::Clear(); }
+cParticle_Emitter::~cParticle_Emitter(void) { cParticle_Emitter::Clear(); }
 
-void cParticle_Emitter ::Init(void) {
+void cParticle_Emitter::Init(void) {
   m_editor_pos_z = 0.111f;
   m_sprite_array = ARRAY_ACTIVE;
   m_type = TYPE_PARTICLE_EMITTER;
@@ -492,7 +492,7 @@ void cParticle_Emitter ::Init(void) {
   m_emitter_living_time = 0.0f;
 }
 
-std::unique_ptr<cSprite> cParticle_Emitter ::Copy(void) const {
+std::unique_ptr<cSprite> cParticle_Emitter::Copy(void) const {
   auto particle_animation =
       std::make_unique<cParticle_Emitter>(m_sprite_manager);
   particle_animation->Set_Based_On_Camera_Pos(m_emitter_based_on_camera_pos);
@@ -526,7 +526,7 @@ std::unique_ptr<cSprite> cParticle_Emitter ::Copy(void) const {
   return particle_animation;
 }
 
-void cParticle_Emitter ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cParticle_Emitter::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // filename
   Set_Image_Filename(attributes.getValueAsString("image").c_str());
   // position z
@@ -609,7 +609,7 @@ void cParticle_Emitter ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
       attributes.getValueAsInteger("clip_mode", m_clip_mode)));
 }
 
-void cParticle_Emitter ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cParticle_Emitter::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -680,7 +680,7 @@ void cParticle_Emitter ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cParticle_Emitter ::Pre_Update(void) {
+void cParticle_Emitter::Pre_Update(void) {
   if (!m_image || m_emitter_quota == 0 ||
       Is_Float_Equal(m_time_to_live, 0.0f)) {
     return;
@@ -712,7 +712,7 @@ void cParticle_Emitter ::Pre_Update(void) {
   pFramerate->m_speed_factor = old_speedfactor;
 }
 
-void cParticle_Emitter ::Emit(void) {
+void cParticle_Emitter::Emit(void) {
   if (!m_image) {
     return;
   }
@@ -825,7 +825,7 @@ void cParticle_Emitter ::Emit(void) {
   }
 }
 
-void cParticle_Emitter ::Clear(bool reset /* = 1 */) {
+void cParticle_Emitter::Clear(bool reset /* = 1 */) {
   // clear particles
   m_objects.clear();
 
@@ -837,7 +837,7 @@ void cParticle_Emitter ::Clear(bool reset /* = 1 */) {
   }
 }
 
-void cParticle_Emitter ::Update(void) {
+void cParticle_Emitter::Update(void) {
   Update_Valid_Update();
 
   if (!m_valid_update) {
@@ -852,7 +852,7 @@ void cParticle_Emitter ::Update(void) {
   Update_Particles();
 }
 
-void cParticle_Emitter ::Update_Particles(void) {
+void cParticle_Emitter::Update_Particles(void) {
   // update objects
   for (auto itr = m_objects.begin(); itr != m_objects.end();) {
     // get object pointer
@@ -889,7 +889,7 @@ void cParticle_Emitter ::Update_Particles(void) {
   }
 }
 
-void cParticle_Emitter ::Update_Position(void) {
+void cParticle_Emitter::Update_Position(void) {
   if (m_emitter_based_on_camera_pos && !editor_enabled) {
     Set_Pos(m_start_pos_x + pActive_Camera->m_x,
             m_start_pos_y + (pActive_Camera->m_y + game_res_h));
@@ -921,7 +921,7 @@ void cParticle_Emitter ::Update_Position(void) {
   }
 }
 
-void cParticle_Emitter ::Draw(cSurface_Request* request /* = nullptr */) {
+void cParticle_Emitter::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -964,7 +964,7 @@ void cParticle_Emitter ::Draw(cSurface_Request* request /* = nullptr */) {
   }
 }
 
-void cParticle_Emitter ::Keep_Particles_In_Rect(
+void cParticle_Emitter::Keep_Particles_In_Rect(
     const GL_rect& clip_rect, ParticleClipMode mode /* = PCM_MOVE */) {
   // temporary obj rect
   GL_rect obj_rect;
@@ -1047,7 +1047,7 @@ void cParticle_Emitter ::Keep_Particles_In_Rect(
   }
 }
 
-bool cParticle_Emitter ::Is_Update_Valid(void) {
+bool cParticle_Emitter::Is_Update_Valid(void) {
   // if not active
   if (!m_active) {
     return false;
@@ -1071,7 +1071,7 @@ bool cParticle_Emitter ::Is_Update_Valid(void) {
   return true;
 }
 
-bool cParticle_Emitter ::Is_Draw_Valid(void) {
+bool cParticle_Emitter::Is_Draw_Valid(void) {
   // if not visible
   if (!m_active) {
     return false;
@@ -1085,7 +1085,7 @@ bool cParticle_Emitter ::Is_Draw_Valid(void) {
   return true;
 }
 
-void cParticle_Emitter ::Set_Image(cGL_Surface* img) {
+void cParticle_Emitter::Set_Image(cGL_Surface* img) {
   if (!img) {
     return;
   }
@@ -1093,7 +1093,7 @@ void cParticle_Emitter ::Set_Image(cGL_Surface* img) {
   m_image = img;
 }
 
-void cParticle_Emitter ::Set_Image_Filename(const std::string& str_filename) {
+void cParticle_Emitter::Set_Image_Filename(const std::string& str_filename) {
   // remember the filename for saving
   m_image_filename = str_filename;
 
@@ -1107,7 +1107,7 @@ void cParticle_Emitter ::Set_Image_Filename(const std::string& str_filename) {
   Set_Image(pVideo->Get_Surface(m_image_filename, false));
 }
 
-void cParticle_Emitter ::Set_Spawned(bool enable /* = 0 */) {
+void cParticle_Emitter::Set_Spawned(bool enable /* = 0 */) {
   cAnimation::Set_Spawned(enable);
 
   if (!m_spawned) {
@@ -1122,16 +1122,16 @@ void cParticle_Emitter ::Set_Spawned(bool enable /* = 0 */) {
   }
 }
 
-void cParticle_Emitter ::Set_Based_On_Camera_Pos(bool enable) {
+void cParticle_Emitter::Set_Based_On_Camera_Pos(bool enable) {
   m_emitter_based_on_camera_pos = enable;
 }
 
-void cParticle_Emitter ::Set_Particle_Based_On_Emitter_Pos(float val) {
+void cParticle_Emitter::Set_Particle_Based_On_Emitter_Pos(float val) {
   m_particle_based_on_emitter_pos = val;
 }
 
-void cParticle_Emitter ::Set_Emitter_Rect(float x, float y, float w /* = 0 */,
-                                          float h /* = 0 */) {
+void cParticle_Emitter::Set_Emitter_Rect(float x, float y, float w /* = 0 */,
+                                         float h /* = 0 */) {
   // hack: don't set x/y to 0 or the next Set_Pos call will overwrite the start position
   if (Is_Float_Equal(x, 0.0f) && Is_Float_Equal(y, 0.0f)) {
     y = -1.0f;
@@ -1158,11 +1158,11 @@ void cParticle_Emitter ::Set_Emitter_Rect(float x, float y, float w /* = 0 */,
   m_start_rect.m_h = m_rect.m_h;
 }
 
-void cParticle_Emitter ::Set_Emitter_Rect(const GL_rect& rect) {
+void cParticle_Emitter::Set_Emitter_Rect(const GL_rect& rect) {
   Set_Emitter_Rect(rect.m_x, rect.m_y, rect.m_w, rect.m_h);
 }
 
-void cParticle_Emitter ::Set_Emitter_Time_to_Live(float time) {
+void cParticle_Emitter::Set_Emitter_Time_to_Live(float time) {
   m_emitter_time_to_live = time;
 
   // reset time
@@ -1173,7 +1173,7 @@ void cParticle_Emitter ::Set_Emitter_Time_to_Live(float time) {
   }
 }
 
-void cParticle_Emitter ::Set_Emitter_Iteration_Interval(float time) {
+void cParticle_Emitter::Set_Emitter_Iteration_Interval(float time) {
   m_emitter_iteration_interval = time;
 
   if (m_emitter_iteration_interval < 0.001f) {
@@ -1181,61 +1181,61 @@ void cParticle_Emitter ::Set_Emitter_Iteration_Interval(float time) {
   }
 }
 
-void cParticle_Emitter ::Set_Quota(unsigned int size) {
+void cParticle_Emitter::Set_Quota(unsigned int size) {
   m_emitter_quota = Clamp<unsigned int>(size, 1, 1000);
 }
 
-void cParticle_Emitter ::Set_Speed(float vel_base, float vel_random /* = 2 */) {
+void cParticle_Emitter::Set_Speed(float vel_base, float vel_random /* = 2 */) {
   m_vel = vel_base;
   m_vel_rand = vel_random;
 }
 
-void cParticle_Emitter ::Set_Start_Rot_Z_Uses_Direction(bool enable) {
+void cParticle_Emitter::Set_Start_Rot_Z_Uses_Direction(bool enable) {
   m_start_rot_z_uses_direction = enable;
 }
 
-void cParticle_Emitter ::Set_Const_Rotation_X(float rot,
-                                              float rot_random /* = 0 */) {
+void cParticle_Emitter::Set_Const_Rotation_X(float rot,
+                                             float rot_random /* = 0 */) {
   m_const_rot_x = rot;
   m_const_rot_x_rand = rot_random;
 }
 
-void cParticle_Emitter ::Set_Const_Rotation_Y(float rot,
-                                              float rot_random /* = 0 */) {
+void cParticle_Emitter::Set_Const_Rotation_Y(float rot,
+                                             float rot_random /* = 0 */) {
   m_const_rot_y = rot;
   m_const_rot_y_rand = rot_random;
 }
 
-void cParticle_Emitter ::Set_Const_Rotation_Z(float rot,
-                                              float rot_random /* = 0 */) {
+void cParticle_Emitter::Set_Const_Rotation_Z(float rot,
+                                             float rot_random /* = 0 */) {
   m_const_rot_z = rot;
   m_const_rot_z_rand = rot_random;
 }
 
-void cParticle_Emitter ::Set_Direction_Range(float start,
-                                             float range /* = 0 */) {
+void cParticle_Emitter::Set_Direction_Range(float start,
+                                            float range /* = 0 */) {
   m_angle_start = start;
   m_angle_range = range;
 }
 
-void cParticle_Emitter ::Set_Scale(float nscale, float scale_random /* = 0 */) {
+void cParticle_Emitter::Set_Scale(float nscale, float scale_random /* = 0 */) {
   m_size_scale = nscale;
   m_size_scale_rand = scale_random;
 }
 
-void cParticle_Emitter ::Set_Horizontal_Gravity(float start,
-                                                float random /* = 0 */) {
+void cParticle_Emitter::Set_Horizontal_Gravity(float start,
+                                               float random /* = 0 */) {
   m_gravity_x = start;
   m_gravity_x_rand = random;
 }
 
-void cParticle_Emitter ::Set_Vertical_Gravity(float start,
-                                              float random /* = 0 */) {
+void cParticle_Emitter::Set_Vertical_Gravity(float start,
+                                             float random /* = 0 */) {
   m_gravity_y = start;
   m_gravity_y_rand = random;
 }
 
-void cParticle_Emitter ::Set_Color(
+void cParticle_Emitter::Set_Color(
     const Color& col,
     const Color& col_rand /* = Color( static_cast<Uint8>(0) ) */) {
   m_color = col;
@@ -1265,23 +1265,19 @@ void cParticle_Emitter ::Set_Color(
 #endif
 }
 
-void cParticle_Emitter ::Set_Fading_Size(bool enable) { m_fade_size = enable; }
+void cParticle_Emitter::Set_Fading_Size(bool enable) { m_fade_size = enable; }
 
-void cParticle_Emitter ::Set_Fading_Alpha(bool enable) {
-  m_fade_alpha = enable;
-}
+void cParticle_Emitter::Set_Fading_Alpha(bool enable) { m_fade_alpha = enable; }
 
-void cParticle_Emitter ::Set_Fading_Color(bool enable) {
-  m_fade_color = enable;
-}
+void cParticle_Emitter::Set_Fading_Color(bool enable) { m_fade_color = enable; }
 
-void cParticle_Emitter ::Set_Blending(BlendingMode mode) { m_blending = mode; }
+void cParticle_Emitter::Set_Blending(BlendingMode mode) { m_blending = mode; }
 
-void cParticle_Emitter ::Set_Clip_Rect(float x, float y, float w, float h) {
+void cParticle_Emitter::Set_Clip_Rect(float x, float y, float w, float h) {
   Set_Clip_Rect(GL_rect(x, y, w, h));
 }
 
-void cParticle_Emitter ::Set_Clip_Rect(const GL_rect& rect) {
+void cParticle_Emitter::Set_Clip_Rect(const GL_rect& rect) {
   m_clip_rect = rect;
 
   // invalid width
@@ -1294,11 +1290,11 @@ void cParticle_Emitter ::Set_Clip_Rect(const GL_rect& rect) {
   }
 }
 
-void cParticle_Emitter ::Set_Clip_Mode(ParticleClipMode mode) {
+void cParticle_Emitter::Set_Clip_Mode(ParticleClipMode mode) {
   m_clip_mode = mode;
 }
 
-void cParticle_Emitter ::Editor_Activate(void) {
+void cParticle_Emitter::Editor_Activate(void) {
   CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
 
   // position z
@@ -1772,7 +1768,7 @@ void cParticle_Emitter ::Editor_Activate(void) {
   Editor_Init();
 }
 
-bool cParticle_Emitter ::Editor_Filename_Text_Changed(
+bool cParticle_Emitter::Editor_Filename_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1785,7 +1781,7 @@ bool cParticle_Emitter ::Editor_Filename_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Pos_Z_Base_Text_Changed(
+bool cParticle_Emitter::Editor_Pos_Z_Base_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1798,7 +1794,7 @@ bool cParticle_Emitter ::Editor_Pos_Z_Base_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Pos_Z_Rand_Text_Changed(
+bool cParticle_Emitter::Editor_Pos_Z_Rand_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1811,7 +1807,7 @@ bool cParticle_Emitter ::Editor_Pos_Z_Rand_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Emitter_Based_On_Camera_Pos_Changed(
+bool cParticle_Emitter::Editor_Emitter_Based_On_Camera_Pos_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1824,7 +1820,7 @@ bool cParticle_Emitter ::Editor_Emitter_Based_On_Camera_Pos_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Particle_Based_On_Emitter_Pos_Text_Changed(
+bool cParticle_Emitter::Editor_Particle_Based_On_Emitter_Pos_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1837,7 +1833,7 @@ bool cParticle_Emitter ::Editor_Particle_Based_On_Emitter_Pos_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Emitter_Width_Text_Changed(
+bool cParticle_Emitter::Editor_Emitter_Width_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1851,7 +1847,7 @@ bool cParticle_Emitter ::Editor_Emitter_Width_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Emitter_Height_Text_Changed(
+bool cParticle_Emitter::Editor_Emitter_Height_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1865,7 +1861,7 @@ bool cParticle_Emitter ::Editor_Emitter_Height_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Emitter_Time_To_Live_Text_Changed(
+bool cParticle_Emitter::Editor_Emitter_Time_To_Live_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1878,7 +1874,7 @@ bool cParticle_Emitter ::Editor_Emitter_Time_To_Live_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Emitter_Interval_Text_Changed(
+bool cParticle_Emitter::Editor_Emitter_Interval_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1891,7 +1887,7 @@ bool cParticle_Emitter ::Editor_Emitter_Interval_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Quota_Text_Changed(
+bool cParticle_Emitter::Editor_Quota_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1904,7 +1900,7 @@ bool cParticle_Emitter ::Editor_Quota_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_TTL_Base_Text_Changed(
+bool cParticle_Emitter::Editor_TTL_Base_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1917,7 +1913,7 @@ bool cParticle_Emitter ::Editor_TTL_Base_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_TTL_Rand_Text_Changed(
+bool cParticle_Emitter::Editor_TTL_Rand_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1930,7 +1926,7 @@ bool cParticle_Emitter ::Editor_TTL_Rand_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Velocity_Base_Text_Changed(
+bool cParticle_Emitter::Editor_Velocity_Base_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1943,7 +1939,7 @@ bool cParticle_Emitter ::Editor_Velocity_Base_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Velocity_Rand_Text_Changed(
+bool cParticle_Emitter::Editor_Velocity_Rand_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1956,7 +1952,7 @@ bool cParticle_Emitter ::Editor_Velocity_Rand_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Rotation_X_Base_Text_Changed(
+bool cParticle_Emitter::Editor_Rotation_X_Base_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1969,7 +1965,7 @@ bool cParticle_Emitter ::Editor_Rotation_X_Base_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Rotation_Y_Base_Text_Changed(
+bool cParticle_Emitter::Editor_Rotation_Y_Base_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1982,7 +1978,7 @@ bool cParticle_Emitter ::Editor_Rotation_Y_Base_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Start_Rot_Z_Uses_Direction_Changed(
+bool cParticle_Emitter::Editor_Start_Rot_Z_Uses_Direction_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -1995,7 +1991,7 @@ bool cParticle_Emitter ::Editor_Start_Rot_Z_Uses_Direction_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Rotation_Z_Base_Text_Changed(
+bool cParticle_Emitter::Editor_Rotation_Z_Base_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2008,7 +2004,7 @@ bool cParticle_Emitter ::Editor_Rotation_Z_Base_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Const_Rotation_X_Base_Text_Changed(
+bool cParticle_Emitter::Editor_Const_Rotation_X_Base_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2021,7 +2017,7 @@ bool cParticle_Emitter ::Editor_Const_Rotation_X_Base_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Const_Rotation_X_Rand_Text_Changed(
+bool cParticle_Emitter::Editor_Const_Rotation_X_Rand_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2034,7 +2030,7 @@ bool cParticle_Emitter ::Editor_Const_Rotation_X_Rand_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Const_Rotation_Y_Base_Text_Changed(
+bool cParticle_Emitter::Editor_Const_Rotation_Y_Base_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2047,7 +2043,7 @@ bool cParticle_Emitter ::Editor_Const_Rotation_Y_Base_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Const_Rotation_Y_Rand_Text_Changed(
+bool cParticle_Emitter::Editor_Const_Rotation_Y_Rand_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2060,7 +2056,7 @@ bool cParticle_Emitter ::Editor_Const_Rotation_Y_Rand_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Const_Rotation_Z_Base_Text_Changed(
+bool cParticle_Emitter::Editor_Const_Rotation_Z_Base_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2073,7 +2069,7 @@ bool cParticle_Emitter ::Editor_Const_Rotation_Z_Base_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Const_Rotation_Z_Rand_Text_Changed(
+bool cParticle_Emitter::Editor_Const_Rotation_Z_Rand_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2086,7 +2082,7 @@ bool cParticle_Emitter ::Editor_Const_Rotation_Z_Rand_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Direction_Base_Text_Changed(
+bool cParticle_Emitter::Editor_Direction_Base_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2099,7 +2095,7 @@ bool cParticle_Emitter ::Editor_Direction_Base_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Direction_Rand_Text_Changed(
+bool cParticle_Emitter::Editor_Direction_Rand_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2112,7 +2108,7 @@ bool cParticle_Emitter ::Editor_Direction_Rand_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Scale_Base_Text_Changed(
+bool cParticle_Emitter::Editor_Scale_Base_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2125,7 +2121,7 @@ bool cParticle_Emitter ::Editor_Scale_Base_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Scale_Rand_Text_Changed(
+bool cParticle_Emitter::Editor_Scale_Rand_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2138,7 +2134,7 @@ bool cParticle_Emitter ::Editor_Scale_Rand_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Horizontal_Gravity_Base_Text_Changed(
+bool cParticle_Emitter::Editor_Horizontal_Gravity_Base_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2151,7 +2147,7 @@ bool cParticle_Emitter ::Editor_Horizontal_Gravity_Base_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Horizontal_Gravity_Rand_Text_Changed(
+bool cParticle_Emitter::Editor_Horizontal_Gravity_Rand_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2164,7 +2160,7 @@ bool cParticle_Emitter ::Editor_Horizontal_Gravity_Rand_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Vertical_Gravity_Base_Text_Changed(
+bool cParticle_Emitter::Editor_Vertical_Gravity_Base_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2177,7 +2173,7 @@ bool cParticle_Emitter ::Editor_Vertical_Gravity_Base_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Vertical_Gravity_Rand_Text_Changed(
+bool cParticle_Emitter::Editor_Vertical_Gravity_Rand_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2190,7 +2186,7 @@ bool cParticle_Emitter ::Editor_Vertical_Gravity_Rand_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Clip_Rect_X_Text_Changed(
+bool cParticle_Emitter::Editor_Clip_Rect_X_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2204,7 +2200,7 @@ bool cParticle_Emitter ::Editor_Clip_Rect_X_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Clip_Rect_Y_Text_Changed(
+bool cParticle_Emitter::Editor_Clip_Rect_Y_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2218,7 +2214,7 @@ bool cParticle_Emitter ::Editor_Clip_Rect_Y_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Clip_Rect_W_Text_Changed(
+bool cParticle_Emitter::Editor_Clip_Rect_W_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2232,7 +2228,7 @@ bool cParticle_Emitter ::Editor_Clip_Rect_W_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Clip_Rect_H_Text_Changed(
+bool cParticle_Emitter::Editor_Clip_Rect_H_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -2246,8 +2242,7 @@ bool cParticle_Emitter ::Editor_Clip_Rect_H_Text_Changed(
   return true;
 }
 
-bool cParticle_Emitter ::Editor_Clip_Mode_Select(
-    const CEGUI::EventArgs& event) {
+bool cParticle_Emitter::Editor_Clip_Mode_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =
@@ -2269,20 +2264,18 @@ bool cParticle_Emitter ::Editor_Clip_Mode_Select(
 
 /* *** *** *** *** *** cAnimation_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation_Manager ::cAnimation_Manager(void) : cObject_Manager<cAnimation>() {}
+cAnimation_Manager::cAnimation_Manager(void) {}
 
-cAnimation_Manager ::~cAnimation_Manager(void) {
-  cAnimation_Manager::Delete_All();
-}
+cAnimation_Manager::~cAnimation_Manager(void) { Delete_All(); }
 
-void cAnimation_Manager ::Update(void) {
-  for (auto itr = objects.begin(); itr != objects.end();) {
+void cAnimation_Manager::Update(void) {
+  for (auto itr = m_objects.begin(); itr != m_objects.end();) {
     // update
     (*itr)->Update();
 
     // delete if finished (erase frees it)
     if (!(*itr)->m_active) {
-      itr = objects.erase(itr);
+      itr = m_objects.erase(itr);
     }
     // increment
     else {
@@ -2291,13 +2284,13 @@ void cAnimation_Manager ::Update(void) {
   }
 }
 
-void cAnimation_Manager ::Draw(void) {
-  for (const auto& animation : objects) {
+void cAnimation_Manager::Draw(void) {
+  for (const auto& animation : m_objects) {
     animation->Draw();
   }
 }
 
-cAnimation* cAnimation_Manager ::Add(std::unique_ptr<cAnimation> animation) {
+cAnimation* cAnimation_Manager::Add(std::unique_ptr<cAnimation> animation) {
   if (!animation) {
     return nullptr;
   }
@@ -2305,7 +2298,7 @@ cAnimation* cAnimation_Manager ::Add(std::unique_ptr<cAnimation> animation) {
   /* todo : particle animations should not set emitter TTL to 0
 	 * many spawned particle emitters only emit one particle with an emitter which is very slow
 	*/
-  return cObject_Manager<cAnimation>::Add(std::move(animation));
+  return m_objects.emplace_back(std::move(animation)).get();
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

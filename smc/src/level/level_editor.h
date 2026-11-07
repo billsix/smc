@@ -25,7 +25,7 @@ namespace SMC {
 
 class cEditor_Level : public cEditor {
  public:
-  cEditor_Level(cSprite_Manager* sprite_manager, cLevel* level);
+  cEditor_Level(cSprite_Store* sprite_manager, cLevel* level);
   ~cEditor_Level(void) override;
 
   // Initialize
@@ -46,7 +46,7 @@ class cEditor_Level : public cEditor {
   // Set the parent level
   void Set_Level(cLevel* level);
   // Set the parent sprite manager
-  void Set_Sprite_Manager(cSprite_Manager* sprite_manager) override;
+  void Set_Sprite_Manager(cSprite_Store* sprite_manager) override;
 
   // Set Active Menu Entry
   void Activate_Menu_Item(cEditor_Menu_Object* entry) override;

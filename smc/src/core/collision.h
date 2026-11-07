@@ -20,7 +20,8 @@
 
 #include "../core/global_basic.h"
 #include "../core/global_game.h"
-#include "../core/obj_manager.h"
+#include "../core/owning_vector.h"
+#include "../core/sprite_handle.h"
 #include "../core/math/rect.h"
 #include "SDL.h"
 
@@ -49,7 +50,7 @@ class cObjectCollision {
   bool m_received;
 
   // the object colliding with (only use it in the same frame for now !)
-  cSprite* m_obj;
+  cSprite_Handle<> m_obj;
   // colliding object number
   int m_number;
 
@@ -65,13 +66,28 @@ using cObjectCollision_List = vector<std::unique_ptr<cObjectCollision>>;
 /* *** *** *** *** *** *** *** cObjectCollisionType *** *** *** *** *** *** *** *** *** *** */
 
 // collision type class
-class cObjectCollisionType : public cObject_Manager<cObjectCollision> {
+class cObjectCollisionType {
  public:
+  // The owned objects, borrowed (cObjectCollision* each), for range-for
+  auto Objects(void) const { return Borrowed(m_objects); }
+  size_t size(void) const { return m_objects.size(); }
+  bool empty(void) const { return m_objects.empty(); }
+  // Remove all collisions, passing their ownership to the caller
+  Owning_Vector<cObjectCollision> Take_All(void) {
+    return std::exchange(m_objects, {});
+  }
+  // Move all of other's collisions to the end of this list (other ends up empty)
+  void Append(cObjectCollisionType& other) {
+    for (auto& collision : other.Take_All()) {
+      m_objects.push_back(std::move(collision));
+    }
+  }
+
   cObjectCollisionType(void);
-  ~cObjectCollisionType(void) override;
+  ~cObjectCollisionType(void);
 
   // Add an object collision (takes ownership)
-  cObjectCollision* Add(std::unique_ptr<cObjectCollision> obj) override;
+  cObjectCollision* Add(std::unique_ptr<cObjectCollision> obj);
 
   // returns true if the given object was found in the list
   bool Is_Included(const cSprite* obj);
@@ -86,6 +102,9 @@ class cObjectCollisionType : public cObject_Manager<cObjectCollision> {
   cObjectCollision* Find_First(const ArrayType type);
   // returns the first found sprite if the given sprite type was found
   cObjectCollision* Find_First(const SpriteType type);
+
+ private:
+  Owning_Vector<cObjectCollision> m_objects;
 };
 
 /* *** *** *** *** *** *** *** functions *** *** *** *** *** *** *** *** *** *** */

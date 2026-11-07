@@ -110,7 +110,7 @@ class cEditor_Menu_Object : public CEGUI::ListboxTextItem {
 
 class cEditor : public CEGUI::XMLHandler {
  public:
-  cEditor(cSprite_Manager* sprite_manager);
+  cEditor(cSprite_Store* sprite_manager);
   ~cEditor(void) override;
 
   // Initialize Editor
@@ -151,7 +151,7 @@ class cEditor : public CEGUI::XMLHandler {
   virtual bool Mouse_Up(Uint8 button);
 
   // Set the parent sprite manager
-  virtual void Set_Sprite_Manager(cSprite_Manager* sprite_manager);
+  virtual void Set_Sprite_Manager(cSprite_Store* sprite_manager);
 
   // ##### Main Menu
 
@@ -214,7 +214,7 @@ class cEditor : public CEGUI::XMLHandler {
   virtual void Function_Settings(void) {};
 
   // the parent sprite manager
-  cSprite_Manager* m_sprite_manager;
+  cSprite_Store* m_sprite_manager;
   // true if editor is active
   bool m_enabled;
 

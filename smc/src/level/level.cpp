@@ -63,7 +63,7 @@ namespace SMC {
 
 /* *** *** *** *** *** cLevel *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLevel ::cLevel(void) {
+cLevel::cLevel(void) {
   // settings
   Reset_Settings();
 
@@ -76,9 +76,9 @@ cLevel ::cLevel(void) {
   m_backgrounds.push_back(std::move(gradient_background));
 }
 
-cLevel ::~cLevel(void) { Unload(); }
+cLevel::~cLevel(void) { Unload(); }
 
-bool cLevel ::New(std::string filename) {
+bool cLevel::New(std::string filename) {
   Unload();
 
   string_trim(filename, ' ');
@@ -140,7 +140,7 @@ bool cLevel ::New(std::string filename) {
   return false;
 }
 
-bool cLevel ::Load(std::string filename) {
+bool cLevel::Load(std::string filename) {
   m_next_level_filename.clear();
 
   if (!pLevel_Manager->Get_Path(filename)) {
@@ -185,7 +185,7 @@ bool cLevel ::Load(std::string filename) {
   /* late initialization
 	 * needed to create links to other objects
 	*/
-  for (const auto& sprite : m_sprite_manager.objects) {
+  for (auto* sprite : m_sprite_manager.Objects()) {
     sprite->Init_Links();
   }
 
@@ -199,7 +199,7 @@ bool cLevel ::Load(std::string filename) {
   return true;
 }
 
-void cLevel ::Unload(bool delayed /* = 0 */) {
+void cLevel::Unload(bool delayed /* = 0 */) {
   if (delayed) {
     m_delayed_unload = true;
     return;
@@ -241,7 +241,7 @@ void cLevel ::Unload(bool delayed /* = 0 */) {
   m_sprite_manager.Delete_All();
 }
 
-void cLevel ::Save(void) {
+void cLevel::Save(void) {
   pAudio->Play_Sound("editor/save.ogg");
 
   // use user level dir
@@ -332,7 +332,7 @@ void cLevel ::Save(void) {
   stream.closeTag();
 
   // objects
-  for (const auto& sprite : m_sprite_manager.objects) {
+  for (auto* sprite : m_sprite_manager.Objects()) {
     // skip spawned and destroyed objects
     if (sprite->m_spawned || sprite->m_auto_destroy) {
       continue;
@@ -351,12 +351,12 @@ void cLevel ::Save(void) {
                        _(" saved"));
 }
 
-void cLevel ::Delete(void) {
+void cLevel::Delete(void) {
   Delete_File(m_level_filename);
   Unload();
 }
 
-void cLevel ::Reset_Settings(void) {
+void cLevel::Reset_Settings(void) {
   // no engine version
   m_engine_version = -1;
   m_last_saved = 0;
@@ -380,7 +380,7 @@ void cLevel ::Reset_Settings(void) {
   m_fixed_camera_hor_vel = 0.0f;
 }
 
-void cLevel ::Init(void) {
+void cLevel::Init(void) {
   // if not loaded
   if (!Is_Loaded()) {
     return;
@@ -394,16 +394,15 @@ void cLevel ::Init(void) {
   pLevel_Player->Reset();
 
   // pre-update animations
-  for (const auto& sprite : m_sprite_manager.objects) {
+  for (auto* sprite : m_sprite_manager.Objects()) {
     if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
-      cParticle_Emitter* emitter =
-          static_cast<cParticle_Emitter*>(sprite.get());
+      cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(sprite);
       emitter->Pre_Update();
     }
   }
 }
 
-void cLevel ::Set_Sprite_Manager(void) {
+void cLevel::Set_Sprite_Manager(void) {
   pHud_Manager->Set_Sprite_Manager(&m_sprite_manager);
   pMouseCursor->Set_Sprite_Manager(&m_sprite_manager);
   pLevel_Editor->Set_Sprite_Manager(&m_sprite_manager);
@@ -416,7 +415,7 @@ void cLevel ::Set_Sprite_Manager(void) {
   pLevel_Player->Set_Sprite_Manager(&m_sprite_manager);
 }
 
-void cLevel ::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
+void cLevel::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
   // if not loaded
   if (!Is_Loaded()) {
     return;
@@ -467,7 +466,7 @@ void cLevel ::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
   pFramerate->Reset();
 }
 
-void cLevel ::Leave(const GameMode next_mode /* = MODE_NOTHING */) {
+void cLevel::Leave(const GameMode next_mode /* = MODE_NOTHING */) {
   // if not in level mode
   if (Game_Mode != MODE_LEVEL) {
     return;
@@ -500,7 +499,7 @@ void cLevel ::Leave(const GameMode next_mode /* = MODE_NOTHING */) {
   }
 }
 
-void cLevel ::Update(void) {
+void cLevel::Update(void) {
   if (m_delayed_unload) {
     Unload();
     return;
@@ -525,7 +524,7 @@ void cLevel ::Update(void) {
   // if level-editor enabled
   else {
     // only update particle emitters
-    for (const auto& sprite : m_sprite_manager.objects) {
+    for (auto* sprite : m_sprite_manager.Objects()) {
       if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
         sprite->Update();
       }
@@ -533,7 +532,7 @@ void cLevel ::Update(void) {
   }
 }
 
-void cLevel ::Update_Late(void) {
+void cLevel::Update_Late(void) {
   // if leveleditor is not active
   if (!editor_level_enabled) {
     // objects
@@ -541,7 +540,7 @@ void cLevel ::Update_Late(void) {
   }
 }
 
-void cLevel ::Draw_Layer_1(LevelDrawType type /* = LVL_DRAW */) {
+void cLevel::Draw_Layer_1(LevelDrawType type /* = LVL_DRAW */) {
   // with background
   if (type != LVL_DRAW_NO_BG) {
     for (const auto& background : m_backgrounds) {
@@ -560,7 +559,7 @@ void cLevel ::Draw_Layer_1(LevelDrawType type /* = LVL_DRAW */) {
   m_animation_manager.Draw();
 }
 
-void cLevel ::Draw_Layer_2(LevelDrawType type /* = LVL_DRAW */) {
+void cLevel::Draw_Layer_2(LevelDrawType type /* = LVL_DRAW */) {
   // only background
   if (type == LVL_DRAW_BG) {
     return;
@@ -599,14 +598,14 @@ void cLevel ::Draw_Layer_2(LevelDrawType type /* = LVL_DRAW */) {
   }
 }
 
-void cLevel ::Process_Input(void) {
+void cLevel::Process_Input(void) {
   // only non editor
   if (!editor_level_enabled) {
     // none
   }
 }
 
-bool cLevel ::Key_Down(const SDLKey key) {
+bool cLevel::Key_Down(const SDLKey key) {
   // debug key F2
   if (key == SDLK_F2 && game_debug && !editor_level_enabled) {
     pLevel_Player->Set_Type(MARYO_CAPE, false);
@@ -708,7 +707,7 @@ bool cLevel ::Key_Down(const SDLKey key) {
   return true;
 }
 
-bool cLevel ::Key_Up(const SDLKey key) {
+bool cLevel::Key_Up(const SDLKey key) {
   // only if not in Editor
   if (editor_level_enabled) {
     return false;
@@ -736,7 +735,7 @@ bool cLevel ::Key_Up(const SDLKey key) {
   return true;
 }
 
-bool cLevel ::Mouse_Down(Uint8 button) {
+bool cLevel::Mouse_Down(Uint8 button) {
   // ## editor
   if (pLevel_Editor->Mouse_Down(button)) {
     // processed by the editor
@@ -750,7 +749,7 @@ bool cLevel ::Mouse_Down(Uint8 button) {
   return true;
 }
 
-bool cLevel ::Mouse_Up(Uint8 button) {
+bool cLevel::Mouse_Up(Uint8 button) {
   // ## editor
   if (pLevel_Editor->Mouse_Up(button)) {
     // processed by the editor
@@ -764,7 +763,7 @@ bool cLevel ::Mouse_Up(Uint8 button) {
   return true;
 }
 
-bool cLevel ::Joy_Button_Down(Uint8 button) {
+bool cLevel::Joy_Button_Down(Uint8 button) {
   // Shoot
   if (button == pPreferences->m_joy_button_shoot && !editor_enabled) {
     pLevel_Player->Action_Interact(INP_SHOOT);
@@ -793,7 +792,7 @@ bool cLevel ::Joy_Button_Down(Uint8 button) {
   return true;
 }
 
-bool cLevel ::Joy_Button_Up(Uint8 button) {
+bool cLevel::Joy_Button_Up(Uint8 button) {
   // only if not in Editor
   if (editor_level_enabled) {
     return false;
@@ -814,8 +813,8 @@ bool cLevel ::Joy_Button_Up(Uint8 button) {
   return true;
 }
 
-std::string cLevel ::Get_Music_Filename(int with_dir /* = 2 */,
-                                        bool with_end /* = 1 */) const {
+std::string cLevel::Get_Music_Filename(int with_dir /* = 2 */,
+                                       bool with_end /* = 1 */) const {
   std::string filename = m_musicfile;
 
   // erase whole directory
@@ -836,7 +835,7 @@ std::string cLevel ::Get_Music_Filename(int with_dir /* = 2 */,
   return filename;
 }
 
-void cLevel ::Set_Music(std::string filename) {
+void cLevel::Set_Music(std::string filename) {
   if (filename.length() < 4) {
     return;
   }
@@ -858,7 +857,7 @@ void cLevel ::Set_Music(std::string filename) {
   m_valid_music = File_Exists(filename);
 }
 
-void cLevel ::Set_Filename(std::string filename, bool rename_old /* = 1 */) {
+void cLevel::Set_Filename(std::string filename, bool rename_old /* = 1 */) {
   Convert_Path_Separators(filename);
 
   // erase file type and directory
@@ -888,17 +887,17 @@ void cLevel ::Set_Filename(std::string filename, bool rename_old /* = 1 */) {
   m_level_filename = filename;
 }
 
-void cLevel ::Set_Author(const std::string& name) { m_author = name; }
+void cLevel::Set_Author(const std::string& name) { m_author = name; }
 
-void cLevel ::Set_Version(const std::string& level_version) {
+void cLevel::Set_Version(const std::string& level_version) {
   m_version = level_version;
 }
 
-void cLevel ::Set_Description(const std::string& level_description) {
+void cLevel::Set_Description(const std::string& level_description) {
   m_description = level_description;
 }
 
-void cLevel ::Set_Difficulty(const Uint8 level_difficulty) {
+void cLevel::Set_Difficulty(const Uint8 level_difficulty) {
   m_difficulty = level_difficulty;
 
   // if invalid
@@ -907,22 +906,22 @@ void cLevel ::Set_Difficulty(const Uint8 level_difficulty) {
   }
 }
 
-void cLevel ::Set_Land_Type(const LevelLandType level_land_type) {
+void cLevel::Set_Land_Type(const LevelLandType level_land_type) {
   m_land_type = level_land_type;
 }
 
-cLevel_Entry* cLevel ::Get_Entry(const std::string& name) {
+cLevel_Entry* cLevel::Get_Entry(const std::string& name) {
   if (name.empty()) {
     return nullptr;
   }
 
   // Search for entry
-  for (const auto& sprite : m_sprite_manager.objects) {
+  for (auto* sprite : m_sprite_manager.Objects()) {
     if (sprite->m_type != TYPE_LEVEL_ENTRY || sprite->m_auto_destroy) {
       continue;
     }
 
-    cLevel_Entry* level_entry = static_cast<cLevel_Entry*>(sprite.get());
+    cLevel_Entry* level_entry = static_cast<cLevel_Entry*>(sprite);
 
     // found
     if (level_entry->m_entry_name.compare(name) == 0) {
@@ -933,7 +932,7 @@ cLevel_Entry* cLevel ::Get_Entry(const std::string& name) {
   return nullptr;
 }
 
-bool cLevel ::Is_Loaded(void) const {
+bool cLevel::Is_Loaded(void) const {
   // if not loaded version is -1
   if (m_engine_version >= 0) {
     return true;
@@ -942,15 +941,15 @@ bool cLevel ::Is_Loaded(void) const {
   return false;
 }
 
-void cLevel ::elementStart(const CEGUI::String& element,
-                           const CEGUI::XMLAttributes& attributes) {
+void cLevel::elementStart(const CEGUI::String& element,
+                          const CEGUI::XMLAttributes& attributes) {
   if (element == "property" || element == "Property") {
     m_xml_attributes.add(attributes.getValueAsString("name"),
                          attributes.getValueAsString("value"));
   }
 }
 
-void cLevel ::elementEnd(const CEGUI::String& element) {
+void cLevel::elementEnd(const CEGUI::String& element) {
   if (element == "property" || element == "Property") {
     return;
   }
@@ -1066,7 +1065,7 @@ void cLevel ::elementEnd(const CEGUI::String& element) {
 
 std::unique_ptr<cSprite> Create_Level_Object_From_XML(
     const CEGUI::String& xml_element, CEGUI::XMLAttributes& attributes,
-    int engine_version, cSprite_Manager* sprite_manager) {
+    int engine_version, cSprite_Store* sprite_manager) {
   // element content could change
   CEGUI::String const element = xml_element;
 

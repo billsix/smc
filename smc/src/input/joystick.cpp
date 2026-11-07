@@ -28,7 +28,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cJoystick *** *** *** *** *** *** *** *** *** *** *** */
 
-cJoystick ::cJoystick(void) {
+cJoystick::cJoystick(void) {
   m_joystick = nullptr;
 
   m_joystick_open = false;
@@ -45,9 +45,9 @@ cJoystick ::cJoystick(void) {
   Init();
 }
 
-cJoystick ::~cJoystick(void) { Close(); }
+cJoystick::~cJoystick(void) { Close(); }
 
-int cJoystick ::Init(void) {
+int cJoystick::Init(void) {
   // if not enabled
   if (!pPreferences->m_joy_enabled) {
     return 0;
@@ -92,9 +92,9 @@ int cJoystick ::Init(void) {
   return 1;
 }
 
-void cJoystick ::Close(void) { Stick_Close(); }
+void cJoystick::Close(void) { Stick_Close(); }
 
-bool cJoystick ::Stick_Open(unsigned int index) {
+bool cJoystick::Stick_Open(unsigned int index) {
   // if a joystick is already opened close it first
   if (m_joystick_open) {
     Stick_Close();
@@ -129,7 +129,7 @@ bool cJoystick ::Stick_Open(unsigned int index) {
   return true;
 }
 
-void cJoystick ::Stick_Close(void) {
+void cJoystick::Stick_Close(void) {
   // not available
   if (!m_joystick) {
     return;
@@ -154,7 +154,7 @@ void cJoystick ::Stick_Close(void) {
   m_current_joystick = 0;
 }
 
-void cJoystick ::Reset_keys(void) {
+void cJoystick::Reset_keys(void) {
   // clear buttons
   std::fill(m_buttons.begin(), m_buttons.end(), false);
 
@@ -164,7 +164,7 @@ void cJoystick ::Reset_keys(void) {
   m_down = false;
 }
 
-void cJoystick ::Handle_Hat(SDL_Event* ev) {
+void cJoystick::Handle_Hat(SDL_Event* ev) {
   // up
   if (ev->jhat.value == SDL_HAT_UP) {
     if (!m_up) {
@@ -238,7 +238,7 @@ void cJoystick ::Handle_Hat(SDL_Event* ev) {
   }
 }
 
-void cJoystick ::Handle_Motion(SDL_Event* ev) {
+void cJoystick::Handle_Motion(SDL_Event* ev) {
   // Vertical Axis
   if (ev->jaxis.axis == pPreferences->m_joy_axis_ver) {
     // Up
@@ -335,7 +335,7 @@ void cJoystick ::Handle_Motion(SDL_Event* ev) {
   }
 }
 
-bool cJoystick ::Handle_Button_Down_Event(SDL_Event* ev) {
+bool cJoystick::Handle_Button_Down_Event(SDL_Event* ev) {
   // not enabled or opened
   if (!pPreferences->m_joy_enabled || !m_joystick_open) {
     return false;
@@ -396,7 +396,7 @@ bool cJoystick ::Handle_Button_Down_Event(SDL_Event* ev) {
   return false;
 }
 
-bool cJoystick ::Handle_Button_Up_Event(SDL_Event* ev) {
+bool cJoystick::Handle_Button_Up_Event(SDL_Event* ev) {
   // not enabled or opened
   if (!pPreferences->m_joy_enabled || !m_joystick_open) {
     return false;
@@ -443,11 +443,11 @@ bool cJoystick ::Handle_Button_Up_Event(SDL_Event* ev) {
   return false;
 }
 
-std::string cJoystick ::Get_Name(void) const {
+std::string cJoystick::Get_Name(void) const {
   return SDL_JoystickNameForIndex(m_current_joystick);
 }
 
-vector<std::string> cJoystick ::Get_Names(void) const {
+vector<std::string> cJoystick::Get_Names(void) const {
   vector<std::string> names;
   // get joy count
   int const joy_count = SDL_NumJoysticks();
@@ -460,7 +460,7 @@ vector<std::string> cJoystick ::Get_Names(void) const {
   return names;
 }
 
-void cJoystick ::Set_Button(Uint8 num, bool pressed) {
+void cJoystick::Set_Button(Uint8 num, bool pressed) {
   // not available
   if (num >= m_buttons.size()) {
     return;
@@ -477,7 +477,7 @@ void cJoystick ::Set_Button(Uint8 num, bool pressed) {
   m_buttons[num] = pressed;
 }
 
-bool cJoystick ::Left(void) const {
+bool cJoystick::Left(void) const {
   if (pPreferences->m_joy_enabled && input_event.type == SDL_JOYAXISMOTION &&
       input_event.jaxis.value < -pPreferences->m_joy_axis_threshold &&
       input_event.jaxis.axis == pPreferences->m_joy_axis_hor) {
@@ -487,7 +487,7 @@ bool cJoystick ::Left(void) const {
   return false;
 }
 
-bool cJoystick ::Right(void) const {
+bool cJoystick::Right(void) const {
   if (pPreferences->m_joy_enabled && input_event.type == SDL_JOYAXISMOTION &&
       input_event.jaxis.value > pPreferences->m_joy_axis_threshold &&
       input_event.jaxis.axis == pPreferences->m_joy_axis_hor) {
@@ -497,7 +497,7 @@ bool cJoystick ::Right(void) const {
   return false;
 }
 
-bool cJoystick ::Up(void) const {
+bool cJoystick::Up(void) const {
   if (pPreferences->m_joy_enabled && input_event.type == SDL_JOYAXISMOTION &&
       input_event.jaxis.value < -pPreferences->m_joy_axis_threshold &&
       input_event.jaxis.axis == pPreferences->m_joy_axis_ver) {
@@ -507,7 +507,7 @@ bool cJoystick ::Up(void) const {
   return false;
 }
 
-bool cJoystick ::Down(void) const {
+bool cJoystick::Down(void) const {
   if (pPreferences->m_joy_enabled && input_event.type == SDL_JOYAXISMOTION &&
       input_event.jaxis.value > pPreferences->m_joy_axis_threshold &&
       input_event.jaxis.axis == pPreferences->m_joy_axis_ver) {
@@ -517,7 +517,7 @@ bool cJoystick ::Down(void) const {
   return false;
 }
 
-bool cJoystick ::Button(Uint8 num) {
+bool cJoystick::Button(Uint8 num) {
   // if available and pressed
   if (num < m_buttons.size() && m_buttons[num]) {
     return true;

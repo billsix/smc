@@ -26,9 +26,9 @@ namespace SMC {
 class cSpinBox : public cBaseBox {
  public:
   // constructor
-  cSpinBox(cSprite_Manager* sprite_manager);
+  cSpinBox(cSprite_Store* sprite_manager);
   // create from stream
-  cSpinBox(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cSpinBox(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cSpinBox(void) override;
 

@@ -56,7 +56,7 @@ enum Maryo_imgpos {
 class cLevel_Player : public cAnimated_Sprite {
  public:
   // constructor
-  cLevel_Player(cSprite_Manager* sprite_manager);
+  cLevel_Player(cSprite_Store* sprite_manager);
   // destructor
   ~cLevel_Player(void) override;
 
@@ -315,7 +315,7 @@ class cLevel_Player : public cAnimated_Sprite {
   // fire/ice-ball shoot counter
   float m_shoot_counter;
   // active/holding object ( f.e. shell )
-  cMovingSprite* m_active_object;
+  cSprite_Handle<cMovingSprite> m_active_object;
   // direction when ducking started ( for the anti stuck under a block test )
   ObjectDirection m_duck_direction;
 

@@ -31,7 +31,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** cEditor_Level *** *** *** *** *** *** *** *** *** *** */
 
-cEditor_Level ::cEditor_Level(cSprite_Manager* sprite_manager, cLevel* level)
+cEditor_Level::cEditor_Level(cSprite_Store* sprite_manager, cLevel* level)
     : cEditor(sprite_manager), m_settings_screen(sprite_manager, level) {
   m_menu_filename = DATA_DIR "/" GAME_EDITOR_DIR "/level_menu.xml";
   m_items_filename = DATA_DIR "/" GAME_EDITOR_DIR "/level_items.xml";
@@ -41,9 +41,9 @@ cEditor_Level ::cEditor_Level(cSprite_Manager* sprite_manager, cLevel* level)
   m_level = level;
 }
 
-cEditor_Level ::~cEditor_Level(void) = default;
+cEditor_Level::~cEditor_Level(void) = default;
 
-void cEditor_Level ::Init(void) {
+void cEditor_Level::Init(void) {
   // already loaded
   if (m_editor_window) {
     return;
@@ -54,7 +54,7 @@ void cEditor_Level ::Init(void) {
   cEditor::Init();
 }
 
-void cEditor_Level ::Enable(void) {
+void cEditor_Level::Enable(void) {
   // already enabled
   if (m_enabled) {
     return;
@@ -70,7 +70,7 @@ void cEditor_Level ::Enable(void) {
   // player
   pLevel_Player->Reset_On_Ground();
   // sprite manager
-  for (const auto& sprite : m_sprite_manager->objects) {
+  for (auto* sprite : m_sprite_manager->Objects()) {
     // get object pointer
     // skip destroyed objects
     if (sprite->m_auto_destroy) {
@@ -79,7 +79,7 @@ void cEditor_Level ::Enable(void) {
 
     // enemies
     if (sprite->m_sprite_array == ARRAY_ENEMY) {
-      cMovingSprite* moving_sprite = static_cast<cMovingSprite*>(sprite.get());
+      cMovingSprite* moving_sprite = static_cast<cMovingSprite*>(sprite);
 
       moving_sprite->Reset_On_Ground();
     }
@@ -88,7 +88,7 @@ void cEditor_Level ::Enable(void) {
   cEditor::Enable();
 }
 
-void cEditor_Level ::Disable(bool native_mode /* = 0 */) {
+void cEditor_Level::Disable(bool native_mode /* = 0 */) {
   // already disabled
   if (!m_enabled) {
     return;
@@ -106,7 +106,7 @@ void cEditor_Level ::Disable(bool native_mode /* = 0 */) {
   cEditor::Disable(native_mode);
 }
 
-bool cEditor_Level ::Key_Down(SDLKey key) {
+bool cEditor_Level::Key_Down(SDLKey key) {
   if (!m_enabled) {
     return false;
   }
@@ -120,7 +120,7 @@ bool cEditor_Level ::Key_Down(SDLKey key) {
     float new_camera_posx = 0.0f;
     float new_camera_posy = 0.0f;
 
-    for (const auto& sprite : m_sprite_manager->objects) {
+    for (auto* sprite : m_sprite_manager->Objects()) {
       if (sprite->m_sprite_array != ARRAY_ACTIVE) {
         continue;
       }
@@ -187,17 +187,17 @@ bool cEditor_Level ::Key_Down(SDLKey key) {
   return true;
 }
 
-void cEditor_Level ::Set_Level(cLevel* level) {
+void cEditor_Level::Set_Level(cLevel* level) {
   m_level = level;
   m_settings_screen.Set_Level(level);
 }
 
-void cEditor_Level ::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
+void cEditor_Level::Set_Sprite_Manager(cSprite_Store* sprite_manager) {
   cEditor::Set_Sprite_Manager(sprite_manager);
   m_settings_screen.Set_Sprite_Manager(sprite_manager);
 }
 
-void cEditor_Level ::Activate_Menu_Item(cEditor_Menu_Object* entry) {
+void cEditor_Level::Activate_Menu_Item(cEditor_Menu_Object* entry) {
   // If Function
   if (entry->bfunction) {
     if (entry->tags.compare("new") == 0) {
@@ -226,14 +226,14 @@ void cEditor_Level ::Activate_Menu_Item(cEditor_Menu_Object* entry) {
   }
 }
 
-std::unique_ptr<cSprite> cEditor_Level ::Get_Object(
+std::unique_ptr<cSprite> cEditor_Level::Get_Object(
     const CEGUI::String& element, CEGUI::XMLAttributes& attributes,
     int engine_version) {
   return Create_Level_Object_From_XML(element, attributes, engine_version,
                                       m_sprite_manager);
 }
 
-bool cEditor_Level ::Switch_Object_State(cSprite* obj) const {
+bool cEditor_Level::Switch_Object_State(cSprite* obj) const {
   // empty object
   if (!obj) {
     return false;
@@ -279,7 +279,7 @@ bool cEditor_Level ::Switch_Object_State(cSprite* obj) const {
   return true;
 }
 
-bool cEditor_Level ::Function_New(void) {
+bool cEditor_Level::Function_New(void) {
   std::string level_name = Box_Text_Input(_("Create a new Level"), _("Name"));
 
   // aborted
@@ -307,7 +307,7 @@ bool cEditor_Level ::Function_New(void) {
   return true;
 }
 
-void cEditor_Level ::Function_Load(void) {
+void cEditor_Level::Function_Load(void) {
   std::string level_name = _("Name");
 
   // valid level
@@ -347,7 +347,7 @@ void cEditor_Level ::Function_Load(void) {
   }
 }
 
-void cEditor_Level ::Function_Save(bool with_dialog /* = 0 */) {
+void cEditor_Level::Function_Save(bool with_dialog /* = 0 */) {
   // not loaded
   if (!pActive_Level->Is_Loaded()) {
     return;
@@ -365,7 +365,7 @@ void cEditor_Level ::Function_Save(bool with_dialog /* = 0 */) {
   pActive_Level->Save();
 }
 
-void cEditor_Level ::Function_Save_as(void) {
+void cEditor_Level::Function_Save_as(void) {
   std::string const levelname =
       Box_Text_Input(_("Save Level as"), _("New name"), true);
 
@@ -378,7 +378,7 @@ void cEditor_Level ::Function_Save_as(void) {
   pActive_Level->Save();
 }
 
-void cEditor_Level ::Function_Delete(void) {
+void cEditor_Level::Function_Delete(void) {
   std::string filename = pActive_Level->m_level_filename;
   if (!pLevel_Manager->Get_Path(filename, true)) {
     pHud_Debug->Set_Text(_("Level was not yet saved"));
@@ -409,7 +409,7 @@ void cEditor_Level ::Function_Delete(void) {
   Game_Action_Data_End.add("screen_fadein_speed", "3");
 }
 
-void cEditor_Level ::Function_Reload(void) {
+void cEditor_Level::Function_Reload(void) {
   // if denied
   if (!Box_Question(_("Reload Level ?"))) {
     return;
@@ -421,7 +421,7 @@ void cEditor_Level ::Function_Reload(void) {
   }
 }
 
-void cEditor_Level ::Function_Settings(void) {
+void cEditor_Level::Function_Settings(void) {
   Game_Action = GA_ENTER_LEVEL_SETTINGS;
   Game_Action_Data_Start.add(
       "screen_fadeout", CEGUI::PropertyHelper::intToString(EFFECT_OUT_BLACK));

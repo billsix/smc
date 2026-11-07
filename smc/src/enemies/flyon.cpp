@@ -34,22 +34,21 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cFlyon *** *** *** *** *** *** *** *** *** *** *** */
 
-cFlyon ::cFlyon(cSprite_Manager* sprite_manager) : cEnemy(sprite_manager) {
+cFlyon::cFlyon(cSprite_Store* sprite_manager) : cEnemy(sprite_manager) {
   cFlyon::Init();
 }
 
-cFlyon ::cFlyon(CEGUI::XMLAttributes& attributes,
-                cSprite_Manager* sprite_manager)
+cFlyon::cFlyon(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager)
     : cEnemy(sprite_manager) {
   cFlyon::Init();
   cFlyon::Load_From_XML(attributes);
 }
 
-cFlyon ::~cFlyon(void) {
+cFlyon::~cFlyon(void) {
   //
 }
 
-void cFlyon ::Init(void) {
+void cFlyon::Init(void) {
   m_type = TYPE_FLYON;
   m_pos_z = 0.06f;
   Set_Rotation_Affects_Rect(true);
@@ -71,7 +70,7 @@ void cFlyon ::Init(void) {
   m_move_back = false;
 }
 
-std::unique_ptr<cSprite> cFlyon ::Copy(void) const {
+std::unique_ptr<cSprite> cFlyon::Copy(void) const {
   auto jpiranha = std::make_unique<cFlyon>(m_sprite_manager);
   jpiranha->Set_Pos(m_start_pos_x, m_start_pos_y);
   jpiranha->Set_Direction(m_start_direction);
@@ -81,7 +80,7 @@ std::unique_ptr<cSprite> cFlyon ::Copy(void) const {
   return jpiranha;
 }
 
-void cFlyon ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cFlyon::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
           static_cast<float>(attributes.getValueAsInteger("posy")), true);
@@ -98,7 +97,7 @@ void cFlyon ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   Set_Speed(attributes.getValueAsFloat("speed", m_speed));
 }
 
-void cFlyon ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cFlyon::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -120,7 +119,7 @@ void cFlyon ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cFlyon ::Load_From_Savegame(cSave_Level_Object* save_object) {
+void cFlyon::Load_From_Savegame(cSave_Level_Object* save_object) {
   cEnemy::Load_From_Savegame(save_object);
 
   // move_back
@@ -129,7 +128,7 @@ void cFlyon ::Load_From_Savegame(cSave_Level_Object* save_object) {
   }
 }
 
-std::unique_ptr<cSave_Level_Object> cFlyon ::Save_To_Savegame(void) {
+std::unique_ptr<cSave_Level_Object> cFlyon::Save_To_Savegame(void) {
   std::unique_ptr<cSave_Level_Object> save_object = cEnemy::Save_To_Savegame();
 
   // move_back ( only save if needed )
@@ -141,7 +140,7 @@ std::unique_ptr<cSave_Level_Object> cFlyon ::Save_To_Savegame(void) {
   return save_object;
 }
 
-void cFlyon ::Set_Image_Dir(std::string dir) {
+void cFlyon::Set_Image_Dir(std::string dir) {
   if (dir.empty()) {
     return;
   }
@@ -184,7 +183,7 @@ void cFlyon ::Set_Image_Dir(std::string dir) {
   Create_Name();
 }
 
-void cFlyon ::Set_Direction(const ObjectDirection dir) {
+void cFlyon::Set_Direction(const ObjectDirection dir) {
   // already set
   if (dir == m_direction) {
     return;
@@ -215,7 +214,7 @@ void cFlyon ::Set_Direction(const ObjectDirection dir) {
   Create_Name();
 }
 
-void cFlyon ::Set_Max_Distance(float nmax_distance) {
+void cFlyon::Set_Max_Distance(float nmax_distance) {
   m_max_distance = nmax_distance;
 
   if (m_max_distance < 0.0f) {
@@ -223,7 +222,7 @@ void cFlyon ::Set_Max_Distance(float nmax_distance) {
   }
 }
 
-void cFlyon ::Set_Speed(float val) {
+void cFlyon::Set_Speed(float val) {
   if (m_speed < 0.1f) {
     m_speed = 0.1f;
   }
@@ -233,7 +232,7 @@ void cFlyon ::Set_Speed(float val) {
   Update_Dest_Vel();
 }
 
-void cFlyon ::DownGrade(bool force /* = 0 */) {
+void cFlyon::DownGrade(bool force /* = 0 */) {
   Set_Dead(true);
   m_massive_type = MASS_PASSIVE;
   m_counter = 0.0f;
@@ -254,7 +253,7 @@ void cFlyon ::DownGrade(bool force /* = 0 */) {
   }
 }
 
-void cFlyon ::Update_Dying(void) {
+void cFlyon::Update_Dying(void) {
   m_counter += pFramerate->m_speed_factor;
 
   // default death
@@ -279,7 +278,7 @@ void cFlyon ::Update_Dying(void) {
   }
 }
 
-void cFlyon ::Set_Moving_State(Moving_state new_state) {
+void cFlyon::Set_Moving_State(Moving_state new_state) {
   if (new_state == m_state) {
     return;
   }
@@ -303,7 +302,7 @@ void cFlyon ::Set_Moving_State(Moving_state new_state) {
   m_state = new_state;
 }
 
-void cFlyon ::Update(void) {
+void cFlyon::Update(void) {
   cEnemy::Update();
 
   if (!m_valid_update || !Is_In_Range()) {
@@ -440,7 +439,7 @@ void cFlyon ::Update(void) {
   }
 }
 
-void cFlyon ::Draw(cSurface_Request* request /* = nullptr */) {
+void cFlyon::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -477,7 +476,7 @@ void cFlyon ::Draw(cSurface_Request* request /* = nullptr */) {
   cEnemy::Draw(request);
 }
 
-float cFlyon ::Get_End_Distance(void) const {
+float cFlyon::Get_End_Distance(void) const {
   switch (m_direction) {
     case DIR_LEFT: {
       return m_max_distance - (m_start_pos_x - m_pos_x);
@@ -499,7 +498,7 @@ float cFlyon ::Get_End_Distance(void) const {
   return 0;
 }
 
-void cFlyon ::Update_Dest_Vel(void) {
+void cFlyon::Update_Dest_Vel(void) {
   if (m_direction == DIR_UP) {
     m_dest_velx = 0.0f;
     m_dest_vely = -m_speed;
@@ -518,7 +517,7 @@ void cFlyon ::Update_Dest_Vel(void) {
   }
 }
 
-bool cFlyon ::Is_Update_Valid(void) {
+bool cFlyon::Is_Update_Valid(void) {
   if (m_dead || m_freeze_counter) {
     return false;
   }
@@ -526,7 +525,7 @@ bool cFlyon ::Is_Update_Valid(void) {
   return true;
 }
 
-bool cFlyon ::Is_Draw_Valid(void) {
+bool cFlyon::Is_Draw_Valid(void) {
   bool const valid = cEnemy::Is_Draw_Valid();
 
   // if editor enabled
@@ -540,7 +539,7 @@ bool cFlyon ::Is_Draw_Valid(void) {
   return valid;
 }
 
-Col_Valid_Type cFlyon ::Validate_Collision(cSprite* obj) {
+Col_Valid_Type cFlyon::Validate_Collision(cSprite* obj) {
   if (obj->m_massive_type == MASS_MASSIVE) {
     if (obj->m_type == TYPE_PLAYER) {
       return COL_VTYPE_INTERNAL;
@@ -555,7 +554,7 @@ Col_Valid_Type cFlyon ::Validate_Collision(cSprite* obj) {
   return COL_VTYPE_NOT_VALID;
 }
 
-void cFlyon ::Handle_Collision_Player(cObjectCollision* collision) {
+void cFlyon::Handle_Collision_Player(cObjectCollision* collision) {
   // unknown direction
   if (collision->m_direction == DIR_UNDEFINED) {
     return;
@@ -571,7 +570,7 @@ void cFlyon ::Handle_Collision_Player(cObjectCollision* collision) {
   pLevel_Player->DownGrade_Player();
 }
 
-void cFlyon ::Editor_Activate(void) {
+void cFlyon::Editor_Activate(void) {
   // get window manager
   CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
 
@@ -630,7 +629,7 @@ void cFlyon ::Editor_Activate(void) {
   Editor_Init();
 }
 
-bool cFlyon ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
+bool cFlyon::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =
@@ -641,7 +640,7 @@ bool cFlyon ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cFlyon ::Editor_Image_Dir_Text_Changed(const CEGUI::EventArgs& event) {
+bool cFlyon::Editor_Image_Dir_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   std::string const str_text =
@@ -652,7 +651,7 @@ bool cFlyon ::Editor_Image_Dir_Text_Changed(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cFlyon ::Editor_Max_Distance_Text_Changed(const CEGUI::EventArgs& event) {
+bool cFlyon::Editor_Max_Distance_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   std::string const str_text =
@@ -663,7 +662,7 @@ bool cFlyon ::Editor_Max_Distance_Text_Changed(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cFlyon ::Editor_Speed_Text_Changed(const CEGUI::EventArgs& event) {
+bool cFlyon::Editor_Speed_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   std::string const str_text =
@@ -674,7 +673,7 @@ bool cFlyon ::Editor_Speed_Text_Changed(const CEGUI::EventArgs& event) {
   return true;
 }
 
-void cFlyon ::Create_Name(void) {
+void cFlyon::Create_Name(void) {
   m_name = "Flyon ";
   m_name += _(Get_Direction_Name(m_start_direction).c_str());
 

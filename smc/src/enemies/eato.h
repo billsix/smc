@@ -27,9 +27,9 @@ namespace SMC {
 class cEato : public cEnemy {
  public:
   // constructor
-  cEato(cSprite_Manager* sprite_manager);
+  cEato(cSprite_Store* sprite_manager);
   // create from stream
-  cEato(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cEato(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cEato(void) override;
 

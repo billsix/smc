@@ -26,10 +26,10 @@ namespace SMC {
 class cEnemyStopper : public cAnimated_Sprite {
  public:
   // constructor
-  cEnemyStopper(cSprite_Manager* sprite_manager);
+  cEnemyStopper(cSprite_Store* sprite_manager);
   // create from stream
   cEnemyStopper(CEGUI::XMLAttributes& attributes,
-                cSprite_Manager* sprite_manager);
+                cSprite_Store* sprite_manager);
   // destructor
   ~cEnemyStopper(void) override;
 

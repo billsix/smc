@@ -20,6 +20,7 @@
 #include "../core/math/rect.h"
 #include "../video/video.h"
 #include "../core/collision.h"
+#include "../core/sprite_handle.h"
 #include <memory>
 // CEGUI
 #include "CEGUIXMLSerializer.h"
@@ -30,11 +31,11 @@ namespace SMC {
 
 class cCollidingSprite {
  public:
-  cCollidingSprite(cSprite_Manager* sprite_manager);
+  cCollidingSprite(cSprite_Store* sprite_manager);
   virtual ~cCollidingSprite(void);
 
   // Set the parent sprite manager
-  virtual void Set_Sprite_Manager(cSprite_Manager* sprite_manager);
+  virtual void Set_Sprite_Manager(cSprite_Store* sprite_manager);
 
   // Handle collision data
   void Handle_Collisions(void);
@@ -96,7 +97,7 @@ class cCollidingSprite {
   virtual void Handle_Collision_Box(ObjectDirection cdirection, GL_rect* r2) {};
 
   // the parent sprite manager
-  cSprite_Manager* m_sprite_manager;
+  cSprite_Store* m_sprite_manager;
   // object collision list
   cObjectCollision_List m_collisions;
 };
@@ -106,10 +107,10 @@ class cCollidingSprite {
 class cSprite : public cCollidingSprite {
  public:
   // constructor
-  cSprite(cSprite_Manager* sprite_manager,
+  cSprite(cSprite_Store* sprite_manager,
           const std::string type_name = "sprite");
   // create from stream
-  cSprite(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager,
+  cSprite(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager,
           const std::string type_name = "sprite");
   // destructor
   ~cSprite(void) override;
@@ -496,6 +497,8 @@ class cSprite : public cCollidingSprite {
 	 * should be used for not active spawned objects
 	*/
   bool m_auto_destroy;
+  // this sprite's never-reused serial number, which cSprite_Handle resolves through
+  cSprite_Serial m_serial{this};
   // shadow position
   float m_shadow_pos;
   // shadow color

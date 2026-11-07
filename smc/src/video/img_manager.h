@@ -18,7 +18,9 @@
 
 #include "../core/global_basic.h"
 #include "../video/video.h"
-#include "../core/obj_manager.h"
+#include "../core/owning_vector.h"
+#include <string>
+#include <unordered_map>
 #include "../video/gl_surface.h"
 
 namespace SMC {
@@ -53,30 +55,34 @@ class cSaved_Texture {
 using Saved_Texture_List = vector<std::unique_ptr<cSaved_Texture>>;
 using GL_Surface_List = vector<cGL_Surface*>;
 
-/* *** *** *** *** *** *** cImage_Manager *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** cTexture_Cache *** *** *** *** *** *** *** *** *** *** *** */
 
 //  Keeps track of all the images in memory
 //
 // Operators:
-//  - cImage_Manager [path]
-//  - cImage_Manager [identifier]
-class cImage_Manager : public cObject_Manager<cGL_Surface> {
+//  - cTexture_Cache [path]
+//  - cTexture_Cache [identifier]
+class cTexture_Cache {
  public:
-  cImage_Manager(void);
-  ~cImage_Manager(void) override;
+  // The owned objects, borrowed (cGL_Surface* each), for range-for
+  auto Objects(void) const { return Borrowed(m_objects); }
+
+  cTexture_Cache(void);
+  ~cTexture_Cache(void);
 
   // Add a surface
-  cGL_Surface* Add(std::unique_ptr<cGL_Surface> obj) override;
+  cGL_Surface* Add(std::unique_ptr<cGL_Surface> obj);
 
-  // un-hide the base-class Get_Pointer(size_t) overload, which this class's
-  // Get_Pointer(const std::string&) would otherwise hide (no ambiguity)
-  using cObject_Manager<cGL_Surface>::Get_Pointer;
+  // The object at the given index, or nullptr when out of range
+  cGL_Surface* Get_Pointer(size_t identifier) const {
+    return Borrow_At(m_objects, identifier);
+  }
 
   // Return the surface by path
   cGL_Surface* Get_Pointer(const std::string& path) const;
 
   cGL_Surface* operator[](unsigned int identifier) {
-    return cObject_Manager<cGL_Surface>::Get_Pointer(identifier);
+    return Borrow_At(m_objects, identifier);
   }
 
   cGL_Surface* operator[](const std::string& path) { return Get_Pointer(path); }
@@ -100,7 +106,7 @@ class cImage_Manager : public cObject_Manager<cGL_Surface> {
   void Delete_Hardware_Textures(void);
 
   // Delete all Surfaces
-  void Delete_All(void) override;
+  void Delete_All(void);
 
   // highest opengl texture id found
   GLuint m_high_texture_id;
@@ -108,12 +114,15 @@ class cImage_Manager : public cObject_Manager<cGL_Surface> {
  private:
   // saved textures for reloading
   Saved_Texture_List m_saved_textures;
+  Owning_Vector<cGL_Surface> m_objects;
+  // lookup by cGL_Surface::m_filename, which is set before Add and never changes after it
+  std::unordered_map<std::string, cGL_Surface*> m_by_filename;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // Image Manager
-extern cImage_Manager* pImage_Manager;
+extern cTexture_Cache* pImage_Manager;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

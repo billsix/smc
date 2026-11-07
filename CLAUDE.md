@@ -55,7 +55,11 @@ release dates, tagged `v<version>`), then the 211 commits of github.com/FluXy/SM
   (`Add(std::unique_ptr<T>)` returning a borrowed `T*`), always-present non-polymorphic subobjects
   are value members rather than `unique_ptr`, and the global singletons are owned by `cApplication`
   through a `cOwned<T>` wrapper and destroyed in reverse declaration order (so the teardown needs no
-  ordering code; the CEGUI system dies in `~cVideo`). **Error strategy:** exceptions appear only
+  ordering code; the CEGUI system dies in `~cVideo`). A third pass (2026-11-07) made each manager's storage a
+  private `Owning_Vector<T>` (`core/owning_vector.h`; iterate `Objects()`), named the survivors for their invariant
+  (`cSprite_Store`, `cTexture_Cache`, `cSound_Cache`), and made the sprite pointers that can outlive their
+  target `cSprite_Handle`s (`core/sprite_handle.h`; `nullptr` once freed) — store a `cSprite_Handle`, not a
+  `cSprite*`, for any new member that points at another sprite. **Error strategy:** exceptions appear only
   around startup and the CEGUI boundary; everywhere else a function reports failure with a `nullptr`
   or `bool` return, so don't add exception machinery to the game loop or object code. The
   migration method (both passes) is `github.com/billsix/runClaudeInContainer:tasks/reference/cpp-ownership-migration.md`.

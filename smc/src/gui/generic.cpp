@@ -42,15 +42,15 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** cDialogBox *** *** *** *** *** *** *** *** *** *** */
 
-cDialogBox ::cDialogBox(void) {
+cDialogBox::cDialogBox(void) {
   finished = false;
   window = nullptr;
   mouse_hide = false;
 }
 
-cDialogBox ::~cDialogBox(void) = default;
+cDialogBox::~cDialogBox(void) = default;
 
-void cDialogBox ::Init(void) {
+void cDialogBox::Init(void) {
   // load layout
   window = CEGUI::WindowManager::getSingleton().loadWindowLayout(layout_file);
   pGuiSystem->getGUISheet()->addChildWindow(window);
@@ -62,7 +62,7 @@ void cDialogBox ::Init(void) {
   }
 }
 
-void cDialogBox ::Exit(void) {
+void cDialogBox::Exit(void) {
   // hide mouse
   if (mouse_hide) {
     pMouseCursor->Set_Active(false);
@@ -72,7 +72,7 @@ void cDialogBox ::Exit(void) {
   CEGUI::WindowManager::getSingleton().destroyWindow(window);
 }
 
-void cDialogBox ::Draw(void) {
+void cDialogBox::Draw(void) {
   Draw_Game();
   pVideo->Draw_Gradient(nullptr, 0.905f, &whitealpha128, &black, DIR_VERTICAL);
 
@@ -81,20 +81,20 @@ void cDialogBox ::Draw(void) {
   pMouseCursor->Update_Position();
 }
 
-void cDialogBox ::Update(void) {
+void cDialogBox::Update(void) {
   pFramerate->Update();
   Gui_Handle_Time();
 }
 
 /* *** *** *** *** *** *** *** cDialogBox_Text *** *** *** *** *** *** *** *** *** *** */
 
-cDialogBox_Text ::cDialogBox_Text(void) : cDialogBox() {
+cDialogBox_Text::cDialogBox_Text(void) : cDialogBox() {
   layout_file = "box_text.layout";
 }
 
-cDialogBox_Text ::~cDialogBox_Text(void) = default;
+cDialogBox_Text::~cDialogBox_Text(void) = default;
 
-void cDialogBox_Text ::Init(std::string title_text) {
+void cDialogBox_Text::Init(std::string title_text) {
   cDialogBox::Init();
 
   // get window
@@ -112,9 +112,9 @@ void cDialogBox_Text ::Init(std::string title_text) {
       CEGUI::WindowManager::getSingleton().getWindow("box_text_editbox"));
 }
 
-std::string cDialogBox_Text ::Enter(std::string default_text,
-                                    std::string title_text,
-                                    bool auto_no_text /* = 1 */) {
+std::string cDialogBox_Text::Enter(std::string default_text,
+                                   std::string title_text,
+                                   bool auto_no_text /* = 1 */) {
   pVideo->Render_Finish();
   Init(title_text);
 
@@ -162,7 +162,7 @@ std::string cDialogBox_Text ::Enter(std::string default_text,
   return return_string;
 }
 
-bool cDialogBox_Text ::Button_window_quit_clicked(
+bool cDialogBox_Text::Button_window_quit_clicked(
     const CEGUI::EventArgs& event) {
   box_editbox->setText("");
   finished = true;
@@ -171,15 +171,15 @@ bool cDialogBox_Text ::Button_window_quit_clicked(
 
 /* *** *** *** *** *** *** *** cDialogBox_Question *** *** *** *** *** *** *** *** *** *** */
 
-cDialogBox_Question ::cDialogBox_Question(void) : cDialogBox() {
+cDialogBox_Question::cDialogBox_Question(void) : cDialogBox() {
   layout_file = "box_question.layout";
   box_window = nullptr;
   return_value = -1;
 }
 
-cDialogBox_Question ::~cDialogBox_Question(void) = default;
+cDialogBox_Question::~cDialogBox_Question(void) = default;
 
-void cDialogBox_Question ::Init(bool with_cancel) {
+void cDialogBox_Question::Init(bool with_cancel) {
   pVideo->Render_Finish();
   cDialogBox::Init();
 
@@ -202,7 +202,7 @@ void cDialogBox_Question ::Init(bool with_cancel) {
   }
 }
 
-int cDialogBox_Question ::Enter(std::string text, bool with_cancel /* = 0 */) {
+int cDialogBox_Question::Enter(std::string text, bool with_cancel /* = 0 */) {
   Init(with_cancel);
 
   // get text
@@ -288,20 +288,19 @@ int cDialogBox_Question ::Enter(std::string text, bool with_cancel /* = 0 */) {
   return return_value;
 }
 
-bool cDialogBox_Question ::Button_yes_clicked(const CEGUI::EventArgs& event) {
+bool cDialogBox_Question::Button_yes_clicked(const CEGUI::EventArgs& event) {
   return_value = 1;
   finished = true;
   return true;
 }
 
-bool cDialogBox_Question ::Button_no_clicked(const CEGUI::EventArgs& event) {
+bool cDialogBox_Question::Button_no_clicked(const CEGUI::EventArgs& event) {
   return_value = 0;
   finished = true;
   return true;
 }
 
-bool cDialogBox_Question ::Button_cancel_clicked(
-    const CEGUI::EventArgs& event) {
+bool cDialogBox_Question::Button_cancel_clicked(const CEGUI::EventArgs& event) {
   return_value = -1;
   finished = true;
   return true;

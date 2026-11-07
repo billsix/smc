@@ -37,9 +37,9 @@ enum Turtle_state {
 class cTurtle : public cEnemy {
  public:
   // constructor
-  cTurtle(cSprite_Manager* sprite_manager);
+  cTurtle(cSprite_Store* sprite_manager);
   // create from stream
-  cTurtle(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cTurtle(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cTurtle(void) override;
 

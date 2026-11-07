@@ -26,9 +26,9 @@ namespace SMC {
 class cFlyon : public cEnemy {
  public:
   // constructor
-  cFlyon(cSprite_Manager* sprite_manager);
+  cFlyon(cSprite_Store* sprite_manager);
   // create from stream
-  cFlyon(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cFlyon(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cFlyon(void) override;
 

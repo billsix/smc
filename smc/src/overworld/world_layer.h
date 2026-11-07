@@ -18,7 +18,6 @@
 
 #include "../core/global_basic.h"
 #include "../objects/movingsprite.h"
-#include "../core/obj_manager.h"
 #include "../overworld/world_waypoint.h"
 // CEGUI
 #include "CEGUIXMLHandler.h"
@@ -33,7 +32,7 @@ namespace SMC {
 class cLayer_Line_Point : public cSprite {
  public:
   // constructor
-  cLayer_Line_Point(cSprite_Manager* sprite_manager, cOverworld* overworld,
+  cLayer_Line_Point(cSprite_Store* sprite_manager, cOverworld* overworld,
                     SpriteType new_type);
   // destructor
   ~cLayer_Line_Point(void) override;
@@ -64,14 +63,12 @@ class cLayer_Line_Point : public cSprite {
 class cLayer_Line_Point_Start : public cLayer_Line_Point {
  public:
   // constructor
-  cLayer_Line_Point_Start(cSprite_Manager* sprite_manager,
-                          cOverworld* overworld);
+  cLayer_Line_Point_Start(cSprite_Store* sprite_manager, cOverworld* overworld);
   // destructor
   ~cLayer_Line_Point_Start(void) override;
   // create from stream
   cLayer_Line_Point_Start(CEGUI::XMLAttributes& attributes,
-                          cSprite_Manager* sprite_manager,
-                          cOverworld* overworld);
+                          cSprite_Store* sprite_manager, cOverworld* overworld);
 
   // init defaults
   void Init(void) override;
@@ -83,7 +80,7 @@ class cLayer_Line_Point_Start : public cLayer_Line_Point {
   void Load_From_XML(CEGUI::XMLAttributes& attributes) override;
 
   // Set the parent sprite manager
-  void Set_Sprite_Manager(cSprite_Manager* sprite_manager) override;
+  void Set_Sprite_Manager(cSprite_Store* sprite_manager) override;
 
   // Draw
   void Draw(cSurface_Request* request = nullptr) override;
@@ -132,8 +129,8 @@ using LayerLineList = vector<cLayer_Line_Point_Start*>;
 // Layer class
 // handles the line collision detection
 // A cLayer does NOT own its line points: they are owned (and freed) by the overworld's
-// cSprite_Manager, which cWorld_Sprite_Manager also feeds into this layer. The layer holds
-// borrowed pointers, so it is a plain non-owning list, not a cObject_Manager.
+// cSprite_Store, whose on-add hook (set by cOverworld) registers each start point here.
+// The layer holds borrowed pointers, so it is a plain non-owning list.
 class cLayer : public CEGUI::XMLHandler {
  public:
   cLayer(cOverworld* origin);

@@ -26,7 +26,7 @@ namespace SMC {
 class cPowerUp : public cAnimated_Sprite {
  public:
   // constructor
-  cPowerUp(cSprite_Manager* sprite_manager);
+  cPowerUp(cSprite_Store* sprite_manager);
   // destructor
   ~cPowerUp(void) override;
 
@@ -61,9 +61,9 @@ class cPowerUp : public cAnimated_Sprite {
 class cMushroom : public cPowerUp {
  public:
   // constructor
-  cMushroom(cSprite_Manager* sprite_manager);
+  cMushroom(cSprite_Store* sprite_manager);
   // create from stream
-  cMushroom(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cMushroom(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cMushroom(void) override;
 
@@ -102,9 +102,9 @@ class cMushroom : public cPowerUp {
 class cFirePlant : public cPowerUp {
  public:
   // constructor
-  cFirePlant(cSprite_Manager* sprite_manager);
+  cFirePlant(cSprite_Store* sprite_manager);
   // create from stream
-  cFirePlant(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cFirePlant(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cFirePlant(void) override;
 
@@ -135,9 +135,9 @@ class cFirePlant : public cPowerUp {
 class cMoon : public cPowerUp {
  public:
   // constructor
-  cMoon(cSprite_Manager* sprite_manager);
+  cMoon(cSprite_Store* sprite_manager);
   // create from stream
-  cMoon(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cMoon(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cMoon(void) override;
 

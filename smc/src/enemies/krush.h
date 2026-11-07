@@ -28,9 +28,9 @@ namespace SMC {
 class cKrush : public cEnemy {
  public:
   // constructor
-  cKrush(cSprite_Manager* sprite_manager);
+  cKrush(cSprite_Store* sprite_manager);
   // create from stream
-  cKrush(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cKrush(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cKrush(void) override;
 

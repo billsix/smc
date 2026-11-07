@@ -37,21 +37,21 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLevel_Exit ::cLevel_Exit(cSprite_Manager* sprite_manager)
+cLevel_Exit::cLevel_Exit(cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "levelexit") {
   cLevel_Exit::Init();
 }
 
-cLevel_Exit ::cLevel_Exit(CEGUI::XMLAttributes& attributes,
-                          cSprite_Manager* sprite_manager)
+cLevel_Exit::cLevel_Exit(CEGUI::XMLAttributes& attributes,
+                         cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "levelexit") {
   cLevel_Exit::Init();
   cLevel_Exit::Load_From_XML(attributes);
 }
 
-cLevel_Exit ::~cLevel_Exit(void) = default;
+cLevel_Exit::~cLevel_Exit(void) = default;
 
-void cLevel_Exit ::Init(void) {
+void cLevel_Exit::Init(void) {
   m_sprite_array = ARRAY_ACTIVE;
   m_type = TYPE_LEVEL_EXIT;
   m_massive_type = MASS_PASSIVE;
@@ -77,7 +77,7 @@ void cLevel_Exit ::Init(void) {
   m_editor_entry_name = nullptr;
 }
 
-std::unique_ptr<cSprite> cLevel_Exit ::Copy(void) const {
+std::unique_ptr<cSprite> cLevel_Exit::Copy(void) const {
   auto level_exit = std::make_unique<cLevel_Exit>(m_sprite_manager);
   level_exit->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   level_exit->Set_Type(m_exit_type);
@@ -89,7 +89,7 @@ std::unique_ptr<cSprite> cLevel_Exit ::Copy(void) const {
   return level_exit;
 }
 
-void cLevel_Exit ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cLevel_Exit::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
           static_cast<float>(attributes.getValueAsInteger("posy")), true);
@@ -118,7 +118,7 @@ void cLevel_Exit ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   }
 }
 
-void cLevel_Exit ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cLevel_Exit::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -158,7 +158,7 @@ void cLevel_Exit ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cLevel_Exit ::Set_Direction(const ObjectDirection dir) {
+void cLevel_Exit::Set_Direction(const ObjectDirection dir) {
   // already set
   if (m_direction == dir) {
     return;
@@ -169,7 +169,7 @@ void cLevel_Exit ::Set_Direction(const ObjectDirection dir) {
   Create_Name();
 }
 
-void cLevel_Exit ::Create_Name(void) {
+void cLevel_Exit::Create_Name(void) {
   m_name = _("Level Exit");
 
   if (m_exit_type == LEVEL_EXIT_BEAM) {
@@ -189,7 +189,7 @@ void cLevel_Exit ::Create_Name(void) {
   }
 }
 
-void cLevel_Exit ::Draw(cSurface_Request* request /* = nullptr */) {
+void cLevel_Exit::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -215,7 +215,7 @@ void cLevel_Exit ::Draw(cSurface_Request* request /* = nullptr */) {
   }
 }
 
-void cLevel_Exit ::Activate(void) {
+void cLevel_Exit::Activate(void) {
   // warp player out
   if (m_exit_type == LEVEL_EXIT_WARP) {
     pAudio->Play_Sound("enter_pipe.ogg");
@@ -315,17 +315,17 @@ void cLevel_Exit ::Activate(void) {
   }
 }
 
-void cLevel_Exit ::Set_Type(Level_Exit_type exit_type) {
+void cLevel_Exit::Set_Type(Level_Exit_type exit_type) {
   m_exit_type = exit_type;
 
   Create_Name();
 }
 
-void cLevel_Exit ::Set_Camera_Motion(Camera_movement camera_motion) {
+void cLevel_Exit::Set_Camera_Motion(Camera_movement camera_motion) {
   m_exit_motion = camera_motion;
 }
 
-void cLevel_Exit ::Set_Level(std::string filename) {
+void cLevel_Exit::Set_Level(std::string filename) {
   if (filename.empty() && m_dest_entry.empty()) {
     m_dest_level.clear();
     // red for no destination level
@@ -342,8 +342,8 @@ void cLevel_Exit ::Set_Level(std::string filename) {
   m_dest_level = Trim_Filename(filename, false, false);
 }
 
-std::string cLevel_Exit ::Get_Level(bool with_dir /* = 1 */,
-                                    bool with_end /* = 1 */) const {
+std::string cLevel_Exit::Get_Level(bool with_dir /* = 1 */,
+                                   bool with_end /* = 1 */) const {
   std::string name = m_dest_level;
 
   // Get level path
@@ -353,7 +353,7 @@ std::string cLevel_Exit ::Get_Level(bool with_dir /* = 1 */,
   return Trim_Filename(name, with_dir, with_end);
 }
 
-void cLevel_Exit ::Set_Entry(const std::string& entry_name) {
+void cLevel_Exit::Set_Entry(const std::string& entry_name) {
   // Set new name
   m_dest_entry = entry_name;
 
@@ -366,11 +366,11 @@ void cLevel_Exit ::Set_Entry(const std::string& entry_name) {
       pFont->Render_Text(pFont->m_font_small, m_dest_entry, white);
 }
 
-void cLevel_Exit ::Set_Path_Identifier(const std::string& identifier) {
+void cLevel_Exit::Set_Path_Identifier(const std::string& identifier) {
   m_path_identifier = identifier;
 }
 
-bool cLevel_Exit ::Is_Draw_Valid(void) {
+bool cLevel_Exit::Is_Draw_Valid(void) {
   // if editor not enabled
   if (!editor_enabled) {
     return false;
@@ -384,7 +384,7 @@ bool cLevel_Exit ::Is_Draw_Valid(void) {
   return true;
 }
 
-void cLevel_Exit ::Editor_Activate(void) {
+void cLevel_Exit::Editor_Activate(void) {
   // get window manager
   CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
 
@@ -478,7 +478,7 @@ void cLevel_Exit ::Editor_Activate(void) {
   Editor_Init();
 }
 
-void cLevel_Exit ::Editor_State_Update(void) {
+void cLevel_Exit::Editor_State_Update(void) {
   // get window manager
   CEGUI::WindowManager const& wmgr = CEGUI::WindowManager::getSingleton();
 
@@ -513,7 +513,7 @@ void cLevel_Exit ::Editor_State_Update(void) {
 	}*/
 }
 
-bool cLevel_Exit ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
+bool cLevel_Exit::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =
@@ -524,7 +524,7 @@ bool cLevel_Exit ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cLevel_Exit ::Editor_Motion_Select(const CEGUI::EventArgs& event) {
+bool cLevel_Exit::Editor_Motion_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =
@@ -546,7 +546,7 @@ bool cLevel_Exit ::Editor_Motion_Select(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cLevel_Exit ::Editor_Destination_Level_Text_Changed(
+bool cLevel_Exit::Editor_Destination_Level_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -558,7 +558,7 @@ bool cLevel_Exit ::Editor_Destination_Level_Text_Changed(
   return true;
 }
 
-bool cLevel_Exit ::Editor_Destination_Entry_Text_Changed(
+bool cLevel_Exit::Editor_Destination_Entry_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
@@ -570,7 +570,7 @@ bool cLevel_Exit ::Editor_Destination_Entry_Text_Changed(
   return true;
 }
 
-bool cLevel_Exit ::Editor_Path_Identifier_Text_Changed(
+bool cLevel_Exit::Editor_Path_Identifier_Text_Changed(
     const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);

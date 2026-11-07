@@ -22,27 +22,27 @@ namespace SMC {
 
 /* *** *** *** *** *** cEnemyStopper *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cEnemyStopper ::cEnemyStopper(cSprite_Manager* sprite_manager)
+cEnemyStopper::cEnemyStopper(cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "enemystopper") {
   cEnemyStopper::Init();
 }
 
-cEnemyStopper ::cEnemyStopper(CEGUI::XMLAttributes& attributes,
-                              cSprite_Manager* sprite_manager)
+cEnemyStopper::cEnemyStopper(CEGUI::XMLAttributes& attributes,
+                             cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "enemystopper") {
   cEnemyStopper::Init();
   cEnemyStopper::Load_From_XML(attributes);
 }
 
-cEnemyStopper ::~cEnemyStopper(void) = default;
+cEnemyStopper::~cEnemyStopper(void) = default;
 
-std::unique_ptr<cSprite> cEnemyStopper ::Copy(void) const {
+std::unique_ptr<cSprite> cEnemyStopper::Copy(void) const {
   auto enemystopper = std::make_unique<cEnemyStopper>(m_sprite_manager);
   enemystopper->Set_Pos(m_start_pos_x, m_start_pos_y, true);
   return enemystopper;
 }
 
-void cEnemyStopper ::Init(void) {
+void cEnemyStopper::Init(void) {
   m_sprite_array = ARRAY_ACTIVE;
   m_type = TYPE_ENEMY_STOPPER;
   m_massive_type = MASS_PASSIVE;
@@ -61,12 +61,12 @@ void cEnemyStopper ::Init(void) {
   m_editor_color = Color(static_cast<Uint8>(0), 0, 255, 128);
 }
 
-void cEnemyStopper ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cEnemyStopper::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
           static_cast<float>(attributes.getValueAsInteger("posy")), true);
 }
 
-void cEnemyStopper ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cEnemyStopper::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -78,7 +78,7 @@ void cEnemyStopper ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cEnemyStopper ::Draw(cSurface_Request* request /* = nullptr */) {
+void cEnemyStopper::Draw(cSurface_Request* request /* = nullptr */) {
   if (!m_valid_draw) {
     return;
   }
@@ -88,7 +88,7 @@ void cEnemyStopper ::Draw(cSurface_Request* request /* = nullptr */) {
                     m_col_rect.m_h, m_editor_pos_z, &m_editor_color);
 }
 
-bool cEnemyStopper ::Is_Draw_Valid(void) {
+bool cEnemyStopper::Is_Draw_Valid(void) {
   // if editor not enabled
   if (!editor_enabled) {
     return false;

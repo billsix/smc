@@ -36,7 +36,7 @@ class cSelectedObject {
   ~cSelectedObject(void);
 
   // base object
-  cSprite* m_obj;
+  cSprite_Handle<> m_obj;
   // additional selection mouse position
   int m_mouse_offset_x;
   int m_mouse_offset_y;
@@ -64,7 +64,7 @@ using CopyObjectList = vector<std::unique_ptr<cCopyObject>>;
 
 class cMouseCursor : public cMovingSprite {
  public:
-  cMouseCursor(cSprite_Manager* sprite_manager);
+  cMouseCursor(cSprite_Store* sprite_manager);
   ~cMouseCursor(void) override;
 
   // un-hide the base's 0-arg Copy(void) const, hidden by this class's
@@ -264,7 +264,7 @@ class cMouseCursor : public cMovingSprite {
   // objects selected for copying
   CopyObjectList m_copy_objects;
   // settings activated object
-  cSprite* m_active_object;
+  cSprite_Handle<> m_active_object;
 
   // buttons pressed state
   bool m_left;
@@ -272,7 +272,7 @@ class cMouseCursor : public cMovingSprite {
   bool m_middle;
 
   // last clicked object
-  cSprite* m_last_clicked_object;
+  cSprite_Handle<> m_last_clicked_object;
   // counter for catching double-clicks
   float m_click_counter;
 };

@@ -23,7 +23,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cImage_Settings_Data *** *** *** *** *** *** *** *** *** *** *** */
 
-cImage_Settings_Data ::cImage_Settings_Data(void) {
+cImage_Settings_Data::cImage_Settings_Data(void) {
   m_base_settings = false;
 
   m_int_x = 0;
@@ -41,9 +41,9 @@ cImage_Settings_Data ::cImage_Settings_Data(void) {
   m_obsolete = false;
 }
 
-cImage_Settings_Data ::~cImage_Settings_Data(void) = default;
+cImage_Settings_Data::~cImage_Settings_Data(void) = default;
 
-cSize_Int cImage_Settings_Data ::Get_Surface_Size(
+cSize_Int cImage_Settings_Data::Get_Surface_Size(
     const SDL_Surface* sdl_surface) const {
   if (!sdl_surface) {
     return cSize_Int();
@@ -80,7 +80,7 @@ cSize_Int cImage_Settings_Data ::Get_Surface_Size(
   return cSize_Int(new_w, new_h);
 }
 
-void cImage_Settings_Data ::Apply(cGL_Surface* image) const {
+void cImage_Settings_Data::Apply(cGL_Surface* image) const {
   // empty image
   if (!image) {
     printf("Error : surface for base %s does not exist\n", m_base.c_str());
@@ -207,7 +207,7 @@ void cImage_Settings_Data ::Apply(cGL_Surface* image) const {
   image->m_obsolete = m_obsolete;
 }
 
-void cImage_Settings_Data ::Apply_Base(
+void cImage_Settings_Data::Apply_Base(
     const cImage_Settings_Data* base_settings_data) {
   if (!base_settings_data->m_base.empty()) {
     m_base = base_settings_data->m_base;
@@ -237,15 +237,15 @@ void cImage_Settings_Data ::Apply_Base(
 
 /* *** *** *** *** *** *** cImage_Settings_Parser *** *** *** *** *** *** *** *** *** *** *** */
 
-cImage_Settings_Parser ::cImage_Settings_Parser(void) : cFile_parser() {
+cImage_Settings_Parser::cImage_Settings_Parser(void) : cFile_parser() {
   m_load_base = true;
 }
 
-cImage_Settings_Parser ::~cImage_Settings_Parser(void) {
+cImage_Settings_Parser::~cImage_Settings_Parser(void) {
   //
 }
 
-std::unique_ptr<cImage_Settings_Data> cImage_Settings_Parser ::Get(
+std::unique_ptr<cImage_Settings_Data> cImage_Settings_Parser::Get(
     const std::string& filename, bool load_base_settings /* = 1 */) {
   m_load_base = load_base_settings;
   m_settings_temp = std::make_unique<cImage_Settings_Data>();
@@ -254,9 +254,9 @@ std::unique_ptr<cImage_Settings_Data> cImage_Settings_Parser ::Get(
   return std::move(m_settings_temp);
 }
 
-bool cImage_Settings_Parser ::HandleMessage(const std::string* parts,
-                                            unsigned int count,
-                                            unsigned int line) {
+bool cImage_Settings_Parser::HandleMessage(const std::string* parts,
+                                           unsigned int count,
+                                           unsigned int line) {
   if (parts[0].compare("base") == 0) {
     if (count < 2 || count > 3) {
       printf("%s : line %d Error :\n",

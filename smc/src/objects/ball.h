@@ -26,9 +26,9 @@ namespace SMC {
 class cBall : public cAnimated_Sprite {
  public:
   // constructor
-  cBall(cSprite_Manager* sprite_manager);
+  cBall(cSprite_Store* sprite_manager);
   // create from stream
-  cBall(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cBall(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cBall(void) override;
 

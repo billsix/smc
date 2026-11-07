@@ -49,10 +49,10 @@ enum Moving_Platform_State {
 class cMoving_Platform : public cAnimated_Sprite {
  public:
   // constructor
-  cMoving_Platform(cSprite_Manager* sprite_manager);
+  cMoving_Platform(cSprite_Store* sprite_manager);
   // create from stream
   cMoving_Platform(CEGUI::XMLAttributes& attributes,
-                   cSprite_Manager* sprite_manager);
+                   cSprite_Store* sprite_manager);
   // destructor
   ~cMoving_Platform(void) override;
 
@@ -71,7 +71,7 @@ class cMoving_Platform : public cAnimated_Sprite {
   void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // Set the parent sprite manager
-  void Set_Sprite_Manager(cSprite_Manager* sprite_manager) override;
+  void Set_Sprite_Manager(cSprite_Store* sprite_manager) override;
 
   // load from savegame
   void Load_From_Savegame(cSave_Level_Object* save_object) override;

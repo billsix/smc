@@ -21,26 +21,26 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** GL_Vector *** *** *** *** *** *** *** *** *** *** */
 
-GL_Vector ::GL_Vector(float pos_x /* = 0 */, float pos_y /* = 0 */,
-                      float pos_z /* = 0 */, float pos_w /* = 1 */) {
+GL_Vector::GL_Vector(float pos_x /* = 0 */, float pos_y /* = 0 */,
+                     float pos_z /* = 0 */, float pos_w /* = 1 */) {
   x = pos_x;
   y = pos_y;
   z = pos_z;
   w = pos_w;
 }
 
-GL_Vector ::GL_Vector(const GL_Vector& v) {
+GL_Vector::GL_Vector(const GL_Vector& v) {
   x = v.x;
   y = v.y;
   z = v.z;
   w = v.w;
 }
 
-float GL_Vector ::norm(void) const {
+float GL_Vector::norm(void) const {
   return static_cast<float>(sqrt(x * x + y * y + z * z));
 }
 
-void GL_Vector ::normalize(void) {
+void GL_Vector::normalize(void) {
   float const val = norm();
 
   if (val != 0) {
@@ -50,22 +50,22 @@ void GL_Vector ::normalize(void) {
   }
 }
 
-float GL_Vector ::dot(const GL_Vector& v) const {
+float GL_Vector::dot(const GL_Vector& v) const {
   return x * v.x + y * v.y + z * v.z;
 }
 
-float GL_Vector ::angle(const GL_Vector& v) const {
+float GL_Vector::angle(const GL_Vector& v) const {
   return acos(dot(v) / (norm() * v.norm()));
 }
 
-GL_Vector GL_Vector ::cross(const GL_Vector& v) const {
+GL_Vector GL_Vector::cross(const GL_Vector& v) const {
   GL_Vector const tmp =
       GL_Vector(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
   return tmp;
 }
 
 // quick hack, same as glRotatef(angle, a);
-GL_Vector GL_Vector ::rotate(float angle, const GL_Vector& a) const {
+GL_Vector GL_Vector::rotate(float angle, const GL_Vector& a) const {
   GL_Vector tmp = GL_Vector();
 
   float const s = static_cast<float>(sin(angle));
@@ -81,7 +81,7 @@ GL_Vector GL_Vector ::rotate(float angle, const GL_Vector& a) const {
   return tmp;
 }
 
-void GL_Vector ::round(void) {
+void GL_Vector::round(void) {
   x = static_cast<float>(int(x + 0.5f));
   y = static_cast<float>(int(y + 0.5f));
   z = static_cast<float>(int(z + 0.5f));

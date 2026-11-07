@@ -31,21 +31,21 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cEato *** *** *** *** *** *** *** *** *** *** *** */
 
-cEato ::cEato(cSprite_Manager* sprite_manager) : cEnemy(sprite_manager) {
+cEato::cEato(cSprite_Store* sprite_manager) : cEnemy(sprite_manager) {
   cEato::Init();
 }
 
-cEato ::cEato(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager)
+cEato::cEato(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager)
     : cEnemy(sprite_manager) {
   cEato::Init();
   cEato::Load_From_XML(attributes);
 }
 
-cEato ::~cEato(void) {
+cEato::~cEato(void) {
   //
 }
 
-void cEato ::Init(void) {
+void cEato::Init(void) {
   m_type = TYPE_EATO;
   m_camera_range = 1000;
   m_pos_z = 0.087f;
@@ -61,7 +61,7 @@ void cEato ::Init(void) {
   m_kill_points = 150;
 }
 
-std::unique_ptr<cSprite> cEato ::Copy(void) const {
+std::unique_ptr<cSprite> cEato::Copy(void) const {
   auto eato = std::make_unique<cEato>(m_sprite_manager);
   eato->Set_Pos(m_start_pos_x, m_start_pos_y);
   eato->Set_Image_Dir(m_img_dir);
@@ -69,7 +69,7 @@ std::unique_ptr<cSprite> cEato ::Copy(void) const {
   return eato;
 }
 
-void cEato ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
+void cEato::Load_From_XML(CEGUI::XMLAttributes& attributes) {
   // position
   Set_Pos(static_cast<float>(attributes.getValueAsInteger("posx")),
           static_cast<float>(attributes.getValueAsInteger("posy")), true);
@@ -82,7 +82,7 @@ void cEato ::Load_From_XML(CEGUI::XMLAttributes& attributes) {
           .c_str()));
 }
 
-void cEato ::Save_To_XML(CEGUI::XMLSerializer& stream) {
+void cEato::Save_To_XML(CEGUI::XMLSerializer& stream) {
   // begin
   stream.openTag(m_type_name);
 
@@ -101,7 +101,7 @@ void cEato ::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cEato ::Set_Image_Dir(std::string dir) {
+void cEato::Set_Image_Dir(std::string dir) {
   if (dir.empty()) {
     return;
   }
@@ -143,7 +143,7 @@ void cEato ::Set_Image_Dir(std::string dir) {
   Create_Name();
 }
 
-void cEato ::Set_Direction(const ObjectDirection dir) {
+void cEato::Set_Direction(const ObjectDirection dir) {
   // already set
   if (m_start_direction == dir) {
     return;
@@ -177,7 +177,7 @@ void cEato ::Set_Direction(const ObjectDirection dir) {
   Create_Name();
 }
 
-void cEato ::DownGrade(bool force /* = 0 */) {
+void cEato::DownGrade(bool force /* = 0 */) {
   Set_Dead(true);
   m_massive_type = MASS_PASSIVE;
   m_counter = 0.0f;
@@ -196,7 +196,7 @@ void cEato ::DownGrade(bool force /* = 0 */) {
   }
 }
 
-void cEato ::Update_Dying(void) {
+void cEato::Update_Dying(void) {
   m_counter += pFramerate->m_speed_factor;
 
   // default death
@@ -221,7 +221,7 @@ void cEato ::Update_Dying(void) {
   }
 }
 
-void cEato ::Update(void) {
+void cEato::Update(void) {
   cEnemy::Update();
 
   if (!m_valid_update || !Is_In_Range()) {
@@ -231,7 +231,7 @@ void cEato ::Update(void) {
   Update_Animation();
 }
 
-bool cEato ::Is_Update_Valid(void) {
+bool cEato::Is_Update_Valid(void) {
   if (m_dead || m_freeze_counter) {
     return false;
   }
@@ -239,7 +239,7 @@ bool cEato ::Is_Update_Valid(void) {
   return true;
 }
 
-Col_Valid_Type cEato ::Validate_Collision(cSprite* obj) {
+Col_Valid_Type cEato::Validate_Collision(cSprite* obj) {
   if (obj->m_massive_type == MASS_MASSIVE) {
     switch (obj->m_type) {
       case TYPE_PLAYER: {
@@ -259,7 +259,7 @@ Col_Valid_Type cEato ::Validate_Collision(cSprite* obj) {
   return COL_VTYPE_NOT_VALID;
 }
 
-void cEato ::Handle_Collision_Player(cObjectCollision* collision) {
+void cEato::Handle_Collision_Player(cObjectCollision* collision) {
   // unknown direction
   if (collision->m_direction == DIR_UNDEFINED) {
     return;
@@ -279,7 +279,7 @@ void cEato ::Handle_Collision_Player(cObjectCollision* collision) {
   }
 }
 
-void cEato ::Editor_Activate(void) {
+void cEato::Editor_Activate(void) {
   // get window manager
   CEGUI::WindowManager& wmgr = CEGUI::WindowManager::getSingleton();
 
@@ -316,7 +316,7 @@ void cEato ::Editor_Activate(void) {
   Editor_Init();
 }
 
-bool cEato ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
+bool cEato::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   CEGUI::ListboxItem const* item =
@@ -327,7 +327,7 @@ bool cEato ::Editor_Direction_Select(const CEGUI::EventArgs& event) {
   return true;
 }
 
-bool cEato ::Editor_Image_Dir_Text_Changed(const CEGUI::EventArgs& event) {
+bool cEato::Editor_Image_Dir_Text_Changed(const CEGUI::EventArgs& event) {
   const CEGUI::WindowEventArgs& windowEventArgs =
       static_cast<const CEGUI::WindowEventArgs&>(event);
   std::string const str_text =
@@ -338,7 +338,7 @@ bool cEato ::Editor_Image_Dir_Text_Changed(const CEGUI::EventArgs& event) {
   return true;
 }
 
-void cEato ::Create_Name(void) {
+void cEato::Create_Name(void) {
   m_name = "Eato ";
   m_name += _(Get_Direction_Name(m_start_direction).c_str());
 

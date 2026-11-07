@@ -26,10 +26,10 @@ namespace SMC {
 class cRandom_Sound : public cSprite {
  public:
   // constructor
-  cRandom_Sound(cSprite_Manager* sprite_manager);
+  cRandom_Sound(cSprite_Store* sprite_manager);
   // create from stream
   cRandom_Sound(CEGUI::XMLAttributes& attributes,
-                cSprite_Manager* sprite_manager);
+                cSprite_Store* sprite_manager);
   // destructor
   ~cRandom_Sound(void) override;
 

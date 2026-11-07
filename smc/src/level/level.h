@@ -156,7 +156,7 @@ class cLevel : public CEGUI::XMLHandler {
   bool m_delayed_unload;
 
   // the level's managers (owned values; constructed with the level)
-  cSprite_Manager m_sprite_manager;
+  cSprite_Store m_sprite_manager;
   // the backgrounds, drawn in order; [0] is always the gradient layer
   vector<std::unique_ptr<cBackground>> m_backgrounds;
   // the permanent gradient background (created with the level, never deleted)
@@ -209,7 +209,7 @@ class cLevel : public CEGUI::XMLHandler {
 */
 [[nodiscard]] std::unique_ptr<cSprite> Create_Level_Object_From_XML(
     const CEGUI::String& xml_element, CEGUI::XMLAttributes& attributes,
-    int engine_version, cSprite_Manager* sprite_manager);
+    int engine_version, cSprite_Store* sprite_manager);
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

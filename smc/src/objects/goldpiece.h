@@ -26,9 +26,9 @@ namespace SMC {
 class cGoldpiece : public cAnimated_Sprite {
  public:
   // constructor
-  cGoldpiece(cSprite_Manager* sprite_manager);
+  cGoldpiece(cSprite_Store* sprite_manager);
   // create from stream
-  cGoldpiece(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cGoldpiece(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cGoldpiece(void) override;
 
@@ -76,7 +76,7 @@ class cGoldpiece : public cAnimated_Sprite {
 */
 class cJGoldpiece : public cGoldpiece {
  public:
-  cJGoldpiece(cSprite_Manager* sprite_manager);
+  cJGoldpiece(cSprite_Store* sprite_manager);
   ~cJGoldpiece(void) override;
 
   // update
@@ -96,7 +96,7 @@ class cJGoldpiece : public cGoldpiece {
 class cFGoldpiece : public cGoldpiece {
  public:
   // if direction is undefined it moves into a random direction
-  cFGoldpiece(cSprite_Manager* sprite_manager,
+  cFGoldpiece(cSprite_Store* sprite_manager,
               ObjectDirection dir = DIR_UNDEFINED);
   ~cFGoldpiece(void) override;
 
