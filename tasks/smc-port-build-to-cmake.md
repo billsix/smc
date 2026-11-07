@@ -28,6 +28,27 @@ task** — the vcpkg/Windows, AppImage, and GitHub-CI follow-ups all assume a CM
 - The maintainer's other projects use CMake/meson in containers (e.g. spimulator meson); follow the
   container-per-project conventions.
 
+## Meson or CMake? (added 2026-11-07, at the maintainer's "meson or cmake" ask)
+
+Both can do this port. Differences that matter for smc:
+
+- **The vendored CEGUI 0.7.9 is autotools.** Either build system has to drive it as an external
+  project (CMake `ExternalProject_Add`, Meson `external_project` module) or keep building it in
+  `entrypoint/build.sh` and consume it via pkg-config (`CEGUI-OPENGL.pc`). The pkg-config route is
+  the least work and is identical in both. **If smc moves to CEGUI 0.8.7** (see
+  `tasks/smc-vendor-newer-dependencies.md`), it comes from Fedora's `cegui-devel` and the question
+  disappears.
+- **CMake is what the follow-ups assume:** vcpkg (`tasks/smc-windows-msvc-vcpkg.md`) is CMake-first,
+  and TSC, smc's successor fork, builds with CMake, so its build is reusable. Meson can consume
+  vcpkg only through pkg-config or `cmake` dependencies, with more friction on Windows/MSVC.
+- **Meson is shorter and stricter** (no `CMakeCache` path traps; see the overlay's "keep the build
+  tree outside the mount" gotcha). The maintainer already uses it in spimulator.
+- `-Werror` flag set, `DATA_DIR`, gettext `po/`, and the `--enable-debug`/`--enable-runinplace`
+  options translate equally in both (`option()` / `meson_options.txt`).
+
+*Recommendation: CMake, because the Windows/vcpkg and AppImage follow-ups depend on it. Choose
+Meson only if Windows is dropped.*
+
 ## Goal
 
 Replace autotools with a maintained `CMakeLists.txt` that reproduces the current build exactly
@@ -53,3 +74,4 @@ CI follow-ups have a modern, portable build to build on.
 
 1. CMake-only, or keep autotools working in parallel during the transition? (My lean: port fully,
    remove autotools once smoke-verified — parallel build systems rot.)
+2. CMake or Meson (comparison above)? *Recommend CMake, because of the vcpkg/Windows follow-up.*
