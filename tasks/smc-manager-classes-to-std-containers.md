@@ -1,220 +1,113 @@
-# Replace the `*_Manager` classes with modern ownership shapes (and fix the stored-pointer lifetimes)
+# Replace the `*_Manager` classes with modern ownership shapes, and fix the stored-pointer lifetimes (done 2026-11-07)
 
-**Status:** in progress — phase 1 and `cBackground_Manager` done; continuing phases 2–8 on branch
-`reformat-and-managers` (2026-11-07). The maintainer lifted the per-phase play-test gate: go ahead, and
-he plays the accumulated play-test list afterwards. Direction decided by William Emerison Six
-<billsix@gmail.com>, 2026-11-07.
-**Priority:** 4
-**Difficulty:** 7
+**Play-test owed** by the maintainer (the list at the end). The smoke run cannot see gameplay,
+teardown, save/load, or the editor.
 
-## BLUF
+## What was decided
 
-Replace each `*_Manager` with the modern C++ shape its job calls for. A manager that is only a
-container becomes a private standard container. A real cache becomes a cache class named for what
-it caches. `cObject_Manager<T>` (inheritance used for storage) goes away. The sprite→sprite
-pointers that can dangle get **generational handles**. Done = no class derives from
-`cObject_Manager`, which is deleted; every kept class holds its storage privately and is named for
-what it guarantees; the ~6 dangling-capable stored `cSprite*` members are handles; the `-Werror`
-gate is green under gcc and clang; smoke is green; there is a maintainer play-test after each
-phase; and `tasks/reference/refactoring-to-modern-cpp.md` records the pass.
+- **Replace, not just remove** (William Emerison Six <billsix@gmail.com>, 2026-11-07): modern C++
+  should make lifetime "managers" much simpler. The agent's design input went into the shared C++
+  standard (github.com/billsix/runClaudeInContainer `tasks/reference/cpp-coding-standard.md`,
+  section "Stored borrows and 'manager' classes"):
+  - raw `T*`/`T&` parameters are correct (Core Guidelines `F.7`, `R.30`);
+  - the hazard is stored pointers whose target can die first;
+  - a container class must earn its existence with an invariant, hold its storage privately by
+    composition, and be named for that invariant.
+- The task first required a maintainer play-test between phases. After phase 1 the maintainer lifted
+  that: "just go ahead, I'll try to play test it later" (2026-11-07). Each phase still passed the gates,
+  and the play-test items were collected into one list.
+- What became of each class, with the rationale, is now in the reference doc:
+  `tasks/reference/refactoring-to-modern-cpp.md`, "The third pass".
 
-## Decisions (William Emerison Six <billsix@gmail.com>, 2026-11-07)
+## What was done (branches `std-swaps-managers-cmake`, then `reformat-and-managers`)
 
-- **Replace, not just remove.** The maintainer's framing: modern C++ should make lifetime
-  "managers" much simpler. This replaces the earlier (a)/(b) "remove some vs remove all" question.
-- **The agent's design input, written into the shared C++ standard** (runClaudeInContainer
-  `tasks/reference/cpp-coding-standard.md`, new section "Stored borrows and 'manager' classes",
-  mirrored to runCrushInContainer), applied here as follows:
-  - **Raw pointers passed as parameters are not the problem.** The C++ Core Guidelines (`F.7`,
-    `R.30`) say a function that only uses an object should take `T*`/`T&`, not a smart pointer.
-    smc's ~300 raw-pointer parameters are mostly correct as they are. The gain is converting the
-    never-null ones to `T&` opportunistically, not a sweep.
-  - **The real hazard is stored pointers whose target can die first.** Ownership is already
-    `unique_ptr` (2026-09-24 pass), so the work left is the *borrow* side, sorted by category
-    below.
-  - **A container class must earn its existence with an invariant** (cache, draw order, deferred
-    destruction, handle validation), be held by composition with private storage, and be named
-    for that invariant.
+1. **Survey (phase 1).**
+   - `cGL_Surface*` members are safe as raw pointers: a GL-context texture reload
+     (`Restore_Textures`) reloads each surface in place.
+   - `cAnimation_Manager` stays a class: 44 `Add` sites, a per-scene `Update`/`Draw`, and the "active"
+     pointer switching between level, overworld, and menu.
+   - `cBackground_Manager` was the one pure container. It became `cLevel::m_backgrounds` (commit
+     `1d980d9`, codemod `backgrounds_to_vector.py`).
+2. **Un-derive (phase 2, `e886d1d`).**
+   - `cObject_Manager<T>` and `core/obj_manager.h` were deleted. The nine subclasses hold a private
+     `Owning_Vector<T>` (new `core/owning_vector.h`).
+   - The 63 outside `->objects` loops became `for (auto* x : mgr->Objects())`.
+   - The collision lists move collisions through `Take_All`/`Append`.
+   - Codemod `underive.py`, then compiler-driven fixes.
+   - Traps:
+     - clang rejects inline `Add`/`Delete_All` where `cLevel`/`cOverworld` are incomplete, so those
+       bodies live in the `.cpp`;
+     - a lone `virtual` on `cSound_Manager` had to go once the virtual base destructor was gone
+       (`-Wdelete-non-abstract-non-virtual-dtor`).
+   - Only 2 of the ~17 `-Woverloaded-virtual` suppressions were the managers'. Both were removed;
+     the other 15 belong to the sprite hierarchy.
+3. **Pure containers (phase 3, `7773923`).**
+   - `cCampaign_Manager` stayed a class, against the plan's guess: it is a loader that merges the user
+     and game campaign directories, a by-name lookup, and an application singleton
+     (`cOwned<cCampaign_Manager>`).
+   - Its unused `Delete_All` went.
+4. **Caches (phase 4, `0d932b4`).** Image and sound lookup by filename uses an
+   `unordered_map<string, T*>` index:
+   - `try_emplace` keeps the first object added under a name, as the old linear scan did;
+   - it is exact because each cache has one `Add` site, the filename is set before `Add`, and no
+     managed object is renamed afterwards;
+   - the owning vector stays for the whole-cache passes.
+5. **Stored sprite references (phase 5, `0d95521`).**
+   - Six members became `cSprite_Handle<T>` (new `core/sprite_handle.{h,cpp}`):
+     `cMovingSprite::m_ground_object`, `cObjectCollision::m_obj`, `cSelectedObject::m_obj`,
+     `cMouseCursor::m_active_object` and `m_last_clicked_object`, and
+     `cLevel_Player::m_active_object`.
+   - The mechanism is a registry, not slot generations:
+     - every `cSprite` holds a never-reused serial, and a handle reads as `nullptr` once its sprite
+       is freed, even if a new sprite reuses the address;
+     - slot generations did not fit because the store reorders its vector and these members point
+       across several stores and at the players.
+   - Before this, `cSprite_Manager::Add` freed a destroyed sprite on slot reuse, and nothing nulled
+     these members.
+   - The `= nullptr` sites stayed: each is a game rule applied at `Destroy()`, which does not free.
+   - Cost, measured with temporary counters over 30 s of `cave_1`: about 130 lookups per frame.
+6. **Fold (phase 5, `5f8e4bd`).**
+   - `cWorld_Sprite_Manager`'s one `Add` override (index waypoints, register layer-line starts)
+     became the `m_on_add` hook, which `cOverworld` sets. The store has no virtuals now.
+   - Proof: a temporary print at the end of `cOverworld::Load` gave identical waypoint / line /
+     sprite counts for all five worlds before (a scratch `git worktree` of `0d95521`) and after.
+7. **Renames (phase 6, `222e7d7`, `0027e3c`, `83db992`, type name only):**
+   - `cSprite_Manager` → `cSprite_Store`;
+   - `cImage_Manager` → `cTexture_Cache`;
+   - `cSound_Manager` → `cSound_Cache`.
 
-## Context
+   The optional renames (`cFont_Manager`, `cResource_Manager`, the level and overworld managers)
+   were not made. `tasks/reference/smc/README.md` carries a rename note, because that set is a
+   snapshot of the older code.
+8. **Phase 7** (never-null `T*` → `T&`, opportunistic) was not done. **Phase 8:** recorded in
+   `tasks/reference/refactoring-to-modern-cpp.md`, "The third pass", and in `CLAUDE.md`.
 
-- Read first: the standard section above; `tasks/reference/refactoring-to-modern-cpp.md`
-  ("The ownership migration"); `tasks/reference/smc/ownership-and-lifetime.md`;
-  `tasks/archive/2026/10/15/smc-apply-cpp-coding-standard.md`; `smc/src/core/obj_manager.h`.
-- What the earlier passes did: the managers' *storage* went from `vector<T*>` + hand `delete` to
-  `vector<unique_ptr<T>>`, and ownership enters through `Add(std::unique_ptr<T>)`
-  (`tasks/archive/2026/09/24/smc-modernize-step-5-ownership.md`). No document decided to remove the
-  classes, which is why they remain.
-- Remaining design debts: 10 classes inherit from `cObject_Manager<T>` to get a **public**
-  `objects` vector (about 63 direct loops reach in), and override `Add`/`Delete_All` with narrowed
-  virtuals. That inheritance is the source of most of the ~17 `-Woverloaded-virtual` suppressions
-  (`tasks/archive/2026/10/18/smc-overloaded-virtual.md`).
-- Gate: nested `make image` + `make shell-exec SCRIPT=tools/smoke_headless.sh`. **The smoke run
-  does not exercise teardown, save/load, the overworld, or the editor**, so each phase needs a
-  maintainer play-test item.
+## Verification
 
-## Stored raw-pointer members, by category (survey 2026-11-07, `grep` of `smc/src/**/*.h`)
+Each phase passed:
 
-Categories are the standard's four: (1) outlived by construction → raw `T*`/`T&` + comment;
-(2) can die first → deferred destruction or owner-clears; (3) cross-object refs in a store →
-generational handle; (4) truly shared → `shared_ptr`/`weak_ptr`.
+- gcc and clang `-Werror` with 0 warnings (`tasks/adhoc/smc-port-build-to-cmake/compiler_gate.sh`);
+- `build.sh game` followed by `tools/smoke_headless.sh`, run on the menu, with
+  `SMC_ARGS="--level cave_1"`, and with `--world world_1` (exit 137 at the deadline, `ps` audit
+  clean).
 
-| Member(s) | Count | Category | Action |
-|---|---|---|---|
-| `cSprite_Manager* m_sprite_manager`, `cOverworld* m_overworld`, `cLevel* m_level`, `cParticle_Emitter* m_parent`, `cLayer_Line_Point_Start* m_line`, `cLayer_Line_Point* m_linked_point` | ~16 | 1 (owner/parent outlives) | Keep raw; add the "owned by X" comment; `T&` where never null and never reseated |
-| `cGL_Surface* m_image`/`m_start_image`/`m_maryo_head`/`m_item_image`/`m_goldpiece`/`m_base`/`m_arrow_*` | ~10 | 1, **verify**: the image cache lives for the whole application, but check that a resolution-change texture reload (`cImage_Manager::m_saved_textures`) reloads *in place* and keeps the `cGL_Surface*` valid | Keep raw if the check passes |
-| `cSound* m_data` | 1 | 1 (sound cache lives for the application) | Keep raw |
-| `cSprite* m_ground_object`, `cSprite* m_active_object` / `cMovingSprite* m_active_object`, `cSprite* m_last_clicked_object`, `cSprite* m_obj` (×2) | ~6 | **2/3: can dangle.** Today they are safe only because of `m_auto_destroy` (a destroyed sprite stays in the vector until its slot is reused by `reset()`) plus hand-nulling at about 8 sites | **Generational `SpriteHandle`** issued by the sprite store; `Get(handle)` returns `nullptr` once the slot is reused |
-| 35 `extern cX* pX` global aliases (`pLevel_Manager` 62 uses, `pOverworld_Manager` 60, `pActive_Animation_Manager` 51, …) | 35 | 1 (owned by `cApplication`, application lifetime) | Leave as the documented migration stage. Passing context by reference is the end state, but it is out of scope here (thousands of call sites) |
+The tree is clang-format clean.
 
-## Per-manager outcome (agent's recommendation)
+## Play-test list (owed by the maintainer)
 
-| Today | Becomes | Why |
-|---|---|---|
-| `cObject_Manager<T>` | **deleted** | Inheritance used for storage, with a public owning vector |
-| `cSprite_Manager` | `cSprite_Store`: private `vector<unique_ptr<cSprite>>` + slot generations + draw order (`Move_To_Front/Back`) + deferred-destroy sweep; issues `SpriteHandle` | It has real invariants. The rename says what it guarantees |
-| `cWorld_Sprite_Manager` | folded into `cSprite_Store` (or one free function feeding the layer) | 44/56 lines; one extra side effect in `Add` |
-| `cImage_Manager` | `cTexture_Cache`: private `unordered_map<path, unique_ptr<cGL_Surface>>` + reload-on-context-loss | A real cache. Map lookup replaces the linear `Get_Pointer` scan (`reference/smc/video.md`) |
-| `cSound_Manager` | `cSound_Cache` (same shape), owned by `cAudio` | A cache by filename |
-| `cFont_Manager` | `cFont_Renderer` (or keep the name). No container change | It is TTF rendering behavior, not storage |
-| `cAnimation_Manager` | private `vector<unique_ptr<cAnimation>>` in its owners + two loops (`Update`, `Draw`) | A pure container |
-| `cBackground_Manager` | `vector<unique_ptr<cBackground>>` member of `cLevel` + load/save free functions | A pure container |
-| `cCampaign_Manager` | `vector<unique_ptr<cCampaign>>` + a `Load_Campaigns()` function | A pure container + loader |
-| `cHud_Manager` | inspect, likely `cHud` owning its sprites by composition | Layout behavior, not lifetime |
-| `cLevel_Manager`, `cOverworld_Manager` | keep as classes, un-derived, storage private (optionally `cLevel_Switcher`/`cWorld_Map`) | Game-state logic (active level/world, camera, switching) |
-| `cResource_Manager` | `cUser_Paths` (or keep). No container change | Path lookup; owns nothing |
-
-Each rename is mechanical and compiler-verified. Do it by type name only, in its own commit, and
-update `tasks/reference/smc/` in the same commit (the reference set names these classes).
-
-## Progress (2026-11-07, authorized overnight batch)
-
-- **Phase 1 findings:**
-  - `cGL_Surface*` members are **category 1 (safe as raw pointers)**: `cImage_Manager::Restore_Textures`
-    reloads each saved texture *in place* (`soft_tex->m_base->Load_Software_Texture(...)`), so a GL
-    context reload never invalidates a stored surface pointer.
-  - **`cAnimation_Manager` stays a class** (the table's "likely remove" guess was wrong): 44
-    `pActive_Animation_Manager->Add` sites, the per-scene `Update`/`Draw` lifecycle, and the "active"
-    pointer that switches between level, overworld, and menu. Turning it into a bare vector would
-    scatter that behaviour. It gets the phase-2 treatment (composition, private storage) instead.
-  - `cBackground_Manager` was the one **pure container** (an empty subclass).
-- **Done:** `cBackground_Manager` → `cLevel::m_backgrounds` (`vector<unique_ptr<cBackground>>`) +
-  `Gradient_Background()` (commit `1d980d9`; codemod
-  `tasks/adhoc/smc-manager-classes-to-std-containers/backgrounds_to_vector.py`). gcc + clang `-Werror`
-  clean, rebuild + smoke pass. **Play-test owed:** level backgrounds draw; the editor's level-settings
-  screen adds/deletes background images and edits the gradient colours; the main menu's background
-  fades.
-- **Phase 2 done (un-derive):** `cObject_Manager<T>` and `core/obj_manager.h` are deleted. The nine
-  subclasses (sprite, collision list, sound, campaign, HUD, level, overworld, animation, image) each
-  hold a private `Owning_Vector<T>` from the new `core/owning_vector.h`, which is `vector<unique_ptr<T>>`
-  plus free lookups (`Find_Owned`, `Erase_Owned`, `Release_Owned`, `Borrow_At`, `Index_Of`) and
-  `Borrowed()`, a `std::views::transform` view of `T*`. Each class declares only what its callers
-  use: `Objects()` (the view, on the seven classes iterated from outside), `Add`/`Delete_All` where
-  the base supplied them, `size`/`empty`/`Get_Pointer`/`Get_Array_Num` where called, and
-  `cObjectCollisionType::Take_All`/`Append`. Those replace the two places that moved collisions
-  between lists by reaching into `objects`. The 63 outside `->objects` loops became
-  `for (auto* x : mgr->Objects())`. Mechanical part: codemod
-  `tasks/adhoc/smc-manager-classes-to-std-containers/underive.py` (idempotent); the rest was
-  compiler-driven.
-  - **Two traps:** clang rejects an inline `Add`/`Delete_All` in `level_manager.h` and
-    `world_manager.h`, because `cLevel`/`cOverworld` are incomplete there, so those bodies live in the
-    `.cpp`. `cSound_Manager::Get_Pointer(string)` was `virtual` with nothing deriving, which tripped
-    clang's `-Wdelete-non-abstract-non-virtual-dtor` once the virtual base destructor was gone, so it
-    is non-virtual now. `cSprite_Manager` keeps a virtual `Add`/`Delete_All`/destructor, because
-    `cWorld_Sprite_Manager` derives from it until phase 5.
-  - **`-Woverloaded-virtual`:** only 2 of the ~17 suppressions belonged to the managers, on
-    `cObject_Manager::Delete_All` and `cSprite_Manager::Delete_All(bool)`; both are gone. The other 15
-    are the sprite hierarchy's deliberate narrowing (`enemies/*.h`, `objects/movingsprite.h`,
-    `input/mouse.h`, `video/animation.h`) and are outside this task.
-  - Gates: gcc and clang `-Werror` clean (0 warnings); `build.sh game` + smoke pass.
-  - **Play-test:** a level plays as before (enemies, items, collisions, stomping, falling into a
-    pit); the HUD shows points/time/lives/gold/item box; the overworld map loads and walks; the
-    main menu's campaign and world lists fill; the save/load of a game in a level and on the
-    overworld; the editor's object placement and deletion.
-- **Phase 3 done (pure containers):** backgrounds were already a `cLevel` member. `cAnimation_Manager`
-  stays a class (phase 1 finding). **`cCampaign_Manager` stays a class too**, which reverses the table's
-  "vector + `Load_Campaigns()`" guess. After phase 2 it is a private list, a loader that merges the user
-  and game campaign directories (marking user overrides), and a by-name lookup. It is also an
-  application singleton (`cOwned<cCampaign_Manager>` in `core/main.cpp`, alias `pCampaign_Manager`).
-  A bare vector would mean reworking the singleton plumbing for no lifetime gain. Its unused
-  `Delete_All` is gone; the destructor is `= default`.
-- **Phase 4 done (caches):** `cImage_Manager` and `cSound_Manager` keep their owning vector, which holds
-  every surface/sound and is iterated by `Grab_Textures`, `Delete_Image_Textures`, and
-  `cGL_Surface::Is_Texture_Use_Multiple`. Each also gets an `unordered_map<string, T*>` index on the
-  object's `m_filename`, so `Get_Pointer(path)` is a hash lookup instead of a linear scan.
-  `try_emplace` keeps the first object added under a name, which is what the scan returned. This is
-  exact because each cache has one `Add` site (`video.cpp` `Get_Surface`, `audio.cpp` `Get_Sound_File`),
-  the filename is set before `Add`, and no managed object is renamed after it (the other
-  `m_filename` writes are on unmanaged font/copy surfaces and on `cRandom_Sound`). Only `Delete_All`
-  removes entries, and it clears both. Gates green; smoke green on the menu and with
-  `SMC_ARGS="--level cave_1"`. **Play-test:** sounds and music play; a resolution change in the
-  options menu, which reloads textures, keeps every image correct.
-- **Phase 5, stored sprite references → `cSprite_Handle` (done):** the six members that can outlive
-  their target are now `cSprite_Handle<T>` (`core/sprite_handle.{h,cpp}`): `cMovingSprite::m_ground_object`,
-  `cObjectCollision::m_obj`, `cSelectedObject::m_obj`, `cMouseCursor::m_active_object` and
-  `m_last_clicked_object`, and `cLevel_Player::m_active_object` (`<cMovingSprite>`).
-  `cCopyObject::m_obj` was not converted, because it already owns its clipboard sprite (`unique_ptr`).
-  - **Why not slot-index generations, as the plan said:** the sprite vector is reordered by
-    `Move_To_Front`/`Move_To_Back`, so a slot index does not stay with a sprite. These members also
-    point into several stores (level, overworld, menu) and at the two players, which no store owns. So
-    every `cSprite` holds a `cSprite_Serial` (a never-reused 64-bit serial number registered
-    serial → sprite in one registry for the sprite's lifetime), and a handle stores the serial. A
-    handle resolves to the sprite while it is allocated and to `nullptr` once it is freed, even if a new
-    sprite later reuses the address. While the target is alive it reads exactly like the old raw
-    pointer: implicit `T*` conversion and `->`, with an explicit `.Get()` only inside the 8 casts. So
-    behaviour changes only where the old code would have read freed memory.
-  - **Where that happens:** `cSprite_Manager::Add` reuses a destroyed sprite's slot, which frees the old
-    sprite, and level/overworld `Delete_All` frees sprites. Nothing nulled these members at free time,
-    so, for example, a sprite standing on a platform destroyed and then reused by a spawn read a freed
-    `m_ground_object`.
-  - **The hand-nulling stays:** every `= nullptr` site (mouse `Clear_Active_Object` and the editor-delete
-    path that drops the player's held object, the player's release/reset, `Reset_On_Ground`) is a
-    game-state rule applied at `Destroy()`. `Destroy()` does not free the sprite, so a handle would
-    not null it there; none of those sites only patched a lifetime.
-  - Cost, measured by temporary counters (reverted) over a 30 s `cave_1` run: about 8,000 handle
-    lookups per second, about 130 per frame, so the hash lookup is negligible.
-  - Gates green (gcc/clang `-Werror`, 0 warnings); smoke green on the menu and `cave_1`.
-  - **Play-test:** walking and jumping on moving platforms, and a platform or box disappearing under
-    Maryo; stomping enemies; carrying a turtle shell (`m_active_object`) and dying or finishing the level
-    while carrying it; in the editor, select/drag/click objects, delete the selected object, and delete
-    a shell the player is carrying.
-- **Phase 5, `cWorld_Sprite_Manager` folded (done):** its only behaviour, an `Add` override that
-  indexes added waypoints in `cOverworld::m_waypoints` and registers line-start points with
-  `cOverworld::m_layer`, became `cSprite_Manager::m_on_add`, a `std::function<void(cSprite*)>` that
-  `cOverworld`'s constructor sets. Spawns that go through a sprite's `cSprite_Manager*` still reach it.
-  With no subclass left, `cSprite_Manager`'s `Add`, `Delete_All` and destructor are non-virtual, and
-  `overworld/world_sprite_manager.{h,cpp}` are deleted.
-  - Proof: with a temporary DBG print (reverted) at the end of `cOverworld::Load`, the pre-fold
-    commit (`0d95521`, built from a scratch `git worktree`) and the fold gave identical waypoint /
-    layer-line / sprite counts for all five worlds the game loads at start (5/4/61, 13/16/155,
-    11/12/232, 9/8/70, 9/8/228), and both ran `--world world_1..4` to the 30 s deadline.
-  - Gates green; smoke green (menu, `cave_1`, `--world`). **Play-test:** on the overworld, Maryo walks
-    the paths between waypoints and enters levels; the world editor adds a waypoint and a line.
-- **Pause lifted (William Emerison Six <billsix@gmail.com>, 2026-11-07):** "just go ahead, I'll try to
-  play test it later." Each phase still passes the gcc/clang gate and smoke, and adds its items to the
-  play-test list below; the maintainer plays the whole list once.
-- **Why it had paused:** the remaining phases touch gameplay that the smoke can't see (the sprite
-  store's draw order, auto-destroy slot reuse, and the ground/active-object pointers; the level and
-  overworld switching). This task requires a play-test between phases; stacking them unattended would
-  trade verified gameplay for structure.
-- **Formatting:** the tree is clang-format 23 clean since `cfbc1d5` (2026-11-07), so a whole-file
-  `clang-format -i` (or `make format`) on an edited file is fine.
-- **Gate for every phase:** `tasks/adhoc/smc-port-build-to-cmake/compiler_gate.sh` with `CXX=g++` and
-  `CXX=clang++`, then `build.sh game` + `tools/smoke_headless.sh` in one container (see that script's
-  header for the `podman run` line).
-
-## Plan (each phase its own commits; gate + play-test after each)
-
-1. **Verify** the `cGL_Surface*` reload question and read each manager to confirm the outcome
-   table, amending it where reading contradicts the guess.
-2. **Un-derive:** every subclass holds a private container instead of inheriting from
-   `cObject_Manager<T>`. Callers that reached into `objects` get a borrow view or an algorithm.
-   Delete `cObject_Manager`, and drop the `-Woverloaded-virtual` suppressions this removes.
-3. **Pure containers → members:** animation, background, campaign.
-4. **Caches:** `cTexture_Cache`, `cSound_Cache` (`unordered_map`).
-5. **`cSprite_Store` + `SpriteHandle`:** generation per slot; convert the ~6 dangling-capable
-   members; remove the hand-nulling. Play-test: stomping/ground contact, editor selection and
-   clicking, item pickup.
-6. **Renames** (one commit per type) + reference-set update.
-7. Optional, opportunistic: never-null `T*` parameters → `T&`, only in files already being edited.
-8. Record the pass in `tasks/reference/refactoring-to-modern-cpp.md` (a "third pass" section).
+- **Levels:**
+  - enemies, items, collisions, stomping, and falling into a pit;
+  - walking and jumping on moving platforms, and a platform or box vanishing under Maryo;
+  - carrying a turtle shell, and dying or finishing the level while carrying it.
+- **Level visuals:** the backgrounds draw, and the main menu's background fades.
+- **HUD:** points, time, lives, gold, and the item box.
+- **Sound:** sounds and music play.
+- **Options:** a resolution change, which reloads textures, keeps every image correct.
+- **Overworld:** the map loads, Maryo walks the paths between waypoints, and levels can be entered.
+- **Menus:** the campaign list and the world list fill.
+- **Save/load:** saving and loading a game, both in a level and on the overworld.
+- **Level editor:**
+  - placing objects; selecting, dragging, and clicking them; deleting the selected object;
+  - deleting a shell the player is carrying;
+  - the level-settings screen adds and deletes background images and edits the gradient colours.
+- **World editor:** adding a waypoint and a line.
