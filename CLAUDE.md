@@ -44,8 +44,12 @@ release dates, tagged `v<version>`), then the 211 commits of github.com/FluXy/SM
   imported pkg-config targets, which CMake passes as `-isystem`, so their warnings don't count. The
   default build type is RelWithDebInfo **without `-DNDEBUG`** (`-O2 -g`, asserts live, as the game
   was always built). `entrypoint/build.sh game` builds out of tree in `/opt/smc-build`; the other
-  compiler's gate is `tasks/adhoc/smc-port-build-to-cmake/compiler_gate.sh` (`CXX=g++|clang++`).
-  `-Woverloaded-virtual` is on with ~17 reasoned per-site suppressions for the hierarchy's deliberate
+  compiler's gate is `tools/compiler_gate.sh` (`CXX=g++|clang++`).
+  **Iterate fast with one long-lived container** instead of a `podman run` per build:
+  `podman run -d --name smcdev --cgroups=disabled --entrypoint /bin/bash -v "$PWD":/smc/:Z smc -c 'sleep infinity'`,
+  then `podman exec smcdev bash -c 'cd /opt/smc-build && ninja -k 0'`, which is an incremental rebuild
+  (about 16 s for a full rebuild; `-k 0` lists every error); `podman rm -f smcdev` when done.
+  `-Woverloaded-virtual` is on with 15 reasoned per-site suppressions for the hierarchy's deliberate
   virtual-narrowing (gcc attributes the warning to the base method, clang to the derived, so both are
   wrapped). The four gate sweeps are archived under `tasks/archive/2026/10/18/` (warning gate, const,
   sign-conversion, overloaded-virtual).

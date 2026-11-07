@@ -86,7 +86,7 @@ teardown, save/load, or the editor.
 
 Each phase passed:
 
-- gcc and clang `-Werror` with 0 warnings (`tasks/adhoc/smc-port-build-to-cmake/compiler_gate.sh`);
+- gcc and clang `-Werror` with 0 warnings (`tools/compiler_gate.sh`);
 - `build.sh game` followed by `tools/smoke_headless.sh`, run on the menu, with
   `SMC_ARGS="--level cave_1"`, and with `--world world_1` (exit 137 at the deadline, `ps` audit
   clean).

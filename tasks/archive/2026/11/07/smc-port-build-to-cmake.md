@@ -42,7 +42,7 @@ is CMake-first, and TSC, SMC's successor fork, already builds with CMake.
   passes the defines SDL2_image's pkg-config cflags carry, harmless).
 - Full image rebuild (by hand with `podman build --network=host`, the nested gotcha) builds clean; the
   headless smoke passes (exit 137 at the deadline, clean `ps` audit).
-- `tasks/adhoc/smc-port-build-to-cmake/compiler_gate.sh` (a throwaway out-of-tree CMake build of the
+- `tools/compiler_gate.sh` (a throwaway out-of-tree CMake build of the
   mounted sources, `CXX=` selects the compiler): g++ and clang++ both `-Werror` clean, 0 warnings.
   It stays in `tasks/adhoc/` after archive because the manager refactor uses it as its gate.
 

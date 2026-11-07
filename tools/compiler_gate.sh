@@ -4,12 +4,12 @@
 # image's CEGUI; nothing is written into the mounted tree.
 #
 #   [HOST] podman run --rm --cgroups=disabled --entrypoint /bin/bash -v "$PWD":/smc/:Z smc \
-#            -c 'cd /smc && CXX=g++ bash tasks/adhoc/smc-port-build-to-cmake/compiler_gate.sh'
+#            -c 'cd /smc && CXX=g++ bash tools/compiler_gate.sh'
 #
 # Exit status is the build's: 0 = -Werror clean under that compiler.
 set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-src="$here/../../../smc"
+src="$here/../smc"
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/local/lib64/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"

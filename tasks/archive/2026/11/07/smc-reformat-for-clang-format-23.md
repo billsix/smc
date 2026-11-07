@@ -12,7 +12,7 @@ commit, `cfbc1d5` ("reformat smc/src with clang-format 23.1.4"), with 72 files, 
 
 - A second `format.sh` run produced a byte-identical diff, so the formatter is idempotent.
 - gcc and clang `-Werror` builds were clean with 0 warnings
-  (`tasks/adhoc/smc-port-build-to-cmake/compiler_gate.sh`). Every `#pragma` suppression still
+  (`tools/compiler_gate.sh`). Every `#pragma` suppression still
   compiled silent.
 - `build.sh game` from the mount, followed by `tools/smoke_headless.sh`, passed (exit 137 at the
   deadline; `ps` audit clean).
