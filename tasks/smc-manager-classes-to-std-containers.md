@@ -1,8 +1,8 @@
 # Replace the `*_Manager` classes with modern ownership shapes (and fix the stored-pointer lifetimes)
 
-**Status:** in progress — phase 1 done and `cBackground_Manager` replaced (2026-11-07, branch
-`std-swaps-managers-cmake`); **paused before the gameplay-critical phases, waiting on the maintainer's
-play-test** of the background change (see "Progress"). Direction decided by William Emerison Six
+**Status:** in progress — phase 1 and `cBackground_Manager` done; continuing phases 2–8 on branch
+`reformat-and-managers` (2026-11-07). The maintainer lifted the per-phase play-test gate: go ahead, and
+he plays the accumulated play-test list afterwards. Direction decided by William Emerison Six
 <billsix@gmail.com>, 2026-11-07.
 **Priority:** 4
 **Difficulty:** 7
@@ -104,7 +104,10 @@ update `tasks/reference/smc/` in the same commit (the reference set names these 
   clean, rebuild + smoke pass. **Play-test owed:** level backgrounds draw; the editor's level-settings
   screen adds/deletes background images and edits the gradient colours; the main menu's background
   fades.
-- **Why it paused here:** the remaining phases touch gameplay that the smoke can't see (the sprite
+- **Pause lifted (William Emerison Six <billsix@gmail.com>, 2026-11-07):** "just go ahead, I'll try to
+  play test it later." Each phase still passes the gcc/clang gate and smoke, and adds its items to the
+  play-test list below; the maintainer plays the whole list once.
+- **Why it had paused:** the remaining phases touch gameplay that the smoke can't see (the sprite
   store's draw order, auto-destroy slot reuse, and the ground/active-object pointers; the level and
   overworld switching). This task requires a play-test between phases; stacking them unattended would
   trade verified gameplay for structure.
