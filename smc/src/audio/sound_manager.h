@@ -46,15 +46,15 @@ class cSound {
 
 using SoundList = vector<cSound*>;
 
-/* *** *** *** *** *** *** cSound_Manager *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** cSound_Cache *** *** *** *** *** *** *** *** *** *** *** */
 
 /*  Keeps track of all sounds in memory
  *
  * Operators:
- * - cSound_Manager [path]
- * - cSound_Manager [ID]
+ * - cSound_Cache [path]
+ * - cSound_Cache [ID]
 */
-class cSound_Manager {
+class cSound_Cache {
  public:
   // Delete all objects
   void Delete_All(void) {
@@ -62,8 +62,8 @@ class cSound_Manager {
     m_objects.clear();
   }
 
-  cSound_Manager(void);
-  ~cSound_Manager(void);
+  cSound_Cache(void);
+  ~cSound_Cache(void);
 
   // The object at the given index, or nullptr when out of range
   cSound* Get_Pointer(size_t identifier) const {
@@ -97,7 +97,7 @@ class cSound_Manager {
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 // Sound Manager
-extern cSound_Manager* pSound_Manager;
+extern cSound_Cache* pSound_Manager;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

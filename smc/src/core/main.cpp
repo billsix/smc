@@ -101,7 +101,7 @@ class cApplication {
   cOwned<cPreferences> m_preferences{pPreferences};
   cOwned<cEditor_World> m_world_editor{pWorld_Editor};
   cOwned<cEditor_Level> m_level_editor{pLevel_Editor};
-  cOwned<cSound_Manager> m_sound_manager{pSound_Manager};
+  cOwned<cSound_Cache> m_sound_manager{pSound_Manager};
   cOwned<cHud_Manager> m_hud_manager{pHud_Manager};
   cOwned<cLevel_Player> m_level_player{pLevel_Player};
   cOwned<cAudio> m_audio{pAudio};

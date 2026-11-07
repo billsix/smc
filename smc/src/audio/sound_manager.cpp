@@ -45,18 +45,18 @@ void cSound::Free(void) {
   m_filename.clear();
 }
 
-/* *** *** *** *** *** *** cSound_Manager *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** cSound_Cache *** *** *** *** *** *** *** *** *** *** *** */
 
-cSound_Manager::cSound_Manager(void) { m_load_count = 0; }
+cSound_Cache::cSound_Cache(void) { m_load_count = 0; }
 
-cSound_Manager::~cSound_Manager(void) { Delete_All(); }
+cSound_Cache::~cSound_Cache(void) { Delete_All(); }
 
-cSound* cSound_Manager::Get_Pointer(const std::string& path) const {
+cSound* cSound_Cache::Get_Pointer(const std::string& path) const {
   auto itr = m_by_filename.find(path);
   return itr == m_by_filename.end() ? nullptr : itr->second;
 }
 
-cSound* cSound_Manager::Add(std::unique_ptr<cSound> sound) {
+cSound* cSound_Cache::Add(std::unique_ptr<cSound> sound) {
   m_load_count++;
   cSound* added = m_objects.emplace_back(std::move(sound)).get();
   // the first sound added under a filename is the one Get_Pointer(path) finds
@@ -66,7 +66,7 @@ cSound* cSound_Manager::Add(std::unique_ptr<cSound> sound) {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cSound_Manager* pSound_Manager = nullptr;
+cSound_Cache* pSound_Manager = nullptr;
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
