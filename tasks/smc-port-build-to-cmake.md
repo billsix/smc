@@ -1,78 +1,52 @@
-# Investigate and port the build system to CMake
+# Ported the game's build from autotools to CMake
 
-**Status:** proposed — build system and migration decided 2026-11-07; implementation awaits go-ahead (William Emerison Six <billsix@gmail.com>, 2026-09-24)
-**Priority:** 4 · **Difficulty:** 6
+**Done 2026-11-07** (authorized batch; branch `std-swaps-managers-cmake`). Decisions by William Emerison
+Six <billsix@gmail.com>, 2026-11-07: CMake rather than Meson; remove autotools once CMake is at parity.
 
-## BLUF
+## What was done
 
-SMC currently builds with **autotools** (`smc/configure.ac`, `smc/src/Makefile.am`, `AM_*`,
-`PKG_CHECK_MODULES`). Investigate porting it to **CMake**, then do the port: a `CMakeLists.txt` that
-finds SDL2/SDL2_image/mixer/ttf, the vendored CEGUI 0.7.9 (`third_party/`), OpenGL/GLU/GLEW,
-freetype/pcre/expat/freeimage, gettext, and builds the `smc` binary + installs the `data/` tree to
-`/usr/local` (or the configured prefix), matching what autotools does today. Done = `cmake -S . -B
-build && cmake --build build` produces a working binary that passes `tools/smoke_headless.sh`, the
-container `make image` uses CMake, and the autotools files can be removed. **This is the enabler
-task** — the vcpkg/Windows, AppImage, and GitHub-CI follow-ups all assume a CMake build.
+- **`smc/CMakeLists.txt`** builds the `smc` executable from the 77 sources `src/Makefile.am` listed, with
+  dependencies from pkg-config / CMake packages: `PkgConfig::SDL2` (sdl2, SDL2_image, SDL2_mixer,
+  SDL2_ttf), `PkgConfig::CEGUI` (CEGUI-OPENGL ≥ 0.7.2, the vendored 0.7.9 found through
+  `PKG_CONFIG_PATH`) + `CEGUINullRenderer`, `OpenGL::GL`/`GLU`/`GLX`, `X11::X11`, `Intl::Intl`. Imported
+  targets reach the compiler as `-isystem`, so third-party warnings don't count.
+- The warning gate is a target option list plus `-Werror` (option `SMC_WERROR`, default ON). Options
+  replace the old configure switches: `SMC_DEBUG` (was `--enable-debug`, `-D_DEBUG=1`) and
+  `SMC_RUN_IN_PLACE` (was `--enable-runinplace`, no `DATA_DIR`). Installed builds get
+  `DATA_DIR="<datadir>/smc"`; data installs to `share/smc` with the old 755/644 modes.
+- **Build type:** defaults to RelWithDebInfo with `-DNDEBUG` stripped, i.e. `-O2 -g` with `assert()`
+  live (3 asserts in the source), which is what autotools built.
+- **`entrypoint/build.sh game`** runs `cmake -S $SMC/smc -B /opt/smc-build -G Ninja`, build, install. The
+  build tree is a fixed path outside the bind-mounted repo (the overlay's "keep the build tree outside
+  the mount" gotcha), so a `make shell` rebuild is incremental against the mounted sources and never
+  meets a host build's files. `cmake` and `ninja-build` joined `entrypoint/01-install-base.sh`.
+- **Removed:** `smc/configure.ac`, `smc/Makefile.am`, `smc/src/Makefile.am`, `smc/data/Makefile.am`,
+  `smc/autogen.sh`. The generated autotools files were never tracked; `.gitignore`/`.dockerignore` still
+  list them so a host tree's leftovers stay out of git and the image. CEGUI 0.7.9 still builds with its
+  own autotools (`build.sh cegui`); `smc/docs/` still describes the upstream build (historical).
+- Docs updated: `CLAUDE.md` (layout line + the gate paragraph), `tasks/reference/building-2010-era-smc-today.md`,
+  the `tasks/reference/smc/{audio,gui,video}.md` citations of `configure.ac` line numbers.
 
-## Context
+## Meson vs CMake (why CMake)
 
-- Read first: `tasks/reference/building-2010-era-smc-today.md` (the SDL 2 port + the current
-  container build) and `smc/configure.ac` / `smc/src/Makefile.am` for what the build actually does
-  today (the checks, flags, the `--enable-debug`/`--enable-runinplace` options, the CEGUI-OPENGL
-  and CEGUINullRenderer link, the `-D_DEBUG`, `-DDATA_DIR`, the `-std=c++23 -Wall -Wextra` from the
-  modernization).
-- The game bundles CEGUI 0.7.9 under `third_party/` (Fedora's is the incompatible 0.8), built by
-  `entrypoint/build.sh` — the CMake build must build/consume that vendored CEGUI, not the system one.
-- Container: `Dockerfile` + `Makefile` (`make image`/`make shell`/`build.sh`); the port must keep
-  the nested-podman `make image` + smoke gate working.
-- The maintainer's other projects use CMake/meson in containers (e.g. spimulator meson); follow the
-  container-per-project conventions.
+Both could drive the vendored autotools CEGUI the same way (build it in `build.sh`, consume
+`CEGUI-OPENGL.pc`). CMake won because the follow-ups assume it: vcpkg (`tasks/smc-windows-msvc-vcpkg.md`)
+is CMake-first, and TSC, SMC's successor fork, already builds with CMake.
 
-## Meson or CMake? (added 2026-11-07, at the maintainer's "meson or cmake" ask)
+## Verification (nested podman, 2026-11-07)
 
-Both can do this port. Differences that matter for smc:
+- **Parity with the autotools build**, measured against a baseline captured from the last
+  autotools-built image: the installed `share/smc` tree is identical (all 2,661 paths with their
+  permission modes), and `ldd /usr/local/bin/smc` lists the identical library set. Compile flags match:
+  `-O2 -g -std=c++23` + the full gate set + `-Werror`, `DATA_DIR="/usr/local/share/smc"` (CMake also
+  passes the defines SDL2_image's pkg-config cflags carry, harmless).
+- Full image rebuild (by hand with `podman build --network=host`, the nested gotcha) builds clean; the
+  headless smoke passes (exit 137 at the deadline, clean `ps` audit).
+- `tasks/adhoc/smc-port-build-to-cmake/compiler_gate.sh` (a throwaway out-of-tree CMake build of the
+  mounted sources, `CXX=` selects the compiler): g++ and clang++ both `-Werror` clean, 0 warnings.
+  It stays in `tasks/adhoc/` after archive because the manager refactor uses it as its gate.
 
-- **The vendored CEGUI 0.7.9 is autotools.** Either build system has to drive it as an external
-  project (CMake `ExternalProject_Add`, Meson `external_project` module) or keep building it in
-  `entrypoint/build.sh` and consume it via pkg-config (`CEGUI-OPENGL.pc`). The pkg-config route is
-  the least work and is identical in both. **If smc moves to CEGUI 0.8.7** (see
-  `tasks/smc-cegui-0.8-port.md`, parked), it comes from Fedora's `cegui-devel` and the question
-  disappears.
-- **CMake is what the follow-ups assume:** vcpkg (`tasks/smc-windows-msvc-vcpkg.md`) is CMake-first,
-  and TSC, smc's successor fork, builds with CMake, so its build is reusable. Meson can consume
-  vcpkg only through pkg-config or `cmake` dependencies, with more friction on Windows/MSVC.
-- **Meson is shorter and stricter** (no `CMakeCache` path traps; see the overlay's "keep the build
-  tree outside the mount" gotcha). The maintainer already uses it in spimulator.
-- `-Werror` flag set, `DATA_DIR`, gettext `po/`, and the `--enable-debug`/`--enable-runinplace`
-  options translate equally in both (`option()` / `meson_options.txt`).
+## Follow-ups (unblocked by this)
 
-*Recommendation: CMake, because the Windows/vcpkg and AppImage follow-ups depend on it. Choose
-Meson only if Windows is dropped.*
-
-## Goal
-
-Replace autotools with a maintained `CMakeLists.txt` that reproduces the current build exactly
-(same libs, flags, data install, options), verified by the headless smoke, so the cross-platform and
-CI follow-ups have a modern, portable build to build on.
-
-## Plan
-
-- [ ] Inventory what `configure.ac` + `Makefile.am` do (libs, flags, options, data install).
-- [ ] Write `CMakeLists.txt` (+ subdirs); `find_package`/`pkg_check_modules` for the deps; vendored
-      CEGUI as a subproject/ExternalProject.
-- [ ] Wire the container `build.sh`/`Dockerfile` to CMake; keep `make image` + smoke green.
-- [ ] Remove the autotools files once CMake is at parity.
-
-## Followups (created together, each depends on this)
-
-- `tasks/smc-windows-msvc-vcpkg.md` — build on Windows/MSVC via vcpkg.
-- `tasks/smc-linux-appimage-make-target.md` — AppImage as a make target.
-- `tasks/smc-github-cicd.md` — GitHub CI driven by the Makefile.
-- `tasks/smc-port-to-modern-engine-or-gl33.md` — the bigger rendering/engine question.
-
-## Decisions (William Emerison Six <billsix@gmail.com>, 2026-11-07)
-
-1. **Port fully; remove autotools once CMake works** (smoke-verified at parity), rather than
-   keeping the two build systems side by side.
-2. **CMake, not Meson.** The Windows/vcpkg and AppImage follow-ups depend on CMake, and TSC's CMake
-   build is reusable (comparison above).
+`tasks/smc-windows-msvc-vcpkg.md`, `tasks/smc-linux-appimage-make-target.md`, `tasks/smc-github-cicd.md`,
+and `tasks/smc-cegui-0.8-port.md` (parked) all build on the CMake build.
