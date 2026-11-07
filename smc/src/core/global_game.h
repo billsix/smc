@@ -435,7 +435,6 @@ class cSize_Int;
 class cSprite_Manager;
 class cSurface_Request;
 class cSprite;
-class cWorld_Sprite_Manager;
 class Color;
 class GL_rect;
 class GL_line;

@@ -131,8 +131,8 @@ using LayerLineList = vector<cLayer_Line_Point_Start*>;
 // Layer class
 // handles the line collision detection
 // A cLayer does NOT own its line points: they are owned (and freed) by the overworld's
-// cSprite_Manager, which cWorld_Sprite_Manager also feeds into this layer. The layer holds
-// borrowed pointers, so it is a plain non-owning list.
+// cSprite_Manager, whose on-add hook (set by cOverworld) registers each start point here.
+// The layer holds borrowed pointers, so it is a plain non-owning list.
 class cLayer : public CEGUI::XMLHandler {
  public:
   cLayer(cOverworld* origin);

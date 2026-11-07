@@ -45,6 +45,12 @@ Process_Input function` at `overworld.cpp:633` over the camera-mode polling bloc
 
 ## 4. `cWorld_Sprite_Manager` and the player twins
 
+> **Current state (2026-11-07):** `cWorld_Sprite_Manager` is gone. The overworld's sprites live in a
+> plain `cSprite_Manager m_sprite_manager{500}`. `cOverworld`'s constructor sets its `m_on_add` hook,
+> which pushes each added waypoint onto `m_waypoints` and registers each line-start point with
+> `m_layer`; that was the subclass's `Add` override. The paragraph below describes the earlier
+> subclass.
+
 `cWorld_Sprite_Manager` subclasses `cSprite_Manager` and overrides **only `Add`** (world sprites
 have simpler z-handling). `cOverworld_Player` and `cLevel_Player` are **separate ~unrelated
 classes** that share no base beyond `cAnimated_Sprite`; `Start_Walk` is 124 lines of movement logic

@@ -163,10 +163,18 @@ void cOverworld_description::handle_world(
 /* *** *** *** *** *** *** *** *** cOverworld *** *** *** *** *** *** *** *** *** */
 
 cOverworld::cOverworld(void)
-    : m_sprite_manager(this),
+    : m_sprite_manager(500),
       m_layer(this),
       m_hud_world_name(&m_sprite_manager),
       m_hud_level_name(&m_sprite_manager) {
+  // waypoints and layer line starts are also indexed by the overworld (which borrows them)
+  m_sprite_manager.m_on_add = [this](cSprite* sprite) {
+    if (sprite->m_type == TYPE_OW_WAYPOINT) {
+      m_waypoints.push_back(static_cast<cWaypoint*>(sprite));
+    } else if (sprite->m_type == TYPE_OW_LINE_START) {
+      m_layer.Register(static_cast<cLayer_Line_Point_Start*>(sprite));
+    }
+  };
   m_engine_version = -1;
   m_last_saved = 0;
   m_background_color = Color();

@@ -20,7 +20,7 @@
 #include "../overworld/world_waypoint.h"
 #include "../overworld/world_layer.h"
 #include "../overworld/world_player.h"
-#include "../overworld/world_sprite_manager.h"
+#include "../core/sprite_manager.h"
 #include "../gui/hud.h"
 #include "../audio/random_sound.h"
 // CEGUI
@@ -173,7 +173,7 @@ class cOverworld : public CEGUI::XMLHandler {
   bool Is_Loaded(void) const;
 
   // map objects (owned values; constructed with the overworld)
-  cWorld_Sprite_Manager m_sprite_manager;
+  cSprite_Manager m_sprite_manager;
   // animation manager
   cAnimation_Manager m_animation_manager;
   // waypoints

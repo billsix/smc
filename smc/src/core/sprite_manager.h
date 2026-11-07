@@ -19,6 +19,7 @@
 #include "../core/global_game.h"
 #include "../core/owning_vector.h"
 #include "../objects/movingsprite.h"
+#include <functional>
 
 namespace SMC {
 
@@ -40,11 +41,11 @@ class cSprite_Manager {
 
   cSprite_Manager(unsigned int reserve_items = 2000,
                   unsigned int zpos_items = 100);
-  virtual ~cSprite_Manager(void);
+  ~cSprite_Manager(void);
 
   /* Add a sprite (takes ownership; returns the borrowed pointer)
 	 */
-  virtual cSprite* Add(std::unique_ptr<cSprite> sprite);
+  cSprite* Add(std::unique_ptr<cSprite> sprite);
 
   // Set the sprite z position and update the z pos list
   void Set_Pos_Z(cSprite* sprite);
@@ -63,7 +64,7 @@ class cSprite_Manager {
   /* Delete all objects
 	 * if delayed is set deletion will only occur if replaced
 	 */
-  virtual void Delete_All(bool delayed = false);
+  void Delete_All(bool delayed = false);
 
   // Return the first z position object from the given type
   cSprite* Get_First(const SpriteType type) const;
@@ -130,6 +131,10 @@ class cSprite_Manager {
     return Get_Pointer(identifier);
   }
 
+  // Called with every sprite Add adopts, after it is stored (the overworld registers its waypoints
+  // and layer lines this way); empty for level and menu managers
+  std::function<void(cSprite*)> m_on_add;
+
   using ZposList = vector<float>;
   // biggest type z position
   ZposList m_z_pos_data;
@@ -168,6 +173,9 @@ class cSprite_Manager {
   };
 
  private:
+  // Runs m_on_add for a sprite Add has just stored; returns it
+  cSprite* Adopted(cSprite* sprite);
+
   Owning_Vector<cSprite> m_objects;
 };
 

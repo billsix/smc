@@ -47,11 +47,19 @@ cSprite* cSprite_Manager::Add(std::unique_ptr<cSprite> sprite) {
     // if destroy is set, reuse the slot (the move frees the old sprite and adopts the new)
     if (slot->m_auto_destroy) {
       slot = std::move(sprite);
-      return slot.get();
+      return Adopted(slot.get());
     }
   }
 
-  return m_objects.emplace_back(std::move(sprite)).get();
+  return Adopted(m_objects.emplace_back(std::move(sprite)).get());
+}
+
+cSprite* cSprite_Manager::Adopted(cSprite* sprite) {
+  if (m_on_add) {
+    m_on_add(sprite);
+  }
+
+  return sprite;
 }
 
 void cSprite_Manager::Set_Pos_Z(cSprite* sprite) {

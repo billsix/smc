@@ -178,6 +178,18 @@ update `tasks/reference/smc/` in the same commit (the reference set names these 
     Maryo; stomping enemies; carrying a turtle shell (`m_active_object`) and dying or finishing the level
     while carrying it; in the editor, select/drag/click objects, delete the selected object, and delete
     a shell the player is carrying.
+- **Phase 5, `cWorld_Sprite_Manager` folded (done):** its only behaviour, an `Add` override that
+  indexes added waypoints in `cOverworld::m_waypoints` and registers line-start points with
+  `cOverworld::m_layer`, became `cSprite_Manager::m_on_add`, a `std::function<void(cSprite*)>` that
+  `cOverworld`'s constructor sets. Spawns that go through a sprite's `cSprite_Manager*` still reach it.
+  With no subclass left, `cSprite_Manager`'s `Add`, `Delete_All` and destructor are non-virtual, and
+  `overworld/world_sprite_manager.{h,cpp}` are deleted.
+  - Proof: with a temporary DBG print (reverted) at the end of `cOverworld::Load`, the pre-fold
+    commit (`0d95521`, built from a scratch `git worktree`) and the fold gave identical waypoint /
+    layer-line / sprite counts for all five worlds the game loads at start (5/4/61, 13/16/155,
+    11/12/232, 9/8/70, 9/8/228), and both ran `--world world_1..4` to the 30 s deadline.
+  - Gates green; smoke green (menu, `cave_1`, `--world`). **Play-test:** on the overworld, Maryo walks
+    the paths between waypoints and enters levels; the world editor adds a waypoint and a line.
 - **Pause lifted (William Emerison Six <billsix@gmail.com>, 2026-11-07):** "just go ahead, I'll try to
   play test it later." Each phase still passes the gcc/clang gate and smoke, and adds its items to the
   play-test list below; the maintainer plays the whole list once.

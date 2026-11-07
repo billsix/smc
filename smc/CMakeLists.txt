@@ -108,7 +108,6 @@ add_executable(smc
   src/overworld/world_layer.cpp
   src/overworld/world_manager.cpp
   src/overworld/world_player.cpp
-  src/overworld/world_sprite_manager.cpp
   src/overworld/world_waypoint.cpp
   src/user/preferences.cpp
   src/user/savegame.cpp
