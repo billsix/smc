@@ -1,6 +1,6 @@
 # Replace third-party / hand-rolled code with standard C++ where the standard has it
 
-**Status:** proposed — needs go-ahead (William Emerison Six <billsix@gmail.com>, 2026-11-07)
+**Status:** proposed — decisions recorded, implementation awaits go-ahead (William Emerison Six <billsix@gmail.com>, 2026-11-07)
 **Priority:** 5
 **Difficulty:** 5
 
@@ -44,41 +44,30 @@ gate green under gcc and clang, headless smoke green, and the regex-style record
 Not candidates: SDL2 (windowing/audio/input, no std equivalent), OpenGL, gettext (no std i18n),
 FreeType/SDL2_ttf.
 
-### XML (the CEGUI XML question)
+### XML
 
-The game uses CEGUI's XML layer as its general XML library: `CEGUI::XMLAttributes` (210 uses),
-`XMLSerializer` (78), and `XMLParser`/`XMLHandler` subclasses for levels, worlds, savegames,
-preferences, campaigns, and powerups (`gui/generic.cpp`, `overworld/*`, `level/level.cpp`,
-`user/savegame.*`, `user/preferences.*`, `core/campaign_manager.*`, `objects/powerup.*`). CEGUI parses
-with expat underneath.
+ISO C++ has no XML parser, so CEGUI's XML layer has no `std::` replacement. Per the decision
+below, the XML question moved to the CEGUI-upgrade follow-up task,
+`tasks/smc-cegui-0.8-port.md` (its step 1), and is out of scope here.
 
-- **There is no `std::` XML.** The regex trick worked only because `std::regex` exists.
-- The real options are: (a) leave it (it works, and expat is maintained); (b) move the game's
-  own file I/O off CEGUI onto **pugixml** or **tinyxml2** (small, MIT/zlib, single-file, easy to
-  vendor) so level/save parsing no longer depends on the GUI library. This helps any later CEGUI
-  upgrade or replacement (see `tasks/smc-vendor-newer-dependencies.md`), because the
-  0.7→0.8 API break also hits these XML classes; (c) switch CEGUI's own parser module to RapidXML
-  (already shipped in the vendored tree, `cegui/src/XMLParserModules/RapidXMLParser`, header-only).
-  That drops the `expat-devel` build dependency but changes nothing in the game code.
-- Recommendation: (b) if a CEGUI upgrade or replacement is going ahead, otherwise (a). It is a
-  medium-sized change (about 20 files), and it is file-format I/O, so it needs save/load round-trip
-  checks that the smoke run does not perform.
+## Decisions (William Emerison Six <billsix@gmail.com>, 2026-11-07)
+
+1. **Which swaps:** the maintainer deferred to the agent ("whatever is better and more standard").
+   The agent's choice is **all five std-replaceable rows**, in this order (cheapest and most
+   contained first):
+   number↔string helper bodies → `std::from_chars`/`std::to_chars`; filesystem helper bodies →
+   `<filesystem>`; screenshot → `IMG_SavePNG` (drops the direct libpng link); `rand()` →
+   `<random>` (one `std::mt19937` owned by `cApplication`); `SDL_GetTicks`/`SDL_Delay` →
+   `std::chrono::steady_clock` + `std::this_thread::sleep_for` where they measure game time. The
+   `ostringstream` → `std::format` row applies only to sites that do not feed gettext `_()`.
+2. **XML:** hold off. It became step 1 of the CEGUI-upgrade follow-up (`tasks/smc-cegui-0.8-port.md`).
 
 ## Plan
 
-1. Re-read the reference doc's "Deliberately NOT done" entries that touch these candidates; record
-   which objections still hold.
-2. One commit each, gate after each: `string`↔number helper bodies → `from_chars`/`to_chars`;
-   filesystem helper bodies → `<filesystem>`; screenshot → `IMG_SavePNG` + drop libpng from
-   `configure.ac` and `01-install-base.sh`; `rand` → `<random>`.
-3. For each, a maintainer play-test item where the smoke can't see it (screenshot key, random
-   effects, level load with float attributes).
+1. Re-read the reference doc's "Deliberately NOT done" entries that touch these candidates. The
+   `int_to_string` objection was about changing ~277 call sites; changing only the helper bodies
+   avoids it. Record that in the reference doc.
+2. One commit per row above, in that order, with the gate after each.
+3. A maintainer play-test item for each where the smoke run can't see the change: screenshot key,
+   random particle/enemy effects, level load with float attributes, frame pacing.
 4. Add a section to `tasks/reference/refactoring-to-modern-cpp.md`.
-
-## Open questions
-
-1. Which candidates to do? *Recommend: the number↔string helper bodies, filesystem, and
-   `IMG_SavePNG` (cheap, body-only), then `<random>`. Skip chrono.*
-2. XML: (a) leave it on CEGUI/expat, (b) move the game's file I/O to pugixml/tinyxml2, or (c) only
-   swap CEGUI's parser module to RapidXML? *Recommend (a) for now, and (b) only as the first step of a
-   CEGUI upgrade.*

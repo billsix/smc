@@ -1,84 +1,102 @@
-# Retire the `*_Manager` classes that are only containers; keep (and rename) the ones with behavior
+# Replace the `*_Manager` classes with modern ownership shapes (and fix the stored-pointer lifetimes)
 
-**Status:** proposed — needs go-ahead (William Emerison Six <billsix@gmail.com>, 2026-11-07)
-**Priority:** 5
+**Status:** proposed — direction decided, implementation awaits go-ahead (William Emerison Six
+<billsix@gmail.com>, 2026-11-07)
+**Priority:** 4
 **Difficulty:** 7
 
 ## BLUF
 
-The maintainer asked why smc still has manager classes (`cSprite_Manager` and the rest) when the
-modernization was supposed to move to smart pointers. **What was agreed and done is narrower than
-removing them.** The 2026-09-24 ownership step and the 2026-10-15 coding-standard pass replaced the
-managers' *raw owning storage* (`vector<T*>` + hand `delete`) with `vector<std::unique_ptr<T>>`
-inside the managers, and routed ownership through `Add(std::unique_ptr<T>)`. No document ever
-decided to delete the classes themselves. The record is
-`tasks/archive/2026/09/24/smc-modernize-step-5-ownership.md`,
-`tasks/reference/smc/objects.md` (item 5), and `tasks/reference/smc/core.md` (item 2), which all say
-"`cObject_Manager<T>` → `vector<unique_ptr<T>>`". So the smart pointers are in place, and the
-classes remain. This task decides, per manager, whether the class still earns its place. A manager
-that is only a typed `vector<unique_ptr<T>>` with lookups becomes a plain member
-(`std::vector<std::unique_ptr<T>>` or `std::unordered_map<std::string, std::unique_ptr<T>>`) plus
-free algorithms. A manager with real behavior stays, perhaps under a name that says what it does.
-Done = the per-manager table below filled in with decisions, the approved conversions done one
-commit each (gate green after each), and `tasks/reference/refactoring-to-modern-cpp.md` updated.
+Replace each `*_Manager` with the modern C++ shape its job calls for. A manager that is only a
+container becomes a private standard container. A real cache becomes a cache class named for what
+it caches. `cObject_Manager<T>` (inheritance used for storage) goes away. The sprite→sprite
+pointers that can dangle get **generational handles**. Done = no class derives from
+`cObject_Manager`, which is deleted; every kept class holds its storage privately and is named for
+what it guarantees; the ~6 dangling-capable stored `cSprite*` members are handles; the `-Werror`
+gate is green under gcc and clang; smoke is green; there is a maintainer play-test after each
+phase; and `tasks/reference/refactoring-to-modern-cpp.md` records the pass.
+
+## Decisions (William Emerison Six <billsix@gmail.com>, 2026-11-07)
+
+- **Replace, not just remove.** The maintainer's framing: modern C++ should make lifetime
+  "managers" much simpler. This replaces the earlier (a)/(b) "remove some vs remove all" question.
+- **The agent's design input, written into the shared C++ standard** (runClaudeInContainer
+  `tasks/reference/cpp-coding-standard.md`, new section "Stored borrows and 'manager' classes",
+  mirrored to runCrushInContainer), applied here as follows:
+  - **Raw pointers passed as parameters are not the problem.** The C++ Core Guidelines (`F.7`,
+    `R.30`) say a function that only uses an object should take `T*`/`T&`, not a smart pointer.
+    smc's ~300 raw-pointer parameters are mostly correct as they are. The gain is converting the
+    never-null ones to `T&` opportunistically, not a sweep.
+  - **The real hazard is stored pointers whose target can die first.** Ownership is already
+    `unique_ptr` (2026-09-24 pass), so the work left is the *borrow* side, sorted by category
+    below.
+  - **A container class must earn its existence with an invariant** (cache, draw order, deferred
+    destruction, handle validation), be held by composition with private storage, and be named
+    for that invariant.
 
 ## Context
 
-- Read first: `tasks/reference/refactoring-to-modern-cpp.md` ("The ownership migration"),
-  `tasks/archive/2026/10/15/smc-apply-cpp-coding-standard.md` (the `Add(unique_ptr)` API and the
-  value-member pass), `tasks/reference/smc/ownership-and-lifetime.md`, and the base class
-  `smc/src/core/obj_manager.h` (today: `OwningList = vector<unique_ptr<T>>` in a **public**
-  `objects` member, `virtual Add/Delete_All/Get_Pointer`, `Release`, `Get_Array_Num`).
-- The design problem the managers still carry is **inheritance used for storage**: 10 classes
-  derive from `cObject_Manager<T>` to get a vector, then override `Add`/`Delete_All` with narrowed
-  virtuals. The 2026-10-18 `-Woverloaded-virtual` sweep needed ~17 suppressions because of this
-  (`tasks/archive/2026/10/18/smc-overloaded-virtual.md`). The C++ Core Guidelines prefer composition
-  here, and the public `objects` member breaks encapsulation (~63 direct loops).
-- Gate: nested `make image` + headless smoke. **The smoke does not exercise teardown, save/load,
-  the overworld, or the editor**, so each conversion needs a maintainer play-test item.
+- Read first: the standard section above; `tasks/reference/refactoring-to-modern-cpp.md`
+  ("The ownership migration"); `tasks/reference/smc/ownership-and-lifetime.md`;
+  `tasks/archive/2026/10/15/smc-apply-cpp-coding-standard.md`; `smc/src/core/obj_manager.h`.
+- What the earlier passes did: the managers' *storage* went from `vector<T*>` + hand `delete` to
+  `vector<unique_ptr<T>>`, and ownership enters through `Add(std::unique_ptr<T>)`
+  (`tasks/archive/2026/09/24/smc-modernize-step-5-ownership.md`). No document decided to remove the
+  classes, which is why they remain.
+- Remaining design debts: 10 classes inherit from `cObject_Manager<T>` to get a **public**
+  `objects` vector (about 63 direct loops reach in), and override `Add`/`Delete_All` with narrowed
+  virtuals. That inheritance is the source of most of the ~17 `-Woverloaded-virtual` suppressions
+  (`tasks/archive/2026/10/18/smc-overloaded-virtual.md`).
+- Gate: nested `make image` + `make shell-exec SCRIPT=tools/smoke_headless.sh`. **The smoke run
+  does not exercise teardown, save/load, the overworld, or the editor**, so each phase needs a
+  maintainer play-test item.
 
-## Inventory (2026-11-07)
+## Stored raw-pointer members, by category (survey 2026-11-07, `grep` of `smc/src/**/*.h`)
 
-Size = `.h`/`.cpp` lines; uses = `p*_Manager` global references.
+Categories are the standard's four: (1) outlived by construction → raw `T*`/`T&` + comment;
+(2) can die first → deferred destruction or owner-clears; (3) cross-object refs in a store →
+generational handle; (4) truly shared → `shared_ptr`/`weak_ptr`.
 
-| Class | Base | Size | What it adds beyond a container | First-guess verdict |
-|---|---|---|---|---|
-| `cObject_Manager<T>` | — | 137/— | vector + find/index | **Remove** once its subclasses no longer derive from it |
-| `cSprite_Manager` | `cObject_Manager<cSprite>` | 169/326 | z-ordering (`Move_To_Front/Back`), auto-destroy slot reuse, sorted views, the player's never-owned slot | **Keep**, as a member held by composition (it is the level's object store) |
-| `cWorld_Sprite_Manager` | `cSprite_Manager` | 44/56 | `Add` also feeds the layer | Fold into `cSprite_Manager` or a free function |
-| `cImage_Manager` | `cObject_Manager<cGL_Surface>` | 122/198 | path→texture cache, saved textures for GL context reload | **Keep** (a real cache); `Get_Pointer` → `unordered_map` (already proposed in `reference/smc/video.md`) |
-| `cSound_Manager` | `cObject_Manager<cSound>` | 93/79 | filename cache | Candidate for `unordered_map<string, unique_ptr<cSound>>` member of `cAudio` |
-| `cFont_Manager` | — | 80/159 | TTF loading + software text textures | Keep (behavior), check the name |
-| `cAnimation_Manager` | `cObject_Manager<cAnimation>` | in `video/animation.*` | per-frame `Update`/`Draw` of all | Likely **remove** → `vector<unique_ptr<cAnimation>>` + two loops |
-| `cBackground_Manager` | `cObject_Manager<cBackground>` | in `level/level_background.*` | load/save/draw all | Likely remove |
-| `cHud_Manager` | `cObject_Manager<cHudSprite>` | in `gui/hud.*` | HUD layout | Inspect |
-| `cLevel_Manager` | `cObject_Manager<cLevel>` | 91/477 | active level, camera, level switching | Keep (it is game-state logic, not a container) |
-| `cOverworld_Manager` | `cObject_Manager<cOverworld>` | 88/204 | active world, world loading | Keep, same reasoning |
-| `cCampaign_Manager` | `cObject_Manager<cCampaign>` | 98/190 | XML load of campaigns | Likely remove → vector + a loader function |
-| `cResource_Manager` | — | 49/72 | user-dir paths, no ownership | Not a container. Rename or leave |
+| Member(s) | Count | Category | Action |
+|---|---|---|---|
+| `cSprite_Manager* m_sprite_manager`, `cOverworld* m_overworld`, `cLevel* m_level`, `cParticle_Emitter* m_parent`, `cLayer_Line_Point_Start* m_line`, `cLayer_Line_Point* m_linked_point` | ~16 | 1 (owner/parent outlives) | Keep raw; add the "owned by X" comment; `T&` where never null and never reseated |
+| `cGL_Surface* m_image`/`m_start_image`/`m_maryo_head`/`m_item_image`/`m_goldpiece`/`m_base`/`m_arrow_*` | ~10 | 1, **verify**: the image cache lives for the whole application, but check that a resolution-change texture reload (`cImage_Manager::m_saved_textures`) reloads *in place* and keeps the `cGL_Surface*` valid | Keep raw if the check passes |
+| `cSound* m_data` | 1 | 1 (sound cache lives for the application) | Keep raw |
+| `cSprite* m_ground_object`, `cSprite* m_active_object` / `cMovingSprite* m_active_object`, `cSprite* m_last_clicked_object`, `cSprite* m_obj` (×2) | ~6 | **2/3: can dangle.** Today they are safe only because of `m_auto_destroy` (a destroyed sprite stays in the vector until its slot is reused by `reset()`) plus hand-nulling at about 8 sites | **Generational `SpriteHandle`** issued by the sprite store; `Get(handle)` returns `nullptr` once the slot is reused |
+| 35 `extern cX* pX` global aliases (`pLevel_Manager` 62 uses, `pOverworld_Manager` 60, `pActive_Animation_Manager` 51, …) | 35 | 1 (owned by `cApplication`, application lifetime) | Leave as the documented migration stage. Passing context by reference is the end state, but it is out of scope here (thousands of call sites) |
 
-(Verdicts are first guesses from size and grep, **not** read-verified. Step 1 verifies each one.)
+## Per-manager outcome (agent's recommendation)
 
-## Plan
+| Today | Becomes | Why |
+|---|---|---|
+| `cObject_Manager<T>` | **deleted** | Inheritance used for storage, with a public owning vector |
+| `cSprite_Manager` | `cSprite_Store`: private `vector<unique_ptr<cSprite>>` + slot generations + draw order (`Move_To_Front/Back`) + deferred-destroy sweep; issues `SpriteHandle` | It has real invariants. The rename says what it guarantees |
+| `cWorld_Sprite_Manager` | folded into `cSprite_Store` (or one free function feeding the layer) | 44/56 lines; one extra side effect in `Add` |
+| `cImage_Manager` | `cTexture_Cache`: private `unordered_map<path, unique_ptr<cGL_Surface>>` + reload-on-context-loss | A real cache. Map lookup replaces the linear `Get_Pointer` scan (`reference/smc/video.md`) |
+| `cSound_Manager` | `cSound_Cache` (same shape), owned by `cAudio` | A cache by filename |
+| `cFont_Manager` | `cFont_Renderer` (or keep the name). No container change | It is TTF rendering behavior, not storage |
+| `cAnimation_Manager` | private `vector<unique_ptr<cAnimation>>` in its owners + two loops (`Update`, `Draw`) | A pure container |
+| `cBackground_Manager` | `vector<unique_ptr<cBackground>>` member of `cLevel` + load/save free functions | A pure container |
+| `cCampaign_Manager` | `vector<unique_ptr<cCampaign>>` + a `Load_Campaigns()` function | A pure container + loader |
+| `cHud_Manager` | inspect, likely `cHud` owning its sprites by composition | Layout behavior, not lifetime |
+| `cLevel_Manager`, `cOverworld_Manager` | keep as classes, un-derived, storage private (optionally `cLevel_Switcher`/`cWorld_Map`) | Game-state logic (active level/world, camera, switching) |
+| `cResource_Manager` | `cUser_Paths` (or keep). No container change | Path lookup; owns nothing |
 
-1. Read each manager and fill in the verdict column with a reason (what behavior, who calls it).
-2. **Un-derive first, mechanically:** for each kept manager, replace `: public cObject_Manager<T>`
-   with a private `std::vector<std::unique_ptr<T>>` member plus the few accessors callers need. This
-   removes the overloaded-virtual suppressions for that class. Let the compiler list the callers.
-3. **Then remove** the pure containers one at a time (animation, background, campaign, sound
-   cache): the owner holds the container directly, and loops become range-`for` or algorithms.
-4. Delete `cObject_Manager<T>` when nothing derives from it.
-5. After each step: gate + a play-test line (level load/teardown, overworld, editor, save/load).
-6. Update the reference doc's ownership section and `tasks/reference/smc/README.md` (its
-   ownership map names these classes).
+Each rename is mechanical and compiler-verified. Do it by type name only, in its own commit, and
+update `tasks/reference/smc/` in the same commit (the reference set names these classes).
 
-## Open questions
+## Plan (each phase its own commits; gate + play-test after each)
 
-1. Is the goal (a) **remove the pure-container managers and un-derive the rest**, keeping the
-   behavior-rich ones (`cSprite_Manager`, `cImage_Manager`, `cLevel_Manager`, `cOverworld_Manager`)
-   as classes, or (b) **remove every `*_Manager` class**, spreading their behavior into their owners
-   and free functions? *Recommend (a): (b) moves real logic into `cLevel`/`cVideo`/`cAudio` and
-   gains no safety, because ownership is already `unique_ptr`.*
-2. Rename the kept ones to say what they hold (`cSprite_Manager` → `cSpriteStore`, etc.)? *Recommend
-   no: the names appear in about 300 call sites and in the reference set, so a rename is churn
-   without safety value.*
+1. **Verify** the `cGL_Surface*` reload question and read each manager to confirm the outcome
+   table, amending it where reading contradicts the guess.
+2. **Un-derive:** every subclass holds a private container instead of inheriting from
+   `cObject_Manager<T>`. Callers that reached into `objects` get a borrow view or an algorithm.
+   Delete `cObject_Manager`, and drop the `-Woverloaded-virtual` suppressions this removes.
+3. **Pure containers → members:** animation, background, campaign.
+4. **Caches:** `cTexture_Cache`, `cSound_Cache` (`unordered_map`).
+5. **`cSprite_Store` + `SpriteHandle`:** generation per slot; convert the ~6 dangling-capable
+   members; remove the hand-nulling. Play-test: stomping/ground contact, editor selection and
+   clicking, item pickup.
+6. **Renames** (one commit per type) + reference-set update.
+7. Optional, opportunistic: never-null `T*` parameters → `T&`, only in files already being edited.
+8. Record the pass in `tasks/reference/refactoring-to-modern-cpp.md` (a "third pass" section).

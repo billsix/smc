@@ -1,6 +1,6 @@
 # Investigate and port the build system to CMake
 
-**Status:** proposed — needs go-ahead (William Emerison Six <billsix@gmail.com>, 2026-09-24)
+**Status:** proposed — build system and migration decided 2026-11-07; implementation awaits go-ahead (William Emerison Six <billsix@gmail.com>, 2026-09-24)
 **Priority:** 4 · **Difficulty:** 6
 
 ## BLUF
@@ -70,8 +70,9 @@ CI follow-ups have a modern, portable build to build on.
 - `tasks/smc-github-cicd.md` — GitHub CI driven by the Makefile.
 - `tasks/smc-port-to-modern-engine-or-gl33.md` — the bigger rendering/engine question.
 
-## Open questions
+## Decisions (William Emerison Six <billsix@gmail.com>, 2026-11-07)
 
-1. CMake-only, or keep autotools working in parallel during the transition? (My lean: port fully,
-   remove autotools once smoke-verified — parallel build systems rot.)
-2. CMake or Meson (comparison above)? *Recommend CMake, because of the vcpkg/Windows follow-up.*
+1. **Port fully; remove autotools once CMake works** (smoke-verified at parity), rather than
+   keeping the two build systems side by side.
+2. **CMake, not Meson.** The Windows/vcpkg and AppImage follow-ups depend on CMake, and TSC's CMake
+   build is reusable (comparison above).

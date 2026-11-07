@@ -136,6 +136,30 @@ Modernization is also knowing which "obvious" changes cost more than they return
   compile-time literal concatenation (`DATA_DIR "/" GAME_LEVEL_DIR`), which only works with macros —
   they must stay. Only a few int constants are safely convertible; low value.
 
+## What the ownership passes did NOT change: the borrow side and the manager classes
+
+Both passes fixed **who frees** (`unique_ptr` storage, `Add(std::unique_ptr<T>)`). They did not
+change the **`*_Manager` classes** themselves or the **stored borrows**, and both are deliberate
+next steps rather than oversights:
+
+- **Raw-pointer parameters are correct as they are.** C++ Core Guidelines `F.7`/`R.30`: a function
+  that only uses an object takes `T*`/`T&`. The ~300 raw `T*` parameters are borrows, not leftovers.
+- **Stored pointers are where lifetime bugs live.** Most (`m_sprite_manager`, `m_level`,
+  `m_overworld`, the `cGL_Surface*` images) point at an owner that outlives the holder, so they are
+  safe as raw pointers. About 6 sprite→sprite members (`m_ground_object`, `m_active_object`,
+  `m_last_clicked_object`, `m_obj`) can outlive their target. Today they are kept safe by
+  `m_auto_destroy` (deferred slot reuse) and hand-nulling. The planned fix is a generational
+  `SpriteHandle`.
+- **The managers mostly exist to hold a container.** `cObject_Manager<T>` gives 10 subclasses a
+  public owning vector through inheritance. The planned replacement is: pure containers become
+  private member containers, caches become `unordered_map`-backed classes named for what they
+  cache, and the base class is deleted.
+
+The general rule (four categories of stored borrow; when a container class earns its existence)
+is in the shared standard's section "Stored borrows and 'manager' classes"
+(github.com/billsix/runClaudeInContainer `tasks/reference/cpp-coding-standard.md`). The smc work
+plan is `tasks/smc-manager-classes-to-std-containers.md`.
+
 ## Verification status
 
 Everything above builds and links under C++23 and passes the headless smoke. The ownership and
