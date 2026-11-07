@@ -131,6 +131,13 @@ update `tasks/reference/smc/` in the same commit (the reference set names these 
     pit); the HUD shows points/time/lives/gold/item box; the overworld map loads and walks; the
     main menu's campaign and world lists fill; the save/load of a game in a level and on the
     overworld; the editor's object placement and deletion.
+- **Phase 3 done (pure containers):** backgrounds were already a `cLevel` member. `cAnimation_Manager`
+  stays a class (phase 1 finding). **`cCampaign_Manager` stays a class too**, which reverses the table's
+  "vector + `Load_Campaigns()`" guess. After phase 2 it is a private list, a loader that merges the user
+  and game campaign directories (marking user overrides), and a by-name lookup. It is also an
+  application singleton (`cOwned<cCampaign_Manager>` in `core/main.cpp`, alias `pCampaign_Manager`).
+  A bare vector would mean reworking the singleton plumbing for no lifetime gain. Its unused
+  `Delete_All` is gone; the destructor is `= default`.
 - **Pause lifted (William Emerison Six <billsix@gmail.com>, 2026-11-07):** "just go ahead, I'll try to
   play test it later." Each phase still passes the gcc/clang gate and smoke, and adds its items to the
   play-test list below; the maintainer plays the whole list once.

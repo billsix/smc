@@ -38,7 +38,7 @@ cCampaign::~cCampaign(void) = default;
 
 cCampaign_Manager::cCampaign_Manager(void) { Load(); }
 
-cCampaign_Manager::~cCampaign_Manager(void) { Delete_All(); }
+cCampaign_Manager::~cCampaign_Manager(void) = default;
 
 void cCampaign_Manager::Load(void) {
   std::string const user_dir =

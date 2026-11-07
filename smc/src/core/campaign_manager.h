@@ -59,8 +59,6 @@ class cCampaign_Manager {
   cCampaign* Add(std::unique_ptr<cCampaign> obj) {
     return m_objects.emplace_back(std::move(obj)).get();
   }
-  // Delete all objects
-  void Delete_All(void) { m_objects.clear(); }
 
   cCampaign_Manager(void);
   ~cCampaign_Manager(void);
