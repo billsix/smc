@@ -283,9 +283,6 @@ int main(int argc, char** argv) {
 namespace SMC {
 
 void Init_Game(void) {
-  // init random number generator
-  srand(static_cast<unsigned int>(time(nullptr)));
-
   // the application object owns all the singletons; the pX globals are borrowed aliases into it
   g_app = std::make_unique<cApplication>();
 

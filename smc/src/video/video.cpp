@@ -1672,7 +1672,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
                      float speed /* = 1 */) {
   if (effect == EFFECT_OUT_RANDOM) {
     effect =
-        static_cast<Effect_Fadeout>((rand() % (EFFECT_OUT_AMOUNT - 1)) + 1);
+        static_cast<Effect_Fadeout>((Random_Below(EFFECT_OUT_AMOUNT - 1)) + 1);
   }
 
   switch (effect) {
@@ -1701,7 +1701,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
       break;
     }
     case EFFECT_OUT_HORIZONTAL_VERTICAL: {
-      int const hor = (rand() % 2) - 1;
+      int const hor = (Random_Below(2)) - 1;
       float pos = 0;
       float pos_end = 0;
 
@@ -1853,7 +1853,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
       break;
     }
     case EFFECT_OUT_RANDOM_COLOR_BOOST: {
-      unsigned int const rand_color_num = static_cast<unsigned int>(rand() % 4);
+      unsigned int const rand_color_num = static_cast<unsigned int>(Random_Below(4));
 
       Color rand_color;
 
@@ -1936,7 +1936,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
           // find an unused rect
           while (grid[selected_tile_y][selected_tile_x] > 0.1f) {
             unsigned int const temp =
-                static_cast<unsigned int>(rand()) % tiles_num;
+                Random_Below(tiles_num);
 
             selected_tile_y = temp / tiles_num_hor;
             selected_tile_x = temp % tiles_num_hor;
@@ -2001,7 +2001,7 @@ void Draw_Effect_Out(Effect_Fadeout effect /* = EFFECT_OUT_RANDOM */,
     case EFFECT_OUT_FIXED_COLORBOX: {
       Color start_color;
 
-      const unsigned int rand_color = static_cast<unsigned int>(rand() % 2);
+      const unsigned int rand_color = static_cast<unsigned int>(Random_Below(2));
 
       // green
       if (rand_color == 0) {
@@ -2108,7 +2108,7 @@ void Draw_Effect_In(Effect_Fadein effect /* = EFFECT_IN_RANDOM */,
   pRenderer->Clear(true);
 
   if (effect == EFFECT_IN_RANDOM) {
-    effect = static_cast<Effect_Fadein>((rand() % (EFFECT_IN_AMOUNT - 1)) + 1);
+    effect = static_cast<Effect_Fadein>((Random_Below(EFFECT_IN_AMOUNT - 1)) + 1);
   }
 
   switch (effect) {

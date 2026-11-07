@@ -312,10 +312,10 @@ bool cMenuCore ::Key_Down(SDLKey key) {
       // get levels listbox
       CEGUI::Listbox* listbox_levels = static_cast<CEGUI::Listbox*>(
           CEGUI::WindowManager::getSingleton().getWindow("listbox_levels"));
-      // select random level (guard rand() % 0 on an empty list)
+      // select a random level (only when the list is not empty)
       if (listbox_levels->getItemCount() > 0) {
         listbox_levels->setItemSelectState(
-            static_cast<size_t>(rand()) % listbox_levels->getItemCount(), true);
+            Random_Below(listbox_levels->getItemCount()), true);
         // get level name
         lvl_name = listbox_levels->getFirstSelectedItem()->getText().c_str();
         menu_start->Load_Level(lvl_name);
@@ -325,10 +325,10 @@ bool cMenuCore ::Key_Down(SDLKey key) {
       // Get levels listbox
       CEGUI::Listbox* listbox_levels = static_cast<CEGUI::Listbox*>(
           CEGUI::WindowManager::getSingleton().getWindow("listbox_levels"));
-      // select random level (guard rand() % 0 on an empty list)
+      // select a random level (only when the list is not empty)
       if (listbox_levels->getItemCount() > 0) {
         listbox_levels->setItemSelectState(
-            static_cast<size_t>(rand()) % listbox_levels->getItemCount(), true);
+            Random_Below(listbox_levels->getItemCount()), true);
         // get level name
         lvl_name = listbox_levels->getFirstSelectedItem()->getText().c_str();
         static_cast<cMenu_Start*>(pMenuCore->m_menu_data.get())

@@ -307,7 +307,7 @@ void cGee ::Set_Moving_State(Moving_state new_state) {
     // set velocity
     if (m_start_direction == DIR_HORIZONTAL) {
       // randomize direction
-      if (rand() % 2 != 1) {
+      if (Random_Below(2) != 1) {
         m_direction = DIR_RIGHT;
         m_velx = m_speed_fly;
       } else {
@@ -320,7 +320,7 @@ void cGee ::Set_Moving_State(Moving_state new_state) {
       m_velx = 0.0f;
 
       // randomize direction
-      if (rand() % 2 != 1) {
+      if (Random_Below(2) != 1) {
         m_direction = DIR_DOWN;
         m_vely = m_speed_fly;
       } else {

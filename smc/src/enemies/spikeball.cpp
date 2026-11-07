@@ -307,7 +307,7 @@ void cSpikeball ::Update(void) {
       Set_Image_Num(8);
 
       // random direction
-      if ((rand() % 2) == 1) {
+      if ((Random_Below(2)) == 1) {
         // turn around
         m_direction = Get_Opposite_Direction(m_direction);
         Update_Rotation_Hor();

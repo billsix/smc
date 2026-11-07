@@ -241,13 +241,13 @@ void cEnemy ::Generate_Hit_Animation(
   anim->Set_Pos_Z(m_pos_z - 0.000001f);
   anim->Set_Time_to_Live(0.3f);
   Color const col_rand =
-      Color(static_cast<Uint8>(rand() % 5), static_cast<Uint8>(rand() % 5),
-            static_cast<Uint8>(rand() % 100), 0);
+      Color(static_cast<Uint8>(Random_Below(5)), static_cast<Uint8>(Random_Below(5)),
+            static_cast<Uint8>(Random_Below(100)), 0);
   // not bright enough
   /*if( col_rand.red + col_rand.green + col_rand.blue < 250 )
 	{
 		// boost a random color
-		unsigned int rand_color = ( rand() % 3 );
+		unsigned int rand_color = ( Random_Below(3) );
 
 		// yellow
 		if( rand_color == 0 )

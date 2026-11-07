@@ -803,16 +803,16 @@ void cParticle_Emitter ::Emit(void) {
     // Color
     particle->Set_Color(m_color);
     if (m_color_rand.red > 0) {
-      particle->m_color.red += rand() % m_color_rand.red;
+      particle->m_color.red += Random_Below(m_color_rand.red);
     }
     if (m_color_rand.green > 0) {
-      particle->m_color.green += rand() % m_color_rand.green;
+      particle->m_color.green += Random_Below(m_color_rand.green);
     }
     if (m_color_rand.blue > 0) {
-      particle->m_color.blue += rand() % m_color_rand.blue;
+      particle->m_color.blue += Random_Below(m_color_rand.blue);
     }
     if (m_color_rand.alpha > 0) {
-      particle->m_color.alpha += rand() % m_color_rand.alpha;
+      particle->m_color.alpha += Random_Below(m_color_rand.alpha);
     }
 
     // Time to life

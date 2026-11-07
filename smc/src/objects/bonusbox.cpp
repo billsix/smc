@@ -208,7 +208,7 @@ void cBonusBox ::Activate(void) {
 
   // random
   if (box_type == TYPE_POWERUP) {
-    int const r = rand() % 5;
+    int const r = Random_Below(5);
 
     if (r == 0) {
       box_type = TYPE_MUSHROOM_DEFAULT;

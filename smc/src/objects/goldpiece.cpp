@@ -362,7 +362,7 @@ cFGoldpiece ::cFGoldpiece(cSprite_Manager* sprite_manager,
   }
   // set a random direction
   else {
-    if (rand() % 2 != 1) {
+    if (Random_Below(2) != 1) {
       m_direction = DIR_LEFT;
     } else {
       m_direction = DIR_RIGHT;

@@ -3582,7 +3582,7 @@ void cMenu_Credits ::Update(void) {
           unsigned int quota = 4;
 
           // multi-explosion
-          if (rand() % 2) {
+          if (Random_Below(2)) {
             anim->Set_Image_Filename("animation/particles/fire_2.png");
             anim->Set_Emitter_Time_to_Live(0.4f);
             anim->Set_Emitter_Iteration_Interval(0.05f);
@@ -3594,7 +3594,7 @@ void cMenu_Credits ::Update(void) {
           }
           // star explosion
           else {
-            quota += static_cast<unsigned int>(rand() % 25);
+            quota += static_cast<unsigned int>(Random_Below(25));
             anim->Set_Image_Filename("animation/particles/fire_3.png");
             anim->Set_Direction_Range(0, 360);
             anim->Set_Scale(0.2f, 0.1f);
@@ -3610,8 +3610,8 @@ void cMenu_Credits ::Update(void) {
           }
 
           anim->Set_Quota(quota);
-          anim->Set_Color(Color(static_cast<Uint8>(100 + (rand() % 155)),
-                                100 + (rand() % 155), 100 + (rand() % 155)));
+          anim->Set_Color(Color(static_cast<Uint8>(100 + (Random_Below(155))),
+                                100 + (Random_Below(155)), 100 + (Random_Below(155))));
           anim->Set_Const_Rotation_Z(-5, 10);
           anim->Set_Vertical_Gravity(0.02f);
           anim->Set_Pos_Z(0.16f);

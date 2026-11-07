@@ -305,7 +305,7 @@ void cBall ::Generate_Particles(cParticle_Emitter* anim /* = nullptr */) const {
   anim->Set_Emitter_Rect(m_col_rect);
   anim->Set_Pos_Z(m_pos_z + 0.0001f);
   if (m_ball_type == FIREBALL_DEFAULT) {
-    unsigned int const rand_image = static_cast<unsigned int>(rand() % 3);
+    unsigned int const rand_image = static_cast<unsigned int>(Random_Below(3));
 
     if (rand_image == 0) {
       anim->Set_Image(pVideo->Get_Surface("animation/particles/fire_1.png"));
@@ -440,15 +440,15 @@ void cBall ::Handle_Collision_Enemy(cObjectCollision* collision) {
         if (m_ball_type == FIREBALL_DEFAULT) {
           anim_color = Color(static_cast<Uint8>(250), static_cast<Uint8>(170),
                              static_cast<Uint8>(150));
-          anim_color_rand = Color(static_cast<Uint8>(rand() % 5),
-                                  static_cast<Uint8>(rand() % 85),
-                                  static_cast<Uint8>(rand() % 25), 0);
+          anim_color_rand = Color(static_cast<Uint8>(Random_Below(5)),
+                                  static_cast<Uint8>(Random_Below(85)),
+                                  static_cast<Uint8>(Random_Below(25)), 0);
         } else {
           anim_color = Color(static_cast<Uint8>(150), static_cast<Uint8>(150),
                              static_cast<Uint8>(240));
-          anim_color_rand = Color(static_cast<Uint8>(rand() % 80),
-                                  static_cast<Uint8>(rand() % 80),
-                                  static_cast<Uint8>(rand() % 10), 0);
+          anim_color_rand = Color(static_cast<Uint8>(Random_Below(80)),
+                                  static_cast<Uint8>(Random_Below(80)),
+                                  static_cast<Uint8>(Random_Below(10)), 0);
         }
         anim->Set_Color(anim_color, anim_color_rand);
         anim->Emit();

@@ -3700,8 +3700,8 @@ void cLevel_Player ::Handle_Collision_Enemy(cObjectCollision* collision) {
     anim->Set_Color(
         Color(static_cast<Uint8>(160), static_cast<Uint8>(160),
               static_cast<Uint8>(240)),
-        Color(static_cast<Uint8>(rand() % 80), static_cast<Uint8>(rand() % 80),
-              static_cast<Uint8>(rand() % 10), 0));
+        Color(static_cast<Uint8>(Random_Below(80)), static_cast<Uint8>(Random_Below(80)),
+              static_cast<Uint8>(Random_Below(10)), 0));
     anim->Set_Fading_Alpha(true);
     anim->Set_Fading_Size(true);
     anim->Set_Speed(0.5f, 0.2f);
@@ -3830,9 +3830,9 @@ void cLevel_Player ::Handle_Collision_Massive(cObjectCollision* collision) {
           anim->Set_Color(
               Color(static_cast<Uint8>(150), static_cast<Uint8>(150),
                     static_cast<Uint8>(150), static_cast<Uint8>(200)),
-              Color(static_cast<Uint8>(rand() % 55),
-                    static_cast<Uint8>(rand() % 55),
-                    static_cast<Uint8>(rand() % 55), 0));
+              Color(static_cast<Uint8>(Random_Below(55)),
+                    static_cast<Uint8>(Random_Below(55)),
+                    static_cast<Uint8>(Random_Below(55)), 0));
           anim->Set_Speed(2, 0.6f);
           anim->Set_Scale(0.6f);
           anim->Set_Direction_Range(0, 180);
