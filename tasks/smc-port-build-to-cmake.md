@@ -36,7 +36,7 @@ Both can do this port. Differences that matter for smc:
   project (CMake `ExternalProject_Add`, Meson `external_project` module) or keep building it in
   `entrypoint/build.sh` and consume it via pkg-config (`CEGUI-OPENGL.pc`). The pkg-config route is
   the least work and is identical in both. **If smc moves to CEGUI 0.8.7** (see
-  `tasks/smc-vendor-newer-dependencies.md`), it comes from Fedora's `cegui-devel` and the question
+  `tasks/smc-cegui-0.8-port.md`, parked), it comes from Fedora's `cegui-devel` and the question
   disappears.
 - **CMake is what the follow-ups assume:** vcpkg (`tasks/smc-windows-msvc-vcpkg.md`) is CMake-first,
   and TSC, smc's successor fork, builds with CMake, so its build is reusable. Meson can consume
