@@ -1,5 +1,5 @@
 #!/bin/bash
-# The clang half of smc's -Werror warning gate (gcc is covered by `make image`).
+# smc's -Werror warning gate for one compiler (CXX, default clang++; gcc via CXX=g++).
 # Builds a scratch copy of the mounted smc/ tree with clang++ against the image's
 # CEGUI, never touching the mounted tree (which holds the host's in-tree build).
 #
@@ -19,6 +19,6 @@ find . \( -name '*.o' -o -name '.deps' -o -name 'config.status' -o -name 'config
 rm -f configure
 export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/local/lib64/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
 [ -x configure ] || ./autogen.sh
-CXX=clang++ ./configure --prefix="$work/install" >/dev/null || { tail -25 config.log; exit 1; }
+CXX="${CXX:-clang++}" ./configure --prefix="$work/install" >/dev/null || { tail -25 config.log; exit 1; }
 make -j"$(nproc)" >"$work/build.log" 2>&1 || { grep -E 'error|warning' "$work/build.log" | head -40; exit 1; }
-echo "clang -Werror build: OK ($(grep -c "warning:" "$work/build.log" || true) warnings)"
+echo "${CXX:-clang++} -Werror build: OK ($(grep -c "warning:" "$work/build.log" || true) warnings)"

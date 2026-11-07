@@ -15,12 +15,9 @@
 
 #include "../../core/filesystem/filesystem.h"
 #include "../../core/game_core.h"
-// C++17 filesystem (was boost::filesystem)
 #include <filesystem>
+#include <system_error>
 namespace fs = std::filesystem;
-// needed for the stat function and to get the user directory on unix
-#include <sys/stat.h>
-#include <sys/types.h>
 #if _WIN32
 // needed to get the user directory (SHGetFolderPath)
 #include <shlobj.h>
@@ -44,38 +41,41 @@ std::string Trim_Filename(std::string filename, bool keep_dir /* = 1 */,
 }
 
 bool File_Exists(const std::string& filename) {
-// fixme : boost should use a codecvt_facet but for now we convert to UCS-2
+// Windows paths are UTF-16: convert the UTF-8 name first.
 #ifdef _WIN32
   fs::file_type type = fs::status(fs::path(utf8_to_ucs2(filename))).type();
 #else
-  fs::file_type const type = fs::status(fs::path(filename)).type();
+  std::error_code ec;
+  fs::file_type const type = fs::status(fs::path(filename), ec).type();
 #endif
 
   return type == fs::file_type::regular || type == fs::file_type::symlink;
 }
 
 bool Dir_Exists(const std::string& dir) {
-// fixme : boost should use a codecvt_facet but for now we convert to UCS-2
+// Windows paths are UTF-16: convert the UTF-8 name first.
 #ifdef _WIN32
   fs::file_type type = fs::status(fs::path(utf8_to_ucs2(dir))).type();
 #else
-  fs::file_type const type = fs::status(fs::path(dir)).type();
+  std::error_code ec;
+  fs::file_type const type = fs::status(fs::path(dir), ec).type();
 #endif
 
   return type == fs::file_type::directory || type == fs::file_type::symlink;
 }
 
 bool Delete_File(const std::string& filename) {
-// fixme : boost should use a codecvt_facet but for now we convert to UCS-2
+// Windows paths are UTF-16: convert the UTF-8 name first.
 #ifdef _WIN32
   return DeleteFile(utf8_to_ucs2(filename).c_str()) != 0;
 #else
-  return remove(filename.c_str()) == 0;
+  std::error_code ec;
+  return fs::remove(fs::path(filename), ec);
 #endif
 }
 
 bool Delete_Dir_And_Content(const std::string& dir) {
-// fixme : boost should use a codecvt_facet but for now we convert to UCS-2
+// Windows paths are UTF-16: convert the UTF-8 name first.
 #ifdef _WIN32
   return fs::remove_all(fs::path(utf8_to_ucs2(dir).c_str())) > 0;
 #else
@@ -85,13 +85,15 @@ bool Delete_Dir_And_Content(const std::string& dir) {
 
 bool Rename_File(const std::string& old_filename,
                  const std::string& new_filename) {
-// fixme : boost should use a codecvt_facet but for now we convert to UCS-2
+// Windows paths are UTF-16: convert the UTF-8 name first.
 #ifdef _WIN32
   return MoveFileEx(utf8_to_ucs2(old_filename).c_str(),
                     utf8_to_ucs2(new_filename).c_str(),
                     MOVEFILE_REPLACE_EXISTING) != 0;
 #else
-  return rename(old_filename.c_str(), new_filename.c_str()) == 0;
+  std::error_code ec;
+  fs::rename(fs::path(old_filename), fs::path(new_filename), ec);
+  return !ec;
 #endif
 }
 
@@ -100,7 +102,7 @@ bool Create_Directory(const std::string& dir) {
     return false;
   }
 
-// fixme : boost should use a codecvt_facet but for now we convert to UCS-2
+// Windows paths are UTF-16: convert the UTF-8 name first.
 #ifdef _WIN32
   return CreateDirectory(utf8_to_ucs2(dir).c_str(), NULL) != 0;
 #else
@@ -109,7 +111,7 @@ bool Create_Directory(const std::string& dir) {
 }
 
 bool Create_Directories(const std::string& dir) {
-// fixme : boost should use a codecvt_facet but for now we convert to UCS-2
+// Windows paths are UTF-16: convert the UTF-8 name first.
 #ifdef _WIN32
   return fs::create_directories(fs::path(utf8_to_ucs2(dir).c_str()));
 #else
@@ -131,7 +133,7 @@ vector<std::string> Get_Directory_Files(
     bool with_directories /* = 0 */, bool search_in_sub_directories /* = 1 */) {
   vector<std::string> valid_files;
 
-// fixme : boost should use a codecvt_facet but for now we convert to UCS-2
+// Windows paths are UTF-16: convert the UTF-8 name first.
 #ifdef _WIN32
   fs::path full_path(utf8_to_ucs2(dir));
 #else
