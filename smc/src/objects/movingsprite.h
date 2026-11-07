@@ -303,7 +303,7 @@ class cMovingSprite : public cSprite {
   // can be on a ground object
   bool m_can_be_on_ground;
   // colliding ground object
-  cSprite* m_ground_object;
+  cSprite_Handle<> m_ground_object;
 
   /* the different states
 	 * look at the definitions

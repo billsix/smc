@@ -149,6 +149,35 @@ update `tasks/reference/smc/` in the same commit (the reference set names these 
   removes entries, and it clears both. Gates green; smoke green on the menu and with
   `SMC_ARGS="--level cave_1"`. **Play-test:** sounds and music play; a resolution change in the
   options menu, which reloads textures, keeps every image correct.
+- **Phase 5, stored sprite references → `cSprite_Handle` (done):** the six members that can outlive
+  their target are now `cSprite_Handle<T>` (`core/sprite_handle.{h,cpp}`): `cMovingSprite::m_ground_object`,
+  `cObjectCollision::m_obj`, `cSelectedObject::m_obj`, `cMouseCursor::m_active_object` and
+  `m_last_clicked_object`, and `cLevel_Player::m_active_object` (`<cMovingSprite>`).
+  `cCopyObject::m_obj` was not converted, because it already owns its clipboard sprite (`unique_ptr`).
+  - **Why not slot-index generations, as the plan said:** the sprite vector is reordered by
+    `Move_To_Front`/`Move_To_Back`, so a slot index does not stay with a sprite. These members also
+    point into several stores (level, overworld, menu) and at the two players, which no store owns. So
+    every `cSprite` holds a `cSprite_Serial` (a never-reused 64-bit serial number registered
+    serial → sprite in one registry for the sprite's lifetime), and a handle stores the serial. A
+    handle resolves to the sprite while it is allocated and to `nullptr` once it is freed, even if a new
+    sprite later reuses the address. While the target is alive it reads exactly like the old raw
+    pointer: implicit `T*` conversion and `->`, with an explicit `.Get()` only inside the 8 casts. So
+    behaviour changes only where the old code would have read freed memory.
+  - **Where that happens:** `cSprite_Manager::Add` reuses a destroyed sprite's slot, which frees the old
+    sprite, and level/overworld `Delete_All` frees sprites. Nothing nulled these members at free time,
+    so, for example, a sprite standing on a platform destroyed and then reused by a spawn read a freed
+    `m_ground_object`.
+  - **The hand-nulling stays:** every `= nullptr` site (mouse `Clear_Active_Object` and the editor-delete
+    path that drops the player's held object, the player's release/reset, `Reset_On_Ground`) is a
+    game-state rule applied at `Destroy()`. `Destroy()` does not free the sprite, so a handle would
+    not null it there; none of those sites only patched a lifetime.
+  - Cost, measured by temporary counters (reverted) over a 30 s `cave_1` run: about 8,000 handle
+    lookups per second, about 130 per frame, so the hash lookup is negligible.
+  - Gates green (gcc/clang `-Werror`, 0 warnings); smoke green on the menu and `cave_1`.
+  - **Play-test:** walking and jumping on moving platforms, and a platform or box disappearing under
+    Maryo; stomping enemies; carrying a turtle shell (`m_active_object`) and dying or finishing the level
+    while carrying it; in the editor, select/drag/click objects, delete the selected object, and delete
+    a shell the player is carrying.
 - **Pause lifted (William Emerison Six <billsix@gmail.com>, 2026-11-07):** "just go ahead, I'll try to
   play test it later." Each phase still passes the gcc/clang gate and smoke, and adds its items to the
   play-test list below; the maintainer plays the whole list once.

@@ -865,7 +865,7 @@ void cMovingSprite::Move_With_Ground(void) {
   }
 
   cMovingSprite* moving_ground_object =
-      dynamic_cast<cMovingSprite*>(m_ground_object);
+      dynamic_cast<cMovingSprite*>(m_ground_object.Get());
 
   // invalid moving sprite
   if (!moving_ground_object) {

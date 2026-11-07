@@ -20,6 +20,7 @@
 #include "../core/math/rect.h"
 #include "../video/video.h"
 #include "../core/collision.h"
+#include "../core/sprite_handle.h"
 #include <memory>
 // CEGUI
 #include "CEGUIXMLSerializer.h"
@@ -496,6 +497,8 @@ class cSprite : public cCollidingSprite {
 	 * should be used for not active spawned objects
 	*/
   bool m_auto_destroy;
+  // this sprite's never-reused serial number, which cSprite_Handle resolves through
+  cSprite_Serial m_serial{this};
   // shadow position
   float m_shadow_pos;
   // shadow color

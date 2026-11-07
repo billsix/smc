@@ -732,7 +732,7 @@ void cLevel_Player::Update_Staying(void) {
     // walk on spika
     if (m_ground_object->m_type == TYPE_SPIKA) {
       cMovingSprite const* moving_ground_object =
-          static_cast<cMovingSprite*>(m_ground_object);
+          static_cast<cMovingSprite*>(m_ground_object.Get());
 
       if (moving_ground_object->m_velx < 0.0f) {
         m_walk_count -=
@@ -1284,7 +1284,7 @@ void cLevel_Player::Update_Item(void) {
   if (m_active_object) {
     // collision with something or activated
     if (m_active_object->m_type == TYPE_TURTLE &&
-        static_cast<cTurtle*>(m_active_object)->m_dead) {
+        static_cast<cTurtle*>(m_active_object.Get())->m_dead) {
       Release_Item(false);
       return;
     }
@@ -1345,7 +1345,7 @@ void cLevel_Player::Update_Item(void) {
       // enemy item
       if (col->m_array == ARRAY_ENEMY) {
         if (col->m_obj->m_type == TYPE_TURTLE) {
-          cEnemy* enemy = static_cast<cEnemy*>(col->m_obj);
+          cEnemy* enemy = static_cast<cEnemy*>(col->m_obj.Get());
 
           if (enemy->m_state == STA_STAY) {
             Get_Item(TYPE_TURTLE, false, enemy);
@@ -1382,7 +1382,7 @@ void cLevel_Player::Release_Item(bool set_position /* = 1 */,
 
   // add back to level
   if (m_active_object->m_type == TYPE_TURTLE) {
-    cTurtle* turtle = static_cast<cTurtle*>(m_active_object);
+    cTurtle* turtle = static_cast<cTurtle*>(m_active_object.Get());
 
     // play kick sound if not dead
     if (!turtle->m_dead) {
@@ -1617,7 +1617,7 @@ void cLevel_Player::Set_Type(Maryo_type new_type, bool animation /* = 1 */,
 
     // check for ghost ground
     if (m_ground_object) {
-      cBaseBox const* box = dynamic_cast<cBaseBox*>(m_ground_object);
+      cBaseBox const* box = dynamic_cast<cBaseBox*>(m_ground_object.Get());
 
       if (box) {
         // ghost box
@@ -2885,7 +2885,7 @@ void cLevel_Player::Get_Item(SpriteType item_type, bool force /* = 0 */,
     m_active_object->m_velx = 0.0f;
     m_active_object->m_vely = 0.0f;
 
-    cTurtle* turtle = static_cast<cTurtle*>(m_active_object);
+    cTurtle* turtle = static_cast<cTurtle*>(m_active_object.Get());
     // clear the standing counter
     turtle->m_counter = 0.0f;
     // clear player counter

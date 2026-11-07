@@ -937,7 +937,7 @@ bool cEditor::Mouse_Up(Uint8 button) {
         // pre-update to keep particles on the correct position
         if (selected->m_obj->m_type == TYPE_PARTICLE_EMITTER) {
           cParticle_Emitter* emitter =
-              static_cast<cParticle_Emitter*>(selected->m_obj);
+              static_cast<cParticle_Emitter*>(selected->m_obj.Get());
           emitter->Pre_Update();
         }
       }

@@ -58,6 +58,7 @@ add_executable(smc
   src/core/math/utilities.cpp
   src/core/math/vector.cpp
   src/core/property_helper.cpp
+  src/core/sprite_handle.cpp
   src/core/sprite_manager.cpp
   src/enemies/bosses/turtle_boss.cpp
   src/enemies/eato.cpp

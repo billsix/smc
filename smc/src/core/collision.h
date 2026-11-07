@@ -21,6 +21,7 @@
 #include "../core/global_basic.h"
 #include "../core/global_game.h"
 #include "../core/owning_vector.h"
+#include "../core/sprite_handle.h"
 #include "../core/math/rect.h"
 #include "SDL.h"
 
@@ -49,7 +50,7 @@ class cObjectCollision {
   bool m_received;
 
   // the object colliding with (only use it in the same frame for now !)
-  cSprite* m_obj;
+  cSprite_Handle<> m_obj;
   // colliding object number
   int m_number;
 
