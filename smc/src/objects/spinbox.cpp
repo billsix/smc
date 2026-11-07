@@ -21,12 +21,12 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cSpinBox *** *** *** *** *** *** *** *** *** */
 
-cSpinBox::cSpinBox(cSprite_Manager* sprite_manager) : cBaseBox(sprite_manager) {
+cSpinBox::cSpinBox(cSprite_Store* sprite_manager) : cBaseBox(sprite_manager) {
   cSpinBox::Init();
 }
 
 cSpinBox::cSpinBox(CEGUI::XMLAttributes& attributes,
-                   cSprite_Manager* sprite_manager)
+                   cSprite_Store* sprite_manager)
     : cBaseBox(sprite_manager) {
   cSpinBox::Init();
   cSpinBox::Load_From_XML(attributes);

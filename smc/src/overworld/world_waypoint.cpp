@@ -34,13 +34,13 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cWaypoint *** *** *** *** *** *** *** *** *** */
 
-cWaypoint::cWaypoint(cSprite_Manager* sprite_manager)
+cWaypoint::cWaypoint(cSprite_Store* sprite_manager)
     : cSprite(sprite_manager, "waypoint") {
   cWaypoint::Init();
 }
 
 cWaypoint::cWaypoint(CEGUI::XMLAttributes& attributes,
-                     cSprite_Manager* sprite_manager)
+                     cSprite_Store* sprite_manager)
     : cSprite(sprite_manager, "waypoint") {
   cWaypoint::Init();
   cWaypoint::Load_From_XML(attributes);

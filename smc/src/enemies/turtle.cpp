@@ -34,12 +34,12 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cTurtle *** *** *** *** *** *** *** *** *** *** *** */
 
-cTurtle::cTurtle(cSprite_Manager* sprite_manager) : cEnemy(sprite_manager) {
+cTurtle::cTurtle(cSprite_Store* sprite_manager) : cEnemy(sprite_manager) {
   cTurtle::Init();
 }
 
 cTurtle::cTurtle(CEGUI::XMLAttributes& attributes,
-                 cSprite_Manager* sprite_manager)
+                 cSprite_Store* sprite_manager)
     : cEnemy(sprite_manager) {
   cTurtle::Init();
   cTurtle::Load_From_XML(attributes);

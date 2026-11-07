@@ -27,10 +27,9 @@ namespace SMC {
 class cStaticEnemy : public cEnemy {
  public:
   // constructor
-  cStaticEnemy(cSprite_Manager* sprite_manager);
+  cStaticEnemy(cSprite_Store* sprite_manager);
   // create from stream
-  cStaticEnemy(CEGUI::XMLAttributes& attributes,
-               cSprite_Manager* sprite_manager);
+  cStaticEnemy(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cStaticEnemy(void) override;
 
@@ -49,7 +48,7 @@ class cStaticEnemy : public cEnemy {
   void Save_To_XML(CEGUI::XMLSerializer& stream) override;
 
   // Set the parent sprite manager
-  void Set_Sprite_Manager(cSprite_Manager* sprite_manager) override;
+  void Set_Sprite_Manager(cSprite_Store* sprite_manager) override;
 
   // load from savegame
   void Load_From_Savegame(cSave_Level_Object* save_object) override;

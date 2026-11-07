@@ -31,7 +31,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** cEditor_Level *** *** *** *** *** *** *** *** *** *** */
 
-cEditor_Level::cEditor_Level(cSprite_Manager* sprite_manager, cLevel* level)
+cEditor_Level::cEditor_Level(cSprite_Store* sprite_manager, cLevel* level)
     : cEditor(sprite_manager), m_settings_screen(sprite_manager, level) {
   m_menu_filename = DATA_DIR "/" GAME_EDITOR_DIR "/level_menu.xml";
   m_items_filename = DATA_DIR "/" GAME_EDITOR_DIR "/level_items.xml";
@@ -192,7 +192,7 @@ void cEditor_Level::Set_Level(cLevel* level) {
   m_settings_screen.Set_Level(level);
 }
 
-void cEditor_Level::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
+void cEditor_Level::Set_Sprite_Manager(cSprite_Store* sprite_manager) {
   cEditor::Set_Sprite_Manager(sprite_manager);
   m_settings_screen.Set_Sprite_Manager(sprite_manager);
 }

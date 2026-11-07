@@ -432,7 +432,7 @@ class cSave_Level_Object;
 class cSaved_Texture;
 class cSize_Float;
 class cSize_Int;
-class cSprite_Manager;
+class cSprite_Store;
 class cSurface_Request;
 class cSprite;
 class Color;

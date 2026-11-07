@@ -28,9 +28,9 @@ namespace SMC {
 class cFurball : public cEnemy {
  public:
   // constructor
-  cFurball(cSprite_Manager* sprite_manager);
+  cFurball(cSprite_Store* sprite_manager);
   // create from stream
-  cFurball(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cFurball(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cFurball(void) override;
 

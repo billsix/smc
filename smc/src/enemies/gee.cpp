@@ -31,11 +31,11 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cGee *** *** *** *** *** *** *** *** *** *** *** */
 
-cGee::cGee(cSprite_Manager* sprite_manager) : cEnemy(sprite_manager) {
+cGee::cGee(cSprite_Store* sprite_manager) : cEnemy(sprite_manager) {
   cGee::Init();
 }
 
-cGee::cGee(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager)
+cGee::cGee(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager)
     : cEnemy(sprite_manager) {
   cGee::Init();
   cGee::Load_From_XML(attributes);

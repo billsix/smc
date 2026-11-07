@@ -27,9 +27,9 @@ namespace SMC {
 class cBonusBox : public cBaseBox {
  public:
   // constructor
-  cBonusBox(cSprite_Manager* sprite_manager);
+  cBonusBox(cSprite_Store* sprite_manager);
   // create from stream
-  cBonusBox(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cBonusBox(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cBonusBox(void) override;
 

@@ -25,7 +25,7 @@ namespace SMC {
 /* *** *** *** *** *** *** *** Level Settings *** *** *** *** *** *** *** *** *** *** */
 class cLevel_Settings {
  public:
-  cLevel_Settings(cSprite_Manager* sprite_manager, cLevel* level);
+  cLevel_Settings(cSprite_Store* sprite_manager, cLevel* level);
   ~cLevel_Settings(void);
 
   void Init(void);
@@ -47,7 +47,7 @@ class cLevel_Settings {
   // Set the parent level
   void Set_Level(cLevel* level);
   // Set the parent sprite manager
-  void Set_Sprite_Manager(cSprite_Manager* sprite_manager);
+  void Set_Sprite_Manager(cSprite_Store* sprite_manager);
 
   // Adds a Background image
   bool Add_Background_Image(const CEGUI::EventArgs& event);

@@ -1065,7 +1065,7 @@ void cLevel::elementEnd(const CEGUI::String& element) {
 
 std::unique_ptr<cSprite> Create_Level_Object_From_XML(
     const CEGUI::String& xml_element, CEGUI::XMLAttributes& attributes,
-    int engine_version, cSprite_Manager* sprite_manager) {
+    int engine_version, cSprite_Store* sprite_manager) {
   // element content could change
   CEGUI::String const element = xml_element;
 

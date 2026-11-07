@@ -26,12 +26,11 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cjStar *** *** *** *** *** *** *** *** *** *** *** */
 
-cjStar::cjStar(cSprite_Manager* sprite_manager) : cPowerUp(sprite_manager) {
+cjStar::cjStar(cSprite_Store* sprite_manager) : cPowerUp(sprite_manager) {
   cjStar::Init();
 }
 
-cjStar::cjStar(CEGUI::XMLAttributes& attributes,
-               cSprite_Manager* sprite_manager)
+cjStar::cjStar(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager)
     : cPowerUp(sprite_manager) {
   cjStar::Init();
   cjStar::Load_From_XML(attributes);

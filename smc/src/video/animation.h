@@ -34,7 +34,7 @@ enum BlendingMode {
 
 class cAnimation : public cAnimated_Sprite {
  public:
-  cAnimation(cSprite_Manager* sprite_manager, std::string type_name = "sprite");
+  cAnimation(cSprite_Store* sprite_manager, std::string type_name = "sprite");
   ~cAnimation(void) override;
 
   // initialize animation
@@ -67,7 +67,7 @@ class cAnimation : public cAnimated_Sprite {
 
 class cAnimation_Goldpiece : public cAnimation {
  public:
-  cAnimation_Goldpiece(cSprite_Manager* sprite_manager, float posx, float posy,
+  cAnimation_Goldpiece(cSprite_Store* sprite_manager, float posx, float posy,
                        float height = 40.0f, float width = 20.0f);
   ~cAnimation_Goldpiece(void) override;
 
@@ -84,7 +84,7 @@ class cAnimation_Goldpiece : public cAnimation {
 
 class cAnimation_Fireball_Item : public cAnimated_Sprite {
  public:
-  cAnimation_Fireball_Item(cSprite_Manager* sprite_manager)
+  cAnimation_Fireball_Item(cSprite_Store* sprite_manager)
       : cAnimated_Sprite(sprite_manager) {
     m_counter = 0.0f;
   }
@@ -97,7 +97,7 @@ class cAnimation_Fireball_Item : public cAnimated_Sprite {
 
 class cAnimation_Fireball : public cAnimation {
  public:
-  cAnimation_Fireball(cSprite_Manager* sprite_manager, float posx, float posy,
+  cAnimation_Fireball(cSprite_Store* sprite_manager, float posx, float posy,
                       unsigned int power = 5);
   ~cAnimation_Fireball(void) override;
 
@@ -158,10 +158,10 @@ enum ParticleClipMode {
 class cParticle_Emitter : public cAnimation {
  public:
   // constructor
-  cParticle_Emitter(cSprite_Manager* sprite_manager);
+  cParticle_Emitter(cSprite_Store* sprite_manager);
   // create from stream
   cParticle_Emitter(CEGUI::XMLAttributes& attributes,
-                    cSprite_Manager* sprite_manager);
+                    cSprite_Store* sprite_manager);
   // destructor
   ~cParticle_Emitter(void) override;
 

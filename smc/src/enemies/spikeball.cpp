@@ -30,13 +30,12 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cSpikeball *** *** *** *** *** *** *** *** *** *** *** */
 
-cSpikeball::cSpikeball(cSprite_Manager* sprite_manager)
-    : cEnemy(sprite_manager) {
+cSpikeball::cSpikeball(cSprite_Store* sprite_manager) : cEnemy(sprite_manager) {
   cSpikeball::Init();
 }
 
 cSpikeball::cSpikeball(CEGUI::XMLAttributes& attributes,
-                       cSprite_Manager* sprite_manager)
+                       cSprite_Store* sprite_manager)
     : cEnemy(sprite_manager) {
   cSpikeball::Init();
   cSpikeball::Load_From_XML(attributes);

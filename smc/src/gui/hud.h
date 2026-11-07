@@ -25,7 +25,7 @@ namespace SMC {
 
 class cHudSprite : public cSprite {
  public:
-  cHudSprite(cSprite_Manager* sprite_manager);
+  cHudSprite(cSprite_Store* sprite_manager);
   ~cHudSprite(void) override;
 
   // copy this sprite
@@ -43,7 +43,7 @@ class cHud_Manager {
   // Delete all objects
   void Delete_All(void) { m_objects.clear(); }
 
-  cHud_Manager(cSprite_Manager* sprite_manager);
+  cHud_Manager(cSprite_Store* sprite_manager);
   ~cHud_Manager(void);
 
   // Load the complete HUD
@@ -59,10 +59,10 @@ class cHud_Manager {
   void Draw(void);
 
   // Set the parent sprite manager
-  void Set_Sprite_Manager(cSprite_Manager* sprite_manager);
+  void Set_Sprite_Manager(cSprite_Store* sprite_manager);
 
   // the parent sprite manager
-  cSprite_Manager* m_sprite_manager;
+  cSprite_Store* m_sprite_manager;
 
   using HudSpriteList = vector<std::unique_ptr<cHudSprite>>;
 
@@ -82,7 +82,7 @@ extern cHud_Manager* pHud_Manager;
 
 struct PointsText : public cHudSprite {
  public:
-  PointsText(cSprite_Manager* sprite_manager);
+  PointsText(cSprite_Store* sprite_manager);
   ~PointsText(void) override;
 
   float m_vely;
@@ -93,7 +93,7 @@ struct PointsText : public cHudSprite {
 
 class cMenuBackground : public cHudSprite {
  public:
-  cMenuBackground(cSprite_Manager* sprite_manager);
+  cMenuBackground(cSprite_Store* sprite_manager);
   ~cMenuBackground(void) override;
 
   void Draw(cSurface_Request* request = nullptr) override;
@@ -109,7 +109,7 @@ class cMenuBackground : public cHudSprite {
 
 class cStatusText : public cHudSprite {
  public:
-  cStatusText(cSprite_Manager* sprite_manager);
+  cStatusText(cSprite_Store* sprite_manager);
   ~cStatusText(void) override;
 
   void Draw(cSurface_Request* request = nullptr) override;
@@ -119,7 +119,7 @@ class cStatusText : public cHudSprite {
 
 class cPlayerPoints : public cStatusText {
  public:
-  cPlayerPoints(cSprite_Manager* sprite_manager);
+  cPlayerPoints(cSprite_Store* sprite_manager);
   ~cPlayerPoints(void) override;
 
   void Set_Points(long points);
@@ -141,7 +141,7 @@ class cPlayerPoints : public cStatusText {
 
 class cGoldDisplay : public cStatusText {
  public:
-  cGoldDisplay(cSprite_Manager* sprite_manager);
+  cGoldDisplay(cSprite_Store* sprite_manager);
   ~cGoldDisplay(void) override;
 
   void Set_Gold(int gold);
@@ -154,7 +154,7 @@ class cGoldDisplay : public cStatusText {
 
 class cLiveDisplay : public cStatusText {
  public:
-  cLiveDisplay(cSprite_Manager* sprite_manager);
+  cLiveDisplay(cSprite_Store* sprite_manager);
   ~cLiveDisplay(void) override;
 
   void Set_Lives(int lives);
@@ -167,7 +167,7 @@ class cLiveDisplay : public cStatusText {
 
 class cTimeDisplay : public cStatusText {
  public:
-  cTimeDisplay(cSprite_Manager* sprite_manager);
+  cTimeDisplay(cSprite_Store* sprite_manager);
   ~cTimeDisplay(void) override;
 
   // update
@@ -190,11 +190,11 @@ class cTimeDisplay : public cStatusText {
 
 class cItemBox : public cStatusText {
  public:
-  cItemBox(cSprite_Manager* sprite_manager);
+  cItemBox(cSprite_Store* sprite_manager);
   ~cItemBox(void) override;
 
   // Set the parent sprite manager
-  void Set_Sprite_Manager(cSprite_Manager* sprite_manager) override;
+  void Set_Sprite_Manager(cSprite_Store* sprite_manager) override;
 
   // update
   void Update(void) override;
@@ -233,7 +233,7 @@ class cItemBox : public cStatusText {
 
 class cDebugDisplay : public cStatusText {
  public:
-  cDebugDisplay(cSprite_Manager* sprite_manager);
+  cDebugDisplay(cSprite_Store* sprite_manager);
   ~cDebugDisplay(void) override;
 
   // update

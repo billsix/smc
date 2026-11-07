@@ -64,7 +64,7 @@ using CopyObjectList = vector<std::unique_ptr<cCopyObject>>;
 
 class cMouseCursor : public cMovingSprite {
  public:
-  cMouseCursor(cSprite_Manager* sprite_manager);
+  cMouseCursor(cSprite_Store* sprite_manager);
   ~cMouseCursor(void) override;
 
   // un-hide the base's 0-arg Copy(void) const, hidden by this class's

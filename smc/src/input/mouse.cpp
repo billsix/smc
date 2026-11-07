@@ -57,7 +57,7 @@ cCopyObject::~cCopyObject(void) = default;
 
 /* *** *** *** *** *** cMouseCursor *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cMouseCursor::cMouseCursor(cSprite_Manager* sprite_manager)
+cMouseCursor::cMouseCursor(cSprite_Store* sprite_manager)
     : cMovingSprite(sprite_manager) {
   m_type = TYPE_MOUSECURSOR;
 

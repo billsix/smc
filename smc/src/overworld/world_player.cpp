@@ -27,7 +27,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cOverworld_Player *** *** *** *** *** *** *** *** *** */
 
-cOverworld_Player::cOverworld_Player(cSprite_Manager* sprite_manager,
+cOverworld_Player::cOverworld_Player(cSprite_Store* sprite_manager,
                                      cOverworld* overworld)
     : cAnimated_Sprite(sprite_manager),
       m_debug_current_waypoint(sprite_manager),

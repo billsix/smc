@@ -36,12 +36,12 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cThromp *** *** *** *** *** *** *** *** *** *** *** */
 
-cThromp::cThromp(cSprite_Manager* sprite_manager) : cEnemy(sprite_manager) {
+cThromp::cThromp(cSprite_Store* sprite_manager) : cEnemy(sprite_manager) {
   cThromp::Init();
 }
 
 cThromp::cThromp(CEGUI::XMLAttributes& attributes,
-                 cSprite_Manager* sprite_manager)
+                 cSprite_Store* sprite_manager)
     : cEnemy(sprite_manager) {
   cThromp::Init();
   cThromp::Load_From_XML(attributes);

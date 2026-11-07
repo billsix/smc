@@ -34,12 +34,11 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cFlyon *** *** *** *** *** *** *** *** *** *** *** */
 
-cFlyon::cFlyon(cSprite_Manager* sprite_manager) : cEnemy(sprite_manager) {
+cFlyon::cFlyon(cSprite_Store* sprite_manager) : cEnemy(sprite_manager) {
   cFlyon::Init();
 }
 
-cFlyon::cFlyon(CEGUI::XMLAttributes& attributes,
-               cSprite_Manager* sprite_manager)
+cFlyon::cFlyon(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager)
     : cEnemy(sprite_manager) {
   cFlyon::Init();
   cFlyon::Load_From_XML(attributes);

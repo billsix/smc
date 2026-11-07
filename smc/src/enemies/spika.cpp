@@ -29,12 +29,11 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cSpika *** *** *** *** *** *** *** *** *** *** *** */
 
-cSpika::cSpika(cSprite_Manager* sprite_manager) : cEnemy(sprite_manager) {
+cSpika::cSpika(cSprite_Store* sprite_manager) : cEnemy(sprite_manager) {
   cSpika::Init();
 }
 
-cSpika::cSpika(CEGUI::XMLAttributes& attributes,
-               cSprite_Manager* sprite_manager)
+cSpika::cSpika(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager)
     : cEnemy(sprite_manager) {
   cSpika::Init();
   cSpika::Load_From_XML(attributes);

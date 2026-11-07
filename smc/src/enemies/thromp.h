@@ -26,9 +26,9 @@ namespace SMC {
 class cThromp : public cEnemy {
  public:
   // constructor
-  cThromp(cSprite_Manager* sprite_manager);
+  cThromp(cSprite_Store* sprite_manager);
   // create from stream
-  cThromp(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cThromp(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cThromp(void) override;
 

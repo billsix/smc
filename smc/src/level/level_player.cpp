@@ -50,7 +50,7 @@ const float cLevel_Player::m_default_pos_y = -300.0f;
 
 /* *** *** *** *** *** *** *** *** cLevel_Player *** *** *** *** *** *** *** *** *** */
 
-cLevel_Player::cLevel_Player(cSprite_Manager* sprite_manager)
+cLevel_Player::cLevel_Player(cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager) {
   m_sprite_array = ARRAY_PLAYER;
   m_type = TYPE_PLAYER;

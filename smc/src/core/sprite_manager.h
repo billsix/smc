@@ -23,9 +23,9 @@
 
 namespace SMC {
 
-/* *** *** *** *** *** cSprite_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** cSprite_Store *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cSprite_Manager {
+class cSprite_Store {
  public:
   // The owned objects, borrowed (cSprite* each), for range-for
   auto Objects(void) const { return Borrowed(m_objects); }
@@ -39,9 +39,9 @@ class cSprite_Manager {
   }
   size_t size(void) const { return m_objects.size(); }
 
-  cSprite_Manager(unsigned int reserve_items = 2000,
-                  unsigned int zpos_items = 100);
-  ~cSprite_Manager(void);
+  cSprite_Store(unsigned int reserve_items = 2000,
+                unsigned int zpos_items = 100);
+  ~cSprite_Store(void);
 
   /* Add a sprite (takes ownership; returns the borrowed pointer)
 	 */

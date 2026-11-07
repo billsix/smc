@@ -36,13 +36,13 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLevel_Entry::cLevel_Entry(cSprite_Manager* sprite_manager)
+cLevel_Entry::cLevel_Entry(cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "level_entry") {
   cLevel_Entry::Init();
 }
 
 cLevel_Entry::cLevel_Entry(CEGUI::XMLAttributes& attributes,
-                           cSprite_Manager* sprite_manager)
+                           cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "level_entry") {
   cLevel_Entry::Init();
   cLevel_Entry::Load_From_XML(attributes);

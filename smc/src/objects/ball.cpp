@@ -30,12 +30,12 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cBall *** *** *** *** *** *** *** *** *** *** *** */
 
-cBall::cBall(cSprite_Manager* sprite_manager)
+cBall::cBall(cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "ball") {
   cBall::Init();
 }
 
-cBall::cBall(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager)
+cBall::cBall(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "ball") {
   cBall::Init();
   cBall::Load_From_XML(attributes);

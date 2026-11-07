@@ -35,13 +35,12 @@ namespace SMC {
 static unsigned int text_box_window_width = 300;
 static unsigned int text_box_window_height = 200;
 
-cText_Box::cText_Box(cSprite_Manager* sprite_manager)
-    : cBaseBox(sprite_manager) {
+cText_Box::cText_Box(cSprite_Store* sprite_manager) : cBaseBox(sprite_manager) {
   cText_Box::Init();
 }
 
 cText_Box::cText_Box(CEGUI::XMLAttributes& attributes,
-                     cSprite_Manager* sprite_manager)
+                     cSprite_Store* sprite_manager)
     : cBaseBox(sprite_manager) {
   cText_Box::Init();
   cText_Box::Load_From_XML(attributes);

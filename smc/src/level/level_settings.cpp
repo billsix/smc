@@ -41,7 +41,7 @@ namespace SMC {
 
 /* *** *** *** *** *** cLevel_Settings *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLevel_Settings::cLevel_Settings(cSprite_Manager* sprite_manager, cLevel* level)
+cLevel_Settings::cLevel_Settings(cSprite_Store* sprite_manager, cLevel* level)
     : m_camera(sprite_manager) {
   m_active = false;
 
@@ -434,7 +434,7 @@ bool cLevel_Settings::Key_Down(SDLKey key) {
 
 void cLevel_Settings::Set_Level(cLevel* level) { m_level = level; }
 
-void cLevel_Settings::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
+void cLevel_Settings::Set_Sprite_Manager(cSprite_Store* sprite_manager) {
   m_camera.Set_Sprite_Manager(sprite_manager);
 }
 

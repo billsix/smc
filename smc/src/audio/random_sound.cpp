@@ -31,14 +31,14 @@ namespace SMC {
 
 /* *** *** *** *** *** cRandom_Sound *** *** *** *** *** *** *** *** *** *** *** */
 
-cRandom_Sound::cRandom_Sound(cSprite_Manager* sprite_manager)
+cRandom_Sound::cRandom_Sound(cSprite_Store* sprite_manager)
     : cSprite(sprite_manager, "sound") {
   // Set defaults
   cRandom_Sound::Init();
 }
 
 cRandom_Sound::cRandom_Sound(CEGUI::XMLAttributes& attributes,
-                             cSprite_Manager* sprite_manager)
+                             cSprite_Store* sprite_manager)
     : cSprite(sprite_manager, "sound") {
   cRandom_Sound::Init();
   cRandom_Sound::Load_From_XML(attributes);

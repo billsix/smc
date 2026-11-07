@@ -26,9 +26,9 @@ namespace SMC {
 class cText_Box : public cBaseBox {
  public:
   // constructor
-  cText_Box(cSprite_Manager* sprite_manager);
+  cText_Box(cSprite_Store* sprite_manager);
   // create from stream
-  cText_Box(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cText_Box(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cText_Box(void) override;
 

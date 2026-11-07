@@ -31,14 +31,14 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** cMovingSprite *** *** *** *** *** *** *** *** *** *** */
 
-cMovingSprite::cMovingSprite(cSprite_Manager* sprite_manager,
+cMovingSprite::cMovingSprite(cSprite_Store* sprite_manager,
                              std::string type_name /* = "sprite" */)
     : cSprite(sprite_manager, type_name) {
   cMovingSprite::Init();
 }
 
 cMovingSprite::cMovingSprite(CEGUI::XMLAttributes& attributes,
-                             cSprite_Manager* sprite_manager,
+                             cSprite_Store* sprite_manager,
                              std::string type_name /* = "sprite" */)
     : cSprite(sprite_manager, type_name) {
   cMovingSprite::Init();

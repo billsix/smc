@@ -31,11 +31,11 @@ namespace SMC {
 
 class cCollidingSprite {
  public:
-  cCollidingSprite(cSprite_Manager* sprite_manager);
+  cCollidingSprite(cSprite_Store* sprite_manager);
   virtual ~cCollidingSprite(void);
 
   // Set the parent sprite manager
-  virtual void Set_Sprite_Manager(cSprite_Manager* sprite_manager);
+  virtual void Set_Sprite_Manager(cSprite_Store* sprite_manager);
 
   // Handle collision data
   void Handle_Collisions(void);
@@ -97,7 +97,7 @@ class cCollidingSprite {
   virtual void Handle_Collision_Box(ObjectDirection cdirection, GL_rect* r2) {};
 
   // the parent sprite manager
-  cSprite_Manager* m_sprite_manager;
+  cSprite_Store* m_sprite_manager;
   // object collision list
   cObjectCollision_List m_collisions;
 };
@@ -107,10 +107,10 @@ class cCollidingSprite {
 class cSprite : public cCollidingSprite {
  public:
   // constructor
-  cSprite(cSprite_Manager* sprite_manager,
+  cSprite(cSprite_Store* sprite_manager,
           const std::string type_name = "sprite");
   // create from stream
-  cSprite(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager,
+  cSprite(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager,
           const std::string type_name = "sprite");
   // destructor
   ~cSprite(void) override;

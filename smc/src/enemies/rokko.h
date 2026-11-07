@@ -26,9 +26,9 @@ namespace SMC {
 class cRokko : public cEnemy {
  public:
   // constructor
-  cRokko(cSprite_Manager* sprite_manager);
+  cRokko(cSprite_Store* sprite_manager);
   // create from stream
-  cRokko(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cRokko(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cRokko(void) override;
 

@@ -28,7 +28,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cOverworld_Manager *** *** *** *** *** *** *** *** *** */
 
-cOverworld_Manager::cOverworld_Manager(cSprite_Manager* sprite_manager)
+cOverworld_Manager::cOverworld_Manager(cSprite_Store* sprite_manager)
     : m_camera(sprite_manager) {
   m_debug_mode = false;
   m_draw_layer = false;

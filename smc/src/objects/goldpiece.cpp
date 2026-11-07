@@ -28,13 +28,13 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cGoldpiece *** *** *** *** *** *** *** *** *** *** *** */
 
-cGoldpiece::cGoldpiece(cSprite_Manager* sprite_manager)
+cGoldpiece::cGoldpiece(cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "item") {
   cGoldpiece::Init();
 }
 
 cGoldpiece::cGoldpiece(CEGUI::XMLAttributes& attributes,
-                       cSprite_Manager* sprite_manager)
+                       cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "item") {
   cGoldpiece::Init();
   cGoldpiece::Load_From_XML(attributes);
@@ -311,7 +311,7 @@ void cGoldpiece::Handle_Collision_Player(cObjectCollision* collision) {
 
 /* *** *** *** *** *** *** cJGoldpiecee *** *** *** *** *** *** *** *** *** *** *** */
 
-cJGoldpiece::cJGoldpiece(cSprite_Manager* sprite_manager)
+cJGoldpiece::cJGoldpiece(cSprite_Store* sprite_manager)
     : cGoldpiece(sprite_manager) {
   m_type = TYPE_JUMPING_GOLDPIECE;
   Set_Spawned(true);
@@ -348,7 +348,7 @@ Col_Valid_Type cJGoldpiece::Validate_Collision(cSprite* obj) {
 
 /* *** *** *** *** *** *** cFGoldpiecee *** *** *** *** *** *** *** *** *** *** *** */
 
-cFGoldpiece::cFGoldpiece(cSprite_Manager* sprite_manager,
+cFGoldpiece::cFGoldpiece(cSprite_Store* sprite_manager,
                          ObjectDirection dir /* = DIR_NOTHING */)
     : cGoldpiece(sprite_manager) {
   m_type = TYPE_FALLING_GOLDPIECE;

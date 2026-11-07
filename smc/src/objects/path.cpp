@@ -34,7 +34,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** Path state class *** *** *** *** *** *** *** *** *** *** */
 
-cPath_State::cPath_State(cSprite_Manager* sprite_manager) {
+cPath_State::cPath_State(cSprite_Store* sprite_manager) {
   m_sprite_manager = sprite_manager;
   m_path = nullptr;
   m_forward = true;
@@ -92,7 +92,7 @@ void cPath_State::Save_To_Savegame(cSave_Level_Object* save_object) {
       "forward", int_to_string(static_cast<int>(m_forward)));
 }
 
-void cPath_State::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
+void cPath_State::Set_Sprite_Manager(cSprite_Store* sprite_manager) {
   m_sprite_manager = sprite_manager;
 }
 
@@ -385,13 +385,12 @@ void cPath_Segment::Update(void) {
 
 /* *** *** *** *** *** *** *** Path class *** *** *** *** *** *** *** *** *** *** */
 
-cPath::cPath(cSprite_Manager* sprite_manager)
-    : cSprite(sprite_manager, "path") {
+cPath::cPath(cSprite_Store* sprite_manager) : cSprite(sprite_manager, "path") {
   // Set defaults
   cPath::Init();
 }
 
-cPath::cPath(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager)
+cPath::cPath(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager)
     : cSprite(sprite_manager, "path") {
   cPath::Init();
   cPath::Load_From_XML(attributes);

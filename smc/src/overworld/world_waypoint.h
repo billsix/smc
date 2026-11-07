@@ -34,9 +34,9 @@ enum Waypoint_type {
 class cWaypoint : public cSprite {
  public:
   // constructor
-  cWaypoint(cSprite_Manager* sprite_manager);
+  cWaypoint(cSprite_Store* sprite_manager);
   // create from stream
-  cWaypoint(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cWaypoint(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cWaypoint(void) override;
 

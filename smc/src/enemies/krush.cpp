@@ -32,12 +32,11 @@ namespace SMC {
 
 /* *** *** *** *** *** cKrush *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cKrush::cKrush(cSprite_Manager* sprite_manager) : cEnemy(sprite_manager) {
+cKrush::cKrush(cSprite_Store* sprite_manager) : cEnemy(sprite_manager) {
   cKrush::Init();
 }
 
-cKrush::cKrush(CEGUI::XMLAttributes& attributes,
-               cSprite_Manager* sprite_manager)
+cKrush::cKrush(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager)
     : cEnemy(sprite_manager) {
   cKrush::Init();
   cKrush::Load_From_XML(attributes);

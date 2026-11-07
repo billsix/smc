@@ -39,10 +39,9 @@ enum BackgroundType {
 class cBackground {
  public:
   // default constructor
-  cBackground(cSprite_Manager* sprite_manager);
+  cBackground(cSprite_Store* sprite_manager);
   // create from stream
-  cBackground(CEGUI::XMLAttributes& attributes,
-              cSprite_Manager* sprite_manager);
+  cBackground(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cBackground(void);
 
@@ -55,7 +54,7 @@ class cBackground {
   void Save_To_XML(CEGUI::XMLSerializer& stream);
 
   // Set the parent sprite manager
-  void Set_Sprite_Manager(cSprite_Manager* sprite_manager);
+  void Set_Sprite_Manager(cSprite_Store* sprite_manager);
   // Sets the type of Background
   void Set_Type(const BackgroundType type);
   void Set_Type(const std::string& type);
@@ -90,7 +89,7 @@ class cBackground {
   static std::string Get_Type_Name(const BackgroundType type);
 
   // the parent sprite manager
-  cSprite_Manager* m_sprite_manager;
+  cSprite_Store* m_sprite_manager;
   // type
   BackgroundType m_type;
   // position

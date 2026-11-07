@@ -29,7 +29,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cLayer_Line_Point *** *** *** *** *** *** *** *** *** */
 
-cLayer_Line_Point::cLayer_Line_Point(cSprite_Manager* sprite_manager,
+cLayer_Line_Point::cLayer_Line_Point(cSprite_Store* sprite_manager,
                                      cOverworld* overworld, SpriteType new_type)
     : cSprite(sprite_manager) {
   m_sprite_array = ARRAY_PASSIVE;
@@ -108,14 +108,14 @@ float cLayer_Line_Point::Get_Line_Pos_Y(void) const {
 
 /* *** *** *** *** *** *** *** *** cLayer_Line_Point_Start *** *** *** *** *** *** *** *** *** */
 
-cLayer_Line_Point_Start::cLayer_Line_Point_Start(
-    cSprite_Manager* sprite_manager, cOverworld* overworld)
+cLayer_Line_Point_Start::cLayer_Line_Point_Start(cSprite_Store* sprite_manager,
+                                                 cOverworld* overworld)
     : cLayer_Line_Point(sprite_manager, overworld, TYPE_OW_LINE_START) {
   cLayer_Line_Point_Start::Init();
 }
 
 cLayer_Line_Point_Start::cLayer_Line_Point_Start(
-    CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager,
+    CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager,
     cOverworld* overworld)
     : cLayer_Line_Point(sprite_manager, overworld, TYPE_OW_LINE_START) {
   cLayer_Line_Point_Start::Init();
@@ -169,7 +169,7 @@ void cLayer_Line_Point_Start::Load_From_XML(CEGUI::XMLAttributes& attributes) {
 }
 
 void cLayer_Line_Point_Start::Set_Sprite_Manager(
-    cSprite_Manager* sprite_manager) {
+    cSprite_Store* sprite_manager) {
   cSprite::Set_Sprite_Manager(sprite_manager);
 
   if (m_linked_point) {

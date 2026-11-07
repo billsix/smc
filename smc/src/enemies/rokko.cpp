@@ -33,12 +33,11 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cRokko *** *** *** *** *** *** *** *** *** *** *** */
 
-cRokko::cRokko(cSprite_Manager* sprite_manager) : cEnemy(sprite_manager) {
+cRokko::cRokko(cSprite_Store* sprite_manager) : cEnemy(sprite_manager) {
   cRokko::Init();
 }
 
-cRokko::cRokko(CEGUI::XMLAttributes& attributes,
-               cSprite_Manager* sprite_manager)
+cRokko::cRokko(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager)
     : cEnemy(sprite_manager) {
   cRokko::Init();
   cRokko::Load_From_XML(attributes);

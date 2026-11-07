@@ -28,9 +28,9 @@ namespace SMC {
 class cSpika : public cEnemy {
  public:
   // constructor
-  cSpika(cSprite_Manager* sprite_manager);
+  cSpika(cSprite_Store* sprite_manager);
   // create from stream
-  cSpika(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cSpika(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cSpika(void) override;
 

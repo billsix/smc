@@ -31,7 +31,7 @@ namespace SMC {
 
 const GL_rect cCamera::m_default_limits = GL_rect(0, 0, 20000, -4000);
 
-cCamera::cCamera(cSprite_Manager* sprite_manager) {
+cCamera::cCamera(cSprite_Store* sprite_manager) {
   m_sprite_manager = sprite_manager;
   m_x = 0.0f;
   m_y = -game_res_h;
@@ -49,7 +49,7 @@ cCamera::cCamera(cSprite_Manager* sprite_manager) {
 
 cCamera::~cCamera(void) = default;
 
-void cCamera::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
+void cCamera::Set_Sprite_Manager(cSprite_Store* sprite_manager) {
   m_sprite_manager = sprite_manager;
 }
 

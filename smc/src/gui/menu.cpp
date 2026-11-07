@@ -36,7 +36,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cMenu_Item::cMenu_Item(cSprite_Manager* sprite_manager)
+cMenu_Item::cMenu_Item(cSprite_Store* sprite_manager)
     : cHudSprite(sprite_manager),
       m_image_default(sprite_manager),
       m_image_menu(sprite_manager) {

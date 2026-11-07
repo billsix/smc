@@ -37,10 +37,9 @@ enum Level_Entry_type {
 class cLevel_Entry : public cAnimated_Sprite {
  public:
   // constructor
-  cLevel_Entry(cSprite_Manager* sprite_manager);
+  cLevel_Entry(cSprite_Store* sprite_manager);
   // create from stream
-  cLevel_Entry(CEGUI::XMLAttributes& attributes,
-               cSprite_Manager* sprite_manager);
+  cLevel_Entry(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cLevel_Entry(void) override;
 

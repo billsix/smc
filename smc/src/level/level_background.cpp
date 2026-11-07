@@ -23,13 +23,13 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** cBackground *** *** *** *** *** *** *** *** *** *** */
 
-cBackground::cBackground(cSprite_Manager* sprite_manager) {
+cBackground::cBackground(cSprite_Store* sprite_manager) {
   cBackground::Init();
   cBackground::Set_Sprite_Manager(sprite_manager);
 }
 
 cBackground::cBackground(CEGUI::XMLAttributes& attributes,
-                         cSprite_Manager* sprite_manager) {
+                         cSprite_Store* sprite_manager) {
   cBackground::Init();
   cBackground::Set_Sprite_Manager(sprite_manager);
   cBackground::Load_From_XML(attributes);
@@ -134,7 +134,7 @@ void cBackground::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cBackground::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
+void cBackground::Set_Sprite_Manager(cSprite_Store* sprite_manager) {
   m_sprite_manager = sprite_manager;
 }
 

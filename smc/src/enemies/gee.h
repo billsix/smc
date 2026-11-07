@@ -26,9 +26,9 @@ namespace SMC {
 class cGee : public cEnemy {
  public:
   // constructor
-  cGee(cSprite_Manager* sprite_manager);
+  cGee(cSprite_Store* sprite_manager);
   // create from stream
-  cGee(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cGee(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cGee(void) override;
 

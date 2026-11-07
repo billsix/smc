@@ -33,7 +33,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** cHudSprite *** *** *** *** *** *** *** *** *** *** */
 
-cHudSprite::cHudSprite(cSprite_Manager* sprite_manager)
+cHudSprite::cHudSprite(cSprite_Store* sprite_manager)
     : cSprite(sprite_manager) {
   m_camera_range = 0;
   m_pos_z = 0.13f;
@@ -58,7 +58,7 @@ std::unique_ptr<cSprite> cHudSprite::Copy(void) const {
 
 /* *** *** *** *** *** *** *** cHud_Manager *** *** *** *** *** *** *** *** *** *** */
 
-cHud_Manager::cHud_Manager(cSprite_Manager* sprite_manager) {
+cHud_Manager::cHud_Manager(cSprite_Store* sprite_manager) {
   m_sprite_manager = sprite_manager;
   m_loaded = false;
 }
@@ -196,7 +196,7 @@ void cHud_Manager::Draw(void) {
   }
 }
 
-void cHud_Manager::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
+void cHud_Manager::Set_Sprite_Manager(cSprite_Store* sprite_manager) {
   m_sprite_manager = sprite_manager;
 
   // update HUD objects
@@ -211,7 +211,7 @@ cHud_Manager* pHud_Manager = nullptr;
 
 /* *** *** *** *** *** *** PointsText *** *** *** *** *** *** *** *** *** *** *** */
 
-PointsText::PointsText(cSprite_Manager* sprite_manager)
+PointsText::PointsText(cSprite_Store* sprite_manager)
     : cHudSprite(sprite_manager) {
   m_points = 0;
   m_vely = 0.0f;
@@ -223,7 +223,7 @@ PointsText::~PointsText(void) {
 
 /* *** *** *** *** *** *** cMenuBackground *** *** *** *** *** *** *** *** *** *** *** */
 
-cMenuBackground::cMenuBackground(cSprite_Manager* sprite_manager)
+cMenuBackground::cMenuBackground(cSprite_Store* sprite_manager)
     : cHudSprite(sprite_manager) {
   m_type = TYPE_HUD_BACKGROUND;
   m_sprite_array = ARRAY_HUD;
@@ -265,7 +265,7 @@ void cMenuBackground::Draw(cSurface_Request* request /* = nullptr */) {
 
 /* *** *** *** *** *** *** cStatusText *** *** *** *** *** *** *** *** *** *** *** */
 
-cStatusText::cStatusText(cSprite_Manager* sprite_manager)
+cStatusText::cStatusText(cSprite_Store* sprite_manager)
     : cHudSprite(sprite_manager) {
   m_sprite_array = ARRAY_HUD;
   Set_Shadow(black, 1.5f);
@@ -285,7 +285,7 @@ void cStatusText::Draw(cSurface_Request* request /* = nullptr */) {
 
 /* *** *** *** *** *** *** cPlayerPoints *** *** *** *** *** *** *** *** *** *** *** */
 
-cPlayerPoints::cPlayerPoints(cSprite_Manager* sprite_manager)
+cPlayerPoints::cPlayerPoints(cSprite_Store* sprite_manager)
     : cStatusText(sprite_manager) {
   m_type = TYPE_HUD_POINTS;
   m_name = "HUD Player points";
@@ -427,7 +427,7 @@ void cPlayerPoints::Clear(void) { m_points_objects.clear(); }
 
 /* *** *** *** *** *** cGoldDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cGoldDisplay::cGoldDisplay(cSprite_Manager* sprite_manager)
+cGoldDisplay::cGoldDisplay(cSprite_Store* sprite_manager)
     : cStatusText(sprite_manager) {
   m_type = TYPE_HUD_GOLD;
   m_name = "HUD Goldpieces";
@@ -474,7 +474,7 @@ void cGoldDisplay::Add_Gold(int gold) {
 
 /* *** *** *** *** *** cLiveDisplay *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLiveDisplay::cLiveDisplay(cSprite_Manager* sprite_manager)
+cLiveDisplay::cLiveDisplay(cSprite_Store* sprite_manager)
     : cStatusText(sprite_manager) {
   m_type = TYPE_HUD_LIFE;
   m_name = "HUD Lives";
@@ -528,7 +528,7 @@ void cLiveDisplay::Add_Lives(int lives) {
 
 /* *** *** *** *** *** *** *** cTimeDisplay *** *** *** *** *** *** *** *** *** *** */
 
-cTimeDisplay::cTimeDisplay(cSprite_Manager* sprite_manager)
+cTimeDisplay::cTimeDisplay(cSprite_Store* sprite_manager)
     : cStatusText(sprite_manager) {
   m_type = TYPE_HUD_TIME;
   m_name = "HUD Time";
@@ -590,7 +590,7 @@ void cTimeDisplay::Set_Time(Uint32 milliseconds) {
 
 /* *** *** *** *** *** *** *** cItemBox *** *** *** *** *** *** *** *** *** *** */
 
-cItemBox::cItemBox(cSprite_Manager* sprite_manager)
+cItemBox::cItemBox(cSprite_Store* sprite_manager)
     : cStatusText(sprite_manager), m_item(sprite_manager) {
   m_type = TYPE_HUD_ITEMBOX;
   m_name = "HUD Itembox";
@@ -613,7 +613,7 @@ cItemBox::cItemBox(cSprite_Manager* sprite_manager)
 
 cItemBox::~cItemBox(void) = default;
 
-void cItemBox::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
+void cItemBox::Set_Sprite_Manager(cSprite_Store* sprite_manager) {
   cStatusText::Set_Sprite_Manager(sprite_manager);
   m_item.Set_Sprite_Manager(sprite_manager);
 }
@@ -741,7 +741,7 @@ void cItemBox::Reset(void) {
 
 /* *** *** *** *** *** *** cDebugDisplay *** *** *** *** *** *** *** *** *** *** *** */
 
-cDebugDisplay::cDebugDisplay(cSprite_Manager* sprite_manager)
+cDebugDisplay::cDebugDisplay(cSprite_Store* sprite_manager)
     : cStatusText(sprite_manager) {
   m_type = TYPE_HUD_DEBUG;
   m_name = "HUD Debug";

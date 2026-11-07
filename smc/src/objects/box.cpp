@@ -39,7 +39,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cBaseBox *** *** *** *** *** *** *** *** *** */
 
-cBaseBox::cBaseBox(cSprite_Manager* sprite_manager)
+cBaseBox::cBaseBox(cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "box") {
   m_type = TYPE_ACTIVE_SPRITE;
   m_sprite_array = ARRAY_ACTIVE;

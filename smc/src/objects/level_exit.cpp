@@ -37,13 +37,13 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLevel_Exit::cLevel_Exit(cSprite_Manager* sprite_manager)
+cLevel_Exit::cLevel_Exit(cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "levelexit") {
   cLevel_Exit::Init();
 }
 
 cLevel_Exit::cLevel_Exit(CEGUI::XMLAttributes& attributes,
-                         cSprite_Manager* sprite_manager)
+                         cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "levelexit") {
   cLevel_Exit::Init();
   cLevel_Exit::Load_From_XML(attributes);

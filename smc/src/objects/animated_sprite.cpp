@@ -32,7 +32,7 @@ cAnimation_Surface::~cAnimation_Surface(void) {
 
 /* *** *** *** *** *** *** *** cAnimated_Sprite *** *** *** *** *** *** *** *** *** *** */
 
-cAnimated_Sprite::cAnimated_Sprite(cSprite_Manager* sprite_manager,
+cAnimated_Sprite::cAnimated_Sprite(cSprite_Store* sprite_manager,
                                    std::string type_name /* = "sprite" */)
     : cMovingSprite(sprite_manager, type_name) {
   m_curr_img = -1;

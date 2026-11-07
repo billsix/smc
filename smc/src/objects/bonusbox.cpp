@@ -35,13 +35,12 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cBonusBox *** *** *** *** *** *** *** *** *** */
 
-cBonusBox::cBonusBox(cSprite_Manager* sprite_manager)
-    : cBaseBox(sprite_manager) {
+cBonusBox::cBonusBox(cSprite_Store* sprite_manager) : cBaseBox(sprite_manager) {
   cBonusBox::Init();
 }
 
 cBonusBox::cBonusBox(CEGUI::XMLAttributes& attributes,
-                     cSprite_Manager* sprite_manager)
+                     cSprite_Store* sprite_manager)
     : cBaseBox(sprite_manager) {
   cBonusBox::Init();
   cBonusBox::Load_From_XML(attributes);

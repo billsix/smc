@@ -25,7 +25,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cEnemy *** *** *** *** *** *** *** *** *** *** *** */
 
-cEnemy::cEnemy(cSprite_Manager* sprite_manager)
+cEnemy::cEnemy(cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "enemy") {
   m_sprite_array = ARRAY_ENEMY;
   m_type = TYPE_ENEMY;

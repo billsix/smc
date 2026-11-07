@@ -38,7 +38,7 @@ class cOverworld_Manager {
   // Delete all objects
   void Delete_All(void);
 
-  cOverworld_Manager(cSprite_Manager* sprite_manager);
+  cOverworld_Manager(cSprite_Store* sprite_manager);
   ~cOverworld_Manager(void);
 
   /* Create a new overworld

@@ -26,7 +26,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** cEditor_World *** *** *** *** *** *** *** *** *** *** */
 
-cEditor_World::cEditor_World(cSprite_Manager* sprite_manager,
+cEditor_World::cEditor_World(cSprite_Store* sprite_manager,
                              cOverworld* overworld)
     : cEditor(sprite_manager) {
   m_overworld = overworld;

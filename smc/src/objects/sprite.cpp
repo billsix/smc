@@ -39,13 +39,13 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** *** cCollidingSprite *** *** *** *** *** *** *** *** *** */
 
-cCollidingSprite::cCollidingSprite(cSprite_Manager* sprite_manager) {
+cCollidingSprite::cCollidingSprite(cSprite_Store* sprite_manager) {
   m_sprite_manager = sprite_manager;
 }
 
 cCollidingSprite::~cCollidingSprite(void) { Clear_Collisions(); }
 
-void cCollidingSprite::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
+void cCollidingSprite::Set_Sprite_Manager(cSprite_Store* sprite_manager) {
   m_sprite_manager = sprite_manager;
 }
 
@@ -234,14 +234,14 @@ const float cSprite::m_pos_z_massive_start = 0.08f;
 const float cSprite::m_pos_z_front_passive_start = 0.1f;
 const float cSprite::m_pos_z_halfmassive_start = 0.04f;
 
-cSprite::cSprite(cSprite_Manager* sprite_manager,
+cSprite::cSprite(cSprite_Store* sprite_manager,
                  const std::string type_name /* = "sprite" */)
     : cCollidingSprite(sprite_manager), m_type_name(type_name) {
   cSprite::Init();
 }
 
 cSprite::cSprite(CEGUI::XMLAttributes& attributes,
-                 cSprite_Manager* sprite_manager,
+                 cSprite_Store* sprite_manager,
                  const std::string type_name /* = "sprite" */)
     : cCollidingSprite(sprite_manager), m_type_name(type_name) {
   cSprite::Init();

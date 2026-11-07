@@ -196,7 +196,7 @@ void cEditor_Menu_Object::Init(void) {
 
 /* *** *** *** *** *** *** *** cEditor *** *** *** *** *** *** *** *** *** *** */
 
-cEditor::cEditor(cSprite_Manager* sprite_manager) {
+cEditor::cEditor(cSprite_Store* sprite_manager) {
   m_sprite_manager = sprite_manager;
   m_enabled = false;
 
@@ -955,7 +955,7 @@ bool cEditor::Mouse_Up(Uint8 button) {
   return true;
 }
 
-void cEditor::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
+void cEditor::Set_Sprite_Manager(cSprite_Store* sprite_manager) {
   m_sprite_manager = sprite_manager;
 }
 

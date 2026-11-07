@@ -38,7 +38,7 @@ enum Box_Invisible_Type {
 
 class cBaseBox : public cAnimated_Sprite {
  public:
-  cBaseBox(cSprite_Manager* sprite_manager);
+  cBaseBox(cSprite_Store* sprite_manager);
   ~cBaseBox(void) override;
 
   // load from stream

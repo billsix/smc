@@ -56,7 +56,7 @@ enum Maryo_imgpos {
 class cLevel_Player : public cAnimated_Sprite {
  public:
   // constructor
-  cLevel_Player(cSprite_Manager* sprite_manager);
+  cLevel_Player(cSprite_Store* sprite_manager);
   // destructor
   ~cLevel_Player(void) override;
 

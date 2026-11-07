@@ -26,9 +26,9 @@ namespace SMC {
 class cSpikeball : public cEnemy {
  public:
   // constructor
-  cSpikeball(cSprite_Manager* sprite_manager);
+  cSpikeball(cSprite_Store* sprite_manager);
   // create from stream
-  cSpikeball(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cSpikeball(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cSpikeball(void) override;
 

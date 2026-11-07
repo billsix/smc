@@ -29,7 +29,7 @@ class cPath;
 class cPath_State {
  public:
   // constructor
-  cPath_State(cSprite_Manager* sprite_manager);
+  cPath_State(cSprite_Store* sprite_manager);
   ~cPath_State(void);
 
   // load from savegame
@@ -37,7 +37,7 @@ class cPath_State {
   // save to an existing savegame object
   void Save_To_Savegame(cSave_Level_Object* save_object);
   // Set the parent sprite manager
-  void Set_Sprite_Manager(cSprite_Manager* sprite_manager);
+  void Set_Sprite_Manager(cSprite_Store* sprite_manager);
 
   // draw current position
   void Draw(void);
@@ -72,7 +72,7 @@ class cPath_State {
   bool Path_Move(float distance);
 
   // the parent sprite manager
-  cSprite_Manager* m_sprite_manager;
+  cSprite_Store* m_sprite_manager;
 
   // parent path identifier
   std::string m_path_identifier;
@@ -136,9 +136,9 @@ class cPath_Segment {
 class cPath : public cSprite {
  public:
   // constructor
-  cPath(cSprite_Manager* sprite_manager);
+  cPath(cSprite_Store* sprite_manager);
   // create from stream
-  cPath(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager);
+  cPath(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager);
   // destructor
   ~cPath(void) override;
 

@@ -1006,8 +1006,7 @@ void cOverworld::elementEnd(const CEGUI::String& element) {
 
 std::unique_ptr<cSprite> Create_World_Object_From_XML(
     const CEGUI::String& element, CEGUI::XMLAttributes& attributes,
-    int engine_version, cSprite_Manager* sprite_manager,
-    cOverworld* overworld) {
+    int engine_version, cSprite_Store* sprite_manager, cOverworld* overworld) {
   if (element == "sprite") {
     // old version : change file and position name
     if (engine_version < 2) {

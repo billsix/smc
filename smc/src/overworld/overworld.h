@@ -173,7 +173,7 @@ class cOverworld : public CEGUI::XMLHandler {
   bool Is_Loaded(void) const;
 
   // map objects (owned values; constructed with the overworld)
-  cSprite_Manager m_sprite_manager;
+  cSprite_Store m_sprite_manager;
   // animation manager
   cAnimation_Manager m_animation_manager;
   // waypoints
@@ -227,7 +227,7 @@ class cOverworld : public CEGUI::XMLHandler {
 */
 [[nodiscard]] std::unique_ptr<cSprite> Create_World_Object_From_XML(
     const CEGUI::String& element, CEGUI::XMLAttributes& attributes,
-    int engine_version, cSprite_Manager* sprite_manager, cOverworld* overworld);
+    int engine_version, cSprite_Store* sprite_manager, cOverworld* overworld);
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 

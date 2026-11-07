@@ -36,14 +36,14 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** cMoving_Platform *** *** *** *** *** *** *** *** *** *** */
 
-cMoving_Platform::cMoving_Platform(cSprite_Manager* sprite_manager)
+cMoving_Platform::cMoving_Platform(cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "moving_platform"),
       m_path_state(sprite_manager) {
   cMoving_Platform::Init();
 }
 
 cMoving_Platform::cMoving_Platform(CEGUI::XMLAttributes& attributes,
-                                   cSprite_Manager* sprite_manager)
+                                   cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "moving_platform"),
       m_path_state(sprite_manager) {
   cMoving_Platform::Init();
@@ -236,7 +236,7 @@ void cMoving_Platform::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cMoving_Platform::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
+void cMoving_Platform::Set_Sprite_Manager(cSprite_Store* sprite_manager) {
   cSprite::Set_Sprite_Manager(sprite_manager);
   m_path_state.Set_Sprite_Manager(sprite_manager);
 }

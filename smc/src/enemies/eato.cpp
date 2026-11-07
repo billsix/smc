@@ -31,11 +31,11 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cEato *** *** *** *** *** *** *** *** *** *** *** */
 
-cEato::cEato(cSprite_Manager* sprite_manager) : cEnemy(sprite_manager) {
+cEato::cEato(cSprite_Store* sprite_manager) : cEnemy(sprite_manager) {
   cEato::Init();
 }
 
-cEato::cEato(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager)
+cEato::cEato(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager)
     : cEnemy(sprite_manager) {
   cEato::Init();
   cEato::Load_From_XML(attributes);

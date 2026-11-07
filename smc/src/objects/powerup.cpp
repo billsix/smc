@@ -28,7 +28,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cPowerUp *** *** *** *** *** *** *** *** *** *** *** */
 
-cPowerUp::cPowerUp(cSprite_Manager* sprite_manager)
+cPowerUp::cPowerUp(cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "item") {
   m_sprite_array = ARRAY_ACTIVE;
   m_massive_type = MASS_PASSIVE;
@@ -185,13 +185,12 @@ void cPowerUp::Handle_out_of_Level(ObjectDirection dir) {
 
 /* *** *** *** *** *** *** cMushroom *** *** *** *** *** *** *** *** *** *** *** */
 
-cMushroom::cMushroom(cSprite_Manager* sprite_manager)
-    : cPowerUp(sprite_manager) {
+cMushroom::cMushroom(cSprite_Store* sprite_manager) : cPowerUp(sprite_manager) {
   cMushroom::Init();
 }
 
 cMushroom::cMushroom(CEGUI::XMLAttributes& attributes,
-                     cSprite_Manager* sprite_manager)
+                     cSprite_Store* sprite_manager)
     : cPowerUp(sprite_manager) {
   cMushroom::Init();
   cMushroom::Load_From_XML(attributes);
@@ -446,13 +445,13 @@ void cMushroom::Handle_Collision_Box(ObjectDirection cdirection, GL_rect* r2) {
 
 /* *** *** *** *** *** *** cFirePlant *** *** *** *** *** *** *** *** *** *** *** */
 
-cFirePlant::cFirePlant(cSprite_Manager* sprite_manager)
+cFirePlant::cFirePlant(cSprite_Store* sprite_manager)
     : cPowerUp(sprite_manager) {
   cFirePlant::Init();
 }
 
 cFirePlant::cFirePlant(CEGUI::XMLAttributes& attributes,
-                       cSprite_Manager* sprite_manager)
+                       cSprite_Store* sprite_manager)
     : cPowerUp(sprite_manager) {
   cFirePlant::Init();
   cFirePlant::Load_From_XML(attributes);
@@ -587,11 +586,11 @@ void cFirePlant::Handle_Collision_Player(cObjectCollision* collision) {
 
 /* *** *** *** *** *** *** *** cMoon *** *** *** *** *** *** *** *** *** *** */
 
-cMoon::cMoon(cSprite_Manager* sprite_manager) : cPowerUp(sprite_manager) {
+cMoon::cMoon(cSprite_Store* sprite_manager) : cPowerUp(sprite_manager) {
   cMoon::Init();
 }
 
-cMoon::cMoon(CEGUI::XMLAttributes& attributes, cSprite_Manager* sprite_manager)
+cMoon::cMoon(CEGUI::XMLAttributes& attributes, cSprite_Store* sprite_manager)
     : cPowerUp(sprite_manager) {
   cMoon::Init();
   cMoon::Load_From_XML(attributes);

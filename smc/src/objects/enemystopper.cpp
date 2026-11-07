@@ -22,13 +22,13 @@ namespace SMC {
 
 /* *** *** *** *** *** cEnemyStopper *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cEnemyStopper::cEnemyStopper(cSprite_Manager* sprite_manager)
+cEnemyStopper::cEnemyStopper(cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "enemystopper") {
   cEnemyStopper::Init();
 }
 
 cEnemyStopper::cEnemyStopper(CEGUI::XMLAttributes& attributes,
-                             cSprite_Manager* sprite_manager)
+                             cSprite_Store* sprite_manager)
     : cAnimated_Sprite(sprite_manager, "enemystopper") {
   cEnemyStopper::Init();
   cEnemyStopper::Load_From_XML(attributes);

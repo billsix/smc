@@ -32,12 +32,12 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cFurball *** *** *** *** *** *** *** *** *** *** *** */
 
-cFurball::cFurball(cSprite_Manager* sprite_manager) : cEnemy(sprite_manager) {
+cFurball::cFurball(cSprite_Store* sprite_manager) : cEnemy(sprite_manager) {
   cFurball::Init();
 }
 
 cFurball::cFurball(CEGUI::XMLAttributes& attributes,
-                   cSprite_Manager* sprite_manager)
+                   cSprite_Store* sprite_manager)
     : cEnemy(sprite_manager) {
   cFurball::Init();
   cFurball::Load_From_XML(attributes);

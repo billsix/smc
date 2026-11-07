@@ -30,7 +30,7 @@ namespace SMC {
 
 class cMenu_Item : public cHudSprite {
  public:
-  cMenu_Item(cSprite_Manager* sprite_manager);
+  cMenu_Item(cSprite_Store* sprite_manager);
   ~cMenu_Item(void) override;
 
   // Sets the Active Modifier

@@ -35,13 +35,13 @@ namespace SMC {
 
 /* *** *** *** *** *** *** cStaticEnemy *** *** *** *** *** *** *** *** *** *** *** */
 
-cStaticEnemy::cStaticEnemy(cSprite_Manager* sprite_manager)
+cStaticEnemy::cStaticEnemy(cSprite_Store* sprite_manager)
     : cEnemy(sprite_manager), m_path_state(sprite_manager) {
   cStaticEnemy::Init();
 }
 
 cStaticEnemy::cStaticEnemy(CEGUI::XMLAttributes& attributes,
-                           cSprite_Manager* sprite_manager)
+                           cSprite_Store* sprite_manager)
     : cEnemy(sprite_manager), m_path_state(sprite_manager) {
   cStaticEnemy::Init();
   cStaticEnemy::Load_From_XML(attributes);
@@ -129,7 +129,7 @@ void cStaticEnemy::Save_To_XML(CEGUI::XMLSerializer& stream) {
   stream.closeTag();
 }
 
-void cStaticEnemy::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
+void cStaticEnemy::Set_Sprite_Manager(cSprite_Store* sprite_manager) {
   cSprite::Set_Sprite_Manager(sprite_manager);
   m_path_state.Set_Sprite_Manager(sprite_manager);
 }

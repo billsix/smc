@@ -36,11 +36,11 @@ enum Camera_movement {
 
 class cCamera {
  public:
-  cCamera(cSprite_Manager* sprite_manager);
+  cCamera(cSprite_Store* sprite_manager);
   ~cCamera(void);
 
   // Set the parent sprite manager
-  void Set_Sprite_Manager(cSprite_Manager* sprite_manager);
+  void Set_Sprite_Manager(cSprite_Store* sprite_manager);
 
   // set camera position
   void Set_Pos(float x, float y);
@@ -91,7 +91,7 @@ class cCamera {
   void Update_Position(void) const;
 
   // the parent sprite manager
-  cSprite_Manager* m_sprite_manager;
+  cSprite_Store* m_sprite_manager;
   // position
   float m_x, m_y;
   // additional position offset

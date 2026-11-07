@@ -34,7 +34,7 @@ namespace SMC {
 
 /* *** *** *** *** *** *** *** Base Animation class *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation::cAnimation(cSprite_Manager* sprite_manager,
+cAnimation::cAnimation(cSprite_Store* sprite_manager,
                        std::string type_name /* = "sprite" */)
     : cAnimated_Sprite(sprite_manager, type_name) {
   m_sprite_array = ARRAY_ANIM;
@@ -85,7 +85,7 @@ void cAnimation::Set_Pos_Z(float pos, float pos_rand /* = 0.0f */) {
 
 /* *** *** *** *** *** *** *** cAnimation_Goldpiece *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation_Goldpiece::cAnimation_Goldpiece(cSprite_Manager* sprite_manager,
+cAnimation_Goldpiece::cAnimation_Goldpiece(cSprite_Store* sprite_manager,
                                            float posx, float posy,
                                            float height /* = 40.0f */,
                                            float width /* = 20.0f */)
@@ -208,7 +208,7 @@ void cAnimation_Goldpiece::Draw(cSurface_Request* request /* = nullptr */) {
 
 /* *** *** *** *** *** *** *** cAnimation_Fireball *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation_Fireball::cAnimation_Fireball(cSprite_Manager* sprite_manager,
+cAnimation_Fireball::cAnimation_Fireball(cSprite_Store* sprite_manager,
                                          float posx, float posy,
                                          unsigned int power /* = 5 */)
     : cAnimation(sprite_manager) {
@@ -416,13 +416,13 @@ void cParticle::Set_Gravity(float x, float y) {
 
 /* *** *** *** *** *** *** *** cParticle_Emitter *** *** *** *** *** *** *** *** *** *** */
 
-cParticle_Emitter::cParticle_Emitter(cSprite_Manager* sprite_manager)
+cParticle_Emitter::cParticle_Emitter(cSprite_Store* sprite_manager)
     : cAnimation(sprite_manager, "particle_emitter") {
   cParticle_Emitter::Init();
 }
 
 cParticle_Emitter::cParticle_Emitter(CEGUI::XMLAttributes& attributes,
-                                     cSprite_Manager* sprite_manager)
+                                     cSprite_Store* sprite_manager)
     : cAnimation(sprite_manager, "particle_emitter") {
   cParticle_Emitter::Init();
   cParticle_Emitter::Load_From_XML(attributes);

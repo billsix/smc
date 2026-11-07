@@ -22,19 +22,19 @@
 
 namespace SMC {
 
-/* *** *** *** *** *** *** cSprite_Manager *** *** *** *** *** *** *** *** *** *** *** */
+/* *** *** *** *** *** *** cSprite_Store *** *** *** *** *** *** *** *** *** *** *** */
 
-cSprite_Manager::cSprite_Manager(unsigned int reserve_items /* = 2000 */,
-                                 unsigned int zpos_items /* = 100 */) {
+cSprite_Store::cSprite_Store(unsigned int reserve_items /* = 2000 */,
+                             unsigned int zpos_items /* = 100 */) {
   m_objects.reserve(reserve_items);
 
   m_z_pos_data.assign(zpos_items, 0.0f);
   m_z_pos_data_editor.assign(zpos_items, 0.0f);
 }
 
-cSprite_Manager::~cSprite_Manager(void) { Delete_All(); }
+cSprite_Store::~cSprite_Store(void) { Delete_All(); }
 
-cSprite* cSprite_Manager::Add(std::unique_ptr<cSprite> sprite) {
+cSprite* cSprite_Store::Add(std::unique_ptr<cSprite> sprite) {
   // empty object
   if (!sprite) {
     return nullptr;
@@ -54,7 +54,7 @@ cSprite* cSprite_Manager::Add(std::unique_ptr<cSprite> sprite) {
   return Adopted(m_objects.emplace_back(std::move(sprite)).get());
 }
 
-cSprite* cSprite_Manager::Adopted(cSprite* sprite) {
+cSprite* cSprite_Store::Adopted(cSprite* sprite) {
   if (m_on_add) {
     m_on_add(sprite);
   }
@@ -62,7 +62,7 @@ cSprite* cSprite_Manager::Adopted(cSprite* sprite) {
   return sprite;
 }
 
-void cSprite_Manager::Set_Pos_Z(cSprite* sprite) {
+void cSprite_Store::Set_Pos_Z(cSprite* sprite) {
   // don't set particle effect z position
   if (sprite->m_type == TYPE_ANIMATION ||
       sprite->m_type == TYPE_PARTICLE_EMITTER) {
@@ -92,7 +92,7 @@ void cSprite_Manager::Set_Pos_Z(cSprite* sprite) {
   }
 }
 
-void cSprite_Manager::Move_To_Front(cSprite* sprite) {
+void cSprite_Store::Move_To_Front(cSprite* sprite) {
   // not needed
   if (m_objects.size() <= 1) {
     return;
@@ -124,7 +124,7 @@ void cSprite_Manager::Move_To_Front(cSprite* sprite) {
   sprite->m_pos_z = Get_First(sprite->m_type)->m_pos_z - 0.000001f;
 }
 
-void cSprite_Manager::Move_To_Back(cSprite* sprite) {
+void cSprite_Store::Move_To_Back(cSprite* sprite) {
   // not needed
   if (m_objects.size() <= 1) {
     return;
@@ -156,7 +156,7 @@ void cSprite_Manager::Move_To_Back(cSprite* sprite) {
   sprite->m_pos_z = Get_Last(sprite->m_type)->m_pos_z + 0.000001f;
 }
 
-void cSprite_Manager::Delete_All(bool delayed /* = 0 */) {
+void cSprite_Store::Delete_All(bool delayed /* = 0 */) {
   // delayed
   if (delayed) {
     for (const auto& sprite : m_objects) {
@@ -187,7 +187,7 @@ void cSprite_Manager::Delete_All(bool delayed /* = 0 */) {
   std::fill(m_z_pos_data_editor.begin(), m_z_pos_data_editor.end(), 0.0f);
 }
 
-cSprite* cSprite_Manager::Get_First(const SpriteType type) const {
+cSprite* cSprite_Store::Get_First(const SpriteType type) const {
   cSprite* first = nullptr;
 
   for (const auto& sprite : m_objects) {
@@ -201,7 +201,7 @@ cSprite* cSprite_Manager::Get_First(const SpriteType type) const {
   return first;
 }
 
-cSprite* cSprite_Manager::Get_Last(const SpriteType type) const {
+cSprite* cSprite_Store::Get_Last(const SpriteType type) const {
   cSprite* last = nullptr;
 
   for (const auto& sprite : m_objects) {
@@ -214,7 +214,7 @@ cSprite* cSprite_Manager::Get_Last(const SpriteType type) const {
   return last;
 }
 
-cSprite* cSprite_Manager::Get_from_Position(
+cSprite* cSprite_Store::Get_from_Position(
     int start_pos_x, int start_pos_y,
     const SpriteType type /* = TYPE_UNDEFINED */,
     int check_pos /* = 0 */) const {
@@ -248,9 +248,9 @@ cSprite* cSprite_Manager::Get_from_Position(
   return nullptr;
 }
 
-void cSprite_Manager::Get_Objects_sorted(cSprite_List& new_objects,
-                                         bool editor_sort /* = 0 */,
-                                         bool with_player /* = 0 */) const {
+void cSprite_Store::Get_Objects_sorted(cSprite_List& new_objects,
+                                       bool editor_sort /* = 0 */,
+                                       bool with_player /* = 0 */) const {
   // copy the borrowed pointers (the manager keeps ownership via unique_ptr)
   new_objects.clear();
   new_objects.reserve(m_objects.size());
@@ -272,7 +272,7 @@ void cSprite_Manager::Get_Objects_sorted(cSprite_List& new_objects,
   }
 }
 
-void cSprite_Manager::Get_Colliding_Objects(
+void cSprite_Store::Get_Colliding_Objects(
     cSprite_List& col_objects, const GL_rect& rect, bool with_player /* = 0 */,
     const cSprite* exclude_sprite /* = nullptr */) const {
   // Check objects
@@ -297,7 +297,7 @@ void cSprite_Manager::Get_Colliding_Objects(
   }
 }
 
-void cSprite_Manager::Handle_Collision_Items(void) {
+void cSprite_Store::Handle_Collision_Items(void) {
   for (const auto& sprite : m_objects) {
     if (sprite->m_auto_destroy) {
       if (sprite->m_collisions.size()) {
@@ -316,7 +316,7 @@ void cSprite_Manager::Handle_Collision_Items(void) {
   }
 }
 
-unsigned int cSprite_Manager::Get_Size_Array(const ArrayType sprite_array) {
+unsigned int cSprite_Store::Get_Size_Array(const ArrayType sprite_array) {
   unsigned int count = 0;
 
   for (const auto& sprite : m_objects) {
