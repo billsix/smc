@@ -18,7 +18,6 @@
 
 #include "../core/global_basic.h"
 #include "../objects/movingsprite.h"
-#include "../core/obj_manager.h"
 #include "../overworld/world_waypoint.h"
 // CEGUI
 #include "CEGUIXMLHandler.h"
@@ -133,7 +132,7 @@ using LayerLineList = vector<cLayer_Line_Point_Start*>;
 // handles the line collision detection
 // A cLayer does NOT own its line points: they are owned (and freed) by the overworld's
 // cSprite_Manager, which cWorld_Sprite_Manager also feeds into this layer. The layer holds
-// borrowed pointers, so it is a plain non-owning list, not a cObject_Manager.
+// borrowed pointers, so it is a plain non-owning list.
 class cLayer : public CEGUI::XMLHandler {
  public:
   cLayer(cOverworld* origin);

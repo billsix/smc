@@ -46,9 +46,7 @@ cSaved_Texture::~cSaved_Texture(void) {
 
 /* *** *** *** *** *** *** cImage_Manager *** *** *** *** *** *** *** *** *** *** *** */
 
-cImage_Manager::cImage_Manager(void) : cObject_Manager<cGL_Surface>() {
-  m_high_texture_id = 0;
-}
+cImage_Manager::cImage_Manager(void) { m_high_texture_id = 0; }
 
 cImage_Manager::~cImage_Manager(void) { cImage_Manager::Delete_All(); }
 
@@ -61,11 +59,11 @@ cGL_Surface* cImage_Manager::Add(std::unique_ptr<cGL_Surface> obj) {
   obj->m_managed = true;
 
   // Add
-  return cObject_Manager<cGL_Surface>::Add(std::move(obj));
+  return m_objects.emplace_back(std::move(obj)).get();
 }
 
 cGL_Surface* cImage_Manager::Get_Pointer(const std::string& path) const {
-  for (const auto& surface : objects) {
+  for (const auto& surface : m_objects) {
     // return first match
     if (surface->m_filename.compare(path) == 0) {
       return surface.get();
@@ -91,10 +89,10 @@ void cImage_Manager::Grab_Textures(bool from_file /* = 0 */,
   }
 
   unsigned int loaded_files = 0;
-  unsigned int const file_count = objects.size();
+  unsigned int const file_count = m_objects.size();
 
   // save all textures
-  for (const auto& surface : objects) {
+  for (const auto& surface : m_objects) {
     // get surface
     // skip surfaces with an already deleted texture
     if (!glIsTexture(surface->m_image)) {
@@ -162,7 +160,7 @@ void cImage_Manager::Restore_Textures(bool draw_gui /* = 0 */) {
 }
 
 void cImage_Manager::Delete_Image_Textures(void) {
-  for (const auto& surface : objects) {
+  for (const auto& surface : m_objects) {
     // get object
     if (surface->m_auto_del_img && glIsTexture(surface->m_image)) {
       glDeleteTextures(1, &surface->m_image);
@@ -186,7 +184,7 @@ void cImage_Manager::Delete_Hardware_Textures(void) {
 void cImage_Manager::Delete_All(void) {
   // stops cGL_Surface destructor from checking if GL texture id still in use
   Delete_Image_Textures();
-  cObject_Manager<cGL_Surface>::Delete_All();
+  m_objects.clear();
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

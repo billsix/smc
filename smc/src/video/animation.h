@@ -17,7 +17,7 @@
 #define SMC_ANIMATION_H
 
 #include "../objects/animated_sprite.h"
-#include "../core/obj_manager.h"
+#include "../core/owning_vector.h"
 
 namespace SMC {
 
@@ -379,13 +379,18 @@ class cParticle_Emitter : public cAnimation {
 
 /* *** *** *** *** *** *** *** Animation Manager *** *** *** *** *** *** *** *** *** *** */
 
-class cAnimation_Manager : public cObject_Manager<cAnimation> {
+class cAnimation_Manager {
  public:
+  // The owned objects, borrowed (cAnimation* each), for range-for
+  auto Objects(void) const { return Borrowed(m_objects); }
+  // Delete all objects
+  void Delete_All(void) { m_objects.clear(); }
+
   cAnimation_Manager(void);
-  ~cAnimation_Manager(void) override;
+  ~cAnimation_Manager(void);
 
   // Add an animation object with the given settings
-  cAnimation* Add(std::unique_ptr<cAnimation> animation) override;
+  cAnimation* Add(std::unique_ptr<cAnimation> animation);
 
   // Update the objects
   void Update(void);
@@ -393,6 +398,9 @@ class cAnimation_Manager : public cObject_Manager<cAnimation> {
   void Draw(void);
 
   using cAnimation_List = vector<cAnimation*>;
+
+ private:
+  Owning_Vector<cAnimation> m_objects;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

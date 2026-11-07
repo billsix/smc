@@ -176,10 +176,12 @@ next steps rather than oversights:
   `m_last_clicked_object`, `m_obj`) can outlive their target. Today they are kept safe by
   `m_auto_destroy` (deferred slot reuse) and hand-nulling. The planned fix is a generational
   `SpriteHandle`.
-- **The managers mostly exist to hold a container.** `cObject_Manager<T>` gives 10 subclasses a
-  public owning vector through inheritance. The planned replacement is: pure containers become
-  private member containers, caches become `unordered_map`-backed classes named for what they
-  cache, and the base class is deleted.
+- **The managers mostly exist to hold a container.** `cObject_Manager<T>` used to give 10 subclasses
+  a public owning vector through inheritance. It is deleted (2026-11-07): each manager holds a
+  private `Owning_Vector<T>` (`core/owning_vector.h`), outside code iterates `Objects()` (a
+  `std::views::transform` view of borrowed `T*`), and each class declares only the operations its
+  callers use. Next in the plan: caches become `unordered_map`-backed classes named for what they
+  cache, and the sprite store issues generational handles.
 
 The general rule (four categories of stored borrow; when a container class earns its existence)
 is in the shared standard's section "Stored borrows and 'manager' classes"

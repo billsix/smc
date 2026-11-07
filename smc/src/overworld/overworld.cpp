@@ -359,7 +359,7 @@ void cOverworld::Save(void) {
   stream.closeTag();
 
   // objects
-  for (const auto& sprite : m_sprite_manager.objects) {
+  for (auto* sprite : m_sprite_manager.Objects()) {
     // skip spawned and destroyed objects
     if (sprite->m_spawned || sprite->m_auto_destroy) {
       continue;
@@ -562,7 +562,7 @@ void cOverworld::Update(void) {
   // if world-editor is enabled
   else {
     // only update particle emitters
-    for (const auto& sprite : m_sprite_manager.objects) {
+    for (auto* sprite : m_sprite_manager.Objects()) {
       if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
         sprite->Update();
       }

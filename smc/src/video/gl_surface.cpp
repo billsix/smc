@@ -144,8 +144,8 @@ void cGL_Surface::Blit_Data(cSurface_Request* request) const {
 void cGL_Surface::Set_Ground_Type(GroundType gtype) { m_ground_type = gtype; }
 
 bool cGL_Surface::Is_Texture_Use_Multiple(void) const {
-  for (const auto& surface : pImage_Manager->objects) {
-    if (surface.get() == this) {
+  for (auto* surface : pImage_Manager->Objects()) {
+    if (surface == this) {
       continue;
     }
 

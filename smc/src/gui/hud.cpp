@@ -58,8 +58,7 @@ std::unique_ptr<cSprite> cHudSprite::Copy(void) const {
 
 /* *** *** *** *** *** *** *** cHud_Manager *** *** *** *** *** *** *** *** *** *** */
 
-cHud_Manager::cHud_Manager(cSprite_Manager* sprite_manager)
-    : cObject_Manager<cHudSprite>() {
+cHud_Manager::cHud_Manager(cSprite_Manager* sprite_manager) {
   m_sprite_manager = sprite_manager;
   m_loaded = false;
 }
@@ -67,7 +66,7 @@ cHud_Manager::cHud_Manager(cSprite_Manager* sprite_manager)
 cHud_Manager::~cHud_Manager(void) { Unload(); }
 
 void cHud_Manager::Load(void) {
-  if (!m_loaded && !objects.empty()) {
+  if (!m_loaded && !m_objects.empty()) {
     Unload();
   } else if (m_loaded) {
     Update_Text();
@@ -106,7 +105,7 @@ void cHud_Manager::Load(void) {
 }
 
 void cHud_Manager::Unload(void) {
-  if (objects.empty()) {
+  if (m_objects.empty()) {
     return;
   }
 
@@ -125,8 +124,8 @@ void cHud_Manager::Unload(void) {
 void cHud_Manager::Update_Text(void) {
   // note : update the life display before updating the time display
 
-  if (!objects.empty()) {
-    cMenuBackground* item = static_cast<cMenuBackground*>(objects[0].get());
+  if (!m_objects.empty()) {
+    cMenuBackground* item = static_cast<cMenuBackground*>(m_objects[0].get());
 
     if (Game_Mode != MODE_OVERWORLD) {
       // goldpiece
@@ -185,14 +184,14 @@ void cHud_Manager::Update_Text(void) {
 
 void cHud_Manager::Update(void) {
   // update HUD objects
-  for (const auto& hud_sprite : objects) {
+  for (const auto& hud_sprite : m_objects) {
     hud_sprite->Update();
   }
 }
 
 void cHud_Manager::Draw(void) {
   // draw HUD objects
-  for (const auto& hud_sprite : objects) {
+  for (const auto& hud_sprite : m_objects) {
     hud_sprite->Draw();
   }
 }
@@ -201,7 +200,7 @@ void cHud_Manager::Set_Sprite_Manager(cSprite_Manager* sprite_manager) {
   m_sprite_manager = sprite_manager;
 
   // update HUD objects
-  for (const auto& hud_sprite : objects) {
+  for (const auto& hud_sprite : m_objects) {
     hud_sprite->Set_Sprite_Manager(m_sprite_manager);
   }
 }
@@ -1014,7 +1013,7 @@ void cDebugDisplay::Draw_Debug_Mode(void) {
     // Halfmassive
     unsigned int halfmassive = 0;
 
-    for (const auto& sprite : m_sprite_manager->objects) {
+    for (auto* sprite : m_sprite_manager->Objects()) {
       // get object pointer
       if (sprite->m_type == TYPE_HALFMASSIVE) {
         halfmassive++;
@@ -1029,7 +1028,7 @@ void cDebugDisplay::Draw_Debug_Mode(void) {
     // Moving Platform
     unsigned int moving_platform = 0;
 
-    for (const auto& sprite : m_sprite_manager->objects) {
+    for (auto* sprite : m_sprite_manager->Objects()) {
       // get object pointer
       if (sprite->m_type == TYPE_MOVING_PLATFORM) {
         moving_platform++;
@@ -1044,10 +1043,10 @@ void cDebugDisplay::Draw_Debug_Mode(void) {
     // Goldbox
     unsigned int goldbox = 0;
 
-    for (const auto& sprite : m_sprite_manager->objects) {
+    for (auto* sprite : m_sprite_manager->Objects()) {
       // get object pointer
       if (sprite->m_type == TYPE_BONUS_BOX) {
-        const cBonusBox* bonusbox = static_cast<const cBonusBox*>(sprite.get());
+        const cBonusBox* bonusbox = static_cast<const cBonusBox*>(sprite);
 
         if (bonusbox->box_type == TYPE_GOLDPIECE) {
           goldbox++;
@@ -1062,10 +1061,10 @@ void cDebugDisplay::Draw_Debug_Mode(void) {
     // Bonusbox
     unsigned int bonusbox_count = 0;
 
-    for (const auto& sprite : m_sprite_manager->objects) {
+    for (auto* sprite : m_sprite_manager->Objects()) {
       // get object pointer
       if (sprite->m_type == TYPE_BONUS_BOX) {
-        const cBonusBox* bonusbox = static_cast<const cBonusBox*>(sprite.get());
+        const cBonusBox* bonusbox = static_cast<const cBonusBox*>(sprite);
 
         if (bonusbox->box_type != TYPE_GOLDPIECE) {
           bonusbox_count++;

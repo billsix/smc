@@ -17,22 +17,34 @@
 #define SMC_SPRITE_MANAGER_H
 
 #include "../core/global_game.h"
-#include "../core/obj_manager.h"
+#include "../core/owning_vector.h"
 #include "../objects/movingsprite.h"
 
 namespace SMC {
 
 /* *** *** *** *** *** cSprite_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cSprite_Manager : public cObject_Manager<cSprite> {
+class cSprite_Manager {
  public:
+  // The owned objects, borrowed (cSprite* each), for range-for
+  auto Objects(void) const { return Borrowed(m_objects); }
+  // The sprite at the given index, or nullptr when out of range
+  cSprite* Get_Pointer(size_t identifier) const {
+    return Borrow_At(m_objects, identifier);
+  }
+  // The index of the given sprite, or -1 when it is null or not managed here
+  int Get_Array_Num(const cSprite* sprite) const {
+    return Index_Of(m_objects, sprite);
+  }
+  size_t size(void) const { return m_objects.size(); }
+
   cSprite_Manager(unsigned int reserve_items = 2000,
                   unsigned int zpos_items = 100);
-  ~cSprite_Manager(void) override;
+  virtual ~cSprite_Manager(void);
 
   /* Add a sprite (takes ownership; returns the borrowed pointer)
 	 */
-  cSprite* Add(std::unique_ptr<cSprite> sprite) override;
+  virtual cSprite* Add(std::unique_ptr<cSprite> sprite);
 
   // Set the sprite z position and update the z pos list
   void Set_Pos_Z(cSprite* sprite);
@@ -51,13 +63,7 @@ class cSprite_Manager : public cObject_Manager<cSprite> {
   /* Delete all objects
 	 * if delayed is set deletion will only occur if replaced
 	 */
-  // clang attributes -Woverloaded-virtual to this derived decl (gcc attributes it to the base, which
-  // is suppressed there); this narrowing of cObject_Manager<cSprite>::Delete_All() is intentional
-  // (maintainer, 2026-10-18; tasks/smc-overloaded-virtual.md).
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverloaded-virtual"
   virtual void Delete_All(bool delayed = false);
-#pragma GCC diagnostic pop
 
   // Return the first z position object from the given type
   cSprite* Get_First(const SpriteType type) const;
@@ -88,25 +94,25 @@ class cSprite_Manager : public cObject_Manager<cSprite> {
 
   // Update items drawing validation
   inline void Update_Items_Valid_Draw(void) {
-    for (const auto& sprite : objects) {
+    for (const auto& sprite : m_objects) {
       sprite->Update_Valid_Draw();
     }
   }
   // Update items
   inline void Update_Items(void) {
-    for (const auto& sprite : objects) {
+    for (const auto& sprite : m_objects) {
       sprite->Update();
     }
   }
   // Update_Late items
   inline void Update_Items_Late(void) {
-    for (const auto& sprite : objects) {
+    for (const auto& sprite : m_objects) {
       sprite->Update_Late();
     }
   }
   // Draw items
   inline void Draw_Items(void) {
-    for (const auto& sprite : objects) {
+    for (const auto& sprite : m_objects) {
       sprite->Draw();
     }
   }
@@ -160,6 +166,9 @@ class cSprite_Manager : public cObject_Manager<cSprite> {
       return a->m_editor_pos_z < b->m_editor_pos_z;
     }
   };
+
+ private:
+  Owning_Vector<cSprite> m_objects;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

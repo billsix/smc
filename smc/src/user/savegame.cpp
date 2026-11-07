@@ -16,7 +16,6 @@
 #include "../user/savegame.h"
 #include "../user/preferences.h"
 #include "../core/game_core.h"
-#include "../core/obj_manager.h"
 #include "../level/level.h"
 #include "../overworld/world_manager.h"
 #include "../level/level_player.h"
@@ -345,7 +344,7 @@ bool cSavegame::Save_Game(unsigned int save_slot, std::string description) {
   if (pActive_Level->Is_Loaded()) {
     savegame->m_level_time = pHud_Time->m_milliseconds;
 
-    for (const auto& level : pLevel_Manager->objects) {
+    for (auto* level : pLevel_Manager->Objects()) {
       if (!level->Is_Loaded()) {
         continue;
       }
@@ -356,13 +355,13 @@ bool cSavegame::Save_Game(unsigned int save_slot, std::string description) {
       save_level->m_name = Trim_Filename(level->m_level_filename, false, false);
 
       // save position if active level
-      if (pActive_Level == level.get()) {
+      if (pActive_Level == level) {
         save_level->m_level_pos_x = pLevel_Player->m_pos_x;
         save_level->m_level_pos_y = pLevel_Player->m_pos_y - 5.0f;
       }
 
       // spawned objects
-      for (const auto& sprite : level->m_sprite_manager.objects) {
+      for (auto* sprite : level->m_sprite_manager.Objects()) {
         // if spawned and active
         if (!sprite->m_spawned || sprite->m_auto_destroy) {
           continue;
@@ -373,7 +372,7 @@ bool cSavegame::Save_Game(unsigned int save_slot, std::string description) {
       }
 
       // save object status
-      for (const auto& sprite : level->m_sprite_manager.objects) {
+      for (auto* sprite : level->m_sprite_manager.Objects()) {
         // get save data
         std::unique_ptr<cSave_Level_Object> save_obj =
             sprite->Save_To_Savegame();
@@ -397,20 +396,20 @@ bool cSavegame::Save_Game(unsigned int save_slot, std::string description) {
   savegame->m_itembox_item = pHud_Itembox->m_item_id;
 
   // save overworld progress
-  for (const auto& overworld : pOverworld_Manager->objects) {
+  for (auto* overworld : pOverworld_Manager->Objects()) {
     // Get Overworld
     // create Overworld
     auto save_overworld = std::make_unique<cSave_Overworld>();
     save_overworld->m_name = overworld->m_description.m_name;
 
     // Waypoints
-    for (const auto& sprite : overworld->m_sprite_manager.objects) {
+    for (auto* sprite : overworld->m_sprite_manager.Objects()) {
       if (sprite->m_type != TYPE_OW_WAYPOINT) {
         continue;
       }
 
       // get waypoint
-      cWaypoint const* waypoint = static_cast<cWaypoint*>(sprite.get());
+      cWaypoint const* waypoint = static_cast<cWaypoint*>(sprite);
 
       // create savegame waypoint
       auto save_waypoint = std::make_unique<cSave_Overworld_Waypoint>();

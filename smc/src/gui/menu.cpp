@@ -533,18 +533,16 @@ void cMenuCore::Enter(const GameMode old_mode /* = MODE_NOTHING */) {
     m_handler.m_camera.Reset_Pos();
 
     // pre-update animations
-    for (const auto& sprite : m_handler.m_level.m_sprite_manager.objects) {
+    for (auto* sprite : m_handler.m_level.m_sprite_manager.Objects()) {
       if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
-        cParticle_Emitter* emitter =
-            static_cast<cParticle_Emitter*>(sprite.get());
+        cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(sprite);
         emitter->Pre_Update();
       }
     }
 
-    for (const auto& animation : m_animation_manager.objects) {
+    for (auto* animation : m_animation_manager.Objects()) {
       if (animation->m_type == TYPE_PARTICLE_EMITTER) {
-        cParticle_Emitter* emitter =
-            static_cast<cParticle_Emitter*>(animation.get());
+        cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(animation);
         emitter->Pre_Update();
       }
     }

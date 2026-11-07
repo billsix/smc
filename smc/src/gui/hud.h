@@ -17,7 +17,7 @@
 #define SMC_HUD_H
 
 #include "../objects/movingsprite.h"
-#include "../core/obj_manager.h"
+#include "../core/owning_vector.h"
 
 namespace SMC {
 
@@ -34,10 +34,17 @@ class cHudSprite : public cSprite {
 
 /* *** *** *** *** *** *** *** cHud_Manager *** *** *** *** *** *** *** *** *** *** */
 
-class cHud_Manager : public cObject_Manager<cHudSprite> {
+class cHud_Manager {
  public:
+  // Take ownership of the given object; returns the borrowed pointer
+  cHudSprite* Add(std::unique_ptr<cHudSprite> obj) {
+    return m_objects.emplace_back(std::move(obj)).get();
+  }
+  // Delete all objects
+  void Delete_All(void) { m_objects.clear(); }
+
   cHud_Manager(cSprite_Manager* sprite_manager);
-  ~cHud_Manager(void) override;
+  ~cHud_Manager(void);
 
   // Load the complete HUD
   void Load(void);
@@ -61,6 +68,9 @@ class cHud_Manager : public cObject_Manager<cHudSprite> {
 
   // true if loaded
   bool m_loaded;
+
+ private:
+  Owning_Vector<cHudSprite> m_objects;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

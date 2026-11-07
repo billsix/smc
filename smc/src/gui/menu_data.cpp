@@ -356,7 +356,7 @@ void cMenu_Start::Init_GUI(void) {
       CEGUI::WindowManager::getSingleton().getWindow("listbox_campaigns"));
 
   // campaign names
-  for (const auto& campaign : pCampaign_Manager->objects) {
+  for (auto* campaign : pCampaign_Manager->Objects()) {
     CEGUI::ListboxTextItem* item = new CEGUI::ListboxTextItem(
         reinterpret_cast<const CEGUI::utf8*>(campaign->m_name.c_str()));
     // is in game dir
@@ -404,7 +404,7 @@ void cMenu_Start::Init_GUI(void) {
       CEGUI::WindowManager::getSingleton().getWindow("listbox_worlds"));
 
   // overworld names
-  for (const auto& overworld : pOverworld_Manager->objects) {
+  for (auto* overworld : pOverworld_Manager->Objects()) {
     const cOverworld_description* world = &overworld->m_description;
 
 // show all worlds in debug builds

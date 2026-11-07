@@ -106,7 +106,7 @@ std::unique_ptr<cCampaign> cCampaign_Manager::Load_Campaign(
 }
 
 cCampaign* cCampaign_Manager::Get_from_Name(const std::string& name) {
-  for (const auto& campaign : objects) {
+  for (const auto& campaign : m_objects) {
     if (campaign->m_name.compare(name) == 0) {
       return campaign.get();
     }

@@ -843,9 +843,9 @@ bool cMouseCursor::Get_Snap_Pos(GL_point& new_pos, int snap,
   cSprite const* snap_obj = nullptr;
 
   // check objects for overlap
-  for (const auto& sprite : m_sprite_manager->objects) {
+  for (auto* sprite : m_sprite_manager->Objects()) {
     // don't check selected objects
-    if (Is_Selected_Object(sprite.get(), false)) {
+    if (Is_Selected_Object(sprite, false)) {
       continue;
     }
 
@@ -924,7 +924,7 @@ bool cMouseCursor::Get_Snap_Pos(GL_point& new_pos, int snap,
           continue;
         }
 
-        snap_obj = sprite.get();
+        snap_obj = sprite;
         distance_left = obj_distance_left;
         distance_right = obj_distance_right;
         distance_top = obj_distance_top;
@@ -1315,7 +1315,7 @@ void cMouseCursor::Update_Selection(void) {
   }
 
   // add selected objects
-  for (const auto& sprite : m_sprite_manager->objects) {
+  for (auto* sprite : m_sprite_manager->Objects()) {
     // don't check spawned/destroyed objects
     if (sprite->m_spawned || sprite->m_auto_destroy) {
       continue;
@@ -1326,7 +1326,7 @@ void cMouseCursor::Update_Selection(void) {
       continue;
     }
 
-    Add_Selected_Object(sprite.get(), true);
+    Add_Selected_Object(sprite, true);
   }
 
   if (rect.Intersects(pActive_Player->m_rect)) {

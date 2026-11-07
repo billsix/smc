@@ -47,14 +47,12 @@ void cSound::Free(void) {
 
 /* *** *** *** *** *** *** cSound_Manager *** *** *** *** *** *** *** *** *** *** *** */
 
-cSound_Manager::cSound_Manager(void) : cObject_Manager<cSound>() {
-  m_load_count = 0;
-}
+cSound_Manager::cSound_Manager(void) { m_load_count = 0; }
 
-cSound_Manager::~cSound_Manager(void) { cSound_Manager::Delete_All(); }
+cSound_Manager::~cSound_Manager(void) { Delete_All(); }
 
 cSound* cSound_Manager::Get_Pointer(const std::string& path) const {
-  for (const auto& sound : objects) {
+  for (const auto& sound : m_objects) {
     if (sound->m_filename.compare(path) == 0) {
       // return first found
       return sound.get();
@@ -67,7 +65,7 @@ cSound* cSound_Manager::Get_Pointer(const std::string& path) const {
 
 cSound* cSound_Manager::Add(std::unique_ptr<cSound> sound) {
   m_load_count++;
-  return cObject_Manager<cSound>::Add(std::move(sound));
+  return m_objects.emplace_back(std::move(sound)).get();
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

@@ -104,6 +104,33 @@ update `tasks/reference/smc/` in the same commit (the reference set names these 
   clean, rebuild + smoke pass. **Play-test owed:** level backgrounds draw; the editor's level-settings
   screen adds/deletes background images and edits the gradient colours; the main menu's background
   fades.
+- **Phase 2 done (un-derive):** `cObject_Manager<T>` and `core/obj_manager.h` are deleted. The nine
+  subclasses (sprite, collision list, sound, campaign, HUD, level, overworld, animation, image) each
+  hold a private `Owning_Vector<T>` from the new `core/owning_vector.h`, which is `vector<unique_ptr<T>>`
+  plus free lookups (`Find_Owned`, `Erase_Owned`, `Release_Owned`, `Borrow_At`, `Index_Of`) and
+  `Borrowed()`, a `std::views::transform` view of `T*`. Each class declares only what its callers
+  use: `Objects()` (the view, on the seven classes iterated from outside), `Add`/`Delete_All` where
+  the base supplied them, `size`/`empty`/`Get_Pointer`/`Get_Array_Num` where called, and
+  `cObjectCollisionType::Take_All`/`Append`. Those replace the two places that moved collisions
+  between lists by reaching into `objects`. The 63 outside `->objects` loops became
+  `for (auto* x : mgr->Objects())`. Mechanical part: codemod
+  `tasks/adhoc/smc-manager-classes-to-std-containers/underive.py` (idempotent); the rest was
+  compiler-driven.
+  - **Two traps:** clang rejects an inline `Add`/`Delete_All` in `level_manager.h` and
+    `world_manager.h`, because `cLevel`/`cOverworld` are incomplete there, so those bodies live in the
+    `.cpp`. `cSound_Manager::Get_Pointer(string)` was `virtual` with nothing deriving, which tripped
+    clang's `-Wdelete-non-abstract-non-virtual-dtor` once the virtual base destructor was gone, so it
+    is non-virtual now. `cSprite_Manager` keeps a virtual `Add`/`Delete_All`/destructor, because
+    `cWorld_Sprite_Manager` derives from it until phase 5.
+  - **`-Woverloaded-virtual`:** only 2 of the ~17 suppressions belonged to the managers, on
+    `cObject_Manager::Delete_All` and `cSprite_Manager::Delete_All(bool)`; both are gone. The other 15
+    are the sprite hierarchy's deliberate narrowing (`enemies/*.h`, `objects/movingsprite.h`,
+    `input/mouse.h`, `video/animation.h`) and are outside this task.
+  - Gates: gcc and clang `-Werror` clean (0 warnings); `build.sh game` + smoke pass.
+  - **Play-test:** a level plays as before (enemies, items, collisions, stomping, falling into a
+    pit); the HUD shows points/time/lives/gold/item box; the overworld map loads and walks; the
+    main menu's campaign and world lists fill; the save/load of a game in a level and on the
+    overworld; the editor's object placement and deletion.
 - **Pause lifted (William Emerison Six <billsix@gmail.com>, 2026-11-07):** "just go ahead, I'll try to
   play test it later." Each phase still passes the gcc/clang gate and smoke, and adds its items to the
   play-test list below; the maintainer plays the whole list once.

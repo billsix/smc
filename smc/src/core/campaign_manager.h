@@ -18,7 +18,7 @@
 
 #include "../core/global_basic.h"
 #include "../core/global_game.h"
-#include "../core/obj_manager.h"
+#include "../core/owning_vector.h"
 // CEGUI
 #include "CEGUIXMLHandler.h"
 #include "CEGUIXMLAttributes.h"
@@ -51,10 +51,19 @@ class cCampaign {
 
 /* *** *** *** *** *** cCampaign_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cCampaign_Manager : public cObject_Manager<cCampaign> {
+class cCampaign_Manager {
  public:
+  // The owned objects, borrowed (cCampaign* each), for range-for
+  auto Objects(void) const { return Borrowed(m_objects); }
+  // Take ownership of the given object; returns the borrowed pointer
+  cCampaign* Add(std::unique_ptr<cCampaign> obj) {
+    return m_objects.emplace_back(std::move(obj)).get();
+  }
+  // Delete all objects
+  void Delete_All(void) { m_objects.clear(); }
+
   cCampaign_Manager(void);
-  ~cCampaign_Manager(void) override;
+  ~cCampaign_Manager(void);
 
   // load all campaigns
   void Load(void);
@@ -64,6 +73,9 @@ class cCampaign_Manager : public cObject_Manager<cCampaign> {
 
   // Get campaign from name
   cCampaign* Get_from_Name(const std::string& name);
+
+ private:
+  Owning_Vector<cCampaign> m_objects;
 };
 
 /* *** *** *** *** *** *** *** cCampaign_XML_Handler *** *** *** *** *** *** *** *** *** *** */

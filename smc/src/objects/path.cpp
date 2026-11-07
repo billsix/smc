@@ -112,12 +112,12 @@ cPath* cPath_State::Get_Path_Object(const std::string& identifier) {
   }
 
   // Search for path
-  for (const auto& sprite : m_sprite_manager->objects) {
+  for (auto* sprite : m_sprite_manager->Objects()) {
     if (sprite->m_type != TYPE_PATH || sprite->m_auto_destroy) {
       continue;
     }
 
-    cPath* path = static_cast<cPath*>(sprite.get());
+    cPath* path = static_cast<cPath*>(sprite);
 
     // found
     if (path->m_identifier.compare(identifier) == 0) {
@@ -523,13 +523,13 @@ void cPath::Set_Identifier(const std::string& identifier) {
   /* search for linked objects
 	 * needed to update the links
 	*/
-  for (const auto& sprite : pActive_Level->m_sprite_manager.objects) {
+  for (auto* sprite : pActive_Level->m_sprite_manager.Objects()) {
     if (sprite->m_auto_destroy) {
       continue;
     }
 
     if (sprite->m_type == TYPE_STATIC_ENEMY) {
-      cStaticEnemy* static_enemy = static_cast<cStaticEnemy*>(sprite.get());
+      cStaticEnemy* static_enemy = static_cast<cStaticEnemy*>(sprite);
 
       // found
       if (static_enemy->m_path_state.m_path_identifier.compare(m_identifier) ==
@@ -540,7 +540,7 @@ void cPath::Set_Identifier(const std::string& identifier) {
       }
     } else if (sprite->m_type == TYPE_MOVING_PLATFORM) {
       cMoving_Platform* moving_platform =
-          static_cast<cMoving_Platform*>(sprite.get());
+          static_cast<cMoving_Platform*>(sprite);
 
       // found
       if (moving_platform->m_path_state.m_path_identifier.compare(

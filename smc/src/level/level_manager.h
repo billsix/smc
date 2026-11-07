@@ -17,7 +17,7 @@
 #define SMC_LEVEL_MANAGER_H
 
 #include "../core/global_basic.h"
-#include "../core/obj_manager.h"
+#include "../core/owning_vector.h"
 #include "../core/camera.h"
 #include "../level/level.h"
 
@@ -29,10 +29,18 @@ namespace SMC {
 
 /* *** *** *** *** *** cLevel_Manager  *** *** *** *** *** *** *** *** *** *** *** *** */
 
-class cLevel_Manager : public cObject_Manager<cLevel> {
+class cLevel_Manager {
  public:
+  // The owned objects, borrowed (cLevel* each), for range-for
+  auto Objects(void) const { return Borrowed(m_objects); }
+  // Take ownership of the given object; returns the borrowed pointer
+  cLevel* Add(std::unique_ptr<cLevel> obj);
+  // Delete all objects
+  void Delete_All(void);
+  size_t size(void) const { return m_objects.size(); }
+
   cLevel_Manager(void);
-  ~cLevel_Manager(void) override;
+  ~cLevel_Manager(void);
 
   // Load level descriptions
   void Init(void);
@@ -77,6 +85,9 @@ class cLevel_Manager : public cObject_Manager<cLevel> {
 
   // level camera (owned value)
   cCamera m_camera;
+
+ private:
+  Owning_Vector<cLevel> m_objects;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

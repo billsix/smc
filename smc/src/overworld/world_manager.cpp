@@ -29,7 +29,7 @@ namespace SMC {
 /* *** *** *** *** *** *** *** *** cOverworld_Manager *** *** *** *** *** *** *** *** *** */
 
 cOverworld_Manager::cOverworld_Manager(cSprite_Manager* sprite_manager)
-    : cObject_Manager<cOverworld>(), m_camera(sprite_manager) {
+    : m_camera(sprite_manager) {
   m_debug_mode = false;
   m_draw_layer = false;
   m_camera_mode = false;
@@ -38,6 +38,12 @@ cOverworld_Manager::cOverworld_Manager(cSprite_Manager* sprite_manager)
 }
 
 cOverworld_Manager::~cOverworld_Manager(void) { Delete_All(); }
+
+cOverworld* cOverworld_Manager::Add(std::unique_ptr<cOverworld> obj) {
+  return m_objects.emplace_back(std::move(obj)).get();
+}
+
+void cOverworld_Manager::Delete_All(void) { m_objects.clear(); }
 
 bool cOverworld_Manager::New(std::string name) {
   string_trim(name, ' ');
@@ -61,7 +67,7 @@ bool cOverworld_Manager::New(std::string name) {
 
 void cOverworld_Manager::Init(void) {
   // if already loaded
-  if (!objects.empty()) {
+  if (!m_objects.empty()) {
     Delete_All();
   }
 
@@ -130,10 +136,9 @@ bool cOverworld_Manager::Set_Active(cOverworld* world) {
   pOverworld_Player->Reset();
 
   // pre-update animations
-  for (const auto& sprite : world->m_sprite_manager.objects) {
+  for (auto* sprite : world->m_sprite_manager.Objects()) {
     if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
-      cParticle_Emitter* emitter =
-          static_cast<cParticle_Emitter*>(sprite.get());
+      cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(sprite);
       emitter->Pre_Update();
     }
   }
@@ -150,7 +155,7 @@ void cOverworld_Manager::Reset(void) {
       static_cast<int>(pActive_Overworld->m_player_start_waypoint));
 
   // Reset all Waypoints
-  for (const auto& overworld : objects) {
+  for (const auto& overworld : m_objects) {
     overworld->Reset_Waypoints();
   }
 }
@@ -166,7 +171,7 @@ cOverworld* cOverworld_Manager::Get(const std::string& str) {
 }
 
 cOverworld* cOverworld_Manager::Get_from_Path(const std::string& path) {
-  for (const auto& overworld : objects) {
+  for (const auto& overworld : m_objects) {
     if (overworld->m_description.m_path.compare(path) == 0) {
       return overworld.get();
     }
@@ -176,7 +181,7 @@ cOverworld* cOverworld_Manager::Get_from_Path(const std::string& path) {
 }
 
 cOverworld* cOverworld_Manager::Get_from_Name(const std::string& name) {
-  for (const auto& overworld : objects) {
+  for (const auto& overworld : m_objects) {
     if (overworld->m_description.m_name.compare(name) == 0) {
       return overworld.get();
     }
@@ -186,8 +191,8 @@ cOverworld* cOverworld_Manager::Get_from_Name(const std::string& name) {
 }
 
 int cOverworld_Manager::Get_Array_Num(const std::string& path) const {
-  for (unsigned int i = 0; i < objects.size(); i++) {
-    if (objects[i]->m_description.m_path.compare(path) == 0) {
+  for (unsigned int i = 0; i < m_objects.size(); i++) {
+    if (m_objects[i]->m_description.m_path.compare(path) == 0) {
       return static_cast<int>(i);
     }
   }

@@ -115,11 +115,9 @@ bool cCollidingSprite::Add_Collision(
 void cCollidingSprite::Add_Collisions(cObjectCollisionType* col_list,
                                       bool add_if_new /* = 0 */) {
   // move ownership of each collision out of col_list into m_collisions
-  for (auto& collision : col_list->objects) {
+  for (auto& collision : col_list->Take_All()) {
     Add_Collision(std::move(collision), add_if_new);
   }
-
-  col_list->objects.clear();
 }
 
 void cCollidingSprite::Delete_Collision(cObjectCollision* collision) {

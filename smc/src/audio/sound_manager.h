@@ -17,7 +17,7 @@
 #define SMC_SOUND_MANAGER_H
 
 #include "../core/global_basic.h"
-#include "../core/obj_manager.h"
+#include "../core/owning_vector.h"
 // SDL
 // also includes needed SDL headers
 #include "SDL_mixer.h"
@@ -52,24 +52,29 @@ using SoundList = vector<cSound*>;
  * - cSound_Manager [path]
  * - cSound_Manager [ID]
 */
-class cSound_Manager : public cObject_Manager<cSound> {
+class cSound_Manager {
  public:
-  cSound_Manager(void);
-  ~cSound_Manager(void) override;
+  // Delete all objects
+  void Delete_All(void) { m_objects.clear(); }
 
-  // Un-hide the base size_t overload that the string overload below would otherwise hide
-  using cObject_Manager<cSound>::Get_Pointer;
+  cSound_Manager(void);
+  ~cSound_Manager(void);
+
+  // The object at the given index, or nullptr when out of range
+  cSound* Get_Pointer(size_t identifier) const {
+    return Borrow_At(m_objects, identifier);
+  }
 
   // Return the Sound from Path
-  virtual cSound* Get_Pointer(const std::string& path) const;
+  cSound* Get_Pointer(const std::string& path) const;
 
   /* Add a Sound
 	 * Should always have the path set
 	 */
-  cSound* Add(std::unique_ptr<cSound> item) override;
+  cSound* Add(std::unique_ptr<cSound> item);
 
   cSound* operator[](unsigned int identifier) const {
-    return cObject_Manager<cSound>::Get_Pointer(identifier);
+    return Borrow_At(m_objects, identifier);
   }
 
   cSound* operator[](const std::string& path) const {
@@ -79,6 +84,7 @@ class cSound_Manager : public cObject_Manager<cSound> {
  private:
   // sounds loaded since initialization
   unsigned int m_load_count;
+  Owning_Vector<cSound> m_objects;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

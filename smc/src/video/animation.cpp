@@ -2264,20 +2264,18 @@ bool cParticle_Emitter::Editor_Clip_Mode_Select(const CEGUI::EventArgs& event) {
 
 /* *** *** *** *** *** cAnimation_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cAnimation_Manager::cAnimation_Manager(void) : cObject_Manager<cAnimation>() {}
+cAnimation_Manager::cAnimation_Manager(void) {}
 
-cAnimation_Manager::~cAnimation_Manager(void) {
-  cAnimation_Manager::Delete_All();
-}
+cAnimation_Manager::~cAnimation_Manager(void) { Delete_All(); }
 
 void cAnimation_Manager::Update(void) {
-  for (auto itr = objects.begin(); itr != objects.end();) {
+  for (auto itr = m_objects.begin(); itr != m_objects.end();) {
     // update
     (*itr)->Update();
 
     // delete if finished (erase frees it)
     if (!(*itr)->m_active) {
-      itr = objects.erase(itr);
+      itr = m_objects.erase(itr);
     }
     // increment
     else {
@@ -2287,7 +2285,7 @@ void cAnimation_Manager::Update(void) {
 }
 
 void cAnimation_Manager::Draw(void) {
-  for (const auto& animation : objects) {
+  for (const auto& animation : m_objects) {
     animation->Draw();
   }
 }
@@ -2300,7 +2298,7 @@ cAnimation* cAnimation_Manager::Add(std::unique_ptr<cAnimation> animation) {
   /* todo : particle animations should not set emitter TTL to 0
 	 * many spawned particle emitters only emit one particle with an emitter which is very slow
 	*/
-  return cObject_Manager<cAnimation>::Add(std::move(animation));
+  return m_objects.emplace_back(std::move(animation)).get();
 }
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

@@ -194,8 +194,8 @@ std::unique_ptr<cObjectCollisionType> cMovingSprite::Col_Move_in_Steps(
           collision_found = true;
         }
         // remove internal collision from further checks
-        else if (col_list_temp->objects.size()) {
-          for (const auto& col : col_list_temp->objects) {
+        else if (col_list_temp->size()) {
+          for (auto* col : col_list_temp->Objects()) {
             if (col->m_valid_type != COL_VTYPE_INTERNAL) {
               continue;
             }
@@ -221,11 +221,7 @@ std::unique_ptr<cObjectCollisionType> cMovingSprite::Col_Move_in_Steps(
       }
 
       if (col_list_temp->size()) {
-        col_list->objects.insert(
-            col_list->objects.end(),
-            std::make_move_iterator(col_list_temp->objects.begin()),
-            std::make_move_iterator(col_list_temp->objects.end()));
-        col_list_temp->objects.clear();
+        col_list->Append(*col_list_temp);
       }
 
       if (!collision_found) {
@@ -274,8 +270,8 @@ std::unique_ptr<cObjectCollisionType> cMovingSprite::Col_Move_in_Steps(
           collision_found = true;
         }
         // remove internal collision from further checks
-        else if (col_list_temp->objects.size()) {
-          for (const auto& col : col_list_temp->objects) {
+        else if (col_list_temp->size()) {
+          for (auto* col : col_list_temp->Objects()) {
             if (col->m_valid_type != COL_VTYPE_INTERNAL) {
               continue;
             }
@@ -301,11 +297,7 @@ std::unique_ptr<cObjectCollisionType> cMovingSprite::Col_Move_in_Steps(
       }
 
       if (col_list_temp->size()) {
-        col_list->objects.insert(
-            col_list->objects.end(),
-            std::make_move_iterator(col_list_temp->objects.begin()),
-            std::make_move_iterator(col_list_temp->objects.end()));
-        col_list_temp->objects.clear();
+        col_list->Append(*col_list_temp);
       }
 
       if (!collision_found) {
@@ -683,8 +675,8 @@ std::unique_ptr<cObjectCollisionType> cMovingSprite::Collision_Check(
 
   // Check objects
   if (use_manager) {
-    for (const auto& sprite : m_sprite_manager->objects) {
-      check_object(sprite.get());
+    for (auto* sprite : m_sprite_manager->Objects()) {
+      check_object(sprite);
     }
   } else {
     for (cSprite* level_object : *objects) {
@@ -808,12 +800,12 @@ void cMovingSprite::Check_on_Ground(void) {
   Reset_On_Ground();
 
   // possible ground objects
-  for (const auto& col : col_list->objects) {
+  for (auto* col : col_list->Objects()) {
     // ground collision found
     if (col->m_direction == DIR_BOTTOM) {
       if (Set_On_Ground(col->m_obj)) {
         // send collision ( needed for falling platform )
-        Send_Collision(col.get());
+        Send_Collision(col);
         break;
       }
     }
@@ -826,7 +818,7 @@ void cMovingSprite::Update_Anti_Stuck(void) {
       Collision_Check(&m_col_rect, COLLIDE_ONLY_BLOCKING);
 
   // check collisions
-  for (const auto& collision : col_list->objects) {
+  for (auto* collision : col_list->Objects()) {
     cSprite const* col_obj = collision->m_obj;
 
     if (collision->m_array == ARRAY_ENEMY ||

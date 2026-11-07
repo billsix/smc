@@ -18,7 +18,7 @@
 
 #include "../core/global_basic.h"
 #include "../video/video.h"
-#include "../core/obj_manager.h"
+#include "../core/owning_vector.h"
 #include "../video/gl_surface.h"
 
 namespace SMC {
@@ -60,23 +60,27 @@ using GL_Surface_List = vector<cGL_Surface*>;
 // Operators:
 //  - cImage_Manager [path]
 //  - cImage_Manager [identifier]
-class cImage_Manager : public cObject_Manager<cGL_Surface> {
+class cImage_Manager {
  public:
+  // The owned objects, borrowed (cGL_Surface* each), for range-for
+  auto Objects(void) const { return Borrowed(m_objects); }
+
   cImage_Manager(void);
-  ~cImage_Manager(void) override;
+  ~cImage_Manager(void);
 
   // Add a surface
-  cGL_Surface* Add(std::unique_ptr<cGL_Surface> obj) override;
+  cGL_Surface* Add(std::unique_ptr<cGL_Surface> obj);
 
-  // un-hide the base-class Get_Pointer(size_t) overload, which this class's
-  // Get_Pointer(const std::string&) would otherwise hide (no ambiguity)
-  using cObject_Manager<cGL_Surface>::Get_Pointer;
+  // The object at the given index, or nullptr when out of range
+  cGL_Surface* Get_Pointer(size_t identifier) const {
+    return Borrow_At(m_objects, identifier);
+  }
 
   // Return the surface by path
   cGL_Surface* Get_Pointer(const std::string& path) const;
 
   cGL_Surface* operator[](unsigned int identifier) {
-    return cObject_Manager<cGL_Surface>::Get_Pointer(identifier);
+    return Borrow_At(m_objects, identifier);
   }
 
   cGL_Surface* operator[](const std::string& path) { return Get_Pointer(path); }
@@ -100,7 +104,7 @@ class cImage_Manager : public cObject_Manager<cGL_Surface> {
   void Delete_Hardware_Textures(void);
 
   // Delete all Surfaces
-  void Delete_All(void) override;
+  void Delete_All(void);
 
   // highest opengl texture id found
   GLuint m_high_texture_id;
@@ -108,6 +112,7 @@ class cImage_Manager : public cObject_Manager<cGL_Surface> {
  private:
   // saved textures for reloading
   Saved_Texture_List m_saved_textures;
+  Owning_Vector<cGL_Surface> m_objects;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

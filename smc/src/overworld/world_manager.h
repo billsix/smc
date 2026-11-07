@@ -17,7 +17,7 @@
 #define SMC_WORLD_MANAGER_H
 
 #include "../core/global_basic.h"
-#include "../core/obj_manager.h"
+#include "../core/owning_vector.h"
 #include "../core/camera.h"
 // CEGUI
 #include "CEGUIXMLHandler.h"
@@ -29,10 +29,17 @@ namespace SMC {
 
 class cOverworld;
 
-class cOverworld_Manager : public cObject_Manager<cOverworld> {
+class cOverworld_Manager {
  public:
+  // The owned objects, borrowed (cOverworld* each), for range-for
+  auto Objects(void) const { return Borrowed(m_objects); }
+  // Take ownership of the given object; returns the borrowed pointer
+  cOverworld* Add(std::unique_ptr<cOverworld> obj);
+  // Delete all objects
+  void Delete_All(void);
+
   cOverworld_Manager(cSprite_Manager* sprite_manager);
-  ~cOverworld_Manager(void) override;
+  ~cOverworld_Manager(void);
 
   /* Create a new overworld
 	 * returns true if successful
@@ -74,6 +81,9 @@ class cOverworld_Manager : public cObject_Manager<cOverworld> {
 
   // world camera (owned value)
   cCamera m_camera;
+
+ private:
+  Owning_Vector<cOverworld> m_objects;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

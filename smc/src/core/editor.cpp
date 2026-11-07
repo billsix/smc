@@ -342,7 +342,7 @@ void cEditor::Enable(void) {
   // update player position rect
   pActive_Player->Update_Position_Rect();
   // update sprite manager position rect
-  for (const auto& sprite : m_sprite_manager->objects) {
+  for (auto* sprite : m_sprite_manager->Objects()) {
     sprite->Update_Position_Rect();
   }
 
@@ -366,7 +366,7 @@ void cEditor::Disable(bool native_mode /* = 1 */) {
     // player
     pActive_Player->Update_Position_Rect();
     // sprite manager
-    for (const auto& sprite : m_sprite_manager->objects) {
+    for (auto* sprite : m_sprite_manager->Objects()) {
       sprite->Update_Position_Rect();
     }
 
@@ -812,8 +812,8 @@ bool cEditor::Key_Down(SDLKey key) {
     // player
     pMouseCursor->Add_Selected_Object(pActive_Player, true);
     // sprite manager
-    for (const auto& sprite : m_sprite_manager->objects) {
-      pMouseCursor->Add_Selected_Object(sprite.get(), true);
+    for (auto* sprite : m_sprite_manager->Objects()) {
+      pMouseCursor->Add_Selected_Object(sprite, true);
     }
   }
   // Paste copy buffer objects
@@ -1397,7 +1397,7 @@ void cEditor::Select_Same_Object_Types(const cSprite* obj) {
   }
 
   // sprite manager
-  for (const auto& game_obj : m_sprite_manager->objects) {
+  for (auto* game_obj : m_sprite_manager->Objects()) {
     if (game_obj->m_type != obj->m_type) {
       continue;
     }
@@ -1406,7 +1406,7 @@ void cEditor::Select_Same_Object_Types(const cSprite* obj) {
       continue;
     }
 
-    pMouseCursor->Add_Selected_Object(game_obj.get(), true);
+    pMouseCursor->Add_Selected_Object(game_obj, true);
   }
 }
 

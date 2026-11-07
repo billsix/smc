@@ -250,10 +250,9 @@ void cLevel_Entry::Activate(void) {
       // center camera
       pActive_Camera->Center();
       // keep particles on screen
-      for (const auto& sprite : m_sprite_manager->objects) {
+      for (auto* sprite : m_sprite_manager->Objects()) {
         if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
-          cParticle_Emitter* emitter =
-              static_cast<cParticle_Emitter*>(sprite.get());
+          cParticle_Emitter* emitter = static_cast<cParticle_Emitter*>(sprite);
           emitter->Update_Position();
         }
       }

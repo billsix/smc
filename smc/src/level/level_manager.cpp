@@ -29,8 +29,7 @@ namespace SMC {
 
 /* *** *** *** *** *** cLevel_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
 
-cLevel_Manager::cLevel_Manager(void)
-    : cObject_Manager<cLevel>(), m_camera(nullptr) {
+cLevel_Manager::cLevel_Manager(void) : m_camera(nullptr) {
   // set the first camera available
   if (pActive_Camera == nullptr) {
     pActive_Camera = &m_camera;
@@ -44,6 +43,12 @@ cLevel_Manager::cLevel_Manager(void)
 
 cLevel_Manager::~cLevel_Manager(void) { Delete_All(); }
 
+cLevel* cLevel_Manager::Add(std::unique_ptr<cLevel> obj) {
+  return m_objects.emplace_back(std::move(obj)).get();
+}
+
+void cLevel_Manager::Delete_All(void) { m_objects.clear(); }
+
 void cLevel_Manager::Init(void) {}
 
 void cLevel_Manager::Unload(void) {
@@ -52,8 +57,8 @@ void cLevel_Manager::Unload(void) {
 
   // always keep one level (erasing the rest frees them)
   if (size() > 1) {
-    objects.erase(objects.begin(), objects.end() - 1);
-    pActive_Level = objects.front().get();
+    m_objects.erase(m_objects.begin(), m_objects.end() - 1);
+    pActive_Level = m_objects.front().get();
   }
 
   // keep the managers valid
@@ -110,7 +115,7 @@ bool cLevel_Manager::Set_Active(cLevel* level) {
 }
 
 cLevel* cLevel_Manager::Get(const std::string& str) {
-  for (const auto& level : objects) {
+  for (const auto& level : m_objects) {
     if (Trim_Filename(level->m_level_filename, false, false).compare(str) ==
         0) {
       return level.get();
@@ -396,11 +401,10 @@ void cLevel_Manager::Goto_Sub_Level(
                                       start_path_pos_y + path_state.m_pos_y);
 
               // keep particles on screen
-              for (const auto& sprite :
-                   pActive_Level->m_sprite_manager.objects) {
+              for (auto* sprite : pActive_Level->m_sprite_manager.Objects()) {
                 if (sprite->m_type == TYPE_PARTICLE_EMITTER) {
                   cParticle_Emitter* emitter =
-                      static_cast<cParticle_Emitter*>(sprite.get());
+                      static_cast<cParticle_Emitter*>(sprite);
                   emitter->Update_Position();
                 }
               }
