@@ -24,7 +24,7 @@ classes the game uses for its own files. Done = smc builds against Fedora's `ceg
   calls.
 - Precedents to mine: RPM Fusion's `smc-1.9-cegui-0.8.patch` (2014) and **TSC** (The Secret
   Chronicles of Dr. M, SMC's GPLv3 successor), which runs on CEGUI 0.8 with a CMake build. The
-  CMake port (`tasks/smc-port-build-to-cmake.md`, decided 2026-11-07) should land first, so this
+  CMake port (`tasks/archive/2026/11/07/smc-port-build-to-cmake.md`, done 2026-11-07) landed first, so this
   port changes only one build system.
 
 ## Step 1 — the game's XML I/O (decided here, 2026-11-07)

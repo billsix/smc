@@ -2,7 +2,7 @@
 
 **Status:** proposed — needs go-ahead (William Emerison Six <billsix@gmail.com>, 2026-09-24)
 **Priority:** 5 · **Difficulty:** 5
-**Depends on:** `tasks/smc-port-build-to-cmake.md` (build the binary), and pairs with
+**Depends on:** `tasks/archive/2026/11/07/smc-port-build-to-cmake.md` (done 2026-11-07) (build the binary), and pairs with
 `tasks/smc-github-cicd.md` (CI can produce the AppImage as a release artifact).
 
 ## BLUF

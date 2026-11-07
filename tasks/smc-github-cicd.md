@@ -2,7 +2,7 @@
 
 **Status:** proposed — needs go-ahead (William Emerison Six <billsix@gmail.com>, 2026-09-24)
 **Priority:** 5 · **Difficulty:** 4
-**Depends on:** `tasks/smc-port-build-to-cmake.md`; consumes `tasks/smc-linux-appimage-make-target.md`
+**Depends on:** `tasks/archive/2026/11/07/smc-port-build-to-cmake.md` (done 2026-11-07); consumes `tasks/smc-linux-appimage-make-target.md`
 and `tasks/smc-windows-msvc-vcpkg.md` as they land.
 
 ## BLUF
