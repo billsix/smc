@@ -3,7 +3,7 @@
 # Builds a scratch copy of the mounted smc/ tree with clang++ against the image's
 # CEGUI, never touching the mounted tree (which holds the host's in-tree build).
 #
-#   [HOST] make shell-exec SCRIPT=tasks/adhoc/smc-replace-libraries-with-std/clang_gate.sh
+#   [HOST] make shell-exec SCRIPT=tasks/adhoc/smc-port-build-to-cmake/compiler_gate.sh
 #
 # Exit status is the build's: 0 = clang -Werror clean.
 set -euo pipefail

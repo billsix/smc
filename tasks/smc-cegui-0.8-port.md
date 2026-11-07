@@ -32,7 +32,7 @@ classes the game uses for its own files. Done = smc builds against Fedora's `ceg
 The game reads and writes its own files (levels, worlds, savegames, preferences, campaigns,
 powerups) through **CEGUI's XML classes** (`XMLParser`, `XMLHandler`, `XMLAttributes`,
 `XMLSerializer`), which also change in 0.8. ISO C++ has no XML parser, so no `std::` swap is
-possible. The options weighed (originally in `tasks/smc-replace-libraries-with-std.md`):
+possible. The options weighed (originally in `tasks/archive/2026/11/07/smc-replace-libraries-with-std.md`):
 
 - (a) leave it on CEGUI's XML layer (expat underneath) and port it along with everything else;
 - (b) **move the game's file I/O off CEGUI onto pugixml or tinyxml2** (small, permissively
