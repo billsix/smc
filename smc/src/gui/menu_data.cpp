@@ -3526,10 +3526,8 @@ void cMenu_Credits ::Leave(const GameMode next_mode /* = MODE_NOTHING */) {
   }
 
   // set menu gradient colors back
-  pMenuCore->m_handler.m_level.m_background_manager.Get_Pointer(0)
-      ->m_color_1.alpha = 255;
-  pMenuCore->m_handler.m_level.m_background_manager.Get_Pointer(0)
-      ->m_color_2.alpha = 255;
+  pMenuCore->m_handler.m_level.Gradient_Background().m_color_1.alpha = 255;
+  pMenuCore->m_handler.m_level.Gradient_Background().m_color_2.alpha = 255;
 }
 
 void cMenu_Credits ::Exit(void) {
@@ -3582,7 +3580,7 @@ void cMenu_Credits ::Update(void) {
           unsigned int quota = 4;
 
           // multi-explosion
-          if (rand() % 2) {
+          if (Random_Below(2)) {
             anim->Set_Image_Filename("animation/particles/fire_2.png");
             anim->Set_Emitter_Time_to_Live(0.4f);
             anim->Set_Emitter_Iteration_Interval(0.05f);
@@ -3594,7 +3592,7 @@ void cMenu_Credits ::Update(void) {
           }
           // star explosion
           else {
-            quota += static_cast<unsigned int>(rand() % 25);
+            quota += static_cast<unsigned int>(Random_Below(25));
             anim->Set_Image_Filename("animation/particles/fire_3.png");
             anim->Set_Direction_Range(0, 360);
             anim->Set_Scale(0.2f, 0.1f);
@@ -3610,8 +3608,8 @@ void cMenu_Credits ::Update(void) {
           }
 
           anim->Set_Quota(quota);
-          anim->Set_Color(Color(static_cast<Uint8>(100 + (rand() % 155)),
-                                100 + (rand() % 155), 100 + (rand() % 155)));
+          anim->Set_Color(Color(static_cast<Uint8>(100 + (Random_Below(155))),
+                                100 + (Random_Below(155)), 100 + (Random_Below(155))));
           anim->Set_Const_Rotation_Z(-5, 10);
           anim->Set_Vertical_Gravity(0.02f);
           anim->Set_Pos_Z(0.16f);
@@ -3653,8 +3651,7 @@ void cMenu_Credits ::Draw(void) {
   auto request = std::make_unique<cRect_Request>();
   pVideo->Draw_Rect(
       nullptr, 0.095f,
-      &pMenuCore->m_handler.m_level.m_background_manager.Get_Pointer(0)
-           ->m_color_2,
+      &pMenuCore->m_handler.m_level.Gradient_Background().m_color_2,
       request.get());
   request->m_color.red = static_cast<Uint8>(request->m_color.red * 0.1f);
   request->m_color.green = static_cast<Uint8>(request->m_color.green * 0.1f);
@@ -3741,10 +3738,10 @@ void cMenu_Credits ::Menu_Fade(bool fade_in /* = 1 */) {
     }
 
     // set menu gradient colors
-    pMenuCore->m_handler.m_level.m_background_manager.Get_Pointer(0)
-        ->m_color_1.alpha = static_cast<Uint8>(counter);
-    pMenuCore->m_handler.m_level.m_background_manager.Get_Pointer(0)
-        ->m_color_2.alpha = static_cast<Uint8>(counter);
+    pMenuCore->m_handler.m_level.Gradient_Background().m_color_1.alpha =
+        static_cast<Uint8>(counter);
+    pMenuCore->m_handler.m_level.Gradient_Background().m_color_2.alpha =
+        static_cast<Uint8>(counter);
 
     // # Draw
 
@@ -3759,8 +3756,7 @@ void cMenu_Credits ::Menu_Fade(bool fade_in /* = 1 */) {
     auto request = std::make_unique<cRect_Request>();
     pVideo->Draw_Rect(
         nullptr, 0.095f,
-        &pMenuCore->m_handler.m_level.m_background_manager.Get_Pointer(0)
-             ->m_color_2,
+        &pMenuCore->m_handler.m_level.Gradient_Background().m_color_2,
         request.get());
     request->m_color.red = static_cast<Uint8>(request->m_color.red * 0.1f);
     request->m_color.green = static_cast<Uint8>(request->m_color.green * 0.1f);

@@ -541,7 +541,7 @@ void cFirePlant ::Update(void) {
   if (m_counter > speedfactor_fps * 2.5f) {
     // if no direction image set
     if (m_curr_img == 0) {
-      Set_Image_Num(1 + (rand() % 2), false);
+      Set_Image_Num(1 + (Random_Below(2)), false);
     }
     // direction image is set
     else {

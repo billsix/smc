@@ -239,14 +239,12 @@ void cLevel_Settings ::Init(void) {
       CEGUI::Spinner::EventKeyUp,
       CEGUI::Event::Subscriber(&cLevel_Settings::Update_BG_Image, this));
   // Gradient colors
-  m_bg_color_1 =
-      Color(m_level->m_background_manager.Get_Pointer(0)->m_color_1.red,
-            m_level->m_background_manager.Get_Pointer(0)->m_color_1.green,
-            m_level->m_background_manager.Get_Pointer(0)->m_color_1.blue, 255);
-  m_bg_color_2 =
-      Color(m_level->m_background_manager.Get_Pointer(0)->m_color_2.red,
-            m_level->m_background_manager.Get_Pointer(0)->m_color_2.green,
-            m_level->m_background_manager.Get_Pointer(0)->m_color_2.blue, 255);
+  m_bg_color_1 = Color(m_level->Gradient_Background().m_color_1.red,
+                       m_level->Gradient_Background().m_color_1.green,
+                       m_level->Gradient_Background().m_color_1.blue, 255);
+  m_bg_color_2 = Color(m_level->Gradient_Background().m_color_2.red,
+                       m_level->Gradient_Background().m_color_2.green,
+                       m_level->Gradient_Background().m_color_2.blue, 255);
 
   // color 1
   editbox = static_cast<CEGUI::Editbox*>(
@@ -384,8 +382,8 @@ void cLevel_Settings ::Leave(void) {
 
   // # Background Tab
   // Gradient
-  m_level->m_background_manager.Get_Pointer(0)->Set_Color_1(m_bg_color_1);
-  m_level->m_background_manager.Get_Pointer(0)->Set_Color_2(m_bg_color_2);
+  m_level->Gradient_Background().Set_Color_1(m_bg_color_1);
+  m_level->Gradient_Background().Set_Color_2(m_bg_color_2);
 
   Unload();
 }
@@ -446,7 +444,7 @@ bool cLevel_Settings ::Add_Background_Image(const CEGUI::EventArgs& event) {
   background->Set_Type(BG_IMG_BOTTOM);
   background->Set_Image(LEVEL_DEFAULT_BACKGROUND);
 
-  m_level->m_background_manager.Add(std::move(background));
+  m_level->m_backgrounds.push_back(std::move(background));
 
   Load_BG_Image_List();
 
@@ -465,7 +463,10 @@ bool cLevel_Settings ::Delete_Background_Image(const CEGUI::EventArgs& event) {
   // get background
   cBackground* background = static_cast<cBackground*>(item->getUserData());
   // delete it
-  m_level->m_background_manager.Delete(background);
+  std::erase_if(m_level->m_backgrounds,
+                [background](const std::unique_ptr<cBackground>& owned) {
+                  return owned.get() == background;
+                });
 
   // update list
   Load_BG_Image_List();
@@ -611,7 +612,7 @@ void cLevel_Settings ::Load_BG_Image_List(void) {
       CEGUI::WindowManager::getSingleton().getWindow("listbox_backgrounds"));
   listbox->resetList();
 
-  for (const auto& background : m_level->m_background_manager.objects) {
+  for (const auto& background : m_level->m_backgrounds) {
     // skip gradients
     if (background->m_type == BG_GR_HOR || background->m_type == BG_GR_VER) {
       continue;
@@ -629,7 +630,7 @@ void cLevel_Settings ::Load_BG_Image_List(void) {
           "button_add_background_image"));
 
   // 9 layers + default background is the maximum
-  if (m_level->m_background_manager.size() >= 10) {
+  if (m_level->m_backgrounds.size() >= 10) {
     button_add->disable();
   } else {
     button_add->enable();

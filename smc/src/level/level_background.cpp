@@ -343,17 +343,6 @@ std::string cBackground ::Get_Type_Name(const BackgroundType type) {
   return "Unknown";
 }
 
-/* *** *** *** *** *** *** cBackground_Manager *** *** *** *** *** *** *** *** *** *** *** */
-
-cBackground_Manager ::cBackground_Manager(void)
-    : cObject_Manager<cBackground>() {
-  //
-}
-
-cBackground_Manager ::~cBackground_Manager(void) {
-  cBackground_Manager::Delete_All();
-}
-
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */
 
 }  // namespace SMC

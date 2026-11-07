@@ -1,8 +1,8 @@
 # `src/audio/` — verified source analysis
 
 Scope: the game's own audio code under `smc/src/audio/` (6 files, 2228 lines). SDL_mixer is the
-seam the game calls, not analysed. Build pins SDL2 + SDL2_mixer (`configure.ac:52` `sdl2 >= 2.0.0`,
-`configure.ac:67` `AC_CHECK_LIB([SDL2_mixer], [Mix_OpenAudio]`; commit `d438165 update to SDL2`).
+seam the game calls, not analysed. Build pins SDL2 + SDL2_mixer (`smc/CMakeLists.txt`
+`pkg_check_modules(SDL2 … sdl2>=2.0.0 SDL2_image SDL2_mixer SDL2_ttf)`; commit `d438165 update to SDL2`).
 Every `Mix_*` call in the game lives in this directory (`rg -n 'Mix_[A-Z]' src | grep -v src/audio/`
 = 0 hits), so this directory *is* the whole SDL_mixer seam. Paths below are relative to `smc/src/`.
 

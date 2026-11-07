@@ -313,7 +313,7 @@ void Gui_Handle_Time(void) {
   static float last_time_pulse = 0;
 
   // get current "run-time" in seconds
-  float const t = 0.001f * SDL_GetTicks();
+  float const t = 0.001f * Ticks_Ms();
 
   // inject the time that passed since the last call
   CEGUI::System::getSingleton().injectTimePulse(t - last_time_pulse);

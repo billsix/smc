@@ -6,7 +6,7 @@ TRUE of the build after that task; the task doc holds the chronology.
 
 ## In one paragraph
 
-The game at HEAD (`smc/`, autotools, last upstream commit 2014) targets SDL 1.2, CEGUI 0.7 and a
+The game at HEAD (`smc/`, autotools until its 2026-11-07 CMake port, last upstream commit 2014) targets SDL 1.2, CEGUI 0.7 and a
 Boost of its day. Getting it to build on Fedora 44 (GCC 16, Boost 1.90, SDL 2.32 via
 `sdl2-compat`) took three things: **vendoring CEGUI 0.7.9** (no distribution packages the 0.7
 API any more; Fedora's `cegui` is the incompatible 0.8) and building it into the image;
@@ -17,7 +17,7 @@ under GCC 16 with no other change. CEGUI 0.7.9 compiled unpatched.
 
 ## The dependencies, and where each comes from
 
-| Need (from `smc/configure.ac`) | Fedora 44 package | Note |
+| Need (from the game's build: `smc/configure.ac`, now `smc/CMakeLists.txt`) | Fedora 44 package | Note |
 |---|---|---|
 | `sdl2 >= 2.0.0` (was `sdl >= 1.2.10`) | `SDL2-devel` (provided by `sdl2-compat-devel` 2.32) | the port, below |
 | SDL2_image / SDL2_mixer / SDL2_ttf | `SDL2_image-devel`, `SDL2_mixer-devel`, `SDL2_ttf-devel` | same call names as the 1.2 libs |
@@ -38,7 +38,7 @@ on-screen runs are `entrypoint/02-install-graphics.sh` (`USE_GRAPHICS`, default 
 - `Samples/` must stay in the tree even though nothing builds it: `configure.ac` names the
   sample Makefiles, so `./bootstrap` fails without them (`--disable-samples` keeps them unbuilt).
 - Configured by `entrypoint/build.sh cegui` with exactly the modules the game needs: the OpenGL
-  renderer (external GLEW), the **Null renderer** (the game's `configure.ac` links
+  renderer (external GLEW), the **Null renderer** (the game's build links
   `CEGUINullRenderer` too — without `--enable-null-renderer` the game's configure stops with
   "CEGUINullRenderer library not found"), the expat XML parser, the FreeImage codec. Lua/Python,
   Ogre/Irrlicht/DirectFB, bidi text and minizip are off.
@@ -71,7 +71,7 @@ hunk exists:
 | `SDLK_KP0..9`, `SDLK_PRINT`, `SDLK_LSUPER/RSUPER`, `SDLK_SCROLLOCK`, `SDLK_NUMLOCK`; `val <= SDLK_LAST` | `SDLK_KP_0..9`, `SDLK_PRINTSCREEN`, `SDLK_LGUI/RGUI`, `SDLK_SCROLLLOCK`, `SDLK_NUMLOCKCLEAR`; the upper-bound checks dropped (`SDL_Keycode` is sparse); `typedef SDL_Keycode SDLKey` in `global_basic.h` keeps the game's spelling |
 | `char *e = SDL_GetError()` | `const char *` |
 
-`configure.ac` asks for `sdl2` and the `SDL2_*` libraries; SDL2_image/mixer/ttf kept their 1.2
+The build asks for `sdl2` and the `SDL2_*` libraries; SDL2_image/mixer/ttf kept their 1.2
 function names, so no call sites changed for them.
 
 ## Boost 1.90

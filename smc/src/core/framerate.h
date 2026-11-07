@@ -19,7 +19,25 @@
 #include "SDL.h"
 #include "../core/global_game.h"
 
+#include <chrono>
+#include <thread>
+
 namespace SMC {
+
+// Milliseconds since the first call (std::chrono::steady_clock), wrapping like
+// SDL_GetTicks. Counting from first use keeps the value small, so a float made
+// from it (an animation phase) keeps millisecond precision.
+inline Uint32 Ticks_Ms(void) {
+  static auto const start = std::chrono::steady_clock::now();
+  auto const elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+      std::chrono::steady_clock::now() - start);
+  return static_cast<Uint32>(elapsed.count());
+}
+
+// Block the calling thread for the given number of milliseconds.
+inline void Sleep_Ms(Uint32 milliseconds) {
+  std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+}
 
 /* *** *** *** *** *** *** *** cPerformance_Timer *** *** *** *** *** *** *** *** *** *** */
 

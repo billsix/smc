@@ -1,3 +1,30 @@
 .git
 *.tar
 tasks
+
+# Leftover autotools files and in-tree build output a host tree may still hold
+# (the game built with autotools before its CMake port). None are sources; the
+# image builds from smc/CMakeLists.txt out of tree. Copying them in would only
+# bloat the image. Mirrors the build-artifact entries in .gitignore.
+smc/aclocal.m4
+smc/autom4te.cache
+smc/config.*
+smc/configure
+smc/data/Makefile
+smc/data/Makefile.in
+smc/depcomp
+smc/install-sh
+smc/m4
+smc/Makefile
+smc/Makefile.in
+smc/missing
+smc/src/.deps
+smc/src/Makefile
+smc/src/Makefile.in
+smc/src/*.o
+smc/src/smc
+smc/stamp-h1
+smc/build-aux
+smc/ABOUT-NLS
+smc/compile
+smc/po

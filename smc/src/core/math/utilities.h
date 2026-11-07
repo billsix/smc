@@ -18,8 +18,8 @@
 
 #include "../../core/global_basic.h"
 #include "../../core/global_game.h"
-// for rand()
-#include <cstdlib>
+#include <concepts>
+#include <random>
 
 namespace SMC {
 
@@ -36,10 +36,30 @@ inline T Clamp(const T& v, const T& min, const T& max) {
   return v;
 }
 
-// return a random floating point value between the given values
+// The game's random engine: one Mersenne Twister, seeded once from
+// std::random_device on first use.
+inline std::mt19937& Random_Engine() {
+  static std::mt19937 engine{std::random_device{}()};
+  return engine;
+}
+
+// A uniformly distributed integer in [0, n), of n's own type; 0 when n <= 0.
+// The draw goes through long long because std::uniform_int_distribution may not
+// be instantiated with char-sized types such as Uint8.
+template <std::integral T>
+inline T Random_Below(T n) {
+  if (n <= T{0}) {
+    return T{0};
+  }
+  std::uniform_int_distribution<long long> distribution(
+      0, static_cast<long long>(n) - 1);
+  return static_cast<T>(distribution(Random_Engine()));
+}
+
+// return a random floating point value between the given values (either order)
 inline float Get_Random_Float(float min, float max) {
-  return min + (max - min) * static_cast<float>(rand()) /
-                   static_cast<float>(RAND_MAX);
+  std::uniform_real_distribution<float> unit(0.0f, 1.0f);
+  return min + (max - min) * unit(Random_Engine());
 }
 
 // Checks if number is power of 2 and if not returns the next power of two size

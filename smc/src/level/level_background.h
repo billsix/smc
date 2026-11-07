@@ -18,7 +18,6 @@
 
 #include "../core/global_basic.h"
 #include "../video/video.h"
-#include "../core/obj_manager.h"
 // CEGUI
 #include "CEGUIXMLSerializer.h"
 
@@ -118,14 +117,6 @@ class cBackground {
   // colors
   Color m_color_1;
   Color m_color_2;
-};
-
-/* *** *** *** *** *** cBackground_Manager *** *** *** *** *** *** *** *** *** *** *** *** */
-
-class cBackground_Manager : public cObject_Manager<cBackground> {
- public:
-  cBackground_Manager(void);
-  ~cBackground_Manager(void) override;
 };
 
 /* *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** */

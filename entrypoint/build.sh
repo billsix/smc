@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 #
-# build.sh -- build the vendored CEGUI 0.7.9 into a prefix, then the game (autotools) against it,
+# build.sh -- build the vendored CEGUI 0.7.9 into a prefix, then the game (CMake) against it,
 # installing the game into a prefix beside the source. Runs at image-build time (Dockerfile) and
 # interactively (`make shell`, then `build.sh` after an edit). All paths are under the repo root
 # ($SMC, default /smc -- the bind-mount path), so a host run works too.
 #
 #   build.sh            everything (CEGUI is skipped when its prefix already has the library)
 #   build.sh cegui      only CEGUI
-#   build.sh game       only the game (incremental; re-runs configure when needed)
+#   build.sh game       only the game (incremental CMake/Ninja rebuild)
 #
 # Why CEGUI is built here at all: CEGUI 0.7 is not packaged anywhere current, so the image
 # compiles the vendored copy into /usr/local (a committed image layer -- the exported image needs
-# no network years from now); the game's configure finds it through PKG_CONFIG_PATH.
+# no network years from now); the game's CMake finds it through PKG_CONFIG_PATH.
 set -euo pipefail
 
 SMC="${SMC:-/smc}"
@@ -21,6 +21,8 @@ SMC="${SMC:-/smc}"
 # the checkout over /smc hides no build product, and a pulled image runs standalone.
 PREFIX="${SMC_PREFIX:-/usr/local}"
 JOBS="${JOBS:-$(nproc)}"
+# The game's CMake build tree: fixed, and outside the bind-mounted repo.
+GAME_BUILD_DIR="${GAME_BUILD_DIR:-/opt/smc-build}"
 what="${1:-all}"
 
 build_cegui() {
@@ -30,7 +32,7 @@ build_cegui() {
     echo "== CEGUI 0.7.9 -> $PREFIX"
     cd "$SMC/third_party/cegui-0.7.9"
     [ -x configure ] || ./bootstrap
-    # Only what the game uses: the OpenGL renderer, the Null renderer (smc/configure.ac links
+    # Only what the game uses: the OpenGL renderer, the Null renderer (smc/CMakeLists.txt links
     # CEGUINullRenderer too), the expat XML parser, the FreeImage codec. Everything else (samples,
     # Lua/Python, Ogre/Irrlicht/DirectFB renderers) off.
     ./configure --prefix="$PREFIX" \
@@ -52,14 +54,15 @@ build_cegui() {
 
 build_game() {
     echo "== the game -> $PREFIX"
-    cd "$SMC/smc"
     export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/lib64/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
-    [ -x configure ] || ./autogen.sh
-    if [ ! -f Makefile ] || [ configure -nt Makefile ]; then
-        ./configure --prefix="$PREFIX"
-    fi
-    make -j"$JOBS"
-    make install
+    # CMake (smc/CMakeLists.txt), building in GAME_BUILD_DIR: a fixed path OUTSIDE
+    # the bind-mounted repo, so the host's own build files never meet the
+    # container's CMake cache. The cache records the source path ($SMC/smc), which
+    # is the same baked or mounted, so `build.sh game` in `make shell` is an
+    # incremental rebuild of the mounted sources.
+    cmake -S "$SMC/smc" -B "$GAME_BUILD_DIR" -G Ninja -DCMAKE_INSTALL_PREFIX="$PREFIX"
+    cmake --build "$GAME_BUILD_DIR" -j"$JOBS"
+    cmake --install "$GAME_BUILD_DIR"
     echo "== built: $PREFIX/bin/smc (data: $PREFIX/share/smc)"
 }
 
