@@ -54,7 +54,9 @@ build_game() {
     echo "== the game -> $PREFIX"
     cd "$SMC/smc"
     export PKG_CONFIG_PATH="$PREFIX/lib/pkgconfig:$PREFIX/lib64/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
-    [ -x configure ] || ./autogen.sh
+    # Regenerate configure when configure.ac changed since it was generated (a
+    # stale configure would build without the current flags, e.g. the -Werror gate).
+    if [ ! -x configure ] || [ configure.ac -nt configure ]; then ./autogen.sh; fi
     if [ ! -f Makefile ] || [ configure -nt Makefile ]; then
         ./configure --prefix="$PREFIX"
     fi

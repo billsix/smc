@@ -1,3 +1,31 @@
 .git
 *.tar
 tasks
+
+# Generated autotools files and in-tree build output from a host build. The
+# image's build.sh regenerates and rebuilds these from the sources; copying a
+# host tree's stale `configure` or `.o` files in would build with old flags
+# (no -Werror gate) and reuse objects built outside the image. Mirrors the
+# build-artifact entries in .gitignore.
+smc/aclocal.m4
+smc/autom4te.cache
+smc/config.*
+smc/configure
+smc/data/Makefile
+smc/data/Makefile.in
+smc/depcomp
+smc/install-sh
+smc/m4
+smc/Makefile
+smc/Makefile.in
+smc/missing
+smc/src/.deps
+smc/src/Makefile
+smc/src/Makefile.in
+smc/src/*.o
+smc/src/smc
+smc/stamp-h1
+smc/build-aux
+smc/ABOUT-NLS
+smc/compile
+smc/po
